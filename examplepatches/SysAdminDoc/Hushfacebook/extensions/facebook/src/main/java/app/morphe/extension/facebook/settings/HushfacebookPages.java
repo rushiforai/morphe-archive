@@ -68,11 +68,12 @@ final class HushfacebookPages {
         PreferenceCategory updates = category(screen, L10n.t("Updates"));
         if (build.contains(PatchFamily.UPDATE_PROMPTS)) {
             updates.addPreference(toggle(context, Settings.STOP_UPDATE_PROMPTS,
-                    L10n.t("Facebook stops asking you to update through Meta App Manager and stops having it look for one. "
-                            + "Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.")));
+                    L10n.t("Stops update nagging through Meta App Manager and hides chat promotions for older versions. A "
+                            + "patched Facebook can't use Meta's updates anyway.")));
         }
         updates.addPreference(toggle(context, Settings.CHECK_FOR_RELEASES,
-                L10n.t("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.")));
+                L10n.t("Once a day, when Facebook starts, checks GitHub for a newer Hushfacebook and tells you at the top "
+                        + "of this page. Nothing downloads on its own.")));
         updates.addPreference(page.checkNowRow(context));
         ReleaseCheck.watch(page);
     }
@@ -89,7 +90,8 @@ final class HushfacebookPages {
         }
         if (build.contains(PatchFamily.SYSTEM_FONT)) {
             appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT,
-                    L10n.t("Use your phone's font or a file chosen below. Restart Facebook after changing it.")));
+                    L10n.t("Draws Facebook's text in your phone's font, or in a font file you choose below. Restart Facebook to "
+                            + "see the change.")));
             // The file the switch draws in, and, while one is picked, the way back to the phone's font.
             // The way back goes in once whatever is picked, so it keeps its place right after Font file
             // when a pick brings it back, rather than landing at the end of the section.
@@ -102,24 +104,25 @@ final class HushfacebookPages {
         if (build.contains(PatchFamily.SYSTEM_EMOJI)) {
             // The quick emoji picker keeps the first typeface it's given until Facebook restarts.
             appearance.addPreference(toggle(context, Settings.USE_SYSTEM_EMOJI,
-                    L10n.t("Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.")));
+                    L10n.t("Shows your phone's own emoji instead of Facebook's. Reactions and stickers don't change. Restart "
+                            + "Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
             // Facebook places the tab bar as its main screen starts, so a change waits for a restart.
             appearance.addPreference(toggle(context, Settings.BOTTOM_TAB_BAR,
-                    L10n.t("Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. "
-                            + "Restart Facebook after changing it.")));
+                    L10n.t("Moves Facebook's tab bar to the bottom, within thumb reach, on accounts that show it at the top. "
+                            + "Restart Facebook to see the change.")));
             // Facebook adds the bar to the views that scroll away as its main screen starts.
             appearance.addPreference(toggle(context, Settings.TAB_BAR_SCROLL_AWAY,
-                    L10n.t("When the tab bar is at the bottom, it slides away as you scroll down and comes back "
-                            + "when you scroll up. Restart Facebook after changing it.")));
+                    L10n.t("The bottom tab bar hides as you scroll down and returns when you scroll up, for more room. Restart "
+                            + "Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.HIDDEN_TABS)) {
             // Facebook builds the tab bar once, so a change waits for a restart.
             for (HiddenTabs.Tab tab : HiddenTabs.Tab.values()) {
                 appearance.addPreference(toggle(context, tab.setting(),
-                        L10n.t("Takes the tab off the tab bar. Its page stays in the Menu. Restart Facebook after "
-                                + "changing it.")));
+                        L10n.t("Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the "
+                                + "change.")));
             }
         }
         if (build.contains(PatchFamily.TAB_BADGES)) {
@@ -131,25 +134,25 @@ final class HushfacebookPages {
                         : L10n.t("No dot or count on this tab. Its page still shows what's new when you open it.")));
             }
             appearance.addPreference(toggle(context, Settings.HIDE_APP_ICON_COUNT,
-                    L10n.t("No count on Facebook's app icon. Notifications still come in. A launcher that counts "
-                            + "notifications on its own may still show them.")));
+                    L10n.t("No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, "
+                            + "which this can't remove.")));
         }
         if (build.contains(PatchFamily.FORCE_DARK_MODE)) {
             // Facebook asks for dark mode as each screen applies its theme, so a change shows fully after a restart.
             appearance.addPreference(toggle(context, Settings.FORCE_DARK_MODE,
-                    L10n.t("Keep Facebook in dark mode whatever its own setting says, for tablets where Facebook's "
-                            + "settings have no Dark mode. Restart Facebook after changing it.")));
+                    L10n.t("Keeps Facebook dark no matter its own setting. Meant for tablets where Facebook has no Dark mode "
+                            + "switch. Restart Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.HAPTICS)) {
             appearance.addPreference(toggle(context, Settings.TURN_OFF_HAPTICS,
-                    L10n.t("No short vibrations on Facebook's own taps and gestures. The keyboard and your "
-                            + "phone's own haptics stay.")));
+                    L10n.t("Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations "
+                            + "aren't affected.")));
         }
         if (build.contains(PatchFamily.SCREEN_TRANSITIONS)) {
             // Asked at each tap and each screen change, so a change shows from the next one.
             appearance.addPreference(toggle(context, Settings.TURN_OFF_SCREEN_TRANSITIONS,
-                    L10n.t("Tabs, the Menu and screens that open over Facebook show at once, without the slide "
-                            + "between them. Swiping between tabs stays.")));
+                    L10n.t("Tabs, the Menu and screens that open over Facebook appear at once instead of sliding in. Swiping "
+                            + "between tabs still works.")));
         }
     }
 
@@ -162,16 +165,16 @@ final class HushfacebookPages {
                 || build.contains(PatchFamily.INSTALL_BESIDE_META_APPS)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
             if (build.contains(PatchFamily.AD_PREFETCH)) {
-                patched.addPreference(mark(info(context, L10n.t("Background ad prefetch blocked"),
-                        L10n.t("Facebook doesn't download ads or its ad model in the background.")), SettingsIcons.BLOCK));
+                patched.addPreference(mark(info(context, L10n.t("Ads aren't downloaded in advance"),
+                        L10n.t("Facebook no longer downloads ads, or the data it uses to pick them, in the background.")), SettingsIcons.BLOCK));
             }
             if (build.contains(PatchFamily.AD_TELEMETRY)) {
-                patched.addPreference(mark(info(context, L10n.t("Ad telemetry blocked"),
-                        L10n.t("No screenshot watching for ads, and no reports of which apps you install.")), SettingsIcons.TELEMETRY));
+                patched.addPreference(mark(info(context, L10n.t("Ad tracking blocked"),
+                        L10n.t("Facebook doesn't watch for screenshots to target ads, and doesn't report which apps you install.")), SettingsIcons.TELEMETRY));
             }
             if (build.contains(PatchFamily.AUDIENCE_NETWORK)) {
                 patched.addPreference(mark(info(context, L10n.t("Audience Network off"),
-                        L10n.t("Facebook doesn't serve ads to other apps on this phone.")), SettingsIcons.NETWORK));
+                        L10n.t("Facebook doesn't show its ads inside other apps on this phone.")), SettingsIcons.NETWORK));
             }
             if (build.contains(PatchFamily.AMOLED_THEME)) {
                 patched.addPreference(mark(info(context, L10n.t("AMOLED black theme"),
@@ -179,18 +182,19 @@ final class HushfacebookPages {
             }
             if (build.contains(PatchFamily.MATERIAL_YOU_THEME)) {
                 patched.addPreference(mark(info(context, L10n.t("Material You theme"),
-                        L10n.t("Facebook dark mode and this screen use your wallpaper colours. Android 11 uses blue "
-                                + "instead. Turn on Facebook dark mode to see it.")), SettingsIcons.APPEARANCE));
+                        L10n.t("Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn on dark mode in "
+                                + "Facebook to see it.")), SettingsIcons.APPEARANCE));
             }
             if (build.contains(PatchFamily.RESTORE_TRUST)) {
-                patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
-                        L10n.t("Profiles, photos, posts and some Settings pages open again on this re-signed build.")),
+                patched.addPreference(mark(info(context, L10n.t("Profiles and posts work again"),
+                        L10n.t("On a patched Facebook, profiles, photos, posts and some Settings pages wouldn't open. This fixes "
+                                + "that.")),
                         SettingsIcons.BUILD));
             }
             if (build.contains(PatchFamily.INSTALL_BESIDE_META_APPS)) {
-                patched.addPreference(mark(info(context, L10n.t("Room for Meta's apps"),
-                        L10n.t("Messenger, Facebook Lite, Business Suite and Workplace install beside this Facebook. "
-                                + "It gives the two permissions they share with it names of its own.")), SettingsIcons.PHONE));
+                patched.addPreference(mark(info(context, L10n.t("Meta's apps can install beside this one"),
+                        L10n.t("Messenger, Facebook Lite, Business Suite and Workplace can install next to this Facebook. Their "
+                                + "shared permissions no longer clash.")), SettingsIcons.PHONE));
             }
             patched.addPreference(info(context, L10n.t("Changing these"),
                     L10n.t("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. "
@@ -204,24 +208,25 @@ final class HushfacebookPages {
         // Named for its rows: the screen's own title already says Hushfacebook.
         PreferenceCategory hushfacebook = category(screen, L10n.t("Pause, backup and diagnostics"));
         hushfacebook.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause Hushfacebook"),
-                L10n.t("From the next start, every switch but Debug logging and Lock Facebook acts as if it "
-                        + "were off. Changes made when you patched stay in, and your choices stay saved.")),
+                L10n.t("Try Facebook without Hushfacebook. From the next start, switches act as if off, except Debug "
+                        + "logging and Lock Facebook. Your choices stay saved.")),
                 SettingsIcons.PATCHED));
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushfacebook.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.EXPORT,
                 L10n.t("Export settings"),
-                L10n.t("Save your switches and download settings to a file. Pause and Debug logging aren't included, "
-                        + "and neither is the release check.")), SettingsIcons.EXPORT));
+                L10n.t("Saves your switches and download choices to a file, to back up or copy to another phone. Pause, "
+                        + "Debug logging and the update check aren't included.")), SettingsIcons.EXPORT));
         // The preview gives a count of the switches and the download settings' new values, not
         // each switch by name.
         hushfacebook.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.IMPORT,
                 L10n.t("Import settings"),
-                L10n.t("Choose a settings file. Before anything is imported, you'll see how many switches it "
-                        + "changes and any new download settings.")), SettingsIcons.DOWNLOADS));
+                L10n.t("Choose a settings file you saved earlier. You'll see how many switches it changes before anything "
+                        + "is applied.")), SettingsIcons.DOWNLOADS));
         // Debug logging also fills the exported report and turns on error toasts (Logger).
         hushfacebook.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
-                L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));
+                L10n.t("Records what the patches do and shows error messages, to help with a bug report. Leave it off for "
+                        + "everyday use.")), SettingsIcons.BUG));
         // A test for Debug logging only: a Messenger patched with this build's key, asked now
         // instead of on Facebook's own schedule. Restore screens fills it in. The screen is built
         // once, so the row comes and goes when settings open again after Debug logging changes: a
@@ -229,8 +234,8 @@ final class HushfacebookPages {
         if (build.contains(PatchFamily.RESTORE_TRUST) && BaseSettings.DEBUG.get() && MessengerLinkCheck.available()) {
             Preference link = new Row(context);
             link.setTitle(L10n.t("Test the Messenger link"));
-            link.setSummary(L10n.t("Runs the two reads Facebook makes of Messenger at startup, now, and shows whether "
-                    + "each one answered. Shown while Debug logging is on."));
+            link.setSummary(L10n.t("Checks now whether Facebook can reach Messenger, the way it does at startup, and shows each result. "
+                    + "Appears while Debug logging is on."));
             link.setPersistent(false);
             link.setOnPreferenceClickListener(p -> {
                 MessengerLinkCheck.start(context);
@@ -242,12 +247,12 @@ final class HushfacebookPages {
         // resources that Facebook's APK doesn't have, and untitled they showed as blank rows.
         ExportDiagnosticReportPreference export = new ExportRow(context);
         export.setTitle(L10n.t("Export diagnostic report"));
-        export.setSummary(L10n.t("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies "
-                + "and sign-in tokens are left out. Check it for other private text before you share it."));
+        export.setSummary(L10n.t("Copy or save a report to send with a bug report. Links, IDs, cookies and sign-in details are left "
+                + "out. Check it before sharing."));
         hushfacebook.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
-        clear.setClearAndUndoSummaries(L10n.t("Empties the log and the filter counts a report would include."),
+        clear.setClearAndUndoSummaries(L10n.t("Erases the activity log and the counts of hidden items that a report would include."),
                 L10n.t("Diagnostic data cleared. Tap again to put it back."));
         hushfacebook.addPreference(mark(clear, SettingsIcons.DELETE));
         // Facebook's own traffic tools (user certificates, proxy, TLS 1.3) sit with the report: both
@@ -286,13 +291,41 @@ final class HushfacebookPages {
         // repository does not reach them.
         Preference licenses = new Row(context);
         licenses.setTitle(L10n.t("Licenses"));
-        licenses.setSummary(L10n.t("GPL-3.0, with the notices of the projects this is built on"));
+        licenses.setSummary(L10n.t("The GPL-3.0 license, plus notices for the projects this is built on"));
         licenses.setPersistent(false);
         licenses.setOnPreferenceClickListener(p -> {
             showNotice(page, context);
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+    }
+
+    /** Where Support Hushfacebook goes: the maintainer's Ko-fi page. */
+    static final String SUPPORT_URL = "https://ko-fi.com/X8K126YVER";
+
+    /** SUPPORT_URL without its scheme, for the toast. Worked out here, so no literal sits in the L10n call. */
+    static final String SUPPORT_ADDRESS = SUPPORT_URL.substring(SUPPORT_URL.indexOf("://") + 3);
+
+    /** The key of Support Hushfacebook, the settings home page's last row. */
+    static final String SUPPORT = "action_support_hushfacebook";
+
+    /** The Ko-fi page, for a browser, in a task of its own so it never opens inside Facebook's. */
+    static Intent supportIntent() {
+        return new Intent(Intent.ACTION_VIEW, Uri.parse(SUPPORT_URL))
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+
+    /** Opens the Ko-fi page, or says no app here can, as Source code and issues does. */
+    static void openSupport(Context context) {
+        try {
+            context.startActivity(supportIntent());
+        } catch (ActivityNotFoundException | SecurityException missing) {
+            // No browser, or none switched on. Uncaught, Android's exception closed Facebook.
+            Logger.printInfo(() -> "No app opened the support link");
+            Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
+                    L10n.isolate(SUPPORT_ADDRESS)));
+        }
     }
 
     /**

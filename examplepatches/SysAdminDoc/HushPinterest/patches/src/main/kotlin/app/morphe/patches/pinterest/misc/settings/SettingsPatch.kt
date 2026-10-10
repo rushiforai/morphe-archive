@@ -130,10 +130,9 @@ internal val settingsManifestPatch = resourcePatch {
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "HushPinterest settings",
-    description = "Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open " +
-        "Additional settings in the app on Pinterest's App info page, to turn features on or off, pause " +
-        "HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses " +
-        "are there too.",
+    description = "Adds a HushPinterest page to Pinterest where you turn features on or off, pause HushPinterest, " +
+        "back up your settings and read the licenses. Open it by long-pressing the Pinterest icon. Works " +
+        "as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")

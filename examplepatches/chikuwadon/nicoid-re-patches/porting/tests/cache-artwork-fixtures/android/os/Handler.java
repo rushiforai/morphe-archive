@@ -1,0 +1,1 @@
+package android.os;import java.util.*;public class Handler{static final Queue<Runnable> queue=new ArrayDeque<>();public Handler(Looper l){}public boolean post(Runnable r){synchronized(queue){queue.add(r);}return true;}public static void flush(){while(true){Runnable r;synchronized(queue){r=queue.poll();}if(r==null)return;r.run();}}}

@@ -11,15 +11,18 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import dev.twitchpatches.patches.twitch.settings.settingsPatch
+import dev.twitchpatches.patches.twitch.playback.restoreNativePlaybackControls
+import dev.twitchpatches.patches.twitch.settings.restoreFeedNavigationTheme
 
 private const val RN = "Lcom/facebook/react/runtime/ReactInstance;"
 private const val RUNTIME = "Ldev/twitchpatches/extension/shared/ReactNativeRuntime;"
 private const val ARRAY = "Lcom/facebook/react/bridge/WritableNativeArray;"
 
 internal val reactNativeBridgePatch = bytecodePatch {
-    dependsOn(settingsPatch, reactNativeAssetsPatch)
+    dependsOn(twitchExtensionPatch, reactNativeAssetsPatch)
     execute {
+        restoreNativePlaybackControls()
+        restoreFeedNavigationTheme()
         val type = classDefBy(RN)
         val nativeSegment = type.methods.filter {
             it.parameterTypes.map { parameter -> parameter.toString() } ==
@@ -80,8 +83,8 @@ internal val reactNativeBridgePatch = bytecodePatch {
             .uniqueHook("extension RN policy bridge")
         val dispatch = ImmutableMethod(RUNTIME, stub.name, stub.parameters, "V", stub.accessFlags,
             stub.annotations, stub.hiddenApiRestrictions, MutableMethodImplementation(7)).toMutable()
-        val writes = (0..7).joinToString("\n") { index -> """
-            const/4 v1, $index
+        val writes = (0..11).joinToString("\n") { index -> """
+            const/16 v1, $index
             aget-boolean v2, p1, v1
             invoke-virtual {v0, v2}, $ARRAY->pushBoolean(Z)V
         """ }

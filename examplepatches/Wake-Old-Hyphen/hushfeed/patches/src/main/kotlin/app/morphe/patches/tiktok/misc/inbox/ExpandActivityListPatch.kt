@@ -37,9 +37,8 @@ private const val ATOMIC_BOOLEAN_DESCRIPTOR = "Ljava/util/concurrent/atomic/Atom
 @Suppress("unused")
 val expandActivityListPatch = bytecodePatch(
     name = "Expand activity list",
-    description = "Show the full Activity and New followers lists instead " +
-        "of collapsing them behind a View all button. Switch: Hushfeed settings > Inbox.",
-    default = false,
+    description = "Shows the whole Activity and New followers lists in the Inbox, so you " +
+        "don't have to tap View all. Starts off. Turn it on in Hushfeed settings > Inbox.",
 ) {
     category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)

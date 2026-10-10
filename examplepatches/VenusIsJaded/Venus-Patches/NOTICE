@@ -1,0 +1,43 @@
+Morphe NOTICE
+=============
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Venus Patches NOTICE
+====================
+
+Some features are based on ideas from community Discord plugins. The code is written for this
+project: it hooks Discord's own pinned 348.10 JavaScript bundle and doesn't include or load
+code from any other client mod.
+
+PlatformIndicators uses five device icons from Martinz64/vendetta-plugins, which are released
+under The Unlicense. Release 1.3.9 briefly replaced them with Venus-drawn glyphs; 1.4.0 (first published as 1.3.10)
+brings the original icons back.
+
+ReviewDB talks to the community ReviewDB service (manti.vendicated.dev) only when you turn it
+on. Venus Patches isn't affiliated with or endorsed by that service, or by Discord Inc.
+Discord is a trademark of Discord Inc.
+
+Quest Completer is based on the approach of community quest scripts: aamiaa's "Complete Recent
+Discord Quest" gist, nicola02nb's CompleteDiscordQuest and Equicord's Questify (all GPL-3.0). Its
+code is written for this project against Discord 348.10's own modules.
+
+patches/src/main/kotlin/util/PatchListGenerator.kt is adapted from the Morphe patches
+template (https://github.com/MorpheApp/morphe-patches-template) and keeps its header.

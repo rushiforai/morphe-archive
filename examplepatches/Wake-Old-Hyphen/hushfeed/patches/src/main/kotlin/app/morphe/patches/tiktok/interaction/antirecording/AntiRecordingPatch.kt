@@ -43,7 +43,8 @@ private data class ScreenCaptureCallSite(
 @Suppress("unused")
 val antiRecordingPatch = bytecodePatch(
     name = "Disable screen capture detection",
-    description = "Prevents TikTok from reacting to screenshots and screen recordings.",
+    description = "Stops TikTok from noticing and reacting when you take a screenshot or " +
+        "record the screen. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Downloads")

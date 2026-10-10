@@ -885,7 +885,7 @@ public class SettingsNavigationTest {
         assertFalse(contains(HushThreadsPreferenceFragment.MISSING_DEFAULTS));
         controller.close();
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
-        PatchFamily.inBuildForTests.remove(PatchFamily.VIDEO_AUTOPLAY);
+        PatchFamily.inBuildForTests.remove(PatchFamily.VERSION_CODE);
         PatchFamily.inBuildForTests.remove(PatchFamily.HIDE_SUGGESTED_USERS);
         controller = Robolectric.buildActivity(Activity.class).setup().visible();
         dialog = SettingsL10nTest.show(controller.get());

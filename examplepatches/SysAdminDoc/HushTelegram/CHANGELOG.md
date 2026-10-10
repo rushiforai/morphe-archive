@@ -2,6 +2,54 @@
 
 Every HushTelegram release, newest first.
 
+## 0.0.12 (2026-10-09)
+
+The sixth release, with 56 patches for telegram.org's Telegram 12.10.6 and the official Telegram beta 12.10.7.
+
+* **Telegram:** On Telegram Beta, Disable analytics now also turns off Firebase's crash and session reports. Telegram's own crash reporter setup, which handed Crashlytics your user ID and username and switched collection back on at every launch, no longer runs, and Crashlytics' own setting is saved off, so it stops collecting and sending from the next start. Session reports stop right away. Push notifications don't change, and the regular build has neither reporter. Turning the switch off brings both back at the next launch.
+
+* **Telegram:** A new Turn off beta debug logs switch, off by default, stops Telegram Beta from writing debug logs all the time. The beta turned them on at every start, its connection log included, and its own debug menu couldn't stop that. Logs already saved stay until you clear them, and the regular build doesn't change. Restart Telegram after you turn it on.
+
+* **Telegram:** Keep deleted messages has a new Clear kept messages row in HushTelegram settings, right under its switch. One tap gives every message it kept, in every signed-in account, to Telegram's own deletion, so they go the way they would have without the patch. A notice tells you how many went. It's translated into all five languages.
+
+* **Telegram:** Keep deleted messages now marks a message as deleted the moment someone deletes it while you have that chat open. Before, the label only showed up after you left the chat and came back.
+
+* **Telegram:** Contributors have a new audit of the stock beta, signed in on a real phone. It covers a live search ad, the app's own settings screens, what the app sends on the local network, and how busy it stays in the foreground and background. It also separates contact sync from contact suggestions and notes what you can't learn from encrypted traffic.
+
+* **Telegram:** Added an app audit for sponsored-message delivery, ad reporting, telemetry, contact sync and current patch opportunities on the pinned 12.10.6 APK.
+
+* **Telegram:** Build and Pause reports now use Morphe Manager's patch names for haptic feedback and link tracking. The pause card's test now matches its current wording about Debug logging.
+
+* **Telegram:** Contributors now have a factory-app reference for the pinned APK, with the first-run flow, manifest entry points, stable anchors and fixture-update steps.
+
+* **Telegram:** The three patch options (your Telegram API ID and hash, and your Google Maps key) have clearer names and say where to find each value.
+
+* **Telegram:** Messages inside HushTelegram are plainer too: the notification status lines, the pause and safe mode notes, update check results, settings file errors, and the "this build doesn't change" notes now say what happened and what to do next, with no technical words. All five languages are updated.
+
+* **Telegram:** The rows in HushTelegram settings now say in plain English what you'll notice when a switch is on, and a few titles are clearer (Stop vibrations on taps, Remove link tracking tags, Show where a profile photo is stored). The translations are updated to match.
+
+* **Telegram:** Every patch description in Morphe Manager is rewritten in plain English. Each one now says what changes on screen, why you might want it, and ends with where to find its switch in HushTelegram settings and whether it starts on or off.
+
+* **Telegram:** Each patch's description in Morphe Manager now says which page of HushTelegram settings holds its switch, under the switch's own name when that differs, and whether it starts on or off. Nothing is hidden behind Expert mode: every patch but the two credential patches was already in the default selection, and the README's install steps now say so.
+
+* **Telegram:** Expert mode's Chats group held 41 of the 55 patches. It's now split into groups you'd look in: Chats for the chat list, Conversations for inside a chat, Playback, Notifications, Theme, Interface, Stories and Search. Hide promotional banners and Hide Premium, gifts and Stars moved to Ads, and Disable update checks moved to Updates.
+
+* **Telegram:** Strip link tracking's description now reads plainly. It still removes only the listed tracking keys and still starts off.
+
+* **Tooling:** The scripts that patch Telegram with the desktop CLI (the all-patches check, the release receipt and the selection matrix) now wait their turn in the build queue that `BUILD_QUEUE_SCRIPT` names, so they don't fight a Gradle build for the same cores. Release runs go to the front. Without a queue they run straight away and print a warning.
+
+* **Tooling:** The pre-push hook now reads `HUSHTELEGRAM_BUILD_WRAPPER` and its other settings from your user environment when the shell has them empty, not only when they're missing, since pwsh keeps an empty variable around. With no wrapper at all, its own `gradlew` run waits in the build queue too.
+
+* **Tooling:** The selection matrix reads the whole fixture APK for its hash twice a run, before the first case and after the last, instead of up to three times in each of its 74 cases. Each case still checks the APK's size and write time, and a changed APK still fails the run.
+
+* **Tooling:** The patch tests that open the vendor Telegram APKs now run in their own Gradle task, `:patches:fixtureTest`. `:patches:test` still runs every patch test and passes `--tests` on to it, while `:patches:test -x :patches:fixtureTest` runs the rest without opening an APK. The release check counts the results from both folders.
+
+* **Tooling:** The pre-push gate runs its cheap checks before the long fixture suite. After the script suites it checks the release facts right away when no code changed, then runs every Gradle task except the fixture tests, the advisory scan and the facts that read the runtime results, and only then the fixture tests. A broken script, lint error or stale fact now stops a push before any vendor APK is patched.
+
+* **Tooling:** `verify-all-patches.ps1 -KeepIn <dir>` keeps a clean run's patched APK and CLI report, stamped with the commit and the hashes of the fixture, bundle, patch list and CLI. `build-release-receipt.ps1 -AppliedDir <dir>` reads a kept run whose stamp matches instead of patching that fixture a second time, and still runs every check on it. Anything that doesn't match gets patched as before.
+
+* **Tooling:** Releases now run from `scripts/release/release.ps1`, one command per stage: prepare, preflight, build, publish and index. Each stage records the commit it finished on and won't start until the one before it has finished. A stage can be run again after a fix, and one that already finished checks its work and says so. Preflight is a five-minute check of the scripts, release text, facts and the patch tests without the fixture suite. Build runs the full tests, the bundle and every declared Telegram build once, and the receipt reads those runs. The release notes builder now lives in the repo too, and it carries every bullet of the version's CHANGELOG section and checks the published notes still do.
+
 ## 0.0.11 (2026-10-08)
 
 The fifth release, with 55 patches for telegram.org's Telegram 12.10.6 and the official Telegram beta 12.10.7.
@@ -234,7 +282,7 @@ The first release, with 4 patches for telegram.org's Telegram 12.10.6.
 * **Telegram:** Every row on the Chats, Updates and Links pages has an icon now, so the text starts at the same edge on every page, and Chats has a chat bubble.
 * **Telegram:** With large text on a Samsung phone, switch rows show their icon at full size and line up with the rows around them.
 * **Telegram:** A row that opens another page has a gray icon on More settings too, as it already did on the settings home, so blue marks only the rows that do something where they are.
-* **Telegram:** The Licenses page shows the notice's headings in bold instead of under rows of = and - signs.
+* **Telegram:** The Licenses page now shows each notice heading in bold, without the old rows of equals signs and hyphens.
 * **Tooling:** The README has a HushTelegram logo and a matching banner in the Hush family style.
 * **Tooling:** The README shows a search before and after, with Hide ads off and then on, taken on a signed-in phone.
 * **Tooling:** The build, extension library, settings screen and diagnostics start from HushThreads at b141524, renamed to `app.hushtelegram.extension` so they can't collide with another Morphe source's classes.

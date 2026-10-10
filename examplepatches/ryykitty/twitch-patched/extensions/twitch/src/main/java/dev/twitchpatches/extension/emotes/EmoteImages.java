@@ -10,55 +10,52 @@ import android.os.Build;
 import android.util.LruCache;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 final class EmoteImages {
-    private final ThreadPoolExecutor workers = new ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(48), task -> { Thread thread = new Thread(task, "TwitchEmoteImages"); thread.setDaemon(true); return thread; });
-    private final Map<String, Future<?>> pending = new HashMap<>();
+    private final EmoteImageRequests requests;
     private final Map<String, Long> failed = new java.util.LinkedHashMap<>();
-    private final LruCache<String, Image> memory = new LruCache<String, Image>(12 * 1024 * 1024) {
-        @Override protected int sizeOf(String key, Image value) { return value.cost; }
-    };
+    private final LruCache<String, Image> memory;
     private final Consumer<String> changed;
-    private long generation;
 
-    EmoteImages(Consumer<String> changed) { this.changed = changed; }
+    EmoteImages(Consumer<String> changed) { this(changed, 2, 12); }
+
+    EmoteImages(Consumer<String> changed, int threads, int megabytes) {
+        this.changed = changed;
+        requests = new EmoteImageRequests(threads);
+        memory = new LruCache<String, Image>(megabytes * 1024 * 1024) {
+            @Override protected int sizeOf(String key, Image value) { return value.cost; }
+        };
+    }
 
     synchronized Drawable drawable(android.content.res.Resources resources, String url) {
         Image image = memory.get(url);
-        return image == null ? null : image.state.newDrawable(resources).mutate();
+        return image == null ? null : image.animation != null ? image.animation.newDrawable() : image.state.newDrawable(resources).mutate();
     }
 
     synchronized void request(Emote emote) {
         String url = emote.url;
-        if (memory.get(url) != null || pending.containsKey(url) || failed.getOrDefault(url, 0L) > System.currentTimeMillis()) return;
-        long ticket = generation;
-        try { pending.put(url, workers.submit(() -> load(emote, ticket))); }
-        catch (RejectedExecutionException error) { failed.put(url, System.currentTimeMillis() + 60_000); trimFailures(); }
+        if (memory.get(url) != null || failed.getOrDefault(url, 0L) > System.currentTimeMillis()) return;
+        requests.submit(url, ticket -> load(emote, ticket));
     }
 
     synchronized void cancelPending() {
-        generation++;
-        pending.values().forEach(task -> task.cancel(true));
-        pending.clear();
-        workers.purge();
+        requests.cancel();
     }
 
-    private void load(Emote emote, long ticket) {
+    synchronized void retainRequests(java.util.Set<String> visible) {
+        requests.retain(visible);
+    }
+
+    synchronized int pendingCount() { return requests.size(); }
+
+    private void load(Emote emote, EmoteImageRequests.Ticket ticket) {
         Image image = null;
-        try { image = decode(EmoteHttp.get(emote.url, 1024 * 1024, false)); }
+        try { image = decode(EmoteHttp.get(emote.url, 8 * 1024 * 1024, false)); }
         catch (IOException | IllegalArgumentException error) { android.util.Log.w("TwitchPatchesEmotes", "Emote image unavailable"); }
         synchronized (this) {
-            if (ticket != generation) return;
-            pending.remove(emote.url);
+            if (!requests.complete(emote.url, ticket)) return;
             if (image == null) { failed.put(emote.url, System.currentTimeMillis() + 60_000); trimFailures(); return; }
             memory.put(emote.url, image);
             failed.remove(emote.url);
@@ -70,7 +67,7 @@ final class EmoteImages {
         while (failed.size() > 128) failed.remove(failed.keySet().iterator().next());
     }
 
-    private static Image decode(byte[] bytes) throws IOException {
+    static Image decode(byte[] bytes) throws IOException {
         Drawable drawable;
         if (Build.VERSION.SDK_INT >= 28) {
             drawable = ImageDecoder.decodeDrawable(ImageDecoder.createSource(ByteBuffer.wrap(bytes)), (decoder, info, source) -> {
@@ -94,15 +91,19 @@ final class EmoteImages {
             drawable = new BitmapDrawable(android.content.res.Resources.getSystem(), bitmap);
         }
         Drawable.ConstantState state = drawable.getConstantState();
-        if (state == null) throw new IOException("Emote drawable cannot be isolated.");
-        int cost = Build.VERSION.SDK_INT >= 28 && drawable instanceof AnimatedImageDrawable ? 1024 * 1024
+        boolean animated = Build.VERSION.SDK_INT >= 28 && drawable instanceof AnimatedImageDrawable;
+        if (state == null && !animated) throw new IOException("Emote drawable cannot be isolated.");
+        int cost = animated ? Math.max(bytes.length, 1024 * 1024)
                 : Math.max(1, drawable.getIntrinsicWidth() * drawable.getIntrinsicHeight() * 4);
-        return new Image(state, cost);
+        return new Image(state, animated ? new AnimatedEmoteImage(drawable) : null, cost);
     }
 
-    private static final class Image {
+    static final class Image {
         final Drawable.ConstantState state;
+        final AnimatedEmoteImage animation;
         final int cost;
-        Image(Drawable.ConstantState state, int cost) { this.state = state; this.cost = cost; }
+        Image(Drawable.ConstantState state, AnimatedEmoteImage animation, int cost) {
+            this.state = state; this.animation = animation; this.cost = cost;
+        }
     }
 }

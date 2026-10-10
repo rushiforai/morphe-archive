@@ -55,7 +55,7 @@ class AnalyticsUploadsFixtureTest {
         assertNotNull("${bundle.name}: no Papaya job start", start)
         val job = start!!
         assertTrue("${bundle.name}: the job start isn't synchronized", AccessFlags.DECLARED_SYNCHRONIZED.isSet(job.accessFlags))
-        val gate = papayaGate(job)
+        val gate = papayaGate(job) { FixtureDex.classes(bundle, setOf(it))[it] }
         assertNotNull("${bundle.name}: no Papaya gate in ${job.definingClass}->onStartJob", gate)
         val instructions = job.implementation!!.instructions.toList()
         // Nothing is started before the gate: no job is handed to an executor ahead of the answer.

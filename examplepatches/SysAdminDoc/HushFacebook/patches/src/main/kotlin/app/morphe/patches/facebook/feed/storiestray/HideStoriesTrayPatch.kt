@@ -40,7 +40,7 @@ internal const val HOME_COMPOSER = 2
  * what Facebook's own count says, and the extension answers 0 while the switch is on. The feed
  * builds its adapters once per feed view but reads their counts on every change, a pull to
  * refresh among them, so the switch shows then, either way, with no restart (seen on a Galaxy
- * S25 with Facebook 581, 2026-10-05). Off by default: stories are people's own posts.
+ * S25 with Facebook 581, 2026-10-05). Both switches start off: stories are people's own posts.
  *
  * The composer row is an adapter of the same list, handed over by a getter of the same
  * configuration class, and its class is final and counts through the same superclass chain, so it
@@ -58,11 +58,11 @@ internal const val HOME_COMPOSER = 2
 @Suppress("unused")
 val hideStoriesTrayPatch = bytecodePatch(
     name = "Hide Stories tray",
-    description = "Adds separate controls for the row of stories at the top of the news feed, Create story included, and the rows " +
-        "of stories Facebook puts between posts. The composer row at the top of Home gets a switch of its own too.",
-    default = false,
+    description = "Hides the row of stories at the top of the feed, the stories between posts, or the \"What's " +
+        "on your mind?\" row at the top of Home, so you reach posts sooner. Starts off. Turn on the parts you " +
+        "want in Hushfacebook settings > News feed.",
 ) {
-    category("Feed")
+    category("Stories")
     dependsOn(settingsPatch, feedFilterHookPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

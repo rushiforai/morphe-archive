@@ -157,13 +157,15 @@ internal fun inboxSubscribeMethod(
     init: String = "<init>(Ljava/lang/Object;I)V",
     between: String = "",
     name: String = "A04",
+    // 582's observer has a class of its own and takes only the supplier.
+    args: String = "v1, v2, v4",
 ) = fixtureMethod("$INBOX_SUPPLIER->$name($INBOX_SUPPLIER)V", """
     move-object v2, p0
     const-string v0, "$warning"
     const/4 v4, 0x0
     new-instance v1, $INBOX_OBSERVER
     $between
-    invoke-direct {v1, v2, v4}, $INBOX_OBSERVER->$init
+    invoke-direct {$args}, $INBOX_OBSERVER->$init
     invoke-static {v1, v2}, LX/0D8;->A00(Ljava/lang/Object;Ljava/lang/Object;)V
     return-void
 """.trimIndent(), registers = 6, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value)
@@ -293,36 +295,38 @@ internal fun peopleJewelMethod(
     inlinedReset: Boolean = false,
     extraFlag: Boolean = false,
     extraFlagValue: String = serverFlag,
-) = fixtureMethod(PEOPLE_JEWEL_HOOK, """
-    iget-object v0, p0, LX/HAR;->A07:LX/17Z;
+    // 582 passes the suggestions logger first, so the owner is p1, and keeps false in v5 of ten registers.
+    logged: Boolean = false,
+) = fixtureMethod(if (logged) PEOPLE_JEWEL_HOOK.replace("(", "(LX/3nt;") else PEOPLE_JEWEL_HOOK, """
+    iget-object v0, ${if (logged) "p1" else "p0"}, LX/HAR;->A07:LX/17Z;
     invoke-static {v0}, LX/17Z;->A0F(LX/17Z;)Ljava/lang/Object;
     move-result-object v0
     check-cast v0, LX/JTx;
-    iget-object v2, p0, LX/HAR;->A01:Lcom/facebook/auth/usersession/FbUserSession;
+    iget-object v2, ${if (logged) "p1" else "p0"}, LX/HAR;->A01:Lcom/facebook/auth/usersession/FbUserSession;
     iget-object v0, v0, LX/JTx;->A00:LX/17Z;
     invoke-static {v0}, LX/17Z;->A0C(LX/17Z;)Lcom/facebook/prefs/shared/FbSharedPreferences;
     move-result-object v1
     sget-object v0, $key
-    const/4 v4, 0x0
-    invoke-interface {v1, v0, v4}, $PREFERENCE_GETTER
+    const/4 ${if (logged) "v5" else "v4"}, 0x0
+    invoke-interface {v1, v0, ${if (logged) "v5" else "v4"}}, $PREFERENCE_GETTER
     move-result $resultRegister
     if-eqz v0, :shown
-    iget-object v0, p0, LX/HAR;->A06:LX/17Z;
+    iget-object v0, ${if (logged) "p1" else "p0"}, LX/HAR;->A06:LX/17Z;
     ${if (inlinedReset) "invoke-static {v0, v2}, LX/H7e;->A0T(LX/17Z;Ljava/lang/Object;)LX/4qb;"
-      else "invoke-static {v0}, LX/17Z;->A0I(LX/17Z;)V\n    invoke-static {v2, v4}, LX/1Aa;->A07(Ljava/lang/Object;I)LX/4nI;"}
+      else "invoke-static {v0}, LX/17Z;->A0I(LX/17Z;)V\n    invoke-static {v2, ${if (logged) "v5" else "v4"}}, LX/1Aa;->A07(Ljava/lang/Object;I)LX/4nI;"}
     move-result-object v2
     const-wide v0, $serverFlag
     invoke-static {v2, v0, v1}, LX/16z;->A1Z(Ljava/lang/Object;J)Z
     move-result v0
     if-nez v0, $serverTarget
-    iget-object v3, p0, LX/HAR;->A0F:LX/WZw;
+    iget-object v3, ${if (logged) "p1" else "p0"}, LX/HAR;->A0F:LX/WZw;
     ${if (extraFlag) "const-wide v0, $extraFlagValue" else ""}
     :hidden
     const/4 v0, 0x1
     return v0
     :shown
-    return v4
-""".trimIndent(), registers = 6, flags = flags)
+    return ${if (logged) "v5" else "v4"}
+""".trimIndent(), registers = if (logged) 10 else 6, flags = flags)
 
 internal fun peopleJewelKeyHolder() = fixtureClass("LX/JTx;", listOf(fixtureMethod("LX/JTx;-><clinit>()V", """
     const-string v0, "pymk_jewel_section_hidden"

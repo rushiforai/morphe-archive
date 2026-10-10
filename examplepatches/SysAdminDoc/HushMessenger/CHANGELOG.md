@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- **Turn off the swipe up for disappearing messages** is a new switch under Conversations that starts off ([#36](https://github.com/SysAdminDoc/HushMessenger/issues/36)). With it on, swiping up at the bottom of a chat no longer turns on disappearing messages, so a scroll can't set the timer by accident. Scrolling works as usual, and you can still turn disappearing messages on from the chat's settings. It takes effect right away, with no restart.
+- With **Hide People You May Know** on, HushMessenger asks Messenger for your chat list again about half a second after it starts instead of after 2.5 seconds, to shorten the loading circle that could still sit under your chats for a few seconds. It tries up to three more times in the first 8 seconds and stops as soon as your chats show up ([#30](https://github.com/SysAdminDoc/HushMessenger/issues/30)).
+- **Stop analytics uploads** now also covers the way Google Play can hand Messenger's Google Play upload service a task directly, without starting it the usual way. With the switch on, that task is reported back as done right away, so Google Play doesn't retry it, and Messenger's other scheduled tasks on the same worker run as before.
+- **Keep a message log** now deletes messages older than 30 days from the saved file itself, a little after Messenger starts and every six hours, instead of only hiding them until the next message arrives. That happens with the switch off too. Off stops saving new messages and keeps the old ones until they expire or you clear the log, and the log's screen now says so. Each message keeps up to 8,000 characters and the whole log stays under 2 MB, dropping the oldest first. If the saved file can't be opened any more (say the phone's key store lost its key), it's moved aside and the log starts fresh instead of failing on every message. A save that fails partway leaves the old log as it was, and **Clear log** also drops messages that arrived a moment before but weren't saved yet, so they can't show up again afterward.
+- Releases now run from `scripts/release/release.ps1` in five stages that refuse to run out of order. Each Messenger build family gets patched once per release, and the release checks can wait for a free build slot instead of piling onto other builds. Nothing changes in the patches.
+- Extended the app audit with actual Messenger packet observations, background job and CPU measurements, and physically unplugged battery readings. Revision 2 includes aggregate data, a charge-counter chart and a repeatable procedure. It distinguishes shared encrypted hosts from specific tracking operations and documents the limits of short observations on a paused installation. No patch behavior changed.
+
+- Added a detailed Messenger internals audit with ad and tracking paths, native settings screenshots, the boundaries of all 37 controls, and patch candidates with acceptance criteria. A reusable 581 DEX query batch accompanies the report. The audit identifies a conditional analytics Binder entry outside the existing guards and documents message-log isolation and retention limits. No patch behavior changed.
+
+- The README now points to the patch code, in-app settings, build profiles and catalog checks. It also walks through adding a control or a supported Messenger version.
+- **Material You theme** is now in Morphe Manager's default selection, so every control is there without Expert mode. Its switch is under Theme on the Controls page and starts off, so a build patched with the defaults looks like Messenger until you turn it on. **Clone install under another package name**, **Spoof package version** and **Custom new-message sound** still need Expert mode, because they change the package or need a file you pick.
+- Every patch description in Morphe Manager now says in plain words what the patch changes and why you might want it. It ends with where to turn it on, or says it works as soon as you patch it in.
+- Every switch in HushMessenger settings now explains in plain words what it does and what you'll notice. The pages, the setup panel and the bubble and app icon help text got the same plain wording.
+- Messages in HushMessenger settings are clearer. Saving and restoring your choices, update checks, the camera notice and the setup help now say what happened and what to do next.
+- The options you fill in when patching are easier to read. Clone install, Custom new-message sound and Spoof package version now explain what to type, and the version code option is called Version number.
+
 ## 0.22.0 (2026-10-08)
 
 - **Keep emoji search on emoji** is a new switch under Stickers that starts off. With it on, typing while the emoji keyboard is open no longer flips it over to sticker search, so you stay on emoji. It takes effect right away, with no restart.
@@ -127,7 +145,7 @@ This release keeps the same 31 patches, 28 of them switches, for all 21 arm64 bu
 
 - Repeated taps cannot open overlapping choices pickers. Cancel lets the next request proceed. Tests also check malformed UTF-8 and require all five menu mapping groups explicitly.
 
-- Choice backups now use an exact versioned header and a 16 KiB limit. Legacy exports still restore. The entire backup is checked before one preference update; malformed lines, duplicate keys and invalid booleans change nothing. Unknown and unavailable controls are reported separately, and omitted choices retain their saved values.
+- Choice backups now use an exact versioned header and a 16 KiB limit. Legacy exports still restore. The entire backup is checked before one preference update. Malformed lines, duplicate keys and invalid booleans change nothing. Unknown and unavailable controls are reported separately, and omitted choices retain their saved values.
 
 - The settings menu patch validates its builder, binder, drawer setter and click route before editing any of them. Tests corrupt each target and its register contract across all five naming groups, checking that failures leave the host code and capability flags untouched. Branches to normal exits still run the settings hook.
 
@@ -196,7 +214,7 @@ This release supports all 21 arm64 builds of Messenger 580.0.0.49.91 and has 31 
 
 - Restore screens on re-signed builds, always on. Messenger checks its own signing certificate against Meta's, and a re-signed build used to fail that check quietly and open to a blank screen. The patch answers that one check with Meta's original certificate for Messenger itself. Every other app still gets the real answer. On the S25 a fully patched build now opens straight to the signed-in chat list.
 - A HushMessenger row in the Menu tab, always on. It sits right under Messenger's own Settings row and opens the HushMessenger settings screen, while Settings still opens Messenger's settings. Accounts that get Messenger's folder grid instead of the list use a separate path that no test account has shown yet.
-- Three privacy switches, all off by default: Allow screenshots, Hide read receipts and Keep unsent messages. A kept message shows "[unsent]" before its text and stays after a restart. Hide read receipts also works in end-to-end encrypted chats, which Messenger uses for most one-to-one chats. There, Messenger marks a chat read and sends the receipt in one step, so chats you open stay unread until you reply or turn the switch off. Keep unsent messages doesn't work in end-to-end encrypted chats: Messenger removes those messages below the part of the app HushMessenger can change.
+- Allow screenshots, Hide read receipts and Keep unsent messages all start off. A kept message shows "[unsent]" before its text and stays after a restart. Hide read receipts also works in end-to-end encrypted chats, which Messenger uses for most one-to-one chats. There, Messenger marks a chat read and sends the receipt in one step, so chats you open stay unread until you reply or turn the switch off. Keep unsent messages doesn't work in end-to-end encrypted chats. Messenger removes those messages below the part of the app HushMessenger can change.
 - Use system emoji, off by default. Emoji are drawn with your phone's own font instead of Messenger's. If the phone has no emoji font, Messenger's set stays.
 - Each switch shows when it last took effect since Messenger started, and Copy setup includes that. A switch that's on but never active usually means Messenger uses a different screen on your account.
 - Export and Import in the App tab copy your switch choices to and from the clipboard. Only known switches with on or off values are accepted. It helps after a reinstall with a different signing key wipes Messenger's data.
@@ -242,7 +260,7 @@ Update the already patched S25 in place with its matching Morphe key. Both real 
 
 ## 0.4.0 (2026-09-27)
 
-- Pass 133 local tests and rebuild both exact APKs with all 21 patches. Verify all 57 runtime hook calls and preserve every stock class and native library. Both installed phone APKs remain stock; their account data is unchanged.
+- Pass 133 local tests and rebuild both exact APKs with all 21 patches. Verify all 57 runtime hook calls and preserve every stock class and native library. Both installed phone APKs remain stock. Their account data is unchanged.
 - Verify the published bundle checksum and all 21 entries through Morphe's remote lookup. Refresh the S25 source to v0.4.0. Source updates do not install a patched Messenger APK.
 
 - Keep multi-digit counts and version numbers in their normal reading order in the right-to-left test language.
@@ -307,7 +325,7 @@ Update the already patched S25 in place with its matching Morphe key. Both real 
 
 - Add a read-only installation check that verifies APK certificates and reports installed-app or permission-owner conflicts before any device changes. It checks the phone's current signer set, including API-specific rotation and multiple signers, and refuses uncertain results.
 - Cover the check with eleven Python tests and exercise it against the S25's installed apps, including a deliberately mismatched signing fixture.
-- Confirm stock encrypted message delivery between two owned accounts on S22 and S25. The S22's stock browser switch passed HTTP and HTTPS comparisons; its original setting was restored. Re-signed Messenger still needs a working startup path.
+- Confirm stock encrypted message delivery between two owned accounts on S22 and S25. The S22's stock browser switch passed HTTP and HTTPS comparisons. Its original setting was restored. Re-signed Messenger still needs a working startup path.
 
 ## 0.0.8 (2026-09-27)
 

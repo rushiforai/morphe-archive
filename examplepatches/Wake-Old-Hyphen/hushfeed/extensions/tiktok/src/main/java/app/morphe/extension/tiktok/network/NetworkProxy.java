@@ -212,7 +212,8 @@ public final class NetworkProxy {
     @Nullable
     public static String hostProblem(String value) {
         return isBlank(value) || normalizeHost(value) != null
-                ? null : L10n.t("Enter a host name or IP address, without a scheme or port");
+                ? null : L10n.t("Enter a server name or IP address, without http:// or a port "
+                        + "number");
     }
 
     /** What the port row's editor says about a typed value, or null when it's usable. Empty is too. */
@@ -531,7 +532,8 @@ public final class NetworkProxy {
         if (!reported.compareAndSet(false, true)) return;
         if (probe == Probe.NEEDS_PASSWORD) {
             Logger.printInfo(() -> "Network proxy: the " + config.describe() + " wants a sign-in TikTok's network stack can't give");
-            Utils.showToastLong(L10n.f("The proxy at %1$s asks for a password. TikTok's own network stack can't send one, so use a proxy that doesn't need one.",
+            Utils.showToastLong(L10n.f("The proxy at %1$s asks for a password, and TikTok can't "
+                    + "send one. Use a proxy that doesn't need one.",
                     config.hostPort()));
         } else {
             Logger.printInfo(() -> "Network proxy: the " + config.describe() + " didn't answer");

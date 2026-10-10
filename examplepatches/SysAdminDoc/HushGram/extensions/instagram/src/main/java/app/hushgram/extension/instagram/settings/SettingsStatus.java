@@ -133,6 +133,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean inboxSuggestions() {
+        return false;
+    }
+
     public static boolean instants() {
         return false;
     }
@@ -215,6 +219,11 @@ public final class SettingsStatus {
     }
 
     public static boolean commentCopy() {
+        return false;
+    }
+
+    /** Copy the commenter's username, Copy comment's second switch, which a build can lack. */
+    public static boolean commentAuthor() {
         return false;
     }
 

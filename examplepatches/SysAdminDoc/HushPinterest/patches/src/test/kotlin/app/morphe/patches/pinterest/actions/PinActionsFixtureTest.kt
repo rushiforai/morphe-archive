@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.actions
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -24,9 +25,11 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.io.File
 
-/** Resolves and applies the real native action targets independently in both supported builds. */
+/** Resolves and applies the real native action targets in each declared build. */
+@Category(FixtureTests::class)
 class PinActionsFixtureTest {
     @Test
     fun `all action hooks use the real pin menu Visit dispatcher and chooser in each declared build`() {

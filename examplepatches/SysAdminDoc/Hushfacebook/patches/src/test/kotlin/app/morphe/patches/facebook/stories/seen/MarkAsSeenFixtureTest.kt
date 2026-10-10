@@ -8,8 +8,11 @@ import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.isStringTableCall
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -17,6 +20,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -100,7 +104,17 @@ class MarkAsSeenFixtureTest {
                 }
 
                 // The seen helper and the card it's about to count, read through StoryCard.getId().
-                val helper = seenHelper(FixtureDex.classesHolding(bundle, SEEN_HELPER_LITERAL), sender)
+                // It's among the sender's callers, naming its literal or asking a string table for it.
+                val callers = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    if (dex.methodSection.none { it == sender }) return@forEach
+                    dex.classes.filter { callsSender(it, sender) }.mapTo(callers) { ImmutableClassDef.of(it) }
+                }
+                val tableOwners = callers.flatMap { it.methods }.flatMap { method ->
+                    method.implementation?.instructions?.toList().orEmpty().filter(::isStringTableCall).mapNotNull { it.call?.definingClass }
+                }.toSet()
+                val tables = FixtureDex.classes(bundle, tableOwners)
+                val helper = seenHelper(callers, sender) { call -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
                 val card = cardSeen(helper)
                 val cardCount = card.implementation!!.registerCount
                 val cardCode = card.implementation!!.instructions.toList()

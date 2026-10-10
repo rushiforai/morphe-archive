@@ -389,8 +389,8 @@ final class SettingsNavigation extends BaseAdapter {
             pageStatus.setTitle(paused ? L10n.t("HushTelegram is paused") : L10n.t("HushTelegram is on"));
             // Worded like the Pause switch: Debug logging and what was set when patching stay in.
             pageStatus.setSummary(paused == nextPaused
-                    ? L10n.t("Until you resume, every switch but Debug logging acts as if it were off. "
-                    + "Changes made when you patched stay in.")
+                    ? L10n.t("Until you resume, every switch except Debug logging acts as if it were off. Edits "
+                            + "made when you patched stay in.")
                     : paused ? L10n.t("HushTelegram turns back on when Telegram restarts.")
                     : L10n.t("HushTelegram pauses when Telegram restarts."));
             pageStatus.setIcon(SettingsIcons.icon(context, paused ? SettingsIcons.PAUSE : SettingsIcons.PATCHED,
@@ -474,7 +474,7 @@ final class SettingsNavigation extends BaseAdapter {
         boolean paused = HushTelegramPause.isPaused();
         TextView summary = row.findViewById(android.R.id.summary);
         if (!paused && !nextPaused && ReleaseCheck.statusLine() == null) {
-            summary.setText(L10n.t("Your controls are active."));
+            summary.setText(L10n.t("Your switches are working."));
         } else if (paused && nextPaused && HushTelegramPause.reason() == HushTelegramPause.Reason.SWITCH
                 && !markerLeft()) {
             // A marker Resume couldn't remove keeps the card's own line, which says what to do.

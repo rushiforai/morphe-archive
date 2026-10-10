@@ -177,7 +177,7 @@ class TabLinksShapesTest {
     @Test
     fun `the launched tab lookup maps the launch URI to a configured tab and casts it`() {
         assertEquals(TabHook(at = 14, tab = 0), launchedTabLookup(lookup()))
-        assertNull("an instance method", launchedTabLookup(lookup(static = false)))
+        assertEquals("582's instance method on a singleton", TabHook(at = 14, tab = 0), launchedTabLookup(lookup(static = false)))
         assertNull("returns something else", launchedTabLookup(lookup(returns = "Ljava/lang/Object;")))
         assertNull("no launch URI", launchedTabLookup(lookup(string = "extra_other_uri")))
         assertNull("another list", launchedTabLookup(lookup(list = "$NAVIGATION_CONFIG->A01:Ljava/util/List;")))

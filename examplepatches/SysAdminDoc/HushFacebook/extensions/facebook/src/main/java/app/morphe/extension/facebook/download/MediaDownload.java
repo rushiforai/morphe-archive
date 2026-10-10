@@ -944,7 +944,7 @@ public final class MediaDownload {
                 Feedback.show(application, L10n.t(application, "Saving..."), false);
             } else {
                 Feedback.show(application,
-                    L10n.t(application, "Saving... Cancel: Downloads in Hushfacebook."), true);
+                    L10n.t(application, "Saving... To cancel, open Downloads in Hushfacebook settings."), true);
             }
 
             Thread worker = new Thread(() -> {
@@ -973,7 +973,7 @@ public final class MediaDownload {
                     // Nothing can leave this thread. Facebook installs its own handler for uncaught
                     // exceptions and reports them as its own crashes.
                     failure(() -> "the save failed", t);
-                    Feedback.show(application, L10n.t(application, "Download failed"), true);
+                    Feedback.show(application, L10n.t(application, "Download failed. Try again in a moment."), true);
                 } finally {
                     save.end();
                     IN_FLIGHT.decrementAndGet();
@@ -1022,9 +1022,9 @@ public final class MediaDownload {
             case TOO_LARGE:
                 return L10n.t(application, "Not saved: the file is over 512 MB");
             case CANCELLED:
-                return L10n.t(application, "Save cancelled");
+                return L10n.t(application, "Save canceled");
             default:
-                return L10n.t(application, "Download failed");
+                return L10n.t(application, "Download failed. Try again in a moment.");
         }
     }
 
@@ -1036,8 +1036,8 @@ public final class MediaDownload {
      */
     static String refusedMessage(Context application, boolean notified) {
         return notified
-            ? L10n.t(application, "Saved, but WhatsApp and some editors may refuse it")
-            : L10n.t(application, "Saved, but WhatsApp may refuse it. Fix: Downloads in Hushfacebook.");
+            ? L10n.t(application, "Saved, but WhatsApp and some editors may not accept it")
+            : L10n.t(application, "Saved, but WhatsApp may not accept it. Fix: Downloads in Hushfacebook settings.");
     }
 
     /**

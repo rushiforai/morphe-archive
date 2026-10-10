@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.privacy
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -56,8 +57,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
-/** Real API annotations, Rx factories, startup scheduler and outgoing framework calls in both APKs. */
+/** Real API annotations, Rx factories, startup scheduler and outgoing framework calls in each declared APK. */
+@Category(FixtureTests::class)
 class PrivacyFixtureTest {
     @Test
     fun `each declared original APK gets all privacy hooks without warnings and keeps core URL calls`() {

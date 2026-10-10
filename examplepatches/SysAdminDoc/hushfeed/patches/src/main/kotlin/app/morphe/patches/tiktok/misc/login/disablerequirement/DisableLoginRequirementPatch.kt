@@ -11,7 +11,8 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val disableLoginRequirementPatch = bytecodePatch(
     name = "Disable login requirement",
-    description = "Removes TikTok's mandatory login gate from supported flows.",
+    description = "Stops TikTok from forcing you to sign in before you can keep browsing. " +
+        "Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")

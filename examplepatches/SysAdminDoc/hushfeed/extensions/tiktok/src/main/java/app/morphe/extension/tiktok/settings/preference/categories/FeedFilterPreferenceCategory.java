@@ -207,16 +207,19 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     private void addCreatorsAndSounds(Context context) {
         addPreference(new SectionHeadingPreference(context, "Creators and sounds"));
         if (SettingsStatus.feedFilterEnabled) {
-            addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
+            addPreference(new InputTextPreference(context, "Blocked creators", "Separate "
+                    + "account handles or user IDs with commas. Videos from these accounts are "
+                    + "always hidden. An entry between slashes, like /^news_/, is a search "
+                    + "pattern checked against the handle and display name.", Settings.BLOCKED_CREATORS)
                     .withCheck(AdvancedFeedRules::creatorEntryProblem).withNameKeyboard());
             addPreference(new CreatorListPreference(context, "Creators hidden on this phone",
                     "Creators you hid from a video. Search the list and remove one at a time.",
                     Settings.LOCAL_HIDDEN_CREATORS));
             addPreference(new InputTextPreference(context, "Creator exceptions",
-                    "Comma separated account handles or user ids. Their videos stay when only a "
-                            + "filter on the kind of post, its labels, age, length or counts would "
-                            + "hide them. Ads, blocked creators, words, sounds, countries and caption "
-                            + "languages, and seen videos still apply.",
+                    "Separate handles or user IDs with commas. Their videos stay when a filter "
+                            + "on post type, labels, age, length or counts would hide them. "
+                            + "Ads, blocked creators, words, sounds, countries, caption "
+                            + "languages and seen videos still apply.",
                     Settings.CREATOR_FILTER_EXCEPTIONS)
                     .withCheck(CreatorExceptions::entryProblem)
                     .withNote(CreatorExceptions::conflictNote)
@@ -232,13 +235,15 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
             addPreference(new InputTextPreference(
                     context,
                     "Blocked sound names",
-                    "Comma separated words to match against a sound's name, like saxophone. Case doesn't matter.",
+                    "Separate words with commas, like saxophone, to match against sound names. "
+                            + "Capital letters don't matter.",
                     Settings.BLOCKED_SOUND_NAMES
             ));
             addPreference(new InputTextPreference(
                     context,
                     "Blocked sound ids",
-                    "Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.",
+                    "Sound IDs saved by the player's sound button, separated by commas. Remove "
+                            + "one to unblock it.",
                     Settings.BLOCKED_SOUND_IDS
             ).withNameKeyboard());
         }
@@ -247,7 +252,10 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     private void addWordsAndCountries(Context context) {
         addPreference(new SectionHeadingPreference(context, "Words, countries and languages"));
         addPreference(new InputTextPreference(context, "Blocked caption words",
-                "Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
+                "Separate words or phrases with commas. Videos whose caption matches are "
+                        + "hidden. Capital letters don't matter. Write \"a\" & \"b\" to need "
+                        + "both phrases, or \"a\" !& \"b\" to need the first without the "
+                        + "second.",
                 Settings.BLOCKED_CAPTION_WORDS)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem)
                 .withSamplePreview(app.morphe.extension.tiktok.settings.L10n.t("Sample caption to test"),
@@ -257,17 +265,21 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.",
                 Settings.BLOCKED_WORDS_IN_STICKERS));
         addPreference(new InputTextPreference(context, "Only from these countries",
-                "Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.",
+                "Separate country codes with commas, like GB, IE. Videos posted from anywhere "
+                        + "else are hidden. Leave empty for all countries.",
                 Settings.REGION_ONLY_FROM)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem)
                 .withNameKeyboard());
         addPreference(new InputTextPreference(context, "Never from these countries",
-                "Comma separated country codes. Videos posted from these are hidden, whatever the list above says.",
+                "Separate country codes with commas. Videos posted from these are hidden, "
+                        + "whatever the list above says.",
                 Settings.REGION_NEVER_FROM)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem)
                 .withNameKeyboard());
         addPreference(new InputTextPreference(context, "Only these caption languages",
-                "Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.",
+                "Separate language codes with commas, like en, es. A video whose original "
+                        + "caption is in another language is hidden. Videos with no caption, or "
+                        + "only translated ones, always stay.",
                 Settings.CAPTION_LANGUAGES)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.CaptionLanguageFilter::languageProblem)
                 .withNameKeyboard());
@@ -277,12 +289,11 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     private void addLiveFeed(Context context) {
         addPreference(new SectionHeadingPreference(context, "LIVE feed"));
         addPreference(new TogglePreference(context, "Filter the LIVE feed",
-                "Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators "
-                        + "and Creators hidden on this phone apply here too, Blocked caption words are "
-                        + "matched against each LIVE's title, and Creator exceptions works the way it "
-                        + "does for videos. The LIVE button picks the first room itself, so the rules "
-                        + "start with the next one. If they hide every room for a while, one gets "
-                        + "through so the feed keeps loading.",
+                "Hides rooms in the LIVE feed you swipe through, using the rules below. Blocked "
+                        + "creators, Creators hidden on this phone and Creator exceptions apply "
+                        + "here too, and Blocked caption words are checked against each LIVE's "
+                        + "title. The first room the LIVE button opens isn't filtered. If every "
+                        + "room would be hidden, one gets through so the feed keeps loading.",
                 Settings.LIVE_FEED_FILTER));
         addPreference(new TogglePreference(context, "Hide gaming LIVEs",
                 "Hide LIVEs that TikTok tags with a game or a gaming category.",
@@ -297,8 +308,9 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide LIVEs hosted by verified accounts.",
                 Settings.LIVE_HIDE_VERIFIED));
         addPreference(new InputTextPreference(context, "Hidden LIVE categories",
-                "Comma separated words, like music, chat. A LIVE is hidden when its category, topic "
-                        + "tags or game name contains one. Case doesn't matter.",
+                "Separate words with commas, like music, chat. A LIVE is hidden when its "
+                        + "category, topic tags or game name contains one. Capital letters "
+                        + "don't matter.",
                 Settings.LIVE_HIDDEN_CATEGORIES)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem)
                 .withSamplePreview(app.morphe.extension.tiktok.settings.L10n.t("Sample category to test"),
@@ -360,7 +372,9 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new TogglePreference(
                 context,
                 "Show how many were filtered",
-                "A small label under TikTok's top tabs counts what the feed filter has taken out since TikTok started. It shows only on the feed, and a tap on it reaches the video under it.",
+                "Shows a small count under TikTok's top tabs of what the feed filter has "
+                        + "removed since TikTok started. It shows only on the feed, and taps on "
+                        + "it go through to the video under it.",
                 Settings.FILTERED_COUNT_PILL
         ));
     }

@@ -61,8 +61,8 @@ internal const val HIDE_PRE_EOF_REELS = "$EXTENSION_PACKAGE/feed/FeedFilter;->hi
  * the rule lives in the shared feed guard with the others, and `addNewEdgeToCollection` still
  * carries one Hushfacebook guard. The rule matches the categories by name, so the patch holds the
  * build to all of them: a Facebook that renamed one would otherwise leave the switch hiding nothing
- * without a word. A reel a friend posts is an ordinary post and stays. Off by default, like the
- * Stories tray.
+ * without a word. A reel a friend posts is an ordinary post and stays. In the default selection
+ * with its switch off, like the Stories tray.
  *
  * Two more ways a row of reels reaches the feed are covered here. A showcase row filed under
  * another category is told apart by its story type, which the unit's renamed accessor reads, so
@@ -75,9 +75,9 @@ internal const val HIDE_PRE_EOF_REELS = "$EXTENSION_PACKAGE/feed/FeedFilter;->hi
 @Suppress("unused")
 val hideFeedReelsPatch = bytecodePatch(
     name = "Hide Reels in the feed",
-    description = "Removes the rows of reels between posts in the news feed, and the reels Facebook adds " +
-        "where your feed ends. A reel a friend posts stays.",
-    default = false,
+    description = "Removes the rows of reels between posts and the reels Facebook adds where your feed ends, so " +
+        "the feed sticks to posts. A reel a friend posts stays. Starts off. Turn it on in Hushfacebook settings " +
+        "> News feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

@@ -137,6 +137,9 @@ public class SettingsStatus {
     public static boolean followStatusEnabled = false;
     public static boolean copyIdsEnabled = false;
     public static boolean hideFeedLiveButtonEnabled = false;
+    /** The side menu half of Hide feed LIVE button, which a build other than the declared one
+     *  can leave out while the LIVE half still applies. */
+    public static boolean hideFeedSidebarButtonEnabled = false;
     public static boolean hideFeedSearchButtonEnabled = false;
     public static boolean showSeekbarEnabled = false;
     public static boolean sanitizeShareUrlsEnabled = false;
@@ -210,6 +213,13 @@ public class SettingsStatus {
 
     public static void enableCommentTranslation() {
         commentTranslationEnabled = true;
+    }
+
+    /** Translate comments found the seven places TikTok reads its Don't translate list and hooked them. */
+    public static boolean doNotAutoTranslateEnabled = false;
+
+    public static void enableDoNotAutoTranslate() {
+        doNotAutoTranslateEnabled = true;
     }
 
     public static void enableHideCommentQuickReactions() {
@@ -496,6 +506,10 @@ public class SettingsStatus {
 
     public static void enableHideFeedLiveButton() {
         hideFeedLiveButtonEnabled = true;
+    }
+
+    public static void enableHideFeedSidebarButton() {
+        hideFeedSidebarButtonEnabled = true;
     }
 
     public static void enableHideFeedSearchButton() {

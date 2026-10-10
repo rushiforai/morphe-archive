@@ -38,7 +38,8 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         addPreference(new TogglePreference(
                 context,
                 "Filter feed tabs",
-                "Choose which loaded TikTok feed tabs should stay visible. If only For You remains, its redundant header is hidden.",
+                "Choose which feed tabs stay visible. If only For You is left, its tab name is "
+                        + "hidden.",
                 Settings.FEED_NAVIGATION
         ));
         addPreference(new TabSelectionPreference(
@@ -60,7 +61,7 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         addPreference(new TogglePreference(
                 context,
                 "Filter bottom tabs",
-                "Choose which loaded TikTok bottom navigation tabs should stay visible.",
+                "Choose which bottom tabs stay visible.",
                 Settings.BOTTOM_NAVIGATION
         ));
         addPreference(new TabSelectionPreference(
@@ -80,9 +81,9 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         addPreference(new TogglePreference(
                 context,
                 "Show TikTok's feed buttons",
-                "TikTok's play and pause button and its previous and next buttons appear on the feed. "
-                        + "TikTok otherwise shows them only to people who use a screen reader. "
-                        + "TikTok's analytics note the row and each press on it.",
+                "Shows TikTok's play, pause, previous and next buttons on the feed. TikTok "
+                        + "normally shows them only to people who use a screen reader. TikTok "
+                        + "can see when you use them.",
                 Settings.SHOW_FEED_BUTTONS
         ));
         addPreference(new TogglePreference(

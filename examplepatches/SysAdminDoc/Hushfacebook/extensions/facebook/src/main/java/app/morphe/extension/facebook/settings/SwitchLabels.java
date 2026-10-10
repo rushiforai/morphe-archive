@@ -35,6 +35,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_HOME_COMPOSER) return L10n.t("Hide the composer row");
         if (setting == Settings.HIDE_FEED_REELS) return L10n.t("Hide Reels in the feed");
         if (setting == Settings.HIDE_POST_PROMPTS) return L10n.t("Hide post prompts");
+        if (setting == Settings.HIDE_POST_FOLLOW_LINK) return L10n.t("Hide the Follow link on posts");
         if (setting == Settings.HIDE_SEEN_POSTS) return L10n.t("Hide posts you've already seen");
         if (setting == Settings.HIDE_META_AI_QUESTIONS) return L10n.t("Hide Meta AI questions under posts");
         if (setting == Settings.KEEP_POST_DATES) return L10n.t("Keep post dates");
@@ -43,7 +44,7 @@ final class SwitchLabels {
         if (setting == Settings.BLOCK_RETURN_REFRESH) return L10n.t("Keep feed position on return");
         if (setting == Settings.RETURN_REFRESH_NO_LIMIT) return L10n.t("No time limit");
         if (setting == Settings.HIDE_AI_DETECTED_POSTS) return L10n.t("Hide AI-detected posts");
-        if (setting == Settings.HIDE_AI_LABELLED_POSTS) return L10n.t("Also hide posts labelled as AI");
+        if (setting == Settings.HIDE_AI_LABELLED_POSTS) return L10n.t("Also hide posts labeled as AI");
         if (setting == Settings.HIDE_META_AI_FEED_UNITS) return L10n.t("Hide Meta AI in the feed");
         if (setting == Settings.HIDE_AI_CHARACTER_POSTS) return L10n.t("Hide AI character posts");
         if (setting == Settings.HIDE_POSTS_WITH_WORDS) return L10n.t("Hide posts with words you choose");
@@ -100,6 +101,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_SOCIAL_FOOTER) return L10n.t("Hide comment and reaction previews");
         if (setting == Settings.HIDE_REEL_THREADS_CARDS) return L10n.t("Hide Threads cards between reels");
         if (setting == Settings.REEL_CLEAN_MODE) return L10n.t("Always use Clean mode");
+        if (setting == Settings.PLAY_REELS_ONCE) return L10n.t("Play reels once");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.HOLD_ANALYTICS_UPLOADS) return L10n.t("Hold back analytics uploads");
         if (setting == Settings.ALLOW_SCREENSHOTS) return L10n.t("Allow screenshots");
@@ -165,6 +167,8 @@ final class SwitchLabels {
         if (setting == Settings.NOTIFICATION_QUIET_HOURS) return L10n.t("Quiet hours");
         if (setting == Settings.OPEN_LINKS_EXTERNALLY) return L10n.t("Open links in your browser");
         if (setting == Settings.SANITIZE_SHARING_LINKS) return L10n.t("Remove tracking from shared links");
+        if (setting == Settings.SHARE_POST_OWN_LINK) return L10n.t("Share the post's own link");
+        if (setting == Settings.HIDE_SHARE_GROUP_BUTTONS) return L10n.t("Hide group buttons in the share sheet");
         if (setting == Settings.STOP_UPDATE_PROMPTS) return L10n.t("Stop update prompts");
         if (setting == Settings.CHECK_FOR_RELEASES) return L10n.t("Check for new Hushfacebook releases");
         if (setting == Settings.USE_SYSTEM_FONT) return L10n.t("Use the system font");

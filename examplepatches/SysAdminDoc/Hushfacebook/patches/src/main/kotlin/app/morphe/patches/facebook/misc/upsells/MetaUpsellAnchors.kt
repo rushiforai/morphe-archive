@@ -20,6 +20,9 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.filterBooleanReturns
 import app.morphe.patches.facebook.misc.extension.filterObjectReturns
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.feed.resolveStatic
+import app.morphe.patches.facebook.feed.tableStringAt
+import app.morphe.patches.facebook.shared.readsMobileConfig
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -89,7 +92,6 @@ internal const val LANDING_CONFIG = "Lcom/facebook/ipc/inspiration/config/Inspir
 internal const val LANDING_SERIALIZER = "Lcom/facebook/ipc/inspiration/config/InspirationReelsComposerLandingConfiguration\$Serializer;"
 internal val EDITS_FLAGS = listOf("should_show_edits_app_in_header", "should_show_edits_app_header_badge")
 internal const val EDITS_PILL_PARAMETER = "fetch_edits_app_deep_dive_pill"
-private const val MOBILE_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
 
 internal const val THREADS_CAPABILITY = "ComposerThreadsCrossPostOnboardingCapability"
 
@@ -157,25 +159,37 @@ internal data class PillGate(val moveResult: Int, val boxed: Boolean)
 /**
  * In [method], each load of [EDITS_PILL_PARAMETER] right after a MobileConfig gate's move-result
  * whose register goes into the next call with the name: the feed's queries pass a boolean, the
- * video queries a Boolean. A name read any other way is left alone.
+ * video queries a Boolean. A name read any other way is left alone. 582's feed query
+ * (`LX/1a0;->A01`) asks a string table for the name (`LX/6zX;->A00`, see [tableStringsAsked]),
+ * which [resolve] finds, and asks the config's interface in place.
  */
-internal fun editsPillGates(method: Method): List<PillGate> {
+internal fun editsPillGates(method: Method, resolve: (MethodReference) -> Method? = { null }): List<PillGate> {
     val code = method.code()
     return (2 until code.size - 1).mapNotNull { at ->
-        if (code[at].string() != EDITS_PILL_PARAMETER) return@mapNotNull null
         val result = code[at - 1]
-        val gate = code[at - 2].called()?.takeIf { it.definingClass == MOBILE_CONFIG } ?: return@mapNotNull null
         val boxed = when {
-            result.opcode == Opcode.MOVE_RESULT && gate.returnType == "Z" -> false
-            result.opcode == Opcode.MOVE_RESULT_OBJECT && gate.returnType == "Ljava/lang/Boolean;" -> true
+            result.opcode == Opcode.MOVE_RESULT && readsMobileConfig(code[at - 2], "Z") -> false
+            result.opcode == Opcode.MOVE_RESULT_OBJECT && readsMobileConfig(code[at - 2], "Ljava/lang/Boolean;") -> true
             else -> return@mapNotNull null
         }
+        val (name, last) = pillNameLoad(code, at, resolve) ?: return@mapNotNull null
         val answer = (result as OneRegisterInstruction).registerA
-        val name = (code[at] as OneRegisterInstruction).registerA
-        val sent = code[at + 1].registers()
+        val sent = code.getOrNull(last + 1)?.registers().orEmpty()
         if (answer !in sent || name !in sent) return@mapNotNull null
         PillGate(at - 1, boxed)
     }
+}
+
+/**
+ * Where [code] loads [EDITS_PILL_PARAMETER] from [at], the register it lands in and the load's last
+ * index: a const-string, or an int constant, the string table call that takes it and the
+ * move-result-object keeping the answer.
+ */
+private fun pillNameLoad(code: List<Instruction>, at: Int, resolve: (MethodReference) -> Method?): Pair<Int, Int>? {
+    if (code[at].string() == EDITS_PILL_PARAMETER) return (code[at] as OneRegisterInstruction).registerA to at
+    if (tableStringAt(code, at + 1, resolve) != EDITS_PILL_PARAMETER) return null
+    val result = code.getOrNull(at + 2)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT } ?: return null
+    return (result as OneRegisterInstruction).registerA to at + 2
 }
 
 /** Whether [classDef] is the Threads cross-posting capability: its constructor names it. */
@@ -244,9 +258,9 @@ internal fun MutableMethod.answerEditsFlags(fields: List<FieldReference>) {
     editsFlagReads(this, fields).asReversed().forEach { read -> answerAfter(read, EDITS_HEADER) }
 }
 
-/** Puts the pill hook after each gate in this method. Last first. */
-internal fun MutableMethod.answerEditsPill() {
-    editsPillGates(this).asReversed().forEach { gate ->
+/** Puts the pill hook after each gate in this method, its name loaded plainly or from a table [resolve] finds. Last first. */
+internal fun MutableMethod.answerEditsPill(resolve: (MethodReference) -> Method? = { null }) {
+    editsPillGates(this, resolve).asReversed().forEach { gate ->
         answerAfter(gate.moveResult, if (gate.boxed) FETCH_EDITS_PILL_BOXED else FETCH_EDITS_PILL)
     }
 }
@@ -291,8 +305,8 @@ internal fun BytecodePatchContext.hideMetaUpsells() {
     val composerImagine = enumConstant(enumNaming(COMPOSER_CAPABILITIES), COMPOSER_IMAGINE)
     val storyImagine = enumConstant(enumNaming(STORY_TOOLS_NAMES), STORY_IMAGINE)
 
-    // The share sheet's Threads button: its item type, and Guava's copy the hook hands back through.
-    val shareThreads = enumConstant(enumNaming(SHARE_ITEM_TYPES), SHARE_TO_THREADS)
+    // Guava's copy Create story's tools hand back through. The share sheet's Threads button is
+    // shareSheetHookPatch's, a dependency, which finds its own.
     val immutableList = classDefByOrNull(IMMUTABLE_LIST) ?: refuse("this Facebook build has no $IMMUTABLE_LIST")
     if (!definesImmutableCopy(immutableList)) refuse("$IMMUTABLE_LIST has no copyOf(Collection) here")
 
@@ -300,38 +314,36 @@ internal fun BytecodePatchContext.hideMetaUpsells() {
     val serializer = classDefByOrNull(LANDING_SERIALIZER) ?: refuse("this Facebook build has no $LANDING_SERIALIZER")
     val fields = editsFlagFields(serializer)
     val label = verifiedLabelText(classDefByOrNull(VERIFIED_LABEL_PLUGIN) ?: refuse("this Facebook build has no $VERIFIED_LABEL_PLUGIN"))
+    // A string table holds the pill's name like any other holder, so a table call is looked up among them.
+    val pillHolders = holders(EDITS_PILL_PARAMETER).associateBy { it.type }
+    val pillTable: (MethodReference) -> Method? = { call -> pillHolders[call.definingClass]?.let { resolveStatic(it, call) } }
+    val pillMethods = mutableListOf<Pair<String, Method>>()
     val flagReaders = mutableListOf<Pair<String, Method>>()
     val labelAskers = mutableListOf<Pair<String, Method>>()
     val imagineAskers = mutableListOf<Pair<String, Method>>()
     val storyBuilders = mutableListOf<Pair<String, Method>>()
-    val shareLists = mutableListOf<Pair<String, Method>>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
         for (method in classDef.methods) {
             if (editsFlagReads(method, fields).isNotEmpty()) flagReaders += classDef.type to method
+            if (editsPillGates(method, pillTable).isNotEmpty()) pillMethods += classDef.type to method
             if (verifiedLabelAsks(method, label).isNotEmpty()) labelAskers += classDef.type to method
             if (capabilityAsks(method, composerImagine).isNotEmpty()) imagineAskers += classDef.type to method
             if (storyToolList(method, storyImagine) != null) storyBuilders += classDef.type to method
-            if (isShareItemList(method, shareThreads)) shareLists += classDef.type to method
         }
     }
     if (imagineAskers.isEmpty()) refuse("nothing asks the composer's capabilities about $COMPOSER_IMAGINE")
     val storyBuilder = storyBuilders.singleOrNull()
         ?: refuse("expected one Create story tile builder reading $storyImagine, found ${storyBuilders.map { it.first }}")
-    val shareList = shareLists.singleOrNull()
-        ?: refuse("expected one share sheet item list reading $shareThreads, found ${shareLists.map { it.first }}")
     if (flagReaders.none { !it.first.startsWith(LANDING_CONFIG.removeSuffix(";")) }) {
         refuse("nothing outside $LANDING_CONFIG reads the Edits flags")
     }
     flagReaders.forEach { (type, method) -> mutableClassDefBy(type).findMutableMethodOf(method).answerEditsFlags(fields) }
 
-    val pillMethods = classDefByStrings(EDITS_PILL_PARAMETER, StringComparisonType.EQUALS)
-        .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
-        .flatMap { classDef -> classDef.methods.filter { editsPillGates(it).isNotEmpty() }.map { classDef.type to it } }
-    if (pillMethods.none { (_, method) -> editsPillGates(method).any { !it.boxed } }) {
+    if (pillMethods.none { (_, method) -> editsPillGates(method, pillTable).any { !it.boxed } }) {
         refuse("expected the feed's query to set \"$EDITS_PILL_PARAMETER\" from a MobileConfig gate, found ${pillMethods.size} gates")
     }
-    pillMethods.forEach { (type, method) -> mutableClassDefBy(type).findMutableMethodOf(method).answerEditsPill() }
+    pillMethods.forEach { (type, method) -> mutableClassDefBy(type).findMutableMethodOf(method).answerEditsPill(pillTable) }
 
     // Threads: the cross-posting onboarding's should-show answer.
     val capabilities = classDefByStrings(THREADS_CAPABILITY, StringComparisonType.EQUALS)
@@ -372,7 +384,4 @@ internal fun BytecodePatchContext.hideMetaUpsells() {
     }
     val builder = mutableClassDefBy(storyBuilder.first).findMutableMethodOf(storyBuilder.second)
     builder.filterStoryTools(storyToolList(builder, storyImagine)!!)
-
-    // Threads in the share sheet: every list of item types the sheet gets.
-    mutableClassDefBy(shareList.first).findMutableMethodOf(shareList.second).filterShareTargets()
 }

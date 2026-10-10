@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -120,6 +121,18 @@ class VideoTabColourFixtureTest {
         return made.first()
     }
 
+    /**
+     * The Video tab's colours and the class above them, the tab bar's colour provider. 582's Redex
+     * moved the Video tab class's methods up into the provider (582 `LX/4RM;` into `LX/5wY;`, whose
+     * bodies cast themselves back), so its reads are found in either. 581's provider only declares
+     * them.
+     */
+    private fun videoTabColourClasses(bundle: File, type: String): List<ClassDef> {
+        val colours = FixtureDex.classes(bundle, setOf(type)).getValue(type)
+        val provider = colours.superclass?.let { FixtureDex.classes(bundle, setOf(it))[it] }
+        return listOfNotNull(colours, provider)
+    }
+
     /** Each colour resource [method] reads with `Context.getColor`, from the literal id it loads. */
     private fun resourceReads(method: Method): Set<Int> {
         val body = method.body()
@@ -168,17 +181,17 @@ class VideoTabColourFixtureTest {
             for (bundle in bundles(version)) {
                 val name = bundle.name
                 val type = videoTabColours(bundle)
-                val colours = FixtureDex.classes(bundle, setOf(type)).getValue(type)
-                val reads = colours.methods.flatMap { resourceReads(it) }.toSet()
+                val classes = videoTabColourClasses(bundle, type)
+                val reads = classes.flatMap { it.methods }.flatMap { resourceReads(it) }.toSet()
                 val resources = table(bundle)
                 val bar = reads.filter { id -> colourValues(resources, id) == listOf(true to videoGrey) }
                 assertEquals("$name: the bar's #252728, defined in the default configuration only, among " +
                     reads.joinToString { Integer.toHexString(it) }, 1, bar.size)
 
-                val direct = colours.methods.sumOf { method -> method.body().count { it.reference() == CONTEXT_GET_COLOR } }
+                val direct = classes.flatMap { it.methods }.sumOf { method -> method.body().count { it.reference() == CONTEXT_GET_COLOR } }
                 for ((amoled, you) in listOf(true to false, false to true, true to true)) {
                     val themes = "$name, AMOLED $amoled, Material You $you"
-                    val context = PatchContexts.of(listOf(colours))
+                    val context = PatchContexts.of(classes)
                     val sent = with(context) {
                         val byAmoled = if (amoled) rerouteColourCalls(AMOLED_COLOUR_CALLS).getValue(CONTEXT_GET_COLOR) else 0
                         val byYou = if (you) rerouteColourCalls(YOU_COLOUR_CALLS).let {
@@ -187,7 +200,7 @@ class VideoTabColourFixtureTest {
                         listOf(byAmoled, byYou).filter { it > 0 }
                     }
                     val stand = if (you) standIn(MATERIAL_YOU, CONTEXT_GET_COLOR) else AMOLED_COLOUR_CALLS.getValue(CONTEXT_GET_COLOR)
-                    for (method in context.mutableClassDefBy(type).methods) {
+                    for (colours in classes) for (method in context.mutableClassDefBy(colours.type).methods) {
                         val before = colours.methods.single {
                             it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType
                         }.body()
@@ -244,9 +257,10 @@ class VideoTabColourFixtureTest {
             for (bundle in bundles(version)) {
                 val name = bundle.name
                 val type = videoTabColours(bundle)
-                val colours = FixtureDex.classes(bundle, setOf(type)).getValue(type)
+                val classes = videoTabColourClasses(bundle, type)
+                val colours = classes.first()
                 val resources = table(bundle)
-                val barReads = colours.methods.filter { method ->
+                val barReads = classes.flatMap { it.methods }.filter { method ->
                     method.parameterTypes.isEmpty() && method.returnType == "I" &&
                         resourceReads(method).any { colourValues(resources, it) == listOf(true to videoGrey) }
                 }.map { it.name }.toSet()

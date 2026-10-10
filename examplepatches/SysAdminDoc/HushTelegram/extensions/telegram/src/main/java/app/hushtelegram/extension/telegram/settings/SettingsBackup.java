@@ -122,6 +122,7 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_REPEAT,
             Settings.KEEP_DELETED_MESSAGES,
             Settings.ASK_BEFORE_STICKER,
+            Settings.BETA_LOGS_OFF,
             Settings.ASK_BEFORE_GIF,
             Settings.ASK_BEFORE_VOICE_VIDEO,
             Settings.ASK_BEFORE_CALL,

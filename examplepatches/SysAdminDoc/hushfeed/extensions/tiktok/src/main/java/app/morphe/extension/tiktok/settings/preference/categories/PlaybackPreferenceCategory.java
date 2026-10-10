@@ -64,7 +64,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "Auto-advance keeps working.",
                     Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION));
             addPreference(new TogglePreference(context, "Auto-advance in search results",
-                    "Also turns on TikTok's own auto scroll for videos opened from search. "
+                    "Also turns on TikTok's own Auto scroll for videos opened from search. "
                             + "Restart TikTok to apply this.",
                     Settings.AUTO_ADVANCE_SEARCH));
         }
@@ -260,16 +260,16 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         }
         if (SettingsStatus.sdrPlaybackEnabled) {
             addPreference(new TogglePreference(context, "Play SDR instead of HDR",
-                    "Play the standard version of videos that also come in HDR, so the screen "
-                            + "doesn't jump to full brightness when one starts. Videos TikTok only "
-                            + "offers in HDR still play.",
+                    "HDR videos light the screen extra bright. This plays the standard (SDR) "
+                            + "version instead, so the screen doesn't jump to full brightness. "
+                            + "Videos with no standard version still play in HDR.",
                     Settings.PLAY_SDR));
         }
         if (SettingsStatus.h264PlaybackEnabled) {
             addPreference(new TogglePreference(context, "Prefer H.264 video",
-                    "Play the H.264 version of videos TikTok also offers in HEVC or ByteVC2. "
-                            + "It's easier on phones that stutter or run hot playing those. Videos "
-                            + "without an H.264 version still play.",
+                    "Picks the older H.264 video format when TikTok also offers a newer one "
+                            + "(HEVC or ByteVC2). It helps phones that stutter or run hot. "
+                            + "Videos without an H.264 version still play.",
                     Settings.PREFER_H264));
         }
     }

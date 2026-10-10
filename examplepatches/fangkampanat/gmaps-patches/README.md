@@ -11,7 +11,7 @@ This repository provides `.mpp` patch bundles. Supply a clean Google Maps APK to
 ## Patches list
 
 <!-- PATCHES_START -->
-[v1.2.2](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.2.2) · 1 patch
+[v1.2.3](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.2.3) · 1 patch
 
 Eligible versions: Any version.
 
@@ -32,11 +32,11 @@ The patch accepts any Google Maps version. It stops if required hooks cannot be 
 
 ## Tested devices and apps
 
-The latest tested Maps version is `26.39.06.984891338`, patched with bundle `1.2.2`, using official MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`.
+The latest tested Maps version is `26.39.06.984891338`, patched with bundle `1.2.3`, using official MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`.
 
 | Device | Results |
 |---|---|
-| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Static checks passed; the user reported normal use and TTS working. |
+| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Static checks passed; the user confirmed normal use. |
 
 Phone use with this provider, 16 KiB devices, English-script street-name maneuvers, automatic voice timing while driving, and Timeline recording and backup are outside the verified scope.
 

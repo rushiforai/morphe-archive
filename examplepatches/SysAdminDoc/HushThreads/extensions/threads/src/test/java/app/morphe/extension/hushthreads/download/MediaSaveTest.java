@@ -764,7 +764,7 @@ public class MediaSaveTest {
         assertFalse("the save never finished", worker.isAlive());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-        assertEquals("Download failed", ShadowToast.getTextOfLatestToast());
+        assertEquals("Download failed. Try again in a moment.", ShadowToast.getTextOfLatestToast());
         assertTrue("the unlisted row was left in the gallery", gallery.rows.isEmpty());
         assertEquals(0, published.size());
     }
@@ -1123,6 +1123,7 @@ public class MediaSaveTest {
     }
 
     /** MediaStore's video and image tables, as much of them as a save touches. */
+    /** Synchronized: PostSaveTest runs two saves side by side, and a shared nextId++ handed both one row. */
     public static final class Gallery extends ContentProvider {
         final Map<Long, ContentValues> rows = new HashMap<>();
         final List<Uri> inserts = new ArrayList<>();
@@ -1140,7 +1141,7 @@ public class MediaSaveTest {
             return true;
         }
 
-        @Override public Uri insert(Uri uri, ContentValues values) {
+        @Override public synchronized Uri insert(Uri uri, ContentValues values) {
             if (refuseInsert) return null;
             long id = nextId++;
             rows.put(id, new ContentValues(values));
@@ -1154,7 +1155,7 @@ public class MediaSaveTest {
             return new MatrixCursor(projection == null ? new String[0] : projection);
         }
 
-        @Override public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        @Override public synchronized int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
             if (refuseUpdate) return 0;
             ContentValues row = rows.get(ContentUris.parseId(uri));
             if (row == null) return 0;
@@ -1162,7 +1163,7 @@ public class MediaSaveTest {
             return 1;
         }
 
-        @Override public int delete(Uri uri, String selection, String[] selectionArgs) {
+        @Override public synchronized int delete(Uri uri, String selection, String[] selectionArgs) {
             if (refuseDeletion) return 0;
             return rows.remove(ContentUris.parseId(uri)) == null ? 0 : 1;
         }

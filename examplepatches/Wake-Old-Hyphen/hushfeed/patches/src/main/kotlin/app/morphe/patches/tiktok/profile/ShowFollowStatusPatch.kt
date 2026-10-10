@@ -77,7 +77,9 @@ internal fun ClassDef.itemViewField(): Field? = fields.singleOrNull {
 @Suppress("unused")
 val showFollowStatusPatch = bytecodePatch(
     name = "Show follow status",
-    description = "Says under a profile's @username whether it follows you, or that it doesn't follow you back when you follow it. Follower and following lists mark the accounts you follow that don't follow you back. It reads the follow status TikTok already sends. Switch: Hushfeed settings > App.",
+    description = "Shows on a profile whether that person follows you back, and marks " +
+        "accounts in your follow lists that don't. On by default. Turn it off in Hushfeed " +
+        "settings > App.",
     default = true,
 ) {
     category("Interaction")

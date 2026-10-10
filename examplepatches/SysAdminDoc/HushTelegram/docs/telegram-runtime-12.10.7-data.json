@@ -1,0 +1,487 @@
+{
+  "schemaVersion": 1,
+  "status": "complete-with-exclusions",
+  "app": {
+    "package": "org.telegram.messenger.beta",
+    "version": "12.10.7",
+    "build": 71239,
+    "apkSha256": "5f1d8e90fa4c03e58e3dc0c96ab6905295ead62bec81b6d5d9a0a52d01779500"
+  },
+  "device": {
+    "model": "SM-S908U1",
+    "androidRelease": "16"
+  },
+  "captureMethod": {
+    "tool": "PCAPdroid 2.0.2",
+    "mode": "app-filtered PCAP file",
+    "appFilter": "org.telegram.messenger.beta",
+    "rootCapture": false,
+    "tlsDecryption": false,
+    "fullPayload": false,
+    "linkType": "DLT_RAW 101",
+    "snaplenBytes": 128
+  },
+  "inclusionSemantics": "included indicates that the phase's valid timed observation appears in the published measurements. Packet inclusion is controlled separately by capture.includedInPacketAggregates. excludedAsScreenOffControl excludes an observation only from the screen-off or AOD control condition.",
+  "phases": [
+    {
+      "id": "baseline1-foreground",
+      "status": "complete",
+      "included": true,
+      "modeVerification": {
+        "focusedPackage": "org.telegram.messenger.beta",
+        "screenOff": false
+      },
+      "measurementStartUtc": "2026-10-09T22:23:34.473878Z",
+      "measurementEndUtc": "2026-10-09T22:25:34.474306Z",
+      "measurementDurationSeconds": 120.0004531,
+      "uidCounters": {
+        "accountingScope": "primary-user package UID counters",
+        "beforeRead": {
+          "startedUtc": "2026-10-09T22:23:34.064290Z",
+          "finishedUtc": "2026-10-09T22:23:34.155365Z",
+          "readDurationSeconds": 0.091075,
+          "rxBytes": 14158951,
+          "rxPackets": 7402,
+          "txBytes": 563900,
+          "txPackets": 4341
+        },
+        "afterRead": {
+          "startedUtc": "2026-10-09T22:25:34.818791Z",
+          "finishedUtc": "2026-10-09T22:25:34.888882Z",
+          "readDurationSeconds": 0.070091,
+          "rxBytes": 14160946,
+          "rxPackets": 7427,
+          "txBytes": 568297,
+          "txPackets": 4367
+        },
+        "betweenReadStartsSeconds": 120.754501,
+        "betweenReadCompletionsSeconds": 120.7335164,
+        "counterReadEnvelopeSeconds": 120.824592,
+        "delta": {
+          "rxBytes": 1995,
+          "rxPackets": 25,
+          "txBytes": 4397,
+          "txPackets": 26,
+          "totalBytes": 6392,
+          "totalPackets": 51
+        }
+      },
+      "mainProcessSamples": {
+        "processName": "org.telegram.messenger.beta",
+        "samplesInPhase": 4,
+        "firstSample": {
+          "utc": "2026-10-09T22:24:04.474484Z",
+          "cpuTicks": 18070,
+          "rssKiB": 426556
+        },
+        "lastSample": {
+          "utc": "2026-10-09T22:25:34.537738Z",
+          "cpuTicks": 18741,
+          "rssKiB": 426696
+        },
+        "sampleIntervalSeconds": 90.063254,
+        "cpuDeltaTicks": 671,
+        "clockTicksPerSecond": 100,
+        "cpuDeltaSeconds": 6.71,
+        "cpuPercentOneCore": 7.4503,
+        "rssObservedRangeKiB": [426288, 426696]
+      },
+      "capture": {
+        "includedInPacketAggregates": true,
+        "startRequestUtc": "2026-10-09T22:23:16.293966Z",
+        "readyVerifiedUtc": "2026-10-09T22:23:33.436004Z",
+        "stopRequestUtc": "2026-10-09T22:25:35.006822Z",
+        "stoppedUtc": "2026-10-09T22:25:59.221116Z",
+        "firstPacketUtc": "2026-10-09T22:23:32.241629Z",
+        "lastPacketUtc": "2026-10-09T22:25:46.525021Z",
+        "packetTimestampSpanSeconds": 134.283392,
+        "packetCount": 234,
+        "declaredIpBytes": 55041,
+        "capturedRecordBytes": 18923,
+        "truncatedRecords": 80,
+        "ipv4": {"packets": 159, "declaredIpBytes": 30113, "capturedIpBytes": 11892},
+        "ipv6": {"packets": 75, "declaredIpBytes": 24928, "capturedIpBytes": 7031},
+        "tcp": {"packets": 201, "declaredIpBytes": 43096, "capturedIpBytes": 15532},
+        "udp": {"packets": 33, "declaredIpBytes": 11945, "capturedIpBytes": 3391}
+      },
+      "systemEvidence": {
+        "packageOwnedServiceRecordsBefore": [
+          "org.telegram.messenger.GcmPushListenerService",
+          "com.google.firebase.sessions.SessionLifecycleService",
+          "org.telegram.messenger.NotificationsService",
+          "org.chromium.content.app.SandboxedProcessService0:0"
+        ],
+        "packageOwnedServiceRecordsAfter": [
+          "org.telegram.messenger.GcmPushListenerService",
+          "com.google.firebase.sessions.SessionLifecycleService",
+          "org.telegram.messenger.NotificationsService",
+          "org.chromium.content.app.SandboxedProcessService0:0"
+        ],
+        "recordTypeCaveat": "Activity-service ServiceRecord entries do not establish Android foreground-service notification status.",
+        "pendingDataTransportJobsBefore": 1,
+        "pendingDataTransportJobsAfter": 1,
+        "dataTransportJobRunCountBefore": 0,
+        "dataTransportJobRunCountAfter": 0,
+        "dataTransportJobConstraintSummary": "Connectivity was satisfied. Timing delay and device idle were unsatisfied.",
+        "dataTransportJobConstraints": {
+          "before": {
+            "required": ["TIMING_DELAY", "IDLE", "CONNECTIVITY", "FLEXIBILITY", "UID_NOT_RESTRICTED"],
+            "satisfied": ["CONNECTIVITY", "FLEXIBILITY", "DEVICE_NOT_DOZING", "BACKGROUND_NOT_RESTRICTED", "WITHIN_QUOTA", "UID_NOT_RESTRICTED"],
+            "unsatisfied": ["TIMING_DELAY", "IDLE"]
+          },
+          "after": {
+            "required": ["TIMING_DELAY", "IDLE", "CONNECTIVITY", "FLEXIBILITY", "UID_NOT_RESTRICTED"],
+            "satisfied": ["CONNECTIVITY", "FLEXIBILITY", "DEVICE_NOT_DOZING", "BACKGROUND_NOT_RESTRICTED", "WITHIN_QUOTA", "UID_NOT_RESTRICTED"],
+            "unsatisfied": ["TIMING_DELAY", "IDLE"]
+          }
+        },
+        "packageOwnedPendingAlarmsBefore": 0,
+        "packageOwnedPendingAlarmsAfter": 0,
+        "targetWakelockTransitionsObserved": 0
+      },
+      "limitations": [
+        "UID counter read intervals are slightly wider than the fixed measurement interval; both intervals are recorded separately.",
+        "Recorded CPU samples begin about 30 seconds after measurement start. CPU values use the directly recomputable first-to-last sample interval and are not a full-window total.",
+        "Only the named main Telegram process appears in process samples. The separate Chromium sandbox service process is excluded from these process CPU and RSS samples.",
+        "The app-filtered VPN PCAP can include setup and stop latency. Device and host clocks were not aligned, so packets cannot be cropped exactly to the fixed window.",
+        "PCAP declared IP bytes and Android UID netstats use different accounting. PCAPdroid's L4 VPN proxy may synthesize transport headers. Do not reconcile these totals byte-for-byte.",
+        "Snaplen 128 truncates packet records. TLS decryption and full payload capture were disabled. Encrypted traffic cannot be classified as advertisements from these data."
+      ]
+    },
+    {
+      "id": "baseline1-background",
+      "status": "complete",
+      "included": true,
+      "modeVerification": {
+        "focusedPackage": "com.sec.android.app.launcher",
+        "screenOff": false
+      },
+      "measurementStartUtc": "2026-10-09T22:26:29.227072Z",
+      "measurementEndUtc": "2026-10-09T22:31:29.227442Z",
+      "measurementDurationSeconds": 300.0004015,
+      "uidCounters": {
+        "accountingScope": "primary-user package UID counters",
+        "beforeRead": {
+          "startedUtc": "2026-10-09T22:26:28.845938Z",
+          "finishedUtc": "2026-10-09T22:26:28.913542Z",
+          "readDurationSeconds": 0.067604,
+          "rxBytes": 14174194,
+          "rxPackets": 7473,
+          "txBytes": 578527,
+          "txPackets": 4421
+        },
+        "afterRead": {
+          "startedUtc": "2026-10-09T22:31:29.571192Z",
+          "finishedUtc": "2026-10-09T22:31:29.650900Z",
+          "readDurationSeconds": 0.079708,
+          "rxBytes": 14175086,
+          "rxPackets": 7486,
+          "txBytes": 580172,
+          "txPackets": 4434
+        },
+        "betweenReadStartsSeconds": 300.725254,
+        "betweenReadCompletionsSeconds": 300.7373557,
+        "counterReadEnvelopeSeconds": 300.804962,
+        "delta": {
+          "rxBytes": 892,
+          "rxPackets": 13,
+          "txBytes": 1645,
+          "txPackets": 13,
+          "totalBytes": 2537,
+          "totalPackets": 26
+        }
+      },
+      "mainProcessSamples": {
+        "processName": "org.telegram.messenger.beta",
+        "samplesInPhase": 10,
+        "firstSample": {
+          "utc": "2026-10-09T22:26:59.227339Z",
+          "cpuTicks": 19387,
+          "rssKiB": 392892
+        },
+        "lastSample": {
+          "utc": "2026-10-09T22:31:29.291178Z",
+          "cpuTicks": 21393,
+          "rssKiB": 216196
+        },
+        "sampleIntervalSeconds": 270.063839,
+        "cpuDeltaTicks": 2006,
+        "clockTicksPerSecond": 100,
+        "cpuDeltaSeconds": 20.06,
+        "cpuPercentOneCore": 7.4279,
+        "rssObservedRangeKiB": [214552, 393008]
+      },
+      "capture": {
+        "includedInPacketAggregates": true,
+        "startRequestUtc": "2026-10-09T22:26:06.789906Z",
+        "readyVerifiedUtc": "2026-10-09T22:26:28.445594Z",
+        "stopRequestUtc": "2026-10-09T22:31:29.769810Z",
+        "stoppedUtc": "2026-10-09T22:31:55.672568Z",
+        "firstPacketUtc": "2026-10-09T22:26:27.371651Z",
+        "lastPacketUtc": "2026-10-09T22:27:34.568543Z",
+        "packetTimestampSpanSeconds": 67.196892,
+        "packetCount": 245,
+        "declaredIpBytes": 67318,
+        "capturedRecordBytes": 19631,
+        "truncatedRecords": 77,
+        "ipv4": {"packets": 147, "declaredIpBytes": 35952, "capturedIpBytes": 10624},
+        "ipv6": {"packets": 98, "declaredIpBytes": 31366, "capturedIpBytes": 9007},
+        "tcp": {"packets": 212, "declaredIpBytes": 55385, "capturedIpBytes": 16240},
+        "udp": {"packets": 33, "declaredIpBytes": 11933, "capturedIpBytes": 3391}
+      },
+      "systemEvidence": {
+        "packageOwnedServiceRecordsBefore": [
+          "org.telegram.messenger.GcmPushListenerService",
+          "com.google.firebase.sessions.SessionLifecycleService",
+          "org.telegram.messenger.NotificationsService",
+          "org.chromium.content.app.SandboxedProcessService0:0"
+        ],
+        "packageOwnedServiceRecordsAfter": [
+          "org.telegram.messenger.GcmPushListenerService",
+          "com.google.firebase.sessions.SessionLifecycleService",
+          "org.chromium.content.app.SandboxedProcessService0:0"
+        ],
+        "recordTypeCaveat": "Activity-service ServiceRecord entries do not establish Android foreground-service notification status.",
+        "serviceRecordChange": "NotificationsService absent after measurement",
+        "pendingDataTransportJobsBefore": 1,
+        "pendingDataTransportJobsAfter": 1,
+        "dataTransportJobRunCountBefore": 0,
+        "dataTransportJobRunCountAfter": 0,
+        "dataTransportJobConstraintSummary": "Connectivity was satisfied. Timing delay and device idle were unsatisfied.",
+        "dataTransportJobConstraints": {
+          "before": {
+            "required": ["TIMING_DELAY", "IDLE", "CONNECTIVITY", "FLEXIBILITY", "UID_NOT_RESTRICTED"],
+            "satisfied": ["CONNECTIVITY", "FLEXIBILITY", "DEVICE_NOT_DOZING", "BACKGROUND_NOT_RESTRICTED", "WITHIN_QUOTA", "UID_NOT_RESTRICTED"],
+            "unsatisfied": ["TIMING_DELAY", "IDLE"]
+          },
+          "after": {
+            "required": ["TIMING_DELAY", "IDLE", "CONNECTIVITY", "FLEXIBILITY", "UID_NOT_RESTRICTED"],
+            "satisfied": ["CONNECTIVITY", "FLEXIBILITY", "DEVICE_NOT_DOZING", "BACKGROUND_NOT_RESTRICTED", "WITHIN_QUOTA", "UID_NOT_RESTRICTED"],
+            "unsatisfied": ["TIMING_DELAY", "IDLE"]
+          }
+        },
+        "packageOwnedPendingAlarmsBefore": 0,
+        "packageOwnedPendingAlarmsAfter": 0,
+        "targetWakelockTransitionsObserved": 0
+      },
+      "limitations": [
+        "UID counter read intervals are slightly wider than the fixed measurement interval; both intervals are recorded separately.",
+        "Recorded CPU samples begin about 30 seconds after measurement start. CPU values use the directly recomputable first-to-last sample interval and are not a full-window total.",
+        "Only the named main Telegram process appears in process samples. The separate Chromium sandbox service process is excluded from these process CPU and RSS samples.",
+        "The app-filtered VPN PCAP can include setup and stop latency. Device and host clocks were not aligned, so packets cannot be cropped exactly to the fixed window.",
+        "Packet timestamps span 67 seconds, but this is not proof capture stopped early. Capture was stopped after the fixed 300-second window. No mid-window service-health probe exists for this baseline.",
+        "PCAP declared IP bytes and Android UID netstats use different accounting. PCAPdroid's L4 VPN proxy may synthesize transport headers. Do not reconcile these totals byte-for-byte.",
+        "Snaplen 128 truncates packet records. TLS decryption and full payload capture were disabled. Encrypted traffic cannot be classified as advertisements from these data.",
+        "Capture phase metadata conflicts about remote-file deletion after download. Local PCAP hash verification and final service-inactive state were recorded."
+      ]
+    },
+    {
+      "id": "baseline2-screen-off",
+      "status": "partial-timed-metrics-collected-capture-stop-failed",
+      "included": true,
+      "timedMetricsAccepted": true,
+      "phaseRunnerMeasurementCompleted": false,
+      "modeVerification": {
+        "focusedPackage": "com.sec.android.app.launcher",
+        "screenOff": true,
+        "wakefulness": "Dozing",
+        "aodPossible": true,
+        "idleDozeStatus": "not inferred"
+      },
+      "measurementStartUtc": "2026-10-09T22:38:12.176617Z",
+      "measurementEndUtc": "2026-10-09T22:43:12.177181Z",
+      "measurementDurationSeconds": 300.000594,
+      "uidCounters": {
+        "accountingScope": "primary-user package UID counters",
+        "beforeRead": {
+          "startedUtc": "2026-10-09T22:38:11.795756Z",
+          "finishedUtc": "2026-10-09T22:38:11.880833Z",
+          "readDurationSeconds": 0.085077,
+          "rxBytes": 14179550,
+          "rxPackets": 7532,
+          "txBytes": 590169,
+          "txPackets": 4502
+        },
+        "afterRead": {
+          "startedUtc": "2026-10-09T22:43:12.542030Z",
+          "finishedUtc": "2026-10-09T22:43:12.618299Z",
+          "readDurationSeconds": 0.076269,
+          "rxBytes": 14180065,
+          "rxPackets": 7538,
+          "txBytes": 591249,
+          "txPackets": 4510
+        },
+        "betweenReadStartsSeconds": 300.746274,
+        "betweenReadCompletionsSeconds": 300.7374662,
+        "counterReadEnvelopeSeconds": 300.822543,
+        "delta": {
+          "rxBytes": 515,
+          "rxPackets": 6,
+          "txBytes": 1080,
+          "txPackets": 8,
+          "totalBytes": 1595,
+          "totalPackets": 14
+        }
+      },
+      "mainProcessSamples": {
+        "processName": "org.telegram.messenger.beta",
+        "samplesInPhase": 11,
+        "firstSample": {
+          "utc": "2026-10-09T22:38:11.927124Z",
+          "role": "measurement_start_baseline",
+          "cpuTicks": 25410,
+          "rssKiB": 295228
+        },
+        "lastSample": {
+          "utc": "2026-10-09T22:43:12.249113Z",
+          "role": "after",
+          "cpuTicks": 27002,
+          "rssKiB": 217632
+        },
+        "sampleIntervalSeconds": 300.321989,
+        "cpuDeltaTicks": 1592,
+        "clockTicksPerSecond": 100,
+        "cpuDeltaSeconds": 15.92,
+        "cpuPercentOneCore": 5.301,
+        "rssObservedRangeKiB": [213964, 295332]
+      },
+      "capture": {
+        "status": "stop-control-failed-not-cleanly-flushed",
+        "includedInPacketAggregates": false,
+        "phaseMetadataError": "PCAPdroid service was still active at runner finalization; the PCAP was not pulled or deleted.",
+        "stopRecovery": {
+          "approximateUtc": "2026-10-09T22:48:30Z",
+          "action": "PCAPdroid only was force-stopped after the measured interval.",
+          "pcapdroidCaptureServiceAbsentVerified": true,
+          "screenWakefulnessVerified": "Dozing",
+          "otherVpnProvidersIndependentlyChecked": false
+        },
+        "limitation": "The capture was not cleanly flushed. Exclude this phase from all PCAP totals. CaptureService absence does not establish that every VPN provider was absent."
+      },
+      "noUiActionsDuringMeasurement": true,
+      "limitations": [
+        "Counter and process observations completed for the timed window, but phaseRunnerMeasurementCompleted is false because capture stop failed.",
+        "The PCAP was not cleanly flushed and is excluded from public packet results.",
+        "Only PCAPdroid CaptureService absence was verified after cleanup. Other VPN providers were not independently checked.",
+        "RSS is sampled main-process resident memory, not PSS or a battery estimate."
+      ]
+    },
+    {
+      "id": "capture-off-background-screen-state-changed",
+      "status": "included-as-background-observation",
+      "included": true,
+      "excludedAsScreenOffControl": true,
+      "modeVerification": {
+        "targetForegroundBefore": false,
+        "targetForegroundAfter": false,
+        "focusedPackageBefore": "NotificationShade",
+        "focusedPackageAfter": "com.sec.android.app.launcher",
+        "screenOffBefore": true,
+        "screenOffAfter": false,
+        "wakefulnessBefore": "Dozing",
+        "wakefulnessAfter": "Awake",
+        "aodPossibleBefore": true,
+        "aodPossibleAfter": false,
+        "pcapdroidCaptureServiceActiveBefore": false,
+        "pcapdroidCaptureServiceActiveAfter": false,
+        "otherVpnProvidersIndependentlyChecked": false,
+        "wakeTimingObservation": "Power timestamps place the last wake about 5.574 seconds after the last sleep, near the measurement start. Cause not established."
+      },
+      "measurementStartUtc": "2026-10-09T22:54:00.191236Z",
+      "measurementEndUtc": "2026-10-09T22:59:00.191414Z",
+      "measurementDurationSeconds": 300.0001717,
+      "uidCounters": {
+        "accountingScope": "primary-user package UID counters",
+        "beforeRead": {
+          "startedUtc": "2026-10-09T22:53:59.773514Z",
+          "finishedUtc": "2026-10-09T22:53:59.828060Z",
+          "readDurationSeconds": 0.054546,
+          "rxBytes": 14182217,
+          "rxPackets": 7552,
+          "txBytes": 595258,
+          "txPackets": 4535
+        },
+        "afterRead": {
+          "startedUtc": "2026-10-09T22:59:00.457088Z",
+          "finishedUtc": "2026-10-09T22:59:00.525694Z",
+          "readDurationSeconds": 0.068606,
+          "rxBytes": 14182507,
+          "rxPackets": 7554,
+          "txBytes": 596104,
+          "txPackets": 4540
+        },
+        "betweenReadStartsSeconds": 300.683574,
+        "betweenReadCompletionsSeconds": 300.697634,
+        "counterReadEnvelopeSeconds": 300.75218,
+        "delta": {
+          "rxBytes": 290,
+          "rxPackets": 2,
+          "txBytes": 846,
+          "txPackets": 5,
+          "totalBytes": 1136,
+          "totalPackets": 7,
+          "counterDecreased": false
+        }
+      },
+      "mainProcessSamples": {
+        "processName": "org.telegram.messenger.beta",
+        "observedProcessIdentityCount": 1,
+        "samplesInPhase": 2,
+        "firstSample": {
+          "utc": "2026-10-09T22:53:59.828631Z",
+          "role": "measurement_start_boundary",
+          "cpuTicks": 30597,
+          "rssKiB": 257464
+        },
+        "lastSample": {
+          "utc": "2026-10-09T22:59:00.191446Z",
+          "role": "measurement_end_boundary",
+          "cpuTicks": 32860,
+          "rssKiB": 258056
+        },
+        "sampleIntervalSeconds": 300.3628124,
+        "cpuDeltaTicks": 2263,
+        "clockTicksPerSecond": 100,
+        "cpuDeltaSeconds": 22.63,
+        "cpuPercentOneCore": 7.5342,
+        "rssObservedRangeKiB": [257464, 258056]
+      },
+      "capture": {
+        "includedInPacketAggregates": false,
+        "pcapdroidCaptureServiceActiveBefore": false,
+        "pcapdroidCaptureServiceActiveAfter": false,
+        "pcapCollected": false,
+        "otherVpnProvidersIndependentlyChecked": false,
+        "limitation": "PCAPdroid CaptureService was inactive at both boundaries. This does not establish that every VPN provider was absent."
+      },
+      "limitations": [
+        "The screen was off and Dozing at the start but Awake and on at the end. Include this as a background observation, not a screen-off or AOD control.",
+        "The cause of the wake was not established.",
+        "Only PCAPdroid CaptureService state was checked. Other VPN providers were not independently checked.",
+        "No packet capture was collected."
+      ]
+    }
+  ],
+  "nativeLogging": {
+    "alreadyActiveAtBaseline": true,
+    "initialNativeFileLocalTime": "18:13:20",
+    "loggingToggleChanged": false,
+    "source": "Telegram native app logging was already active when inspected. No logging toggle changed during the measured phases.",
+    "caveat": "Native logging may add runtime and I/O overhead to measured behavior."
+  },
+  "excludedPhases": [
+    {
+      "id": "baseline1-screen-off",
+      "status": "excluded",
+      "included": false,
+      "reason": "Mode verification failed. No measurements from this phase are used."
+    },
+    {
+      "id": "capture-off-screen-off-control-first-attempt",
+      "status": "excluded",
+      "included": false,
+      "reason": "The verified screen-off state was not maintained through the control interval. No measurements are used."
+    }
+  ],
+  "completionScope": "Bounded foreground, background, screen-off, and PCAPdroid-off background observations are recorded. No pure capture-off screen-off or AOD control was obtained."
+}

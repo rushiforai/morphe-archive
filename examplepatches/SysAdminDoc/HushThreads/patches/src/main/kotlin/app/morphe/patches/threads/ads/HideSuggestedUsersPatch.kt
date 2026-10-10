@@ -452,11 +452,16 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
         content, wrapper, capturedRaw)
 }
 
-/** Server cards only. Raw type checks refuse the vendor's generic SUGGESTED_USERS fallback. */
+/**
+ * Server cards only. Raw type checks refuse the vendor's generic SUGGESTED_USERS fallback. The same
+ * switch keeps the Suggested for you accounts off profiles, see [profileSuggestionTargets].
+ */
 @Suppress("unused")
 val hideSuggestedUsersPatch = bytecodePatch(
     name = PATCH,
-    description = "Removes verified server cards suggesting accounts to follow. Ordinary posts, reposts and unknown card types stay.",
+    description = "Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts " +
+        "and reposts stay, and so does the rest of a profile. Good if you only want posts in your feed. On by " +
+        "default. Turn it off in HushThreads settings > Feed.",
     default = true,
 ) {
     category("Feed")
@@ -467,6 +472,8 @@ val hideSuggestedUsersPatch = bytecodePatch(
     execute {
         requireStatusMethod("hideSuggestedUsers")
         val targets = suggestedTargets()
+        // Found before anything changes, so a profile that no longer matches refuses the whole patch cleanly.
+        val profile = profileSuggestionTargets()
         val owner = targets.media.definingClass
         val media = targets.media
         val kind = targets.kind
@@ -520,6 +527,7 @@ val hideSuggestedUsersPatch = bytecodePatch(
             const/4 v0, 0x0
             return v0
         """)
+        hookProfileSuggestions(profile)
         enableStatus("hideSuggestedUsers")
     }
 }

@@ -168,9 +168,9 @@ private object SearchReentryFingerprint : Fingerprint(
 @Suppress("unused")
 val hideSearchSuggestionsPatch = bytecodePatch(
     name = "Hide search suggestions",
-    description = "Hides the suggested searches TikTok offers on the search page before you " +
-        "type, and stops the page asking for them. Your own search history is left alone. A separate switch hides the search rewards banner and coin counter some regions get. Switch: Hushfeed settings > App.",
-    default = false,
+    description = "Hides the searches TikTok suggests before you type, and can hide the " +
+        "search rewards banner. Your own search history stays. Starts off. Turn it on in Hushfeed " +
+        "settings > App.",
 ) {
     category("Search")
     dependsOn(settingsPatch, sharedExtensionPatch)

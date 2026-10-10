@@ -137,10 +137,9 @@ internal fun MutableMethod.returnBeforeReporting(guard: String): Boolean {
 @Suppress("unused")
 val ghostModePatch = bytecodePatch(
     name = "Ghost mode",
-    description = "Block hooked story, profile and typing reports. The switch shows local activity and " +
-        "retains a warning after a known story-reporting failure. Viewer-list privacy still needs a " +
-        "two-account check. Online status stays visible unless you also turn on Hide online status. Switch and diagnostics: Hushfeed settings > Privacy.",
-    default = false,
+    description = "Stops TikTok telling people you viewed their story or profile, or that " +
+        "you're typing. What TikTok already recorded stays. A separate switch hides your online " +
+        "status. Starts off. Turn it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)

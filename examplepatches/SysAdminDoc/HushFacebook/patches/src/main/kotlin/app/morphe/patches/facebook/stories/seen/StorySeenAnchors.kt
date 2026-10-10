@@ -10,6 +10,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.namesString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -52,7 +53,10 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * before anything is built. The filters map may be null, since the builder skips
  * bucket_to_story_card_id_filters then.
  *
- * The seen helper (581 LX/AGC) is the one class loading "story_preview" that calls the sender. Its
+ * The seen helper (581 LX/AGC, 582 arm64 LX/AxE;) is the one class that calls the sender and names
+ * "story_preview". 582's armeabi-v7a build (LX/B1D;) asks a string table for that literal
+ * (LX/198;->A00 with 0x427) instead of loading it, so the helper is picked out of the sender's
+ * callers by the literal or the table entry. Its
  * static void (FbUserSession, StoryBucket, StoryCard, helper, boolean) method (A00 on all three)
  * runs for each card about to be counted as viewed, and reads the card's id through
  * StoryCard.getId(), a kept method. The hook goes first in it with the session, the bucket and the
@@ -85,7 +89,7 @@ internal const val STORY_BUCKET = "Lcom/facebook/stories/model/StoryBucket;"
 internal const val STORY_CARD = "Lcom/facebook/stories/model/StoryCard;"
 internal const val CARD_ID = "$STORY_CARD->getId()Ljava/lang/String;"
 
-/** A literal the seen helper's flush loads; the helper is the one class loading it that calls the sender. */
+/** A literal the seen helper's flush names; the helper is the one class naming it that calls the sender. */
 internal const val SEEN_HELPER_LITERAL = "story_preview"
 
 /** What the sender takes after its callback, the same on 577, 580 and 581. */
@@ -169,11 +173,19 @@ private fun calls(method: Method, target: Method): Boolean =
             ref.returnType == target.returnType
     } == true
 
-/** The seen helper: the one class among [holders] (the classes loading [SEEN_HELPER_LITERAL]) with a method calling [sender]. */
-internal fun seenHelper(holders: List<ClassDef>, sender: Method): ClassDef {
-    val helpers = holders.filter { holder -> holder.methods.any { calls(it, sender) } }.distinctBy { it.type }
+/** Whether a method of [owner] calls [sender]. */
+internal fun callsSender(owner: ClassDef, sender: Method): Boolean = owner.methods.any { calls(it, sender) }
+
+/**
+ * The seen helper: the one class among [callers] with a method calling [sender] and a method naming
+ * [SEEN_HELPER_LITERAL], as a literal of its own or as a string table entry [resolve] reads.
+ */
+internal fun seenHelper(callers: List<ClassDef>, sender: Method, resolve: (MethodReference) -> Method?): ClassDef {
+    val helpers = callers.filter { caller ->
+        callsSender(caller, sender) && caller.methods.any { namesString(it, SEEN_HELPER_LITERAL, resolve) }
+    }.distinctBy { it.type }
     return helpers.singleOrNull()
-        ?: refuse("expected one class loading \"$SEEN_HELPER_LITERAL\" that calls the sender, found ${helpers.size}")
+        ?: refuse("expected one class naming \"$SEEN_HELPER_LITERAL\" that calls the sender, found ${helpers.size}")
 }
 
 /** The seen helper's per-card method: its one static void (FbUserSession, StoryBucket, StoryCard, helper, boolean). */

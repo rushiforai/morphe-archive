@@ -607,9 +607,9 @@ public final class ReleaseCheck {
             case OFFLINE:
                 return L10n.t("Couldn't reach GitHub. Try again later.");
             case RATE_LIMITED:
-                return L10n.t("GitHub is turning away checks from this network for now. Try again later.");
+                return L10n.t("GitHub is limiting requests from this network right now. Try again later.");
             default:
-                return L10n.t("GitHub's answer couldn't be used. Try again later.");
+                return L10n.t("GitHub sent a reply Hushfacebook couldn't understand. Try again later.");
         }
     }
 

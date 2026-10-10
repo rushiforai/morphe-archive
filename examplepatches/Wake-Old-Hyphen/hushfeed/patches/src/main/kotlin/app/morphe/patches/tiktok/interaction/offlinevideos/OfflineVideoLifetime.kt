@@ -5,10 +5,17 @@
 package app.morphe.patches.tiktok.interaction.offlinevideos
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /** The log line TikTok writes when a phone low on space shortens the lifetime. Only the calculation writes it. */
 internal const val OFFLINE_LIFETIME_LOG = "resolveExpiredIntervalMs: low-storage override="
@@ -52,6 +59,106 @@ internal fun MutableMethod.keepOfflineVideos(patch: String) {
             invoke-static {}, $OFFLINE_LIFETIME_EXTENSION->keptLifetimeMs()J
             move-result-wide v0
             return-wide v0
+        """,
+    )
+}
+
+/** Written by the boot step that moves Auto adjust's tier. Its downgrade branch is the only place that line appears. */
+internal const val AUTO_ADJUST_BOOT_LOG = "tryEvaluateOnBoot: DOWNGRADE triggered, target="
+
+/** Written by the step that puts the tier back to a legacy one. Only that method writes it. */
+internal const val AUTO_ADJUST_ROLLBACK_LOG = "rollbackToLegacyTier: "
+
+/** Written when the experiment that turned offline mode on by default has ended and TikTok clears what it saved. */
+internal const val DEFAULT_ENABLE_CLEANUP_LOG = "initiateDefaultEnableState: exp disabled, need cleanup"
+
+/**
+ * Auto adjust's boot step (#123). At every start it clamps the offline limit into the server's
+ * range, moves the tier up or down, and after a downgrade the boot task trims the list to the
+ * lower count ("bootTask: trim exceeded on paused downgrade"). Static, no parameters, renamed per
+ * build, so it is found by the line its downgrade branch logs.
+ */
+internal object AutoAdjustBootFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf(AUTO_ADJUST_BOOT_LOG),
+)
+
+/** The step that drops Auto adjust back to a legacy tier, another way the count falls. */
+internal object AutoAdjustRollbackFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf(AUTO_ADJUST_ROLLBACK_LOG),
+)
+
+/**
+ * The start-up question whether the default-on experiment has ended. A yes makes the boot task
+ * run the same clear the user's Delete all runs. Static, no parameters, answers `Z`.
+ */
+internal object DefaultEnableStateFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf(DEFAULT_ENABLE_CLEANUP_LOG),
+)
+
+/**
+ * Lets Auto adjust's boot step and its legacy rollback leave the limit alone while the switch is
+ * on. Both are static with no parameters and a few dozen locals, so the guard's v0 is free, and
+ * with the answer true they return at once, before anything is read or written.
+ */
+internal fun MutableMethod.keepThroughAutoAdjust(patch: String) {
+    requireLocals(patch, 1)
+    guardAtEntry(
+        patch,
+        "invoke-static {}, $OFFLINE_LIFETIME_EXTENSION->keepThroughAutoAdjust()Z",
+        "return-void",
+    )
+}
+
+/**
+ * The index of the `return` that answers yes to the default-on clean-up: the first one after the
+ * log line, with at most the log call between. Fails closed on any other shape.
+ */
+internal fun MutableMethod.defaultEnableCleanupReturnIndex(patch: String): Int {
+    val instructions = implementation?.instructions?.toList()
+        ?: throw PatchException("$patch: $definingClass->$name has no implementation")
+    val logs = instructions.withIndex().filter { (_, instruction) ->
+        (instruction.opcode == Opcode.CONST_STRING || instruction.opcode == Opcode.CONST_STRING_JUMBO) &&
+            instruction.getReference<StringReference>()?.string == DEFAULT_ENABLE_CLEANUP_LOG
+    }
+    if (logs.size != 1) {
+        throw PatchException("$patch: expected one \"$DEFAULT_ENABLE_CLEANUP_LOG\" in $definingClass->$name, found ${logs.size}.")
+    }
+    val logIndex = logs.single().index
+    val returnIndex = (logIndex + 1..minOf(logIndex + 3, instructions.lastIndex))
+        .firstOrNull { instructions[it].opcode == Opcode.RETURN }
+        ?: throw PatchException("$patch: no return within three instructions of the clean-up line in $definingClass->$name.")
+    val between = instructions.subList(logIndex + 1, returnIndex)
+    if (between.any { it.opcode.name.startsWith("IF_") || it.opcode.name.startsWith("GOTO") || it.opcode == Opcode.THROW }) {
+        throw PatchException("$patch: a branch sits between the clean-up line and its return in $definingClass->$name.")
+    }
+    return returnIndex
+}
+
+/**
+ * Turns the default-on clean-up's yes into "nothing to clean up" while the switch is on. The
+ * extension gets TikTok's answer and hands back the one to return, in the register the return
+ * already reads.
+ */
+internal fun MutableMethod.keepThroughDefaultEnableCleanup(patch: String) {
+    val returnIndex = defaultEnableCleanupReturnIndex(patch)
+    val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
+    if (register > 15) {
+        throw PatchException("$patch: the clean-up answer sits in v$register of $definingClass->$name, past what a plain invoke names.")
+    }
+    addInstructions(
+        returnIndex,
+        """
+            invoke-static {v$register}, $OFFLINE_LIFETIME_EXTENSION->keepThroughDefaultEnableCleanup(Z)Z
+            move-result v$register
         """,
     )
 }

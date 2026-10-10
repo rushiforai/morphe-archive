@@ -66,7 +66,8 @@ internal const val FEED_ITEM_TYPE = "feedItemType"
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
     name = PATCH,
-    description = "Takes sponsored posts out of your Threads feed before they're shown.",
+    description = "Removes sponsored posts from your feed before Threads shows them, so they leave no gap. Good for" +
+        " a cleaner feed. On by default. Turn it off in HushThreads settings > Feed.",
     default = true,
 ) {
     category("Ads")

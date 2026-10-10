@@ -15,6 +15,7 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,13 +41,23 @@ public class ScreenTransitionsTest {
         }
     }
 
+    @Before public void setUp() {
+        // The switch starts off; these tests are about what it does once the reader turns it on.
+        Settings.TURN_OFF_SCREEN_TRANSITIONS.save(true);
+    }
+
     @After public void tearDown() {
         ScreenTransitions.resetForTests();
         Settings.TURN_OFF_SCREEN_TRANSITIONS.resetToDefault();
     }
 
+    @Test public void theSwitchStartsOff() {
+        assertEquals("the patch is in the default selection, so its switch starts off",
+                Boolean.FALSE, Settings.TURN_OFF_SCREEN_TRANSITIONS.defaultValue);
+    }
+
     @Test public void aScreenOpensWithoutTikToksSlide() {
-        assertTrue("picking the patch is the ask", Settings.TURN_OFF_SCREEN_TRANSITIONS.get());
+        assertTrue(Settings.TURN_OFF_SCREEN_TRANSITIONS.get());
         ScreenTransitions.install(RuntimeEnvironment.getApplication());
         try (var controller = Robolectric.buildActivity(SlidingActivity.class).setup()) {
             assertEquals(0, shadowOf(controller.get()).getPendingTransitionEnterAnimationResourceId());

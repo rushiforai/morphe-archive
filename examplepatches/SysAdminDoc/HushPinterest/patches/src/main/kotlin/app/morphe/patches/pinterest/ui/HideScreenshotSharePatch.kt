@@ -16,12 +16,12 @@ import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 
-/** Both builds register screenshot observers through this permission-aware manager method. */
+/** The declared build registers screenshot observers through this permission-aware manager method. */
 @Suppress("unused")
 val hideScreenshotSharePatch = bytecodePatch(
     name = "No screenshot share menu",
-    description = "Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally.",
-    default = false,
+    description = "Stops Pinterest from popping up sharing suggestions after you take a screenshot. Screenshots " +
+        "still work as usual. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

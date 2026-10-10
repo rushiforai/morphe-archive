@@ -32,10 +32,11 @@ internal object RiskControlServiceExecuteFingerprint : Fingerprint(
 @Suppress("unused")
 val bdTuringCaptchaPopupPatch = bytecodePatch(
     // The name is what Morphe Manager lists. BdTuring is ByteDance's own SDK name and means
-    // nothing to anyone reading that list; it is kept in the description, where somebody
-    // searching for it will still find it.
+    // nothing to anyone reading that list or the description, so neither uses it.
     name = "Hide the risk control CAPTCHA",
-    description = "Records TikTok's BdTuring risk-control decisions through the shared CAPTCHA gate. All verification dialogs remain visible because no browsing scene has been validated. Off by default.",
+    description = "Notes in the diagnostic report when TikTok's account safety check decides " +
+        "to show a verification puzzle. It doesn't hide anything, so it's only useful for " +
+        "research. It sits on TikTok's account checks, which is why it isn't picked for you.",
     default = false,
 ) {
     // Retain the request attribution and the legacy setting's unavailable row together.

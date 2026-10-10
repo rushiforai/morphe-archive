@@ -318,6 +318,12 @@ public final class FollowDiagnostics {
             return;
         }
 
+        String chatPath = liveChatPath(request);
+        if (chatPath != null) {
+            logLiveChatResponse(chatPath, response);
+            return;
+        }
+
         String readbackPath = followReadbackPath(request);
         if (readbackPath == null || !reserveNetworkEvent()) return;
         final String finalPath = readbackPath;
@@ -328,6 +334,62 @@ public final class FollowDiagnostics {
                 + " target=" + (context == null ? "unknown" : context.summary())
                 + " path=" + finalPath
                 + " " + describeReadbackResponse(response, context));
+    }
+
+    /**
+     * A LIVE comment that does not post leaves no trace on the app side, so the answer to the
+     * send is recorded: the transport result, the server's status code and message, and whether
+     * a risk check was hidden just before. Nothing the user typed and no account id is read.
+     */
+    private static void logLiveChatResponse(String path, Object response) {
+        if (!reserveNetworkEvent()) return;
+
+        try {
+            Object body = response == null ? null : readField(response, "LIZIZ");
+            FollowVerdict verdict = FollowVerdict.of(body);
+            String suppressed = CaptchaGate.recentlySuppressedCheckId();
+            String line = "[Morphe TikTok FollowProbe] live comment response"
+                    + " path=" + path
+                    + " responseSuccess=" + (response == null ? "n/a" : invokeValue(response, "LIZJ"))
+                    + " responseCode=" + (response == null ? "n/a" : invokeValue(response, "LIZ"))
+                    + " status_code=" + verdict.statusCode
+                    + " status_msg=" + safeShort(verdict.statusMsg)
+                    + " riskCheck=" + (suppressed == null ? "none" : safeShort(suppressed))
+                    + " bodyClass=" + className(body)
+                    + " bodyFieldNames=" + describeFieldNames(body)
+                    + " outcome=" + (FollowVerdict.isRefusalCode(verdict.statusCode) ? "refused" : "server_accept");
+            Logger.printDebug(() -> line);
+        } catch (Throwable throwable) {
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] live comment response read failed: " + throwable);
+        }
+    }
+
+    private static String liveChatPath(Object request) {
+        String path = requestPath(request);
+        if (path == null || !path.toLowerCase(Locale.ROOT).contains("/webcast/room/chat/")) return null;
+        // The query carries the room id, which a shared report has no use for.
+        int query = path.indexOf('?');
+        return safeShort(query < 0 ? path : path.substring(0, query));
+    }
+
+    /** Field names only, never values, so a chat body cannot carry its text or ids into a report. */
+    private static String describeFieldNames(Object target) {
+        if (target == null) return "null";
+
+        StringBuilder builder = new StringBuilder();
+        int count = 0;
+        for (Class<?> current = target.getClass();
+             current != null && current != Object.class && count < 12;
+             current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (count >= 12) break;
+                if (Modifier.isStatic(field.getModifiers())) continue;
+                if (count > 0) builder.append(',');
+                builder.append(field.getName());
+                count++;
+            }
+        }
+        return count == 0 ? "none" : builder.toString();
     }
 
     public static void logParseThrowable(Object request, Throwable throwable) {

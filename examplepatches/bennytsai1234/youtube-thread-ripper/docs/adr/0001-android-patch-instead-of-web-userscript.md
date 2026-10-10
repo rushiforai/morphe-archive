@@ -1,0 +1,3 @@
+# Patch the Android app instead of the web player
+
+2026-10-03, `8f4493d`, `03ca11f`. The project started as a browser userscript (v0.2.0) built on BTR's code. Desktop web YouTube is SABR-only (POST + UMP) and fast, so there is nothing byte-range based to parallelize, and the userscript never triggered on real YouTube. The stutter only happens on the maintainer's phone, where Morphe's spoofed non-SABR clients make the app download plain byte ranges. So the project became Morphe patches for the YouTube Android app. The userscript was frozen at `8f4493d` and later removed from the tree; git history keeps it.

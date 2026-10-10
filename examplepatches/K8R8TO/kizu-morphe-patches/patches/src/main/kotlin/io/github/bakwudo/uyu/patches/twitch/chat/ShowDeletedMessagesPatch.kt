@@ -1,6 +1,7 @@
 package io.github.bakwudo.uyu.patches.twitch.chat
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
@@ -81,11 +82,54 @@ internal val showDeletedMessagesPatch = bytecodePatch {
             "Twitch deleted messages: formatter span-array length check was not found.",
         )
 
-        formatter.addInstructions(
+        val getSpansRegisterC = getSpans.registerC
+        val getSpansRegisterF = getSpans.registerF
+
+        if (spanArrayRegister == getSpansRegisterF) {
+            throw PatchException(
+                "Twitch deleted messages: getSpans result register aliases its Class argument register.",
+            )
+        }
+
+        val classRegisterRestore = formatterInstructions
+            .subList(0, getSpansIndex)
+            .indexOfLast { instruction ->
+                instruction.opcode == Opcode.CONST_CLASS &&
+                    (instruction as? OneRegisterInstruction)?.registerA == getSpansRegisterF
+            }
+
+        if (classRegisterRestore < 0) {
+            throw PatchException(
+                "Twitch deleted messages: could not locate the getSpans Class-register initializer.",
+            )
+        }
+
+        val classInit = formatterInstructions[classRegisterRestore] as ReferenceInstruction
+        val classType = (classInit.reference as? TypeReference)?.type
+            ?: throw PatchException(
+                "Twitch deleted messages: getSpans Class-register initializer is not a type reference.",
+            )
+
+        // Keep Twitch's original span array intact. Use only its Class-argument register as
+        // scratch space, and restore that register on every path that continues into Twitch.
+        // This avoids the old implementation's second getSpans invocation and avoids clobbering
+        // the formatter's message/array registers.
+        formatter.addInstructionsWithLabels(
             injectionIndex,
             """
-                invoke-static {p1, v$spanArrayRegister}, $SUPPORT->recoverDeletedMessage(Landroid/text/SpannedString;[Ljava/lang/Object;)Landroid/text/SpannedString;
-                move-result-object p1
+                array-length v$getSpansRegisterF, v$spanArrayRegister
+                if-eqz v$getSpansRegisterF, :kizu_deleted_messages_restore
+                const-class v$getSpansRegisterF, ${DeletedMessageSpanCtorFingerprint.classDef.type}
+                invoke-static {v$getSpansRegisterC, v$spanArrayRegister, v$getSpansRegisterF}, $SUPPORT->recoverDeletedMessage(Landroid/text/SpannedString;[Ljava/lang/Object;Ljava/lang/Class;)Landroid/text/SpannedString;
+                move-result-object v$getSpansRegisterF
+                if-nez v$getSpansRegisterF, :kizu_deleted_messages_return
+                :kizu_deleted_messages_restore
+                const-class v$getSpansRegisterF, $classType
+                goto :kizu_deleted_messages_continue
+                :kizu_deleted_messages_return
+                return-object v$getSpansRegisterF
+                :kizu_deleted_messages_continue
+                nop
             """,
         )
     }

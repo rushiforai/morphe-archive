@@ -72,8 +72,10 @@ public class RowChevronTest {
             "Everything except Marketplace",
             "Tab to open on", "Feeds opens on", "Keep them hidden for", "Words to hide", "Words that keep a post", "People, Pages and sites to hide", "Comment order", "Hide reaction counts", "Playback quality", "Reels quality", "Stories quality", "Font file", "Download quality", "Save to", "Save folder",
             "Video subfolder", "Photo subfolder",
-            "Video file name", "Photo file name", "When you tap Download", "App to send to", "Supported links", "Meta App Manager", "Messenger", "Instagram",
-            "Quiet hours start", "Quiet hours end", "Lock after", "Text size", "Accent color", "Hide posts with more reactions than",
+            "Video file name", "Photo file name", "When you tap Download", "App to send to", "Share sheet items to hide", "Supported links", "Meta App Manager", "Messenger", "Instagram",
+            "Quiet hours start", "Quiet hours end", "Lock after",
+            "Ads in the feed", "Ads on profiles", "Ads in Stories", "Ads in Reels", "Ads in search results",
+            "Ads in Marketplace", "Ads in Instant Games", "Usage statistics uploads", "Reel watch history", "Text size", "Accent color", "Hide posts with more reactions than",
             "Export settings", "Import settings",
             "Export diagnostic report", "Facebook's Whitehat settings", "Source code and issues", "Licenses"));
 

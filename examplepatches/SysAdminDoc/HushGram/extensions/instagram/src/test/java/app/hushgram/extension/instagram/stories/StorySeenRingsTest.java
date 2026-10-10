@@ -189,6 +189,7 @@ public class StorySeenRingsTest {
         marks = new StoryMarks(now::get);
         rings = new StorySeenRings(now::get);
         HookStatus.clear();
+        Settings.VIEW_STORIES_ANONYMOUSLY.save(true);
     }
 
     @After
@@ -244,6 +245,30 @@ public class StorySeenRingsTest {
         SettingsContextRule.withoutContext(() ->
             assertFalse("settings not ready", rings.keep(reel, ME, AT, WATCHED, anonymous, READER, marks, counts)));
         assertTrue("the control: on again", rings.keep(reel, ME, AT, WATCHED, anonymous, READER, marks, counts));
+    }
+
+    /**
+     * Gray out stories you've watched lets Instagram's write through while views are held back, so
+     * the ring greys on the phone (#113), and nothing is kept for a mark to replay. The view itself
+     * is StorySeen's to hold, which this switch never reads.
+     */
+    @Test
+    public void grayOutWatchedStoriesLetsTheWriteThrough() {
+        BooleanSupplier held = StorySeenRings::keepsWatchedNew;
+        try {
+            assertTrue("starts off: kept new", rings.keep(reel, ME, AT, WATCHED, held, READER, marks, counts));
+            Settings.GRAY_OUT_WATCHED_STORIES.save(true);
+            assertFalse("on: Instagram writes", rings.keep(reel, OTHER, AT, WATCHED, held, READER, marks, counts));
+            assertTrue("views still held back", StorySeen.anonymous());
+            assertEquals("only the first story was kept", 1, rings.size());
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertFalse("paused", rings.keep(reel, ME, AT, WATCHED, held, READER, marks, counts));
+            PauseForTests.resume();
+            Settings.GRAY_OUT_WATCHED_STORIES.save(false);
+            assertTrue("the control: off again", rings.keep(reel, ME, AT, WATCHED, held, READER, marks, counts));
+        } finally {
+            Settings.GRAY_OUT_WATCHED_STORIES.resetToDefault();
+        }
     }
 
     /** A grey ring is what Instagram draws anyway, so a failure deciding lets its write through. */

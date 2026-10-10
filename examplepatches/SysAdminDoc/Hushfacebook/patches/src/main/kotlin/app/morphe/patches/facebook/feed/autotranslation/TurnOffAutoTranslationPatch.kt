@@ -80,7 +80,8 @@ val turnOffAutoTranslationPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off auto-translation",
     description = "Shows posts and reel captions in the language they were written in, instead of Facebook's " +
-        "automatic translation. Facebook's See translation link stays under each one. The switch starts off.",
+        "automatic translation, so you read people's own words. See translation still works. Starts off. Turn it " +
+        "on in Hushfacebook settings > News feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

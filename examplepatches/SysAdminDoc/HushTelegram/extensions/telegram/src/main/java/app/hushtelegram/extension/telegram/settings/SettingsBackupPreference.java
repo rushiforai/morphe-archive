@@ -249,8 +249,8 @@ public class SettingsBackupPreference extends Preference {
         }
         if (new String(bytes, StandardCharsets.UTF_8).equals(back)) return L10n.t("Settings exported.");
         Logger.printInfo(() -> "Settings export read back differently");
-        return L10n.t("The settings file was saved, but it doesn't read back as what was written. "
-                + "Save it again as a new file.");
+        return L10n.t("The settings file was saved, but what's in it doesn't match what was written. Save it again as a"
+                + " new file.");
     }
 
     private static void readForPreview(HushTelegramPreferenceFragment page, Uri uri) {

@@ -40,19 +40,22 @@ private const val UNKNOWN = -1
 @Suppress("unused")
 val useRegisteredApiCredentialsPatch = bytecodePatch(
     name = PATCH,
-    description = "Uses the API ID and hash registered for your application at my.telegram.org. " +
-        "Supply both patch options. Leaving both unset keeps the original credentials.",
+    description = "Signs in to Telegram with the API ID and hash you registered at my.telegram.org. Fill in both " +
+        "options, or leave both empty to keep the originals. It has no switch and isn't selected by default. " +
+        "Use Expert mode in Morphe Manager.",
     default = false,
 ) {
     category("Fixes")
     compatibleWith(*AppCompatibilities.telegram())
     val apiId by stringOption(
-        key = "apiId", default = null, title = "Registered API ID",
-        description = "The positive application ID from your Telegram API development tools.", required = false,
+        key = "apiId", default = null, title = "Your API ID",
+        description = "The number shown as App api_id at my.telegram.org/apps. Fill in the API hash too, " +
+            "or leave both empty.", required = false,
     )
     val apiHash by stringOption(
-        key = "apiHash", default = null, title = "Registered API hash",
-        description = "The 32 hexadecimal characters paired with that API ID. Keep this value in local patch inputs.",
+        key = "apiHash", default = null, title = "Your API hash",
+        description = "The 32-character code shown as App api_hash at my.telegram.org/apps. Keep it " +
+            "private, and fill in the API ID too.",
         required = false,
     )
     execute { applyRegisteredApiCredentials(apiId, apiHash) }

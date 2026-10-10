@@ -71,3 +71,6 @@ Roadmap_Blocked.md
 *.md
 !README.md
 !CHANGELOG.md
+!docs/telegram-app-reference.md
+!docs/telegram-audit-12.10.6.md
+!docs/telegram-runtime-audit-12.10.7.md

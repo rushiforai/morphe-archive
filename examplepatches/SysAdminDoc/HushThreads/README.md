@@ -1,7 +1,7 @@
 ![HushThreads. Keep the thread. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.12-000000" alt="Version 0.0.12"></a>
+  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.13-000000" alt="Version 0.0.13"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Threads-450.0.0.51.78-000000" alt="Threads 450.0.0.51.78">
@@ -22,7 +22,7 @@
 
 HushThreads is a Morphe patch bundle for Android that takes the ads out of Threads, cleans the links you share and cuts down what the app reports back to Meta.
 
-The latest release is [v0.0.12](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.12), with 17 patches.
+The latest release is [v0.0.13](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.13), with 18 patches.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads) | [Download a release](https://github.com/SysAdminDoc/HushThreads/releases/latest) | [Browse the patches](#patches)
 
@@ -42,16 +42,15 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
 2. Add HushThreads as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads
-3. Get Threads 449.0.0.54.82 (`com.instagram.barcelona`) for arm64-v8a, version code 511908382 (120-640dpi, Android 9+). That's the build these patches are checked against. Morphe Manager warns about other builds of the same version.
-4. In Morphe Manager, pick that file, keep the default patch selection or change it, and patch.
+3. Get Threads 450.0.0.51.78 (`com.instagram.barcelona`) for arm64-v8a, version code 512008342 (240-480dpi, Android 9+). That's the build the patches are checked against. If you're on an older Threads, update it to 450 before you patch.
+4. In Morphe Manager, pick that file and patch. Manager's default selection holds every patch but the three the [Patches](#patches) section names, so you don't need Expert mode. The patches that used to be opt-in, such as `Disable video autoplay` and `Pure black dark mode`, start with their switches off until you turn them on in [HushThreads settings](#settings).
+5. To change the selection, or to add `Change version code`, `Remove share targets` or `Trust user-added certificates`, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved a selection of your own in Expert mode before, Manager may keep using it, so look over the HushThreads list once for the patches that joined the default selection.
 
-HushThreads v0.0.12 works with all three builds below.
+HushThreads v0.0.13 patches Threads 450 only. Each release moves to the newest stable Threads and drops the one before. If you're staying on 449.0.0.54.82 or 448.0.0.54.85 for now, v0.0.12 is the last release that patches them.
 
 | Threads version | Version code | Android floor |
 |---|---|---|
 | 450.0.0.51.78 | 512008342 (240-480dpi) | Android 9 |
-| 449.0.0.54.82 | 511908382 | Android 9 |
-| 448.0.0.54.85 | 511808302 | Android 9 |
 
 <p><img src="assets/patch-selection.png" width="300" alt="Morphe Manager with the six HushThreads patches selected and Morphe's own patches left off"></p>
 
@@ -71,37 +70,44 @@ The same goes for the Threads you have now. A patched Threads can't install over
 
 ## Patches
 
-HushThreads v0.0.12 has 17 patches. All but Block background-return feed refresh, Change version code, Disable screenshot detection, Disable video autoplay, Max image quality, Pure black dark mode, Remove share targets and Trust user-added certificates are selected by default.
+HushThreads v0.0.13 has 18 patches. Morphe Manager's default selection has every patch but three: `Change version code`, `Remove share targets` and `Trust user-added certificates`. Change version code changes the version Android sees, so going back to stock Threads means uninstalling. The other two change Threads when you patch and have no switch to undo it. Turn on Expert mode in Manager to pick them.
+
+Nothing else needs Expert mode. `Block background-return feed refresh`, `Disable screenshot detection`, `Disable video autoplay`, `Max image quality` and `Pure black dark mode` used to be opt-in. They're in every build now with their switches off, so a fresh patch looks like the Threads you know until you turn them on in HushThreads settings. Each row below says where a patch's switch is and how it starts. In Expert mode the patches sit in groups named for what they touch, like Feed, Privacy and Downloads.
+
+Updating from v0.0.12 or older? If you'd picked one of those five before and never changed its switch, the switch now starts off, so turn it back on in HushThreads settings after you update. The [changelog](CHANGELOG.md) names each one.
 
 | Patch | What it does |
 |---|---|
-| `Block background-return feed refresh` | Keeps your place in the feed when you come back to Threads within ten minutes, or after any time away with No time limit on. Pull to refresh and a fresh launch still load new posts. |
-| `Change version code` | Raises this build's version code to the highest Android allows, so Google Play stops offering Meta's updates over it. Threads' checks against the version it was built as still see the real one. Since every build with this patch has the same code, an older Threads patched with it also installs over a newer one. Once it's in, going back to stock Threads means uninstalling first, which deletes Threads' data on your phone, and later HushThreads builds need this patch too or they won't install over this one. |
-| `Disable analytics` | Redirects matched Pigeon, default event-log and MQTT analytics addresses. Settings show which address kinds were patched. Other telemetry may remain. |
-| `Disable screenshot detection` | Threads isn't told when you take a screenshot. It stops looking for new screenshots in your photos and doesn't ask Android to report them. |
-| `Disable video autoplay` | Videos in feed posts don't play by themselves as you scroll. Tap one to watch it full screen. |
-| `Hide ads` | Takes sponsored posts out of your Threads feed before they're shown. |
-| `Hide suggested users` | Removes verified server cards suggesting accounts to follow. Ordinary posts, reposts and unknown card types stay. |
-| `HushThreads settings` | Adds HushThreads settings to Threads. Tap HushThreads above More settings in Threads' own settings, long-press Threads' launcher icon, or open Additional settings in the app on Threads' App info page, to turn features on or off, pause HushThreads, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
-| `Max image quality` | Photos load at the largest size Threads has instead of one picked for your screen. They're sharper, and each one is a bigger download. |
-| `Open links in browser` | Opens the web links you tap in your default browser instead of Threads' own, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads. |
-| `Pure black dark mode` | Threads' dark mode uses pure black instead of its dark gray behind your feed, posts and profiles, which looks deeper and saves power on an OLED screen. Menus and sheets keep their own grays. |
-| `Remove share targets` | Takes Threads out of the share sheet other apps open, so it isn't offered when you share a link, a photo or a video from somewhere else. It does that by removing the share entries from Threads' manifest, along with any contacts Threads offers there for direct sharing. Sharing from Threads to other apps still works. |
-| `Remove the advertising ID` | Stops Threads getting your phone's advertising ID from Google Play services. Threads gets a string of zeros in its place. |
-| `Restore screens on re-signed builds` | Lets Threads trust itself again on a re-signed build and share sign-in information with an Instagram installed with this build's own key. Both apps keep their current signing keys. A Root Mount install doesn't need this patch. |
-| `Sanitize sharing links` | Takes Threads' tracking tags, such as xmt, off the links you share or copy, and turns a short share link into the post's own link. The post a link opens stays the same. |
-| `Save photos and videos` | Adds Save to a post's menu, below Copy link. It saves the post's photo or video to your phone's gallery, and every page of a carousel. |
-| `Trust user-added certificates` | Lets Android's certificate checks in Threads accept certificates you've installed on your phone yourself, such as one a work or school network needs, or a debugging proxy's. Threads also checks Meta's certificates in its own network code, which this patch doesn't change, so a proxy still can't read most of Threads' traffic to Meta. Only pick it if you know you need it. |
+| `Block background-return feed refresh` | Keeps your place in your feed when you leave Threads and come back within ten minutes. Pulling down to refresh still loads new posts. Good if you hate losing the post you were reading. Starts off. Turn it on in HushThreads settings > Feed. |
+| `Change version code` | Raises the version number as high as Android allows, so Google Play won't offer Meta's updates over it. Going back to stock Threads means uninstalling, which deletes its data. It isn't selected by default. Works as soon as you patch it in, with no switch. |
+| `Disable analytics` | Stops Threads from sending most of its usage reports to Meta. A few may still get through. Good if you'd rather share less about how you use the app. On by default. Turn it off in HushThreads settings > Privacy. |
+| `Disable screenshot detection` | Threads isn't told when you take a screenshot. It stops watching your photos for new screenshots. Good if you want to screenshot without Threads noticing. Starts off. Turn it on in HushThreads settings > Privacy. |
+| `Disable video autoplay` | Videos in your feed wait for a tap instead of playing as you scroll. Good for a calmer feed and less data use. Starts off. Turn it on in HushThreads settings > Feed. |
+| `Hide ads` | Removes sponsored posts from your feed before Threads shows them, so they leave no gap. Good for a cleaner feed. On by default. Turn it off in HushThreads settings > Feed. |
+| `Hide suggested users` | Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay, and so does the rest of a profile. Good if you only want posts in your feed. On by default. Turn it off in HushThreads settings > Feed. |
+| `Hide the Instagram button` | Takes the Instagram button off the top of profiles, yours and other people's. The other buttons stay. Good for a tidier profile. Starts off. Turn it on in HushThreads settings > More settings > Appearance. |
+| `HushThreads settings` | Adds a HushThreads page to Threads where you turn features on or off, pause HushThreads, back up your settings and read the licenses. Open it from Threads' own settings. Works as soon as you patch it in, with no switch. |
+| `Max image quality` | Loads photos at the largest size Threads has, instead of one picked for your screen. Photos look sharper but use more data. Starts off. Turn it on in HushThreads settings > Feed. |
+| `Open links in browser` | Opens links you tap in your regular browser instead of inside Threads, and skips Threads' link tracking. Threads, Instagram and other Meta pages still open in Threads. On by default. Turn it off in HushThreads settings > Privacy. |
+| `Pure black dark mode` | Makes Threads' dark mode truly black instead of dark gray behind your feed and posts. It looks deeper and can save battery on OLED screens. Starts off. Turn it on in HushThreads settings > More settings > Appearance. |
+| `Remove share targets` | Takes Threads out of the share menu in other apps, so it isn't offered when you share a link, photo or video. Sharing from Threads still works. It isn't selected by default. Works as soon as you patch it in, with no switch. |
+| `Remove the advertising ID` | Stops Threads from reading your phone's advertising ID. It gets a string of zeros instead. Good for making your phone harder to track across apps. Works as soon as you patch it in, with no switch. |
+| `Restore screens on re-signed builds` | Fixes Threads screens that fail on a patched app because they check who signed it. Also lets Threads share sign-in with an Instagram signed with this build's key. Works as soon as you patch it in, with no switch. |
+| `Sanitize sharing links` | Removes tracking tags from links you copy or share from Threads, and turns short share links into the post's own link. The link still opens the same post. On by default. Turn it off in HushThreads settings > Privacy. |
+| `Save photos and videos` | Adds Save to a post's menu, below Copy link. It saves the photo or video to your gallery, every page of a carousel too. Good for keeping posts you like. On by default. Turn it off in HushThreads settings > Downloads. |
+| `Trust user-added certificates` | Lets Threads accept security certificates you installed yourself, such as for a work network or a debugging proxy. Meta's own checks stay, so a proxy can't read most traffic. It isn't selected by default. Works as soon as you patch it in, with no switch. |
 
-The feed controls share one page filter. Each selected rule has its own switch and removal count. Diagnostics also count the pages and items each enabled rule finished checking, including pages without matches. Disabled, paused and failed checks don't add to those counts. These are page checks, so checking the same page again adds another check. Pause restores the original page, and a failed card check keeps the whole page. Hide suggested users passes fixture checks on both source-supported builds. A Galaxy S23 Ultra report confirmed the Suggested Users block no longer appeared in Threads 449 with HushThreads 0.0.4.
+The feed controls share one page filter. Each selected rule has its own switch and removal count. Diagnostics also count the pages and items each enabled rule finished checking, including pages without matches. Disabled, paused and failed checks don't add to those counts. These are page checks, so checking the same page again adds another check. Pause restores the original page, and a failed card check keeps the whole page. Hide suggested users passes fixture checks on Threads 450. A Galaxy S23 Ultra report confirmed the Suggested Users block no longer appeared in Threads 449 with HushThreads 0.0.4.
 
-Block background-return feed refresh answers the four checks Threads makes as it comes back: the background refresh of For you, the reset to the main feed after a long absence, the feed's own reload and scroll to the top, and the swap to posts it fetched while you were away. The first check after you come back decides, and every other check within ten seconds gets the same answer. Its hooks pass fixture checks on both source-supported builds. On a Galaxy S22 with Threads 449, five minutes away kept the same posts on screen, while the same trip with the switch off reloaded the feed. Pull to refresh still loaded new posts, and eleven minutes away let Threads refresh as usual. The 448 build has only been checked against its code so far.
+Block background-return feed refresh answers the four checks Threads makes as it comes back: the background refresh of For you, the reset to the main feed after a long absence, the feed's own reload and scroll to the top, and the swap to posts it fetched while you were away. The first check after you come back decides, and every other check within ten seconds gets the same answer. Its hooks pass fixture checks on Threads 450. On a Galaxy S22 with Threads 449, five minutes away kept the same posts on screen, while the same trip with the switch off reloaded the feed. Pull to refresh still loaded new posts, and eleven minutes away let Threads refresh as usual.
 
-Disable video autoplay holds the video that a post in your feed, a profile or a thread would start as you scroll. It stays on its cover frame until you tap it, and the full-screen viewer that opens plays it with its usual controls. Ad cards and trend previews still play as Threads decides, and so do Instagram videos shown inside a post. Threads may still load a video ahead of time. Its hook passes fixture checks on both source-supported builds. On an Android 16 emulator with Threads 449, feed videos stayed still with the switch on and played as usual with it off, and a tapped video played in the viewer. It hasn't been tried on a phone or on 448 yet.
+Disable video autoplay holds the video that a post in your feed, a profile or a thread would start as you scroll. It stays on its cover frame until you tap it, and the full-screen viewer that opens plays it with its usual controls. Ad cards and trend previews still play as Threads decides, and so do Instagram videos shown inside a post. Threads may still load a video ahead of time. Its hook passes fixture checks on Threads 450. On an Android 16 emulator with Threads 449, feed videos stayed still with the switch on and played as usual with it off, and a tapped video played in the viewer. It hasn't been tried on a phone yet.
 
-Pure black dark mode changes the #101010 gray that Threads' theme uses for the feed, posts and profiles to #000000. Raised surfaces such as cards, menus and sheets keep their own grays, so they still stand out. You'll only see it with dark mode on. The switch is on the Appearance page under More settings, and a change takes effect the next time Threads starts. Pause and safe mode give Threads its gray back. Its hooks pass fixture checks on both source-supported builds. On a Galaxy S22 with Threads 449, the feed drew on #000000 with the switch on, and on #101010 after turning it off and restarting. An Android 16 emulator showed the same for a post and a profile, and with HushThreads paused. It hasn't been tried on 448 yet.
+Pure black dark mode changes the #101010 gray that Threads' theme uses for the feed, posts and profiles to #000000. Raised surfaces such as cards, menus and sheets keep their own grays, so they still stand out. You'll only see it with dark mode on. The switch is on the Appearance page under More settings and starts off, and a change takes effect the next time Threads starts. Pause and safe mode give Threads its gray back. Its hooks pass fixture checks on Threads 450. On a Galaxy S22 with Threads 449, the feed drew on #000000 with the switch on, and on #101010 after turning it off and restarting. An Android 16 emulator showed the same for a post and a profile, and with HushThreads paused.
 
-Trust user-added certificates edits the network security config Threads names, fb_network_security_config on 448 to 450. Your own certificates join the system ones in its base settings, and they're let past the pins that file sets for Meta's domains, since those pins would turn them away otherwise. Threads' network stack checks Meta's certificates in its own code as well. That's separate from the file and this patch leaves it alone. Debug overrides, which only a debuggable build reads, stay as they are. The edit passes fixture checks on 450, 449 and 448 and hasn't been tried on a device yet.
+Trust user-added certificates edits the network security config Threads names, fb_network_security_config on 450. Your own certificates join the system ones in its base settings, and they're let past the pins that file sets for Meta's domains, since those pins would turn them away otherwise. Debug overrides, which only a debuggable build reads, stay as they are. The edit passes fixture checks on 450 and hasn't been tried on a device yet.
+
+Here's what that reaches, from reading Threads 450's code. Anything that uses Android's standard certificate check honors the edited file. Threads sends its own traffic through Meta's network stack, which runs that standard check first, so your certificate gets past it. Then, for the connections the stack pins, it also wants one of 18 Meta keys built into the app somewhere in the chain, a rule written to stay on until about September 30, 2027. A chain from your own certificate doesn't have one, so it's turned away there. Which connections the native side pins hasn't been traced yet. The stack can fall back to your certificates, but only when Meta's internal debug setting for that is on, and public builds have no way to turn it on. This patch leaves that alone. The stack's fallback Java client pins instagram.com addresses with a list of its own, and crash report uploads check the same 18 keys.
 
 ## Settings
 
@@ -187,7 +193,9 @@ Before external code ships, mark its source adopted with the exact commit, compa
 
 Use JDK 21, the Android SDK and PowerShell 7.5 or newer (Windows PowerShell 5.1 also works). Set `JAVA_HOME` and `ANDROID_HOME`, or configure the SDK in `local.properties`. GitHub Packages requires `GITHUB_ACTOR` and `GITHUB_TOKEN` with `read:packages`.
 
-Declared arm64 builds: 450.0.0.51.78 / 512008342, 449.0.0.54.82 / 511908382 and 448.0.0.54.85 / 511808302.
+Declared arm64 build: 450.0.0.51.78 / 512008342. Only the newest stable Threads is declared.
+
+For app internals and stable patch anchors, see [Threads app reference](docs/threads-app-reference.md). The [runtime audit](docs/threads-runtime-audit.md) records stock screens, network observations, and measurement limits. For the patch workflow, see [Patch authoring guide](docs/patch-authoring.md).
 
 ```powershell
 $env:HUSHTHREADS_FIXTURE_DIR = '<fixture folder>'
@@ -200,11 +208,11 @@ $env:HUSHTHREADS_DESKTOP_JAR = '<Morphe desktop JAR>'
 ./scripts/verify-all-patches.ps1 -Apk '<Threads bundle>' -DesktopJar '<Morphe desktop JAR>' -WorkDir '<scratch folder>'
 ```
 
-Generate the patch list before building. The bundle, SHA-256 and CycloneDX SBOM land in `patches/build/release`. Tests rebuild the jar in `patches/build/libs`. Keep private fixtures outside tracked files. Without `HUSHTHREADS_FIXTURE_DIR`, real-build tests skip.
+Generate the patch list before building. The bundle, SHA-256 and CycloneDX SBOM land in `patches/build/release`. Tests rebuild the jar in `patches/build/libs`. Keep private fixtures outside tracked files. Without `HUSHTHREADS_FIXTURE_DIR`, real-build tests skip. Those tests are the ones whose source calls `Fixtures` or `FixtureDex`, and they run in their own task, `:patches:fixtureTest`, which `:patches:test` runs first. Add `-x :patches:fixtureTest -x :patches:verifyPatchTestSelection` for a quick pass without them.
 
 Run verification on every retained build. It checks every selected patch, approved manifest changes, merged stock resources and injected DEX structure and feature contracts. Split merges use private input directories. Concurrent runs need separate outputs. Plain APKs are used directly.
 
-Run `scripts/build-release-receipt.ps1` and `scripts/validate-release-facts.ps1` after the tests, lints and fixture verification. OSV checks every bundled library. HIGH/CRITICAL labels, CVSS 3 scores of 7.0 or higher, and unrated advisories stop release. Both advisory-wide vectors and ratings for the queried package and version count. Listed versions and ECOSYSTEM ranges form a union, with Maven ordering for range boundaries. Unrelated packages and known nonmatching versions don't contribute ratings.
+Run `scripts/build-release-receipt.ps1` and `scripts/validate-release-facts.ps1` after the tests, lints and fixture verification. To patch each fixture once rather than twice, give `verify-all-patches.ps1` `-KeepIn patches/build/fixture-apply/<fixture file>` and the receipt script `-AppliedDir patches/build/fixture-apply`. A kept run carries a stamp naming the bundle, APK, patch list and CLI it used, and the receipt reads it only when all four still match. OSV checks every bundled library. HIGH/CRITICAL labels, CVSS 3 scores of 7.0 or higher, and unrated advisories stop release. Both advisory-wide vectors and ratings for the queried package and version count. Listed versions and ECOSYSTEM ranges form a union, with Maven ordering for range boundaries. Unrelated packages and known nonmatching versions don't contribute ratings.
 
 Unsupported or malformed data stays held for review. That includes invalid field types, unreadable ranges and CVSS 4 vectors beside a lower supported rating. The gate doesn't score CVSS 4 as CVSS 3. Exceptions in `scripts/advisory-exceptions.txt` need a package, advisory, reason and expiry within 90 days. Expired or unmatched exceptions fail.
 
@@ -214,7 +222,21 @@ Query responses must contain readable advisory IDs, aliases and page tokens. Wit
 
 Run `scripts/audit-threads-sources.ps1` when sources change. It stamps a clean census. Releases require a census no more than 14 days old. `scripts/test-threads-sources.ps1` checks the ledger and source documentation.
 
-`scripts/install-hooks.ps1` installs the push checks. `HUSHTHREADS_WORKDIR` or `build/morphe-tools` can locate the desktop JAR. `HUSHTHREADS_BUILD_WRAPPER` optionally runs Gradle as `<wrapper> -ProjectDir <repository> -Tasks <task>...`.
+`scripts/install-hooks.ps1` installs the push checks. When a push changes code, the hook runs Gradle twice. A quick pass without the fixture tests goes first, so a slip there stops the push in minutes, and the full run follows. `HUSHTHREADS_WORKDIR` or `build/morphe-tools` can locate the desktop JAR. `HUSHTHREADS_BUILD_WRAPPER` optionally runs Gradle as `<wrapper> -ProjectDir <repository> -Tasks <task>...`.
+
+A release runs in five stages, one command each, from a clean checkout of main:
+
+```powershell
+./scripts/release/release.ps1 -Stage prepare -Version <version>
+./scripts/release/release.ps1 -Stage preflight -Version <version>
+./scripts/release/release.ps1 -Stage build -Version <version>
+./scripts/release/release.ps1 -Stage publish -Version <version> -Intro <intro file> -Update <update steps file>
+./scripts/release/release.ps1 -Stage index -Version <version> -Summary <summary file>
+```
+
+`prepare` dates the CHANGELOG's Unreleased section, moves the version strings, regenerates the patch list and rewrites the README's latest-release line. Review that diff, fix any prose that still names the previous release, and commit it yourself. `preflight` runs the quick checks on that commit in about five minutes, then pushes it, so the push gate runs everything on it. `build` reruns the tests from the pushed commit and builds the bundle. It patches each declared Threads build in `HUSHTHREADS_FIXTURE_DIR` once, writes the receipt from those runs and leaves the four release assets with their checksums in `build/release-assets/<version>`. The tag comes last, so a failed build never leaves one behind. `publish` creates the GitHub release with every CHANGELOG bullet in its notes and downloads each asset back to compare it. Only then does it update the repository description. `index` points `patches-bundle.json` and the bug report form at the new release, checks the release facts against the published assets, and commits and pushes that.
+
+Each stage won't start until the one before it has finished. A stage that stopped part way can be run again once the problem is fixed, and it checks what it already did rather than doing it twice. The text edits live in `scripts/release/release_text.py`, with its tests beside it. Set `HUSHTHREADS_PYTHON` when `py` or `python` isn't the Python 3 to use.
 
 Device scripts require `HUSHTHREADS_DEVICE_SERIAL` and an exclusive lease. Set `HUSHTHREADS_DEVICE_LEASE_DIR`, `HUSHTHREADS_DEVICE_LEASE_TOKEN` and `HUSHTHREADS_DEVICE_IDENTITY`. Release the lease after testing. Signing conflicts require the installed key. Replacement installs are refused to preserve apps and accounts.
 
@@ -243,7 +265,7 @@ Retain the new stable arm64 bundle and verify its identity and publisher signatu
 
 Candidate ranking suggests methods to inspect. It changes nothing. Fix anchors and inner-target guards against the new and declared builds. Use kept names, strings, Pando fields or method shapes. `ObfuscatedIdentityTest` rejects hardcoded obfuscated identities.
 
-Before declaring support, check every selected patch, settings, login and live feeds on the new and declared builds. Record the exact version name and arm64 version code in `AppCompatibilities.kt`, regenerate, rebuild and rerun the real-fixture checks and verification without `-Force` on every retained build.
+Before declaring support, check every selected patch, settings, login and live feeds on the new and declared builds. Record the exact version name and arm64 version code in `AppCompatibilities.kt` in place of the build before it, since only the newest stable Threads is declared, then regenerate, rebuild and rerun the real-fixture checks and verification without `-Force` on every retained build.
 
 ## License
 

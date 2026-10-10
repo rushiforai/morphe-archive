@@ -24,6 +24,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -35,6 +36,7 @@ import org.junit.Test
 import java.io.File
 
 private const val OBJECT = "Ljava/lang/Object;"
+private const val MESSAGES_STORAGE = "Lorg/telegram/messenger/MessagesStorage;"
 
 /** The update loop, the push deletion, the bubble's time measuring and the runtime. */
 class KeepDeletedFixtureTest {
@@ -153,6 +155,71 @@ class KeepDeletedFixtureTest {
                 context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.associate { it.toString() to it.controlBody().map(::shape) })
             val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepDeleted" }.controlBody()
             assertEquals(0L, (status.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `a bubble on screen is drawn again through its own layout, which the patch leaves alone`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = context(build)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            val plan = context.resolveKeepDeleted()
+            val layout = plan.layout
+            assertEquals("$name: the bubble's own layout", plan.measure.definingClass, layout.definingClass)
+            assertEquals("$name: it's handed the message and its album", listOf(MESSAGE_OBJECT, GROUPED_MESSAGES),
+                layout.parameterTypes.take(2).map(CharSequence::toString))
+
+            // Read independently: the bubble's one method that reads the mark, before it measures the time, and clears it.
+            val bubble = context.mutableClassDefBy(layout.definingClass)
+            val readers = bubble.methods.filter { m -> m.controlBody().any { it.opcode == Opcode.IGET_BOOLEAN && it.controlRef() == FORCE_UPDATE } }
+            assertEquals("$name: one method reads the mark", listOf(layout.name), readers.map { it.name })
+            val body = layout.controlBody()
+            val read = body.indexOfFirst { it.opcode == Opcode.IGET_BOOLEAN && it.controlRef() == FORCE_UPDATE }
+            val measured = "${plan.measure.definingClass}->${plan.measure.name}($MESSAGE_OBJECT)V"
+            assertTrue("$name: the mark is read before the time is measured", read in 0 until body.indexOfFirst { it.controlRef() == measured })
+            assertTrue("$name: and cleared", body.any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlRef() == FORCE_UPDATE })
+
+            // Telegram's own storage posts the event with the replaced message's chat, then the messages.
+            val replace = context.mutableClassDefBy(MESSAGES_STORAGE).methods.single { m ->
+                m.name.startsWith(REPLACE_IF_EXISTS) && m.controlBody().any { it.controlRef() == REPLACE_MESSAGES }
+            }.controlBody()
+            val event = replace.indexOfFirst { it.controlRef() == REPLACE_MESSAGES }
+            val chat = replace.indexOfFirst { it.controlRef() == "$MESSAGE_OBJECT->getDialogId()J" }
+            val post = replace.indexOfFirst { it.controlRef() == POST_NOTIFICATION }
+            assertTrue("$name: event $event, chat $chat, post $post", event in 0 until chat && chat < post)
+
+            val before = layout.controlBody().map(::shape)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { keepDeletedPatch.execute(context) })
+            assertEquals("$name: the layout isn't edited", before, layout.controlBody().map(::shape))
+        }
+    }
+
+    @Test fun `a moved redraw refuses before any edit`() {
+        val changes = linkedMapOf<String, (BytecodePatchContext, Method) -> Unit>(
+            "storage no longer posts the replacement" to { context, _ ->
+                context.mutableClassDefBy(MESSAGES_STORAGE).methods.removeAll { it.name.startsWith(REPLACE_IF_EXISTS) }
+            },
+            "the bubble has no layout for a marked message" to { context, layout ->
+                context.mutableClassDefBy(layout.definingClass).methods.removeAll {
+                    it.name == layout.name && it.parameterTypes.map(CharSequence::toString) == layout.parameterTypes.map(CharSequence::toString)
+                }
+            },
+        )
+        for (build in Fixtures.declaredBuilds()) {
+            val known = context(build).let { messageSecondsPatch.execute(it); it.resolveKeepDeleted().layout }
+            for ((change, mutate) in changes) {
+                val context = context(build)
+                assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+                mutate(context, known)
+                val before = context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.associate { it.toString() to it.controlBody().map(::shape) }
+                val failure = assertThrows("${build.name}: $change", PatchException::class.java) { keepDeletedPatch.execute(context) }
+                assertTrue("${build.name}: $change refuses for the redraw: ${failure.message}",
+                    failure.message.orEmpty().let { "replaced" in it || "fresh layout" in it })
+                assertEquals("${build.name}: $change leaves the controller as it was", before,
+                    context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.associate { it.toString() to it.controlBody().map(::shape) })
+                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepDeleted" }.controlBody()
+                assertEquals(0L, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
         }
     }
 

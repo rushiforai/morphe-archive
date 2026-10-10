@@ -320,6 +320,49 @@ public class PrivacySwitchesTest {
         }
     }
 
+    /** The device-access blocks start off, so a read before Hushfeed has a context goes through too. */
+    @Test public void beforeTheExtensionHasAContextNoDeviceReadIsBlocked() {
+        for (var setting : new app.morphe.extension.shared.settings.BooleanSetting[]{
+                Settings.BLOCK_CONTACT_LIST, Settings.BLOCK_INSTALLED_APPS, Settings.BLOCK_LOCATION,
+                Settings.BLOCK_CLIPBOARD_READS, Settings.BLOCK_MOTION_SENSORS, Settings.CAMERA_MIC_INDICATOR}) {
+            assertEquals("the patch is in the default selection, so " + setting.key + " starts off",
+                    Boolean.FALSE, setting.defaultValue);
+        }
+        Robolectric.setupContentProvider(OneRowProvider.class, ContactsContract.AUTHORITY);
+        ContentResolver resolver = context.getContentResolver();
+        PackageManager pm = context.getPackageManager();
+        Intent inventory = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        ResolveInfo info = new ResolveInfo();
+        info.activityInfo = new ActivityInfo();
+        info.activityInfo.packageName = "com.example.other";
+        info.activityInfo.name = "com.example.other.Main";
+        Shadows.shadowOf(pm).addResolveInfoForIntent(inventory, info);
+        LocationManager locations = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        Shadows.shadowOf(locations).setLastKnownLocation(LocationManager.GPS_PROVIDER,
+                new Location(LocationManager.GPS_PROVIDER));
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(ClipData.newPlainText("label", "hello"));
+        SensorManager sensors = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor accelerometer = ShadowSensor.newInstance(Sensor.TYPE_ACCELEROMETER);
+        SensorEventListener listener = new SensorEventListener() {
+            @Override public void onSensorChanged(SensorEvent event) {}
+            @Override public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        };
+
+        Utils.setContext(null);
+        try {
+            assertEquals(1, ContactListBlocker.interceptQuery(resolver,
+                    ContactsContract.Contacts.CONTENT_URI, new String[]{"_id"}, null, null, null).getCount());
+            assertEquals(1, InstalledAppsBlocker.interceptQueryIntentActivities(pm, inventory, 0).size());
+            assertNotNull(LocationGovernor.interceptGetLastKnownLocation(locations, LocationManager.GPS_PROVIDER));
+            assertEquals("hello", DevicePrivacyGuard.interceptClipboardText(clipboard).toString());
+            assertTrue(ResourceBatteryGovernor.interceptSensorRegistration(sensors, listener, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL));
+        } finally {
+            Utils.setContext(context);
+        }
+    }
+
     @Test public void motionSensorsAreRefusedAndTheRestRegistered() {
         SensorManager manager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor accelerometer = ShadowSensor.newInstance(Sensor.TYPE_ACCELEROMETER);
@@ -388,8 +431,8 @@ public class PrivacySwitchesTest {
     }
 
     @Test public void searchHistoryIsSkippedOnlyWhileThePatchedSwitchIsOnAndHushfeedRuns() {
-        assertEquals("picking the patch is the choice, so its switch starts on",
-                Boolean.TRUE, Settings.STOP_SEARCH_HISTORY.defaultValue);
+        assertEquals("the patch is in the default selection, so its switch starts off",
+                Boolean.FALSE, Settings.STOP_SEARCH_HISTORY.defaultValue);
         Settings.STOP_SEARCH_HISTORY.save(true);
         assertFalse("a build without the patch never skips a write", SearchHistoryRecording.shouldSkip());
 

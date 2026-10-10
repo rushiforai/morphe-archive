@@ -44,8 +44,8 @@ public class StoriesSettingsBackupTest {
     @Test public void exportCarriesOnlyTheIndependentKeys() throws Exception {
         JSONObject values = new JSONObject(SettingsBackup.create()).getJSONObject("settings");
         assertFalse("the obsolete combined key was exported", values.has(LEGACY));
-        assertTrue(values.getBoolean(TOP));
-        assertTrue(values.getBoolean(BETWEEN));
+        assertFalse(values.getBoolean(TOP));
+        assertFalse(values.getBoolean(BETWEEN));
     }
 
     @Test public void anExplicitLegacyChoiceSuppliesBothIndependentChoices() throws Exception {

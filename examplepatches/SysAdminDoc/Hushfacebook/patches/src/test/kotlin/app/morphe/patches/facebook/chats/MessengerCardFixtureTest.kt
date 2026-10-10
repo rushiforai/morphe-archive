@@ -29,10 +29,12 @@ class MessengerCardFixtureTest {
     /**
      * The id of "Get the %1$s app for even more fun ways to connect with others" in each build.
      * Facebook keeps its English strings out of resources.arsc, in assets/strings/default.frsc.xz:
-     * xz over a table of id ranges and offsets, where these ids were read. The card loads it.
+     * xz over a table of id ranges and offsets, where these ids were read. The card loads it. 582
+     * ships that file as default.frsc.spo (SuperPack) instead and unpacks it on first launch into
+     * app_strings/uncompressed_default.frsc.xz, the same table, where 582's id was read.
      */
     private val upsellText = mapOf(
-        "581.0.0.45.58" to 0x7f143696,
+        "582.0.0.50.54" to 0x7f1436ed,
     )
 
     private val packageManager = "Landroid/content/pm/PackageManager;"

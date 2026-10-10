@@ -40,9 +40,7 @@ private fun refuse(reason: String): Nothing =
 @Suppress("unused")
 val spoofPackageVersionPatch = resourcePatch(
     name = SPOOF_VERSION_PATCH,
-    description = "Gives Messenger a very high version code, so the Play Store stops offering Meta's updates over it. " +
-        "Messenger may report this number to Meta. Later builds need the same number or higher to install over it, " +
-        "so going back to Meta's number means uninstalling first, which deletes Messenger's data on your phone. Starts unselected.",
+    description = "Gives Messenger a high version number so the Play Store stops offering Meta's updates. Messenger may report it to Meta. Going back means uninstalling first, which erases its data. Pick it in Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,
 ) {
     category("Updates")
@@ -51,9 +49,8 @@ val spoofPackageVersionPatch = resourcePatch(
     val versionCode by intOption(
         key = SPOOF_VERSION_KEY,
         default = HIGHEST_VERSION_CODE,
-        title = "Version code",
-        description = "A whole number from 1 to $HIGHEST_VERSION_CODE. It has to be higher than the Play Store's Messenger " +
-            "to stop update offers. The default is the highest Android allows.",
+        title = "Version number",
+        description = "A whole number from 1 to $HIGHEST_VERSION_CODE. Pick one higher than Messenger's version in the Play Store, or it will keep offering updates. The default is the highest Android allows.",
         required = true,
     ) { validSpoofedVersionCode(it) }
 

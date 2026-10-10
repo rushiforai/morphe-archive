@@ -75,7 +75,7 @@ private const val CONTEXT = "Landroid/content/Context;"
  * swapped for a new one built the way the fragment builds its own, which is never put on screen, so
  * Facebook's container stays hidden. The posts would still sit as far down as the filters are tall,
  * since the controller in [CONTAINER_CONTROLLER_FIELD] moves them there once it hears the filters
- * show, through the runnable Redex names [ROOM_RUNNABLE] (581 `LX/b6e;`). That runnable's answer to
+ * show, through the runnable Redex names [ROOM_RUNNABLE] (582 `LX/fU7;`). That runnable's answer to
  * whether they show goes through the extension too, which says no while the switch is on, so the
  * posts start at the top.
  */
@@ -83,8 +83,9 @@ private const val CONTEXT = "Landroid/content/Context;"
 val hideFeedsHeaderPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hide the Feeds header",
-    description = "Takes the title row and the All, Favorites, Friends, Groups and Pages filters off the top of the " +
-        "Feeds tab, so it opens on its posts. Its switch starts off, so turn it on under News feed and restart Facebook.",
+    description = "Takes the title row and the All, Favorites, Friends, Groups and Pages filters off the top of " +
+        "the Feeds tab, so it opens straight on posts. Starts off. Turn it on in Hushfacebook settings > News " +
+        "feed, then restart Facebook.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

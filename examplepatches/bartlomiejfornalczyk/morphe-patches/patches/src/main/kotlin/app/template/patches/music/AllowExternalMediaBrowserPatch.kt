@@ -2,8 +2,6 @@ package app.template.patches.music
 
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.COMPATIBILITY_MORPHE_YOUTUBE_MUSIC
-import app.template.patches.shared.Constants.COMPATIBILITY_REVANCED_YOUTUBE_MUSIC
 import app.template.patches.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -18,9 +16,7 @@ val allowExternalMediaBrowserPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(
-        COMPATIBILITY_YOUTUBE_MUSIC,
-        COMPATIBILITY_MORPHE_YOUTUBE_MUSIC,
-        COMPATIBILITY_REVANCED_YOUTUBE_MUSIC
+        COMPATIBILITY_YOUTUBE_MUSIC
     )
 
     execute {

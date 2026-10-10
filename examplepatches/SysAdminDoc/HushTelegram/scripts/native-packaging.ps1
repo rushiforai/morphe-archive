@@ -131,7 +131,11 @@ function Get-NativePackagingEvidence {
         [Parameter(Mandatory = $true)][string]$Java,
         [Parameter(Mandatory = $true)][string]$Aapt2,
         [Parameter(Mandatory = $true)][string]$ReportPath,
-        [string]$SourceApk
+        [string]$SourceApk,
+        # A caller that runs case after case on one APK hashes it once and checks it's unchanged
+        # itself, instead of every call reading the whole APK again for the same two digests.
+        [string]$StockSha256,
+        [string]$SourceSha256
     )
     if (-not $SourceApk) { $SourceApk = $StockApk }
     $checker = Join-Path $PSScriptRoot 'NativeLibraryCheck.java'
@@ -152,8 +156,10 @@ function Get-NativePackagingEvidence {
         throw 'APK zip alignment failed.'
     }
     $native = Get-Content -LiteralPath $ReportPath -Raw | ConvertFrom-Json
-    $native | Add-Member -NotePropertyName sourceApkSha256 -NotePropertyValue (Get-Sha256Hex -Path $SourceApk).ToLowerInvariant()
-    $native | Add-Member -NotePropertyName stockApkSha256 -NotePropertyValue (Get-Sha256Hex -Path $StockApk).ToLowerInvariant()
+    if (-not $SourceSha256) { $SourceSha256 = Get-Sha256Hex -Path $SourceApk }
+    if (-not $StockSha256) { $StockSha256 = Get-Sha256Hex -Path $StockApk }
+    $native | Add-Member -NotePropertyName sourceApkSha256 -NotePropertyValue $SourceSha256.ToLowerInvariant()
+    $native | Add-Member -NotePropertyName stockApkSha256 -NotePropertyValue $StockSha256.ToLowerInvariant()
     $native | Add-Member -NotePropertyName patchedApkSha256 -NotePropertyValue (Get-Sha256Hex -Path $PatchedApk).ToLowerInvariant()
     $native | Add-Member -NotePropertyName checkerSha256 -NotePropertyValue (Get-Sha256Hex -Path $checker).ToLowerInvariant()
     $alignment = [pscustomobject]@{

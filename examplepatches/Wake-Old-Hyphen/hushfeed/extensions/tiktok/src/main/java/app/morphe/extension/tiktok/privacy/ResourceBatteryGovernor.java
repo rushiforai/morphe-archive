@@ -30,7 +30,7 @@ public final class ResourceBatteryGovernor {
                 || type == Sensor.TYPE_MAGNETIC_FIELD || type == Sensor.TYPE_ROTATION_VECTOR
                 || type == Sensor.TYPE_LINEAR_ACCELERATION || type == Sensor.TYPE_GRAVITY;
         if (!motion) return false;
-        if (Utils.getContext() != null && !Settings.BLOCK_MOTION_SENSORS.get()) return false;
+        if (Utils.getContext() == null || !Settings.BLOCK_MOTION_SENSORS.get()) return false;
         Logger.printInfo(() -> "Resource governor: blocked sensor registration for type " + type);
         return true;
     }

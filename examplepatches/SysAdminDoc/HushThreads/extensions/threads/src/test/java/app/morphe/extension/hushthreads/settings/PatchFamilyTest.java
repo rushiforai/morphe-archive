@@ -138,14 +138,28 @@ public class PatchFamilyTest {
         for (PatchFamily family : PatchFamily.DEFAULT_SELECTION) listed.add(family.patchName);
         assertEquals(selected, listed);
         // The check can fail: an opt-in patch isn't in either list.
-        assertFalse(selected.contains(PatchFamily.VIDEO_AUTOPLAY.patchName));
-        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.VIDEO_AUTOPLAY));
-        assertFalse(selected.contains(PatchFamily.PURE_BLACK.patchName));
-        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.PURE_BLACK));
-        assertFalse(selected.contains(PatchFamily.SCREENSHOT_DETECTION.patchName));
-        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.SCREENSHOT_DETECTION));
-        assertFalse(selected.contains(PatchFamily.MAX_IMAGE_QUALITY.patchName));
-        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.MAX_IMAGE_QUALITY));
+        assertFalse(selected.contains(PatchFamily.VERSION_CODE.patchName));
+        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.VERSION_CODE));
+        assertFalse(selected.contains(PatchFamily.TRUST_USER_CERTIFICATES.patchName));
+        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.TRUST_USER_CERTIFICATES));
+    }
+
+    /**
+     * The patches that joined the default selection from the opt-in list start with every switch
+     * off, so a build patched with the defaults acts as Threads does until a switch is turned on.
+     */
+    @Test
+    public void thePatchesThatJoinedTheDefaultSelectionStartWithEverySwitchOff() {
+        Set<PatchFamily> joined = EnumSet.of(PatchFamily.RETURN_REFRESH, PatchFamily.VIDEO_AUTOPLAY,
+                PatchFamily.MAX_IMAGE_QUALITY, PatchFamily.SCREENSHOT_DETECTION, PatchFamily.PURE_BLACK);
+        for (PatchFamily family : joined) {
+            assertTrue(family.patchName + " isn't in the default selection",
+                    PatchFamily.DEFAULT_SELECTION.contains(family));
+            assertFalse(family.patchName + " has no switch", family.switches.isEmpty());
+            for (BooleanSetting setting : family.switches) {
+                assertFalse(family.patchName + ": " + setting.key + " starts on", setting.defaultValue);
+            }
+        }
     }
 
     /**
@@ -156,11 +170,9 @@ public class PatchFamilyTest {
     public void theMissingDefaultsAreTheDefaultPatchesABuildLacks() {
         Set<PatchFamily> build = EnumSet.allOf(PatchFamily.class);
         assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
-        build.remove(PatchFamily.VIDEO_AUTOPLAY);
-        build.remove(PatchFamily.RETURN_REFRESH);
-        build.remove(PatchFamily.PURE_BLACK);
-        build.remove(PatchFamily.SCREENSHOT_DETECTION);
-        build.remove(PatchFamily.MAX_IMAGE_QUALITY);
+        build.remove(PatchFamily.VERSION_CODE);
+        build.remove(PatchFamily.REMOVE_SHARE_TARGETS);
+        build.remove(PatchFamily.TRUST_USER_CERTIFICATES);
         assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
         for (String line : PatchFamily.reportLines(build, false)) {
             assertFalse(line, line.startsWith("left out of Manager's default selection"));
@@ -172,8 +184,8 @@ public class PatchFamilyTest {
         List<String> lines = PatchFamily.reportLines(build, false);
         assertEquals("left out of Manager's default selection: Hide ads, Hide suggested users",
                 lines.get(lines.size() - 1));
-        assertEquals("not in this build: Hide ads, Hide suggested users, Block background-return feed refresh, Disable video autoplay, "
-                + "Max image quality, Disable screenshot detection, Pure black dark mode", lines.get(lines.size() - 2));
+        assertEquals("not in this build: Hide ads, Hide suggested users, Change version code, Remove share targets, "
+                + "Trust user-added certificates", lines.get(lines.size() - 2));
     }
 
     /** The new line goes through the redactor like the rest of the section and comes out whole. */
@@ -239,9 +251,11 @@ public class PatchFamilyTest {
                 "Sanitize sharing links: disabled by its switch (hushthreads_sanitize_sharing_links=off)",
                 "Remove the advertising ID: no switch, stays in while paused: the removed advertising ID permission",
                 "not in this build: Hide suggested users, Block background-return feed refresh, Disable video autoplay, Max image quality, Open links in browser, "
-                        + "Disable analytics, Disable screenshot detection, Save photos and videos, Pure black dark mode, Restore screens on re-signed builds, Change version code, Remove share targets, Trust user-added certificates",
-                "left out of Manager's default selection: Hide suggested users, Open links in browser, Disable analytics, "
-                        + "Save photos and videos, Restore screens on re-signed builds"),
+                        + "Disable analytics, Disable screenshot detection, Save photos and videos, Pure black dark mode, Hide the Instagram button, Restore screens on re-signed builds, Change version code, Remove share targets, Trust user-added certificates",
+                "left out of Manager's default selection: Hide suggested users, Block background-return feed refresh, "
+                        + "Disable video autoplay, Max image quality, Open links in browser, Disable analytics, Disable "
+                        + "screenshot detection, Save photos and videos, Pure black dark mode, Hide the Instagram button, "
+                        + "Restore screens on re-signed builds"),
                 running);
         assertEquals("Restore screens on re-signed builds: no switch, stays in while paused: the re-signed build fix",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.RESTORE_TRUST), false).get(0));

@@ -41,9 +41,15 @@ class ReelItemStoryFixtureTest {
         VideoHomeInsertAdsFingerprint.clearMatch()
     }
 
-    /** The item interface and its story getter in each declared build. */
+    /**
+     * The item interface and its story getter in each declared build, then by the bundle's ABI.
+     * 581's two builds shared their names; 582's armeabi-v7a build has its own.
+     */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("LX/UZQ;" to "BTX"),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to ("LX/Vi5;" to "BUx"),
+            "armeabi-v7a" to ("LX/Vee;" to "BUy"),
+        ),
     )
 
     private val Instruction.methodReference get() = (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -104,8 +110,9 @@ class ReelItemStoryFixtureTest {
                 val context = PatchContexts.of(pageClasses + support.values + extension)
 
                 val item = with(context) { reelItemStory(adBase) }
-                assertEquals("${bundle.name}: the item interface and its story getter", expected.getValue(version),
-                    item.type to item.getter.name)
+                val pin = expected.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+                    ?: throw AssertionError("${bundle.name} has no pin")
+                assertEquals("${bundle.name}: the item interface and its story getter", pin, item.type to item.getter.name)
                 val itemBase = pageClasses.single { it.type == adBase }.superclass!!
                 assertTrue("${bundle.name}: the item base $itemBase doesn't implement ${item.type}",
                     item.type in supertypes(itemBase, parents))

@@ -140,10 +140,10 @@ internal fun BytecodePatchContext.installFeedText() {
 @Suppress("unused")
 val feedTextSizePatch = bytecodePatch(
     name = "Feed text sizes",
-    description = "Sets independent sizes for video descriptions and creator names. Switch: Hushfeed settings > Feed screen.",
-    default = false,
+    description = "Lets you make video descriptions and creator names bigger or smaller, so " +
+        "they're easier to read. Starts off. Pick a size in Hushfeed settings > Feed screen.",
 ) {
-    category("Interaction")
+    category("Interface")
     compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, sharedExtensionPatch)
     execute {

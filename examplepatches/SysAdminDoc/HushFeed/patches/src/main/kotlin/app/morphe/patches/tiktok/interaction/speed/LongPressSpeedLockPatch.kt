@@ -22,7 +22,9 @@ private const val FEATURE_CONTROLS_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val longPressSpeedLockPatch = bytecodePatch(
     name = "Hold-and-slide 2x lock",
-    description = "Enables TikTok's own hold, pull down and release gesture to lock the hold speed, 2x unless Playback speed sets another. Switch: Hushfeed settings > Feed screen.",
+    description = "Turns on TikTok's own gesture where you hold a video, slide down and let " +
+        "go to keep it playing fast without holding. Starts off. Turn it on in Hushfeed settings " +
+        "> Feed screen.",
     default = true,
 ) {
     category("Playback")

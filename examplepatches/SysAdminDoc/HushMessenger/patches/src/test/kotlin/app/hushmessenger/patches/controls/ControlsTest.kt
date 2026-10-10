@@ -95,9 +95,11 @@ class ControlsTest {
     }
 
     @Test fun notificationsSuggestionsJoinTheStockPreferenceAndSkipTheServerOverride() {
-        // The server branch sits at 20, or at 19 in 346013423 where the list reset is one call. 581 loads its own flag ID.
-        for (serverFlag in listOf("72344235860374863L", "72344231565407716L")) for ((inlined, serverBranch) in listOf(false to 20, true to 19)) {
-            val reader = peopleJewelMethod(serverFlag = serverFlag, inlinedReset = inlined)
+        // The server branch sits at 20, or at 19 in 346013423 where the list reset is one call. 581 and 582 load their own
+        // flag IDs, and 582's reader also takes the suggestions logger and keeps false in v5.
+        for (serverFlag in listOf("72344235860374863L", "72344231565407716L", "72344188615734930L")) for (logged in listOf(false, true))
+            for ((inlined, serverBranch) in listOf(false to 20, true to 19)) {
+            val reader = peopleJewelMethod(serverFlag = serverFlag, inlinedReset = inlined, logged = logged)
             val original = reader.implementation!!.instructions.toList()
             assertEquals(Opcode.IF_NEZ, original[serverBranch].opcode)
             reader.injectPeopleSection()
@@ -127,6 +129,7 @@ class ControlsTest {
             peopleJewelMethod(serverFlag = "0x1L"),
             peopleJewelMethod(serverTarget = ":hidden"),
             peopleJewelMethod(inlinedReset = true, serverTarget = ":hidden"),
+            peopleJewelMethod(logged = true, serverTarget = ":hidden"),
             // A second load of the flag makes the server branch ambiguous.
             peopleJewelMethod(extraFlag = true),
             peopleJewelMethod(inlinedReset = true, extraFlag = true),

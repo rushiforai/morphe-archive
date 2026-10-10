@@ -94,14 +94,14 @@ final class SupportedLinks {
         String holding() {
             switch (this) {
                 case MESSENGER:
-                    return L10n.t("Messenger can keep facebook.com and m.me links for itself, so their switches for this app "
-                            + "turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.");
+                    return L10n.t("Messenger can claim facebook.com and m.me links for itself, which turns this app's link switches "
+                            + "back off. Tap, turn off Open supported links there, then recheck Supported links above.");
                 case INSTAGRAM:
-                    return L10n.t("Instagram can keep facebook.com links for itself, so their switches for this app turn "
-                            + "themselves back off. Tap and turn off Open supported links there, then check Supported links above.");
+                    return L10n.t("Instagram can claim facebook.com links for itself, which turns this app's link switches back off. "
+                            + "Tap, turn off Open supported links there, then recheck Supported links above.");
                 default:
-                    return L10n.t("Meta App Manager can keep Facebook's web addresses for itself, so their links skip this app. "
-                            + "Tap and turn off Open supported links there, then check Supported links above.");
+                    return L10n.t("Meta App Manager can claim Facebook's web addresses for itself, so their links skip this app. Tap, "
+                            + "turn off Open supported links there, then recheck Supported links above.");
             }
         }
 

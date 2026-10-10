@@ -7,6 +7,8 @@ package app.morphe.patches.facebook.navigation.tabbar
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.isStringTableCall
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.navigation.starttab.TAB_TAG
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
@@ -15,13 +17,14 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The tab links on every Facebook build the bundle declares: one static method picks the configured
+ * The tab links on every Facebook build the bundle declares: one method picks the configured
  * tab a started page belongs to, FriendsUriMapHelper has one switch to the configured Friends tab,
  * FbMainTabActivityUriHelper has one target_tab_id check against the configured tabs, and the patch,
  * run on the build's own classes, asks the extension at each, reading the registers Facebook already
@@ -65,10 +68,15 @@ class TabLinksFixtureTest {
                 assertEquals("$name: launched tab lookups", 1, lookups.size)
                 val friends = owners.getValue(FRIENDS_URI_HELPER).methods.mapNotNull { m -> friendsTabMatch(m)?.let { m to it } }
                 assertEquals("$name: switches to the configured Friends tab", 1, friends.size)
-                val checks = owners.getValue(MAIN_TAB_URI_HELPER).methods.mapNotNull { m -> configuredTabCheck(m)?.let { m to it } }
+                // 582 asks a string table for target_tab_id, so the helper's tables come along.
+                val tables = FixtureDex.classes(fixture, owners.getValue(MAIN_TAB_URI_HELPER).methods.flatMap { m ->
+                    m.implementation?.instructions?.filter(::isStringTableCall).orEmpty()
+                }.map { ((it as ReferenceInstruction).reference as MethodReference).definingClass }.toSet())
+                val table: (MethodReference) -> Method? = { call -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
+                val checks = owners.getValue(MAIN_TAB_URI_HELPER).methods.mapNotNull { m -> configuredTabCheck(m, table)?.let { m to it } }
                 assertEquals("$name: target_tab_id checks against the configured tabs", 1, checks.size)
 
-                val context = PatchContexts.of(owners.values.toList())
+                val context = PatchContexts.of((owners + tables).values.toList())
                 tabLinksPatch.execute(context)
                 fun patched(method: Method) = context.mutableClassDefBy(method.definingClass).methods.single {
                     it.name == method.name && it.parameterTypes.map(CharSequence::toString) ==

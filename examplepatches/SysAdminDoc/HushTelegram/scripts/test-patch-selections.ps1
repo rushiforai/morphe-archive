@@ -12,11 +12,11 @@ function Assert-Selection([bool]$Condition, [string]$Message) {
 $catalog = Get-Content (Join-Path $Root 'patches-list.json') -Raw | ConvertFrom-Json
 $model = Get-SelectionStatusModel -Root $Root
 $plans = @(Get-PatchSelectionCases -Catalog $catalog -StatusModel $model)
-Assert-Selection ($plans.Count -eq 74 -and @($plans.Id | Sort-Object -Unique).Count -eq 74) 'The matrix changed its bounded case inventory.'
+Assert-Selection ($plans.Count -eq 75 -and @($plans.Id | Sort-Object -Unique).Count -eq 75) 'The matrix changed its bounded case inventory.'
 Assert-Selection (@($plans | Where-Object Failure).Count -eq 10) 'A malformed, incomplete or typed-input refusal is missing.'
 Assert-Selection (@($plans | Where-Object Id -CEQ 'maps-array-noop').Count -eq 1) 'The CLI typed-option no-op case is missing.'
-Assert-Selection (@($plans | Where-Object Default).Count -eq 1 -and $plans[0].Id -ceq 'default53') 'Defaults must be exercised through the actual CLI defaults.'
-Assert-Selection ($plans[0].Names.Count -eq 53 -and ($plans | Where-Object Id -CEQ 'full55').Names.Count -eq 55) 'Default and full catalog counts changed.'
+Assert-Selection (@($plans | Where-Object Default).Count -eq 1 -and $plans[0].Id -ceq 'default54') 'Defaults must be exercised through the actual CLI defaults.'
+Assert-Selection ($plans[0].Names.Count -eq 54 -and ($plans | Where-Object Id -CEQ 'full56').Names.Count -eq 56) 'Default and full catalog counts changed.'
 $hostile = $catalog | ConvertTo-Json -Depth 20 | ConvertFrom-Json
 ($hostile.patches | Where-Object name -CEQ 'Use registered Telegram API credentials').name = 'private_catalog_name_canary_472009'
 $refusal = $null

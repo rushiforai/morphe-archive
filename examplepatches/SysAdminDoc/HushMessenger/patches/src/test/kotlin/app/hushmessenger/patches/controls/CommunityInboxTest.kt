@@ -83,6 +83,33 @@ class CommunityInboxTest {
         assertEquals(IMMUTABLE_LIST, reference(code[at + 9]).toString())
     }
 
+    @Test fun the582ClosureFiltersTheListInV1AndUsesV0AndV3AsScratch() {
+        val contract = assertNotNull(findCommunityInbox(communityInboxFixture(viewport = true)))
+        val render = contract.render as MutableMethod
+        val at = render.communityReadSite(contract.capturedScope)
+        assertEquals(64, at)
+        val field = ControlProfile::class.java.getDeclaredField("nativeCommunityInbox").apply { isAccessible = true }
+        val recorded = activeProfile.nativeCommunityInbox
+        try {
+            field.set(activeProfile, contract.identity)
+            injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
+        } finally { field.set(activeProfile, recorded) }
+        val code = body(render)
+        val filter = code[at + 3] as FiveRegisterInstruction
+        assertEquals(listOf(1, 0, 3), listOf(filter.registerC, filter.registerD, filter.registerE))
+        assertEquals(Opcode.CHECK_CAST, code[at + 9].opcode)
+        assertEquals(1, (code[at + 9] as OneRegisterInstruction).registerA)
+        // The renderer still takes the filtered v1 as its list, and the viewport callback still comes from v0's own read.
+        assertEquals(listOf(17, 1), (code[at + 20] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(listOf(18, 0), (code[at + 21] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+
+        // v0 is scratch only because the closure writes it again before the sink reads it.
+        val live = communityInboxFixture(viewport = true)
+        val liveRender = assertNotNull(findCommunityInbox(live)).render as MutableMethod
+        liveRender.replaceInstruction(70, "nop")
+        assertNull(findCommunityInbox(live))
+    }
+
     @Test fun everyProfileConnectsTheNativeMembershipAndMainOnlyRendererBeforeEditing() {
         for (profile in controlProfiles.values.toSet()) {
             activeProfile = profile

@@ -21,7 +21,7 @@ private const val CONFIG_ATTRIBUTE = "android:networkSecurityConfig"
 
 /**
  * The network security config [manifest]'s application names, as the path a resource patch opens.
- * Refused when it names none, which no declared build does (Threads 448 to 450 name
+ * Refused when it names none, which no declared build does (Threads 450 names
  * fb_network_security_config), or something other than an xml resource.
  */
 internal fun configPath(manifest: Document): String {
@@ -82,7 +82,7 @@ internal val trustUserCertificatesResourcePatch = resourcePatch {
 /**
  * Lets Android's certificate checks in Threads accept the certificates you've installed yourself.
  *
- * Threads 448 to 450 name `fb_network_security_config`: the system's certificates for everything,
+ * Threads 450 names `fb_network_security_config`: the system's certificates for everything,
  * cleartext only off Meta's domains, and a pin set on Meta's domains that a user certificate would
  * fail. Threads also checks Meta's certificates in its own code: Tigon, Meta's network stack, records
  * whether its pinning was verified, and an OkHttp-style pinner throws "Certificate pinning failure!".
@@ -91,10 +91,9 @@ internal val trustUserCertificatesResourcePatch = resourcePatch {
 @Suppress("unused")
 val trustUserCertificatesPatch = bytecodePatch(
     name = "Trust user-added certificates",
-    description = "Lets Android's certificate checks in Threads accept certificates you've installed on your " +
-        "phone yourself, such as one a work or school network needs, or a debugging proxy's. Threads also checks " +
-        "Meta's certificates in its own network code, which this patch doesn't change, so a proxy still can't " +
-        "read most of Threads' traffic to Meta. Only pick it if you know you need it.",
+    description = "Lets Threads accept security certificates you installed yourself, such as for a work network or " +
+        "a debugging proxy. Meta's own checks stay, so a proxy can't read most traffic. It isn't selected" +
+        " by default. Works as soon as you patch it in, with no switch.",
     default = false,
 ) {
     category("Fixes")

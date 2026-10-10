@@ -677,7 +677,7 @@ public final class ReleaseCheck {
                 // "Try again later" would send the reader back for an answer that hasn't changed.
                 return L10n.t("No HushPinterest release is out yet.");
             default:
-                return L10n.t("GitHub's answer couldn't be used. Try again later.");
+                return L10n.t("GitHub sent back something HushPinterest couldn't read. Try again later.");
         }
     }
 

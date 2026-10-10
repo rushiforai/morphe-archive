@@ -16,6 +16,7 @@ import android.widget.TextView;
 @SuppressWarnings("deprecation")
 public final class SectionHeadingPreference extends Preference {
     private final boolean homeGroup;
+    private boolean compact;
 
     public SectionHeadingPreference(Context context, String title) {
         this(context, title, false);
@@ -28,13 +29,20 @@ public final class SectionHeadingPreference extends Preference {
         setSelectable(false);
     }
 
+    public static SectionHeadingPreference compact(Context context, String title) {
+        SectionHeadingPreference heading = new SectionHeadingPreference(context, title, true);
+        heading.compact = true;
+        return heading;
+    }
+
     @Override
     protected View onCreateView(ViewGroup parent) {
         Context context = getContext();
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(LinearLayout.VERTICAL);
-        int side = SettingsUi.dp(context, 18);
-        layout.setPadding(side, SettingsUi.dp(context, 16), side, SettingsUi.dp(context, 4));
+        int side = compact ? 0 : SettingsUi.dp(context, 18);
+        layout.setPadding(side, SettingsUi.dp(context, compact ? 24 : 16),
+                side, SettingsUi.dp(context, compact ? 8 : 4));
 
         TextView title = new TextView(context);
         title.setId(android.R.id.title);

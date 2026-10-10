@@ -63,13 +63,9 @@ internal fun MutableMethod.installInboxLayoutFilter() {
 @Suppress("unused")
 val inboxFilterPatch = bytecodePatch(
     name = "Hide inbox items",
-    description = "Adds a switch for each row and header control on the Inbox tab, so " +
-        "message requests, TikTok Tako, TikTok Shop, Bulletin board, the stories tray and the " +
-        "rest can be hidden individually, along with the banner that invites you to start a " +
-        "group chat, and switches for the call buttons, sticker suggestions and " +
-        "suggested replies inside a chat and for a message's double tap heart and swipe to " +
-        "reply. Switch: Hushfeed settings > Inbox.",
-    default = false,
+    description = "Lets you hide Inbox rows you don't use, like message requests, TikTok Shop " +
+        "and the stories row, plus call buttons and suggested replies in chats. Each has its own " +
+        "switch. Starts off. Turn it on in Hushfeed settings > Inbox.",
 ) {
     category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)

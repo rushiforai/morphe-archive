@@ -46,9 +46,9 @@ internal fun locationStandIn(name: String): String {
 @Suppress("unused")
 val spoofLocationPatch = bytecodePatch(
     name = "Spoof location",
-    description = "Tells Instagram the phone is at a place you set in HushGram's settings, for the location " +
-        "sticker, nearby places and maps. Photos keep their own places.",
-    default = false,
+    description = "Tells Instagram your phone is at a place you pick, for the location sticker, nearby places and " +
+        "maps. Photos keep their own places. You need to pick a place too. Starts off. Turn it on in HushGram " +
+        "settings > Ads and privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, instagramExtensionPatch)

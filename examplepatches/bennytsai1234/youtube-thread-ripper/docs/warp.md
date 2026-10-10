@@ -1,0 +1,8 @@
+# Cloudflare WARP while open
+
+`Cloudflare WARP while open` routes YouTube, and only YouTube, through Cloudflare WARP while it is in the foreground and back to the normal connection in the background (then it usually only plays audio). Why it is built in and scoped this way: `docs/adr/0006-built-in-warp-foreground-only.md`.
+
+- `WarpVpnService` (declared in the manifest by a resource patch, `BIND_VPN_SERVICE`) is a VpnService with `addAllowedApplication(own package)`, MTU 1280, WARP's v4/v6 addresses, DNS 1.1.1.1, `setMetered(false)` (VPNs are metered by default from Android 10). It runs in the app's process, so the tunnel ends with the process.
+- `WireGuard` is a minimal Java initiator: Noise IKpsk2 handshake, transport data, replay window, rekey 120 s, reject 180 s, retry 5 s, keepalive 10 s/25 s; no cookie replies. ChaCha20-Poly1305 comes from the platform (Conscrypt), `Blake2s` and `X25519` (BigInteger, Android has XDH only from API 33) are in the extension. Verification: `docs/measurements.md`, WireGuard.
+- `WarpAccount` registers a free device on first use like wgcf 2.3.0 (`POST https://api.cloudflareclient.com/v0a5641/reg`, 1.1.1.1 6.38.9 headers, TLS 1.2 only) and keeps keys, endpoint (v4 IP, port 2408) and addresses in shared preferences `thread_ripper`.
+- Hook: start of `MainActivity.onCreate` registers ActivityLifecycleCallbacks; started-activity count 0→1 starts the VPN, 1→0 (not during a configuration change) stops it. Swiping YouTube away from recents goes through background first. The first time `VpnService.prepare` returns the consent dialog (asked once per process); `onActivityResumed` starts the VPN once it is granted. A VPN already active when YouTube comes to the foreground is left alone.

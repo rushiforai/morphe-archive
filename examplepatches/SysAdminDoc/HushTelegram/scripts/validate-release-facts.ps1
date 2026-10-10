@@ -474,11 +474,21 @@ if ($SkipDescriptionTestCount) {
 # them: they are a fact about the release, and a push that rewrites no description has no count
 # to compare them with and no reason to have run them.
 if (-not $SkipDescriptionTestCount) {
-    $patchTestRoot = Join-Path $rootPath 'patches/build/test-results/test'
-    $patchTestFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
+    # :patches:test runs the fixture tests in :patches:fixtureTest first, which writes its own folder.
+    $patchTestRoots = @('test', 'fixtureTest') | ForEach-Object { Join-Path $rootPath "patches/build/test-results/$_" }
+    $patchTestFiles = @($patchTestRoots | ForEach-Object {
+        Get-ChildItem -LiteralPath $_ -Filter '*.xml' -File -ErrorAction SilentlyContinue })
     if ($patchTestFiles.Count -eq 0) {
-        throw ("No patch test results found under $patchTestRoot. Run :patches:test with " +
+        throw ("No patch test results found under $($patchTestRoots -join ' or '). Run :patches:test with " +
             'HUSHTELEGRAM_FIXTURE_DIR set first.')
+    }
+    # A class with results in both folders was counted twice: one copy is left from a run before
+    # the fixture tests moved to their own task.
+    $twice = @($patchTestFiles | Group-Object { $_.Name } | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })
+    if ($twice.Count -gt 0) {
+        throw ("Patch test results hold " + (($twice | Select-Object -First 8) -join ', ') + " under both " +
+            ":patches:test and :patches:fixtureTest, so one copy is from an older run. Delete " +
+            "patches/build/test-results and run :patches:test again.")
     }
     # Stale and partial runs, read the same way as the runtime results above: the trees the patch
     # tests build from, and every test class the module has.

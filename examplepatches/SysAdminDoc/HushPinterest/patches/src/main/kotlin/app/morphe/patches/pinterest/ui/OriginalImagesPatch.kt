@@ -49,15 +49,14 @@ internal const val IMAGE_ORIGINAL = ", original="
  * its closeup shows the large one. While the switch is on, the set also asks for the original, and
  * the closeup shows the original whenever one arrived.
  *
- * Found by reading 14.38.0 and 14.25.0 (2026-10-05 and 2026-10-06). The model keeps its description
- * text in both, and the closeup builder and size set keep the same shape.
+ * Found by reading 14.38.0 (2026-10-05). The model keeps its description text, and the closeup
+ * builder and size set are matched by shape.
  */
 @Suppress("unused")
 val originalImagesPatch = bytecodePatch(
     name = PATCH,
-    description = "Asks Pinterest for the original image with each pin and shows it in the pin closeup, and has collages " +
-        "pick the original before the large size. Uses more data.",
-    default = false,
+    description = "Loads the original image for each pin and in collages, instead of the large size. Pictures look " +
+        "sharper but use more data. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

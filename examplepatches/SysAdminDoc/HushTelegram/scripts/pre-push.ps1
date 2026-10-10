@@ -47,14 +47,9 @@ $Root = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
 # A hook runs with git's own environment. User environment variables set after the shell
 # launched, or set in the user scope only, may be absent. Import the four this script and
 # its suites need from the registry so a gate worktree can find the desktop CLI, the
-# fixture folder, the build wrapper and the device serial.
-foreach ($envName in @('HUSHTELEGRAM_DESKTOP_JAR', 'HUSHTELEGRAM_FIXTURE_DIR',
-        'HUSHTELEGRAM_BUILD_WRAPPER', 'HUSHTELEGRAM_DEVICE_SERIAL')) {
-    if (-not (Test-Path "Env:\$envName")) {
-        $regValue = [Environment]::GetEnvironmentVariable($envName, [EnvironmentVariableTarget]::User)
-        if ($regValue) { Set-Item -LiteralPath "Env:\$envName" -Value $regValue }
-    }
-}
+# fixture folder, the build wrapper and the device serial. An empty one counts as absent.
+Import-UserEnvironment -Name @('HUSHTELEGRAM_DESKTOP_JAR', 'HUSHTELEGRAM_FIXTURE_DIR',
+    'HUSHTELEGRAM_BUILD_WRAPPER', 'HUSHTELEGRAM_DEVICE_SERIAL')
 
 $zeroObject = '0' * 40
 # The tip of each pushed ref, peeled, filled in by Get-PushedPaths. The build gate builds each of
@@ -404,7 +399,7 @@ function Copy-IndexEvidence {
         if ($before -ne $copied -or $before -ne $after) { throw "Index build evidence changed while it was copied: $($receipt.Name)" }
     }
     foreach ($directory in @('patches/build/release', 'patches/build/test-results/test',
-            'extensions/telegram/build/test-results/testDebugUnitTest')) {
+            'patches/build/test-results/fixtureTest', 'extensions/telegram/build/test-results/testDebugUnitTest')) {
         $path = Join-Path $Root $directory
         if (-not (Test-Path -LiteralPath $path -PathType Container)) { continue }
         $pattern = if ($directory -eq 'patches/build/release') { '*.mpp' } else { '*.xml' }
@@ -820,6 +815,85 @@ try {
         throw "HUSHTELEGRAM_BUILD_WRAPPER names $wrapper, which is not there."
     }
 
+    # Gradle on a gate checkout: through the wrapper HUSHTELEGRAM_BUILD_WRAPPER names, which queues
+    # its builds itself, or gradlew.bat, which waits for a slot here. The exit code is left in
+    # $LASTEXITCODE.
+    function Invoke-GateGradle {
+        param([string]$Tree, [string[]]$Tasks)
+        $global:LASTEXITCODE = 0
+        Invoke-WithoutGitEnvironment {
+            Push-Location -LiteralPath $Tree
+            try {
+                if ($wrapper) {
+                    & $wrapper -ProjectDir $Tree -Tasks $Tasks
+                } else {
+                    $gradlew = Join-Path $Tree 'gradlew.bat'
+                    $global:LASTEXITCODE = Invoke-InHushTelegramQueue -Job 'gate' -ScriptBlock { & $gradlew -p $Tree @Tasks }
+                }
+            } finally { Pop-Location }
+        }
+    }
+
+    # Whether a gate checkout's Gradle file has :patches:fixtureTest. An older commit's doesn't,
+    # and Gradle stops on -x for a task it doesn't know.
+    function Test-RegistersFixtureTest {
+        param([string]$Tree)
+        $gradleFile = Join-Path $Tree 'patches/build.gradle.kts'
+        return (Test-Path -LiteralPath $gradleFile -PathType Leaf) -and
+            ([IO.File]::ReadAllText($gradleFile) -match 'tasks\.register<Test>\("fixtureTest"\)')
+    }
+
+    function Invoke-GateFacts {
+        param([string]$Tree, [string]$Commit, [string]$Where)
+        Write-Step ('a published file changed, checking the release facts' + $Where)
+        $factsFailed = 'The release facts do not agree. Fix them or push with HUSHTELEGRAM_SKIP_PRE_PUSH=1.'
+        $validate = Join-Path $Tree 'scripts/validate-release-facts.ps1'
+        $arguments = @{ Root = $Tree }
+        if ($script:rewritesIndex) {
+            # The local evidence was copied from clean pushed HEAD before any gate ran.
+            # Validation reads only this invocation's copy, including the release bundle.
+            $arguments['VerifyPublishedAsset'] = $true
+            $artifacts = @(Get-ChildItem -LiteralPath (Join-Path $Tree 'patches/build/release') `
+                -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
+            $indexPath = Join-Path $Tree 'patches-bundle.json'
+            $indexVersion = $null
+            if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
+                try {
+                    $indexVersion = [string](Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json).version
+                } catch {
+                    throw "patches-bundle.json is not JSON the release check can read: $($_.Exception.Message)"
+                }
+            }
+            $forIndex = @($artifacts | Where-Object { $_.Name -eq "patches-$indexVersion.mpp" })
+            $builtHere = if ($artifacts.Count -eq 1) { $artifacts[0] } elseif ($forIndex.Count -eq 1) { $forIndex[0] }
+            if ($builtHere) {
+                $arguments['ArtifactPath'] = $builtHere.FullName
+                $among = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles, so " } else { '' }
+                Write-Step "${among}the hosted asset is compared with the owned copy of $($builtHere.Name)"
+            } else {
+                $arguments['ArtifactIsHosted'] = $true
+                $found = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles and none is patches-$indexVersion.mpp" } else { 'no local bundle here' }
+                Write-Step "$found, so the hosted asset is downloaded and checked on its own"
+            }
+        } else {
+            $arguments['SkipDescriptionTestCount'] = $true
+            $arguments['AllowPublishedIndexLag'] = $true
+            # A source-changing gate just built this exact checkout. Any other gate has no
+            # test results belonging to its tip and must not import another run's results.
+            if (-not $touchesCode -and (Get-Command $validate).Parameters.ContainsKey('SkipTestResults')) {
+                $arguments['SkipTestResults'] = $true
+            }
+        }
+        $global:LASTEXITCODE = 0
+        Invoke-CommitScript -Script $validate -Arguments $arguments
+        if ($LASTEXITCODE -ne 0) { throw $factsFailed }
+        Assert-GateUnchanged -Tree $Tree -Commit $Commit -Step 'the release facts check'
+    }
+
+    # Cheap checks first, so a broken script or a stale fact stops the push in minutes rather than
+    # after the fixture suite: the script suites, then the release facts when they read nothing a
+    # build here makes, then Gradle without the fixture tests, the advisory scan and the facts that
+    # read the runtime results, and only then the fixture tests.
     if ($suites.Count -gt 0 -or $touchesBuildAdvisories -or $touchesRelease) {
     foreach ($gateCommit in $gateCommits) {
         $gateRoot = Get-GateWorktree -Commit $gateCommit
@@ -838,6 +912,14 @@ try {
             Invoke-CommitScript -Script $suiteScript -Arguments @{ Root = $gateRoot }
             if ($LASTEXITCODE -ne 0) { throw $suite[2] }
             Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the script tests'
+        }
+
+        # With no code changed the facts read no test results here (-SkipTestResults), and an
+        # index push reads the evidence copied before any gate ran, so nothing below feeds them.
+        $factsChecked = $false
+        if ($touchesRelease -and -not $touchesCode) {
+            Invoke-GateFacts -Tree $gateRoot -Commit $gateCommit -Where $where
+            $factsChecked = $true
         }
 
         if ($touchesBuildAdvisories) {
@@ -867,17 +949,15 @@ try {
                     $env:GITHUB_ACTOR = $login
                     $env:GITHUB_TOKEN = $token
                 }
-                $global:LASTEXITCODE = 0
-                Invoke-WithoutGitEnvironment {
-                    Push-Location -LiteralPath $gateRoot
-                    try {
-                    if ($wrapper) {
-                        & $wrapper -ProjectDir $gateRoot -Tasks $tasks
-                    } else {
-                        & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @tasks
-                    }
-                    } finally { Pop-Location }
+                # The quick pass: every task but the fixture tests, which a second run of the same
+                # tasks then adds while the rest come back up to date.
+                $quickPass = $touchesCode -and (Test-RegistersFixtureTest -Tree $gateRoot)
+                $firstTasks = $tasks
+                if ($quickPass) {
+                    $firstTasks = $tasks + @('-x', ':patches:fixtureTest')
+                    Write-Step ('running everything but the fixture tests first' + $where)
                 }
+                Invoke-GateGradle -Tree $gateRoot -Tasks $firstTasks
                 if ($LASTEXITCODE -ne 0) {
                     if (-not $touchesCode) {
                         throw 'The resolved build dependency report could not be generated. Read the dependency resolution or checksum verification failure above.'
@@ -895,56 +975,29 @@ try {
                 Invoke-CommitScript -Script $buildAdvisories -Arguments @{ Root = $gateRoot }
                 if ($LASTEXITCODE -ne 0) { throw 'The resolved build advisory scan did not pass.' }
                 Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the build advisory scan'
+                if ($quickPass) {
+                    # Off the index, the facts read only the runtime results, which the quick pass
+                    # just wrote. An index push quotes the patch test count, so it waits for them all.
+                    if ($touchesRelease -and -not $script:rewritesIndex) {
+                        Invoke-GateFacts -Tree $gateRoot -Commit $gateCommit -Where $where
+                        $factsChecked = $true
+                    }
+                    Write-Step ('running the fixture tests' + $where)
+                    Invoke-GateGradle -Tree $gateRoot -Tasks $tasks
+                    if ($LASTEXITCODE -ne 0) {
+                        throw ('The fixture tests did not pass. Read the output above for the patch that ' +
+                            'failed on a vendor Telegram build. Push anyway with HUSHTELEGRAM_SKIP_PRE_PUSH=1.')
+                    }
+                    Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the runtime test build'
+                }
             } finally {
                 $env:HUSHTELEGRAM_FIXTURE_DIR = $savedFixtureDir
                 $env:HUSHTELEGRAM_REQUIRE_FIXTURES = $savedRequiredFixtures
             }
         }
 
-        if ($touchesRelease) {
-            Write-Step ('a published file changed, checking the release facts' + $where)
-            $factsFailed = 'The release facts do not agree. Fix them or push with HUSHTELEGRAM_SKIP_PRE_PUSH=1.'
-            $validate = Join-Path $gateRoot 'scripts/validate-release-facts.ps1'
-            $arguments = @{ Root = $gateRoot }
-            if ($script:rewritesIndex) {
-                # The local evidence was copied from clean pushed HEAD before any gate ran.
-                # Validation reads only this invocation's copy, including the release bundle.
-                $arguments['VerifyPublishedAsset'] = $true
-                $artifacts = @(Get-ChildItem -LiteralPath (Join-Path $gateRoot 'patches/build/release') `
-                    -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
-                $indexPath = Join-Path $gateRoot 'patches-bundle.json'
-                $indexVersion = $null
-                if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
-                    try {
-                        $indexVersion = [string](Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json).version
-                    } catch {
-                        throw "patches-bundle.json is not JSON the release check can read: $($_.Exception.Message)"
-                    }
-                }
-                $forIndex = @($artifacts | Where-Object { $_.Name -eq "patches-$indexVersion.mpp" })
-                $builtHere = if ($artifacts.Count -eq 1) { $artifacts[0] } elseif ($forIndex.Count -eq 1) { $forIndex[0] }
-                if ($builtHere) {
-                    $arguments['ArtifactPath'] = $builtHere.FullName
-                    $among = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles, so " } else { '' }
-                    Write-Step "${among}the hosted asset is compared with the owned copy of $($builtHere.Name)"
-                } else {
-                    $arguments['ArtifactIsHosted'] = $true
-                    $found = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles and none is patches-$indexVersion.mpp" } else { 'no local bundle here' }
-                    Write-Step "$found, so the hosted asset is downloaded and checked on its own"
-                }
-            } else {
-                $arguments['SkipDescriptionTestCount'] = $true
-                $arguments['AllowPublishedIndexLag'] = $true
-                # A source-changing gate just built this exact checkout. Any other gate has no
-                # test results belonging to its tip and must not import another run's results.
-                if (-not $touchesCode -and (Get-Command $validate).Parameters.ContainsKey('SkipTestResults')) {
-                    $arguments['SkipTestResults'] = $true
-                }
-            }
-            $global:LASTEXITCODE = 0
-            Invoke-CommitScript -Script $validate -Arguments $arguments
-            if ($LASTEXITCODE -ne 0) { throw $factsFailed }
-            Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the release facts check'
+        if ($touchesRelease -and -not $factsChecked) {
+            Invoke-GateFacts -Tree $gateRoot -Commit $gateCommit -Where $where
         }
     }
     }

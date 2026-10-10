@@ -12,11 +12,14 @@ import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 /**
  * The Reels side of Hide AI-detected posts, found in the Facebook builds the bundle declares, the
@@ -37,8 +40,7 @@ class GenAiReelFixtureTest {
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
-                val holders = FixtureDex.classesHolding(bundle, TRANSPARENCY_ATTRIBUTION)
-                    .flatMap { methodsHolding(it, TRANSPARENCY_ATTRIBUTION) }
+                val (holders, resolve) = reelLabelHolders(bundle)
                 assertTrue("${bundle.name}: only ${holders.size} methods hold \"$TRANSPARENCY_ATTRIBUTION\"", holders.size >= 2)
 
                 // The patcher searches the app with the extension merged in, and the reel filter
@@ -46,7 +48,7 @@ class GenAiReelFixtureTest {
                 // extension's holders beside Facebook's.
                 assertTrue("the extension no longer hands \"$TRANSPARENCY_ATTRIBUTION\" to anything, so the merged " +
                     "search below is no harder than Facebook's alone: drop this check", extensionHolders.isNotEmpty())
-                val found = attributionFinder(holders + extensionHolders)
+                val found = attributionFinder(holders + extensionHolders, resolve = resolve)
                 assertNull("${bundle.name}: ${found.problem}", found.problem)
                 val finder = found.call!!
                 val finderClass = FixtureDex.classes(bundle, setOf(finder.definingClass))[finder.definingClass]
@@ -87,4 +89,24 @@ class GenAiReelFixtureTest {
         }
         assertEquals("a declared build went unchecked", versions.toSet(), checked)
     }
+}
+
+/**
+ * The methods naming [TRANSPARENCY_ATTRIBUTION] in [bundle], gathered the way the patch gathers
+ * them: those loading it, and those asking a string table that holds it ([asksTableFor]), with
+ * what reads those tables. Only the dex files referencing a table are walked for the second.
+ */
+internal fun reelLabelHolders(bundle: File): Pair<List<Method>, (MethodReference) -> Method?> {
+    val loading = FixtureDex.classesHolding(bundle, TRANSPARENCY_ATTRIBUTION).flatMap { methodsHolding(it, TRANSPARENCY_ATTRIBUTION) }
+    val tables = loading.filter(::isStringTable)
+    val tableClasses = FixtureDex.classes(bundle, tables.map { it.definingClass }.toSet())
+    val resolve = { call: MethodReference -> tableClasses[call.definingClass]?.let { resolveStatic(it, call) } }
+    val entries = tableEntries(tables, TRANSPARENCY_ATTRIBUTION)
+    if (entries.isEmpty()) return loading to resolve
+    val asking = FixtureDex.methodsWhere(
+        bundle,
+        dexFilter = { dex -> dex.methodSection.any { reference -> tables.any { it == reference } } },
+        wanted = { asksTableFor(it, entries) },
+    )
+    return (loading + asking) to resolve
 }

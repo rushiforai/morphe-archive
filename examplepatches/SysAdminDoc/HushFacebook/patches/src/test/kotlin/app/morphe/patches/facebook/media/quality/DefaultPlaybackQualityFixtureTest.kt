@@ -10,6 +10,8 @@ import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.isStringTableCall
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -142,12 +144,17 @@ class DefaultPlaybackQualityFixtureTest {
                 val configuration = FixtureDex.classes(bundle, setOf(ABR_CONFIGURATION)).values.single()
                 val preferences = configuration.fields.single { it.name == PLAYBACK_PREFERENCES }
                 val preferencesClass = FixtureDex.classes(bundle, setOf(preferences.type)).values.single()
-                val origins = originReads(configuration, preferences.type, STORIES_ORIGIN)
-                val subOrigins = originReads(configuration, preferences.type, REELS_SUB_ORIGIN)
+                // 582 asks a string table for the sub-origin names.
+                val tables = FixtureDex.classes(bundle, configuration.methods.flatMap { method ->
+                    method.implementation?.instructions?.filter(::isStringTableCall)?.mapNotNull { it.call?.definingClass }.orEmpty()
+                }.toSet())
+                val resolve = { call: MethodReference -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
+                val origins = originReads(configuration, preferences.type, STORIES_ORIGIN, resolve)
+                val subOrigins = originReads(configuration, preferences.type, REELS_SUB_ORIGIN, resolve)
                 assertEquals("$name: origins compared with \"$STORIES_ORIGIN\"", 1, origins.size)
                 assertEquals("$name: sub-origins compared with \"$REELS_SUB_ORIGIN\"", 1, subOrigins.size)
                 assertEquals("$name: sub-origins compared with \"fb_shorts_native_in_feed_unit\"", subOrigins,
-                    originReads(configuration, preferences.type, "fb_shorts_native_in_feed_unit"))
+                    originReads(configuration, preferences.type, "fb_shorts_native_in_feed_unit", resolve))
                 val origin = origins.single()
                 val subOrigin = subOrigins.single()
                 assertTrue("$name: the origin and the sub-origin are one field", origin.name != subOrigin.name)
@@ -160,8 +167,8 @@ class DefaultPlaybackQualityFixtureTest {
                 val formatClass = FixtureDex.classes(bundle, setOf(format)).values.single()
                 val labelClass = FixtureDex.classes(bundle, setOf(labelOf.definingClass)).values.single()
                 val infoClass = FixtureDex.classes(bundle, setOf(label.definingClass)).values.single()
-                val context = PatchContexts.of(listOf(holders.single(), evaluator, formatClass, labelClass, infoClass, configuration, preferencesClass)
-                    .distinctBy { it.type } + listOf(ExtensionDex.classDef(QUALITY_CHOICE), ExtensionDex.classDef(SETTINGS_STATUS)))
+                val context = PatchContexts.of((listOf(holders.single(), evaluator, formatClass, labelClass, infoClass, configuration, preferencesClass) +
+                    tables.values).distinctBy { it.type } + listOf(ExtensionDex.classDef(QUALITY_CHOICE), ExtensionDex.classDef(SETTINGS_STATUS)))
                 defaultPlaybackQualityPatch.execute(context)
 
                 fun patched(method: Method): List<Instruction> = context.mutableClassDefBy(method.definingClass).methods.single {

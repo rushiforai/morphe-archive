@@ -15,13 +15,13 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.methodsNaming
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -42,17 +42,18 @@ private const val COPY_OF = "$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMM
 
 /**
  * Adds a Hushfacebook settings row at the end of the Menu's Settings and privacy group. The
- * group's row list goes through the extension, which adds the row once, a tap on the row opens
+ * group's finished row list goes through the extension, which adds the row once, a tap on the row opens
  * the settings, and the row's loggers leave it out. See SettingsRowAnchors.kt for the shapes.
  */
 @Suppress("unused")
 val hushfacebookInTheMenuPatch = bytecodePatch(
     name = "Hushfacebook in the Menu",
-    description = "Adds a Hushfacebook settings row to Facebook's Menu, at the end of Settings and privacy, " +
-        "with a Saved row above it while the Saved shortcut switch is on. The logo long press and the launcher shortcut still open the settings too.",
+    description = "Adds a Hushfacebook settings row to Facebook's Menu, at the end of Settings and privacy, so " +
+        "the settings are easy to find. A Saved row joins it while the Saved shortcut switch is on. Works as " +
+        "soon as you patch it in, with no switch.",
     default = true,
 ) {
-    category("Interface")
+    category("Settings")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
@@ -62,14 +63,14 @@ val hushfacebookInTheMenuPatch = bytecodePatch(
             .flatMap { classDef -> classDef.methods.filter(::isNativeSectionChildren) }
         val native = natives.singleOrNull()
             ?: throw PatchException("$ROW_PATCH: expected one native Menu group section, found ${natives.size}")
-        val builds = rowListBuilds(native)
-        val build = builds.singleOrNull() ?: throw PatchException(
-            "$ROW_PATCH: expected ${native.definingClass}->${native.name} to build one row list, found ${builds.size}",
+        // Found on the mutable method, since another Menu patch may have gone into it already.
+        val section = mutableClassDefBy(native.definingClass).findMutableMethodOf(native)
+        val stores = settingsListStores(section)
+        val store = stores.singleOrNull() ?: throw PatchException(
+            "$ROW_PATCH: expected ${native.definingClass}->${native.name} to store one finished row list, found ${stores.size}",
         )
 
-        val taps = classDefByStrings(ROW_TAP_TRACE, StringComparisonType.EQUALS)
-            .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-            .flatMap { classDef -> classDef.methods.filter(::isRowTap) }
+        val taps = methodsNaming(ROW_TAP_TRACE, ::isRowTapShape)
         val tap = taps.singleOrNull()
             ?: throw PatchException("$ROW_PATCH: expected one Menu row tap handler loading \"$ROW_TAP_TRACE\", found ${taps.size}")
         val item = rowItemType(tap)
@@ -83,19 +84,16 @@ val hushfacebookInTheMenuPatch = bytecodePatch(
             throw PatchException("$ROW_PATCH: $item's constructor stores its id in ${fields.last().name}, not ${id.name}")
         }
 
-        val builder = mutableClassDefBy(build.definingClass).methods.single {
-            it.name == build.name && it.parameterTypes.map(Any::toString) == build.parameterTypes.map(Any::toString)
+        if (!constructs(section, item)) {
+            throw PatchException("$ROW_PATCH: ${native.definingClass}->${native.name} builds no $item, so its list isn't rows")
         }
-        if (!constructs(builder, item)) {
-            throw PatchException("$ROW_PATCH: ${build.definingClass}->${build.name} builds no $item, so its list isn't rows")
-        }
-        builder.passListThroughRow()
+        section.passListThroughRow(store)
 
         addRowHelpers(item, constructor, fields, id)
 
         val owner = mutableClassDefBy(tap.definingClass)
+        // 582's 32-bit build has dropped both loggers, so there may be none to hook.
         val loggers = rowLoggers(owner, tap, item)
-        if (loggers.isEmpty()) throw PatchException("$ROW_PATCH: ${tap.definingClass} has no row logger taking $item")
         val tapMethod = owner.findMutableMethodOf(tap)
         tapMethod.skipRow(tapMethod.parameterTypes.indexOfFirst { it.toString() == item }, id, tapToo = true)
         loggers.forEach { logger ->
@@ -114,27 +112,27 @@ private fun constructs(method: Method, type: String): Boolean =
     }
 
 /**
- * Each list the builder hands back goes through the extension, which never answers null, and back
- * into an ImmutableList, which is what the builder promises. `copyOf` hands an ImmutableList back
- * as it is, so a list the extension left alone is the builder's own.
+ * The finished Settings and privacy list, picked up by the `move-result-object` at [result], goes
+ * through the extension, which never answers null, and back into an ImmutableList before the
+ * section stores it and draws it. `copyOf` hands an ImmutableList back as it is, so a list the
+ * extension left alone is Facebook's own. The stored list is what later draws read back, so the
+ * row is added once, when the list is built.
  */
-internal fun MutableMethod.passListThroughRow() {
-    val returns = implementation!!.instructions.withIndex()
-        .filter { it.value.opcode == Opcode.RETURN_OBJECT }
-        .map { it.index }
-    if (returns.isEmpty()) throw PatchException("$ROW_PATCH: $definingClass->$name returns no list")
-    returns.asReversed().forEach { index ->
-        val register = getInstruction<OneRegisterInstruction>(index).registerA
-        addInstructionsAtControlFlowLabel(
-            index,
-            """
-                invoke-static/range { v$register .. v$register }, $WITH_ROW
-                move-result-object v$register
-                invoke-static/range { v$register .. v$register }, $COPY_OF
-                move-result-object v$register
-            """.trimIndent(),
-        )
+internal fun MutableMethod.passListThroughRow(result: Int) {
+    val instruction = implementation!!.instructions.elementAtOrNull(result)
+    if (instruction?.opcode != Opcode.MOVE_RESULT_OBJECT) {
+        throw PatchException("$ROW_PATCH: $definingClass->$name has no list picked up at $result")
     }
+    val register = (instruction as OneRegisterInstruction).registerA
+    addInstructions(
+        result + 1,
+        """
+            invoke-static/range { v$register .. v$register }, $WITH_ROW
+            move-result-object v$register
+            invoke-static/range { v$register .. v$register }, $COPY_OF
+            move-result-object v$register
+        """.trimIndent(),
+    )
 }
 
 /** Adds the row factory and the id reader to the row item class. */

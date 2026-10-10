@@ -46,10 +46,11 @@ private const val NEXT_CHECK = 4
 @Suppress("unused")
 val hideBlockedInGroupsPatch = bytecodePatch(
     name = "Hide blocked users in groups",
-    description = "Adds a switch, off by default, that leaves messages from people you've blocked out of groups and supergroups you open. Private chats and channel posts stay as they are, and nothing is deleted.",
+    description = "Leaves messages from people you've blocked out of groups and supergroups you open. Nothing is " +
+        "deleted. Starts off. Turn it on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

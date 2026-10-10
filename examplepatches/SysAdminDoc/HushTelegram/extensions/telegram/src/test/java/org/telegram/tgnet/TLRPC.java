@@ -4,9 +4,15 @@
  */
 package org.telegram.tgnet;
 
-/** Test stand-ins carrying the names and public fields the push answer hook reads from Telegram's own classes. */
+/** Test stand-ins carrying the names and public fields the extension reads from Telegram's own classes. */
 public final class TLRPC {
     private TLRPC() { }
+
+    /** A group, as Telegram keeps a basic one. */
+    public static class Chat { }
+
+    /** A channel or supergroup. */
+    public static class TL_channel extends Chat { }
 
     public static class TL_boolTrue { }
 

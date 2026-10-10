@@ -242,6 +242,28 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/profile/InstagramButton.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/profile/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Hide the Instagram button: the profile header's button row asks the extension for its Instagram button flag first thing, and the check Threads already has skips the button while the switch is on. Found by reading NavigationBarButtons in 450, 449 and 448, with no outside code."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/profile/ProfileSuggestions.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/ads/ProfileSuggestedUsers.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Hide suggested users on profiles: the profile screen hands the extension the list its Suggested for you carousel is drawn from, right where it reads it and ahead of its own null check, and the profile view model asks the extension first thing on the path that adds its suggestions row, leaving by its own check's other side while the switch is on. Found by reading the profile screen, the profile's info rows and the profile view model in 450, with no outside code."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/ScreenshotDetection.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/misc/screenshot/**"
       ],

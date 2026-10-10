@@ -35,6 +35,9 @@ public final class NuvioMergedProgressPatch {
                     MutableClass repository = context.mutableClassDefBy(NuvioLayout.type(version, "Lja/md;"));
                     hookRepository(repository);
                     if (NuvioLayout.modern(version)) {
+                        NuvioRemainingEpisodesPatch.hookCard(context.mutableClassDefBy(NuvioLayout.current("Lba/e2;")),
+                            "Lc7/a;", EXT, "prepareProviderBadge", "renderProviderBadge");
+                        hookPlaybackPause(context.mutableClassDefBy(NuvioLayout.current("Lv9/i4;")));
                         hookInlinedCutoff(context.mutableClassDefBy(NuvioLayout.current("Lla/h5;")));
                         hookInlinedCutoff(context.mutableClassDefBy(NuvioLayout.current("Lla/w1;")));
                         hookBadgeCacheHit(context.mutableClassDefBy(NuvioLayout.current("Lla/e5;")));
@@ -57,6 +60,27 @@ public final class NuvioMergedProgressPatch {
                 });
                 return Unit.INSTANCE;
             });
+    }
+
+    /** Observe the native signal used to suspend source searches during playback. */
+    static void hookPlaybackPause(MutableClass owner) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod candidate : owner.getMethods()) {
+            if (!candidate.getParameterTypes().equals(List.of("Z")) || !candidate.getReturnType().equals("V")
+                || candidate.getImplementation() == null) continue;
+            for (Instruction instruction : instructions(candidate)) {
+                if (instruction instanceof ReferenceInstruction && ((ReferenceInstruction) instruction).getReference()
+                    .toString().equals(owner.getType() + "->k:Lkotlinx/coroutines/flow/MutableStateFlow;")) {
+                    matches.add(candidate);
+                    break;
+                }
+            }
+        }
+        if (matches.size() != 1) throw unsupported("Native playback pause setter changed");
+        MutableMethod target = matches.get(0);
+        target.getImplementation().addInstruction(0, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
+            target.getImplementation().getRegisterCount() - 1, 1,
+            method(EXT, "setPlaybackPaused", List.of("Z"), "V")));
     }
 
     static void hookSettingsStore(MutableClass owner) {

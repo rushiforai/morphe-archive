@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -45,6 +46,7 @@ class FeedTextFixturesTest {
             val resources = ResourceIds.read(apk).getValue("com.zhiliaoapp.musically")
             assertEquals(listOf(ids.first), resources.getValue("desc"))
             assertEquals(listOf(ids.second), resources.getValue("title"))
+            assertEquals(POST_TIME_IDS.toList(), resources.getValue("tv_post_time"))
             assertEquals(2, native.sizeInputs.size)
             assertEquals(listOf(2, 6), native.sizeInputs.map { it.builderRegister })
             assertEquals(listOf(109, 305), native.sizeInputs.map { it.index })
@@ -60,6 +62,14 @@ class FeedTextFixturesTest {
             assertTrue(native.authorLoader.implementation!!.instructions.any {
                 it is NarrowLiteralInstruction && it.narrowLiteral == ids.second
             })
+            // The post date beside the name: the same owner loads it, as the same kind of text view.
+            assertEquals("LLLLLJIL", native.dateView.name)
+            assertEquals(AUTHOR, native.dateView.definingClass)
+            assertEquals(native.authorView.type, native.dateView.type)
+            val loaderCode = native.authorLoader.implementation!!.instructions.toList()
+            assertTrue("the date is stored before the name, where the view-created hook reads both",
+                loaderCode.indexOfFirst { it.getReference<FieldReference>()?.toString() == native.dateView.toString() } <
+                    native.authorStore)
             native.sizeInputs.forEach { input ->
                 assertFalse(input.ownerLocal in RegisterLiveness.of(native.layoutFactory).liveInto(input.index))
                 assertTrue(input.ownerLocal < 16)

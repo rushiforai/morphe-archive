@@ -34,10 +34,11 @@ private const val FIRST_TAB = "Lorg/telegram/ui/Components/ScrollSlidingTextTabS
 @Suppress("unused")
 val swipeBackOnProfilesPatch = bytecodePatch(
     name = "Swipe back on profiles",
-    description = "Adds a switch, off by default, so a swipe to the right on a profile's photos or media tabs goes back, the way it does on the rest of the profile.",
+    description = "Makes a swipe right on a profile's photos or media tabs go back, like the rest of the profile. " +
+        "Starts off. Turn it on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

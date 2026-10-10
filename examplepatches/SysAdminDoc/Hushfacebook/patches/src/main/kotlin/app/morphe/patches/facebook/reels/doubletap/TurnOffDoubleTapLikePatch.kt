@@ -36,18 +36,18 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * helper's like holds back a like whose source is a double tap. The feed attachment that plays its
  * own heart leaves its double tap unhandled. The Like button likes as before.
  *
- * Off in the default selection: a double tap to like is a gesture people use on purpose, so taking
- * it away is a choice to make, as with Tap to play. Picked, its switch starts on.
+ * In the default selection with its switch off: a double tap to like is a gesture people use on
+ * purpose, so taking it away is a choice to make, as with Tap to play.
  */
 @Suppress("unused")
 val turnOffDoubleTapLikePatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off double tap to like",
-    description = "Stops a double tap on a reel or a video from liking it, and the heart doesn't show. A single tap " +
-        "still plays or pauses, and the Like button still likes.",
-    default = false,
+    description = "Stops a double tap on a reel or video from liking it, so you don't like things by accident. A " +
+        "single tap still plays or pauses, and the Like button still works. Starts off. Turn it on in " +
+        "Hushfacebook settings > Reels and Watch.",
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

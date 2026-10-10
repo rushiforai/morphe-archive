@@ -218,11 +218,11 @@ public final class SaveControl {
             Intent open = SettingsEntry.settingIntent(application, Settings.DOWNLOAD_COMPATIBLE.key);
             PendingIntent button = PendingIntent.getActivity(application, SAVED_ID, open,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-            String text = saved + "\n" + L10n.f(application, "Turn on %1$s to save videos they all play.",
+            String text = saved + "\n" + L10n.f(application, "Turn on %1$s to save videos that WhatsApp and these editors accept.",
                 L10n.isolate(L10n.t(application, "Save videos other apps can open")));
             Notification note = new Notification.Builder(application, CHANNEL)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentTitle(L10n.t(application, "WhatsApp and some editors may refuse this video"))
+                .setContentTitle(L10n.t(application, "WhatsApp and some editors may not accept this video"))
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
                 .setContentIntent(button)

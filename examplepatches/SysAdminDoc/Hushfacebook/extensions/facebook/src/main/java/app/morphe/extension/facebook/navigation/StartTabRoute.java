@@ -7,6 +7,7 @@ package app.morphe.extension.facebook.navigation;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -46,6 +47,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * {@link MarketplaceOnly} is on, the tab is Marketplace, whatever the chosen tab and its switch, and
  * a chosen Reels tab that {@link ReelsTab} keeps off the bar, or a tab {@link HiddenTabs} keeps off it,
  * is asked for as Home.
+ *
+ * <p>Feeds has a page of its own, the one the Menu's Feeds row opens when the tab bar has no Feeds
+ * tab. So a start that chose Feeds, on a bar without it, opens that page over Home once Facebook
+ * has built the main screen, through Facebook's own link for it, {@link #FEEDS_PAGE_LINK}, and Back
+ * comes back to Home. It's skipped when the screen has moved on from Home or isn't in front by
+ * then. The chosen filter is asked for there too, through {@link FeedsSubtabRoute}.
  *
  * <p>On a cold start Facebook's own start-up would still drop the request twice. It replaces the
  * intent of a start another app sent, a launcher included, with a copy that keeps no tab, and its
@@ -91,6 +98,13 @@ public final class StartTabRoute {
 
     /** How many more times the landing check waits for a main screen Facebook hasn't built yet. */
     static final int LANDING_ATTEMPTS = 6;
+
+    /**
+     * Facebook's link for its Feeds page. Its link map sends {@code fb://feeds?source=...} to the
+     * fragment the Feeds tab shows, and with no Feeds tab on the bar that opens on a screen of its
+     * own. The source names the way in for Facebook's logging; the Menu's Feeds row is a bookmark.
+     */
+    static final String FEEDS_PAGE_LINK = "fb://feeds?source=bookmark";
 
     /** The start-up hooks, by the index their log lines are counted under. */
     static final int SANITIZE_HOOK = 0, POSITION_HOOK = 1, KEEP_HOOK = 2;
@@ -173,9 +187,10 @@ public final class StartTabRoute {
             }
             debug(() -> "asked Facebook to open on " + tab.fileValue + " (tab " + tab.tabId + "). " + describe(intent));
             // Only once something will clear it again, when the screen is built or goes away.
-            Landing.watch(activity, tab);
+            Landing.watch(activity, tab, chosen);
             pending = new Routed(activity, tab);
-            if (tab == StartTab.FEEDS) {
+            // Feeds kept off the bar still opens, as a page of its own, so its filter is asked for too.
+            if (chosen == StartTab.FEEDS) {
                 FeedsSubtab subtab = Settings.FEEDS_SUBTAB.get();
                 FeedsSubtabRoute.arm(activity, subtab);
                 if (subtab != FeedsSubtab.ALL) debug(() -> "asked the Feeds tab for " + subtab.fileValue + ".");
@@ -343,26 +358,34 @@ public final class StartTabRoute {
     /**
      * Reads which tab the main screen opened on, once, a moment after it first shows and Facebook
      * has built it, which ends the start being built; and ends it too when the screen goes away. What
-     * it reads only goes to the log and Hook status; it changes nothing on screen.
+     * it reads goes to the log and Hook status. The one thing it changes on screen is the Feeds page
+     * a start that chose Feeds gets when the bar has no Feeds tab.
      */
     static final class Landing implements Application.ActivityLifecycleCallbacks {
-        private final StartTab asked;
+        /** The tab the start asked Facebook for. */
+        final StartTab asked;
+        /** The tab chosen in the settings, which a switch can keep off the bar. */
+        final StartTab chosen;
         private boolean shown;
+        /** Whether the screen is resumed, so in front of the person. */
+        volatile boolean inFront;
 
-        private Landing(StartTab asked) {
+        private Landing(StartTab asked, StartTab chosen) {
             this.asked = asked;
+            this.chosen = chosen;
         }
 
-        static void watch(Activity activity, StartTab asked) {
-            activity.registerActivityLifecycleCallbacks(new Landing(asked));
+        static void watch(Activity activity, StartTab asked, StartTab chosen) {
+            activity.registerActivityLifecycleCallbacks(new Landing(asked, chosen));
         }
 
         @Override
         public void onActivityPostResumed(@NonNull Activity activity) {
+            inFront = true;
             if (shown) return;
             shown = true;
             WeakReference<Activity> screen = new WeakReference<>(activity);
-            Utils.runOnMainThreadDelayed(() -> land(screen, asked, LANDING_ATTEMPTS), LANDING_CHECK_MS);
+            Utils.runOnMainThreadDelayed(() -> land(screen, this, LANDING_ATTEMPTS), LANDING_CHECK_MS);
         }
 
         @Override
@@ -385,6 +408,7 @@ public final class StartTabRoute {
 
         @Override
         public void onActivityPaused(@NonNull Activity activity) {
+            inFront = false;
         }
 
         @Override
@@ -402,14 +426,15 @@ public final class StartTabRoute {
      * it's tried again [attempts] times at most before the check goes ahead. The start being built
      * ends there either way. A screen with a tab to read has had its start decided. One still
      * without a tab after the last try is given up on, so a tab bar Facebook builds later, or builds
-     * again when it reloads its tabs, gets Facebook's own answers rather than the asked tab.
+     * again when it reloads its tabs, gets Facebook's own answers rather than the asked tab. A built
+     * screen then gets the Feeds page when its start chose Feeds and the bar has none.
      */
-    static void land(WeakReference<Activity> screen, StartTab asked, int attempts) {
+    static void land(WeakReference<Activity> screen, Landing landing, int attempts) {
         Activity activity = screen.get();
         boolean built = activity != null && TabBar.currentTab(activity) != null;
         boolean live = activity != null && !activity.isFinishing() && !activity.isDestroyed();
         if (!built && attempts > 1 && live) {
-            Utils.runOnMainThreadDelayed(() -> land(screen, asked, attempts - 1), LANDING_CHECK_MS);
+            Utils.runOnMainThreadDelayed(() -> land(screen, landing, attempts - 1), LANDING_CHECK_MS);
             return;
         }
         if (!built && live) {
@@ -418,7 +443,39 @@ public final class StartTabRoute {
         }
         // Only this screen's start: a later main screen's is its own to end.
         if (activity != null) settled(activity);
-        check(activity, asked);
+        check(activity, landing.asked);
+        if (built) openFeedsPage(activity, landing.asked, landing.chosen, landing.inFront);
+    }
+
+    /**
+     * For a start that chose Feeds, once the main screen is built: when its tab bar has no Feeds tab,
+     * opens Facebook's Feeds page on its own screen over Home, the way the Menu's Feeds row does,
+     * so Back comes back to Home. A bar that has Feeds, or can't be read while Facebook was asked
+     * for Feeds, is left alone, and so is a screen that has moved on from Home or isn't in front,
+     * since the person has gone somewhere already. Never throws.
+     */
+    static void openFeedsPage(@Nullable Activity activity, StartTab asked, StartTab chosen, boolean inFront) {
+        try {
+            if (chosen != StartTab.FEEDS || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+            Object current = TabBar.currentTab(activity);
+            if (current == null) return;
+            // Asked for Home, a switch keeps Feeds off the bar. Asked for Feeds, the bar has to say it hasn't got it.
+            if (asked == StartTab.FEEDS) {
+                List<Object> tabs = TabBar.tabs(activity);
+                if (tabs == null || TabBar.has(tabs, StartTab.FEEDS)) return;
+            }
+            if (!inFront || !StartTab.HOME.isTab(current.getClass().getName())) {
+                debug(() -> "the tab bar has no feeds tab, but the main screen had already left Home,"
+                        + " so the Feeds page stays closed.");
+                return;
+            }
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(FEEDS_PAGE_LINK))
+                    .setPackage(activity.getPackageName()));
+            HookStatus.bound(FamilyNames.START_TAB, "feeds page");
+            debug(() -> "the tab bar has no feeds tab, so opened the Feeds page over Home.");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.START_TAB, "feeds page", failure);
+        }
     }
 
     /**

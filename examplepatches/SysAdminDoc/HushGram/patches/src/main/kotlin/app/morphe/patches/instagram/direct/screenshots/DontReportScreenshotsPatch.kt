@@ -55,11 +55,12 @@ internal object FolderReportFingerprint : Fingerprint(
 @Suppress("unused")
 val dontReportScreenshotsPatch = bytecodePatch(
     name = "Don't report screenshots",
-    description = "Keeps Instagram from noticing your screenshots, so whoever sent you a disappearing photo or " +
-        "video isn't told you took one.",
+    description = "Stops Instagram from telling people when you take a screenshot of their disappearing photo or " +
+        "video. Ghost mode, at the top of Ads and privacy, turns it on with the others. Starts off. Turn it on in " +
+        "HushGram settings > Messages.",
     default = true,
 ) {
-    category("Privacy")
+    category("Ghost mode")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
     execute {

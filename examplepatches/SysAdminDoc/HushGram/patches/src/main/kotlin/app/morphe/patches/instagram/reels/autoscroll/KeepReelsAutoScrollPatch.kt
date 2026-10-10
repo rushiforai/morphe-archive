@@ -73,8 +73,8 @@ private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
 
 /**
  * Auto scroll in Reels stays the way it was last set. See the extension's ReelAutoScroll for the
- * rule. Off in the default selection: auto scroll is Instagram's own choice to make, and keeping it
- * on across restarts is the user's pick. Asked for in #21.
+ * rule. In the default selection with its switch off: auto scroll is Instagram's own choice to
+ * make, and keeping it on across restarts is the user's pick. Asked for in #21.
  *
  * Instagram 449's auto scroll plugin answers whether auto scroll is on from memory, a timer or a
  * saved preference, as its server says. The scroller and each auto scroll switch ask the plugin, and
@@ -94,11 +94,10 @@ private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
 @Suppress("unused")
 val keepReelsAutoScrollPatch = bytecodePatch(
     name = "Keep Reels auto scroll on",
-    description = "Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you " +
-        "leave Reels, until you turn it off yourself.",
-    default = false,
+    description = "Keeps Instagram's auto scroll in Reels turned on after you leave Reels or restart Instagram, " +
+        "until you turn it off yourself. Starts off. Turn it on in HushGram settings > Reels.",
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

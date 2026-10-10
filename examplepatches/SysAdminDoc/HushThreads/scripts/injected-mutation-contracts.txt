@@ -15,7 +15,7 @@
 # The settings patch sends each of these ShortcutManager calls to SettingsEntry, which makes the
 # real call and puts the HushThreads shortcut back in front after it. One left in Threads' own code
 # could rank Threads' shortcuts ahead again and push the HushThreads one out of the long-press
-# menu. 449.0.0.54.82 makes pushDynamicShortcut once, addDynamicShortcuts and updateShortcuts
+# menu. 450.0.0.51.78 makes pushDynamicShortcut once, addDynamicShortcuts and updateShortcuts
 # twice each, removeAllDynamicShortcuts once and setDynamicShortcuts nowhere; its rule catches a
 # later build that starts making it.
 no-call Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V outside Lapp/morphe/extension/

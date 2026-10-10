@@ -1,10 +1,64 @@
 ## Unreleased
 
+* **TikTok:** Das Wiederherstellen einer Sicherung schaltet den Netzwerk-Proxy nicht mehr ein und ersetzt keine Proxy-Adresse, die du schon hast, damit eine Sicherung von jemand anderem deinen TikTok-Verkehr nicht über dessen Server leiten kann. Auf einem Handy ohne eingerichteten Proxy kommt die Adresse mit ausgeschaltetem Schalter mit, und ein Hinweis nach dem Wiederherstellen sagt das.
+
+* **TikTok:** Diese Sprachen nicht automatisch übersetzen lässt traditionelles Chinesisch jetzt so, wie es geschrieben wurde, wenn du zh-Hant, zh-TW, zh-HK oder zh-MO eingibst, während zh-Hans-TW weiter vereinfachtes Chinesisch bedeutet. Vorher haben diese Einträge stattdessen vereinfachtes Chinesisch geschützt (#121).
+
+* **TikTok:** Hide feed LIVE button lässt sich jetzt auch auf einer TikTok-Version patchen, in der der Seitenmenü-Knopf nicht gefunden wird. Der Teil wird übersprungen, und die Zeile Seitenmenü-Knopf ausblenden erscheint nur, wenn der Knopf gefunden wurde (#128).
+
+* **TikTok:** Die Suche in den Einstellungen findet jetzt Build-Informationen und Neu in Hushfeed. Einige Ergebnisse, etwa Feature Gate Lab und Lizenzen, nennen jetzt die Gruppe, in der sie stehen, und eine Suche nur aus Satzzeichen zeigt Keine passenden Einstellungen.
+
+* **TikTok:** Der Hinweis unten in den Hushfeed-Einstellungen schließt sich jetzt, wenn du darauf tippst, und der Tipp landet nicht mehr auf der Einstellung darunter. TalkBack liest seine Aktion als Schließen vor.
+
+* **TikTok:** Pausieren sagt jetzt in einfachen Worten, was erhalten bleibt, solange es an ist. Deine Einstellungen bleiben gespeichert, und auch was du beim Patchen geändert hast, etwa Name oder Symbol der App, bleibt. TikToks Auto scroll heißt jetzt außerdem in jeder Zeile gleich.
+
+* **TikTok:** Die Sprachlisten in Feed-Filter und Kommentare nehmen jetzt ein zusätzliches Komma an, etwa en,,es. Früher wurde die Liste abgelehnt, mit einem leeren Namen in der Meldung.
+
+* **TikTok:** Wenn das Kopieren der Build-Informationen fehlschlägt, sagt dir die Meldung jetzt, dass du stattdessen Build-Informationen speichern nutzen sollst.
+
+* **TikTok:** Neu in Hushfeed zeigt keine überzähligen Backticks mehr um Namen von Einstellungen.
+
+* **TikTok:** Die Zeitauswahl für Wann senden unter Eine Serie am Laufen halten öffnet sich jetzt dunkel oder hell, passend zu den Hushfeed-Einstellungen.
+
+## 0.70.0 (2026-10-09)
+
+* **TikTok:** Textgröße des Creatornamens ändert jetzt auch die Größe des Datums neben dem Namen, damit beide gleich groß bleiben (#66).
+
+* **TikTok:** Die Kommentar-Einstellungen haben eine neue Zeile, Diese Sprachen nicht automatisch übersetzen. Sie bleibt leer, bis du sie ausfüllst (#121). Gib Sprachcodes wie `es, de` ein, und wenn TikTok für dich übersetzt, bleiben Beschreibungen und Kommentare in diesen Sprachen so, wie sie geschrieben wurden. Übersetzung anzeigen funktioniert weiter, wenn du es antippst, und TikToks eigene Nicht-übersetzen-Liste bleibt unverändert.
+
+* **TikTok:** Offline-Videos behalten, bis du sie löschst deckt jetzt zwei weitere Wege ab, auf denen TikTok deine Liste geleert hat. Bei eingeschaltetem Schalter senkt TikToks Auto adjust dein Offline-Video-Limit beim Start nicht mehr und kürzt die Liste nicht, und die Bereinigung, die TikTok nach dem Ende seines Tests mit standardmäßig aktivierten Offline-Videos ausführt, wird übersprungen (#123). Starte TikTok neu, nachdem du den Schalter geändert hast.
+
+* **TikTok:** Wenn du eine Einstellungssicherung von einer älteren TikTok-Version wiederherstellst, kommen jetzt die Feature Gate Lab Überschreibungen zurück, die noch zu dieser Version passen. Die anderen bleiben erhalten, sind aber ausgeschaltet.
+
+* **TikTok:** Die Feed-Ansicht hat einen neuen Schalter, Seitenmenü-Knopf ausblenden, der aus bleibt, bis du ihn einschaltest. Er nimmt den Knopf oben links im Feed neben LIVE weg, der TikToks Seitenmenü mit Deine Bestellungen, TikTok Minis und mehr öffnet. Starte TikTok neu, nachdem du ihn geändert hast (#128).
+
+* **TikTok:** Alle Patch-Beschreibungen in Morphe Manager sind neu in einfachem Englisch geschrieben. Jede sagt jetzt, was der Patch ändert, warum du ihn willst und ob sein Schalter an oder aus startet und wo er in den Hushfeed-Einstellungen liegt. Ein paar Patch-Optionen sind auch klarer formuliert, und Skip push setup heißt jetzt Skip notification setup.
+
+* **TikTok:** Die Zeilen in den Hushfeed-Einstellungen sind in einfachem Englisch neu formuliert. Privacy, Comments, Downloads, Feed filter, Screen time, Region und weitere Seiten sagen jetzt ohne Fachbegriffe, was jeder Schalter tut und was du davon merkst. Ein paar Titel haben sich auch geändert, zum Beispiel Stop TikTok's speed tests und Clean up shared links.
+
+* **TikTok:** Ein paar Meldungen und Statuszeilen sind ebenfalls verständlicher, etwa der Ghost-Modus-Status, die Erklärung zu Hook status, der Hinweis zum Proxy-Passwort und die Vorschau des Dateinamens.
+
+* **TikTok:** Die Option Dark background color in Morphe Manager sagt jetzt „Farbcode“ statt „Hex-Code“ und erklärt, dass Schwarz diese Pixel auf OLED-Bildschirmen komplett ausschaltet.
+
+* **TikTok:** Die Hushfeed-Einstellungen öffnen sich jetzt mit einem kompakten Status und der Suche über sieben Gruppen. Zusammengehörige Seiten stehen beieinander. Sicherungen, Diagnose und das Feature Gate Lab findest du unter App & erweiterte Optionen. Über Hushfeed vereint Build-Details und Lizenzen. Die Suche bringt dich weiterhin direkt zur Einstellung, und deine gespeicherten Auswahlmöglichkeiten bleiben erhalten. Die Beschreibung von Pause erklärt jetzt, dass gespeicherte Einstellungen und in die APK eingebaute Änderungen erhalten bleiben.
+
 * **TikTok:** Hushfeed unterstützt jetzt nur noch TikTok 47.1.4. Wenn du 47.0.3 oder 47.1.3 nutzt, lade die APK von 47.1.4 bei APKMirror herunter und patche sie in Morphe Manager mit demselben Signaturschlüssel, damit Anmeldung und Einstellungen erhalten bleiben. Das Feature Gate Lab behält jede Überschreibung, deren Schalter es in 47.1.4 noch gibt, und schaltet die übrigen mit seinem üblichen Hinweis aus.
 
 * **TikTok:** Eigenes Limit für Offline-Videos hat einen neuen Schalter unter Hushfeed-Einstellungen > Downloads, Offline-Videos behalten, bis du sie löschst. Er ist aus, bis du ihn einschaltest (#123). TikTok wirft die Videos, die es zum Offline-Ansehen gespeichert hat, nach einer festen Zeit weg, manchmal schon nach zwei Tagen, und eine Liste, die auf einmal gespeichert wurde, verschwindet auch auf einmal, ob angesehen oder nicht. Mit dem Schalter bleiben sie, bis du sie in TikToks Einstellungen für Offline-Videos löschst, und so bekommst du auch neue. Schon angesehene kann TikTok weiterhin entfernen, wenn der Speicher deines Handys knapp wird, und ein niedrigeres Limit kürzt die Liste weiterhin. Behalte die Speicherzeile unter dem Limit für Offline-Videos im Blick. Der Schalter wirkt ab dem nächsten Start von TikTok.
 
 * **TikTok:** Profil-Verknüpfungen ausblenden hat unter App einen neuen Schalter, Thoughts auf Profilen ausblenden, der aus bleibt, bis du ihn einschaltest (#122). Er blendet die Thoughts-Blase aus, die TikTok über ein Profilbild setzt, und auf deinem eigenen Profil die Aufforderung, einen zu teilen. Starte TikTok neu, nachdem du ihn geändert hast.
+
+* **TikTok:** Screenshots und Circle to Search erlauben nimmt die Markierung als geschütztes Fenster jetzt auch Pop-ups und schwebenden Fenstern, die sie in ihren eigenen Fenstereinstellungen setzen, etwa TikToks Compose-Pop-ups. Sie erreichen den Bildschirm ohne die Fensteraufrufe, die der Patch schon geändert hat, und konnten deshalb auf Screenshots und Bildschirmaufnahmen noch schwarz erscheinen. Die Idee stammt aus den TikTok-Patches von icysymmetra.
+
+* **TikTok:** Diagnose hat eine neue Zeile, Feed aufzeichnen, für ein Feed-Problem, das sich leichter zeigen als beschreiben lässt. Tippe sie an, scrolle, bis das Problem auftritt, komm dann zurück und tippe sie noch einmal an, und Hushfeed speichert eine Textdatei unter Download/Hushfeed. Sie hat eine Zeile für jede Gruppe von Videos, die die Feed-Filter während der Aufzeichnung bearbeitet haben, mit dem Ergebnis für jedes Video und der Regel, die es ausgeblendet hat. Videos und Creator erscheinen nur als kurze Codes, die für jede Aufzeichnung neu erzeugt werden, und die Datei enthält keine Untertitel, Namen, Handles oder Webadressen. Lies sie trotzdem, bevor du sie teilst. Bis du eine Aufzeichnung startest, wird nichts aufgezeichnet. Die Idee stammt aus den TikTok-Patches von icysymmetra.
+
+* **TikTok:** Die Beschreibung von Steuerelemente der freien Ansicht ausblenden nennt jetzt auch das Zusammenziehen mit zwei Fingern als weiteren Weg, die freie Ansicht zu verlassen (#84).
+
+* **TikTok:** Einige Schalter sind jetzt zunächst aus, wie die übrigen Schalter von Hushfeed, weil ihre Patches in die Standardauswahl kommen. Hast du einen dieser Patches schon gewählt und soll er weiter wirken, schalte seinen Schalter nach dem Update wieder ein. Unter Datenschutz sind das Zugriff auf die Kontaktliste blockieren, Scan der installierten Apps blockieren, Standort blockieren, Lesen der Zwischenablage blockieren, Bewegungssensoren blockieren, Neue Suchen nicht speichern und Anzeigen, wenn Kamera oder Mikrofon benutzt werden. Unter Kommentare sind es Daumen runter blockiert den Kommentierenden, Links in Kommentaren lassen sich öffnen und Werbe-Popups in Kommentaren ausblenden, unter App Haptisches Feedback ausschalten und Bildschirmübergänge ausschalten.
+
+* **TikTok:** Der einfache Modus von Morphe Manager wählt jetzt 107 der 130 Patches von Hushfeed statt 55, sodass die meisten keinen Expertenmodus mehr brauchen. Jeder Schalter, den die neu gewählten Patches mitbringen, ist zunächst aus, und TikTok sieht aus und funktioniert wie ausgeliefert, bis du in den Hushfeed-Einstellungen etwas einschaltest. Die übrigen 23 bekommst du weiter über den Expertenmodus, und der Abschnitt Patches im README nennt sie mit dem Grund, warum jeder draußen bleibt. Jede Patch-Beschreibung sagt jetzt, wo ihr Schalter ist und dass er zunächst aus ist.
+
+* **TikTok:** Morphe Manager hat eine neue Gruppe Interface für die Patches, die ändern, wie TikTok aussieht. AMOLED-Dunkelthema, Systemschrift verwenden und Bildschirmübergänge ausschalten ziehen aus Performance dorthin um, App-Namen ändern, Eigenes Launcher-Symbol und Launcher-Verknüpfungen ausblenden aus Settings und Textgrößen im Feed aus Interaction.
 
 ## 0.69.0 (2026-10-08)
 

@@ -1,3 +1,8 @@
+/*
+ * Original patch by bearinmindcat:
+ * https://github.com/bearinmindcat/morphe-patches
+ */
+
 package app.template.patches.maps.renaming
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions

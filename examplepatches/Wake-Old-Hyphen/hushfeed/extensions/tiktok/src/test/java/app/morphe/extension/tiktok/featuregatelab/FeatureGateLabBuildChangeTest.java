@@ -183,6 +183,58 @@ public class FeatureGateLabBuildChangeTest {
     }
 
     @Test
+    public void aBackupFromABuildTheCatalogDroppedKeepsTheRulesWhoseGatesTheRunningBuildCarries() throws Exception {
+        assertFalse("the build the backup was made on still has a catalog", FeatureGateCatalog.hasCatalogFor(DROPPED));
+        FeatureGateLabStore.setMasterEnabled(true);
+        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("player_config", "AWEDanmakuSupportMask", "BOOLEAN", "true", true);
+        save("settings_manager", "lynxview_command_blacklist", "OBJECT", "{\"LIZ\":true}", true);
+        save("abmock", "comment_cell_badge_dedup", "BOOLEAN", "true", true);
+        save("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT",
+                "{\"LIZ\":true}", true);
+        save("abmock", "comment_cell_bind_dedup", "BOOLEAN", "true", false);
+        String backup = SettingsBackup.create(false);
+        assertEquals(DROPPED, new JSONObject(backup).getString("target"));
+        assertEquals(DROPPED, new JSONObject(backup).getJSONObject("lab").getString("tiktok_version"));
+
+        BuildNames.setRunningBuildForTests(DECLARED);
+        FeatureGateLabStore.resetAllLabData();
+        FeatureGateLabStore.consumeMigrationNotice();
+        FeatureGateLabRuntime.reloadRules();
+        SettingsBackup.restore(Utils.getContext(), backup, true);
+
+        assertFalse("the Lab half was left out", SettingsBackup.labRulesWereSkipped(backup));
+        assertTrue(enabled("abmock", "1005_max_limit_count_daily", "INT"));
+        assertTrue(enabled("player_config", "AWEDanmakuSupportMask", "BOOLEAN"));
+        assertTrue("a SettingsManager read whose model keeps its name",
+                enabled("settings_manager", "lynxview_command_blacklist", "OBJECT"));
+        assertFalse("a gate 47.1.4 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
+        assertFalse("a SettingsManager model R8 renamed",
+                enabled("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT"));
+        assertFalse(enabled("abmock", "comment_cell_bind_dedup", "BOOLEAN"));
+        assertEquals("true", FeatureGateLabStore.rule("abmock", "comment_cell_badge_dedup", "BOOLEAN").value);
+        assertTrue(FeatureGateLabStore.masterEnabled());
+        assertEquals(9, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+    }
+
+    @Test
+    public void aBackupFromADroppedBuildIsLeftOutWhenTheRunningBuildHasNoCatalog() throws Exception {
+        FeatureGateLabStore.setMasterEnabled(true);
+        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        String backup = SettingsBackup.create(false);
+
+        BuildNames.setRunningBuildForTests("47.2.1");
+        FeatureGateLabStore.resetAllLabData();
+        FeatureGateLabStore.setMasterEnabled(false);
+        SettingsBackup.restore(Utils.getContext(), backup, true);
+
+        assertTrue(SettingsBackup.labRulesWereSkipped(backup));
+        assertFalse("the Lab was changed by a backup nothing could check",
+                FeatureGateLabStore.masterEnabled());
+        assertEquals(0, FeatureGateLabStore.rules().size());
+    }
+
+    @Test
     public void anUndoCopyFromABuildTheCatalogDroppedKeepsTheRulesWhoseGatesTheNewBuildCarries() throws Exception {
         FeatureGateLabStore.setMasterEnabled(true);
         save("abmock", "1005_max_limit_count_daily", "INT", "9", true);

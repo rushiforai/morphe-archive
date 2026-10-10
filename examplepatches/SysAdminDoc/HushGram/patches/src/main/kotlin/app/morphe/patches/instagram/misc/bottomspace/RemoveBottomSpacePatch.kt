@@ -41,15 +41,14 @@ private const val CONTEXT = "Landroid/content/Context;"
 
 /**
  * Leaves out the room Instagram keeps under its tab bar for a navigation bar the phone doesn't show.
- * Off in the default selection: on a phone that reports its navigation bar late, Instagram's guess
- * is what keeps the tab bar clear of it, so leaving it out is the user's pick.
+ * In the default selection with its switch off: on a phone that reports its navigation bar late,
+ * Instagram's guess is what keeps the tab bar clear of it, so leaving it out is the user's pick.
  */
 @Suppress("unused")
 val removeBottomSpacePatch = bytecodePatch(
     name = "Remove the empty space at the bottom",
-    description = "Takes away the empty room Instagram leaves under its tab bar for a navigation bar that isn't there, " +
-        "on a phone that hides its navigation bar and in a pop-up window. A change to the switch shows once Instagram restarts.",
-    default = false,
+    description = "Takes away the empty gap Instagram leaves under its tab bar for a navigation bar that isn't " +
+        "there. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Layout.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)

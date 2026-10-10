@@ -472,8 +472,9 @@ final class ScreenColors {
     }
 
     /**
-     * A dialog on show: its surface, title, message, buttons and text field. A list's rows keep the
-     * theme's colours.
+     * A dialog on show: its surface, title, message, buttons and text field. A single or multiple
+     * choice list's rows take the screen's colours through {@link DialogChoices}; any other list's
+     * rows keep the theme's.
      */
     void paint(@Nullable AlertDialog dialog) {
         if (dialog == null) return;
@@ -501,12 +502,22 @@ final class ScreenColors {
         // one on show there: AlertDialog's own sits GONE above it, and findViewById finds that first.
         if (window != null) paintMessages(window.getDecorView());
         android.widget.ListView choices = dialog.getListView();
-        if (choices != null && choices.getChoiceMode() == android.widget.ListView.CHOICE_MODE_SINGLE
-                && choices.getAdapter() != null && !(choices.getAdapter() instanceof DialogChoices)) {
-            int selected = choices.getCheckedItemPosition();
-            choices.setAdapter(new DialogChoices(choices.getAdapter(), this));
-            if (selected >= 0) choices.setItemChecked(selected, true);
-            choices.setDivider(null);
+        if (choices != null && choices.getAdapter() != null && !(choices.getAdapter() instanceof DialogChoices)) {
+            if (choices.getChoiceMode() == android.widget.ListView.CHOICE_MODE_SINGLE) {
+                int selected = choices.getCheckedItemPosition();
+                choices.setAdapter(new DialogChoices(choices.getAdapter(), this));
+                if (selected >= 0) choices.setItemChecked(selected, true);
+                choices.setDivider(null);
+            } else if (choices.getChoiceMode() == android.widget.ListView.CHOICE_MODE_MULTIPLE) {
+                // A new adapter clears the list's ticks, so they go back on after it.
+                android.util.SparseBooleanArray ticked = choices.getCheckedItemPositions();
+                ticked = ticked == null ? new android.util.SparseBooleanArray() : ticked.clone();
+                choices.setAdapter(new DialogChoices(choices.getAdapter(), this));
+                for (int i = 0; i < ticked.size(); i++) {
+                    if (ticked.valueAt(i)) choices.setItemChecked(ticked.keyAt(i), true);
+                }
+                choices.setDivider(null);
+            }
         }
         for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
             Button button = dialog.getButton(which);

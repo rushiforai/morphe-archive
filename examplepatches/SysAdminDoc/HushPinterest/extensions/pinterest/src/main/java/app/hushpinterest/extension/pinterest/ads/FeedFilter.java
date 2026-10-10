@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
+import app.hushpinterest.extension.pinterest.actions.BoardDownloads;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 
@@ -20,6 +21,9 @@ import app.hushpinterest.extension.pinterest.settings.PatchFamily;
  * holders before anything is drawn. The patch passes the list each holder is built with through
  * {@link #filter}, which drops what Hide ads and Hide AI-labeled pins each say to and hands back the
  * rest in order. With both switches off, or paused, the list goes through untouched.
+ *
+ * <p>Download board reads what's left, untouched, to keep the pins of a board's own pages. It never
+ * throws and never changes the list, so the filtering is the same with it or without it.
  */
 public final class FeedFilter {
     private FeedFilter() {}
@@ -40,7 +44,11 @@ public final class FeedFilter {
         ads = ads && Ads.active();
         ai = ai && AiPins.active();
         shopping = shopping && Shopping.active();
-        if (!ads && !ai && !shopping) return items;
+        if (!ads && !ai && !shopping) {
+            BoardDownloads.record(items);
+            return items;
+        }
+        List<?> shown;
         try {
             List<Object> kept = null;
             int size = items.size();
@@ -57,10 +65,13 @@ public final class FeedFilter {
                     kept.add(item);
                 }
             }
-            return kept == null ? items : kept;
+            shown = kept == null ? items : kept;
         } catch (Throwable t) {
             HookStatus.threw(ads ? FamilyNames.HIDE_ADS : ai ? FamilyNames.HIDE_AI_PINS : FamilyNames.HIDE_SHOPPING, "list filter", t);
             return items;
         }
+        // Outside the filter's own failure handling: what's kept for a board never decides what's shown.
+        BoardDownloads.record(shown);
+        return shown;
     }
 }

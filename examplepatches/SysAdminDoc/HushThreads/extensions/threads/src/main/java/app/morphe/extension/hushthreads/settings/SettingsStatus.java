@@ -70,6 +70,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean hideInstagramButton() {
+        return false;
+    }
+
     public static boolean removeAdId() {
         return false;
     }

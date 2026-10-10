@@ -136,8 +136,27 @@ val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
     args(generated.get().asFile.absolutePath, original.absolutePath,
         layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath, output.get().asFile.absolutePath)
 }
+val compileDialogVerification = tasks.register<JavaCompile>("compileDialogVerification") {
+    source(rootProject.file("porting/tests/VerifyDialogArguments.java"), rootProject.file("porting/tests/VerifyListClickRouting.java"))
+    classpath = sourceSets["main"].compileClasspath
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/dialog-verification-classes"))
+    options.release.set(8)
+}
+val verifyDialogArguments = tasks.register<JavaExec>("verifyDialogArguments") {
+    dependsOn(mergeNicoidHelpersDex, compileDialogVerification)
+    classpath = files(compileDialogVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("VerifyDialogArguments")
+    args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath,
+        androidJar.get().absolutePath)
+}
+val verifyListClickRouting = tasks.register<JavaExec>("verifyListClickRouting") {
+    dependsOn(mergeNicoidHelpersDex, compileDialogVerification)
+    classpath = files(compileDialogVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("VerifyListClickRouting")
+    args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
+}
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(mergeNicoidHelpersDex)
+    dependsOn(verifyDialogArguments, verifyListClickRouting)
     doLast {
         val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
         check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {

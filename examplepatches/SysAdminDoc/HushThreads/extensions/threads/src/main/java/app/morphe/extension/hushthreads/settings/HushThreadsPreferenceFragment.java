@@ -247,7 +247,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                             + "left.")));
             if (build.contains(PatchFamily.HIDE_SUGGESTED_USERS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_USERS, L10n.t("Hide suggested users"),
-                        L10n.t("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.")));
+                        L10n.t("Removes the cards that suggest accounts to follow, in your feed and on "
+                                + "profiles. Normal posts and reposts stay.")));
             }
             if (build.contains(PatchFamily.RETURN_REFRESH)) {
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
@@ -279,17 +280,18 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
                 privacy.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY,
                         L10n.t("Open links in your browser"),
-                        L10n.t("Web links you tap open in your default browser, or the app for that site, without "
-                                + "Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.")));
+                        L10n.t("Links you tap open in your browser or the site's app, skipping Threads' link "
+                            + "tracking. Threads and Instagram pages still open in Threads.")));
             }
             if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {
                 privacy.addPreference(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Stop analytics uploads"),
-                        L10n.t("Matched analytics addresses go to an address that doesn't answer. "
-                                + "Other telemetry may remain. Turn this off to use the original addresses.")));
+                        L10n.t("Stops most usage reports from reaching Meta. Some may still get through. Turn this "
+                            + "off to send them as before.")));
                 int mask = SettingsStatus.analyticsAddressMask();
                 String coverage;
                 if (mask <= 0 || (mask & ~7) != 0) {
-                    coverage = L10n.t("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.");
+                    coverage = L10n.t("This build didn't record which report types it covers. Patch again to see "
+                        + "them.");
                 } else {
                     List<String> matched = new ArrayList<>();
                     List<String> missing = new ArrayList<>();
@@ -299,7 +301,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                     }
                     String found = L10n.isolate(String.join(", ", matched));
                     String absent = missing.isEmpty() ? L10n.t("none") : L10n.isolate(String.join(", ", missing));
-                    coverage = L10n.f("Patched: %1$s. Missing: %2$s.", found, absent);
+                    coverage = L10n.f("Blocked: %1$s. Not found in this build: %2$s.", found, absent);
                 }
                 privacy.addPreference(info(context, L10n.t("Analytics address coverage"), coverage));
             }
@@ -314,22 +316,30 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         if (build.contains(PatchFamily.SAVE_MEDIA)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
             downloads.addPreference(toggle(context, Settings.SAVE_MEDIA, L10n.t("Save photos and videos"),
-                    L10n.t("Adds a Save row to a post's menu. A post with several photos or videos saves them all, "
-                            + "in order. Off or paused, the menu is Threads' own.")));
+                    L10n.t("Adds Save to a post's menu. A post with several photos or videos saves them all. Off or "
+                        + "paused, you get Threads' normal menu.")));
             // Every save reads it, so it's here above the quality it keeps within.
             downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),
-                    L10n.t("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
-                            + "without sound. May lower quality.")));
+                    L10n.t("Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video "
+                        + "without sound. May lower quality.")));
             downloads.addPreference(SaveSettingsRows.qualityRow(context));
             downloads.addPreference(SaveSettingsRows.folderRow(context));
             downloads.addPreference(SaveSettingsRows.fileNameRow(context));
             saves = new SaveSettingsRows.Saves(downloads);
         }
 
-        if (build.contains(PatchFamily.PURE_BLACK)) {
+        if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)) {
             PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
-            appearance.addPreference(toggle(context, Settings.PURE_BLACK, L10n.t("Pure black dark mode"),
-                    L10n.t("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.")));
+            if (build.contains(PatchFamily.PURE_BLACK)) {
+                appearance.addPreference(toggle(context, Settings.PURE_BLACK, L10n.t("Pure black dark mode"),
+                        L10n.t("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. "
+                            + "Restart Threads to see the change.")));
+            }
+            if (build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)) {
+                appearance.addPreference(toggle(context, Settings.HIDE_INSTAGRAM_BUTTON, L10n.t("Hide the Instagram button"),
+                        L10n.t("Takes the Instagram button off the top of profiles, yours and other people's. "
+                            + "Restart Threads to see the change.")));
+            }
         }
 
         // In every build: Android checks Threads' links against Meta's signing key, which no
@@ -337,15 +347,15 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         PreferenceCategory links = category(screen, L10n.t("Links"));
         links.addPreference(supportedLinksRow(context));
         links.addPreference(info(context, L10n.t("Selecting links by hand"),
-                L10n.t("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. "
-                        + "Selecting the addresses sends their links here again. It doesn't restore Meta's verification, "
-                        + "and your other link settings stay as they are.")));
+                L10n.t("Android only sends Threads links to an app signed by Meta. Selecting the addresses sends "
+                    + "their links here instead. Your other link settings stay as they are.")));
 
         // In every build: the release check is the settings entry's own, not a patch's. Its switch
         // is one Pause turns off, so it sits above the Pause row with the rest.
         PreferenceCategory updates = category(screen, L10n.t("Updates"));
         updates.addPreference(toggle(context, Settings.CHECK_FOR_RELEASES, L10n.t("Check for new HushThreads releases"),
-                L10n.t("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.")));
+                L10n.t("Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. "
+                    + "Nothing is downloaded.")));
         updates.addPreference(checkNowRow(context));
         ReleaseCheck.watch(this);
 
@@ -360,16 +370,17 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             }
             if (build.contains(PatchFamily.RESTORE_TRUST)) {
                 patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
-                        L10n.t("Screens that check Threads' own signature open again on this re-signed build.")),
+                        L10n.t("Some Threads screens check who signed the app and fail on a patched one. This fix "
+                            + "makes them open again.")),
                         SettingsIcons.BUILD));
             }
             if (build.contains(PatchFamily.VERSION_CODE)) {
                 patched.addPreference(mark(info(context, L10n.t("Version code raised"),
-                        L10n.t("This build's version code is the highest Android allows, so Google Play doesn't offer "
-                                + "Meta's updates over it. Threads' checks against the version it was built as still see "
-                                + "the real one. To go back to stock Threads, uninstall this one first, which deletes "
-                                + "Threads' data on this phone. Later HushThreads builds need Change version code too, "
-                                + "or they won't install over this one.")), SettingsIcons.UPDATES));
+                        L10n.t("The version number is set as high as Android allows, so Google Play won't offer "
+                            + "Meta's updates over this build. Threads still sees its real version. To go back to "
+                            + "stock Threads, uninstall this one first, which deletes Threads' data on this phone. "
+                            + "Later HushThreads builds need Change version code too, or they won't install over "
+                            + "this one.")), SettingsIcons.UPDATES));
             }
             if (build.contains(PatchFamily.REMOVE_SHARE_TARGETS)) {
                 patched.addPreference(mark(info(context, L10n.t("Share sheet entry removed"),
@@ -378,9 +389,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             }
             if (build.contains(PatchFamily.TRUST_USER_CERTIFICATES)) {
                 patched.addPreference(mark(info(context, L10n.t("User certificates trusted"),
-                        L10n.t("Threads accepts certificates you've installed yourself where Android checks them. Its "
-                                + "own checks on Meta's certificates haven't changed, so a proxy still can't read most "
-                                + "of its traffic.")), SettingsIcons.TOOLS));
+                        L10n.t("Threads accepts security certificates you added to your phone. Its own checks on "
+                            + "Meta's certificates are unchanged, so a proxy still can't read most of its traffic.")), SettingsIcons.TOOLS));
             }
             patched.addPreference(info(context, L10n.t("Changing these"),
                     L10n.t("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. "
@@ -390,8 +400,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         // Named for its rows: the screen's own title already says HushThreads.
         PreferenceCategory hushthreads = category(screen, L10n.t("Pause, backup and diagnostics"));
         hushthreads.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause HushThreads"),
-                L10n.t("From the next start, every switch but Debug logging acts as if it were off. "
-                        + "Changes made when you patched stay in, and your choices stay saved.")), SettingsIcons.PATCHED));
+                L10n.t("Turns off every HushThreads switch except Debug logging the next time Threads starts. What "
+                    + "you chose when you patched stays, and your choices are saved.")), SettingsIcons.PATCHED));
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushthreads.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
@@ -415,7 +425,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         hushthreads.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
-        clear.setClearAndUndoSummaries(L10n.t("Empties the log and the hook findings a report would include."),
+        clear.setClearAndUndoSummaries(L10n.t("Clears the saved log and patch check results that a report would "
+            + "include."),
                 L10n.t("Diagnostic data cleared. Tap again to put it back."));
         hushthreads.addPreference(mark(clear, SettingsIcons.DELETE));
         // Keep the detailed patch-time exception list after the controls people come here for.

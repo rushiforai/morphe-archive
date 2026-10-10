@@ -110,9 +110,9 @@ private fun MutableMethod.limitBefore(index: Int, register: Int) = addInstructio
 @Suppress("unused")
 val liftLengthLimitsPatch = bytecodePatch(
     name = "Lift text length limits",
-    description = "Adds a switch that lets comments, repost notes and your bio run past the length " +
-        "TikTok's app stops at. TikTok's servers can still turn down a long one. " +
-        "Switch: Hushfeed settings > Comments.",
+    description = "Lets you write longer comments, repost notes and bios than the app " +
+        "normally allows. TikTok can still refuse one that's too long. Starts off. Turn it on in " +
+        "Hushfeed settings > Comments.",
     default = true,
 ) {
     category("Comments")

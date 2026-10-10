@@ -88,6 +88,24 @@ public class DownloadLedgerTest {
         clearProcessView();
     }
 
+    @Test public void downloadedPinsAreRequestedOrSavedOnesButNotFailedSkippedOrUnsupported() {
+        owned("111", DownloadManager.STATUS_RUNNING);
+        owned("112", DownloadManager.STATUS_SUCCESSFUL);
+        owned("113", DownloadManager.STATUS_FAILED);
+        assertTrue(DownloadLedger.record(app, 9999, "114"));
+        assertTrue(DownloadLedger.recordResult(app, "222", DownloadLedger.State.SAVED));
+        assertTrue(DownloadLedger.recordResult(app, "333", DownloadLedger.State.SKIPPED));
+        assertTrue(DownloadLedger.recordResult(app, "444", DownloadLedger.State.FAILED));
+        assertTrue(DownloadLedger.recordResult(app, "555", DownloadLedger.State.UNSUPPORTED));
+        assertEquals(new java.util.HashSet<>(java.util.Arrays.asList("111", "112", "222")), DownloadLedger.downloadedPinIds(app));
+
+        // When Android can't be asked, its requests still count, so nothing is saved twice.
+        nativeJobs.nullCursor = true;
+        assertEquals(new java.util.HashSet<>(java.util.Arrays.asList("111", "112", "113", "114", "222")),
+                DownloadLedger.downloadedPinIds(app));
+        nativeJobs.nullCursor = false;
+    }
+
     @Test public void recordsOnlyBoundedMinimalFactsAndEvictionKeepsNativeRequests() throws Exception {
         for (int i = 0; i < 40; i++) owned(Integer.toString(1000 + i), DownloadManager.STATUS_PENDING);
         List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();

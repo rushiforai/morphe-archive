@@ -200,7 +200,7 @@ public class ChoiceBackupTest {
             assertTrue(Settings.preferences.getBoolean("people", false));
             assertTrue(Settings.preferences.getBoolean("typing", false));
             assertFalse(Settings.preferences.contains("new_control"));
-            assertEquals("Restored 1 choice Skipped 1 unknown choice. Skipped 1 choice absent from this bundle.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Restored 1 choice Skipped 1 choice this version doesn't know. Skipped 1 choice whose patch isn't installed.", ShadowToast.getTextOfLatestToast());
             Map<String, ?> before = Settings.preferences.getAll();
             clipboard(ChoiceCodec.HEADER + "\nnew_control=false\n");
             screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
@@ -741,7 +741,7 @@ public class ChoiceBackupTest {
             Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(101));
             assertTrue(canceled.await(5, TimeUnit.SECONDS));
             finishWorkers();
-            assertEquals("The file operation took too long. Try again. A save may leave an incomplete file.", ShadowToast.getTextOfLatestToast());
+            assertEquals("The file save or restore took too long. Try again. A save may leave an incomplete file.", ShadowToast.getTextOfLatestToast());
         } finally { canceled.countDown(); finishWorkers(); SettingsActivity.documentTimeoutMillis = 30_000; }
     }
 

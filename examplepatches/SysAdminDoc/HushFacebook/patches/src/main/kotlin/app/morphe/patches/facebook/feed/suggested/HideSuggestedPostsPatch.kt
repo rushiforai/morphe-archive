@@ -111,11 +111,9 @@ internal const val HIDE_PROFILE_SECTION =
 @Suppress("unused")
 val hideSuggestedPostsPatch = bytecodePatch(
     name = "Hide suggested and promoted posts",
-    description = "Removes what Facebook adds to the feed besides ads: \"Suggested for you\" posts, \"People " +
-        "you may know\", suggested groups, \"Stories you might like\", \"Pages you may like\" and its own upsells. " +
-        "In-feed surveys go too, and so does the \"People you may know\" row on your own profile. Each kind has its " +
-        "own switch. Memories, friend requests and friends' locations between posts have switches too, off until " +
-        "you pick them.",
+    description = "Removes what Facebook adds to the feed besides ads, like \"Suggested for you\" posts, " +
+        "\"People you may know\" and suggested groups, so you see more from people you follow. Most of its " +
+        "switches are on by default. Change them in Hushfacebook settings > News feed.",
     default = true,
 ) {
     category("Feed")

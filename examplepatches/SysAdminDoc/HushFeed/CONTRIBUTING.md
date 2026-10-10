@@ -2,6 +2,8 @@
 
 Feature ideas, bug reports, and pull requests are welcome.
 
+For the source map, target boundary, factory install notes, and patch workflow, see the [app and patch development map](concepts/patch-development.md). For current ad routes, tracking scope, signed-in settings, observed onboarding, and patch opportunities, see the [TikTok app audit](concepts/tiktok-app-audit.md).
+
 Not sure it's a bug, or just have a question? Start in [Discussions](https://github.com/SysAdminDoc/hushfeed/discussions). If it turns out to be a bug, it moves to an issue from there.
 
 If you open an issue, include:

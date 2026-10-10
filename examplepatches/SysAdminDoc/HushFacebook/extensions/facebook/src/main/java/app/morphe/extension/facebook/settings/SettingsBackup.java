@@ -42,6 +42,7 @@ import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.feed.ReactionCeiling;
 import app.morphe.extension.facebook.theme.AccentColor;
@@ -66,12 +67,14 @@ import app.morphe.extension.shared.settings.StringSetting;
  * filter's two lists, the top folder saves go to, the save folder and its video and photo
  * subfolders, the save quality, the video file name, what a tap on Download does, the app links go
  * to, the tab Facebook opens on, the order comments open in, the qualities videos, reels and
- * video stories play at, the hours notification quiet hours start and end, and how long the app lock waits) go out or come in. Pause, safe mode, the debug settings, the app language
+ * video stories play at, the hours notification quiet hours start and end, how long the app lock
+ * waits, and the share sheet items to hide) go out or come in. Pause, safe mode, the debug settings, the app language
  * and the counters Hushfacebook keeps for itself stay out, and so do the log, the diagnostic data
  * and anything about the person or the phone: a file is a format name, a version number, one true
  * or false per switch, two word lists, one top folder, one folder name and two subfolder names,
  * one save quality, one file name template, one download action, one package name or none, one
- * tab, one comment order, three playback qualities, two hours and one lock time. The word lists go only into the file the
+ * tab, one comment order, three playback qualities, two hours, one lock time and one list of
+ * share item types. The word lists go only into the file the
  * person picks, with the rest. An import applies what it read in one preference commit. A file
  * that is too large, isn't JSON, names something twice, holds a value of the wrong type, a word
  * list that isn't one clean list, word lists past the room they share, a folder or a template
@@ -87,8 +90,8 @@ public final class SettingsBackup {
     /**
      * Far more than a settings file needs: one is a few hundred bytes, or about 81 KB at most with
      * both word lists filling the room they share and the sources list filling its own. The 16 KB
-     * left past the two lists' 72 KB is for every other value, switches included, and leaves room
-     * for switches to come.
+     * left past the two lists' 72 KB is for every other value, switches and the 2 KB of share sheet
+     * items included, and leaves room for switches to come.
      */
     public static final int MAX_BYTES = 88 * 1024;
     public static final String FORMAT = "hushfacebook-settings";
@@ -134,6 +137,7 @@ public final class SettingsBackup {
             Settings.HIDE_LINK_POSTS,
             Settings.HIDE_BACKGROUND_POSTS,
             Settings.HIDE_POST_PROMPTS,
+            Settings.HIDE_POST_FOLLOW_LINK,
             Settings.HIDE_SEEN_POSTS,
             Settings.HIDE_META_AI_QUESTIONS,
             Settings.KEEP_POST_DATES,
@@ -160,6 +164,7 @@ public final class SettingsBackup {
             Settings.HIDE_REEL_SOCIAL_FOOTER,
             Settings.HIDE_REEL_THREADS_CARDS,
             Settings.REEL_CLEAN_MODE,
+            Settings.PLAY_REELS_ONCE,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
             Settings.HOLD_ANALYTICS_UPLOADS,
             Settings.ALLOW_SCREENSHOTS,
@@ -194,6 +199,8 @@ public final class SettingsBackup {
             Settings.USE_SYSTEM_EMOJI,
             Settings.OPEN_LINKS_EXTERNALLY,
             Settings.SANITIZE_SHARING_LINKS,
+            Settings.SHARE_POST_OWN_LINK,
+            Settings.HIDE_SHARE_GROUP_BUTTONS,
             Settings.STOP_UPDATE_PROMPTS,
             Settings.DOWNLOAD_STORIES,
             Settings.DOWNLOAD_REELS,
@@ -406,9 +413,18 @@ public final class SettingsBackup {
      */
     static final EnumSetting<ReactionCeiling> CEILING = Settings.HIDE_POSTS_OVER_REACTIONS;
 
+    /**
+     * The share sheet items to hide, held in a file exactly as their row stores them: Facebook's
+     * type names, commas between. A type this build doesn't name is carried like any other, so a
+     * newer Facebook's items survive the trip. A list {@link ShareSheetItems#clean} would change
+     * refuses the whole file, as a sources list does. The types Facebook has offered on this phone
+     * stay on it.
+     */
+    static final StringSetting SHARE_ITEMS = Settings.HIDDEN_SHARE_ITEMS;
+
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, CEILING, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, CEILING, SHARE_ITEMS, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
                     QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, TEXT_SIZE, ACCENT));
 
@@ -514,6 +530,7 @@ public final class SettingsBackup {
         private static final String TEXT_SIZE_NAME = "text_size";
         private static final String ACCENT_NAME = "accent_color";
         private static final String CEILING_NAME = "hide_posts_over_reactions";
+        private static final String SHARE_ITEMS_NAME = "hidden_share_items";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -592,6 +609,9 @@ public final class SettingsBackup {
         /** How long the file says a seen post stays hidden, or null when it names none. Set once, as it's read. */
         @Nullable
         SeenPosts.Keep seenKeep;
+        /** The clean list of share sheet items to hide the file holds, or null when it names none. Set once, as it's read. */
+        @Nullable
+        String shareItems;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -801,6 +821,8 @@ public final class SettingsBackup {
             if (accentChange != null) changes.put(ACCENT, accentChange);
             ReactionCeiling ceilingChange = ceilingChange();
             if (ceilingChange != null) changes.put(CEILING, ceilingChange);
+            String shareItemsChange = shareItemsChange();
+            if (shareItemsChange != null) changes.put(SHARE_ITEMS, shareItemsChange);
             if (seenKeep != null && seenKeep != SEEN_KEEP.savedValue()) changes.put(SEEN_KEEP, seenKeep);
             SendLink.Action actionChange = actionChange();
             if (actionChange != null) changes.put(ACTION, actionChange);
@@ -982,6 +1004,13 @@ public final class SettingsBackup {
             return sources.equals(PostSources.clean(SOURCES.savedValue())) ? null : sources;
         }
 
+        /** The share sheet items to hide this file sets, or null when it names none or the ones already set. */
+        @Nullable
+        String shareItemsChange() {
+            if (shareItems == null) return null;
+            return shareItems.equals(ShareSheetItems.clean(SHARE_ITEMS.savedValue())) ? null : shareItems;
+        }
+
         @Nullable
         private static String listChange(@Nullable String list, StringSetting setting) {
             if (list == null) return null;
@@ -1021,6 +1050,7 @@ public final class SettingsBackup {
             if (accent != null) state.putString(ACCENT_NAME, accent.fileValue);
             if (ceiling != null) state.putString(CEILING_NAME, ceiling.fileValue);
             if (seenKeep != null) state.putString(SEEN_KEEP_NAME, seenKeep.fileValue);
+            if (shareItems != null) state.putString(SHARE_ITEMS_NAME, shareItems);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -1074,6 +1104,9 @@ public final class SettingsBackup {
                     ReactionCeiling.fromFile(state.get(CEILING_NAME)),
                     unknown);
             read.seenKeep = SeenPosts.Keep.fromFile(state.get(SEEN_KEEP_NAME));
+            Object shareItems = state.get(SHARE_ITEMS_NAME);
+            read.shareItems = shareItems instanceof String && ShareSheetItems.isClean((String) shareItems)
+                    ? (String) shareItems : null;
             return read;
         }
     }
@@ -1115,6 +1148,7 @@ public final class SettingsBackup {
         switches.put(HIDDEN.key, PostWords.clean(HIDDEN.savedValue()));
         switches.put(KEPT.key, PostWords.clean(KEPT.savedValue()));
         switches.put(SOURCES.key, PostSources.clean(SOURCES.savedValue()));
+        switches.put(SHARE_ITEMS.key, ShareSheetItems.clean(SHARE_ITEMS.savedValue()));
         return new JSONObject()
                 .put(FORMAT_NAME, FORMAT)
                 .put(SCHEMA_NAME, SCHEMA)
@@ -1225,6 +1259,7 @@ public final class SettingsBackup {
         TextSize.Scale textSize = null;
         AccentColor.Preset accent = null;
         ReactionCeiling ceiling = null;
+        String shareItems = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -1374,6 +1409,16 @@ public final class SettingsBackup {
                 sources = (String) value;
                 continue;
             }
+            if (SHARE_ITEMS.key.equals(name)) {
+                Object value = values.opt(name);
+                // Any type name is taken, one this build doesn't know included. Anything that isn't
+                // one clean list refuses the file, as a sources list does.
+                if (!(value instanceof String) || !ShareSheetItems.isClean((String) value)) {
+                    throw new Rejected(Reason.VALUE, "Not one clean list of share items: " + name);
+                }
+                shareItems = (String) value;
+                continue;
+            }
             BooleanSetting setting = known.get(name);
             if (setting == null) {
                 // A name this build doesn't know, Pause and the debug settings included: left
@@ -1408,6 +1453,7 @@ public final class SettingsBackup {
                 subtab, sources, photoName, videoSubfolder, photoSubfolder, reelsQuality, storiesQuality, quietFrom,
                 quietUntil, lockAfter, textSize, accent, ceiling, unknown);
         read.seenKeep = seenKeep;
+        read.shareItems = shareItems;
         return read;
     }
 

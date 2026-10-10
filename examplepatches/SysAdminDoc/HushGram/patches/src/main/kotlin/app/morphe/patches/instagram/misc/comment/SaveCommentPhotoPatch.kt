@@ -24,8 +24,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 @Suppress("unused")
 val saveCommentPhotoPatch = bytecodePatch(
     name = "Save comment photo",
-    description = "Adds an optional Save action to the common comment menu when a comment has a photo of its own. " +
-        "It saves the largest size Instagram sent, the same way Download saves a post's photo.",
+    description = "Adds Save to the menu on a comment that has its own photo, saving the largest size Instagram " +
+        "sent. Starts off. Turn it on in HushGram settings > Comments.",
     default = true,
 ) {
     category("Downloads")

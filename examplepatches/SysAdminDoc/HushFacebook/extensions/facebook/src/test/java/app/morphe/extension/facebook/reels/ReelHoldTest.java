@@ -45,6 +45,8 @@ public class ReelHoldTest {
         HookStatus.clear();
         // A build with Hold a reel for 2x, as its patch's status says in one.
         ReelHold.holdInBuildForTests = true;
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.HOLD_REEL_FOR_2X.save(true);
     }
 
     @After
@@ -102,7 +104,7 @@ public class ReelHoldTest {
 
     @Test
     public void aHoldAnywhereOnAReelGoesToTheSpeedUpAndTheLiftPutsTheSpeedBack() {
-        assertTrue("the switch starts off", Settings.HOLD_REEL_FOR_2X.get());
+        assertFalse("the switch starts off", Settings.HOLD_REEL_FOR_2X.defaultValue);
         assertTrue("a reel got no release listener", ReelHold.speedUp(false));
         finger(MotionEvent.ACTION_DOWN);
         assertFalse("the listener put a speed back before the hold", ReelHold.release(false));

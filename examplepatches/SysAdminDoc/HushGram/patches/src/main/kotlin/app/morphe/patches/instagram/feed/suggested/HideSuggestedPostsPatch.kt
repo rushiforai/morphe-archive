@@ -60,11 +60,9 @@ internal val SHOPPING_UNITS = listOf("SHOPPING_RECOMMENDATION_UNIT", "PRODUCT_PI
 @Suppress("unused")
 val hideSuggestedPostsPatch = bytecodePatch(
     name = "Hide suggested posts",
-    description = "Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed " +
-        "as Suggested for you, the rows of accounts, shops and hashtags it suggests you follow, the posts " +
-        "and accounts from Threads it mixes in, the surveys it asks you to fill in, and its shopping rows. Each has " +
-        "its own switch. Posts from accounts you follow stay, unless you turn on Hide videos, Hide photos or Hide " +
-        "carousels, which start off and take every post of that type out of Home.",
+    description = "Removes posts from accounts you don't follow, suggested accounts, surveys and shopping rows " +
+        "from Home. Posts from accounts you follow stay. Extra switches can also hide all videos, photos or " +
+        "carousels. On by default. Turn it off in HushGram settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

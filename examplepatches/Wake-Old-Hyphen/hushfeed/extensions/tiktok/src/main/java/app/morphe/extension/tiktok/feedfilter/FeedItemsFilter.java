@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,6 +75,8 @@ public final class FeedItemsFilter {
     /** The For You batch's distribute sources, counted while the unpersonalized rule is on. */
     static final String FOR_YOU_DISTRIBUTION_SOURCE = "ForYouDistribution";
     static final String KEPT_WHOLE_KIND = "batches kept whole";
+    /** Why a feed capture says a matched video stayed: it's the reader's own post. */
+    private static final String OWN_POST = "own-post";
     /**
      * The main feed's rules: every content rule, then the one that reads For You's own
      * distribution marks, which no other route carries.
@@ -438,10 +441,12 @@ public final class FeedItemsFilter {
         boolean verbose = BaseSettings.DEBUG.get();
         if (!ADS_FILTER.getEnabled()) {
             logKeptItem(MID_AD_SOURCE, ad, verbose);
+            FeedCapture.single(MID_AD_SOURCE, ad, null);
             return false;
         }
         FeedFilterCounters.removedItems(MID_AD_SOURCE, 1, MID_AD_REASON);
         logItem(ad, MID_AD_REASON, verbose);
+        FeedCapture.single(MID_AD_SOURCE, ad, MID_AD_REASON);
         return true;
     }
 
@@ -485,7 +490,9 @@ public final class FeedItemsFilter {
             FeedFilterCounters.sawList(TOP_VIEW_SOURCE, count);
             if (count == 0) return preloads;
             boolean verbose = BaseSettings.DEBUG.get();
-            if (!ADS_FILTER.getEnabled()) {
+            boolean removing = ADS_FILTER.getEnabled();
+            captureAds(TOP_VIEW_SOURCE, preloads, removing ? TOP_VIEW_REASON : null);
+            if (!removing) {
                 for (Object ad : preloads) {
                     if (ad instanceof Aweme) logKeptItem(TOP_VIEW_SOURCE, (Aweme) ad, verbose);
                 }
@@ -545,7 +552,9 @@ public final class FeedItemsFilter {
         HookStatus.bound(PROFILE_AD_HOOK_FAMILY, "response read");
         FeedFilterCounters.sawList(PROFILE_AD_SOURCE, ads.size());
         boolean verbose = BaseSettings.DEBUG.get();
-        if (!ADS_FILTER.getEnabled()) {
+        boolean removing = ADS_FILTER.getEnabled();
+        captureAds(PROFILE_AD_SOURCE, ads, removing ? PROFILE_AD_REASON : null);
+        if (!removing) {
             for (Object item : ads) {
                 if (item instanceof Aweme) logKeptItem(PROFILE_AD_SOURCE, (Aweme) item, verbose);
             }
@@ -561,6 +570,23 @@ public final class FeedItemsFilter {
         } catch (UnsupportedOperationException immutable) {
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * A whole ad list for the feed capture, every entry kept or every entry hidden for
+     * {@code reason}. Nothing happens unless a capture is running.
+     */
+    @SuppressWarnings("rawtypes")
+    private static void captureAds(String source, List ads, String reason) {
+        FeedCapture.Batch capture = FeedCapture.batch(source, ads.size());
+        if (capture == null) return;
+        capture.rules(reason == null ? "none" : "AdsFilter");
+        for (Object ad : ads) {
+            if (!(ad instanceof Aweme)) capture.notVideo();
+            else if (reason == null) capture.kept((Aweme) ad);
+            else capture.hidden((Aweme) ad, reason);
+        }
+        capture.finish(reason == null ? ads.size() : 0);
     }
 
     /**
@@ -585,7 +611,10 @@ public final class FeedItemsFilter {
         for (Object card : items) FeedFilterCounters.sawKind(SEARCH_SOURCE, searchCardKind(card));
         boolean ads = ADS_FILTER.getEnabled();
         boolean shop = Settings.HIDE_SEARCH_SHOP.get();
-        if (!ads && !shop) return;
+        if (!ads && !shop) {
+            FeedCapture.noRules(SEARCH_SOURCE);
+            return;
+        }
 
         ArrayList kept = new ArrayList(items.size());
         int adsRemoved = 0;
@@ -599,7 +628,11 @@ public final class FeedItemsFilter {
                 kept.add(card);
             }
         }
-        if (kept.size() == items.size()) return;
+        if (kept.size() == items.size()) {
+            captureSearchPage(items, items, ads, shop, null);
+            return;
+        }
+        String captureNote = null;
         if (kept.isEmpty()) {
             // Every card on the page matched. A whole page of them is far less likely than one
             // of the card shapes being wrong, and an empty grid gives the user nothing to go on.
@@ -608,23 +641,30 @@ public final class FeedItemsFilter {
             // otherwise the page is left alone.
             if (adsRemoved == 0 || adsRemoved == items.size()) {
                 Logger.printException(() -> "Every search result looked like an advert or a Shop card, so none were removed");
+                captureSearchPage(items, items, ads, shop, "every-card-matched-page-left-alone");
                 return;
             }
             for (Object card : items) {
                 if (!isSearchAd(card)) kept.add(card);
             }
             shopRemoved = 0;
+            captureNote = "every-card-matched-only-ads-removed";
             Logger.printException(() -> "Every search result looked like an advert or a Shop card, so only the adverts were removed");
         }
 
         Field field = Reflect.field(searchResult.getClass(), "mItems");
-        if (field == null) return;
+        if (field == null) {
+            captureSearchPage(items, items, ads, shop, "page-not-written");
+            return;
+        }
         try {
             field.set(searchResult, kept);
         } catch (Exception exception) {
             Logger.printException(() -> "Could not filter the search results", exception);
+            captureSearchPage(items, items, ads, shop, "page-not-written");
             return;
         }
+        captureSearchPage(items, kept, ads, shop, captureNote);
 
         // Counted only once the page has actually been rewritten. The all-ads refusal above and
         // a failed write both leave the grid alone, and a counter that said otherwise would
@@ -640,6 +680,27 @@ public final class FeedItemsFilter {
             Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(SearchMixFeedList): size "
                 + before + " -> " + after + " (removed=" + (before - after) + ")");
         }
+    }
+
+    /**
+     * A search page for the feed capture, once it's settled what the grid shows: each card by
+     * its shape, kept when it's in {@code shown}, otherwise hidden as an advert or a Shop card.
+     * Nothing happens unless a capture is running.
+     */
+    @SuppressWarnings("rawtypes")
+    private static void captureSearchPage(List items, List shown, boolean ads, boolean shop, String note) {
+        FeedCapture.Batch capture = FeedCapture.batch(SEARCH_SOURCE, items.size());
+        if (capture == null) return;
+        capture.rules(ads && shop ? "searchAd,searchShop" : ads ? "searchAd" : "searchShop");
+        if (note != null) capture.note(note);
+        Set<Object> stays = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
+        stays.addAll(shown);
+        for (Object card : items) {
+            Object video = Reflect.readField(card, "aweme");
+            String reason = stays.contains(card) ? null : ads && isSearchAd(card) ? "searchAd" : "searchShop";
+            capture.entry(searchCardKind(card), video instanceof Aweme ? (Aweme) video : null, reason);
+        }
+        capture.finish(shown.size());
     }
 
     /**
@@ -758,12 +819,21 @@ public final class FeedItemsFilter {
             List<IFilter> activeFilters = getActiveFilters(CONTENT_FILTERS);
             boolean hideLive = Settings.HIDE_LIVE.get();
             boolean mutualsOnly = Settings.FRIENDS_MUTUALS_ONLY.get();
-            if (activeFilters.isEmpty() && !hideLive && !mutualsOnly) return;
+            if (activeFilters.isEmpty() && !hideLive && !mutualsOnly) {
+                FeedCapture.noRules(source);
+                return;
+            }
 
             if (!(raw instanceof List)) return;
             List items = (List) raw;
             if (items.isEmpty()) return;
 
+            FeedCapture.Batch capture = FeedCapture.batch(source, items.size());
+            if (capture != null) {
+                capture.rules(activeFilters, null);
+                if (hideLive) capture.addRule("HideLiveCards");
+                if (mutualsOnly) capture.addRule(FriendsMutuals.REASON);
+            }
             String ownId = mutualsOnly ? SignedInUser.id() : null;
             ArrayList kept = new ArrayList(items.size());
             Map<String, Integer> reasonCounts = BaseSettings.DEBUG.get() ? new HashMap<>() : null;
@@ -772,6 +842,12 @@ public final class FeedItemsFilter {
                 String reason = mutualsOnly && !FriendsMutuals.fromMutual(entry, ownId)
                         ? FriendsMutuals.REASON
                         : friendsFeedReason(entry, activeFilters, hideLive);
+                if (capture != null) {
+                    Aweme video = friendsEntryAweme(entry);
+                    String kind = video != null ? "video"
+                            : Reflect.readField(entry, "roomStruct") != null ? "live" : "other";
+                    capture.entry(kind, video, reason);
+                }
                 if (reason == null) {
                     kept.add(entry);
                 } else {
@@ -786,11 +862,21 @@ public final class FeedItemsFilter {
                     }
                 }
             }
-            if (kept.size() == items.size()) return;
+            if (kept.size() == items.size()) {
+                if (capture != null) capture.finish(items.size());
+                return;
+            }
 
             Field field = Reflect.field(response.getClass(), listField);
-            if (field == null) return;
+            if (field == null) {
+                if (capture != null) {
+                    capture.note("list-not-written");
+                    capture.finish(items.size());
+                }
+                return;
+            }
             field.set(response, kept);
+            if (capture != null) capture.finish(kept.size());
             if (count) FeedFilterCounters.removedItems(source, items.size() - kept.size(), lastReason);
 
             final int before = items.size();
@@ -841,9 +927,14 @@ public final class FeedItemsFilter {
         // that read the same as a hook that never ran.
         FeedFilterCounters.sawList(source, items == null ? 0 : items.size());
         if (items == null || items.isEmpty()) return items;
-        if (!ADS_FILTER.getEnabled()) return items;
+        if (!ADS_FILTER.getEnabled()) {
+            FeedCapture.noRules(source);
+            return items;
+        }
 
         boolean verbose = BaseSettings.DEBUG.get();
+        FeedCapture.Batch capture = FeedCapture.batch(source, items.size());
+        if (capture != null) capture.rules(AD_ONLY_FILTERS, null);
         ArrayList kept = null;
         int removed = 0;
         int notVideos = 0;
@@ -855,12 +946,17 @@ public final class FeedItemsFilter {
             if (item == null) {
                 notVideos++;
                 nameNotVideo(source, container);
+                if (capture != null) capture.notVideo();
             }
-            String reason = item == null ? null : getFilterReason(AD_ONLY_FILTERS, item);
-            if (reason != null && own.owns(item)) reason = null;
+            String matched = item == null ? null : getFilterReason(AD_ONLY_FILTERS, item);
+            String reason = matched != null && own.owns(item) ? null : matched;
             if (reason == null) {
                 if (kept != null) kept.add(container);
                 if (item != null) logKeptItem(source, item, verbose);
+                if (capture != null && item != null) {
+                    if (matched != null) capture.spared(item, matched, OWN_POST);
+                    else capture.kept(item);
+                }
                 continue;
             }
 
@@ -871,11 +967,13 @@ public final class FeedItemsFilter {
             removed++;
             lastReason = reason;
             logItem(item, reason, verbose);
+            if (capture != null) capture.hidden(item, reason);
         }
 
         own.report();
         FeedFilterCounters.removedItems(source, removed, lastReason);
         FeedFilterCounters.unreadable(source, notVideos);
+        if (capture != null) capture.finish(kept == null ? items.size() : kept.size());
         if (kept == null) return items;
         if (verbose && shouldLogBatch()) {
             int initialSize = items.size();
@@ -894,16 +992,22 @@ public final class FeedItemsFilter {
         String source,
         List items
     ) {
-        FeedFilterCounters.sawList(FINAL_INSERT_SOURCE + source, items == null ? 0 : items.size());
+        String route = FINAL_INSERT_SOURCE + source;
+        FeedFilterCounters.sawList(route, items == null ? 0 : items.size());
         if (items == null || items.isEmpty()) return items;
         if (panel == null || !"homepage_hot".equals(panel.getEventType())) return items;
 
         List<IFilter> activeContentFilters = getActiveFilters(CONTENT_FILTERS);
         List<IFilter> activeRangeFilters = getActiveFilters(RANGE_FILTERS);
-        if (activeContentFilters.isEmpty() && activeRangeFilters.isEmpty()) return items;
+        if (activeContentFilters.isEmpty() && activeRangeFilters.isEmpty()) {
+            FeedCapture.noRules(route);
+            return items;
+        }
 
         boolean cacheInsertion = "golden_house".equals(source)
             || "middle_insert_when_video_lagging".equals(source);
+        FeedCapture.Batch capture = FeedCapture.batch(route, items.size());
+        if (capture != null) capture.rules(activeContentFilters, activeRangeFilters);
         ArrayList kept = null;
         int removed = 0;
         String lastReason = null;
@@ -911,6 +1015,7 @@ public final class FeedItemsFilter {
         for (int index = 0; index < items.size(); index++) {
             Object container = items.get(index);
             if (!(container instanceof Aweme)) {
+                if (capture != null) capture.notVideo();
                 if (kept != null) kept.add(container);
                 continue;
             }
@@ -918,10 +1023,12 @@ public final class FeedItemsFilter {
             Aweme item = (Aweme) container;
             int cacheSourceType = AwemeBizExtKt.getCacheSourceType(item);
             if (!cacheInsertion && !isKnownFeedCacheSource(cacheSourceType)) {
+                if (capture != null) capture.passed(item, "not-a-cached-insert");
                 if (kept != null) kept.add(container);
                 continue;
             }
             if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
+                if (capture != null) capture.passed(item, "offline-video");
                 if (kept != null) kept.add(container);
                 continue;
             }
@@ -929,6 +1036,7 @@ public final class FeedItemsFilter {
             String reason = getFilterReason(activeContentFilters, item);
             if (reason == null) reason = getFilterReason(activeRangeFilters, item);
             if (reason == null) {
+                if (capture != null) capture.kept(item);
                 if (kept != null) kept.add(container);
                 continue;
             }
@@ -940,9 +1048,11 @@ public final class FeedItemsFilter {
             removed++;
             lastReason = reason;
             logItem(item, reason, BaseSettings.DEBUG.get());
+            if (capture != null) capture.hidden(item, reason);
         }
 
-        FeedFilterCounters.removedItems(FINAL_INSERT_SOURCE + source, removed, lastReason);
+        FeedFilterCounters.removedItems(route, removed, lastReason);
+        if (capture != null) capture.finish(kept == null ? items.size() : kept.size());
         if (kept == null) return items;
         if (BaseSettings.DEBUG.get()) {
             int removedCount = removed;
@@ -966,6 +1076,15 @@ public final class FeedItemsFilter {
             int dropped = feedItemList.items.size();
             FeedFilterCounters.sawList(OFFLINE_FALLBACK_SOURCE, dropped);
             FeedFilterCounters.removedItems(OFFLINE_FALLBACK_SOURCE, dropped, OFFLINE_REASON);
+            FeedCapture.Batch capture = FeedCapture.batch(OFFLINE_FALLBACK_SOURCE, dropped);
+            if (capture != null) {
+                capture.rules("HideOfflineVideos");
+                for (Object container : feedItemList.items) {
+                    if (container instanceof Aweme) capture.hidden((Aweme) container, OFFLINE_REASON);
+                    else capture.notVideo();
+                }
+                capture.finish(0);
+            }
             feedItemList.items = new ArrayList<>();
             return null;
         }
@@ -1018,6 +1137,7 @@ public final class FeedItemsFilter {
     private static boolean keepCached(String source, Aweme item) {
         FeedFilterCounters.sawList(source, item == null ? 0 : 1);
         String reason = cachedRejection(item);
+        if (item != null) FeedCapture.single(source, item, reason);
         if (reason == null) return true;
         FeedFilterCounters.removed(source, 1, reason);
         return false;
@@ -1135,7 +1255,10 @@ public final class FeedItemsFilter {
         List<IFilter> activeRangeFilters = phase == FilterPhase.RESPONSE
             ? getActiveFilters(RANGE_FILTERS)
             : List.of();
-        if (activeContentFilters.isEmpty() && activeRangeFilters.isEmpty()) return;
+        if (activeContentFilters.isEmpty() && activeRangeFilters.isEmpty()) {
+            FeedCapture.noRules(source);
+            return;
+        }
         boolean countDistribution = forYou && activeContentFilters.contains(UNPERSONALIZED_FILTER);
 
         String filterMask = getFilterMask(activeContentFilters, activeRangeFilters);
@@ -1159,9 +1282,13 @@ public final class FeedItemsFilter {
             source,
             probeEnabled
         )) {
+            FeedCapture.unchanged(source);
             return;
         }
 
+        // Null unless a feed capture is running, so every capture line below costs a null check.
+        FeedCapture.Batch capture = FeedCapture.batch(source, initialSize);
+        if (capture != null) capture.rules(activeContentFilters, activeRangeFilters);
         int contentRemoved = 0;
         int rangeRejected = 0;
         Map<String, Integer> reasonCounts = new HashMap<>();
@@ -1176,6 +1303,7 @@ public final class FeedItemsFilter {
         for (Object container : snapshot) {
             Aweme item = extractor.extract(container);
             if (item == null) {
+                if (capture != null) capture.notVideo();
                 rangeKept.add(container);
                 continue;
             }
@@ -1184,6 +1312,9 @@ public final class FeedItemsFilter {
             String contentReason = getFilterReason(activeContentFilters, item);
             String rangeReason = contentReason == null ? getFilterReason(activeRangeFilters, item) : null;
             if ((contentReason != null || rangeReason != null) && own.owns(item)) {
+                if (capture != null) {
+                    capture.spared(item, contentReason != null ? contentReason : rangeReason, OWN_POST);
+                }
                 rangeKept.add(container);
                 continue;
             }
@@ -1191,6 +1322,9 @@ public final class FeedItemsFilter {
             // own, and taking it out left TikTok's error screen in its place (#117).
             if ((contentReason != null || rangeReason != null) && forYou && LinkedVideo.spares(
                     source, item, initialSize, contentReason != null ? contentReason : rangeReason)) {
+                if (capture != null) {
+                    capture.spared(item, contentReason != null ? contentReason : rangeReason, "linked-video");
+                }
                 rangeKept.add(container);
                 continue;
             }
@@ -1208,6 +1342,7 @@ public final class FeedItemsFilter {
                 contentRemoved++;
                 incrementReason(reasonCounts, contentReason);
                 logItem(item, contentReason, verbose);
+                if (capture != null) capture.hidden(item, contentReason);
                 continue;
             }
 
@@ -1215,9 +1350,11 @@ public final class FeedItemsFilter {
                 rangeRejected++;
                 incrementReason(reasonCounts, rangeReason);
                 logItem(item, rangeReason, verbose);
+                if (capture != null) capture.hidden(item, rangeReason);
                 continue;
             }
 
+            if (capture != null) capture.kept(item);
             rangeKept.add(container);
         }
 
@@ -1226,6 +1363,11 @@ public final class FeedItemsFilter {
         // padding stays whole rather than leave the feed nothing to move to. Its candidates
         // passed every other rule, which is why they go back before the quality fallback.
         if (rangeKept.isEmpty() && !unpersonalized.isEmpty()) {
+            if (capture != null) {
+                for (Object container : unpersonalized) {
+                    capture.putBack(extractor.extract(container), UNPERSONALIZED_REASON, "batch-all-fill-in");
+                }
+            }
             rangeKept.addAll(unpersonalized);
             contentRemoved -= unpersonalized.size();
             int left = reasonCounts.get(UNPERSONALIZED_REASON) - unpersonalized.size();
@@ -1246,7 +1388,12 @@ public final class FeedItemsFilter {
         }
         // Never restore ads, blocked creators/words, seen videos, or other hard rejects. (A video a
         // link opened was kept above, before any rule could take it out.)
-        if (rangeKept.isEmpty() && qualityFallback != null) rangeKept.add(qualityFallback);
+        if (rangeKept.isEmpty() && qualityFallback != null) {
+            if (capture != null) {
+                capture.putBack(extractor.extract(qualityFallback), "QualityFilter", "closest-to-quality-rule");
+            }
+            rangeKept.add(qualityFallback);
+        }
         List kept = rangeKept;
         int removed = initialSize - kept.size();
 
@@ -1302,6 +1449,10 @@ public final class FeedItemsFilter {
 
         FeedFilterCounters.removedItems(source, removed,
             reasonCounts.isEmpty() ? null : reasonCounts.keySet().iterator().next());
+        if (capture != null) {
+            if (resultList != list) capture.note("list-replaced");
+            capture.finish(resultList.size());
+        }
         FeedFilterFeedback.onBatchResult(source, initialSize, resultList.size(), reasonCounts,
                 System.currentTimeMillis());
         rememberProcessedList(listId, ListFingerprint.from(resultList, extractor), filterMask);

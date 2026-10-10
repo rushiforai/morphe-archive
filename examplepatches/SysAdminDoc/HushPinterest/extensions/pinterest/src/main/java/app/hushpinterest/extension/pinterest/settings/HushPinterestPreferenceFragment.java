@@ -248,35 +248,46 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             PreferenceCategory feed = category(screen, L10n.t("Feed"));
             if (build.contains(PatchFamily.HIDE_ADS)) {
                 feed.addPreference(mark(toggle(context, Settings.HIDE_ADS, L10n.t("Hide ads"),
-                        PatchFamily.HIDE_ADS.coverageSummary(L10n.t("Promoted pins leave the home feed, search, related pins and boards "
-                                + "before they're shown, and ad-only panels stay folded away."))), SettingsIcons.BLOCK));
+                        PatchFamily.HIDE_ADS.coverageSummary(L10n.t("Removes promoted pins from your home feed, "
+                            + "search, related pins and boards, and hides "
+                            + "panels that only hold ads."))), SettingsIcons.BLOCK));
             }
             if (build.contains(PatchFamily.HIDE_AI_PINS)) {
                 feed.addPreference(mark(toggle(context, Settings.HIDE_AI_PINS, L10n.t("Hide AI-labeled pins"),
-                        PatchFamily.HIDE_AI_PINS.coverageSummary(L10n.t("Pins that Pinterest labels as made or changed with AI leave the same lists. "
-                                + "AI images without Pinterest's label still show."))), SettingsIcons.BLOCK));
+                        PatchFamily.HIDE_AI_PINS.coverageSummary(L10n.t("Removes pins that Pinterest labels as made "
+                            + "or changed with AI from the same places. "
+                            + "AI images without the label still show."))), SettingsIcons.BLOCK));
             }
             patchToggle(feed, context, build, PatchFamily.HIDE_SHOPPING, Settings.HIDE_SHOPPING,
-                    L10n.t("Hide shopping and product pins"), L10n.t("Shoppable pins, shopping stories and featured boards"), SettingsIcons.BLOCK);
+                    L10n.t("Hide shopping and product pins"), L10n.t("Hides shoppable pins, shopping stories and "
+                        + "featured boards."), SettingsIcons.BLOCK);
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             patchToggle(privacy, context, build, PatchFamily.DISABLE_ANALYTICS, Settings.DISABLE_ANALYTICS,
-                    L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch."), SettingsIcons.BLOCK);
+                    L10n.t("Disable analytics"), L10n.t("Stops Pinterest from sending usage reports and running its "
+                        + "analytics tasks. Google's analytics collection stays off "
+                        + "until you patch again without Disable analytics."), SettingsIcons.BLOCK);
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
-                    L10n.t("Strip link tracking"), L10n.t("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them."), SettingsIcons.LINKS);
+                    L10n.t("Strip link tracking"), L10n.t("Removes tracking tags from links you copy or share. "
+                        + "Short pin.it links stay as Pinterest made them."), SettingsIcons.LINKS);
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
-                    L10n.t("Hide advertising ID"), L10n.t("Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings."), SettingsIcons.BLOCK);
+                    L10n.t("Hide advertising ID"), L10n.t("Pinterest sees an empty advertising ID with ad tracking "
+                        + "limited, as if you deleted your ad ID in Android "
+                        + "settings."), SettingsIcons.BLOCK);
             // A patch-time fact with no switch: an explanation, so it takes the info mark.
             if (build.contains(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS)) {
                 privacy.addPreference(mark(info(context, L10n.t("Remove ad tracking permissions"),
-                        L10n.t("Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.")),
+                        L10n.t("Pinterest can no longer use Google's ad ID permission or Android's ad services. "
+                            + "This was set when you patched. Patch again without it to bring them back.")),
                         SettingsIcons.ABOUT));
             }
             if (build.contains(PatchFamily.SPOOF_SIGNATURE)) {
                 privacy.addPreference(mark(info(context, L10n.t("Spoof signature for Google sign-in"),
-                        L10n.t("Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.")),
+                        L10n.t("Tells Android this is the original Pinterest, so Google sign-in can work with "
+                            + "microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. "
+                            + "This was set when you patched. Patch again without it to take it out.")),
                         SettingsIcons.ABOUT));
             }
         }
@@ -284,56 +295,82 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {
             PreferenceCategory actions = category(screen, L10n.t("Pin actions"));
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_PINS, Settings.DOWNLOAD_PINS,
-                    L10n.t("Download pins"), L10n.t("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied."), SettingsIcons.DOWNLOADS);
+                    L10n.t("Download pins"), L10n.t("Download a pin, or select several pins in a grid. Saves videos "
+                        + "and original images, or the largest size Pinterest has."), SettingsIcons.DOWNLOADS);
             if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
                 if (Build.VERSION.SDK_INT == 28) actions.addPreference(mark(new PendingSavesPreference(context), SettingsIcons.DOWNLOADS));
             }
+            patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
+                    L10n.t("Download board"), L10n.t("Adds Download board to a board's menu. It saves the pins Pinterest "
+                        + "has loaded for that board so far and skips any already in Download history. Download pins "
+                        + "has to be on too."), SettingsIcons.DOWNLOADS);
+            patchToggle(actions, context, build, PatchFamily.LONG_PRESS_DOWNLOAD, Settings.LONG_PRESS_DOWNLOAD,
+                    L10n.t("Long-press download"), L10n.t("Adds a Download button to the round menu you get when you "
+                        + "hold a pin. Slide onto it and let go to save the pin. Download pins has to be on too."),
+                    SettingsIcons.DOWNLOADS);
             patchToggle(actions, context, build, PatchFamily.SYSTEM_SHARE, Settings.SYSTEM_SHARE,
-                    L10n.t("System share sheet"), L10n.t("Share uses Android's share sheet."), SettingsIcons.EXPORT);
+                    L10n.t("System share sheet"), L10n.t("Sharing a pin link opens Android's own share menu."), SettingsIcons.EXPORT);
         }
 
         if (!Collections.disjoint(build, PatchFamily.INTERFACE_PAGE)) {
             PreferenceCategory ui = category(screen, L10n.t("Interface"));
             patchToggle(ui, context, build, PatchFamily.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SCREENSHOT_SHARE,
                     L10n.t("No screenshot share menu"),
-                    L10n.t("Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work."), SettingsIcons.BLOCK);
+                    L10n.t("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart "
+                        + "Pinterest to see the change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY,
                     L10n.t("Hide search history"),
-                    L10n.t("Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history."), SettingsIcons.BLOCK);
+                    L10n.t("Hides your recent searches. It doesn't delete your account's search history. The change "
+                        + "shows the next time the screen updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_CREATE,
-                    L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar on its next layout."), SettingsIcons.BLOCK);
+                    L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar. The change shows the next "
+                        + "time the bar updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS,
-                    L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar on its next layout."), SettingsIcons.BLOCK);
+                    L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar. The change "
+                        + "shows the next time the bar updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH,
-                    L10n.t("Hide Search button"), L10n.t("Hides Search in the bottom bar on its next layout."), SettingsIcons.BLOCK);
+                    L10n.t("Hide Search button"), L10n.t("Hides Search in the bottom bar. The change shows the next "
+                        + "time the bar updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS,
                     L10n.t("Hide header buttons"),
-                    L10n.t("Hides trailing header icons on their next layout. Back, text actions and account controls stay available."), SettingsIcons.BLOCK);
+                    L10n.t("Hides the small icon buttons at the end of the top bar. Back, text buttons and account "
+                        + "controls stay. The change shows the next time the bar updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
                     L10n.t("Hide collage menu items"),
-                    L10n.t("Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change."), SettingsIcons.BLOCK);
+                    L10n.t("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's "
+                        + "already open won't change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
                     L10n.t("Hide Search image menu item"),
-                    L10n.t("Hides Search image in newly created pin menus. An existing menu won't change."), SettingsIcons.BLOCK);
+                    L10n.t("Hides Search image in pin menus you open from now on. A menu that's already open won't "
+                        + "change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_PIN_BOOST,
                     L10n.t("Hide Promote pin menu item"),
-                    L10n.t("Hides Promote pin in newly created pin menus. An existing menu won't change."), SettingsIcons.BLOCK);
+                    L10n.t("Hides Promote pin in pin menus you open from now on. A menu that's already open won't "
+                        + "change."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_COMMENTS, Settings.HIDE_COMMENTS,
                     L10n.t("Hide comments"),
-                    L10n.t("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment."), SettingsIcons.BLOCK);
+                    L10n.t("Hides comments and comment previews under pins. It doesn't change who can comment. The "
+                        + "change shows the next time the screen updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS,
                     L10n.t("Hide topic suggestions"),
                     L10n.t("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
                     L10n.t("Quiet email reminders"),
-                    L10n.t("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply."), SettingsIcons.BELL);
+                    L10n.t("Dismisses the optional reminder to confirm your email. A reminder that's already open "
+                        + "stays. Account checks and sign-in still work as usual."), SettingsIcons.BELL);
+            patchToggle(ui, context, build, PatchFamily.HIDE_SURVEY_PROMPTS, Settings.HIDE_SURVEY_PROMPTS,
+                    L10n.t("Hide survey prompts"),
+                    L10n.t("Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the way Maybe later "
+                        + "does, so that survey doesn't come back. Advertiser sponsored polls don't pop up either. An "
+                        + "invite that's already open stays."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
                     L10n.t("Hide save toasts"),
                     L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES,
                     L10n.t("Original-quality images"),
-                    L10n.t("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again."), SettingsIcons.FEED);
+                    L10n.t("Shows the original image instead of the large size in pin closeups and collages, when "
+                        + "Pinterest has one. Uses more data. Pins already loaded change the next time they load."), SettingsIcons.FEED);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them
@@ -344,18 +381,20 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         links.addPreference(mark(supportedLinksRow(context), SettingsIcons.LINKS));
         // An explanation, not a control: the info mark says so, as it does for Version on About.
         links.addPreference(mark(info(context, L10n.t("Selecting links by hand"),
-                L10n.t("Android opens pinterest.com and pin.it links in a patched Pinterest only when their addresses are selected for it. "
-                        + "Selecting them sends their links here, and your other link settings stay as they are.")),
+                L10n.t("Android sends pinterest.com and pin.it links to a patched Pinterest only after you select "
+                    + "those addresses for it. Selecting them sends their links here. Your other link settings "
+                    + "stay as they are.")),
                 SettingsIcons.ABOUT));
 
         // In every build: the release check is the settings entry's own, not a patch's. Its switch
         // is one Pause turns off, so it sits above the Pause row with the rest.
         PreferenceCategory updates = category(screen, L10n.t("Updates"));
         patchToggle(updates, context, build, PatchFamily.DISABLE_UPDATE_NAG, Settings.DISABLE_UPDATE_NAG,
-                L10n.t("Disable update nag"), L10n.t("Hides new Play Store update prompts. An open prompt won't change."), SettingsIcons.BLOCK);
+                L10n.t("Disable update nag"), L10n.t("Hides Play Store pop-ups asking you to update Pinterest. A "
+                    + "pop-up that's already open stays."), SettingsIcons.BLOCK);
         updates.addPreference(mark(toggle(context, Settings.CHECK_FOR_RELEASES, L10n.t("Check for new HushPinterest releases"),
-                L10n.t("Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these "
-                        + "settings. Off by default. Nothing is downloaded.")), SettingsIcons.BELL));
+                L10n.t("Once a day, when Pinterest starts, checks GitHub for a newer HushPinterest and tells you at "
+                    + "the top of these settings. Nothing is downloaded.")), SettingsIcons.BELL));
         updates.addPreference(mark(checkNowRow(context), SettingsIcons.UPDATES));
         updates.addPreference(mark(releaseLink(context, RELEASE_NOTES, L10n.t("Release notes"),
                 L10n.t("Read HushPinterest releases on GitHub. Nothing is downloaded here."), RELEASE_NOTES_URL), SettingsIcons.OPENING));
@@ -366,8 +405,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         // Named for its rows: the screen's own title already says HushPinterest.
         PreferenceCategory hushpinterest = category(screen, L10n.t("Pause, backup and diagnostics"));
         hushpinterest.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause HushPinterest"),
-                L10n.t("From the next start, every switch but Debug logging acts as if it were off. "
-                        + "Changes made when you patched stay in, and your choices stay saved.")), SettingsIcons.PATCHED));
+                L10n.t("Turns off every HushPinterest switch except Debug logging the next time Pinterest starts. "
+                    + "What you chose when you patched stays, and your choices are saved.")), SettingsIcons.PATCHED));
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushpinterest.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
@@ -392,7 +431,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         hushpinterest.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
-        clear.setClearAndUndoSummaries(L10n.t("Empties the log and the hook findings a report would include."),
+        clear.setClearAndUndoSummaries(L10n.t("Clears the saved log and patch check results that a report would "
+            + "include."),
                 L10n.t("Diagnostic data cleared. Tap again to put it back."));
         hushpinterest.addPreference(mark(clear, SettingsIcons.DELETE));
         // Keep the detailed patch-time exception list after the controls people come here for.
@@ -594,7 +634,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         String status;
         if (!HushPinterestPause.isPaused()) {
             // The version lives on the About page. Here it pushed the line that matters below it.
-            status = pausedNext ? L10n.t("HushPinterest pauses when Pinterest restarts.") : L10n.t("Your controls are active.");
+            status = pausedNext ? L10n.t("HushPinterest pauses when Pinterest restarts.") : L10n.t("Your switches "
+                + "are working.");
         } else if (pausedNext) {
             status = pausedSummary(HushPinterestPause.reason(), context.getPackageName())
                     + " " + L10n.t("Tap to turn it back on.");

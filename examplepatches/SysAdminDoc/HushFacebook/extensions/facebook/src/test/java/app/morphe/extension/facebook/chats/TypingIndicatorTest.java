@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,13 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class TypingIndicatorTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** The patch is in Morphe Manager's default selection with its switches off; these tests turn them on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HIDE_CHAT_TYPING.save(true);
+        Settings.HIDE_COMMENT_TYPING.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -47,9 +55,9 @@ public class TypingIndicatorTest {
     }
 
     @Test
-    public void bothSwitchesStartOnAndHoldTypingBack() {
-        assertTrue("the chat switch starts on", Settings.HIDE_CHAT_TYPING.get());
-        assertTrue("the comment switch starts on", Settings.HIDE_COMMENT_TYPING.get());
+    public void bothSwitchesStartOffAndOnHoldTypingBack() {
+        assertFalse("the chat switch starts off", Settings.HIDE_CHAT_TYPING.defaultValue);
+        assertFalse("the comment switch starts off", Settings.HIDE_COMMENT_TYPING.defaultValue);
         assertFalse("Mailbox hears not typing", TypingIndicator.chatTyping(true));
         assertFalse("not typing stays so", TypingIndicator.chatTyping(false));
         assertTrue(TypingIndicator.holdsChatTyping());
@@ -66,7 +74,7 @@ public class TypingIndicatorTest {
         assertTrue("Mailbox hears typing", TypingIndicator.chatTyping(true));
         assertFalse(TypingIndicator.holdsChatTyping());
         assertTrue("comments stay held", TypingIndicator.holdsCommentTyping());
-        Settings.HIDE_CHAT_TYPING.resetToDefault();
+        Settings.HIDE_CHAT_TYPING.save(true);
         Settings.HIDE_COMMENT_TYPING.save(false);
         assertFalse(TypingIndicator.chatTyping(true));
         assertFalse(TypingIndicator.holdsCommentTyping());

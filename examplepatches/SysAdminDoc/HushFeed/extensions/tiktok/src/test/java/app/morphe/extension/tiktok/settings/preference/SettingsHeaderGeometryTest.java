@@ -11,13 +11,16 @@ import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 /**
@@ -30,6 +33,10 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34, qualifiers = "w360dp-h800dp-mdpi")
 public class SettingsHeaderGeometryTest {
+    @Before public void installContext() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+    }
+
     @Test public void leftToRight() {
         assertWholeTarget(View.LAYOUT_DIRECTION_LTR);
     }
@@ -46,6 +53,142 @@ public class SettingsHeaderGeometryTest {
     @Test @Config(qualifiers = "night")
     public void inTheDarkTheme() {
         assertWholeTarget(View.LAYOUT_DIRECTION_LTR);
+    }
+
+    @Test public void compactHeaderKeepsItsStatusActionInsideThePage() {
+        assertCompactHeader(View.LAYOUT_DIRECTION_LTR);
+    }
+
+    @Test @Config(fontScale = 2.0f)
+    public void compactHeaderKeepsWholeWordsAndTargetsAtTwiceTheTextSize() {
+        assertCompactHeader(View.LAYOUT_DIRECTION_LTR);
+    }
+
+    @Test @Config(fontScale = 2.0f)
+    public void compactHeaderKeepsItsTargetsInRightToLeftLargeText() {
+        assertCompactHeader(View.LAYOUT_DIRECTION_RTL);
+    }
+
+    @Test @Config(qualifiers = "de-rDE-w320dp-h800dp-night-mdpi", fontScale = 1.3f)
+    public void compactHeaderFitsGermanRestartStateAtTheFirstLargeTextPreset() {
+        java.util.Set<String> pending = app.morphe.extension.shared.settings.preference
+                .AbstractPreferenceFragment.restartPending;
+        java.util.Set<String> previous = new java.util.HashSet<>(pending);
+        pending.clear();
+        pending.add(app.morphe.extension.shared.settings.BaseSettings.PAUSED.key);
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FrameLayout page = new FrameLayout(activity);
+            int gutter = SettingsUi.dp(activity, 24);
+            page.setPadding(gutter, 0, gutter, 0);
+            boolean[] opened = {false};
+            View header = SettingsHeaderPreference.master(activity, () -> { }, () -> opened[0] = true)
+                    .getView(null, null);
+            page.addView(header, new FrameLayout.LayoutParams(-1, -2));
+            activity.setContentView(page);
+            View root = activity.findViewById(android.R.id.content);
+            root.measure(View.MeasureSpec.makeMeasureSpec(SettingsUi.dp(activity, 320), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(SettingsUi.dp(activity, 800), View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, root.getMeasuredWidth(), root.getMeasuredHeight());
+
+            TextView brand = textViewWithText(header, "HUSHFEED");
+            TextView status = header.findViewWithTag("hushfeed_compact_status");
+            assertNotNull(brand);
+            assertNotNull(status);
+            assertEquals("the fixture did not render the longer German pending state",
+                    "Neustart ausstehend", status.getText().toString());
+            for (TextView label : new TextView[]{brand, status}) {
+                assertNotNull(label.getLayout());
+                assertEquals(label.getText() + " broke across lines", 1, label.getLineCount());
+                assertEquals(label.getText() + " was truncated", 0, label.getLayout().getEllipsisCount(0));
+                assertTrue(label.getText() + " exceeds its visible text area",
+                        label.getLayout().getLineWidth(0) <= label.getWidth()
+                                - label.getCompoundPaddingLeft() - label.getCompoundPaddingRight());
+                assertTrue(label.getText() + " is clipped vertically", label.getHeight()
+                        >= label.getLayout().getHeight() + label.getCompoundPaddingTop() + label.getCompoundPaddingBottom());
+                for (View child = label; child != page; child = (View) child.getParent()) {
+                    View parent = (View) child.getParent();
+                    assertTrue(describe(child) + " starts outside its parent", child.getLeft() >= 0);
+                    assertTrue(describe(child) + " ends outside its parent", child.getRight() <= parent.getWidth());
+                }
+            }
+            Rect visible = new Rect();
+            assertTrue(status.getGlobalVisibleRect(visible));
+            int target = SettingsUi.dp(activity, 48);
+            assertTrue("the German status lost its full touch target",
+                    visible.width() >= target && visible.height() >= target);
+            AccessibilityNodeInfo node = status.createAccessibilityNodeInfo();
+            assertEquals(android.widget.Button.class.getName(), String.valueOf(node.getClassName()));
+            assertTrue(node.isClickable());
+            assertTrue(status.performClick());
+            assertTrue("the localized status action did not open its destination", opened[0]);
+        } finally {
+            pending.clear();
+            pending.addAll(previous);
+        }
+    }
+
+    private static TextView textViewWithText(View view, String text) {
+        if (view instanceof TextView && text.contentEquals(((TextView) view).getText())) {
+            return (TextView) view;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                TextView found = textViewWithText(group.getChildAt(index), text);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    private static void assertCompactHeader(int direction) {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FrameLayout page = new FrameLayout(activity);
+            int gutter = SettingsUi.dp(activity, 24);
+            page.setPadding(gutter, 0, gutter, 0);
+            boolean[] opened = {false};
+            View header = SettingsHeaderPreference.master(activity, () -> { }, () -> opened[0] = true)
+                    .getView(null, null);
+            page.addView(header, new FrameLayout.LayoutParams(-1, -2));
+            setDirection(page, direction);
+            activity.setContentView(page);
+            View root = activity.findViewById(android.R.id.content);
+            root.measure(View.MeasureSpec.makeMeasureSpec(SettingsUi.dp(activity, 360), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(SettingsUi.dp(activity, 800), View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, root.getMeasuredWidth(), root.getMeasuredHeight());
+
+            TextView title = header.findViewWithTag("hushfeed_page_title");
+            assertEquals("Settings", title.getText().toString());
+            assertEquals("the compact title wraps on a standard phone", 1, title.getLineCount());
+            float expectedSp = activity.getResources().getConfiguration().fontScale > 1.3f ? 26f : 40f;
+            assertEquals("the home title lost its display size or large-text cap",
+                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
+                            expectedSp, activity.getResources().getDisplayMetrics()),
+                    title.getTextSize(), 0.01f);
+            ViewGroup toolbar = header.findViewWithTag("hushfeed_toolbar");
+            View status = header.findViewWithTag("hushfeed_compact_status");
+            int target = SettingsUi.dp(activity, 48);
+            for (View control : new View[]{toolbar.getChildAt(0), status}) {
+                Rect visible = new Rect();
+                assertTrue("a header action is hidden", control.getGlobalVisibleRect(visible));
+                assertTrue("a header action lost its full touch target",
+                        visible.width() >= target && visible.height() >= target);
+                for (View child = control; child != page; child = (View) child.getParent()) {
+                    View parent = (View) child.getParent();
+                    assertTrue(describe(child) + " starts outside its parent", child.getLeft() >= 0);
+                    assertTrue(describe(child) + " ends outside its parent", child.getRight() <= parent.getWidth());
+                }
+                AccessibilityNodeInfo node = control.createAccessibilityNodeInfo();
+                assertEquals(android.widget.Button.class.getName(), String.valueOf(node.getClassName()));
+                assertTrue(node.isClickable());
+            }
+            assertTrue(status.performClick());
+            assertTrue("the status action did not reach its destination", opened[0]);
+        }
     }
 
     private static void assertWholeTarget(int direction) {

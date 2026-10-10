@@ -7,13 +7,13 @@
 package app.morphe.patches.pinterest.privacy
 
 import app.morphe.ExtensionDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
-import com.reandroid.apk.ApkModule
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
@@ -21,6 +21,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -28,6 +29,7 @@ import org.w3c.dom.Element
  * The two manifest edits on the declared Pinterest builds, compared element by element with the
  * stock manifest, and the ad tracking patch's refusals and build flag.
  */
+@Category(FixtureTests::class)
 class AdTrackingManifestTest {
     @Test
     fun `each declared build changes only the ad declarations and the collection switches`() {
@@ -135,12 +137,7 @@ class AdTrackingManifestTest {
     }
 
     /** The decoded manifest of [apk], as the resource patch reads it. */
-    private fun decode(apk: File): Document = ApkModule.loadApkFile(apk).use { module ->
-        val manifest = module.androidManifest
-        // References in the manifest resolve against the APK's own resource table.
-        manifest.setPackageBlock(module.tableBlock.pickOne())
-        parse(manifest.serializeToXml())
-    }
+    private fun decode(apk: File): Document = parse(Fixtures.manifest(apk))
 
     private fun parse(xml: String): Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         .parse(ByteArrayInputStream(xml.trimIndent().toByteArray()))

@@ -179,6 +179,42 @@ public class ClipboardLinkTest {
                 ClipboardLink.resolve(ClipboardLink.find("http://fb.watch/aBcD12/")).videoId);
     }
 
+    /**
+     * The chain Facebook answered on 2026-10-09 for a real reel share link, asked as Mozilla/5.0:
+     * the share link to the post's story.php, then on to the video's page under the Page's name.
+     */
+    @Test
+    public void aRealShareLinkGoesThroughThePostToTheVideo() {
+        Map<String, String> web = new HashMap<>();
+        web.put("https://www.facebook.com/share/r/1EtN3asFKy/", "https://www.facebook.com/story.php?story_fbid="
+                + "1674727604699253&id=100064860875397&rdid=1THcFhilqmcVJD5o&share_url=https%3A%2F%2Fwww.facebook.com"
+                + "%2Fshare%2Fr%2F1EtN3asFKy%2F");
+        web.put("https://www.facebook.com/story.php?story_fbid=1674727604699253&id=100064860875397&rdid=1THcFhilqmcVJD5o"
+                + "&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fr%2F1EtN3asFKy%2F",
+                "https://www.facebook.com/facebook/videos/flowers-are-nice-a-poke-is-forever-/3157422364452546/"
+                        + "?share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fr%2F1EtN3asFKy%2F&rdid=2nDhZiFPnd0w0Xna");
+        ClipboardLink.redirects = web::get;
+
+        ClipboardLink.Found reel = ClipboardLink.resolve(ClipboardLink.find("https://www.facebook.com/share/r/1EtN3asFKy/"));
+        assertEquals("3157422364452546", reel.videoId);
+        assertTrue("a /share/r/ link stays a reel's", reel.reel);
+    }
+
+    /**
+     * #103: Facebook answers Android's default agent, Dalvik/2.1.0, with a 200 page and no
+     * redirect, so the short link was never read. The request names a plain browser instead.
+     */
+    @Test
+    public void aShortLinkIsAskedAsAPlainBrowser() throws Exception {
+        java.net.HttpURLConnection request = ClipboardLink.request("https://www.facebook.com/share/r/1EtN3asFKy/");
+        try {
+            assertEquals("Mozilla/5.0", request.getRequestProperty("User-Agent"));
+            assertFalse("each redirect is read, not followed", request.getInstanceFollowRedirects());
+        } finally {
+            request.disconnect();
+        }
+    }
+
     @Test
     public void aResumeOffersACopiedLinkOnce() {
         copy("https://www.facebook.com/reel/31415926535/");

@@ -462,11 +462,7 @@ internal val cloneResources = resourcePatch(description = "Move Messenger's mani
 @Suppress("unused")
 val cloneInstallPatch = bytecodePatch(
     name = CLONE_PATCH_NAME,
-    description = "Installs a second copy of Messenger beside the first, under its own package name and app name. " +
-        "Messenger's own permissions, providers, task affinities and push categories move to the new name, and encrypted " +
-        "chat backups still find their settings. Push notifications may not reach the copy. Facebook's sign-in shortcut " +
-        "and other Meta apps won't see its account, and a Root Mount install can't use it. Sign it with the same key as " +
-        "your other patched Meta apps.",
+    description = "Installs a second copy of Messenger beside the first, with its own app name. Push notifications may not reach the copy. Pick it in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,
 ) {
     category("Fixes")
@@ -477,7 +473,7 @@ val cloneInstallPatch = bytecodePatch(
         key = "clonePackageName",
         default = CLONE_DEFAULT_PACKAGE,
         title = "Package name",
-        description = "The copy's package name, such as com.facebook.orca.hush. It can't be Messenger's own or another Meta app's.",
+        description = "The copy's unique app ID, like com.facebook.orca.hush. Use words joined by dots, each starting with a letter. It can't match Messenger or another Meta app.",
         required = true,
     ) { isClonePackage(it) }
 
@@ -485,7 +481,7 @@ val cloneInstallPatch = bytecodePatch(
         key = "cloneAppName",
         default = CLONE_DEFAULT_LABEL,
         title = "App name",
-        description = "The name under the copy's home screen icon. Up to 40 letters, numbers, spaces and simple punctuation.",
+        description = "The name shown under the copy's home screen icon. Up to 40 characters, starting with a letter or number.",
         required = true,
     ) { isCloneLabel(it) }
 

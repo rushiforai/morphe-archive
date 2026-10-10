@@ -286,8 +286,6 @@ class SaveMediaFixtureTest {
         /** Read off each build by hand: the menu lambda, its post and controller, and how Copy link's click closes the menu. */
         val EXPECTED = mapOf(
             "450.0.0.51.78" to Expected("LX/Slj;", "LX/Slj;->A0G:$MEDIA", "LX/Slj;->A0D:LX/At4;", "LX/At4;->A0u()V"),
-            "449.0.0.54.82" to Expected("LX/Nou;", "LX/Nou;->A0G:$MEDIA", "LX/Nou;->A0D:LX/2H2;", "LX/2H2;->A0j()V"),
-            "448.0.0.54.85" to Expected("LX/Orl;", "LX/Orl;->A0B:$MEDIA", "LX/Orl;->A09:LX/46w;", "LX/46w;->A0h()V"),
         )
     }
 }

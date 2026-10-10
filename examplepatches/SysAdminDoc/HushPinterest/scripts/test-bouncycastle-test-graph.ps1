@@ -11,6 +11,7 @@ param([string]$Root)
 $ErrorActionPreference = 'Stop'
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Root = [IO.Path]::GetFullPath($Root)
+. (Join-Path $PSScriptRoot 'common.ps1')
 $gradle = Join-Path $Root 'gradlew.bat'
 if (-not (Test-Path -LiteralPath $gradle -PathType Leaf)) { throw "Gradle wrapper missing: $gradle" }
 $temp = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
@@ -25,11 +26,16 @@ function Invoke-ReviewCase([string]$Name, [string[]]$Tasks, [string]$ExpectedFai
     $savedErrorAction = $ErrorActionPreference
     try {
         # Expected native failures must reach the exit-code and exact-error assertions below.
+        # Each real Gradle run waits for a slot in the machine's build queue first.
         $ErrorActionPreference = 'Continue'
+        $queued = Enter-HushPinterestQueue -Job 'bouncycastle review'
         $global:LASTEXITCODE = 0
         & $gradle -p $Root @Tasks --console=plain --dependency-verification strict *> $log
         $code = $LASTEXITCODE
-    } finally { $ErrorActionPreference = $savedErrorAction }
+    } finally {
+        $ErrorActionPreference = $savedErrorAction
+        Exit-HushPinterestQueue $queued
+    }
     $output = Get-Content -LiteralPath $log -Raw
     if ($ExpectedFailure) {
         if ($code -eq 0 -or $output -notmatch $ExpectedFailure) {

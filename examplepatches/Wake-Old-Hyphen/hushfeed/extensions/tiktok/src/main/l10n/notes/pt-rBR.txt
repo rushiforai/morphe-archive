@@ -1,10 +1,44 @@
 ## Unreleased
 
+* **TikTok:** As configurações de comentários têm uma linha nova, Não traduzir automaticamente estes idiomas. Ela fica vazia até você preenchê-la (#121). Digite códigos de idioma como `es, de`, e quando o TikTok traduz para você, legendas e comentários nesses idiomas ficam como foram escritos. Ver tradução continua funcionando quando você toca nele, e a lista própria do TikTok de idiomas que não se traduzem não muda.
+
+* **TikTok:** Manter vídeos offline até você apagá-los agora cobre mais duas formas de o TikTok esvaziar sua lista. Com a chave ligada, o Auto adjust do TikTok não reduz mais o seu limite de vídeos offline nem corta a lista quando o TikTok inicia, e a limpeza que o TikTok faz quando termina o teste de ativar vídeos offline por padrão é ignorada (#123). Reinicie o TikTok depois de mudar a chave.
+
+* **TikTok:** Ao restaurar um backup de configurações feito em uma versão mais antiga do TikTok, agora voltam as substituições do Feature Gate Lab que ainda servem para esta versão. As que não servem ficam guardadas, mas desligadas.
+
+* **TikTok:** Tela do feed tem uma chave nova, Esconder o botão do menu lateral, desligada até você ligar. Ela tira o botão no canto superior esquerdo do feed, ao lado de LIVE, que abre o menu lateral do TikTok com Seus pedidos, TikTok Minis e mais. Reinicie o TikTok depois de mudar (#128).
+
+* **TikTok:** Todas as descrições de patches no Morphe Manager foram reescritas em inglês simples. Cada uma agora diz o que o patch muda, por que você pode querer usá-lo e se o interruptor começa ligado ou desligado e onde ele fica nas configurações do Hushfeed. Algumas opções de patch também ficaram mais claras, e Skip push setup agora se chama Skip notification setup.
+
+* **TikTok:** As linhas das configurações do Hushfeed foram reescritas em inglês simples. Privacy, Comments, Downloads, Feed filter, Screen time, Region e outras páginas agora dizem, sem termos técnicos, o que cada chave faz e o que você vai notar. Alguns títulos também mudaram, como Stop TikTok's speed tests e Clean up shared links.
+
+* **TikTok:** Alguns avisos e linhas de status também ficaram mais claros, como o status do modo Ghost, a explicação do Hook status, o aviso da senha do proxy e a prévia do nome do arquivo.
+
+* **TikTok:** A opção Dark background color no Morphe Manager agora diz "código de cor" em vez de "código hex" e explica que o preto desliga totalmente esses pixels em telas OLED.
+
+## 0.70.1 (2026-10-09)
+
+* **TikTok:** As configurações do Hushfeed agora abrem com um status compacto e a busca acima de sete grupos. As páginas relacionadas ficam juntas, com backups, diagnóstico e Feature Gate Lab em App e opções avançadas. Sobre o Hushfeed reúne os detalhes da compilação e as licenças. A busca ainda leva você direto à configuração, e suas escolhas salvas continuam lá. A descrição de Pausar agora explica que as configurações salvas e as alterações incorporadas ao APK permanecem.
+
+## 0.70.0 (2026-10-09)
+
 * **TikTok:** O Hushfeed agora suporta apenas o TikTok 47.1.4. Se você usa o 47.0.3 ou o 47.1.3, baixe o APK do 47.1.4 no APKMirror e aplique os patches no Morphe Manager com a mesma chave de assinatura, para manter seu login e suas configurações. O Laboratório de gates mantém cada alteração cujo interruptor ainda existe no 47.1.4 e desliga as demais com o aviso de sempre.
 
 * **TikTok:** Limite personalizado de vídeos offline tem uma chave nova em Configurações do Hushfeed > Downloads, Manter vídeos offline até você apagá-los. Ela vem desligada até você ligar (#123). O TikTok joga fora os vídeos que salvou para assistir offline depois de um tempo fixo, às vezes só dois dias, e uma lista salva de uma vez some de uma vez, assistida ou não. Com a chave ligada eles ficam até você apagá-los nas configurações de Vídeos offline do TikTok, e é assim também que você ganha um lote novo. O TikTok ainda pode remover os que você já assistiu quando o celular fica sem espaço, e escolher um limite menor continua cortando a lista. Fique de olho na linha de armazenamento embaixo do limite de vídeos offline. A chave vale a partir da próxima vez que o TikTok abrir.
 
 * **TikTok:** Esconder atalhos do perfil tem uma chave nova em Aplicativo, Esconder o Thoughts nos perfis, desligada até você ligar (#122). Ela esconde o balão do Thoughts que o TikTok coloca acima da foto de um perfil e, no seu próprio perfil, o convite para compartilhar um. Reinicie o TikTok depois de mudar.
+
+* **TikTok:** Permitir capturas de tela e Círculo para pesquisar agora também tira a marcação de janela segura de pop-ups e janelas flutuantes que a definem nas próprias configurações de janela, como os pop-ups Compose do TikTok. Eles chegam à tela sem passar pelas chamadas de janela que o patch já alterava, então ainda podiam aparecer pretos em capturas e gravações de tela. A ideia vem dos patches de TikTok do icysymmetra.
+
+* **TikTok:** Diagnóstico tem uma linha nova, Gravar o feed, para problemas do feed que são mais fáceis de mostrar do que de descrever. Toque nela, role até o problema aparecer, volte e toque nela de novo, e o Hushfeed salva um arquivo de texto em Download/Hushfeed. Ele tem uma linha para cada lote de vídeos que os filtros do feed trataram durante a gravação, com o resultado de cada vídeo e a regra que o ocultou. Vídeos e criadores aparecem só como códigos curtos criados de novo a cada gravação, e o arquivo não traz legendas, nomes, nomes de usuário nem endereços web. Mesmo assim, leia antes de compartilhar. Nada é gravado até você começar uma gravação. A ideia vem dos patches de TikTok do icysymmetra.
+
+* **TikTok:** A descrição de Esconder os controles da tela limpa agora menciona o gesto de pinça na tela como outra forma de sair da tela limpa (#84).
+
+* **TikTok:** Algumas chaves agora começam desligadas, como as demais chaves do Hushfeed, porque os patches delas entram na seleção padrão. Se você já tinha escolhido um desses patches e quer que ele continue funcionando, ligue a chave dele de novo depois de atualizar. Em Privacidade são Bloquear o acesso à lista de contatos, Bloquear a varredura de apps instalados, Bloquear a localização, Bloquear a leitura da área de transferência, Bloquear os sensores de movimento, Não salvar novas pesquisas e Mostrar quando a câmera ou o microfone estiver em uso. Em Comentários são O joinha para baixo bloqueia quem comentou, Os links nos comentários abrem e Esconder os anúncios pop-up dos comentários, e em Aplicativo, Desativar a resposta tátil e Desativar as transições de tela.
+
+* **TikTok:** O modo simples do Morphe Manager agora escolhe 107 dos 130 patches do Hushfeed, em vez de 55, então a maioria não precisa mais do modo especialista. Cada chave que os patches recém escolhidos trazem começa desligada, e o TikTok fica com a aparência e o funcionamento de fábrica até você ligar algo em Configurações do Hushfeed. Os outros 23 continuam no modo especialista, e a seção Patches do README lista cada um com o motivo de ficar de fora. A descrição de cada patch agora diz onde fica a chave dele e que ela começa desligada.
+
+* **TikTok:** O Morphe Manager tem um grupo novo, Interface, para os patches que mudam a aparência do TikTok. Tema escuro AMOLED, Usar a fonte do sistema e Desativar as transições de tela vão para lá saindo de Performance, Mudar o nome do app, Ícone de launcher personalizado e Ocultar os atalhos do inicializador saindo de Settings, e Tamanhos de texto do feed saindo de Interaction.
 
 ## 0.69.0 (2026-10-08)
 

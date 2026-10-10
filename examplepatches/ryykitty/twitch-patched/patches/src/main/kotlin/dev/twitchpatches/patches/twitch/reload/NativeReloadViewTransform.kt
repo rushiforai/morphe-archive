@@ -28,11 +28,6 @@ internal fun BytecodePatchContext.installNativeReloadViews(v: NativeReloadViewHo
         attached.insertAtReturn(it, "invoke-virtual/range {p0 .. p1}, ${bind.reference}")
     }
     val controller = mutableClassDefBy(v.transport.definingClass)
-    controller.interfaces.add(NATIVE_OWNER)
-    controller.methods.add(nativeReloadMethod(controller.type, "reloadControlsOwner", emptyList(), "Ljava/lang/Object;", 2, """
-        iget-object v0, p0, ${v.transport}
-        return-object v0
-    """))
     val controllerBridge = nativeReloadMethod(controller.type, "bindReloadPlayerViews",
         emptyList(), "V", 4, """
         iget-object v0, p0, ${v.delegate}

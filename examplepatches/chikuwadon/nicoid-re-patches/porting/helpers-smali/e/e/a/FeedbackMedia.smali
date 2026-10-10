@@ -114,7 +114,9 @@
 .end method
 
 .method public static apply(Landroid/media/session/MediaSession;Landroid/media/MediaMetadata;Ljava/lang/Object;)V
-    .registers 7
+    .registers 8
+
+    move-object v4, p2
 
     .line 11
     invoke-static {p2}, Le/e/a/FeedbackMedia;->bundle(Ljava/lang/Object;)Landroid/os/Bundle;
@@ -236,37 +238,8 @@
 
     invoke-virtual {p0, p2}, Landroid/media/session/MediaSession;->setMetadata(Landroid/media/MediaMetadata;)V
 
-    .line 15
-    if-eqz v0, :cond_82
+    invoke-static {p0, p2, v4, v0}, Le/e/a/CachedMediaArtwork;->request(Landroid/media/session/MediaSession;Landroid/media/MediaMetadata;Ljava/lang/Object;Ljava/lang/String;)V
 
-    if-nez p1, :cond_82
-
-    sget-object p1, Le/e/a/FeedbackMedia;->loading:Ljava/util/Set;
-
-    invoke-interface {p1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
-
-    move-result p1
-
-    if-nez p1, :cond_77
-
-    goto :goto_82
-
-    .line 16
-    :cond_77
-    sget-object p1, Le/e/a/FeedbackMedia;->worker:Ljava/util/concurrent/ExecutorService;
-
-    new-instance v1, Le/e/a/FeedbackMedia$$ExternalSyntheticLambda0;
-
-    invoke-direct {v1, v0, p0, p2}, Le/e/a/FeedbackMedia$$ExternalSyntheticLambda0;-><init>(Ljava/lang/String;Landroid/media/session/MediaSession;Landroid/media/MediaMetadata;)V
-
-    invoke-interface {p1, v1}, Ljava/util/concurrent/ExecutorService;->execute(Ljava/lang/Runnable;)V
-
-    .line 17
-    return-void
-
-    .line 15
-    :cond_82
-    :goto_82
     return-void
 .end method
 

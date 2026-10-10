@@ -104,7 +104,7 @@ public final class SettingsBackupPreference extends Preference
         int order = screen.getPreferenceCount();
         for (Object[] row : new Object[][]{
                 {EXPORT, "Back up settings",
-                        "Save Hushfeed settings and Feature Gate Lab rules to a JSON file."},
+                        "Saves your Hushfeed settings and Feature Gate Lab rules to a file."},
                 {IMPORT, "Restore settings",
                         "Choose a backup file. Your current settings are kept for Undo."},
                 {RESET, "Reset settings",
@@ -238,6 +238,7 @@ public final class SettingsBackupPreference extends Preference
         boolean labRulesSkipped = false;
         int keptAsTheyWere = 0;
         int settingsSkipped = 0;
+        SettingsBackup.ProxyHold proxyHold = SettingsBackup.ProxyHold.NONE;
         java.util.List<app.morphe.extension.tiktok.download.DownloadDestination.Kind> foldersKept =
                 java.util.Collections.emptyList();
         // Whether the write has the file. Before that, a file the user chose to replace still
@@ -260,6 +261,8 @@ public final class SettingsBackupPreference extends Preference
                 String text = SettingsBackup.readForRestore(
                         file.openForRead(context.getContentResolver(), uri));
                 if (!file.commit()) return;
+                // Asked first: afterwards the phone already holds what the restore wrote.
+                proxyHold = SettingsBackup.proxyHold(text);
                 SettingsBackup.restore(context, text, true);
                 labRulesSkipped = SettingsBackup.labRulesWereSkipped(text);
                 keptAsTheyWere = SettingsBackup.settingsNotInFile(text);
@@ -322,6 +325,13 @@ public final class SettingsBackupPreference extends Preference
                                 ? "Photos can't be saved to the folder in that file, so your photo folder was kept"
                                 : "Stickers can't be saved to the folder in that file, so your sticker folder was kept"))
                         .append(". ");
+            }
+            // A file can't turn the proxy on or move this phone's, and the row alone wouldn't
+            // say why the switch is off after a move, or why the file's address isn't there.
+            if (proxyHold == SettingsBackup.ProxyHold.LEFT_OFF) {
+                notes.append(L10n.t("The network proxy from that file is off. Check its address before you turn it on")).append(". ");
+            } else if (proxyHold == SettingsBackup.ProxyHold.KEPT_THIS_PHONES) {
+                notes.append(L10n.t("Your network proxy was kept, since a backup can't change it")).append(". ");
             }
             String message = notes + outcome;
             if (action == EXPORT) SettingsActionBanner.showNotice(TikTokPreferenceFragment.reportWindow(window, context), message);

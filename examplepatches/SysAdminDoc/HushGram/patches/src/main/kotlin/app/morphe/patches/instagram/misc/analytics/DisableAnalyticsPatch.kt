@@ -29,12 +29,23 @@ internal const val STREAM_EVENTS = "$EXTENSION_PACKAGE/misc/Analytics;->streamEv
 /** Whether to skip a Bloks screen, by its app id: the "Set up on new device" screens. */
 internal const val SETUP_SCREEN = "$EXTENSION_PACKAGE/misc/Analytics;->setupScreen(Ljava/lang/String;)I"
 
+/** The routes the patch works on, in order. Each before "stream" stops events leaving the phone. */
+internal val ANALYTICS_TARGETS = listOf("builder", "graph", "mqtt", "reports", "pings", "stream", "setup")
+
+/**
+ * The routes that only matter alongside the others. Keeping events off Falco's stream sends them
+ * to the batch upload, which only the addresses before it guard, and skipping the setup screens
+ * only matters while their seen events are refused. A build where none of the five was found
+ * mustn't pass on these alone.
+ */
+internal val ANALYTICS_SUPPORTING = setOf("stream", "setup")
+
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
-    description = "Sends Instagram's usage events and crash reports to an address on your phone that refuses " +
-        "them, instead of to Instagram's and Facebook's servers. It also skips the contacts and location setup " +
-        "screens, which would come back on every start without those events. Restart Instagram after changing the switch.",
+    description = "Stops Instagram from sending usage reports and crash reports to Instagram and Facebook. It " +
+        "also skips the contacts and location setup screens. Restart Instagram after you change it. On by " +
+        "default. Turn it off in HushGram settings > Ads and privacy.",
     default = true,
 ) {
     category("Privacy")
@@ -45,7 +56,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("disableAnalytics")
 
-        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings", "stream", "setup"),
+        handleTargets(PATCH, "event upload addresses", ANALYTICS_TARGETS, supporting = ANALYTICS_SUPPORTING,
             coverage = { writeTargetCoverage("disableAnalytics", it) }) { target ->
             when (target) {
                 // Instagram's own logging_client_events and pigeon_nest addresses, built from a host.

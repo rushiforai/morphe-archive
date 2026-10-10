@@ -44,6 +44,9 @@ public class CaptionLanguageFilterTest {
         assertTrue(CaptionLanguageFilter.languages(null).isEmpty());
         assertNull(CaptionLanguageFilter.languageProblem("en, es-MX, fil"));
         assertNull(CaptionLanguageFilter.languageProblem(""));
+        // A doubled or leading comma is skipped by the filter, so the check lets it through.
+        assertNull(CaptionLanguageFilter.languageProblem("en,,es"));
+        assertNull(CaptionLanguageFilter.languageProblem(", en"));
         String problem = CaptionLanguageFilter.languageProblem("en, English");
         assertNotNull(problem);
         assertTrue(problem, problem.startsWith("English isn't a language code"));

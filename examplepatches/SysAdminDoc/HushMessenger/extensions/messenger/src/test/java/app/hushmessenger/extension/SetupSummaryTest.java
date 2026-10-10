@@ -119,7 +119,7 @@ public class SetupSummaryTest {
             android.widget.TextView people = root.findViewWithTag("active_people");
             android.widget.TextView stories = root.findViewWithTag("active_stories");
             assertEquals(View.VISIBLE, people.getVisibility());
-            assertEquals("Nothing to change yet since restart", people.getText().toString());
+            assertEquals("Not used yet since Messenger started", people.getText().toString());
             // An off switch has nothing to report, and turning it on shows its label.
             assertEquals(View.GONE, stories.getVisibility());
             ((android.widget.Switch) root.findViewWithTag("stories")).setChecked(true);
@@ -146,15 +146,15 @@ public class SetupSummaryTest {
         Settings.activeAt.put("hide_read_receipts", System.currentTimeMillis());
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             String report = copiedSetup(screen.get().getWindow().getDecorView());
-            assertTrue(report.contains("Activity records show a control ran. They don't verify its visible effect or privacy protection.\n"));
+            assertTrue(report.contains("Activity notes only show that a control ran. They don't prove it had a visible effect or protected your privacy.\n"));
             for (String[] control : SettingsActivity.CONTROLS)
                 assertTrue(control[0], report.contains(", scope=" + control[2] + "\n"));
             assertTrue(report.matches("(?s).*hide_read_receipts: installed=true, selected=true, active=true, last_active=\\d+s ago, scope=.*"));
-            assertTrue(report.contains("Replying or switching this off may notify the sender."));
-            assertTrue(report.contains("Activity records intercepted legacy unsends, not whether a chat is supported."));
+            assertTrue(report.contains("Replying or switching this off may notify them."));
+            assertTrue(report.contains("Encrypted chats aren't supported and group chats aren't tested."));
             assertTrue(report.contains("This doesn't add replay or saving."));
-            assertTrue(report.contains("Native Bubbles needs Android 11, account support and notification permissions."));
-            assertTrue(report.contains("Search and community folders keep them. Delivery and unread counts stay unchanged."));
+            assertTrue(report.contains("Native Bubbles needs Android 11 or newer, a supported account and notification permission."));
+            assertTrue(report.contains("Search and community folders still show them."));
         }
     }
 
@@ -301,7 +301,7 @@ public class SetupSummaryTest {
             try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
                 android.widget.TextView help = screen.get().getWindow().getDecorView().findViewWithTag("shared_install_help");
                 assertNotNull(help);
-                assertTrue(help.getText().toString().contains("removes Messenger and its local data"));
+                assertTrue(help.getText().toString().contains("Messenger is removed and its data on your phone is erased"));
                 assertTrue(help.getText().toString().contains("Hide app drawer icon"));
                 assertNotEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, help.getImportantForAccessibility());
             }
@@ -313,7 +313,7 @@ public class SetupSummaryTest {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             assertNull(root.findViewWithTag("hide_drawer_icon"));
-            assertTrue(((android.widget.TextView) root.findViewWithTag("drawer_help")).getText().toString().contains("no settings launcher alias"));
+            assertTrue(((android.widget.TextView) root.findViewWithTag("drawer_help")).getText().toString().contains("no settings icon to hide"));
             assertFalse(((android.widget.TextView) root.findViewWithTag("access_help")).getText().toString().contains("or from your app drawer"));
             android.widget.EditText search = root.findViewWithTag("find_control");
             search.setText("drawer icon");
@@ -344,7 +344,7 @@ public class SetupSummaryTest {
                 View root = screen.get().getWindow().getDecorView();
                 root.findViewWithTag("tab_app").performClick();
                 assertNull(root.findViewWithTag("hide_drawer_icon"));
-                assertTrue(((android.widget.TextView) root.findViewWithTag("drawer_help")).getText().toString().contains("requires the HushMessenger row"));
+                assertTrue(((android.widget.TextView) root.findViewWithTag("drawer_help")).getText().toString().contains("patch in Open settings from menu first"));
             }
         } finally {
             Settings.preferences.edit().putBoolean("hide_drawer_icon", false).commit();

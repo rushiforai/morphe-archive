@@ -1,0 +1,13 @@
+diff --git a/slimt/QMM.cc b/slimt/QMM.cc
+index 246a423..9411851 100644
+--- a/slimt/QMM.cc
++++ b/slimt/QMM.cc
+@@ -15,7 +15,7 @@ constexpr Provider kProvider = Provider::Intgemm;
+ #include "slimt/qmm/Intgemm.inl.cc"
+ #endif
+ 
+-#ifdef SLIMT_HAS_RUY
++#if defined(SLIMT_HAS_RUY) && !defined(SLIMT_HAS_GEMMOLOGY)
+ 
+ namespace slimt::qmm::detail {
+ constexpr Provider kProvider = Provider::Ruy;

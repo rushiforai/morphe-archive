@@ -303,11 +303,12 @@ private val materialYouResourcePatch = resourcePatch {
 @Suppress("unused")
 val materialYouThemePatch = bytecodePatch(
     name = "Material You theme",
-    description = "Gives Facebook's dark mode the colours of your wallpaper on Android 12 and newer, and " +
-        "a fixed blue palette on Android 11. Light mode stays as it is. Turn on dark mode in Facebook first.",
+    description = "Gives Facebook's dark mode the colors of your wallpaper on Android 12 and newer, so it " +
+        "matches your phone. Turn on dark mode in Facebook first. It isn't selected by default because undoing " +
+        "it means patching again. Turn on Expert mode in Manager to pick it.",
     default = false,
 ) {
-    category("Interface")
+    category("Theme")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

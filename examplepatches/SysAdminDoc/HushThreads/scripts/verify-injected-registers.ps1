@@ -124,10 +124,11 @@ function Get-SignerDigests {
 
 # DexDiff over the pair, with Continue only in here, as in Get-SignerDigests. Called inside the try
 # below, a java that can't start throws out of here into the script's Stop. Called outside one, it
-# wouldn't, and this would read the exit code apksigner left, so the code starts at -1.
+# wouldn't, and this would read the exit code apksigner left, so the code starts at -1. The run
+# waits for a slot of the machine's build queue when there is one (Invoke-HeavyJob), or runs at once
+# inside the slot verify-all-patches.ps1 already holds, and its lines come back in a table.
 function Invoke-DexDiff {
     $ErrorActionPreference = 'Continue'
-    $global:LASTEXITCODE = -1
     $selectionArguments = @()
     if ($null -ne $SelectedPatches) {
         $featureNames = [ordered]@{
@@ -144,8 +145,13 @@ function Invoke-DexDiff {
         $selected = @($featureNames.Keys | Where-Object { $_ -cin $SelectedPatches } | ForEach-Object { $featureNames[$_] }) -join ','
         $selectionArguments += $(if ($selected) { $selected } else { 'none' })
     }
-    $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') $CleanMerged $PatchedApk $ReportPath (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase @selectionArguments 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+    $diffRun = @{ Output = @() }
+    Invoke-HeavyJob -Label 'register check' -ScriptBlock {
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        $diffRun.Output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') $CleanMerged $PatchedApk $ReportPath (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase @selectionArguments 2>&1 | ForEach-Object { "$_" })
+    }
+    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $diffRun.Output }
 }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("hushthreads-regs-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
@@ -229,9 +235,14 @@ if (@($cleanSigners | Where-Object { $_ -in $metaSigners }).Count -eq 0) {
 }
 # The dex comparison's clean side: the whole bundle, merged as the CLI merged it before patching,
 # so a split's dex (the Facebook sibling's 580 in-app browser shipped one) is on both sides. DexDiff
-# holds it to the signed base.apk's classes*.dex. A plain APK is its own merge.
+# holds it to the signed base.apk's classes*.dex. A plain APK is its own merge. The merge is a job of
+# the machine's build queue when there is one (Invoke-HeavyJob), and its path comes back in a table.
 if (-not $CleanMerged) {
-    $CleanMerged = Get-MergedApk -Apk $CleanApk -Destination (Join-Path $work 'clean-merged.apk') -Java $Java -DesktopJar $DesktopJar
+    $cleanMerge = @{ Path = $null }
+    Invoke-HeavyJob -Label 'merge clean bundle' -ScriptBlock {
+        $cleanMerge.Path = Get-MergedApk -Apk $CleanApk -Destination (Join-Path $work 'clean-merged.apk') -Java $Java -DesktopJar $DesktopJar
+    }
+    $CleanMerged = $cleanMerge.Path
 }
 if (-not (Test-Path -LiteralPath $CleanMerged -PathType Leaf)) { throw "No merged clean APK at $CleanMerged." }
 

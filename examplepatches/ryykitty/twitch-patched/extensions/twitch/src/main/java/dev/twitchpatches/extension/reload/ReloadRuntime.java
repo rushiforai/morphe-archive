@@ -35,7 +35,7 @@ public final class ReloadRuntime implements ToggleSetting {
     }
     @Override public String key() { return "reload_stream"; }
     @Override public String title() { return "Reload stream"; }
-    @Override public String summary() { return "Double-tap the button beside volume to reload the live stream."; }
+    @Override public String summary() { return "Enable double-tap reloading for live streams."; }
     @Override public SettingSection section() { return SettingSection.PLAYBACK; }
     @Override public boolean isEnabled() { return enabled; }
     @Override public void setEnabled(boolean value) {

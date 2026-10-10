@@ -1,0 +1,1 @@
+package android.graphics;public class Bitmap{final int w,h;public Bitmap(int width,int height){w=width;h=height;}public int getWidth(){return w;}public int getHeight(){return h;}public boolean isRecycled(){return false;}public static Bitmap createScaledBitmap(Bitmap b,int w,int h,boolean filter){return new Bitmap(w,h);}}

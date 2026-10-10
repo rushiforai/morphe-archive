@@ -124,24 +124,38 @@ function Get-SignerDigests {
 
 # DexDiff over the pair, with Continue only in here, as in Get-SignerDigests. Called inside the try
 # below, a java that can't start throws out of here into the script's Stop. Called outside one, it
-# wouldn't, and this would read the exit code apksigner left, so the code starts at -1.
+# wouldn't, and this would read the exit code apksigner left, so the code starts at -1. Each of the
+# two 8 GB checks waits for a slot in the machine's build queue first, and gives it back in the
+# finally, a java that never started included.
 function Invoke-DexDiff {
     $ErrorActionPreference = 'Continue'
-    $global:LASTEXITCODE = -1
-    $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') `
-        $CleanMerged $PatchedApk $ReportPath `
-        (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') `
-        (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase $selectionFile 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+    $queued = Enter-HushPinterestQueue -Job 'dex diff'
+    try {
+        $global:LASTEXITCODE = -1
+        $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') `
+            $CleanMerged $PatchedApk $ReportPath `
+            (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') `
+            (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase $selectionFile 2>&1 | ForEach-Object { "$_" })
+        $exitCode = $LASTEXITCODE
+    } finally {
+        Exit-HushPinterestQueue $queued
+    }
+    [pscustomobject]@{ ExitCode = $exitCode; Output = $output }
 }
 
 function Invoke-HostReferences {
     $ErrorActionPreference = 'Continue'
-    $global:LASTEXITCODE = -1
-    $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'HostReferences.java') `
-        $CleanMerged $PatchedApk $referenceReport $AndroidJar $ApiVersions "$($patched.minSdk)" `
-        (Join-Path $PSScriptRoot 'host-reference-contracts.txt') 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+    $queued = Enter-HushPinterestQueue -Job 'host references'
+    try {
+        $global:LASTEXITCODE = -1
+        $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'HostReferences.java') `
+            $CleanMerged $PatchedApk $referenceReport $AndroidJar $ApiVersions "$($patched.minSdk)" `
+            (Join-Path $PSScriptRoot 'host-reference-contracts.txt') 2>&1 | ForEach-Object { "$_" })
+        $exitCode = $LASTEXITCODE
+    } finally {
+        Exit-HushPinterestQueue $queued
+    }
+    [pscustomobject]@{ ExitCode = $exitCode; Output = $output }
 }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("hushpinterest-regs-" + [guid]::NewGuid().ToString('N').Substring(0, 8))

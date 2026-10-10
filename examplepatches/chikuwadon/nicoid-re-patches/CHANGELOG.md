@@ -1,3 +1,42 @@
+## 1.8.1 (2026-10-09)
+
+### ✨ New Features
+
+* **nicoid:** Add double-tap seeking with a 1–60 second slider and an Off position at the left end. ([#41](https://github.com/chikuwadon/nicoid-re-patches/issues/41))
+* **nicoid:** Open video actions in a popup on long press.
+* **nicoid:** Add an uploader-blocking action with confirmation, registering the uploader or channel name as an exact-match content filter.
+* **nicoid:** Add device-local playlists with folder creation and deletion, video moves, and single or batch video deletion.
+* **nicoid:** Add checkbox controls for continuous and shuffle playback within the current playlist folder, supporting normal, popup and background playback.
+* **nicoid:** Add shuffle playback to device and account watch history.
+* **nicoid:** Allow folder creation when choosing an account mylist for video registration.
+* **nicoid:** Show series, parent works and child works for Shorts, and support creator following. ([#43](https://github.com/chikuwadon/nicoid-re-patches/issues/43))
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore channel following and correct navigation to creator pages. ([#42](https://github.com/chikuwadon/nicoid-re-patches/issues/42))
+* **nicoid:** Fix crashes when posting comments. ([#44](https://github.com/chikuwadon/nicoid-re-patches/issues/44))
+* **nicoid:** Restore Watch Later registration using the current endpoint. ([#45](https://github.com/chikuwadon/nicoid-re-patches/issues/45))
+* **nicoid:** Restore portrait Shorts playback when entering fullscreen from the normal player. ([#46](https://github.com/chikuwadon/nicoid-re-patches/issues/46))
+* **nicoid:** Restore official-channel uploaded-video lists, including thumbnails and statistics, using the same row layout as user uploads. ([#47](https://github.com/chikuwadon/nicoid-re-patches/issues/47))
+* **nicoid:** Show downloaded thumbnail artwork in media controls during offline cache playback. ([#48](https://github.com/chikuwadon/nicoid-re-patches/issues/48))
+* **nicoid:** Restore app-private cache storage as the default and a selectable location, allowing downloads without choosing a shared-storage folder. ([#49](https://github.com/chikuwadon/nicoid-re-patches/issues/49))
+* **nicoid:** Remove empty cache folders after deleting their cached videos.
+* **nicoid:** Preserve the settings screen and scroll position when changing the app language.
+* **nicoid:** Fix video-list taps and honor the configured playback mode in playlists.
+* **nicoid:** Synchronize Shorts overlays with playback controls and resume paused Shorts on video taps.
+* **nicoid:** Clear selected rows when leaving multiple-selection mode.
+* **nicoid:** Fix crashes when opening settings, creator pages, Shorts and video-action popups.
+
+### 🔧 Improvements
+
+* **nicoid:** Match device-playlist layouts and selection controls to account mylists.
+* **nicoid:** Use an extended long press to enter multiple-selection mode in watch history, mylists, cache lists and playlists, while retaining the action popup on a regular long press.
+* **nicoid:** Unify multiple-selection controls, show the selected-item count, remove the Copy action, and remove Delete all history from overflow menus.
+* **nicoid:** Simplify the Shorts overlay with compact creator and title text, translucent like and follow icons, and an oval comment entry while preserving the bottom controls.
+* **nicoid:** Apply consistent dark-mode and theme colors to action popups, comment forms, folder dialogs and playback-setting sliders.
+* **nicoid:** Add a reset-to-default control for the default playback speed.
+* **nicoid:** Clarify content-filter setting summaries.
+
 ## 1.8.0 (2026-10-08)
 
 ### ✨ New Features

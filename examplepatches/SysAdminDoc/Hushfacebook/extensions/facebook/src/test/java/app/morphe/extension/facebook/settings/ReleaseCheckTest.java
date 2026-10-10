@@ -227,7 +227,7 @@ public class ReleaseCheckTest {
         ReleaseCheck.run(NOW + DAY);
         assertEquals("UNREADABLE", Stored.RESULT.get());
         assertEquals("what the last good answer found stays", "0.2.0", Stored.NEWEST.get());
-        assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals("GitHub sent a reply Hushfacebook couldn't understand. Try again later.", ReleaseCheck.checkNowSummary());
         assertEquals(NEWER, ReleaseCheck.statusLine());
     }
 
@@ -288,7 +288,7 @@ public class ReleaseCheckTest {
         github.then(Reply.release("v0.2.0", null).announcing(ReleaseCheck.MAX_BODY_BYTES + 1L));
         ReleaseCheck.run(NOW);
         assertEquals("TOO_LARGE", Stored.RESULT.get());
-        assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals("GitHub sent a reply Hushfacebook couldn't understand. Try again later.", ReleaseCheck.checkNowSummary());
     }
 
     @Test
@@ -360,7 +360,7 @@ public class ReleaseCheckTest {
         github.then(Reply.status(403).header("X-RateLimit-Remaining", "0").header("X-RateLimit-Reset", "1790003600"));
         ReleaseCheck.run(NOW);
         assertEquals("RATE_LIMITED", Stored.RESULT.get());
-        assertEquals("GitHub is turning away checks from this network for now. Try again later.",
+        assertEquals("GitHub is limiting requests from this network right now. Try again later.",
                 ReleaseCheck.checkNowSummary());
         assertNull(ReleaseCheck.statusLine());
 

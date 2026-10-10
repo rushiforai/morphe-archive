@@ -47,17 +47,37 @@ param(
     [string]$PatchList,
     [string]$Java,
     [switch]$Force,
-    [string]$Aapt2
+    [string]$Aapt2,
+    # A clean run's patched APK and CLI report are kept here, under the fixture's hash, with a stamp
+    # of the commit, fixture, bundle, patch list and CLI they came from. build-release-receipt.ps1
+    # -AppliedDir reads a run whose stamp matches its own instead of patching that fixture again.
+    [string]$KeepIn,
+    # The checkout the bundle and patch list belong to, and whose commit the stamp names. This
+    # script's own by default.
+    [string]$Root
 )
 
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'common.ps1')
+# The CLI run and the checkers after it are as heavy as a build, so the whole run waits for a slot
+# in the machine-wide build queue and runs there, by running this script again inside the slot.
+# Already in one, it goes straight on.
+if (-not $env:HUSHTELEGRAM_QUEUED_JOB) {
+    $selfScript = $PSCommandPath
+    $selfArguments = $PSBoundParameters
+    $queuedRun = @{ Output = @() }
+    $queuedExit = Invoke-InHushTelegramQueue -Job 'verify-all-patches' -ScriptBlock {
+        $queuedRun.Output = @(& $selfScript @selfArguments)
+    }
+    $queuedRun.Output
+    exit $queuedExit
+}
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 $Java = Resolve-Java -Explicit $Java
-$root = Split-Path -Parent $PSScriptRoot
+$root = if ($Root) { (Resolve-Path -LiteralPath $Root).Path } else { Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
-. (Join-Path $PSScriptRoot 'common.ps1')
 
 if (-not $Bundle) {
     $version = Get-BundleVersion -Root $root
@@ -245,6 +265,12 @@ try {
                 Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
                     'are all approved, whose resource table holds every stock resource and whose injected code ' +
                     'passes the structural checks.')
+                if ($KeepIn) {
+                    $stamp = Get-VerifiedApplyStamp -Root $root -Apk $Apk -Bundle $Bundle -PatchList $PatchList `
+                        -DesktopJar $DesktopJar -Forced $forced
+                    $kept = Save-VerifiedApply -KeepIn $KeepIn -Stamp $stamp -PatchedApk $out -ResultPath $result
+                    Write-Host "[verify] kept this run for the release receipt in $kept"
+                }
                 $exitCode = 0
             } else {
                 Write-Warning "[verify] the injected code failed its structural checks (exit $registerExitCode)."

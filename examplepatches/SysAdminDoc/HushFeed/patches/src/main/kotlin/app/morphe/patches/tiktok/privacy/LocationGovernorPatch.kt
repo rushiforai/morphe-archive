@@ -19,8 +19,8 @@ private const val LISTENER = "Landroid/location/LocationListener;"
 @Suppress("unused")
 val locationGovernorPatch = bytecodePatch(
     name = "Location access governor",
-    description = "Answers TikTok's location requests with nothing: the last known location comes back empty and update requests never fire. The SIM and region spoof change the locale and timezone, not the coordinates. This patch stops the coordinates. Switch: Hushfeed settings > Privacy.",
-    default = false,
+    description = "Gives TikTok no location when it asks, so it can't see where you are from " +
+        "your phone's location services. Starts off. Turn it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)

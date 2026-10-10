@@ -138,7 +138,7 @@ function Test-DeclaredBuild {
 }
 
 function Format-DeclaredBuilds {
-    # The declared builds the way a refusal names them: 581.0.0.45.58 (475215365 or 475215364).
+    # The declared builds the way a refusal names them: 582.0.0.50.54 (475417104 or 475417036).
     param([Parameter(Mandatory = $true)]$Target)
 
     $named = foreach ($version in @($Target.PackageVersions)) {

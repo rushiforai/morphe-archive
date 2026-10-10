@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.ui
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
@@ -32,8 +33,10 @@ import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
-/** Pinterest's collage image model, pin closeup builder and pin image size set in both APKs. */
+/** Pinterest's collage image model, pin closeup builder and pin image size set in each declared APK. */
+@Category(FixtureTests::class)
 class OriginalImagesFixtureTest {
     /** The classes the patch reads in one build: the image model, the closeup builder's class and the size bucket. */
     private class Build(val name: String, val model: ClassDef, val builder: ClassDef, val bucket: ClassDef) {

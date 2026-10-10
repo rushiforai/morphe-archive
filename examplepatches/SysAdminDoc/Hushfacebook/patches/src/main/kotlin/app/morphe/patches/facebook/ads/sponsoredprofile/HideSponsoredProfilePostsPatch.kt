@@ -44,7 +44,8 @@ internal class TimelineStory(val render: Method, val unit: Field, val sponsoredD
 @Suppress("unused")
 val hideSponsoredProfilePostsPatch = bytecodePatch(
     name = "Hide sponsored profile posts",
-    description = "Removes the ads between the posts on someone's profile or a Page. The profile's own posts stay.",
+    description = "Removes the ads between posts on someone's profile or a Page, so you only see what they " +
+        "posted. On by default. Turn it off in Hushfacebook settings > News feed.",
     default = true,
 ) {
     category("Ads")

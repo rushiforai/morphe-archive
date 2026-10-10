@@ -21,16 +21,16 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * runnable to the executor as Facebook would unless the switch is on and the runnable is the one
  * Redex named as the seen-state send.
  *
- * Off in the default selection: it trades Facebook's record of what you've watched for reels you've
- * seen coming back, which is a choice to make, not a fix. Picked, its switch starts on.
+ * In the default selection with its switch off: it trades Facebook's record of what you've
+ * watched for reels you've seen coming back, which is a choice to make, not a fix.
  */
 @Suppress("unused")
 val dontSendReelWatchHistoryPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Don't send reel watch history",
-    description = "Stops sending Facebook the list of reels you've watched. It's used to rank your Reels feed, " +
-        "and nobody else sees it. Reels you've already watched may come back in the feed.",
-    default = false,
+    description = "Stops sending Facebook the list of reels you've watched, so it learns less about what you " +
+        "watch. Reels you've already seen may come back. Starts off. Turn it on in Hushfacebook settings > Reels " +
+        "and Watch.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch)

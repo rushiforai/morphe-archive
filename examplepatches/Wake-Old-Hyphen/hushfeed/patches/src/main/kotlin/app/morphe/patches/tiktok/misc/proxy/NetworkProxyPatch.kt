@@ -121,12 +121,9 @@ internal fun proxyInstallIndex(method: Method): Int {
 @Suppress("unused")
 val networkProxyPatch = bytecodePatch(
     name = "Network proxy",
-    description = "Sends TikTok's own network stack, which carries the feed, search, comments and the rest of " +
-        "its API, through an HTTP or SOCKS5 proxy you set, along with plain Java connections. Videos and LIVE " +
-        "streams load through TikTok's player, which connects on its own, so they stay direct. TikTok's network " +
-        "stack can't sign in to a proxy, so a user name and password only reach the Java connections. Other " +
-        "apps aren't affected. Off by default. Restart after changing. Switch: Hushfeed settings > Region.",
-    default = false,
+    description = "Sends TikTok's feed, search and comments through a proxy server you set " +
+        "up. Videos and LIVEs still load directly, and other apps aren't affected. Starts off. " +
+        "Turn it on in Hushfeed settings > Region, then restart TikTok.",
 ) {
     category("Settings")
     dependsOn(settingsPatch, sharedExtensionPatch)

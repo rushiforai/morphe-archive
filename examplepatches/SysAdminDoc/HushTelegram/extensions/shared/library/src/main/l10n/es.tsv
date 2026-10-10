@@ -1,7 +1,7 @@
 # Spanish for HushTelegram: the English key, a tab, the translation. One row per string.
 # context: Chat-list-only story controls and immutable hook coverage.
 Hide Stories	Ocultar historias
-Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.	Oculta la barra de historias de la lista de chats, los anillos de historias en los avatares y el botón para publicar una historia, y deja de consultar la lista de historias. Las historias de los perfiles y los archivos siguen disponibles.
+Removes the story bar above your chats, the rings around profile pictures and the Post Story button. Profile stories and archives stay.	Quita la barra de historias sobre tus chats, los anillos alrededor de las fotos de perfil y el botón para publicar una historia. Las historias de los perfiles y los archivos se mantienen.
 story list requests	consultas de la lista de historias
 chat-list story bar	barra de historias de la lista de chats
 Post Story button	botón para publicar una historia
@@ -12,17 +12,17 @@ avatar story taps	toques de historias en los avatares
 %1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	%1$d elementos de ese archivo no son ajustes que conozca esta versión de HushTelegram, así que se omitirán.
 %1$d switch will change.	Cambiará %1$d interruptor.
 %1$d switches will change.	Cambiarán %1$d interruptores.
-%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Este cambio se aplicó al parchear, así que Pausar no puede desactivarlo. Para descartarlo, vuelve a parchear sin ese parche.
-%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Estos cambios se aplicaron al parchear, así que Pausar no puede desactivarlos. Para descartar uno, vuelve a parchear sin el parche que aparece entre paréntesis después de él.
+%1$s. It was set when you patched, so Pause can't turn it off. To get rid of it, patch again without that patch.	%1$s. Se aplicó al parchear, así que Pausar no puede desactivarlo. Para quitarlo, vuelve a parchear sin ese parche.
+%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, patch again without the patch named in brackets after it.	%1$s. Se aplicaron al parchear, así que Pausar no puede desactivarlos. Para quitar uno, vuelve a parchear sin el parche indicado entre paréntesis a continuación.
 A diagnostic report is already being saved.	Ya se está guardando un informe de diagnóstico.
 A file named %1$s in %2$s paused HushTelegram.	Un archivo llamado %1$s en %2$s pausó HushTelegram.
 About	Acerca de
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 y las versiones anteriores no indican qué enlaces se abren aquí. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.
 Back	Atrás
 Cancel	Cancelar
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.	Elige un archivo de configuración. Antes de importar nada, verás cuántos interruptores cambia. Lo que importes se aplica a todas las cuentas de esta app de Telegram.
+Loads switch choices from a saved file. You see how many switches it will change before anything is applied. It applies to all accounts.	Carga opciones de interruptores desde un archivo guardado. Ves cuántos interruptores cambiará antes de aplicar nada. Se aplica a todas las cuentas.
 Clear diagnostic data	Borrar datos de diagnóstico
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si queda otro texto privado antes de compartirlo.
+Copy a short report or save the full one to Download/Morphe. Links, IDs and sign-in details are left out. Look it over before sharing.	Copia un informe breve o guarda el completo en Download/Morphe. Los enlaces, los ID y los datos de inicio de sesión no se incluyen. Revísalo antes de compartirlo.
 Copy quick report	Copiar informe rápido
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	No se pudo importar la configuración ni restaurar la que tenías. Revisa los interruptores de esta pantalla.
 Couldn't import the settings. Nothing was changed.	No se pudo importar la configuración. No se cambió nada.
@@ -37,24 +37,24 @@ Debug logging	Registro de depuración
 Diagnostic data cleared. Tap again to put it back.	Se borraron los datos de diagnóstico. Toca de nuevo para restaurarlos.
 Diagnostic data put back.	Se restauraron los datos de diagnóstico.
 Diagnostic report copied to the clipboard.	Informe de diagnóstico copiado en el portapapeles.
-Empties the log and the hook findings a report would include.	Vacía el registro y los resultados de los hooks que incluiría un informe.
-Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados, y lo que se aplicó al parchear se mantiene. Tu configuración no cambia.
+Clears the activity log and patch checks that a report would include.	Borra el registro de actividad y las comprobaciones de parches que incluiría un informe.
+Every switch except Debug logging acts as if it were off. Edits made when you patched stay in. Your choices stay saved.	Todos los interruptores salvo Registro de depuración funcionan como si estuvieran desactivados. Los cambios hechos al parchear se mantienen. Tus opciones siguen guardadas.
 Export diagnostic report	Exportar informe de diagnóstico
 Export settings	Exportar configuración
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Desde el próximo inicio, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene, y tus preferencias quedan guardadas.
+After Telegram restarts, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Después de reiniciar Telegram, todos los interruptores salvo Registro de depuración funcionan como si estuvieran desactivados. Tus opciones siguen guardadas. Los cambios hechos al parchear se mantienen.
 Hide ads	Ocultar anuncios
 Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
 Privacy	Privacidad
-Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Telegram. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
+Saves your switch choices to a file, for all accounts in this Telegram app. Pause, Debug logging and the update check aren't included.	Guarda en un archivo tus opciones de interruptores, para todas las cuentas de esta app de Telegram. No incluye Pausar, Registro de depuración ni la comprobación de actualizaciones.
 Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Configuración exportada. La app que guarda el archivo no dejó que HushTelegram lo volviera a leer, así que no se comprobó.
 The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	La app que guarda ese archivo tarda demasiado, así que HushTelegram dejó de esperar. No se cambió nada.
 The app holding the last settings file still hasn't answered. Try again later.	La app del último archivo de configuración aún no ha respondido. Inténtalo más tarde.
 The app holding the settings file is taking too long, so HushTelegram stopped waiting. That app may still finish saving it, so check the file before you rely on it.	La app que guarda el archivo de configuración tarda demasiado, así que HushTelegram dejó de esperar. Esa app aún puede terminar de guardarlo, así que revisa el archivo antes de confiar en él.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s y luego vuelve a tocar Reanudar.
-The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	El archivo de configuración se guardó, pero al volver a leerlo no coincide con lo que se escribió. Guárdalo de nuevo como un archivo nuevo.
-Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Hasta que reanudes, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene.
+The settings file was saved, but what's in it doesn't match what was written. Save it again as a new file.	El archivo de ajustes se guardó, pero su contenido no coincide con lo que se escribió. Guárdalo de nuevo como un archivo nuevo.
+Until you resume, every switch except Debug logging acts as if it were off. Edits made when you patched stay in.	Hasta que reanudes, todos los interruptores salvo Registro de depuración funcionan como si estuvieran desactivados. Los cambios hechos al parchear se mantienen.
 Full report saved to %1$s	Informe completo guardado en %1$s
-GPL-3.0, with the notices of the projects this is built on	GPL-3.0, con los avisos de los proyectos en los que se basa
+The GPL-3.0 license, and credits for the projects HushTelegram is built on	La licencia GPL-3.0 y los créditos de los proyectos en los que se basa HushTelegram
 HushTelegram is on	HushTelegram está activado
 HushTelegram is paused	HushTelegram está en pausa
 HushTelegram settings	Configuración de HushTelegram
@@ -71,16 +71,16 @@ Retry	Reintentar
 Save full report	Guardar informe completo
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushTelegram releases	Buscar nuevas versiones de HushTelegram
-Ask GitHub once a day when Telegram starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Consulta GitHub una vez al día al iniciar Telegram y muestra una versión más nueva arriba de estos ajustes. Desactivado por defecto. No descarga nada.
+Once a day, when Telegram starts, checks GitHub for a newer HushTelegram and shows it at the top of these settings. Nothing is downloaded.	Una vez al día, al iniciar Telegram, busca en GitHub un HushTelegram más nuevo y lo muestra al principio de estos ajustes. No se descarga nada.
 Check now	Comprobar ahora
-Asks GitHub for the newest release right now, even with the switch above off.	Pregunta ahora mismo a GitHub por la versión más reciente, aunque el interruptor de arriba esté desactivado.
+Checks GitHub for the newest release right now, even if the switch above is off.	Consulta a GitHub ahora mismo la versión más reciente, aunque el interruptor de arriba esté desactivado.
 Checking GitHub now.	Consultando GitHub ahora.
 HushTelegram %1$s is out. Update it in Morphe Manager.	Ya salió HushTelegram %1$s. Actualízalo en Morphe Manager.
 You have the newest HushTelegram release.	Tienes la versión más reciente de HushTelegram.
 The newest HushTelegram release is %1$s.	La versión más reciente de HushTelegram es la %1$s.
 Couldn't reach GitHub. Try again later.	No se pudo contactar con GitHub. Inténtalo de nuevo más tarde.
-GitHub is turning away checks from this network for now. Try again later.	GitHub está rechazando por ahora las consultas desde esta red. Inténtalo de nuevo más tarde.
-GitHub's answer couldn't be used. Try again later.	No se pudo usar la respuesta de GitHub. Inténtalo de nuevo más tarde.
+GitHub is blocking checks from this network for now. Try again later.	GitHub está bloqueando las comprobaciones desde esta red por ahora. Inténtalo más tarde.
+GitHub sent a reply HushTelegram couldn't read. Try again later.	GitHub envió una respuesta que HushTelegram no pudo leer. Inténtalo más tarde.
 Saving the settings file	Guardando el archivo de configuración
 Set when you patched	Aplicado al parchear
 Settings couldn't open	No se pudo abrir la configuración
@@ -101,12 +101,12 @@ That settings file was written by a newer HushTelegram than this one. Nothing wa
 The diagnostic report couldn't be saved yet. Try again in a moment.	Todavía no se pudo guardar el informe de diagnóstico. Inténtalo de nuevo en un momento.
 The diagnostic report couldn't be saved. Try again.	No se pudo guardar el informe de diagnóstico. Inténtalo de nuevo.
 The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s para volver a activar HushTelegram.
-The setting couldn't finish updating. Its saved value is shown.	No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.
+That setting couldn't be updated. The switch shows the value that is saved.	No se pudo actualizar ese ajuste. El interruptor muestra el valor guardado.
 There's no diagnostic data to clear.	No hay datos de diagnóstico que borrar.
 There's no diagnostic data to put back.	No hay datos de diagnóstico que restaurar.
 This phone has no file picker, so there's no way to choose a file here.	Este teléfono no tiene selector de archivos, así que aquí no hay forma de elegir un archivo.
 Version	Versión
-Record patch activity and show errors for a bug report. Leave off during normal use.	Registra la actividad de los parches y muestra errores para un informe. Déjalo desactivado en el uso normal.
+Records what HushTelegram does and shows error messages, to help with a bug report. Leave it off for everyday use.	Registra lo que hace HushTelegram y muestra mensajes de error, para ayudar con un informe de errores. Déjalo desactivado en el uso diario.
 You paused HushTelegram.	Pausaste HushTelegram.
 Your switches already match that file, so nothing will change.	Tus interruptores ya coinciden con ese archivo, así que no cambiará nada.
 Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
@@ -127,7 +127,7 @@ No matching settings	No hay ajustes coincidentes
 Try a different word or clear the search.	Prueba otra palabra o borra la búsqueda.
 Search settings	Buscar ajustes
 Clear search	Borrar búsqueda
-Your controls are active.	Tus controles están activos.
+Your switches are working.	Tus interruptores están funcionando.
 Pause	Pausar
 Resume	Reanudar
 Undo	Deshacer
@@ -139,16 +139,16 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Seleccionar enlaces a mano
 
 A change here applies after Telegram restarts.	Un cambio de aquí se aplica cuando Telegram se reinicie.
-Android opens t.me links in an app only when its addresses are selected for that app. Selecting them sends their links here, and your other link settings stay as they are.	Android abre los enlaces t.me en una app solo cuando sus direcciones están seleccionadas para esa app. Al seleccionarlas, sus enlaces llegan aquí, y tus otros ajustes de enlaces se quedan como están.
+Android opens t.me links in this app only if you select their addresses on its Open by default page. Other link settings don't change.	Android abre los enlaces t.me en esta app solo si seleccionas sus direcciones en su página Abrir de forma predeterminada. Los demás ajustes de enlaces no cambian.
 Android verified this app for Telegram's web addresses, so their links open here.	Android verificó esta app para las direcciones web de Telegram, así que sus enlaces se abren aquí.
 Android's settings for this app didn't open. Open App info from Telegram's icon, then Open by default.	No se abrieron los ajustes de Android para esta app. Abre Información de la app desde el icono de Telegram y luego Abrir de forma predeterminada.
-Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.	Los canales no muestran mensajes patrocinados, la búsqueda no muestra cuentas patrocinadas y los videos se reproducen sin anuncios. Telegram nunca los solicita, así que ninguno cuenta como visto.
+Removes sponsored messages in channels, sponsored accounts in search and ads in videos. They're never loaded, so none count as seen.	Quita los mensajes patrocinados en canales, las cuentas patrocinadas en la búsqueda y los anuncios en videos. Nunca se cargan, así que ninguno cuenta como visto.
 Chats	Chats
 HushTelegram %1$s on Telegram %2$s	HushTelegram %1$s en Telegram %2$s
-HushTelegram %1$s targets Telegram %2$s.	HushTelegram %1$s está pensado para Telegram %2$s.
+HushTelegram %1$s is made for Telegram %2$s.	HushTelegram %1$s está hecho para Telegram %2$s.
 HushTelegram pauses when Telegram restarts.	HushTelegram se pausa cuando Telegram se reinicie.
 HushTelegram turns back on when Telegram restarts.	HushTelegram vuelve a activarse cuando Telegram se reinicie.
-It targets Telegram %1$s.	Está pensado para Telegram %1$s.
+It's made for Telegram %1$s.	Está hecho para Telegram %1$s.
 None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Ninguna dirección web de Telegram está seleccionada para esta app, así que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
 Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Solo algunas direcciones web de Telegram están seleccionadas para esta app, y los enlaces a las demás se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
 Saved. Restart Telegram to apply this change.	Guardado. Reinicia Telegram para aplicar este cambio.
@@ -163,8 +163,8 @@ video ads	anuncios en videos
 search ads	anuncios en búsquedas
 device statistics reports	informes de estadísticas del dispositivo
 channel read metrics	métricas de lectura de canales
-This build has no coverage for %1$s.	Esta versión no cubre %1$s.
-This build covers %1$s. Missing coverage: %2$s.	Esta versión cubre %1$s. Falta cobertura de %2$s.
+This patched app doesn't change %1$s.	Esta app parcheada no modifica %1$s.
+This patched app changes %1$s but not %2$s.	Esta app parcheada modifica %1$s, pero no %2$s.
 Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Tres veces seguidas, Telegram falló o se congeló durante el primer minuto tras iniciarse, así que HushTelegram se pausó solo.
 Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Las direcciones web de Telegram están seleccionadas para esta app en los ajustes de Android, así que sus enlaces se abren aquí.
 Usage reports and call diagnostics	Informes de uso y diagnósticos de llamadas
@@ -176,43 +176,46 @@ Your choices are saved. Tap Resume, then restart Telegram.	Tus preferencias est�
 Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram deja de ofrecer actualizaciones de telegram.org. No se pueden instalar sobre este build parcheado, así que parchea cada versión nueva en Morphe Manager.
 No HushTelegram release is out yet.	Todavía no hay ninguna versión de HushTelegram.
 Hide recommendations	Ocultar recomendaciones
-Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.	Oculta canales y bots similares, incluidas las recomendaciones guardadas. Telegram no solicita nuevas recomendaciones mientras el interruptor está activado.
+Hides suggested similar channels and bots, including ones already saved, and stops asking Telegram for new ones.	Oculta los canales y bots similares sugeridos, incluidos los ya guardados, y deja de pedirle otros nuevos a Telegram.
 similar channels and bots	canales y bots similares
 cached recommendations	recomendaciones guardadas
 Stop call diagnostics	Detener diagnósticos de llamadas
-Stops automatic call debug reports and log-file uploads requested by Telegram's server.	Detiene los informes automáticos de depuración y las subidas de archivos de registro de llamadas solicitados por el servidor de Telegram.
+Stops your phone from automatically sending call problem reports and log files when Telegram's server asks for them.	Evita que tu teléfono envíe automáticamente informes de problemas de llamadas y archivos de registro cuando el servidor de Telegram los pide.
 call debug reports	informes de depuración de llamadas
 call log file uploads	subidas de archivos de registro de llamadas
 call log reports	informes de registro de llamadas
 Hide Premium, gifts and Stars	Ocultar Premium, regalos y Stars
-Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.	Oculta Premium, Stars, My Grams, Business y Enviar un regalo en Ajustes, las pestañas de regalos de los perfiles y el botón de regalo de los canales. Las compras y los controles de la cuenta siguen funcionando igual.
+Removes Premium, Stars, My Grams, Business and Send a Gift from Settings, Gifts tabs on profiles, and the Gift button in channels.	Quita Premium, Stars, My Grams, Business y Enviar un regalo de los ajustes, las pestañas de regalos en los perfiles y el botón de regalo en los canales.
 Settings sales rows	Ofertas en Ajustes
 profile Gifts tabs	pestañas de regalos de los perfiles
 channel Gift button	botón de regalo de los canales
 Hide promotional banners	Ocultar banners promocionales
-Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.	Oculta los banners de Premium, cumpleaños y saldo bajo de Stars en la lista de chats. Los avisos de seguridad de la cuenta y otras sugerencias se mantienen. No se descarta nada por ti.
+Hides the Premium, birthday and low Stars balance banners above your chat list. Account security notices and other suggestions still show.	Oculta los banners de Premium, cumpleaños y saldo bajo de Stars sobre tu lista de chats. Los avisos de seguridad de la cuenta y otras sugerencias se siguen mostrando.
 promotional suggestions	sugerencias promocionales
 birthday gift banner	banner de regalos de cumpleaños
 Hide sponsored proxy channel	Ocultar canal patrocinado del proxy
-Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.	Oculta el canal patrocinado de un proxy en la lista de chats y las carpetas. No cambia los ajustes del proxy ni las actualizaciones compartidas de datos promocionales.
+Hides the sponsored channel a proxy adds to your chat list and folders. Your proxy settings aren't touched.	Oculta el canal patrocinado que un proxy añade a tu lista de chats y a tus carpetas. Tus ajustes de proxy no se modifican.
 cached proxy channel	canal del proxy almacenado
 cached proxy folder entries	entradas del proxy almacenadas en carpetas
 Open links externally	Abrir enlaces externamente
-Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.	Abre enlaces HTTP(S) normales en tu navegador. Los enlaces de Telegram y las rutas de inicio de sesión, pago o autenticación conservan su comportamiento habitual.
-Strip link tracking	Eliminar seguimiento de enlaces
-Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.	Limpieza local opcional al abrir enlaces y en el selector Compartir enlace. Elimina solo utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid y fbclid. Si hay algún parámetro de consulta desconocido, conserva la URL completa. Desactivado por defecto en los ajustes.
+Opens normal web links in your browser. Telegram links, sign-in and payment pages keep working the way they did.	Abre los enlaces web normales en tu navegador. Los enlaces de Telegram, el inicio de sesión y las páginas de pago siguen funcionando como antes.
+Remove link tracking tags	Quitar etiquetas de seguimiento de enlaces
+Removes tracking tags like utm_source, gclid and fbclid from links you open or share. A link with any other tag is left unchanged.	Quita etiquetas de seguimiento como utm_source, gclid y fbclid de los enlaces que abres o compartes. Un enlace con cualquier otra etiqueta se deja sin cambios.
 external browser routing	apertura en navegador externo
 opened link tracking	seguimiento de enlaces abiertos
 shared link tracking	seguimiento de enlaces compartidos
-Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.	Telegram no envía su estadística del tipo de almacenamiento cuando su servidor la pide, ni cuánto tiempo pasaste en cada publicación de un canal. También bloquea los informes sobre vistas de la pantalla de Premium, toques en funciones, aceptaciones y fallos de compra. Los mensajes y las llamadas funcionan como antes.
+Stops usage reports to Telegram, like how long you read each channel post and what you tap on Premium screens. Messages and calls work as before.	Detiene los informes de uso a Telegram, como cuánto tiempo lees cada publicación de un canal y qué tocas en las pantallas de Premium. Los mensajes y las llamadas funcionan como antes.
+Firebase crash and session reports stop too, from the next time Telegram starts.	Los informes de fallos y de sesión de Firebase también se detienen, a partir del próximo inicio de Telegram.
 Premium promo views	vistas de promociones de Premium
 Premium promo taps	toques en promociones de Premium
 Premium promo accepts	aceptaciones de promociones de Premium
 Premium promo failures	fallos de promociones de Premium
+Firebase crash reports	informes de fallos de Firebase
+Firebase session reports	informes de sesión de Firebase
 Accounts	Cuentas
 Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Cada interruptor de aquí se aplica a todas las cuentas de esta app de Telegram, no solo a la que tienes abierta.
 No previews before sending	Sin vistas previas antes de enviar
-Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.	Telegram no pide a su servidor una vista previa del enlace mientras un mensaje no se ha enviado. Esto cubre los chats, el menú de compartir, las encuestas, los enlaces de historias y los mensajes que comparten los bots. Los mensajes enviados siguen recibiendo su vista previa. Desactivado por defecto en los ajustes.
+Telegram doesn't look up link previews for messages you haven't sent yet, including shares, polls, story links and bots. Sent messages still get one.	Telegram no busca vistas previas de enlaces para mensajes que aún no has enviado, incluidos compartidos, encuestas, enlaces de historias y bots. Los mensajes enviados siguen recibiendo una.
 Draft link previews	Vistas previas de enlaces en borradores
 chat drafts	borradores de chat
 share sheet comments	comentarios del menú de compartir
@@ -220,83 +223,93 @@ poll links	enlaces de encuestas
 story links	enlaces de historias
 bot shares	mensajes que comparten los bots
 Camera only on tap	Cámara solo al tocar
-Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.	Al abrir la galería de adjuntos, la cámara no se inicia ni se pide acceso a ella. Toca el recuadro de la cámara para iniciarla. Desactivado por defecto en los ajustes.
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it.	Abrir la galería de adjuntos no inicia la cámara ni pide acceso a ella. Toca el recuadro de la cámara para iniciarla.
 Gallery camera	Cámara de la galería
 No swipe actions on chats	Sin acciones al deslizar los chats
-A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Deslizar un chat hacia un lado en la lista de chats ya no lo archiva, silencia, fija, elimina ni marca como leído, así que un deslizamiento accidental no cambia el chat. Mantener pulsado sigue ofreciendo todas las acciones. Desactivado por defecto en los ajustes.
+Swiping a chat in your list no longer archives, mutes, pins, deletes or marks it read. Press and hold still offers every action.	Deslizar un chat de tu lista ya no lo archiva, silencia, fija, elimina ni marca como leído. Al mantenerlo pulsado siguen estando todas las acciones.
 Hide popular apps	Ocultar apps populares
-Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	La pestaña Apps de la búsqueda omite la lista Apps populares de Telegram, con su encabezado y sus filas de carga, y Telegram no la solicita. Las apps que has abierto y los demás resultados se mantienen.
+Hides the Popular apps list on the Apps tab of search, and doesn't ask Telegram for it. Apps you've opened and other results stay.	Oculta la lista de apps populares en la pestaña Apps de la búsqueda y no se la pide a Telegram. Las apps que has abierto y los demás resultados se mantienen.
 Hide contacts on Telegram	Ocultar contactos en Telegram
-A short chat list no longer lists your contacts on Telegram under it, with their heading and loading rows. Your chats, folders, contact sync and search stay. Off by default in settings.	Una lista de chats corta ya no muestra debajo tus contactos en Telegram, ni su encabezado ni sus filas de carga. Tus chats, carpetas, la sincronización de contactos y la búsqueda se mantienen. Desactivado por defecto en los ajustes.
+When your chat list is short, Telegram lists your contacts below it. This hides that list and its heading. Chats, folders and search stay.	Cuando tu lista de chats es corta, Telegram muestra tus contactos debajo. Esto oculta esa lista y su título. Los chats, las carpetas y la búsqueda se mantienen.
 Hide greeting stickers	Ocultar stickers de saludo
-An empty private chat no longer offers a sticker to send as a greeting. Its text, business introductions, paid-message notices and the sticker picker stay. Off by default in settings.	Un chat privado vacío ya no ofrece un sticker para enviar como saludo. Su texto, las presentaciones de empresas, los avisos de mensajes de pago y el selector de stickers se mantienen. Desactivado por defecto en los ajustes.
+Empty private chats stop suggesting a sticker to say hello. Their other text and notices, and the sticker picker, stay.	Los chats privados vacíos dejan de sugerir un sticker para saludar. Su otro texto, los avisos y el selector de stickers se mantienen.
 Quiet contacts prompts	Silenciar avisos de contactos
-Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Cuando hayas rechazado el acceso a los contactos, la pestaña Contactos deja de pedirlo y su insignia de aviso desaparece. La primera solicitud, los botones propios de la pestaña y la sincronización de contactos se mantienen.
+After you say no to contacts access, the Contacts tab stops asking again and its warning badge goes away.	Después de decir que no al acceso a los contactos, la pestaña Contactos deja de preguntar de nuevo y su aviso desaparece.
 
 New Year look all year	Aspecto de Año Nuevo todo el año
-Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	El gorro de Papá Noel de Telegram aparece sobre el logo de la lista de chats. La nieve de Año Nuevo cae todos los días sobre la barra superior y, con los fondos de chat animados activados, sobre los fondos de chat. Desactivado por defecto en los ajustes.
+Shows Telegram's Santa hat and New Year snow all year, not only around New Year. Snow also falls on chat backgrounds if animated backgrounds are on.	Muestra el gorro de Papá Noel de Telegram y la nieve de Año Nuevo todo el año, no solo en esas fechas. La nieve también cae sobre los fondos de chat si los fondos animados están activados.
 Use system font	Usar fuente del sistema
-Bold and italic text stops using the Roboto files built into Telegram and takes your phone's font, the one regular text already uses. Code takes the phone's monospace font. Some number displays and Instant View pages keep Telegram's own. Off by default in settings.	El texto en negrita y cursiva deja de usar los archivos Roboto incluidos en Telegram y pasa a la fuente de tu teléfono, la que ya usa el texto normal. El código usa la fuente monoespaciada del teléfono. Algunos números y las páginas de Instant View mantienen la fuente de Telegram. Desactivado por defecto en los ajustes.
+Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	El texto en negrita, cursiva y de código usa la fuente de tu teléfono en lugar de la integrada en Telegram. Reinicia Telegram para ver el cambio.
 AMOLED black	Negro AMOLED
-Telegram's Night and Dark themes draw their screens in pure black, and a patterned chat background shows its pattern over black. Message bubbles and pop-up menus keep their colors, and themes you've installed from a file stay as they are. Off by default in settings.	Los temas Noche y Oscuro de Telegram muestran las pantallas en negro puro, y un fondo de chat con patrón muestra su patrón sobre negro. Las burbujas de mensajes y los menús emergentes mantienen sus colores, y los temas instalados desde un archivo se quedan como están. Desactivado por defecto en los ajustes.
+Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Los temas Noche y Oscuro usan pantallas de negro puro. Los globos de mensajes y los menús conservan sus colores. Reinicia Telegram para ver el cambio.
 Hide translate bar	Ocultar barra de traducción
-Chats in another language stop showing Telegram's translate bar at the top, and Translate moves to the chat's menu. A chat you're translating keeps its bar so you can go back to the original. Off by default in settings.	Los chats en otro idioma dejan de mostrar arriba la barra de traducción de Telegram, y Traducir pasa al menú del chat. Un chat que estás traduciendo mantiene su barra para que puedas volver al original. Desactivado por defecto en los ajustes.
+Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Los chats en otro idioma dejan de mostrar la barra de traducción arriba. Traducir pasa al menú del chat, y un chat que estás traduciendo conserva su barra.
 Exact numbers	Números exactos
-Member, subscriber, view, reply and reaction counts show the full number, like 12,345 instead of 12.3K. Off by default in settings.	Los contadores de miembros, suscriptores, vistas, respuestas y reacciones muestran el número completo, como 12,345 en vez de 12.3K. Desactivado por defecto en los ajustes.
+Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Los recuentos de miembros, suscriptores, vistas, respuestas y reacciones se muestran completos, como 12.345 en lugar de 12,3 K.
 Reveal spoilers	Mostrar spoilers
-Spoiler text, photos and videos show right away instead of waiting for a tap. View-once media, sensitive content and login codes stay covered, and text you're typing keeps its spoiler. Off by default in settings.	El texto, las fotos y los videos con spoiler se ven al momento, sin tener que tocarlos. Los archivos de una sola visualización, el contenido sensible y los códigos de inicio de sesión siguen cubiertos, y el texto que escribes conserva su spoiler. Desactivado por defecto en los ajustes.
+Spoiler text, photos and videos show right away without a tap. View-once media, sensitive content and login codes stay covered.	El texto, las fotos y los videos con spoiler se muestran al instante, sin tocar. Los medios de una sola vista, el contenido sensible y los códigos de inicio de sesión siguen cubiertos.
 Hide keyboard on scroll	Ocultar teclado al desplazar
-Starting to scroll through a chat closes the keyboard, the way Telegram already does while you search a chat. Telegram's emoji and sticker panel stays open. Off by default in settings.	Al empezar a desplazarte por un chat se cierra el teclado, como Telegram ya hace mientras buscas en un chat. El panel de emojis y stickers de Telegram sigue abierto. Desactivado por defecto en los ajustes.
+The keyboard closes when you start scrolling a chat. The emoji and sticker panel stays open.	El teclado se cierra cuando empiezas a desplazarte por un chat. El panel de emojis y stickers sigue abierto.
 Keep videos muted on volume keys	Mantener videos sin sonido con las teclas de volumen
-Volume keys in a chat change the volume instead of playing the video or round video on screen with sound. Tap a video to hear it. Off by default in settings.	Las teclas de volumen en un chat cambian el volumen en vez de reproducir con sonido el video o videomensaje en pantalla. Toca un video para escucharlo. Desactivado por defecto en los ajustes.
+Volume keys only change the volume. They no longer start the video or round video on screen with sound. Tap a video to hear it.	Las teclas de volumen solo cambian el volumen. Ya no inician con sonido el video o video redondo que se ve en pantalla. Toca un video para oírlo.
 Swipe back on profiles	Deslizar para volver en perfiles
-A swipe to the right on a profile's photos or media tabs goes back, like it does on the rest of the profile, instead of showing the previous photo or tab. Swiping left still moves forward. Off by default in settings.	Deslizar a la derecha sobre las fotos o las pestañas de multimedia de un perfil vuelve atrás, como en el resto del perfil, en vez de mostrar la foto o la pestaña anterior. Deslizar a la izquierda sigue avanzando. Desactivado por defecto en los ajustes.
+Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, instead of showing the previous photo or tab.	Deslizar a la derecha en las fotos o en las pestañas de contenido de un perfil vuelve atrás, como en el resto del perfil, en vez de mostrar la foto o pestaña anterior.
 Hide phone number	Ocultar número de teléfono
-Your own phone number shows as dots in the side menu, Settings, your profile and anywhere else Telegram displays it, which helps with screenshots and screen sharing. Other people's numbers stay visible. Off by default in settings.	Tu propio número aparece como puntos en el menú lateral, los ajustes, tu perfil y en cualquier otro lugar donde Telegram lo muestre, algo útil para capturas y para compartir pantalla. Los números de los demás siguen visibles. Desactivado por defecto en los ajustes.
+Your own phone number shows as dots in the side menu, Settings and your profile, which helps with screenshots. Others' numbers stay visible.	Tu propio número de teléfono aparece como puntos en el menú lateral, en Ajustes y en tu perfil, lo que ayuda con las capturas de pantalla. Los números de otras personas siguen visibles.
 Message times with seconds	Hora de los mensajes con segundos
-The time on each message shows seconds too, like 9:41:27 PM, so messages sent close together are easy to tell apart. Off by default in settings.	La hora de cada mensaje también muestra los segundos, como 21:41:27, para distinguir fácilmente mensajes enviados casi a la vez. Desactivado por defecto en los ajustes.
+Each message's time includes seconds, like 9:41:27 PM, so messages sent close together are easy to tell apart.	La hora de cada mensaje incluye segundos, como 9:41:27 p. m., para distinguir fácilmente los mensajes enviados casi a la vez.
 Allow chat blur on slower phones	Permitir el desenfoque del chat en teléfonos más lentos
-Telegram only blurs the chat header and panels on phones it rates as fast. This lets any phone use it once Blur in chat is on under Power saving. Off by default in settings.	Telegram solo desenfoca la cabecera y los paneles del chat en teléfonos que considera rápidos. Así cualquier teléfono puede usarlo cuando Desenfoque en el chat está activado en Ahorro de energía. Desactivado por defecto en los ajustes.
+Telegram only blurs chat headers and panels on fast phones. This lets any phone do it, once Blur in chat is on under Power saving.	Telegram solo desenfoca las cabeceras y los paneles del chat en teléfonos rápidos. Esto permite que cualquier teléfono lo haga, cuando Desenfoque en el chat esté activado en Ahorro de energía.
 Play voice messages one at a time	Reproducir los mensajes de voz de uno en uno
-When a voice or video message ends, the next one in the chat doesn't start on its own. Off by default in settings.	Cuando termina un mensaje de voz o de video, el siguiente del chat no empieza solo. Desactivado por defecto en los ajustes.
-Turn off haptic feedback	Desactivar la respuesta háptica
-Taps, long presses, swipes and wrong entries in Telegram stop vibrating the phone. Incoming calls still vibrate, and notifications vibrate the way you set them. Off by default in settings.	Los toques, las pulsaciones largas, los deslizamientos y las entradas incorrectas dejan de hacer vibrar el teléfono en Telegram. Las llamadas entrantes siguen vibrando y las notificaciones vibran como las configuraste. Desactivado por defecto en los ajustes.
+When a voice or video message ends, the next one doesn't start by itself.	Cuando termina un mensaje de voz o de video, el siguiente no empieza solo.
+Stop vibrations on taps	Detener las vibraciones al tocar
+Taps, long presses, swipes and wrong entries no longer vibrate the phone. Incoming calls still vibrate, and notifications follow your own settings.	Los toques, las pulsaciones largas, los deslizamientos y las entradas incorrectas ya no hacen vibrar el teléfono. Las llamadas entrantes siguen vibrando y las notificaciones siguen tus propios ajustes.
 Turn off reaction effects	Desactivar los efectos de las reacciones
-When you or someone else reacts to a message, the emoji no longer flies across the screen and bursts. The reaction still shows on the message. Off by default in settings.	Cuando tú u otra persona reaccionan a un mensaje, el emoji ya no cruza la pantalla ni estalla. La reacción sigue apareciendo en el mensaje. Desactivado por defecto en los ajustes.
+When someone reacts to a message, the emoji doesn't fly across the screen and burst. The reaction still shows on the message.	Cuando alguien reacciona a un mensaje, el emoji no cruza la pantalla ni estalla. La reacción sigue apareciendo en el mensaje.
 Hide folder tab counters	Ocultar los contadores de las pestañas de carpetas
-The folder tabs above the chat list show just their names, without the number of unread chats. Chats stay unread and the app icon's badge doesn't change. Off by default in settings.	Las pestañas de carpetas sobre la lista de chats muestran solo su nombre, sin el número de chats no leídos. Los chats siguen sin leer y el globo del icono de la app no cambia. Desactivado por defecto en los ajustes.
+Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	Las pestañas de carpetas sobre la lista de chats muestran solo su nombre, sin contador de no leídos. Los chats siguen sin leer y la insignia del icono de la app no cambia.
 Hide sender names when forwarding	Ocultar remitentes al reenviar
-Each new forward starts with Telegram's Hide sender's name option turned on, so the copies arrive without the original author. You can still turn it off before sending, and article forwards follow Telegram's Premium rule. Off by default in settings.	Cada reenvío nuevo empieza con la opción Ocultar nombre del remitente de Telegram activada, así las copias llegan sin el autor original. Aún puedes desactivarla antes de enviar, y los artículos siguen la regla de Premium de Telegram. Desactivado por defecto en los ajustes.
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Cada reenvío nuevo empieza con Ocultar nombre del remitente activado, así las copias llegan sin el autor original. Aún puedes desactivarlo antes de enviar.
 Voice messages in the music player	Mensajes de voz en el reproductor de música
-While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Mientras suena un mensaje de voz, tocar la barra sobre el chat abre el reproductor de música completo de Telegram con su barra de progreso, en vez de saltar al mensaje. Los mensajes de voz de una sola escucha se quedan como están. Desactivado por defecto en los ajustes.
+While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Mientras suena un mensaje de voz, tocar la barra sobre el chat abre el reproductor de música completo, donde puedes arrastrar para avanzar o retroceder, en vez de saltar al mensaje.
 Silence people outside your contacts	Silenciar a quien no está en tus contactos
-A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Un mensaje privado de alguien que no está en tus contactos sigue mostrando la notificación, pero sin sonido ni vibración. Los bots, los recordatorios y los códigos de inicio de sesión de Telegram mantienen su sonido. Desactivado por defecto en los ajustes.
+Private messages from people not in your contacts still show a notification, but without sound or vibration. Bots, reminders and login codes keep their sound.	Los mensajes privados de personas que no están en tus contactos siguen mostrando una notificación, pero sin sonido ni vibración. Los bots, los recordatorios y los códigos de inicio de sesión conservan su sonido.
 Disable pull to archive	Desactivar deslizar para ver el archivo
-Pulling down the chat list no longer brings up a hidden archive. You can open it from Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default in settings.	Al deslizar hacia abajo la lista de chats ya no aparece un archivo oculto. Puedes abrirlo desde Chats archivados en el menú de la lista de chats, o fijarlo para que se quede en la lista. Desactivado por defecto en los ajustes.
+Pulling down the chat list no longer opens the archive. Use Archived chats in the list's menu instead. Restart Telegram to see the change.	Tirar hacia abajo de la lista de chats ya no abre el archivo. Usa Chats archivados en el menú de la lista. Reinicia Telegram para ver el cambio.
 Start the camera on the rear lens	Abrir la cámara con la lente trasera
-The camera in the attachment menu starts on the rear lens every time you open it, instead of the lens you used last. You can still flip it while it's open. Off by default in settings.	La cámara del menú de adjuntos se abre siempre con la lente trasera, en vez de con la que usaste la última vez. Puedes cambiarla mientras está abierta. Desactivado por defecto en los ajustes.
+The camera in the attachment menu always opens on the rear lens, not the lens you used last. You can still flip it.	La cámara del menú de adjuntos siempre se abre con la lente trasera, no con la que usaste por última vez. Aún puedes cambiarla.
 Hide gallery camera tile	Ocultar el recuadro de cámara de la galería
-The photo grid in the attachment menu starts with your photos instead of a live camera tile. A chat picks it up the next time you open it. Off by default in settings.	La cuadrícula de fotos del menú de adjuntos empieza con tus fotos en vez de con un recuadro de cámara en vivo. Un chat lo aplica la próxima vez que lo abras. Desactivado por defecto en los ajustes.
+The attachment menu's photo grid starts with your photos instead of a live camera tile. A chat picks this up the next time you open it.	La cuadrícula de fotos del menú de adjuntos empieza con tus fotos en lugar de un recuadro de cámara en vivo. Un chat lo aplica la próxima vez que lo abras.
 Hide time on stickers	Ocultar la hora en los stickers
-Stickers and big animated emoji no longer carry the time and read checks in their corner. Every other message keeps its time. Off by default in settings.	Los stickers y los emojis animados grandes ya no muestran la hora ni las marcas de lectura en su esquina. Los demás mensajes conservan su hora. Desactivado por defecto en los ajustes.
+Stickers and big animated emoji no longer show the time and read checks in their corner. Other messages keep their time.	Los stickers y los emojis animados grandes ya no muestran la hora ni las marcas de lectura en su esquina. Los demás mensajes conservan su hora.
 Ignore mentions in muted chats	Ignorar menciones en chats silenciados
-Telegram still notifies you when someone mentions you or replies to you in a group or channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you haven't muted notify as before. Off by default in settings.	Telegram te sigue avisando cuando alguien te menciona o te responde en un grupo o canal que silenciaste. Con esto activado, esos avisos se quedan tan callados como el resto del chat. Los chats que no silenciaste avisan como siempre. Desactivado por defecto en los ajustes.
+Mentions and replies in groups or channels you've muted no longer notify you. Chats you haven't muted notify as before.	Las menciones y respuestas en grupos o canales que has silenciado ya no te notifican. Los chats que no has silenciado notifican como antes.
 Hide blocked users in groups	Ocultar usuarios bloqueados en grupos
-Messages from people you've blocked are left out of the groups and supergroups you open. Private chats and channel posts stay as they are. Nothing is deleted, so turning it off and reopening the chat brings them back. Telegram loads a long blocked list a bit at a time, so someone it hasn't loaded yet still shows. Off by default in settings.	Los mensajes de las personas que bloqueaste no aparecen en los grupos y supergrupos que abres. Los chats privados y las publicaciones de canales se quedan como están. No se borra nada, así que al desactivarlo y volver a abrir el chat vuelven a verse. Telegram carga una lista de bloqueados larga poco a poco, así que alguien que aún no cargó sigue apareciendo. Desactivado por defecto en los ajustes.
+Messages from people you've blocked are left out of groups and supergroups you open. Nothing is deleted. Private chats and channel posts stay as they are.	Los mensajes de personas que has bloqueado se omiten en los grupos y supergrupos que abres. No se elimina nada. Los chats privados y las publicaciones de canales no cambian.
 Hide Telegram Features and Invite Friends	Ocultar Funciones de Telegram e Invitar amigos
-Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Los ajustes pierden la fila Funciones de Telegram y Contactos pierde Invitar amigos. Si todavía no tienes contactos, también desaparece la lista de invitaciones que Contactos muestra en su lugar. Desactivado por defecto en los ajustes.
+Removes the Telegram Features row from Settings and Invite Friends from Contacts. With no contacts yet, the invite list goes too.	Quita la fila Funciones de Telegram de los ajustes e Invitar amigos de los contactos. Si aún no tienes contactos, también desaparece la lista de invitaciones.
 Add Repeat to the message menu	Añadir Repetir al menú de mensajes
-Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Pone Repetir debajo de Reenviar en el menú que abres al mantener pulsado un mensaje. Envía el mensaje otra vez al mismo chat, como un mensaje nuevo tuyo. Solo aparece donde Telegram ofrece Reenviar y puedes escribir, así que nunca en chats protegidos o secretos. Desactivado por defecto en los ajustes.
+Adds Repeat under Forward in a message's press-and-hold menu. It sends the same message again to the chat. Not shown in protected or secret chats.	Añade Repetir debajo de Reenviar en el menú de un mensaje que se abre al mantenerlo pulsado. Envía el mismo mensaje otra vez al chat. No aparece en chats protegidos ni secretos.
 Keep deleted messages	Conservar los mensajes eliminados
-Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	Los mensajes que otras personas eliminan se quedan en tus chats en este teléfono, marcados como eliminados junto a la hora. Tus propias eliminaciones y todo lo que desaparece o está protegido funcionan como siempre. Desactivado por defecto en los ajustes.
+Messages others delete stay in your chat on this phone, marked deleted next to the time. Your own deletes and disappearing messages work as usual.	Los mensajes que otros eliminan se quedan en tu chat en este teléfono, marcados como eliminados junto a la hora. Tus propias eliminaciones y los mensajes que desaparecen funcionan como siempre.
+# context: an action row under Keep deleted messages; a tap deletes every message that switch kept
+Clear kept messages	Borrar los mensajes conservados
+Deletes the messages this phone kept after others deleted them, in every account, the way Telegram would have.	Elimina los mensajes que este teléfono conservó después de que otros los eliminaran, en todas las cuentas, como lo habría hecho Telegram.
+# context: the notice after that tap when nothing was kept
+There are no kept messages to clear.	No hay mensajes conservados para borrar.
+# context: the notice after that tap, with how many kept messages went
+Removed %1$d kept message.	Se eliminó %1$d mensaje conservado.
+Removed %1$d kept messages.	Se eliminaron %1$d mensajes conservados.
 Ask before sending a sticker	Preguntar antes de enviar un sticker
-Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Pregunta con Enviar o Cancelar antes de que un sticker que tocas entre en un chat. Cancelar lo descarta, y un sticker programado pasa como siempre. Desactivado por defecto en los ajustes.
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled stickers go out without asking.	Pregunta Enviar o Cancelar antes de que un sticker que tocas entre en un chat. Cancelar lo descarta. Los stickers programados salen sin preguntar.
+Turn off beta debug logs	Desactivar los registros de depuración de la beta
+Telegram Beta keeps debug logs on your phone all the time, its connection log included, and its own debug menu can't stop that. This stops them. Logs already saved stay until you clear them, and the regular build doesn't keep them, so nothing changes there. Restart Telegram to see the change.	Telegram Beta guarda registros de depuración en tu teléfono todo el tiempo, incluido el registro de conexión, y su propio menú de depuración no puede detenerlo. Esto los detiene. Los registros ya guardados se quedan hasta que los borres, y la versión normal no los guarda, así que ahí no cambia nada. Reinicia Telegram para ver el cambio.
 Ask before sending a GIF	Preguntar antes de enviar un GIF
-Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Pregunta con Enviar o Cancelar antes de que un GIF que tocas entre en un chat. Cancelar lo descarta, y un GIF programado pasa como siempre. Desactivado por defecto en los ajustes.
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Pregunta Enviar o Cancelar antes de que un GIF que tocas entre en un chat. Cancelar lo descarta. Los GIF programados salen sin preguntar.
 Ask before sending a voice or video message	Preguntar antes de enviar un mensaje de voz o de video
-Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Pregunta con Enviar o Cancelar antes de que un mensaje de voz o de video que has grabado entre en un chat. Cancelar descarta la grabación. Desactivado por defecto en los ajustes.
+Asks Send or Cancel before a voice or video message you recorded goes out. Cancel throws the recording away.	Pregunta Enviar o Cancelar antes de que salga un mensaje de voz o de video que grabaste. Cancelar descarta la grabación.
 Ask before starting a call	Preguntar antes de iniciar una llamada
-Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Pregunta con Llamar o Cancelar antes de que el botón de llamada del encabezado de un chat o de un perfil inicie una llamada. Desactivado por defecto en los ajustes.
+Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Pregunta Llamar o Cancelar antes de que el botón de llamada de un chat o de un perfil inicie una llamada.
 Send sticker	Enviar sticker
 Send this sticker to this chat?	¿Enviar este sticker a este chat?
 Send GIF	Enviar GIF
@@ -313,9 +326,9 @@ Call	Llamar
 # context: the label before the time of a message someone else deleted that this phone kept
 deleted	eliminado
 Add Copy photo to the message menu	Añadir Copiar foto al menú de mensajes
-Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Pone Copiar foto debajo de Reenviar en el menú que abres al mantener pulsada una foto, cuando ya se ha descargado. Copia la imagen en sí, para que puedas pegarla en otra app. No aparece en chats protegidos o secretos. Desactivado por defecto en los ajustes.
+Adds Copy photo to a downloaded photo's press-and-hold menu, so you can paste the picture into another app. Not shown in protected or secret chats.	Añade Copiar foto al menú de una foto descargada, que se abre al mantenerla pulsada, para que puedas pegar la imagen en otra app. No aparece en chats protegidos ni secretos.
 Add Message details to the message menu	Añadir Detalles del mensaje al menú de mensajes
-Puts Message details at the end of a message's long-press menu. It shows the message's IDs, when it was sent and edited, where it was forwarded from and the file's data center and size, with a Copy button. Off by default in settings.	Pone Detalles del mensaje al final del menú que abres al mantener pulsado un mensaje. Muestra los ID del mensaje, cuándo se envió y se editó, de dónde se reenvió y el centro de datos y el tamaño del archivo, con un botón para copiar. Desactivado por defecto en los ajustes.
+Adds Message details to a message's press-and-hold menu. It shows IDs, send and edit times, where it was forwarded from, and file info.	Añade Detalles del mensaje al menú de un mensaje que se abre al mantenerlo pulsado. Muestra los ID, las horas de envío y edición, de dónde se reenvió y datos del archivo.
 Repeat	Repetir
 Copy photo	Copiar foto
 Photo copied	Foto copiada
@@ -333,7 +346,7 @@ File size: %1$s	Tamaño del archivo: %1$s
 Copy	Copiar
 Message details copied	Detalles del mensaje copiados
 Add Quick forward to the message menu	Añadir Reenvío rápido al menú de mensajes
-Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Pone Reenvío rápido debajo de Reenviar en el menú que abres al mantener pulsado un mensaje. Muestra Mensajes guardados y unos pocos chats recientes, y un toque reenvía el mensaje allí con el remitente visible, salvo que Ocultar remitentes al reenviar esté activado. No aparece en chats protegidos o secretos. Desactivado por defecto en los ajustes.
+Adds Quick forward to a message's press-and-hold menu. One tap sends it to Saved Messages or a recent chat. Not in protected or secret chats.	Añade Reenvío rápido al menú de un mensaje que se abre al mantenerlo pulsado. Un toque lo envía a Mensajes guardados o a un chat reciente. No está en chats protegidos ni secretos.
 Quick forward	Reenvío rápido
 Forward to	Reenviar a
 Forwarding to %1$s	Reenviando a %1$s
@@ -343,25 +356,25 @@ No chat to forward to	No hay ningún chat al que reenviar
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notificaciones
 Repair Firebase push registration	Reparar el registro de notificaciones de Firebase
-Uses Telegram's official certificate for Firebase push registration. Notification permission and battery settings still apply.	Usa el certificado oficial de Telegram para registrar las notificaciones de Firebase. El permiso de notificaciones y los ajustes de batería siguen siendo necesarios.
+Tries to help this patched Telegram sign up for push notifications with Firebase, Google's notification service, using Telegram's original certificate. Notification permission and battery settings still apply.	Intenta ayudar a este Telegram parcheado a registrarse para recibir notificaciones push con Firebase, el servicio de notificaciones de Google, usando el certificado original de Telegram. El permiso de notificaciones y los ajustes de batería siguen aplicándose.
 Firebase certificate header	Encabezado del certificado de Firebase
 Stop pull to next channel	Impedir el salto al siguiente canal al deslizar
 Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.	Al deslizar hacia arriba al final de un canal, solo se desplaza el contenido. Abre el siguiente canal desde tu lista de chats.
 Stop pull to next topic	Impedir el salto al siguiente tema al deslizar
-Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list. Off by default in settings.	Al deslizar hacia arriba al final de un tema del foro, solo se desplaza el contenido. Abre el siguiente tema desde la lista de temas. Desactivado por defecto en los ajustes.
+Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list.	Al deslizar hacia arriba al final de un tema del foro, solo se desplaza el contenido. Abre el siguiente tema desde la lista de temas.
 # context: Read-only local notification facts, independent of repair and Pause.
-Local notification status	Estado local de notificaciones
+Notification status on this phone	Estado de las notificaciones en este teléfono
 local notification status	estado local de notificaciones
 Notification permission: %1$s	Permiso de notificaciones: %1$s
-Push token saved: %1$s	Token push guardado: %1$s
+Notification ID saved on this phone: %1$s	ID de notificaciones guardado en este teléfono: %1$s
 Signed-in accounts: %1$s	Cuentas con sesión iniciada: %1$s
-Accounts confirmed for push: %1$s	Cuentas con registro push confirmado: %1$s
-Telegram's push answer: %1$s	Respuesta de Telegram al registro push: %1$s
-None since Telegram started	Ninguna desde que se abrió Telegram
+Accounts Telegram confirmed for notifications: %1$s	Cuentas que Telegram confirmó para notificaciones: %1$s
+Telegram's reply to notification sign-up: %1$s	Respuesta de Telegram al registro de notificaciones: %1$s
+No reply since Telegram started	Sin respuesta desde que se abrió Telegram
 Accepted	Aceptado
 Refused	Rechazado
 Refused (%1$s)	Rechazado (%1$s)
-Read-only local state. This doesn't confirm notification delivery.	Solo se consulta el estado local. Esto no confirma la entrega de notificaciones.
+This only shows what's saved on this phone. It doesn't prove notifications will arrive.	Esto solo muestra lo que está guardado en este teléfono. No demuestra que las notificaciones vayan a llegar.
 Unknown	Desconocido
 Allowed	Permitido
 Blocked	Bloqueado
@@ -370,11 +383,11 @@ No	No
 Use normal paste	Usar pegado normal
 Show user and chat IDs	Mostrar IDs de usuario y chat
 Disable double-tap reactions	Desactivar reacciones al tocar dos veces
-Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Pega texto sin la conversión HTML, de tablas o monoespaciado de Telegram. Conserva los espacios y las URLs. Las demás acciones del portapapeles siguen disponibles. Desactivado por defecto en los ajustes.
-Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Muestra un ID local de usuario o chat que se puede copiar en el menú del perfil abierto. Los hashes de acceso siguen ocultos. No añade solicitudes al servidor. Desactivado por defecto en los ajustes.
-Show profile data center	Mostrar el centro de datos del perfil
-A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. A profile without a photo shows none, and no server request is added. Off by default in settings.	El menú de un perfil también muestra en qué centro de datos de Telegram, del 1 al 5, está la foto del perfil. Un perfil sin foto no muestra ninguno y no se añade ninguna solicitud al servidor. Desactivado por defecto en los ajustes.
-Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Tocar dos veces no añade reacciones en chats ni en la vista previa de reacciones. El desplazamiento, los toques, la selección y los menús de reacciones siguen igual. Desactivado por defecto en los ajustes.
+Pastes text exactly as you copied it, without Telegram adding formatting, tables or code styling. Spaces and links stay as they were.	Pega el texto exactamente como lo copiaste, sin que Telegram añada formato, tablas ni estilo de código. Los espacios y los enlaces quedan como estaban.
+Adds a copyable ID number for a user or chat to the profile's menu. Telegram isn't asked for anything extra.	Añade al menú del perfil un número de ID copiable del usuario o del chat. No se le pide nada extra a Telegram.
+Show where a profile photo is stored	Mostrar dónde se guarda una foto de perfil
+A profile's menu also shows which of Telegram's five data centers (its server locations) stores the profile photo. No photo, no number.	El menú del perfil también muestra en cuál de los cinco centros de datos de Telegram (sus ubicaciones de servidores) se guarda la foto de perfil. Sin foto, no hay número.
+Double-tapping a message no longer adds a reaction. Scrolling, normal taps, selecting and the reaction menu work as before.	Tocar dos veces un mensaje ya no añade una reacción. Desplazarse, los toques normales, seleccionar y el menú de reacciones funcionan como antes.
 compose text paste	pegado de texto al escribir
 caption text paste	pegado de texto en leyendas
 profile local IDs	IDs locales del perfil

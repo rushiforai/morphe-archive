@@ -8,10 +8,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.navigation.starttab.TAB_TAG
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * The calls that let a page whose tab a switch took off the bar open on its own screen: one where
@@ -29,7 +31,7 @@ internal val tabLinksPatch = bytecodePatch {
             classDef.methods.forEach { method -> launchedTabLookup(method)?.let { lookups += method to it } }
         }
         val (lookup, launched) = lookups.singleOrNull() ?: throw PatchException(
-            "$TAB_LINKS: expected one static method that picks the configured tab a started page belongs to by its " +
+            "$TAB_LINKS: expected one method that picks the configured tab a started page belongs to by its " +
                 "$EXTRA_LAUNCH_URI, found ${lookups.size}.",
         )
 
@@ -43,7 +45,8 @@ internal val tabLinksPatch = bytecodePatch {
 
         val mainHelper = classDefByOrNull(MAIN_TAB_URI_HELPER)
             ?: throw PatchException("$TAB_LINKS: this build has no $MAIN_TAB_URI_HELPER")
-        val configured = mainHelper.methods.mapNotNull { method -> configuredTabCheck(method)?.let { method to it } }
+        val table: (MethodReference) -> Method? = { call -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
+        val configured = mainHelper.methods.mapNotNull { method -> configuredTabCheck(method, table)?.let { method to it } }
             .singleOrNull() ?: throw PatchException(
                 "$TAB_LINKS: expected one method of $MAIN_TAB_URI_HELPER that checks a $TARGET_TAB_ID link's tab " +
                     "against the configured tabs.",

@@ -57,7 +57,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import app.hushpinterest.extension.pinterest.actions.BoardDownloads;
 import app.hushpinterest.extension.pinterest.actions.ExternalBrowser;
+import app.hushpinterest.extension.pinterest.actions.LongPressDownloadForTests;
+import app.hushpinterest.extension.pinterest.actions.LongPressDownloadTest;
 import app.hushpinterest.extension.pinterest.actions.PinDownloads;
 import app.hushpinterest.extension.pinterest.actions.SystemShare;
 import app.hushpinterest.extension.pinterest.ads.Ads;
@@ -85,7 +88,7 @@ import app.hushpinterest.extension.shared.settings.PauseForTests;
  * without a probe here fails the first test.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30)
+@Config(sdk = 30, shadows = LongPressDownloadTest.NativeMenu.class)
 public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
@@ -93,6 +96,9 @@ public class PausedHooksTest {
     private static final String TRACKED_LINK = "https://www.pinterest.com/pin/123456/?utm_source=share&keep=1";
     private static final Map<String, Object> PIN = Map.of("id", "123456", "images", Map.of(
             "orig", Map.of("url", "https://i.pinimg.com/originals/pin.jpg")));
+    /** A pin as a board's own page carries it: saved to board 4242. */
+    private static final Map<String, Object> BOARD_PIN = Map.of("id", "654321", "images", Map.of(),
+            "board", Map.of("id", "4242"));
     private enum Tab { CREATE, NOTIFICATIONS, SEARCH }
     private enum Source { PIN }
     private enum Task { TAG_APPSFLYER_INIT }
@@ -211,6 +217,8 @@ public class PausedHooksTest {
                 () -> !"real".equals(AdvertisingId.id("real")),
                 () -> AdvertisingId.limitTracking(false)));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
+        probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
+        probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
             ResolveInfo browser = new ResolveInfo();
             browser.activityInfo = new ActivityInfo();
@@ -261,6 +269,7 @@ public class PausedHooksTest {
                 () -> !UiHooks.commentsVisible(true)));
         probes.put(Settings.HIDE_TOPIC_SUGGESTIONS, Arrays.asList(PausedHooksTest::hidesTopicRow, PausedHooksTest::foldsTopicRow));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
+        probes.put(Settings.HIDE_SURVEY_PROMPTS, Arrays.asList(UiHooks::hideSurveyPrompts, UiHooks::hideSponsoredPolls));
         probes.put(Settings.HIDE_SAVE_TOASTS, Collections.singletonList(PausedHooksTest::dropsSaveToast));
         probes.put(Settings.ORIGINAL_IMAGES, Arrays.asList(UiHooks::originalImages, () -> {
             Set<String> sizes = new HashSet<>();
@@ -279,6 +288,20 @@ public class PausedHooksTest {
         finally {
             Utils.setActivity(null);
             controller.pause().stop().destroy();
+        }
+    }
+
+    /**
+     * The long-press button saves through Download pins, so it needs that switch on as well. When
+     * a test has it off, the probe turns it on for its own run and puts it back.
+     */
+    private static boolean addsLongPressDownload() {
+        boolean pins = Settings.DOWNLOAD_PINS.savedValue();
+        if (!pins) Settings.DOWNLOAD_PINS.save(true);
+        try {
+            return LongPressDownloadForTests.addsDownloadButton();
+        } finally {
+            if (!pins) Settings.DOWNLOAD_PINS.save(false);
         }
     }
 

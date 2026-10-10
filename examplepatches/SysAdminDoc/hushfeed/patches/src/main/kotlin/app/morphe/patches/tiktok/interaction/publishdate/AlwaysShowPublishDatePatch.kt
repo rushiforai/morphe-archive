@@ -37,8 +37,9 @@ private const val WHAT = "Always show publish date"
 @Suppress("unused")
 val alwaysShowPublishDatePatch = bytecodePatch(
     name = "Always show publish date",
-    description = "Always shows the publish date in video author information, and can show it to the second or " +
-        "on profile grids. Switch: Hushfeed settings > Feed screen.",
+    description = "Shows the date a video was posted next to the creator's name, so you can " +
+        "tell how old it is. It can also show the exact time, or dates on profile grids. On by " +
+        "default. Turn it off in Hushfeed settings > Feed screen.",
     default = true,
 ) {
     category("Feed")

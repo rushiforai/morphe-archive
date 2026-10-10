@@ -22,18 +22,17 @@ import app.morphe.util.findMutableMethodOf
  * for how Facebook picks the order, and the extension's DefaultCommentOrder for when it keeps
  * Facebook's.
  *
- * Off in the default selection. Picked, its switch starts on and the order starts as Facebook's
- * own, so nothing changes until an order is chosen.
+ * In the default selection with its switch off and the order as Facebook's own, so nothing
+ * changes until the switch is turned on and an order is chosen.
  */
 @Suppress("unused")
 val defaultCommentOrderPatch = bytecodePatch(
     name = "Default comment order",
-    description = "Opens comments in the order you choose in Hushfacebook's settings, Most relevant, Newest or " +
-        "All comments, instead of the one Facebook picks. An order you pick in a post's comments stays for that " +
-        "post, and links to a comment still open on it.",
-    default = false,
+    description = "Opens comments in the order you choose, Most relevant, Newest or All comments, instead of the " +
+        "one Facebook picks. Handy if you always want the newest first. Starts off. Turn it on and pick an order " +
+        "in Hushfacebook settings > Comments.",
 ) {
-    category("Interface")
+    category("Comments")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

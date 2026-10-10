@@ -175,14 +175,15 @@ public final class DownloadNamePreview {
         List<String> unknown = unknownTokens(template, TOKENS);
         if (!unknown.isEmpty()) {
             String typed = String.join(", ", unknown);
-            lines.add(L10n.f("Not a token here, kept as typed: %1$s", typed));
+            lines.add(L10n.f("Not a part Hushfeed fills in, so it's kept as typed: %1$s", typed));
         }
         if (hushfeeds) {
             List<String> onlyTikToks = unknownTokens(template, SOURCE_TOKENS);
             onlyTikToks.removeAll(unknown);
             if (!onlyTikToks.isEmpty()) {
                 String typedHere = String.join(", ", onlyTikToks);
-                lines.add(L10n.f("Not a token for Hushfeed's downloader, kept as typed: %1$s", typedHere));
+                lines.add(L10n.f("Hushfeed's downloader doesn't fill this in, so it's kept as "
+                        + "typed: %1$s", typedHere));
             }
         }
         // On Android 10 and later the media store picks the number, below that the writer does.

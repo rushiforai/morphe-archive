@@ -1,0 +1,1 @@
+package android.media.session;import android.media.MediaMetadata;public class MediaSession{public MediaMetadata metadata;public int updates;public void setMetadata(MediaMetadata m){metadata=m;updates++;}}

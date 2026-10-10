@@ -127,13 +127,12 @@ A few seconds	Несколько секунд
 A field value couldn't be read. Check the values and try again.	Не удалось прочитать значение поля. Проверьте значения и попробуйте снова.
 A good place to stop, if you want one.	Хороший момент, чтобы остановиться, если вам нужен повод.
 A green square in the top corner while TikTok has the camera open, and an orange diamond while it records sound. They go when the access ends.	Зелёный квадрат в верхнем углу, пока у TikTok открыта камера, и оранжевый ромб, пока идёт запись звука. Они исчезают, когда доступ заканчивается.
-A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Хост, который подставляется вместо tiktok.com при отправке или копировании ссылки, например vxtiktok.com. Оставьте пустым, чтобы делиться обычными ссылками TikTok. Меняются только ссылки TikTok, и только хост: никуда ничего дополнительно не отправляется.
+Type a website name to use instead of tiktok.com in links you share or copy, like vxtiktok.com. Leave empty to share TikTok's own links. Only TikTok links change, and only the website name.	Введите имя сайта, которое будет вместо tiktok.com в ссылках, которые вы отправляете или копируете, например vxtiktok.com. Оставьте пустым, чтобы отправлять обычные ссылки TikTok. Меняются только ссылки TikTok и только имя сайта.
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Небольшая метка в ленте показывает оставшиеся минуты или видео дневного бюджета, в зависимости от того, что ближе к концу.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Нажатие на Главная или на вкладку Рекомендации, когда Рекомендации уже открыты, больше не перезагружает ленту. Видео, на котором вы остановились, никуда не денется.
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.	Видео, которое вы поставили на паузу, останется на паузе, когда вы вернётесь в приложение, вместо того чтобы начаться заново. Видео, которое проигрывалось, продолжится как обычно. Это работает на Android 10 и новее.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	По веб-адресу, оставленному кем-то в комментарии, можно нажать, вместо того чтобы копировать его вручную. Нажатие в любом другом месте комментария работает как раньше.
 AI-generated posts	Публикации, созданные ИИ
-About	О программе
 A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes.	Принудительное значение действует для этой копии TikTok независимо от того, какой аккаунт выполнил вход. Проверку на стороне сервера оно обойти не может.
 Add older seen videos to this account	Добавить старые просмотренные видео к этому аккаунту
 Added %1$s older seen videos to this account	Добавлено %1$s старых просмотренных видео к этому аккаунту
@@ -143,8 +142,8 @@ Added %1$s older seen videos to this account|many	Добавлено %1$s ста
 Added one older seen video to this account	Добавлено одно старое просмотренное видео к этому аккаунту
 Added to this account.	Добавлено к этому аккаунту.
 Caption languages	Языки субтитров
-Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages, and seen videos still apply.	Через запятую: имена аккаунтов или ID пользователей. Их видео остаются, если скрыть их может только фильтр по типу публикации, её меткам, возрасту, длительности или числовым показателям. Реклама, заблокированные авторы, слова, звуки, страны, языки субтитров и просмотренные видео по-прежнему учитываются.
-Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.	Через запятую: коды языков, например en, es. Видео, чьи исходные субтитры на другом языке, скрываются. Видео без субтитров или только с переведёнными всегда остаются.
+Separate handles or user IDs with commas. Their videos stay when a filter on post type, labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries, caption languages and seen videos still apply.	Разделяйте имена аккаунтов или ID пользователей запятыми. Их видео остаются, даже если фильтр по типу поста, меткам, возрасту, длине или счётчикам скрыл бы их. Реклама, заблокированные авторы, слова, звуки, страны, языки описания и просмотренные видео по-прежнему учитываются.
+Separate language codes with commas, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.	Разделяйте коды языков запятыми, например en, es. Видео, у которого исходное описание на другом языке, скрывается. Видео без описания или только с переведённым остаются всегда.
 Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this.	Названия через запятую, точно как в строке под описанием профиля, например TikTok Studio или «Ваши заказы». Перезапустите TikTok, чтобы это применить.
 Couldn't add the older seen videos. Try again.	Не удалось добавить старые просмотренные видео. Попробуйте снова.
 Couldn't copy the report. Use Save report instead.	Не удалось скопировать отчёт. Используйте вместо этого «Сохранить отчёт».
@@ -182,7 +181,7 @@ Restart TikTok to apply this	Перезапустите TikTok, чтобы эт�
 Save report	Сохранить отчёт
 Stay on the video in full screen	Оставаться на видео в полноэкранном режиме
 Stickers can't be saved to the folder in that file, so your sticker folder was kept	Стикеры нельзя сохранить в папку из этого файла, поэтому ваша папка для стикеров осталась прежней
-Stop TikTok's benchmark runs	Остановить тесты производительности TikTok
+Stop TikTok's speed tests	Остановить тесты скорости TikTok
 That creator pattern could stall the feed, so it was skipped: %1$s	Этот шаблон автора мог замедлить ленту, поэтому он был пропущен: %1$s
 That creator pattern could stall the feed, so it wasn't added: %1$s	Этот шаблон автора мог замедлить ленту, поэтому он не был добавлен: %1$s
 This key isn't in Hushfeed's list, so its type can't be checked. Reset the override.	Этого ключа нет в списке Hushfeed, поэтому его тип нельзя проверить. Сбросьте переопределение.
@@ -191,7 +190,7 @@ Activity	Активность
 Activity center (PIA)	Центр активности (PIA)
 Add	Добавить
 Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.	Заблокировать автора одним нажатием. После подтверждения TikTok произойдёт переход к следующему видео. Слева вверху на две секунды появится небольшая кнопка «Разблокировать». Разблокировать можно и позже, в TikTok: Конфиденциальность > Заблокированные аккаунты.
-TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts.	TikTok иногда проверяет скорость телефона в отдельном фоновом процессе, который может занимать много памяти. Этот переключатель не даёт ему запуститься. Уже запущенный процесс остановится после перезапуска TikTok.
+TikTok sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when TikTok restarts.	Иногда TikTok проверяет скорость телефона в фоновом процессе, который может занимать много памяти. Это не даёт такой проверке запуститься. Уже работающая проверка завершится при перезапуске TikTok.
 TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.	Собственное дневное напоминание TikTok об экранном времени сворачивает приложение в фон, вместо того чтобы ждать, пока его закроют. Если сразу вернуться, напоминание останется на экране, поэтому лимит по-прежнему можно достичь. Требует дневного лимита, заданного в TikTok в разделе Настройки и конфиденциальность > Время в соцсетях.
 Try a different word or clear the search. Switches from patches you didn't tick in Morphe Manager aren't listed.	Попробуйте другое слово или очистите поиск. Переключатели из патчей, которые вы не отметили в Morphe Manager, здесь не показаны.
 Unblock	Разблокировать
@@ -220,14 +219,14 @@ Also apply these filters to downloaded videos TikTok uses when the feed can't lo
 Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.	Также изменять регион, который TikTok сообщает внутри себя. Язык интерфейса остаётся прежним. Ваш IP-адрес и правила вашего аккаунта по-прежнему действуют.
 Always show publish date	Всегда показывать дату публикации
 Always show the publish date in video author information. Restart TikTok to apply this.	Всегда показывать дату публикации в информации об авторе видео. Перезапустите TikTok, чтобы это применить.
-An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.	Имя пакета приложения, например com.dv.adm. Кнопка сохранения будет отправлять туда ссылку на видео вместо сохранения здесь. Оставьте пустым, чтобы сохранять здесь.
+Type the other app's ID, like com.dv.adm. The save button sends the video's link there instead of saving. Leave empty to save here.	Введите идентификатор другого приложения, например com.dv.adm. Кнопка сохранения отправит туда ссылку на видео вместо сохранения. Оставьте пустым, чтобы сохранять здесь.
 An interrupted settings change couldn't be recovered, so its record was set aside. Check your settings or restore a backup.	Прерванное изменение настроек не удалось восстановить, поэтому его запись была отложена. Проверьте свои настройки или восстановите резервную копию.
 An operator code is five or six digits, like 310260	Код оператора состоит из пяти или шести цифр, например 310260
-An override changes the value TikTok reads from this gate. It doesn't rewrite TikTok's cached value or prove the named feature changed.	Переопределение изменяет значение, которое TikTok считывает из этого переключателя. Оно не переписывает закэшированное значение TikTok и не доказывает, что указанная функция действительно изменилась.
+An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.	Переопределение меняет значение, которое TikTok читает из этого переключателя. Оно не меняет сохранённую копию TikTok и не доказывает, что названная функция изменилась.
 Animated sticker format	Формат анимированных стикеров
-Answer TikTok's location requests with nothing. The region settings change the locale and timezone. This switch stops the coordinates.	Отвечать на запросы местоположения от TikTok пустыми данными. Региональные настройки меняют язык и часовой пояс. Этот переключатель останавливает только координаты.
-Answer TikTok's reads of your contacts with an empty list. Find Friends and People you may know lose access to your contact list.	Отвечать на чтение контактов TikTok пустым списком. «Найти друзей» и «Возможно, вы знакомы» теряют доступ к списку контактов.
-Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.	Отвечать на сканирование TikTok установленных на телефоне приложений пустым списком. Проверка одного конкретного приложения, которое TikTok также использует для его открытия по нажатию, не затрагивается.
+TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.	TikTok не получает местоположение с вашего телефона. Настройки региона меняют страну и часовой пояс. Этот переключатель останавливает передачу точных координат.
+TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.	TikTok видит пустой список контактов вместо вашего. «Найти друзей» и «Возможно, вы знакомы» больше не могут использовать ваши контакты.
+TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.	TikTok видит пустой список приложений вместо приложений на вашем телефоне. Проверки одного конкретного приложения, например когда TikTok открывает приложение, на которое вы нажали, продолжают работать.
 App	Приложение
 App AB	Приложение AB
 Appearance	Внешний вид
@@ -255,9 +254,9 @@ Backup and restore	Резервное копирование и восстано
 Black	Чёрный
 Block clipboard reads	Блокировать чтение буфера обмена
 Hide a VPN connection	Скрывать VPN-подключение
-Keep TikTok from telling you're on a VPN. Only the VPN shows as off to it, and your other connections read as they really are. Leave this off if you need a feature that checks for a VPN.	Не даёт TikTok узнать, что вы используете VPN. Ему как выключенный показывается только VPN, а остальные подключения остаются такими, какие есть. Оставьте выключенным, если вам нужна функция, которая проверяет наличие VPN.
-Block the advertising id	Блокировать рекламный идентификатор
-Hand TikTok a blank advertising id, the same one Android gives after you reset yours, so this device can't be matched across apps by it.	Передаёт TikTok пустой рекламный идентификатор, тот же, что Android выдаёт после сброса вашего, чтобы это устройство нельзя было сопоставить между приложениями по нему.
+TikTok can't tell you're using a VPN. Your other connections show as they really are. Leave this off if you need a feature that checks for a VPN.	TikTok не может определить, что вы используете VPN. Остальные подключения выглядят как есть. Оставьте выключенным, если нужна функция, проверяющая наличие VPN.
+Block the advertising ID	Блокировать рекламный ID
+TikTok gets a blank advertising ID, like the one Android gives after you reset yours. Apps can't use it to recognize your phone.	TikTok получает пустой рекламный ID, такой же, какой Android выдаёт после сброса вашего. Приложения не смогут по нему узнавать ваш телефон.
 Block contact list access	Блокировать доступ к списку контактов
 Block installed app scanning	Блокировать сканирование установленных приложений
 Block location	Блокировать местоположение
@@ -299,13 +298,13 @@ Choose a preset to fill the SIM details.	Выберите пресет, чтоб
 Choose a subfolder under %1$s.	Выберите подпапку в %1$s.
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	Выберите действия, которые нужно убрать из меню «Поделиться». Введённые вручную названия, которые TikTok ещё не показывал, остаются в списке выше.
 Choose what reaches your feed	Выберите, что попадает в вашу ленту
-Choose which loaded TikTok bottom navigation tabs should stay visible.	Выберите, какие загруженные нижние вкладки навигации TikTok должны оставаться видимыми.
-Choose which loaded TikTok feed tabs should stay visible. If only For You remains, its redundant header is hidden.	Выберите, какие загруженные вкладки ленты TikTok должны оставаться видимыми. Если остаются только Рекомендации, их лишний заголовок скрывается.
+Choose which bottom tabs stay visible.	Выберите, какие нижние вкладки остаются видимыми.
+Choose which feed tabs stay visible. If only For You is left, its tab name is hidden.	Выберите, какие вкладки ленты остаются видимыми. Если остаётся только For You, название его вкладки скрывается.
 Choose which rows and controls appear	Выберите, какие строки и элементы управления отображаются
 Clear all	Очистить всё
 Clear all Lab data (overrides, switch, recordings)	Очистить все данные Lab (переопределения, переключатель, записи)
 Clear all suggested accounts	Очистить все предложенные аккаунты
-Clear the recent events, saved crash reports, a recorded screen layout and the hook status above.	Очистить недавние события, сохранённые отчёты о сбоях, записанную раскладку экрана и статус перехвата выше.
+Clears the recent events, saved crash reports, a recorded screen layout and the Hook status results above.	Удаляет последние события, сохранённые отчёты о сбоях, записанную раскладку экрана и результаты Hook status выше.
 Record a screen's layout	Записать раскладку экрана
 Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.	Нажмите, затем перейдите к экрану с тем, что нужно скрыть. Через %1$d секунд Hushfeed запишет, как устроен этот экран, без какого-либо его текста, для диагностического отчёта.
 Waiting to record. Go to the screen you want recorded.	Ожидание записи. Перейдите к экрану, который нужно записать.
@@ -326,16 +325,16 @@ Clearing	Очистка
 Clearing suggested accounts	Очистка предложенных аккаунтов
 Clearing, %1$d so far	Очистка, пока %1$d
 Close	Закрыть
-Comma separated account handles or user ids. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.	Через запятую: имена аккаунтов или ID пользователей. Видео этих аккаунтов всегда скрываются. Запись между слэшами, например /^news_/, считается шаблоном, который сравнивается с именем аккаунта и отображаемым именем.
-Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.	Через запятую: коды стран, например GB, IE. Видео, опубликованные откуда-либо ещё, скрываются. Оставьте пустым для всех стран.
-Comma separated country codes. Videos posted from these are hidden, whatever the list above says.	Через запятую: коды стран. Видео, опубликованные из них, скрываются независимо от того, что указано в списке выше.
-Comma separated list of any other Inbox row titles to hide, matched exactly. Use this for anything not listed above.	Через запятую: заголовки других строк Входящих, которые нужно скрыть, при точном совпадении. Используйте это для всего, что не перечислено выше.
-Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.	Через запятую: названия ровно в том виде, в каком их показывает меню «Поделиться»: друзья в строке «Отправить», получатели вроде Facebook и действия вроде «Создать группу» или «Репост». Устойчивые ключи вроде copy, save и dislike также работают ещё до открытия меню.
-Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.	Через запятую: ID звуков, записанные кнопкой звука в плеере. Удалите один, чтобы разблокировать его.
-Comma separated usernames or display names whose comments are hidden.	Через запятую: имена пользователей или отображаемые имена, чьи комментарии скрываются.
-Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Через запятую: слова или фразы. Видео, чья подпись совпадает, скрываются. Регистр не важен. Две фразы в кавычках можно объединить: "a" & "b" требует обе, "a" !& "b" требует первую без второй.
-Comma separated words to match against a sound's name, like saxophone. Case doesn't matter.	Через запятую: слова для сравнения с названием звука, например saxophone. Регистр не важен.
-Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Через запятую. Комментарий скрывается, если его текст содержит что-либо из списка. Регистр не важен. Две фразы в кавычках можно объединить: "a" & "b" требует обе, "a" !& "b" требует первую без второй.
+Separate account handles or user IDs with commas. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a search pattern checked against the handle and display name.	Разделяйте имена аккаунтов или ID пользователей запятыми. Видео этих аккаунтов всегда скрываются. Запись между косыми чертами, например /^news_/, это шаблон поиска, который сверяется с именем пользователя и отображаемым именем.
+Separate country codes with commas, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.	Разделяйте коды стран запятыми, например GB, IE. Видео, опубликованные из других мест, скрываются. Оставьте пустым для всех стран.
+Separate country codes with commas. Videos posted from these are hidden, whatever the list above says.	Разделяйте коды стран запятыми. Видео из этих стран скрываются, что бы ни говорил список выше.
+Separate the titles of any other Inbox rows you want to hide with commas, spelled exactly. Use this for anything not listed above.	Через запятую перечислите названия других строк «Входящих», которые нужно скрыть, точно как они написаны. Используйте для всего, чего нет выше.
+Separate names with commas, exactly as the share sheet shows them. These can be friends in the Send to row, apps such as Facebook, or actions such as Create group or Repost. The words copy, save and dislike also work before the sheet has opened.	Разделяйте названия запятыми, точно как они указаны в меню «Поделиться». Это могут быть друзья из строки «Отправить», приложения вроде Facebook или действия вроде «Создать группу» или «Репост». Слова copy, save и dislike работают и до открытия меню.
+Sound IDs saved by the player's sound button, separated by commas. Remove one to unblock it.	ID звуков, сохранённые кнопкой звука в плеере, через запятую. Удалите один, чтобы разблокировать его.
+Separate usernames or display names with commas. Their comments are hidden.	Разделяйте имена пользователей или отображаемые имена запятыми. Их комментарии скрываются.
+Separate words or phrases with commas. Videos whose caption matches are hidden. Capital letters don't matter. Write "a" & "b" to need both phrases, or "a" !& "b" to need the first without the second.	Разделяйте слова или фразы запятыми. Видео, в описании которых есть совпадение, скрываются. Регистр букв не важен. Напишите "a" & "b", чтобы требовались обе фразы, или "a" !& "b", чтобы требовалась первая без второй.
+Separate words with commas, like saxophone, to match against sound names. Capital letters don't matter.	Разделяйте запятыми слова, которые сверяются с названиями звуков, например saxophone. Регистр букв не важен.
+Separate words with commas. A comment is hidden if it contains any of them. Capital letters don't matter. Write "a" & "b" to need both phrases, or "a" !& "b" to need the first without the second.	Разделяйте слова запятыми. Комментарий скрывается, если содержит любое из них. Регистр букв не важен. Напишите "a" & "b", чтобы требовались обе фразы, или "a" !& "b", чтобы требовалась первая без второй.
 Comment media filename	Имя файла медиа комментария
 Comments	Комментарии
 Comments aren't available for this video	Комментарии недоступны для этого видео
@@ -352,6 +351,18 @@ Confirm before liking a story	Подтверждать перед лайком �
 Continue supported videos from where you stopped when you scroll back to them.	Продолжать поддерживаемые видео с того места, где вы остановились, когда вы пролистываете назад к ним.
 Controls	Элементы управления
 Feature gate report copied	Отчёт о переключателях скопирован
+# context: Diagnostics, the feed capture row (its titles and summaries) and its toasts
+Capture the feed	Записать ленту
+Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it.	Нажмите, чтобы начать, листайте, пока не появится проблема в ленте, и вернитесь сюда, чтобы сохранить запись. В файле нет субтитров и имён, а видео и авторы указаны только короткими кодами. Прочитайте файл, прежде чем делиться им.
+Stop and save the feed capture	Остановить и сохранить запись ленты
+Recording what the feed filters keep and hide. Tap to stop and save it in %1$s.	Идёт запись того, что фильтры ленты оставляют и скрывают. Нажмите, чтобы остановить и сохранить её в %1$s.
+Save the feed capture	Сохранить запись ленты
+The last feed capture wasn't saved. Tap to try again.	Последняя запись ленты не сохранена. Нажмите, чтобы повторить попытку.
+Feed capture started. Scroll until the problem shows up, then come back here to stop.	Запись ленты началась. Листайте, пока не появится проблема, затем вернитесь сюда, чтобы остановить её.
+The feed capture is still being saved	Запись ленты всё ещё сохраняется
+Feed capture saved to %1$s. Read it before you share it.	Запись ленты сохранена в %1$s. Прочитайте её, прежде чем делиться.
+The feed capture couldn't be saved. Tap the row to try again.	Не удалось сохранить запись ленты. Нажмите на строку, чтобы повторить попытку.
+Couldn't start saving the feed capture. Try again in a moment.	Не удалось начать сохранение записи ленты. Попробуйте снова через минуту.
 Copy a quick report or save the full report as a file.	Скопируйте краткий отчёт или сохраните полный отчёт в файл.
 Copy comments without username	Копировать комментарии без имени пользователя
 Copy only the comment text when using TikTok's copy comment action.	Копировать только текст комментария при использовании функции TikTok «Копировать комментарий».
@@ -429,9 +440,9 @@ Destination updated	Место назначения обновлено
 Downloads	Загрузки
 Drag to move, release to place	Перетащите, чтобы переместить, отпустите, чтобы разместить
 Drama and Series	Драма и сериалы
-Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.	Отображать текст TikTok шрифтом вашего устройства вместо TikTok Sans. Значки, анимации подарков и символы @ и # сохраняют свои шрифты. Перезапустите TikTok, чтобы это применить.
+Shows TikTok's text in your phone's font instead of TikTok Sans. Icons and gift animations keep their own fonts. Restart TikTok to see the change.	Показывает текст TikTok шрифтом вашего телефона вместо TikTok Sans. Значки и анимации подарков сохраняют свои шрифты. Перезапустите TikTok, чтобы увидеть изменение.
 Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.	Скрывать уведомление о новом подписчике до того, как оно попадёт в шторку. Остальные уведомления не затрагиваются, а подписчик по-прежнему появляется во Входящих.
-Each area, how many of the things it looks for are in this build and how many aren't.	По каждому разделу: сколько из того, что он ищет, есть в этой сборке, а сколько нет.
+Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.	Для каждой области показано, сколько из того, что ищет Hushfeed, найдено в этом TikTok и сколько отсутствует.
 Empty	Пусто
 Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Очищать меню, которое открывается при долгом нажатии на значок TikTok на главном экране. Выключение этой настройки просит TikTok создать их заново. Нажатие на значок по-прежнему открывает приложение, а закреплённый вами вручную ярлык остаётся на месте.
 Enable	Включить
@@ -484,7 +495,6 @@ Filter settings	Настройки фильтра
 Filter the list	Отфильтровать список
 Filter: %1$s	Фильтр: %1$s
 Filters, translation and copy options	Фильтры, перевод и параметры копирования
-Find a setting by name or description	Найти настройку по названию или описанию
 First caller	Первый вызывающий
 First rejection:	Первое отклонение:
 Fit the video to the screen	Вписывать видео в экран
@@ -494,8 +504,8 @@ Focus	Фокус
 Follow probe	Проверка подписки
 Following	Подписки
 For You	Рекомендации
-For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.	Только для com.deniscerri.ytdl. Запрашивать у YTDLnis аудио или видео, когда кнопка сохранения передаёт ему ссылку.
-For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.	Только для com.deniscerri.ytdl. Скрывать его карточку загрузки и запускать передачу в фоне.
+Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.	Работает только с YTDLnis (com.deniscerri.ytdl). Выбирает аудио или видео, когда кнопка сохранения отправляет ему ссылку.
+Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.	Работает только с YTDLnis (com.deniscerri.ytdl). Запускает загрузку в фоне, не показывая его карточку загрузки.
 Forced %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.	Принудительно задано %1$d переключателей из %2$d. Остальные не принимают значение true или false. Перезапустите TikTok, чтобы это применить.
 Forced %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.|one	Принудительно задан %1$d переключатель из %2$d. Остальные не принимают значение true или false. Перезапустите TikTok, чтобы это применить.
 Forced %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.|few	Принудительно заданы %1$d переключателя из %2$d. Остальные не принимают значение true или false. Перезапустите TikTok, чтобы это применить.
@@ -589,6 +599,8 @@ The Activity row of likes and comments on your posts leaves the Inbox. Notificat
 The Archive row leaves the Inbox. Archived chats are kept.	Строка «Архив» исчезает из Входящих. Архивные чаты сохраняются.
 Hide the LIVE button	Скрывать кнопку LIVE
 Hide the LIVE button in the top left corner of the feed.	Скрывать кнопку LIVE в левом верхнем углу ленты.
+Hide the side menu button	Скрывать кнопку бокового меню
+Hide the button at the top left of the feed that opens TikTok's side menu, with Your orders, TikTok Minis and more.	Скрывать кнопку в левом верхнем углу ленты, которая открывает боковое меню TikTok с разделами «Ваши заказы», TikTok Minis и другими.
 Hide LIVE videos from the feed.	Скрывать видео LIVE из ленты.
 The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.	Строка «Запросы на сообщения» исчезает из Входящих. Запросы продолжают поступать и ждут там, пока вы не выключите это.
 The New followers row leaves the top of the Inbox. The accounts still follow you.	Строка «Новые подписчики» исчезает сверху Входящих. Аккаунты по-прежнему подписаны на вас.
@@ -648,7 +660,7 @@ How far each edge press moves the video.	На сколько каждое наж
 Hushfeed can't read the creator pattern %1$s	Hushfeed не может прочитать шаблон автора %1$s
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed скрыл CAPTCHA TikTok. Выключите «Скрывать всплывающие окна CAPTCHA», если что-то перестало работать.
 Hushfeed is active	Hushfeed активен
-Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.	Игнорировать выбор автора, чтобы пункты Дуэт и Stitch появлялись. Все остальные проверки приложения по-прежнему действуют, а решение о принятии публикации остаётся за сервером.
+Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.	Показывает варианты «Дуэт» и Stitch, даже если автор их отключил. TikTok всё равно может не принять результат.
 Import finished	Импорт завершён
 Import loaded values	Импортировать загруженные значения
 Imported %1$d values	Импортировано значений: %1$d
@@ -720,7 +732,6 @@ A long press on Share plays the video at the hold speed instead of opening the q
 Hold speed on Favorites	Скорость удержания на «Избранное»
 A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.	Долгое нажатие на «Избранное» воспроизводит видео на скорости удержания вместо предложения новой коллекции. Для этого в настройке «Долгое нажатие» должно быть выбрано «Стандарт TikTok», а настройка «Перематывать от краёв экрана» должна быть выключена.
 Lowest	Самое низкое
-Make TikTok yours.	Сделайте TikTok своим.
 Manager	Менеджер
 Marked as not interested	Отмечено как «не интересно»
 Match locale and timezone to country	Подстраивать язык и часовой пояс под страну
@@ -798,7 +809,7 @@ Nothing to undo yet.	Пока нечего отменять.
 Notices from this project and the ones it's built on	Уведомления этого проекта и проектов, на которых он основан
 OK	ОК
 Off	Выключено
-Off forces false, on forces true. Reset hands the choice back to TikTok.	«Выключено» принудительно задаёт false, а «включено» задаёт true. «Сбросить» возвращает выбор TikTok.
+Off forces the value to false, on forces it to true. Reset lets TikTok decide again.	Выключено принудительно задаёт false, включено задаёт true. Сброс снова оставляет выбор за TikTok.
 Offline videos	Офлайн-видео
 Offline videos limit	Лимит офлайн-видео
 On mobile data	При мобильном интернете
@@ -848,7 +859,7 @@ Photo destination	Папка для фото
 Photo filename	Имя файла фото
 Photos and stickers	Фото и стикеры
 Pick the buttons to take off the column. The rest stay where they are.	Выберите кнопки, которые нужно убрать из колонки. Остальные останутся на месте.
-Play videos TikTok has classified without the overlay asking to be tapped through first.	Воспроизводить видео, которые TikTok относит к особой категории, без плашки с просьбой сначала подтвердить просмотр.
+Plays videos that TikTok covers with a content warning without asking you to tap through first.	Воспроизводит видео, которые TikTok закрывает предупреждением о содержимом, не требуя сначала нажать, чтобы пропустить его.
 Playback	Воспроизведение
 Player	Плеер
 Playlist posts	Публикации из плейлиста
@@ -858,14 +869,13 @@ Press and hold a profile picture to save the full size original to your photo de
 Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.	Нажмите и удерживайте историю, чтобы сохранить её. У историй нет собственной кнопки сохранения, а удержание в TikTok обычно ставит их на паузу, поэтому это действие использует тот же жест.
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.	Нажмите и удерживайте левую или правую треть экрана, чтобы перемотать назад или вперёд. Средняя треть сохраняет действие долгого нажатия.
 Privacy	Конфиденциальность
-Privacy and system	Конфиденциальность и система
 Profile	Профиль
 Profile picture saved to %1$s	Фото профиля сохранено в %1$s
 Profile share actions	Действия «Поделиться» в профиле
 Promotional music	Рекламная музыка
 Proof	Подтверждение
 Post age	Возраст публикации
-Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.	Добавляет строку поиска, которая фильтрует уже загруженные комментарии к этому видео по тексту или имени пользователя. Поиск не затрагивает весь TikTok и не убирает баннер TikTok с предложенными запросами.
+Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok.	Добавляет поле поиска, которое находит уже загруженные комментарии к этому видео по словам или имени пользователя. По всему TikTok оно не ищет.
 Pulling down at the top of For You no longer reloads it.	Потягивание вниз наверху «Рекомендаций» больше не обновляет ленту.
 Putting the settings back to their defaults	Настройки возвращаются к значениям по умолчанию
 Quality	Качество
@@ -891,7 +901,7 @@ Hide voting cards and poll results above the comments, including polls that have
 Hide the Share via row.	Скрывать строку «Поделиться через».
 Hide the actions row of the share sheet.	Скрывать строку действий в меню «Поделиться».
 Hide the row of friends at the top of the share sheet.	Скрывать строку друзей вверху меню «Поделиться».
-Remove tracking parameters from shared links.	Удалять параметры отслеживания из ссылок, которыми вы делитесь.
+Cuts the tracking bits out of links you share.	Убирает из отправляемых ссылок части, которые нужны для слежки.
 Remove watermark	Убирать водяной знак
 Removed %1$s	Удалено: %1$s
 Replace values when TikTok asks for them	Подставлять значения, когда их запрашивает TikTok
@@ -940,18 +950,18 @@ Right column	Правая колонка
 Rows	Строки
 SIM country preset	Предустановка страны SIM
 STEM	STEM
-Sanitize sharing links	Очищать ссылки при отправке
+Clean up shared links	Очищать ссылки при отправке
 Save	Сохранить
-Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	Сохранять файлы SRT вместе с видео. Они сохраняются в Movies на Android 11+, в Download на Android 10 и в папку с видео на более старых версиях. На Android 11+ при включённой функции «Сохранять детали рядом с видео» видео перемещается в Download или Documents, а файлы SRT остаются в Movies.
+Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.	Сохраняет файлы субтитров (SRT) вместе с видео. Они попадают в Movies на Android 11 и новее, в Download на Android 10 и в вашу папку видео на более старых версиях. На Android 11 и новее при включённом «Сохранять подробности» видео переходит в Download или Documents, а субтитры остаются в Movies.
 Save a profile picture on a long press	Сохранять фото профиля долгим нажатием
 Save a story on a long press	Сохранять историю долгим нажатием
 Save every photo in the post at full size as a JPEG, not as the screen shows it.	Сохранять каждое фото публикации в полном размере в формате JPEG, а не как оно показано на экране.
 Save field values	Сохранить значения полей
 Save full report	Сохранить полный отчёт
 Save media	Сохранение медиафайлов
-Save Hushfeed settings and Feature Gate Lab rules to a JSON file.	Сохранить настройки Hushfeed и правила Feature Gate Lab в файл JSON.
+Saves your Hushfeed settings and Feature Gate Lab rules to a file.	Сохраняет настройки Hushfeed и правила Feature Gate Lab в файл.
 Save subtitles beside videos	Сохранять субтитры рядом с видео
-Save the latest available TikTok crash report for diagnostic export.	Сохранить последний доступный отчёт о сбое TikTok для диагностического экспорта.
+Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.	Сохраняет на этом телефоне последний отчёт о сбое TikTok, чтобы его можно было включить в диагностический отчёт.
 Save the original sound	Сохранять оригинальный звук
 Save the sound as well	Сохранять звук тоже
 Save videos without sound	Сохранять видео без звука
@@ -981,7 +991,7 @@ Saving the live photo's clip	Клип live-фото сохраняется
 Screen time	Экранное время
 Search	Поиск
 Search by name, description or category.	Поиск по имени, описанию или категории.
-Search and override gates	Поиск и переопределение переключателей
+Advanced. Find and force the hidden switches TikTok uses to test features.	Для опытных. Находите и принудительно меняйте скрытые переключатели, которые TikTok использует для проверки функций.
 Search countries or operators	Поиск по странам или операторам
 Search hidden creators	Поиск по скрытым авторам
 Search settings	Поиск по настройкам
@@ -1015,7 +1025,7 @@ Settings restored. Restart TikTok to apply all changes.	Настройки во�
 Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Настройки восстановлены. Правила Feature Gate Lab относились к другой версии TikTok и были пропущены. Перезапустите TikTok, чтобы применить все изменения.
 Share	Поделиться
 Hide share actions	Скрывать действия «Поделиться»
-Share links through another host	Делиться ссылками через другой хост
+Swap the website in shared links	Подменять сайт в отправляемых ссылках
 Share sheet	Меню «Поделиться»
 Shop	Shop
 Shop posts	Публикации Shop
@@ -1024,7 +1034,7 @@ Show @username beside a video instead of the display name the creator chose.	П�
 Show search in LIVE	Показывать поиск в LIVE
 Show TikTok's feed buttons	Показывать кнопки ленты TikTok
 Show TikTok's own progress bar on videos where it's normally hidden.	Показывать собственную полосу прогресса TikTok на видео, где она обычно скрыта.
-Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	Показывать собственное меню сортировки TikTok на каждой публикации, с вариантами «Популярное», «Новое», «Медиа» и «Автор», вместо урезанной строки, которую получил ваш аккаунт. Перезапустите TikTok, чтобы это применить. Стиль считывается один раз за сеанс и запоминается.
+Shows TikTok's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart TikTok to see the change.	Показывает полное меню сортировки TikTok под каждым постом: популярные, новые, с медиа и от автора, вместо сокращённого меню, выданного вашему аккаунту. Перезапустите TikTok, чтобы увидеть изменение.
 Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.	Показывать поле поиска в шторке LIVE от TikTok, где это доступно. Это не добавляет поле поиска в комментарии к видео.
 Show a video preview thumbnail while dragging the progress bar.	Показывать превью видео при перетаскивании полосы прогресса.
 Show the block button on videos	Показывать кнопку блокировки на видео
@@ -1077,16 +1087,16 @@ Still here. Nothing is waiting.	Всё ещё здесь. Ничего не ож
 Still reading the record. Tap again in a moment.	Запись всё ещё читается. Нажмите ещё раз через момент.
 Still saving the last one	Последнее всё ещё сохраняется
 The last one is still waiting to start	Последнее всё ещё ожидает начала
-Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.	Останавливать отправку событий ByteDance AppLog, атрибуции AppsFlyer, явных отчётов об экранах Firebase и отчётов о сбоях. Вместе с ними замолкает и собственная диагностика TikTok.
-Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.	Не позволять TikTok запрашивать у экрана частоту обновления видео, которое воспроизводится. На телефоне с экраном 90 или 120 Гц такой запрос замедляет всё приложение до частоты видео, включая прокрутку.
-Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone.	Не позволять TikTok слушать акселерометр, гироскоп, магнитометр и другие датчики движения, которые он использует для идентификации телефона.
+Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	TikTok перестаёт отправлять отчёты об использовании, данные для рекламы и отчёты о сбоях. Собственные средства диагностики TikTok тоже затихают.
+Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	Не даёт TikTok замедлять экран до частоты кадров каждого видео. На телефоне с 90 или 120 Гц из-за этого весь экран приложения, включая прокрутку, работает медленнее.
+Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	TikTok перестаёт считывать датчики движения и компас вашего телефона. По ним приложения могут узнавать телефон.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	Не позволять TikTok читать то, что вы скопировали. Копирование ссылки из TikTok по-прежнему работает.
 Stop a long press on Like from opening TikTok's repost action.	Не позволять долгому нажатию на «Нравится» открывать репост TikTok.
 Stop a long press on Share from opening TikTok's quick share action.	Не позволять долгому нажатию на «Поделиться» открывать быструю отправку TikTok.
 Stop feature gate recording	Остановить запись переключателей
 Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.	Останавливать анимацию бренда, которая проигрывается поверх комментариев, когда написанное кем-то совпадает с триггерной фразой рекламодателя.
 Stop the bubble that asks you to share a video with friends after you like it.	Останавливать всплывающую подсказку, которая предлагает поделиться видео с друзьями после того, как вы его лайкнули.
-Keep websites outside TikTok from using its connection back into the app. TikTok pages such as Activity center, Watch history, shop checkout and CAPTCHA keep working.	Запрещать сайтам за пределами TikTok использовать его обратное подключение к приложению. Такие страницы TikTok, как центр активности, история просмотров, оформление заказа в Shop и CAPTCHA, продолжают работать.
+Stops websites you open from inside TikTok from reaching back into the app. TikTok's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working.	Не даёт сайтам, которые вы открываете из TikTok, обращаться обратно к приложению. Собственные страницы TikTok, такие как Activity center, история просмотров, оплата в магазине и CAPTCHA, продолжают работать.
 Stop video looping	Останавливать зацикливание видео
 Stop videos at the end instead of replaying them.	Останавливать видео в конце вместо повторного воспроизведения.
 Stopped after dismissing %1$s suggested accounts	Остановлено после %1$s отклонённых предложенных аккаунтов
@@ -1147,11 +1157,11 @@ The catalog says this key is %1$s and this override is %2$s. Reset the override 
 The diagnostic report couldn't be saved yet. Try again in a moment.	Диагностический отчёт пока не удалось сохранить. Повторите попытку через момент.
 The diagnostic report couldn't be saved. Try again.	Не удалось сохранить диагностический отчёт. Повторите попытку.
 The downloader app you chose isn't installed. Check Send links to another app under Downloads.	Выбранное приложение-загрузчик не установлено. Проверьте «Отправлять ссылки в другое приложение» в разделе «Загрузки».
-The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at.	Лента гаснет в последние три четверти минуты перед паузой, чтобы вы пришли к ней, а не упёрлись в неё внезапно. Нужны лимит времени и пауза, до которой можно дойти.
+The feed slowly dims during the last 45 seconds before the hold, so it doesn't come as a sudden stop. Needs a time budget and a hold.	Лента постепенно тускнеет в последние 45 секунд перед блокировкой, чтобы она не наступала как резкая остановка. Нужны лимит времени и блокировка.
 The feed doesn't end. This is a fine time to leave it.	Лента не заканчивается. Сейчас как раз подходящий момент, чтобы её покинуть.
 The feed is open again	Лента снова открыта
 The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away.	Лента ждёт одного нажатия, прежде чем снова начать воспроизведение, когда вы возвращаетесь в приложение. Сообщения, профили и поиск по-прежнему в одном нажатии от вас.
-The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.	Час, когда сбрасываются оба лимита, по 24-часовому формату. По умолчанию четыре утра, потому что тот, кто всё ещё листает ленту в час ночи, всё ещё живёт вчерашним вечером.
+The hour both budgets reset, on a 24 hour clock. The default is 4 in the morning, so a late night still counts as the same day.	Час, в который оба лимита сбрасываются, в 24-часовом формате. По умолчанию это 4 утра, поэтому поздняя ночь ещё считается тем же днём.
 Last change put back. Restart TikTok to apply all changes.	Последнее изменение возвращено. Перезапустите TikTok, чтобы применить все изменения.
 Last change put back. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Последнее изменение возвращено. Правила Feature Gate Lab относились к другой версии TikTok и были пропущены. Перезапустите TikTok, чтобы применить все изменения.
 Show only videos with this many comments.	Показывать только видео с таким количеством комментариев.
@@ -1206,17 +1216,17 @@ TikTok default (hold to speed up, quick share)	Стандарт TikTok (удер
 TikTok didn't block %1$s. Try again in a moment.	TikTok не заблокировал %1$s. Повторите попытку через момент.
 TikTok didn't unblock %1$s. Try again in a moment.	TikTok не снял блокировку с %1$s. Повторите попытку через момент.
 TikTok didn't accept the feedback. Try again later.	TikTok не принял отзыв. Повторите попытку позже.
-TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.	TikTok ещё не передал этой настройке объект для изменения. Откройте ту часть приложения, где она используется, и вернитесь сюда.
+TikTok hasn't loaded this setting yet. Open the part of the app that uses it, then come back.	TikTok ещё не загрузил эту настройку. Откройте раздел приложения, который её использует, и вернитесь.
 TikTok read it	TikTok прочитал его
 TikTok read it, but the override couldn't be applied. Reset it and save it again.	TikTok прочитал его, но переопределение не удалось применить. Сбросьте его и сохраните заново.
 TikTok refused the follow: %1$s	TikTok отклонил подписку: %1$s
 TikTok's own value	Собственное значение TikTok
-TikTok's play and pause button and its previous and next buttons appear on the feed. TikTok otherwise shows them only to people who use a screen reader. TikTok's analytics note the row and each press on it.	Кнопка воспроизведения и паузы TikTok, а также кнопки предыдущего и следующего видео появляются в ленте. В остальных случаях TikTok показывает их только людям, использующим программы чтения с экрана. Аналитика TikTok фиксирует эту панель и каждое нажатие на ней.
-TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	Сервер TikTok может включить аккаунт в эксперимент, который опустошает вкладку «Избранное» в профиле. Сохранять вкладку и сохранённые в ней видео.
+Shows TikTok's play, pause, previous and next buttons on the feed. TikTok normally shows them only to people who use a screen reader. TikTok can see when you use them.	Показывает в ленте кнопки TikTok «воспроизвести», «пауза», «назад» и «вперёд». Обычно TikTok показывает их только тем, кто пользуется экранным диктором. TikTok может видеть, когда вы ими пользуетесь.
+TikTok sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.	Иногда TikTok проверяет изменение, из-за которого вкладка «Избранное» в вашем профиле пустеет. Эта настройка сохраняет вкладку и ваши сохранённые видео.
 TikTok's size	Размер TikTok
 Times you can open the feed anyway	Сколько раз можно всё равно открыть ленту
 Wait a day to loosen the budget	Ждать день перед тем, как ослабить лимит
-A change that loosens the budget waits until the day starts over and one that tightens it applies at once. A higher budget or no budget loosens it. So do a shorter hold and more times to open the feed anyway. Moving the hour the day starts and turning this off wait too. A restored backup follows the same rule and Start today over is off while this is on.	Изменение, которое ослабляет лимит, ждёт начала нового дня, а то, которое ужесточает его, применяется сразу. Более высокий лимит или его отсутствие ослабляют ограничение. То же самое делают более короткая пауза и увеличение числа «всё равно открыть ленту». Перенос часа начала дня и отключение этой функции тоже ждут. Восстановленная резервная копия подчиняется тому же правилу, а «Начать сегодняшний день заново» отключено, пока включено это.
+A change that makes your budget looser waits until the day starts over, and a stricter one applies at once. Looser means a higher or no budget, a shorter hold, more times to open the feed anyway, a new start hour, or turning this off. A restored backup follows the same rule, and Start today over is off while this is on.	Изменение, делающее лимит мягче, ждёт начала нового дня, а более строгое применяется сразу. Мягче значит больший лимит или его отсутствие, более короткая блокировка, больше раз открыть ленту всё равно, новый час начала или отключение этой настройки. Восстановленная копия подчиняется тому же правилу, а «Начать день заново» отключено, пока это включено.
 Changes to %1$s at %2$s	Изменится на %1$s в %2$s
 Turns off at %1$s	Выключится в %1$s
 That loosens the budget. It waits until %1$s.	Это ослабляет лимит. Вступит в силу не раньше %1$s.
@@ -1240,8 +1250,8 @@ Today: %1$d videos	Сегодня: %1$d видео
 Today: %1$d videos|one	Сегодня: %1$d видео
 Today: %1$d videos|few	Сегодня: %1$d видео
 Today: %1$d videos|many	Сегодня: %1$d видео
-Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos. Anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Токены: {creator}, {date}, {video_id}, {index}. {index} нумерует фото слайд-шоу, которое вы сохраняете через «Загружать оригиналы фото». Всё, что сохранено через собственную кнопку TikTok, вместо этого нумеруется папкой. Расширение файла сохраняется автоматически.
-Tokens: {date}, {media_id}. Works for image and video stickers.	Токены: {date}, {media_id}. Работает для стикеров-изображений и видеостикеров.
+Use {creator}, {date}, {video_id} and {index} to build the name. {index} numbers the photos of a slideshow saved with Download original photos. TikTok's own save button numbers files by folder instead. The file ending is added for you.	Составьте имя из {creator}, {date}, {video_id} и {index}. {index} нумерует фото слайд-шоу, сохранённого через «Загружать оригиналы фото». Собственная кнопка сохранения TikTok нумерует файлы по папке. Расширение файла добавляется само.
+Use {date} and {media_id} to build the name. Works for image and video stickers.	Составьте имя из {date} и {media_id}. Работает для стикеров-изображений и видеостикеров.
 Too many media saves are already running. Try again in a moment.	Уже выполняется слишком много сохранений медиафайлов. Повторите попытку через момент.
 Tracking	Трекинг
 Tracking, device access and links	Трекинг, доступ к устройству и ссылки
@@ -1282,8 +1292,8 @@ Use a default playback speed	Использовать скорость восп�
 Use non-personalized search	Использовать неперсонализированный поиск
 Use system font	Использовать системный шрифт
 Use the preset for the region TikTok reports for your account and its shop too. May affect search.	Использовать эту предустановку и для региона, который TikTok сообщает для вашего аккаунта и его магазина. Может повлиять на поиск.
-Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Использовать выбранные значения страны и оператора. Это меняет только то, что сообщает SIM-карта, и ничего больше: ваш IP-адрес, история аккаунта и язык, на котором вы читаете, остаются без изменений, а TikTok достаточно любого из них, чтобы сохранить уже выбранный регион. Перезапустите TikTok, чтобы это применить.
-Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Использовать выбранную страну. Это меняет только то, что сообщает SIM-карта, и ничего больше: ваш IP-адрес, история аккаунта и язык, на котором вы читаете, остаются без изменений, а TikTok достаточно любого из них, чтобы сохранить уже выбранный регион. Перезапустите TikTok, чтобы это применить.
+Makes TikTok see the country and carrier you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make TikTok keep your current region. Restart TikTok to see the change.	TikTok видит выбранные вами страну и оператора как данные вашей SIM-карты. IP-адрес, история аккаунта и язык не меняются, и любого из них достаточно, чтобы TikTok сохранил текущий регион. Перезапустите TikTok, чтобы увидеть изменение.
+Makes TikTok see the country you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make TikTok keep your current region. Restart TikTok to see the change.	TikTok видит выбранную вами страну как страну вашей SIM-карты. IP-адрес, история аккаунта и язык не меняются, и любого из них достаточно, чтобы TikTok сохранил текущий регион. Перезапустите TikTok, чтобы увидеть изменение.
 Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.	Использовать разделённый макет на более широких экранах. Перезапустите TikTok, чтобы это применить. Если старый макет всё ещё отображается, разверните телефон ещё раз.
 Use value	Использовать значение
 Use your own offline videos limit	Использовать свой лимит офлайн-видео
@@ -1304,7 +1314,6 @@ Video saved	Видео сохранено
 Video saved in %1$s, but only %2$s of %3$s subtitles came with it	Видео сохранено в %1$s, но из %3$s субтитров пришло только %2$s
 Video saved with %1$s subtitles in %2$s	Видео с %1$s субтитрами сохранено в %2$s
 Wait before hiding the controls.	Задержка перед скрытием элементов управления.
-Watching and sharing	Просмотр и отправка
 WebP, exactly as TikTok sent it	WebP, точно как прислал TikTok
 What TikTok gets	Что получает TikTok
 When TikTok requests this key, return the selected value below	Когда TikTok запрашивает этот ключ, возвращать выбранное ниже значение
@@ -1316,16 +1325,15 @@ Write the video's sound beside it as an .m4a. Android 10 and later file audio se
 YTDLnis background mode	Фоновый режим YTDLnis
 YTDLnis download type	Тип загрузки YTDLnis
 Yes	Да
-Your feed	Ваша лента
 Your filters hid everything TikTok just sent. Most were %1$s.	Ваши фильтры скрыли всё, что только что прислал TikTok. В основном это было %1$s.
 Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.	Ваши фильтры скрыли всё, что прислал TikTok, %1$d раз подряд. В основном это было %2$s.
 Your operator's name, like T-Mobile.	Название вашего оператора, например T-Mobile.
 Your operator's numeric code, like 310260.	Числовой код вашего оператора, например 310260.
-Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.	Ноль оставляет выход из паузы доступным каждый раз, как это было всегда. Любое другое значение означает, сколько раз в день он срабатывает, а когда они заканчиваются, пауза остаётся до начала нового дня. Игнорируется, пока лимит заблокирован: тогда выход пропадает полностью.
+Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out.	Ноль означает, что выход из блокировки всегда доступен. Любое другое число показывает, сколько раз в день он работает. Когда они закончатся, блокировка остаётся до начала нового дня. Игнорируется, пока лимит заблокирован, так как при этом выхода нет.
 Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.	Ноль означает отсутствие лимита. Считает видео, которые Hushfeed пролистал за вас, а не те, что вы пролистали сами, и начинает заново, когда лента перестраивается или вы меняете это число.
 Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.	Ноль показывает уведомление и не трогает ленту. Любое другое значение закрывает ленту на столько минут после достижения лимита. Сообщения, профили и поиск продолжают работать, и ничего в ленте не теряется.
 Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search doesn't count, and nothing is shown while the feed is on hold.	Ноль отключает это. Короткое напоминание появляется после стольких минут просмотра и затем повторяется через столько же. Время в сообщениях, профиле или поиске не учитывается, и ничего не показывается, пока лента на паузе.
-Zero switches this off. Count every video that comes up in the feed, however you got to it, and say so once the count is reached. This is separate from the auto-advance session limit under Playback, which only counts videos Hushfeed itself advanced past.	Ноль отключает это. Считать каждое видео, появившееся в ленте, независимо от того, как вы до него добрались, и сообщить об этом по достижении счётчика. Это отдельно от лимита автоматического переключения за сеанс в разделе «Воспроизведение», который считает только видео, пролистанные самим Hushfeed.
+Zero switches this off. Counts every video that comes up in the feed and tells you when you reach the limit. Separate from the auto-advance session limit under Playback, which counts only videos Hushfeed moved past for you.	Ноль отключает это. Считает каждое видео, показанное в ленте, и сообщает, когда вы достигнете лимита. Отдельно от лимита сеанса автопереключения в разделе «Воспроизведение», который считает только видео, пропущенные самим Hushfeed.
 Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.	Ноль отключает это. Считать минуты, которые плеер работает в ленте. Время в сообщениях, профиле или поиске не учитывается.
 collapsed	свёрнуто
 expanded	развёрнуто
@@ -1365,8 +1373,8 @@ Hide the tags above a video's description that invite you to try an effect, a te
 Filter location-tagged videos	Фильтровать видео с метками геолокации
 Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.	Скрывать видео в ленте со значками мест, даже если это не платная реклама. Чтобы оставить видео и скрыть только значок, используйте «Скрывать метки геолокации» в разделе «Экран ленты».
 Location-tagged videos	Видео с метками геолокации
-Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.	Расширять область нажатия на сердечко в соседнее пустое пространство. Значок и отступы строки остаются прежними. У текста, кнопки «Ответить» и других элементов управления остаётся собственное место.
-Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.	Открывать сразу комментарии. Скрывать счётчик комментариев, кнопки сортировки и закрытия, а также область с подсказками над ними. Чтобы закрыть комментарии, используйте «Назад» или свайп вниз.
+Makes the heart easier to tap by using the empty space around it. The icon and spacing look the same, and Reply and other buttons keep their own space.	Сердечко легче нажимать, потому что для него используется пустое место вокруг. Значок и отступы выглядят так же, а «Ответить» и другие кнопки сохраняют свою область.
+Hides the comment count, the sort and close buttons and the suggestions above them. Use Back or swipe down to close comments.	Скрывает число комментариев, кнопки сортировки и закрытия и подсказки над ними. Чтобы закрыть комментарии, нажмите «Назад» или проведите вниз.
 Hide TikTok's "Search: ..." banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.	Скрывать баннер TikTok «Поиск: ...» над счётчиком комментариев. Это не скрывает комментарии и поле поиска по комментариям Hushfeed.
 Hide the Report button on videos	Скрывать кнопку «Пожаловаться» на видео
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	Скрывать кнопку-флажок, которую TikTok показывает над фото автора в некоторых регионах. Пожаловаться на видео по-прежнему можно через меню «Поделиться».
@@ -1428,12 +1436,12 @@ TikTok refused the follow with code %1$s	TikTok отклонил подписк�
 TikTok refused the follow with code %1$s. A hidden CAPTCHA may be the cause.	TikTok отклонил подписку с кодом %1$s. Причиной может быть скрытая CAPTCHA.
 TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.	TikTok отклонил подписку: %1$s Причиной может быть скрытая CAPTCHA.
 Hushfeed is paused	Hushfeed на паузе
-TikTok runs as if it weren't patched. Your settings stay as they are.	TikTok работает так, будто он не пропатчен. Ваши настройки остаются как есть.
+Hushfeed runtime changes are paused. Your settings stay saved. Changes built into the APK remain.	Изменения Hushfeed, применяемые во время работы приложения, приостановлены. Ваши настройки сохранены. Изменения, встроенные в APK, остаются.
 TikTok closed three times within a minute of starting, so Hushfeed paused itself. Your settings stay as they are.	TikTok закрылся три раза в течение минуты после запуска, поэтому Hushfeed поставил себя на паузу. Ваши настройки остаются как есть.
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.	Файл с именем hushfeed-safe-mode в папке TikTok в Android/data поставил Hushfeed на паузу. Ваши настройки остаются как есть.
 Turn Hushfeed back on	Снова включить Hushfeed
 Pause Hushfeed	Поставить Hushfeed на паузу
-From the next start TikTok runs as if it weren't patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.	Начиная со следующего запуска TikTok будет работать так, будто он не пропатчен, чтобы вы могли понять, связана ли проблема с Hushfeed. Ваши настройки остаются как есть.
+Pause runtime changes after restarting TikTok. Your settings stay saved. Changes built into the APK remain.	Приостановить изменения во время работы приложения после перезапуска TikTok. Ваши настройки сохранятся. Изменения, встроенные в APK, останутся.
 Hushfeed turns back on when TikTok restarts.	Hushfeed снова включится при перезапуске TikTok.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.	Не удалось удалить файл hushfeed-safe-mode. Удалите его из папки TikTok в Android/data, чтобы снова включить Hushfeed.
 Hide TikTok Shop in search	Скрывать TikTok Shop в поиске
@@ -1526,9 +1534,9 @@ Preset applied. Restart TikTok to use it.	Предустановка приме�
 Preset saved. Turn on overrides in the Lab to use it.	Предустановка сохранена. Включите переопределения в Lab, чтобы её использовать.
 This preset doesn't match the installed gates. Nothing changed.	Эта предустановка не соответствует установленным переключателям. Ничего не изменено.
 About overrides	О переопределениях
-Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.	Токены: {creator}, {date}, {video_id}. Начните с {creator}/, чтобы у каждого автора была своя папка. Расширение файла сохраняется автоматически.
+Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Составьте имя из {creator}, {date} и {video_id}. Начните с {creator}/, чтобы класть каждого автора в отдельную папку. Расширение файла добавляется само.
 Save details beside the video	Сохранять детали рядом с видео
-Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.	Сохранять описание, автора, ссылку и дату публикации в файле TXT. На Android 10 и новее оба файла используют Download или Documents под одним именем папки. Применяется к сохранениям, выполняемым здесь.
+Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Сохраняет описание, автора, ссылку и дату публикации в текстовом файле рядом с видео. На Android 10 и новее эта пара попадает в Download или Documents под тем же именем папки. Действует для сохранений, сделанных Hushfeed.
 Check for already-saved videos	Проверять уже сохранённые видео
 Forget saved videos	Забыть сохранённые видео
 Undo forgetting saved videos	Отменить забывание сохранённых видео
@@ -1542,7 +1550,7 @@ Couldn't forget the saved videos. Try again.	Не удалось забыть с
 Saved videos put back	Сохранённые видео возвращены
 Couldn't put the saved videos back. Try again.	Не удалось вернуть сохранённые видео. Повторите попытку.
 Too late to put the saved videos back	Слишком поздно, чтобы вернуть сохранённые видео
-Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.	Запоминать до %1$s сохранений видео, сделанных здесь, пока это включено. Если файл всё ещё существует, предлагать «Открыть» или «Сохранить снова» перед скачиванием ещё одной копии.
+Remembers up to %1$s videos you saved here. If the file is still there, you get Open or Save again instead of a second copy.	Запоминает до %1$s видео, сохранённых здесь. Если файл всё ещё на месте, вместо второй копии вы увидите «Открыть» или «Сохранить снова».
 This video is already saved. Open TikTok to save another copy.	Это видео уже сохранено. Откройте TikTok, чтобы сохранить ещё одну копию.
 This video is already saved	Это видео уже сохранено
 Save again	Сохранить снова
@@ -1563,8 +1571,8 @@ Couldn't save the change. Try again.	Не удалось сохранить из
 Off. TikTok can report views and typing.	Выкл. TikTok может сообщать о просмотрах и наборе текста.
 Hushfeed is paused. Ghost mode isn't active.	Hushfeed на паузе. Режим призрака не активен.
 Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.	Обнаружена проблема. Просмотры историй всё ещё могут отправляться. Проверьте диагностику режима призрака. Предупреждение остаётся до перезапуска TikTok.
-Reporting calls were blocked here. Viewer-list privacy hasn't been verified.	Вызовы отправки отчётов здесь заблокированы. Скрытие в списке зрителей не проверено.
-On. No reporting call has been observed in this process.	Вкл. В этом процессе не зафиксировано ни одного вызова отправки отчётов.
+Hushfeed blocked TikTok's reports here. It hasn't confirmed that you stay off viewer lists.	Hushfeed заблокировал здесь отчёты TikTok. Он ещё не подтвердил, что вас нет в списках зрителей.
+On. Hushfeed hasn't seen TikTok send any reports since it started.	Включено. С момента запуска TikTok Hushfeed не заметил ни одной отправки отчётов.
 Ghost mode diagnostics	Диагностика режима призрака
 The partial file couldn't be removed. Delete it from the folder you chose.	Не удалось удалить неполный файл. Удалите его из выбранной папки.
 The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.	Резервное копирование не началось, и не удалось удалить его неполный файл. Удалите его из выбранной папки.
@@ -1577,7 +1585,7 @@ The video you're watching keeps playing to its end after you leave TikTok or tur
 Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	«Продолжать воспроизведение в фоне» включено в настройках воспроизведения Hushfeed, поэтому TikTok получает значение 2 для этого ключа, и переопределение здесь не действует, пока тот переключатель не выключен.
 2, from Keep playing in the background	2, от «Продолжать воспроизведение в фоне»
 Let the last video finish	Давать последнему видео доиграть
-When the budget runs out, the video on screen plays to its end before the hold covers the feed, and the feed won't swipe to another video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs a hold to wait for. It waits %1$d minutes at most.	Когда лимит заканчивается, видео на экране доигрывает до конца, прежде чем пауза закроет ленту, и всё это время лента не переключается на другое видео свайпом. Лимит времени, который уже начал гаснуть, переходит прямо к паузе. Нужна пауза, которую можно дождаться. Ожидание длится не более %1$d минут.
+When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.	Когда лимит исчерпан, видео на экране доигрывается до конца, и только потом начинается блокировка, а листать к другому видео за это время нельзя. Если лента уже потускнела, блокировка начинается сразу. Нужна блокировка. Ждёт не дольше %1$d мин.
 The feed stops when this video ends.	Лента останавливается, когда это видео заканчивается.
 Streak	Серия
 Keep a streak going	Поддерживать серию
@@ -1600,8 +1608,8 @@ A different account is signed in. Switch back to the one you set this up on, or 
 TikTok's messages didn't start in time. It tries again at %1$s.	Сообщения TikTok не запустились вовремя. Попытка повторится в %1$s.
 The message didn't go through. It tries again at %1$s.	Сообщение не было отправлено. Попытка повторится в %1$s.
 Found %1$s in your chats.	Найдено в ваших чатах: %1$s.
-Look like the store app to TikTok's checks	Выглядеть как приложение из магазина для проверок TikTok
-Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	Отвечать на собственные проверки TikTok того, как он подписан и установлен, так же, как это делало бы приложение Play Store. Для подписок или лайков, которые отменяются сами при обновлении. TikTok может также проверять это из нативного кода, куда это не достаёт, поэтому может не помочь.
+Pass TikTok's install checks	Проходить проверки установки TikTok
+TikTok checks how it was signed and installed. This answers those checks the way the Play Store version would. Try it if follows or likes undo themselves after a refresh. It may not help, since TikTok has other checks.	TikTok проверяет, как он подписан и установлен. Эта настройка отвечает на проверки так, как ответила бы версия из Play Store. Попробуйте, если подписки или лайки сами отменяются после обновления. Она может не помочь, ведь у TikTok есть и другие проверки.
 Add apps to Share via	Добавить приложения в «Поделиться через»
 Pick apps to add to the Share via row, before More. Each gets the same link the other apps get.	Выберите приложения, которые нужно добавить в строку «Поделиться через» перед «Ещё». Каждое получает ту же ссылку, что и остальные приложения.
 Search apps	Поиск приложений
@@ -1611,7 +1619,7 @@ Install one, then come back here.	Установите одно и возвра�
 No apps match this search	Нет приложений, соответствующих этому запросу
 LIVE feed	Лента LIVE
 Filter the LIVE feed	Фильтровать ленту LIVE
-Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators and Creators hidden on this phone apply here too, Blocked caption words are matched against each LIVE's title, and Creator exceptions works the way it does for videos. The LIVE button picks the first room itself, so the rules start with the next one. If they hide every room for a while, one gets through so the feed keeps loading.	Скрывать трансляции в ленте LIVE, которую вы листаете, по правилам ниже. «Заблокированные авторы» и «Авторы, скрытые на этом телефоне» действуют и здесь, «Заблокированные слова в подписях» сверяются с названием каждой трансляции, а «Исключения для авторов» работают так же, как для видео. Первую трансляцию кнопка LIVE выбирает сама, поэтому правила начинают действовать со следующей. Если правила долго скрывают всё подряд, одна трансляция всё же покажется, чтобы лента продолжала загружаться.
+Hides rooms in the LIVE feed you swipe through, using the rules below. Blocked creators, Creators hidden on this phone and Creator exceptions apply here too, and Blocked caption words are checked against each LIVE's title. The first room the LIVE button opens isn't filtered. If every room would be hidden, one gets through so the feed keeps loading.	Скрывает комнаты в ленте LIVE, по которой вы листаете, по правилам ниже. Заблокированные авторы, «Авторы, скрытые на этом телефоне», и «Исключения для авторов» действуют и здесь, а «Заблокированные слова в подписях» сверяются с названием каждого LIVE. Первая комната, которую открывает кнопка LIVE, не фильтруется. Если бы скрылись все комнаты, одна пропускается, чтобы лента продолжала загружаться.
 Hide gaming LIVEs	Скрывать игровые трансляции
 Hide LIVEs that TikTok tags with a game or a gaming category.	Скрывать трансляции, которые TikTok помечает игрой или игровой категорией.
 Hide shopping LIVEs	Скрывать торговые трансляции
@@ -1621,17 +1629,17 @@ Hide LIVEs that TikTok labels as a paid partnership or promotional content.	Ск
 Hide verified creators' LIVEs	Скрывать трансляции верифицированных авторов
 Hide LIVEs hosted by verified accounts.	Скрывать трансляции верифицированных аккаунтов.
 Hidden LIVE categories	Скрытые категории LIVE
-Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter.	Через запятую: слова, например музыка, чат. Трансляция скрывается, если её категория, теги темы или название игры содержат одно из них. Регистр не важен.
+Separate words with commas, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Capital letters don't matter.	Разделяйте слова запятыми, например music, chat. LIVE скрывается, если его категория, теги тем или название игры содержат любое из них. Регистр букв не важен.
 LIVE viewers range	Диапазон зрителей LIVE
 Show only LIVEs with this many people watching.	Показывать только трансляции с таким количеством зрителей.
 LIVE followers range	Диапазон подписчиков авторов LIVE
 Show only LIVEs from creators with this many followers.	Показывать только трансляции авторов с таким количеством подписчиков.
 Hide the comment bar on opened videos	Скрывать строку комментария в открытых видео
 Hide the Clear display controls	Скрывать кнопки чистого вида
-While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.	В чистом виде также скрывать полосу прогресса, кнопку закрытия и кнопки паузы и скорости внизу. По нижнему краю по-прежнему можно провести пальцем, чтобы перемотать видео. Чтобы выйти из чистого вида, нажмите на видео и удерживайте, затем выберите «Восстановить экран».
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.	В чистом виде также скрывать полосу прогресса, кнопку закрытия и кнопки паузы и скорости внизу. По нижнему краю по-прежнему можно провести пальцем, чтобы перемотать видео. Чтобы выйти из чистого вида, нажмите на видео и удерживайте, затем выберите «Восстановить экран» или сведите пальцы на экране.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Убирать строку для ввода комментария под видео, открытыми из профиля, по хештегу, со страницы звука или из поиска, чтобы видео занимало экран до самого низа. Кнопка комментариев справа по-прежнему открывает комментарии.
 Build details	Сведения о сборке
-Copy or save patch-time choices and build identity.	Скопируйте или сохраните выбранные при применении патчей параметры и данные о сборке.
+Copy or save which patches and options this Hushfeed was built with.	Скопируйте или сохраните сведения о том, с какими патчами и параметрами собран этот Hushfeed.
 Copy build details	Копировать сведения о сборке
 Save build details	Сохранить сведения о сборке
 Build details copied to the clipboard	Сведения о сборке скопированы в буфер обмена
@@ -1688,7 +1696,7 @@ Post dates in the feed	Даты публикаций в ленте
 Show exact counts	Показывать точные числа
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	Показывает числа полностью, например 1 234 567 вместо 1.2M.
 Play SDR instead of HDR	Воспроизводить SDR вместо HDR
-Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.	Воспроизводить обычную версию видео, у которых есть и HDR, чтобы экран не вспыхивал на полную яркость при запуске. Видео, которые TikTok даёт только в HDR, по-прежнему воспроизводятся.
+HDR videos light the screen extra bright. This plays the standard (SDR) version instead, so the screen doesn't jump to full brightness. Videos with no standard version still play in HDR.	HDR-видео делают экран особенно ярким. Эта настройка воспроизводит обычную версию (SDR), чтобы экран не вспыхивал на полную яркость. Видео без обычной версии по-прежнему идут в HDR.
 Remove story rings	Убрать кольца историй
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Убирать кольцо истории с фото профиля в ленте, в комментариях и в профилях. Нажатие на фото открывает профиль, а не историю.
 Remove the LIVE ring	Убрать кольцо LIVE
@@ -1712,7 +1720,7 @@ Copy username	Копировать имя пользователя
 Copy user ID	Копировать ID пользователя
 Copy video ID	Копировать ID видео
 Prefer H.264 video	Предпочитать видео H.264
-Play the H.264 version of videos TikTok also offers in HEVC or ByteVC2. It's easier on phones that stutter or run hot playing those. Videos without an H.264 version still play.	Воспроизводить версию H.264 у видео, которые TikTok также даёт в HEVC или ByteVC2. Так легче телефонам, которые на них подтормаживают или греются. Видео без версии H.264 по-прежнему воспроизводятся.
+Picks the older H.264 video format when TikTok also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.	Выбирает более старый видеоформат H.264, когда TikTok предлагает и более новый (HEVC или ByteVC2). Помогает телефонам, которые тормозят или греются. Видео без версии H.264 по-прежнему воспроизводятся.
 Show engagement rate	Показывать уровень вовлечённости
 Show likes, comments, shares and saves as a percentage of views, next to the creator's name and after the view count on profile grids.	Показывать лайки, комментарии, репосты и сохранения в процентах от просмотров рядом с именем автора и после числа просмотров в сетке профиля.
 App lock	Блокировка приложения
@@ -1729,7 +1737,7 @@ TikTok is locked	TikTok заблокирован
 Unlock	Разблокировать
 TikTok isn't locked because this phone has no screen lock	TikTok не заблокирован, потому что на этом телефоне нет блокировки экрана
 Save photo posts as a video	Сохранять фотопубликации как видео
-Download video on a one-photo post makes the MP4 here, with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks whether you want the photos you picked as full-size originals or as one video.	«Скачать видео» в публикации с одним фото создаёт MP4 здесь, со звуком публикации и без логотипа TikTok и финальной заставки. В публикации с несколькими фото «Скачать» спрашивает, сохранить выбранные фото как оригиналы в полном размере или как одно видео.
+On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.	В посте с одним фото «Скачать видео» делает MP4 со звуком поста, без логотипа TikTok и заключительной заставки. В посте с несколькими фото «Скачать» спрашивает, нужны ли оригиналы или одно видео.
 Seconds per photo	Секунд на фото
 How long each photo stays on screen in a video made from a photo post.	Сколько каждое фото остаётся на экране в видео из фотопубликации.
 Save photos or a video?	Сохранить фото или видео?
@@ -1743,7 +1751,7 @@ Video of photos	Видео из фото
 # context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
 debug debugging logs logging	отладка дебаг логи журналы
 Export comments	Экспорт комментариев
-Adds Export CSV and Export JSON under the search box, so it needs Search within comments. They save the comments and replies this video has loaded to a file you pick. Open the reply threads you want first, since TikTok only loads them when you do.	Добавляет под поиском кнопки «Экспорт CSV» и «Экспорт JSON», поэтому нужен пункт «Поиск по комментариям». Они сохраняют комментарии и ответы, которые загрузило это видео, в выбранный вами файл. Сначала откройте нужные ветки ответов, потому что TikTok загружает их только тогда, когда вы это делаете.
+Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.	Добавляет под полем поиска кнопки Export CSV и Export JSON, поэтому «Поиск по комментариям» должен быть включён. Они сохраняют в выбранный вами файл комментарии и ответы, загруженные на данный момент. Сначала откройте нужные ветки ответов.
 Export CSV	Экспорт CSV
 Export JSON	Экспорт JSON
 1 comment or reply loaded	Загружен 1 комментарий или ответ
@@ -1769,7 +1777,7 @@ Loop a story	Повторять историю
 Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.	Когда история заканчивается, она запускается заново, а не переключается на следующую. Чтобы перейти дальше, коснитесь экрана или проведите пальцем.
 Hold a photo story	Удерживать историю с фото
 Keep a photo story on screen until you tap or swipe, instead of moving on after a few seconds.	История с фото остаётся на экране, пока вы не коснётесь или не проведёте пальцем, и не переключается через несколько секунд.
-Store TikTok reads as its installer	Магазин, который TikTok видит как источник установки
+Store TikTok thinks it came from	Магазин, откуда TikTok считает себя установленным
 Play Store	Play Store
 Galaxy Store	Galaxy Store
 AppGallery	AppGallery
@@ -1792,7 +1800,7 @@ The sticker suggestion banner stops showing in a chat. Your own stickers are sti
 Hide suggested replies	Скрывать предложенные ответы
 TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	Предложенные ответы TikTok и баннер, который их представляет, больше не показываются в чате. Сообщения, которые вы пишете или получаете, не затрагиваются.
 Hide online status	Скрыть статус «в сети»
-Stop sending TikTok's activity reports, so friends don't see a green dot or Active now while you're in the app. It works only while Ghost mode is on. The same report brings back your friends' status, so theirs may stop updating for you while it's on. Your last status can stay visible for a while.	Останавливает отправку отчётов об активности TikTok, чтобы друзья не видели зелёную точку или «Сейчас в сети», пока вы в приложении. Работает только при включённом режиме призрака. Тот же отчёт возвращает статусы ваших друзей, поэтому, пока это включено, их статус у вас может перестать обновляться. Ваш последний статус может ещё какое-то время оставаться видимым.
+Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	Друзья не увидят зелёную точку или Active now, пока вы в TikTok. Нужен включённый режим Ghost. Статус друзей у вас может перестать обновляться, а ваш последний статус ещё какое-то время может быть виден.
 Stop LIVE previews opening by themselves	Не открывать превью LIVE самостоятельно
 A LIVE in the feed can count down and take you into the room on its own. This keeps you in the feed until you tap it.	LIVE в ленте может начать обратный отсчёт и сам перевести вас в эфир. С этим вы остаётесь в ленте, пока не нажмёте на него.
 Play sounds TikTok pulled	Воспроизводить звуки, удалённые TikTok
@@ -1822,15 +1830,15 @@ Subtitles: %1$s	Субтитры: %1$s
 Stickers: %1$s	Стикеры: %1$s
 Live photo clips: %1$s	Клипы живых фото: %1$s
 TikTok's own name	Собственное имя TikTok
-Not a token here, kept as typed: %1$s	Здесь это не подстановка, сохраняется как есть: %1$s
-Not a token for Hushfeed's downloader, kept as typed: %1$s	Для загрузчика Hushfeed это не подстановка, сохраняется как есть: %1$s
+Not a part Hushfeed fills in, so it's kept as typed: %1$s	Это не часть, которую подставляет Hushfeed, поэтому она остаётся как введена: %1$s
+Hushfeed's downloader doesn't fill this in, so it's kept as typed: %1$s	Загрузчик Hushfeed это не подставляет, поэтому оно остаётся как введено: %1$s
 If that name is taken, Android adds a number to the new file.	Если такое имя уже занято, Android добавит к новому файлу номер.
 If that name is taken, Hushfeed adds a number to the new file.	Если такое имя уже занято, Hushfeed добавит к новому файлу номер.
 Don't start the first video	Не запускать первое видео
 When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.	Когда вы открываете TikTok с иконки, первое видео в ленте ждёт одного касания, прежде чем начать. Ссылка, уведомление или ярлык открываются как обычно.
 Network proxy	Сетевой прокси
 Send TikTok through a proxy	Пускать TikTok через прокси
-Sends TikTok's own network stack, which carries the feed, search, comments and the rest of its API, through the proxy below. Videos and LIVE streams load through TikTok's player, which connects on its own, so they stay direct. Other apps aren't affected.	Направляет собственный сетевой стек TikTok, по которому идут лента, поиск, комментарии и остальной его API, через прокси ниже. Видео и LIVE-трансляции загружает плеер TikTok, который подключается сам, поэтому они идут напрямую. Другие приложения это не затрагивает.
+Sends TikTok's feed, search, comments and other app traffic through the proxy below. Videos and LIVE streams still connect directly. Other apps aren't affected.	Направляет ленту, поиск, комментарии и остальной трафик TikTok через прокси ниже. Видео и эфиры LIVE по-прежнему подключаются напрямую. Другие приложения не затрагиваются.
 Proxy type	Тип прокси
 HTTP	HTTP
 SOCKS5	SOCKS5
@@ -1839,12 +1847,12 @@ The proxy's address, like 192.168.1.20 or proxy.example.com.	Адрес прок
 Proxy port	Порт прокси
 The port the proxy listens on, like 8080 or 1080.	Порт, на котором работает прокси, например 8080 или 1080.
 Proxy user name	Имя пользователя прокси
-Optional. TikTok's own network stack can't sign in to a proxy, so only plain Java connections use this. Leave it empty for a proxy without a password.	Необязательно. Собственный сетевой стек TikTok не умеет входить в прокси, поэтому это используют только обычные Java-соединения. Оставьте поле пустым для прокси без пароля.
+Optional. Only connections made by Android itself can sign in to a proxy, not TikTok's own. Leave empty for a proxy without a password.	Необязательно. Входить в прокси могут только соединения, которые устанавливает сам Android, но не соединения TikTok. Оставьте пустым для прокси без пароля.
 Proxy password	Пароль прокси
 Optional, used with the user name. It isn't shown, logged or put in a backup.	Необязательно, используется вместе с именем пользователя. Он не показывается, не пишется в журнал и не попадает в резервную копию.
-Enter a host name or IP address, without a scheme or port	Введите имя хоста или IP-адрес без схемы и порта
+Enter a server name or IP address, without http:// or a port number	Введите имя сервера или IP-адрес без http:// и номера порта
 A port is a whole number from 1 to 65535	Порт должен быть целым числом от 1 до 65535
-The proxy at %1$s asks for a password. TikTok's own network stack can't send one, so use a proxy that doesn't need one.	Прокси %1$s запрашивает пароль. Собственный сетевой стек TikTok не может его отправить, поэтому используйте прокси без пароля.
+The proxy at %1$s asks for a password, and TikTok can't send one. Use a proxy that doesn't need one.	Прокси по адресу %1$s требует пароль, а TikTok не может его отправить. Используйте прокси без пароля.
 Couldn't reach the proxy at %1$s. TikTok may not load until it's back or you turn the proxy off.	Не удалось подключиться к прокси %1$s. TikTok может не загружаться, пока прокси не заработает или пока вы его не выключите.
 Word rules only, not every feed filter:	Только правила для слов, а не все фильтры ленты:
 This list is too long to preview here. Saving still follows the usual limit.	Этот список слишком длинный для предпросмотра. При сохранении действует обычный лимит.
@@ -1857,7 +1865,7 @@ Only the first %1$s characters of the sample were checked.	Проверены т
 Sample caption to test	Пример подписи для проверки
 Sample category to test	Пример категории для проверки
 Keep videos out of Watch history	Не добавлять видео в историю просмотров
-Stops the view report TikTok sends for each video you watch, which is how videos get into Activity center > Watch history. Your views stop adding to view counts and For You has less to learn from. Videos already there stay, and TikTok still sees likes, follows, searches and its usage logs.	Останавливает отчёт о просмотре, который TikTok отправляет для каждого просмотренного видео: именно так видео попадают в Центр активности > История просмотров. Ваши просмотры перестают добавляться к счётчикам, а у ленты «Рекомендации» становится меньше данных для обучения. Видео, которые уже там, остаются, а TikTok по-прежнему видит лайки, подписки, поиски и свои журналы использования.
+Stops TikTok from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and For You learns less. Likes, follows and searches are still seen.	TikTok перестаёт сообщать, какие видео вы смотрите, поэтому они не попадают в историю просмотров в Activity center. Просмотры не засчитываются, и For You узнаёт о вас меньше. Лайки, подписки и поиски по-прежнему видны.
 Set a sleep timer that closes TikTok	Таймер сна, который закрывает TikTok
 Close TikTok after	Закрыть TikTok через
 Turn off the timer (TikTok closes at %1$s)	Выключить таймер (TikTok закроется в %1$s)
@@ -1942,7 +1950,7 @@ Stop the bubble TikTok floats at the top of the feed to point you to a LIVE.	О�
 Auto-advance in search results	Автопереход в результатах поиска
 Also turns on TikTok's own auto scroll for videos opened from search. Restart TikTok to apply this.	Также включает собственную автопрокрутку TikTok для видео, открытых из поиска. Перезапустите TikTok, чтобы применить.
 Use system emoji	Использовать системные эмодзи
-Draw every emoji with your device's emoji font. TikTok normally draws the newest ones your device doesn't have yet with Google's emoji, and those may show as a box or in pieces with this on.	Отображать все эмодзи шрифтом эмодзи вашего устройства. Обычно самые новые эмодзи, которых на устройстве ещё нет, TikTok рисует в стиле Google, а с этой настройкой они могут отображаться квадратиком или по частям.
+Shows every emoji in your phone's own emoji font. The newest emoji your phone doesn't have yet may show as a box or in pieces.	Показывает все эмодзи шрифтом эмодзи вашего телефона. Самые новые эмодзи, которых в телефоне ещё нет, могут выглядеть как квадрат или распасться на части.
 Open shared videos alone	Открывать видео по ссылке отдельно
 A link to one video opens just that video, and the feed won't swipe past it. It swipes again once another video plays, like after a refresh or a tap on Following, or when you come back to TikTok after %1$d minutes or more away. Auto-advance doesn't move on from it either.	Ссылка на одно видео открывает только это видео, и лента не листается дальше него. Листать снова можно, как только начнётся другое видео, например после обновления или нажатия на «Подписки», или когда вы вернётесь в TikTok, пробыв вне его %1$d минут или больше. Автоматическое переключение тоже не уходит с него.
 Hide comment surveys	Скрывать анкеты в комментариях
@@ -1950,11 +1958,11 @@ Hide the question cards TikTok sometimes puts in a comment list to ask what you 
 Hide comment box buttons	Скрывать кнопки в поле комментария
 Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before.	Скрывать кнопки фото, @ и подарка в поле, где вы пишете комментарий. Эмодзи и отправка работают как раньше.
 Turn off push notifications	Отключить push-уведомления
-TikTok's push service stays off and nothing it sends reaches the drawer. It can't keep your phone awake either. You won't hear about new messages until you open TikTok, and a notification hidden while this is on doesn't come back. Ongoing ones like media controls stay.	Push-служба TikTok не запускается, и ничего из того, что он присылает, не попадает в шторку. Удерживать телефон в активном режиме он тоже не сможет. О новых сообщениях вы узнаете, только открыв TikTok, а уведомление, скрытое, пока это включено, не вернётся. Текущие, например управление воспроизведением, остаются.
+Turns off TikTok's notification service, so nothing it sends reaches your notification shade and it can't wake your phone. You won't hear about new messages until you open TikTok. Notifications hidden while this is on don't come back. Ongoing ones like media controls stay.	Отключает службу уведомлений TikTok: ничего из того, что она отправляет, не попадёт в шторку уведомлений, и она не сможет будить телефон. О новых сообщениях вы узнаете, только открыв TikTok. Уведомления, скрытые при включённой настройке, не возвращаются. Постоянные, например управление медиа, остаются.
 Save details as JSON	Сохранять сведения в JSON
-Write the details file as JSON instead of plain text, for scripts and archive tools.	Записывать файл со сведениями в формате JSON вместо обычного текста, для скриптов и программ архивации.
+Saves the details file in JSON format instead of plain text. Useful if another tool will read it.	Сохраняет файл с подробностями в формате JSON вместо обычного текста. Удобно, если файл будет читать другая программа.
 Tag saved videos with their details	Записывать сведения в теги сохранённых видео
-Write the caption, creator, publication date and link into the video file itself, where media players and tools like ffprobe can read them. Applies to saves handled here.	Записывать подпись, автора, дату публикации и ссылку в сам видеофайл, где их прочитают медиаплееры и инструменты вроде ffprobe. Действует для сохранений, выполняемых здесь.
+Stores the caption, creator, post date and link inside the video file, where media players can read them. Applies to saves made by Hushfeed.	Записывает описание, автора, дату публикации и ссылку внутрь самого видеофайла, где их могут прочитать медиаплееры. Действует для сохранений, сделанных Hushfeed.
 Save the video's cover	Сохранять обложку видео
 Save the cover as well	Сохранять обложку тоже
 Save the video's cover picture at the largest size TikTok has, each time you tap Download. It goes to your photo folder, named after the video.	Сохранять обложку видео в самом большом размере, какой есть у TikTok, каждый раз, когда вы нажимаете «Скачать». Она попадает в папку с фото и называется как видео.
@@ -1974,7 +1982,7 @@ Match text stickers too	Проверять и текстовые стикеры
 Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.	Скрывает и видео, в текстовых стикерах которых есть заблокированное слово из подписей. Текстовыми стикерами называются слова, которые автор пишет поверх видео в редакторе TikTok. Текст, который является частью самого изображения, прочитать нельзя.
 Text sticker words	Слова в текстовых стикерах
 Show how many were filtered	Показывать, сколько отфильтровано
-A small label under TikTok's top tabs counts what the feed filter has taken out since TikTok started. It shows only on the feed, and a tap on it reaches the video under it.	Небольшая метка под верхними вкладками TikTok считает, что фильтр ленты убрал с запуска TikTok. Она видна только в ленте, а нажатие на неё доходит до видео под ней.
+Shows a small count under TikTok's top tabs of what the feed filter has removed since TikTok started. It shows only on the feed, and taps on it go through to the video under it.	Показывает под верхними вкладками TikTok небольшой счётчик того, что фильтр ленты убрал с момента запуска TikTok. Он виден только в ленте, а нажатия на него проходят на видео под ним.
 1 filtered out	Отфильтровано: 1
 %1$d filtered out	Отфильтровано: %1$d
 %1$d filtered out|one	Отфильтровано: %1$d
@@ -1996,11 +2004,11 @@ Liked videos	Понравившиеся видео
 Public	Открыты
 Copy	Копировать
 Copy the full link for short links	Копировать полную ссылку вместо короткой
-When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed opens it once in the background to read the full video link and puts that on your clipboard instead. TikTok sees that open, the same as when anyone taps the link. A link you send to another app goes out as it was.	Когда «Копировать ссылку» даёт короткую ссылку vt.tiktok.com или vm.tiktok.com, Hushfeed один раз открывает её в фоне, чтобы узнать полную ссылку на видео, и кладёт в буфер обмена её. TikTok видит это открытие, как и когда кто угодно нажимает на ссылку. Ссылка, которую вы отправляете в другое приложение, уходит без изменений.
+When Copy link gives a short vt.tiktok.com or vm.tiktok.com link, Hushfeed opens it once in the background to find the full video link and copies that instead. TikTok sees that visit. Links you send to another app go out as they were.	Когда «Копировать ссылку» даёт короткую ссылку vt.tiktok.com или vm.tiktok.com, Hushfeed один раз открывает её в фоне, находит полную ссылку на видео и копирует её. TikTok видит это открытие. Ссылки, которые вы отправляете в другое приложение, уходят как есть.
 Full link copied	Полная ссылка скопирована
 Mark saved videos	Отмечать сохранённые видео
-Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.	Ставит ✓ перед числом просмотров в сетке профиля и перед временем в строке автора видео в ленте у видео, которые Hushfeed сохранил здесь. В ленте отметка видна там, где «Всегда показывать дату публикации» показывает время. Берёт данные из записи, которую ведёт «Проверять уже сохранённые видео», поэтому работает, только пока этот переключатель включён. Фотопосты не отмечаются, а удалённое вами видео остаётся отмеченным, пока вы не нажмёте «Забыть сохранённые видео».
-Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	Также отправлять предустановку вместо региона, который серверы TikTok сохранили на этом телефоне, и кода страны сети, которые уходят с каждым запросом. При входе в аккаунт по-прежнему отправляется ваш настоящий регион. Ваш IP-адрес и правила вашего аккаунта по-прежнему действуют.
+Puts a ✓ by videos you saved with Hushfeed, on profile grids and next to the time in the feed. Works only while Check for already-saved videos is on. Photo posts aren't marked.	Ставит ✓ у видео, сохранённых через Hushfeed, в сетках профилей и рядом со временем в ленте. Работает только при включённом параметре «Проверять уже сохранённые видео». Фотопосты не отмечаются.
+Also replaces the saved region and country code TikTok sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	Также подменяет сохранённый регион и код страны, которые TikTok отправляет с каждым запросом. При входе по-прежнему отправляется ваш настоящий регион. IP-адрес и собственные правила вашего аккаунта продолжают действовать.
 Turn off double tap to react	Отключить двойное касание для реакции
 A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.	Двойное касание сообщения больше не ставит на него сердечко. Одиночное касание и долгое нажатие работают как раньше.
 Turn off swipe to reply	Отключить свайп для ответа
@@ -2014,7 +2022,7 @@ Profile tab name	Название вкладки «Профиль»
 Shop tab name	Название вкладки «Магазин»
 A name of your own under this tab's icon. Leave it empty to keep TikTok's.	Ваше собственное название под значком этой вкладки. Оставьте пустым, чтобы сохранить название TikTok.
 Hide TikTok's wind-down screens	Скрывать экраны отдыха TikTok
-Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.	Убирает экран отдыха перед сном, дыхательное упражнение и экран дневного лимита, которые TikTok показывает поверх ленты. Работает только на аккаунте, который TikTok считает аккаунтом взрослого. На аккаунте подростка они остаются, как и на аккаунте, который Семейная синхронизация связывает с родителем. Если включено Выходить, когда TikTok сообщает об окончании времени, экран дневного лимита всё равно появляется, чтобы этот переключатель мог сработать.
+Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.	Отключает вечернюю паузу перед сном, дыхательное упражнение и экран дневного лимита, которые TikTok накладывает на ленту. Работает только на аккаунтах, о которых TikTok знает, что они взрослые. Аккаунты подростков и те, что родитель связал через Family Pairing, сохраняют их. При включённом «Выходить, когда TikTok сообщает об окончании времени» экран дневного лимита всё равно показывается, чтобы этот переключатель мог сработать.
 Hide Footnotes	Скрывать Footnotes
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	Скрывать баннер Footnotes, который TikTok показывает на видео с прикреплённой заметкой. Само видео и комментарии не меняются.
 Hide Bulletin board	Скрывать Bulletin board
@@ -2026,6 +2034,25 @@ Leave out the interest picker, the language and gender questions, the creators t
 Hide unverified content notices	Скрывать пометки о непроверенном контенте
 Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.	Скрывать баннер «Проверьте источники», который TikTok ставит на видео с пометкой о непроверенном контенте, и предупреждения при попытке поделиться таким видео.
 Keep offline videos until you delete them	Хранить офлайн-видео, пока вы их не удалите
-TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.	TikTok выбрасывает видео, сохранённые для офлайн-просмотра, через заданное время, иногда всего через два дня, независимо от того, смотрели вы их или нет. С этой настройкой они остаются, пока вы не удалите их в настройках офлайн-видео TikTok. Удалите их там, когда захотите новую подборку. Просмотренные TikTok всё равно может удалить, когда на телефоне заканчивается место.
+TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok удаляет видео, сохранённые для просмотра офлайн, через определённое время, иногда всего через два дня, просмотрены они или нет. Когда это включено, они остаются, пока вы сами не удалите их в настройках офлайн-видео TikTok. TikTok всё же может удалить просмотренные, если на телефоне мало места.
 Hide Thoughts on profiles	Скрывать Thoughts в профилях
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Скрывать облачко Thoughts, которое TikTok показывает над фото профиля, а в вашем профиле и предложение поделиться им. Перезапустите TikTok, чтобы это применить.
+
+# context: Quiet Index settings categories and compact runtime status.
+Feed & layout	Лента и оформление
+Filters, tabs and on-screen controls	Фильтры, вкладки и элементы на экране
+Comments & inbox	Комментарии и входящие
+Filters, translation and inbox controls	Фильтры, перевод и настройки входящих
+Downloads & sharing	Загрузки и отправка
+Files, subtitles and share sheet	Файлы, субтитры и меню «Поделиться»
+App & advanced	Приложение и дополнительные настройки
+Region, backups and diagnostics	Регион, резервные копии и диагностика
+About Hushfeed	О Hushfeed
+Version, changes and licenses	Версия, изменения и лицензии
+Customize	Настроить
+Active	Активен
+Paused	На паузе
+Budgets and reminders	Лимиты и напоминания
+%1$s, %2$s	%1$s, %2$s
+Don't auto translate these languages	Не переводить эти языки автоматически
+Separate language codes with commas, like es, de. When TikTok translates for you, captions and comments in these languages stay as they were written. See translation still works when you tap it. TikTok's own Don't translate list stays the way it is.	Разделяйте коды языков запятыми, например es, de. Когда TikTok переводит за вас, описания и комментарии на этих языках остаются как написаны. «Посмотреть перевод» по-прежнему работает, если нажать. Собственный список TikTok «Не переводить» остаётся как есть.

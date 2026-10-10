@@ -46,6 +46,28 @@ public final class UiHooks {
         return enabled(FamilyNames.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER);
     }
 
+    /**
+     * Pinterest has built a "Got a minute?" survey invite and is about to post it. True hands the
+     * invite Maybe later's dismissal instead, so Pinterest marks it dismissed the way it would if
+     * you'd tapped that, and it never shows. Off or paused, the invite shows as it always did.
+     */
+    public static boolean hideSurveyPrompts() {
+        if (!enabled(FamilyNames.HIDE_SURVEY_PROMPTS, Settings.HIDE_SURVEY_PROMPTS)) return false;
+        HookStatus.counted(FamilyNames.HIDE_SURVEY_PROMPTS, "survey invite declined");
+        return true;
+    }
+
+    /**
+     * Pinterest is about to open an advertiser sponsored poll, a survey of its own kind that pops up
+     * rather than sitting in the feed. True skips it before anything is built, the way Pinterest
+     * skips one when a poll is already open. Off or paused, the poll opens as it always did.
+     */
+    public static boolean hideSponsoredPolls() {
+        if (!enabled(FamilyNames.HIDE_SURVEY_PROMPTS, Settings.HIDE_SURVEY_PROMPTS)) return false;
+        HookStatus.counted(FamilyNames.HIDE_SURVEY_PROMPTS, "sponsored poll skipped");
+        return true;
+    }
+
     /** The toast class a test stands in for the save toasts patching names. */
     static volatile Class<?> saveToastForTests;
 

@@ -54,7 +54,9 @@ private const val PATCH_NAME = "Hide profile shortcuts"
 @Suppress("unused")
 val hideProfileShortcutsPatch = bytecodePatch(
     name = "Hide profile shortcuts",
-    description = "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders. TikTok's server decides what goes in that row, so the checklist offers the ones it has sent to your phone, and you can also type names. A separate switch hides the Thoughts bubble above a profile picture. Restart TikTok after a change. Switch: Hushfeed settings > App.",
+    description = "Hides the shortcuts you pick from the row under a profile's bio, like " +
+        "TikTok Studio or Your orders, and can hide the Thoughts bubble. Starts off. Turn it on " +
+        "in Hushfeed settings > App, then restart TikTok.",
     default = true,
 ) {
     category("Feed")

@@ -17,7 +17,9 @@ import java.util.Locale
 @Suppress("unused")
 val p2pRelayBlockerPatch = rawResourcePatch(
     name = "Block P2P video relay",
-    description = "Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. The APK gets about 3.5 MB smaller.",
+    description = "Removes the files TikTok uses to pass videos on to other viewers through " +
+        "your phone's internet connection. The app gets about 3.5 MB smaller. It's built in while " +
+        "patching, so only patching again without it brings them back.",
     default = false,
 ) {
     category("Performance")
@@ -48,7 +50,9 @@ val p2pRelayBlockerPatch = rawResourcePatch(
 @Suppress("unused")
 val coreAssetDebloatPatch = rawResourcePatch(
     name = "Remove content credential and card scanner assets",
-    description = "Empties TikTok's bundled C2PA and Microblink card-scanning assets, the Pitaya AI model libraries and the Python runtime they run on, the live-cast dynamic feature, and the ART log monitor probe. Saves about 19 MB of storage.",
+    description = "Removes TikTok's built-in AI model files, payment card scanner and content " +
+        "credential files, saving about 19 MB of storage. Anything in TikTok that needs them may " +
+        "stop working. Only patching again without it brings them back.",
     default = false,
 ) {
     category("Performance")
@@ -112,7 +116,9 @@ val coreAssetDebloatPatch = rawResourcePatch(
 @Suppress("unused")
 val languagePackPurgerPatch = rawResourcePatch(
     name = "Remove unused language packs",
-    description = "Empties the TikTok language bundles you leave out of Languages to keep, always keeping English. It keeps every language until you list the ones you want, so picking every patch removes none. Listed codes are checked before any file changes. Keeping only English saves about 26 MB of storage.",
+    description = "Removes the app languages you don't list in this patch's options, saving " +
+        "up to about 26 MB of storage. English is always kept. With no list it keeps them all. " +
+        "Only patching again brings removed ones back.",
     default = false,
 ) {
     category("Performance")
@@ -121,7 +127,8 @@ val languagePackPurgerPatch = rawResourcePatch(
     val targetLocales by stringOption(
         key = "locales",
         title = "Languages to keep",
-        description = "Comma-separated language codes such as en, es, pt, fr or de, or all to keep every language. English is always kept.",
+        description = "The languages to keep, as short codes separated by commas, like en, es, " +
+            "pt, fr or de. Type all to keep every language. English is always kept.",
         // Keep native translations unless the user chooses which languages to remove (#67).
         default = "all",
         required = false,
@@ -146,7 +153,9 @@ val languagePackPurgerPatch = rawResourcePatch(
 @Suppress("unused")
 val studioCreationDebloatPatch = rawResourcePatch(
     name = "Remove creation tools",
-    description = "Empties TikTok's reviewed editor, camera-effect and face-model assets. The Create tab and all recording, editing and effects tools stop working. Saves about 40 MB of storage.",
+    description = "Removes TikTok's camera, editing and effects files, saving about 40 MB of " +
+        "storage. The catch: the Create tab and every recording, editing and effects tool stop " +
+        "working.",
     default = false,
 ) {
     category("Performance")
@@ -180,7 +189,9 @@ val studioCreationDebloatPatch = rawResourcePatch(
 @Suppress("unused")
 val liveStreamSuiteOptimizerPatch = rawResourcePatch(
     name = "Remove LIVE extras",
-    description = "Empties TikTok's co-host (link-mic) and LIVE match or minigame assets, then skips its gift-effect widget setup. In LIVE the red and blue battle score bar and the co-host guests' names can go missing, and co-hosting, games or animated gifts may stop working. The APK gets about 3 MB smaller.",
+    description = "Removes the files for LIVE co-hosting, matches, games and gift effects, so " +
+        "the app gets about 3 MB smaller. The catch: in LIVEs, battle scores and guest names can " +
+        "go missing, and co-hosting, games or animated gifts may stop working.",
     default = false,
 ) {
     category("Performance")

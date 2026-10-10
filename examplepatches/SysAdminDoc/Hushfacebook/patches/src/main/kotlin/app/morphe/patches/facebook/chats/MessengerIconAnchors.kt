@@ -5,8 +5,10 @@
 package app.morphe.patches.facebook.chats
 
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.resolveStatic
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -36,6 +38,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * LX/cuh;->A00, 577's LX/3Ee;->A01 and LX/ZsI;->A00), and the Messenger activity's own name moved
  * from the tap into the handler between the two builds. So the tap is found by its entry points
  * and its shape, and the handler as the one static method of the handler's shape the tap calls.
+ * 582 (tap LX/28V;->A01) puts a cooldown wrapper of the same shape in front of it, an instance
+ * method on the handler class's singleton, so the tap's call is followed through that wrapper.
  */
 internal const val ICON_PATCH = "Open Messenger from the top bar"
 
@@ -80,12 +84,37 @@ internal fun isIconTap(method: Method): Boolean {
 internal fun isButtonHandler(method: Method): Boolean =
     method.isStaticVoidWithBody() && method.parameters() == BUTTON_PARAMETERS && holdsString(method, LONG_PRESS)
 
-/** The static calls in [tap] of a method with the button handler's shape. */
-internal fun buttonHandlerCalls(tap: Method): List<MethodReference> =
-    tap.implementation?.instructions?.toList().orEmpty().mapNotNull { instruction ->
-        if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
-            return@mapNotNull null
-        }
+private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+
+/** The calls in [method] of a method with the button handler's shape, among [opcodes]. */
+private fun handlerShapedCalls(method: Method, opcodes: Set<Opcode>): List<MethodReference> =
+    method.implementation?.instructions?.toList().orEmpty().mapNotNull { instruction ->
+        if (instruction.opcode !in opcodes) return@mapNotNull null
         val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null
         call.takeIf { it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } == BUTTON_PARAMETERS }
     }
+
+/**
+ * The calls in [tap] of a method with the button handler's shape: static up to 581, and from 582 a
+ * virtual call on the handler's singleton (see [buttonHandler]).
+ */
+internal fun buttonHandlerCalls(tap: Method): List<MethodReference> =
+    handlerShapedCalls(tap, STATIC_CALLS + setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE))
+
+/**
+ * The button handler the tap's [call] reaches in [owner], the call's class: the method it names
+ * when that's the handler, or else, when it names an instance method of the handler's shape with
+ * exactly one static call of that shape into [owner], the method that call names. 582's tap calls
+ * such a wrapper on a singleton (LX/eh9;->A01), which waits out a MobileConfig cooldown and then
+ * calls the static handler (LX/eh9;->A00) with its own arguments.
+ */
+internal fun buttonHandler(owner: ClassDef, call: MethodReference): Method? {
+    val named = owner.methods.firstOrNull {
+        it.name == call.name && it.returnType == call.returnType &&
+            it.parameters() == call.parameterTypes.map { type -> type.toString() }
+    } ?: return null
+    if (isButtonHandler(named)) return named
+    if (AccessFlags.STATIC.isSet(named.accessFlags)) return null
+    val inner = handlerShapedCalls(named, STATIC_CALLS).filter { it.definingClass == owner.type }.distinctBy { it.toString() }
+    return inner.singleOrNull()?.let { resolveStatic(owner, it) }?.takeIf(::isButtonHandler)
+}

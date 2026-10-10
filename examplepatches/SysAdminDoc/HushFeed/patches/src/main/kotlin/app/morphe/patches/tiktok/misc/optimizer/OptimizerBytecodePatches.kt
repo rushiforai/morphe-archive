@@ -25,7 +25,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val instantLaunchSplashBlockerPatch = bytecodePatch(
     name = "Skip the splash ad",
-    description = "Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place.",
+    description = "Stops the full-screen ad TikTok can show while it starts up. It has no " +
+        "switch, so only patching again without it brings the ad back.",
     default = false,
 ) {
     category("Performance")
@@ -89,7 +90,9 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
 @Suppress("unused")
 val networkTrafficGovernorPatch = bytecodePatch(
     name = "Limit background traffic",
-    description = "Turns off TikTok's buffer-preload gate. Videos may start buffering later. Push setup stays on unless Skip push setup is enabled in the patch options.",
+    description = "Stops TikTok loading upcoming videos ahead of time, which uses less data " +
+        "in the background, but videos may take a moment longer to start. It has no switch, so " +
+        "only patching again without it undoes it.",
     default = false,
 ) {
     category("Performance")
@@ -98,8 +101,10 @@ val networkTrafficGovernorPatch = bytecodePatch(
     val skipPushSetup by booleanOption(
         "skipPushSetup",
         default = false,
-        title = "Skip push setup",
-        description = "Can stop TikTok notifications, including messages. Pause won't reverse this change. Repatch with this option off to restore push setup.",
+        title = "Skip notification setup",
+        description = "Stops TikTok setting up notifications, so you won't get any, messages " +
+            "included. Pausing Hushfeed won't bring them back. Patch again with this off to get them " +
+            "back.",
         required = false,
     )
 
@@ -114,7 +119,9 @@ val networkTrafficGovernorPatch = bytecodePatch(
 @Suppress("unused")
 val runtimeMemoryGovernorPatch = bytecodePatch(
     name = "Drop the animated image cache",
-    description = "Has TikTok keep only the frame on screen for each animated sticker or GIF instead of caching every frame, and stops it decoding frames ahead of time. Each next frame is built from the one before it, so animations still play smoothly while using less memory.",
+    description = "Makes TikTok keep only the frame on screen for stickers and GIFs instead " +
+        "of every frame, so they use less memory and still play smoothly. It has no switch, so " +
+        "only patching again without it undoes it.",
     default = false,
 ) {
     category("Performance")
@@ -157,7 +164,9 @@ val runtimeMemoryGovernorPatch = bytecodePatch(
 @Suppress("unused")
 val updatePromptSuppressorPatch = bytecodePatch(
     name = "Skip update checks",
-    description = "Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected.",
+    description = "Stops two background tasks TikTok uses to check for updates, one of them " +
+        "when your phone starts. Some in-app update prompts may stop. Play Store updates still " +
+        "work. It has no switch, so only patching again undoes it.",
     default = false,
 ) {
     category("Performance")

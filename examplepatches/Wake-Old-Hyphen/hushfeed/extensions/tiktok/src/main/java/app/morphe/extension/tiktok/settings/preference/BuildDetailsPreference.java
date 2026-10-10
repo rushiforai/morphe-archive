@@ -26,7 +26,8 @@ public final class BuildDetailsPreference extends Preference implements Immediat
         super(context);
         setKey("action_build_details");
         setTitle(L10n.t(context, "Build details"));
-        setSummary(L10n.t(context, "Copy or save patch-time choices and build identity."));
+        setSummary(L10n.t(context, "Copy or save which patches and options this Hushfeed was "
+                + "built with."));
         setOnPreferenceClickListener(preference -> {
             String report = BuildDetails.report();
             AlertDialog dialog = new AlertDialog.Builder(context)

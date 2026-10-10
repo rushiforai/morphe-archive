@@ -200,10 +200,10 @@ public class L10nTest {
 
     @Test
     public void aCountTakesTheFormItsLanguageGivesIt() {
-        String one = "%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch "
-                + "again and leave out that patch.";
-        String other = "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, "
-                + "patch again and leave out the patch in brackets after it.";
+        String one = "%1$s. It was set when you patched, so Pause can't turn it off. To get rid of it, patch again "
+                + "without that patch.";
+        String other = "%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, patch "
+                + "again without the patch named in brackets after it.";
         assertEquals(String.format(one, "x"), L10n.quantity(in(Locale.US), 1, one, other, "x"));
         assertEquals(String.format(other, "x"), L10n.quantity(in(Locale.US), 2, one, other, "x"));
         // Indonesian has no singular form, so even one item takes the other row.

@@ -29,21 +29,24 @@ class EmoteConnectionTest {
                 """)
             }
 
-    @Test fun bothChannelTypesRetainTheirConstructorArguments() {
-        validateEmoteConnection(connection("Ljava/lang/String;"))
+    @Test fun channelIdRetainsItsConstructorArguments() {
         validateEmoteConnection(connection(CHANNEL_ID))
     }
 
     @Test fun reassignedOrIncorrectChannelArgumentsAreRejected() {
         assertThrows(PatchException::class.java) {
-            validateEmoteConnection(connection("Ljava/lang/String;", "p2"))
+            validateEmoteConnection(connection(CHANNEL_ID, "p2"))
         }
         assertThrows(PatchException::class.java) {
-            validateEmoteConnection(connection("Ljava/lang/String;", prefix = "move-object p1, p2"))
+            validateEmoteConnection(connection(CHANNEL_ID, prefix = "move-object p1, p2"))
         }
         assertThrows(PatchException::class.java) {
             validateEmoteConnection(connection("Ljava/lang/Object;"))
         }
+    }
+
+    @Test fun stringChannelIdsAreRejected() {
+        assertThrows(PatchException::class.java) { validateEmoteConnection(connection("Ljava/lang/String;")) }
     }
 
     @Test fun typedIdBridgeConvertsOnlyTheIdAndPreservesTheChannelName() {
@@ -51,7 +54,7 @@ class EmoteConnectionTest {
             listOf(CHANNEL_ID, "Ljava/lang/String;").map { ImmutableMethodParameter(it, null, null) }, "V",
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
             MutableMethodImplementation(3)).toMutable()
-        method.addInstructionsWithLabels(0, emoteConnectionBody(CHANNEL_ID))
+        method.addInstructionsWithLabels(0, emoteConnectionBody())
         val code = method.code()
         assertEquals(Opcode.IF_EQZ, code[0].opcode)
         assertEquals("$CHANNEL_ID->toString()Ljava/lang/String;", (code[1] as ReferenceInstruction).reference.toString())
@@ -60,6 +63,5 @@ class EmoteConnectionTest {
         assertEquals(0, delivery.registerC)
         assertEquals(2, delivery.registerD)
         assertEquals(Opcode.RETURN_VOID, code.last().opcode)
-        assertThrows(PatchException::class.java) { emoteConnectionBody("Ljava/lang/Object;") }
     }
 }

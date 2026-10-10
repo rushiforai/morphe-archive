@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_title": "Hushfeed native runtime observations v1",
+  "publication_status": "candidate",
+  "observation_date_utc": "2026-10-09",
+  "scope": {
+    "device": "Samsung Galaxy S25 Ultra",
+    "device_model": "SM-S938B",
+    "os": "Android 16",
+    "installed_patch_build": "Hushfeed 0.68.0",
+    "installed_app_version": "TikTok 47.1.4",
+    "global_pause_mode": "active",
+    "static_build_changes_remain": true,
+    "state_provenance": "Installed build and global Pause state verified separately before capture.",
+    "capture_method": "Native Perfetto sampled process runtime and battery counters",
+    "observation_count_per_phase": 1,
+    "phase_order": [
+      "foreground",
+      "background"
+    ],
+    "unpaused_comparison_available": false
+  },
+  "limitations": [
+    "These are two sequential observations, with one capture per state. There is no unpaused or stock-app baseline, randomized order, replication, uncertainty estimate, or causal estimate of patch effects.",
+    "Hushfeed's global Pause mode was active. Diagnostic hooks and some runtime exceptions can remain active, while static build changes persist. This is not an unmodified TikTok baseline or an evaluation of current Hushfeed 0.70 behavior.",
+    "CPU is the observed change in sampled process runtime counters between actual sample endpoints. Partial endpoint intervals and short-lived or otherwise unobserved processes can be missed. It is not exact CPU for the entire requested interval.",
+    "Charge and current refer to the whole phone, including capture overhead and unrelated activity. They do not measure TikTok energy. Equal coarse charge-counter drops do not establish equal energy use or battery savings.",
+    "Reported current means are arithmetic means of recorded samples, not time-weighted means or integrated charge. Negative values indicate discharge in these captures.",
+    "App and power state were inspected at boundaries. Those snapshots do not continuously establish the full interval's state. Temperature was measured only at boundaries.",
+    "The tracing service's global discard count remained four in the saved snapshots. This does not establish zero loss. The final saved flush outcome is unspecified, with 17 of 18 requested flushes completed at that snapshot.",
+    "Unavailable network and power-rail measurements are not zero activity. The mixed transition and charging trace is excluded from this dataset and chart."
+  ],
+  "phases": [
+    {
+      "phase": "foreground",
+      "label": "Foreground playback",
+      "boundary_activity": "TikTok visible before and after",
+      "foreground_protocol": "For You playback with no intended input",
+      "trace_sha256": "cbdbdc7040dd5882b8c4b2e5eebb6906ca611f8f7e2f84f0cc03d592ebb9abf6",
+      "timing": {
+        "capture_command_start_utc": "2026-10-09T22:00:52.472367+00:00",
+        "capture_command_end_utc": "2026-10-09T22:03:52.624061+00:00",
+        "capture_command_wall_seconds": 180.151694,
+        "requested_seconds": 180.0,
+        "trace_span_seconds": 179.21886889
+      },
+      "cpu": {
+        "observed_sampled_runtime_seconds": 31.15,
+        "sample_endpoint_span_seconds": 179.216001911,
+        "user_runtime_seconds": 20.61,
+        "kernel_runtime_seconds": 10.54,
+        "observed_process_count": 1,
+        "samples_per_counter": 181,
+        "complete_intervals_per_counter": 180,
+        "maximum_sample_gap_seconds": 1.007101,
+        "decreasing_counter_steps": 0
+      },
+      "whole_phone_battery": {
+        "sample_endpoint_span_seconds": 179.211639463,
+        "charge_first_mah": 3773.0,
+        "charge_last_mah": 3763.2,
+        "net_charge_drop_mah": 9.8,
+        "charge_distinct_recorded_values": 3,
+        "samples_per_counter": 181,
+        "maximum_sample_gap_seconds": 1.001033,
+        "current_sample_arithmetic_mean_ma": -227.861303867,
+        "current_minimum_ma": -699.218,
+        "current_maximum_ma": -150.781,
+        "external_power_absent_at_both_boundaries": true,
+        "boundary_temperature_before_f": 87.44,
+        "boundary_temperature_after_f": 87.8,
+        "continuous_temperature_available": false
+      },
+      "quality": {
+        "saved_raw_trace_stats_snapshots": 19,
+        "global_service_discard_first": 4,
+        "global_service_discard_last": 4,
+        "global_service_discard_observed_change": 0,
+        "flushes_requested_at_last_saved_snapshot": 18,
+        "flushes_completed_at_last_saved_snapshot": 17,
+        "final_saved_flush_outcome": "unspecified",
+        "trace_completeness_proven": false,
+        "per_buffer_loss_fields_present_in_last_raw_snapshot": false,
+        "power_rail_measurement": "Collection disabled after pilot produced no rail samples. No rail measurement in these runs.",
+        "network_measurement": "Unavailable. Native source was not advertised."
+      }
+    },
+    {
+      "phase": "background",
+      "label": "Background",
+      "boundary_activity": "Home screen visible before and after",
+      "foreground_protocol": null,
+      "trace_sha256": "9ed009296761b9993939a22e425f3c1e18dee0b9261bdd938cc9ec30822d1d45",
+      "timing": {
+        "capture_command_start_utc": "2026-10-09T22:04:07.482905+00:00",
+        "capture_command_end_utc": "2026-10-09T22:07:07.634602+00:00",
+        "capture_command_wall_seconds": 180.151697,
+        "requested_seconds": 180.0,
+        "trace_span_seconds": 179.297706286
+      },
+      "cpu": {
+        "observed_sampled_runtime_seconds": 3.25,
+        "sample_endpoint_span_seconds": 179.240032119,
+        "user_runtime_seconds": 2.17,
+        "kernel_runtime_seconds": 1.08,
+        "observed_process_count": 1,
+        "samples_per_counter": 181,
+        "complete_intervals_per_counter": 180,
+        "maximum_sample_gap_seconds": 1.003771,
+        "decreasing_counter_steps": 0
+      },
+      "whole_phone_battery": {
+        "sample_endpoint_span_seconds": 179.297706286,
+        "charge_first_mah": 3763.2,
+        "charge_last_mah": 3753.4,
+        "net_charge_drop_mah": 9.8,
+        "charge_distinct_recorded_values": 3,
+        "samples_per_counter": 181,
+        "maximum_sample_gap_seconds": 1.049497,
+        "current_sample_arithmetic_mean_ma": -131.707149171,
+        "current_minimum_ma": -586.718,
+        "current_maximum_ma": -78.906,
+        "external_power_absent_at_both_boundaries": true,
+        "boundary_temperature_before_f": 87.8,
+        "boundary_temperature_after_f": 87.62,
+        "continuous_temperature_available": false
+      },
+      "quality": {
+        "saved_raw_trace_stats_snapshots": 18,
+        "global_service_discard_first": 4,
+        "global_service_discard_last": 4,
+        "global_service_discard_observed_change": 0,
+        "flushes_requested_at_last_saved_snapshot": 18,
+        "flushes_completed_at_last_saved_snapshot": 17,
+        "final_saved_flush_outcome": "unspecified",
+        "trace_completeness_proven": false,
+        "per_buffer_loss_fields_present_in_last_raw_snapshot": false,
+        "power_rail_measurement": "Collection disabled after pilot produced no rail samples. No rail measurement in these runs.",
+        "network_measurement": "Unavailable. Native source was not advertised."
+      }
+    }
+  ]
+}

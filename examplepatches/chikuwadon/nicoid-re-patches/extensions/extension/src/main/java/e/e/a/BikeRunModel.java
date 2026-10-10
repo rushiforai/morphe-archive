@@ -17,28 +17,30 @@ public final class BikeRunModel {
     }
     public final ArrayList<Hazard> hazards = new ArrayList<>();
     private final Random random;
+    private long terrainSeed;
+    private final java.util.LinkedHashMap<Long,Profile> profiles=new java.util.LinkedHashMap<Long,Profile>(8,.75f,true){protected boolean removeEldestEntry(java.util.Map.Entry<Long,Profile> e){return size()>4;}};
     public float y, velocity, distance, spawn;
     private float gapTime;
     private boolean falling;
     private int jumpsUsed;
     public boolean started, over;
     public BikeRunModel(long seed) { random = new Random(seed); reset(); }
-    public void reset() { hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; jumpsUsed=0; falling=false; started=over=false; }
-    // Hills, platforms and steps use one profile for both drawing and collisions.
-    public static float terrain(float worldX) {
-        if (worldX<=600) return 0;
-        float phase=(worldX-600)%4400;
-        if (phase<450) return -180*phase/450;
-        if (phase<1850) return -180;
-        if (phase<2300) return -180+180*(phase-1850)/450;
-        if (phase<2850) return 0;
-        if (phase<3110) return -100;
-        if (phase<3370) return -200;
-        if (phase<3630) return -100;
-        return 0;
+    public void reset() { terrainSeed=random.nextLong();profiles.clear();hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; jumpsUsed=0; falling=false; started=over=false; }
+    private static final float SECTION=6400;
+    private static final class Profile {
+        final float rise,down,height,step,width;final boolean steps;
+        Profile(long seed,long section){Random r=new Random(seed ^ (section*0x9e3779b97f4a7c15L));rise=380+r.nextInt(420);down=380+r.nextInt(420);height=70+r.nextInt(120);step=45+r.nextInt(60);width=350+r.nextInt(250);steps=section>0&&r.nextBoolean();}
+        float at(float x){if(x<800)return 0;if(x<800+rise)return -height*(x-800)/rise;if(x<3200)return -height;if(x<3200+down)return -height+height*(x-3200)/down;if(!steps)return 0;if(x<4500)return 0;if(x<4500+width)return -step;if(x<4500+width*2)return -step*2;if(x<4500+width*3)return -step;return 0;}
     }
-    /** Check the entire approach, obstacle and landing, including every terrain boundary. */
-    public static boolean flatSpan(float start,float end) {
+    /** Seeded sections join at ground level; slopes and steps vary throughout each run. */
+    public float terrain(float worldX) {
+        if(worldX<=800)return 0;
+        long section=(long)Math.floor(worldX/SECTION);Profile p=profiles.get(section);
+        if(p==null){p=new Profile(terrainSeed,section);profiles.put(section,p);}
+        return p.at(worldX-section*SECTION);
+    }
+    /** Check the entire approach, obstacle and landing, including terrain boundaries. */
+    public boolean flatSpan(float start,float end) {
         float base=terrain(start);
         for(float x=start+4;x<end;x+=4)if(Math.abs(terrain(x)-base)>.01f)return false;
         return Math.abs(terrain(end)-base)<=.01f;

@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.privacy
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -31,8 +32,10 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
-/** Google's advertising ID info class in both APKs, and the answer filters placed before its returns. */
+/** Google's advertising ID info class in each declared APK, and the answer filters placed before its returns. */
+@Category(FixtureTests::class)
 class AdvertisingIdFixtureTest {
     @Test
     fun `each declared original APK filters both advertising ID answers before every return`() {

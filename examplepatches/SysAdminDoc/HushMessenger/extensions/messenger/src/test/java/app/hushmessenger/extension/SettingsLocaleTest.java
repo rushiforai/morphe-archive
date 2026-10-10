@@ -30,8 +30,8 @@ public class SettingsLocaleTest {
     @Test public void englishFallbackUsesWholeSingularAndPluralMessages() {
         RuntimeEnvironment.setQualifiers("ja-rJP-w400dp-h800dp-mdpi");
         SettingsText words = new SettingsText(Locale.JAPAN);
-        assertEquals("1 saved choice. Turn pause off to resume.", words.count("saved", 1));
-        assertEquals("0 saved choices. Turn pause off to resume.", words.count("saved", 0));
+        assertEquals("1 choice saved. Turn off Pause all changes to use it.", words.count("saved", 1));
+        assertEquals("0 choices saved. Turn off Pause all changes to use them.", words.count("saved", 0));
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             assertEquals("Controls", ((TextView) root.findViewWithTag("tab_controls")).getText().toString());

@@ -1,0 +1,11 @@
+# Resource files the HushThreads patches write on purpose, by the patch that writes them.
+#
+# One line per file, as "<type/name> <patch name>": the stock resource whose file changes, then
+# the patch that changes it. scripts/verify-all-patches.ps1 hands ResourceTableCheck.java the
+# resources of the patches it selected, and the check reports those files as written instead of
+# failing them. Every other resource file still has to keep the bytes the stock archive holds,
+# since a changed file the rebuild made is a swapped or damaged one.
+#
+# Trust user-added certificates adds a user trust anchor to Threads' network security config.
+
+xml/fb_network_security_config Trust user-added certificates

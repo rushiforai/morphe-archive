@@ -61,11 +61,11 @@ internal object LikeButtonFingerprint : Fingerprint(
 @Suppress("unused")
 val askBeforeLikePatch = bytecodePatch(
     name = "Ask before a like",
-    description = "Asks before the Like button under a post likes or unlikes it, so a stray tap doesn't. Continue " +
-        "goes ahead and Cancel doesn't. Its switch, under Feed, starts off.",
+    description = "Asks you to confirm before the Like button under a post likes or unlikes it, so a stray tap " +
+        "doesn't do it for you. Starts off. Turn it on in HushGram settings > Feed.",
     default = true,
 ) {
-    category("Interface")
+    category("Feed")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

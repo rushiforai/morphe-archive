@@ -219,7 +219,7 @@ public class DiagnosticRedactorTest {
      */
     @Test public void aNameThatOnlyLooksLikeAThreadsHostStays() {
         String[] lines = {
-                "app: com.instagram.barcelona 449.0.0.54.82 (511908382)",
+                "app: com.instagram.barcelona 450.0.0.51.78 (512008342)",
                 "at com.instagram.barcelona.mainactivity.BarcelonaActivity.onCreate(BarcelonaActivity.java:12)",
                 "at com.instagram.android.app.Thread.run(Thread.java:1012)",
                 "notthreads.com/page and threads.community/page and myinstagram.company",
@@ -561,8 +561,8 @@ public class DiagnosticRedactorTest {
         assertEquals("access_token=[omitted]&next=1", DiagnosticRedactor.redact("access_token=EAABquery123&next=1"));
         assertEquals("Authorization=[omitted]", DiagnosticRedactor.redact("Authorization:Bearer EAABnospace12"));
         assertEquals("sent Bearer [omitted]", DiagnosticRedactor.redact("sent Bearer%20EAABpercent12"));
-        assertEquals("app: com.instagram.barcelona 449.0.0.54.82 (511908382) at 1790000000000",
-                DiagnosticRedactor.redact("app: com.instagram.barcelona 449.0.0.54.82 (511908382) at 1790000000000"));
+        assertEquals("app: com.instagram.barcelona 450.0.0.51.78 (512008342) at 1790000000000",
+                DiagnosticRedactor.redact("app: com.instagram.barcelona 450.0.0.51.78 (512008342) at 1790000000000"));
     }
 
     /**
@@ -572,7 +572,7 @@ public class DiagnosticRedactorTest {
      */
     @Test public void buildDataTimestampsAndStackFramesStay() {
         String[] lines = {
-                "app: com.instagram.barcelona 449.0.0.54.82 (511908382)",
+                "app: com.instagram.barcelona 450.0.0.51.78 (512008342)",
                 "abi: app arm64, process 64-bit, device arm64-v8a,armeabi-v7a",
                 "morphe: 0.3.4",
                 "generated_utc: 2026-09-28T12:00:00.000Z",
@@ -625,7 +625,7 @@ public class DiagnosticRedactorTest {
                 "%2fstorage%2fprivate%20report.txt", "C%3a%5cUsers%5cprivate%20report.txt"}) {
             assertEquals("open [path omitted]", DiagnosticRedactor.redact("open " + path));
         }
-        String facts = "app: com.instagram.barcelona 449.0.0.54.82 (511908382)\n"
+        String facts = "app: com.instagram.barcelona 450.0.0.51.78 (512008342)\n"
                 + "current_signer_sha256: ae0764ea958661d4e07afbf01c4d44eb6f65e29c2df613910e5ee640ac3f7b16\n"
                 + "ratio: 1/2, API28/36, read/write\n"
                 + "\tat com.example.auth.login.AuthStateMachine.run(AuthStateMachine.java:44)";

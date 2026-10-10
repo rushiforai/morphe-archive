@@ -321,7 +321,10 @@ private fun writes(instruction: Instruction, register: Int): Boolean {
 @Suppress("unused")
 val regionSpoofPatch = bytecodePatch(
     name = "Region spoof",
-    description = "Matches locale, timezone and native region getters to the SIM preset, with separate switches for the store region (experimental) and the region fields sent with each request. Switch: Hushfeed settings > Region.",
+    description = "Makes TikTok's region and time zone match the country you set for SIM " +
+        "spoof. It changes every region check, sign-in included, and its store region switch is " +
+        "experimental, so it isn't picked for you. Starts off. Turn it on in Hushfeed settings > " +
+        "Region.",
     default = false,
 ) {
     category("Settings")

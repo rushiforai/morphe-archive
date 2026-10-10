@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- app.tada.patches.music.interaction.jam -->
+  <string name="tada_music_jam_update_host_controls">Werk de Jam-patch van de host bij om pauze en hervatten te gebruiken</string>
+  <string name="tada_music_jam_probe_title">Jam-wachtrij delen</string>
+  <string name="tada_music_jam_probe_summary">Host of neem deel aan een Jam in de buurt en bewerk de wachtrij via Jam Layer</string>
+  <string name="tada_music_jam_enabled_title">Zet Jam-wachtrij delen aan</string>
+  <string name="tada_music_jam_enabled_summary">Schakelt de Jam-integratie in nadat YouTube Music opnieuw is opgestart</string>
+  <string name="tada_music_jam_download_title">Download Jam Layer om het werkend te krijgen</string>
+  <string name="tada_music_jam_download_summary">Open de nieuwste Jam Layer-release in je browser</string>
+  <string name="tada_music_jam_controls_title">Jam-bediening</string>
+  <string name="tada_music_jam_controls_summary">Host of neem deel aan een Jam in de buurt en beheer de sessie</string>
+  <string name="tada_music_jam_companion_package_title">Jam Layer-pakket</string>
+  <string name="tada_music_jam_companion_package_summary">Kies de geïnstalleerde companion-app die wordt gebruikt voor het delen van de wachtrij in de buurt</string>
+  <string name="tada_music_jam_package_message">Gebruik een geïnstalleerd companion-pakket. Voor het koppelen zijn je goedkeuring en een lokaal capability-token vereist</string>
+  <string name="tada_music_jam_wifi_title">Wi-Fi inschakelen?</string>
+  <string name="tada_music_jam_wifi_message">Zet Wi-Fi aan en probeer vervolgens opnieuw de Jam te starten of eraan deel te nemen</string>
+  <string name="tada_music_jam_wifi_settings">Open Wi-Fi-instellingen</string>
+  <string name="tada_music_jam_cancel">Annuleren</string>
+  <string name="tada_music_jam_use_package">Pakket gebruiken</string>
+  <string name="tada_music_jam_invalid_package">Voer een geldige Android-pakketnaam in</string>
+  <string name="tada_music_jam_package_saved">Pakket opgeslagen. Stel Jam Layer in om verbinding te maken</string>
+  <string name="tada_music_jam_disconnected">Jam-verbinding verbroken</string>
+  <string name="tada_music_jam_enable_layer_first">Schakel eerst Jam Layer in</string>
+  <string name="tada_music_jam_enable_patch_first">Zet Jam-wachtrij delen aan in de instellingen en start YouTube Music opnieuw op</string>
+  <string name="tada_music_jam_install_layer_first">Installeer eerst het geselecteerde Jam Layer-pakket</string>
+  <string name="tada_music_jam_join_hint">Voer de code in die op de host wordt weergegeven. Wi-Fi Aware kan apparaten in de buurt verbinden, zelfs als hun LAN\'s verschillen</string>
+  <string name="tada_music_jam_join_with_code">Deelnemen met een code</string>
+  <string name="tada_music_jam_join">Deelnemen</string>
+  <string name="tada_music_jam_scan_qr">QR-code scannen</string>
+  <string name="tada_music_jam_invalid_invite">Voer de code van acht tekens in of plak een uitnodiging</string>
+  <string name="tada_music_jam_join_your_jam">Neem deel aan je Jam</string>
+  <string name="tada_music_jam_copy_code">Code kopiëren</string>
+  <string name="tada_music_jam_code_clip">Jam-code</string>
+  <string name="tada_music_jam_show_qr">QR-code tonen</string>
+  <string name="tada_music_jam_done">Klaar</string>
+  <string name="tada_music_jam_invite_title">Uitnodigen voor je Jam</string>
+  <string name="tada_music_jam_invite_message">Scan om deel te nemen en deze wachtrij te bewerken. Als de Jam wordt beëindigd, vervalt de uitnodiging.</string>
+  <string name="tada_music_jam_copy_link">Link kopiëren</string>
+  <string name="tada_music_jam_invitation_clip">Jam-uitnodiging</string>
+  <string name="tada_music_jam_reconnecting_toast">Jam maakt opnieuw verbinding; probeer het straks opnieuw</string>
+  <string name="tada_music_jam_added_to_jam">Toegevoegd aan Jam</string>
+  <string name="tada_music_jam_unavailable_toast">Jam is niet beschikbaar; het nummer is niet toegevoegd</string>
+  <string name="tada_music_jam_your_jam">Je Jam</string>
+  <string name="tada_music_jam_listening_together">Samen luisteren</string>
+  <string name="tada_music_jam_joining_jam">Deelnemen aan Jam</string>
+  <string name="tada_music_jam_listen_together">Samen luisteren</string>
+  <string name="tada_music_jam_updating">Jam bijwerken…</string>
+  <string name="tada_music_jam_finding_host">Zoeken naar je host via Wi-Fi…</string>
+  <string name="tada_music_jam_waiting_people">Wachten op mensen</string>
+  <string name="tada_music_jam_one_connected">%d persoon verbonden</string>
+  <string name="tada_music_jam_many_connected">%d personen verbonden</string>
+  <string name="tada_music_jam_code_expires">Voer deze code in op een apparaat in de buurt. Wi-Fi Aware werkt op afzonderlijke LAN-netwerken indien dit wordt ondersteund. Verloopt over %d minuten.</string>
+  <string name="tada_music_jam_seek_to">Naar %s spoelen?</string>
+  <string name="tada_music_jam_edits_open">Bewerkingen open</string>
+  <string name="tada_music_jam_edits_locked">Bewerkingen vergrendeld</string>
+  <string name="tada_music_jam_connected_aware">Verbonden via Wi-Fi Aware</string>
+  <string name="tada_music_jam_connected_wifi">Verbonden via Wi-Fi</string>
+  <string name="tada_music_jam_connected_bluetooth">Verbonden via Bluetooth</string>
+  <string name="tada_music_jam_unsupported">Niet ondersteund tijdens Jam</string>
+  <string name="tada_music_jam_cancelled">Deelname geannuleerd</string>
+  <string name="tada_music_jam_reconnecting_host">Opnieuw verbinding maken met je host…</string>
+  <string name="tada_music_jam_share_prompt">Deel een wachtrij. Laat iedereen nummers toevoegen.</string>
+  <string name="tada_music_jam_invite_people">Nodig mensen uit</string>
+  <string name="tada_music_jam_guest_edits">Gasten kunnen de wachtrij bewerken</string>
+  <string name="tada_music_jam_end_jam">Jam beëindigen</string>
+  <string name="tada_music_jam_participant_help">De host speelt de muziek af. Voeg nummers toe, verplaats of verwijder ze rechtstreeks in de YouTube Music-wachtrij.</string>
+  <string name="tada_music_jam_joining_help">Houd beide apparaten in de buurt. Je kunt annuleren terwijl we naar de host zoeken.</string>
+  <string name="tada_music_jam_cancel_joining">Deelname annuleren</string>
+  <string name="tada_music_jam_leave_jam">Jam verlaten</string>
+  <string name="tada_music_jam_start_jam">Start een Jam</string>
+  <string name="tada_music_jam_setup_layer">Jam Layer instellen</string>
+  <string name="tada_music_jam_manage">Beheren</string>
+  <string name="tada_music_jam_details">Details</string>
+  <string name="tada_music_jam_open">Openen</string>
+  <string name="tada_music_jam_loading_song_options">Nummeropties laden…</string>
+  <string name="tada_music_jam_song_options_unavailable">Nummeropties niet beschikbaar; probeer het opnieuw</string>
+  <string name="tada_music_jam_song_options_failed">Nummeropties konden niet worden geopend</string>
+  <string name="tada_music_jam_no_browser">Er is geen browser beschikbaar om Jam Layer te downloaden</string>
+  <string name="tada_music_jam_waiting_host_queue">Wachten op de wachtrij van de host</string>
+  <string name="tada_music_jam_open_song_first">Open eerst een nummer in YouTube Music</string>
+  <string name="tada_music_jam_play_on_host">Afspelen op host</string>
+  <string name="tada_music_jam_quit_and_play">Jam afsluiten en lokaal afspelen</string>
+  <string name="tada_music_jam_play_next">Als volgende afspelen in Jam</string>
+  <string name="tada_music_jam_add_to_queue">Toevoegen aan Jam-wachtrij</string>
+  <string name="tada_music_jam_play_track">Dit Jam-nummer afspelen</string>
+  <string name="tada_music_jam_choose_playback">Kies waar je wilt afspelen</string>
+  <string name="tada_music_jam_move_host_here">Verplaats de host hier</string>
+  <string name="tada_music_jam_seek_not_ready">Het nummer werd niet gereed om te spoelen</string>
+  <string name="tada_music_jam_queue_changed_gesture">Wachtrij gewijzigd; probeer het gebaar opnieuw</string>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="tada_header_logo_title">Headerlogo</string>
+  <string name="tada_header_logo_entry_1">Standaard</string>
+  <string name="tada_header_logo_entry_3">Aangepast</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="tada_music_play_album_songs_title">Album audiotracks afspelen</string>
+  <!-- 'Spoof video streams' should match the language used in 'tada_spoof_video_streams_screen_title' -->
+  <string name="tada_music_play_album_songs_summary">Speel de audio-only versie van albumnummers af in plaats van een muziekvideo. Vereist \'Videostreams vervalsen\'</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="tada_external_downloader_screen_summary">Download muziekvideo\'s, podcasts of nummers met apps van derden</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="tada_external_downloader_action_button_title">Downloadactieknop overschrijven</string>
+  <string name="tada_external_downloader_action_button_summary">Gebruikt je gekozen externe downloader in plaats van de standaard Download-actieknop</string>
+  <string name="tada_external_downloader_flyout_menu_title">Overschrijf \'Download\' menu</string>
+  <string name="tada_external_downloader_flyout_menu_summary">Gebruikt je gekozen externe downloader in plaats van het standaard Download-uitklapmenu</string>
+  <string name="tada_music_in_app_downloads_title">Downloaden in de app</string>
+  <string name="tada_music_in_app_downloads_summary">Downloadt audio in YouTube Music in plaats van de externe downloadapp te openen</string>
+  <string name="tada_music_in_app_downloads_user_dialog_message">"Tracks worden opgeslagen in de privéopslag van de app en worden verwijderd als YouTube Music wordt gedeïnstalleerd.
+
+Zolang dit is ingeschakeld, toont het tabblad Downloads deze nummers in plaats van de offline bibliotheek van Music Premium. Als je dit uitschakelt, wordt het tabblad hersteld en Premium-downloads worden nooit aangeraakt."</string>
+  <string name="tada_music_downloads_screen_title">Downloads</string>
+  <string name="tada_music_downloads_empty">"Geen downloads
+Gedownloade nummers verschijnen hier"</string>
+  <string name="tada_music_downloads_track_subtitle">%1$s • %2$s • %3$s MB</string>
+  <string name="tada_music_downloads_summary">%1$s nummers • %2$s MB</string>
+  <string name="tada_music_downloads_search_hint">Downloads doorzoeken</string>
+  <string name="tada_music_downloads_sort">Sorteren</string>
+  <string name="tada_music_downloads_sort_artist">Sorteren op artiest</string>
+  <string name="tada_music_downloads_sort_title">Sorteren op titel</string>
+  <string name="tada_music_downloads_sort_size">Sorteren op grootte</string>
+  <string name="tada_music_downloads_delete_all">Alle downloads verwijderen</string>
+  <string name="tada_music_downloads_delete_all_title">Alle downloads verwijderen?</string>
+  <string name="tada_music_downloads_delete_all_message">Alle gedownloade nummers worden van dit apparaat verwijderd.</string>
+  <string name="tada_music_downloads_all_deleted">Downloads verwijderd.</string>
+  <string name="tada_music_downloads_nothing_found">Niets gevonden.</string>
+  <string name="tada_music_downloads_actions_for">Acties voor %s</string>
+  <string name="tada_music_downloads_play">Afspelen</string>
+  <string name="tada_music_downloads_play_pause">Afspelen of pauzeren</string>
+  <string name="tada_music_downloads_previous">Vorige</string>
+  <string name="tada_music_downloads_next">Volgende</string>
+  <string name="tada_music_downloads_pause">Pauzeren</string>
+  <string name="tada_music_downloads_close">Sluiten</string>
+  <string name="tada_music_downloads_delete">Verwijderen</string>
+  <string name="tada_music_downloads_delete_track">Download verwijderen</string>
+  <string name="tada_music_downloads_delete_track_title">Download verwijderen?</string>
+  <string name="tada_music_downloads_delete_track_message">%s wordt van dit apparaat verwijderd.</string>
+  <string name="tada_music_downloads_track_deleted">Download verwijderd.</string>
+  <string name="tada_music_downloads_track_delete_failed">Kan de download niet verwijderen.</string>
+  <string name="tada_music_downloads_play_failed">Kan de download niet afspelen.</string>
+  <string name="tada_music_downloads_notification_channel">Audiodownloads</string>
+  <string name="tada_music_downloads_playback_channel">Offline afspelen</string>
+  <string name="tada_music_downloads_unknown_track">Kan het te downloaden nummer niet identificeren.</string>
+  <string name="tada_music_downloads_already_running">Er is al een download bezig.</string>
+  <string name="tada_music_downloads_already_saved">Al gedownload.</string>
+  <string name="tada_music_downloads_started">Download gestart.</string>
+  <string name="tada_music_downloads_starting">Download wordt gestart…</string>
+  <string name="tada_music_downloads_progress">Bezig met downloaden: %s%%</string>
+  <string name="tada_music_downloads_complete">Download voltooid.</string>
+  <string name="tada_music_downloads_failed">Download mislukt.</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About TADa" (i.e., About this app). -->
+  <string name="tada_settings_music_screen_0_about_title">Over</string>
+  <string name="tada_settings_music_screen_1_ads_title">Advertenties</string>
+  <string name="tada_settings_music_screen_2_feed_title">Feed</string>
+  <string name="tada_settings_music_screen_3_general_title">Algemeen</string>
+  <string name="tada_settings_music_screen_4_player_title">Speler</string>
+  <string name="tada_settings_music_screen_5_lyrics_title">Songteksten</string>
+  <string name="tada_settings_music_screen_9_misc_title">Diversen</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="tada_music_hide_get_premium_label_title">\'Muziek Premium krijgen\' label verbergen</string>
+  <string name="tada_music_hide_music_premium_promotions_title">Verberg Music Premium promoties</string>
+  <string name="tada_music_hide_video_ads_title">Videoadvertenties verbergen</string>
+  <!-- layout.hide.general.hideLayoutComponentsPatch -->
+  <string name="tada_music_hide_audio_video_toggle_title">Audio/Video-toggle verbergen</string>
+  <string name="tada_music_hide_explore_shelf_title">Explore-plank verbergen</string>
+  <string name="tada_music_hide_grid_shelves_title">Planken verbergen</string>
+  <string name="tada_music_hide_horizontal_shelves_title">Horizontale planken verbergen</string>
+  <string name="tada_music_hide_list_shelves_title">Lijstplanken verbergen</string>
+  <string name="tada_music_hide_lyrics_panel_category_title">Songtekst paneel</string>
+  <string name="tada_music_hide_lyrics_share_button_title">Verberg de \"Delen\" knop</string>
+  <string name="tada_music_hide_lyrics_translate_button_title">Verberg de \"Vertalen\" knop</string>
+  <string name="tada_music_hide_new_from_shelf_title">\"Nieuw van\"-plank verbergen</string>
+  <string name="tada_music_hide_playlist_shelves_title">Afspeellijstplanken verbergen</string>
+  <string name="tada_music_hide_podcast_episode_download_button_title">Verberg de downloadknop voor podcastafleveringen</string>
+  <string name="tada_music_hide_repeat_button_title">Herhaal-knop verbergen</string>
+  <string name="tada_music_hide_shuffle_button_title">Shuffle-knop verbergen</string>
+  <string name="tada_music_hide_speed_dial_shelf_title">\"Speed dial\"-plank verbergen</string>
+  <string name="tada_music_comments_screen_title">Reacties</string>
+  <string name="tada_music_comments_screen_summary">Kies welke onderdelen er in de sectie reacties verschijnen</string>
+  <string name="tada_music_hide_comments_community_guidelines_title">Communityrichtlijnen verbergen</string>
+  <string name="tada_music_hide_comments_context_title">Verberg contextbericht</string>
+  <string name="tada_music_hide_comments_emoji_button_title">Emoji-knop verbergen</string>
+  <string name="tada_music_hide_comments_info_button_title">Info-knop verbergen</string>
+  <string name="tada_music_hide_comments_timestamp_button_title">Tijdstempel-knop verbergen</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="tada_music_crossfade_screen_title">Crossfade</string>
+  <string name="tada_music_crossfade_screen_summary">Meng tracks naadloos in elkaar over</string>
+  <string name="tada_music_crossfade_enabled_title">Crossfade inschakelen</string>
+  <string name="tada_music_crossfade_curve_title">Fade curve</string>
+  <string name="tada_music_crossfade_curve_entry_equal_power">Gelijke verdeling</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_cubic">Subtiele vertraging</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_quad">Zachte overgang</string>
+  <string name="tada_music_crossfade_curve_entry_smoothstep">Soepele S-curve</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="tada_music_crossfade_curve_preview_outgoing">Uitgaand</string>
+  <string name="tada_music_crossfade_curve_preview_incoming">Inkomend</string>
+  <string name="tada_music_crossfade_duration_title">Crossfade-duur</string>
+  <string name="tada_crossfade_duration_250ms">250 milliseconden</string>
+  <string name="tada_crossfade_duration_500ms">500 milliseconden</string>
+  <string name="tada_crossfade_duration_750ms">750 milliseconden</string>
+  <string name="tada_crossfade_duration_1000ms">1 seconde</string>
+  <string name="tada_crossfade_duration_2000ms">2 seconden</string>
+  <string name="tada_crossfade_duration_3000ms">3 seconden</string>
+  <string name="tada_crossfade_duration_4000ms">4 seconden</string>
+  <string name="tada_crossfade_duration_5000ms">5 seconden</string>
+  <string name="tada_crossfade_duration_6000ms">6 seconden</string>
+  <string name="tada_crossfade_duration_7000ms">7 seconden</string>
+  <string name="tada_crossfade_duration_8000ms">8 seconden</string>
+  <string name="tada_crossfade_duration_9000ms">9 seconden</string>
+  <string name="tada_crossfade_duration_10000ms">10 seconden</string>
+  <string name="tada_crossfade_duration_11000ms">11 seconden</string>
+  <string name="tada_crossfade_duration_12000ms">12 seconden</string>
+  <string name="tada_music_crossfade_on_skip_title">Crossfade bij handmatig overslaan</string>
+  <string name="tada_music_crossfade_on_skip_summary">Past het crossfade-effect toe wanneer je handmatig naar het volgende nummer springt</string>
+  <string name="tada_music_crossfade_on_auto_advance_title">Crossfade bij automatisch doorspoelen</string>
+  <string name="tada_music_crossfade_on_auto_advance_summary">Past het crossfade-effect toe wanneer een nummer op natuurlijke wijze eindigt</string>
+  <string name="tada_music_crossfade_session_control_title">Sessiebediening</string>
+  <string name="tada_music_crossfade_session_control_summary">Houd de shuffle-knop ingedrukt om crossfade te pauzeren of te hervatten</string>
+  <string name="tada_music_crossfade_paused_toast">Crossfade gepauzeerd voor deze sessie</string>
+  <string name="tada_music_crossfade_resumed_toast">Crossfade hervat</string>
+  <string name="tada_music_crossfade_video_mode_disabled_toast">Videomodus is niet beschikbaar wanneer crossfade is ingeschakeld</string>
+  <string name="tada_music_crossfade_cast_unstable_toast">Crossfade is gepauzeerd tijdens het casten of spiegelen van audio. Crossfade over cast/mirror is instabiel en kan mogelijk niet worden opgelost.</string>
+  <string name="tada_music_crossfade_about_title">Over</string>
+  <string name="tada_music_crossfade_about_summary">Hoe crossfade werkt – en wanneer het niet werkt</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="tada_music_crossfade_about_how_title">Hoe het werkt</string>
+  <string name="tada_music_crossfade_about_how_summary">"Crossfade laat het einde van het ene nummer overlappen met het begin van het volgende, waarbij het ene nummer zachter wordt terwijl het andere omhoog komt over de door jou gekozen duur en curve.
+
+Het werkt op automatisch doorspelen (wanneer een nummer vanzelf eindigt) en op handmatig overslaan - elk heeft zijn eigen schakelaar hierboven. Bij automatisch doorspelen begint de overgang een paar seconden voordat het nummer eindigt.
+
+Vereist YouTube Music 9.x of nieuwer."</string>
+  <string name="tada_music_crossfade_about_best_title">Werkt het beste met</string>
+  <string name="tada_music_crossfade_about_best_summary">Normaal afspelen van nummer naar nummer en automatisch doorspelen, herhaal-één (het nummer vervaagt in zichzelf), en lokale audio – telefoonspeaker, bedrade hoofdtelefoon, Bluetooth of USB.</string>
+  <string name="tada_music_crossfade_about_quirks_title">Werkt niet helemaal goed</string>
+  <string name="tada_music_crossfade_about_quirks_summary">"Muziekvideo's worden afgespeeld als audio-only terwijl crossfade is ingeschakeld (houd shuffle ingedrukt om te pauzeren als je de video wilt zien)
+
+Nummers die korter zijn dan de duur van je fade, kunnen de fade overslaan
+
+Het vergrendelscherm of de melding kan kort een verouderde status laten zien tijdens de overgang"</string>
+  <string name="tada_music_crossfade_about_known_title">Bekende problemen</string>
+  <string name="tada_music_crossfade_about_known_summary">"Een muziekvideo die als eerste nummer is ingesteld - of die van buiten de huidige wachtrij is gestart - kan kort als video worden weergegeven voordat de audio-only modus wordt ingeschakeld
+
+Pauzeren van crossfade om een muziekvideo te bekijken, kan sommige video's zwart maken (de video's waarvan de audio rechtstreeks van de video komt). Pauzeren van crossfade voordat je het nummer kiest, voorkomt dit"</string>
+  <string name="tada_music_crossfade_about_unsupported_title">Werkt helemaal niet</string>
+  <string name="tada_music_crossfade_about_unsupported_summary">"Casten of spiegelen van audio (Chromecast, scherm of audiospiegeling) - crossfade pauzeert omdat het daar onstabiel is en mogelijk nooit kan worden opgelost.
+
+YouTube Music 8.x - crossfade werkt alleen op 9.x en nieuwer"</string>
+  <string name="tada_music_crossfade_about_credit_title">Credit</string>
+  <string name="tada_music_crossfade_about_credit_summary">Crossfade-functie door VazerOG</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="tada_music_remember_repeat_state_title">Onthoud herhaalstatus</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="tada_music_remember_shuffle_state_title">Onthoud willekeurstatus</string>
+  <!-- video.speed.playbackSpeedPatch -->
+  <string name="tada_music_playback_speed_title">Afspeelsnelheid</string>
+  <string name="tada_music_playback_speed_summary">Snelheid gebruikt voor alle nummers. Bij 100% wordt de app-snelheid gebruikt, zoals de afspeelsnelheid van podcasts.</string>
+  <string name="tada_music_playback_speed_change_pitch_title">Toonhoogte wijzigen met snelheid</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="tada_music_disable_dislike_redirection_title">Schakel dislike omleiding uit</string>
+  <string name="tada_music_disable_dislike_redirection_summary">Voorkomt dat naar het volgende nummer wordt gesprongen wanneer op de dislike-knop wordt gedrukt</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="tada_music_hide_cast_button_title">Cast-knop verbergen</string>
+  <string name="tada_music_hide_history_button_title">Geschiedenisknop verbergen</string>
+  <string name="tada_music_hide_notification_button_title">Meldingsknop verbergen</string>
+  <string name="tada_music_hide_search_button_title">Zoekknop verbergen</string>
+  <string name="tada_music_hide_voice_search_button_title">Verberg de knop voor spraakzoekopdracht</string>
+  <string name="tada_music_hide_sound_search_button_title">Verberg de knop voor geluidszoekopdracht</string>
+  <string name="tada_music_hide_library_new_button_title">Verberg de knop \'Nieuw\'</string>
+  <string name="tada_music_hide_library_new_button_summary">Verbergt de knop \'Nieuw\' in het tabblad Bibliotheek</string>
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <string name="tada_music_action_buttons_screen_title">Actieknoppen</string>
+  <string name="tada_music_action_buttons_screen_summary">Kies welke actieknoppen er onder de speler verschijnen</string>
+  <string name="tada_music_hide_action_bar_title">Actiebalk verbergen</string>
+  <string name="tada_music_hide_like_dislike_button_title">Vind ik leuk en vind ik niet leuk knop verbergen</string>
+  <string name="tada_music_hide_comments_button_title">Reacties knop verbergen</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_live_chat_replay_button_title">Verberg de knop \'Livechat-herhaling\'</string>
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_lyrics_button_title">Tekst knop verbergen</string>
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_share_button_title">Verberg de knop \"Delen\"</string>
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_save_button_title">Verberg de knop \"Opslaan\"</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_download_button_title">Verberg de knop \"Downloaden\"</string>
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_radio_button_title">Verberg de knop \'Radio starten\'</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="tada_music_hide_flyout_menu_components_screen_title">Uitklapmenu</string>
+  <string name="tada_music_hide_flyout_menu_components_screen_summary">Kies welke componenten er in de speler en wachtrijmenu\'s verschijnen</string>
+  <string name="tada_music_hide_flyout_menu_3_column_component_title">Verberg 3-kolomcomponent</string>
+  <string name="tada_music_hide_flyout_menu_like_dislike_title">Verberg de knoppen \"Vind ik leuk\" en \"Vind ik niet leuk\"</string>
+  <string name="tada_music_hide_flyout_menu_taste_match_title">Verberg het menu \'Smaakovereenkomst\'</string>
+  <string name="tada_music_hide_flyout_menu_add_to_listen_later_title">Verberg \'Toevoegen aan \'Luister later\'\' playlist menu</string>
+  <string name="tada_music_hide_flyout_menu_add_to_queue_title">Verberg \'Toevoegen aan wachtrij\' menu</string>
+  <string name="tada_music_hide_flyout_menu_captions_title">Verberg het menu \'Ondertitels\'</string>
+  <string name="tada_music_hide_flyout_menu_delete_playlist_title">Verberg \'Verwijder afspeellijst\' menu</string>
+  <string name="tada_music_hide_flyout_menu_dismiss_queue_title">Verberg \'Verwijder wachtrij\' menu</string>
+  <string name="tada_music_hide_flyout_menu_dont_recommend_artist_title">Verberg \'Artiest niet aanbevelen\' menu</string>
+  <string name="tada_music_hide_flyout_menu_download_title">Verberg het menu \'Downloaden\'</string>
+  <string name="tada_music_hide_flyout_menu_edit_playlist_title">Verberg \'Afspeellijst bewerken\' menu</string>
+  <string name="tada_music_hide_flyout_menu_go_to_album_title">Verberg \'Ga naar album\' menu</string>
+  <string name="tada_music_hide_flyout_menu_go_to_artist_title">Verberg \'Ga naar artiest\' menu</string>
+  <string name="tada_music_hide_flyout_menu_go_to_episode_title">Verberg \'Ga naar aflevering\' menu</string>
+  <string name="tada_music_hide_flyout_menu_go_to_podcast_title">Verberg \'Ga naar podcast\' menu</string>
+  <string name="tada_music_hide_flyout_menu_help_title">Verberg het menu \'Help\'</string>
+  <string name="tada_music_hide_flyout_menu_mark_episode_as_played_title">Verberg \'Aflevering markeren als afgespeeld\' menu</string>
+  <string name="tada_music_hide_flyout_menu_not_interested_title">Verberg \'Niet geïnteresseerd\' menu</string>
+  <string name="tada_music_hide_flyout_menu_pin_to_speed_dial_title">Verberg \'Vastzetten aan snelkiezer\' menu</string>
+  <string name="tada_music_hide_flyout_menu_play_next_title">Verberg \'Volgende afspelen\' menu</string>
+  <string name="tada_music_hide_flyout_menu_quality_title">Verberg het menu \'Kwaliteit\'</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_library_title">Verberg \'Verwijderen uit bibliotheek\' menu</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_playlist_title">Verberg \'Verwijderen uit afspeellijst\' menu</string>
+  <string name="tada_music_hide_flyout_menu_report_title">Verberg het menu \'Rapporteren\'</string>
+  <string name="tada_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">Verberg \'Opslaan voor later\' / \'Opslaan in bibliotheek\' menu</string>
+  <string name="tada_music_hide_flyout_menu_save_to_playlist_title">Verberg \'Opslaan in afspeellijst\' menu</string>
+  <string name="tada_music_hide_flyout_menu_share_title">Verberg het menu \'Delen\'</string>
+  <string name="tada_music_hide_flyout_menu_shuffle_play_title">Verberg \'Willekeurig afspelen\' menu</string>
+  <string name="tada_music_hide_flyout_menu_sleep_timer_title">Slaaptimer verbergen</string>
+  <string name="tada_music_hide_flyout_menu_start_radio_title">Verberg \'Start radio\' menu</string>
+  <string name="tada_music_hide_flyout_menu_stats_for_nerds_title">Verberg \'Statistieken voor nerds\' menu</string>
+  <string name="tada_music_hide_flyout_menu_subscribe_title">Verberg het menu \'Abonneren\'</string>
+  <string name="tada_music_hide_flyout_menu_unpin_from_speed_dial_title">Verberg \'Loskoppelen van snelkiezer\' menu</string>
+  <string name="tada_music_hide_flyout_menu_view_song_credit_title">Verberg \'Bekijk credits\' menu</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="tada_change_start_page_title">Startpagina</string>
+  <string name="tada_change_start_page_entry_default">Standaard</string>
+  <string name="tada_change_start_page_entry_charts">Grafieken</string>
+  <string name="tada_change_start_page_entry_episodes_for_later">Afspelen later</string>
+  <string name="tada_change_start_page_entry_explore">Verkennen</string>
+  <string name="tada_change_start_page_entry_history">Geschiedenis</string>
+  <string name="tada_change_start_page_entry_library">Bibliotheek</string>
+  <string name="tada_change_start_page_entry_liked_music">Gelukte muziek</string>
+  <string name="tada_change_start_page_entry_playlists">Afspeellijsten</string>
+  <string name="tada_change_start_page_entry_search">Zoeken</string>
+  <string name="tada_change_start_page_entry_subscriptions">Abonnementen</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="tada_music_hide_filter_bar_title">Verberg filterbalk</string>
+  <!-- layout.orientation.forcePortraitOrientationPatch -->
+  <string name="tada_music_force_portrait_orientation_title">Forceer portretstand</string>
+  <string name="tada_music_force_portrait_orientation_summary">Houdt de app in portretstand wanneer het apparaat wordt gedraaid</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="tada_music_change_miniplayer_color_title">Wijzig miniplayerkleur</string>
+  <string name="tada_music_change_miniplayer_color_summary">Miniplayerkleur komt overeen met de volledigschermspeler</string>
+  <string name="tada_music_change_navigation_bar_color_title">Verander de navigatiebalkkleur</string>
+  <string name="tada_music_change_navigation_bar_color_summary">Past de kleur van de navigatiebalk aan aan de fullscreen player</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="tada_music_miniplayer_next_button_title">Volgende knop weergeven in miniplayer</string>
+  <string name="tada_music_miniplayer_previous_button_title">Toon vorige knop in miniplayer</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="tada_music_enable_forced_miniplayer_title">Geforceerde miniplayer inschakelen</string>
+  <string name="tada_music_enable_forced_miniplayer_summary">Voorkomt dat de speler automatisch uitbreidt naar volledig scherm wanneer een nieuw nummer begint</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_title">Schakel vegen om de miniplayer te sluiten in</string>
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_summary">Hiermee kun je de miniplayer sluiten door er omlaag te vegen</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="tada_music_navigation_bar_screen_title">Navigatiebalk</string>
+  <string name="tada_music_navigation_bar_screen_summary">Kies welke knoppen er in de onderste navigatiebalk verschijnen</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_home_button_title">Verberg de knop \"Home\"</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_samples_button_title">Verberg de knop \"Samples\"</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_explore_button_title">Verberg de knop \"Verkennen\"</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_library_button_title">Verberg de knop \"Bibliotheek\"</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_upgrade_button_title">Verberg de knop \"Upgraden\"</string>
+  <string name="tada_music_hide_navigation_bar_title">Navigatiebalk verbergen</string>
+  <string name="tada_music_hide_navigation_bar_labels_title">Labels van navigatieknoppen verbergen</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="tada_music_scrobbling_summary">Configure Last.fm en ListenBrainz integratie</string>
+  <string name="tada_music_scrobbling_summary_logged_out">Niet ingelogd. Tik om te configureren</string>
+  <string name="tada_music_scrobbling_log_out">Afmelden</string>
+  <string name="tada_music_scrobbling_logged_out_toast">Uitgelogd</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_enabled_title">Scrobbling inschakelen</string>
+  <string name="tada_music_scrobbling_now_playing_title">Verzend \'Bezig met afspelen\' status</string>
+  <string name="tada_music_scrobbling_min_song_duration_title">Minimale liedduur</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="tada_music_scrobbling_min_song_duration_summary">Nummers die korter zijn dan dit worden niet gescrobbled</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_title">Scrobble-vertraging in percentage</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_summary">Activeer scrobble nadat er naar dit percentage van het nummer is geluisterd</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_title">Scrobble-vertraging in seconden</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_summary">Activeer scrobble nadat er naar deze hoeveelheid seconden is geluisterd</string>
+  <string name="tada_music_listenbrainz_token_title">ListenBrainz Account</string>
+  <string name="tada_music_listenbrainz_token_summary_logged_in">Ingelogd. Tik om account te beheren</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_listenbrainz_token_dialog_instruction">Voer uw ListenBrainz-gebruikerstoken in om scrobbling in te schakelen</string>
+  <string name="tada_music_listenbrainz_token_dialog_hint">Token</string>
+  <string name="tada_music_listenbrainz_token_dialog_get_token">Token ophalen</string>
+  <string name="tada_music_listenbrainz_token_dialog_verify">Verifiëren</string>
+  <string name="tada_music_listenbrainz_token_status_empty">Voer een token in</string>
+  <string name="tada_music_listenbrainz_token_status_validating">Bezig met valideren…</string>
+  <string name="tada_music_listenbrainz_token_status_valid">Geldig token! Gebruiker: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid">Ongeldig token: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid_unknown">onbekend</string>
+  <string name="tada_music_listenbrainz_token_status_failed">Verificatie mislukt: %s</string>
+  <string name="tada_music_listenbrainz_token_toast_cleared">Token gewist</string>
+  <string name="tada_music_listenbrainz_token_toast_saved">Token opgeslagen</string>
+  <string name="tada_music_listenbrainz_token_toast_invalid_warning">Waarschuwing: Opgeslagen token is ongeldig!</string>
+  <string name="tada_music_lastfm_love_on_like_title">Van liked tracks houden</string>
+  <string name="tada_music_lastfm_love_on_like_summary">Houd automatisch tracks op Last.fm leuk wanneer je ze leuk vindt op YouTube Music (en verwijder leuk wanneer je ze niet leuk vindt of afkeurt)</string>
+  <string name="tada_music_lastfm_token_title">Last.fm Account</string>
+  <string name="tada_music_lastfm_token_summary_logged_in">Ingelogd als %s. Tik om account te beheren</string>
+  <string name="tada_music_lastfm_token_dialog_instruction">Voer je Last.fm inloggegevens in om in te loggen</string>
+  <string name="tada_music_lastfm_token_dialog_username_hint">Gebruikersnaam</string>
+  <string name="tada_music_lastfm_token_dialog_password_hint">Wachtwoord</string>
+  <string name="tada_music_lastfm_token_dialog_login">Inloggen</string>
+  <string name="tada_music_lastfm_token_status_empty">Voer gebruikersnaam en wachtwoord in</string>
+  <string name="tada_music_lastfm_token_status_logging_in">Bezig met inloggen…</string>
+  <string name="tada_music_lastfm_token_status_success">Succesvol ingelogd!</string>
+  <string name="tada_music_lastfm_token_status_no_session">Kan geen sessie van Last.fm ophalen</string>
+  <string name="tada_music_lastfm_token_status_failed">Inloggen mislukt: %s</string>
+  <string name="tada_music_lastfm_token_toast_saved">Last.fm inloggegevens opgeslagen!</string>
+  <string name="tada_settings_music_scrobbling_metadata_title">Metadata opschonen</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_title">Ruim metadata op</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_summary">Maak automatisch veelvoorkomende rommel (zoals \"Official Video\", \"Remaster\", \"Live\") uit titels, artiesten en albums weg voordat scrobbling</string>
+  <string name="tada_music_scrobbling_custom_regex_title">Aangepaste regex opschonen</string>
+  <string name="tada_music_scrobbling_custom_regex_summary">Voer een aangepaste reguliere expressie in om extra tekst uit songtitels, artiesten of albums te verwijderen. Voorbeeld: (?i)\\s*\\((clean|explicit)\\)</string>
+  <string name="tada_music_scrobbling_parse_title_title">Haal artiest en tracknaam uit de titel.</string>
+  <string name="tada_music_scrobbling_parse_title_summary">Haal de artiest- en tracknaam uit de videotitel met behulp van de \" - \" scheidingsteken. Handig voor opnieuw geüploade content waarbij de zendernaam mogelijk als artiest wordt gebruikt.</string>
+  <string name="tada_music_scrobbling_guess_album_title">Vul ontbrekend album in</string>
+  <string name="tada_music_scrobbling_guess_album_summary">Wanneer de muziek geen album bevat, zoek het op op Last.fm zodat je scrobble volledig is</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_title">Over scrobbelen</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_summary">"Scrobbling synchroniseert automatisch jouw YouTube Music gebruik met je Last.fm of ListenBrainz profiel
+
+Om ervoor te zorgen dat scrobbling tijdens het afspelen op de achtergrond wordt gesynchroniseerd, zorg er dan voor dat de batterijgebruik van YouTube Music is ingesteld op \"Onbeperkt\""</string>
+  <!-- layout.lyrics.lyricsPatch -->
+  <string name="tada_music_lyrics_enabled_title">Gebruik songteksten van derden</string>
+  <string name="tada_music_lyrics_enabled_summary">Toont songteksten van een externe dienst, waarbij indien geen songteksten worden gevonden, wordt teruggevallen op de ingebouwde songteksten.</string>
+  <string name="tada_music_lyrics_keep_screen_on_title">Scherm aanhouden tijdens het bekijken van songteksten</string>
+  <string name="tada_music_lyrics_keep_screen_on_summary">Voorkomt dat het scherm wordt uitgeschakeld terwijl het songtekstpaneel geopend is</string>
+  <string name="tada_music_lyrics_section_service_title">Songtekstenservice</string>
+  <string name="tada_music_lyrics_section_overlay_title">Overlay</string>
+  <string name="tada_music_lyrics_section_sync_title">Synchronisatie</string>
+  <string name="tada_music_lyrics_section_about_title">Over</string>
+  <string name="tada_music_lyrics_source_all_disabled">Alle providers uitgeschakeld — ingebouwde songteksten en ingesloten songteksten</string>
+  <string name="tada_music_lyrics_source_reset_title">Providerorder resetten?</string>
+  <string name="tada_music_lyrics_source_reset_message">Providers terugzetten naar de standaardprioriteitsvolgorde</string>
+  <string name="tada_music_token_dialog_get_token">Token ophalen</string>
+  <string name="tada_music_apple_music_token_title">Apple Music Media-gebruikerstoken</string>
+  <string name="tada_music_apple_music_token_dialog_instruction">"Plak de […] Kopieer de waarde van \"media-user-token\""</string>
+  <string name="tada_music_apple_music_token_toast_saved">Apple Music: media-user-token opgeslagen</string>
+  <string name="tada_music_apple_music_token_toast_cleared">Apple Music: media-user-token gewist</string>
+  <string name="tada_music_apple_music_token_toast_invalid">Apple Music: ongeldig media-user-token — controleer en probeer het opnieuw</string>
+  <string name="tada_music_spotify_token_title">Spotify […] Kopieer de waarde van \"sp_dc\"</string>
+  <string name="tada_music_spotify_token_dialog_instruction">"Plak de sp_dc-cookie van Spotify.
+
+Stappen:
+1. Log in op open.spotify.com
+2. Open DevTools → Application → Cookies → open.spotify.com
+3. Kopieer de waarde van \"sp_dc\""</string>
+  <string name="tada_music_spotify_token_toast_saved">Spotify: sp_dc opgeslagen</string>
+  <string name="tada_music_spotify_token_toast_cleared">Spotify: sp_dc […] Zonder dit wordt Lyrically als fallback gebruikt.</string>
+  <string name="tada_music_spotify_token_toast_invalid">Spotify: ongeldige sp_dc — controleer en probeer het opnieuw</string>
+  <string name="tada_music_apple_token_optional_hint">Het Apple Music-token is optioneel. Zonder token wordt Lyrically als fallback gebruikt.</string>
+  <string name="tada_music_deezer_arl_title">Deezer […] Kopieer de waarde van \"arl\"</string>
+  <string name="tada_music_deezer_arl_dialog_instruction">"Plak de arl-cookie van Deezer.
+
+Stappen:
+1. Log in op deezer.com
+2. Open DevTools → Application → Cookies → deezer.com
+3. Kopieer de waarde van \"arl\""</string>
+  <string name="tada_music_deezer_arl_toast_saved">Deezer: arl opgeslagen</string>
+  <string name="tada_music_deezer_arl_toast_cleared">Deezer: arl gewist</string>
+  <string name="tada_music_deezer_arl_toast_invalid">Deezer: ongeldige arl — controleer en probeer het opnieuw</string>
+  <string name="tada_music_musixmatch_token_title">Musixmatch […] Kopieer de waarde van de gebruikerstoken</string>
+  <string name="tada_music_musixmatch_token_dialog_instruction">Voeg alleen een token toe om je eigen account te gebruiken. Het moet afkomstig zijn uit de Musixmatch Android-app: tokens die zijn gekopieerd van musixmatch.com behoren tot de uitgefaseerde desktopclient en de API weigert ze.</string>
+  <string name="tada_music_musixmatch_token_optional_hint">Musixmatch werkt zonder token, dus dit veld mag leeg blijven.</string>
+  <string name="tada_music_musixmatch_token_dialog_hint">gebruikerstoken</string>
+  <string name="tada_music_musixmatch_token_toast_saved">Musixmatch: gebruikerstoken opgeslagen</string>
+  <string name="tada_music_musixmatch_token_toast_cleared">Musixmatch: gebruikerstoken […] opnieuw</string>
+  <string name="tada_music_musixmatch_token_toast_invalid">Musixmatch: ongeldig gebruikerstoken — controleer en probeer het opnieuw</string>
+  <string name="tada_music_youtube_cookies_title">YouTube-cookies</string>
+  <string name="tada_music_youtube_cookies_dialog_instruction">"Plak […] Kopieer de volledige cookiestring (sleutel=waarde-paren gescheiden door puntkomma's)
+
+Vereiste cookies: SID, HSID, SSID, SAPISID, __Secure-3PAPISID, __Secure-1PAPISID, LOGIN_INFO"</string>
+  <string name="tada_music_youtube_cookies_toast_saved">YouTube: cookies opgeslagen</string>
+  <string name="tada_music_youtube_cookies_toast_cleared">YouTube: cookies gewist</string>
+  <string name="tada_music_youtube_cookies_toast_invalid">YouTube: ongeldige cookies — controleer en probeer het opnieuw</string>
+  <string name="tada_music_lyrics_tap_to_seek_title">Tik op een regel om te zoeken</string>
+  <string name="tada_music_lyrics_tap_to_seek_summary">Door op een regel te tikken spring je naar dat moment in het nummer</string>
+  <string name="tada_music_lyrics_show_copy_button_title">Toon Kopieer knop</string>
+  <string name="tada_music_lyrics_show_copy_button_summary">Tik om originele songteksten als platte tekst te kopiëren; lang indrukken om het ruwe songtekstbronbestand op te slaan in Downloads</string>
+  <string name="tada_music_lyrics_show_translate_button_title">Toon Vertaal knop</string>
+  <string name="tada_music_lyrics_show_translate_button_summary">Tik om vertaling in of uit te schakelen; lang indrukken voor alleen vertaling. Gebruikt providervertalingen, Google Translate of een OpenAI-compatibele API.</string>
+  <string name="tada_music_lyrics_show_romanize_button_title">Toon romaniseerknop</string>
+  <string name="tada_music_lyrics_show_romanize_button_summary">Tik om romanisatie in of uit te schakelen; lang indrukken voor alleen romanisatie. Gebruikt romanisatie van de provider, Google Translate of een OpenAI-compatibele API.</string>
+  <string name="tada_music_lyrics_show_refresh_button_title">Vernieuwknop weergeven</string>
+  <string name="tada_music_lyrics_show_refresh_button_summary">Tik om naar de volgende songtekstkandidaat te schakelen; houd lang ingedrukt om songteksten te zoeken op songtitel en artiest</string>
+  <string name="tada_music_lyrics_search_dialog_title">Zoek songteksten</string>
+  <string name="tada_music_lyrics_search_title_hint">Songtitel</string>
+  <string name="tada_music_lyrics_search_artist_hint">Artiest</string>
+  <string name="tada_music_lyrics_search_empty">Voer een songtitel en een artiest in</string>
+  <string name="tada_music_lyrics_search_no_providers">Geen van de ingeschakelde providers kan naar andere nummers zoeken</string>
+  <string name="tada_music_lyrics_saved">Opgeslagen</string>
+  <string name="tada_music_lyrics_word_sync_title">Gesynchroniseerde woorden of lettergrepen markeren</string>
+  <string name="tada_music_lyrics_word_sync_summary">Geef prioriteit aan woord-voor-woord songteksten wanneer beschikbaar. Wanneer songteksten woordtiming bevatten, wordt elk woord of elke lettergreep gemarkeerd in de maat met de muziek</string>
+  <string name="tada_music_lyrics_hide_played_title">Verberg […] regel</string>
+  <string name="tada_music_lyrics_hide_played_summary">Verberg songtekstregels boven de regel die momenteel wordt afgespeeld</string>
+  <string name="tada_music_lyrics_hide_unplayed_title">Verberg niet-afgespeelde songteksten</string>
+  <string name="tada_music_lyrics_hide_unplayed_summary">Verberg songtekstregels onder het momenteel afgespeelde […] scherm</string>
+  <string name="tada_music_lyrics_mediasession_title">MediaSession-songteksten op het vergrendelscherm weergeven</string>
+  <string name="tada_music_lyrics_miniplayer_title">Toon miniplayer-songteksten</string>
+  <string name="tada_music_lyrics_display_artist_first_title">Artiest- en titelweergave […] AAN \"Artiest - Titel\" en UIT \"Titel - Artiest\". Heeft geen invloed op het zoeken van songteksten.</string>
+  <string name="tada_music_lyrics_display_artist_first_summary">Wissel de weergavevolgorde van artiest en titel in de Miniplayer en MediaSession. AAN \"Artiest - Titel\" en UIT \"Titel - Artiest\" Heeft geen invloed op het zoeken naar songteksten.</string>
+  <string name="tada_settings_music_lyrics_metadata_title">Filters</string>
+  <string name="tada_music_lyrics_custom_regex_title">Me […] :\"Songtekstfilter-regex\"</string>
+  <string name="tada_music_lyrics_custom_regex_summary">Reguliere expressie die wordt toegepast op titels, artiesten en albums voordat songteksten worden opgezocht en bij het beoordelen of twee titels overeenkomen. Laat leeg om beide uit te schakelen. De standaard verwijdert veelvoorkomende rommel zoals \"Official Video\", \"Remaster\", \"【插曲】\" en \"- Topic\".</string>
+  <string name="tada_music_lyrics_text_filter_title">Regex voor songtekstfilter</string>
+  <string name="tada_music_lyrics_text_filter_summary">Reguliere expressie wordt alleen toegepast op de originele songtekst (niet op vertalingen of romanisaties). Leeg laten om uit te schakelen.</string>
+  <string name="tada_music_lyrics_credit_line_regex_title">Info-regelmarkeringen</string>
+  <string name="tada_music_lyrics_credit_line_regex_summary">Als songteksten onterecht naar de onderkant worden gefilterd, pas dit dan aan of wis dit. […] Leeg laten om uit te schakelen.</string>
+  <string name="tada_music_lyrics_text_size_title">Tekstgrootte</string>
+  <string name="tada_music_lyrics_text_size_summary">Grootte van de songtekst</string>
+  <string name="tada_music_lyrics_offset_ms_title">Timing offset</string>
+  <string name="tada_music_lyrics_offset_ms_summary">Gesynchroniseerde songteksten volgen de weergave. Als ze afwijken, pas dan de timing-offset aan. […] Gebruik een positieve waarde als de songteksten voorlopen op het nummer.</string>
+  <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
+  <string name="tada_music_lyrics_source_label">Bron: %s</string>
+  <string name="tada_music_lyrics_translated_by_google">Vertaald door Google</string>
+  <string name="tada_music_lyrics_romanized_by_google">Geromaniseerd door Google</string>
+  <string name="tada_music_lyrics_translated_by_ai">Vertaald door %s</string>
+  <string name="tada_music_lyrics_romanized_by_ai">Geromaniseerd door %s</string>
+  <!-- Tappable label under the lyrics that turns the translation on. -->
+  <string name="tada_music_lyrics_translate_hide">Vertaald</string>
+  <string name="tada_music_lyrics_translation_language_title">Vertalingstaal</string>
+  <string name="tada_music_lyrics_translating">Bezig met vertalen…</string>
+  <string name="tada_music_lyrics_translate_failed">Kon de songtekst niet vertalen</string>
+  <string name="tada_music_lyrics_romanize_hide">Geromaniseerd</string>
+  <string name="tada_music_lyrics_romanizing">Romaniseren…</string>
+  <string name="tada_music_lyrics_romanize_failed">Kon de songteksten niet romaniseren</string>
+  <string name="tada_music_lyrics_translate_only">Alleen vertaald</string>
+  <string name="tada_music_lyrics_romanize_only">Alleen geromaniseerd</string>
+  <string name="tada_music_lyrics_copied">Gekopieerd naar klembord</string>
+  <string name="tada_music_lyrics_refreshing">Vernieuwen</string>
+  <string name="tada_music_lyrics_refreshed">Vernieuwd</string>
+  <string name="tada_music_lyrics_about_summary">"Songteksten worden op titel en artiest gematched; ongebruikelijke metadata kunnen niets of de verkeerde versie opleveren. Gebruik verversen om van versie te wisselen. Providers gemarkeerd met * vereisen een token. Niet alle ingeschakelde providers worden altijd in uw volgorde opgevraagd, maar reageren op basis van hun snelheid."</string>
+  <string name="tada_music_lyrics_hide_info_title">Verberg creditregel</string>
+  <string name="tada_music_lyrics_hide_info_summary">Verberg de creditregel die onder de songteksten wordt weergegeven</string>
+  <string name="tada_music_lyrics_swap_trans_roma_title">Wissel vertaling en romanisatie om</string>
+  <string name="tada_music_lyrics_swap_trans_roma_summary">AAN zet romanisatie onder de songteksten en vertaling erboven; UIT houdt romanisatie boven en vertaling onder.</string>
+  <string name="tada_music_lyrics_use_ai_translation_title">OpenAI-compatibele vertaling</string>
+  <string name="tada_music_lyrics_use_ai_translation_summary">Gebruik een aangepaste OpenAI-compatibele API voor vertaling en romanisatie in plaats van Google Translate</string>
+  <string name="tada_music_lyrics_ai_config_dialog_title">AI-vertaalinstellingen</string>
+  <string name="tada_music_lyrics_ai_config_dialog_instruction">Configureer het OpenAI-compatibele API-eindpunt voor AI-aangedreven vertaling en romanisatie van songteksten.</string>
+  <string name="tada_music_lyrics_ai_config_base_url_hint">API-eindpunt-URL (bijv. https://text.pollinations.ai/openai)</string>
+  <string name="tada_music_lyrics_ai_config_api_token_hint">API-sleutel (leeg laten voor anonieme toegang)</string>
+  <string name="tada_music_lyrics_ai_config_model_hint">Modelnaam (bijv. openai-fast, gpt-4o-mini)</string>
+  <string name="tada_music_lyrics_ai_config_prompt_hint">Promptsjabloon (variabelen: {language}, {task}, {title}, {artist}, {count}, {lines})</string>
+  <string name="tada_music_lyrics_ai_config_toast_saved">AI-vertaalinstellingen opgeslagen</string>
+  <string name="tada_music_lyrics_ai_config_toast_invalid">Kan geen verbinding maken met het AI-eindpunt. Controleer je instellingen.</string>
+  <string name="tada_music_lyrics_ai_config_toast_reset">AI-vertaalinstellingen gereset</string>
+  <string name="tada_music_lyrics_ai_config_status_configured">Geconfigureerd</string>
+  <string name="tada_music_lyrics_ai_config_status_not_configured">Tik om te configureren</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_url">Basis-URL mag niet leeg zijn</string>
+  <string name="tada_music_lyrics_ai_config_status_invalid_url">Basis-URL moet beginnen met http:// of https://</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_model">Modelnaam mag niet leeg zijn</string>
+  <string name="tada_music_lyrics_ai_config_status_validating">Verbinding valideren…</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="tada_music_spoof_app_version_target_entry_8_23_51">8.23.51 - Vetgedrukte pictogrammen uitschakelen</string>
+  <string name="tada_music_spoof_app_version_target_entry_9_13_51">9.13.51 - Herstel Player Up next, Lyrics en Related tabbladen</string>
+</resources>

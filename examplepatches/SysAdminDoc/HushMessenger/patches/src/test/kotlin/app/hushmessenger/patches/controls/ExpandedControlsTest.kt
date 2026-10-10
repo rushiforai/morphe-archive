@@ -43,15 +43,15 @@ class ExpandedControlsTest {
         }
     }
 
-    // #27: "Long-press Messenger" read as the Messenger title inside the app, where nothing happens.
-    @Test fun settingsDirectionsNameTheHomeScreenIcon() {
+    // Descriptions name the settings page, since "Long-press Messenger" (#27) read as the title inside the app.
+    @Test fun settingsDirectionsNameTheSettingsPage() {
         val patches = Class.forName("app.hushmessenger.patches.controls.MessengerControlsPatchKt").methods
             .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
             .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
-        val directed = patches.filter { "Patch controls" in it.description.orEmpty() }
+        val directed = patches.filter { "HushMessenger settings > Controls" in it.description.orEmpty() }
         assertEquals(ExpectedTotals.DIRECTED_CONTROLS, directed.size)
         for (patch in directed) {
-            assertTrue("Long-press Messenger's home screen icon > Patch controls." in patch.description!!, "${patch.name}")
+            assertTrue("Turn it on in HushMessenger settings > Controls." in patch.description!!, "${patch.name}")
         }
     }
 

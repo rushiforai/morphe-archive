@@ -138,7 +138,7 @@ class HideMetaAiQuestionsFixtureTest {
 
     /** Where each declared build's default way keeps the pill's type, and the stars name's register. */
     private val expectedPill = mapOf(
-        "581.0.0.45.58" to (1 to 8),
+        "582.0.0.50.54" to (1 to 8),
     )
 
     /**

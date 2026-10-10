@@ -71,9 +71,9 @@ private const val SCHEME_COLORS = 20
 @Suppress("unused")
 val pureBlackPatch = bytecodePatch(
     name = PATCH,
-    description = "Threads' dark mode uses pure black instead of its dark gray behind your feed, posts and " +
-        "profiles, which looks deeper and saves power on an OLED screen. Menus and sheets keep their own grays.",
-    default = false,
+    description = "Makes Threads' dark mode truly black instead of dark gray behind your feed and posts. It looks " +
+        "deeper and can save battery on OLED screens. Starts off. Turn it on in HushThreads settings > " +
+        "More settings > Appearance.",
 ) {
     category("Interface")
     dependsOn(settingsPatch)
@@ -139,8 +139,8 @@ private fun Instruction.loadsWide(value: Long) = when (opcode) {
 
 /**
  * The static methods [this] theme calls that build the same kind of colors it does: each returns a
- * type the theme constructs itself. 450 builds its dark colors from literals in one of those, where
- * 448 and 449 build them in the theme.
+ * type the theme constructs itself. 450 builds its dark colors from literals in one of those. The
+ * theme's own loads are read too, since 449 and 448 built them there.
  */
 internal fun Method.themeHelpers(): List<MethodReference> {
     val body = implementation!!.instructions

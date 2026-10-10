@@ -15,6 +15,7 @@ import java.util.List;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.EarlySwitch;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
@@ -24,12 +25,15 @@ import app.morphe.extension.tiktok.settings.Settings;
  * is the launcher enumeration, an ACTION_MAIN intent with the LAUNCHER category and no package
  * or component named, which is how a modern build reads the list of apps on the phone; a query
  * for the apps that can handle a share or a link is what the share sheet needs and goes through.
+ * A read before the settings context exists takes the switch straight from the saved file.
  */
 @SuppressWarnings("unused")
 public final class InstalledAppsBlocker {
+    /** {@link Settings#BLOCK_INSTALLED_APPS}'s key, for the read before the settings context. */
+    static final String SWITCH_KEY = "block_installed_apps";
 
     private static boolean blocks() {
-        return Utils.getContext() == null || Settings.BLOCK_INSTALLED_APPS.get();
+        return Utils.getContext() != null ? Settings.BLOCK_INSTALLED_APPS.get() : EarlySwitch.isOn(SWITCH_KEY);
     }
 
     public static List<PackageInfo> interceptGetInstalledPackages(PackageManager pm, int flags) {

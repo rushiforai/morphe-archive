@@ -15,6 +15,7 @@ package app.morphe.patches.pinterest.misc.settings
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.RepoFiles
@@ -44,6 +45,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 /**
  * Pinterest's shortcut calls go through SettingsEntry, which puts the HushPinterest shortcut back in
@@ -224,6 +226,7 @@ class ShortcutCallsTest {
      * no-call rules read the patched APK.
      */
     @Test
+    @Category(FixtureTests::class)
     fun eachDeclaredBuildSendsEveryCallThatRanksItsShortcuts() {
         val versions = AppCompatibilities.pinterest().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()

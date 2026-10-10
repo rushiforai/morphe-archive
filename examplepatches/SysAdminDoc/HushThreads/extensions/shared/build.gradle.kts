@@ -11,7 +11,7 @@ android {
     namespace = "app.morphe.extension.shared"
 
     defaultConfig {
-        // The library it carries runs only inside Threads 449, which declares API 28.
+        // The library it carries runs only inside Threads 450, which declares API 28.
         minSdk = 28
     }
 }

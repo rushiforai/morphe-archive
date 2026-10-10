@@ -121,6 +121,7 @@ public class FileNameTemplateTest {
     public void tearDown() {
         Settings.FILENAME_TEMPLATE.resetToDefault();
         Settings.PHOTO_FILENAME_TEMPLATE.resetToDefault();
+        Settings.DOWNLOAD_VIDEOS.resetToDefault();
         MediaDownload.policyForTests = null;
         MediaDownload.detailsForTests = null;
         LogBufferManager.clearLogBuffer();
@@ -1084,6 +1085,7 @@ public class FileNameTemplateTest {
         waitForSaves();
 
         // A feed video: the post's own id, and what its menu read of the post.
+        Settings.DOWNLOAD_VIDEOS.save(true);
         assertTrue(MediaDownload.saveFeedVideo(context, new PostDetails("4455667788990011", "Video Owner", posted()), clip, null));
         waitForSaves();
 

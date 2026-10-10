@@ -58,9 +58,13 @@ class TabBarColoursFixtureTest {
                     providers[type]?.let { AccessFlags.ABSTRACT.isSet(it.accessFlags) && !AccessFlags.INTERFACE.isSet(it.accessFlags) } == true
                 }
                 val provider = providers.getValue(colour.definingClass)
-                assertTrue("$name: $colour isn't abstract", provider.methods.single {
+                // The provider's own virtual method, which its subclasses answer. 581 left it abstract;
+                // 582's Redex moved one subclass's body into the provider and the other overrides it.
+                val declared = provider.methods.single {
                     it.name == colour.name && it.parameterTypes.map(CharSequence::toString) == colour.parameterTypes.map(CharSequence::toString)
-                }.let { AccessFlags.ABSTRACT.isSet(it.accessFlags) })
+                }
+                assertTrue("$name: $colour isn't a method the provider's subclasses can answer",
+                    listOf(AccessFlags.STATIC, AccessFlags.PRIVATE, AccessFlags.FINAL).none { it.isSet(declared.accessFlags) })
 
                 val readers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.toString() == colour.toString() } }) {
                     selectedTabColourReads(it, colour).isNotEmpty()

@@ -102,7 +102,7 @@ class ReelPagesFixtureTest {
 
     /** Registers and the item's register of the one-item insert, then the static append's, null where a build has none. */
     private val inserts = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(8 to 6, 4 to 3),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(6 to 4, 4 to 3),
     )
 
     /** The one-item drop at [at]: the item copied into a one-item list in v0, the filter's answer asked if empty. */

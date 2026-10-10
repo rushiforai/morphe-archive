@@ -393,6 +393,63 @@ public class FollowDiagnosticsTest {
         assertEquals(1, FollowDiagnostics.heldRequestsForTests());
     }
 
+    public static final class ChatBody {
+        public int status_code = 4003;
+        public String status_msg = "Slow down";
+        public String comment_text = "a private sentence";
+        public long user_id = 7123456789012345678L;
+    }
+
+    private static List<String> liveCommentLines() {
+        List<String> lines = new ArrayList<>();
+        for (org.robolectric.shadows.ShadowLog.LogItem log : org.robolectric.shadows.ShadowLog.getLogs()) {
+            if (log.msg.startsWith("[Morphe TikTok FollowProbe] live comment response ")) lines.add(log.msg);
+        }
+        return lines;
+    }
+
+    @Test
+    public void aLiveCommentAnswerIsLoggedWithoutTheTextOrIds() {
+        BaseSettings.DEBUG.save(true);
+        org.robolectric.shadows.ShadowLog.clear();
+        ShadowToast.reset();
+
+        FollowDiagnostics.logParsedResponse(
+                new CaptchaGateRequest("/webcast/room/chat/?room_id=7400000000000000001"),
+                new ParsedResponse(new ChatBody()));
+
+        List<String> lines = liveCommentLines();
+        assertEquals(lines.toString(), 1, lines.size());
+        String line = lines.get(0);
+        assertTrue(line, line.contains("path=/webcast/room/chat/ "));
+        assertFalse("the room id stays out of the report", line.contains("7400000000000000001"));
+        assertTrue(line, line.contains("status_code=4003"));
+        assertTrue(line, line.contains("status_msg=Slow down"));
+        assertTrue(line, line.contains("outcome=refused"));
+        assertTrue(line, line.contains("bodyFieldNames=status_code,status_msg,comment_text,user_id"));
+        assertFalse(line, line.contains("a private sentence"));
+        assertFalse(line, line.contains("7123456789012345678"));
+        assertEquals("a LIVE comment answer is not a follow refusal", 0, ShadowToast.shownToastCount());
+    }
+
+    @Test
+    public void aLiveCommentAnswerStaysQuietWithLoggingOffAndForOtherPaths() {
+        org.robolectric.shadows.ShadowLog.clear();
+        FollowDiagnostics.logParsedResponse(
+                new CaptchaGateRequest("/webcast/room/chat/"), new ParsedResponse(new ChatBody()));
+        assertEquals(0, liveCommentLines().size());
+
+        BaseSettings.DEBUG.save(true);
+        FollowDiagnostics.logParsedResponse(
+                new CaptchaGateRequest("/webcast/room/enter/"), new ParsedResponse(new ChatBody()));
+        assertEquals(0, liveCommentLines().size());
+
+        // An unreadable response still produces a line instead of throwing into the network stack.
+        FollowDiagnostics.logParsedResponse(new CaptchaGateRequest("/webcast/room/chat/"), null);
+        assertEquals(1, liveCommentLines().size());
+        assertTrue(liveCommentLines().get(0), liveCommentLines().get(0).contains("status_code=unknown"));
+    }
+
     public static final class CaptchaGateRequest {
         private final String path;
         CaptchaGateRequest(String path) { this.path = path; }

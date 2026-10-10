@@ -102,6 +102,7 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_REPEAT.resetToDefault();
         Settings.KEEP_DELETED_MESSAGES.resetToDefault();
         Settings.ASK_BEFORE_STICKER.resetToDefault();
+        Settings.BETA_LOGS_OFF.resetToDefault();
         Settings.ASK_BEFORE_GIF.resetToDefault();
         Settings.ASK_BEFORE_VOICE_VIDEO.resetToDefault();
         Settings.ASK_BEFORE_CALL.resetToDefault();
@@ -115,6 +116,17 @@ public class PatchFamilyTest {
      * A switch is a family's, or the settings entry's own (the release check), and never both: a
      * switch in neither list goes unmentioned by the screen and the tests that hold Pause to it.
      */
+    @Test
+    public void turnOffBetaLogsHasItsOwnOffByDefaultSwitchThatAppliesAfterARestart() {
+        PatchFamily family = PatchFamily.BETA_LOGS_OFF;
+        assertEquals("Turn off beta debug logs", family.patchName);
+        assertEquals(Collections.singletonList(Settings.BETA_LOGS_OFF), family.switches);
+        assertFalse(Settings.BETA_LOGS_OFF.defaultValue);
+        assertTrue(Settings.BETA_LOGS_OFF.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
     @Test
     public void askBeforeSendingHasFourOwnOffByDefaultSwitchesThatApplyAtOnce() {
         PatchFamily family = PatchFamily.ASK_BEFORE_STICKER;
@@ -447,7 +459,8 @@ public class PatchFamilyTest {
         assertEquals(installedAds, PatchFamily.HIDE_ADS.installedCapabilities());
         assertEquals(EnumSet.of(PatchFamily.Capability.DEVICE_STATS, PatchFamily.Capability.READ_METRICS,
                         PatchFamily.Capability.PREMIUM_PROMO_SHOW, PatchFamily.Capability.PREMIUM_PROMO_TAP,
-                        PatchFamily.Capability.PREMIUM_PROMO_ACCEPT, PatchFamily.Capability.PREMIUM_PROMO_FAIL),
+                        PatchFamily.Capability.PREMIUM_PROMO_ACCEPT, PatchFamily.Capability.PREMIUM_PROMO_FAIL,
+                        PatchFamily.Capability.CRASH_REPORTS, PatchFamily.Capability.SESSION_REPORTS),
                 PatchFamily.DISABLE_ANALYTICS.expectedCapabilities());
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
@@ -606,8 +619,8 @@ public class PatchFamilyTest {
         PatchFamily.staysWhilePausedForTests = Collections.singletonMap(PatchFamily.HIDE_ADS,
                 "the sponsored message cache cleared when you patched");
         assertEquals("The sponsored message cache cleared when you patched (" + L10n.isolate("Hide ads")
-                        + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
-                        + "and leave out that patch.",
+                        + "). It was set when you patched, so Pause can't turn it off. To get rid of it, patch again "
+                        + "without that patch.",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS)));
 
         Map<PatchFamily, String> two = new LinkedHashMap<>();
@@ -617,8 +630,8 @@ public class PatchFamilyTest {
         assertEquals("The sponsored message cache cleared when you patched (" + L10n.isolate("Hide ads")
                         + ") and the device stats endpoint rewritten when you patched ("
                         + L10n.isolate("Disable analytics")
-                        + "). They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                        + "again and leave out the patch in brackets after it.",
+                        + "). They were set when you patched, so Pause can't turn them off. To get rid of one, patch "
+                        + "again without the patch named in brackets after it.",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.DISABLE_ANALYTICS)));
 
         String everything = PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class));
@@ -642,9 +655,9 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: disabled by its switch (hushtelegram_disable_analytics=off)",
-                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Ignore mentions in muted chats, Hide blocked users in groups, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Keep deleted messages, Ask before sending a sticker, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Ignore mentions in muted chats, Hide blocked users in groups, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Keep deleted messages, Ask before sending a sticker, Turn off beta debug logs, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
                 "Hide ads coverage: channel ads, video ads, search ads",
-                "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"),
+                "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, Firebase crash reports, Firebase session reports"),
                 running);
 
         // Every family in this build has a switch, but the line still has room, after the switch's
@@ -684,6 +697,45 @@ public class PatchFamilyTest {
         List<String> none = PatchFamily.reportLines(build, false);
         assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
         assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"));
+    }
+
+    /** Telegram's regular build has no Firebase reporters, so a build without them is complete, not partial. */
+    @Test
+    public void firebaseReportersCountOnlyWhereTheBuildCarriesThem() {
+        Set<PatchFamily> build = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        PatchFamily.inBuildForTests = build;
+        Set<PatchFamily.Capability> regular = EnumSet.noneOf(PatchFamily.Capability.class);
+        for (PatchFamily.Capability capability : PatchFamily.DISABLE_ANALYTICS.expectedCapabilities()) {
+            assertEquals(capability.name(), capability == PatchFamily.Capability.CRASH_REPORTS
+                    || capability == PatchFamily.Capability.SESSION_REPORTS, capability.onlyWhereCarried);
+            if (!capability.onlyWhereCarried) regular.add(capability);
+        }
+        for (PatchFamily.Capability capability : PatchFamily.Capability.values()) {
+            if (capability.family != PatchFamily.DISABLE_ANALYTICS) assertFalse(capability.name(), capability.onlyWhereCarried);
+        }
+        PatchFamily.capabilitiesForTests = regular;
+        assertEquals("complete", PatchFamily.DISABLE_ANALYTICS.coverageSummary("complete"));
+        assertEquals(regular, PatchFamily.DISABLE_ANALYTICS.shownCapabilities());
+        assertTrue(PatchFamily.reportLines(build, false).contains("Disable analytics coverage: device statistics reports, channel read metrics, "
+                + "Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"));
+
+        // One of the two hooked: the other is left out, never called missing.
+        Set<PatchFamily.Capability> crashOnly = EnumSet.copyOf(regular);
+        crashOnly.add(PatchFamily.Capability.CRASH_REPORTS);
+        PatchFamily.capabilitiesForTests = crashOnly;
+        assertEquals("complete", PatchFamily.DISABLE_ANALYTICS.coverageSummary("complete"));
+        assertTrue(PatchFamily.reportLines(build, true).contains("Disable analytics coverage: device statistics reports, channel read metrics, "
+                + "Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, Firebase crash reports"));
+
+        // A carried target that's hooked still counts when a regular one is missing.
+        Set<PatchFamily.Capability> partial = EnumSet.of(PatchFamily.Capability.READ_METRICS, PatchFamily.Capability.SESSION_REPORTS);
+        PatchFamily.capabilitiesForTests = partial;
+        String summary = PatchFamily.DISABLE_ANALYTICS.coverageSummary("complete");
+        assertTrue(summary, summary.startsWith("This patched app changes "));
+        assertTrue(summary, summary.contains("Firebase session reports"));
+        assertFalse(summary, summary.contains("Firebase crash reports"));
+        assertTrue(PatchFamily.reportLines(build, false).contains("Disable analytics coverage: channel read metrics, Firebase session reports; "
+                + "missing: device statistics reports, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"));
     }
 
     /**

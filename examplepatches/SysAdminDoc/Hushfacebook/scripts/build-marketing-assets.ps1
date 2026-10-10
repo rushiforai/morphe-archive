@@ -1,10 +1,13 @@
 <#
 .SYNOPSIS
-    Rebuild the icons, lockups, README hero and social preview in assets/ from the source art.
+    Rebuild the icons, lockups and social preview in assets/ from the source art.
 .DESCRIPTION
     The source art (the icon master and the hero background) isn't in the repository. The
     maintainer keeps it in concepts/marketing/2026-09-25 under the repository root, which
     .gitignore leaves out, or passes another folder with the same selected/ and source/ layout.
+
+    assets/readme-hero.png is product artwork made outside this script since fb42b3a3, so the
+    banner composed here goes only into the social preview and the README hero is left alone.
 #>
 [CmdletBinding()]
 param([string] $SourceDir)
@@ -18,7 +21,7 @@ $heroSource = Join-Path $SourceDir 'source/hero-background.png'
 $assets = Join-Path $root 'assets'
 $iconDirectory = Join-Path $assets 'icons'
 $iconOutput = Join-Path $assets 'icon.png'
-$heroOutput = Join-Path $assets 'readme-hero.png'
+$bannerOutput = Join-Path ([System.IO.Path]::GetTempPath()) "hushfacebook-banner-$PID.png"
 $socialOutput = Join-Path $assets 'github-social-preview.png'
 $lockupOutput = Join-Path $assets 'brand-lockup.png'
 $darkLockupOutput = Join-Path $assets 'brand-lockup-dark.png'
@@ -141,20 +144,24 @@ Invoke-Magick -Arguments @(
     '-pointsize', '18', 'label:STORY + REEL SAVES', ')',
     '-gravity', 'northwest', '-geometry', '+132+720', '-composite',
     '(', '-background', 'none', '-fill', '#F8FBFF', '-font', 'Inter-SemiBold',
-    '-pointsize', '18', 'label:RECOVERY BUILT IN', ')',
+    '-pointsize', '18', 'label:SAFE MODE BUILT IN', ')',
     '-gravity', 'northwest', '-geometry', '+442+720', '-composite',
     '-strip',
-    $heroOutput
+    $bannerOutput
 )
 
-Invoke-Magick -Arguments @(
-    $heroOutput,
-    '-resize', '1280x720!',
-    '-gravity', 'center',
-    '-crop', '1280x640+0+0',
-    '+repage',
-    '-strip',
-    $socialOutput
-)
+try {
+    Invoke-Magick -Arguments @(
+        $bannerOutput,
+        '-resize', '1280x720!',
+        '-gravity', 'center',
+        '-crop', '1280x640+0+0',
+        '+repage',
+        '-strip',
+        $socialOutput
+    )
+} finally {
+    Remove-Item -LiteralPath $bannerOutput -ErrorAction SilentlyContinue
+}
 
 Write-Host "Built marketing assets in $assets"

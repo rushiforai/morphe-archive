@@ -56,9 +56,9 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
         addPreference(new TogglePreference(
                 context,
                 "Send TikTok through a proxy",
-                "Sends TikTok's own network stack, which carries the feed, search, comments and the rest of its API, "
-                        + "through the proxy below. Videos and LIVE streams load through TikTok's player, which connects "
-                        + "on its own, so they stay direct. Other apps aren't affected.",
+                "Sends TikTok's feed, search, comments and other app traffic through the proxy "
+                        + "below. Videos and LIVE streams still connect directly. Other apps "
+                        + "aren't affected.",
                 Settings.NETWORK_PROXY
         ));
         addPreference(new ChoicePreference(context, "Proxy type", Settings.NETWORK_PROXY_TYPE,
@@ -77,8 +77,8 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
         addPreference(new InputTextPreference(
                 context,
                 "Proxy user name",
-                "Optional. TikTok's own network stack can't sign in to a proxy, so only plain Java connections use this. "
-                        + "Leave it empty for a proxy without a password.",
+                "Optional. Only connections made by Android itself can sign in to a proxy, not "
+                        + "TikTok's own. Leave empty for a proxy without a password.",
                 Settings.NETWORK_PROXY_USER
         ).withNameKeyboard());
         addPreference(new InputTextPreference(
@@ -95,8 +95,14 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
                 // The operator rows are only added when the SIM spoof patch is in the
                 // bundle, so on one without it this promised two fields that are not there.
                 SettingsStatus.simSpoofEnabled
-                        ? "Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."
-                        : "Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.",
+                        ? "Makes TikTok see the country and carrier you pick as your SIM. Your "
+                                + "IP address, account history and language don't change, and "
+                                + "any one of them can make TikTok keep your current region. "
+                                + "Restart TikTok to see the change."
+                        : "Makes TikTok see the country you pick as your SIM. Your IP address, "
+                                + "account history and language don't change, and any one of "
+                                + "them can make TikTok keep your current region. Restart "
+                                + "TikTok to see the change.",
                 Settings.SIM_SPOOF
         ));
         if (SettingsStatus.regionSpoofEnabled) {
@@ -105,7 +111,9 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(context, "Override store region (experimental)",
                     "Use the preset for the region TikTok reports for your account and its shop too. May affect search.", Settings.REGION_STORE_SPOOF));
             addPreference(new TogglePreference(context, "Match region fields in requests",
-                    "Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.", Settings.REGION_REQUEST_SPOOF));
+                    "Also replaces the saved region and country code TikTok sends with every "
+                            + "request. Signing in still sends your real region. Your IP "
+                            + "address and your account's own rules still apply.", Settings.REGION_REQUEST_SPOOF));
         }
         InputTextPreference countryIsoPreference = new InputTextPreference(
                 context,

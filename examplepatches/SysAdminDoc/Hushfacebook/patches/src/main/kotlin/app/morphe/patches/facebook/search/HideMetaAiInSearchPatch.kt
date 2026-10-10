@@ -48,9 +48,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val hideMetaAiInSearchPatch = bytecodePatch(
     name = "Hide Meta AI in search",
-    description = "Removes the Meta AI answer and the Ask Meta AI prompts Facebook adds to search results, and " +
-        "stops search suggestions from opening Meta AI by themselves. People, groups, pages and posts stay, and " +
-        "the Meta AI button still works.",
+    description = "Removes the Meta AI answer and Ask Meta AI prompts from search results, and stops suggestions " +
+        "from sending your search to Meta AI. You get plain results for people, groups, Pages and posts. On by " +
+        "default. Turn it off in Hushfacebook settings > Search.",
     default = true,
 ) {
     category("Interface")

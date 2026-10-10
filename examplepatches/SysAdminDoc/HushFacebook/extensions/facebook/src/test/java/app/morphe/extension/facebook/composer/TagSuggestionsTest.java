@@ -43,6 +43,8 @@ public class TagSuggestionsTest {
         FeedFilterCounters.clear();
         HookStatus.clear();
         TagSuggestions.forget();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT.save(true);
     }
 
     @After
@@ -76,8 +78,8 @@ public class TagSuggestionsTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndAWordWithoutAtLooksNobodyUp() {
-        assertTrue("the switch doesn't start on", Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT.get());
+    public void theSwitchStartsOffAndOnAWordWithoutAtLooksNobodyUp() {
+        assertFalse("the switch starts off", Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT.defaultValue);
         assertTrue(TagSuggestions.skipsWordWithoutAt(false, TagSuggestionsForTests.box()));
         assertEquals(TagSuggestions.ROUTE + ": 1 lists, 1 items, 1 removed. Last reason: " + TagSuggestions.SKIPPED
                 + ". Removed: " + TagSuggestions.SKIPPED + " 1", counterLine());

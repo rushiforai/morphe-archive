@@ -110,6 +110,8 @@ public class QualityChoiceTest {
         QualityChoice.access = access;
         QualityChoice.inBuildForTests = Boolean.TRUE;
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.DEFAULT_PLAYBACK_QUALITY.save(true);
     }
 
     @After
@@ -170,10 +172,10 @@ public class QualityChoiceTest {
         assertNull(PlaybackQuality.fromFile(720));
     }
 
-    /** Picked in Morphe Manager, the switch is on and the quality is Facebook's, so nothing changes. */
+    /** The switch starts off, and turned on with the quality still Facebook's, nothing changes. */
     @Test
     public void onItsDefaultsFacebookPicksTheQuality() {
-        assertTrue("picking the patch is the choice to use it", Settings.DEFAULT_PLAYBACK_QUALITY.get());
+        assertFalse("the switch starts off", Settings.DEFAULT_PLAYBACK_QUALITY.defaultValue);
         assertSame(PlaybackQuality.AUTO, Settings.PLAYBACK_QUALITY.get());
         Evaluator video = new Evaluator(REEL);
         assertNull(firstChoice(video));

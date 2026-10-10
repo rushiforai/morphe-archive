@@ -22,6 +22,7 @@ internal const val DRAWER_EFFECT = "LX/H1n;->invoke(Ljava/lang/Object;)Ljava/lan
 private const val DRAWER_RENDERER = "LX/4tE;->A00(LX/5bm;)V"
 private const val FLAG_580 = 36320734536089357L
 private const val FLAG_581 = 36320704471318256L
+private const val FLAG_582 = 36320652931710646L
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 /** 580's helper: the config object, the flag, the interface check and its answer, returned as is. */
@@ -59,17 +60,17 @@ private fun drawerRenderer(call: String = DRAWER_HELPER, id: String = DRAWER_REN
  * 581's renderer reads the flag itself, twice, the first answer in a register outside the 4-bit range. A path without
  * a config object skips the first read and lands just after its answer.
  */
-private fun drawerRenderer581(id: String = "LX/4wu;->render(LX/5Sd;)V") = fixtureMethod(id, """
+private fun drawerRenderer581(id: String = "LX/4wu;->render(LX/5Sd;)V", flag: Long = FLAG_581) = fixtureMethod(id, """
     invoke-static {}, LX/2v6;->A0A()LX/5Yf;
     move-result-object v13
     if-eqz v13, :after
-    const-wide v4, ${FLAG_581}L
+    const-wide v4, ${flag}L
     check-cast v13, $CONFIG
     invoke-interface {v13, v4, v5}, $CONFIG->AhR(J)Z
     move-result v20
     :after
     const-string v1, "$EMOJI_DRAWER_ANCHOR"
-    const-wide v4, ${FLAG_581}L
+    const-wide v4, ${flag}L
     invoke-interface {v13, v4, v5}, $CONFIG->AhR(J)Z
     move-result v4
     return-void
@@ -145,6 +146,13 @@ class EmojiDrawerTest {
         assertEquals(setOf("LX/4wu;->render(LX/5Sd;)V", "LX/Eyg;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"), found(classes))
         // The same readers without the renderer are just a flag.
         assertTrue(found(classes.drop(1)).isEmpty())
+    }
+
+    @Test fun the582FlagIsFoundTheSameWay() {
+        val other = drawerEffect("LX/EfL;->invoke(Ljava/lang/Object;)Ljava/lang/Object;", FLAG_582)
+        val classes = listOf(fixtureClass("LX/51i;", listOf(drawerRenderer581("LX/51i;->render(LX/5XD;)V", FLAG_582))), fixtureClass("LX/EfL;", listOf(other)))
+        assertEquals(setOf("LX/51i;->render(LX/5XD;)V", "LX/EfL;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"), found(classes))
+        assertEquals(2, assertEmojiDrawerInjected(classes[0].methods.single(), "582 renderer"))
     }
 
     @Test fun everyFlagReadPassesThroughTheExtension() {

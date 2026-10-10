@@ -31,6 +31,8 @@ public class StoryAdvanceTest {
 
     @Before public void clearCounts() {
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.BLOCK_STORY_AUTO_ADVANCE.save(true);
     }
 
     @After public void restore() {

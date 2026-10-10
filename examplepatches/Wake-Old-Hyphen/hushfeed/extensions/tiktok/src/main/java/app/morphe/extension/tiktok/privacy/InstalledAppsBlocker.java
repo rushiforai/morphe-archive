@@ -29,7 +29,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 public final class InstalledAppsBlocker {
 
     private static boolean blocks() {
-        return Utils.getContext() == null || Settings.BLOCK_INSTALLED_APPS.get();
+        return Utils.getContext() != null && Settings.BLOCK_INSTALLED_APPS.get();
     }
 
     public static List<PackageInfo> interceptGetInstalledPackages(PackageManager pm, int flags) {

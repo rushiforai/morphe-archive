@@ -17,7 +17,7 @@ import org.junit.Test
 class PatchCategoriesTest {
     /** One name per group, and no more than fits on a phone screen without scrolling. */
     private val taxonomy = setOf(
-        "Feed", "Playback", "Comments", "Downloads", "Interaction",
+        "Feed", "Playback", "Comments", "Downloads", "Interaction", "Interface",
         "Inbox", "Privacy", "Search", "Settings", "Performance",
     )
 

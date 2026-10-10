@@ -186,3 +186,6 @@ Google Cast の接続を解除	Disconnect Google Cast	中斷 Google Cast 連線
 ジャンル:<font color='#000000'><b>%s</b></font><br>過去最高:<font color='#000000'><b>%s</b></font>	Genre:<font color='#000000'><b>%s</b></font><br>Best rank:<font color='#000000'><b>%s</b></font>	類別:<font color='#000000'><b>%s</b></font><br>最高排名:<font color='#000000'><b>%s</b></font>
 カテゴリ:<font color='#000000'><b>%s</b></font><br>前日順位:<font color='#000000'><b>%s</b></font>(過去最高:<font color='#000000'><b>%s</b></font>)	Category:<font color='#000000'><b>%s</b></font><br>Yesterday:<font color='#000000'><b>%s</b></font> (Best:<font color='#000000'><b>%s</b></font>)	分類:<font color='#000000'><b>%s</b></font><br>昨日排名:<font color='#000000'><b>%s</b></font>（最高排名:<font color='#000000'><b>%s</b></font>）
 再生履歴の保存やキャッシュなどを取得する為にメディア、ファイルへのアクセス許可が必要です。\nアプリを再起動し再度許可ダイアログを表示させるか、端末の設定画面からアプリ→nicoidを選択し、ストレージのアクセス権限を付与してください。	Access to media and files is required to save watch history and download cached videos.\nRestart the app to show the permission dialog again, or grant storage access under Apps → nicoid in your device settings.	儲存觀看紀錄及下載快取影片需要媒體與檔案存取權限。\n請重新啟動應用程式以再次顯示權限對話框，或在裝置設定的「應用程式 → nicoid」中授予儲存空間存取權限。
+
+アプリ専用フォルダー（デフォルト）	App-private folder (default)	應用程式專用資料夾（預設）
+共有ストレージ・SDカードのフォルダーを選択	Choose a folder in shared storage or on an SD card	選擇共用儲存空間或 SD 卡上的資料夾

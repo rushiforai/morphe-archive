@@ -22,10 +22,11 @@ internal const val DOUBLE_TAP_CHOICE = "Lorg/telegram/messenger/MediaDataControl
 @Suppress("unused")
 val disableDoubleTapReactionsPatch = bytecodePatch(
     name = "Disable double-tap reactions",
-    description = "Adds a switch, off by default, that stops reactions from a double tap in chats and the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus keep their usual behavior.",
+    description = "Stops a double tap on a message from adding a reaction, handy if you keep reacting by accident. " +
+        "Starts off. Turn it on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

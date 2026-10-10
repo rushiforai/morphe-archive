@@ -26,7 +26,9 @@ private const val EXTENSION = "Lapp/morphe/extension/tiktok/cleardisplay/Remembe
 @Suppress("unused")
 val rememberClearDisplayPatch = bytecodePatch(
     name = "Remember clear display",
-    description = "Remembers clear display between videos, or enters it automatically after a chosen delay. Switch: Hushfeed settings > Feed screen.",
+    description = "Keeps clear display, TikTok's mode that hides the buttons over a video, on " +
+        "as you swipe to the next video. It can also turn on by itself after a delay you pick, " +
+        "which starts off in Hushfeed settings > Feed screen.",
     default = true,
 ) {
     category("Playback")

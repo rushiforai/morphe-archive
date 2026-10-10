@@ -162,6 +162,8 @@ public class ReelSpeedTest {
         players = new FakePlayers();
         ReelSpeed.access = players;
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.HOLD_REEL_FOR_2X.save(true);
     }
 
     @After
@@ -175,6 +177,7 @@ public class ReelSpeedTest {
         ReelSpeed.forget();
         ReelHoldForTests.forget();
         HookStatus.clear();
+        Settings.HOLD_REEL_FOR_2X.resetToDefault();
     }
 
     /** A pick in the Reels menu as Facebook makes it: the speed set on the reel's player, then the toast. */

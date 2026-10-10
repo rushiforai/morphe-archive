@@ -1,0 +1,37 @@
+# Ignore Gradle build outputs
+.gradle/
+build/
+out/
+
+# Ignore local Gradle properties (contains GitHub tokens — NEVER commit this)
+local.properties
+gradle-local.properties
+
+# Ignore IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore APK/APKM files (large binary files, don't commit them)
+*.apk
+*.apkm
+*.aab
+apk-extracted/
+
+# Ignore archives & temp downloads
+*.zip
+*.tar.gz
+*.jar
+*.mpp
+
+# Ignore jadx decompilation output
+jadx-out/
+decompiled/
+

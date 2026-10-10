@@ -20,6 +20,10 @@ internal val nativeSettingsResourcesPatch = resourcePatch {
             mapOf("section_summary" to "TextView"))
         validateSettingsLayout(get("res/layout/recycler_header_item.xml").readText(),
             mapOf("header_text" to "TextView"))
+        validateSettingsLayout(get("res/layout/sub_menu_recycler_item.xml").readText(), emptyMap(), setOf("menu_item_core"))
+        validateSettingsLayout(get("res/layout/menu_item_core.xml").readText(), mapOf(
+            "menu_item_title" to "${TYPOGRAPHY}TitleSmall", "menu_item_description" to "${TYPOGRAPHY}BodySmall",
+        ))
         validateSettingsSymbols(get("res/values/public.xml").readText(), setOf(
             "color" to "background_base", "color" to "background_body", "color" to "text_base",
             "dimen" to "space_16", "drawable" to "ic_arrow_left",

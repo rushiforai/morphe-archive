@@ -105,7 +105,7 @@ public final class CameraActivity extends Activity {
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         if (requestCode != PERMISSION) return;
         if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) capture();
-        else give("Messenger needs camera access to open your camera app.");
+        else give("Messenger needs camera permission to open your camera app. You can allow it in Android's app settings.");
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {

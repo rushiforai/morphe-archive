@@ -19,17 +19,12 @@ internal fun BytecodePatchContext.emoteConnectionBridge(connection: Method): Str
     val bridge = ImmutableMethod(owner.type, name, connection.parameters, "V",
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
         MutableMethodImplementation(3)).toMutable()
-    bridge.addInstructionsWithLabels(0, emoteConnectionBody(connection.parameterTypes[0].toString()))
+    bridge.addInstructionsWithLabels(0, emoteConnectionBody())
     owner.methods.add(bridge)
     return bridge.reference
 }
 
-internal fun emoteConnectionBody(channelType: String): String = when (channelType) {
-    "Ljava/lang/String;" -> """
-        invoke-static/range {p0 .. p1}, $EMOTES->onChannelChanged(Ljava/lang/String;Ljava/lang/String;)V
-        return-void
-    """
-    CHANNEL_ID -> """
+internal fun emoteConnectionBody(): String = """
         if-eqz p0, :done
         invoke-virtual/range {p0 .. p0}, $CHANNEL_ID->toString()Ljava/lang/String;
         move-result-object v0
@@ -37,8 +32,6 @@ internal fun emoteConnectionBody(channelType: String): String = when (channelTyp
         :done
         return-void
     """
-    else -> throw PatchException("Emotes: unsupported channel ID bridge type.")
-}
 
 internal fun BytecodePatchContext.emoteRowBridge(hooks: EmoteHooks): String {
     val model = mutableClassDefBy(hooks.source.definingClass)

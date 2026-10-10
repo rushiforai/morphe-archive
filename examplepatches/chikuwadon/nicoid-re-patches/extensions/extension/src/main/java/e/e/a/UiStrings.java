@@ -254,6 +254,8 @@ public final class UiStrings {
         TEXT.put("Cookieを保存できませんでした。再試行してください。", new String[]{"Could not save the cookie. Please try again.", "無法儲存 Cookie，請重試。"});
         TEXT.put("ログインしました", new String[]{"Signed in", "已登入"});
         TEXT.put("ニコレポはサービスが終了しました。フォロー新着はニコニコ公式サイトで確認できます。", new String[]{"Nico Reports has been discontinued. Visit the official NicoNico website for new videos from followed users.", "Nico Reports 已停止服務。請前往 Niconico 官方網站查看追蹤對象的新影片。"});
+        TEXT.put("アプリ専用フォルダー（デフォルト）", new String[]{"App-private folder (default)", "應用程式專用資料夾（預設）"});
+        TEXT.put("共有ストレージ・SDカードのフォルダーを選択", new String[]{"Choose a folder in shared storage or on an SD card", "選擇共用儲存空間或 SD 卡上的資料夾"});
         TEXT.put("保存先: ", new String[]{"Save location: ", "儲存位置： "});
         TEXT.put("ログイン情報を保存済み", new String[]{"Sign-in details saved", "已儲存登入資料"});
         TEXT.put("ログアウト", new String[]{"Sign out", "登出"});
@@ -559,6 +561,10 @@ public final class UiStrings {
         TEXT.put("Pop up播放", new String[]{"Pop-up playback", "懸浮視窗播放"});
         TEXT.put("バックグラウンドでキャッシュを取得しますか？", new String[]{"Download the video cache in the background?", "要在背景下載影片快取嗎？"});
         TEXT.put("連続再生", new String[]{"Play continuously", "連續播放"});
+        TEXT.put("シャッフル再生", new String[]{"Shuffle play", "隨機播放"});
+        TEXT.put("フォルダーを削除", new String[]{"Delete folder", "刪除資料夾"});
+        TEXT.put("フォルダーを削除しますか？", new String[]{"Delete this folder?", "要刪除此資料夾嗎？"});
+        TEXT.put("フォルダー内の動画は未分類に移動します。", new String[]{"Videos in this folder will move to Unfiled.", "資料夾中的影片會移至未分類。"});
         buildJapaneseLookup();
     }
     private static String[] lookup(String source) {

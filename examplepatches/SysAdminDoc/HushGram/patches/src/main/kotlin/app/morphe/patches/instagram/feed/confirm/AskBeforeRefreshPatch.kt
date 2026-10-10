@@ -64,11 +64,12 @@ private const val ANIMATION = "Landroid/view/animation/Animation;"
 @Suppress("unused")
 val askBeforeRefreshPatch = bytecodePatch(
     name = "Ask before a refresh",
-    description = "Asks before pulling down refreshes Home, Reels or another list, so a stray pull keeps what's on " +
-        "screen. Refresh goes ahead, and Cancel stops the spinner. Its switch, under Feed, starts off.",
+    description = "Asks you to confirm before pulling down refreshes Home, Reels or another list, so an " +
+        "accidental pull doesn't replace what you were reading. Starts off. Turn it on in HushGram settings > " +
+        "Feed.",
     default = true,
 ) {
-    category("Interface")
+    category("Feed")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

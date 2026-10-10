@@ -52,6 +52,8 @@ public class ScreenTransitionsTest {
     public void start() {
         ScreenTransitions.inBuildForTests = true;
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.TURN_OFF_SCREEN_TRANSITIONS.save(true);
     }
 
     @After
@@ -80,8 +82,8 @@ public class ScreenTransitionsTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndAScreenOpensWithoutATransition() {
-        assertTrue("the switch doesn't start on once picked", Settings.TURN_OFF_SCREEN_TRANSITIONS.get());
+    public void theSwitchStartsOffAndOnAScreenOpensWithoutATransition() {
+        assertFalse("the switch starts off", Settings.TURN_OFF_SCREEN_TRANSITIONS.defaultValue);
         Activity activity = screen();
         assertPending("a new screen already had a pending transition", NOT_ASKED, activity);
 

@@ -22,6 +22,7 @@ hook allow_screenshot LX/Pf4;->run()V
 hook allow_screenshot Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V
 hook analytics_uploads LX/0bw;->onStartCommand(Landroid/content/Intent;II)I
 hook analytics_uploads LX/0bw;->onStartJob(Landroid/app/job/JobParameters;)Z
+hook analytics_uploads Lcom/facebook/analytics2/logger/GooglePlayUploadService;->A04(LX/UTH;)I
 hook analytics_uploads Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I
 hook analytics_uploads Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I
 hook analytics_uploads Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V
@@ -49,6 +50,7 @@ hook chat_promotions LX/KHo;->A0D()Z
 hook chat_promotions LX/KHo;->A0E()Z
 hook community_inbox LX/2Ha;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
 hook delta_unsent LX/YOo;->Bto(I)Z
+hook disappearing_swipe Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z
 hook emoji_drawer LX/H0E;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
 hook emoji_drawer Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A03()Z
 hook emoji_search LX/7UV;->A8X(Landroid/text/Editable;Z)V

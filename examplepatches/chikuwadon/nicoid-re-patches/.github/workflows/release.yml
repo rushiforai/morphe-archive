@@ -54,6 +54,15 @@ jobs:
         run: |
           javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java
           java -cp /tmp/nicoid-content-tests e.e.a.ContentHistoryRulesTest
+      - name: Check development data and interaction policies
+        run: |
+          android_jar=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -n 1)
+          javac --release 8 -cp "$android_jar" -d /tmp/nicoid-development-tests $(find extensions/extension/src/main/java -name '*.java')
+          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java
+          java -cp /tmp/nicoid-development-tests e.e.a.WatchRequestHeadersTest
+          java -Duser.timezone=Asia/Tokyo -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.DevelopmentDataTest
+          javac -d /tmp/nicoid-model-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
+          java -cp /tmp/nicoid-model-tests e.e.a.BikeRunModelTest
       - name: Check Nico Reports activity filters
         run: |
           javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-feed-tests extensions/extension/src/main/java/e/e/a/FollowFeedData.java porting/tests/FollowFeedDataTest.java
@@ -98,5 +107,5 @@ jobs:
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+        run: ./gradlew clean :patches:buildAndroid --no-daemon
 

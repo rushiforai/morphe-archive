@@ -221,12 +221,9 @@ private fun MutableMethod.answerSearchFlag() {
 @Suppress("unused")
 val autoAdvancePatch = bytecodePatch(
     name = "Automatic video advance",
-    description = "Keeps TikTok's automatic advance enabled while preserving its pause, dialog " +
-        "and gesture checks, and shows TikTok's own Auto scroll action in the video panel for " +
-        "accounts outside its rollout, with a switch that hides that action instead. " +
-        "Another switch turns on TikTok's own auto scroll in search results. " +
-        "Switch: Hushfeed settings > Playback.",
-    default = false,
+    description = "Moves on to the next video by itself when one ends, so you can watch " +
+        "hands-free. It can also turn on TikTok's auto scroll in search results. Starts off. Turn " +
+        "it on in Hushfeed settings > Playback.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)

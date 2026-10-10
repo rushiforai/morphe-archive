@@ -15,6 +15,7 @@ import android.provider.ContactsContract;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.EarlySwitch;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
@@ -22,15 +23,19 @@ import app.morphe.extension.tiktok.settings.Settings;
  *
  * <p>Every ContentResolver.query TikTok makes lands here, whatever it is asking for, so the
  * authority decides: only the contacts provider is refused, and the media store and the rest
- * are handed straight through. A read before the settings context exists is refused too, since
- * the patch was chosen to block and a missing context is not a reader's choice.
+ * are handed straight through. A read before the settings context exists takes the switch
+ * straight from the saved file ({@link EarlySwitch}), so a switch that's on covers TikTok's
+ * earliest start-up reads too.
  */
 @SuppressWarnings("unused")
 public final class ContactListBlocker {
+    /** {@link Settings#BLOCK_CONTACT_LIST}'s key, for the read before the settings context. */
+    static final String SWITCH_KEY = "block_contact_list";
 
     private static boolean blocks(Uri uri) {
         if (uri == null || !ContactsContract.AUTHORITY.equals(uri.getAuthority())) return false;
-        if (Utils.getContext() != null && !Settings.BLOCK_CONTACT_LIST.get()) return false;
+        boolean on = Utils.getContext() != null ? Settings.BLOCK_CONTACT_LIST.get() : EarlySwitch.isOn(SWITCH_KEY);
+        if (!on) return false;
         Logger.printInfo(() -> "Contact list blocker: blocked a query to " + uri);
         return true;
     }

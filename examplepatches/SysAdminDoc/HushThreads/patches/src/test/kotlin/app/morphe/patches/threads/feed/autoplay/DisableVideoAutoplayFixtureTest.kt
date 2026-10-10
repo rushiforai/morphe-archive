@@ -39,8 +39,8 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Disable video autoplay on each declared build: PostVideo plays its video by its fifth boolean
- * (the fourth in 450), each feed post's call to PostVideo hands that flag to the extension first,
+ * Disable video autoplay on each declared build: PostVideo plays its video by its fourth boolean
+ * on 450, each feed post's call to PostVideo hands that flag to the extension first,
  * and PostVideo, its playback effect and the full-screen viewer are left as they were.
  */
 class DisableVideoAutoplayFixtureTest {
@@ -62,8 +62,7 @@ class DisableVideoAutoplayFixtureTest {
             assertEquals(build.name, effectTypes.indexOf("Z"), fixture.effect.requirePlaybackEffect())
             val types = fixture.postVideo.parameterTypes.map { it.toString() }
             // 450 dropped a boolean ahead of the play flag, so it's the fourth there.
-            val ordinal = if (build.name.startsWith("threads-450.")) 3 else 4
-            assertEquals(build.name, types.indices.filter { types[it] == "Z" }[ordinal], fixture.postVideo.playParameter(fixture.effect))
+            assertEquals(build.name, types.indices.filter { types[it] == "Z" }[3], fixture.postVideo.playParameter(fixture.effect))
             assertTrue(build.name, fixture.sites.any { it.method.holdsNote(POST_SINGLE_MEDIA) })
             assertTrue(build.name, fixture.sites.any { it.method.holdsNote(POST_CAROUSEL) })
             // The viewer reaches PostVideo another way, and holds neither note.

@@ -8,6 +8,7 @@ import app.morphe.Fixtures
 import app.morphe.RepoFiles
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.isStringTableCall
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.shared.redexOriginalName
@@ -16,6 +17,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -35,6 +37,8 @@ class ReelAnchorsFixtureTest {
     private class Found {
         val builders = mutableListOf<Method>()
         var chipAnchorHolders = 0
+        /** The static ImmutableList methods of the classes holding the chip anchor, before their strings are read. */
+        val chipCandidates = mutableListOf<Method>()
         var immutableList: ClassDef? = null
         val dumpers = mutableListOf<Method>()
         val hotComments = mutableListOf<Method>()
@@ -53,8 +57,12 @@ class ReelAnchorsFixtureTest {
                 if (classDef.type == IMMUTABLE_LIST) found.immutableList = ImmutableClassDef.of(classDef)
                 if (redexOriginalName(classDef)?.startsWith("FbShortsViewerFooter") == true) found.footerHelperClasses++
                 if (CHIP_ANCHOR in present) {
-                    found.chipAnchorHolders += classDef.methods.count { holdsString(it, CHIP_ANCHOR) }
-                    chipListBuilders(classDef).mapTo(found.builders) { ImmutableMethod.of(it) }
+                    val holding = classDef.methods.count { holdsString(it, CHIP_ANCHOR) }
+                    found.chipAnchorHolders += holding
+                    if (holding > 0) {
+                        classDef.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == IMMUTABLE_LIST }
+                            .mapTo(found.chipCandidates) { ImmutableMethod.of(it) }
+                    }
                 }
                 if (WATCH_FEED_DUMP in present) {
                     classDef.methods.filter { holdsString(it, WATCH_FEED_DUMP) }.mapTo(found.dumpers) { ImmutableMethod.of(it) }
@@ -66,6 +74,16 @@ class ReelAnchorsFixtureTest {
                     footerRunnable(classDef, SOCIAL_BUBBLES_RUNNABLE, VIDEO_ID)?.let { found.bubbles += ImmutableMethod.of(it) }
                 }
             }
+        }
+        // The builder can ask a string table for a chip (582's armeabi-v7a one does), so the tables
+        // the candidates call are read before the builder is picked, the way the patch reads them.
+        val tableOwners = found.chipCandidates.flatMap { method ->
+            method.implementation?.instructions?.toList().orEmpty().filter(::isStringTableCall)
+                .mapNotNull { ((it as ReferenceInstruction).reference as? MethodReference)?.definingClass }
+        }.toSet()
+        val tables = FixtureDex.classes(bundle, tableOwners)
+        found.chipCandidates.filterTo(found.builders) { candidate ->
+            isChipListBuilder(candidate) { call -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
         }
         return found
     }

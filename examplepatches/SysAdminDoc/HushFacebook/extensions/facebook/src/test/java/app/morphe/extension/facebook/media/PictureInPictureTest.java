@@ -38,6 +38,8 @@ public class PictureInPictureTest {
     @Before
     public void start() {
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.PICTURE_IN_PICTURE.save(true);
     }
 
     @After
@@ -56,7 +58,7 @@ public class PictureInPictureTest {
 
     @Test
     public void onBothSayYesWhereThePhoneHasTheFeature() {
-        assertTrue("the switch doesn't start on once picked", Settings.PICTURE_IN_PICTURE.get());
+        assertFalse("the switch starts off", Settings.PICTURE_IN_PICTURE.defaultValue);
         assertTrue(PictureInPictureForTests.allowsWithTheFeature());
         assertTrue(PictureInPictureForTests.allows(Build.VERSION_CODES.UPSIDE_DOWN_CAKE, true));
         assertTrue(PictureInPictureForTests.surfaceAllows());

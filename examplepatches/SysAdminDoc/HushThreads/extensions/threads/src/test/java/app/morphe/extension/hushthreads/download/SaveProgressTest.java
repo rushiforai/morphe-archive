@@ -446,7 +446,7 @@ public class SaveProgressTest {
      */
     @Test
     public void aSaveWithNoNotificationSaysWhereToCancelIt() throws Exception {
-        String elsewhere = "Saving... Cancel: Downloads in HushThreads.";
+        String elsewhere = "Saving... To cancel, open Downloads in HushThreads settings.";
         assertEquals("Saving...", startMessage());
 
         Shadows.shadowOf(notifications()).setNotificationsEnabled(false);

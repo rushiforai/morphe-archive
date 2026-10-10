@@ -34,19 +34,24 @@ private const val SANITIZE =
  * to every share destination, and on some servers `extid`, a random id new on each share. Around
  * it, one appender adds `sfnsn` to WhatsApp shares, one `ref=share` to some stories, one `mibextid`
  * to a group's share link, and the live video dialog `sfnsn`.
+ *
+ * A second switch, off to start, answers the /share/ link itself (#98): with it on, the link a
+ * share of a post hands out is the post's own address instead of the facebook.com/share/ link
+ * Facebook made for that share. Its hook is ownPostLinkPatch's.
  */
 @Suppress("unused")
 val sanitizeSharingLinksPatch = bytecodePatch(
     name = "Sanitize sharing links",
-    description = "Takes Facebook's tracking tags, such as mibextid, off the links you share or copy. " +
-        "The post or reel a link opens stays the same. A facebook.com/share/ link is made for one " +
-        "share, so Facebook can still trace it back to you.",
+    description = "Takes Facebook's tracking tags off links you share or copy, so you share a clean link. A " +
+        "facebook.com/share/ link is made for one share, so Facebook can still trace that kind back to you, and " +
+        "a switch that starts off shares the post's own link in its place. On by default. Both are in " +
+        "Hushfacebook settings > Links.",
     default = true,
 ) {
     category("Privacy")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
-    dependsOn(facebookExtensionPatch)
+    dependsOn(facebookExtensionPatch, ownPostLinkPatch)
 
     execute {
         val tracker = mutableClassDefBy(ExternalShareTrackerFingerprint.method.definingClass)

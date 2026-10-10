@@ -71,6 +71,7 @@ internal val PROFILE_346013370 = ControlProfile(
         "analytics_uploads" to setOf(
             "LX/0c0;->onStartCommand(Landroid/content/Intent;II)I",
             "LX/0c0;->onStartJob(Landroid/app/job/JobParameters;)Z",
+            "LX/WH2;->run()V",
             "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
@@ -100,6 +101,7 @@ internal val PROFILE_346013370 = ControlProfile(
         "chat_promotions" to setOf("LX/HCH;->A0D()Z", "LX/HCH;->A0E()Z"),
         "community_inbox" to setOf("LX/2GV;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
         "delta_unsent" to setOf("LX/VsH;->Btd(I)Z"),
+        "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/H1T;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A04()Z",
@@ -192,6 +194,7 @@ internal val PROFILE_346013423 = ControlProfile(
         "analytics_uploads" to setOf(
             "LX/0bw;->onStartCommand(Landroid/content/Intent;II)I",
             "LX/0bw;->onStartJob(Landroid/app/job/JobParameters;)Z",
+            "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->A04(LX/UTH;)I",
             "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
@@ -221,6 +224,7 @@ internal val PROFILE_346013423 = ControlProfile(
         "chat_promotions" to setOf("LX/KHo;->A0D()Z", "LX/KHo;->A0E()Z"),
         "community_inbox" to setOf("LX/2Ha;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
         "delta_unsent" to setOf("LX/YOo;->Bto(I)Z"),
+        "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/H0E;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A03()Z",
@@ -313,6 +317,7 @@ internal val PROFILE_346013357 = ControlProfile(
         "analytics_uploads" to setOf(
             "LX/0c0;->onStartCommand(Landroid/content/Intent;II)I",
             "LX/0c0;->onStartJob(Landroid/app/job/JobParameters;)Z",
+            "LX/TEq;->run()V",
             "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
@@ -342,6 +347,7 @@ internal val PROFILE_346013357 = ControlProfile(
         "chat_promotions" to setOf("LX/Ts2;->A0D()Z", "LX/Ts2;->A0E()Z"),
         "community_inbox" to setOf("LX/2GW;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
         "delta_unsent" to setOf("LX/K0w;->Bta(I)Z"),
+        "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/H19;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A02()Z",
@@ -434,6 +440,7 @@ internal val PROFILE_346013374 = ControlProfile(
         "analytics_uploads" to setOf(
             "LX/0c0;->onStartCommand(Landroid/content/Intent;II)I",
             "LX/0c0;->onStartJob(Landroid/app/job/JobParameters;)Z",
+            "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->A04(LX/Ue6;)I",
             "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
@@ -463,6 +470,7 @@ internal val PROFILE_346013374 = ControlProfile(
         "chat_promotions" to setOf("LX/HKj;->A0D()Z", "LX/HKj;->A0E()Z"),
         "community_inbox" to setOf("LX/2GV;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
         "delta_unsent" to setOf("LX/VmI;->Btb(I)Z"),
+        "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/Mxk;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A02()Z",
@@ -555,6 +563,7 @@ internal val PROFILE_346213494 = ControlProfile(
         "analytics_uploads" to setOf(
             "LX/0c0;->onStartCommand(Landroid/content/Intent;II)I",
             "LX/0c0;->onStartJob(Landroid/app/job/JobParameters;)Z",
+            "LX/W1y;->run()V",
             "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
@@ -584,6 +593,7 @@ internal val PROFILE_346213494 = ControlProfile(
         "chat_promotions" to setOf("LX/HG6;->A0E()Z", "LX/HG6;->A0F()Z"),
         "community_inbox" to setOf("LX/25I;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
         "delta_unsent" to setOf("LX/YSN;->BuT(I)Z"),
+        "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/4hH;->ALl(LX/5kw;LX/1NP;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/5qW;LX/5KG;)LX/1Gd;",
             "LX/4wu;->render(LX/5Sd;LX/5qW;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;)V",

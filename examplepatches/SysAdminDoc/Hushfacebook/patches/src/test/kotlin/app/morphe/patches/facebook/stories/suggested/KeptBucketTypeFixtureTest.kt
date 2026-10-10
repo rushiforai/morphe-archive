@@ -16,9 +16,13 @@ import org.junit.Test
 
 /** Enum names are intake evidence, not proof that either music type draws the served prompt. */
 class KeptBucketTypeFixtureTest {
-    // These are the bucket-accessor enum types already pinned by SuggestedStoriesFixtureTest.
+    // These are the bucket-accessor enum types already pinned by SuggestedStoriesFixtureTest, by
+    // build and then by the bundle's ABI: 582's armeabi-v7a build names the enum differently.
     private val types = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to "LX/2OQ;",
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to "LX/2F1;",
+            "armeabi-v7a" to "LX/2Fb;",
+        ),
     )
 
     @Test
@@ -26,8 +30,10 @@ class KeptBucketTypeFixtureTest {
         val declared = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
         assertEquals("the declared fixture builds", types.keys, declared)
         val checked = mutableSetOf<String>()
-        for ((version, type) in types) {
+        for ((version, byAbi) in types) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val type = byAbi[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+                    ?: throw AssertionError("${bundle.name} has no pin")
                 val enum = FixtureDex.classes(bundle, setOf(type))[type]!!
                 assertTrue("${bundle.name}: the actual bucket enum", isEnumNaming(enum, BUCKET_TYPE_NAMES))
                 val names = enum.methods.single { it.name == "<clinit>" }.implementation!!.instructions

@@ -1,0 +1,419 @@
+{
+  "whole": {
+    "counts": {
+      "packets": 3564,
+      "captured_ip_packet_bytes": 7457790,
+      "ipv4_packets": 3564,
+      "tcp_packets": 1934,
+      "observed_transport_payload_bytes": 7334202,
+      "udp_packets": 1630,
+      "udp_port443_packets_not_decoded_as_quic": 1562
+    },
+    "domain_groups": {
+      "tiktokv.us": {
+        "dns_hostname_count": 8,
+        "dns_questions": 16,
+        "sni_hostname_count": 6,
+        "client_hellos": 10
+      },
+      "tiktokcdn-us.com": {
+        "dns_hostname_count": 6,
+        "dns_questions": 12,
+        "sni_hostname_count": 4,
+        "client_hellos": 8
+      },
+      "ibyteimg.com": {
+        "dns_hostname_count": 1,
+        "dns_questions": 2,
+        "sni_hostname_count": 0,
+        "client_hellos": 0
+      },
+      "appsflyersdk.com": {
+        "dns_hostname_count": 1,
+        "dns_questions": 2,
+        "sni_hostname_count": 1,
+        "client_hellos": 1
+      },
+      "akamai.net": {
+        "dns_hostname_count": 1,
+        "dns_questions": 2,
+        "sni_hostname_count": 0,
+        "client_hellos": 0
+      }
+    },
+    "parse_status": "parsed_metadata",
+    "parser_counts": {
+      "complete_capture_records": 3564,
+      "selected_records": 3564,
+      "tls_client_hellos": 19
+    },
+    "parse_failures": {},
+    "omission_counts": {
+      "dns_non_address_answers": 58,
+      "tcp_streams_at_reassembly_limit": 3
+    },
+    "time_filter": {
+      "end_exclusive": null,
+      "start_inclusive": null,
+      "duration_seconds": null,
+      "basis": "unfiltered file"
+    },
+    "selected_packet_bounds": {
+      "first_packet_utc": "2026-10-09T22:19:10.163024+00:00",
+      "last_packet_utc": "2026-10-09T22:22:00.911772+00:00",
+      "endpoint_span_seconds": 170.748748
+    },
+    "network_counters": {
+      "status": "not_compared_for_whole_file",
+      "delta_totals": null,
+      "total_status": "no_matched_whole_file_counter_interval"
+    }
+  },
+  "foreground": {
+    "counts": {
+      "packets": 3375,
+      "captured_ip_packet_bytes": 7374486,
+      "ipv4_packets": 3375,
+      "tcp_packets": 1880,
+      "observed_transport_payload_bytes": 7256838,
+      "udp_packets": 1495,
+      "udp_port443_packets_not_decoded_as_quic": 1427
+    },
+    "domain_groups": {
+      "tiktokv.us": {
+        "dns_hostname_count": 8,
+        "dns_questions": 16,
+        "sni_hostname_count": 6,
+        "client_hellos": 10
+      },
+      "tiktokcdn-us.com": {
+        "dns_hostname_count": 6,
+        "dns_questions": 12,
+        "sni_hostname_count": 4,
+        "client_hellos": 8
+      },
+      "ibyteimg.com": {
+        "dns_hostname_count": 1,
+        "dns_questions": 2,
+        "sni_hostname_count": 0,
+        "client_hellos": 0
+      },
+      "appsflyersdk.com": {
+        "dns_hostname_count": 1,
+        "dns_questions": 2,
+        "sni_hostname_count": 1,
+        "client_hellos": 1
+      },
+      "akamai.net": {
+        "dns_hostname_count": 1,
+        "dns_questions": 2,
+        "sni_hostname_count": 0,
+        "client_hellos": 0
+      }
+    },
+    "parse_status": "parsed_metadata",
+    "parser_counts": {
+      "complete_capture_records": 3564,
+      "records_outside_time_filter": 189,
+      "selected_records": 3375,
+      "tls_client_hellos": 19
+    },
+    "parse_failures": {},
+    "omission_counts": {
+      "dns_non_address_answers": 58,
+      "tcp_streams_at_reassembly_limit": 3
+    },
+    "time_filter": {
+      "end_exclusive": "2026-10-09T22:20:53.719642+00:00",
+      "start_inclusive": "2026-10-09T22:19:06.927580+00:00",
+      "duration_seconds": 106.792062,
+      "basis": "network readout start times"
+    },
+    "selected_packet_bounds": {
+      "first_packet_utc": "2026-10-09T22:19:10.163024+00:00",
+      "last_packet_utc": "2026-10-09T22:20:50.111921+00:00",
+      "endpoint_span_seconds": 99.948897
+    },
+    "network_counters": {
+      "scope": "Target package counters; SDK sandbox history availability is stated separately",
+      "status": "ambiguous_transport_accounting",
+      "counter_status": "parsed_counter_difference",
+      "delta_totals": null,
+      "total_status": "ambiguous_transport_accounting",
+      "transport_accounting": {
+        "present_transports": [
+          "VPN",
+          "WIFI"
+        ],
+        "nonzero_delta_transports": [
+          "VPN",
+          "WIFI"
+        ],
+        "ambiguous_total": true,
+        "warnings": [
+          "VPN and underlying-network counters both changed. Their deltas may overlap; adding them can count the same app traffic more than once."
+        ]
+      },
+      "negative_deltas": [],
+      "history_integrity": {},
+      "reported_readout_interval": {
+        "source": "netstats_command",
+        "start_to_start_seconds": 106.792062
+      },
+      "netstats_readout_windows": {
+        "before": {
+          "start_utc": "2026-10-09T22:19:06.927580+00:00",
+          "end_utc": "2026-10-09T22:19:07.116949+00:00"
+        },
+        "after": {
+          "start_utc": "2026-10-09T22:20:53.719642+00:00",
+          "end_utc": "2026-10-09T22:20:53.883529+00:00"
+        },
+        "boundary_start_to_start_seconds": 106.792062
+      },
+      "boundary_readout_windows": {
+        "before": {
+          "start_utc": "2026-10-09T22:19:06.331395+00:00",
+          "end_utc": "2026-10-09T22:19:09.140996+00:00"
+        },
+        "after": {
+          "start_utc": "2026-10-09T22:20:53.115557+00:00",
+          "end_utc": "2026-10-09T22:20:55.275230+00:00"
+        },
+        "boundary_start_to_start_seconds": 106.784162
+      },
+      "groups": [
+        {
+          "transport": "VPN",
+          "set": "FOREGROUND",
+          "accounting_state": "foreground",
+          "delta": {
+            "rx_bytes": 7084473,
+            "rx_packets": 1995,
+            "tx_bytes": 308589,
+            "tx_packets": 1387,
+            "operations": 0
+          }
+        },
+        {
+          "transport": "WIFI",
+          "set": "DEFAULT",
+          "accounting_state": "background",
+          "delta": {
+            "rx_bytes": 0,
+            "rx_packets": 0,
+            "tx_bytes": 0,
+            "tx_packets": 0,
+            "operations": 0
+          }
+        },
+        {
+          "transport": "WIFI",
+          "set": "FOREGROUND",
+          "accounting_state": "foreground",
+          "delta": {
+            "rx_bytes": 7084473,
+            "rx_packets": 1994,
+            "tx_bytes": 290523,
+            "tx_packets": 1375,
+            "operations": 0
+          }
+        }
+      ],
+      "sdk_sandbox_history": {
+        "before_matching_history_buckets": 0,
+        "after_matching_history_buckets": 0,
+        "interpretation": "No matching histories were present. This does not establish zero sandbox traffic."
+      }
+    }
+  },
+  "background": {
+    "counts": {
+      "packets": 118,
+      "captured_ip_packet_bytes": 32705,
+      "ipv4_packets": 118,
+      "udp_packets": 92,
+      "observed_transport_payload_bytes": 29089,
+      "udp_port443_packets_not_decoded_as_quic": 92,
+      "tcp_packets": 26
+    },
+    "domain_groups": {},
+    "parse_status": "parsed_metadata",
+    "parser_counts": {
+      "complete_capture_records": 3564,
+      "records_outside_time_filter": 3446,
+      "selected_records": 118
+    },
+    "parse_failures": {},
+    "omission_counts": {
+      "tcp_streams_not_initial_tls_handshake": 4,
+      "tcp_streams_without_observed_syn": 4
+    },
+    "time_filter": {
+      "end_exclusive": "2026-10-09T22:22:28.871288+00:00",
+      "start_inclusive": "2026-10-09T22:20:56.280197+00:00",
+      "duration_seconds": 92.591091,
+      "basis": "network readout start times"
+    },
+    "selected_packet_bounds": {
+      "first_packet_utc": "2026-10-09T22:20:56.570995+00:00",
+      "last_packet_utc": "2026-10-09T22:22:00.911772+00:00",
+      "endpoint_span_seconds": 64.340777
+    },
+    "network_counters": {
+      "scope": "Target package counters; SDK sandbox history availability is stated separately",
+      "status": "ambiguous_transport_accounting",
+      "counter_status": "parsed_counter_difference",
+      "delta_totals": null,
+      "total_status": "ambiguous_transport_accounting",
+      "transport_accounting": {
+        "present_transports": [
+          "VPN",
+          "WIFI"
+        ],
+        "nonzero_delta_transports": [
+          "VPN",
+          "WIFI"
+        ],
+        "ambiguous_total": true,
+        "warnings": [
+          "VPN and underlying-network counters both changed. Their deltas may overlap; adding them can count the same app traffic more than once."
+        ]
+      },
+      "negative_deltas": [],
+      "history_integrity": {},
+      "reported_readout_interval": {
+        "source": "netstats_command",
+        "start_to_start_seconds": 92.591091
+      },
+      "netstats_readout_windows": {
+        "before": {
+          "start_utc": "2026-10-09T22:20:56.280197+00:00",
+          "end_utc": "2026-10-09T22:20:56.503200+00:00"
+        },
+        "after": {
+          "start_utc": "2026-10-09T22:22:28.871288+00:00",
+          "end_utc": "2026-10-09T22:22:29.057869+00:00"
+        },
+        "boundary_start_to_start_seconds": 92.591091
+      },
+      "boundary_readout_windows": {
+        "before": {
+          "start_utc": "2026-10-09T22:20:55.782155+00:00",
+          "end_utc": "2026-10-09T22:20:58.065787+00:00"
+        },
+        "after": {
+          "start_utc": "2026-10-09T22:22:28.260244+00:00",
+          "end_utc": "2026-10-09T22:22:31.000789+00:00"
+        },
+        "boundary_start_to_start_seconds": 92.478089
+      },
+      "groups": [
+        {
+          "transport": "VPN",
+          "set": "DEFAULT",
+          "accounting_state": "background",
+          "delta": {
+            "rx_bytes": 6994,
+            "rx_packets": 54,
+            "tx_bytes": 25711,
+            "tx_packets": 64,
+            "operations": 0
+          }
+        },
+        {
+          "transport": "VPN",
+          "set": "FOREGROUND",
+          "accounting_state": "foreground",
+          "delta": {
+            "rx_bytes": 0,
+            "rx_packets": 0,
+            "tx_bytes": 0,
+            "tx_packets": 0,
+            "operations": 0
+          }
+        },
+        {
+          "transport": "WIFI",
+          "set": "DEFAULT",
+          "accounting_state": "background",
+          "delta": {
+            "rx_bytes": 6994,
+            "rx_packets": 54,
+            "tx_bytes": 25615,
+            "tx_packets": 61,
+            "operations": 0
+          }
+        },
+        {
+          "transport": "WIFI",
+          "set": "FOREGROUND",
+          "accounting_state": "foreground",
+          "delta": {
+            "rx_bytes": 0,
+            "rx_packets": 0,
+            "tx_bytes": 0,
+            "tx_packets": 0,
+            "operations": 0
+          }
+        }
+      ],
+      "sdk_sandbox_history": {
+        "before_matching_history_buckets": 0,
+        "after_matching_history_buckets": 0,
+        "interpretation": "No matching histories were present. This does not establish zero sandbox traffic."
+      }
+    }
+  },
+  "schema_version": 1,
+  "scope": "TikTok 47.1.4 with Hushfeed 0.68.0 global Pause active, Samsung Galaxy S25 Ultra, Android 16",
+  "limitations": [
+    "Raw packet records do not independently establish UID ownership. App selection and VPN policy were verified separately.",
+    "Packet and payload counts include both directions and retransmissions, not unique application requests.",
+    "DNS/SNI metadata does not establish encrypted payload purpose or successful application delivery.",
+    "VPN and underlying Wi-Fi counter changes overlap. No combined unique-byte count is supplied.",
+    "The separate packet-capture setup is not a quiet battery measurement.",
+    "File SHA-256 identifies the retained private capture; raw packet payloads and IP addresses are not included in this dataset.",
+    "Capture packet endpoints are the first and last saved packet timestamps, not a continuous capture-uptime record.",
+    "Phase filters use host network-readout start times, inclusive at start and exclusive at end. These are not exact kernel polling instants.",
+    "Time filters are applied before TCP reassembly. Handshakes crossing a filter boundary may not yield DNS or SNI metadata.",
+    "Parse success does not mean all protocols or streams were decoded. Per-phase omissions and reassembly limits remain part of the result.",
+    "UDP port 443 packets are counted without QUIC decoding. Encrypted DNS, encrypted payloads and ECH inner names are unavailable.",
+    "Omission categories can overlap on the same stream and are not additive connection counts.",
+    "The installed extension is 0.68.0 with runtime Pause verified. The separate source review describes 0.70.0 and is not a runtime validation of that version."
+  ],
+  "target": {
+    "package": "com.zhiliaoapp.musically",
+    "app": "TikTok",
+    "app_version": "47.1.4",
+    "installed_extension": "Hushfeed",
+    "installed_extension_version": "0.68.0",
+    "runtime_pause_verified_after_restart": true,
+    "build_label": "patched APK, runtime paused",
+    "static_patch_inventory": "not fully established",
+    "factory_apk_baseline": false,
+    "source_review_version": "0.70.0",
+    "source_review_is_installed_build": false
+  },
+  "capture": {
+    "format": "classic pcap",
+    "linktype": 101,
+    "linktype_description": "raw IP",
+    "file_sha256": "81a8911f79e036c143a00a5ec1a6a58a60936faba258434e476523cc1f4cebef",
+    "file_bytes": 7514838,
+    "first_packet_utc": "2026-10-09T22:19:10.163024+00:00",
+    "last_packet_utc": "2026-10-09T22:22:00.911772+00:00",
+    "packet_endpoint_span_seconds": 170.748748,
+    "capture_mode": "PCAPdroid VPN",
+    "selection": "Target app and its SDK sandbox, independently checked against VPN policy",
+    "ip_mode": "both",
+    "root_capture": false,
+    "tls_decryption": false,
+    "quic_blocking": false,
+    "packet_bounds_are_capture_uptime": false
+  },
+  "measurement_tools": {
+    "packet_parser_version": "0.0.3",
+    "network_counter_parser_version": "0.0.6"
+  }
+}

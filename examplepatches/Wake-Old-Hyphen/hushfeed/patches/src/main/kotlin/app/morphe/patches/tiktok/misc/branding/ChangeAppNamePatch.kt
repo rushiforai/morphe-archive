@@ -20,12 +20,12 @@ internal const val MAX_APP_NAME = 50
 @Suppress("unused")
 val changeAppNamePatch = resourcePatch(
     name = "Change app name",
-    description = "Shows a name you choose under the app's icon and in Android's app list, so the " +
-        "patched TikTok is easy to tell from another one. Type the name in this patch's options. " +
-        "Inside the app everything still says TikTok.",
+    description = "Shows a name you choose under the app icon, so the patched TikTok is easy " +
+        "to tell apart from another copy. Type the name in this patch's options. Inside the app " +
+        "it still says TikTok.",
     default = false,
 ) {
-    category("Settings")
+    category("Interface")
     compatibleWith(*AppCompatibilities.tiktok())
     val appName by stringOption(
         key = "appName",

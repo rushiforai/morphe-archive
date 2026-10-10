@@ -85,8 +85,8 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Stop analytics and tracking",
-                    "Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and "
-                            + "crash reporting from being sent. TikTok's own diagnostics go quiet with them.",
+                    "Stops TikTok from sending usage reports, ad tracking and crash reports. "
+                            + "TikTok's own diagnostic tools go quiet too.",
                     Settings.DISABLE_ANALYTICS
             ));
         }
@@ -95,11 +95,9 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Hide online status",
-                    "Stop sending TikTok's activity reports, so friends don't see a green dot or "
-                            + "Active now while you're in the app. It works only while Ghost mode is "
-                            + "on. The same report brings back your friends' status, so theirs may "
-                            + "stop updating for you while it's on. Your last status can stay "
-                            + "visible for a while.",
+                    "Friends won't see a green dot or Active now while you're in TikTok. Needs "
+                            + "Ghost mode on. Their status may stop updating for you, and your "
+                            + "last status can linger.",
                     Settings.GHOST_HIDE_ONLINE_STATUS
             ));
             HookStatusPreference diagnostics = new HookStatusPreference(context);
@@ -121,10 +119,9 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Keep videos out of Watch history",
-                    "Stops the view report TikTok sends for each video you watch, which is how videos get "
-                            + "into Activity center > Watch history. Your views stop adding to view counts and "
-                            + "For You has less to learn from. Videos already there stay, and TikTok still sees "
-                            + "likes, follows, searches and its usage logs.",
+                    "Stops TikTok from reporting the videos you watch, so they don't get added "
+                            + "to Watch history in Activity center. Your views won't count and "
+                            + "For You learns less. Likes, follows and searches are still seen.",
                     Settings.STOP_WATCH_HISTORY
             ));
         }
@@ -136,8 +133,8 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Block contact list access",
-                    "Answer TikTok's reads of your contacts with an empty list. Find Friends and "
-                            + "People you may know lose access to your contact list.",
+                    "TikTok sees an empty contact list instead of yours. Find Friends and "
+                            + "People you may know can no longer use your contacts.",
                     Settings.BLOCK_CONTACT_LIST
             ));
         }
@@ -145,9 +142,9 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Block installed app scanning",
-                    "Answer TikTok's scan of the apps on this phone with an empty list. A check "
-                            + "for one named app, which TikTok also uses to open an app you tap, is "
-                            + "left alone.",
+                    "TikTok sees an empty list of apps instead of the apps on your phone. "
+                            + "Checks for one specific app, such as when TikTok opens an app "
+                            + "you tap, still work.",
                     Settings.BLOCK_INSTALLED_APPS
             ));
         }
@@ -155,8 +152,8 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Block location",
-                    "Answer TikTok's location requests with nothing. The region settings change "
-                            + "the locale and timezone. This switch stops the coordinates.",
+                    "TikTok gets no location from your phone. The Region settings change your "
+                            + "country and time zone. This switch stops the exact position.",
                     Settings.BLOCK_LOCATION
             ));
         }
@@ -170,16 +167,16 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Hide a VPN connection",
-                    "Keep TikTok from telling you're on a VPN. Only the VPN shows as off to it, and "
-                            + "your other connections read as they really are. Leave this off if you "
-                            + "need a feature that checks for a VPN.",
+                    "TikTok can't tell you're using a VPN. Your other connections show as they "
+                            + "really are. Leave this off if you need a feature that checks for "
+                            + "a VPN.",
                     Settings.HIDE_VPN
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Block the advertising id",
-                    "Hand TikTok a blank advertising id, the same one Android gives after you reset "
-                            + "yours, so this device can't be matched across apps by it.",
+                    "Block the advertising ID",
+                    "TikTok gets a blank advertising ID, like the one Android gives after you "
+                            + "reset yours. Apps can't use it to recognize your phone.",
                     Settings.BLOCK_ADVERTISING_ID
             ));
         }
@@ -187,16 +184,16 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Block motion sensors",
-                    "Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the "
-                            + "other motion sensors it uses to fingerprint the phone.",
+                    "Stops TikTok from reading your phone's motion and compass sensors. Apps "
+                            + "can use them to recognize your phone.",
                     Settings.BLOCK_MOTION_SENSORS
             ));
             TogglePreference benchmark = new TogglePreference(
                     context,
-                    "Stop TikTok's benchmark runs",
-                    "TikTok sometimes tests how fast your phone is in a background process of its "
-                            + "own, which can hold a lot of memory. This keeps that process from "
-                            + "starting. One that's already running stops when TikTok restarts.",
+                    "Stop TikTok's speed tests",
+                    "TikTok sometimes tests your phone's speed in a background process that can "
+                            + "use a lot of memory. This stops that test from starting. One "
+                            + "already running ends when TikTok restarts.",
                     Settings.STOP_BENCHMARK_RUNS
             );
             benchmark.setOnPreferenceChangeListener((preference, value) -> {
@@ -221,25 +218,25 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
         if (SettingsStatus.sanitizeShareUrlsEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Sanitize sharing links",
-                    "Remove tracking parameters from shared links.",
+                    "Clean up shared links",
+                    "Cuts the tracking bits out of links you share.",
                     BaseSettings.SANITIZE_SHARING_LINKS
             ));
             addPreference(new InputTextPreference(
                     context,
-                    "Share links through another host",
-                    "A host to put in place of tiktok.com when you share or copy a link, like "
-                            + "vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok "
-                            + "links are changed, and only the host: nothing is sent anywhere new.",
+                    "Swap the website in shared links",
+                    "Type a website name to use instead of tiktok.com in links you share or "
+                            + "copy, like vxtiktok.com. Leave empty to share TikTok's own "
+                            + "links. Only TikTok links change, and only the website name.",
                     Settings.CUSTOM_SHARE_DOMAIN
             ).withNameKeyboard());
             addPreference(new TogglePreference(
                     context,
                     "Copy the full link for short links",
-                    "When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed "
-                            + "opens it once in the background to read the full video link and puts "
-                            + "that on your clipboard instead. TikTok sees that open, the same as when "
-                            + "anyone taps the link. A link you send to another app goes out as it was.",
+                    "When Copy link gives a short vt.tiktok.com or vm.tiktok.com link, Hushfeed "
+                            + "opens it once in the background to find the full video link and "
+                            + "copies that instead. TikTok sees that visit. Links you send to "
+                            + "another app go out as they were.",
                     Settings.EXPAND_SHORT_SHARE_LINKS
             ));
         }
@@ -255,9 +252,9 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new TogglePreference(
                     context,
                     "Protect external pages in TikTok's browser",
-                    "Keep websites outside TikTok from using its connection back into the app. "
-                            + "TikTok pages such as Activity center, Watch history, shop checkout "
-                            + "and CAPTCHA keep working.",
+                    "Stops websites you open from inside TikTok from reaching back into the "
+                            + "app. TikTok's own pages, such as Activity center, Watch history, "
+                            + "shop checkout and CAPTCHA, keep working.",
                     Settings.BLOCK_WEBVIEW_JS_INTERFACES
             ));
         }

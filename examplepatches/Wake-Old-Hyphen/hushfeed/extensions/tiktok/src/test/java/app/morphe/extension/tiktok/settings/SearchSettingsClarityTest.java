@@ -55,7 +55,7 @@ public class SearchSettingsClarityTest {
 
     @Test public void commentHeartTargetSaysWhatGetsEasierWithoutChangingTheRowLayout() {
         assertRow("COMMENTS", "larger_comment_like_target", "Easier comment likes", "heart");
-        assertRow("COMMENTS", "larger_comment_like_target", "Easier comment likes", "blank space");
+        assertRow("COMMENTS", "larger_comment_like_target", "Easier comment likes", "empty space");
     }
 
     @Test public void otherSearchControlsNameTheirOwnSurface() {
@@ -89,7 +89,32 @@ public class SearchSettingsClarityTest {
         assertRow("INTERFACE", "hide_bottom_search_bar", "Hide the search bar below videos", "comments");
     }
 
+    /**
+     * #128. The side menu row names the menu it takes away and says a restart applies it. TikTok
+     * builds that button with no view id, so the video overlay hider can't reach it: without the
+     * LIVE patch's toolbar check the row would be a switch that does nothing, and it isn't shown.
+     */
+    @Test public void sideMenuButtonRowNamesTheMenuAndNeedsTheToolbarCheck() {
+        assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "TikTok Minis");
+        assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "Restart TikTok");
+
+        SettingsStatus.hideFeedLiveButtonEnabled = false;
+        onPage("INTERFACE", page -> {
+            assertNotNull("the LIVE row stays with the overlay hider", page.findPreference("hide_live_entrance"));
+            assertNull("the side menu row needs the toolbar check", page.findPreference("hide_feed_sidebar_button"));
+        });
+    }
+
     private void assertRow(String section, String key, String title, String detail) {
+        onPage(section, page -> {
+            Preference row = page.findPreference(key);
+            assertNotNull("Missing independent setting: " + key, row);
+            assertEquals(title, row.getTitle().toString());
+            assertTrue(key + " must explain its location and behavior", row.getSummary().toString().contains(detail));
+        });
+    }
+
+    private void onPage(String section, java.util.function.Consumer<TikTokPreferenceFragment> check) {
         try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setContext(activity);
@@ -99,10 +124,7 @@ public class SearchSettingsClarityTest {
             page.setArguments(args);
             activity.getFragmentManager().beginTransaction().replace(android.R.id.content, page).commit();
             activity.getFragmentManager().executePendingTransactions();
-            Preference row = page.findPreference(key);
-            assertNotNull("Missing independent setting: " + key, row);
-            assertEquals(title, row.getTitle().toString());
-            assertTrue(key + " must explain its location and behavior", row.getSummary().toString().contains(detail));
+            check.accept(page);
         }
     }
 }

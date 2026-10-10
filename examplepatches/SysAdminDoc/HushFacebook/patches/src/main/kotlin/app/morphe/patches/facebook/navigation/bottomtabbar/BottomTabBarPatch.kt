@@ -55,11 +55,11 @@ internal const val OVERRIDE = "$BOTTOM_TAB_BAR->override(I)I"
 val bottomTabBarPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Tab bar at the bottom",
-    description = "Moves Facebook's tab bar to the bottom of the screen on accounts that have it at the top. Its " +
-        "switch starts off, so turn it on under Appearance and restart Facebook. A second switch there lets the " +
-        "bar at the bottom slide away while you scroll down.",
+    description = "Moves Facebook's tab bar to the bottom of the screen on accounts that have it at the top, " +
+        "where it's easier to reach. A second switch lets it slide away as you scroll. Starts off. Turn it on in " +
+        "Hushfacebook settings > Appearance, then restart Facebook.",
 ) {
-    category("Interface")
+    category("Navigation")
     // The second switch: Facebook's own scroll-away for the bar at the bottom, in TabBarScrollAwayPatch.kt.
     dependsOn(settingsPatch, tabBarScrollAwayPatch)
     compatibleWith(*AppCompatibilities.facebook())

@@ -1,5 +1,5 @@
 {
-    "version": "v1.12.0-dev.1",
+    "version": "v1.14.0-dev.1",
     "patches": [
         {
             "category": null,
@@ -344,7 +344,7 @@
                     "values": null
                 },
                 {
-                    "default": false,
+                    "default": true,
                     "description": null,
                     "key": "hideGrok",
                     "required": false,
@@ -700,7 +700,7 @@
                     "values": null
                 },
                 {
-                    "default": false,
+                    "default": true,
                     "description": null,
                     "key": "hideGrok",
                     "required": false,
@@ -1064,6 +1064,41 @@
             ],
             "default": true,
             "dependencies": [],
+            "description": "Adds feed filters to timelines: media only (images, videos, GIFs), hide followed profiles, and include/exclude keyword filtering. Toggle each filter from the Morphe settings.",
+            "name": "Feed filters",
+            "options": [
+                {
+                    "default": [],
+                    "description": "When set, only posts containing at least one of these are shown. Edit in the app.",
+                    "key": "includeKeywords",
+                    "required": false,
+                    "title": "Initial include keywords",
+                    "type": "kotlin.collections.List<kotlin.String>",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "category": null,
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#000000",
+                    "name": "X",
+                    "packageName": "com.twitter.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "12.32.0-prod.01"
+                        }
+                    ],
+                    "versions": [
+                        "12.32.0-prod.01"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
             "description": "Hides posts whose text contains any of your keywords, ignoring case. Edit the keywords from \"Filtered keywords\" in any post's menu, or in the Morphe settings.",
             "name": "Filter posts by keyword",
             "options": [
@@ -1126,6 +1161,15 @@
                     "key": "hideHighlightStories",
                     "required": false,
                     "title": "Hide highlights",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": true,
+                    "description": "Hides \"Add Yours\" / \"Your Turn\" stories from the story tray.",
+                    "key": "hideYourTurnStories",
+                    "required": false,
+                    "title": "Hide \"Your Turn\" stories",
                     "type": "kotlin.Boolean",
                     "values": null
                 }
@@ -1802,6 +1846,31 @@
             "dependencies": [],
             "description": "Removes the Resources and Games on Reddit sections from the community drawer.",
             "name": "Remove Resources and Games on Reddit sections",
+            "options": []
+        },
+        {
+            "category": null,
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#E1306C",
+                    "name": "Instagram",
+                    "packageName": "com.instagram.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "450.0.0.50.77"
+                        }
+                    ],
+                    "versions": [
+                        "450.0.0.50.77"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Moves Interested and Not Interested to the top of the post menu.",
+            "name": "Reorder menu options",
             "options": []
         },
         {

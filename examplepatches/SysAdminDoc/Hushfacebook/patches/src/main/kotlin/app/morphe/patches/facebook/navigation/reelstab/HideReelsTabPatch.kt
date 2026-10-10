@@ -23,18 +23,17 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * Facebook's Reels shortcut on its launcher icon goes too: the settings patch already sends each of
  * Facebook's ShortcutManager calls through SettingsEntry, which asks ReelsTab to leave that one out.
  *
- * Out of the default selection, like Hide Reels in the feed: picking it is the choice, and its
- * switch starts on.
+ * In the default selection with its switch off, like Hide Reels in the feed, so the tab stays
+ * until it's turned on.
  */
 @Suppress("unused")
 val hideReelsTabPatch = bytecodePatch(
     name = "Hide the Reels tab",
-    description = "Takes the Reels tab, which some accounts call Video, off the tab bar, and its shortcut out " +
-        "of the long-press menu of Facebook's icon. Reel links and the reels in your feed still open. Facebook's " +
-        "own Hide in its tab bar settings keeps working, and a change to the switch shows once Facebook restarts.",
-    default = false,
+    description = "Takes the Reels tab, called Video on some accounts, off the tab bar, so Reels isn't one tap " +
+        "away. Reels in your feed and reel links still open. Starts off. Turn it on in Hushfacebook settings > " +
+        "Reels and Watch, then restart Facebook.",
 ) {
-    category("Interface")
+    category("Navigation")
     dependsOn(settingsPatch, tabBarFilterPatch, tabLinksPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

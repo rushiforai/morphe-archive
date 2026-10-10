@@ -63,7 +63,7 @@ extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.ja
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|v1m
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|w54
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|wuh
-# 47.0.3 Retrofit response accessors used only by opt-in repost diagnostics.
+# 47.1.4 Retrofit response accessors used only by opt-in repost diagnostics (RepostDiagnosticsFieldsTest pins them).
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/repost/RepostDiagnostics.java|LIZ
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/repost/RepostDiagnostics.java|LIZIZ
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/repost/RepostDiagnostics.java|LIZJ

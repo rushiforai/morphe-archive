@@ -16,10 +16,10 @@ import dev.twitchpatches.patches.twitch.shared.insertBeforeWithLabels
 import dev.twitchpatches.patches.twitch.shared.isInstance
 import dev.twitchpatches.patches.twitch.shared.reference
 import dev.twitchpatches.patches.twitch.shared.uniqueHook
-import dev.twitchpatches.patches.twitch.shared.twitchExtensionPatch
+import dev.twitchpatches.patches.twitch.shared.reactNativeBridgePatch
 
 internal val settingsPatch = bytecodePatch {
-    dependsOn(twitchExtensionPatch, nativeSettingsResourcesPatch)
+    dependsOn(reactNativeBridgePatch, nativeSettingsResourcesPatch)
     execute {
         val hooks = resolveSettingsHooks()
         val application = classDefBy("Ltv/twitch/android/app/consumer/TwitchApplication;").methods.filter {

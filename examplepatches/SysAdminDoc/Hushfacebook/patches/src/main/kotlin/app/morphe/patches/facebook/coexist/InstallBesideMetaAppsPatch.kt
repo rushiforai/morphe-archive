@@ -41,9 +41,9 @@ private val renameSharedPermissionsPatch = resourcePatch {
 @Suppress("unused")
 val installBesideMetaAppsPatch = bytecodePatch(
     name = "Install beside Meta's apps",
-    description = "Lets the official Messenger, Facebook Lite, Business Suite and Workplace install beside the " +
-        "patched Facebook. Facebook shares two permissions with them, and Android lets only one signing key own " +
-        "a permission, so this patch renames Facebook's. A Root Mount install doesn't need it.",
+    description = "Lets the official Messenger, Facebook Lite, Business Suite and Workplace install next to your " +
+        "patched Facebook. Without it, Android refuses them because they share two permissions with Facebook. " +
+        "Root Mount installs don't need it. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Fixes")

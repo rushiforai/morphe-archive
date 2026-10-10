@@ -50,6 +50,11 @@ public final class SettingsStatus {
     public static boolean spoofSignature() { return false; }
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
+    public static boolean downloadBoard() { return false; }
+    public static boolean boardMenu() { return false; }
+    public static boolean boardPins() { return false; }
+    public static boolean longPressDownload() { return false; }
+    public static boolean longPressMenu() { return false; }
     public static boolean externalBrowser() { return false; }
     public static boolean visitLinks() { return false; }
     public static boolean systemShare() { return false; }
@@ -70,6 +75,8 @@ public final class SettingsStatus {
     public static boolean topicSuggestions() { return false; }
     public static boolean quietEmailReminder() { return false; }
     public static boolean emailReminder() { return false; }
+    public static boolean hideSurveyPrompts() { return false; }
+    public static boolean surveyPrompts() { return false; }
     public static boolean hideSaveToasts() { return false; }
     public static boolean saveToasts() { return false; }
     public static boolean originalImages() { return false; }

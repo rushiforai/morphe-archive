@@ -186,7 +186,7 @@ public class SettingsBackupTest {
                         Settings.HIDE_PROMOTIONAL_BANNERS,
                         Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.HIDE_CONTACTS_BLOCK, Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL,
                         Settings.NORMAL_PASTE, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER, Settings.DISABLE_DOUBLE_TAP_REACTIONS,
-                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD,
+                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.ASK_BEFORE_STICKER, Settings.BETA_LOGS_OFF, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD,
                         Settings.DISABLE_ANALYTICS, Settings.DISABLE_CALL_DEBUG, Settings.DISABLE_DRAFT_PREVIEWS,
                         Settings.GALLERY_CAMERA_ON_TAP,
                         Settings.OPEN_EXTERNAL_LINKS, Settings.STRIP_LINK_TRACKING, Settings.DISABLE_UPDATE_CHECKS,
@@ -1022,7 +1022,8 @@ public class SettingsBackupTest {
             "The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.";
     private static final String STALLED = "The app holding the last settings file still hasn't answered. Try again later.";
     private static final String MISMATCH =
-            "The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.";
+            "The settings file was saved, but what's in it doesn't match what was written. Save it again "
+                    + "as a new file.";
     private static final String UNCHECKED = "Settings exported. The app holding the file wouldn't let HushTelegram "
             + "read it back, so it wasn't checked.";
 

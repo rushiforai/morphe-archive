@@ -82,6 +82,7 @@ import app.morphe.extension.facebook.feed.WordsCorpus;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
@@ -137,6 +138,8 @@ public class SettingsBackupTest {
         out.put("hushfacebook_font_source",
                 "it names the font file Use the system font draws in, whose copy only this install holds. A settings "
                         + "file can't carry the font itself, and the name alone would point at nothing on another phone.");
+        out.put("hushfacebook_seen_share_items",
+                "it records the share items this install's Facebook offered, which the hook writes, not a choice.");
         return Collections.unmodifiableMap(out);
     }
 
@@ -196,6 +199,8 @@ public class SettingsBackupTest {
         Settings.HIDDEN_WORDS.resetToDefault();
         Settings.KEPT_WORDS.resetToDefault();
         Settings.HIDDEN_SOURCES.resetToDefault();
+        Settings.HIDDEN_SHARE_ITEMS.resetToDefault();
+        Settings.SEEN_SHARE_ITEMS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -238,7 +243,7 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.HIDDEN_SHARE_ITEMS, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
@@ -248,6 +253,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
         assertEquals(Settings.HIDDEN_SOURCES, SettingsBackup.SOURCES);
+        assertEquals(Settings.HIDDEN_SHARE_ITEMS, SettingsBackup.SHARE_ITEMS);
         assertEquals(Settings.SAVE_FOLDER, SettingsBackup.FOLDER);
         assertEquals(Settings.DOWNLOAD_QUALITY, SettingsBackup.QUALITY);
         assertEquals(Settings.FILENAME_TEMPLATE, SettingsBackup.FILE_NAME);
@@ -891,6 +897,89 @@ public class SettingsBackupTest {
     }
 
     /**
+     * The share sheet items to hide go out and come back as their row stores them, a type this
+     * build doesn't name included, so a newer Facebook's survive the trip. A file can clear the
+     * list, an older file leaves it alone, the types Facebook offered on this phone stay on it, and
+     * a list the row would store differently refuses the whole file.
+     */
+    @Test
+    public void shareSheetPicksRoundTripWithTypesThisBuildDoesntName() throws Exception {
+        String picks = "SHARE_TO_META_AI,SHARE_TO_HOLOGRAM,COPY_LINK";
+        Settings.HIDDEN_SHARE_ITEMS.save(picks);
+        Settings.SEEN_SHARE_ITEMS.save("SHARE_NOW,SHARE_TO_HOLOGRAM");
+        String file = SettingsBackup.create();
+        JSONObject written = new JSONObject(file).getJSONObject("settings");
+        assertEquals(picks, written.get(SettingsBackup.SHARE_ITEMS.key));
+        assertFalse("the types Facebook offered went into the file", written.has(Settings.SEEN_SHARE_ITEMS.key));
+        Settings.HIDDEN_SHARE_ITEMS.resetToDefault();
+        Settings.SEEN_SHARE_ITEMS.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(0, snapshot.unknown);
+        assertEquals(picks, snapshot.shareItemsChange());
+        assertEquals(0, snapshot.switchChanges());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals(picks, Settings.HIDDEN_SHARE_ITEMS.savedValue());
+        assertEquals("an import wrote the types Facebook offered", "", Settings.SEEN_SHARE_ITEMS.savedValue());
+        assertTrue("the list doesn't offer the type this build doesn't name",
+                ShareSheetItems.choices().contains("SHARE_TO_HOLOGRAM"));
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals("the same list again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        assertEquals("Your list of share sheet items to hide will hold 3 items.",
+                SettingsBackupPreference.shareItemsSentence(snapshot.shareItems));
+        assertEquals("Your list of share sheet items to hide will hold 1 item.",
+                SettingsBackupPreference.shareItemsSentence("COPY_LINK"));
+        assertEquals("Your list of share sheet items to hide will be empty.",
+                SettingsBackupPreference.shareItemsSentence(""));
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{" COPY_LINK", "COPY_LINK,", ",COPY_LINK", "COPY_LINK,,SHARE_NOW",
+                "COPY_LINK, SHARE_NOW", "COPY_LINK,COPY_LINK", "copy_link", "COPY-LINK", "1COPY_LINK",
+                shareTypesPast(ShareSheetItems.MAX_HIDDEN_CHARS), 5, true, JSONObject.NULL, new JSONObject()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.SHARE_ITEMS.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the list " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject emptied = new JSONObject(file);
+        emptied.getJSONObject("settings").put(SettingsBackup.SHARE_ITEMS.key, "");
+        SettingsBackup.Snapshot clearing = SettingsBackup.parse(emptied.toString());
+        assertEquals("", clearing.shareItemsChange());
+        assertEquals(1, SettingsBackup.apply(clearing));
+        assertEquals("", Settings.HIDDEN_SHARE_ITEMS.savedValue());
+
+        Settings.HIDDEN_SHARE_ITEMS.save("COPY_LINK");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.SHARE_ITEMS.key);
+        SettingsBackup.Snapshot fromOlder = SettingsBackup.parse(older.toString());
+        assertNull(fromOlder.shareItems);
+        assertNull(fromOlder.shareItemsChange());
+        SettingsBackup.apply(fromOlder);
+        assertEquals("COPY_LINK", Settings.HIDDEN_SHARE_ITEMS.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals(picks, SettingsBackup.Snapshot.fromBundle(state).shareItems);
+        state.putString("hidden_share_items", "COPY_LINK,COPY_LINK");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).shareItems);
+    }
+
+    /** Clean share item types, commas between, one type past [length] chars. */
+    private static String shareTypesPast(int length) {
+        StringBuilder list = new StringBuilder();
+        for (int i = 0; list.length() <= length; i++) {
+            if (i > 0) list.append(',');
+            list.append("SHARE_TO_APP_").append(i);
+        }
+        return list.toString();
+    }
+
+    /**
      * #58: lists that fill the room the two share to the byte, written with emoji, a CJK
      * character, an escaped slash and plain letters, go out and come back whole, both at once, with
      * every other value a file carries at its longest, in a file inside the size limit. The people,
@@ -923,6 +1012,10 @@ public class SettingsBackupTest {
         String app = "a." + repeat('b', 1024 - 2);
         assertTrue(SendLink.isFileApp(app));
         Settings.SEND_TO_APP.save(app);
+        String shareItems = ShareSheetItems.clean(shareTypesPast(ShareSheetItems.MAX_HIDDEN_CHARS));
+        assertTrue("the share items stop within a type of their room",
+                shareItems.length() > ShareSheetItems.MAX_HIDDEN_CHARS - 20);
+        Settings.HIDDEN_SHARE_ITEMS.save(shareItems);
         String file = SettingsBackup.create();
         int size = file.getBytes(StandardCharsets.UTF_8).length;
         assertTrue("a file of " + size + " bytes", size <= SettingsBackup.MAX_BYTES);
@@ -2988,9 +3081,9 @@ public class SettingsBackupTest {
             "The app holding that file is taking too long, so Hushfacebook stopped waiting. Nothing was changed.";
     private static final String STALLED = "The app holding the last settings file still hasn't answered. Try again later.";
     private static final String MISMATCH =
-            "The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.";
-    private static final String UNCHECKED = "Settings exported. The app holding the file wouldn't let Hushfacebook "
-            + "read it back, so it wasn't checked.";
+            "The settings file was saved, but it doesn't match what Hushfacebook wrote. Save it again as a new "
+                    + "file.";
+    private static final String UNCHECKED = "Settings exported. Hushfacebook couldn't read the file back to check it.";
 
     /**
      * An app that turns "wt" down gets "w", which here keeps the old file's longer tail. The file is

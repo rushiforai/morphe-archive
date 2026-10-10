@@ -143,12 +143,17 @@ function Edit-Table {
 }
 
 function Invoke-Check {
-    param([string]$Patched, [string]$Name, [string]$Stock = $stockApk)
+    param([string]$Patched, [string]$Name, [string]$Stock = $stockApk, [string[]]$Written)
     $report = Join-Path $caseRoot "$Name-report.txt"
+    $extra = @()
+    if ($Written) {
+        $extra = @(Join-Path $caseRoot "$Name-written.txt")
+        Set-Content -LiteralPath $extra[0] -Value (@('# resources a selected patch writes') + $Written) -Encoding UTF8
+    }
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
     $output = @(& $Java '-Xmx1g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
-        $Stock $Patched $report 2>&1 | ForEach-Object { "$_" })
+        $Stock $Patched $report @extra 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = ($output -join "`n"); Report = $report }
 }
 
@@ -296,6 +301,16 @@ try {
     Assert-True ($changed.ExitCode -eq 1) "A layout file with other bytes passed.`n$($changed.Output)"
     Assert-True ($changed.Output -match [regex]::Escape("FAIL $($idOf['layout/feed_story']) layout/feed_story [default]: res/layout/feed_story.xml is not the file the stock archive holds for it")) `
         "The changed file's failure did not name the id and the path.`n$($changed.Output)"
+    # The same file, named by the written list as one a selected patch writes: reported, not failed.
+    # Another resource on the list changes nothing.
+    $allowed = Invoke-Check -Patched $changedFile -Name 'changed-file-written' -Written @('layout/feed_story', 'string/app_name')
+    Assert-True ($allowed.ExitCode -eq 0) "A layout file the written list names failed.`n$($allowed.Output)"
+    Assert-True ($allowed.Output -match '\[resources\] files a selected patch writes: 1' -and
+        $allowed.Output -match [regex]::Escape("$($idOf['layout/feed_story']) layout/feed_story [default] res/layout/feed_story.xml")) `
+        "The written file was not reported with its id and path.`n$($allowed.Output)"
+    $verifyWritten = [regex]::Matches($verifyText, 'resource-file-allowlist\.txt').Count -gt 0 -and
+        $verifyText -match '\$patchInput \$out \$resourceReport \$writtenList'
+    Assert-True $verifyWritten 'verify-all-patches.ps1 does not hand the check the written list from resource-file-allowlist.txt.'
 
     # A type renamed in the table's own type pool: every color resolves to a type called colox.
     # The pool is UTF-16 as aapt2 writes type names (length 5, then the characters); UTF-8 is the

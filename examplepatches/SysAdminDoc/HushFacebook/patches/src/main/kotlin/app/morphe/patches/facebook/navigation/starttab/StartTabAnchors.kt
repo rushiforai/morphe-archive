@@ -7,6 +7,7 @@ package app.morphe.patches.facebook.navigation.starttab
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
+import app.morphe.patches.facebook.shared.readsMobileConfig
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -89,9 +90,6 @@ internal const val STARTUP_DESTINATION_ROUTER = "Lcom/facebook/startup/destinati
 /** The trace section the tab bar opens while it works out the position its main screen starts on. */
 internal const val START_POSITION = "TabBarController.determineStartingTabPosition"
 
-/** Facebook's MobileConfig reader. The class keeps its name; its methods are renamed, so a call is told by its shape. */
-internal const val MOBILE_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
-
 /** The name of the start-up step that sanitizes the main screen's intent. */
 internal const val SANITIZE_INTENT = "sanitize_intent"
 
@@ -158,20 +156,13 @@ internal fun picksStartTab(method: Method): Boolean =
         method.calls(INTENT, "hasExtra", listOf("Ljava/lang/String;"), "Z") &&
         method.calls(INTENT, "getLongExtra", listOf("Ljava/lang/String;", "J"), "J")
 
-/** Whether [instruction] is a static read of one of Facebook's MobileConfig booleans: (Object, long) -> boolean. */
-private fun readsMobileConfigBoolean(instruction: Instruction): Boolean {
-    if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) return false
-    val call = instruction.call ?: return false
-    return call.definingClass == MOBILE_CONFIG && call.returnType == "Z" &&
-        call.parameters() == listOf("Ljava/lang/Object;", "J")
-}
-
 /**
  * Where [method] is the tab bar's start position gate, the index of the `move-result` that keeps
  * the gate's answer, or null when it isn't.
  *
  * The method takes one boolean, returns nothing and opens the trace section [START_POSITION]. The
- * gate is its first static MobileConfig boolean read. Its answer goes into a register the next
+ * gate is its first MobileConfig boolean read (a static call up to 581, the config's interface
+ * method on a cast in 582's `LX/2Fo;->A06`). Its answer goes into a register the next
  * instruction branches on, and when the answer is yes, the code reads the start tab its own class
  * was built with, a long, and hands that long to a lookup that answers the tab's position as an
  * Integer. That's what the extension's yes turns on.
@@ -180,7 +171,7 @@ internal fun startPositionGate(method: Method): Int? {
     if (method.returnType != "V" || method.parameterTypes.map { it.toString() } != listOf("Z")) return null
     if (!holdsString(method, START_POSITION)) return null
     val code = method.implementation?.instructions?.toList() ?: return null
-    val call = code.indexOfFirst(::readsMobileConfigBoolean)
+    val call = code.indexOfFirst { readsMobileConfig(it, "Z") }
     if (call < 0) return null
     val result = code.getOrNull(call + 1)
     if (result?.opcode != Opcode.MOVE_RESULT) return null

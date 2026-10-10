@@ -51,6 +51,10 @@ public final class Settings {
         installed = Collections.unmodifiableSet(features);
         // Set last: a hook that sees preferences also sees the installed controls.
         preferences = appContext.getSharedPreferences("hushmessenger", Context.MODE_PRIVATE);
+        // Only the main process writes the log; its lock doesn't reach other processes.
+        if (installed.contains(MessageLog.KEY) && appContext.getPackageName().equals(android.app.Application.getProcessName())) {
+            MessageLog.scheduleExpiry();
+        }
     }
 
     static Set<String> bundled(String list) {
@@ -213,6 +217,8 @@ public final class Settings {
     public static boolean suppressTyping() { return enabled("typing"); }
     /** Every analytics upload service, job and retry asks this as it starts, so a change applies to the next upload. */
     public static boolean stopAnalyticsUploads() { return enabled("analytics_uploads"); }
+    /** Asked each time a chat's swipe up for disappearing messages could start; true keeps the gesture from starting. */
+    public static boolean blockDisappearingSwipe() { return enabled("disappearing_swipe"); }
     /** Messenger's own original-upload check allows 25 MB, so a bigger video keeps its re-encode. */
     static final long ORIGINAL_VIDEO_MAX_BYTES = 25L * 1024 * 1024;
     /**

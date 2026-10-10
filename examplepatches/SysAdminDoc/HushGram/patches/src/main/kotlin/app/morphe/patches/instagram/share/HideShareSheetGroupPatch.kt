@@ -47,18 +47,17 @@ private const val VIEW_STUB = "Landroid/view/ViewStub;"
 private const val LAYOUT_PARAMS = "Landroid/view/ViewGroup\$LayoutParams;"
 
 /**
- * Takes the group buttons off the share sheet. Off in the default selection: they're buttons some
- * people use, and asked to go by others, so leaving them out is the user's pick.
+ * Takes the group buttons off the share sheet. In the default selection with its switch off:
+ * they're buttons some people use, and asked to go by others, so leaving them out is the user's pick.
  */
 @Suppress("unused")
 val hideShareSheetGroupPatch = bytecodePatch(
     name = "Hide group buttons on the share sheet",
-    description = "Takes the New group button away from beside the share sheet's search bar, and the button that " +
-        "sends to the people you picked as one group, so they get it one by one. You can still start a group from " +
-        "your messages.",
-    default = false,
+    description = "Takes the New group button and the button that sends to several people as a group off the " +
+        "share sheet. You can still start a group from your messages. Starts off. Turn it on in HushGram settings " +
+        "> Sharing.",
 ) {
-    category("Interface")
+    category("Interaction")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

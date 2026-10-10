@@ -55,8 +55,8 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 public class RefusedFormatTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    private static final String REFUSED = "Saved, but WhatsApp and some editors may refuse it";
-    private static final String NOWHERE_TO_TAP = "Saved, but WhatsApp may refuse it. Fix: Downloads in Hushfacebook.";
+    private static final String REFUSED = "Saved, but WhatsApp and some editors may not accept it";
+    private static final String NOWHERE_TO_TAP = "Saved, but WhatsApp may not accept it. Fix: Downloads in Hushfacebook settings.";
 
     private LocalServer server;
     private String origin;
@@ -174,11 +174,11 @@ public class RefusedFormatTest {
 
         Notification note = note();
         assertNotNull("no note with a button to the switch", note);
-        assertEquals("WhatsApp and some editors may refuse this video",
+        assertEquals("WhatsApp and some editors may not accept this video",
                 String.valueOf(note.extras.getCharSequence(Notification.EXTRA_TITLE)));
         String text = String.valueOf(note.extras.getCharSequence(Notification.EXTRA_BIG_TEXT));
         assertTrue(text, text.startsWith("Saved to "));
-        assertTrue(text, text.endsWith("\nTurn on \u2068Save videos other apps can open\u2069 to save videos they all play."));
+        assertTrue(text, text.endsWith("\nTurn on \u2068Save videos other apps can open\u2069 to save videos that WhatsApp and these editors accept."));
         assertEquals(1, note.actions.length);
         assertEquals("Open the setting", String.valueOf(note.actions[0].title));
 

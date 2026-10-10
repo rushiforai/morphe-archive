@@ -256,7 +256,7 @@ public class PostSaveTest {
         PostSave.reader = THROWING;
         PostSave.save(context, post);
         waitForSaves();
-        assertEquals("Download failed", ShadowToast.getTextOfLatestToast());
+        assertEquals("Download failed. Try again in a moment.", ShadowToast.getTextOfLatestToast());
         assertEquals(0, fetched());
         assertTrue(gallery.rows.isEmpty());
     }

@@ -4,7 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
+import android.preference.Preference;
+import android.util.TypedValue;
+
+import java.lang.reflect.Method;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.SettingsRegistryRule;
@@ -16,9 +23,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowDialog;
 
 /** The Streak rows' summaries, which the phone showed with a line too many and a line too few. */
 @RunWith(RobolectricTestRunner.class)
@@ -49,6 +58,31 @@ public class StreakRowsTest {
         assertEquals(2, lines.length);
         assertEquals("The time of day the message goes out.", lines[0]);
         assertTrue(lines[1], lines[1].startsWith("Current: "));
+    }
+
+    /** The picker followed TikTok's activity theme, so it could open light over a dark page. */
+    @Test @Config(sdk = 29)
+    public void theTimePickerFollowsTheSettingsPagesDarkOrLight() throws Exception {
+        boolean before = Utils.isDarkModeEnabled();
+        try (var owner = Robolectric.buildActivity(Activity.class).setup()) {
+            for (boolean dark : new boolean[]{true, false}) {
+                Utils.setIsDarkModeEnabled(dark);
+                ClockTimePreference row = new ClockTimePreference(owner.get(), "When to send",
+                        "The time of day the message goes out.", Settings.AUTO_STREAK_MINUTE);
+                Method click = Preference.class.getDeclaredMethod("onClick");
+                click.setAccessible(true);
+                click.invoke(row);
+                Dialog picker = ShadowDialog.getLatestDialog();
+                assertTrue(picker instanceof TimePickerDialog);
+                TypedValue light = new TypedValue();
+                assertTrue(picker.getContext().getTheme().resolveAttribute(android.R.attr.isLightTheme, light, true));
+                assertEquals(dark ? "a light picker on a dark page" : "a dark picker on a light page",
+                        !dark, light.data != 0);
+                picker.dismiss();
+            }
+        } finally {
+            Utils.setIsDarkModeEnabled(before);
+        }
     }
 
     @Test

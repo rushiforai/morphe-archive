@@ -309,6 +309,16 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     Settings.HIDE_LIVE_ENTRANCE
             ));
         }
+        // TikTok builds the side menu button in code with no view id, so only the LIVE patch's
+        // toolbar check can take it away; the video overlay hider has nothing to find it by.
+        if (SettingsStatus.hideFeedLiveButtonEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the side menu button",
+                    "Hide the button at the top left of the feed that opens TikTok's side menu, with Your orders, TikTok Minis and more.",
+                    Settings.HIDE_FEED_SIDEBAR_BUTTON
+            ));
+        }
         if (SettingsStatus.hideFeedSearchButtonEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -439,11 +449,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 addPreference(new TogglePreference(
                         context,
                         "Hide TikTok's wind-down screens",
-                        "Stop the bedtime wind-down, the breathing exercise and the daily limit screen "
-                                + "TikTok puts over the feed. It only works on an account TikTok knows is an "
-                                + "adult's. A teen's account keeps them, and so does one Family Pairing links "
-                                + "to a parent. With Leave when TikTok says time is up on, the daily limit "
-                                + "screen still comes up so that switch can act on it.",
+                        "Stops the bedtime wind-down, the breathing exercise and the daily "
+                                + "limit screen TikTok puts over the feed. Works only on "
+                                + "accounts TikTok knows belong to adults. Teen accounts, and "
+                                + "ones a parent links with Family Pairing, keep them. With "
+                                + "Leave when TikTok says time is up on, the daily limit screen "
+                                + "still shows so that switch can work.",
                         Settings.HIDE_WIND_DOWN_SCREENS
                 ));
             }
@@ -452,8 +463,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Skip content warnings",
-                    "Play videos TikTok has classified without the overlay asking to be tapped "
-                            + "through first.",
+                    "Plays videos that TikTok covers with a content warning without asking you "
+                            + "to tap through first.",
                     Settings.HIDE_SENSITIVE_WARNINGS
             ));
             // Left out with its hook on a build where the risk model getter wasn't found.
@@ -516,7 +527,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the Clear display controls",
-                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.",
+                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.",
                     Settings.HIDE_CLEAR_DISPLAY_CONTROLS
             ));
             addPreference(new NumberInputPreference(

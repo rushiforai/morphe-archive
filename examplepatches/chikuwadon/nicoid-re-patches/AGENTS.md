@@ -5,6 +5,8 @@
 - コードで生成する進捗表示やアイコンには、生成した View の Context の Theme から `colorAccent` (0x7f03005e) を解決し、その色を明示的に適用する。固定色・システム既定色に任せない。設定がオフのときは従来テーマの同じ属性を使う。`porting/pull-refresh.patch` の `SwipeRefreshLayout.setColorSchemeColors` が実例。
 - 新規 UI は Material You のオン・オフ、および明暗の双方で色とコントラストを確認する。
 
+- ダイアログ・入力フォーム・操作一覧は `UiDialogs` の共通配色を使う。標準テーマ由来の紫色を入力文字・ヒント・下線・カーソル・ボタン・スライダーに残さず、実際の Activity のテーマ色を適用する。
+
 # 更新内容の記載
 
 - README は利用方法・機能説明を中心にし、Issue 番号やリンク、バグ修正履歴は記載しない。

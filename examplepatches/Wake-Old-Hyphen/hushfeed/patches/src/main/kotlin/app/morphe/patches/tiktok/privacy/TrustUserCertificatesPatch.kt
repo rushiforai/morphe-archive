@@ -31,11 +31,9 @@ private const val CERTIFICATES = "certificates"
 @Suppress("unused")
 val trustUserCertificatesPatch = resourcePatch(
     name = "Trust user certificates",
-    description = "Lets TikTok trust certificate authorities you install in Android's settings as " +
-        "well as the system's, so a proxy like mitmproxy can show you what the app sends. While " +
-        "it's in, anyone who gets a certificate onto your phone can read TikTok's traffic too, so " +
-        "keep it to a phone you test with. Parts of TikTok that check certificates on their own " +
-        "may still refuse the proxy.",
+    description = "Lets TikTok trust security certificates you install yourself, so a tool " +
+        "like mitmproxy can show what the app sends. The risk: anyone who gets a certificate onto " +
+        "your phone can read TikTok's traffic too. Use it only on a test phone.",
     default = false,
 ) {
     category("Privacy")

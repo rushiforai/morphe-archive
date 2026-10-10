@@ -18,7 +18,9 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -124,17 +126,49 @@ class ReelWatchHistoryFixtureTest {
                 val query = code[queryInit].call!!
                 assertEquals("$name: the name isn't a constructor argument", "<init>", query.name)
 
-                // The request is built from the query, by one static call taking the parameter set
-                // and the query, and it goes nowhere but into the send's constructor.
+                // The request is built from the query and the parameter set, and it goes nowhere but
+                // into the send's constructor. 581 built it with one static call taking the two. 582
+                // stores the parameter set into the query and hands the query to the request's own
+                // constructor.
                 val builds = code.indices.filter { index ->
                     code[index].opcode == Opcode.INVOKE_STATIC &&
                         code[index].call!!.parameterTypes.map { it.toString() } == listOf(paramSet, query.definingClass)
                 }
-                assertEquals("$name: request builds", 1, builds.size)
-                val build = builds.single()
-                assertEquals("$name: the request isn't kept", Opcode.MOVE_RESULT_OBJECT, code[build + 1].opcode)
-                val request = code[build].call!!.returnType
-                val requestReads = flush.literalReads(build + 1)
+                val wraps = code.indices.filter { index ->
+                    code[index].opcode == Opcode.INVOKE_DIRECT && code[index].call!!.name == "<init>" &&
+                        code[index].call!!.parameterTypes.map { it.toString() } == listOf(query.definingClass)
+                }
+                assertEquals("$name: request builds", 1, builds.size + wraps.size)
+                val build: Int
+                val request: String
+                val requestReads: List<Int>
+                if (builds.isNotEmpty()) {
+                    build = builds.single()
+                    assertEquals("$name: the request isn't kept", Opcode.MOVE_RESULT_OBJECT, code[build + 1].opcode)
+                    request = code[build].call!!.returnType
+                    requestReads = flush.literalReads(build + 1)
+                } else {
+                    build = wraps.single()
+                    val queryValue = code[queryInit].callRegisters().first()
+                    val (made, wrapped) = code[build].callRegisters()
+                    assertEquals("$name: the request wraps something other than the query", queryValue, wrapped)
+                    val stores = code.indices.filter { index ->
+                        code[index].opcode == Opcode.IPUT_OBJECT &&
+                            ((code[index] as ReferenceInstruction).reference as FieldReference).type == paramSet &&
+                            (code[index] as TwoRegisterInstruction).registerB == queryValue
+                    }
+                    assertEquals("$name: parameter sets stored into the query", 1, stores.size)
+                    assertTrue("$name: the parameter set goes in out of order", stores.single() in queryInit..build)
+                    val creations = code.indices.filter { index ->
+                        code[index].opcode == Opcode.NEW_INSTANCE && (code[index] as OneRegisterInstruction).registerA == made &&
+                            build in flush.literalReads(index)
+                    }
+                    assertEquals("$name: requests created", 1, creations.size)
+                    val creation = creations.single()
+                    request = ((code[creation] as ReferenceInstruction).reference as TypeReference).type
+                    assertEquals("$name: the request's constructor", request, code[build].call!!.definingClass)
+                    requestReads = flush.literalReads(creation) - build
+                }
                 assertEquals("$name: readers of the request", 1, requestReads.size)
                 val sendInit = requestReads.single()
                 val sendType = code[sendInit].call!!.definingClass

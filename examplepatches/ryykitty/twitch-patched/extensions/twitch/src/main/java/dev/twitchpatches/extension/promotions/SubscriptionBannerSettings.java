@@ -19,7 +19,7 @@ public final class SubscriptionBannerSettings {
         PatchSettings.register(new ToggleSetting() {
             @Override public String key() { return "hide_subscription_banners"; }
             @Override public String title() { return "Hide subscription discount banners"; }
-            @Override public String summary() { return "Hide subscription offer banners, highlight cards and promotional labels. Keep train announcements."; }
+            @Override public String summary() { return "Hide subscription offers, discount banners and promotional labels."; }
             @Override public SettingSection section() { return SettingSection.PROMOTIONS; }
             @Override public boolean isEnabled() { return blocked(); }
             @Override public void setEnabled(boolean checked) {

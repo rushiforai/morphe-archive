@@ -298,6 +298,6 @@ public class SupportedLinksTest {
         Preference explanation = links.getPreference(links.getPreferenceCount() - 1);
         assertFalse(explanation.isSelectable());
         assertTrue(String.valueOf(explanation.getSummary()), String.valueOf(explanation.getSummary())
-                .contains("your other link settings stay as they are"));
+                .contains("Your other link settings stay as they are"));
     }
 }

@@ -83,7 +83,10 @@ class HideSuggestedUsersFixtureTest {
                 }?.definingClass
             }.toSet()
             val wrappers = FixtureDex.classes(build, wrapperTypes)
-            return Vendor(build.name, anchors + cache + item + kinds + rawParsers + wrappers.values, parser.type)
+            // The same patch keeps suggested accounts off profiles, and refuses without those classes.
+            val profile = ProfileSuggestionsFixture.classes(build)
+            val classes = (anchors + cache + item + kinds + rawParsers + wrappers.values + profile).distinctBy { it.type }
+            return Vendor(build.name, classes, parser.type)
         }
 
         private val vendors by lazy { Fixtures.declaredBuilds().map(::load) }
@@ -105,8 +108,7 @@ class HideSuggestedUsersFixtureTest {
             assertEquals(vendor.name, "A0M", targets.kickstartSlot.name)
             assertEquals(vendor.name, "A0L", targets.rawType.name)
             // 450 added an item field ahead of the impression item, so the same store lands one name later.
-            val content = if (vendor.name.startsWith("threads-450.")) "A0r" else "A0q"
-            assertEquals(vendor.name, content, targets.content.name)
+            assertEquals(vendor.name, "A0r", targets.content.name)
             hideSuggestedUsersPatch.execute(context)
             val stubs = context.mutableClassDefBy(FEED_ADS).methods
             assertTrue(stubs.single { it.name == "isSuggestedUserItem" }.instructions().size > 2)
@@ -118,6 +120,11 @@ class HideSuggestedUsersFixtureTest {
                 it.getReference<MethodReference>()?.toString() == "$FEED_ADS->filter(Ljava/util/List;)Ljava/util/List;"
             }
             assertEquals(vendor.name, 1, calls)
+            // And on profiles, the carousel and the row each ask once.
+            val profileHooks = vendor.classes.flatMap { context.mutableClassDefBy(it.type).methods }
+                .flatMap { it.instructions() }.mapNotNull { it.getReference<MethodReference>()?.toString() }
+            assertEquals(vendor.name, 1, profileHooks.count { it == CAROUSEL })
+            assertEquals(vendor.name, 1, profileHooks.count { it == SHOW_ROW })
             val capture = context.mutableClassDefBy(targets.wrapper.definingClass).instanceFields.single {
                 it.name == targets.capturedRaw.name
             }

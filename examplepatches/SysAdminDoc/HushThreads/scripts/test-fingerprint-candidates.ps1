@@ -350,8 +350,9 @@ try {
 
     # A real Threads build, named by its version the way a maintainer names it, against itself. The
     # Application's onCreate keeps its class and name on every build, and every patch starts there.
+    # It's the declared build, the one fixture every real-build check needs anyway.
     $fixtures = if ($env:HUSHTHREADS_FIXTURE_DIR) { $env:HUSHTHREADS_FIXTURE_DIR } else { Join-Path $Root 'fixtures' }
-    $threadsVersion = '449.0.0.54.82'
+    $threadsVersion = '450.0.0.51.78'
     Assert-True (@(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name.Contains($threadsVersion) }).Count -eq 1) `
         ("The real-build case needs Threads $threadsVersion in $fixtures, the folder HUSHTHREADS_FIXTURE_DIR names. " +

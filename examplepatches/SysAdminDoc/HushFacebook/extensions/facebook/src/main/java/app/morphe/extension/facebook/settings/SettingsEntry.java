@@ -133,6 +133,7 @@ public final class SettingsEntry {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
         ReleaseCheck.onFacebookStart();
+        StartsOffNote.onFacebookStart(context);
         SaveLeftovers.sweepAfterStart(context);
         ResumePlayback.onFacebookStart();
         publishShortcut(context);

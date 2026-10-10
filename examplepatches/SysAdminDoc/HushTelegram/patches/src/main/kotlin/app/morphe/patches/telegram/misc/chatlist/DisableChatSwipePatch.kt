@@ -37,7 +37,9 @@ private const val LEFT = 4
 @Suppress("unused")
 val disableChatSwipePatch = bytecodePatch(
     name = PATCH,
-    description = "Adds a switch, off by default, that stops a sideways swipe on a chat in the chat list from archiving, muting, pinning, deleting or marking it read. A swipe set to change folders still does. Long-press keeps every action.",
+    description = "Stops a sideways swipe on a chat from archiving, muting, pinning, deleting or marking it read, so a " +
+        "slip can't change a chat. Press and hold still has every action. Starts off. Turn it on in " +
+        "HushTelegram settings > Chats.",
     default = true,
 ) {
     category("Chats")

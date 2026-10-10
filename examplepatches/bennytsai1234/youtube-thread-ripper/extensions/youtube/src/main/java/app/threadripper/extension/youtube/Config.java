@@ -35,6 +35,8 @@ import java.lang.reflect.Method;
  * rebuffer_ms    tr_rebuffer_enabled + tr_rebuffer_ms    off    after a stall, resume playback once
  *                this much video is buffered instead of the app's 5000 ms (1600 ms when enabled:
  *                the app's own threshold for the first start); 0 = off. Never above 5000
+ * warp           tr_warp_enabled                         false  route the app through Cloudflare
+ *                WARP while it is in the foreground, see {@link Warp}
  * </pre>
  */
 final class Config {
@@ -48,6 +50,7 @@ final class Config {
     final long preloadUs;
     final long preloadCapBytes;
     final long rebufferUs;
+    final boolean warp;
 
     private static volatile Config last;
     private static volatile long lastReadMs;
@@ -65,6 +68,7 @@ final class Config {
         preloadCapBytes = clamp(integer("preload_mib", p, "tr_preload_mib", 250), 16, 300) * 1024L * 1024L;
         int rebufferMs = bool(null, p, "tr_rebuffer_enabled", false) ? integer(null, p, "tr_rebuffer_ms", 1600) : 0;
         rebufferUs = clamp(integer("rebuffer_ms", null, null, rebufferMs), 0, 5000) * 1000L;
+        warp = bool("warp", p, "tr_warp_enabled", false);
     }
 
     /**
@@ -96,7 +100,7 @@ final class Config {
         return enabled == c.enabled && threads == c.threads && chunkBytes == c.chunkBytes
                 && minSplitBytes == c.minSplitBytes && log == c.log
                 && preloadUs == c.preloadUs && preloadCapBytes == c.preloadCapBytes
-                && rebufferUs == c.rebufferUs;
+                && rebufferUs == c.rebufferUs && warp == c.warp;
     }
 
     @Override
@@ -109,7 +113,7 @@ final class Config {
         return "enabled=" + enabled + " threads=" + threads + " chunk=" + (chunkBytes / 1024)
                 + "KiB minSplit=" + (minSplitBytes / 1024) + "KiB log=" + log
                 + " preload=" + (preloadUs / 1_000_000) + "s/" + (preloadCapBytes >> 20) + "MiB"
-                + " rebuffer=" + (rebufferUs / 1000) + "ms";
+                + " rebuffer=" + (rebufferUs / 1000) + "ms warp=" + warp;
     }
 
     private static final Method GET;

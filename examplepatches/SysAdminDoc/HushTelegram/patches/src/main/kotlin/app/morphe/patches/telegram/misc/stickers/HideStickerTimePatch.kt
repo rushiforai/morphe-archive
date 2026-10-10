@@ -42,10 +42,11 @@ private const val TYPE_JOINED_CHANNEL = 27
 @Suppress("unused")
 val hideStickerTimePatch = bytecodePatch(
     name = "Hide time on stickers",
-    description = "Adds a switch, off by default, that takes the time and read checks off stickers and big animated emoji in chats.",
+    description = "Removes the time and read checks from stickers and big animated emoji in chats. Starts off. Turn it " +
+        "on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

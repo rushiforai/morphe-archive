@@ -184,6 +184,10 @@ if (-not $caseRoot.StartsWith($requiredPrefix, [System.StringComparison]::Ordina
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+# The merges below are of fixture-sized bundles, so they run straight away rather than waiting in
+# the machine's build queue behind real builds. The queue itself is held by test-script-contracts.ps1.
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$env:BUILD_QUEUE_SCRIPT = $null
 try {
     New-Item -ItemType Directory -Path $caseRoot | Out-Null
     $ids = Join-Path $caseRoot 'stock-ids.txt'
@@ -463,6 +467,7 @@ try {
         -not (Test-Path -LiteralPath (Join-Path $bundleDir 'merged/empty-merged.apk'))) `
         "A bundle holding no APK was not refused by the merge: $refused"
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
     if ($caseRoot.StartsWith($requiredPrefix, [System.StringComparison]::OrdinalIgnoreCase) -and `
         (Test-Path -LiteralPath $caseRoot)) {
         Remove-Item -LiteralPath $caseRoot -Recurse -Force

@@ -30,6 +30,17 @@ internal const val BUMPER_COMPONENT = "NTFeedStoryBumperComponent"
 
 internal const val POST_PROMPTS = "Lapp/morphe/extension/facebook/feed/PostPrompts;"
 internal const val KEEP = "$POST_PROMPTS->keep(I)Z"
+internal const val SHOW_FOLLOW_LINK = "$POST_PROMPTS->showFollowLink(I)Z"
+
+/**
+ * The title text plugin that adds "Follow" (or "Subscribe") after the name in a post's header. The
+ * class keeps its name, since Facebook's plugin registry names it by its Java path.
+ */
+internal const val FOLLOW_TEXT_PLUGIN =
+    "Lcom/facebook/feedplugins/plugins/header/titletext/publicfiguregraph/PublicFigureFollowOrSubscribeTextPlugin;"
+
+/** The GraphQL model the plugin's check reads the story from. */
+internal const val STORY_MODEL = "Lcom/facebook/graphql/model/GraphQLStory;"
 
 /**
  * The strip Facebook draws on some posts ("Are you interested in this post?", "Show less", who
@@ -39,14 +50,22 @@ internal const val KEEP = "$POST_PROMPTS->keep(I)Z"
  * that answers whether a story has one. The bumper plugin and every row that makes room for a
  * bumper ask it, so a no leaves the post as Facebook draws it without a bumper, gap included. Each
  * of its answers goes through the extension, which turns a yes into a no while the switch is on.
+ *
+ * The second switch, off by default, takes the "Follow" text out of a header. The title text plugin
+ * that adds it (PublicFigureFollowOrSubscribeTextPlugin, a kept class name) has one static check
+ * taking the story and answering Z. The header's plugin picker asks it to decide whether the plugin
+ * is needed, and the title builder asks it again before appending the text, so a no from the check
+ * leaves the title as a header without that plugin builds it. Its answers go through the extension
+ * the same way.
  */
 @Suppress("unused")
 val hidePostPromptsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hide post prompts",
     description = "Removes the strip Facebook adds to some posts, like \"Are you interested in this post?\", " +
-        "\"Show less\", who recently commented, or follow and chat suggestions, with no gap left behind. " +
-        "The post stays.",
+        "\"Show less\" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn " +
+        "it off in Hushfacebook settings > News feed. A second switch there, Hide the Follow link on posts, " +
+        "starts off.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)
@@ -55,6 +74,8 @@ val hidePostPromptsPatch = bytecodePatch(
     execute {
         val check = findBumperCheck()
         mutableClassDefBy(check.definingClass).findMutableMethodOf(check).filterBooleanReturns(PATCH, KEEP)
+        val follow = findFollowLinkCheck()
+        mutableClassDefBy(follow.definingClass).findMutableMethodOf(follow).filterBooleanReturns(PATCH, SHOW_FOLLOW_LINK)
         enableStatus("postPrompts")
     }
 }
@@ -71,6 +92,19 @@ internal fun isBumperComponent(classDef: ClassDef): Boolean = classDef.methods.a
 internal fun isBumperCheck(method: Method): Boolean =
     AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes.size == 1 &&
         method.implementation != null
+
+/** Whether [method] is the follow text plugin's check: static, taking the story, answering Z. */
+internal fun isFollowLinkCheck(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.implementation != null &&
+        method.parameterTypes.any { it.toString() == STORY_MODEL }
+
+/** The follow text plugin's check. Changes nothing. */
+internal fun BytecodePatchContext.findFollowLinkCheck(): Method {
+    val plugin = classDefByOrNull(FOLLOW_TEXT_PLUGIN) ?: refuse("$FOLLOW_TEXT_PLUGIN isn't in this build")
+    val checks = plugin.methods.filter(::isFollowLinkCheck)
+    return checks.singleOrNull()
+        ?: refuse("expected one static (..., story, ...) -> Z check on ${plugin.type}, found ${checks.size}")
+}
 
 /** The bumper component's has-bumper predicate. Changes nothing. */
 internal fun BytecodePatchContext.findBumperCheck(): Method {

@@ -247,7 +247,7 @@ class SanitizeSharingLinksFixtureTest {
             clearMatches()
             val where = build.name
             val classes = parserClasses(build)
-            // 448 resolves no link for WhatsApp quick sends.
+            // A build can resolve no link for WhatsApp quick sends, as 448 did.
             val stock = quickSends(classes) ?: continue
             seen++
             val body = stock.instructions()

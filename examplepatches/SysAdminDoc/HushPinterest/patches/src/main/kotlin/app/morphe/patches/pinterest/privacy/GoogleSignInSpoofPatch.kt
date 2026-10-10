@@ -26,12 +26,12 @@ internal const val SPOOFED_SIGNATURE_METADATA = "app.revanced.android.gms.SPOOFE
 /** The application meta-data signature spoofing modules such as XSpoofSignatures read: the certificate itself. */
 internal const val FAKE_SIGNATURE_METADATA = "fake-signature"
 
-/** SHA-1 of Pinterest's own signing certificate, the one both declared builds are signed with. */
+/** SHA-1 of Pinterest's own signing certificate, the one the declared build is signed with. */
 internal const val PINTEREST_CERTIFICATE_SHA1 = "b6a74dbcb894b0f73d8c485c72eb1247a8f027ca"
 
 /**
  * Pinterest's own signing certificate (CN=Carl Rice, OU=Android, O=Pinterest Inc), DER encoded,
- * as lowercase hex. Copied from the v2 and v3 signing blocks of both declared builds, and checked
+ * as lowercase hex. Copied from the v2 and v3 signing blocks of the declared build, and checked
  * against them by GoogleSignInSpoofManifestTest.
  */
 internal const val PINTEREST_CERTIFICATE_DER =
@@ -102,10 +102,9 @@ internal val signatureSpoofManifestPatch = resourcePatch {
 @Suppress("unused")
 val googleSignInSpoofPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work " +
-        "in the patched app. It only helps with microG-RE in place of Google Play services, or with the " +
-        "XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, " +
-        "and email and password sign-in doesn't need it.",
+    description = "Helps Google sign-in work in the patched app by naming Pinterest's original signature. It only " +
+        "helps with microG-RE or the XSpoofSignatures module. Email sign-in doesn't need it. It isn't " +
+        "selected by default. Works as soon as you patch it in, with no switch.",
     default = false,
 ) {
     category("Privacy")

@@ -34,7 +34,9 @@ private val PUBLISH_PARAMETERS = listOf(
 @Suppress("unused")
 val repostDiagnosticsPatch = bytecodePatch(
     name = "Repost diagnostics",
-    description = "With diagnostic logging on, records a repost request, TikTok's answer, and the next repost-list read without recording the video's ID or note.",
+    description = "With diagnostic logging on, notes when you repost a video and what TikTok " +
+        "answered, to help track down reposts that don't stick. Works as soon as you patch it in, " +
+        "with no switch.",
     default = true,
 ) {
     category("Interaction")

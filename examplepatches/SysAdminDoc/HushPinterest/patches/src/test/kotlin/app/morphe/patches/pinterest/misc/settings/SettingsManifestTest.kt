@@ -120,8 +120,8 @@ class SettingsManifestTest {
         ApkModule().use { module ->
             module.setManifest(AndroidManifestBlock.empty().apply {
                 setPackageName("com.pinterest")
-                setVersionName("14.25.0")
-                setVersionCode(14258020)
+                setVersionName("14.38.0")
+                setVersionCode(14388010)
             })
             module.writeApk(apk)
         }

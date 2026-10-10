@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0.0",
+  "package_name": "com.facebook.katana",
+  "version_name": "581.0.0.45.58",
+  "version_code": 475215365,
+  "abi": "arm64-v8a",
+  "base_apk_sha256": "1e54332d5e9dd3daa942098148b3035897374f43f3684ce819a2ea39875f1aa6",
+  "method": "Bounded DEX string/type/method-id/class-data parsing; sequential instruction decoding in DEX entries containing target method references. Invoke operands checked only at decoded instruction boundaries.",
+  "direct_invokes": [
+    {
+      "dex_entry": "classes16.dex",
+      "caller": "LX/gT4;->A00()Ljava/lang/String;",
+      "code_offset": 6738396,
+      "instruction_offset_code_units": 82,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes16.dex",
+      "caller": "LX/hTS;->run()V",
+      "code_offset": 8247524,
+      "instruction_offset_code_units": 4,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes16.dex",
+      "caller": "LX/hVX;->run()V",
+      "code_offset": 8254544,
+      "instruction_offset_code_units": 26,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes16.dex",
+      "caller": "LX/ha2;->run()V",
+      "code_offset": 8282192,
+      "instruction_offset_code_units": 46,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes16.dex",
+      "caller": "LX/hd6;->run()V",
+      "code_offset": 8313348,
+      "instruction_offset_code_units": 97,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes18.dex",
+      "caller": "LX/ltF;->A00(LX/ltF;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+      "code_offset": 5628768,
+      "instruction_offset_code_units": 23,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes4.dex",
+      "caller": "Lcom/facebook/katana/provider/AttributionIdProvider$Impl;->doQueryGMSWithAttributionId()[Ljava/lang/String;",
+      "code_offset": 5793616,
+      "instruction_offset_code_units": 45,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes5.dex",
+      "caller": "Lcom/facebook/attribution/LatStatusJob;->A00(Lcom/facebook/attribution/LatStatusJob;Lcom/facebook/auth/usersession/FbUserSession;)V",
+      "code_offset": 9929676,
+      "instruction_offset_code_units": 177,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes6.dex",
+      "caller": "LX/BiQ;->A00()Ljava/lang/String;",
+      "code_offset": 9618124,
+      "instruction_offset_code_units": 80,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes6.dex",
+      "caller": "LX/Bl3;->A00()Ljava/lang/String;",
+      "code_offset": 9683796,
+      "instruction_offset_code_units": 23,
+      "target": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;->A00(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    },
+    {
+      "dex_entry": "classes10.dex",
+      "caller": "Lcom/facebook/privacysandbox/protectedaudience/TestPACustomAudienceAppJob;->A00()V",
+      "code_offset": 4564420,
+      "instruction_offset_code_units": 286,
+      "target": "Landroid/adservices/customaudience/CustomAudienceManager;->joinCustomAudience(Landroid/adservices/customaudience/JoinCustomAudienceRequest;Ljava/util/concurrent/Executor;Landroid/os/OutcomeReceiver;)V"
+    },
+    {
+      "dex_entry": "classes5.dex",
+      "caller": "LX/7uL;->A01(Landroid/view/InputEvent;LX/7uL;Ljava/lang/Long;Ljava/lang/String;J)V",
+      "code_offset": 7456604,
+      "instruction_offset_code_units": 85,
+      "target": "Landroid/adservices/measurement/MeasurementManager;->registerSource(Landroid/net/Uri;Landroid/view/InputEvent;Ljava/util/concurrent/Executor;Landroid/os/OutcomeReceiver;)V"
+    },
+    {
+      "dex_entry": "classes5.dex",
+      "caller": "LX/7uL;->A01(Landroid/view/InputEvent;LX/7uL;Ljava/lang/Long;Ljava/lang/String;J)V",
+      "code_offset": 7456604,
+      "instruction_offset_code_units": 98,
+      "target": "Landroid/adservices/measurement/MeasurementManager;->registerSource(Landroid/net/Uri;Landroid/view/InputEvent;Ljava/util/concurrent/Executor;Landroid/adservices/common/AdServicesOutcomeReceiver;)V"
+    },
+    {
+      "dex_entry": "classes10.dex",
+      "caller": "LX/Kzm;->A0A(Ljava/lang/Object;II)Ljava/lang/Object;",
+      "code_offset": 3046396,
+      "instruction_offset_code_units": 494,
+      "target": "Lcom/facebook/privacysandbox/protectedaudience/TestPACustomAudienceAppJob;-><init>()V"
+    },
+    {
+      "dex_entry": "classes5.dex",
+      "caller": "LX/8Ku;->A2g(I)V",
+      "code_offset": 8326376,
+      "instruction_offset_code_units": 2262,
+      "target": "Lcom/facebook/privacysandbox/protectedaudience/TestPACustomAudienceAppJob;->A00()V"
+    }
+  ],
+  "not_found_named_methods": [
+    "AdvertisingIdClient.getAdvertisingIdInfo",
+    "AdvertisingIdClient.Info.getId",
+    "AdIdManager.getAdId",
+    "TopicsManager.getTopics",
+    "MeasurementManager.registerTrigger"
+  ],
+  "limits": [
+    "Static invokes do not establish runtime execution, consent state, returned identifier values or network transmission.",
+    "Obfuscated names and code offsets describe this exact fixture only. They are not stable patch anchors.",
+    "The custom-audience caller is a wired test-style job with test_custom_audience_ and isRealAd=false strings.",
+    "A missing named method is not proof the feature is absent; identifiers can be renamed, reflected, wrapped or implemented elsewhere."
+  ]
+}

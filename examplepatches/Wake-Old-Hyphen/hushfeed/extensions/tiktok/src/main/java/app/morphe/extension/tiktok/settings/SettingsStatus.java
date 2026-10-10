@@ -212,6 +212,13 @@ public class SettingsStatus {
         commentTranslationEnabled = true;
     }
 
+    /** Translate comments found the seven places TikTok reads its Don't translate list and hooked them. */
+    public static boolean doNotAutoTranslateEnabled = false;
+
+    public static void enableDoNotAutoTranslate() {
+        doNotAutoTranslateEnabled = true;
+    }
+
     public static void enableHideCommentQuickReactions() {
         hideCommentQuickReactionsEnabled = true;
     }

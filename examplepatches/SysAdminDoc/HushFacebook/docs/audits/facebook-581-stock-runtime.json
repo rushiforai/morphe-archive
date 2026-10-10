@@ -1,0 +1,460 @@
+{
+  "schema_version": "1.0.0",
+  "audit": "Facebook 581 stock runtime, 2026-10-09",
+  "package_name": "com.facebook.katana",
+  "version_name": "581.0.0.45.58",
+  "version_code": 475215367,
+  "abi": "x86_64",
+  "android_api": 36,
+  "virtual_cpus": 2,
+  "guest_ram_mb": 2560,
+  "requested_guest_ram_mb": 2048,
+  "patched": false,
+  "signed_in": true,
+  "observation_conditions": {
+    "adb_root": true,
+    "socket_sample_requested_pause_seconds": 10,
+    "sample_period_includes_command_overhead": true,
+    "battery_service_override": "unplugged during measurements, reset afterward",
+    "forced_doze": false,
+    "network_dns_filtering": "existing network filtering retained; not an unfiltered-internet control"
+  },
+  "runtime_base_apk_sha256": "8ea536c5c61f354fb38c78a2a41b9217eaa20b731e14b3ce1fcb012ad72f4c51",
+  "runtime_density_split_sha256": "c6f9d60fec2f306b4e653efb6f94cbef950cbea9cd42d33cc9c675d0fceb0bff",
+  "capture": {
+    "interface": "wlan0",
+    "scope": "device-wide",
+    "linktype": "Ethernet",
+    "tls_decryption": false,
+    "first_packet_utc": "2026-10-09T22:05:38.638525+00:00",
+    "last_packet_utc": "2026-10-09T22:34:10.649562+00:00",
+    "host_minus_guest_clock_seconds": 1.98162913322449,
+    "clock_measurement_uncertainty_seconds": 0.017200708389282227,
+    "collector_duration_seconds": 1817.664,
+    "packets": 43420,
+    "captured_ethernet_bytes": 46595532,
+    "kernel_drops": 55,
+    "kernel_stats_valid": true,
+    "fallback_timestamps": 0,
+    "complete": true
+  },
+  "phases": [
+    {
+      "name": "foreground",
+      "start_utc": "2026-10-09T22:04:44.548736+00:00",
+      "end_utc": "2026-10-09T22:14:46.141034+00:00",
+      "traffic_duration_seconds": 601.59,
+      "uid_traffic_delta": {
+        "rx_bytes": 41192992,
+        "rx_packets": 35317,
+        "tx_bytes": 2513796,
+        "tx_packets": 5554
+      },
+      "cpu_duration_seconds": 601.57,
+      "uid_cpu_delta_seconds": {
+        "user": 47.042936,
+        "system": 30.250812,
+        "total": 77.293748
+      },
+      "packet_timestamp_span_overlap_seconds": 547.503,
+      "capture_running_for_full_window": false,
+      "socket_sample_count": 59,
+      "android_boundary_states": {
+        "start": {
+          "mScreenOn": "true",
+          "mCharging": "false",
+          "mForceIdle": "false",
+          "mState": "ACTIVE",
+          "mLightState": "ACTIVE",
+          "mWakefulness": "Awake"
+        },
+        "end": {
+          "mScreenOn": "true",
+          "mCharging": "false",
+          "mForceIdle": "false",
+          "mState": "ACTIVE",
+          "mLightState": "ACTIVE",
+          "mWakefulness": "Awake"
+        }
+      },
+      "socket_local_address_source": "separately verified interface, inferred for foreground samples",
+      "socket_observations_with_inferred_local_address": 450,
+      "captured_device_wide": {
+        "packets": 40335,
+        "captured_bytes": 44030889,
+        "wire_bytes": 44030889,
+        "udp_packets": 38459,
+        "in_packets": 34976,
+        "out_packets": 5288,
+        "dns_query_packets": 28,
+        "dns_response_packets": 28,
+        "tcp_packets": 1819,
+        "unknown_packets": 14
+      },
+      "captured_uid_correlated_within_15_seconds": {
+        "packets": 1665,
+        "captured_bytes": 738375,
+        "wire_bytes": 738375,
+        "tcp_packets": 1665,
+        "in_packets": 872,
+        "out_packets": 793
+      },
+      "uid_correlated_tls_client_hello_sni": [
+        {
+          "name": "scontent-mia3-3.xx.fbcdn.net",
+          "packets": 2
+        },
+        {
+          "name": "scontent-mia3-2.xx.fbcdn.net",
+          "packets": 1
+        }
+      ],
+      "device_wide_dns_questions": [
+        {
+          "name": "lookaside.facebook.com",
+          "type": 1,
+          "packets": 4
+        },
+        {
+          "name": "lookaside.facebook.com",
+          "type": 28,
+          "packets": 4
+        },
+        {
+          "name": "graph.facebook.com",
+          "type": 1,
+          "packets": 3
+        },
+        {
+          "name": "graph.facebook.com",
+          "type": 28,
+          "packets": 3
+        },
+        {
+          "name": "www.google.com",
+          "type": 1,
+          "packets": 2
+        },
+        {
+          "name": "www.google.com",
+          "type": 28,
+          "packets": 2
+        },
+        {
+          "name": "android.googleapis.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "android.googleapis.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "connectivitycheck.gstatic.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "connectivitycheck.gstatic.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "payments-graph.facebook.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "payments-graph.facebook.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "phonedeviceverification-pa.googleapis.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "phonedeviceverification-pa.googleapis.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "scontent-mia5-1.xx.fbcdn.net",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "static-mia5-1.xx.fbcdn.net",
+          "type": 28,
+          "packets": 1
+        }
+      ]
+    },
+    {
+      "name": "background",
+      "start_utc": "2026-10-09T22:15:48.293602+00:00",
+      "end_utc": "2026-10-09T22:25:49.499101+00:00",
+      "traffic_duration_seconds": 601.22,
+      "uid_traffic_delta": {
+        "rx_bytes": 1946273,
+        "rx_packets": 1909,
+        "tx_bytes": 278823,
+        "tx_packets": 619
+      },
+      "cpu_duration_seconds": 601.2,
+      "uid_cpu_delta_seconds": {
+        "user": 7.875565,
+        "system": 3.52627,
+        "total": 11.401835
+      },
+      "packet_timestamp_span_overlap_seconds": 601.205,
+      "capture_running_for_full_window": true,
+      "socket_sample_count": 59,
+      "android_boundary_states": {
+        "start": {
+          "mScreenOn": "true",
+          "mCharging": "false",
+          "mForceIdle": "false",
+          "mState": "ACTIVE",
+          "mLightState": "ACTIVE",
+          "mWakefulness": "Awake"
+        },
+        "end": {
+          "mScreenOn": "true",
+          "mCharging": "false",
+          "mForceIdle": "false",
+          "mState": "ACTIVE",
+          "mLightState": "ACTIVE",
+          "mWakefulness": "Awake"
+        }
+      },
+      "socket_local_address_source": "recorded per socket",
+      "socket_observations_with_inferred_local_address": 0,
+      "captured_device_wide": {
+        "packets": 3032,
+        "captured_bytes": 2550413,
+        "wire_bytes": 2550413,
+        "udp_packets": 2468,
+        "out_packets": 807,
+        "tcp_packets": 531,
+        "in_packets": 2168,
+        "dns_response_packets": 38,
+        "dns_query_packets": 36,
+        "unknown_packets": 24
+      },
+      "captured_uid_correlated_within_15_seconds": {
+        "packets": 70,
+        "captured_bytes": 19444,
+        "wire_bytes": 19444,
+        "tcp_packets": 70,
+        "out_packets": 35,
+        "in_packets": 35
+      },
+      "uid_correlated_tls_client_hello_sni": [],
+      "device_wide_dns_questions": [
+        {
+          "name": "edge-mqtt.facebook.com",
+          "type": 1,
+          "packets": 3
+        },
+        {
+          "name": "edge-mqtt.facebook.com",
+          "type": 28,
+          "packets": 3
+        },
+        {
+          "name": "z-m-gateway.facebook.com",
+          "type": 1,
+          "packets": 3
+        },
+        {
+          "name": "z-m-gateway.facebook.com",
+          "type": 28,
+          "packets": 3
+        },
+        {
+          "name": "www.google.com",
+          "type": 1,
+          "packets": 2
+        },
+        {
+          "name": "www.google.com",
+          "type": 28,
+          "packets": 2
+        },
+        {
+          "name": "android.googleapis.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "android.googleapis.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "b-graph.facebook.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "b-graph.facebook.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "{redacted}-netseer-ipaddr-assoc.xy.fbcdn.net",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "{redacted}-netseer-ipaddr-assoc.xy.fbcdn.net",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "{redacted}-netseer-ipaddr-assoc.xz.fbcdn.net",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "{redacted}-netseer-ipaddr-assoc.xz.fbcdn.net",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "chat-e2ee-mini-fallback.facebook.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "chat-e2ee-mini-fallback.facebook.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "connectivitycheck.gstatic.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "connectivitycheck.gstatic.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "cx.atdmt.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "cx.atdmt.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "graph.facebook.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "graph.facebook.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "phonedeviceverification-pa.googleapis.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "phonedeviceverification-pa.googleapis.com",
+          "type": 28,
+          "packets": 1
+        },
+        {
+          "name": "www.googleapis.com",
+          "type": 1,
+          "packets": 1
+        },
+        {
+          "name": "www.googleapis.com",
+          "type": 28,
+          "packets": 1
+        }
+      ]
+    },
+    {
+      "name": "screenoff",
+      "start_utc": "2026-10-09T22:25:50.643437+00:00",
+      "end_utc": "2026-10-09T22:35:51.589044+00:00",
+      "traffic_duration_seconds": 600.95,
+      "uid_traffic_delta": {
+        "rx_bytes": 0,
+        "rx_packets": 0,
+        "tx_bytes": 0,
+        "tx_packets": 0
+      },
+      "cpu_duration_seconds": 600.94,
+      "uid_cpu_delta_seconds": {
+        "user": 0.264876,
+        "system": 0.105144,
+        "total": 0.37002
+      },
+      "packet_timestamp_span_overlap_seconds": 500.006,
+      "capture_running_for_full_window": true,
+      "socket_sample_count": 59,
+      "android_boundary_states": {
+        "start": {
+          "mScreenOn": "false",
+          "mCharging": "false",
+          "mForceIdle": "false",
+          "mState": "INACTIVE",
+          "mLightState": "INACTIVE",
+          "mWakefulness": "Dozing"
+        },
+        "end": {
+          "mScreenOn": "false",
+          "mCharging": "false",
+          "mForceIdle": "false",
+          "mState": "INACTIVE",
+          "mLightState": "IDLE",
+          "mWakefulness": "Asleep"
+        }
+      },
+      "socket_local_address_source": "recorded per socket",
+      "socket_observations_with_inferred_local_address": 0,
+      "captured_device_wide": {
+        "packets": 13,
+        "captured_bytes": 782,
+        "wire_bytes": 782,
+        "tcp_packets": 5,
+        "out_packets": 2,
+        "in_packets": 3
+      },
+      "captured_uid_correlated_within_15_seconds": {
+        "packets": 0,
+        "captured_bytes": 0,
+        "wire_bytes": 0
+      },
+      "uid_correlated_tls_client_hello_sni": [],
+      "device_wide_dns_questions": []
+    }
+  ],
+  "limits": [
+    "One account, one run per state; no causal patch comparison or population estimate.",
+    "Foreground is a mixed UI survey, not a fixed scroll workload.",
+    "The first roughly 54 seconds of foreground have UID counters but no packet capture.",
+    "Device-wide packets and DNS are not automatically Facebook traffic. Opaque netseer DNS prefixes are redacted.",
+    "Packet timestamp span ends at the last observed packet, not when recording stopped. Capture ran across the full background and screen-off windows.",
+    "Correlation requires a complete socket tuple for the installed UID, observed within 15 seconds of the packet. Foreground local addresses were inferred from the separately verified interface address; later phases recorded them per socket.",
+    "Wildcard UDP sockets were not assigned to destinations. UDP/443 is not a decoded QUIC or tracking payload.",
+    "TLS ClientHello parsing has no TCP reassembly, QUIC decoding or TLS decryption.",
+    "Ethernet bytes and Android UID bytes count different layers and must not be subtracted as a missing-traffic estimate.",
+    "No advertising-ID, GraphQL body, event payload, recipient identity or retention period was observed.",
+    "Root capture and repeated ADB polling can affect idle behavior. Screen-off does not prove deep Doze or physical suspend.",
+    "Emulator counters do not measure physical battery drain or validate arm64 patches."
+  ]
+}

@@ -68,9 +68,15 @@ private fun Method.isInstanceWithBody(): Boolean =
 private fun isChildrenBuilder(method: Method): Boolean =
     method.isInstanceWithBody() && method.parameterTypes.size == 1 && method.returnType.startsWith("L")
 
-/** The native group section's children builder: loads [NATIVE_SECTION_KEY]. */
+/**
+ * The native group section's children builder: loads [NATIVE_SECTION_KEY]. Up to 581 that's the
+ * section's own builder over the section context. 582's section (LX/cTm;->A2F) hands the context
+ * and each of its fields to a singleton's method (LX/cTw;->A01, 16 parameters, context first),
+ * which holds the body, so an instance method taking an object first and handing one back counts.
+ */
 internal fun isNativeSectionChildren(method: Method): Boolean =
-    isChildrenBuilder(method) && holdsString(method, NATIVE_SECTION_KEY)
+    method.isInstanceWithBody() && method.parameterTypes.firstOrNull()?.startsWith("L") == true &&
+        method.returnType.startsWith("L") && holdsString(method, NATIVE_SECTION_KEY)
 
 /** The server group section's children builder: loads each of [SERVER_POSITIONS]. */
 internal fun isServerSectionChildren(method: Method): Boolean =
@@ -125,12 +131,15 @@ internal fun serverGroupRead(method: Method, isGroupEnum: (String) -> Boolean): 
 internal data class ChildrenList(val builder: String, val children: String)
 
 private val DIRECT_INVOKES = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
+private val STATIC_INVOKES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 
 /**
- * [method]'s [ChildrenList], or null unless exactly one field of a class it creates and
- * constructs with no arguments is read for its return type.
+ * [method]'s [ChildrenList], or null unless exactly one field of a list builder it makes is read
+ * for its return type. It makes one by creating a class and constructing it with no arguments, or,
+ * as 582's LX/cTw;->A01 does through LX/Gwo;->A0d, by calling a static method [resolve] finds whose
+ * whole body is just that ([makesPlain]).
  */
-internal fun childrenList(method: Method): ChildrenList? {
+internal fun childrenList(method: Method, resolve: (MethodReference) -> Method? = { null }): ChildrenList? {
     val instructions = method.instructionList()
     val created = instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
         .map { ((it as ReferenceInstruction).reference as TypeReference).type }
@@ -140,11 +149,31 @@ internal fun childrenList(method: Method): ChildrenList? {
         .filter { it.name == "<init>" && it.parameterTypes.isEmpty() && it.definingClass in created }
         .map { it.definingClass }
         .toSet()
+    val factoryMade = instructions.filter { it.opcode in STATIC_INVOKES }
+        .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+        .filter { it.parameterTypes.isEmpty() && it.returnType.startsWith("L") }
+        .toSet()
+        .filter { call -> resolve(call)?.let { makesPlain(it, call.returnType) } == true }
+        .map { it.returnType }
+    val made = constructed + factoryMade
     val fields = instructions.filter { it.opcode == Opcode.IGET_OBJECT }
         .mapNotNull { (it as ReferenceInstruction).reference as? FieldReference }
-        .filter { it.definingClass in constructed && it.type == method.returnType }
+        .filter { it.definingClass in made && it.type == method.returnType }
         .map { "${it.definingClass}->${it.name}:${it.type}" }
         .toSet()
     val field = fields.singleOrNull() ?: return null
     return ChildrenList(field.substringBefore("->"), field)
+}
+
+/** Whether [factory]'s whole body creates a [type], constructs it with no arguments and hands it back. */
+private fun makesPlain(factory: Method, type: String): Boolean {
+    val code = factory.instructionList()
+    if (code.size != 3 || code[0].opcode != Opcode.NEW_INSTANCE || code[1].opcode !in DIRECT_INVOKES ||
+        code[2].opcode != Opcode.RETURN_OBJECT
+    ) {
+        return false
+    }
+    val init = (code[1] as ReferenceInstruction).reference as? MethodReference ?: return false
+    return ((code[0] as ReferenceInstruction).reference as TypeReference).type == type &&
+        init.definingClass == type && init.name == "<init>" && init.parameterTypes.isEmpty()
 }

@@ -650,10 +650,9 @@ private fun validateSettingsCallbacks(classes: Map<String, ClassDef>, owner: Cla
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "HushTelegram settings",
-    description = "Adds a HushTelegram row to Telegram's Settings. You can also long-press Telegram's launcher icon, or open " +
-        "Additional settings in the app on Telegram's App info page, to turn features on or off, pause " +
-        "HushTelegram, save your switches to a file or load them, and export diagnostics. The licenses " +
-        "are there too.",
+    description = "Adds a HushTelegram row to Telegram's Settings, where you turn features on or off, pause " +
+        "HushTelegram, save your choices and export a report. You can also press and hold Telegram's app " +
+        "icon. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")

@@ -1,0 +1,1449 @@
+/*
+ * Copyright 2026 TADa.
+ * https://github.com/TADaApp/tada-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to TADa contributions.
+ */
+
+package app.morphe.extension.youtube.patches.components;
+
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.StringTrieSearch;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
+import app.morphe.extension.shared.patches.components.ContextInterface;
+import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.FilterGroup.FilterGroupResult;
+import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.youtube.patches.ChangeHeaderPatch;
+import app.morphe.extension.youtube.patches.utils.ProtoNode;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.NavigationBar;
+import app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
+
+@SuppressWarnings("unused")
+public final class LayoutComponentsFilter extends Filter {
+    public static final int CONTAINER_ID = ResourceUtils.getIdentifier(
+            ResourceType.ID, "time_bar_chapter_title_container");
+
+    private static final ByteArrayFilterGroup mixPlaylistUrlBuffer = new ByteArrayFilterGroup(
+            null,
+            "?list=RD",
+            "&list=RD"
+    );
+    private static final ByteArrayFilterGroup mixPlaylistsBuffersExceptions = new ByteArrayFilterGroup(
+            null,
+            "cell_description_body",
+            "channel_profile"
+    );
+
+    private static final List<String> channelTabFilterStrings = Utils.getFilterStrings(Settings.HIDE_CHANNEL_TAB_FILTER_STRINGS);
+    private static final List<String> flyoutMenuFilterStrings = Utils.getFilterStrings(Settings.HIDE_FEED_FLYOUT_MENU_FILTER_STRINGS);
+
+    @Nullable
+    private static List<?> channelTabs;
+    @Nullable
+    private static List<?> originalChannelTabs;
+
+    private final StringTrieSearch exceptions = new StringTrieSearch();
+
+    private final StringFilterGroup channelProfileSubscribeButton;
+    private final ByteArrayFilterGroup channelProfileSubscribeButtonBuffer;
+    private final ByteArrayFilterGroup buttonComponentBuffer;
+    private final StringFilterGroup channelFilterBar;
+    private final StringFilterGroup channelHandle;
+    private final StringFilterGroup channelMembersOnlyChipId;
+    private final StringFilterGroup chipBar;
+    private final StringFilterGroup communityPosts;
+    private final StringFilterGroup compactChannel;
+    private final StringFilterGroup compactChannelBarInner;
+    private final StringFilterGroup compactChannelBarInnerButton;
+    private final ByteArrayFilterGroup joinMembershipButton;
+    private final StringFilterGroup expandableMetadata;
+    private final ByteArrayFilterGroup summaryCardBuffer;
+    private final StringFilterGroup exploreTopicsShelf;
+    private final StringFilterGroup inviteToMessageCard;
+    private final ByteArrayFilterGroup inviteToMessageCardBuffer;
+    private final StringFilterGroup liveStream;
+    private final ByteArrayFilterGroup liveStreamBuffer;
+    private final StringFilterGroup notificationsMenuHeader;
+    private final ByteArrayFilterGroup notificationsMenuHeaderBuffer;
+    private final StringFilterGroup notifyMe;
+    private final StringFilterGroup searchFriction;
+    private final StringFilterGroup singleItemInformationPanel;
+    private final StringFilterGroup subscribedChannelsBarName;
+    private static final AtomicInteger singleItemInformationPanelIndex = new AtomicInteger(-1);
+    private final StringFilterGroup surveys;
+    private final StringFilterGroup videoLabels;
+    private final ByteArrayFilterGroupList videoLabelsGroupList = new ByteArrayFilterGroupList();
+    private final StringFilterGroup videoRecommendationLabels;
+
+    public enum ExpandableCardStyle {
+        SHOW_ALL,
+        HIDE_SUMMARY_ONLY,
+        HIDE_ALL
+    }
+
+    public LayoutComponentsFilter() {
+        exceptions.addPatterns(
+                "comment_thread", // Whitelist comments
+                "|comment.", // Whitelist comment replies
+                "library_recent_shelf"
+        );
+
+        // Identifiers.
+
+        final var cellDivider = new StringFilterGroup(
+                Settings.HIDE_COMPACT_BANNER,
+                // Empty padding and a relic from very old YT versions.
+                // Not related to compact banner but included here to avoid adding another setting.
+                "cell_divider"
+        );
+
+        exploreTopicsShelf = new StringFilterGroup(
+                Settings.HIDE_HORIZONTAL_SHELVES,
+                "chips_shelf"
+        );
+
+        final var liveChatReplay = new StringFilterGroup(
+                Settings.HIDE_LIVE_CHAT_REPLAY_BUTTON,
+                "live_chat_ep_entrypoint.e"
+        );
+
+        // The 'Invite others to message' card of the Messages section shown at the top of
+        // the Notifications tab, wrapped in a linear layout and identified by a unique,
+        // language independent buffer string.
+        //
+        // The 'Messages' shelf header above the card is deliberately not hidden: every
+        // section header of the Notifications tab ('Messages', 'Notifications', 'Today',
+        // 'This week', 'Older') uses the exact same identifier and an otherwise byte
+        // identical buffer, and the title is localized by the server without an app string
+        // resource, so there is no language independent way to match it.
+        inviteToMessageCard = new StringFilterGroup(
+                Settings.HIDE_INVITE_TO_MESSAGE_CARD,
+                "linear_layout.e"
+        );
+
+        inviteToMessageCardBuffer = new ByteArrayFilterGroup(
+                null,
+                "connections_inbox_zero_state"
+        );
+
+        // Feed and search result items.
+        liveStream = new StringFilterGroup(
+                Settings.HIDE_LIVE_STREAMS,
+                "video_lockup_with_attachment.e"
+        );
+
+        // Icon of the 'LIVE' thumbnail badge. Only videos that are live now have it,
+        // past streams ('Streamed 2 months ago') do not.
+        liveStreamBuffer = new ByteArrayFilterGroup(
+                null,
+                "yt_outline_live_black",
+                "yt_outline_experimental_live_black"
+        );
+
+        // The hint shown in the player during seek gestures. The identifier is versioned.
+        final var seekEduOverlay = new StringFilterGroup(
+                Settings.HIDE_PLAYER_GESTURE_HINTS,
+                "seek_edu_overlay"
+        );
+
+        addIdentifierCallbacks(
+                cellDivider,
+                exploreTopicsShelf,
+                liveChatReplay,
+                inviteToMessageCard,
+                liveStream,
+                seekEduOverlay
+        );
+
+        // Paths.
+
+        final var artistCard = new StringFilterGroup(
+                Settings.HIDE_ARTIST_CARDS,
+                "official_card"
+        );
+
+        // The player audio track button does the exact same function as the audio track flyout menu option.
+        // Previously this was a setting to show/hide the player button.
+        // But it was decided it's simpler to always hide this button because:
+        // - the button is rare
+        // - always hiding makes the TADa settings simpler and easier to understand
+        // - nobody is going to notice the redundant button is always hidden
+        final var audioTrackButton = new StringFilterGroup(
+                null,
+                "multi_feed_icon_button"
+        );
+
+        channelFilterBar = new StringFilterGroup(
+                null,
+                "channels_chip_bar.e"
+        );
+
+        channelMembersOnlyChipId = new StringFilterGroup(
+                null,
+                "id.chip.EhAKDgoD6gEACgcaBQoDggEA"
+        );
+
+        final var channelLinksPreview = new StringFilterGroup(
+                Settings.HIDE_LINKS_PREVIEW,
+                "attribution.e"
+        );
+
+        final var channelMembersShelf = new StringFilterGroup(
+                Settings.HIDE_MEMBERS_SHELF,
+                "member_recognition_shelf"
+        );
+
+        channelProfileSubscribeButton = new StringFilterGroup(
+                Settings.HIDE_SUBSCRIBE_BUTTON_IN_CHANNEL_PAGE,
+                "channel_action_buttons_phone.e"
+        );
+        channelProfileSubscribeButtonBuffer = new ByteArrayFilterGroup(
+                null,
+                "subscribe_button.e"
+        );
+        buttonComponentBuffer = new ByteArrayFilterGroup(
+                null,
+                "button.e"
+        );
+
+        channelHandle = new StringFilterGroup(
+                Settings.HIDE_HANDLE,
+                "content_metadata.e"
+        );
+
+        final var channelWatermark = new StringFilterGroup(
+                Settings.HIDE_CHANNEL_WATERMARK,
+                "featured_channel_watermark_overlay"
+        );
+
+        chipBar = new StringFilterGroup(
+                Settings.HIDE_FILTER_BAR_IN_HISTORY,
+                "chip_bar"
+        );
+
+        final var compactBanner = new StringFilterGroup(
+                Settings.HIDE_COMPACT_BANNER,
+                "compact_banner"
+        );
+
+        compactChannel = new StringFilterGroup(
+                Settings.HIDE_CHANNEL_BUTTONS,
+                "compact_channel.e"
+        );
+
+        final var compactChannelBar = new StringFilterGroup(
+                Settings.HIDE_CHANNEL_BAR,
+                "compact_channel_bar"
+        );
+
+        compactChannelBarInner = new StringFilterGroup(
+                Settings.HIDE_JOIN_MEMBERSHIP_BUTTON,
+                "compact_channel_bar_inner",
+                "video_description_header"
+        );
+
+        compactChannelBarInnerButton = new StringFilterGroup(
+                null,
+                "|button.e"
+        );
+
+        joinMembershipButton = new ByteArrayFilterGroup(
+                null,
+                "sponsorships"
+        );
+
+        communityPosts = new StringFilterGroup(
+                Settings.HIDE_COMMUNITY_POSTS,
+                "images_post_responsive_root.e",
+                "images_post_root.e",
+                "images_post_root_slim.e",
+                "images_post_slim.e", // may be obsolete and no longer needed.
+                "options_post_responsive_root.e",
+                "options_post_root.e",
+                "poll_post_responsive_root.e",
+                "poll_post_root.e",
+                "post_base_wrapper", // may be obsolete and no longer needed.
+                "post_base_wrapper_slim.e",
+                "post_shelf_slim.e",
+                "shared_post_responsive_root.e",
+                "shared_post_root.e",
+                "text_post_responsive_root.e",
+                "text_post_root.e",
+                "text_post_root_slim.e",
+                "videos_post_responsive_root.e",
+                "videos_post_root.e"
+        );
+
+        final var crowdfundingBox = new StringFilterGroup(
+                Settings.HIDE_CROWDFUNDING_BOX,
+                "donation_shelf"
+        );
+
+        final var emergencyBox = new StringFilterGroup(
+                Settings.HIDE_EMERGENCY_BOX,
+                "emergency_onebox"
+        );
+
+        expandableMetadata = new StringFilterGroup(
+                null,
+                "expandable_metadata",
+                "inline_expander"
+        );
+
+        summaryCardBuffer = new ByteArrayFilterGroup(
+                null,
+                "PAfeedback_genai"
+        );
+
+        final var forYouShelf = new StringFilterGroup(
+                Settings.HIDE_HORIZONTAL_SHELVES,
+                "mixed_content_shelf"
+        );
+
+        final var imageShelf = new StringFilterGroup(
+                Settings.HIDE_IMAGE_SHELF,
+                "image_shelf"
+        );
+
+        final var infoPanel = new StringFilterGroup(
+                Settings.HIDE_INFO_PANELS,
+                "publisher_transparency_panel"
+        );
+
+        final var medicalPanel = new StringFilterGroup(
+                Settings.HIDE_MEDICAL_PANELS,
+                "medical_panel"
+        );
+
+        notificationsMenuHeader = new StringFilterGroup(
+                Settings.HIDE_NOTIFICATIONS_MENU_HEADER,
+                "|ContainerType|ContainerType|"
+        );
+
+        notificationsMenuHeaderBuffer = new ByteArrayFilterGroup(
+                null,
+                "/youtube/answer/" // https://support.google.com/youtube/answer/
+        );
+
+        notifyMe = new StringFilterGroup(
+                Settings.HIDE_NOTIFY_ME_BUTTON,
+                "set_reminder_button"
+        );
+
+        final var playables = new StringFilterGroup(
+                Settings.HIDE_PLAYABLES,
+                "horizontal_gaming_shelf.e",
+                "mini_game_card.e"
+        );
+
+        final var postsShelf = new StringFilterGroup(
+                Settings.HIDE_POSTS_SHELF,
+                "post_shelf"
+        );
+
+        searchFriction = new StringFilterGroup(
+                Settings.HIDE_INFO_PANELS,
+                "search_friction"
+        );
+
+        singleItemInformationPanel = new StringFilterGroup(
+                Settings.HIDE_INFO_PANELS,
+                "single_item_information_panel"
+        );
+
+        final var subscribedChannelsBar = new StringFilterGroup(
+                Settings.HIDE_SUBSCRIBED_CHANNELS_BAR,
+                "subscriptions_channel_bar"
+        );
+
+        // The name under each channel avatar of the bar is the only text of the channel.
+        subscribedChannelsBarName = new StringFilterGroup(
+                Settings.HIDE_SUBSCRIBED_CHANNELS_BAR_NAMES,
+                "subscriptions_channel_bar_channel.e"
+        );
+
+        final var subscribersCommunityGuidelines = new StringFilterGroup(
+                Settings.HIDE_SUBSCRIBERS_COMMUNITY_GUIDELINES,
+                "sponsorships_comments_upsell"
+        );
+
+        final var subscriptionsChipBar = new StringFilterGroup(
+                Settings.HIDE_FILTER_BAR_IN_FEED,
+                "subscriptions_chip_bar"
+        );
+
+        surveys = new StringFilterGroup(
+                Settings.HIDE_SURVEYS,
+                "in_feed_survey",
+                "slimline_survey",
+                "feed_nudge",
+                "in_short_survey"
+        );
+
+        final var timedReactions = new StringFilterGroup(
+                Settings.HIDE_TIMED_REACTIONS,
+                "emoji_control_panel",
+                "timed_reaction"
+        );
+
+        final var videoThumbnail = new StringFilterGroup(
+                Settings.HIDE_VIDEO_THUMBNAIL,
+                "video_lockup_thumbnail.e"
+        );
+
+        videoLabels = new StringFilterGroup(
+                null,
+                "badge.e"
+        );
+        videoLabelsGroupList.addAll(
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_AUTO_DUBBED_LABEL,
+                        "yt_outline_person_radar",
+                        "yt_outline_experimental_person_waves"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_HYPED_LABEL,
+                        "yt_fill_star_shooting",
+                        "yt_fill_experimental_hype"
+                )
+        );
+
+        final var videoTitle = new StringFilterGroup(
+                Settings.HIDE_VIDEO_TITLE,
+                "player_overlay_video_heading.e"
+        );
+
+        videoRecommendationLabels = new StringFilterGroup(
+                Settings.HIDE_VIDEO_RECOMMENDATION_LABELS,
+                "endorsement_header_footer.e"
+        );
+
+        final var webLinkPanel = new StringFilterGroup(
+                Settings.HIDE_WEB_SEARCH_RESULTS,
+                "web_link_panel",
+                "web_result_panel"
+        );
+
+        addPathCallbacks(
+                artistCard,
+                audioTrackButton,
+                channelFilterBar,
+                channelHandle,
+                channelLinksPreview,
+                channelMembersShelf,
+                channelProfileSubscribeButton,
+                channelWatermark,
+                chipBar,
+                compactBanner,
+                compactChannelBar,
+                compactChannel,
+                compactChannelBarInner,
+                communityPosts,
+                crowdfundingBox,
+                emergencyBox,
+                expandableMetadata,
+                forYouShelf,
+                imageShelf,
+                infoPanel,
+                medicalPanel,
+                notificationsMenuHeader,
+                notifyMe,
+                playables,
+                postsShelf,
+                searchFriction,
+                singleItemInformationPanel,
+                subscribedChannelsBar,
+                subscribedChannelsBarName,
+                subscribersCommunityGuidelines,
+                subscriptionsChipBar,
+                surveys,
+                timedReactions,
+                videoThumbnail,
+                videoLabels,
+                videoTitle,
+                videoRecommendationLabels,
+                webLinkPanel
+        );
+    }
+
+    /**
+     * The subscribe button can't be removed from the data of the page header like the other buttons,
+     * as the header keeps its space. Hide the button and the container that wraps it instead.
+     *
+     * @param path         Path of an element of the channel page header action buttons.
+     * @param buffer       Buffer of the element.
+     * @param asciiStrings Texts of the buffer.
+     */
+    private boolean isChannelProfileSubscribeButtonHidden(CharSequence path, byte[] buffer,
+                                                          BufferAsciiStrings asciiStrings) {
+        if (!buttonComponentBuffer.check(buffer).isFiltered()) {
+            // The spacers between the buttons are the elements without texts outside the buttons.
+            return hideChannelProfileHeaderSpacers
+                    && !Utils.contains(path, "button.e")
+                    && asciiStrings.getStrings().isEmpty();
+        }
+
+        return isSingleButton(buffer) && channelProfileSubscribeButtonBuffer.check(buffer).isFiltered();
+    }
+
+    /**
+     * Hiding only the content of a button leaves the button and the container that wraps it,
+     * and their flex style keeps the space of the button and shrinks the other buttons.
+     * The buffer of a container holds the buffers of all its children,
+     * so the elements to hide are the ones that hold a single button.
+     */
+    private boolean isSingleButton(byte[] buffer) {
+        FilterGroupResult button = buttonComponentBuffer.check(buffer);
+        return button.isFiltered() && !buttonComponentBuffer.check(buffer,
+                button.getMatchedIndex() + button.getMatchedLength()).isFiltered();
+    }
+
+    /**
+     * Only the root lockup holds the whole item buffer. Its nested components share
+     * a common icon list that also contains the LIVE badge, so checking them would
+     * cause false positives.
+     *
+     * @return If the path is the root of a feed item: {@code identifier|hash|CellType|}.
+     */
+    private static boolean isLockupRoot(CharSequence path) {
+        return Utils.endsWith(path, "|CellType|");
+    }
+
+    @Override
+    public boolean isFiltered(ContextInterface contextInterface,
+                              String identifier,
+                              String accessibility,
+                              CharSequence path,
+                              byte[] buffer,
+                              BufferAsciiStrings asciiStrings,
+                              StringFilterGroup matchedGroup,
+                              FilterContentType contentType,
+                              int contentIndex) {
+        if (matchedGroup == exploreTopicsShelf) {
+            return NavigationButton.getSelectedNavigationButton(contextInterface) != NavigationButton.LIBRARY;
+        }
+
+        // The groups are excluded from the filter due to the exceptions list below.
+        // Filter them separately here.
+        if (matchedGroup == notifyMe || matchedGroup == surveys) {
+            return true;
+        }
+
+        // Exceptions are not filtered.
+        if (exceptions.matches(path)) {
+            return false;
+        }
+
+        if (matchedGroup == channelFilterBar) {
+            if (Settings.HIDE_FILTER_BAR_IN_CHANNEL_PAGE.get()) {
+                return true;
+            }
+
+            if (Settings.HIDE_MEMBERS_ONLY_CHIP.get()) {
+                return channelMembersOnlyChipId.check(accessibility).isFiltered();
+            }
+
+            return false;
+        }
+
+        if (matchedGroup == channelHandle) {
+            return Utils.startsWith(path, "page_header.e")
+                    && NavigationButton.getSelectedNavigationButton(contextInterface) == NavigationButton.LIBRARY;
+        }
+
+        if (matchedGroup == channelProfileSubscribeButton) {
+            return isChannelProfileSubscribeButtonHidden(path, buffer, asciiStrings);
+        }
+
+        if (matchedGroup == chipBar) {
+            return contentIndex == 0 &&
+                    NavigationButton.getSelectedNavigationButton(contextInterface) == NavigationBar.NavigationButton.LIBRARY;
+        }
+
+        if (matchedGroup == communityPosts) {
+            return contextInterface.isHomeFeedOrRelatedVideo() || contextInterface.isSubscriptionOrLibrary();
+        }
+
+        if (matchedGroup == compactChannel) {
+            return Utils.contains(path, "button.e");
+        }
+
+        if (matchedGroup == compactChannelBarInner) {
+            return compactChannelBarInnerButton.check(path).isFiltered()
+                    // The filter may be broad, but in the context of a compactChannelBarInnerButton,
+                    // it's safe to assume that the button is the only thing that should be hidden.
+                    && joinMembershipButton.check(buffer).isFiltered();
+        }
+
+        if (matchedGroup == expandableMetadata) {
+            ExpandableCardStyle style = Settings.HIDE_EXPANDABLE_CARD.get();
+            switch (style) {
+                case HIDE_ALL -> {
+                    return true;
+                }
+                case HIDE_SUMMARY_ONLY -> {
+                    return summaryCardBuffer.check(buffer).isFiltered();
+                }
+                default -> {
+                    return false;
+                }
+            }
+        }
+
+        if (matchedGroup == inviteToMessageCard) {
+            // The identifier is generic and used all over the app.
+            if (contentIndex != 0) {
+                return false;
+            }
+
+            if (!inviteToMessageCardBuffer.check(buffer).isFiltered()) {
+                return false;
+            }
+
+            // Check the navigation button last and only after all buffer checks pass.
+            return NavigationButton.getSelectedNavigationButton() == NavigationButton.NOTIFICATIONS;
+        }
+
+        if (matchedGroup == liveStream) {
+            // Only check the whole lockup. The buffers of its nested components include
+            // a shared list of icon names that also has the 'LIVE' badge icon.
+            return isLockupRoot(path) && liveStreamBuffer.check(buffer).isFiltered();
+        }
+
+        if (matchedGroup == notificationsMenuHeader) {
+            return Utils.startsWith(path, "subscribe_menu_notifications.e")
+                    && notificationsMenuHeaderBuffer.check(buffer).isFiltered();
+        }
+
+        // This identifier is used not only in players but also in search results:
+        // Until 2024, medical information panels such as Covid-19 also used this identifier and were shown in the search results.
+        // From 2025, the medical information panel is no longer shown in the search results.
+        // Therefore, this identifier does not filter when the search bar is activated.
+        if (matchedGroup == searchFriction) {
+            singleItemInformationPanelIndex.set(0);
+            return false;
+        }
+
+        if (matchedGroup == subscribedChannelsBarName) {
+            return Utils.endsWith(path, "|TextType|");
+        }
+
+        if (matchedGroup == singleItemInformationPanel) {
+            int currentIndex = singleItemInformationPanelIndex.get();
+
+            if (currentIndex < 0) {
+                return true;
+            }
+
+            if (currentIndex < 9) {
+                singleItemInformationPanelIndex.incrementAndGet();
+            } else {
+                singleItemInformationPanelIndex.set(-1);
+            }
+            return false;
+        }
+
+        if (matchedGroup == videoLabels) {
+            return videoLabelsGroupList.check(buffer).isFiltered();
+        }
+
+        if (matchedGroup == videoRecommendationLabels) {
+            return NavigationBar.isSearchBarActive();
+        }
+
+        return true;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static boolean disableUIPaddingFeatureFlags(boolean original) {
+        if (Settings.HIDE_COMPACT_BANNER.get()) {
+            return false;
+        }
+        return original;
+    }
+
+    /**
+     * Injection point.
+     * Called from a different place then the other filters.
+     */
+    public static boolean filterMixPlaylists(@Nullable byte[] buffer) {
+        try {
+            if (!Settings.HIDE_MIX_PLAYLISTS.get()) {
+                return false;
+            }
+
+            if (buffer == null) {
+                Logger.printDebug(() -> "buffer is null");
+                return false;
+            }
+
+            if (!mixPlaylistsBuffersExceptions.check(buffer).isFiltered() &&
+                    mixPlaylistUrlBuffer.check(buffer).isFiltered()) {
+                Logger.printDebug(() -> "Filtered mix playlist");
+                return true;
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "filterMixPlaylists failure", ex);
+        }
+
+        return false;
+    }
+
+    /**
+     * Field numbers of the view models of the buttons, in the proto of the elements.
+     */
+    private static final int BUTTON_VIEW_MODEL_FIELD = 461054335;
+    private static final int SUBSCRIBE_BUTTON_VIEW_MODEL_FIELD = 518912898;
+
+    private static final ByteArrayFilterGroup pageHeaderBuffer = new ByteArrayFilterGroup(
+            null,
+            "page_header.e"
+    );
+
+    /**
+     * Ids of the page header buttons: the accessibility ids (such as 'id.sponsor_button'),
+     * or the browse id of the Premium page.
+     */
+    private static final StringFilterGroup[] pageHeaderButtonIds = {
+            new StringFilterGroup(
+                    Settings.HIDE_GET_PREMIUM_BUTTON,
+                    "SPunlimited"
+            ),
+            new StringFilterGroup(
+                    Settings.HIDE_COMMUNITY_BUTTON,
+                    "header_community_button"
+            ),
+            new StringFilterGroup(
+                    Settings.HIDE_JOIN_BUTTON,
+                    "sponsor_button"
+            ),
+            new StringFilterGroup(
+                    Settings.HIDE_STORE_BUTTON,
+                    "header_store_button"
+            )
+    };
+    private static final ByteArrayFilterGroupList pageHeaderButtonIdsBufferGroupList = new ByteArrayFilterGroupList();
+
+    static {
+        for (StringFilterGroup buttonId : pageHeaderButtonIds) {
+            pageHeaderButtonIdsBufferGroupList.addAll(
+                    new ByteArrayFilterGroup(buttonId.setting, buttonId.filters[0].toString())
+            );
+        }
+    }
+
+    /**
+     * If the spacers between the channel page header buttons are hidden with the subscribe button.
+     */
+    private static volatile boolean hideChannelProfileHeaderSpacers;
+
+    /**
+     * Injection point.
+     * Removes the hidden buttons from the data of the page header (You tab and channel page),
+     * so the header lays out the other buttons without the empty space of the hidden buttons.
+     */
+    public static byte[] hidePageHeaderButtons(byte[] bytes) {
+        try {
+            if (!pageHeaderBuffer.check(bytes).isFiltered()) {
+                return bytes;
+            }
+
+            hideChannelProfileHeaderSpacers = false;
+            if (!Settings.HIDE_SUBSCRIBE_BUTTON_IN_CHANNEL_PAGE.get()
+                    && !pageHeaderButtonIdsBufferGroupList.check(bytes).isFiltered()) {
+                return bytes;
+            }
+
+            List<ProtoNode> element = ProtoNode.parse(bytes);
+            if (element == null) {
+                return bytes;
+            }
+
+            boolean modified = false;
+            for (List<ProtoNode> buttons : findButtonLists(element)) {
+                int visibleButtons = 0;
+                boolean hasHiddenSubscribeButton = false;
+
+                for (ProtoNode button : new ArrayList<>(buttons)) {
+                    List<ProtoNode> fields = button.children;
+                    if (fields == null) {
+                        continue;
+                    }
+
+                    if (ProtoNode.field(fields, SUBSCRIBE_BUTTON_VIEW_MODEL_FIELD) != null) {
+                        // The header keeps the space of the subscribe button if it's removed,
+                        // so it's hidden by the Litho filter.
+                        hasHiddenSubscribeButton = Settings.HIDE_SUBSCRIBE_BUTTON_IN_CHANNEL_PAGE.get();
+                    } else {
+                        if (ProtoNode.field(fields, BUTTON_VIEW_MODEL_FIELD) != null) {
+                            if (isPageHeaderButtonHidden(fields)) {
+                                button.remove();
+                                modified = true;
+                            } else {
+                                visibleButtons++;
+                            }
+                        }
+                    }
+                }
+
+                if (hasHiddenSubscribeButton) {
+                    // The spacers are only needed with 2 or more visible buttons.
+                    hideChannelProfileHeaderSpacers = visibleButtons < 2;
+                }
+            }
+
+            return modified ? ProtoNode.write(element) : bytes;
+        } catch (Exception ex) {
+            Logger.printException(() -> "hidePageHeaderButtons failure", ex);
+        }
+
+        return bytes;
+    }
+
+    /**
+     * @return The fields of the messages that hold the buttons,
+     *         except the ones inside the buttons (such as menus).
+     */
+    private static List<List<ProtoNode>> findButtonLists(List<ProtoNode> element) {
+        List<ProtoNode> buttonLists = new ArrayList<>();
+        for (ProtoNode buttonViewModel : ProtoNode.findMessages(element, BUTTON_VIEW_MODEL_FIELD)) {
+            ProtoNode button = buttonViewModel.getParent();
+            ProtoNode buttons = button == null ? null : button.getParent();
+            if (buttons != null && !buttonLists.contains(buttons)) {
+                buttonLists.add(buttons);
+            }
+        }
+
+        List<List<ProtoNode>> outerButtonLists = new ArrayList<>(buttonLists.size());
+        for (ProtoNode buttons : buttonLists) {
+            ProtoNode ancestor = buttons.getParent();
+            while (ancestor != null && !buttonLists.contains(ancestor)) {
+                ancestor = ancestor.getParent();
+            }
+            List<ProtoNode> fields = buttons.children;
+            if (ancestor == null && fields != null) {
+                outerButtonLists.add(fields);
+            }
+        }
+
+        return outerButtonLists;
+    }
+
+    /**
+     * @return If the button has the id of a hidden button, as the full text or after the id prefix.
+     */
+    private static boolean isPageHeaderButtonHidden(List<ProtoNode> button) {
+        for (ProtoNode text : ProtoNode.textNodes(button)) {
+            String value = text.getText();
+            for (StringFilterGroup buttonId : pageHeaderButtonIds) {
+                String id = buttonId.filters[0].toString();
+                if (buttonId.isEnabled() && value.endsWith(id)
+                        && (value.length() == id.length() || value.charAt(value.length() - id.length() - 1) == '.')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static boolean showWatermark() {
+        return !Settings.HIDE_CHANNEL_WATERMARK.get();
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideAlbumCard(View view) {
+        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_ALBUM_CARDS, view);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideCrowdfundingBox(View view) {
+        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_CROWDFUNDING_BOX, view);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static boolean hideFloatingMicrophoneButton(final boolean original) {
+        return original || Settings.HIDE_FLOATING_MICROPHONE_BUTTON.get();
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideLatestVideosButton(View view) {
+        Utils.hideViewUnderCondition(Settings.HIDE_LATEST_VIDEOS_BUTTON.get(), view);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static int hideInFeed(final int height) {
+        return Settings.HIDE_FILTER_BAR_IN_FEED.get()
+                ? 0
+                : height;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static int hideInSearch(int height) {
+        return Settings.HIDE_FILTER_BAR_IN_SEARCH.get()
+                ? 0
+                : height;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static boolean hideInRelatedVideos(boolean original) {
+        return !Settings.HIDE_FILTER_BAR_IN_RELATED_VIDEOS.get() && original;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideInRelatedVideos(@Nullable View view) {
+        if (view == null) return;
+        Utils.hideViewUnderCondition(Settings.HIDE_FILTER_BAR_IN_RELATED_VIDEOS.get(), view);
+    }
+
+    private static final boolean HIDE_YOUTUBE_DOODLES_ENABLED = Settings.HIDE_YOUTUBE_DOODLES.get();
+
+    /**
+     * Injection point.
+     */
+    public static void setDoodleDrawable(ImageView imageView, Drawable original) {
+        Drawable replacement = HIDE_YOUTUBE_DOODLES_ENABLED
+                ? ChangeHeaderPatch.getDrawable(original)
+                : original;
+        imageView.setImageDrawable(replacement);
+    }
+
+    private static final FrameLayout.LayoutParams EMPTY_LAYOUT_PARAMS = new FrameLayout.LayoutParams(0, 0);
+    private static final boolean HIDE_SHOW_MORE_BUTTON_ENABLED = Settings.HIDE_SHOW_MORE_BUTTON.get();
+
+    /**
+     * The ShowMoreButton should not always be hidden.
+     * According to the preference summary, only the ShowMoreButton in search results is hidden.
+     * Since the ShowMoreButton should be visible on other pages, such as channels,
+     * the original values of the Views are saved in fields.
+     */
+    private static FrameLayout.LayoutParams cachedLayoutParams;
+    private static int cachedButtonContainerMinimumHeight = -1;
+    private static int cachedPlaceHolderMinimumHeight = -1;
+    private static int cachedRootViewMinimumHeight = -1;
+
+    /**
+     * Injection point.
+     */
+    public static void hideShowMoreButton(View view, View buttonContainer, TextView textView) {
+        if (HIDE_SHOW_MORE_BUTTON_ENABLED
+                && view instanceof ViewGroup rootView
+                && buttonContainer != null
+                && textView != null
+                && buttonContainer.getLayoutParams() instanceof FrameLayout.LayoutParams lp
+        ) {
+            View placeHolder = rootView.getChildAt(0);
+
+            // For some users, ShowMoreButton has a PlaceHolder ViewGroup (A/B tests).
+            // When a PlaceHolder is present, a different method is used to hide or show the ViewGroup.
+            boolean hasPlaceHolder = placeHolder instanceof FrameLayout;
+
+            // Only in search results, the content description of RootView and the text of TextView match.
+            // Hide ShowMoreButton in search results, but show ShowMoreButton in other pages (e.g. channels).
+            boolean isSearchResults = TextUtils.equals(rootView.getContentDescription(), textView.getText());
+
+            if (hasPlaceHolder) {
+                hideShowMoreButtonWithPlaceHolder(placeHolder, isSearchResults);
+            } else {
+                hideShowMoreButtonWithOutPlaceHolder(buttonContainer, lp, isSearchResults);
+            }
+
+            if (cachedRootViewMinimumHeight == -1) {
+                cachedRootViewMinimumHeight = rootView.getMinimumHeight();
+            }
+
+            if (isSearchResults) {
+                rootView.setMinimumHeight(0);
+                rootView.setVisibility(View.GONE);
+            } else {
+                rootView.setMinimumHeight(cachedRootViewMinimumHeight);
+                rootView.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private static void hideShowMoreButtonWithPlaceHolder(View placeHolder, boolean isSearchResults) {
+        if (cachedPlaceHolderMinimumHeight == -1) {
+            cachedPlaceHolderMinimumHeight = placeHolder.getMinimumHeight();
+        }
+
+        if (isSearchResults) {
+            placeHolder.setMinimumHeight(0);
+            placeHolder.setVisibility(View.GONE);
+        } else {
+            placeHolder.setMinimumHeight(cachedPlaceHolderMinimumHeight);
+            placeHolder.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private static void hideShowMoreButtonWithOutPlaceHolder(View buttonContainer, FrameLayout.LayoutParams lp,
+                                                             boolean isSearchResults) {
+        if (cachedButtonContainerMinimumHeight == -1) {
+            cachedButtonContainerMinimumHeight = buttonContainer.getMinimumHeight();
+        }
+
+        if (cachedLayoutParams == null) {
+            cachedLayoutParams = lp;
+        }
+
+        if (isSearchResults) {
+            buttonContainer.setMinimumHeight(0);
+            buttonContainer.setLayoutParams(EMPTY_LAYOUT_PARAMS);
+            buttonContainer.setVisibility(View.GONE);
+        } else {
+            buttonContainer.setMinimumHeight(cachedButtonContainerMinimumHeight);
+            buttonContainer.setLayoutParams(cachedLayoutParams);
+            buttonContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideSubscribedChannelsBar(View view) {
+        Utils.hideViewByRemovingFromParentUnderCondition(Settings.HIDE_SUBSCRIBED_CHANNELS_BAR, view);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static int hideSubscribedChannelsBar(int original) {
+        return Settings.HIDE_SUBSCRIBED_CHANNELS_BAR.get()
+                ? 0
+                : original;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static SpannableString modifyFeedSubtitleSpan(SpannableString original, float truncationDimension) {
+        try {
+            final boolean hideViewCount = Settings.HIDE_VIEW_COUNT.get();
+            final boolean hideUploadTime = Settings.HIDE_UPLOAD_TIME.get();
+            if (!hideViewCount && !hideUploadTime) {
+                return original;
+            }
+
+            // Applies only for these specific dimensions.
+            if (truncationDimension == 16f || truncationDimension == 42f) {
+                String delimiter = " · ";
+                final int delimiterLength = delimiter.length();
+
+                // Index includes the starting delimiter.
+                final int viewCountStartIndex = TextUtils.indexOf(original, delimiter);
+                if (viewCountStartIndex < 0) {
+                    return original;
+                }
+
+                final int uploadTimeStartIndex = TextUtils.indexOf(original, delimiter,
+                        viewCountStartIndex + delimiterLength);
+                if (uploadTimeStartIndex < 0) {
+                    return original;
+                }
+
+                // Ensure there is exactly 2 delimiters.
+                if (TextUtils.indexOf(original, delimiter,
+                        uploadTimeStartIndex + delimiterLength) >= 0) {
+                    return original;
+                }
+
+                // Make a mutable copy that keeps existing span styling.
+                SpannableStringBuilder builder = new SpannableStringBuilder(original);
+
+                // Remove the sections.
+                if (hideUploadTime) {
+                    builder.delete(uploadTimeStartIndex, original.length());
+                }
+
+                if (hideViewCount) {
+                    builder.delete(viewCountStartIndex, uploadTimeStartIndex);
+                }
+
+                SpannableString replacement = new SpannableString(builder);
+                Logger.printDebug(() -> "Replacing feed subtitle span: " + original + " with: " + replacement);
+
+                return replacement;
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "modifyFeedSubtitleSpan failure", ex);
+        }
+
+        return original;
+    }
+
+    /**
+     *
+     * Injection point.
+     * <p>
+     * Hide feed flyout menu for phone
+     *
+     * @param menuTitleCharSequence menu title
+     */
+    @Nullable
+    public static CharSequence hideFlyoutMenu(@Nullable CharSequence menuTitleCharSequence) {
+        if (menuTitleCharSequence == null || !Settings.HIDE_FEED_FLYOUT_MENU.get()
+                || flyoutMenuFilterStrings.isEmpty()) {
+            return menuTitleCharSequence;
+        }
+
+        String menuTitleString = menuTitleCharSequence.toString();
+
+        for (String filter : flyoutMenuFilterStrings) {
+            if (menuTitleString.equalsIgnoreCase(filter)) {
+                Logger.printDebug(() -> "Hiding: " + menuTitleString);
+                return null;
+            }
+        }
+
+        return menuTitleCharSequence;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * hide feed flyout panel for tablet
+     *
+     * @param menuTextView          flyout text view
+     * @param menuTitleCharSequence raw text
+     */
+    public static void hideFlyoutMenu(TextView menuTextView, CharSequence menuTitleCharSequence) {
+        if (menuTitleCharSequence == null || !Settings.HIDE_FEED_FLYOUT_MENU.get()
+                || flyoutMenuFilterStrings.isEmpty()
+                || !(menuTextView.getParent() instanceof View parentView)) {
+            return;
+        }
+
+        String menuTitleString = menuTitleCharSequence.toString();
+
+        for (String filter : flyoutMenuFilterStrings) {
+            if (menuTitleString.equalsIgnoreCase(filter)) {
+                Logger.printDebug(() -> "Hiding: " + menuTitleString);
+                Utils.hideViewByLayoutParams(parentView);
+            }
+        }
+    }
+
+    /**
+     *
+     * Injection point.
+     * <p>
+     * Rather than simply hiding the channel tab view, completely removes channel tab from list.
+     * If a channel tab is removed from the list, users will not be able to open it by swiping.
+     *
+     * @param channelTabText Text assigned to the channel tab, such as "Shorts", "Playlists",
+     *                       "Community", "Store". This text follows the user's language.
+     * @return Whether to remove the channel tab from the list.
+     */
+    public static boolean hideChannelTab(@Nullable String channelTabText) {
+        if (!Utils.isNotEmpty(channelTabText) || !Settings.HIDE_CHANNEL_TAB.get()
+                || channelTabFilterStrings.isEmpty()) {
+            return false;
+        }
+
+        for (String filter : channelTabFilterStrings) {
+            if (channelTabText.equalsIgnoreCase(filter)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Called before the channel tabs are copied into the tab list.
+     *
+     * @param tabs         Tab list that hidden channel tabs are removed from.
+     * @param originalTabs All channel tabs, including tabs that are later hidden.
+     */
+    public static void setChannelTabs(List<?> tabs, List<?> originalTabs) {
+        channelTabs = tabs;
+        originalChannelTabs = new ArrayList<>(originalTabs);
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Removing channel tabs shifts the remaining tabs, so the index of the tab to select
+     * (such as the Videos tab opened from a video description) must be remapped.
+     * If the tab to select is hidden, the next visible tab is selected instead.
+     *
+     * @param selectedIndex Index of the tab to select, relative to all channel tabs.
+     * @return Index of the tab to select, relative to the visible channel tabs.
+     */
+    public static int getChannelTabSelectedIndex(int selectedIndex) {
+        List<?> tabs = channelTabs;
+        List<?> originalTabs = originalChannelTabs;
+        channelTabs = null;
+        originalChannelTabs = null;
+
+        try {
+            if (tabs == null || originalTabs == null || tabs.isEmpty()
+                    || tabs.size() == originalTabs.size()
+                    || selectedIndex < 0 || selectedIndex >= originalTabs.size()) {
+                return selectedIndex;
+            }
+
+            int visibleIndex = 0;
+            for (int i = 0; i < selectedIndex; i++) {
+                if (tabs.contains(originalTabs.get(i))) {
+                    visibleIndex++;
+                }
+            }
+
+            return Math.min(visibleIndex, tabs.size() - 1);
+        } catch (Exception ex) {
+            Logger.printException(() -> "getChannelTabSelectedIndex failure", ex);
+            return selectedIndex;
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static Uri hideSearchTermThumbnails(View view, Uri uri) {
+        if (Settings.HIDE_SEARCH_TERM_THUMBNAILS.get()) {
+            if (view != null) {
+                Utils.hideViewByLayoutParams(view);
+            }
+            return null;
+        }
+        return uri;
+    }
+
+    /**
+     * Injection point.
+     *
+     * @param typedString   Keywords typed in the search bar.
+     * @return              Whether the setting is enabled and the typed string is empty.
+     */
+    public static boolean hideYouMayLikeSection(String typedString) {
+        return Settings.HIDE_YOU_MAY_LIKE_SECTION.get()
+                // The 'You may like' section is only visible when no search terms are entered.
+                // To avoid unnecessary collection traversals, filtering is performed only when the typedString is empty.
+                && TextUtils.isEmpty(typedString);
+    }
+
+    /**
+     * Injection point.
+     *
+     * @param searchTerm    This class contains information related to search terms.
+     *                      The {@code toString()} method of this class overrides the search term.
+     * @param endpoint      Endpoint related with the search term.
+     *                      For search history, this value is:
+     *                      '/complete/deleteitems?client=youtube-android-pb&delq=${searchTerm}&deltok=${token}'.
+     *                      For search suggestions, this value is null or empty.
+     * @return              Whether search term is a search history or not.
+     */
+    public static boolean isSearchHistory(Object searchTerm, String endpoint) {
+        boolean isSearchHistory = endpoint != null && endpoint.contains("/delete");
+        if (!isSearchHistory) {
+            Logger.printDebug(() -> "Remove search suggestion: " + searchTerm);
+        }
+        return isSearchHistory;
+    }
+
+    private static final List<String> accountMenuFilterStrings = Utils.getFilterStrings(Settings.HIDE_ACCOUNT_MENU_FILTER_STRINGS);
+    private static final int[] accountTopItemDepths = new int[]{3, 2}; // Start from the highest depth to avoid hiding the wrong parent first
+    private static final int[] accountBottomItemModernDepths = new int[]{4, 3}; // Start from the highest depth to avoid hiding the wrong parent first
+    private static final int[] accountBottomItemLegacyDepths = new int[]{3, 2}; // Start from the highest depth to avoid hiding the wrong parent first
+
+    /**
+     * Injection point.
+     */
+    public static void hideAccountTopItem(View view, CharSequence menuTitleCharSequence) {
+        hideAccountItem(view, menuTitleCharSequence, accountTopItemDepths);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideAccountBottomItemModern(View view, CharSequence menuTitleCharSequence) {
+        hideAccountItem(view, menuTitleCharSequence, accountBottomItemModernDepths);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideAccountBottomItemLegacy(View view, CharSequence menuTitleCharSequence) {
+        hideAccountItem(view, menuTitleCharSequence, accountBottomItemLegacyDepths);
+    }
+
+    private static void hideAccountItem(View textView, CharSequence menuTitleCharSequence, int[] depths) {
+        try {
+            if (!Settings.HIDE_ACCOUNT_MENU.get() || menuTitleCharSequence == null) return;
+            if (accountMenuFilterStrings.isEmpty()) return;
+
+            String menuTitleString = menuTitleCharSequence.toString();
+
+            boolean matches = false;
+            String menuTitleLower = menuTitleString.toLowerCase();
+            for (String filter : accountMenuFilterStrings) {
+                if (menuTitleLower.contains(filter.toLowerCase())) {
+                    matches = true;
+                    break;
+                }
+            }
+            if (!matches) return;
+
+            // Not all versions have the same depth. So perform a scan
+            // along all available depths, to find the right one.
+            for (int depth : depths) {
+                ViewParent parent = Utils.getParentView(textView, depth);
+                if (parent instanceof View current) {
+                    Utils.hideViewByLayoutParams(current);
+                    current.setVisibility(View.GONE);
+                    if (current.getLayoutParams() instanceof ViewGroup.MarginLayoutParams marginParams) {
+                        marginParams.setMargins(0, 0, 0, 0);
+                        current.setLayoutParams(marginParams);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideAccountItem failure", ex);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideChaptersTimelineButton(View view) {
+        if (view != null && Settings.HIDE_CHAPTERS_TIMELINE_BUTTON.get()) {
+            Utils.hideViewByLayoutParams(view);
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Some app targets show the chapter title next to the timestamp as its own view, instead
+     * of inside the entry point button hidden by {@link #hideChaptersTimelineButton(View)}.
+     */
+    public static void hideChapterTitle(View view) {
+        if (view == null || !Settings.HIDE_CHAPTERS_TIMELINE_BUTTON.get()) {
+            return;
+        }
+
+        try {
+            Utils.hideViewByLayoutParams(view);
+            view.setVisibility(View.GONE);
+
+            // The chip around the title is a separate parent view.
+            if (CONTAINER_ID != 0 && view.getParent() instanceof View parent && parent.getId() == CONTAINER_ID) {
+                Utils.hideViewByLayoutParams(parent);
+                parent.setVisibility(View.GONE);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideChapterTitle failure", ex);
+        }
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Called with the measure spec of a row of an app bar menu. The 'Help &amp; feedback' row is
+     * measured at no height, so it takes no space in the menu.
+     */
+    public static int hideHelpFeedbackMenuRow(View row, int heightMeasureSpec) {
+        if (!Settings.HIDE_HELP_FEEDBACK_MENU.get()) {
+            return heightMeasureSpec;
+        }
+
+        try {
+            View title = row.findViewById(ResourceUtils.getIdentifier(ResourceType.ID, "title"));
+            int helpStringId = ResourceUtils.getIdentifier(ResourceType.STRING, "menu_help");
+            if (title instanceof TextView textView && helpStringId != 0
+                    && row.getContext().getString(helpStringId).contentEquals(textView.getText())) {
+                return View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideHelpFeedbackMenuRow failure", ex);
+        }
+
+        return heightMeasureSpec;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static boolean hideSnackbar() {
+        return Settings.HIDE_SNACKBAR.get();
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideLithoSnackBar(FrameLayout frameLayout) {
+        if (Settings.HIDE_SNACKBAR.get()) {
+            Utils.hideViewByLayoutParams(frameLayout);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void handleLegacySnackbar(View view) {
+        if (Settings.HIDE_SNACKBAR.get()) {
+            Utils.hideViewByLayoutParams(view);
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideSyncButton(View view) {
+        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_SYNC_BUTTON, view);
+    }
+}

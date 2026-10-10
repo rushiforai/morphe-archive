@@ -156,7 +156,7 @@ public class NativeBubbleModeTest {
             Settings.installed = Set.of("stories");
             importChoices(screen.get().getWindow().getDecorView(), ChoiceCodec.HEADER + "\nbubble_chat_heads=false\n");
             assertTrue(Settings.preferences.getBoolean(Settings.BUBBLE_CHAT_HEADS, false));
-            assertTrue(ShadowToast.getTextOfLatestToast().contains("absent from this bundle"));
+            assertTrue(ShadowToast.getTextOfLatestToast().contains("patch isn't installed"));
         }
     }
 

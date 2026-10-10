@@ -25,7 +25,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val openExternalLinksPatch = bytecodePatch(
     name = "Open external links directly",
-    description = "Opens profile and story website links in the system browser instead of TikTok's in-app browser. Switch: Hushfeed settings > Privacy.",
+    description = "Opens website links from profiles and stories in your phone's own browser " +
+        "instead of TikTok's built-in one. On by default. Turn it off in Hushfeed settings > " +
+        "Privacy.",
     default = true,
 ) {
     category("Interaction")

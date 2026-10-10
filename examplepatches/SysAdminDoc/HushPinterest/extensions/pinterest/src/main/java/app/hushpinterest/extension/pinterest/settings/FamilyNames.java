@@ -34,6 +34,8 @@ public final class FamilyNames {
     public static final String REMOVE_AD_TRACKING_PERMISSIONS = "Remove ad tracking permissions";
     public static final String SPOOF_SIGNATURE = "Spoof signature for Google sign-in";
     public static final String DOWNLOAD_PINS = "Download pins";
+    public static final String DOWNLOAD_BOARD = "Download board";
+    public static final String LONG_PRESS_DOWNLOAD = "Long-press download";
     public static final String EXTERNAL_BROWSER = "Open links in your browser";
     public static final String SYSTEM_SHARE = "System share sheet";
     public static final String HIDE_SCREENSHOT_SHARE = "No screenshot share menu";
@@ -44,6 +46,7 @@ public final class FamilyNames {
     public static final String HIDE_COMMENTS = "Hide comments";
     public static final String HIDE_TOPIC_SUGGESTIONS = "Hide topic suggestions";
     public static final String QUIET_EMAIL_REMINDER = "Quiet email reminders";
+    public static final String HIDE_SURVEY_PROMPTS = "Hide survey prompts";
     public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String ORIGINAL_IMAGES = "Original-quality images";
     public static final String DISABLE_UPDATE_NAG = "Disable update nag";

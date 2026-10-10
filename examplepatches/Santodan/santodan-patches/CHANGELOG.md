@@ -1,72 +1,15 @@
-## [0.9.0](https://github.com/Santodan/santodan-patches/compare/v0.8.0...v0.9.0) (2026-10-08)
+## [0.10.0](https://github.com/Santodan/santodan-patches/compare/v0.9.0...v0.10.0) (2026-10-09)
 
 ### 🐛 Bug Fixes
 
-* **nuviotv:** reduce badge work and isolate badge composition [skip ci] ([8bcfc45](https://github.com/Santodan/santodan-patches/commit/8bcfc45cbfbd3984371a578dd296fea7cb16a6ee))
+* **build:** resolve Android test SDK on CI runners ([957501c](https://github.com/Santodan/santodan-patches/commit/957501ca771aa5f64a71c62c1aced6bd7676d20f))
+* **nuvio:** defer merged progress work during playback [skip ci] ([e69eff2](https://github.com/Santodan/santodan-patches/commit/e69eff25705851433c7ac7e6b6e4a675b82dd66f))
 
 ### ✨ New Features
 
-* **nuvio:** label patch settings groups [skip ci] ([c434e81](https://github.com/Santodan/santodan-patches/commit/c434e81f568db2d2fbe19588dcfd3d0800111956))
-* **nuvio:** preload stream sources with diagnostics [skip ci] ([c645e4f](https://github.com/Santodan/santodan-patches/commit/c645e4fa65b743424a75908be15b2e07cc63a484))
-* **nuvio:** show upcoming movie dates in library and collections ([f8d6bd1](https://github.com/Santodan/santodan-patches/commit/f8d6bd1915a4412e0731a9ecb1aed805d9b6aa3f))
-
-### 🚀 Updated App Support
-
-* **nuviotv:** support 1.1.0-beta.5 across all patches [skip ci] ([dd7a8f4](https://github.com/Santodan/santodan-patches/commit/dd7a8f4b08fa71cf9b167e7c67f9e27dfa4bea41))
-
-## [0.8.0](https://github.com/Santodan/santodan-patches/compare/v0.7.0...v0.8.0) (2026-10-07)
-
-### 🐛 Bug Fixes
-
-* **nuvio:** restore merged watched badges without delaying startup ([f53abfa](https://github.com/Santodan/santodan-patches/commit/f53abfa9271461759f9bd6d7c80f7ba6a0c51462))
-
-### ✨ New Features
-
-* **nuvio:** add finale dates in library and collections [skip ci] ([66233a7](https://github.com/Santodan/santodan-patches/commit/66233a7b0253662e7c05c7a78b7964b49708b7b4))
-* **nuvio:** group patch settings under Layout menu [skip ci] ([744d480](https://github.com/Santodan/santodan-patches/commit/744d4807083f494a10ebcbbb56cdc1ac6dec7d6e))
-
-## [0.7.0](https://github.com/Santodan/santodan-patches/compare/v0.6.0...v0.7.0) (2026-10-06)
-
-### 🐛 Bug Fixes
-
-* **nuvio:** support beta4 and correct progress flow mapping [skip ci] ([7c3d025](https://github.com/Santodan/santodan-patches/commit/7c3d025d4afce7fd7803e0616ca5197c74b21bda))
-
-### ✨ New Features
-
-* **nuvio:** keep airing series in Upcoming with finale date badges ([1fcf816](https://github.com/Santodan/santodan-patches/commit/1fcf8165a15e29e102628135c10f2939dbde4fa5))
-
-## [0.6.0](https://github.com/Santodan/santodan-patches/compare/v0.5.0...v0.6.0) (2026-10-01)
-
-### ✨ New Features
-
-* **meo:** add side-by-side and device compatibility patches [skip ci] ([cd28017](https://github.com/Santodan/santodan-patches/commit/cd28017e4f3890ee27d99e917a9d0668cda0d274))
-
-### 🚀 Updated App Support
-
-* **pillo:** support version 0.6.20 ([33da858](https://github.com/Santodan/santodan-patches/commit/33da8586e0cbe7fadbf5dae595fee8512f438794))
-
-## [0.5.0](https://github.com/Santodan/santodan-patches/compare/v0.4.1...v0.5.0) (2026-09-28)
-
-### 🐛 Bug Fixes
-
-* **nuviotv:** preserve and refresh merged progress ([3e7595b](https://github.com/Santodan/santodan-patches/commit/3e7595bc1a830c88136ec0e068dfeae9a203172a))
-
-### ✨ New Features
-
-* **nuviotv:** add merged tracking progress [skip ci] ([be772fe](https://github.com/Santodan/santodan-patches/commit/be772fe379f73156595e1f4def5546e83525b417))
-* **nuviotv:** configure side-by-side installation ([1cfc77e](https://github.com/Santodan/santodan-patches/commit/1cfc77e21814eed47a5035053d096950227622cf))
-
-## [0.4.1](https://github.com/Santodan/santodan-patches/compare/v0.4.0...v0.4.1) (2026-09-25)
-
-### 🐛 Bug Fixes
-
-* **nuviotv:** support beta2 remaining count and side-by-side install ([b5976a1](https://github.com/Santodan/santodan-patches/commit/b5976a107bca80fab4f7860ff965b0b8caeb32a9))
-
-## [0.4.0](https://github.com/Santodan/santodan-patches/compare/v0.3.2...v0.4.0) (2026-09-25)
-
-### ✨ New Features
-
-* **nuviotv:** publish remaining episode count patch ([99f6ea2](https://github.com/Santodan/santodan-patches/commit/99f6ea28a4b6c3974a662a8f21ac7790073d9eae))
+* **nuvio:** show merged provider icons and refresh seeds [skip ci] ([7512085](https://github.com/Santodan/santodan-patches/commit/7512085bd6a7d9bad2fc32d32e4bf94517f3b18f))
+* **pillo:** add weight change summaries and selectable comparison date ([9a723a4](https://github.com/Santodan/santodan-patches/commit/9a723a4bbd3e0feec3a3dc4619b1d6282284ef28))
+* **pillo:** import weight history from JSON [skip ci] ([8079226](https://github.com/Santodan/santodan-patches/commit/807922648b4aee39659263ef712f586ac6546dd8))
 
 ## Unreleased
 
@@ -152,3 +95,84 @@
 ### 🐛 Bug Fixes
 
 * correct patch bundle metadata ([6ef1215](https://github.com/Santodan/santodan-patches/commit/6ef1215f2d605913b114991b425c73693c560734))
+## Unreleased
+
+### Features
+
+* **nuvio:** add an optional merged-provider icon to Continue Watching cards on beta.4 and beta.5.
+
+### Fixes and diagnostics
+
+* **nuvio:** defer merged refreshes and badge work during playback on beta.4 and beta.5.
+* **nuvio:** reread Next Up seeds after provider history loading to avoid publishing pre-refresh seeds.
+* **nuvio:** log provider seed counts and focused Rage of Bahamut / Virgin Soul merge decisions. The reported disappearing card still requires device verification; toggling merge restored it in the user's test.
+
+## [0.9.0](https://github.com/Santodan/santodan-patches/compare/v0.8.0...v0.9.0) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** reduce badge work and isolate badge composition [skip ci] ([8bcfc45](https://github.com/Santodan/santodan-patches/commit/8bcfc45cbfbd3984371a578dd296fea7cb16a6ee))
+
+### ✨ New Features
+
+* **nuvio:** label patch settings groups [skip ci] ([c434e81](https://github.com/Santodan/santodan-patches/commit/c434e81f568db2d2fbe19588dcfd3d0800111956))
+* **nuvio:** preload stream sources with diagnostics [skip ci] ([c645e4f](https://github.com/Santodan/santodan-patches/commit/c645e4fa65b743424a75908be15b2e07cc63a484))
+* **nuvio:** show upcoming movie dates in library and collections ([f8d6bd1](https://github.com/Santodan/santodan-patches/commit/f8d6bd1915a4412e0731a9ecb1aed805d9b6aa3f))
+
+### 🚀 Updated App Support
+
+* **nuviotv:** support 1.1.0-beta.5 across all patches [skip ci] ([dd7a8f4](https://github.com/Santodan/santodan-patches/commit/dd7a8f4b08fa71cf9b167e7c67f9e27dfa4bea41))
+
+## [0.8.0](https://github.com/Santodan/santodan-patches/compare/v0.7.0...v0.8.0) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **nuvio:** restore merged watched badges without delaying startup ([f53abfa](https://github.com/Santodan/santodan-patches/commit/f53abfa9271461759f9bd6d7c80f7ba6a0c51462))
+
+### ✨ New Features
+
+* **nuvio:** add finale dates in library and collections [skip ci] ([66233a7](https://github.com/Santodan/santodan-patches/commit/66233a7b0253662e7c05c7a78b7964b49708b7b4))
+* **nuvio:** group patch settings under Layout menu [skip ci] ([744d480](https://github.com/Santodan/santodan-patches/commit/744d4807083f494a10ebcbbb56cdc1ac6dec7d6e))
+
+## [0.7.0](https://github.com/Santodan/santodan-patches/compare/v0.6.0...v0.7.0) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **nuvio:** support beta4 and correct progress flow mapping [skip ci] ([7c3d025](https://github.com/Santodan/santodan-patches/commit/7c3d025d4afce7fd7803e0616ca5197c74b21bda))
+
+### ✨ New Features
+
+* **nuvio:** keep airing series in Upcoming with finale date badges ([1fcf816](https://github.com/Santodan/santodan-patches/commit/1fcf8165a15e29e102628135c10f2939dbde4fa5))
+
+## [0.6.0](https://github.com/Santodan/santodan-patches/compare/v0.5.0...v0.6.0) (2026-10-01)
+
+### ✨ New Features
+
+* **meo:** add side-by-side and device compatibility patches [skip ci] ([cd28017](https://github.com/Santodan/santodan-patches/commit/cd28017e4f3890ee27d99e917a9d0668cda0d274))
+
+### 🚀 Updated App Support
+
+* **pillo:** support version 0.6.20 ([33da858](https://github.com/Santodan/santodan-patches/commit/33da8586e0cbe7fadbf5dae595fee8512f438794))
+
+## [0.5.0](https://github.com/Santodan/santodan-patches/compare/v0.4.1...v0.5.0) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** preserve and refresh merged progress ([3e7595b](https://github.com/Santodan/santodan-patches/commit/3e7595bc1a830c88136ec0e068dfeae9a203172a))
+
+### ✨ New Features
+
+* **nuviotv:** add merged tracking progress [skip ci] ([be772fe](https://github.com/Santodan/santodan-patches/commit/be772fe379f73156595e1f4def5546e83525b417))
+* **nuviotv:** configure side-by-side installation ([1cfc77e](https://github.com/Santodan/santodan-patches/commit/1cfc77e21814eed47a5035053d096950227622cf))
+
+## [0.4.1](https://github.com/Santodan/santodan-patches/compare/v0.4.0...v0.4.1) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** support beta2 remaining count and side-by-side install ([b5976a1](https://github.com/Santodan/santodan-patches/commit/b5976a107bca80fab4f7860ff965b0b8caeb32a9))
+
+## [0.4.0](https://github.com/Santodan/santodan-patches/compare/v0.3.2...v0.4.0) (2026-09-25)
+
+### ✨ New Features
+
+* **nuviotv:** publish remaining episode count patch ([99f6ea2](https://github.com/Santodan/santodan-patches/commit/99f6ea28a4b6c3974a662a8f21ac7790073d9eae))

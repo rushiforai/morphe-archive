@@ -50,11 +50,12 @@ internal object CheckAppUpdateFingerprint : Fingerprint(
 @Suppress("unused")
 val disableUpdateChecksPatch = bytecodePatch(
     name = PATCH,
-    description = "Stops telegram.org's Telegram offering its own updates, which can't install over a " +
-        "patched build. Patch the new version in Morphe Manager instead.",
+    description = "Stops Telegram from offering its own updates from telegram.org, which can't install over a patched " +
+        "app. Patch each new version in Morphe Manager instead. On by default. Turn it off in HushTelegram " +
+        "settings > More settings > Updates.",
     default = true,
 ) {
-    category("Fixes")
+    category("Updates")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
 

@@ -10,6 +10,7 @@ import static org.robolectric.Shadows.shadowOf;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.Signature;
@@ -38,6 +39,7 @@ import app.morphe.extension.facebook.misc.FacebookSignature;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.FailingStore;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
@@ -90,7 +92,7 @@ public class SettingsNavigationTest {
 
     @Test public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        assertEquals(9, list().getCount());
+        assertEquals(10, list().getCount());
         assertEquals(21, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
@@ -101,14 +103,47 @@ public class SettingsNavigationTest {
             assertTrue(page.navigation.back());
             while (page.navigation.back()) { }
         }
-        assertEquals(9, list().getCount());
+        assertEquals(10, list().getCount());
+    }
+
+    /**
+     * The home page ends with Support Hushfacebook, under More settings. A tap opens the Ko-fi page
+     * in a browser of its own, and with no browser a tip names the address and Facebook keeps running.
+     */
+    @Test public void theHomePageEndsWithSupportWhichOpensKoFi() {
+        Map<String, Object> before = savedValues();
+        int last = list().getCount() - 1;
+        Preference row = (Preference) list().getItemAtPosition(last);
+        assertEquals(HushfacebookPages.SUPPORT, row.getKey());
+        assertEquals("Support Hushfacebook", String.valueOf(row.getTitle()));
+        assertEquals("Buy me a coffee on Ko-fi", String.valueOf(row.getSummary()));
+        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
+        assertTrue(list().getAdapter().isEnabled(last));
+
+        tap(HushfacebookPages.SUPPORT);
+        Intent started = shadowOf(controller.get()).getNextStartedActivity();
+        assertNotNull("nothing opened", started);
+        assertEquals(Intent.ACTION_VIEW, started.getAction());
+        assertEquals("https://ko-fi.com/X8K126YVER", started.getDataString());
+        assertTrue(started.hasCategory(Intent.CATEGORY_BROWSABLE));
+        assertTrue("the page would open inside Facebook's task",
+                (started.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+        assertNull(started.getComponent());
+        assertEquals("the tap left the home page", last + 1, list().getCount());
+
+        shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true);
+        tap(HushfacebookPages.SUPPORT);
+        assertEquals("No app on this phone can open the link. The address is " + L10n.isolate("ko-fi.com/X8K126YVER") + ".",
+                ShadowToast.getTextOfLatestToast());
+        assertFalse(controller.get().isFinishing());
+        assertEquals(before, savedValues());
     }
 
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
         assertTrue(page.navigation.open(page.findPreference(Settings.TAP_TO_PLAY.key)));
-        assertTrue(Settings.TAP_TO_PLAY.savedValue());
-        tap(Settings.TAP_TO_PLAY.key);
         assertFalse(Settings.TAP_TO_PLAY.savedValue());
+        tap(Settings.TAP_TO_PLAY.key);
+        assertTrue(Settings.TAP_TO_PLAY.savedValue());
         assertFalse(Settings.DOWNLOAD_COMPATIBLE.savedValue());
     }
 
@@ -454,7 +489,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(9, list().getCount());
+        assertEquals(10, list().getCount());
     }
 
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -523,7 +558,7 @@ public class SettingsNavigationTest {
             assertTrue(clear.isClickable());
             assertTrue(clear.performClick());
             assertEquals("", search.getText().toString());
-            assertEquals(9, list().getCount());
+            assertEquals(10, list().getCount());
             android.app.Dialog shown = dialog.getDialog();
             assertTrue(back.performClick());
             assertFalse(shown.isShowing());
@@ -657,7 +692,7 @@ public class SettingsNavigationTest {
 
     /**
      * A build that lacks default patches says how many under the card, and a tap opens and closes
-     * their names. Every default patch in, the row isn't there (the nine rows of the first test).
+     * their names. Every default patch in, the row isn't there (the ten rows of the first test).
      */
     @Test public void theOverviewNamesTheDefaultPatchesABuildLacks() {
         assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
@@ -671,7 +706,7 @@ public class SettingsNavigationTest {
         page = page(dialog);
         Map<String, Object> before = savedValues();
 
-        assertEquals(10, list().getCount());
+        assertEquals(11, list().getCount());
         assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
         Preference row = (Preference) list().getItemAtPosition(1);
         assertEquals("1 default patch isn't in this build", String.valueOf(row.getTitle()));
@@ -705,13 +740,13 @@ public class SettingsNavigationTest {
         dialog = SettingsL10nTest.show(controller.get());
         page = page(dialog);
 
-        assertEquals(10, list().getCount());
+        assertEquals(11, list().getCount());
         assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
         assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
         Preference row = (Preference) list().getItemAtPosition(1);
         assertEquals("Profiles, photos and posts won't open", String.valueOf(row.getTitle()));
         assertEquals("Patch again with " + L10n.isolate("Restore screens on re-signed builds")
-                + " selected. Re-signed builds need it to open profiles, photos, posts and some Facebook Settings pages.",
+                + " selected. A patched Facebook needs it to open profiles, photos, posts and some of Facebook's Settings pages.",
                 String.valueOf(row.getSummary()));
         assertFalse(list().getAdapter().isEnabled(1));
     }
@@ -726,7 +761,7 @@ public class SettingsNavigationTest {
         dialog = SettingsL10nTest.show(controller.get());
         page = page(dialog);
 
-        assertEquals(11, list().getCount());
+        assertEquals(12, list().getCount());
         assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
         assertEquals(2, position(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
         Preference defaults = (Preference) list().getItemAtPosition(2);
@@ -747,9 +782,153 @@ public class SettingsNavigationTest {
         dialog = SettingsL10nTest.show(controller.get());
         page = page(dialog);
 
-        assertEquals(9, list().getCount());
+        assertEquals(10, list().getCount());
         assertFalse(contains(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
         assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+    }
+
+    /**
+     * A build patched before 32 patches joined the default selection lacks them all, and the opened
+     * row named every one. Past nine it names eight and counts the rest, and nine are all named.
+     */
+    @Test public void aBuildLackingManyDefaultsNamesEightAndCountsTheRest() {
+        List<String> names = new ArrayList<>();
+        for (int lacking : new int[]{9, 10}) {
+            controller.close();
+            PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+            PatchFamily.inBuildForTests.remove(PatchFamily.MATERIAL_YOU_THEME);
+            names.clear();
+            for (PatchFamily family : PatchFamily.values()) {
+                if (names.size() == lacking) break;
+                if (!PatchFamily.DEFAULT_SELECTION.contains(family) || family == PatchFamily.RESTORE_TRUST) continue;
+                PatchFamily.inBuildForTests.remove(family);
+                names.add(L10n.isolate(family.patchName));
+            }
+            controller = Robolectric.buildActivity(Activity.class).setup().visible();
+            dialog = SettingsL10nTest.show(controller.get());
+            page = page(dialog);
+
+            Preference row = (Preference) list().getItemAtPosition(position(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+            assertEquals(lacking + " default patches aren't in this build", String.valueOf(row.getTitle()));
+            tap(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
+            List<String> shown = lacking == 9 ? names : new ArrayList<>(names.subList(0, 8));
+            if (lacking == 10) shown.add("2 more");
+            assertEquals("Not in this build: " + L10n.join(shown) + ". Morphe Manager selects them by default. Patch "
+                    + "again with them selected to get what they do.", String.valueOf(row.getSummary()));
+        }
+    }
+
+    /**
+     * After an update from a build made before 32 patches joined the default selection, a note
+     * right under the card names the switches that start off now and that nobody set: one turned
+     * back on isn't named, and nor is one stored off, which someone chose. A tap opens the names
+     * and the note is read, a second tap takes it off the page, and it doesn't come back.
+     */
+    @Test public void anUpdateShowsWhichSwitchesStartOffNowOnce() {
+        // The open page drops a stored value that equals its default, which would undo the
+        // stored-off switch below, so it's written with no page listening.
+        controller.close();
+        ShadowLooper.idleMainLooper();
+        forgetStartedOn();
+        Settings.TAP_TO_PLAY.save(true);
+        // Off and stored, the way a build before stored a switch someone turned off.
+        assertTrue(Setting.preferences.preferences.edit().putBoolean(Settings.HIDE_REELS_TAB.key, false).commit());
+        StartsOffNote.Stored.STATE.save(StartsOffNote.SHOW);
+        try {
+            controller = Robolectric.buildActivity(Activity.class).setup().visible();
+            dialog = SettingsL10nTest.show(controller.get());
+            page = page(dialog);
+            assertTrue("the stored-off switch was dropped", Setting.preferences.preferences.contains(Settings.HIDE_REELS_TAB.key));
+            assertEquals(1, position(StartsOffNote.KEY));
+            Preference note = (Preference) list().getItemAtPosition(1);
+            assertEquals("28 switches start off now", String.valueOf(note.getTitle()));
+            assertEquals("After this update, a switch you had on may be off now. Tap to see which.",
+                    String.valueOf(note.getSummary()));
+
+            tap(StartsOffNote.KEY);
+            List<String> names = new ArrayList<>();
+            for (BooleanSetting setting : StartsOffNote.startedOn()) {
+                if (setting != Settings.TAP_TO_PLAY && setting != Settings.HIDE_REELS_TAB) {
+                    names.add(SwitchLabels.title(setting));
+                }
+            }
+            assertEquals(28, names.size());
+            assertEquals("Now off: " + L10n.join(names) + ". Turn back on the ones you want in their sections. Tap again "
+                    + "to hide this note.", String.valueOf(note.getSummary()));
+            assertTrue(String.valueOf(note.getSummary()).contains("Hide Reels in the feed"));
+            assertFalse(String.valueOf(note.getSummary()).contains("Tap to play"));
+            assertFalse(String.valueOf(note.getSummary()).contains("Hide the Reels tab"));
+            assertEquals(StartsOffNote.DONE, (int) StartsOffNote.Stored.STATE.savedValue());
+            assertFalse("the note changed a switch", Settings.HIDE_FEED_REELS.savedValue());
+
+            tap(StartsOffNote.KEY);
+            assertFalse("a second tap left the note", contains(StartsOffNote.KEY));
+            assertNull(page.findPreference(StartsOffNote.KEY));
+            recreate();
+            assertFalse("the note came back", contains(StartsOffNote.KEY));
+
+            // Owed but with nothing left to name, as when the build has none of those patches, there's no note.
+            StartsOffNote.Stored.STATE.save(StartsOffNote.SHOW);
+            controller.close();
+            PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS, PatchFamily.REELS_TAB);
+            controller = Robolectric.buildActivity(Activity.class).setup().visible();
+            dialog = SettingsL10nTest.show(controller.get());
+            page = page(dialog);
+            assertFalse(contains(StartsOffNote.KEY));
+        } finally {
+            StartsOffNote.Stored.STATE.resetToDefault();
+            forgetStartedOn();
+        }
+    }
+
+    /** Every switch the note can name, back to its default and out of the store. */
+    private static void forgetStartedOn() {
+        for (BooleanSetting setting : StartsOffNote.startedOn()) {
+            setting.resetToDefault();
+            assertTrue(Setting.preferences.preferences.edit().remove(setting.key).commit());
+        }
+    }
+
+    /**
+     * Owed only to an install an earlier build ran on: Hushfacebook first started before the APK
+     * running now went in. Decided at the first start and never again, so a fresh install of this
+     * build that later updates never sees it.
+     */
+    @Test public void theNoteIsOwedOnlyWhenAnEarlierBuildRanHere() {
+        Context app = RuntimeEnvironment.getApplication();
+        long firstStart = BaseSettings.FIRST_TIME_APP_LAUNCHED.savedValue();
+        try {
+            StartsOffNote.Stored.STATE.resetToDefault();
+            BaseSettings.FIRST_TIME_APP_LAUNCHED.save(1_000L);
+            StartsOffNote.installedAtForTests = 2_000L;
+            StartsOffNote.onFacebookStart(app);
+            assertEquals(StartsOffNote.SHOW, (int) StartsOffNote.Stored.STATE.savedValue());
+
+            // Read, it stays read through a later update.
+            StartsOffNote.Stored.STATE.save(StartsOffNote.DONE);
+            StartsOffNote.installedAtForTests = 3_000L;
+            StartsOffNote.onFacebookStart(app);
+            assertEquals(StartsOffNote.DONE, (int) StartsOffNote.Stored.STATE.savedValue());
+
+            // A fresh install's first start comes after its APK went in.
+            StartsOffNote.Stored.STATE.resetToDefault();
+            StartsOffNote.installedAtForTests = 500L;
+            StartsOffNote.onFacebookStart(app);
+            assertEquals(StartsOffNote.DONE, (int) StartsOffNote.Stored.STATE.savedValue());
+            // And a later update finds it decided.
+            StartsOffNote.installedAtForTests = 5_000L;
+            StartsOffNote.onFacebookStart(app);
+            assertEquals(StartsOffNote.DONE, (int) StartsOffNote.Stored.STATE.savedValue());
+
+            assertFalse("no first start known", StartsOffNote.updated(-1, 2_000L));
+            assertFalse("no install time known", StartsOffNote.updated(1_000L, 0));
+            assertFalse(StartsOffNote.updated(2_000L, 2_000L));
+            assertTrue(StartsOffNote.updated(1_999L, 2_000L));
+        } finally {
+            StartsOffNote.installedAtForTests = null;
+            StartsOffNote.Stored.STATE.resetToDefault();
+            BaseSettings.FIRST_TIME_APP_LAUNCHED.save(firstStart);
+        }
     }
 
     /** Without its patch a line names the patch to add, can't be tapped and says nothing is installed. */
@@ -786,6 +965,98 @@ public class SettingsNavigationTest {
         assertEquals(before, savedValues());
     }
 
+    private static final List<String> ADS_MAP = Arrays.asList("Where ads and tracking are blocked", "Ads in the feed",
+            "Ads on profiles", "Ads in Stories", "Ads in Reels", "Ads in search results", "Ads in Marketplace",
+            "Ads in Instant Games", "Ads downloaded in advance", "Ad tracking", "Facebook's ads in other apps",
+            "Usage statistics uploads", "Reel watch history");
+
+    /**
+     * Privacy ends with the map of where ads and tracking are blocked. With every patch in, each
+     * line with a switch opens the page the line names on that switch's row, a patch with no
+     * switch says patching set it, the blocks that cost something say what, and nothing saved changes.
+     */
+    @Test public void theAdsMapEndsPrivacyAndEachLineWithASwitchOpensIt() {
+        Map<String, Object> before = savedValues();
+        page.navigation.navigate("Privacy");
+        List<String> titles = titles();
+        assertEquals(ADS_MAP, titles.subList(titles.size() - ADS_MAP.size(), titles.size()));
+        assertEquals("Its switch is " + L10n.isolate("Hide sponsored posts") + ", in " + L10n.isolate("News feed") + ".",
+                summaryOf("Ads in the feed"));
+        assertEquals("Blocked since you patched. There's no switch for it. Those apps show their own ads or none, and "
+                + "their rewarded ads may fail.", summaryOf("Facebook's ads in other apps"));
+        assertEquals("Its switch is " + L10n.isolate("Hold back analytics uploads") + ", in " + L10n.isolate("Privacy")
+                + ". Facebook's on-phone learning jobs stop too, and a change applies after Facebook restarts.",
+                summaryOf("Usage statistics uploads"));
+        assertTrue(summaryOf("Reel watch history").endsWith(" Reels you've already seen may come back."));
+        while (page.navigation.back()) { }
+
+        int switches = 0;
+        for (AdsMap.Line line : AdsMap.lines()) {
+            page.navigation.navigate("Privacy");
+            BooleanSetting setting = line.setting();
+            if (setting == null) {
+                assertNull(line.title, line.section);
+                assertFalse(line.title + " can be tapped", list().getAdapter().isEnabled(titles().indexOf(line.title)));
+                assertTrue(summaryOf(line.title).startsWith("Blocked since you patched. There's no switch for it."));
+            } else {
+                switches++;
+                tap("action_show_" + setting.key);
+                layout(dialog.getView(), 1200);
+                int row = position(setting.key);
+                assertTrue(setting.key + " wasn't opened", row >= 0);
+                assertEquals(line.title, line.section,
+                        String.valueOf(((Preference) list().getItemAtPosition(row)).getParent().getTitle()));
+                assertTrue(setting.key + " is off screen at " + row + " of " + list().getFirstVisiblePosition() + ".."
+                                + list().getLastVisiblePosition(),
+                        row >= list().getFirstVisiblePosition() && row <= list().getLastVisiblePosition());
+            }
+            while (page.navigation.back()) { }
+        }
+        assertEquals(9, switches);
+        assertEquals(before, savedValues());
+    }
+
+    /**
+     * A build without a line's patch says which patch to choose, still says what that block would
+     * cost, and the line can't be tapped. One that's in keeps its link.
+     */
+    @Test public void anAdsMapLineWithoutItsPatchNamesThePatchAndWhatItCosts() {
+        controller.close();
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS, PatchFamily.AD_PREFETCH);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+        Map<String, Object> before = savedValues();
+        page.navigation.navigate("Privacy");
+        List<String> expected = new ArrayList<>(Arrays.asList("Lock Facebook", "Lock after"));
+        expected.addAll(ADS_MAP);
+        assertEquals(expected, titles());
+
+        assertTrue(list().getAdapter().isEnabled(titles().indexOf("Ads in the feed")));
+        assertEquals("Blocked since you patched. There's no switch for it.", summaryOf("Ads downloaded in advance"));
+        assertEquals("Not in this build. To block this, choose the " + L10n.isolate("Disable Audience Network")
+                + " patch in Morphe Manager and patch again. Those apps show their own ads or none, and their rewarded "
+                + "ads may fail.", summaryOf("Facebook's ads in other apps"));
+        assertEquals("Not in this build. To block this, choose the " + L10n.isolate("Hold back analytics uploads")
+                + " patch in Morphe Manager and patch again. Facebook's on-phone learning jobs stop too, and a change "
+                + "applies after Facebook restarts.", summaryOf("Usage statistics uploads"));
+        for (AdsMap.Line line : AdsMap.lines()) {
+            if (line.family == PatchFamily.SPONSORED_POSTS) continue;
+            assertFalse(line.title + " can be tapped", list().getAdapter().isEnabled(titles().indexOf(line.title)));
+            if (line.family == PatchFamily.AD_PREFETCH) continue;
+            assertTrue(line.title, summaryOf(line.title).startsWith("Not in this build. To block this, choose the "
+                    + L10n.isolate(line.family.patchName) + " patch"));
+        }
+        assertEquals(-1, position("action_show_" + Settings.HIDE_SPONSORED_REELS.key));
+        assertEquals(before, savedValues());
+    }
+
+    private String summaryOf(String title) {
+        int row = titles().indexOf(title);
+        assertTrue("No visible row " + title, row >= 0);
+        return String.valueOf(((Preference) list().getItemAtPosition(row)).getSummary());
+    }
+
     @Test public void recreationKeepsTheCategoryAndSearchQuery() {
         page.navigation.open(page.findPreference(Settings.TAP_TO_PLAY.key));
         recreate();
@@ -805,12 +1076,12 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.TAP_TO_PLAY.key));
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(9, list().getCount());
+        assertEquals(10, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
         assertEquals(15, list().getCount());
         dialog.getDialog().onBackPressed();
-        assertEquals(9, list().getCount());
+        assertEquals(10, list().getCount());
         dialog.getDialog().onBackPressed();
         ShadowLooper.idleMainLooper();
         assertFalse(controller.get().isFinishing());
@@ -873,7 +1144,7 @@ public class SettingsNavigationTest {
         View toggle = list().getChildAt(position(Settings.TAP_TO_PLAY.key) - list().getFirstVisiblePosition());
         assertEquals(android.widget.Switch.class.getName(), toggle.createAccessibilityNodeInfo().getClassName());
         assertTrue(toggle.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
-        assertFalse(Settings.TAP_TO_PLAY.savedValue());
+        assertTrue(Settings.TAP_TO_PLAY.savedValue());
     }
 
     /** All pages are rendered with the same viewport as the design reference. */

@@ -121,7 +121,7 @@ Assert-True ($catalogBuilds -notcontains '14.23.0' -and @($entries | Where-Objec
     'Reviewing native sources must not adopt their code or add 14.23.0 support.'
 # Two-fixture evidence is two builds, every declared one among them. Pinterest declares one, so the
 # fixture adds the build before it.
-$olderBuild = '14.24.0'
+$olderBuild = '14.37.0'
 Assert-True ($catalogBuilds -notcontains $olderBuild) "The catalog declares $olderBuild, so the fixture's second build is no second build."
 $fixtureLicenseHash = 'a' * 64
 $fixtureAdoptedRepository = 'https://github.com/fixture-owner/adopted-patches'
@@ -507,7 +507,7 @@ $fixtureLedger = [ordered]@{
     )
     entries = @(
         [ordered]@{ id = 'alpha'; repository = 'https://github.com/fixture-owner/alpha-patches'; lineage = 'alpha'; upstream = $null
-            kind = 'morphe-patches'; packages = @('com.pinterest'); targetVersions = [ordered]@{ 'com.pinterest' = @('14.25.0') }
+            kind = 'morphe-patches'; packages = @('com.pinterest'); targetVersions = [ordered]@{ 'com.pinterest' = @('14.38.0') }
             patchCounts = [ordered]@{ 'com.pinterest' = 1 }
             features = @('Hide ads'); branches = @([ordered]@{ name = 'main'; commit = $commitA1 }); watchPaths = @()
             license = [ordered]@{ spdx = 'GPL-3.0'; url = "https://github.com/fixture-owner/alpha-patches/blob/$commitA1/LICENSE"; sha256 = $licenseHash }
@@ -546,7 +546,7 @@ function New-FakeAnswers {
         directory = @{ Status = 200; Content = (@{
             bundles = @(@{ source = 'github'; repo = 'fixture-owner/alpha-patches'; name = 'Alpha'; targetApps = @('com.pinterest')
                 patches = @(@{ name = 'Hide ads'; compatiblePackagesKey = 0 }) })
-            compatibilities = @(@{ packageName = 'com.pinterest'; targets = @(@{ version = '14.25.0' }) }) } | ConvertTo-Json -Depth 8) }
+            compatibilities = @(@{ packageName = 'com.pinterest'; targets = @(@{ version = '14.38.0' }) }) } | ConvertTo-Json -Depth 8) }
         awesome = @{ Status = 200; Content = '{"fixture-owner/alpha-patches":{"com.pinterest":"0123"},"SysAdminDoc/hushfeed":{"com.zhiliaoapp.musically":"4567"}}' }
         tracker = @{ Status = 200; Content = (@{
             'sysadmindoc:stable' = @{ repo_url = 'https://github.com/SysAdminDoc/HushPinterest'; apps = @(@{ package = 'com.pinterest'; patches = @(@{ name = 'Hide ads' }) }) }
@@ -555,7 +555,7 @@ function New-FakeAnswers {
         jmanSources = @{ Status = 200; Content = '{"alpha-stable":{"patches":"https://api.github.com/repos/fixture-owner/alpha-patches"},"gamma-stable":{"patches":"https://gitlab.com/api/v4/projects/fixture-group%2Fgamma-patches"}}' }
         jmanCatalog = @{ Status = 200; Content = ("# Catalog`n| [Alpha](#alpha) | 1 | 1 | Generated |`n### X Alpha Bundle Patch List:`n" +
             "| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |`n|---|---|---|---|`n" +
-            "| ${tick}Hide ads${tick} | ${tick}Removes ads.${tick} | ${tick}Pinterest${tick} | ${tick}14.25.0${tick} |`n" +
+            "| ${tick}Hide ads${tick} | ${tick}Removes ads.${tick} | ${tick}Pinterest${tick} | ${tick}14.38.0${tick} |`n" +
             "### X Gamma Bundle Patch List:`n| ${tick}Open links outside${tick} | ${tick}d${tick} | ${tick}Pinterest${tick} | ${tick}Any${tick} |`n") }
         archive = @{ Status = 200; Content = '{"name":"patches-list.json"}' }
         searchHits = @(

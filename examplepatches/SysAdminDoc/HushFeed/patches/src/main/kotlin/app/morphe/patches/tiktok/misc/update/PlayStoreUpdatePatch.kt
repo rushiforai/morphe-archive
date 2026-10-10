@@ -19,9 +19,9 @@ private const val MAX_VERSION_CODE = Int.MAX_VALUE
 @Suppress("unused")
 val hidePlayStoreUpdatePatch = resourcePatch(
     name = "Hide Play Store update offer",
-    description = "Gives the patched APK the highest Android version code so Play shows Open instead of Update. " +
-        "TikTok's visible version stays the same in Morphe Manager. Off by default. " +
-        "Android won't install a lower-code APK over it, and uninstalling to return to a lower code can remove local TikTok data.",
+    description = "Stops the Play Store offering to swap the patched TikTok for the store " +
+        "version. The catch: a build with a lower version number won't install over it, and " +
+        "uninstalling to go back can erase TikTok's data on your phone.",
     default = false,
 ) {
     category("Performance")

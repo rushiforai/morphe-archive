@@ -12,6 +12,7 @@ import static org.junit.Assert.assertTrue;
 import android.graphics.Typeface;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 public class SystemEmojiTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.USE_SYSTEM_EMOJI.save(true);
+    }
+
     @After
     public void restore() {
         Settings.USE_SYSTEM_EMOJI.resetToDefault();
@@ -41,8 +48,8 @@ public class SystemEmojiTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndAnswersThePhonesDefaultTypeface() {
-        assertTrue("picking the patch is the choice to use it", Settings.USE_SYSTEM_EMOJI.get());
+    public void theSwitchStartsOffAndOnAnswersThePhonesDefaultTypeface() {
+        assertFalse("the switch starts off", Settings.USE_SYSTEM_EMOJI.defaultValue);
         // The default family's fallback is where the phone keeps its emoji font, whichever file it is.
         assertSame(Typeface.DEFAULT, SystemEmoji.typeface());
     }

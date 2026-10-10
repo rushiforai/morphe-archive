@@ -39,9 +39,9 @@ internal const val FOLLOW_UPSELL = "FollowUpsellToast"
 @Suppress("unused")
 val hideSaveToastsPatch = bytecodePatch(
     name = PATCH,
-    description = "Stops the pop-up Pinterest shows after you save a pin, such as \"Saved to\" your board or " +
-        "the suggestion to follow the pin's creator. The pin is still saved.",
-    default = false,
+    description = "Stops the pop-up Pinterest shows after you save a pin, such as the Saved to your board message " +
+        "or a suggestion to follow the creator. The pin is still saved. Starts off. Turn it on in " +
+        "HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

@@ -68,11 +68,13 @@ public class SettingsActivityRecreationTest {
             settle(before);
             assertTrue(before.initialized);
             int containerId = currentPage(before).getId();
+            clickMenu(before, "Downloads & sharing");
+            assertEquals("DOWNLOADS_SHARING", requestedHub(currentPage(before)));
             clickMenu(before, "Downloads");
             TikTokPreferenceFragment section = currentPage(before);
             assertEquals("DOWNLOADS", requestedSection(section));
             assertNotNull(section.findPreference("download_video_quality"));
-            assertEquals(1, before.getFragmentManager().getBackStackEntryCount());
+            assertEquals(2, before.getFragmentManager().getBackStackEntryCount());
 
             Configuration largerText = new Configuration(before.getResources().getConfiguration());
             largerText.fontScale = 1.5f;
@@ -88,15 +90,22 @@ public class SettingsActivityRecreationTest {
             assertNotSame(section, restored);
             assertNotNull(restored.findPreference("download_video_quality"));
             assertSame(container(after), restored.getView().getParent());
-            assertEquals(1, after.getFragmentManager().getBackStackEntryCount());
-            assertEquals("DOWNLOADS", after.getFragmentManager().getBackStackEntryAt(0).getName());
+            assertEquals(2, after.getFragmentManager().getBackStackEntryCount());
+            assertEquals("DOWNLOADS", after.getFragmentManager().getBackStackEntryAt(1).getName());
 
             after.onBackPressed();
             settle(after);
-            assertFalse("Back should return to the restored home menu first", after.isFinishing());
+            assertFalse("Back should return to the restored group first", after.isFinishing());
+            assertEquals(1, after.getFragmentManager().getBackStackEntryCount());
+            assertEquals("DOWNLOADS_SHARING", requestedHub(currentPage(after)));
+            assertTrue(hasMenu(currentPage(after), "Downloads"));
+            after.onBackPressed();
+            settle(after);
+            assertFalse("Back should return to the restored home menu next", after.isFinishing());
             assertEquals(0, after.getFragmentManager().getBackStackEntryCount());
             assertNull(requestedSection(currentPage(after)));
-            assertTrue(hasMenu(currentPage(after), "Downloads"));
+            assertNull(requestedHub(currentPage(after)));
+            assertTrue(hasMenu(currentPage(after), "Downloads & sharing"));
             after.onBackPressed();
             assertTrue(after.isFinishing());
         }
@@ -110,7 +119,8 @@ public class SettingsActivityRecreationTest {
             assertFalse(activity.receivedSavedState);
             TikTokPreferenceFragment home = currentPage(activity);
             assertNull(requestedSection(home));
-            assertTrue(hasMenu(home, "Downloads"));
+            assertNull(requestedHub(home));
+            assertTrue(hasMenu(home, "Downloads & sharing"));
             assertSame(container(activity), home.getView().getParent());
             assertEquals(0, activity.getFragmentManager().getBackStackEntryCount());
             activity.onBackPressed();
@@ -151,10 +161,17 @@ public class SettingsActivityRecreationTest {
             View banner = settingsSurface.getChildAt(settingsSurface.getChildCount() - 1);
             assertNotSame(pageContainer, banner);
 
+            clickMenu(activity, "Downloads & sharing");
+            assertSame("the opened group covered the live Undo action", banner,
+                    settingsSurface.getChildAt(settingsSurface.getChildCount() - 1));
             clickMenu(activity, "Downloads");
             assertSame("the opened section covered the live Undo action", banner,
                     settingsSurface.getChildAt(settingsSurface.getChildCount() - 1));
 
+            activity.onBackPressed();
+            settle(activity);
+            assertSame("the restored group covered the live Undo action", banner,
+                    settingsSurface.getChildAt(settingsSurface.getChildCount() - 1));
             activity.onBackPressed();
             settle(activity);
             assertSame("the restored home page covered the live Undo action", banner,
@@ -185,6 +202,10 @@ public class SettingsActivityRecreationTest {
 
     private static String requestedSection(TikTokPreferenceFragment page) {
         return page.getArguments() == null ? null : page.getArguments().getString("morphe_settings_section");
+    }
+
+    private static String requestedHub(TikTokPreferenceFragment page) {
+        return page.getArguments() == null ? null : page.getArguments().getString("morphe_settings_hub");
     }
 
     private static boolean hasMenu(TikTokPreferenceFragment page, String title) {

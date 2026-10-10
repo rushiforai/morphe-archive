@@ -66,8 +66,9 @@ internal fun Iterable<com.android.tools.smali.dexlib2.iface.instruction.Instruct
 @Suppress("unused")
 val storyControlsPatch = bytecodePatch(
     name = "Story controls",
-    description = "Adds two switches for stories: replay a story when it ends instead of moving on, " +
-        "and keep a photo story on screen until you tap or swipe. Switches: Hushfeed settings > Playback.",
+    description = "Lets a story replay when it ends instead of moving on, and keeps a photo " +
+        "story on screen until you tap or swipe. Starts off. Turn it on in Hushfeed settings > " +
+        "Playback.",
     default = true,
 ) {
     category("Playback")

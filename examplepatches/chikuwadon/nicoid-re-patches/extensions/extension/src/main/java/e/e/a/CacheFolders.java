@@ -11,7 +11,7 @@ import android.widget.Toast;
 import java.io.*;
 import java.util.*;
 
-/** A persisted SAF grant, never a guessed shared-storage filesystem path. */
+/** App-private storage by default, or an explicitly granted SAF folder. */
 public final class CacheFolders {
     static volatile Context context;
     private static final String KEY="cache_tree_uri", PREFIX="/@nicoid-cache/", SUFFIX="/nicoid/nicoid_cache";
@@ -23,7 +23,7 @@ public final class CacheFolders {
     public static String privateRoot(Context c){init(c);File base=c.getExternalFilesDir(null);return (base==null?c.getFilesDir():base).getAbsolutePath();}
     public static String root(Context c) {
         init(c);String tree=prefs().getString(KEY,"");
-        if(tree.isEmpty()){File old=c.getExternalFilesDir(null);return (old==null?c.getFilesDir():old).getAbsolutePath();}
+        if(tree.isEmpty())return privateRoot(c);
         String key=key(tree);prefs().edit().putString("cache_tree_"+key,tree).apply();return PREFIX+key;
     }
     private static String key(String tree) {
@@ -60,6 +60,16 @@ public final class CacheFolders {
         Uri made=DocumentsContract.createDocument(context.getContentResolver(),parent,mime(physical),physical);
         if(made==null)throw new IOException("Cannot create cache file");index.files.put(name,made);return made;
     }
+    static void cleanupVideoFolder(File f) throws IOException {
+        String id=videoId(relative(f));if(id==null)return;
+        Uri tree=tree(f),root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
+        for(Entry e:children(root,tree))if(id.equals(e.name)&&DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime)){
+            List<Entry> remaining=children(e.uri,tree);
+            for(Entry child:remaining)if(!".nomedia".equals(child.name))return;
+            if(DocumentsContract.deleteDocument(context.getContentResolver(),e.uri))synchronized(CacheFolders.class){indexes.remove(tree.toString());}
+            return;
+        }
+    }
     static String videoId(String name){java.util.regex.Matcher m=java.util.regex.Pattern.compile("^((?:sm|so|nm|ss)[0-9]+)(?:[._].*)?$").matcher(name);return m.matches()?m.group(1):null;}
     static String physicalName(String name){return videoId(name)!=null&&name.endsWith(".mp4")?name.substring(0,name.length()-4)+".complete":name;}
     static List<Entry> cacheChildren(Uri parent,Uri tree)throws IOException{LinkedHashMap<String,Entry> result=new LinkedHashMap<>();List<Entry> all=children(parent,tree);
@@ -90,7 +100,7 @@ public final class CacheFolders {
     static ParcelFileDescriptor open(File f,boolean write,boolean append) throws FileNotFoundException {
         try {
             if(!virtual(f)){
-                if(write&&f.getAbsolutePath().contains("/nicoid/nicoid_cache/")&&prefs().getString(KEY,"").isEmpty())throw new IOException("Select a cache folder in settings");
+                if(write){File parent=f.getParentFile();if(parent!=null&&!parent.isDirectory()&&!parent.mkdirs())throw new IOException("Cannot create cache directory");}
                 return ParcelFileDescriptor.open(f,write?ParcelFileDescriptor.MODE_WRITE_ONLY|ParcelFileDescriptor.MODE_CREATE|(append?ParcelFileDescriptor.MODE_APPEND:ParcelFileDescriptor.MODE_TRUNCATE):ParcelFileDescriptor.MODE_READ_ONLY);
             }
             Uri uri=document(f,write);if(uri==null)throw new IOException("Missing cached file");ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,write?(append?"wa":"wt"):"r");if(fd==null)throw new IOException("Cannot open cached file");return fd;
@@ -99,29 +109,59 @@ public final class CacheFolders {
     public static void settings(PreferenceActivity a) {
         init(a);Preference old=a.findPreference("cache_dir");
         if(old instanceof ListPreference){PreferenceGroup parent=parent(a.getPreferenceScreen(),old);if(parent!=null){Preference p=new Preference(a);p.setKey("cache_dir");p.setTitle(UiStrings.translate("キャッシュ保存先"));p.setOrder(old.getOrder());parent.removePreference(old);parent.addPreference(p);old=p;}}
-        if(old!=null){old.setOnPreferenceClickListener(p->{choose(a,null);return true;});summary(a);}
+        if(old!=null){old.setOnPreferenceClickListener(p->{location(a,null);return true;});summary(a);}
     }
     private static PreferenceGroup parent(PreferenceGroup group,Preference p){for(int i=0;i<group.getPreferenceCount();i++){Preference child=group.getPreference(i);if(child==p)return group;if(child instanceof PreferenceGroup){PreferenceGroup found=parent((PreferenceGroup)child,p);if(found!=null)return found;}}return null;}
     public static void summary(PreferenceActivity a) {
         init(a);Preference p=a.findPreference("cache_dir");if(p==null)return;String tree=prefs().getString(KEY,"");
-        String label=tree.isEmpty()?UiStrings.translate("未選択（推奨: Movies/nicoid）"):DocumentsContract.getTreeDocumentId(Uri.parse(tree));p.setSummary(UiStrings.translate("保存先: ")+label);
+        String label=tree.isEmpty()?UiStrings.translate("アプリ専用フォルダー（デフォルト）"):DocumentsContract.getTreeDocumentId(Uri.parse(tree));p.setSummary(UiStrings.translate("保存先: ")+label);
     }
     private static Activity activity(Context c){while(c instanceof ContextWrapper){if(c instanceof Activity)return (Activity)c;Context next=((ContextWrapper)c).getBaseContext();if(next==c)break;c=next;}return c instanceof Activity?(Activity)c:null;}
-    private static boolean ready(){try{String s=prefs().getString(KEY,"");if(s.isEmpty())return false;Uri tree=Uri.parse(s);Uri root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));children(root,tree);return true;}catch(Exception e){return false;}}
+    private static boolean ready(){try{String s=prefs().getString(KEY,"");if(s.isEmpty()){File folder=new File(privateRoot(context),"nicoid/nicoid_cache");return (folder.isDirectory()||folder.mkdirs())&&folder.canWrite();}Uri tree=Uri.parse(s);Uri root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));children(root,tree);return true;}catch(Exception e){return false;}}
     public static ComponentName startService(Context c,Intent intent) {return service(c,intent,false);}
     public static ComponentName startForegroundService(Context c,Intent intent) {return service(c,intent,true);}
     private static ComponentName service(Context c,Intent intent,boolean foreground) {
         init(c);ComponentName target=intent.getComponent();
         if(target!=null&&target.getClassName().equals("com.sauzask.nicoid.NicoidDownloadCache")&&!ready()){
-            Activity a=activity(c);if(a!=null)choose(a,new Intent(intent));else Toast.makeText(c,UiStrings.translate("設定でキャッシュ保存先を選択してください"),Toast.LENGTH_LONG).show();return null;
+            Activity a=activity(c);if(a!=null)location(a,new Intent(intent));else Toast.makeText(c,UiStrings.translate("設定でキャッシュ保存先を選択してください"),Toast.LENGTH_LONG).show();return null;
         }
         return foreground&&Build.VERSION.SDK_INT>=26?c.startForegroundService(intent):c.startService(intent);
     }
+    static void location(Activity a,Intent pending) {
+        init(a);
+        AlertDialog dialog=new AlertDialog.Builder(PlaybackSession.dialogContext(a))
+            .setTitle(UiStrings.translate("キャッシュ保存先"))
+            .setSingleChoiceItems(new String[]{UiStrings.translate("アプリ専用フォルダー（デフォルト）"),UiStrings.translate("共有ストレージ・SDカードのフォルダーを選択")},prefs().getString(KEY,"").isEmpty()?0:1,(d,which)->{
+                d.dismiss();
+                if(which==1){choose(a,pending);return;}
+                String before=prefs().getString(KEY,"");
+                if(!prefs().edit().remove(KEY).commit()||!ready()){
+                    prefs().edit().putString(KEY,before).commit();
+                    Toast.makeText(a,UiStrings.translate("保存先を使用できません。別のフォルダーを選択してください"),Toast.LENGTH_LONG).show();return;
+                }
+                if(a instanceof PreferenceActivity)summary((PreferenceActivity)a);
+                if(pending!=null)service(a,pending,Build.VERSION.SDK_INT>=26);
+                if(!before.isEmpty())offerCopy(a,before);
+            }).setNegativeButton(UiStrings.translate("キャンセル"),null).create();
+        dialog.show();UiDialogs.style(dialog);
+    }
     static void choose(Activity a,Intent pending) {
-        if(a.isFinishing())return;android.app.Fragment existing=a.getFragmentManager().findFragmentByTag("cache-folder-picker");
-        Picker p=existing instanceof Picker?(Picker)existing:new Picker();p.pending=pending;
-        if(existing==null)a.getFragmentManager().beginTransaction().add(p,"cache-folder-picker").commit();
-        a.getFragmentManager().executePendingTransactions();p.pick();
+        // Defer until the current click/fragment callback has finished.
+        MAIN.post(()->{
+            if(a.isFinishing()||a.isDestroyed())return;
+            android.app.FragmentManager manager=a.getFragmentManager();
+            if(Build.VERSION.SDK_INT>=26&&manager.isStateSaved()){
+                Toast.makeText(a,UiStrings.translate("設定でキャッシュ保存先を選択してください"),Toast.LENGTH_LONG).show();return;
+            }
+            try{
+                android.app.Fragment existing=manager.findFragmentByTag("cache-folder-picker");
+                Picker p=existing instanceof Picker?(Picker)existing:new Picker();p.pending=pending;
+                if(existing==null)manager.beginTransaction().add(p,"cache-folder-picker").commit();
+                manager.executePendingTransactions();p.pick();
+            }catch(IllegalStateException e){
+                Toast.makeText(a,UiStrings.translate("設定でキャッシュ保存先を選択してください"),Toast.LENGTH_LONG).show();
+            }
+        });
     }
     public static final class Picker extends android.app.Fragment {
         Intent pending;boolean picking;
@@ -147,7 +187,7 @@ public final class CacheFolders {
         }
     }
     static void offerCopy(Activity a,String previous) {
-        File old=previous.isEmpty()?new File(a.getExternalFilesDir(null),"nicoid/nicoid_cache"):new CacheFile(PREFIX+key(previous)+SUFFIX);
+        File old=previous.isEmpty()?new File(privateRoot(a),"nicoid/nicoid_cache"):new CacheFile(PREFIX+key(previous)+SUFFIX);
         AlertDialog dialog=new AlertDialog.Builder(PlaybackSession.dialogContext(a)).setTitle(UiStrings.translate("既存キャッシュをコピー"))
             .setMessage(UiStrings.translate("以前の保存先からコピーします。元のファイルは削除しません"))
             .setPositiveButton(UiStrings.translate("コピー"),(d,w)->copy(a,old))

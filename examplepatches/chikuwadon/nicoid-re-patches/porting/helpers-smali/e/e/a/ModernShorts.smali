@@ -659,6 +659,15 @@
 .method public static attach(Landroid/app/Activity;)V
     .registers 9
 
+    invoke-virtual {p0}, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+    move-result-object v0
+    const-string v1, "nicoid_disable_shorts"
+    const/4 v2, 0x0
+    invoke-virtual {v0, v1, v2}, Landroid/content/Intent;->getBooleanExtra(Ljava/lang/String;Z)Z
+    move-result v0
+    if-eqz v0, :review_attach
+    return-void
+    :review_attach
     .line 421
     invoke-virtual {p0}, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
 
@@ -3182,6 +3191,7 @@
     invoke-virtual {v0}, Landroid/widget/Toast;->show()V
 
     .line 511
+    invoke-static/range {p0 .. p0}, Le/e/a/Review181;->shortOverlay(Landroid/app/Activity;)V
     return-void
 
     .line 434
@@ -3785,50 +3795,40 @@
 .end method
 
 .method static synthetic lambda$install$19(Landroid/app/Activity;Le/e/a/ModernShorts$State;Landroid/widget/LinearLayout;)Z
-    .registers 4
+    .registers 6
 
-    .line 489
     const-string v0, "controller"
-
     invoke-static {p0, v0}, Le/e/a/ModernShorts;->find(Landroid/app/Activity;Ljava/lang/String;)Landroid/view/View;
-
-    move-result-object p0
-
-    .line 490
+    move-result-object v0
+    const/16 v1, 0x8
+    const/high16 v2, 0x3f800000
+    if-eqz v0, :sync_controls
+    invoke-virtual {v0}, Landroid/view/View;->getAlpha()F
+    move-result v2
     iget-boolean p1, p1, Le/e/a/ModernShorts$State;->controlsTapped:Z
-
-    if-eqz p1, :cond_14
-
-    if-eqz p0, :cond_14
-
-    invoke-virtual {p0}, Landroid/view/View;->isShown()Z
-
-    move-result p0
-
-    if-eqz p0, :cond_14
-
-    const/4 p0, 0x0
-
-    goto :goto_16
-
-    :cond_14
-    const/16 p0, 0x8
-
-    .line 491
-    :goto_16
-    invoke-virtual {p2}, Landroid/widget/LinearLayout;->getVisibility()I
-
+    if-eqz p1, :sync_controls
+    invoke-virtual {v0}, Landroid/view/View;->isShown()Z
     move-result p1
+    if-eqz p1, :sync_controls
+    const/4 v1, 0x0
 
-    if-eq p1, p0, :cond_1f
+    :sync_controls
+    invoke-virtual {p2}, Landroid/widget/LinearLayout;->getVisibility()I
+    move-result p1
+    if-eq p1, v1, :sync_alpha
+    invoke-virtual {p2, v1}, Landroid/widget/LinearLayout;->setVisibility(I)V
 
-    invoke-virtual {p2, p0}, Landroid/widget/LinearLayout;->setVisibility(I)V
+    :sync_alpha
+    invoke-virtual {p2}, Landroid/widget/LinearLayout;->getAlpha()F
+    move-result p1
+    cmpl-float p1, p1, v2
+    if-eqz p1, :sync_metadata
+    invoke-virtual {p2, v2}, Landroid/widget/LinearLayout;->setAlpha(F)V
 
-    .line 492
-    :cond_1f
-    const/4 p0, 0x1
-
-    return p0
+    :sync_metadata
+    invoke-static {p0, v1, v2}, Le/e/a/Review181;->shortControls(Landroid/app/Activity;IF)V
+    const/4 v0, 0x1
+    return v0
 .end method
 
 .method static synthetic lambda$install$20(Le/e/a/ModernShorts$State;Landroid/app/Activity;Landroid/view/View;Landroid/view/View;)V

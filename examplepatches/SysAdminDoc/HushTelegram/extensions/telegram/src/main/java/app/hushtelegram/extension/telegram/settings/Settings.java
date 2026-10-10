@@ -287,6 +287,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting ASK_BEFORE_STICKER =
             new BooleanSetting("hushtelegram_ask_before_sticker", FALSE);
 
+    /**
+     * Telegram Beta stops writing the debug logs its DEBUG_VERSION build forces on, in Java and in
+     * native code. Off by default, since a beta's logs are what Telegram asks testers for in a bug
+     * report.
+     */
+    public static final BooleanSetting BETA_LOGS_OFF =
+            new BooleanSetting("hushtelegram_beta_logs_off", FALSE, true);
+
     /** A GIF you tap asks Send or Cancel before it goes into the chat. */
     public static final BooleanSetting ASK_BEFORE_GIF =
             new BooleanSetting("hushtelegram_ask_before_gif", FALSE);

@@ -87,6 +87,7 @@ public final class SettingsStatus {
     public static boolean messageMenuRepeat() { return false; }
     public static boolean keepDeleted() { return false; }
     public static boolean askBeforeSending() { return false; }
+    public static boolean betaLogsOff() { return false; }
     public static boolean storyRequests() { return false; }
     public static boolean storyBar() { return false; }
     public static boolean storyCamera() { return false; }
@@ -149,4 +150,6 @@ public final class SettingsStatus {
     public static boolean premiumPromoTap() { return false; }
     public static boolean premiumPromoAccept() { return false; }
     public static boolean premiumPromoFail() { return false; }
+    public static boolean crashReports() { return false; }
+    public static boolean sessionReports() { return false; }
 }

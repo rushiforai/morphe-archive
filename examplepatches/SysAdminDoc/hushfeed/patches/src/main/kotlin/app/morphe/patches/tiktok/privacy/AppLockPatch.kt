@@ -47,12 +47,9 @@ internal fun appLockInstallIndex(method: Method): Int {
 @Suppress("unused")
 val appLockPatch = bytecodePatch(
     name = "App lock",
-    description = "Puts TikTok behind your phone's own unlock, so a fingerprint or the screen lock " +
-        "PIN opens it. It asks when TikTok starts and when you come back after a time you pick, " +
-        "before anything shows. A link you open from another app still goes to its video once you " +
-        "unlock, and TikTok's preview in recent apps stays blank while the lock is on. On a phone " +
-        "with no screen lock, TikTok opens as before and says why. Switch: Hushfeed settings > Privacy.",
-    default = false,
+    description = "Asks for your fingerprint, face or PIN before TikTok opens, and again when " +
+        "you come back after a time you pick, so nobody else can open it on your phone. Starts " +
+        "off. Turn it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     // The bridge lets the lock stop the video on screen, which plays on under the prompt.

@@ -12,6 +12,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.feedsheader.FEED_FILTERS_FRAGMENT
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
+import app.morphe.patches.facebook.shared.MOBILE_CONFIG
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction

@@ -5,6 +5,7 @@
 package app.morphe.extension.facebook.misc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -13,6 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,12 @@ public class ScreenshotsTest {
     private static final int SECURE = WindowManager.LayoutParams.FLAG_SECURE;
     private static final int KEEP_ON = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.ALLOW_SCREENSHOTS.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -64,8 +72,8 @@ public class ScreenshotsTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndTakesOnlyTheSecureFlagOut() {
-        assertTrue("the switch starts on", Settings.ALLOW_SCREENSHOTS.get());
+    public void theSwitchStartsOffAndOnTakesOnlyTheSecureFlagOut() {
+        assertFalse("the switch starts off", Settings.ALLOW_SCREENSHOTS.defaultValue);
         Window added = window();
         Screenshots.addFlags(added, SECURE | KEEP_ON);
         assertEquals(KEEP_ON, flags(added) & (SECURE | KEEP_ON));
@@ -91,6 +99,36 @@ public class ScreenshotsTest {
                 .contains(FamilyNames.SCREENSHOTS + ": invoked"));
     }
 
+    /** A secure flag the window got earlier comes out on its next flags call, whatever that call asks. */
+    @Test
+    public void anEarlierSecureFlagComesOutOnTheNextCall() {
+        Window added = window();
+        added.addFlags(SECURE);
+        Screenshots.addFlags(added, KEEP_ON);
+        assertEquals(KEEP_ON, flags(added) & (SECURE | KEEP_ON));
+        Window set = window();
+        set.addFlags(SECURE | KEEP_ON);
+        Screenshots.setFlags(set, 0, KEEP_ON);
+        assertEquals(0, flags(set) & (SECURE | KEEP_ON));
+        assertEquals(Screenshots.ROUTE + ": 2 lists, 2 items, 2 removed. Last reason: earlier secure flag."
+                + " Removed: earlier secure flag 2", counterLine());
+    }
+
+    /** Off or paused, an earlier secure flag stays and isn't counted. */
+    @Test
+    public void offOrPausedAnEarlierSecureFlagStays() {
+        Settings.ALLOW_SCREENSHOTS.save(false);
+        Window off = window();
+        off.addFlags(SECURE);
+        Screenshots.addFlags(off, KEEP_ON);
+        assertEquals(SECURE | KEEP_ON, flags(off) & (SECURE | KEEP_ON));
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        Screenshots.setFlags(off, 0, KEEP_ON);
+        assertEquals(SECURE, flags(off) & (SECURE | KEEP_ON));
+        assertNull(counterLine());
+    }
+
     @Test
     public void offOrPausedTheWindowStaysSecure() {
         Settings.ALLOW_SCREENSHOTS.save(false);
@@ -98,7 +136,7 @@ public class ScreenshotsTest {
         Screenshots.addFlags(off, SECURE);
         assertEquals(SECURE, flags(off) & SECURE);
         assertEquals(Screenshots.ROUTE + ": 1 lists, 1 items, 0 removed", counterLine());
-        Settings.ALLOW_SCREENSHOTS.resetToDefault();
+        Settings.ALLOW_SCREENSHOTS.save(true);
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         assertEquals(SECURE, Screenshots.layoutFlags(SECURE));
         PauseForTests.resume();

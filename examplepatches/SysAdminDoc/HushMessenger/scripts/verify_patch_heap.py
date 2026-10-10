@@ -14,10 +14,12 @@ from pathlib import Path
 from zipfile import BadZipFile, ZipFile
 
 if __package__:
-    from .check_release import mutable_output, verify_development
+    from .build_queue import queued, time_limit
+    from .check_release import mutable_output, run_bounded, verify_development
     from .verify_changed_apk_failure import recorded_builds
 else:
-    from check_release import mutable_output, verify_development
+    from build_queue import queued, time_limit
+    from check_release import mutable_output, run_bounded, verify_development
     from verify_changed_apk_failure import recorded_builds
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,23 +53,25 @@ def check_build(args, code, expected_hash, names):
             raise ValueError(f"{code}: stock APK does not match its recorded hash")
     if hashlib.sha256(args.bundle.read_bytes()).hexdigest() != args.bundle_sha256:
         raise ValueError(f"{code}: frozen bundle checksum changed")
-    discovery = subprocess.run(
-        [
-            str(args.java),
-            "-Xmx1024m",
-            "-XX:ActiveProcessorCount=2",
-            "-cp",
-            args.compat_classpath,
-            str(ROOT / "scripts" / "CompatReport.java"),
-            str(stock),
-        ],
+    discovery = run_bounded(
+        queued(
+            [
+                str(args.java),
+                "-Xmx1024m",
+                "-XX:ActiveProcessorCount=2",
+                "-cp",
+                args.compat_classpath,
+                str(ROOT / "scripts" / "CompatReport.java"),
+                str(stock),
+            ],
+            f"hushmessenger compat report {code}",
+        ),
         cwd=ROOT,
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
-        timeout=300,
-        check=False,
+        timeout=time_limit(300),
     )
     found = discovery.stdout + discovery.stderr
     surfaces = re.search(r"(\d+) dark surface constants", found)
@@ -97,14 +101,13 @@ def check_build(args, code, expected_hash, names):
             *[f"--enable={name}" for name in sorted(names)],
             str(stock),
         ]
-        run = subprocess.run(
-            command,
+        run = run_bounded(
+            queued(command, f"hushmessenger heap patch {code}"),
             capture_output=True,
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=1800,
-            check=False,
+            timeout=time_limit(1800),
         )
         log = run.stdout + run.stderr
         if run.returncode or not report_path.is_file() or not output.is_file():

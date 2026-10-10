@@ -1,0 +1,20 @@
+diff --git a/src/whisper.cpp b/src/whisper.cpp
+index dd8bd93..74b6c84 100644
+--- a/src/whisper.cpp
++++ b/src/whisper.cpp
+@@ -2404,6 +2404,15 @@ static bool whisper_encode_internal(
+                    void * abort_callback_data) {
+     const int64_t t_start_us = ggml_time_us();
+ 
++    // With flash attention the encoder (kv_pad) and the decoder cross-attention (kv_cross) attend
++    // over GGML_PAD(n_ctx, 256) positions without a mask, relying on the padding being zero as in
++    // a fresh state. After a run with a larger audio_ctx it holds that run's keys/values, which
++    // corrupt the transcript, so reset both caches whenever audio_ctx is set.
++    if (wctx.params.flash_attn && wstate.exp_n_audio_ctx > 0) {
++        ggml_backend_buffer_clear(wstate.kv_pad.buffer, 0);
++        ggml_backend_buffer_clear(wstate.kv_cross.buffer, 0);
++    }
++
+     // conv
+     {
+         auto & sched = wstate.sched_conv.sched;

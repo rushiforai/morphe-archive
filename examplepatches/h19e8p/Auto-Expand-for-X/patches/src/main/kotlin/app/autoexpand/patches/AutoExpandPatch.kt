@@ -118,7 +118,8 @@ private object ListItemsLoadedFingerprint : Fingerprint(
         ),
 )
 
-// タイムラインのカーソルの全行を、読み込みのスレッドで、項目になる前に一度ずつ読む所。
+// タイムラインのカーソルを、読み込みのスレッドで、項目になる前に先頭から順に読む所。
+// ループの1周で項目1つ分を読み、同じまとまりに属す続きの行は先読みして飛ばす。
 private object TimelineRowsReadFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(),
@@ -126,6 +127,14 @@ private object TimelineRowsReadFingerprint : Fingerprint(
 )
 
 private val logger = Logger.getLogger("AutoExpandPatch")
+
+/** バンドルの版。ビルドの時にリソースに埋め込まれる。拡張が診断ログに書く。 */
+private val bundleVersion: String =
+    AppCreatedFingerprint.javaClass
+        .getResourceAsStream("/app/autoexpand/patches/autoexpand-version.txt")
+        ?.bufferedReader()
+        ?.use { it.readText().trim() }
+        ?: "?"
 
 /**
  * パッチの管理アプリ (Manager) が動いている端末の言語に合わせて、文章を選ぶ。Manager は
@@ -140,30 +149,39 @@ val autoExpandPatch =
         name = "Auto expand hidden posts (standalone)",
         description =
             text(
-                "「ポストをさらに表示」の中身をタイムラインの読み込み時に裏で取得し、ボタンを非表示にします。",
-                "Fetches the posts behind \"Show more posts\" in the background as a timeline loads, and hides the button.",
+                "「ポストをさらに表示」の中身を、画面に出る前に裏で読み込み、ボタンを非表示にします。" +
+                    "裏で読み込まなかったボタンは、画面に来た時に自動でタップします。",
+                "Loads the posts behind \"Show more posts\" in the background before the button appears, and hides it. " +
+                    "Any button not loaded in the background is tapped automatically when it comes on screen.",
             ),
     ) {
+        // Manager はこの順に並べる。主な機能を上、診断用を下にする。どれも「オンで機能が増える」向きにする。
+        val backgroundFetch by booleanOption(
+            key = "backgroundFetch",
+            default = true,
+            title = text("画面に出る前に裏で読み込む", "Load in the background before it appears"),
+            description =
+                text(
+                    "タイムラインを開いた時に、ボタンの先のポストを裏で読み込みます。" +
+                        "オフにすると、ボタンが画面に来た時の自動タップだけで読み込みます。",
+                    "Loads the posts behind the button in the background when a timeline opens. " +
+                        "When off, posts are loaded only by tapping the button automatically when it comes on screen.",
+                ),
+        )
         val hideGaps by booleanOption(
             key = "hideGaps",
             default = true,
             title = text("「ポストをさらに表示」を隠す", "Hide \"Show more posts\""),
             description =
                 text(
-                    "X は読み込むものが無くなってもボタンを残すため、裏での取得が動いている時はボタンを非表示にします。",
-                    "X keeps the button even when nothing is left to load, so it is hidden while background loading runs.",
-                ),
-        )
-        val logToFile by booleanOption(
-            key = "logToFile",
-            default = false,
-            title = text("診断ログを記録する", "Record a diagnostic log"),
-            description =
-                text(
-                    "ギャップの処理内容を Download/AutoExpand/AutoExpand-Log.txt に追記します。" +
-                        "X を入れ直した後は AutoExpand-Log-2.txt のように番号の付いたファイルに書きます。",
-                    "Adds what is done with each gap to Download/AutoExpand/AutoExpand-Log.txt. " +
-                        "Once X is installed again, it writes to a numbered file such as AutoExpand-Log-2.txt.",
+                    "読み込みが始まったボタンと、読み込み済みと記録したボタンを非表示にします。" +
+                        "記録は X のアプリ内の /data/data/com.twitter.android/shared_prefs/autoexpand.xml に保存し、" +
+                        "隠すかどうかに関係なく、同じボタンを読み込み直さないためにも使います。" +
+                        "オフにすると、読み込みは同じように行い、ボタンは残します。",
+                    "Hides the button once loading of its posts has started, and buttons recorded as already loaded. " +
+                        "The record is kept inside X at /data/data/com.twitter.android/shared_prefs/autoexpand.xml and, " +
+                        "whether or not this is on, is also used to avoid loading the same button again. " +
+                        "When off, posts are loaded the same way and the button stays.",
                 ),
         )
         val showToasts by booleanOption(
@@ -177,16 +195,16 @@ val autoExpandPatch =
                         "or when an automatic tap loads posts.",
                 ),
         )
-        val tapOnly by booleanOption(
-            key = "tapOnly",
+        val logToFile by booleanOption(
+            key = "logToFile",
             default = false,
-            title = text("裏での取得を使わず、自動タップだけにする", "Tap only, without background loading"),
+            title = text("診断ログを記録する", "Record a diagnostic log"),
             description =
                 text(
-                    "裏での取得に問題がある時の予備です。ボタンの行が画面の端に入った時点で自動でタップし、" +
-                        "読み込みが始まったのを確かめてから隠します。",
-                    "A fallback for when background loading has trouble. The button is tapped as soon as its row " +
-                        "reaches the edge of the screen, and hidden once loading has started.",
+                    "ギャップの処理内容を Download/AutoExpand/AutoExpand-Log.txt に英語で追記します。" +
+                        "X を入れ直した後は AutoExpand-Log-2.txt のように番号の付いたファイルに書きます。",
+                    "Adds what is done with each gap to Download/AutoExpand/AutoExpand-Log.txt, in English. " +
+                        "Once X is installed again, it writes to a numbered file such as AutoExpand-Log-2.txt.",
                 ),
         )
 
@@ -194,10 +212,11 @@ val autoExpandPatch =
         extendWith("extensions/autoexpand.mpe")
 
         execute {
+            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:backgroundFetch", (backgroundFetch != false).toString())
             setPlaceholder(CURSOR_CLASS, "autoexpand:opt:hideGaps", (hideGaps == true).toString())
-            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:logToFile", (logToFile == true).toString())
             setPlaceholder(CURSOR_CLASS, "autoexpand:opt:showToasts", (showToasts == true).toString())
-            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:tapOnly", (tapOnly == true).toString())
+            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:logToFile", (logToFile == true).toString())
+            setPlaceholder(CURSOR_CLASS, "autoexpand:info:patchVersion", bundleVersion)
 
             // ギャップの部品が無いと何もできないので、これだけは必ず見つかる必要がある。
             val gapView =
@@ -214,8 +233,9 @@ val autoExpandPatch =
                 method.addInstruction(returnIndex, "invoke-static {$registers}, $CURSOR_CLASS->$callback")
             }
 
-            // これが無いと、一覧から外れて戻ってきた行を別のギャップとみなす。タップが
-            // 1回無駄になるが、何かを隠してしまうことはない。
+            // これが無いと、行にどのギャップが入っているかが分からない。裏の取得が動いている時は
+            // すべてのギャップを畳み (裏で取得しなかったものも拾えない)、自動タップの時は、一覧から
+            // 外れて戻ってきた行を別のギャップとみなす。
             try {
                 hookGapBind()
             } catch (ex: Exception) {
@@ -431,7 +451,8 @@ private fun BytecodePatchContext.hookGapFill() {
                     it.definingClass == typeColumn.definingClass && it.name == typeColumn.name
                 } == true
         }
-    // 位置は読んだ回数を数えて出すので、この列は1行につきちょうど1回読まれる必要がある。
+    // 位置は読んだ回数を数えて出すので、この列はループの1周につきちょうど1回読まれる必要がある。
+    // 先読みで飛ばす続きの行では読まれないので、数えた位置は行の番号ではなく項目の番号になる。
     val typeRead = typeReads.singleOrNull() ?: return skip("row type read ${typeReads.size} times")
     val columnRegister = (rowCode[typeRead] as? OneRegisterInstruction)?.registerA ?: return skip("row type column register")
     val getIntIndex =

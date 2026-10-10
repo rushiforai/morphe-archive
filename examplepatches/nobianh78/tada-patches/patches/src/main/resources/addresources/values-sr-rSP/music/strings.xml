@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- app.tada.patches.music.interaction.jam -->
+  <string name="tada_music_jam_update_host_controls">Ажурирај Jam патч хоста да користи паузу и наставак</string>
+  <string name="tada_music_jam_probe_title">Дељење Jam реда</string>
+  <string name="tada_music_jam_probe_summary">Будите домаћин или се придружите оближњем Jam-у и уређујте његов редослед песама преко Jam Layer-а</string>
+  <string name="tada_music_jam_enabled_title">Омогућите дељење Jam реда</string>
+  <string name="tada_music_jam_enabled_summary">Омогућава интеграцију са Jam-ом након поновног покретања YouTube Music-а</string>
+  <string name="tada_music_jam_download_title">Преузмите Jam Layer да би радио</string>
+  <string name="tada_music_jam_download_summary">Отворите најновије издање Jam Layer-а у прегледачу</string>
+  <string name="tada_music_jam_controls_title">Jam контроле</string>
+  <string name="tada_music_jam_controls_summary">Будите домаћин или се придружите оближњем Jam-у и управљајте сесијом</string>
+  <string name="tada_music_jam_companion_package_title">Пакет Jam Layer-а</string>
+  <string name="tada_music_jam_companion_package_summary">Изаберите инсталирану пратећу апликацију која се користи за дељење редоследа песама са оближњим уређајима</string>
+  <string name="tada_music_jam_package_message">Користите инсталирани пратећи пакет. Упаривање захтева ваше одобрење и локални токен могућности</string>
+  <string name="tada_music_jam_wifi_title">Укључите Wi-Fi?</string>
+  <string name="tada_music_jam_wifi_message">Укључите Wi-Fi, па покушајте поново да покренете или се придружите Jam-у</string>
+  <string name="tada_music_jam_wifi_settings">Отворите подешавања Wi-Fi-ја</string>
+  <string name="tada_music_jam_cancel">Откажи</string>
+  <string name="tada_music_jam_use_package">Користите пакет</string>
+  <string name="tada_music_jam_invalid_package">Унесите важећи назив Android пакета</string>
+  <string name="tada_music_jam_package_saved">Пакет је сачуван. Подесите Jam Layer за повезивање</string>
+  <string name="tada_music_jam_disconnected">Jam веза је прекинута</string>
+  <string name="tada_music_jam_enable_layer_first">Прво омогућите Jam Layer</string>
+  <string name="tada_music_jam_enable_patch_first">Омогућите дељење Jam реда у подешавањима, па поново покрените YouTube Music</string>
+  <string name="tada_music_jam_install_layer_first">Прво инсталирајте изабрани пакет Jam Layer-а</string>
+  <string name="tada_music_jam_join_hint">Унесите код приказан на уређају домаћина. Wi-Fi Aware може да повеже оближње уређаје чак и када су им локалне мреже различите</string>
+  <string name="tada_music_jam_join_with_code">Придружите се помоћу кода</string>
+  <string name="tada_music_jam_join">Придружите се</string>
+  <string name="tada_music_jam_scan_qr">Скенирајте QR</string>
+  <string name="tada_music_jam_invalid_invite">Унесите код од осам знакова или налепите позивницу</string>
+  <string name="tada_music_jam_join_your_jam">Придружите се свом Jam-у</string>
+  <string name="tada_music_jam_copy_code">Копирајте код</string>
+  <string name="tada_music_jam_code_clip">Jam код</string>
+  <string name="tada_music_jam_show_qr">Прикажите QR</string>
+  <string name="tada_music_jam_done">Готово</string>
+  <string name="tada_music_jam_invite_title">Позовите у свој Jam</string>
+  <string name="tada_music_jam_invite_message">Скенирајте да се придружите и уређујете овај ред. Завршетак Jam-а опозива позивницу.</string>
+  <string name="tada_music_jam_copy_link">Копирајте везу</string>
+  <string name="tada_music_jam_invitation_clip">Jam позивница</string>
+  <string name="tada_music_jam_reconnecting_toast">Jam се поново повезује; покушајте поново убрзо</string>
+  <string name="tada_music_jam_added_to_jam">Додато у Jam</string>
+  <string name="tada_music_jam_unavailable_toast">Jam није доступан; нумера није додата</string>
+  <string name="tada_music_jam_your_jam">Ваш Jam</string>
+  <string name="tada_music_jam_listening_together">Слушање заједно</string>
+  <string name="tada_music_jam_joining_jam">Придруживање Jam-у</string>
+  <string name="tada_music_jam_listen_together">Слушајте заједно</string>
+  <string name="tada_music_jam_updating">Ажурирање Jam-а…</string>
+  <string name="tada_music_jam_finding_host">Проналажење вашег домаћина на Wi-Fi-ју…</string>
+  <string name="tada_music_jam_waiting_people">Чекање на учеснике</string>
+  <string name="tada_music_jam_one_connected">Повезана је %d особа</string>
+  <string name="tada_music_jam_many_connected">Повезано је %d људи</string>
+  <string name="tada_music_jam_code_expires">Унесите овај код на уређај у близини. Wi-Fi Aware функционише преко одвојених LAN мрежа када је подржан. Истиче за %d минута.</string>
+  <string name="tada_music_jam_seek_to">Премотајте на %s?</string>
+  <string name="tada_music_jam_edits_open">Уређивање је отворено</string>
+  <string name="tada_music_jam_edits_locked">Уређивање је закључано</string>
+  <string name="tada_music_jam_connected_aware">Повезано преко Wi-Fi Aware-а</string>
+  <string name="tada_music_jam_connected_wifi">Повезано преко Wi-Fi-ја</string>
+  <string name="tada_music_jam_connected_bluetooth">Повезано преко Bluetooth-а</string>
+  <string name="tada_music_jam_unsupported">Није подржано током Jam-а</string>
+  <string name="tada_music_jam_cancelled">Придруживање је отказано</string>
+  <string name="tada_music_jam_reconnecting_host">Поновно повезивање са вашим домаћином…</string>
+  <string name="tada_music_jam_share_prompt">Делите ред. Дозволите свима да додају песме.</string>
+  <string name="tada_music_jam_invite_people">Позовите људе</string>
+  <string name="tada_music_jam_guest_edits">Гости могу да уређују ред</string>
+  <string name="tada_music_jam_end_jam">Завршите Jam</string>
+  <string name="tada_music_jam_participant_help">Домаћин пушта музику. Додајте, премештајте или уклањајте песме директно у YouTube Music реду.</string>
+  <string name="tada_music_jam_joining_help">Држите оба уређаја у близини. Можете да откажете док тражимо домаћина.</string>
+  <string name="tada_music_jam_cancel_joining">Откажите придруживање</string>
+  <string name="tada_music_jam_leave_jam">Напустите Jam</string>
+  <string name="tada_music_jam_start_jam">Покрените Jam</string>
+  <string name="tada_music_jam_setup_layer">Подесите Jam Layer</string>
+  <string name="tada_music_jam_manage">Управљајте</string>
+  <string name="tada_music_jam_details">Детаљи</string>
+  <string name="tada_music_jam_open">Отворите</string>
+  <string name="tada_music_jam_loading_song_options">Учитавање опција за песму…</string>
+  <string name="tada_music_jam_song_options_unavailable">Опције за песму нису доступне; покушајте поново</string>
+  <string name="tada_music_jam_song_options_failed">Није могуће отворити опције песме</string>
+  <string name="tada_music_jam_no_browser">Нема доступног прегледача за преузимање Jam Layer-а</string>
+  <string name="tada_music_jam_waiting_host_queue">Чекање на ред домаћина</string>
+  <string name="tada_music_jam_open_song_first">Прво отворите песму у YouTube Music-у</string>
+  <string name="tada_music_jam_play_on_host">Пустите на домаћину</string>
+  <string name="tada_music_jam_quit_and_play">Напустите Jam и пустите локално</string>
+  <string name="tada_music_jam_play_next">Пустите следећу у Jam-у</string>
+  <string name="tada_music_jam_add_to_queue">Додајте у Jam ред</string>
+  <string name="tada_music_jam_play_track">Пустите ову Jam нумеру</string>
+  <string name="tada_music_jam_choose_playback">Изаберите где ће се пуштати</string>
+  <string name="tada_music_jam_move_host_here">Преместите домаћина овде</string>
+  <string name="tada_music_jam_seek_not_ready">Песма није постала спремна за премотавање</string>
+  <string name="tada_music_jam_queue_changed_gesture">Ред се променио; покушајте поново тај покрет</string>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="tada_header_logo_title">Логотип у заглављу</string>
+  <string name="tada_header_logo_entry_1">Подразумевани</string>
+  <string name="tada_header_logo_entry_3">Компюта</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="tada_music_play_album_songs_title">Репродукуј аудио нумере албума</string>
+  <!-- 'Spoof video streams' should match the language used in 'tada_spoof_video_streams_screen_title' -->
+  <string name="tada_music_play_album_songs_summary">Репродукуј само аудио верзије песама уместо музичког видеа. Захтева \'Лажирање видео стримова\'</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="tada_external_downloader_screen_summary">Преузмите музичке спотове, подкасте или песме помоћу апликација за преузимање података од трећих страна</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="tada_external_downloader_action_button_title">Замени дугме „Преузми”</string>
+  <string name="tada_external_downloader_action_button_summary">Користи ваш изабрани спољни преузимач уместо стандардног дугмета за преузимање</string>
+  <string name="tada_external_downloader_flyout_menu_title">Замени мени „Преузми”</string>
+  <string name="tada_external_downloader_flyout_menu_summary">Користи ваш изабрани спољни преузимач уместо стандардног менија за преузимање</string>
+  <string name="tada_music_in_app_downloads_title">Преузимање у апликацији</string>
+  <string name="tada_music_in_app_downloads_summary">Преузима аудио унутар YouTube Music-а уместо отварања спољне апликације за преузимање</string>
+  <string name="tada_music_in_app_downloads_user_dialog_message">"Нумере се чувају у приватном складишту апликације и бришу се ако се YouTube Music деинсталира.
+
+Док је ово укључено, картица Преузимања приказује ове нумере уместо Music Premium офлајн библиотеке. Када се ово искључи, картица се враћа, а Premium преузимања никада неће бити дирнута."</string>
+  <string name="tada_music_downloads_screen_title">Преузимања</string>
+  <string name="tada_music_downloads_empty">"Нема преузимања
+Преузете нумере се појављују овде"</string>
+  <string name="tada_music_downloads_track_subtitle">%1$s • %2$s • %3$s MB</string>
+  <string name="tada_music_downloads_summary">%1$s нумера • %2$s MB</string>
+  <string name="tada_music_downloads_search_hint">Претражи преузимања</string>
+  <string name="tada_music_downloads_sort">Сортирај</string>
+  <string name="tada_music_downloads_sort_artist">Сортирај по извођачу</string>
+  <string name="tada_music_downloads_sort_title">Сортирај по називу</string>
+  <string name="tada_music_downloads_sort_size">Сортирај по величини</string>
+  <string name="tada_music_downloads_delete_all">Избриши сва преузимања</string>
+  <string name="tada_music_downloads_delete_all_title">Избриши сва преузимања?</string>
+  <string name="tada_music_downloads_delete_all_message">Све преузете нумере ће бити избрисане са овог уређаја</string>
+  <string name="tada_music_downloads_all_deleted">Преузимања су избрисана</string>
+  <string name="tada_music_downloads_nothing_found">Ништа није пронађено</string>
+  <string name="tada_music_downloads_actions_for">Радње за %s</string>
+  <string name="tada_music_downloads_play">Пусти</string>
+  <string name="tada_music_downloads_play_pause">Пусти или паузирај</string>
+  <string name="tada_music_downloads_previous">Претходна</string>
+  <string name="tada_music_downloads_next">Следећа</string>
+  <string name="tada_music_downloads_pause">Паузирај</string>
+  <string name="tada_music_downloads_close">Затвори</string>
+  <string name="tada_music_downloads_delete">Избриши</string>
+  <string name="tada_music_downloads_delete_track">Избриши преузимање</string>
+  <string name="tada_music_downloads_delete_track_title">Избриши преузимање?</string>
+  <string name="tada_music_downloads_delete_track_message">„%s“ ће бити избрисана са овог уређаја</string>
+  <string name="tada_music_downloads_track_deleted">Преузимање је избрисано</string>
+  <string name="tada_music_downloads_track_delete_failed">Брисање преузимања није успело</string>
+  <string name="tada_music_downloads_play_failed">Репродукција преузимања није успела</string>
+  <string name="tada_music_downloads_notification_channel">Аудио преузимања</string>
+  <string name="tada_music_downloads_playback_channel">Офлајн репродукција</string>
+  <string name="tada_music_downloads_unknown_track">Није могуће идентификовати нумеру за преузимање</string>
+  <string name="tada_music_downloads_already_running">Преузимање је већ у току</string>
+  <string name="tada_music_downloads_already_saved">Већ преузето</string>
+  <string name="tada_music_downloads_started">Преузимање је започето</string>
+  <string name="tada_music_downloads_starting">Покретање преузимања…</string>
+  <string name="tada_music_downloads_progress">Преузимање %s%%</string>
+  <string name="tada_music_downloads_complete">Преузимање је завршено</string>
+  <string name="tada_music_downloads_failed">Преузимање није успело</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About TADa" (i.e., About this app). -->
+  <string name="tada_settings_music_screen_0_about_title">О програму</string>
+  <string name="tada_settings_music_screen_1_ads_title">Огласи</string>
+  <string name="tada_settings_music_screen_2_feed_title">Фид</string>
+  <string name="tada_settings_music_screen_3_general_title">Опште</string>
+  <string name="tada_settings_music_screen_4_player_title">Плејер</string>
+  <string name="tada_settings_music_screen_5_lyrics_title">Текстови песама</string>
+  <string name="tada_settings_music_screen_9_misc_title">Разно</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="tada_music_hide_get_premium_label_title">Сакриј ознаку „Набавите Music Premium”</string>
+  <string name="tada_music_hide_music_premium_promotions_title">Сакриј промоције за Music Premium</string>
+  <string name="tada_music_hide_video_ads_title">Сакриј видео огласе</string>
+  <!-- layout.hide.general.hideLayoutComponentsPatch -->
+  <string name="tada_music_hide_audio_video_toggle_title">Сакриј преклопну функцију Аудио / Видео</string>
+  <string name="tada_music_hide_explore_shelf_title">Сакриј полицу „Прегледај“</string>
+  <string name="tada_music_hide_grid_shelves_title">Сакриј полице у мрежи</string>
+  <string name="tada_music_hide_horizontal_shelves_title">Сакриј хоризонталне полице</string>
+  <string name="tada_music_hide_list_shelves_title">Сакриј полице са листом</string>
+  <string name="tada_music_hide_lyrics_panel_category_title">Панел са текстовима</string>
+  <string name="tada_music_hide_lyrics_share_button_title">Сакриј дугме „Дели”</string>
+  <string name="tada_music_hide_lyrics_translate_button_title">Сакриј дугме „Преведи”</string>
+  <string name="tada_music_hide_new_from_shelf_title">Сакриј полицу „Ново“</string>
+  <string name="tada_music_hide_playlist_shelves_title">Сакриј полице плејлиста</string>
+  <string name="tada_music_hide_podcast_episode_download_button_title">Сакриј дугме за преузимање епизоде подкаста</string>
+  <string name="tada_music_hide_repeat_button_title">Сакриј дугме „Понови“</string>
+  <string name="tada_music_hide_shuffle_button_title">Сакриј дугме „Насумично“</string>
+  <string name="tada_music_hide_speed_dial_shelf_title">Сакриј полицу „Брзи бирач“</string>
+  <string name="tada_music_comments_screen_title">Коментари</string>
+  <string name="tada_music_comments_screen_summary">Изаберите које компоненте ће се појавити у одељку за коментаре</string>
+  <string name="tada_music_hide_comments_community_guidelines_title">Сакриј смернице заједнице</string>
+  <string name="tada_music_hide_comments_context_title">Сакриј поруку контекста</string>
+  <string name="tada_music_hide_comments_emoji_button_title">Сакриј дугме емоџија</string>
+  <string name="tada_music_hide_comments_info_button_title">Сакриј дугме Инфо</string>
+  <string name="tada_music_hide_comments_timestamp_button_title">Сакриј дугме са временом</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="tada_music_crossfade_screen_title">Прелазак са превлачењем</string>
+  <string name="tada_music_crossfade_screen_summary">Нежно спојите нумере једна у другу</string>
+  <string name="tada_music_crossfade_enabled_title">Омогући прелазак са превлачењем</string>
+  <string name="tada_music_crossfade_curve_title">Зависна крива</string>
+  <string name="tada_music_crossfade_curve_entry_equal_power">Равна подешавања</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_cubic">Суптилно задржавање</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_quad">Нежно олакшавање</string>
+  <string name="tada_music_crossfade_curve_entry_smoothstep">Глатки S-крива</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="tada_music_crossfade_curve_preview_outgoing">Одлазећи</string>
+  <string name="tada_music_crossfade_curve_preview_incoming">Долазећи</string>
+  <string name="tada_music_crossfade_duration_title">Трајање прелаза</string>
+  <string name="tada_crossfade_duration_250ms">250 милисекунди</string>
+  <string name="tada_crossfade_duration_500ms">500 милисекунди</string>
+  <string name="tada_crossfade_duration_750ms">750 милисекунди</string>
+  <string name="tada_crossfade_duration_1000ms">1 секунда</string>
+  <string name="tada_crossfade_duration_2000ms">2 секунде</string>
+  <string name="tada_crossfade_duration_3000ms">3 секунде</string>
+  <string name="tada_crossfade_duration_4000ms">4 секунде</string>
+  <string name="tada_crossfade_duration_5000ms">5 секунди</string>
+  <string name="tada_crossfade_duration_6000ms">6 секунди</string>
+  <string name="tada_crossfade_duration_7000ms">7 секунди</string>
+  <string name="tada_crossfade_duration_8000ms">8 секунди</string>
+  <string name="tada_crossfade_duration_9000ms">9 секунди</string>
+  <string name="tada_crossfade_duration_10000ms">10 секунди</string>
+  <string name="tada_crossfade_duration_11000ms">11 секунде</string>
+  <string name="tada_crossfade_duration_12000ms">12 секунде</string>
+  <string name="tada_music_crossfade_on_skip_title">Прелазак при ручном прескакивању</string>
+  <string name="tada_music_crossfade_on_skip_summary">Примењује ефекат прелаза када ручно пређете на следећу нумеру</string>
+  <string name="tada_music_crossfade_on_auto_advance_title">Прелазак при аутоматском преласку</string>
+  <string name="tada_music_crossfade_on_auto_advance_summary">Примењује ефекат прелаза када нумера природно заврши</string>
+  <string name="tada_music_crossfade_session_control_title">Контрола сесије</string>
+  <string name="tada_music_crossfade_session_control_summary">Притисните и задржите дугме за мешање да бисте паузирали или наставили прелаз</string>
+  <string name="tada_music_crossfade_paused_toast">Прелазак је паузиран за ову сесију</string>
+  <string name="tada_music_crossfade_resumed_toast">Прелазак настављен</string>
+  <string name="tada_music_crossfade_video_mode_disabled_toast">Режим видео режима није доступан када је прелазак омогућен</string>
+  <string name="tada_music_crossfade_cast_unstable_toast">Прелазак је паузиран током емитовања или преноса звука. Прелазак током емитовања/преноса је нестабилан и можда никада неће бити поправљен.</string>
+  <string name="tada_music_crossfade_about_title">О програму</string>
+  <string name="tada_music_crossfade_about_summary">Како ради прелазак – и када не ради</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="tada_music_crossfade_about_how_title">Како то ради</string>
+  <string name="tada_music_crossfade_about_how_summary">"Прелазак преклапа крај једне песме са почетком следеће, постепено смањујући јачину једне док се друга не појави током изабраног трајања и криве.
+
+Ради на аутоматском преласку (када песма сама заврши) и на ручном прескакању – сваки од њих има свој прекидач изнад. На аутоматском преласку мешање почиње неколико секунди пре краја песме.
+
+Захтева YouTube Music 9.x или новију верзију."</string>
+  <string name="tada_music_crossfade_about_best_title">Најбоље функционише са</string>
+  <string name="tada_music_crossfade_about_best_summary">Нормалним пуштањем песама и аутоматским преласком, понављањем једне песме (песма прелази у саму себе) и локалним звуком – звучником телефона, жичаним слушалицама, Блутоотхом или УСБ-ом.</string>
+  <string name="tada_music_crossfade_about_quirks_title">Не ради баш како треба</string>
+  <string name="tada_music_crossfade_about_quirks_summary">"Музички спотови репродукују се само као звук када је укључено прелажење (дуго притисните мешање да бисте паузирали ако желите видео)
+
+Песме краће од времена преласка могу прескочити прелаз
+
+Закључани екран или обавештење могу на кратко приказати застарело стање током прелаза"</string>
+  <string name="tada_music_crossfade_about_known_title">Познати проблеми</string>
+  <string name="tada_music_crossfade_about_known_summary">"Музички спот постављен као прва песма — или она започета изван тренутне листе — може на кратко приказати видео пре него што почне репродукција само звука
+
+Паузирање прелазака за гледање музичког видеа може оставити неке видее црне (оне чији звук долази из самог видеа). Паузирање прелазака пре него што одаберете песму избегава то"</string>
+  <string name="tada_music_crossfade_about_unsupported_title">Не ради уопште</string>
+  <string name="tada_music_crossfade_about_unsupported_summary">"Пренос или огледање звука (Chromecast, екран или огледање звука) — прелазак се паузира јер је нестабилан тамо и можда никада неће бити поправљено.
+
+YouTube Music 8.x — прелазак ради само на 9.x и новијим верзијама"</string>
+  <string name="tada_music_crossfade_about_credit_title">Заслуге</string>
+  <string name="tada_music_crossfade_about_credit_summary">Функција преласка од стране VazerOG</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="tada_music_remember_repeat_state_title">Запамти стање понављања</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="tada_music_remember_shuffle_state_title">Запамти стање случајног редоследа</string>
+  <!-- video.speed.playbackSpeedPatch -->
+  <string name="tada_music_playback_speed_title">Брзина репродукције</string>
+  <string name="tada_music_playback_speed_summary">Брзина која се користи за све нумере. На 100% користи се брзина апликације, као што је брзина репродукције подкаста</string>
+  <string name="tada_music_playback_speed_change_pitch_title">Промени висину тона са брзином</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="tada_music_disable_dislike_redirection_title">Искључи преусмерење нелајковања</string>
+  <string name="tada_music_disable_dislike_redirection_summary">Спречава прелазак на следећу нумеру када се притисне дугме за нелајковање</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="tada_music_hide_cast_button_title">Сакриј дугме „Пребацивање”</string>
+  <string name="tada_music_hide_history_button_title">Сакриј дугме „Историја”</string>
+  <string name="tada_music_hide_notification_button_title">Сакриј дугме „Обавештење”</string>
+  <string name="tada_music_hide_search_button_title">Сакриј дугме „Претрага”</string>
+  <string name="tada_music_hide_voice_search_button_title">Сакриј дугме за гласовну претрагу</string>
+  <string name="tada_music_hide_sound_search_button_title">Сакриј дугме за претрагу звука</string>
+  <string name="tada_music_hide_library_new_button_title">Сакриј дугме „Ново“</string>
+  <string name="tada_music_hide_library_new_button_summary">Сакрива дугме „Ново“ у картици „Библиотека“</string>
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <string name="tada_music_action_buttons_screen_title">Дугмад радњи</string>
+  <string name="tada_music_action_buttons_screen_summary">Изаберите које дугмад радњи ће се појавити испод плејера</string>
+  <string name="tada_music_hide_action_bar_title">Сакриј траку са акцијама</string>
+  <string name="tada_music_hide_like_dislike_button_title">Сакриј дугмад „Свиђа се” и „Не свиђа се”</string>
+  <string name="tada_music_hide_comments_button_title">Сакриј дугме „Коментари”</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_live_chat_replay_button_title">Сакриј дугме \'Репродукција ћаскања уживо\'</string>
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_lyrics_button_title">Сакриј дугме „Текстови песама”</string>
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_share_button_title">Сакриј дугме „Дели”</string>
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_save_button_title">Сакриј дугме „Сачувај“</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_download_button_title">Сакриј дугме „Преузми“</string>
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_radio_button_title">Сакриј дугме \'Покрени радио\'</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="tada_music_hide_flyout_menu_components_screen_title">Падајући мени</string>
+  <string name="tada_music_hide_flyout_menu_components_screen_summary">Одаберите које компоненте ће се појавити у менију плејера и реда за репродукцију</string>
+  <string name="tada_music_hide_flyout_menu_3_column_component_title">Сакриј 3-колону компоненту</string>
+  <string name="tada_music_hide_flyout_menu_like_dislike_title">Сакриј дугмад „Свиђање” и „Несвиђање”</string>
+  <string name="tada_music_hide_flyout_menu_taste_match_title">Сакриј мени „Усклађеност укуса”</string>
+  <string name="tada_music_hide_flyout_menu_add_to_listen_later_title">Сакријте \'Додај у листу \'Слушај касније\'\'</string>
+  <string name="tada_music_hide_flyout_menu_add_to_queue_title">Сакријте \'Додај у ред\'</string>
+  <string name="tada_music_hide_flyout_menu_captions_title">Сакриј мени „Титиловање”</string>
+  <string name="tada_music_hide_flyout_menu_delete_playlist_title">Сакриј мени „Обриши листу песама“</string>
+  <string name="tada_music_hide_flyout_menu_dismiss_queue_title">Сакриј мени „Уклони ред“</string>
+  <string name="tada_music_hide_flyout_menu_dont_recommend_artist_title">Сакриј мени „Не препоручуј овог извођача“</string>
+  <string name="tada_music_hide_flyout_menu_download_title">Сакриј дугме „Преузми”</string>
+  <string name="tada_music_hide_flyout_menu_edit_playlist_title">Сакриј мени „Уреди листу песама“</string>
+  <string name="tada_music_hide_flyout_menu_go_to_album_title">Сакриј мени „Иди до албума“</string>
+  <string name="tada_music_hide_flyout_menu_go_to_artist_title">Сакриј мени „Иди до извођача“</string>
+  <string name="tada_music_hide_flyout_menu_go_to_episode_title">Сакриј мени „Иди до епизоде“</string>
+  <string name="tada_music_hide_flyout_menu_go_to_podcast_title">Сакриј мени „Иди до подкаста“</string>
+  <string name="tada_music_hide_flyout_menu_help_title">Сакриј мени „Помоћ”</string>
+  <string name="tada_music_hide_flyout_menu_mark_episode_as_played_title">Сакриј мени „Означи епизоду као репродуковану“</string>
+  <string name="tada_music_hide_flyout_menu_not_interested_title">Сакриј мени „Нисам заинтересован“</string>
+  <string name="tada_music_hide_flyout_menu_pin_to_speed_dial_title">Сакриј мени „Причврсти на брзу комбинацију“</string>
+  <string name="tada_music_hide_flyout_menu_play_next_title">Сакриј мени „Следећа песма“</string>
+  <string name="tada_music_hide_flyout_menu_quality_title">Сакриј мени квалитета видеа</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_library_title">Сакриј мени „Уклони из библиотеке“</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_playlist_title">Сакриј мени „Уклони из листе песама“</string>
+  <string name="tada_music_hide_flyout_menu_report_title">Сакриј дугме „Пријави”</string>
+  <string name="tada_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">Сакриј мени „Сачувај епизоду за касније“ / „Сачувај у библиотеку“</string>
+  <string name="tada_music_hide_flyout_menu_save_to_playlist_title">Сакриј мени „Сачувај у листу песама“</string>
+  <string name="tada_music_hide_flyout_menu_share_title">Сакриј дугме „Дели”</string>
+  <string name="tada_music_hide_flyout_menu_shuffle_play_title">Сакриј мени „Насумична репродукција“</string>
+  <string name="tada_music_hide_flyout_menu_sleep_timer_title">Сакриј мени „Тајмер за спавање“</string>
+  <string name="tada_music_hide_flyout_menu_start_radio_title">Сакриј мени „Покрени радио“</string>
+  <string name="tada_music_hide_flyout_menu_stats_for_nerds_title">Сакриј мени „Статистика за гекове“</string>
+  <string name="tada_music_hide_flyout_menu_subscribe_title">Сакриј дугме „Претплати се”</string>
+  <string name="tada_music_hide_flyout_menu_unpin_from_speed_dial_title">Сакриј мени „Уклони са брзе комбинације“</string>
+  <string name="tada_music_hide_flyout_menu_view_song_credit_title">Сакриј мени „Погледај заслуге за песму“</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="tada_change_start_page_title">Почетна страница</string>
+  <string name="tada_change_start_page_entry_default">Подразумевана</string>
+  <string name="tada_change_start_page_entry_charts">Grafici</string>
+  <string name="tada_change_start_page_entry_episodes_for_later">Epizode za kasnije</string>
+  <string name="tada_change_start_page_entry_explore">Истражи</string>
+  <string name="tada_change_start_page_entry_history">Историја</string>
+  <string name="tada_change_start_page_entry_library">Збирка</string>
+  <string name="tada_change_start_page_entry_liked_music">Волео музику</string>
+  <string name="tada_change_start_page_entry_playlists">Плејлисте</string>
+  <string name="tada_change_start_page_entry_search">Претрага</string>
+  <string name="tada_change_start_page_entry_subscriptions">Праћења</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="tada_music_hide_filter_bar_title">Сакриј филтер траку</string>
+  <!-- layout.orientation.forcePortraitOrientationPatch -->
+  <string name="tada_music_force_portrait_orientation_title">Присили портретну оријентацију</string>
+  <string name="tada_music_force_portrait_orientation_summary">Задржава апликацију у портретној оријентацији када се уређај ротира</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="tada_music_change_miniplayer_color_title">Промени боју мини плејера</string>
+  <string name="tada_music_change_miniplayer_color_summary">Боја мини плејера одговара плејеру преко целог екрана</string>
+  <string name="tada_music_change_navigation_bar_color_title">Промени боју навигационе траке</string>
+  <string name="tada_music_change_navigation_bar_color_summary">Усклађује боју навигационе траке са пуним плејером</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="tada_music_miniplayer_next_button_title">Покажи дугме наредно у мини-плеерима</string>
+  <string name="tada_music_miniplayer_previous_button_title">Покажи претходну дугмад у мини-плеера</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="tada_music_enable_forced_miniplayer_title">Омогући принудни мини-плејер</string>
+  <string name="tada_music_enable_forced_miniplayer_summary">Спречава да се плејер аутоматски прошири на пуни екран када почне нова нумера</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_title">Omogući otklanjanje mini-plejera prevlačenjem</string>
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_summary">Omogućava otklanjanje mini-plejera prevlačenjem prstom na dole po njemu</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="tada_music_navigation_bar_screen_title">Трака за навигацију</string>
+  <string name="tada_music_navigation_bar_screen_summary">Изаберите које дугмад ће се појавити у доњој навигационој траци</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_home_button_title">Сакриј дугме „Насловна“</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_samples_button_title">Сакриј дугме „Узорци“</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_explore_button_title">Сакриј дугме „Испитај“</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_library_button_title">Сакриј дугме „Библиотека“</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_upgrade_button_title">Сакриј дугме „Надоградња“</string>
+  <string name="tada_music_hide_navigation_bar_title">Сакриј траку за навигацију</string>
+  <string name="tada_music_hide_navigation_bar_labels_title">Сакриј ознаке дугмади за навигацију</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="tada_music_scrobbling_summary">Конфигуришите интеграцију са Last.fm и ListenBrainz</string>
+  <string name="tada_music_scrobbling_summary_logged_out">Нисте пријављени. Додирните да бисте конфигурисали</string>
+  <string name="tada_music_scrobbling_log_out">Одјавите се</string>
+  <string name="tada_music_scrobbling_logged_out_toast">Одјављени</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_enabled_title">Омогући scrobbling</string>
+  <string name="tada_music_scrobbling_now_playing_title">Пошаљи статус „Слушам сад“</string>
+  <string name="tada_music_scrobbling_min_song_duration_title">Минимално трајање песме</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="tada_music_scrobbling_min_song_duration_summary">Песме краће од овог трајања неће бити scrobble</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_title">Проценат кашњења scrobble</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_summary">Покрени scrobble након слушања овог процента песме</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_title">Кашњење scrobble у секундама</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_summary">Покрени scrobble након слушања толико секунди</string>
+  <string name="tada_music_listenbrainz_token_title">ListenBrainz налог</string>
+  <string name="tada_music_listenbrainz_token_summary_logged_in">Пријављени. Додирните да бисте управљали налогом</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_listenbrainz_token_dialog_instruction">Унесите свој ListenBrainz кориснички токен да бисте омогућили scrobbling</string>
+  <string name="tada_music_listenbrainz_token_dialog_hint">Токен</string>
+  <string name="tada_music_listenbrainz_token_dialog_get_token">Набави токен</string>
+  <string name="tada_music_listenbrainz_token_dialog_verify">Верификуј</string>
+  <string name="tada_music_listenbrainz_token_status_empty">Унесите токен</string>
+  <string name="tada_music_listenbrainz_token_status_validating">Провера се…</string>
+  <string name="tada_music_listenbrainz_token_status_valid">Важан токен! Корисник: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid">Неважећи токен: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid_unknown">непознато</string>
+  <string name="tada_music_listenbrainz_token_status_failed">Верификација није успела: %s</string>
+  <string name="tada_music_listenbrainz_token_toast_cleared">Токен је обрисан</string>
+  <string name="tada_music_listenbrainz_token_toast_saved">Токен је сачуван</string>
+  <string name="tada_music_listenbrainz_token_toast_invalid_warning">Упозорење: Сачувани токен је неважећи!</string>
+  <string name="tada_music_lastfm_love_on_like_title">Свиђају се траке</string>
+  <string name="tada_music_lastfm_love_on_like_summary">Аутоматски волите траке на Last.fm када вам се свиђају на YouTube Music (и уклоните вољење када не волите или вам се не свиђа)</string>
+  <string name="tada_music_lastfm_token_title">Last.fm налог</string>
+  <string name="tada_music_lastfm_token_summary_logged_in">Пријављени као %s. Додирните да бисте управљали налогом</string>
+  <string name="tada_music_lastfm_token_dialog_instruction">Унесите своје Last.fm акредитиве да бисте се пријавили</string>
+  <string name="tada_music_lastfm_token_dialog_username_hint">Корисничко име</string>
+  <string name="tada_music_lastfm_token_dialog_password_hint">Лозинка</string>
+  <string name="tada_music_lastfm_token_dialog_login">Пријави се</string>
+  <string name="tada_music_lastfm_token_status_empty">Унесите корисничко име и лозинку</string>
+  <string name="tada_music_lastfm_token_status_logging_in">Пријављивање…</string>
+  <string name="tada_music_lastfm_token_status_success">Успешно пријављени!</string>
+  <string name="tada_music_lastfm_token_status_no_session">Неуспело преузимање сесије са Last.fm</string>
+  <string name="tada_music_lastfm_token_status_failed">Грешка при пријављивању: %s</string>
+  <string name="tada_music_lastfm_token_toast_saved">Last.fm акредитиви су сачувани!</string>
+  <string name="tada_settings_music_scrobbling_metadata_title">Чишћење метаподатака</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_title">Очисти метаподатке</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_summary">Аутоматски очистите уобичајени неред (као што су „Званични видео“, „Ремастер“, „Уживо“) из назива, извођача и албума пре него што се scrobble</string>
+  <string name="tada_music_scrobbling_custom_regex_title">Прилагођено чишћење регуларним изразом</string>
+  <string name="tada_music_scrobbling_custom_regex_summary">Unesite prilagođeni regularni izraz za uklanjanje dodatnog teksta iz naslova pesama, izvođača ili albuma. Primer: (?i)\s*\((clean|explicit)\)</string>
+  <string name="tada_music_scrobbling_parse_title_title">Распознај извођача и песму из наслова</string>
+  <string name="tada_music_scrobbling_parse_title_summary">Извуците име извођача и назив песме из наслова видеа користећи сепаратор \" - \". Корисно за поновно отпремљено садржај где се назив канала може користити као извођач.</string>
+  <string name="tada_music_scrobbling_guess_album_title">Попуни недостајући албум</string>
+  <string name="tada_music_scrobbling_guess_album_summary">Када музика не садржи албум, потражи га на Last.fm да би твој scrobble био потпун</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_title">О scrobbling-у</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_summary">"Scrobbling automatski sinhronizuje vašu upotrebu YouTube Music-a sa vašim Last.fm ili ListenBrainz profilom
+
+Da biste osigurali sinhronizaciju scrobbling-a tokom reprodukcije u pozadini, pobrinite se da je korišćenje aplikacije YouTube Music baterije postavljeno na \"Neograničeno\""</string>
+  <!-- layout.lyrics.lyricsPatch -->
+  <string name="tada_music_lyrics_enabled_title">Коришћење текстова песама треће стране</string>
+  <string name="tada_music_lyrics_enabled_summary">Приказује текстове песама са сервиса треће стране, враћајући се на уграђене текстове песама када нису пронађени</string>
+  <string name="tada_music_lyrics_keep_screen_on_title">Држите екран укљученим док гледате текст песме</string>
+  <string name="tada_music_lyrics_keep_screen_on_summary">Спречава искључивање екрана док је панел са текстом песме отворен</string>
+  <string name="tada_music_lyrics_section_service_title">Сервис за текстове песама</string>
+  <string name="tada_music_lyrics_section_overlay_title">Преклапање</string>
+  <string name="tada_music_lyrics_section_sync_title">Синхронизација</string>
+  <string name="tada_music_lyrics_section_about_title">O programu</string>
+  <string name="tada_music_lyrics_source_all_disabled">Сви провајдери су искључени — уграђени текстови и уметнути текстови песама.</string>
+  <string name="tada_music_lyrics_source_reset_title">Ресетовати редослед провајдера?</string>
+  <string name="tada_music_lyrics_source_reset_message">Врати провајдере на подразумевани редослед приоритета.</string>
+  <string name="tada_music_token_dialog_get_token">Преузми токен</string>
+  <string name="tada_music_apple_music_token_title">Apple Music медијски кориснички токен</string>
+  <string name="tada_music_apple_music_token_dialog_instruction">"Налепите media-user-token колачић са music.apple.com
+
+Кораци:
+1. Пријавите се на music.apple.com као регистровани корисник
+2. Отворите DevTools → Application → Cookies → music.apple.com
+3. Копирајте вредност \"media-user-token\""</string>
+  <string name="tada_music_apple_music_token_toast_saved">Apple Music: media-user-token сачуван</string>
+  <string name="tada_music_apple_music_token_toast_cleared">Apple Music: media-user-token обрисан</string>
+  <string name="tada_music_apple_music_token_toast_invalid">Apple Music: неважећи media-user-token — проверите и покушајте поново</string>
+  <string name="tada_music_spotify_token_title">Spotify […] Копирајте вредност \"sp_dc\".</string>
+  <string name="tada_music_spotify_token_dialog_instruction">"Налепите sp_dc колачић са Spotify-а.
+
+Кораци:
+1. Пријавите се на open.spotify.com
+2. Отворите DevTools → Application → Cookies → open.spotify.com
+3. Копирајте вредност \"sp_dc\""</string>
+  <string name="tada_music_spotify_token_toast_saved">Spotify: sp_dc […] Без тога, Lyrically ће се користити као резервно решење.</string>
+  <string name="tada_music_spotify_token_toast_cleared">Spotify: sp_dc обрисан</string>
+  <string name="tada_music_spotify_token_toast_invalid">Spotify: неважећи sp_dc — проверите и покушајте поново</string>
+  <string name="tada_music_apple_token_optional_hint">Apple Music токен није обавезан. Без њега, Lyrically ће се користити као резервна опција.</string>
+  <string name="tada_music_deezer_arl_title">Deezer […] Копирајте вредност \"arl\".</string>
+  <string name="tada_music_deezer_arl_dialog_instruction">"Налепите arl колачић са Deezer-а.
+
+Кораци:
+1. Пријавите се на deezer.com
+2. Отворите DevTools → Application → Cookies → deezer.com
+3. Копирајте вредност \"arl\""</string>
+  <string name="tada_music_deezer_arl_toast_saved">Deezer: arl сачуван.</string>
+  <string name="tada_music_deezer_arl_toast_cleared">Deezer: неважећи arl — покушајте поново.</string>
+  <string name="tada_music_deezer_arl_toast_invalid">Deezer: неважећи arl — проверите и покушајте поново</string>
+  <string name="tada_music_musixmatch_token_title">Musixmatch […] Копирајте вредност корисничког токена.</string>
+  <string name="tada_music_musixmatch_token_dialog_instruction">Додајте токен само да бисте користили сопствени налог. Мора да потиче из Musixmatch Android апликације: токени копирани са musixmatch.com припадају повученом десктоп клијенту и API их одбија</string>
+  <string name="tada_music_musixmatch_token_optional_hint">Musixmatch ради и без токена, тако да ово поље може да остане празно</string>
+  <string name="tada_music_musixmatch_token_dialog_hint">кориснички тоken</string>
+  <string name="tada_music_musixmatch_token_toast_saved">Musixmatch: кориснички tokena сачуван</string>
+  <string name="tada_music_musixmatch_token_toast_cleared">Musixmatch: кориснички token обрисан</string>
+  <string name="tada_music_musixmatch_token_toast_invalid">Musixmatch: неважећи кориснички token — проверите и покушајте поново</string>
+  <string name="tada_music_youtube_cookies_title">YouTube колачићи</string>
+  <string name="tada_music_youtube_cookies_dialog_instruction">"Налепите […] Копирајте пуни низ колачића (парови кључ=вредност раздвојени тачком и зарезом)
+
+Потребни колачићи: SID, HSID, SSID, SAPISID, __Secure-3PAPISID, LOGIN_INFO"</string>
+  <string name="tada_music_youtube_cookies_toast_saved">YouTube: колачићи сачувани.</string>
+  <string name="tada_music_youtube_cookies_toast_cleared">YouTube: колачићи обрисани.</string>
+  <string name="tada_music_youtube_cookies_toast_invalid">YouTube: неважећи колачићи — проверите и покушајте поново.</string>
+  <string name="tada_music_lyrics_tap_to_seek_title">Додирните ред да бисте премотали</string>
+  <string name="tada_music_lyrics_tap_to_seek_summary">Додиривање реда прескаче на тај тренутак у песми</string>
+  <string name="tada_music_lyrics_show_copy_button_title">Прикажи дугме за копирање</string>
+  <string name="tada_music_lyrics_show_copy_button_summary">Додирните да копирате оригинални текст песме као обичан текст; дуго притисните да сачувате сирови изворни фајл текстова у Преузимања</string>
+  <string name="tada_music_lyrics_show_translate_button_title">Прикажи дугме за превод</string>
+  <string name="tada_music_lyrics_show_translate_button_summary">Додирните да бисте пребацили превод; дуги притисак за само превод. Користи преводе добављача, Google Translate или OpenAI-компатибилни API.</string>
+  <string name="tada_music_lyrics_show_romanize_button_title">Прикажи дугме за романизацију</string>
+  <string name="tada_music_lyrics_show_romanize_button_summary">Додирните да бисте пребацили романизацију; дуги притисак за само романизацију. Користи романизацију добављача, Google Translate или OpenAI-компатибилни API.</string>
+  <string name="tada_music_lyrics_show_refresh_button_title">Прикажите дугме за освежавање</string>
+  <string name="tada_music_lyrics_show_refresh_button_summary">Додирните да бисте прешли на следећи кандидат за текст; дуго притисните да бисте претражили текст по наслову песме и извођачу</string>
+  <string name="tada_music_lyrics_search_dialog_title">Претрага текстова</string>
+  <string name="tada_music_lyrics_search_title_hint">Наслов песме</string>
+  <string name="tada_music_lyrics_search_artist_hint">Извођач</string>
+  <string name="tada_music_lyrics_search_empty">Унесите наслов песме и извођача</string>
+  <string name="tada_music_lyrics_search_no_providers">Ниједан од омогућених провајдера не може да претражује друге песме</string>
+  <string name="tada_music_lyrics_saved">Сачувано</string>
+  <string name="tada_music_lyrics_word_sync_title">Истакни синхронизоване речи или слогове.</string>
+  <string name="tada_music_lyrics_word_sync_summary">Дај предност текстовима реч по реч када су доступни. Када текстови носе време, истакните сваку реч или слог у складу са музиком.</string>
+  <string name="tada_music_lyrics_hide_played_title">Сакриј […] линију</string>
+  <string name="tada_music_lyrics_hide_played_summary">Сакријте редове текста изнад тренутно репродукованог реда</string>
+  <string name="tada_music_lyrics_hide_unplayed_title">Сакриј неодсвиране текстове песама.</string>
+  <string name="tada_music_lyrics_hide_unplayed_summary">Сакриј редове текстова испод тренутно репродукованог […] екрана.</string>
+  <string name="tada_music_lyrics_mediasession_title">Прикажите MediaSession текстове на закључаном екрану</string>
+  <string name="tada_music_lyrics_miniplayer_title">Прикажи текстове у миниплејеру.</string>
+  <string name="tada_music_lyrics_display_artist_first_title">Приказ извођача и наслова […] УКЉУЧЕНО: \"Извођач - Наслов\", ИСКЉУЧЕНО: \"Наслов - Извођач\". Не утиче на претрагу текстова.</string>
+  <string name="tada_music_lyrics_display_artist_first_summary">Промените редослед приказа извођача и назива у мини-плејеру и MediaSession-у. УКЉУЧЕНО \"Извођач - Назив\", ИСКЉУЧЕНО \"Назив - Извођач\". Не утиче на претрагу текстова</string>
+  <string name="tada_settings_music_lyrics_metadata_title">Филтери</string>
+  <string name="tada_music_lyrics_custom_regex_title">Регуларни израз за филтрирање текстова</string>
+  <string name="tada_music_lyrics_custom_regex_summary">Регуларни израз примењен на наслове, извођаче и албуме пре тражења текстова и приликом оцењивања да ли се два наслова поклапају. Оставите празно да бисте онемогућили обоје. Подразумевано уклања уобичајене непотребне ознаке као што су \"Official Video\", \"Remaster\", \"【插曲】\" и \"- Topic\".</string>
+  <string name="tada_music_lyrics_text_filter_title">Регуларни израз за филтрирање текстова</string>
+  <string name="tada_music_lyrics_text_filter_summary">Регуларни израз се примењује само на оригинални текст песме (не на преводе или романизације). Оставите празно да бисте искључили.</string>
+  <string name="tada_music_lyrics_credit_line_regex_title">Ознаке инфо линија</string>
+  <string name="tada_music_lyrics_credit_line_regex_summary">Ако су текстови погрешно филтрирани на дно, прилагодите или обришите ово. […] Оставите празно да бисте искључили.</string>
+  <string name="tada_music_lyrics_text_size_title">Величина текста</string>
+  <string name="tada_music_lyrics_text_size_summary">Величина текста текстова песама</string>
+  <string name="tada_music_lyrics_offset_ms_title">Корекција времена</string>
+  <string name="tada_music_lyrics_offset_ms_summary">Синхронизовани текстови прате репродукцију. Ако одступају, подесите временски помак. […] Користите позитивну вредност ако текст иде испред песме.</string>
+  <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
+  <string name="tada_music_lyrics_source_label">Извор: %s</string>
+  <string name="tada_music_lyrics_translated_by_google">Превео Google</string>
+  <string name="tada_music_lyrics_romanized_by_google">Романизовао Google</string>
+  <string name="tada_music_lyrics_translated_by_ai">Превод: %s</string>
+  <string name="tada_music_lyrics_romanized_by_ai">Романизација: %s</string>
+  <!-- Tappable label under the lyrics that turns the translation on. -->
+  <string name="tada_music_lyrics_translate_hide">Преведено</string>
+  <string name="tada_music_lyrics_translation_language_title">Језик превода</string>
+  <string name="tada_music_lyrics_translating">Превођење…</string>
+  <string name="tada_music_lyrics_translate_failed">Није било могуће превести текстове песама</string>
+  <string name="tada_music_lyrics_romanize_hide">Романизовано</string>
+  <string name="tada_music_lyrics_romanizing">Романизација…</string>
+  <string name="tada_music_lyrics_romanize_failed">Није могуће романизовати текст.</string>
+  <string name="tada_music_lyrics_translate_only">Само превод</string>
+  <string name="tada_music_lyrics_romanize_only">Само романизовано</string>
+  <string name="tada_music_lyrics_copied">Копирано у привремену меморију</string>
+  <string name="tada_music_lyrics_refreshing">Освежавање</string>
+  <string name="tada_music_lyrics_refreshed">Освежено.</string>
+  <string name="tada_music_lyrics_about_summary">"Текстови се подударају према наслову и извођачу, понекада се може десити да се не пронађе ништа или прикаже погрешну верзију. Користите опцију освежи да бисте променили верзију. Добављачи означени * захтевају токен. Сви доступни извођачи не могу увек да одговоре у вашем упиту, али одазивају се у зависности од брзине"</string>
+  <string name="tada_music_lyrics_hide_info_title">Сакриј линију са заслугама</string>
+  <string name="tada_music_lyrics_hide_info_summary">Сакриј линију са заслугама приказану испод текстова.</string>
+  <string name="tada_music_lyrics_swap_trans_roma_title">Замени превод и романизацију.</string>
+  <string name="tada_music_lyrics_swap_trans_roma_summary">УКЉУЧЕНО поставља романизацију испод текста, а превод изнад; ИСКЉУЧЕНО задржава романизацију изнад и превод испод.</string>
+  <string name="tada_music_lyrics_use_ai_translation_title">OpenAI-компатибилан превод</string>
+  <string name="tada_music_lyrics_use_ai_translation_summary">Користите прилагођени OpenAI-компатибилни API за превод и романизацију уместо Google Translate-а.</string>
+  <string name="tada_music_lyrics_ai_config_dialog_title">Подешавања AI превода</string>
+  <string name="tada_music_lyrics_ai_config_dialog_instruction">Подесите крању OpenAI-компатибилни API крајњу тачку за AI превод и романизацију текстова песама.</string>
+  <string name="tada_music_lyrics_ai_config_base_url_hint">API крајња тачка URL (нпр. https://text.pollinations.ai/openai)</string>
+  <string name="tada_music_lyrics_ai_config_api_token_hint">API кључ (оставите празно за анониман приступ)</string>
+  <string name="tada_music_lyrics_ai_config_model_hint">Назив модела (нпр. openai-fast, gpt-4o-mini)</string>
+  <string name="tada_music_lyrics_ai_config_prompt_hint">Шаблон упита (променљиве: {language}, {task}, {title}, {artist}, {count}, {lines})</string>
+  <string name="tada_music_lyrics_ai_config_toast_saved">Подешавања AI превода су сачувана</string>
+  <string name="tada_music_lyrics_ai_config_toast_invalid">Није могуће повезати се са AI крајњом тачком. Проверите подешавања.</string>
+  <string name="tada_music_lyrics_ai_config_toast_reset">Подешавања AI превода су ресетована</string>
+  <string name="tada_music_lyrics_ai_config_status_configured">Подешено</string>
+  <string name="tada_music_lyrics_ai_config_status_not_configured">Додирните за подешавање</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_url">Base URL не може бити празан</string>
+  <string name="tada_music_lyrics_ai_config_status_invalid_url">Base URL мора почети са http:// или https://</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_model">Назив модела не може бити празан</string>
+  <string name="tada_music_lyrics_ai_config_status_validating">Проверавање везе…</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="tada_music_spoof_app_version_target_entry_8_23_51">8.23.51 - Онемогући подебљане иконе</string>
+  <string name="tada_music_spoof_app_version_target_entry_9_13_51">9.13.51 — Врати картице „Следеће”, „Текстови” и „Повезано” у плејеру</string>
+</resources>

@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -7,6 +8,15 @@ from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
 from scripts import verify_compat_patch as check
+
+
+def setUpModule():
+    # These tests check the plain command lines, so keep this PC's build queue out of them.
+    queue_off = patch.dict(
+        os.environ, {"HUSHMESSENGER_BUILD_WRAPPER": "", "BUILD_QUEUE_SCRIPT": ""}
+    )
+    queue_off.start()
+    unittest.addModuleCleanup(queue_off.stop)
 
 
 class ProfilePatchChecks(unittest.TestCase):
@@ -128,7 +138,7 @@ class ProfilePatchChecks(unittest.TestCase):
                     )
 
                 with (
-                    patch.object(check.subprocess, "run", side_effect=run),
+                    patch.object(check, "run_bounded", side_effect=run),
                     patch.object(
                         check,
                         "validate_apk",
@@ -175,7 +185,7 @@ class ProfilePatchChecks(unittest.TestCase):
 
     def test_empty_or_duplicate_selection_never_launches_desktop(self):
         for names in ([], ["menu", "menu"]):
-            with patch.object(check.subprocess, "run") as run:
+            with patch.object(check, "run_bounded") as run:
                 with self.assertRaises(ValueError):
                     check.verify(
                         Path("stock"),
@@ -192,7 +202,7 @@ class ProfilePatchChecks(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "input"
             source.write_bytes(b"changed after discovery")
-            with patch.object(check.subprocess, "run") as run:
+            with patch.object(check, "run_bounded") as run:
                 with self.assertRaisesRegex(
                     ValueError, "changed after compatibility discovery"
                 ):

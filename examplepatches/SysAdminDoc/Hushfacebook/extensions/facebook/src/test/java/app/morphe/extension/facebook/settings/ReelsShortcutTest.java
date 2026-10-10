@@ -5,6 +5,7 @@
 package app.morphe.extension.facebook.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -51,6 +52,8 @@ public class ReelsShortcutTest {
         ReelsTabForTests.inBuild(Boolean.TRUE);
         ReelsTabForTests.forget();
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.HIDE_REELS_TAB.save(true);
     }
 
     @After
@@ -90,7 +93,7 @@ public class ReelsShortcutTest {
 
     @Test
     public void facebooksReelsShortcutStaysOutWhicheverCallSendsIt() throws Exception {
-        assertTrue("the switch doesn't start on", Settings.HIDE_REELS_TAB.get());
+        assertFalse("the switch starts off", Settings.HIDE_REELS_TAB.defaultValue);
         manager.pushDynamicShortcut(facebooks(ReelsTabForTests.SHORTCUT_ID));
 
         SettingsEntry.pushDynamicShortcut(manager, facebooks(ReelsTabForTests.SHORTCUT_ID));

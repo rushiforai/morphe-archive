@@ -136,12 +136,12 @@ public class ReleaseCheckTest {
         assertEquals("OK", Stored.RESULT.get());
         assertEquals("0.2.0", Stored.NEWEST.get());
         assertEquals("451.0.0.40.70", Stored.TARGET.get());
-        assertEquals(NEWER + " It targets Telegram " + L10n.isolate("451.0.0.40.70") + ".", ReleaseCheck.statusLine());
+        assertEquals(NEWER + " It's made for Telegram " + L10n.isolate("451.0.0.40.70") + ".", ReleaseCheck.statusLine());
         assertEquals(NEWER, ReleaseCheck.checkNowSummary());
 
         // Once HushTelegram is 0.2.0 the line goes, with no new try, and only the other Telegram stays.
         ReleaseCheck.versionForTests = "0.2.0";
-        assertEquals("HushTelegram " + L10n.isolate("0.2.0") + " targets Telegram " + L10n.isolate("451.0.0.40.70") + ".",
+        assertEquals("HushTelegram " + L10n.isolate("0.2.0") + " is made for Telegram " + L10n.isolate("451.0.0.40.70") + ".",
                 ReleaseCheck.statusLine());
         assertEquals("You have the newest HushTelegram release.", ReleaseCheck.checkNowSummary());
         ReleaseCheck.telegramForTests = "451.0.0.40.70";
@@ -176,7 +176,7 @@ public class ReleaseCheckTest {
         github.then(Reply.release("v0.1.8", NOTES_0_1_8));
         ReleaseCheck.run(NOW);
 
-        assertEquals("HushTelegram " + L10n.isolate("0.1.8") + " targets Telegram " + L10n.isolate("449.0.0.54.82") + ".",
+        assertEquals("HushTelegram " + L10n.isolate("0.1.8") + " is made for Telegram " + L10n.isolate("449.0.0.54.82") + ".",
                 ReleaseCheck.statusLine());
         // Notes that name no Telegram build say nothing about one.
         ReleaseCheckForTests.forget();
@@ -232,7 +232,7 @@ public class ReleaseCheckTest {
         ReleaseCheck.run(NOW + DAY);
         assertEquals("UNREADABLE", Stored.RESULT.get());
         assertEquals("what the last good answer found stays", "0.2.0", Stored.NEWEST.get());
-        assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals("GitHub sent a reply HushTelegram couldn't read. Try again later.", ReleaseCheck.checkNowSummary());
         assertEquals(NEWER, ReleaseCheck.statusLine());
     }
 
@@ -293,7 +293,7 @@ public class ReleaseCheckTest {
         github.then(Reply.release("v0.2.0", null).announcing(ReleaseCheck.MAX_BODY_BYTES + 1L));
         ReleaseCheck.run(NOW);
         assertEquals("TOO_LARGE", Stored.RESULT.get());
-        assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals("GitHub sent a reply HushTelegram couldn't read. Try again later.", ReleaseCheck.checkNowSummary());
     }
 
     /** Before the first release, Check now says so instead of asking for another try. */
@@ -375,7 +375,7 @@ public class ReleaseCheckTest {
         github.then(Reply.status(403).header("X-RateLimit-Remaining", "0").header("X-RateLimit-Reset", "1790003600"));
         ReleaseCheck.run(NOW);
         assertEquals("RATE_LIMITED", Stored.RESULT.get());
-        assertEquals("GitHub is turning away checks from this network for now. Try again later.",
+        assertEquals("GitHub is blocking checks from this network for now. Try again later.",
                 ReleaseCheck.checkNowSummary());
         assertNull(ReleaseCheck.statusLine());
 

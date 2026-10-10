@@ -18,7 +18,7 @@ import app.hushpinterest.extension.pinterest.settings.Settings;
  * Hide AI-labeled pins: pins that Pinterest itself labels as made or changed with AI leave the lists
  * Pinterest shows.
  *
- * <p>The label comes from the pin's {@code ai_disclosures} list. Pinterest 14.25 knows two entries,
+ * <p>The label comes from the pin's {@code ai_disclosures} list. Pinterest 14.38.0 knows two entries,
  * 1 for "AI modified" and 2 for a synthetic performer, and shows its label for either; every entry
  * in that list is an AI disclosure, so any entry counts. An AI image Pinterest hasn't labeled
  * carries nothing to go by, and stays.

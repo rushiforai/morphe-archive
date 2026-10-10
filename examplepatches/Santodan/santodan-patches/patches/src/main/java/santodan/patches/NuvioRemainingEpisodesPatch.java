@@ -130,6 +130,10 @@ public final class NuvioRemainingEpisodesPatch {
     }
 
     static void hookCard(MutableClass owner, String imageOwner) {
+        hookCard(owner, imageOwner, EXTENSION, "prepareBadge", "renderPreparedBadge");
+    }
+
+    static void hookCard(MutableClass owner, String imageOwner, String extension, String prepare, String render) {
         boolean beta4 = NuvioLayout.current("Lba/e2;").equals(owner.getType());
         MutableMethod target = unique(owner, "invoke", 3);
         List<Instruction> ins = instructions(target);
@@ -149,10 +153,10 @@ public final class NuvioRemainingEpisodesPatch {
         int composer = ((RegisterRangeInstruction) image).getStartRegister() + 11;
         target.getImplementation().addInstruction(imageCall + 1,
             new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, parameterStart(target), 1,
-                method(EXTENSION, "prepareBadge", Collections.singletonList("Ljava/lang/Object;"), "V")));
+                method(extension, prepare, Collections.singletonList("Ljava/lang/Object;"), "V")));
         target.getImplementation().addInstruction(imageCall + 2,
             new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, composer, 1,
-                method(EXTENSION, "renderPreparedBadge",
+                method(extension, render,
                     Collections.singletonList("Ljava/lang/Object;"), "V")));
     }
 

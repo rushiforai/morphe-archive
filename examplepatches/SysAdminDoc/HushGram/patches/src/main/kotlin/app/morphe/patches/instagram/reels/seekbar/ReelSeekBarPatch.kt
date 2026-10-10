@@ -80,8 +80,9 @@ internal const val SCRUBBER_TAG = "clips_scrubber_"
 private const val SET_TAG = "Landroid/view/View;->setTag(Ljava/lang/Object;)V"
 
 /**
- * Keeps Instagram's seek bar under every reel, with the time played and the reel's length. Off in
- * the default selection: it changes how every reel looks, so it's the user's pick. Asked for in #10.
+ * Keeps Instagram's seek bar under every reel, with the time played and the reel's length. In the
+ * default selection with its switch off: it changes how every reel looks, so it's the user's pick.
+ * Asked for in #10.
  *
  * Instagram 449 decides per reel whether to draw its seek bar under it from a server minimum
  * length, and on short reels draws none, or one hidden until a hold. The patch answers the minimum
@@ -101,11 +102,10 @@ private const val SET_TAG = "Landroid/view/View;->setTag(Ljava/lang/Object;)V"
 @Suppress("unused")
 val reelSeekBarPatch = bytecodePatch(
     name = "Keep a seek bar on Reels",
-    description = "Keeps Instagram's seek bar under every reel, short ones too, with the time played and the reel's " +
-        "length above it, like 0:10 / 0:55. Ads keep Instagram's own rules.",
-    default = false,
+    description = "Keeps a seek bar under every reel, short ones too, with the time played and the reel's length " +
+        "above it, like 0:10 / 0:55. Starts off. Turn it on in HushGram settings > Reels.",
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

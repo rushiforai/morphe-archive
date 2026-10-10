@@ -9,6 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,12 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class ScreenshotDetectionTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.BLOCK_SCREENSHOT_DETECTION.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -50,8 +57,8 @@ public class ScreenshotDetectionTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndNothingReachesAndroid() {
-        assertTrue("the switch starts on", Settings.BLOCK_SCREENSHOT_DETECTION.get());
+    public void theSwitchStartsOffAndOnNothingReachesAndroid() {
+        assertFalse("the switch starts off", Settings.BLOCK_SCREENSHOT_DETECTION.defaultValue);
         assertTrue(ScreenshotDetection.ignoresChange());
         ScreenshotDetection.registerScreenCaptureCallback(null, null, null);
         Consumer<Integer> callback = state -> { };
@@ -66,7 +73,7 @@ public class ScreenshotDetectionTest {
         Settings.BLOCK_SCREENSHOT_DETECTION.save(false);
         assertFalse(ScreenshotDetection.ignoresChange());
         assertEquals(ScreenshotDetection.ROUTE + ": 1 lists, 1 items, 0 removed. Kinds: new picture 1", counterLine());
-        Settings.BLOCK_SCREENSHOT_DETECTION.resetToDefault();
+        Settings.BLOCK_SCREENSHOT_DETECTION.save(true);
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         assertFalse(ScreenshotDetection.ignoresChange());
         PauseForTests.resume();

@@ -38,7 +38,6 @@ val licenseCallStripPatch = bytecodePatch(
         var removed = 0
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Lcom/pairip/")) return@classDefForEach
-            val mutableClass = mutableClassDefByOrNull(classDef.type) ?: return@classDefForEach
             for (method in classDef.methods) {
                 val impl = method.implementation ?: continue
                 val idx = impl.instructions.indexOfFirst { insn ->
@@ -48,6 +47,7 @@ val licenseCallStripPatch = bytecodePatch(
                         } == true
                 }
                 if (idx < 0) continue
+                val mutableClass = mutableClassDefByOrNull(classDef.type) ?: return@classDefForEach
                 val mutable = mutableClass.methods.singleOrNull {
                     it.name == method.name && it.parameterTypes == method.parameterTypes &&
                         it.returnType == method.returnType

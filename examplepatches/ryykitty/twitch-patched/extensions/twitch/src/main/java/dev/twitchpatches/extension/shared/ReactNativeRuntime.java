@@ -33,6 +33,7 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
     public static synchronized void initialize(Application application) {
         if (initialized) return;
         initialized = true;
+        TwitchTheme.initialize(application);
         application.registerActivityLifecycleCallbacks(new ReactNativeRuntime());
         ExecutorService worker = Executors.newSingleThreadExecutor(task -> new Thread(task, "TwitchPatchAssets"));
         bootstrap = new CompletableFuture<>();
@@ -73,7 +74,6 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
         CompletableFuture<String> task = bootstrap;
         if (task == null) { Log.w("TwitchPatchesRN", "Bootstrap initialization unavailable"); return null; }
         try {
-            // Bundle loading runs on the host task.
             if (Looper.myLooper() == Looper.getMainLooper() && !task.isDone()) {
                 Log.w("TwitchPatchesRN", "Bootstrap not ready for UI loader"); return null;
             }
@@ -94,11 +94,15 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
         for (Object instance : instances.keySet()) dispatch(instance, policy);
     }
 
+    public static boolean lightTheme() { return TwitchTheme.light(); }
+
     private static boolean[] policy() {
         return new boolean[] {selected[0] && ChannelPointsRuntime.isEnabled(),
                 selected[1] && PromotionSettings.blocked(), selected[2] && SubscriptionBannerSettings.blocked(),
                 resumed > 0, selected[3] && AdSettings.displayAdsBlocked(), selected[4] && EmoteRuntime.enabled(),
-                selected[5] && AdSettings.enabled(2), selected[6] && ReloadRuntime.enabled()};
+                selected[5] && AdSettings.enabled(2), selected[6] && ReloadRuntime.enabled(),
+                selected[4] && EmoteRuntime.providerEnabled(0), selected[4] && EmoteRuntime.providerEnabled(1),
+                selected[4] && EmoteRuntime.providerEnabled(2), TwitchTheme.light()};
     }
 
     private static void dispatch(Object instance, boolean[] policy) {

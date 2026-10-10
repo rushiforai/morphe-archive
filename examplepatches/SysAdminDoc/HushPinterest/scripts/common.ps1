@@ -210,6 +210,89 @@ function Resolve-DesktopCli {
     return $found
 }
 
+function Enter-HushPinterestQueue {
+    <#
+    .SYNOPSIS
+        Waits for a slot in the machine's build queue for one heavy job, or returns $null at once
+        when BUILD_QUEUE_SCRIPT names no queue. Hand what it returns to Exit-HushPinterestQueue in
+        a finally block.
+    .DESCRIPTION
+        A CLI patch run, a split bundle merge and the resource table and dex checks each start a
+        JVM with a heap of 4 to 8 GB. Started beside the Gradle builds the queue already holds,
+        they ran on the same cores, and build-queue.ps1 -Status never showed them. The script
+        BUILD_QUEUE_SCRIPT names defines Enter-BuildQueue, Exit-BuildQueue and
+        Get-BuildQueueMask. The job waits there as "hushpinterest <Job>", then runs on its slot's
+        cores at below normal priority, which the JVM it starts inherits. A release run sets
+        BUILD_QUEUE_PRIORITY=release, which the queue reads to put it ahead of everyday builds,
+        and a job started inside a slot (BUILD_QUEUE_TICKET) goes straight through.
+
+        The queue's Invoke-InBuildQueue takes a script block and sends its output to the host.
+        The callers here keep each job's output and read its exit code where they make the call,
+        so the queue is entered and left around that call instead.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Job)
+
+    $queueScript = $env:BUILD_QUEUE_SCRIPT
+    if ([string]::IsNullOrWhiteSpace($queueScript)) { return $null }
+    if (-not (Test-Path -LiteralPath $queueScript -PathType Leaf)) {
+        throw ("BUILD_QUEUE_SCRIPT names $queueScript, which is not there. Correct it, or clear it " +
+            'to run without the build queue.')
+    }
+    $queueLabel = "hushpinterest $Job"
+    $exitCode = $global:LASTEXITCODE
+    # In a scope of its own: the queue script's parameters, -Label among them, bind wherever it's
+    # dot-sourced, and here they would replace this function's variables.
+    $entered = @(& {
+        . $queueScript
+        $ticket = Enter-BuildQueue -Label $queueLabel
+        $mask = if ($ticket) { Get-BuildQueueMask -Slot $ticket.slot } else { $null }
+        [pscustomobject]@{ Ticket = $ticket; Mask = $mask }
+    })[-1]
+    $process = [System.Diagnostics.Process]::GetCurrentProcess()
+    $held = [pscustomobject]@{
+        Script        = $queueScript
+        Ticket        = $entered.Ticket
+        Affinity      = $process.ProcessorAffinity
+        PriorityClass = $process.PriorityClass
+    }
+    try {
+        if ($null -ne $entered.Mask) { $process.ProcessorAffinity = $entered.Mask }
+        $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::BelowNormal
+    } catch {
+        Exit-HushPinterestQueue -Held $held
+        throw
+    }
+    $global:LASTEXITCODE = $exitCode
+    return $held
+}
+
+function Exit-HushPinterestQueue {
+    <#
+    .SYNOPSIS
+        Gives back what Enter-HushPinterestQueue took: the cores, the priority and the slot. Keeps
+        $LASTEXITCODE, the job's exit code, for the caller to read.
+    #>
+    param($Held)
+
+    if ($null -eq $Held) { return }
+    $exitCode = $global:LASTEXITCODE
+    try {
+        $process = [System.Diagnostics.Process]::GetCurrentProcess()
+        $process.ProcessorAffinity = $Held.Affinity
+        $process.PriorityClass = $Held.PriorityClass
+    } finally {
+        if ($null -ne $Held.Ticket) {
+            $queueScript = $Held.Script
+            $queueTicket = $Held.Ticket
+            & {
+                . $queueScript
+                Exit-BuildQueue -Ticket $queueTicket
+            }
+        }
+        $global:LASTEXITCODE = $exitCode
+    }
+}
+
 function Get-BaseApk {
     <#
     .SYNOPSIS
@@ -304,8 +387,10 @@ function Get-MergedApk {
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Destination) | Out-Null
     if (Test-Path -LiteralPath $Destination) { Remove-Item -LiteralPath $Destination -Force }
     # Continue for the call alone: Windows PowerShell 5.1 turns a JDK warning on stderr into a
-    # terminating error under Stop. The exit code and the file are what decide.
+    # terminating error under Stop. The exit code and the file are what decide. The merge waits
+    # for a slot in the machine's build queue first, as the patch run after it does.
     $preference = $ErrorActionPreference
+    $queued = Enter-HushPinterestQueue -Job 'merge'
     try {
         $ErrorActionPreference = 'Continue'
         $global:LASTEXITCODE = -1
@@ -314,6 +399,7 @@ function Get-MergedApk {
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $preference
+        Exit-HushPinterestQueue $queued
     }
     # What the merger said, without the stack frames under an exception.
     $said = @($output | Where-Object { $_ -notmatch '^\s+at ' } | Select-Object -Last 3) -join ' '

@@ -101,12 +101,18 @@ internal val DIRECT_SHARE_EXITS = listOf(
     ),
 )
 
+/** The ways a link leaves Instagram. Each one cleaned is a real protection on its own. */
+internal val SHARE_LINK_TARGETS = listOf(
+    "permalink parser", "story link parser", "clipboard copies", "share sheets", "direct shares",
+    "in-app browser menu",
+)
+
 @Suppress("unused")
 val sanitizeSharingLinksPatch = bytecodePatch(
     name = "Sanitize sharing links",
-    description = "Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy " +
-        "or share, and opens a bio link without going through Instagram's click tracker. The post, reel, " +
-        "story or profile a link opens stays the same.",
+    description = "Removes tracking tags from the links you copy or share, and opens bio links without " +
+        "Instagram's click tracker. The link still opens the same post, reel, story or profile. On by default. " +
+        "Turn it off in HushGram settings > Ads and privacy.",
     default = true,
 ) {
     category("Privacy")
@@ -117,11 +123,7 @@ val sanitizeSharingLinksPatch = bytecodePatch(
     execute {
         requireStatusMethod("sanitizeSharingLinks")
 
-        val targets = listOf(
-            "permalink parser", "story link parser", "clipboard copies", "share sheets", "direct shares",
-            "in-app browser menu",
-        )
-        handleTargets(PATCH, "ways a link leaves Instagram", targets,
+        handleTargets(PATCH, "ways a link leaves Instagram", SHARE_LINK_TARGETS,
             coverage = { writeTargetCoverage("sanitizeSharingLinks", it) }) { target ->
             when (target) {
                 "permalink parser" -> cleanPermalink()

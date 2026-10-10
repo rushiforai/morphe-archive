@@ -20,10 +20,8 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val shareSheetToolsPatch = bytecodePatch(
     name = "Share sheet tools",
-    description = "Hides chosen people, share options or the whole Send to row of the share " +
-        "sheet, and a profile's or a LIVE's share sheet can hide a different set from a video's. " +
-        "Apps you pick can be added to the Share via row. Switch: Hushfeed settings > Share sheet.",
-    default = false,
+    description = "Lets you hide people, apps and buttons you don't use from the share sheet, " +
+        "and add apps you do use. Starts off. Turn it on in Hushfeed settings > Share sheet.",
 ) {
     category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)

@@ -81,6 +81,8 @@ public class SettingsBackupTest {
         for (Setting<?> setting : Setting.allLoadedSettings()) {
             if (setting.includeWithImportExport || setting == BaseSettings.DEBUG_LOG_FILTERS) expected.put(setting, setting.get());
         }
+        // The one switch a file can't turn on (NetworkProxyTest.aRestoredFileNeverTurnsTheProxyOnOrMovesIt).
+        expected.put(Settings.NETWORK_PROXY, false);
         FeatureGateLabStore.saveRule("abmock", "test_gate", "BOOLEAN", "true", true);
         FeatureGateLabStore.setMasterEnabled(true);
         FeatureGateLabStore.acknowledgeWarning();
@@ -134,6 +136,33 @@ public class SettingsBackupTest {
      * behind by a failed delete, used to read at the next start as an interrupted restore and put
      * the old settings back over a restore that had finished.
      */
+    /** The same for a network proxy the file wasn't allowed to turn on: the file says on, the phone off. */
+    @Test public void aJournalLeftByARestoreThatHeldTheProxyBackReadsAsCommitted() throws Exception {
+        Settings.NETWORK_PROXY.save(true);
+        Settings.NETWORK_PROXY_HOST.save("theirs.example.com");
+        Settings.REGION_SPOOF.save(true);
+        String backup = SettingsBackup.create(false);
+        Settings.NETWORK_PROXY.save(false);
+        Settings.NETWORK_PROXY_HOST.save("");
+        Settings.REGION_SPOOF.save(false);
+
+        SettingsOperationJournal.failCommittedDeletesForTests(true);
+        try {
+            SettingsBackup.restore(Utils.getContext(), backup, true);
+        } finally {
+            SettingsOperationJournal.failCommittedDeletesForTests(false);
+        }
+        assertTrue("no journal was left behind, so this checks nothing",
+                new java.io.File(Utils.getContext().getFilesDir(), "hushfeed-settings-operation.json").isFile());
+
+        SettingsOperationJournal.acquire(Utils.getContext()).complete();
+
+        assertTrue("the next start put a committed restore back", Settings.REGION_SPOOF.get());
+        assertFalse(Settings.NETWORK_PROXY.get());
+        assertEquals(SettingsOperationJournal.Recovery.ALREADY_COMMITTED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+    }
+
     @Test public void aJournalLeftByARestoreThatKeptAFolderReadsAsCommitted() throws Exception {
         Settings.DOWNLOAD_VIDEO_PATH.save("Pictures/Clips");
         Settings.REGION_SPOOF.save(true);
@@ -366,7 +395,7 @@ public class SettingsBackupTest {
         Settings.BLOCKED_CREATORS.save("from the backup");
         Settings.AUTO_ADVANCE.save(true);
         String backup = SettingsBackup.create(false);
-        String otherVersion = new JSONObject(backup).put("target", "40.0.0").toString();
+        String otherVersion = fromUnknownBuild(new JSONObject(backup)).toString();
 
         // State that must survive: a Lab rule this backup knows nothing about.
         Settings.BLOCKED_CREATORS.save("changed since");
@@ -384,6 +413,16 @@ public class SettingsBackupTest {
                 FeatureGateLabStore.rule("abmock", "rule_for_this_build", "INT"));
         assertTrue("the Lab master switch was changed by a backup for another build",
                 FeatureGateLabStore.masterEnabled());
+    }
+
+    /**
+     * A backup whose Lab block can't be tied to a TikTok build: the target is one no catalog has
+     * and the Lab names no build of its own, so nothing says which gates its rules mean.
+     */
+    private static JSONObject fromUnknownBuild(JSONObject backup) throws Exception {
+        backup.put("target", "40.0.0");
+        backup.getJSONObject("lab").remove("tiktok_version");
+        return backup;
     }
 
     @Test public void everyRefusalSaysWhichOneItWas() throws Exception {
@@ -435,7 +474,7 @@ public class SettingsBackupTest {
         // as "does not match", and the startup path rolled a successful restore back.
         var app = Utils.getContext();
         Settings.BLOCKED_CREATORS.save("from the backup");
-        String backup = new JSONObject(SettingsBackup.create(false)).put("target", "40.0.0").toString();
+        String backup = fromUnknownBuild(new JSONObject(SettingsBackup.create(false))).toString();
 
         Settings.BLOCKED_CREATORS.save("changed since");
         String before = SettingsBackup.create(false);
@@ -1152,8 +1191,8 @@ public class SettingsBackupTest {
 
     @Test public void skippedKeysAndMissingCurrentSettingsStaySeparateAcrossHostsAndUndo() throws Exception {
         Settings.MAX_VIDEO_SECONDS.save(81);
-        JSONObject file = new JSONObject(withoutKeys(SettingsBackup.create(false), Settings.REGION_SPOOF.key))
-                .put("target", "40.0.0");
+        JSONObject file = fromUnknownBuild(
+                new JSONObject(withoutKeys(SettingsBackup.create(false), Settings.REGION_SPOOF.key)));
         file.getJSONObject("settings").put("retired_or_future_option", new JSONObject().put("value", true))
                 .put(Settings.AUTO_STREAK_STATE.key, "state-from-another-phone");
         file.getJSONArray("setting_keys").put("retired_or_future_option").put(Settings.AUTO_STREAK_STATE.key);
@@ -1375,8 +1414,7 @@ public class SettingsBackupTest {
             SettingsStatus.diagnosticsEnabled = false;
 
             Settings.MAX_VIDEO_SECONDS.save(73);
-            String undoCopy = new JSONObject(SettingsBackup.create(false))
-                    .put("target", "40.0.0").toString();
+            String undoCopy = fromUnknownBuild(new JSONObject(SettingsBackup.create(false))).toString();
             File undoFile = new File(activity.getApplicationContext().getFilesDir(),
                     "hushfeed-settings-undo.json");
             try (FileOutputStream output = new FileOutputStream(undoFile)) {

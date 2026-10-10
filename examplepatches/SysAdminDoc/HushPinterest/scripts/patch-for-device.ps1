@@ -188,7 +188,9 @@ $argumentFileLines = @($arguments | ForEach-Object {
 try {
     # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
     # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
+    # The run waits for a slot in the machine's build queue first (Enter-HushPinterestQueue).
     $preference = $ErrorActionPreference
+    $queued = Enter-HushPinterestQueue -Job 'device patch'
     try {
         $ErrorActionPreference = 'Continue'
         $global:LASTEXITCODE = -1
@@ -199,6 +201,7 @@ try {
         $cliExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $preference
+        Exit-HushPinterestQueue $queued
     }
     if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
 } finally {

@@ -365,6 +365,60 @@ public final class SettingsUi {
         styleSwitches(view);
     }
 
+    /** Flat navigation rows belong to the home index, whose list supplies the outer gutter. */
+    public static void styleCompactMenuRow(View row, boolean last) {
+        styleCompactMenuRow(row, last, false);
+    }
+
+    static void styleCompactMenuRow(View row, boolean last, boolean footer) {
+        Context context = row.getContext();
+        row.setPaddingRelative(0, dp(context, footer ? 26 : 14), 0, dp(context, 14));
+        row.setMinimumHeight(dp(context, footer ? 80 : 68));
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) {
+            title.setTextSize(TEXT_TITLE);
+            title.setTextColor(enabledTextColors(textPrimary()));
+            title.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        }
+        TextView summary = row.findViewById(android.R.id.summary);
+        if (summary != null) {
+            summary.setTextSize(TEXT_BODY_SMALL);
+            summary.setTextColor(enabledTextColors(textSecondary()));
+            summary.setLineSpacing(0, 1f);
+            summary.setPadding(0, dp(context, 2), 0, 0);
+        }
+        boolean dark = isDarkMode();
+        Object painted = row.getTag(TAG_ROW_PAINT);
+        if (painted instanceof RowPaint && row.getBackground() != null) {
+            RowPaint paint = (RowPaint) painted;
+            if (paint.flat && paint.last == last && paint.dark == dark) return;
+        }
+        row.setBackground(pressAndFocusOver(context, RADIUS_SQUARE, new FlatRowDrawable(last)));
+        row.setTag(TAG_ROW_PAINT, new RowPaint(false, last, dark, true));
+    }
+
+    private static final class FlatRowDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final boolean last;
+
+        FlatRowDrawable(boolean last) { this.last = last; }
+
+        @Override public void draw(Canvas canvas) {
+            paint.setColor(background());
+            canvas.drawRect(getBounds(), paint);
+            if (!last) {
+                paint.setColor(divider());
+                paint.setStrokeWidth(1);
+                canvas.drawLine(getBounds().left, getBounds().bottom - 0.5f,
+                        getBounds().right, getBounds().bottom - 0.5f, paint);
+            }
+        }
+
+        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
+        @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); }
+        @Override public int getOpacity() { return PixelFormat.OPAQUE; }
+    }
+
     public static void styleSwitches(View view) {
         if (view instanceof Switch) styleSwitch((Switch) view);
         if (view instanceof ViewGroup) {
@@ -381,8 +435,11 @@ public final class SettingsUi {
 
     /** What a row was last painted as, kept on the row so a rebind of the same view costs nothing. */
     private static final class RowPaint {
-        final boolean first, last, dark;
-        RowPaint(boolean first, boolean last, boolean dark) { this.first = first; this.last = last; this.dark = dark; }
+        final boolean first, last, dark, flat;
+        RowPaint(boolean first, boolean last, boolean dark) { this(first, last, dark, false); }
+        RowPaint(boolean first, boolean last, boolean dark, boolean flat) {
+            this.first = first; this.last = last; this.dark = dark; this.flat = flat;
+        }
     }
 
     /**
@@ -396,7 +453,7 @@ public final class SettingsUi {
         Object painted = row.getTag(TAG_ROW_PAINT);
         if (painted instanceof RowPaint && row.getBackground() != null) {
             RowPaint paint = (RowPaint) painted;
-            if (paint.first == first && paint.last == last && paint.dark == dark) return;
+            if (!paint.flat && paint.first == first && paint.last == last && paint.dark == dark) return;
         }
         row.setBackground(groupedRow(row.getContext(), first, last));
         row.setTag(TAG_ROW_PAINT, new RowPaint(first, last, dark));

@@ -29,9 +29,9 @@ internal const val SKIP_APP_INITS = "$EXTENSION_PACKAGE/misc/TranslatedStart;->"
 @Suppress("unused")
 val translatedStartPatch = bytecodePatch(
     name = "Start on x86 devices",
-    description = "Keeps Facebook from crashing or freezing as it starts on an x86 device that runs its arm " +
-        "code through a translator, such as an emulator or an x86 Chromebook, by skipping the one start-up " +
-        "step that breaks there. Phones and tablets with arm chips start as before.",
+    description = "Stops Facebook crashing or freezing at start on x86 devices, such as computer emulators and " +
+        "x86 Chromebooks. Most phones and tablets don't need it, and it doesn't change how they start. Works as " +
+        "soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Fixes")

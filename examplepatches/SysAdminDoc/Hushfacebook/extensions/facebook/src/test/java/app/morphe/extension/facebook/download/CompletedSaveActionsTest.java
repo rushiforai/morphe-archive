@@ -383,7 +383,7 @@ public class CompletedSaveActionsTest {
         finish(worker);
         assertTrue(completed().isEmpty());
         assertTrue(gallery.rows.isEmpty());
-        assertEquals("Save cancelled", ShadowToast.getTextOfLatestToast());
+        assertEquals("Save canceled", ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void theCompatibilityAdviceAndFileActionsCoexist() throws Exception {
@@ -401,7 +401,7 @@ public class CompletedSaveActionsTest {
         assertEquals("Open the setting", advice.actions[0].title.toString());
         assertEquals(Settings.DOWNLOAD_COMPATIBLE.key,
                 shadowOf(advice.actions[0].actionIntent).getSavedIntent().getStringExtra(SettingsEntry.EXTRA_SHOW_SETTING));
-        assertEquals("Saved, but WhatsApp and some editors may refuse it", ShadowToast.getTextOfLatestToast());
+        assertEquals("Saved, but WhatsApp and some editors may not accept it", ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void nonMediaAndExpiredTapRequestsDoNotReachAFileHandler() throws Exception {

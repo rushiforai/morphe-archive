@@ -710,21 +710,30 @@ public class AutomaticClearDisplayTest {
         }
     }
     @Test public void standaloneControlsShowDelayInMilliseconds() throws Exception {
+        boolean overlays = SettingsStatus.videoOverlaysEnabled;
         try (var owner = Robolectric.buildActivity(
                 app.morphe.extension.tiktok.interaction.GestureActionsTest.TestActivity.class).setup()) {
             var activity = owner.get();
             Utils.setContext(activity);
             Utils.setIsDarkModeEnabled(true);
+            SettingsStatus.videoOverlaysEnabled = true;
             SettingsStatus.automaticClearDisplayEnabled = true;
             var screen = activity.getPreferenceManager().createPreferenceScreen(activity);
             new InterfacePreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("automatic_clear_display"));
+            var clearDisplayControls = screen.findPreference(Settings.HIDE_CLEAR_DISPLAY_CONTROLS.key);
+            assertTrue(clearDisplayControls.getSummary().toString().contains("pinch the screen"));
             // "ms" is a developer's unit. The row says the word.
             assertTrue(screen.findPreference("automatic_clear_display_delay")
                     .getSummary().toString().contains("1,000 milliseconds"));
             activity.setPreferenceScreen(screen);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "clear-display-settings.png");
+            app.morphe.extension.tiktok.UiCapture.save(
+                    clearDisplayControls.getView(null, activity.getListView()),
+                    "clear-display-controls-setting.png");
+        } finally {
+            SettingsStatus.videoOverlaysEnabled = overlays;
         }
     }
     @Test public void hidingTheControlsSitsUnderTheAutomaticSwitch() throws Exception {

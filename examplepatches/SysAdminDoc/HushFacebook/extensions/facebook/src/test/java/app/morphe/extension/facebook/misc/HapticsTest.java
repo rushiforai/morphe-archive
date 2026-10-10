@@ -16,6 +16,7 @@ import android.view.View;
 import org.robolectric.RuntimeEnvironment;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +61,12 @@ public class HapticsTest {
         }
     }
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.TURN_OFF_HAPTICS.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -80,8 +87,8 @@ public class HapticsTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndHoldsEveryHapticBack() {
-        assertTrue("the switch starts on", Settings.TURN_OFF_HAPTICS.get());
+    public void theSwitchStartsOffAndOnHoldsEveryHapticBack() {
+        assertFalse("the switch starts off", Settings.TURN_OFF_HAPTICS.defaultValue);
         Played view = new Played();
         assertFalse(Haptics.performHapticFeedback(view, HapticFeedbackConstants.LONG_PRESS));
         assertFalse(Haptics.performHapticFeedback(view, HapticFeedbackConstants.CONFIRM, 0));

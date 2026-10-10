@@ -30,9 +30,10 @@ internal const val LAYOUT = "Landroid/text/Layout;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 private const val PAINT = "Landroid/graphics/Paint;"
 private const val WHAT = "Feed text sizes"
-// 47.1.4's ids for the caption text and the music title.
+// 47.1.4's ids for the caption text, the creator name (`title`) and the post date beside it.
 internal val DESCRIPTION_IDS = setOf(0x7f0a2075)
 internal val TITLE_IDS = setOf(0x7f0a8893)
+internal val POST_TIME_IDS = setOf(0x7f0a9456)
 
 internal data class SizeInput(val index: Int, val builderRegister: Int, val ownerLocal: Int, val argumentLocal: Int)
 internal data class CacheBypass(val index: Int, val fallback: Int, val ownerRegister: Int, val resultLocal: Int)
@@ -56,6 +57,7 @@ internal data class FeedTextMembers(
     val authorLoader: Method,
     val authorStore: Int,
     val authorView: FieldReference,
+    val dateView: FieldReference,
     val authorBind: Method,
 )
 
@@ -198,9 +200,14 @@ internal fun resolveFeedText(classOf: (String) -> ClassDef?): FeedTextMembers {
         it.name == "onViewCreated" && it.parameters() == listOf(VIEW) && it.returnType == "V"
     }.one("native author view loader")
     val (authorStore, authorView) = authorLoader.loadedView(TITLE_IDS)
+    // The post date sits in the same row, loaded by the same owner before its name.
+    val (dateStore, dateView) = authorLoader.loadedView(POST_TIME_IDS)
+    if (dateStore > authorStore) throw PatchException("$WHAT: the post date is now loaded after the author name")
+    if (dateView.type != authorView.type) throw PatchException("$WHAT: the post date is no longer the name's kind of text view")
     val inflater = requireClass(TITLE_INFLATER)
     if (inflater.methods.none { it.hasLiteral(TITLE_IDS) && it.hasCall(TEXT_VIEW, "setMaxLines") &&
             it.hasCall(TEXT_VIEW, "setEllipsize") }) throw PatchException("$WHAT: native author title inflater changed")
+    if (inflater.methods.none { it.hasLiteral(POST_TIME_IDS) }) throw PatchException("$WHAT: native post date inflater changed")
     val bind = author.methods.filter {
         it.isInstance() && it.parameters() == listOf(AWEME) && it.returnType == "V" &&
             it.fields().any { field -> field.toString() == authorView.toString() } &&
@@ -212,7 +219,7 @@ internal fun resolveFeedText(classOf: (String) -> ClassDef?): FeedTextMembers {
         throw PatchException("$WHAT: recycled author cells no longer use the resolved binder")
     }
     // The bridges access native fields directly. Reject a host that makes them inaccessible.
-    for (field in listOf(descView, paint, customSize, cache, translationOwner, flag, authorView) + caches) {
+    for (field in listOf(descView, paint, customSize, cache, translationOwner, flag, authorView, dateView) + caches) {
         val declaration = requireClass(field.definingClass).fields.filter { it.name == field.name }.toList().one("field $field")
         if (!AccessFlags.PUBLIC.isSet(declaration.accessFlags)) throw PatchException("$WHAT: $field isn't public")
     }
@@ -220,7 +227,8 @@ internal fun resolveFeedText(classOf: (String) -> ClassDef?): FeedTextMembers {
         if (!AccessFlags.PUBLIC.isSet(method.accessFlags)) throw PatchException("$WHAT: $method isn't public")
     }
     return FeedTextMembers(controller, descView, factory, inputs, dispatch, bypass, builder, paint, customSize,
-        cache, build, original, translated, translationOwner, flag, caches, authorLoader, authorStore, authorView, bind)
+        cache, build, original, translated, translationOwner, flag, caches, authorLoader, authorStore, authorView,
+        dateView, bind)
 }
 
 private fun constantBefore(method: Method, index: Int, register: Int): Int {

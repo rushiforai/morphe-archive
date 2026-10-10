@@ -98,8 +98,11 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         val ctorId = ctor.hookId()
         val closure = byType[ctor.definingClass] ?: throw CommunityChanged()
         val c = ctor.communityCode()
-        communityRequire(ctor.parameterTypes.size == 14 && ctor.parameterTypes[11].toString() == IMMUTABLE_LIST && c.size == 17 &&
-            ctor.implementation!!.registerCount == 16 && ctor.implementation!!.tryBlocks.isEmpty())
+        // 582 adds an $onThreadInViewport Function1 before the trailing flag, which then needs a move/from16 to be stored.
+        val params = ctor.parameterTypes.map(CharSequence::toString)
+        val viewport = params.size == 15 && params[13] == "Lkotlin/jvm/functions/Function1;" && params[14] == "Z"
+        communityRequire((params.size == 14 || viewport) && params[11] == IMMUTABLE_LIST && c.size == (if (viewport) 19 else 17) &&
+            ctor.implementation!!.registerCount == (if (viewport) 17 else 16) && ctor.implementation!!.tryBlocks.isEmpty())
         val captured = c[0].communityRef() as? FieldReference ?: throw CommunityChanged()
         // 581 moves the session capture from slot 8 to slot 2, so the captures in slots 2 to 7 move one slot later.
         val scopeAt = if (c[2].opcode == Opcode.IPUT_OBJECT && (c[2].communityRef() as? FieldReference)?.let { it.name == "\$fbUserSession" && it.type == FB_USER_SESSION } == true &&
@@ -110,7 +113,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
             (c[scopeAt] as? TwoRegisterInstruction)?.let { it.registerA == 10 && it.registerB == 1 } == true && scope.name == "\$threadTypeFilter")
         val ctorCall = u.indices.filter { u[it].communityRef().toString() == ctorId }.communitySingle()
         val ctorArgs = u[ctorCall].communityArgs()
-        communityRequire(ctorArgs.size == 15)
+        communityRequire(ctorArgs.size == params.size + 1)
         fun previousWrite(register: Int) = (ctorCall - 1 downTo 0).firstOrNull { u[it].communityWrites(register) } ?: throw CommunityChanged()
         val listWrite = previousWrite(ctorArgs[12])
         val alias = u[listWrite] as? TwoRegisterInstruction ?: throw CommunityChanged()
@@ -144,9 +147,10 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         val defaultBuilder = builder.methods.filter { it.name == "<init>" && it.parameterTypes.isEmpty() }.communitySingle()
         communityRequire(coordinator.communityString("threadTypeFilter") && !coordinator.communityString("folderName") &&
             defaultBuilder.communityCode().size == 5 && calls(defaultBuilder).any { it.definingClass == "Ljava/util/HashSet;" && it.name == "<init>" && it.parameterTypes.isEmpty() })
-        val prefix = c[scopeAt + 3].communityRef() as? FieldReference ?: throw CommunityChanged()
-        communityRequire(prefix.name == "\$prefixOffsetCallback" && c[scopeAt + 3].opcode == Opcode.IPUT_OBJECT &&
-            (c[scopeAt + 3] as TwoRegisterInstruction).registerA == 8)
+        val prefixAt = scopeAt + if (viewport) 4 else 3
+        val prefix = c[prefixAt].communityRef() as? FieldReference ?: throw CommunityChanged()
+        communityRequire(prefix.name == "\$prefixOffsetCallback" && c[prefixAt].opcode == Opcode.IPUT_OBJECT &&
+            (c[prefixAt] as TwoRegisterInstruction).registerA == 8)
         val prefixMove = previousWrite(ctorArgs[7])
         communityRequire(u[prefixMove].opcode == Opcode.MOVE_OBJECT_FROM16)
         val prefixRegister = (u[prefixMove] as TwoRegisterInstruction).registerB
@@ -260,21 +264,27 @@ internal fun Method.communityReadSite(scope: String): Int {
     val c = communityCode()
     val listField = "$definingClass->\$inboxUnitItems:$IMMUTABLE_LIST"
     val reads = c.indices.filter { c[it].opcode == Opcode.IGET_OBJECT && c[it].communityRef().toString() == listField }
-    // 580 reads at 55 or 56; 581 adds a ten-instruction session-gated block before the search bar.
-    communityRequire(reads.size == 2 && reads.first() == 5 && reads.last() in setOf(55, 56, 66))
+    // 580 reads at 55 or 56; 581 adds a ten-instruction session-gated block before the search bar; 582 reads at 64.
+    communityRequire(reads.size == 2 && reads.first() == 5 && reads.last() in setOf(55, 56, 64, 66))
     val at = reads.last()
-    communityRequire(!AccessFlags.STATIC.isSet(accessFlags) && implementation!!.registerCount == 20 && implementation!!.tryBlocks.isEmpty() && c.size == at + 19 &&
+    // 582 reads the list into v1, and its sink takes an $onThreadInViewport after the list, moved into place after the alias.
+    val list = (c[at] as? TwoRegisterInstruction)?.takeIf { it.registerA in setOf(0, 1) && it.registerB == 4 }?.registerA ?: throw CommunityChanged()
+    val alias = (at + 1 until c.size).firstOrNull { c[it].opcode == Opcode.MOVE_OBJECT_FROM16 && (c[it] as TwoRegisterInstruction).registerA == 17 }
+        ?: throw CommunityChanged()
+    val sink = if (c.getOrNull(alias + 1)?.opcode == Opcode.MOVE_OBJECT_FROM16) alias + 2 else alias + 1
+    val sinkTypes = (c.getOrNull(sink)?.communityRef() as? MethodReference)?.parameterTypes?.map(CharSequence::toString) ?: throw CommunityChanged()
+    communityRequire(!AccessFlags.STATIC.isSet(accessFlags) && implementation!!.registerCount in setOf(20, 21) && implementation!!.tryBlocks.isEmpty() && c.size == sink + 8 &&
         c[6].opcode == Opcode.INVOKE_VIRTUAL && c[6].communityRef().toString() == "Ljava/util/AbstractCollection;->isEmpty()Z" && c[6].communityArgs() == listOf(0) &&
         communityString("searchBarSection") && c.any { it.opcode == Opcode.IGET_OBJECT && it.communityRef().toString() == scope } &&
-        (c[at] as? TwoRegisterInstruction)?.let { it.registerA == 0 && it.registerB == 4 } == true &&
-        c[at + 10].opcode == Opcode.MOVE_OBJECT_FROM16 && (c[at + 10] as? TwoRegisterInstruction)?.let { it.registerA == 17 && it.registerB == 0 } == true &&
-        c[at + 11].opcode == Opcode.INVOKE_STATIC_RANGE && (c[at + 11].communityRef() as? MethodReference)?.parameterTypes?.map(CharSequence::toString)?.let { it.size == 12 && it.last() == "Ljava/util/List;" } == true &&
-        c[at + 11].communityArgs().last() == 17 && (at + 1 until at + 10).none { c[it].communityWrites(0) } &&
-        jumpTargets().none { it in at + 1..at + 11 })
+        (c[alias] as TwoRegisterInstruction).registerB == list &&
+        c[sink].opcode == Opcode.INVOKE_STATIC_RANGE && sinkTypes.size in setOf(12, 13) && sinkTypes[11] == "Ljava/util/List;" &&
+        c[sink].communityArgs()[11] == 17 && (at + 1 until alias).none { c[it].communityWrites(list) } &&
+        jumpTargets().none { it in at + 1..sink })
     val addresses = IntArray(c.size + 1)
     for (index in c.indices) addresses[index + 1] = addresses[index] + c[index].codeUnits
     val indexAt = c.indices.associateBy { addresses[it] }
-    for (register in listOf(1, 3)) {
+    // The hook's two scratch registers are whichever of v0, v1 and v3 doesn't hold the list.
+    for (register in listOf(0, 1, 3) - list) {
         val pending = ArrayDeque<Int>()
         val seen = mutableSetOf<Int>()
         pending.add(at + 1)
@@ -355,17 +365,19 @@ internal fun injectCommunityInbox(contract: CommunityInboxContract, render: Muta
         const/4 v0, 0x0
         return v0
     """.trimIndent())
+    val list = (render.communityCode()[at] as TwoRegisterInstruction).registerA
+    val (prefix, scopeValue) = listOf(0, 1, 3) - list
     render.addInstructionsWithLabels(at + 1, """
-        iget-object v1, v4, ${contract.capturedPrefix}
-        iget-object v3, v4, ${contract.capturedScope}
-        invoke-static {v0, v1, v3}, $SETTINGS->filterJoinedCommunityInboxRows(Ljava/util/List;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;
-        move-result-object v0
-        iget-object v1, v4, ${render.definingClass}->${'$'}inboxUnitItems:$IMMUTABLE_LIST
-        if-eq v0, v1, :stock_list
-        invoke-static {v0}, $COMMUNITY_LIST_COPY
-        move-result-object v0
+        iget-object v$prefix, v4, ${contract.capturedPrefix}
+        iget-object v$scopeValue, v4, ${contract.capturedScope}
+        invoke-static {v$list, v$prefix, v$scopeValue}, $SETTINGS->filterJoinedCommunityInboxRows(Ljava/util/List;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;
+        move-result-object v$list
+        iget-object v$prefix, v4, ${render.definingClass}->${'$'}inboxUnitItems:$IMMUTABLE_LIST
+        if-eq v$list, v$prefix, :stock_list
+        invoke-static {v$list}, $COMMUNITY_LIST_COPY
+        move-result-object v$list
         :stock_list
-        check-cast v0, $IMMUTABLE_LIST
+        check-cast v$list, $IMMUTABLE_LIST
     """.trimIndent())
     return listOf(joinedHelper, scopeHelper)
 }

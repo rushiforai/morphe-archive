@@ -86,8 +86,8 @@ private const val STRING_EQUALS = "Ljava/lang/String;->equals(Ljava/lang/Object;
 val hideMetaAiQuestionsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hide Meta AI questions under posts",
-    description = "Removes the row of Meta AI questions Facebook adds under some posts. The post, its link " +
-        "card and its buttons stay.",
+    description = "Removes the row of Meta AI questions Facebook adds under some posts, for a cleaner feed. The " +
+        "post and its buttons stay. On by default. Turn it off in Hushfacebook settings > News feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import io
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -39,6 +40,15 @@ def report():
         ],
         "patchingSteps": [{"step": "PATCHING", "success": False}],
     }
+
+
+def setUpModule():
+    # These tests check the plain command lines, so keep this PC's build queue out of them.
+    queue_off = patch.dict(
+        os.environ, {"HUSHMESSENGER_BUILD_WRAPPER": "", "BUILD_QUEUE_SCRIPT": ""}
+    )
+    queue_off.start()
+    unittest.addModuleCleanup(queue_off.stop)
 
 
 class ChangedApkChecks(unittest.TestCase):
@@ -152,7 +162,7 @@ class ChangedApkChecks(unittest.TestCase):
                 with (
                     self.subTest(case=case),
                     patch.object(checker, "STOCK_SHA256", {digest}),
-                    patch.object(checker.subprocess, "run", side_effect=desktop),
+                    patch.object(checker, "run_bounded", side_effect=desktop),
                     redirect_stdout(io.StringIO()),
                 ):
                     if case in {"valid", "wrapped-reason"}:

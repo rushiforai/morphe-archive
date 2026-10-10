@@ -29,10 +29,9 @@ private class QualityGetter(owner: String, getter: String, result: String) : Fin
 @Suppress("unused")
 val playbackQualityPatch = bytecodePatch(
     name = "Playback quality",
-    description = "Selects the lowest, highest or a target video quality for playback, adaptive " +
-        "streams included. A second choice caps quality on mobile data and only ever lowers " +
-        "it. Download quality has its own setting. Switch: Hushfeed settings > Playback.",
-    default = false,
+    description = "Lets you choose the video quality, like highest, lowest or 720p, and set a " +
+        "lower quality for mobile data to use less data. Starts off. Pick a quality in Hushfeed " +
+        "settings > Playback.",
 ) {
     category("Playback")
     compatibleWith(*AppCompatibilities.tiktok())

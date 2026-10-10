@@ -64,12 +64,11 @@ internal const val OWN_INFLATED = "$OWN_FONT->inflated($VIEW)V"
 @Suppress("unused")
 val useSystemFontPatch = bytecodePatch(
     name = "Use the system font",
-    description = "Draws Facebook's own text in your phone's font instead of Meta's Optimistic typeface, or in a " +
-        "TrueType or OpenType file you pick in Hushfacebook's settings. Icons and emoji keep their fonts, and so " +
-        "does the text you put on a story. Restart Facebook after changing the font.",
-    default = false,
+    description = "Draws Facebook's text in your phone's font instead of Meta's, or in a font file you pick, so " +
+        "Facebook matches the rest of your phone. Icons and emoji keep their own. Starts off. Turn it on in " +
+        "Hushfacebook settings > Appearance, then restart Facebook.",
 ) {
-    category("Interface")
+    category("Theme")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

@@ -12,6 +12,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lockAfterRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -20,9 +21,12 @@ import android.preference.SwitchPreference;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.notifications.NotificationSound;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
@@ -46,29 +50,25 @@ final class AppPages {
             PreferenceCategory chats = category(screen, L10n.t("Chats"));
             if (build.contains(PatchFamily.MESSENGER_CARD)) {
                 chats.addPreference(toggle(context, Settings.HIDE_GET_MESSENGER_CARD,
-                        L10n.t("The card at the top of Chats that asks you to get the Messenger app goes while Messenger "
-                                + "is installed. Without Messenger it stays, so you can still install it from there.")));
+                        L10n.t("Hides the card at the top of Chats that asks you to get Messenger, once Messenger is installed. "
+                                + "Without Messenger, the card stays.")));
             }
             if (build.contains(PatchFamily.CHAT_LIST)) {
                 chats.addPreference(toggle(context, Settings.HIDE_CHAT_NOTES_TRAY,
-                        L10n.t("Empties the list behind the row above your chats in Chats inside Facebook, so friends' notes "
-                                + "and who's active go, and your own note tile may go too. "
-                                + "Your chats, search and new messages stay.")));
+                        L10n.t("Removes the row above your chats that shows friends' notes and who's active. Your own note tile may "
+                                + "go too. Your chats stay.")));
                 chats.addPreference(toggle(context, Settings.HIDE_CHAT_PROMOTIONS,
-                        L10n.t("The promotional banners at the top of Chats inside Facebook go, like the one asking "
-                                + "you to turn on notifications.")));
+                        L10n.t("Hides the banners at the top of Chats, like the one asking you to turn on notifications.")));
             }
             if (build.contains(PatchFamily.MESSENGER_ICON)) {
                 chats.addPreference(toggle(context, Settings.OPEN_MESSENGER_APP,
-                        L10n.t("A tap on the Messenger icon at the top of Facebook opens the Messenger app instead "
-                                + "of Chats. Without Messenger installed, Chats opens as before.")));
+                        L10n.t("Tapping the Messenger icon at the top of Facebook opens the Messenger app instead of Chats. Without "
+                                + "Messenger, Chats opens as before.")));
             }
             if (build.contains(PatchFamily.ORIGINAL_CHAT_MEDIA)) {
                 chats.addPreference(toggle(context, Settings.ORIGINAL_CHAT_MEDIA,
-                        L10n.t("Photos and videos you send from a chat that opens inside Facebook go out as the "
-                                + "originals. Photos lose their location and camera details. A video with a location tag "
-                                + "is still shrunk, and one sent as it is keeps its date and camera details. Files over "
-                                + "20 MB for photos and 25 MB for videos are still shrunk.")));
+                        L10n.t("Sends photos and videos in Facebook chats at full quality. Photos lose location and camera details. "
+                                + "Big files and videos with a location tag are still shrunk.")));
             }
         }
     }
@@ -78,8 +78,9 @@ final class AppPages {
             Set<PatchFamily> build) {
         PreferenceCategory menu = category(screen, L10n.t("Menu"));
         SwitchPreference saved = toggle(context, Settings.SAVED_SHORTCUT, build.contains(PatchFamily.MENU_SETTINGS_ROW)
-                ? L10n.t("Adds Saved to Facebook's icon menu when there's room, and a Saved row at the end of Settings and privacy in the Menu. Existing shortcuts stay.")
-                : L10n.t("Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay."));
+                ? L10n.t("Adds Saved to the menu you get by holding Facebook's icon, if there's room, and a Saved row in "
+                        + "Settings and privacy. Existing shortcuts stay.")
+                : L10n.t("Adds Saved to the menu you get by holding Facebook's icon, if there's room. Existing shortcuts stay."));
         saved.setOnPreferenceChangeListener((preference, value) -> {
             Settings.SAVED_SHORTCUT.save((Boolean) value);
             SavedShortcut.changed(context);
@@ -98,35 +99,35 @@ final class AppPages {
         }
         if (build.contains(PatchFamily.GAME_ADS)) {
             menu.addPreference(toggle(context, Settings.BLOCK_GAME_ADS,
-                    L10n.t("Games you play in Facebook get no ads. A game asking for one hears there's none to show, "
-                            + "so rewarded ads give no reward.")));
+                    L10n.t("Games you play in Facebook show no ads. A game that asks for one is told there's none, so rewarded "
+                            + "ads give no reward.")));
             menu.addPreference(toggle(context, Settings.ANSWER_REWARDED_GAME_ADS,
-                    L10n.t("With Block Instant Games ads on, a game's rewarded ad counts as watched: no ad plays and "
-                            + "the game gives its reward. Other game ads still get none.")));
+                    L10n.t("With Block Instant Games ads on, a game's rewarded ad counts as watched. No ad plays and the game "
+                            + "still gives its reward.")));
         }
         if (build.contains(PatchFamily.META_UPSELLS)) {
             PreferenceCategory upsells = category(screen, L10n.t("Meta's other products"));
             upsells.addPreference(toggle(context, Settings.HIDE_EDITS_UPSELLS,
-                    L10n.t("The Edits button and its badge leave the Reels composer, and the feed stops asking for the "
-                            + "Edits pill under videos. You can still make reels in Facebook.")));
+                    L10n.t("Hides the Edits button in the Reels composer and the Edits pill under videos. You can still make "
+                            + "reels in Facebook.")));
             upsells.addPreference(toggle(context, Settings.HIDE_THREADS_CROSS_POSTING,
-                    L10n.t("The composer stops prompting you to share your posts to Threads too. Your posts go to "
-                            + "Facebook as before.")));
+                    L10n.t("Facebook stops asking whether to share your post to Threads too. Posting to Facebook works as "
+                            + "before.")));
             upsells.addPreference(toggle(context, Settings.HIDE_THREADS_SHARE_BUTTON,
-                    L10n.t("The share sheet loses its Threads button. Every other way to share stays, in the same "
+                    L10n.t("Removes the Threads button when you share something. All other ways to share stay, in the same "
                             + "order.")));
             upsells.addPreference(toggle(context, Settings.HIDE_META_VERIFIED_UPSELLS,
                     L10n.t("No Meta Verified offer after you post, and no Meta Verified label under the names on "
                             + "posts. Posting works as usual.")));
             upsells.addPreference(toggle(context, Settings.HIDE_AVATAR_UPSELLS,
-                    L10n.t("Promotions for avatar stickers leave comments and Facebook's promotion slots, along with "
-                            + "the prompt to make an avatar. Stickers still send.")));
+                    L10n.t("Hides avatar sticker promotions in comments and elsewhere, and the prompt to make an avatar. "
+                            + "Stickers still send.")));
             upsells.addPreference(toggle(context, Settings.HIDE_META_AI_IMAGINE,
-                    L10n.t("Posts lose the Imagine me button, and Imagine leaves the post composer and the top of "
-                            + "Create story. Everything else there works as before.")));
+                    L10n.t("Hides the Imagine me button on posts and the Imagine option when you write a post or create a "
+                            + "story. Everything else works as before.")));
             upsells.addPreference(toggle(context, Settings.HIDE_META_AI_POST_BUTTONS,
-                    L10n.t("Posts lose the other Meta AI buttons Facebook puts under them. The post's next button "
-                            + "shows instead, if it has one.")));
+                    L10n.t("Hides the other Meta AI buttons Facebook puts under posts. The post's next button shows instead, if "
+                            + "it has one.")));
         }
     }
 
@@ -137,13 +138,12 @@ final class AppPages {
             PreferenceCategory search = category(screen, L10n.t("Search"));
             if (build.contains(PatchFamily.META_AI_SEARCH)) {
                 search.addPreference(toggle(context, Settings.HIDE_META_AI_IN_SEARCH,
-                        L10n.t("Search results lose the Meta AI answer and the Ask Meta AI prompts, and a suggestion no "
-                                + "longer sends your search to Meta AI. People, groups, pages and posts stay, and the Meta "
-                                + "AI button still opens Meta AI.")));
+                        L10n.t("Search no longer shows Meta AI answers or Ask Meta AI prompts, or sends your search to Meta AI. "
+                                + "Results for people, groups, pages and posts stay.")));
             }
             if (build.contains(PatchFamily.SPONSORED_SEARCH)) {
                 search.addPreference(toggle(context, Settings.HIDE_SPONSORED_SEARCH_RESULTS,
-                        L10n.t("Ads between the results when you search Facebook. What you searched for stays.")));
+                        L10n.t("Hides ads between your search results. The results you searched for stay.")));
             }
         }
     }
@@ -155,14 +155,13 @@ final class AppPages {
         PreferenceCategory marketplace = category(screen, L10n.t("Marketplace"));
         if (build.contains(PatchFamily.SPONSORED_MARKETPLACE)) {
             marketplace.addPreference(toggle(context, Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
-                    L10n.t("Ads and boosted listings in Marketplace's feed and search results. The other "
-                            + "listings stay.")));
+                    L10n.t("Hides ads and boosted listings in Marketplace's feed and search results. Regular listings stay.")));
         }
         if (build.contains(PatchFamily.SELLER_VIEW_PROFILE)) {
             // Read as a seller's page opens, so a change shows on the next one.
             marketplace.addPreference(toggle(context, Settings.SHOW_SELLER_VIEW_PROFILE,
-                    L10n.t("A seller's Marketplace page always has View profile, which opens their regular Facebook "
-                            + "profile. Facebook shows it to only some accounts.")));
+                    L10n.t("Adds a View profile button to every seller's Marketplace page, opening their Facebook profile. "
+                            + "Facebook only shows it to some accounts.")));
         }
     }
 
@@ -212,11 +211,8 @@ final class AppPages {
             notifications.addPreference(quietHourRow(context, true));
             notifications.addPreference(quietHourRow(context, false));
             notifications.addPreference(info(context, L10n.t("What always comes through"),
-                    L10n.t("Messages, friend requests, comments, mentions, calls and login alerts, and any kind "
-                            + "Hushfacebook doesn't know. Android's own settings for Facebook's notification "
-                            + "categories work too, since Facebook drops a notification whose category you turned "
-                            + "off. Facebook's server decides which categories you get, though, so they may not "
-                            + "split these kinds out.")));
+                    L10n.t("Messages, friend requests, comments, mentions, calls, login alerts and any kind not listed above "
+                            + "always arrive. Android's notification settings for Facebook can block more.")));
         }
         notifications.addPreference(notificationSoundRow(context));
     }
@@ -232,8 +228,8 @@ final class AppPages {
         row.setPersistent(false);
         row.actsAtOnce = true;
         row.setTitle(L10n.t("Save Facebook's notification sound"));
-        row.setSummary(L10n.t("Puts Facebook's chime in your phone's notification sounds, for a category that Android set "
-                + "to None. Then pick it under Android's notification settings for Facebook: a category, then Sound."));
+        row.setSummary(L10n.t("Adds Facebook's chime to your phone's notification sounds, for categories set to None. Then pick it "
+                + "in Android's notification settings for Facebook, under Sound."));
         Context app = context.getApplicationContext();
         row.setOnPreferenceClickListener(p -> {
             boolean accepted = Utils.runOnBackgroundThread(() ->
@@ -275,29 +271,88 @@ final class AppPages {
         }
         if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
             links.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
-                    L10n.t("Takes tracking tags such as mibextid off the links you share or copy. A "
-                            + "facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.")));
+                    L10n.t("Removes tracking tags like mibextid from links you share or copy. A facebook.com/share/ link is "
+                            + "unique to each share, so Facebook can still trace it.")));
+            links.addPreference(toggle(context, Settings.SHARE_POST_OWN_LINK,
+                    L10n.t("Copy link and the share sheet's other link shares give the post's own facebook.com address "
+                            + "instead of a facebook.com/share/ link made for that one share.")));
+        }
+        if (build.contains(PatchFamily.SHARE_SHEET_ITEMS)) {
+            links.addPreference(shareItemsRow(context));
+            links.addPreference(toggle(context, Settings.HIDE_SHARE_GROUP_BUTTONS,
+                    L10n.t("Takes away Send to group when you pick two or more people, and the share sheet's own ways to start "
+                            + "a new group, so nothing you share makes a group chat by accident. Send separately stays.")));
         }
         links.addPreference(page.supportedLinksRow(context));
         for (Preference holder : page.linkHolderRows(context)) links.addPreference(holder);
-        links.addPreference(info(context, L10n.t("Selecting links by hand"),
-                L10n.t("Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. "
-                        + "Selecting the addresses sends their links here again. It doesn't restore Meta's verification, "
-                        + "and your other link settings stay as they are.")));
+        links.addPreference(info(context, L10n.t("Choose which links open here"),
+                L10n.t("Android can't verify a patched Facebook for Facebook links. Selecting the addresses yourself sends "
+                        + "those links here. Your other link settings stay.")));
+    }
+
+    /** Share sheet items' row: the items it keeps out, picked from a list of checkboxes. */
+    static Preference shareItemsRow(Context context) {
+        SettingsRows.Row row = new SettingsRows.Row(context);
+        row.setKey(SHARE_ITEMS_ROW);
+        row.setTitle(L10n.t("Share sheet items to hide"));
+        row.setPersistent(false);
+        row.setSummary(shareItemsSummary(ShareSheetItems.hidden()));
+        row.setOnPreferenceClickListener(p -> {
+            showShareItems(context, row);
+            return true;
+        });
+        return row;
+    }
+
+    /** The row's key, for the settings search. No setting is behind it. */
+    static final String SHARE_ITEMS_ROW = "action_share_sheet_items";
+
+    /** The row's summary: the items kept out, by the names the list gives them, or none. */
+    static String shareItemsSummary(Set<String> hidden) {
+        if (hidden.isEmpty()) return L10n.t("None. The share sheet shows everything Facebook offers.");
+        List<String> names = new ArrayList<>();
+        for (String type : hidden) names.add(ShareSheetItems.label(type));
+        return L10n.f("Hidden: %s", L10n.join(names));
+    }
+
+    /** The list: every item it knows, ticked when it's kept out. Save keeps the ticks. */
+    private static void showShareItems(Context context, Preference row) {
+        List<String> types = ShareSheetItems.choices();
+        Set<String> hidden = ShareSheetItems.hidden();
+        String[] names = new String[types.size()];
+        boolean[] ticked = new boolean[types.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = ShareSheetItems.label(types.get(i));
+            ticked[i] = hidden.contains(types.get(i));
+        }
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Hide from the share sheet"))
+                .setMultiChoiceItems(names, ticked, (shown, which, isTicked) -> ticked[which] = isTicked)
+                .setPositiveButton(L10n.t("Save"), (shown, which) -> {
+                    List<String> picked = new ArrayList<>();
+                    for (int i = 0; i < ticked.length; i++) {
+                        if (ticked[i]) picked.add(types.get(i));
+                    }
+                    ShareSheetItems.hide(picked);
+                    row.setSummary(shareItemsSummary(ShareSheetItems.hidden()));
+                })
+                .setNegativeButton(L10n.t("Cancel"), null)
+                .show();
+        ScreenColors.dialog(dialog);
     }
 
     /**
      * Privacy, in every build for Lock Facebook: who can open Facebook on this phone, what Facebook
-     * sends home in the background, and what it shows others while you write and read.
+     * sends home in the background, and what it shows others while you write and read. The map of
+     * where ads and tracking are blocked ends it.
      */
     static void privacy(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
         // The settings entry's own, so it's in every build. A phone without a screen lock has nothing to ask with.
         SwitchPreference lock = toggle(context, Settings.APP_LOCK,
-                L10n.t("Facebook asks for your fingerprint, face or screen lock when it starts, and when you come back "
-                        + "after the time below. A video in picture-in-picture and a reply from a notification don't "
-                        + "ask. Your phone needs a screen lock."));
+                L10n.t("Facebook asks for your fingerprint, face or screen lock at startup and when you return after the "
+                        + "time below. Your phone needs a screen lock."));
         lock.setOnPreferenceChangeListener((preference, value) -> {
             if (Boolean.TRUE.equals(value) && !AppLock.canLock(context)) {
                 Utils.showToastLong(L10n.t("Set a screen lock in your phone's settings first, so Facebook has "
@@ -311,30 +366,29 @@ final class AppPages {
         if (build.contains(PatchFamily.ANALYTICS_UPLOADS)) {
             // XAnalytics resumes its uploader once, as Facebook starts.
             privacy.addPreference(toggle(context, Settings.HOLD_ANALYTICS_UPLOADS,
-                    L10n.t("Facebook stops uploading its app analytics in the background and skips its on-device "
-                            + "learning jobs. Restart Facebook after changing it.")));
+                    L10n.t("Stops Facebook sending usage statistics in the background and running its on-phone learning tasks. "
+                            + "Restart Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
             privacy.addPreference(toggle(context, Settings.BLOCK_SCREENSHOT_DETECTION,
-                    L10n.t("Facebook doesn't notice when you take a screenshot or record the screen, so nothing it does "
-                            + "in response happens.")));
+                    L10n.t("Facebook can't tell when you take a screenshot or record your screen, so it can't react.")));
         }
         if (build.contains(PatchFamily.SCREENSHOTS)) {
             privacy.addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS,
-                    L10n.t("Screenshots and screen recordings show the pages Facebook blocks them on. A page that's "
-                            + "already open changes when you open it again.")));
+                    L10n.t("Lets you take screenshots and screen recordings on pages where Facebook blocks them. Reopen a page "
+                            + "that's already open.")));
         }
         if (build.contains(PatchFamily.TYPING_INDICATOR)) {
             privacy.addPreference(toggle(context, Settings.HIDE_CHAT_TYPING,
-                    L10n.t("People you chat with in a chat that opens inside Facebook don't see that you're typing. "
-                            + "Your messages send as usual.")));
+                    L10n.t("People you chat with in Facebook's own chats can't see when you're typing. Messages send as usual.")));
             privacy.addPreference(toggle(context, Settings.HIDE_COMMENT_TYPING,
                     L10n.t("People looking at a post don't see that you're writing a comment.")));
         }
         if (build.contains(PatchFamily.READ_RECEIPTS)) {
             privacy.addPreference(toggle(context, Settings.HIDE_READ_RECEIPTS,
-                    L10n.t("People you chat with in a chat that opens inside Facebook don't see that you've read their "
-                            + "messages. The chat can stay unread on this phone.")));
+                    L10n.t("People you chat with in Facebook's own chats can't see that you've read their messages. The chat "
+                            + "can stay unread on this phone.")));
         }
+        AdsMap.add(page, privacy, context, build);
     }
 }

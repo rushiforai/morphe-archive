@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.6.0 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.8.1 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -488,6 +488,9 @@ public final class ModernShorts {
             View controller = find(a, "controller");
             int visibility = s.controlsTapped && controller != null && controller.isShown() ? View.VISIBLE : View.GONE;
             if (bar.getVisibility() != visibility) bar.setVisibility(visibility);
+            float alpha = controller == null ? 1f : controller.getAlpha();
+            if (bar.getAlpha() != alpha) bar.setAlpha(alpha);
+            Review181.shortControls(a, visibility, alpha);
             return true;
         };
         content.getViewTreeObserver().addOnPreDrawListener(s.controlsListener);

@@ -16,16 +16,15 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * Lets screenshots and screen recordings show the screens Facebook marks secure. See
  * AllowScreenshotsAnchors.kt for what it changes, and the extension's Screenshots for when.
  *
- * Off in the default selection: a secure screen is one Facebook means to keep out of screenshots,
- * so showing it is a choice to make. Picked, its switch starts on.
+ * In the default selection with its switch off: a secure screen is one Facebook means to keep out
+ * of screenshots, so showing it is a choice to make.
  */
 @Suppress("unused")
 val allowScreenshotsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Allow screenshots",
-    description = "Lets you take screenshots and record the screen on the pages Facebook blocks them on. Its switch " +
-        "starts on, under Privacy.",
-    default = false,
+    description = "Lets you take screenshots and screen recordings on the pages where Facebook blocks them, so " +
+        "you can keep a copy of what's on screen. Starts off. Turn it on in Hushfacebook settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, facebookExtensionPatch)

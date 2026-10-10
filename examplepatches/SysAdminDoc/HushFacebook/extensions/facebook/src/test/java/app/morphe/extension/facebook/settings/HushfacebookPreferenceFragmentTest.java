@@ -15,6 +15,7 @@ import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
@@ -29,6 +30,7 @@ import app.morphe.extension.facebook.feed.SeenPostsForTests;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
+import app.morphe.extension.facebook.navigation.HiddenTabs;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -148,8 +150,8 @@ public class HushfacebookPreferenceFragmentTest {
             }
             assertTrue("Debug logging is drawn above the Pause row", indexOfKey(rows, BaseSettings.DEBUG.key) > pause);
             assertTrue(String.valueOf(rows.get(pause).getSummary()),
-                    String.valueOf(rows.get(pause).getSummary()).contains("every switch but Debug logging and "
-                            + "Lock Facebook acts as if it were off. Changes made when you patched stay in"));
+                    String.valueOf(rows.get(pause).getSummary()).contains("switches act as if off, except "
+                            + "Debug logging and Lock Facebook. Your choices stay saved."));
         }
     }
 
@@ -170,7 +172,7 @@ public class HushfacebookPreferenceFragmentTest {
             Preference sound = rows.get(at);
             assertEquals("Save Facebook's notification sound", String.valueOf(sound.getTitle()));
             assertTrue("the row's tap acts at once, so it goes without a chevron", ((SettingsRows.Row) sound).actsOnTap());
-            assertTrue(String.valueOf(sound.getSummary()).contains("for a category that Android set to None"));
+            assertTrue(String.valueOf(sound.getSummary()).contains("for categories set to None"));
             assertEquals(-1, indexOfKey(rows, Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS.key));
 
             ShadowToast.reset();
@@ -231,14 +233,14 @@ public class HushfacebookPreferenceFragmentTest {
             List<Preference> rows = rowsOf(controller);
             int tray = indexOfKey(rows, Settings.HIDE_TOP_STORIES_TRAY.key);
             assertTrue("the Stories tray row is missing", tray >= 0);
-            assertEquals("The row of stories at the top of the feed, Create story included. "
+            assertEquals("Hides the row of stories at the top of the feed, including Create story. "
                     + "A change shows the next time you pull down to refresh.",
                     String.valueOf(rows.get(tray).getSummary()));
             int between = indexOfKey(rows, Settings.HIDE_STORIES_BETWEEN_POSTS.key);
             assertEquals("the between-post Stories switch isn't immediately after the tray switch", tray + 1, between);
             assertEquals("Hide Stories between posts", String.valueOf(rows.get(between).getTitle()));
-            assertEquals("Rows, large tiles and viewers of Stories between posts, starting with the next "
-                    + "feed Facebook loads. The top Stories tray has its own switch.",
+            assertEquals("Hides Stories shown between posts, from the next time the feed loads. The Stories tray at the top "
+                    + "has its own switch.",
                     String.valueOf(rows.get(between).getSummary()));
         }
     }
@@ -258,10 +260,9 @@ public class HushfacebookPreferenceFragmentTest {
             assertTrue("the sponsored reels row is missing", sponsored >= 0);
             assertTrue("the AI reels row is missing", ai >= 0);
             assertTrue(String.valueOf(rows.get(sponsored).getSummary()), String.valueOf(rows.get(sponsored).getSummary())
-                    .startsWith("Ads inside Reels, starting with the next batch Facebook loads. "));
+                    .startsWith("Hides ads in Reels, starting with the next batch Facebook loads. "));
             assertTrue(String.valueOf(rows.get(ai).getSummary()), String.valueOf(rows.get(ai).getSummary())
-                    .startsWith("Reels and Watch videos that Facebook's own detection marks as made with AI, "
-                            + "starting with the next batch Facebook loads. "));
+                    .startsWith("Hides reels and Watch videos that Facebook marks as made with AI. "));
         }
     }
 
@@ -278,9 +279,9 @@ public class HushfacebookPreferenceFragmentTest {
             int labelled = indexOfKey(rows, Settings.HIDE_AI_LABELLED_POSTS.key);
             assertTrue("the AI-detected posts row is missing", detected >= 0);
             assertEquals("the AI label row isn't right below the detection row", detected + 1, labelled);
-            assertEquals("Also hide posts labelled as AI", String.valueOf(rows.get(labelled).getTitle()));
+            assertEquals("Also hide posts labeled as AI", String.valueOf(rows.get(labelled).getTitle()));
             assertTrue(String.valueOf(rows.get(labelled).getSummary()), String.valueOf(rows.get(labelled).getSummary())
-                    .contains("with this on, both kinds go."));
+                    .contains("not just the ones Facebook detects itself."));
         }
     }
 
@@ -299,7 +300,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("the AI character row isn't right below the Meta AI cards row", cards + 1, characters);
             assertEquals("Hide AI character posts", String.valueOf(rows.get(characters).getTitle()));
             assertTrue(String.valueOf(rows.get(characters).getSummary()), String.valueOf(rows.get(characters)
-                    .getSummary()).contains("It's off by default"));
+                    .getSummary()).contains("so it starts off"));
         }
     }
 
@@ -334,13 +335,13 @@ public class HushfacebookPreferenceFragmentTest {
 
     /**
      * A version is a value set into a sentence, so both rows that show one isolate it: in a
-     * right-to-left sentence "581.0.0.45.58" then keeps the order it was written in.
+     * right-to-left sentence "582.0.0.50.54" then keeps the order it was written in.
      */
     @Test
     public void theVersionRowsIsolateTheVersions() {
         android.content.Context context = RuntimeEnvironment.getApplication();
         org.robolectric.Shadows.shadowOf(context.getPackageManager())
-                .getInternalMutablePackageInfo(context.getPackageName()).versionName = "581.0.0.45.58";
+                .getInternalMutablePackageInfo(context.getPackageName()).versionName = "582.0.0.50.54";
         String facebook = app.morphe.extension.shared.Utils.getAppVersionName();
         assertTrue("no Facebook version to look for", facebook != null && !facebook.isEmpty());
 
@@ -587,7 +588,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertFalse("something that isn't a package name was kept", ok.onPreferenceChange(app, "seal --exec"));
             ShadowLooper.idleMainLooper();
             assertEquals(SendLink.SEAL, Settings.SEND_TO_APP.savedValue());
-            assertEquals(L10n.isolate("seal --exec") + " isn't a package name, so the app stays as it was.",
+            assertEquals(L10n.isolate("seal --exec") + " isn't a valid app ID, so the app stays as it was.",
                     ShadowToast.getTextOfLatestToast());
 
             assertTrue("a clean name was changed", ok.onPreferenceChange(app, SendLink.YTDLNIS));
@@ -636,9 +637,8 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("spoiler\ngiveaway now", hide.getText());
             assertEquals("spoiler\ngiveaway now", Settings.HIDDEN_WORDS.savedValue());
             assertEquals("2 words or phrases.", String.valueOf(hide.getSummary()));
-            assertLeftOut("Words to hide", "2 lines were left out. A phrase needs 2 to 60 characters, or just one "
-                    + "for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
-                    + "once.");
+            assertLeftOut("Words to hide", "2 lines were left out. A phrase needs 2 to 60 characters, but a single "
+                    + "emoji or Chinese, Japanese or Korean character is enough. One given twice counts once.");
 
             ShadowAlertDialog.reset();
             assertTrue("a clean list was changed", ok.onPreferenceChange(hide, "spoiler"));
@@ -652,9 +652,8 @@ public class HushfacebookPreferenceFragmentTest {
             ShadowLooper.idleMainLooper();
             assertEquals("my team", Settings.KEPT_WORDS.savedValue());
             assertEquals("1 word or phrase.", String.valueOf(keep.getSummary()));
-            assertLeftOut("Words that keep a post", "1 line was left out. A phrase needs 2 to 60 characters, or just "
-                    + "one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
-                    + "once.");
+            assertLeftOut("Words that keep a post", "1 line was left out. A phrase needs 2 to 60 characters, but a single "
+                    + "emoji or Chinese, Japanese or Korean character is enough. One given twice counts once.");
         }
 
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
@@ -869,8 +868,8 @@ public class HushfacebookPreferenceFragmentTest {
                 assertFalse(((SwitchPreference) row).isChecked());
                 assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, compatible);
                 assertEquals("Save videos other apps can open", String.valueOf(row.getTitle()));
-                assertEquals("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
-                        + "without sound. May lower quality.",
+                assertEquals("Fixes saved videos that play without sound in WhatsApp, video editors such as CapCut and InShot, or "
+                        + "some galleries and players. May lower quality.",
                         String.valueOf(row.getSummary()));
             }
         }
@@ -1005,13 +1004,14 @@ public class HushfacebookPreferenceFragmentTest {
     public void aChosenReelsTabSaysItOpensHomeWhileHideTheReelsTabIsOn() {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB, PatchFamily.REELS_TAB);
         Settings.START_TAB.save(StartTab.VIDEO);
+        Settings.HIDE_REELS_TAB.save(true);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
             controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
             SwitchPreference hide = (SwitchPreference) page.findPreference(Settings.HIDE_REELS_TAB.key);
             assertEquals("Hide the Reels tab", String.valueOf(hide.getTitle()));
             assertEquals("Reels and Watch", String.valueOf(hide.getParent().getTitle()));
-            assertTrue("picking the patch is the choice", hide.isChecked());
+            assertTrue("the row doesn't show the switch on", hide.isChecked());
             Preference start = page.findPreference(Settings.START_TAB.key);
             assertEquals("Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. "
                     + "Your choice stays saved.", String.valueOf(start.getSummary()));
@@ -1037,6 +1037,26 @@ public class HushfacebookPreferenceFragmentTest {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB);
         assertEquals("Facebook opens on Video. If your tab bar doesn't have it, Facebook opens on Home.",
                 HushfacebookPreferenceFragment.startTabSummary(StartTab.VIDEO));
+    }
+
+    /** Feeds off the bar, the account's or kept off by Hide tabs, opens as its own page over Home. */
+    @Test public void aStartOnFeedsSaysItsPageOpensOffTheBar() {
+        String feeds = "Facebook opens on Feeds. If your tab bar doesn't have it, the Feeds page opens over Home.";
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB);
+        assertEquals(feeds, HushfacebookPreferenceFragment.startTabSummary(StartTab.FEEDS));
+        assertEquals(Settings.HIDE_FEEDS_TAB, HiddenTabs.Tab.forStart(StartTab.FEEDS).setting());
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB, PatchFamily.HIDDEN_TABS);
+        Settings.HIDE_FEEDS_TAB.save(true);
+        try {
+            assertEquals(feeds, HushfacebookPreferenceFragment.startTabSummary(StartTab.FEEDS));
+            // Any other tab Hide tabs keeps off the bar still opens Home.
+            Settings.HIDE_FRIENDS_TAB.save(true);
+            assertEquals("Facebook opens on Home while Hide tabs keeps Friends off the tab bar. Your choice stays saved.",
+                    HushfacebookPreferenceFragment.startTabSummary(StartTab.FRIENDS));
+        } finally {
+            Settings.HIDE_FEEDS_TAB.resetToDefault();
+            Settings.HIDE_FRIENDS_TAB.resetToDefault();
+        }
     }
 
     /**
@@ -1214,6 +1234,73 @@ public class HushfacebookPreferenceFragmentTest {
                 assertFalse(Settings.DEFAULT_PLAYBACK_QUALITY.key.equals(row.getKey()));
             }
         }
+    }
+
+    /**
+     * Default comment order and Default playback quality start off, so a pick in one of their lists
+     * turns the switch on and its row shows it on. The list's default changes nothing and leaves
+     * the switch alone, a pick while it's on changes only the list, and turning the switch off
+     * keeps the pick.
+     */
+    @Test
+    public void aPickInAListTurnsItsSwitchOn() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DEFAULT_COMMENT_ORDER, PatchFamily.PLAYBACK_QUALITY,
+                PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            SwitchPreference orderSwitch = (SwitchPreference) page.findPreference(Settings.DEFAULT_COMMENT_ORDER.key);
+            ListPreference order = (ListPreference) page.findPreference(Settings.COMMENT_ORDER.key);
+            assertFalse(orderSwitch.isChecked());
+
+            pick(order, "FACEBOOK");
+            assertFalse("Facebook's choice turned the switch on", Settings.DEFAULT_COMMENT_ORDER.savedValue());
+            pick(order, "NEWEST");
+            assertEquals(CommentOrder.NEWEST, Settings.COMMENT_ORDER.savedValue());
+            assertTrue(Settings.DEFAULT_COMMENT_ORDER.savedValue());
+            assertTrue("the switch's row doesn't show it on", orderSwitch.isChecked());
+
+            // Off by its own row, the pick stays, and a pick with the switch on leaves it on.
+            orderSwitch.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertFalse(Settings.DEFAULT_COMMENT_ORDER.savedValue());
+            assertEquals(CommentOrder.NEWEST, Settings.COMMENT_ORDER.savedValue());
+            orderSwitch.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            pick(order, "ALL_COMMENTS");
+            assertEquals(CommentOrder.ALL_COMMENTS, Settings.COMMENT_ORDER.savedValue());
+            assertTrue(Settings.DEFAULT_COMMENT_ORDER.savedValue());
+
+            // The playback quality and its Reels and Stories lists work under one switch.
+            SwitchPreference qualitySwitch = (SwitchPreference) page.findPreference(Settings.DEFAULT_PLAYBACK_QUALITY.key);
+            ListPreference stories = (ListPreference) page.findPreference(Settings.STORIES_PLAYBACK_QUALITY.key);
+            pick(stories, "SAME");
+            assertFalse("Same as videos turned the switch on", Settings.DEFAULT_PLAYBACK_QUALITY.savedValue());
+            pick(stories, "HIGHEST");
+            assertEquals(SurfaceQuality.HIGHEST, Settings.STORIES_PLAYBACK_QUALITY.savedValue());
+            assertTrue(Settings.DEFAULT_PLAYBACK_QUALITY.savedValue());
+            assertTrue("the switch's row doesn't show it on", qualitySwitch.isChecked());
+            qualitySwitch.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            ListPreference quality = (ListPreference) page.findPreference(Settings.PLAYBACK_QUALITY.key);
+            pick(quality, "P720");
+            assertEquals(PlaybackQuality.P720, Settings.PLAYBACK_QUALITY.savedValue());
+            assertTrue(qualitySwitch.isChecked());
+            assertEquals(SurfaceQuality.HIGHEST, Settings.STORIES_PLAYBACK_QUALITY.savedValue());
+        } finally {
+            Settings.DEFAULT_COMMENT_ORDER.resetToDefault();
+            Settings.COMMENT_ORDER.resetToDefault();
+            Settings.DEFAULT_PLAYBACK_QUALITY.resetToDefault();
+            Settings.PLAYBACK_QUALITY.resetToDefault();
+            Settings.STORIES_PLAYBACK_QUALITY.resetToDefault();
+        }
+    }
+
+    /** A pick the way a list's own dialog sends one: its change listener first, then the value if it agrees. */
+    private static void pick(ListPreference row, String value) {
+        Preference.OnPreferenceChangeListener listener = row.getOnPreferenceChangeListener();
+        if (listener == null || listener.onPreferenceChange(row, value)) row.setValue(value);
+        ShadowLooper.idleMainLooper();
     }
 
     /**
@@ -1494,10 +1581,10 @@ public class HushfacebookPreferenceFragmentTest {
     /** Issue #34: the AMOLED row under Patched names the Background colour the patch was given. */
     @Test
     public void theAmoledRowNamesAPickedBackgroundColour() {
-        assertEquals("Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.",
+        assertEquals("Dark mode uses black instead of dark gray. Turn on dark mode in Facebook to see it.",
                 HushfacebookPreferenceFragment.amoledSummary(Color.BLACK));
-        assertEquals("Dark mode draws " + L10n.isolate("#0D1117")
-                        + " instead of dark grey. Turn on dark mode in Facebook to see it.",
+        assertEquals("Dark mode uses " + L10n.isolate("#0D1117")
+                        + " instead of dark gray. Turn on dark mode in Facebook to see it.",
                 HushfacebookPreferenceFragment.amoledSummary(0xFF0D1117));
     }
 }

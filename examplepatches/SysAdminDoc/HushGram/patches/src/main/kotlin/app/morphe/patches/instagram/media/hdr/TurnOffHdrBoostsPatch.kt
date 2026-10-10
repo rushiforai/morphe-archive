@@ -51,11 +51,11 @@ internal val HDR_CALLS = listOf(
 @Suppress("unused")
 val turnOffHdrBoostsPatch = bytecodePatch(
     name = "Turn off HDR brightness boosts",
-    description = "Keeps HDR photos and reels from brightening the screen above everything else, with a switch " +
-        "under Playback that starts off.",
+    description = "Stops HDR photos and reels from making the screen brighter than everything else. Starts off. " +
+        "Turn it on in HushGram settings > Playback.",
     default = true,
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

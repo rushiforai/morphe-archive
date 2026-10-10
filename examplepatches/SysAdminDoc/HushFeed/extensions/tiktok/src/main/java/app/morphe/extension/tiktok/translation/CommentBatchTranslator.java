@@ -936,7 +936,12 @@ public final class CommentBatchTranslator {
         return Locale.getDefault().toLanguageTag();
     }
 
+    /** TikTok's Don't translate list with the languages Hushfeed's own row adds (#121). */
     private static String[] getNativeDoNotTranslateLanguages() {
+        return DoNotAutoTranslate.withExcluded(readNativeDoNotTranslateLanguages());
+    }
+
+    private static String[] readNativeDoNotTranslateLanguages() {
         try {
             if (!nativeDoNotTranslateLookedUp) lookUpDoNotTranslateGetter();
 

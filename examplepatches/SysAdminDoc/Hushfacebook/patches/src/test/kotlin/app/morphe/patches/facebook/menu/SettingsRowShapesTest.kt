@@ -21,7 +21,6 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
@@ -40,7 +39,7 @@ import org.junit.Test
 /**
  * The parts of Hushfacebook in the Menu that need no Facebook build: which methods and
  * constructors the anchors take and turn down, the factory added to the row item, and the code
- * put into the row list builder, the tap handler and the loggers.
+ * put into the native section, the tap handler and the loggers.
  */
 class SettingsRowShapesTest {
     private val item = "Lfixture/RowItem;"
@@ -101,18 +100,35 @@ class SettingsRowShapesTest {
         methods.toList(),
     )
 
+    private val state = "Lfixture/GroupState;"
+    private val cache = ImmutableFieldReference(state, "A01", IMMUTABLE_LIST)
+    private val finish = ImmutableMethodReference(helper, "A0P", listOf(IMMUTABLE_LIST_BUILDER), IMMUTABLE_LIST)
+
+    /** 582's Settings case: the builder in v5 finished by a static call into [into], stored on the state in v6. */
+    private fun finished(into: Int = 0, field: ImmutableFieldReference = cache, call: Opcode = Opcode.INVOKE_STATIC, storedFrom: Int = into) =
+        listOf(
+            ImmutableInstruction35c(call, 1, 5, 0, 0, 0, 0, finish),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, into),
+            ImmutableInstruction22c(Opcode.IPUT_OBJECT, storedFrom, 6, field),
+        )
+
+    /** The section reads [reads] first, as 582's reads its cache, then runs [parts]. */
+    private fun section(parts: List<Instruction>, reads: List<ImmutableFieldReference> = listOf(cache)) =
+        method(helper, "A01", listOf("Lfixture/Context;"), "Lfixture/Children;", 10,
+            reads.map { ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 6, it) } + parts +
+                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0))
+
     @Test
-    fun `the row list build takes the session, a list and a flag, and hands back an ImmutableList`() {
-        val good = ImmutableMethodReference(helper, "A08", listOf(USER_SESSION, "Ljava/util/List;", "Z"), IMMUTABLE_LIST)
-        assertTrue(isRowListBuild(good))
-        assertFalse(isRowListBuild(ImmutableMethodReference(helper, "A05", listOf(USER_SESSION), IMMUTABLE_LIST)))
-        assertFalse(isRowListBuild(ImmutableMethodReference(helper, "A08", listOf(USER_SESSION, "Ljava/util/List;", "Z"),
-            "Ljava/util/List;")))
-        val native = method(helper, "A1S", listOf("Lfixture/Context;"), "Lfixture/Children;", 3, listOf(
-            ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 4, 0, 1, 1, 1, 0, good),
-            ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 4, 0, 1, 1, 1, 0, good),
-        ))
-        assertEquals("a second call to the same build is one build", listOf("A08"), rowListBuilds(native).map { it.name })
+    fun `582's Settings rows are the list finished from a builder and stored where the section reads it back`() {
+        assertEquals("the move-result picking it up", listOf(2), settingsListStores(section(finished())))
+        val unread = ImmutableFieldReference(state, "A00", IMMUTABLE_LIST)
+        assertEquals("a list stored in a field the section never reads", listOf(5),
+            settingsListStores(section(finished(field = unread) + finished())))
+        assertEquals("finished by a virtual call", emptyList<Int>(), settingsListStores(section(finished(call = Opcode.INVOKE_VIRTUAL))))
+        assertEquals("another register stored", emptyList<Int>(), settingsListStores(section(finished(into = 1, storedFrom = 2))))
+        val list = ImmutableFieldReference(state, "A02", "Ljava/util/List;")
+        assertEquals("a field that isn't an ImmutableList", emptyList<Int>(),
+            settingsListStores(section(finished(field = list), reads = listOf(list))))
     }
 
     private fun tap(
@@ -215,34 +231,24 @@ class SettingsRowShapesTest {
         return addresses.indexOf(addresses[index] + branch.codeOffset)
     }
 
-    /**
-     * A builder with two returns, one of them reached by a jump: every list it hands back goes
-     * through the extension and back into an ImmutableList, the jump included.
-     */
+    /** The finished list goes through the extension and back into an ImmutableList before it's stored. */
     @Test
-    fun `every list the builder hands back goes through the row`() {
-        val builder = MutableMethod(method(helper, "A08", listOf(USER_SESSION, "Ljava/util/List;", "Z"), IMMUTABLE_LIST, 20,
-            listOf(
-                ImmutableInstruction10t(Opcode.GOTO, 2),
-                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4),
-                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 17),
-            )))
-        builder.passListThroughRow()
-        val calls = builder.implementation!!.instructions.mapNotNull {
+    fun `the stored list goes through the row first`() {
+        val section = MutableMethod(section(finished(into = 9)))
+        section.passListThroughRow(2)
+        val calls = section.implementation!!.instructions.mapNotNull {
             ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { call -> "${call.definingClass}->${call.name}" }
         }
         assertEquals(listOf(
-            "Lapp/morphe/extension/facebook/menu/MenuSettingsRow;->withRow", "$IMMUTABLE_LIST->copyOf",
-            "Lapp/morphe/extension/facebook/menu/MenuSettingsRow;->withRow", "$IMMUTABLE_LIST->copyOf",
+            "$helper->A0P", "Lapp/morphe/extension/facebook/menu/MenuSettingsRow;->withRow", "$IMMUTABLE_LIST->copyOf",
         ), calls)
-        assertEquals(Opcode.INVOKE_STATIC_RANGE, builder.at(1).opcode)
-        assertEquals(4, (builder.at(1) as RegisterRangeInstruction).startRegister)
-        assertEquals(4, (builder.at(2) as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.RETURN_OBJECT, builder.at(5).opcode)
-        assertEquals(17, (builder.at(6) as RegisterRangeInstruction).startRegister)
-        assertEquals(Opcode.RETURN_OBJECT, builder.at(10).opcode)
-        // The jump that went to the second return now goes through its hook first.
-        assertEquals(6, offsetTarget(builder, 0))
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, section.at(3).opcode)
+        assertEquals(9, (section.at(3) as RegisterRangeInstruction).startRegister)
+        assertEquals(9, (section.at(4) as OneRegisterInstruction).registerA)
+        assertEquals(9, (section.at(6) as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IPUT_OBJECT, section.at(7).opcode)
+        val wrong = assertThrows(PatchException::class.java) { MutableMethod(section(finished())).passListThroughRow(1) }
+        assertTrue(wrong.message, wrong.message!!.contains(ROW_PATCH))
     }
 
     private fun idOf() = ImmutableFieldReference(item, "A02", "J")

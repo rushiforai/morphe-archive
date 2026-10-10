@@ -22,7 +22,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
  * Opens the Feeds tab on the filter chosen in the settings, once, after a start from the launcher
- * icon that {@link StartTabRoute} sent to Feeds (#56).
+ * icon that {@link StartTabRoute} sent to Feeds (#56), or to the Feeds page when the tab bar has no
+ * Feeds tab. The page is the same fragment as the tab, on a screen of its own.
  *
  * <p>Facebook already has a way to pick one of the Feeds tab's filters. Its main screen hands an
  * intent meant for the tab to the tab's {@code handleDeeplinkFromMainActivity}, which looks for the

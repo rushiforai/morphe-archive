@@ -86,15 +86,9 @@ private object StreakReminderFingerprint : Fingerprint(
 @Suppress("unused")
 val notificationControlsPatch = bytecodePatch(
     name = "Notification controls",
-    description = "Adds a switch for the notification saying somebody new followed you, and " +
-        "one for message streaks, neither of which TikTok lets you turn off. The follower " +
-        "switch drops the notification before Android is asked to post it, so nothing else " +
-        "in the drawer is affected. A third switch, off by default, turns push notifications " +
-        "off altogether. TikTok's push service doesn't start and nothing it posts reaches the " +
-        "drawer, apart from ongoing ones like media controls. It can't hold your phone awake " +
-        "either. You won't hear about new messages until you open TikTok, and turning the " +
-        "switch off sets push up again the next time TikTok starts. Switch: Hushfeed settings > Inbox.",
-    default = false,
+    description = "Lets you turn off new follower notifications and streak reminders, which " +
+        "TikTok has no switch for, or turn off TikTok's notifications altogether. Starts off. " +
+        "Turn it on in Hushfeed settings > Inbox.",
 ) {
     category("Inbox")
     // The notify filter carries the drawer half of Turn off push notifications.

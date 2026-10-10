@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.facebook.media.quality
 
+import app.morphe.patches.facebook.feed.tableStringAt
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -51,6 +52,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *   the origin is the String it compares with "fb_stories" (A07 on 581 and 580, A06 on 577), the
  *   sub-origin the one it compares with "fb_shorts_viewer" and "fb_shorts_native_in_feed_unit"
  *   (A08 on 581 and 580, A07 on 577). The extension sorts reels and stories by those two names.
+ *   582 (read 2026-10-10) keeps the shape, playbackPreferences LX/3wX; with the origin in A07 and
+ *   the sub-origin in A08, but asks a string table (arm64 LX/192;->A00) for both sub-origin names.
  */
 
 internal const val QUALITY_CHOICE = "$EXTENSION_PACKAGE/media/QualityChoice;"
@@ -143,13 +146,21 @@ internal fun preselectedReads(evaluator: ClassDef, setter: Method): List<FieldRe
 /**
  * The String fields of [preferences] that [configuration]'s constructors read and compare, ignoring
  * case, with [literal]: the player origin for "fb_stories", the sub-origin for "fb_shorts_viewer".
- * The field is the last read into the register the comparison takes besides the literal's.
+ * The literal is a const-string, or the answer of a string table [resolve] finds, moved into a
+ * register: 582 asks a table for both sub-origin names ([tableStringAt]). The field is the last read
+ * into the register the comparison takes besides the literal's.
  */
-internal fun originReads(configuration: ClassDef, preferences: String, literal: String): List<FieldReference> =
+internal fun originReads(
+    configuration: ClassDef,
+    preferences: String,
+    literal: String,
+    resolve: (MethodReference) -> Method?,
+): List<FieldReference> =
     configuration.methods.filter { it.name == "<init>" }.flatMap { method ->
         val code = method.code()
         code.indices.mapNotNull { index ->
             val string = ((code[index] as? ReferenceInstruction)?.reference as? StringReference)?.string
+                ?: code[index].takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT }?.let { tableStringAt(code, index - 1, resolve) }
             if (string != literal) return@mapNotNull null
             val literalRegister = (code[index] as OneRegisterInstruction).registerA
             val compare = code.drop(index + 1).take(3).firstOrNull {

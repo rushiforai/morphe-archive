@@ -11,6 +11,7 @@ import android.os.Handler;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.EarlySwitch;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
@@ -18,10 +19,13 @@ import app.morphe.extension.tiktok.settings.Settings;
  *
  * <p>Six sensor types are refused: the ones an app reads to fingerprint a phone or to track how
  * it is being held, none of which a feed needs. Every other sensor, and every registration while
- * the switch is off, goes through to the real manager.
+ * the switch is off, goes through to the real manager. A registration before the settings
+ * context exists takes the switch straight from the saved file.
  */
 @SuppressWarnings("unused")
 public final class ResourceBatteryGovernor {
+    /** {@link Settings#BLOCK_MOTION_SENSORS}'s key, for the read before the settings context. */
+    static final String SWITCH_KEY = "block_motion_sensors";
 
     private static boolean blocks(Sensor sensor) {
         if (sensor == null) return false;
@@ -30,7 +34,8 @@ public final class ResourceBatteryGovernor {
                 || type == Sensor.TYPE_MAGNETIC_FIELD || type == Sensor.TYPE_ROTATION_VECTOR
                 || type == Sensor.TYPE_LINEAR_ACCELERATION || type == Sensor.TYPE_GRAVITY;
         if (!motion) return false;
-        if (Utils.getContext() != null && !Settings.BLOCK_MOTION_SENSORS.get()) return false;
+        boolean on = Utils.getContext() != null ? Settings.BLOCK_MOTION_SENSORS.get() : EarlySwitch.isOn(SWITCH_KEY);
+        if (!on) return false;
         Logger.printInfo(() -> "Resource governor: blocked sensor registration for type " + type);
         return true;
     }

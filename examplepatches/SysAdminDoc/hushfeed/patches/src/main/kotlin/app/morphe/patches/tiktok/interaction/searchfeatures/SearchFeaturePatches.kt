@@ -53,7 +53,8 @@ private fun BytecodePatchContext.patchBooleanGate(
 @Suppress("unused")
 val enableNonPersonalizedSearchPatch = bytecodePatch(
     name = "Use non-personalized search",
-    description = "Uses TikTok's non-personalized search mode instead of its saved account choice. Switch: Hushfeed settings > App.",
+    description = "Shows search results that aren't tailored to your account. Starts off. " +
+        "Turn it on in Hushfeed settings > App.",
     default = true,
 ) {
     category("Search")
@@ -78,7 +79,8 @@ val enableNonPersonalizedSearchPatch = bytecodePatch(
 @Suppress("unused")
 val enableLiveSearchPatch = bytecodePatch(
     name = "Show LIVE search",
-    description = "Shows TikTok's search entry in the LIVE drawer where supported.",
+    description = "Adds TikTok's search button inside the LIVE section where TikTok supports " +
+        "it, so you can look for LIVEs. Starts off. Turn it on in Hushfeed settings > App.",
     default = true,
 ) {
     category("Search")

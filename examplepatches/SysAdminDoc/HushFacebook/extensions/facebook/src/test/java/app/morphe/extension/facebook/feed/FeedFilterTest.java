@@ -14,6 +14,7 @@ import com.facebook.graphql.model.GraphQLStory;
 import com.facebook.graphql.modelutil.BaseModelWithTree;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,13 @@ public class FeedFilterTest {
 
     /** Stands in for GraphQLFeedStoryCategory: only the constant names matter to the rule. */
     enum Category { ORGANIC, SPONSORED, PROMOTION, INJECTED_STORY, TRENDING, ENGAGEMENT, ENGAGEMENT_QP, FB_SHORTS, FB_SHORTS_FALLBACK, END_OF_FEED_REELS, FB_STORIES }
+
+    /** The patch is in Morphe Manager's default selection with its switches off; these tests turn them on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HIDE_FEED_REELS.save(true);
+        Settings.HIDE_STORIES_BETWEEN_POSTS.save(true);
+    }
 
     @After
     public void restoreSwitches() {
@@ -63,12 +71,12 @@ public class FeedFilterTest {
 
     /**
      * A row of reels goes under each of the three categories Facebook files one under, with the
-     * patch in and the switch on (its default). A post, a story row and the reels rows of a build
+     * patch in and the switch on (it starts off). A post, a story row and the reels rows of a build
      * without the patch all stay, and so do the rows once the switch is off.
      */
     @Test
     public void reelsRowsLeaveTheFeedWithTheirPatchAndSwitch() {
-        assertTrue("the switch starts on", Settings.HIDE_FEED_REELS.get());
+        assertFalse("the switch starts off", Settings.HIDE_FEED_REELS.defaultValue);
         for (Category reels : new Category[]{Category.FB_SHORTS, Category.FB_SHORTS_FALLBACK, Category.END_OF_FEED_REELS}) {
             assertTrue(reels.name(), reelsOnly(reels, new Object(), true));
             assertFalse("without the patch: " + reels, reelsOnly(reels, new Object(), false));
@@ -519,7 +527,7 @@ public class FeedFilterTest {
         Settings.HIDE_STORIES_BETWEEN_POSTS.save(false);
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, false));
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.storiesTray(), false, false));
-        Settings.HIDE_STORIES_BETWEEN_POSTS.resetToDefault();
+        Settings.HIDE_STORIES_BETWEEN_POSTS.save(true);
         FeedFilter.storiesTrayInBuildForTests = false;
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, false));
     }
@@ -548,7 +556,7 @@ public class FeedFilterTest {
         Settings.HIDE_STORIES_BETWEEN_POSTS.save(false);
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, tile, false, false));
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, viewer, false, false));
-        Settings.HIDE_STORIES_BETWEEN_POSTS.resetToDefault();
+        Settings.HIDE_STORIES_BETWEEN_POSTS.save(true);
         FeedFilter.storiesTrayInBuildForTests = false;
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, tile, false, false));
     }

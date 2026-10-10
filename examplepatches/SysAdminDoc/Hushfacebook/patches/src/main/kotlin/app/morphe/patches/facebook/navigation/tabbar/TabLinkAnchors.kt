@@ -4,9 +4,9 @@
  */
 package app.morphe.patches.facebook.navigation.tabbar
 
+import app.morphe.patches.facebook.feed.namesString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.navigation.starttab.TAB_TAG
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -14,18 +14,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /*
- * How Facebook decides that a page it opens is a tab, on the 577, 580 and 581 builds.
+ * How Facebook decides that a page it opens is a tab, on the 577 to 582 builds.
  *
  * A Menu shortcut, a link or a notification for a page that has a tab passes through three places
  * that ask whether the account has that tab, and all three look in NavigationConfig's configured
  * list, not in the shown list the tab bar filter trims:
  *
- * - The main activity's startActivity hands each intent to a static method of a Redex class
- *   (LX/9gG; on 577, LX/9E7; on 580, LX/9tO; on 581) that maps the intent's extra_launch_uri to a
+ * - The main activity's startActivity hands each intent to a method of a Redex class (static on
+ *   LX/9gG; on 577, LX/9E7; on 580 and LX/9tO; on 581, a singleton's on LX/8Lx; on 582) that maps the intent's extra_launch_uri to a
  *   configured tab through an ImmutableMap keyed by each tab's URI. Given a tab, the activity
  *   switches to it in place and starts nothing. The immersive activity and the URI router ask it
  *   too.
@@ -91,13 +92,15 @@ private fun Instruction.castsToTab(register: Int) =
  * Where [method] picks the configured tab a page being started belongs to, or null when it
  * doesn't.
  *
- * The method is static, takes an Intent and an FbUserSession and returns a TabTag. It reads the
+ * The method takes an Intent and an FbUserSession and returns a TabTag, static up to 581 and an
+ * instance method of a Redex singleton on 582 (`LX/8Lx;->A01`). The hook only reads the tab's
+ * register, so either is the same to it. It reads the
  * configured list, loads "extra_launch_uri" and calls ImmutableMap.get once, keeping the answer
  * with a `move-result-object` that's cast to TabTag right after. The hook goes in front of the
  * cast, so the answer is the extension's before it's cast and returned.
  */
 internal fun launchedTabLookup(method: Method): TabHook? {
-    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != TAB_TAG) return null
+    if (method.returnType != TAB_TAG) return null
     if (method.parameterTypes.map { it.toString() } != listOf(INTENT, FB_USER_SESSION)) return null
     val code = method.implementation?.instructions?.toList() ?: return null
     if (code.none { it.loadsString(EXTRA_LAUNCH_URI) } || code.none { it.readsConfiguredList() }) return null
@@ -141,13 +144,14 @@ internal fun friendsTabMatch(method: Method): TabHook? {
  * Where [method], one of FbMainTabActivityUriHelper's, checks whether a target_tab_id link's tab
  * is configured, or null when it doesn't.
  *
- * The method loads "target_tab_id". The check reads the configured list into a register, asks
+ * The method names "target_tab_id", loading it or, as on 582 (`LX/000;`), asking a string table
+ * [resolve] finds for it ([namesString]). The check reads the configured list into a register, asks
  * that list's `contains` about the tab right after, and keeps the answer with a `move-result` in a
  * register other than the tab's. The hook goes after the `move-result`.
  */
-internal fun configuredTabCheck(method: Method): ConfiguredCheck? {
+internal fun configuredTabCheck(method: Method, resolve: (MethodReference) -> Method? = { null }): ConfiguredCheck? {
     val code = method.implementation?.instructions?.toList() ?: return null
-    if (code.none { it.loadsString(TARGET_TAB_ID) }) return null
+    if (!namesString(method, TARGET_TAB_ID, resolve)) return null
     val checks = code.indices.filter { index ->
         val read = code[index]
         val asks = code.getOrNull(index + 1)?.takeIf { next ->

@@ -16,8 +16,9 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val enableVoiceCommentsPatch = bytecodePatch(
     name = "Enable voice comments",
-    description = "Turns on TikTok's own voice comment recording and publishing entry points for " +
-        "accounts that do not have them.",
+    description = "Turns on TikTok's voice comments, so you can record and post a spoken " +
+        "comment, for accounts that don't have them yet. It has no switch and hasn't been tried " +
+        "on a real account, so it may not work.",
     default = false,
 ) {
     category("Comments")

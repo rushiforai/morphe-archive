@@ -35,6 +35,8 @@ import app.morphe.patches.tiktok.interaction.exactcounts.CountFormatterFingerpri
 import app.morphe.patches.tiktok.interaction.exactcounts.isCountFormatter
 import app.morphe.patches.tiktok.interaction.engagement.ProfileGridBindFingerprint
 import app.morphe.patches.tiktok.interaction.engagement.gridCountSite
+import app.morphe.patches.tiktok.interaction.feedtoolbar.SidebarIconViewFingerprint
+import app.morphe.patches.tiktok.interaction.feedtoolbar.isToolbarEnabledCheck
 import app.morphe.patches.tiktok.profile.BASE_UI_COMPONENT
 import app.morphe.patches.tiktok.profile.HEADER_TEXT_ITEM
 import app.morphe.patches.tiktok.profile.PROFILE_COMMON_INFO
@@ -1008,6 +1010,42 @@ class TikTokPatchAnchorsMatchFixturesTest {
             )) {
                 assertEquals("the account's $name", type, accountFields[name])
             }
+        }
+    }
+
+    /**
+     * Issue #128. The side menu button beside LIVE is found by the one method that asks for the
+     * inflated sidebar icon. Its class has to be a feed toolbar button like LIVE's, tag itself
+     * SIDEBAR, and keep one enabled check with a return the patch can answer, on every declared
+     * build. The class is an R8 name (16o0 on 47.1.4).
+     */
+    @Test
+    fun `side menu button and its enabled check resolve on every declared build`() {
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.associateBy { it.type }
+            val iconViews = classes.values.flatMap { classDef ->
+                classDef.methods.filter { SidebarIconViewFingerprint.takes(it, classDef) }
+            }
+            assertEquals("side menu icon view ${iconViews.map { it.anchorSignature() }}", 1, iconViews.size)
+
+            val button = classes.getValue(iconViews.single().definingClass)
+            val live = classes.getValue("Lcom/bytedance/tiktok/homepage/mainfragment/toolbar/LiveIconGenerator;")
+            assertTrue("${button.type} is not a feed toolbar button: ${button.interfaces} vs LIVE's ${live.interfaces}",
+                button.interfaces.any { it in live.interfaces })
+
+            val enabled = button.methods.filter(::isToolbarEnabledCheck)
+            assertEquals("${button.type} enabled checks", 1, enabled.size)
+            assertTrue("${button.type}->enabled() has no return to wrap",
+                enabled.single().implementation!!.instructions.any { it.opcode == Opcode.RETURN })
+
+            val tags = button.methods.filter { it.name == "<init>" }.flatMap { method ->
+                method.implementation?.instructions?.toList().orEmpty()
+                    .filter { it.opcode == Opcode.SGET_OBJECT }
+                    .mapNotNull { ((it as ReferenceInstruction).reference as? FieldReference)?.name }
+            }
+            assertTrue("${button.type} does not tag itself SIDEBAR: $tags", "SIDEBAR" in tags)
         }
     }
 

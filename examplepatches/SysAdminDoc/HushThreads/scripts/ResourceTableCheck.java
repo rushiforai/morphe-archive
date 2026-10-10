@@ -41,15 +41,19 @@ import java.util.zip.ZipFile;
  * id, with the same type and a value in every configuration the stock table gives it; every file
  * a patched value names has to be in the patched archive; and every value the patches changed has
  * to point at something the patched table has. A style keeps its parent, and a file keeps the bytes
- * the stock archive has for it, since no patch writes either. A failure names the id and exits 1.
+ * the stock archive has for it unless the written list names it: a resource whose file a selected
+ * patch writes (Trust user-added certificates edits the network security config). A failure names
+ * the id and exits 1.
  *
  * <p>What the patches changed is reported, not failed: each rewritten value with its old and new
  * value (the AMOLED dark theme's palette and sheet colors), each entry the rebuild renamed (it
- * still resolves by id, but a lookup by its old name finds nothing), and each added one.
+ * still resolves by id, but a lookup by its old name finds nothing), each added one, and each file
+ * the written list let change.
  *
  * <p>Usage: {@code java -cp <morphe desktop jar> ResourceTableCheck.java <stock.apk> <patched.apk>
- * [report.txt]}. The report file gets every line; the console gets the counts and the first lines
- * of each list.
+ * [report.txt [written.txt]]}. The report file gets every line; the console gets the counts and
+ * the first lines of each list. written.txt holds one stock {@code type/name} per line; blank lines
+ * and lines starting with # are skipped.
  */
 public final class ResourceTableCheck {
     private static final int SHOWN = 40;
@@ -74,24 +78,34 @@ public final class ResourceTableCheck {
     private final List<String> added = new ArrayList<>();
     private final List<String> moved = new ArrayList<>();
     private final List<String> absentInStock = new ArrayList<>();
+    /** Stock {@code type/name} labels whose file a selected patch writes, and the files that did change. */
+    private final Set<String> writable = new HashSet<>();
+    private final List<String> written = new ArrayList<>();
     private int stockResources;
     private int stockValues;
     private int patchedResources;
     private int files;
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2 || args.length > 3) {
-            System.err.println("usage: ResourceTableCheck <stock.apk> <patched.apk> [report.txt]");
+        if (args.length < 2 || args.length > 4) {
+            System.err.println("usage: ResourceTableCheck <stock.apk> <patched.apk> [report.txt [written.txt]]");
             System.exit(2);
         }
         File stockFile = new File(args[0]);
         File patchedFile = new File(args[1]);
         ResourceTableCheck check = new ResourceTableCheck();
+        if (args.length == 4) {
+            for (String line : Files.readAllLines(new File(args[3]).toPath(), StandardCharsets.UTF_8)) {
+                // Windows PowerShell 5.1 writes UTF-8 with a byte order mark.
+                String label = line.replace("﻿", "").trim();
+                if (!label.isEmpty() && !label.startsWith("#")) check.writable.add(label);
+            }
+        }
         try (ZipFile stockZip = new ZipFile(stockFile); ZipFile patchedZip = new ZipFile(patchedFile)) {
             check.run(table(stockZip), stockZip, table(patchedZip), patchedZip);
         }
         List<String> lines = check.lines(stockFile.getName(), patchedFile.getName());
-        if (args.length == 3) {
+        if (args.length >= 3) {
             Files.write(new File(args[2]).toPath(), lines, StandardCharsets.UTF_8);
         }
         PrintWriter out = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
@@ -281,10 +295,14 @@ public final class ResourceTableCheck {
                     }
                     if (stockPath == null || stockFile == null) continue;
                     if (!stockPath.equals(path)) moved.add(where + " " + stockPath + " -> " + path);
-                    // No patch writes a resource file, so a file whose bytes changed is one the
-                    // rebuild swapped or damaged (a path clash loses content as well as paths).
+                    // Outside the written list, a file whose bytes changed is one the rebuild
+                    // swapped or damaged (a path clash loses content as well as paths).
                     if (stockFile.getCrc() != file.getCrc() || stockFile.getSize() != file.getSize()) {
-                        failures.add(where + ": " + path + " is not the file the stock archive holds for it");
+                        if (writable.contains(label(original))) {
+                            written.add(where + " " + path);
+                        } else {
+                            failures.add(where + ": " + path + " is not the file the stock archive holds for it");
+                        }
                     }
                 }
             }
@@ -419,6 +437,7 @@ public final class ResourceTableCheck {
                 files, moved.size(), absentInStock.size()));
         for (String line : moved) lines.add("  moved " + line);
         for (String line : absentInStock) lines.add("  absent in both " + line);
+        section(lines, "files a selected patch writes", written);
         if (failures.isEmpty()) {
             lines.add(String.format(Locale.ROOT, "[resources] every one of the stock table's %d resources resolves in the patched table, with its type and a value in each of its configurations, and every file and reference the patched values name is there",
                     stockResources));

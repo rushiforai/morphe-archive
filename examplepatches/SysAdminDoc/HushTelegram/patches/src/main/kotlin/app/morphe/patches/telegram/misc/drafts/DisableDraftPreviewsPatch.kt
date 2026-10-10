@@ -53,7 +53,8 @@ private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 @Suppress("unused")
 val disableDraftPreviewsPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds a switch, off by default, that stops Telegram fetching link previews for messages you haven't sent yet, in chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview.",
+    description = "Keeps Telegram from looking up a link's preview before you send the message. Sent messages still get" +
+        " a preview. Starts off. Turn it on in HushTelegram settings > Privacy.",
     default = true,
 ) {
     category("Privacy")

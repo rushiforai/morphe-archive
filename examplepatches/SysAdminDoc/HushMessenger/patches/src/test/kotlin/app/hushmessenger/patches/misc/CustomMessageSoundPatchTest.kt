@@ -131,7 +131,7 @@ class CustomMessageSoundPatchTest {
         }
         val description = customMessageSoundPatch.description.orEmpty()
         assertContains(description, "1 MB")
-        assertContains(description, "Leave the file empty")
+        assertContains(description, "Expert mode")
         assertFalse(description.contains('\u2014') || description.contains('\u2013'))
     }
 

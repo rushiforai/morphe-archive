@@ -114,8 +114,9 @@ private const val LOCALE_NUMBERS = "Ljava/text/NumberFormat;->getInstance(Ljava/
 
 /**
  * Kept literal. HeroManager's setPlaybackSpeed logs it for a speed outside 0.25x to 4x, then keeps
- * the speed and the pitch in that range before the service player gets them (581 LX/7t3;->A0D, read
- * on a phone 2026-10-07: a 0.1x pick played at 0.25x). The service player's audio takes 0.1x to 8x.
+ * the speed and the pitch in that range before the service player gets them (582 LX/8Cj;->A0G, 581
+ * LX/7t3;->A0D, read on a phone 2026-10-07: a 0.1x pick played at 0.25x). The service player's audio
+ * takes 0.1x to 8x.
  */
 internal const val SPEED_RANGE_LOG = "Trying to set playback speed with invalid value"
 
@@ -130,10 +131,25 @@ internal fun speedFloors(method: Method): List<Int> =
             (instruction as NarrowLiteralInstruction).narrowLiteral == HERO_FLOOR.toRawBits()
     }?.map { it.index }.orEmpty()
 
-/** Whether [method] keeps a float from going under a floor with Math.max. */
-internal fun callsFloatMax(method: Method): Boolean = method.implementation?.instructions?.any {
-    (it as? ReferenceInstruction)?.reference?.toString() == "Ljava/lang/Math;->max(FF)F"
-} == true
+private const val FLOAT_MAX = "Ljava/lang/Math;->max(FF)F"
+
+/**
+ * Whether [method] keeps a float from going under a floor with Math.max: itself, or through a static
+ * float helper [resolve] finds that does. 582 outlines setPlaybackSpeed's clamp into a static
+ * `(FFF)F` (`LX/48Y;->A00`, Math.max of the floor and Math.min of the ceiling and the speed), which
+ * it calls with the floor it loads.
+ */
+internal fun callsFloatMax(method: Method, resolve: (MethodReference) -> Method?): Boolean {
+    fun keeps(body: Method) = body.implementation?.instructions?.any {
+        (it as? ReferenceInstruction)?.reference?.toString() == FLOAT_MAX
+    } == true
+    if (keeps(method)) return true
+    return method.implementation?.instructions?.any { instruction ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+        (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+            call.returnType == "F" && resolve(call)?.let(::keeps) == true
+    } == true
+}
 
 /**
  * Where the gear menu's speed sheet builder walks its labels: [index] is the array-length of

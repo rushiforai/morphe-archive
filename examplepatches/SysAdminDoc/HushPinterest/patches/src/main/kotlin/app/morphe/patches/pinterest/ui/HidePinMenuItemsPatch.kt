@@ -33,8 +33,9 @@ internal val FILTERABLE_PIN_MENU_TITLES = setOf(
 @Suppress("unused")
 val hidePinMenuItemsPatch = bytecodePatch(
     name = "Filter pin menu",
-    description = "Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available.",
-    default = false,
+    description = "Lets you hide Add to collage, Remix collage, Search image and Promote pin in a pin's menu, each " +
+        "with its own switch. Download, share and copy link stay. Starts off. Turn them on in " +
+        "HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

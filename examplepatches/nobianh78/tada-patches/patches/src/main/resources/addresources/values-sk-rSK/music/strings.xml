@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- app.tada.patches.music.interaction.jam -->
+  <string name="tada_music_jam_update_host_controls">Aktualizujte Jam patch hostiteľa, aby používal pozastavenie a pokračovanie</string>
+  <string name="tada_music_jam_probe_title">Zdieľanie frontu Jam</string>
+  <string name="tada_music_jam_probe_summary">Hostite alebo sa pripojte k neďalekému Jamu a upravte jeho frontu cez Jam Layer</string>
+  <string name="tada_music_jam_enabled_title">Povoliť zdieľanie frontu Jam</string>
+  <string name="tada_music_jam_enabled_summary">Povoľuje integráciu Jamu po reštarte YouTube Music</string>
+  <string name="tada_music_jam_download_title">Stiahnite si Jam Layer, aby to fungovalo</string>
+  <string name="tada_music_jam_download_summary">Otvorte najnovšie vydanie Jam Layer vo vašom prehliadači</string>
+  <string name="tada_music_jam_controls_title">Ovládanie Jam</string>
+  <string name="tada_music_jam_controls_summary">Hostite alebo sa pripojte k neďalekému Jamu a spravujte reláciu</string>
+  <string name="tada_music_jam_companion_package_title">Balík Jam Layer</string>
+  <string name="tada_music_jam_companion_package_summary">Vyberte nainštalovanú sprievodnú aplikáciu používanú na zdieľanie fronty v okolí</string>
+  <string name="tada_music_jam_package_message">Použite nainštalovaný sprievodný balík. Párovanie vyžaduje váš súhlas a lokálny token schopnosti</string>
+  <string name="tada_music_jam_wifi_title">Zapnúť Wi-Fi?</string>
+  <string name="tada_music_jam_wifi_message">Zapnite Wi-Fi a potom skúste Jam znova spustiť alebo sa k nemu pripojiť</string>
+  <string name="tada_music_jam_wifi_settings">Otvoriť nastavenia Wi-Fi</string>
+  <string name="tada_music_jam_cancel">Zrušiť</string>
+  <string name="tada_music_jam_use_package">Použiť balík</string>
+  <string name="tada_music_jam_invalid_package">Zadajte platný názov balíka Android</string>
+  <string name="tada_music_jam_package_saved">Balík uložený. Nastavte Jam Layer na pripojenie</string>
+  <string name="tada_music_jam_disconnected">Jam odpojený</string>
+  <string name="tada_music_jam_enable_layer_first">Najprv povoľte Jam Layer</string>
+  <string name="tada_music_jam_enable_patch_first">Povoľte zdieľanie frontu Jam v nastaveniach a potom reštartujte YouTube Music.</string>
+  <string name="tada_music_jam_install_layer_first">Najprv nainštalujte vybraný balík Jam Layer</string>
+  <string name="tada_music_jam_join_hint">Zadajte kód zobrazený na hostiteľovi. Wi-Fi Aware dokáže pripojiť zariadenia v okolí, aj keď sa ich siete LAN líšia</string>
+  <string name="tada_music_jam_join_with_code">Pripojiť sa pomocou kódu</string>
+  <string name="tada_music_jam_join">Pripojiť sa</string>
+  <string name="tada_music_jam_scan_qr">Naskenovať QR</string>
+  <string name="tada_music_jam_invalid_invite">Zadajte osemznakový kód alebo prilepte pozvánku</string>
+  <string name="tada_music_jam_join_your_jam">Pripojiť sa k vášmu Jamu</string>
+  <string name="tada_music_jam_copy_code">Kopírovať kód</string>
+  <string name="tada_music_jam_code_clip">Kód Jam</string>
+  <string name="tada_music_jam_show_qr">Zobraziť QR</string>
+  <string name="tada_music_jam_done">Hotovo</string>
+  <string name="tada_music_jam_invite_title">Pozvať do vášho Jamu</string>
+  <string name="tada_music_jam_invite_message">Naskenujte a pripojte sa a upravte tento front. Ukončenie Jamu zruší pozvánku.</string>
+  <string name="tada_music_jam_copy_link">Kopírovať odkaz</string>
+  <string name="tada_music_jam_invitation_clip">Pozvánka do Jamu</string>
+  <string name="tada_music_jam_reconnecting_toast">Jam sa znova pripája; skúste to čoskoro znova</string>
+  <string name="tada_music_jam_added_to_jam">Pridané do Jamu</string>
+  <string name="tada_music_jam_unavailable_toast">Jam nie je k dispozícii; skladba nebola pridaná</string>
+  <string name="tada_music_jam_your_jam">Váš Jam</string>
+  <string name="tada_music_jam_listening_together">Počúvanie spolu</string>
+  <string name="tada_music_jam_joining_jam">Pripájanie sa k Jamu</string>
+  <string name="tada_music_jam_listen_together">Počúvať spolu</string>
+  <string name="tada_music_jam_updating">Aktualizácia Jam…</string>
+  <string name="tada_music_jam_finding_host">Hľadanie hostiteľa v sieti Wi-Fi…</string>
+  <string name="tada_music_jam_waiting_people">Čakanie na ľudí</string>
+  <string name="tada_music_jam_one_connected">Pripojená %d osoba</string>
+  <string name="tada_music_jam_many_connected">Pripojených %d ľudí</string>
+  <string name="tada_music_jam_code_expires">Zadajte tento kód na blízkom zariadení. Wi-Fi Aware funguje cez samostatné siete LAN, ak je to podporované. Platnosť vyprší za %d minút.</string>
+  <string name="tada_music_jam_seek_to">Prejsť na %s?</string>
+  <string name="tada_music_jam_edits_open">Úpravy otvorené</string>
+  <string name="tada_music_jam_edits_locked">Úpravy zamknuté</string>
+  <string name="tada_music_jam_connected_aware">Pripojené cez Wi-Fi Aware</string>
+  <string name="tada_music_jam_connected_wifi">Pripojené cez Wi-Fi</string>
+  <string name="tada_music_jam_connected_bluetooth">Pripojené cez Bluetooth</string>
+  <string name="tada_music_jam_unsupported">Nepodporované počas Jamu</string>
+  <string name="tada_music_jam_cancelled">Pripájanie zrušené</string>
+  <string name="tada_music_jam_reconnecting_host">Znova sa pripájame k vášmu hostiteľovi…</string>
+  <string name="tada_music_jam_share_prompt">Zdieľajte front. Nechajte každého pridávať skladby.</string>
+  <string name="tada_music_jam_invite_people">Pozvať ľudí</string>
+  <string name="tada_music_jam_guest_edits">Hostia môžu upravovať front</string>
+  <string name="tada_music_jam_end_jam">Ukončiť Jam</string>
+  <string name="tada_music_jam_participant_help">Hostiteľ prehráva hudbu. Pridávajte, presúvajte alebo odstraňujte skladby priamo vo fronte YouTube Music.</string>
+  <string name="tada_music_jam_joining_help">Majte obe zariadenia blízko. Môžete zrušiť, kým hľadáme hostiteľa.</string>
+  <string name="tada_music_jam_cancel_joining">Zrušiť pripájanie</string>
+  <string name="tada_music_jam_leave_jam">Opustiť Jam</string>
+  <string name="tada_music_jam_start_jam">Spustiť Jam</string>
+  <string name="tada_music_jam_setup_layer">Nastaviť Jam Layer</string>
+  <string name="tada_music_jam_manage">Spravovať</string>
+  <string name="tada_music_jam_details">Podrobnosti</string>
+  <string name="tada_music_jam_open">Otvoriť</string>
+  <string name="tada_music_jam_loading_song_options">Načítavanie možností skladby…</string>
+  <string name="tada_music_jam_song_options_unavailable">Možnosti skladby nie sú k dispozícii; skúste znova</string>
+  <string name="tada_music_jam_song_options_failed">Nepodarilo sa otvoriť možnosti skladby</string>
+  <string name="tada_music_jam_no_browser">Na stiahnutie Jam Layer nie je k dispozícii žiadny prehliadač</string>
+  <string name="tada_music_jam_waiting_host_queue">Čakanie na front hostiteľa</string>
+  <string name="tada_music_jam_open_song_first">Najprv otvorte skladbu v YouTube Music</string>
+  <string name="tada_music_jam_play_on_host">Prehrať na hostiteľovi</string>
+  <string name="tada_music_jam_quit_and_play">Ukončiť Jam a prehrať lokálne</string>
+  <string name="tada_music_jam_play_next">Prehrať ďalšiu v Jamu</string>
+  <string name="tada_music_jam_add_to_queue">Pridať do frontu Jam</string>
+  <string name="tada_music_jam_play_track">Prehrať túto skladbu Jam</string>
+  <string name="tada_music_jam_choose_playback">Vyberte, kde prehrať</string>
+  <string name="tada_music_jam_move_host_here">Presunúť hostiteľa sem</string>
+  <string name="tada_music_jam_seek_not_ready">Skladba nebola pripravená na prechod</string>
+  <string name="tada_music_jam_queue_changed_gesture">Front sa zmenil; skúste gesto znova</string>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="tada_header_logo_title">Logo hlavičky</string>
+  <string name="tada_header_logo_entry_1">Predvolené</string>
+  <string name="tada_header_logo_entry_3">Vlastné</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="tada_music_play_album_songs_title">Prehrať audio skladby albumu</string>
+  <!-- 'Spoof video streams' should match the language used in 'tada_spoof_video_streams_screen_title' -->
+  <string name="tada_music_play_album_songs_summary">Prehráva iba audio verziu skladieb albumu namiesto hudobného videa. Vyžaduje \'Spoof video streamy\'</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="tada_external_downloader_screen_summary">Stiahnite si hudobné videá, podcasty alebo piesne pomocou sťahovacích aplikácií tretích strán</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="tada_external_downloader_action_button_title">Prepísať tlačidlo Načítiť</string>
+  <string name="tada_external_downloader_action_button_summary">Používa vami vybraný externý sťahovač namiesto štandardného tlačidla akcie Sťahovanie</string>
+  <string name="tada_external_downloader_flyout_menu_title">Nahradiť ponuku sťahovania</string>
+  <string name="tada_external_downloader_flyout_menu_summary">Používa vami vybraný externý sťahovač namiesto štandardnej rozbaľovacej ponuky Sťahovanie</string>
+  <string name="tada_music_in_app_downloads_title">Sťahovanie v aplikácii</string>
+  <string name="tada_music_in_app_downloads_summary">Sťahuje zvuk v rámci YouTube Music namiesto otvorenia externej aplikácie na sťahovanie</string>
+  <string name="tada_music_in_app_downloads_user_dialog_message">"Skladby sa ukladajú do súkromného úložiska aplikácie a sú odstránené, ak je YouTube Music odinštalovaný.
+
+Keď je to zapnuté, karta Stiahnuté zobrazuje tieto skladby namiesto offline knižnice Music Premium. Vypnutím sa karta obnoví a sťahovanie Premium sa nikdy nedotkne."</string>
+  <string name="tada_music_downloads_screen_title">Sťahovania</string>
+  <string name="tada_music_downloads_empty">"Žiadne sťahovania
+Stiahnuté skladby sa zobrazia tu"</string>
+  <string name="tada_music_downloads_track_subtitle">%1$s • %2$s • %3$s MB</string>
+  <string name="tada_music_downloads_summary">%1$s skladieb • %2$s MB</string>
+  <string name="tada_music_downloads_search_hint">Vyhľadať sťahovania</string>
+  <string name="tada_music_downloads_sort">Zoradiť</string>
+  <string name="tada_music_downloads_sort_artist">Zoradiť podľa interpreta</string>
+  <string name="tada_music_downloads_sort_title">Zoradiť podľa názvu</string>
+  <string name="tada_music_downloads_sort_size">Zoradiť podľa veľkosti</string>
+  <string name="tada_music_downloads_delete_all">Odstrániť všetky sťahovania</string>
+  <string name="tada_music_downloads_delete_all_title">Odstrániť všetky sťahovania?</string>
+  <string name="tada_music_downloads_delete_all_message">Všetky stiahnuté skladby sa odstránia z tohto zariadenia</string>
+  <string name="tada_music_downloads_all_deleted">Sťahovania boli odstránené</string>
+  <string name="tada_music_downloads_nothing_found">Nič sa nenašlo</string>
+  <string name="tada_music_downloads_actions_for">Akcie pre %s</string>
+  <string name="tada_music_downloads_play">Prehrať</string>
+  <string name="tada_music_downloads_play_pause">Prehrať alebo pozastaviť</string>
+  <string name="tada_music_downloads_previous">Predchádzajúce</string>
+  <string name="tada_music_downloads_next">Ďalšie</string>
+  <string name="tada_music_downloads_pause">Pozastaviť</string>
+  <string name="tada_music_downloads_close">Zatvoriť</string>
+  <string name="tada_music_downloads_delete">Odstrániť</string>
+  <string name="tada_music_downloads_delete_track">Odstrániť sťahovanie</string>
+  <string name="tada_music_downloads_delete_track_title">Odstrániť sťahovanie?</string>
+  <string name="tada_music_downloads_delete_track_message">%s sa odstráni z tohto zariadenia</string>
+  <string name="tada_music_downloads_track_deleted">Sťahovanie bolo odstránené</string>
+  <string name="tada_music_downloads_track_delete_failed">Sťahovanie sa nepodarilo odstrániť</string>
+  <string name="tada_music_downloads_play_failed">Sťahovanie sa nepodarilo prehrať</string>
+  <string name="tada_music_downloads_notification_channel">Sťahovanie zvuku</string>
+  <string name="tada_music_downloads_playback_channel">Offline prehrávanie</string>
+  <string name="tada_music_downloads_unknown_track">Nepodarilo sa identifikovať skladbu na stiahnutie</string>
+  <string name="tada_music_downloads_already_running">Sťahovanie už prebieha</string>
+  <string name="tada_music_downloads_already_saved">Už stiahnuté</string>
+  <string name="tada_music_downloads_started">Sťahovanie sa začalo</string>
+  <string name="tada_music_downloads_starting">Spúšťa sa sťahovanie…</string>
+  <string name="tada_music_downloads_progress">Sťahuje sa %s%%</string>
+  <string name="tada_music_downloads_complete">Sťahovanie dokončené</string>
+  <string name="tada_music_downloads_failed">Sťahovanie zlyhalo</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About TADa" (i.e., About this app). -->
+  <string name="tada_settings_music_screen_0_about_title">O aplikácii</string>
+  <string name="tada_settings_music_screen_1_ads_title">Reklamy</string>
+  <string name="tada_settings_music_screen_2_feed_title">Obsah</string>
+  <string name="tada_settings_music_screen_3_general_title">Všeobecné</string>
+  <string name="tada_settings_music_screen_4_player_title">Prehrávač</string>
+  <string name="tada_settings_music_screen_5_lyrics_title">Texty</string>
+  <string name="tada_settings_music_screen_9_misc_title">Ostatné</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="tada_music_hide_get_premium_label_title">Skryť tlačidlo \'Získať Music Premium\'</string>
+  <string name="tada_music_hide_music_premium_promotions_title">Skryť promo akcie Premium</string>
+  <string name="tada_music_hide_video_ads_title">Skryť videoreklamy</string>
+  <!-- layout.hide.general.hideLayoutComponentsPatch -->
+  <string name="tada_music_hide_audio_video_toggle_title">Skryť prepínač zvuku/videa</string>
+  <string name="tada_music_hide_explore_shelf_title">Skryť poličku Preskúmať</string>
+  <string name="tada_music_hide_grid_shelves_title">Skryť mriežkové poličky</string>
+  <string name="tada_music_hide_horizontal_shelves_title">Skryť horizontálne poličky</string>
+  <string name="tada_music_hide_list_shelves_title">Skryť zoznamové poličky</string>
+  <string name="tada_music_hide_lyrics_panel_category_title">Panel s textom piesne</string>
+  <string name="tada_music_hide_lyrics_share_button_title">Skryť tlačidlo Zdieľať</string>
+  <string name="tada_music_hide_lyrics_translate_button_title">Skryť tlačidlo Preložiť</string>
+  <string name="tada_music_hide_new_from_shelf_title">Skryť poličku \'Novinky od\'</string>
+  <string name="tada_music_hide_playlist_shelves_title">Skryť poličky zoznamov skladieb</string>
+  <string name="tada_music_hide_podcast_episode_download_button_title">Skryť tlačidlo na stiahnutie epizódy podcastu</string>
+  <string name="tada_music_hide_repeat_button_title">Skryť tlačidlo Opakovať</string>
+  <string name="tada_music_hide_shuffle_button_title">Skryť tlačidlo Náhodné prehrávanie</string>
+  <string name="tada_music_hide_speed_dial_shelf_title">Skryť poličku \'Rýchla voľba\'</string>
+  <string name="tada_music_comments_screen_title">Komentáre</string>
+  <string name="tada_music_comments_screen_summary">Vyberte, ktoré komponenty sa zobrazia v sekcii komentárov</string>
+  <string name="tada_music_hide_comments_community_guidelines_title">Skryť pravidlá komunity</string>
+  <string name="tada_music_hide_comments_context_title">Skryť kontextovú správu</string>
+  <string name="tada_music_hide_comments_emoji_button_title">Skryť tlačidlo Emoji</string>
+  <string name="tada_music_hide_comments_info_button_title">Skryť tlačidlo Info</string>
+  <string name="tada_music_hide_comments_timestamp_button_title">Skryť tlačidlo Časová pečiatka</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="tada_music_crossfade_screen_title">Prechádzanie skladieb</string>
+  <string name="tada_music_crossfade_screen_summary">Hravo prechádzajte medzi skladbami</string>
+  <string name="tada_music_crossfade_enabled_title">Povoliť prechádzanie skladieb</string>
+  <string name="tada_music_crossfade_curve_title">Priebeh prechodu</string>
+  <string name="tada_music_crossfade_curve_entry_equal_power">Rovnaká úroveň</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_cubic">Jemné oneskorenie</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_quad">Jemné zjemnenie</string>
+  <string name="tada_music_crossfade_curve_entry_smoothstep">Hladká S-krivka</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="tada_music_crossfade_curve_preview_outgoing">Odchádzajúce</string>
+  <string name="tada_music_crossfade_curve_preview_incoming">Prichádzajúce</string>
+  <string name="tada_music_crossfade_duration_title">Dĺžka prechodu</string>
+  <string name="tada_crossfade_duration_250ms">250 milisekúnd</string>
+  <string name="tada_crossfade_duration_500ms">500 milisekúnd</string>
+  <string name="tada_crossfade_duration_750ms">750 milisekúnd</string>
+  <string name="tada_crossfade_duration_1000ms">1 sekunda</string>
+  <string name="tada_crossfade_duration_2000ms">2 sekundy</string>
+  <string name="tada_crossfade_duration_3000ms">3 sekundy</string>
+  <string name="tada_crossfade_duration_4000ms">4 sekundy</string>
+  <string name="tada_crossfade_duration_5000ms">5 sekúnd</string>
+  <string name="tada_crossfade_duration_6000ms">6 sekúnd</string>
+  <string name="tada_crossfade_duration_7000ms">7 sekúnd</string>
+  <string name="tada_crossfade_duration_8000ms">8 sekúnd</string>
+  <string name="tada_crossfade_duration_9000ms">9 sekúnd</string>
+  <string name="tada_crossfade_duration_10000ms">10 sekúnd</string>
+  <string name="tada_crossfade_duration_11000ms">11 sekúnd</string>
+  <string name="tada_crossfade_duration_12000ms">12 sekúnd</string>
+  <string name="tada_music_crossfade_on_skip_title">Prechod pri manuálnom preskočení</string>
+  <string name="tada_music_crossfade_on_skip_summary">Aplikuje efekt prechodu medzi skladbami, keď manuálne preskočíte na ďalšiu skladbu</string>
+  <string name="tada_music_crossfade_on_auto_advance_title">Prechod pri automatickom postupe</string>
+  <string name="tada_music_crossfade_on_auto_advance_summary">Aplikuje efekt prechodu medzi skladbami, keď sa skladba prirodzene skončí</string>
+  <string name="tada_music_crossfade_session_control_title">Ovládanie relácie</string>
+  <string name="tada_music_crossfade_session_control_summary">Dlhým stlačením tlačidla náhodného výberu pozastavíte alebo obnovíte prechod medzi skladbami</string>
+  <string name="tada_music_crossfade_paused_toast">Prechodové zmiznutie zvuku pozastavené v tejto relácii</string>
+  <string name="tada_music_crossfade_resumed_toast">Prechodové zmiznutie zvuku obnovené</string>
+  <string name="tada_music_crossfade_video_mode_disabled_toast">Režim videa nie je dostupný, keď je zapnuté prechodové zmiznutie zvuku</string>
+  <string name="tada_music_crossfade_cast_unstable_toast">Funkcia plynulého prechodu je pozastavená počas vysielania alebo zrkadlenia zvuku. Plynulý prechod počas vysielania/zrkadlenia je nestabilný a nemusí sa to nikdy podariť opraviť.</string>
+  <string name="tada_music_crossfade_about_title">O aplikácii</string>
+  <string name="tada_music_crossfade_about_summary">Ako funguje plynulý prechod – a kedy nefunguje</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="tada_music_crossfade_about_how_title">Ako to funguje</string>
+  <string name="tada_music_crossfade_about_how_summary">"Plynulý prechod prekrýva koniec jednej skladby s začiatkom ďalšej, pričom postupne znižuje hlasitosť jednej skladby a zvyšuje hlasitosť druhej počas vami zvolenej dĺžky a krivky.
+
+Funguje pri automatickom prechode (keď sa skladba skončí sama) a pri manuálnom preskočení – obe majú svoje vlastné prepínače vyššie. Pri automatickom prechode sa miešanie začne niekoľko sekúnd pred koncom skladby.
+
+Vyžaduje YouTube Music 9.x alebo novší."</string>
+  <string name="tada_music_crossfade_about_best_title">Najlepšie funguje s</string>
+  <string name="tada_music_crossfade_about_best_summary">Štandardné prehrávanie skladieb, automatický prechod, opakovanie jednej skladby (skladba plynulo prechádza do seba) a lokálne audio – reproduktor telefónu, káblové slúchadlá, Bluetooth alebo USB.</string>
+  <string name="tada_music_crossfade_about_quirks_title">Nefunguje celkom správne</string>
+  <string name="tada_music_crossfade_about_quirks_summary">"Hudobné videá sa počas zapnutého crossfade prehrávajú iba so zvukom (dlhým stlačením tlačidla náhodného výberu pozastavíte, ak chcete aj video)
+
+Piesne kratšie ako trvanie prechodu môžu vynechať plynulý prechod
+
+Obrazovka uzamknutia alebo notifikácia môžu na krátky čas zobrazovať zastaraný stav počas prechodu"</string>
+  <string name="tada_music_crossfade_about_known_title">Známe problémy</string>
+  <string name="tada_music_crossfade_about_known_summary">"Hudobné video nastavené ako prvá pieseň – alebo spustené mimo aktuálnej fronty – sa môže na krátky čas zobraziť ako video, kým sa neaktivuje režim iba so zvukom
+
+Pauznutie crossfade na prezeranie hudobného videa môže spôsobiť, že niektoré videá zostanú čierne (tie, ktorých zvuk pochádza priamo z videa). Pauznutie crossfade pred výberom skladby tomu zabráni"</string>
+  <string name="tada_music_crossfade_about_unsupported_title">Nefunguje vôbec</string>
+  <string name="tada_music_crossfade_about_unsupported_summary">"Prehrávanie obsahu pomocou technológie Cast alebo zrkadlenie obrazovky (Chromecast, zrkadlenie obrazovky alebo zvuku) – crossfade sa pozastaví, pretože to nie je stabilné a nemusí to byť nikdy opravené.
+
+YouTube Music 8.x – crossfade funguje iba vo verzii 9.x a novších"</string>
+  <string name="tada_music_crossfade_about_credit_title">Poďakovanie</string>
+  <string name="tada_music_crossfade_about_credit_summary">Funkcia Crossfade od VazerOG</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="tada_music_remember_repeat_state_title">Zapamätať si stav opakovania</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="tada_music_remember_shuffle_state_title">Zapamätať si stav náhodného výberu</string>
+  <!-- video.speed.playbackSpeedPatch -->
+  <string name="tada_music_playback_speed_title">Rýchlosť prehrávania</string>
+  <string name="tada_music_playback_speed_summary">Rýchlosť použitá pre všetky skladby. Pri 100 % sa použije rýchlosť aplikácie, ako je rýchlosť prehrávania podcastu</string>
+  <string name="tada_music_playback_speed_change_pitch_title">Zmeniť výšku tónu s rýchlosťou</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="tada_music_disable_dislike_redirection_title">Zakázať presmerovanie dislajkov</string>
+  <string name="tada_music_disable_dislike_redirection_summary">Zabraňuje preskočeniu na ďalšiu skladbu po stlačení tlačidla dislajku</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="tada_music_hide_cast_button_title">Skryť tlačidlo Prenos</string>
+  <string name="tada_music_hide_history_button_title">Skryť tlačidlo histórie</string>
+  <string name="tada_music_hide_notification_button_title">Skryť tlačidlo upozornení</string>
+  <string name="tada_music_hide_search_button_title">Skryť tlačidlo vyhľadávania</string>
+  <string name="tada_music_hide_voice_search_button_title">Skryť tlačidlo hlasového vyhľadávania</string>
+  <string name="tada_music_hide_sound_search_button_title">Skryť tlačidlo vyhľadávania zvuku</string>
+  <string name="tada_music_hide_library_new_button_title">Skryť tlačidlo Nový</string>
+  <string name="tada_music_hide_library_new_button_summary">Skryje tlačidlo Nový na karte Knižnica</string>
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <string name="tada_music_action_buttons_screen_title">Tlačidlá akcie</string>
+  <string name="tada_music_action_buttons_screen_summary">Vyberte, ktoré komponenty sa zobrazia v lište nástrojov</string>
+  <string name="tada_music_hide_action_bar_title">Skryť akčný panel</string>
+  <string name="tada_music_hide_like_dislike_button_title">Skryť tlačidlá Páči sa mi a Nepáči sa mi</string>
+  <string name="tada_music_hide_comments_button_title">Skryť tlačidlo Komentáre</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_live_chat_replay_button_title">Skryť tlačidlo \'Prehratie chatu zo záznamu\'</string>
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_lyrics_button_title">Skryť tlačidlo Texty</string>
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_share_button_title">Skryť tlačidlo Zdieľať</string>
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_save_button_title">Skryť tlačidlo Uložiť</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_download_button_title">Skryť tlačidlo Stiahnuť</string>
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_radio_button_title">Skryť tlačidlo \'Spustiť rádio\'</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="tada_music_hide_flyout_menu_components_screen_title">Rozbaľovacie menu</string>
+  <string name="tada_music_hide_flyout_menu_components_screen_summary">Vyberte, ktoré komponenty sa zobrazia v menu prehrávača a fronty</string>
+  <string name="tada_music_hide_flyout_menu_3_column_component_title">Skryť 3-stĺpcovú komponentu</string>
+  <string name="tada_music_hide_flyout_menu_like_dislike_title">Skryť tlačidlá Páči sa mi a Nepáči sa mi</string>
+  <string name="tada_music_hide_flyout_menu_taste_match_title">Skryť menu \'Zhoda chutí\'</string>
+  <string name="tada_music_hide_flyout_menu_add_to_listen_later_title">Skryť položku menu \'Pridať do zoznamu \'Počúvať neskôr\'</string>
+  <string name="tada_music_hide_flyout_menu_add_to_queue_title">Skryť položku menu \'Pridať do fronty\'</string>
+  <string name="tada_music_hide_flyout_menu_captions_title">Skryť ponuku Titulky</string>
+  <string name="tada_music_hide_flyout_menu_delete_playlist_title">Skryť menu \'Odstrániť zoznam skladieb\'</string>
+  <string name="tada_music_hide_flyout_menu_dismiss_queue_title">Skryť menu \'Odmietnuť front\'</string>
+  <string name="tada_music_hide_flyout_menu_dont_recommend_artist_title">Skryť menu \'Odporučiť tohto interpreta\'</string>
+  <string name="tada_music_hide_flyout_menu_download_title">Skryť ponuku Stiahnuť</string>
+  <string name="tada_music_hide_flyout_menu_edit_playlist_title">Skryť menu \'Upraviť zoznam skladieb\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_album_title">Skryť menu \'Prejsť na album\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_artist_title">Skryť menu \'Prejsť na interpreta\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_episode_title">Skryť menu \'Prejsť na epizódu\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_podcast_title">Skryť menu \'Prejsť na podcast\'</string>
+  <string name="tada_music_hide_flyout_menu_help_title">Skryť ponuku Pomoc</string>
+  <string name="tada_music_hide_flyout_menu_mark_episode_as_played_title">Skryť menu \'Označiť epizódu ako prehranú\'</string>
+  <string name="tada_music_hide_flyout_menu_not_interested_title">Skryť menu \'Nezaujíma ma\'</string>
+  <string name="tada_music_hide_flyout_menu_pin_to_speed_dial_title">Skryť menu \'Připnout na rychlú voľbu\'</string>
+  <string name="tada_music_hide_flyout_menu_play_next_title">Skryť menu \'Prehrať ďalej\'</string>
+  <string name="tada_music_hide_flyout_menu_quality_title">Skryť ponuku Kvalita</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_library_title">Skryť menu \'Odstrániť z knižnice\'</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_playlist_title">Skryť menu \'Odstrániť zo zoznamu skladieb\'</string>
+  <string name="tada_music_hide_flyout_menu_report_title">Skryť ponuku Nahlásiť</string>
+  <string name="tada_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">Skryť menu \'Uložiť epizódu na neskôr\' / \'Uložiť do knižnice\'</string>
+  <string name="tada_music_hide_flyout_menu_save_to_playlist_title">Skryť menu \'Uložiť do zoznamu skladieb\'</string>
+  <string name="tada_music_hide_flyout_menu_share_title">Skryť ponuku Zdieľať</string>
+  <string name="tada_music_hide_flyout_menu_shuffle_play_title">Skryť menu \'Náhodná hra\'</string>
+  <string name="tada_music_hide_flyout_menu_sleep_timer_title">Skryť menu \'Časovač vypnutia\'</string>
+  <string name="tada_music_hide_flyout_menu_start_radio_title">Skryť menu \'Spustiť rádio\'</string>
+  <string name="tada_music_hide_flyout_menu_stats_for_nerds_title">Skryť menu \'Štatistiky pre znalcov\'</string>
+  <string name="tada_music_hide_flyout_menu_subscribe_title">Skryť ponuku Odber</string>
+  <string name="tada_music_hide_flyout_menu_unpin_from_speed_dial_title">Skryť menu \'Odstrániť z rýchlej voľby\'</string>
+  <string name="tada_music_hide_flyout_menu_view_song_credit_title">Skryť menu \'Zobraziť autorské práva skladby\'</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="tada_change_start_page_title">Úvodná stránka</string>
+  <string name="tada_change_start_page_entry_default">Predvolené</string>
+  <string name="tada_change_start_page_entry_charts">Rebríčky</string>
+  <string name="tada_change_start_page_entry_episodes_for_later">Epizódy na neskôr</string>
+  <string name="tada_change_start_page_entry_explore">Preskúmať</string>
+  <string name="tada_change_start_page_entry_history">História</string>
+  <string name="tada_change_start_page_entry_library">Knižnica</string>
+  <string name="tada_change_start_page_entry_liked_music">Obľubená hudba</string>
+  <string name="tada_change_start_page_entry_playlists">Zoznamy</string>
+  <string name="tada_change_start_page_entry_search">Hľadať</string>
+  <string name="tada_change_start_page_entry_subscriptions">Odbery</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="tada_music_hide_filter_bar_title">Skryť filterový panel</string>
+  <!-- layout.orientation.forcePortraitOrientationPatch -->
+  <string name="tada_music_force_portrait_orientation_title">Vynútiť orientáciu na výšku</string>
+  <string name="tada_music_force_portrait_orientation_summary">Ponechá aplikáciu v orientácii na výšku, keď je zariadenie otočené</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="tada_music_change_miniplayer_color_title">Zmeniť farbu miniprehrávača</string>
+  <string name="tada_music_change_miniplayer_color_summary">Farba miniprehrávača zodpovedá farbe prehrávača na celú obrazovku</string>
+  <string name="tada_music_change_navigation_bar_color_title">Zmeniť farbu navigačnej lišty</string>
+  <string name="tada_music_change_navigation_bar_color_summary">Prispôsobí farbu navigačnej lišty celoobrazovkovému prehrávaču</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="tada_music_miniplayer_next_button_title">Zobraziť tlačidlo \'Ďalšia skladba\' v miniprehrávači</string>
+  <string name="tada_music_miniplayer_previous_button_title">Zobraziť tlačidlo \'Predošlá skladba\' v miniprehrávači</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="tada_music_enable_forced_miniplayer_title">Povoliť vynútenie miniprehrávača</string>
+  <string name="tada_music_enable_forced_miniplayer_summary">Zabráni automatickému rozbaleniu prehrávača na celú obrazovku, keď sa začne nová skladba</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_title">Povoliť zatiahnutie prstom na zatvorenie miniaplikácie</string>
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_summary">Umožňuje zatvoriť miniaplikáciu ťahom smerom nadol</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="tada_music_navigation_bar_screen_title">Navigačný panel</string>
+  <string name="tada_music_navigation_bar_screen_summary">Vyberte, ktoré tlačidlá sa majú zobraziť na spodnej navigačnej lište</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_home_button_title">Skryť tlačidlo Domov</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_samples_button_title">Skryť tlačidlo Vzorky</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_explore_button_title">Skryť tlačidlo Preskúmať</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_library_button_title">Skryť tlačidlo Knižnica</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_upgrade_button_title">Skryť tlačidlo Upgrade</string>
+  <string name="tada_music_hide_navigation_bar_title">Skryť navigačný panel</string>
+  <string name="tada_music_hide_navigation_bar_labels_title">Skryť označenia tlačidiel navigačného panela</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="tada_music_scrobbling_summary">Konfigurácia integrácie Last.fm a ListenBrainz</string>
+  <string name="tada_music_scrobbling_summary_logged_out">Neprihlásený. Klepnite na tlačidlo na konfiguráciu</string>
+  <string name="tada_music_scrobbling_log_out">Odhlásiť sa</string>
+  <string name="tada_music_scrobbling_logged_out_toast">Odhlásený</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_enabled_title">Povoliť scrobbling</string>
+  <string name="tada_music_scrobbling_now_playing_title">Odoslať stav \'Prehrávam práve\' </string>
+  <string name="tada_music_scrobbling_min_song_duration_title">Minimálna dĺžka skladby</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="tada_music_scrobbling_min_song_duration_summary">Skladby kratšie ako táto dĺžka nebudú scrobbleované</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_title">Percentuálne oneskorenie scrobblingu</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_summary">Spustiť scrobbling po vypočutí tohto percenta skladby</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_title">Oneskorenie scrobblingu v sekundách</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_summary">Spustiť scrobbling po vypočutí po dobu tohto počtu sekúnd</string>
+  <string name="tada_music_listenbrainz_token_title">Účet ListenBrainz</string>
+  <string name="tada_music_listenbrainz_token_summary_logged_in">Prihlásený. Klepnite na tlačidlo na správu účtu</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_listenbrainz_token_dialog_instruction">Zadajte svoj používateľský token ListenBrainz na povolenie scrobovania</string>
+  <string name="tada_music_listenbrainz_token_dialog_hint">Token</string>
+  <string name="tada_music_listenbrainz_token_dialog_get_token">Získať token</string>
+  <string name="tada_music_listenbrainz_token_dialog_verify">Overiť</string>
+  <string name="tada_music_listenbrainz_token_status_empty">Prosím, zadajte token</string>
+  <string name="tada_music_listenbrainz_token_status_validating">Overovanie…</string>
+  <string name="tada_music_listenbrainz_token_status_valid">Platný token! Používateľ: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid">Neplatný token: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid_unknown">neznámy</string>
+  <string name="tada_music_listenbrainz_token_status_failed">Overenie zlyhalo: %s</string>
+  <string name="tada_music_listenbrainz_token_toast_cleared">Záznamy vymazané</string>
+  <string name="tada_music_listenbrainz_token_toast_saved">Token uložený</string>
+  <string name="tada_music_listenbrainz_token_toast_invalid_warning">Upozornenie: Uložený token je neplatný!</string>
+  <string name="tada_music_lastfm_love_on_like_title">Označovať páčiace sa skladby</string>
+  <string name="tada_music_lastfm_love_on_like_summary">Automaticky označujte skladby na Last.fm ako páčiace sa, keď sa vám páčia na YouTube Music (a odoberte označenie, keď sa vám nepáčia alebo sa vám prestanú páčiť)</string>
+  <string name="tada_music_lastfm_token_title">Účet Last.fm</string>
+  <string name="tada_music_lastfm_token_summary_logged_in">Prihlásený ako %s. Klepnite na tlačidlo na správu účtu</string>
+  <string name="tada_music_lastfm_token_dialog_instruction">Zadajte svoje údaje Last.fm na prihlásenie</string>
+  <string name="tada_music_lastfm_token_dialog_username_hint">Používateľské meno</string>
+  <string name="tada_music_lastfm_token_dialog_password_hint">Heslo</string>
+  <string name="tada_music_lastfm_token_dialog_login">Prihlásiť sa</string>
+  <string name="tada_music_lastfm_token_status_empty">Prosím, zadajte používateľské meno a heslo</string>
+  <string name="tada_music_lastfm_token_status_logging_in">Prihlasovanie…</string>
+  <string name="tada_music_lastfm_token_status_success">Prihlásenie prebehlo úspešne!</string>
+  <string name="tada_music_lastfm_token_status_no_session">Nepodarilo sa získať reláciu z Last.fm</string>
+  <string name="tada_music_lastfm_token_status_failed">Prihlásenie zlyhalo: %s</string>
+  <string name="tada_music_lastfm_token_toast_saved">Údaje Last.fm uložené!</string>
+  <string name="tada_settings_music_scrobbling_metadata_title">Čistenie metadát</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_title">Vyčistiť metadáta</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_summary">Automaticky odstráňte bežný neporiadok (napríklad \"Oficiálne video\", \"Remaster\", \"Live\") z názvov, interpretov a albumov pred scrobovaním</string>
+  <string name="tada_music_scrobbling_custom_regex_title">Vlastné čistenie pomocou regulárneho výrazu</string>
+  <string name="tada_music_scrobbling_custom_regex_summary">Zadajte vlastnú regulárnu výraz, aby ste odstránili dodatočný text z názvov skladieb, interpretov alebo albumov. Príklad: (?i)\\s*\\((clean|explicit)\\)</string>
+  <string name="tada_music_scrobbling_parse_title_title">Analyzujte interpreta a názov skladby z názvu</string>
+  <string name="tada_music_scrobbling_parse_title_summary">Extrahujte meno interpreta a názov skladby z názvu videa pomocou oddeľovača \" - \". Umožňuje spracovať obsah, ktorý bol znova nahraný, kde sa názov kanála môže použiť ako interpret.</string>
+  <string name="tada_music_scrobbling_guess_album_title">Doplniť chýbajúci album</string>
+  <string name="tada_music_scrobbling_guess_album_summary">Keď skladba neobsahuje album, vyhľadajte ju na Last.fm, aby bol váš scrobble úplný.</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_title">O scrobovaní</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_summary">"Scrobbling automaticky synchronizuje vaše používanie YouTube Music s vaším profilom Last.fm alebo ListenBrainz.
+
+Na zabezpečenie synchronizácie scrobblingu počas prehrievania na pozadí sa uistite, že používanie aplikácie YouTube Music v batérii je nastavené na \"Nekontrolované\""</string>
+  <!-- layout.lyrics.lyricsPatch -->
+  <string name="tada_music_lyrics_enabled_title">Použiť texty od tretej strany</string>
+  <string name="tada_music_lyrics_enabled_summary">Zobrazuje texty od tretej strany, pričom ak sa žiadne nenájdu, prepne na vstavané texty.</string>
+  <string name="tada_music_lyrics_keep_screen_on_title">Ponechať obrazovku zapnutú pri prezeraní textu piesne</string>
+  <string name="tada_music_lyrics_keep_screen_on_summary">Zabraňuje vypnutiu obrazovky, kým je otvorený panel s textom piesne</string>
+  <string name="tada_music_lyrics_section_service_title">Služba textov piesní</string>
+  <string name="tada_music_lyrics_section_overlay_title">Prekrytie</string>
+  <string name="tada_music_lyrics_section_sync_title">Synchronizácia</string>
+  <string name="tada_music_lyrics_section_about_title">O aplikácii</string>
+  <string name="tada_music_lyrics_source_all_disabled">Všetci poskytovatelia sú vypnutí – vstavané texty a vložené texty.</string>
+  <string name="tada_music_lyrics_source_reset_title">Obnoviť poradie poskytovateľov?</string>
+  <string name="tada_music_lyrics_source_reset_message">Obnoviť poskytovateľov do predvoleného poradia priority.</string>
+  <string name="tada_music_token_dialog_get_token">Získať token</string>
+  <string name="tada_music_apple_music_token_title">Apple Music token mediálneho používateľa</string>
+  <string name="tada_music_apple_music_token_dialog_instruction">"Vložte cookie media-user-token z music.apple.com
+
+Postup:
+1. Prihláste sa na music.apple.com ako člen
+2. Otvorte DevTools → Application → Cookies → music.apple.com
+3. Skopírujte hodnotu \"media-user-token\""</string>
+  <string name="tada_music_apple_music_token_toast_saved">Apple Music: media-user-token bol uložený</string>
+  <string name="tada_music_apple_music_token_toast_cleared">Apple Music: media-user-token bol vymazaný</string>
+  <string name="tada_music_apple_music_token_toast_invalid">Apple Music: media-user-token je neplatný — skontrolujte ho a skúste to znova.</string>
+  <string name="tada_music_spotify_token_title">Spotify […] Skopírujte hodnotu \"sp_dc\".</string>
+  <string name="tada_music_spotify_token_dialog_instruction">"Vložte cookie sp_dc zo Spotify.
+
+Postup:
+1. Prihláste sa na open.spotify.com
+2. Otvorte DevTools → Application → Cookies → open.spotify.com
+3. Skopírujte hodnotu \"sp_dc\""</string>
+  <string name="tada_music_spotify_token_toast_saved">Spotify: sp_dc […] Bez neho sa použije Lyrically ako záložná možnosť.</string>
+  <string name="tada_music_spotify_token_toast_cleared">Spotify: sp_dc bol vymazaný</string>
+  <string name="tada_music_spotify_token_toast_invalid">Spotify: sp_dc je neplatný — skontrolujte ho a skúste to znova.</string>
+  <string name="tada_music_apple_token_optional_hint">Token Apple Music je voliteľný. Bez neho bude Lyrically použitý ako náhradná možnosť</string>
+  <string name="tada_music_deezer_arl_title">Deezer […] Skopírujte hodnotu \"arl\".</string>
+  <string name="tada_music_deezer_arl_dialog_instruction">"Vložte cookie arl z Deezer.
+
+Postup:
+1. Prihláste sa na deezer.com
+2. Otvorte DevTools → Application → Cookies → deezer.com
+3. Skopírujte hodnotu \"arl\""</string>
+  <string name="tada_music_deezer_arl_toast_saved">Deezer: arl uložené.</string>
+  <string name="tada_music_deezer_arl_toast_cleared">Neplatný ARL, skúste to znova.</string>
+  <string name="tada_music_deezer_arl_toast_invalid">Deezer: arl je neplatný — skontrolujte ho a skúste to znova.</string>
+  <string name="tada_music_musixmatch_token_title">Musixmatch […] Skopírujte hodnotu používateľského tokenu.</string>
+  <string name="tada_music_musixmatch_token_dialog_instruction">Token pridávajte len vtedy, ak chcete používať vlastný účet. Musí pochádzať z aplikácie Musixmatch pre Android: tokeny skopírované z musixmatch.com patria vyradenému desktopovému klientovi a API ich odmieta.</string>
+  <string name="tada_music_musixmatch_token_optional_hint">Musixmatch funguje aj bez tokenu, takže toto pole môže zostať prázdne.</string>
+  <string name="tada_music_musixmatch_token_dialog_hint">Neplatný používateľský token, skúste to znova.</string>
+  <string name="tada_music_musixmatch_token_toast_saved">Musixmatch: používateľský token bol uložený</string>
+  <string name="tada_music_musixmatch_token_toast_cleared">Musixmatch: používateľský token bol vymazaný</string>
+  <string name="tada_music_musixmatch_token_toast_invalid">Musixmatch: používateľský token je neplatný — skontrolujte ho a skúste to znova.</string>
+  <string name="tada_music_youtube_cookies_title">YouTube Cookies</string>
+  <string name="tada_music_youtube_cookies_dialog_instruction">"Prilepte […] Skopírujte celý reťazec cookie (dvojice kľúč=hodnota oddelené bodkočiarkami)
+
+Vyžadované cookies: SID, HSID, SSID, SAPISID, __Secure-3PAPISID, __Secure-1PAPISID, LOGIN_INFO"</string>
+  <string name="tada_music_youtube_cookies_toast_saved">YouTube cookie uložené</string>
+  <string name="tada_music_youtube_cookies_toast_cleared">YouTube cookie vymazané</string>
+  <string name="tada_music_youtube_cookies_toast_invalid">Neplatný YouTube cookie, skúste to znova.</string>
+  <string name="tada_music_lyrics_tap_to_seek_title">Klepnite na riadok a posuňte prehrávanie</string>
+  <string name="tada_music_lyrics_tap_to_seek_summary">Klepetím na riadok sa preskočí na daný moment v piesni</string>
+  <string name="tada_music_lyrics_show_copy_button_title">Zobraziť tlačidlo Kopírovať</string>
+  <string name="tada_music_lyrics_show_copy_button_summary">Kopírovaním skopírujete pôvodný text piesne ako obyčajný text; dlhým stlačením uložíte surový zdrojový súbor s textom piesne do priečinka Stiahnuté.</string>
+  <string name="tada_music_lyrics_show_translate_button_title">Zobraziť tlačidlo Preložiť</string>
+  <string name="tada_music_lyrics_show_translate_button_summary">Klepnutím prepnete preklad; dlhým stlačením zobrazíte iba preklad. Používa preklady poskytovateľa, Google Translate alebo OpenAI-kompatibilné API.</string>
+  <string name="tada_music_lyrics_show_romanize_button_title">Zobraziť tlačidlo Kopírovať</string>
+  <string name="tada_music_lyrics_show_romanize_button_summary">Klepnutím prepnete romanizáciu; dlhým stlačením zobrazíte iba romanizáciu. Používa romanizáciu poskytovateľa, Google Translate alebo OpenAI-kompatibilné API.</string>
+  <string name="tada_music_lyrics_show_refresh_button_title">Preložiť text piesne</string>
+  <string name="tada_music_lyrics_show_refresh_button_summary">Klepnutím prepnete na ďalší návrh textu; dlhým stlačením vyhľadáte texty podľa názvu skladby a interpreta.</string>
+  <string name="tada_music_lyrics_search_dialog_title">Vyhľadávanie textov</string>
+  <string name="tada_music_lyrics_search_title_hint">Názov skladby</string>
+  <string name="tada_music_lyrics_search_artist_hint">Interpret</string>
+  <string name="tada_music_lyrics_search_empty">Zadajte názov skladby a interpreta.</string>
+  <string name="tada_music_lyrics_search_no_providers">Žiadny z povolených poskytovateľov nevie vyhľadávať iné skladby.</string>
+  <string name="tada_music_lyrics_saved">Uložené</string>
+  <string name="tada_music_lyrics_word_sync_title">Kopírovať pôvodný text piesne</string>
+  <string name="tada_music_lyrics_word_sync_summary">Kopírovať preložený text piesne</string>
+  <string name="tada_music_lyrics_hide_played_title">Pôvodný text piesne</string>
+  <string name="tada_music_lyrics_hide_played_summary">Preložený text piesne</string>
+  <string name="tada_music_lyrics_hide_unplayed_title">Preklad bol skopírovaný</string>
+  <string name="tada_music_lyrics_hide_unplayed_summary">Pôvodný text piesne bol skopírovaný</string>
+  <string name="tada_music_lyrics_mediasession_title">Kopírovanie zlyhalo</string>
+  <string name="tada_music_lyrics_miniplayer_title">Zobraziť text piesne v mini prehrávači</string>
+  <string name="tada_music_lyrics_display_artist_first_title">Nenašiel sa žiadny text piesne</string>
+  <string name="tada_music_lyrics_display_artist_first_summary">Nenašiel sa žiadny preklad</string>
+  <string name="tada_settings_music_lyrics_metadata_title">Táto pieseň nemá text</string>
+  <string name="tada_music_lyrics_custom_regex_title">Táto pieseň nemá preklad</string>
+  <string name="tada_music_lyrics_custom_regex_summary">Regulárny výraz sa aplikuje na názvy, interpretov a albumy pred vyhľadaním textov piesní a pri posudzovaní, či sa dva názvy zhodujú. Ak ho necháte prázdny, obe funkcie sa vypnú. Predvolený výraz odstraňuje bežné rušivé prvky, ako napríklad „Official Video“, „Remaster“, „【插曲】“ a „- Topic“.</string>
+  <string name="tada_music_lyrics_text_filter_title">Filter</string>
+  <string name="tada_music_lyrics_text_filter_summary">Žiadne filtre</string>
+  <string name="tada_music_lyrics_credit_line_regex_title">Zobraziť pôvodný text piesne</string>
+  <string name="tada_music_lyrics_credit_line_regex_summary">Skryť pôvodný text piesne</string>
+  <string name="tada_music_lyrics_text_size_title">Veľkosť textu</string>
+  <string name="tada_music_lyrics_text_size_summary">Veľkosť textu piesne</string>
+  <string name="tada_music_lyrics_offset_ms_title">Posun časovania</string>
+  <string name="tada_music_lyrics_offset_ms_summary">Zobraziť preklad</string>
+  <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
+  <string name="tada_music_lyrics_source_label">Zdroj: %s</string>
+  <string name="tada_music_lyrics_translated_by_google">Skryť preklad</string>
+  <string name="tada_music_lyrics_romanized_by_google">Zobraziť romanizáciu</string>
+  <string name="tada_music_lyrics_translated_by_ai">Preložené pomocou %s</string>
+  <string name="tada_music_lyrics_romanized_by_ai">Romanizované pomocou %s</string>
+  <!-- Tappable label under the lyrics that turns the translation on. -->
+  <string name="tada_music_lyrics_translate_hide">Skryť romanizáciu</string>
+  <string name="tada_music_lyrics_translation_language_title">Jazyk prekladu</string>
+  <string name="tada_music_lyrics_translating">Prekladám…</string>
+  <string name="tada_music_lyrics_translate_failed">Text piesne sa nepodarilo preložiť</string>
+  <string name="tada_music_lyrics_romanize_hide">Romanizácia</string>
+  <string name="tada_music_lyrics_romanizing">Žiadna romanizácia</string>
+  <string name="tada_music_lyrics_romanize_failed">Zobraziť prepis</string>
+  <string name="tada_music_lyrics_translate_only">Iba preklad</string>
+  <string name="tada_music_lyrics_romanize_only">Iba romanizované</string>
+  <string name="tada_music_lyrics_copied">Skopírované do schránky</string>
+  <string name="tada_music_lyrics_refreshing">Skryť prepis</string>
+  <string name="tada_music_lyrics_refreshed">Prepis</string>
+  <string name="tada_music_lyrics_about_summary">"Texty piesní sa priraďujú podľa názvu a interpreta, nezvyčajné metadáta môžu nenájsť nič alebo nesprávnu verziu. Pomocou obnovenia prepínajte verzie. Poskytovatelia označení * vyžadujú token. Nie všetci povolení poskytovatelia sú vždy vyžiadaní v nastavenom poradí, ale odpovedajú podľa svojej rýchlosti."</string>
+  <string name="tada_music_lyrics_hide_info_title">Nahlásiť problém s prekladom</string>
+  <string name="tada_music_lyrics_hide_info_summary">Nahlásiť problém s textom piesne</string>
+  <string name="tada_music_lyrics_swap_trans_roma_title">Problém bol nahlásený</string>
+  <string name="tada_music_lyrics_swap_trans_roma_summary">Nahlásenie zlyhalo</string>
+  <string name="tada_music_lyrics_use_ai_translation_title">Preklad kompatibilný s OpenAI</string>
+  <string name="tada_music_lyrics_use_ai_translation_summary">Použiť vlastné API kompatibilné s OpenAI na preklad a romanizáciu namiesto Google Translate</string>
+  <string name="tada_music_lyrics_ai_config_dialog_title">Nastavenia AI prekladu</string>
+  <string name="tada_music_lyrics_ai_config_dialog_instruction">Nakonfigurujte koncový bod API kompatibilného s OpenAI pre preklad a romanizáciu textov piesní pomocou AI.</string>
+  <string name="tada_music_lyrics_ai_config_base_url_hint">URL koncového bodu API (napr. https://text.pollinations.ai/openai)</string>
+  <string name="tada_music_lyrics_ai_config_api_token_hint">API kľúč (nechajte prázdne pre anonymný prístup)</string>
+  <string name="tada_music_lyrics_ai_config_model_hint">Názov modelu (napr. openai-fast, gpt-4o-mini)</string>
+  <string name="tada_music_lyrics_ai_config_prompt_hint">Šablóna výzvy (premenné: {language}, {task}, {title}, {artist}, {count}, {lines})</string>
+  <string name="tada_music_lyrics_ai_config_toast_saved">Nastavenia AI prekladu boli uložené</string>
+  <string name="tada_music_lyrics_ai_config_toast_invalid">Nepodarilo sa pripojiť k AI koncovému bodu. Skontrolujte svoje nastavenia.</string>
+  <string name="tada_music_lyrics_ai_config_toast_reset">Nastavenia AI prekladu boli obnovené</string>
+  <string name="tada_music_lyrics_ai_config_status_configured">Nakonfigurované</string>
+  <string name="tada_music_lyrics_ai_config_status_not_configured">Klepnutím nakonfigurujete</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_url">Základná URL nemôže byť prázdna</string>
+  <string name="tada_music_lyrics_ai_config_status_invalid_url">Základná URL musí začínať s http:// alebo https://</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_model">Názov modelu nemôže byť prázdny</string>
+  <string name="tada_music_lyrics_ai_config_status_validating">Overuje sa pripojenie…</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="tada_music_spoof_app_version_target_entry_8_23_51">8.23.51 - Zakázať tučné ikony</string>
+  <string name="tada_music_spoof_app_version_target_entry_9_13_51">9.13.51 – Obnoviť karty Prehrávača: Ďalej, Texty a Súvisiace</string>
+</resources>

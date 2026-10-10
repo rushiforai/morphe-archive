@@ -13,6 +13,7 @@ import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -119,6 +120,19 @@ public final class SettingsActionBanner {
                         activity, SettingsUi.RADIUS_CARD, true));
                 banner.setElevation(SettingsUi.dp(activity, 8));
                 banner.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+                // The banner sits over the bottom rows for up to half a minute. It wasn't
+                // clickable, so a tap on it went through to the row it covered and could flip a
+                // switch out of sight. A tap on it now takes it down instead.
+                banner.setOnClickListener(view -> dismissCurrent());
+                String close = L10n.t(activity, "Close");
+                banner.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                    @Override
+                    public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                        super.onInitializeAccessibilityNodeInfo(host, info);
+                        info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                                AccessibilityNodeInfo.ACTION_CLICK, close));
+                    }
+                });
 
                 TextView label = SettingsUi.text(activity, message, SettingsUi.TEXT_BODY_SMALL,
                         SettingsUi.textPrimary(), Typeface.NORMAL);

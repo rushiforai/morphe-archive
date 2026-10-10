@@ -612,7 +612,7 @@ public final class ReleaseCheck {
             case RATE_LIMITED:
                 return L10n.t("GitHub is turning away checks from this network for now. Try again later.");
             default:
-                return L10n.t("GitHub's answer couldn't be used. Try again later.");
+                return L10n.t("GitHub sent back something HushThreads couldn't read. Try again later.");
         }
     }
 

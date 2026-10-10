@@ -45,6 +45,163 @@ function New-NotFoundAnswer {
     return $answer
 }
 
+# --- the machine-wide build queue ------------------------------------------------------------
+#
+# The scripts that run the Morphe CLI wait for a slot in the machine-wide build queue, found through
+# BUILD_QUEUE_SCRIPT. A stand-in with the real script's parameters takes its place for the whole
+# suite: it runs each job at once and writes down its label, its priority and the job the helper
+# marked, so no case here waits behind a real build and the cases below can tell who asked.
+$queueStandInRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('hushtelegram-queue-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $queueStandInRoot | Out-Null
+# A failing case stops the suite before the stand-in is removed near the end, so remove it here
+# too and let the failure carry on.
+trap {
+    if ($queueStandInRoot -and (Test-Path -LiteralPath $queueStandInRoot)) {
+        Remove-Item -LiteralPath $queueStandInRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    break
+}
+$queueStandIn = Join-Path $queueStandInRoot 'build-queue.ps1'
+$queueLog = Join-Path $queueStandInRoot 'queue.log'
+Set-Content -LiteralPath $queueStandIn -Encoding ASCII -Value @'
+[CmdletBinding()]
+param([switch]$Status, [string]$Label, [ValidateSet('release', 'normal')][string]$Priority, [string]$Run)
+function Invoke-InBuildQueue {
+    param([string]$Label = 'build', [string]$Priority, [Parameter(Mandatory)][scriptblock]$ScriptBlock)
+    Add-Content -LiteralPath (Join-Path $PSScriptRoot 'queue.log') -Encoding ASCII -Value "$Label|$Priority|$env:HUSHTELEGRAM_QUEUED_JOB"
+    $global:LASTEXITCODE = 0
+    & $ScriptBlock | Out-Host
+    return $LASTEXITCODE
+}
+'@
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
+$savedQueuedJob = $env:HUSHTELEGRAM_QUEUED_JOB
+$env:BUILD_QUEUE_SCRIPT = $queueStandIn
+$env:BUILD_QUEUE_PRIORITY = $null
+$env:HUSHTELEGRAM_QUEUED_JOB = $null
+function Get-LastQueuedJob {
+    if (-not (Test-Path -LiteralPath $queueLog)) { return '' }
+    return [string](@(Get-Content -LiteralPath $queueLog) | Select-Object -Last 1)
+}
+
+# A job runs in a slot under its label, the block's exit code comes back, and the job is marked for
+# its length only.
+$queueRan = @{ Job = '' }
+$queueCode = Invoke-InHushTelegramQueue -Job 'probe' -ScriptBlock {
+    $queueRan.Job = $env:HUSHTELEGRAM_QUEUED_JOB
+    $global:LASTEXITCODE = 7
+}
+Assert-True ($queueCode -eq 7) "The queued job's exit code did not come back: $queueCode"
+Assert-True ((Get-LastQueuedJob) -ceq 'hushtelegram probe|normal|probe' -and $queueRan.Job -ceq 'probe') `
+    "The job did not run in a slot under its label: $(Get-LastQueuedJob)"
+Assert-True (-not $env:HUSHTELEGRAM_QUEUED_JOB) 'The queued job stayed marked after it ended.'
+# A release run goes ahead of everyday builds.
+$env:BUILD_QUEUE_PRIORITY = 'release'
+try {
+    $null = Invoke-InHushTelegramQueue -Job 'probe' -ScriptBlock { }
+} finally {
+    $env:BUILD_QUEUE_PRIORITY = $null
+}
+Assert-True ((Get-LastQueuedJob) -ceq 'hushtelegram probe|release|probe') `
+    "A release run did not ask for a release slot: $(Get-LastQueuedJob)"
+# The queue script's own parameters are dot-sourced inside the helper and don't reach the caller.
+$Label = 'caller label'
+$Priority = 'caller priority'
+$null = Invoke-InHushTelegramQueue -Job 'probe' -ScriptBlock { }
+Assert-True ($Label -ceq 'caller label' -and $Priority -ceq 'caller priority') `
+    "The queue script's parameters landed in the caller's variables: '$Label', '$Priority'"
+Remove-Variable -Name Label, Priority
+# A job that fails leaves no mark behind, and its error comes out as it was.
+Assert-Throws { Invoke-InHushTelegramQueue -Job 'probe' -ScriptBlock { throw 'queued job failed' } } `
+    'queued job failed' 'A failing queued job lost its error.'
+Assert-True (-not $env:HUSHTELEGRAM_QUEUED_JOB) 'A failing queued job stayed marked.'
+# With no queue script the job still runs, now, and says it's outside the queue.
+$queuedBefore = @(Get-Content -LiteralPath $queueLog).Count
+$env:BUILD_QUEUE_SCRIPT = Join-Path $queueStandInRoot 'no-such-queue.ps1'
+try {
+    $queueRan.Job = ''
+    $queueSaid = @(Invoke-InHushTelegramQueue -Job 'probe' -ScriptBlock { $queueRan.Job = $env:HUSHTELEGRAM_QUEUED_JOB } 3>&1 |
+        ForEach-Object { "$_" }) -join "`n"
+} finally {
+    $env:BUILD_QUEUE_SCRIPT = $queueStandIn
+}
+Assert-True ($queueRan.Job -ceq 'probe' -and $queueSaid -like '*hushtelegram probe runs now, outside the machine-wide build queue*') `
+    "A run with no queue script did not run at once with a warning: $queueSaid"
+Assert-True (@(Get-Content -LiteralPath $queueLog).Count -eq $queuedBefore) 'A run with no queue script reached the queue.'
+# The matrix asks for its slot before it compiles or patches anything.
+$selectionsAst = [System.Management.Automation.Language.Parser]::ParseFile(
+    (Join-Path $PSScriptRoot 'verify-patch-selections.ps1'), [ref]$null, [ref]$null)
+$matrixAst = $selectionsAst.Find({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $node.Name -eq 'Invoke-PatchSelectionMatrix' }, $true)
+$matrixCalls = @($matrixAst.Body.FindAll({ param($node) $node -is [System.Management.Automation.Language.CommandAst] }, $true))
+$matrixQueue = @($matrixCalls | Where-Object { $_.GetCommandName() -eq 'Invoke-InHushTelegramQueue' -and
+    $_.Extent.Text -match "-Job 'selections'" })
+$matrixTool = @($matrixCalls | Where-Object { $_.GetCommandName() -eq 'Invoke-SelectionTool' })
+Assert-True ($matrixQueue.Count -eq 1 -and $matrixTool.Count -gt 0 -and
+    $matrixQueue[0].Extent.StartOffset -lt $matrixTool[0].Extent.StartOffset) `
+    'The selection matrix does not ask for a build queue slot before it compiles or patches.'
+# And it reads the whole fixture for a hash twice a run, before the first case and after the last,
+# never once a case: each case compares size and write time, and the native packaging evidence is
+# handed the digest.
+$matrixLoop = $matrixAst.Body.Find({ param($node) $node -is [System.Management.Automation.Language.ForEachStatementAst] -and
+    $node.Condition.Extent.Text -eq '$plans' }, $true)
+$apkHashes = @($matrixCalls | Where-Object { $_.GetCommandName() -eq 'Get-Sha256Hex' -and $_.Extent.Text -match '-Path \$Apk\b' })
+$hashedInLoop = @($apkHashes | Where-Object { $_.Extent.StartOffset -ge $matrixLoop.Extent.StartOffset -and
+    $_.Extent.EndOffset -le $matrixLoop.Extent.EndOffset })
+$nativeEvidence = @($matrixCalls | Where-Object { $_.GetCommandName() -eq 'Get-NativePackagingEvidence' })
+Assert-True ($null -ne $matrixLoop -and $apkHashes.Count -eq 2 -and $hashedInLoop.Count -eq 0 -and
+    $nativeEvidence.Count -eq 1 -and $nativeEvidence[0].Extent.Text -match '-StockSha256 \$sourceHash') `
+    'The selection matrix reads the whole fixture for its hash once a case again.'
+# The pre-push hook's own gradlew run, when no wrapper is set, waits for a slot as well.
+$prePushAst = [System.Management.Automation.Language.Parser]::ParseFile(
+    (Join-Path $PSScriptRoot 'pre-push.ps1'), [ref]$null, [ref]$null)
+$gradleRuns = @($prePushAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.CommandAst] -and
+    $node.InvocationOperator -eq [System.Management.Automation.Language.TokenKind]::Ampersand -and
+    $node.CommandElements[0].Extent.Text -match 'gradlew' }, $true))
+$unqueuedGradle = @($gradleRuns | Where-Object {
+    $outer = $_.Parent
+    while ($outer -and -not ($outer -is [System.Management.Automation.Language.CommandAst] -and
+            $outer.GetCommandName() -eq 'Invoke-InHushTelegramQueue' -and $outer.Extent.Text -match "-Job 'gate'")) {
+        $outer = $outer.Parent
+    }
+    -not $outer })
+Assert-True ($gradleRuns.Count -gt 0 -and $unqueuedGradle.Count -eq 0) `
+    "pre-push.ps1 runs gradlew outside a build queue slot: $(@($unqueuedGradle | ForEach-Object { $_.Extent.Text }) -join '; ')"
+Write-Host '[scripts] build queue contracts passed'
+
+# --- the user environment a hook reads --------------------------------------------------------
+#
+# A hook runs with git's environment, so the hook fills its variables from the user's. An empty
+# one is filled as an unset one is: pwsh keeps a variable set to '' where Windows PowerShell drops
+# it, and an empty build wrapper would send the gate to gradlew outside the wrapper. Spaces stay, since
+# the fixture gate tests set them to keep the machine's folder out, and so does a set value.
+$importProbe = 'HUSHTELEGRAM_IMPORT_PROBE'
+foreach ($importCase in @(
+        @{ Name = 'an unset variable'; Process = $null; User = 'from the user'; Expect = 'from the user' },
+        @{ Name = 'an empty variable'; Process = ''; User = 'from the user'; Expect = 'from the user' },
+        @{ Name = 'a variable of spaces'; Process = ' '; User = 'from the user'; Expect = ' ' },
+        @{ Name = 'a set variable'; Process = 'mine'; User = 'from the user'; Expect = 'mine' },
+        @{ Name = 'a blank user value'; Process = $null; User = ' '; Expect = $null })) {
+    Remove-Item -LiteralPath "Env:\$importProbe" -ErrorAction SilentlyContinue
+    if ($null -ne $importCase.Process) { Set-Item -LiteralPath "Env:\$importProbe" -Value $importCase.Process }
+    $importUser = $importCase.User
+    Import-UserEnvironment -Name $importProbe -ReadUser { param([string]$Variable) if ($Variable -eq $importProbe) { $importUser } }
+    $imported = [Environment]::GetEnvironmentVariable($importProbe)
+    Assert-True ($(if ($null -eq $importCase.Expect) { [string]::IsNullOrEmpty($imported) } else { $imported -ceq $importCase.Expect })) `
+        "Importing the user environment over $($importCase.Name) left '$imported'."
+}
+Remove-Item -LiteralPath "Env:\$importProbe" -ErrorAction SilentlyContinue
+$importCalls = @($prePushAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.CommandAst] -and
+    $node.GetCommandName() -eq 'Import-UserEnvironment' }, $true))
+Assert-True ($importCalls.Count -eq 1 -and $importCalls[0].Extent.Text -match "'HUSHTELEGRAM_BUILD_WRAPPER'") `
+    'pre-push.ps1 no longer fills an unset or empty build wrapper from the user environment.'
+Write-Host '[scripts] user environment contracts passed'
+
+# The release stages' text (CHANGELOG cut, notes, Manager index, bug form, description) and the
+# order release.ps1 holds its stages to.
+& (Join-Path $PSScriptRoot 'release/test-release-text.ps1') -Root $Root
+
 # --- patch-target.ps1 ------------------------------------------------------------------------
 #
 # Telegram ships a build a week, so the catalog declares the build the bundle was last proved on
@@ -2218,6 +2375,25 @@ try {
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused results that match their sources and the description.'
+        # :patches:test runs the fixture tests in :patches:fixtureTest, whose results have their own
+        # folder: counted together, every class once, and a class in both is an older run's copy.
+        $fixtureResults = 'patches/build/test-results/fixtureTest'
+        $fixtureSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/PatchFixtureTest.kt'
+        Set-Content -LiteralPath $fixtureSource -Value '' -Encoding ASCII
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+        Write-FactsResults $fixtureResults 'PatchFixtureTest' 2
+        Invoke-StrictFacts
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'The strict release check did not count the fixture tests in their own folder.'
+        Remove-Item -LiteralPath (Join-Path $factsRoot $fixtureResults) -Recurse -Force
+        Assert-Throws { Invoke-StrictFacts } '*missing 1 of 2 test classes*PatchFixtureTest*' `
+            'A run with no fixture test results was counted as a whole run.'
+        Write-FactsResults $fixtureResults 'PatchFixtureTest' 2
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+        Add-OrphanResult $patchResults 'PatchFixtureTest'
+        Assert-Throws { Invoke-StrictFacts } '*TEST-fixture.PatchFixtureTest.xml under both*' `
+            'Fixture test results left in the :patches:test folder were counted twice.'
+        Remove-Item -LiteralPath $fixtureSource, (Join-Path $factsRoot $fixtureResults) -Recurse -Force
         foreach ($folder in @('extensions/telegram/src', 'patches/src')) {
             Remove-Item -LiteralPath (Join-Path $factsRoot $folder) -Recurse -Force
         }
@@ -3319,6 +3495,49 @@ try {
                 Remove-Item -LiteralPath $gateHook -Force -ErrorAction SilentlyContinue
                 & git -C $gateRepo checkout --quiet -- scripts
             }
+
+            # A commit whose Gradle file has :patches:fixtureTest gets a quick pass: every task but
+            # the fixture tests, then the same tasks again to add them. A quick pass that fails stops
+            # the push before the fixture tests start. A commit from before the task gets one run,
+            # since its Gradle would refuse -x for a task it doesn't know.
+            $passLog = Join-Path $hookRoot 'gate-passes.txt'
+            $passStub = Join-Path $hookRoot 'gate-wrapper-passes.ps1'
+            Set-Content -LiteralPath $passStub -Encoding UTF8 -Value @(
+                'param([string]$ProjectDir, [string[]]$Tasks)',
+                "Add-Content -LiteralPath '$passLog' -Value (`$Tasks -join ' ')",
+                'if ($env:HUSHTELEGRAM_QUICK_PASS_FAILS -eq ''1'' -and $Tasks -contains ''-x'') { exit 1 }',
+                'exit 0')
+            $quickBase = (& git -C $gateRepo rev-parse HEAD).Trim()
+            New-Item -ItemType Directory -Path (Join-Path $gateRepo 'patches') -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $gateRepo 'patches/build.gradle.kts') -Encoding ASCII `
+                -Value 'val fixtureTest = tasks.register<Test>("fixtureTest") { }'
+            & git -C $gateRepo add patches/build.gradle.kts
+            & git -C $gateRepo commit --quiet -m 'fixture task'
+            $quickSplit = (& git -C $gateRepo rev-parse HEAD).Trim()
+            $env:HUSHTELEGRAM_BUILD_WRAPPER = $passStub
+            try {
+                Remove-Item -LiteralPath $passLog -Force -ErrorAction SilentlyContinue
+                & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $quickSplit refs/heads/main $quickBase" 6> $null
+                $passes = @(Get-Content -LiteralPath $passLog)
+                Assert-True ($LASTEXITCODE -eq 0 -and $passes.Count -eq 2 -and $passes[1] -like '*:patches:test*' -and
+                    $passes[0] -ceq "$($passes[1]) -x :patches:fixtureTest") `
+                    "The gate did not run everything but the fixture tests first and then add them: $($passes -join ' | ')"
+                Remove-Item -LiteralPath $passLog -Force
+                $env:HUSHTELEGRAM_QUICK_PASS_FAILS = '1'
+                Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $quickSplit refs/heads/main $quickBase" 6> $null } `
+                    '*runtime test build did not pass*' 'A quick pass that failed did not stop the push.'
+                Assert-True (@(Get-Content -LiteralPath $passLog).Count -eq 1) 'The fixture tests ran after the quick pass failed.'
+                Remove-Item -LiteralPath $passLog -Force
+                $env:HUSHTELEGRAM_QUICK_PASS_FAILS = $null
+                & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null
+                $passes = @(Get-Content -LiteralPath $passLog)
+                Assert-True ($LASTEXITCODE -eq 0 -and $passes.Count -eq 1 -and $passes[0] -notlike '*-x*') `
+                    "A commit without :patches:fixtureTest was not built in one run without -x: $($passes -join ' | ')"
+            } finally {
+                $env:HUSHTELEGRAM_BUILD_WRAPPER = $gateStub
+                Remove-Item -LiteralPath Env:\HUSHTELEGRAM_QUICK_PASS_FAILS -ErrorAction SilentlyContinue
+                Remove-Item -LiteralPath $passLog -Force -ErrorAction SilentlyContinue
+            }
         } finally {
             foreach ($line in @(& git -C $gateRepo worktree list --porcelain)) {
                 if ($line -like 'worktree *') {
@@ -4379,7 +4598,8 @@ class AlignmentFixture {
     # above, and what the builder says is kept in $builderSaid, warnings included.
     $builderSaid = ''
     function Invoke-ReceiptBuilder([string[]]$Fixtures, [string]$Bundle,
-            [string]$WorkDir = (Join-Path $releaseRoot 'work'), [string]$DesktopJar = $stubJar, [switch]$SkipAdvisoryCheck) {
+            [string]$WorkDir = (Join-Path $releaseRoot 'work'), [string]$DesktopJar = $stubJar, [switch]$SkipAdvisoryCheck,
+            [string]$AppliedDir) {
         Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
         $saved = @{}
         foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
@@ -4393,6 +4613,7 @@ class AlignmentFixture {
                 Java = $stubJava; Aapt2 = $stubAapt2 }
             if ($Bundle) { $arguments['Bundle'] = $Bundle }
             if ($SkipAdvisoryCheck) { $arguments['SkipAdvisoryCheck'] = $true }
+            if ($AppliedDir) { $arguments['AppliedDir'] = $AppliedDir }
             $script:builderSaid = @(& (Join-Path $PSScriptRoot 'build-release-receipt.ps1') @arguments 3>&1 6>&1 |
                 ForEach-Object { "$_" }) -join "`n"
             if ($LASTEXITCODE -ne 0) { throw "build-release-receipt.ps1 exited $LASTEXITCODE." }
@@ -4412,6 +4633,8 @@ class AlignmentFixture {
     } catch {
         throw "build-release-receipt.ps1 refused a run of every declared build: $($_.Exception.Message)"
     }
+    Assert-True ((Get-LastQueuedJob) -ceq 'hushtelegram receipt|normal|receipt') `
+        "build-release-receipt.ps1 did not patch inside a build queue slot: $(Get-LastQueuedJob)"
     $built = Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json
     $builtTargets = @($built.targets)
     $builtVersions = @($builtTargets | ForEach-Object { [string]$_.source.versionName })
@@ -4516,12 +4739,14 @@ class AlignmentFixture {
     Set-Content -LiteralPath (Join-Path $tools 'apksigner.bat') -Encoding ASCII -Value @(
         '@echo off', "echo Signer #1 certificate SHA-256 digest: $($releaseSigner[0])", 'exit /b 0')
     $verifyAllScript = Join-Path $PSScriptRoot 'verify-all-patches.ps1'
-    function Invoke-VerifyAll([string]$Apk, [switch]$Force) {
+    function Invoke-VerifyAll([string]$Apk, [switch]$Force, [string]$KeepIn) {
         Remove-Item -LiteralPath $javaLog, $mergeLog, $resourceStock -Force -ErrorAction SilentlyContinue
         $global:LASTEXITCODE = 0
+        $keep = @{}
+        if ($KeepIn) { $keep = @{ KeepIn = $KeepIn; Root = $releaseRepo } }
         $said = @(& $verifyAllScript -Apk $Apk -DesktopJar $stubJar -WorkDir (Join-Path $releaseRoot 'verify-work') `
             -Bundle $releaseBundle -PatchList (Join-Path $releaseRepo 'patches-list.json') -Java $stubJava `
-            -Aapt2 $stubAapt2 -Force:$Force 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
+            -Aapt2 $stubAapt2 -Force:$Force @keep 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
         if ($LASTEXITCODE -ne 0) { throw "verify-all-patches.ps1 exited $LASTEXITCODE`: $said" }
         return $said
     }
@@ -4529,6 +4754,8 @@ class AlignmentFixture {
     $said = Invoke-VerifyAll -Apk $newestFixture
     Assert-True ($said -like "*merged $(Split-Path -Leaf $newestFixture) into one APK for the CLI*" -and
         $said -like '*success: every requested patch applied*') "verify-all-patches.ps1 did not merge the bundle and pass: $said"
+    Assert-True ((Get-LastQueuedJob) -ceq 'hushtelegram verify-all-patches|normal|verify-all-patches') `
+        "verify-all-patches.ps1 did not patch inside a build queue slot: $(Get-LastQueuedJob)"
     Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join "`n") -eq "merge $newestFixture" -and
         (@(Get-Content -LiteralPath $javaLog) -join "`n") -eq "patch $newestFixture merged forced=0") `
         ("verify-all-patches.ps1 did not merge the bundle once and hand the CLI that merge: " +
@@ -4619,6 +4846,62 @@ class AlignmentFixture {
     Assert-Throws { Invoke-VerifyAll -Apk $variantApkm } "*$variantBuild, which the bundle does not declare, at version code $variantCode*-Force*" `
         'verify-all-patches.ps1 patched another build of a declared version as the declared one.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'verify-all-patches.ps1 started the CLI on another build of a declared version.'
+
+    # verify-all-patches.ps1 -KeepIn keeps each clean run with a stamp of the commit, fixture,
+    # bundle, patch list, CLI and -f, and build-release-receipt.ps1 -AppliedDir reads a kept run
+    # whose stamp matches its own instead of patching that fixture again. Every check after the CLI
+    # still runs, so the receipt comes out the same. A stamp that differs, a kept APK that changed or
+    # nothing kept at all, and that fixture is patched as before.
+    $appliedDir = Join-Path $releaseRoot 'applied'
+    $receiptBeforeReuse = [System.IO.File]::ReadAllBytes($releaseReceipt)
+    try {
+        foreach ($build in $builtBuilds) {
+            $said = Invoke-VerifyAll -Apk $fixturePaths[$build] -Force:($build -eq $newerBuild) -KeepIn $appliedDir
+            Assert-True ($said -like '*kept this run for the release receipt in*') `
+                "verify-all-patches.ps1 -KeepIn did not keep its run of ${build}: $said"
+        }
+        foreach ($build in $builtBuilds) {
+            $keptRun = Join-Path $appliedDir (Get-Sha256Hex -Path $fixturePaths[$build]).ToLowerInvariant()
+            $stamp = Get-Content -LiteralPath (Join-Path $keptRun 'stamp.json') -Raw | ConvertFrom-Json
+            Assert-True ($stamp.commit -ceq $releaseCommit -and $stamp.forced -eq ($build -eq $newerBuild) -and
+                $stamp.bundleSha256 -ceq (Get-Sha256Hex -Path $releaseBundle).ToLowerInvariant()) `
+                "The run kept for $build is not stamped with the release repo's commit, its -f and the bundle: $($stamp | ConvertTo-Json -Compress)"
+            # The stand-in aapt2 reads a patched APK's manifest from the .xmltree the stand-in CLI
+            # writes beside it, where a real APK carries its own. A kept copy gets its one here.
+            Copy-Item -LiteralPath "$($fixturePaths[$build]).patched.txt" -Destination (Join-Path $keptRun 'patched.apk.xmltree')
+        }
+        Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir $appliedDir
+        Assert-True (-not (Test-Path -LiteralPath $javaLog)) `
+            "build-release-receipt.ps1 patched a fixture with a kept run: $(@(Get-Content -LiteralPath $javaLog -ErrorAction SilentlyContinue) -join '; ')"
+        Assert-True (@($builderSaid -split "`n" | Where-Object { $_ -like '*has a verified run of this commit and bundle*' }).Count -eq
+            $builtBuilds.Count) "build-release-receipt.ps1 did not say it read every kept run: $builderSaid"
+        $reusedTargets = @((Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json).targets)
+        Assert-True (($reusedTargets | ConvertTo-Json -Depth 20 -Compress) -ceq ($builtTargets | ConvertTo-Json -Depth 20 -Compress)) `
+            'The receipt read from kept runs does not record what patching every fixture again recorded.'
+
+        # Another bundle in one stamp and a patched APK changed after it was kept: those two fixtures
+        # are patched again, in fixture order, and the rest are still read.
+        $staleBuild = $releaseTarget.PackageVersion
+        $staleStampPath = Join-Path (Join-Path $appliedDir (Get-Sha256Hex -Path $fixturePaths[$staleBuild]).ToLowerInvariant()) 'stamp.json'
+        $staleStamp = Get-Content -LiteralPath $staleStampPath -Raw | ConvertFrom-Json
+        $staleStamp.bundleSha256 = '0' * 64
+        [System.IO.File]::WriteAllText($staleStampPath, ($staleStamp | ConvertTo-Json), [System.Text.UTF8Encoding]::new($false))
+        $changedApk = Join-Path (Join-Path $appliedDir (Get-Sha256Hex -Path $fixturePaths[$newerBuild]).ToLowerInvariant()) 'patched.apk'
+        [System.IO.File]::AppendAllText($changedApk, ' ')
+        Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir $appliedDir
+        $expectedRepatched = @($builtBuilds | Where-Object { $_ -eq $staleBuild -or $_ -eq $newerBuild } | ForEach-Object {
+            "patch $($fixturePaths[$_]) merged forced=$(if ($_ -eq $newerBuild) { 1 } else { 0 })" })
+        Assert-True ((@(Get-Content -LiteralPath $javaLog) -join "`n") -eq ($expectedRepatched -join "`n")) `
+            "build-release-receipt.ps1 did not patch exactly the fixtures whose kept run no longer matched: $(@(Get-Content -LiteralPath $javaLog) -join '; ')"
+
+        # Nothing kept where -AppliedDir points: every fixture is patched, as without it.
+        Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir (Join-Path $releaseRoot 'nothing-kept')
+        Assert-True ((@(Get-Content -LiteralPath $javaLog) -join "`n") -eq ($expectedRuns -join "`n")) `
+            "build-release-receipt.ps1 did not patch every fixture with nothing kept: $(@(Get-Content -LiteralPath $javaLog) -join '; ')"
+    } finally {
+        Remove-Item -LiteralPath $appliedDir -Recurse -Force -ErrorAction SilentlyContinue
+        [System.IO.File]::WriteAllBytes($releaseReceipt, $receiptBeforeReuse)
+    }
 
     # The SBOM and what OSV says about it come before anything is patched. The deliberately
     # vulnerable fixture is this bundle with an SBOM listing gson 2.8.8, and no receipt comes of it.
@@ -5403,6 +5686,21 @@ Assert-True ($gradleFile -match 'val releaseBundleName = "patches-\$\{project\.v
 Assert-True ($gradleFile -match 'commandLine\("git", "--no-optional-locks", "status", "--porcelain"\)' -and
     $gradleFile -match '(?s)val sourceDateEpoch: Long = run \{.*?if \(uncommittedChanges\?\.isEmpty\(\) != true\) return@run 0L.*?"log", "-1", "--format=%ct"') `
     'patches/build.gradle.kts stamps the bundle with the commit time without asking git whether the tree has uncommitted changes.'
+# The fixture tests run in :patches:fixtureTest, which :patches:test depends on and leaves out, so
+# a quick run can skip them with -x. A test that opens the vendor APKs and isn't in that task's
+# list would run in every quick pass. The pre-push gate finds the task by this same registration.
+Assert-True ($gradleFile -match 'tasks\.register<Test>\("fixtureTest"\)' -and
+    $gradleFile -match '(?s)tasks\.test \{\s*dependsOn\(fixtureTest\)\s*exclude\(fixtureTestClasses\)' -and
+    $gradleFile -match 'withType<Test>\(\)\.matching \{ it\.name == "test" \|\| it\.name == "fixtureTest" \}') `
+    'patches/build.gradle.kts no longer splits the fixture tests into :patches:fixtureTest under :patches:test.'
+$fixtureGlobs = @([regex]::Matches([regex]::Match($gradleFile, '(?s)val fixtureTestClasses = listOf\((.*?)\n\)').Groups[1].Value,
+    '"\*\*/([^"$]+)\.class"') | ForEach-Object { $_.Groups[1].Value })
+$unsplitFixtureTests = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/src/test') -Recurse -File -Filter '*Test.kt' |
+    Where-Object { (Get-Content -LiteralPath $_.FullName -Raw) -match '\bFixtures\.' } |
+    Where-Object { $name = $_.BaseName; -not @($fixtureGlobs | Where-Object { $name -like $_ }).Count } |
+    ForEach-Object { $_.BaseName })
+Assert-True ($fixtureGlobs.Count -gt 0 -and $unsplitFixtureTests.Count -eq 0) `
+    "These patch tests read the vendor APKs but aren't in fixtureTestClasses: $($unsplitFixtureTests -join ', ')"
 
 # Code only: a comment may say where the bundle used to be read from.
 $libsReaders = New-Object System.Collections.Generic.List[string]
@@ -5449,6 +5747,12 @@ Assert-Throws { Find-MachineNames -Root (Join-Path ([System.IO.Path]::GetTempPat
     '*could not search*' 'A machine-name scan that could not run read as a clean tree.'
 
 Write-Host '[scripts] tracked-file machine name contracts passed'
+
+# The suites below run the real tools, so a job of theirs waits for a real slot.
+$env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+$env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
+$env:HUSHTELEGRAM_QUEUED_JOB = $savedQueuedJob
+Remove-Item -LiteralPath $queueStandInRoot -Recurse -Force
 
 # Raw CLI results can carry configured credentials. Exercise the separate allowlisted export,
 # including hostile report fields and all failure streams, before accepting any script change.

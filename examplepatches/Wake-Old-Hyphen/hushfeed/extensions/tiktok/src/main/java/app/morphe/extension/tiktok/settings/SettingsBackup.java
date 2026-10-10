@@ -602,12 +602,19 @@ public final class SettingsBackup {
         // settings half is version independent and is restored either way. The Lab half applies
         // on its own build, and from another build a catalog was generated from: parseSettings
         // then keeps each rule whose gate both catalogs carry identically and brings the rest
-        // back turned off. From a build with no catalog nothing can be checked, so the Lab half
-        // is dropped and the caller says so.
+        // back turned off. From a build the catalog no longer has (the bundle declares only the
+        // newest, so the one a user moves from is usually gone), the running build's catalog
+        // alone decides, as it does when the build changes under the Lab's own store
+        // (FeatureGateCatalog.compatibleRuleIds). The Lab half is dropped, and the caller says
+        // so, only when the running build has no catalog either or the Lab block names no build.
         String target = root.optString("target");
-        boolean labApplies = FeatureGateLabStore.targetVersion().equals(target)
-                || app.morphe.extension.tiktok.featuregatelab.FeatureGateCatalog.hasCatalogFor(target);
         JSONObject values = root.getJSONObject("settings"), lab = root.getJSONObject("lab");
+        boolean labApplies = FeatureGateLabStore.targetVersion().equals(target)
+                || app.morphe.extension.tiktok.featuregatelab.FeatureGateCatalog.hasCatalogFor(target)
+                || (app.morphe.extension.tiktok.featuregatelab.FeatureGateCatalog.hasCatalogFor(
+                        FeatureGateLabStore.targetVersion())
+                && lab.opt("tiktok_version") instanceof String
+                && !lab.optString("tiktok_version").isEmpty());
         JSONArray required = root.getJSONArray("setting_keys");
         java.util.Set<String> keys = new java.util.HashSet<>();
         if (required.length() == 0 || required.length() != values.length()) {

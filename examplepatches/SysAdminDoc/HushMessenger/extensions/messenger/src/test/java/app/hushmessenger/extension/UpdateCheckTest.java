@@ -115,7 +115,7 @@ public class UpdateCheckTest {
     @Test public void aReleaseLinkOutsideThisProjectIsRejected() throws Exception {
         reply = json(200, release("v99.0.0", "https://example.com/releases/tag/v99.0.0"));
         View root = openWithCheckOn();
-        assertEquals("Couldn't check for updates.", awaitStatus(root).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(root).getText().toString());
         assertNull(root.findViewWithTag("update_release"));
     }
 
@@ -127,7 +127,7 @@ public class UpdateCheckTest {
 
     @Test public void aBodyWithoutATagShowsTheError() throws Exception {
         reply = json(200, "{\"name\":\"latest\"}");
-        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(openWithCheckOn()).getText().toString());
     }
 
     @Test public void aServerThatNeverAnswersTimesOut() throws Exception {
@@ -136,7 +136,7 @@ public class UpdateCheckTest {
             try { hold.await(20, TimeUnit.SECONDS); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
         };
         long started = System.nanoTime();
-        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(openWithCheckOn()).getText().toString());
         long waited = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
         assertTrue("Gave up after " + waited + " ms with a 500 ms timeout", waited < 3000);
     }
@@ -165,7 +165,7 @@ public class UpdateCheckTest {
             reply = json(200, body);
             try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
                 View root = screen.get().getWindow().getDecorView();
-                assertEquals(body, "Couldn't check for updates.", awaitStatus(root).getText().toString());
+                assertEquals(body, "Couldn't check for updates. Check your connection and try again.", awaitStatus(root).getText().toString());
                 assertNull(root.findViewWithTag("update_release"));
             }
         }
@@ -179,7 +179,7 @@ public class UpdateCheckTest {
             reply = json(200, valid + " ".repeat(size - valid.getBytes(StandardCharsets.UTF_8).length));
             try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
                 View root = screen.get().getWindow().getDecorView();
-                assertEquals(size == 256 * 1024 ? "Version 99.0.0 is available" : "Couldn't check for updates.", awaitStatus(root).getText().toString());
+                assertEquals(size == 256 * 1024 ? "Version 99.0.0 is available" : "Couldn't check for updates. Check your connection and try again.", awaitStatus(root).getText().toString());
             }
         }
     }
@@ -191,7 +191,7 @@ public class UpdateCheckTest {
             out.write(bytes);
             out.flush();
         };
-        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(openWithCheckOn()).getText().toString());
     }
 
     @Test public void enablingAndRetryingCheckOnceWithVisibleLoadingAndOneReleaseAction() throws Exception {
@@ -369,7 +369,7 @@ public class UpdateCheckTest {
             Settings.preferences.edit().putString(ReleaseCheck.CACHE_KEY, cache).commit();
             reply = json(304, "");
             View root = openWithCheckOn();
-            assertEquals("Couldn't check for updates.", awaitStatus(root).getText().toString());
+            assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(root).getText().toString());
             assertNull(root.findViewWithTag("update_release"));
             assertFalse(requestHeaders.get(requestHeaders.size() - 1).contains("If-None-Match:"));
         }
@@ -380,7 +380,7 @@ public class UpdateCheckTest {
         Settings.preferences.edit().putString(ReleaseCheck.CACHE_KEY, old).commit();
         reply = json(304, "", "ETag: \"different\"\r\n");
         View root = openWithCheckOn();
-        assertEquals("Couldn't check for updates.", awaitStatus(root).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(root).getText().toString());
         assertNull(root.findViewWithTag("update_release"));
         assertTrue(requestHeaders.get(0), requestHeaders.get(0).contains("If-None-Match: \"old\"\r\n"));
         // Keeping the old validator would resend it and fail the same way on every later check.
@@ -396,7 +396,7 @@ public class UpdateCheckTest {
 
     @Test public void mismatchedTagAndCorruptCacheCannotOfferAReleaseAction() throws Exception {
         reply = json(200, release("v98.0.0", RELEASE_PAGE));
-        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(openWithCheckOn()).getText().toString());
         assertEquals("", Settings.preferences.getString(ReleaseCheck.CACHE_KEY, ""));
         String valid = cache("\"old\"", now.get() - ReleaseCheck.COOLDOWN_MS);
         String[] corrupt = {"x".repeat(ReleaseCheck.MAX_CACHE_CHARS + 1), valid.replace("v99.0.0\n", "v098.0.0\n"),
@@ -407,12 +407,12 @@ public class UpdateCheckTest {
             Settings.preferences.edit().putString(ReleaseCheck.CACHE_KEY, saved).commit();
             reply = json(304, "");
             View root = openWithCheckOn();
-            assertEquals(saved, "Couldn't check for updates.", awaitStatus(root).getText().toString());
+            assertEquals(saved, "Couldn't check for updates. Check your connection and try again.", awaitStatus(root).getText().toString());
             assertNull(root.findViewWithTag("update_release"));
             assertFalse(requestHeaders.get(requestHeaders.size() - 1).contains("If-None-Match:"));
         }
         Settings.preferences.edit().putBoolean(ReleaseCheck.CACHE_KEY, true).commit();
-        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(openWithCheckOn()).getText().toString());
     }
 
     @Test public void rateLimitsHonorBothHeadersAndPersistUntilTheDeadline() throws Exception {
@@ -538,7 +538,7 @@ public class UpdateCheckTest {
 
     @Test public void redirectsAreNotFollowed() throws Exception {
         reply = json(302, "", "Location: " + SettingsActivity.releasesUrl + "-redirect\r\n");
-        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+        assertEquals("Couldn't check for updates. Check your connection and try again.", awaitStatus(openWithCheckOn()).getText().toString());
         assertEquals(1, requests.get());
     }
 

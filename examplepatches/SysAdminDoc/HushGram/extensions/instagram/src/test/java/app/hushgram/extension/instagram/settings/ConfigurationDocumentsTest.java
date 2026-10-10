@@ -69,7 +69,8 @@ public class ConfigurationDocumentsTest {
                         ConfigurationBackupTest.entry(Settings.HIDE_ADS.key, "boolean", false)));
                 HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(activity);
                 Preference undo = page.findPreference("hushgram_undo_configuration");
-                assertEquals("Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline.",
+                assertEquals("Choose a settings file. All valid choices apply together, and ones this version "
+                        + "doesn't know are skipped. The Undo row shows how long you can undo.",
                         page.findPreference("hushgram_import_configuration").getSummary().toString());
                 long token = ConfigurationBackup.undoToken();
                 long deadline = ConfigurationBackup.undoDeadline(token);
@@ -286,7 +287,7 @@ public class ConfigurationDocumentsTest {
                 Shadows.shadowOf(activity.get()).receiveResult(picked.intent, Activity.RESULT_OK, new Intent().setData(DOCUMENT));
                 finish();
                 receipt = page.findPreference("hushgram_import_configuration").getSummary().toString();
-                assertTrue(receipt.contains("Imported 1 settings. Skipped 0 unsupported keys."));
+                assertTrue(receipt.contains("Imported 1 settings. Skipped 0 that this version doesn't know."));
                 assertTrue(receipt.contains("Restart Instagram to apply these choices."));
             }
             try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {

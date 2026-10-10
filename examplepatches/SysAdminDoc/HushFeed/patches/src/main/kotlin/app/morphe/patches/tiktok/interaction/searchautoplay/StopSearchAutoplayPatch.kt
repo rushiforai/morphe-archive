@@ -33,8 +33,9 @@ internal object SearchAutoplayCheckFingerprint : Fingerprint(
 @Suppress("unused")
 val stopSearchAutoplayPatch = bytecodePatch(
     name = "Stop search autoplay",
-    description = "Stops videos in search results playing on their own, so each one shows its cover until you " +
-        "open it. The feed and the videos you open play as usual. Switch: Hushfeed settings > App.",
+    description = "Stops videos in search results from playing by themselves. Each one shows " +
+        "its cover until you open it, so searching stays quiet. Starts off. Turn it on in " +
+        "Hushfeed settings > App.",
 ) {
     category("Search")
     dependsOn(settingsPatch, sharedExtensionPatch)

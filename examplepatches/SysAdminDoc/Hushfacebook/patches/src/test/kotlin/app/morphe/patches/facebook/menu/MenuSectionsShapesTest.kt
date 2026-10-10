@@ -126,8 +126,11 @@ class MenuSectionsShapesTest {
         assertFalse(isNativeSectionChildren(method(listOf(constString(0, NATIVE_SECTION_KEY)), static = true)))
         assertFalse(isNativeSectionChildren(method(listOf(constString(0, NATIVE_SECTION_KEY)), returnType = "V")))
         assertFalse(isNativeSectionChildren(method(listOf(constString(0, NATIVE_SECTION_KEY)), parameters = emptyList())))
-        assertFalse(isNativeSectionChildren(method(listOf(constString(0, NATIVE_SECTION_KEY)),
+        // 582 holds the body in a singleton's method over the context and the section's fields.
+        assertTrue(isNativeSectionChildren(method(listOf(constString(0, NATIVE_SECTION_KEY)),
             parameters = listOf(context, "I"))))
+        assertFalse(isNativeSectionChildren(method(listOf(constString(0, NATIVE_SECTION_KEY)),
+            parameters = listOf("I", context))))
     }
 
     @Test

@@ -71,8 +71,8 @@ internal const val VIEW_GROUP = "Landroid/view/ViewGroup;"
  * The unified video scrubber, which is the bar of 581's Reels viewer, has an "active" look (full
  * height track, thumb at full alpha) and a "passive" one (a 2 dp line, thumb hidden) that Facebook
  * switches to before a touch and again about a second after a drag ends. Both are `()V` methods
- * that begin by tracing their own name, [SCRUBBER_ACTIVE] and [SCRUBBER_PASSIVE] (581 `LX/RV4;`
- * `A18` and `A19`, 580 `LX/Rln;` `A15` and `A16`, 577 `LX/SHD;` `A18` and `A19`). The extension
+ * that begin by tracing their own name, [SCRUBBER_ACTIVE] and [SCRUBBER_PASSIVE] (582 `LX/9d9;`
+ * `A19` and `A1B`, 581 `LX/RV4;` `A18` and `A19`, 580 `LX/Rln;` `A15` and `A16`, 577 `LX/SHD;` `A18` and `A19`). The extension
  * goes first in the passive one, and while the switch is on it runs the active one instead, then
  * hides the scrubber's time label and returns. The passive look hides that label (a ViewGroup
  * holding the elapsed and total time, `A09` of the scrubber's views holder) and the active one
@@ -115,11 +115,12 @@ internal const val VIEW_GROUP = "Landroid/view/ViewGroup;"
 val keepProgressBarPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Keep the progress bar",
-    description = "Keeps the progress bar of reels at full size, so you can drag it without tapping first, and " +
-        "keeps a full-screen video's controls on screen until you tap. Its switch starts off, under Playback.",
+    description = "Keeps a reel's progress bar full size, so you can drag it without tapping first, and keeps a " +
+        "full-screen video's controls on screen until you tap. Starts off. Turn it on in Hushfacebook settings > " +
+        "Playback.",
     default = true,
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch, facebookExtensionPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
@@ -192,7 +193,7 @@ internal class ScrubberLooks(
     val type: String,
     val active: Method,
     val passive: Method,
-    /** The scrubber's field holding its views (581 `A0I`), and the time label field in that holder (`A09`). */
+    /** The scrubber's field holding its views (582 `LX/9c4;->A0J`), and the time label field in that holder (`A09`). */
     val viewsField: String,
     val labelField: String,
 )
@@ -210,21 +211,25 @@ internal fun vddScrubber(holders: List<ClassDef>): ScrubberLooks {
     val scrubber = scrubbers.singleOrNull()
         ?: refuse("expected one class tracing both \"$SCRUBBER_ACTIVE\" and \"$SCRUBBER_PASSIVE\", found ${scrubbers.size}")
     val passive = look(scrubber, SCRUBBER_PASSIVE).single()
-    val (viewsField, labelField) = timeLabelFields(scrubber.type, passive)
+    val (viewsField, labelField) = timeLabelFields(scrubber, passive)
     return ScrubberLooks(scrubber.type, look(scrubber, SCRUBBER_ACTIVE).single(), passive, viewsField, labelField)
 }
 
 /**
  * The time label's two fields, read from the passive look, which hides the label: the one
  * `iget-object` of a [VIEW_GROUP] field in it, straight after the `iget-object` of the scrubber's
- * own field that holds the views class declaring it. Refuses unless that's exactly one field.
+ * own field that holds the views class declaring it. That field is declared on the scrubber, or on
+ * the abstract base it extends: 582 moved the scrubber's fields and its looks' signatures to a base
+ * (`LX/9c4;`, `LX/9d9;` overriding the looks), and its looks read the fields through the base.
+ * Refuses unless that's exactly one field.
  */
-internal fun timeLabelFields(scrubber: String, passive: Method): Pair<String, String> {
+internal fun timeLabelFields(scrubber: ClassDef, passive: Method): Pair<String, String> {
+    val owners = setOf(scrubber.type) + listOfNotNull(scrubber.superclass)
     val code = passive.implementation!!.instructions.toList()
     val found = code.indices.mapNotNull { index ->
         val label = (code[index] as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.reference as? FieldReference
         val views = (code.getOrNull(index - 1) as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.reference as? FieldReference
-        if (label != null && views != null && label.type == VIEW_GROUP && views.definingClass == scrubber &&
+        if (label != null && views != null && label.type == VIEW_GROUP && views.definingClass in owners &&
             views.type == label.definingClass
         ) {
             views.toString() to label.toString()
@@ -233,7 +238,7 @@ internal fun timeLabelFields(scrubber: String, passive: Method): Pair<String, St
         }
     }.distinct()
     return found.singleOrNull()
-        ?: refuse("$scrubber->${passive.name} reads ${found.size} view group fields off the scrubber's views, expected the one time label")
+        ?: refuse("${scrubber.type}->${passive.name} reads ${found.size} view group fields off the scrubber's views, expected the one time label")
 }
 
 /** The plugin's two size methods. */

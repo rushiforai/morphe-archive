@@ -64,19 +64,20 @@ public final class FirebasePush {
         public String summary() {
             return L10n.f("Notification permission: %1$s", notificationPermission == null ? L10n.t("Unknown")
                     : notificationPermission ? L10n.t("Allowed") : L10n.t("Blocked"))
-                    + "\n" + L10n.f("Push token saved: %1$s", tokenPresent == null ? L10n.t("Unknown")
+                    + "\n" + L10n.f("Notification ID saved on this phone: %1$s", tokenPresent == null ? L10n.t("Unknown")
                     : tokenPresent ? L10n.t("Yes") : L10n.t("No"))
                     + "\n" + L10n.f("Signed-in accounts: %1$s", count(activeAccounts))
-                    + "\n" + L10n.f("Accounts confirmed for push: %1$s", count(acknowledgedAccounts))
-                    + "\n" + L10n.f("Telegram's push answer: %1$s", answer())
-                    + "\n" + L10n.t("Read-only local state. This doesn't confirm notification delivery.");
+                    + "\n" + L10n.f("Accounts Telegram confirmed for notifications: %1$s", count(acknowledgedAccounts))
+                    + "\n" + L10n.f("Telegram's reply to notification sign-up: %1$s", answer())
+                    + "\n" + L10n.t("This only shows what's saved on this phone. It doesn't prove notifications will "
+                            + "arrive.");
         }
 
         private static String count(int value) { return value < 0 ? L10n.t("Unknown") : Integer.toString(value); }
 
         private String answer() {
             if (pushAnswer == null) return L10n.t("Unknown");
-            if (NO_ANSWER.equals(pushAnswer)) return L10n.t("None since Telegram started");
+            if (NO_ANSWER.equals(pushAnswer)) return L10n.t("No reply since Telegram started");
             if (ACCEPTED.equals(pushAnswer)) return L10n.t("Accepted");
             if (REFUSED.equals(pushAnswer)) return L10n.t("Refused");
             return L10n.f("Refused (%1$s)", pushAnswer.substring(REFUSED.length() + 1));

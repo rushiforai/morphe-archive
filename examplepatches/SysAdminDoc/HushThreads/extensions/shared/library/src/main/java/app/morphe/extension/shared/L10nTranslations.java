@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(520);
+        Map<String, String> table = new HashMap<>(524);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -101,8 +101,8 @@ public final class L10nTranslations {
                 "Ein Speichervorgang wurde unterbrochen");
         table.put("About",
                 "Info");
-        table.put("Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.",
-                "F\u00fcgt dem Men\u00fc eines Beitrags eine Zeile zum Speichern hinzu. Hat ein Beitrag mehrere Fotos oder Videos, werden alle der Reihe nach gespeichert. Ausgeschaltet oder pausiert bleibt das Men\u00fc so, wie Threads es zeigt.");
+        table.put("Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.",
+                "F\u00fcgt dem Beitragsmen\u00fc Speichern hinzu. Ein Beitrag mit mehreren Fotos oder Videos speichert sie alle. Aus oder pausiert, siehst du das normale Men\u00fc von Threads.");
         table.put("Ads and suggested accounts in your feed",
                 "Werbung und vorgeschlagene Konten in deinem Feed");
         table.put("Advertising ID removed",
@@ -111,24 +111,24 @@ public final class L10nTranslations {
                 "Abdeckung der Analyseadressen");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 und \u00e4lter melden nicht, welche Links sich hier \u00f6ffnen. Tippe, um die Einstellungen dieser App zu \u00f6ffnen, dann auf \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
-        table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
-                "Android pr\u00fcft die Links von Threads mit dem Signaturschl\u00fcssel von Meta, den ein neu signierter Build nicht hat. Wenn du die Adressen ausw\u00e4hlst, kommen ihre Links wieder hierher. Die Best\u00e4tigung durch Meta kommt dadurch nicht zur\u00fcck, und deine anderen Link-Einstellungen bleiben, wie sie sind.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
                 "Android hat nicht gemeldet, welche Links sich hier \u00f6ffnen. Tippe, um in den Android-Einstellungen nachzusehen.");
+        table.put("Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.",
+                "Android schickt Threads-Links nur an eine App, die von Meta signiert ist. Wenn du die Adressen ausw\u00e4hlst, kommen ihre Links stattdessen hierher. Deine anderen Link-Einstellungen bleiben, wie sie sind.");
         table.put("Android verified this app for Threads' web addresses, so their links open here.",
                 "Android hat diese App f\u00fcr die Webadressen von Threads best\u00e4tigt, deshalb \u00f6ffnen sich ihre Links hier.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "Die Android-Einstellungen f\u00fcr diese App lie\u00dfen sich nicht \u00f6ffnen. \u00d6ffne die App-Info \u00fcber das Threads-Symbol, dann \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
         table.put("Appearance",
                 "Darstellung");
-        table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
-                "Fragt GitHub einmal t\u00e4glich beim Start ab und zeigt neue Versionen in der \u00dcbersicht. Standardm\u00e4\u00dfig aus. Es wird nichts heruntergeladen.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
                 "Fragt GitHub sofort nach der neuesten Version, auch wenn der Schalter dar\u00fcber aus ist.");
         table.put("Back",
                 "Zur\u00fcck");
         table.put("Best",
                 "Beste");
+        table.put("Blocked: %1$s. Not found in this build: %2$s.",
+                "Blockiert: %1$s. In diesem Build nicht gefunden: %2$s.");
         table.put("Browse settings",
                 "Einstellungen durchsuchen");
         table.put("Build %1$s",
@@ -159,6 +159,8 @@ public final class L10nTranslations {
                 "Diagnosedaten l\u00f6schen");
         table.put("Clear search",
                 "Suche l\u00f6schen");
+        table.put("Clears the saved log and patch check results that a report would include.",
+                "Leert das gespeicherte Protokoll und die Patch-Pr\u00fcfergebnisse, die ein Bericht enthalten w\u00fcrde.");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Angaben.");
         table.put("Copy a short report to the clipboard.",
@@ -175,11 +177,11 @@ public final class L10nTranslations {
                 "Diese Datei lie\u00df sich nicht \u00f6ffnen. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't open the file picker. Try again.",
                 "Die Dateiauswahl lie\u00df sich nicht \u00f6ffnen. Versuche es noch einmal.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "Die Diagnosedaten lie\u00dfen sich nicht wiederherstellen. Versuche es noch einmal.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "Die Diagnosedaten lie\u00dfen sich nicht wiederherstellen. Versuche es noch einmal.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "GitHub war nicht erreichbar. Versuche es sp\u00e4ter noch einmal.");
         table.put("Couldn't save the settings file. Try again.",
@@ -190,10 +192,8 @@ public final class L10nTranslations {
                 "Der Export des Berichts lie\u00df sich nicht starten. Versuche es gleich noch einmal.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "HushThreads lie\u00df sich nicht wieder einschalten. Versuche es noch einmal.");
-        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
-                "Die Abdeckung wurde in diesem Build nicht erfasst. Patche erneut, um die gefundenen Adresstypen zu sehen.");
-        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
-                "Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen.");
+        table.put("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.",
+                "Der Dunkelmodus nutzt echtes Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen. Starte Threads neu, damit die \u00c4nderung greift.");
         table.put("Debug logging",
                 "Debug-Protokollierung");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -202,8 +202,8 @@ public final class L10nTranslations {
                 "Diagnosedaten wiederhergestellt.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Diagnosebericht in die Zwischenablage kopiert.");
-        table.put("Download failed",
-                "Download fehlgeschlagen");
+        table.put("Download failed. Try again in a moment.",
+                "Download fehlgeschlagen. Versuche es gleich noch einmal.");
         table.put("Download quality",
                 "Download-Qualit\u00e4t");
         table.put("Downloading",
@@ -216,8 +216,6 @@ public final class L10nTranslations {
                 "Jedes Video wird in seiner niedrigsten Qualit\u00e4t gespeichert, damit die Datei so klein wie m\u00f6glich ist.");
         table.put("Each video saves at the best quality the player streams.",
                 "Jedes Video wird in der besten Qualit\u00e4t gespeichert, die der Player streamt.");
-        table.put("Empties the log and the hook findings a report would include.",
-                "Leert das Protokoll und die Hook-Ergebnisse, die ein Bericht enthalten w\u00fcrde.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Jeder Schalter au\u00dfer der Debug-Protokollierung verh\u00e4lt sich, als w\u00e4re er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.");
         table.put("Example without post details",
@@ -236,10 +234,6 @@ public final class L10nTranslations {
                 "Ordnername");
         table.put("Folder set to %1$s.",
                 "Ordner auf %1$s gesetzt.");
-        table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
-                "F\u00fcr WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualit\u00e4t senken.");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Ab dem n\u00e4chsten Start verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.");
         table.put("Full report saved to %1$s",
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("Full size photos",
@@ -248,16 +242,20 @@ public final class L10nTranslations {
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es sp\u00e4ter noch einmal.");
-        table.put("GitHub's answer couldn't be used. Try again later.",
-                "Mit der Antwort von GitHub lie\u00df sich nichts anfangen. Versuche es sp\u00e4ter noch einmal.");
+        table.put("GitHub sent back something HushThreads couldn't read. Try again later.",
+                "GitHub hat etwas geschickt, das HushThreads nicht lesen konnte. Versuche es sp\u00e4ter noch einmal.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Direkt zu einer Gruppe von Einstellungen. Zur\u00fcck bringt dich dorthin, wo du warst.");
+        table.put("Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.",
+                "Hilft, wenn WhatsApp, ein Editor wie CapCut oder InShot oder eine Galerie dein gespeichertes Video ohne Ton abspielt. Kann die Qualit\u00e4t senken.");
         table.put("Hide ads",
                 "Werbung ausblenden");
         table.put("Hide screenshots from Threads",
                 "Screenshots vor Threads verbergen");
         table.put("Hide suggested users",
                 "Vorgeschlagene Nutzer ausblenden");
+        table.put("Hide the Instagram button",
+                "Instagram-Button ausblenden");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
@@ -300,15 +298,15 @@ public final class L10nTranslations {
                 "Lizenzen");
         table.put("Link expired. Reopen the post and try again",
                 "Link abgelaufen. \u00d6ffne den Beitrag neu und versuche es noch einmal");
+        table.put("Links",
+                "Links");
     }
 
     private static void fillDe2(Map<String, String> table) {
-        table.put("Links",
-                "Links");
+        table.put("Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.",
+                "Links, die du antippst, \u00f6ffnen sich in deinem Browser oder in der App der Seite, ohne Threads' Link-Tracking. Threads- und Instagram-Seiten \u00f6ffnen sich weiter in Threads.");
         table.put("Links, updates, backup and more",
                 "Links, Updates, Sicherung und mehr");
-        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
-                "Gefundene Analyseadressen werden an eine Adresse umgeleitet, die nicht antwortet. Andere Telemetrie kann bleiben. Schalte dies aus, um die urspr\u00fcnglichen Adressen zu verwenden.");
         table.put("More settings",
                 "Weitere Einstellungen");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -331,6 +329,8 @@ public final class L10nTranslations {
                 "Nicht gespeichert: Die Datei ist \u00fcber 512 MB gro\u00df");
         table.put("OK",
                 "OK");
+        table.put("Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.",
+                "Pr\u00fcft einmal am Tag beim Start von Threads auf GitHub, ob es ein neueres HushThreads gibt, und sagt es dir hier. Es wird nichts heruntergeladen.");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Nur einige Webadressen von Threads sind f\u00fcr diese App ausgew\u00e4hlt, und Links zu den \u00fcbrigen \u00f6ffnen sich woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
         table.put("Open links in your browser",
@@ -339,8 +339,6 @@ public final class L10nTranslations {
                 "\u201eUnterst\u00fctzte Links \u00f6ffnen\u201c ist f\u00fcr diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.");
         table.put("Page %1$d of %2$d",
                 "Seite %1$d von %2$d");
-        table.put("Patched: %1$s. Missing: %2$s.",
-                "Gepatcht: %1$s. Fehlend: %2$s.");
         table.put("Pause",
                 "Pausieren");
         table.put("Pause HushThreads",
@@ -363,8 +361,8 @@ public final class L10nTranslations {
                 "Zeichnet Patch-Aktivit\u00e4t auf und zeigt Fehler f\u00fcr einen Fehlerbericht. Im Alltag ausgeschaltet lassen.");
         table.put("Remove tracking from shared links",
                 "Tracking aus geteilten Links entfernen");
-        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
-                "Entfernt best\u00e4tigte Karten mit Konten zum Folgen. Normale Beitr\u00e4ge und Reposts bleiben.");
+        table.put("Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.",
+                "Entfernt die Karten, die Konten zum Folgen vorschlagen, in deinem Feed und in Profilen. Normale Beitr\u00e4ge und Reposts bleiben.");
         table.put("Reopen the post and save again.",
                 "\u00d6ffne den Beitrag erneut und speichere noch einmal.");
         table.put("Resume",
@@ -417,19 +415,17 @@ public final class L10nTranslations {
                 "Einstellungsdatei wird gespeichert");
         table.put("Saving...",
                 "Wird gespeichert \u2026");
-        table.put("Saving... Cancel: Downloads in HushThreads.",
-                "Wird gespeichert \u2026 Abbrechen: Downloads in HushThreads.");
-        table.put("Screens that check Threads' own signature open again on this re-signed build.",
-                "Bildschirme, die die eigene Signatur von Threads pr\u00fcfen, \u00f6ffnen sich in diesem neu signierten Build wieder.");
+        table.put("Saving... To cancel, open Downloads in HushThreads settings.",
+                "Speichern ... Zum Abbrechen \u00f6ffne Downloads in den HushThreads-Einstellungen.");
         table.put("Search settings",
                 "Einstellungen suchen");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Selecting links by hand",
                 "Links von Hand ausw\u00e4hlen");
         table.put("Set when you patched",
                 "Beim Patchen festgelegt");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Settings couldn't open",
                 "Einstellungen lie\u00dfen sich nicht \u00f6ffnen");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
@@ -448,6 +444,8 @@ public final class L10nTranslations {
                 "Eintrag im Teilen-Men\u00fc entfernt");
         table.put("Smallest",
                 "Kleinste");
+        table.put("Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.",
+                "Manche Threads-Bildschirme pr\u00fcfen, wer die App signiert hat, und scheitern bei einer gepatchten. Dieser Fix l\u00e4sst sie wieder \u00f6ffnen.");
         table.put("Source code and issues",
                 "Quellcode und Issues");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -458,10 +456,14 @@ public final class L10nTranslations {
                 "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop analytics uploads",
                 "Analyse-Uploads stoppen");
+        table.put("Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.",
+                "H\u00e4lt die meisten Nutzungsberichte von Meta fern. Einige k\u00f6nnen trotzdem durchkommen. Schalte das aus, um sie wie zuvor zu senden.");
         table.put("Suggested accounts in your feed",
                 "Vorgeschlagene Konten in deinem Feed");
         table.put("Supported links",
                 "Unterst\u00fctzte Links");
+        table.put("Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.",
+                "Entfernt den Instagram-Button oben in Profilen, in deinem und in denen anderer. Starte Threads neu, damit die \u00c4nderung greift.");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
                 "Entfernt Tracking-Tags wie xmt und slof aus den Beitragslinks, die du kopierst oder teilst. Ein kurzer Teilen-Link wird zum eigenen Link des Beitrags.");
         table.put("Tap to play videos",
@@ -504,18 +506,20 @@ public final class L10nTranslations {
                 "Die Einstellung lie\u00df sich nicht vollst\u00e4ndig aktualisieren. Der gespeicherte Wert wird angezeigt.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zur\u00fcck, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.");
+        table.put("The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
+                "Die Versionsnummer ist so hoch gesetzt, wie Android es erlaubt, deshalb bietet Google Play keine Updates von Meta \u00fcber diesen Build an. Threads sieht weiterhin seine echte Version. Um zum originalen Threads zur\u00fcckzukehren, deinstalliere zuerst diese App, wodurch die Daten von Threads auf diesem Handy gel\u00f6scht werden. Sp\u00e4tere HushThreads-Builds brauchen ebenfalls Change version code, sonst lassen sie sich nicht \u00fcber diesen installieren.");
         table.put("There's no diagnostic data to clear.",
                 "Es gibt keine Diagnosedaten zum L\u00f6schen.");
         table.put("There's no diagnostic data to put back.",
                 "Es gibt keine Diagnosedaten zum Wiederherstellen.");
         table.put("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.",
                 "Diese werden beim Patchen in Morphe Manager ausgew\u00e4hlt, und die Pause schaltet sie nicht aus. Patche erneut, um sie zu \u00e4ndern.");
-        table.put("This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
-                "Der Versionscode dieses Builds ist der h\u00f6chste, den Android zul\u00e4sst, daher bietet Google Play dar\u00fcber keine Updates von Meta an. Die Pr\u00fcfungen von Threads gegen die Version, als die es gebaut wurde, sehen weiterhin den echten. Um zum Original-Threads zur\u00fcckzukehren, deinstalliere zuerst dieses, wodurch die Daten von Threads auf diesem Telefon gel\u00f6scht werden. Sp\u00e4tere HushThreads-Builds brauchen ebenfalls Change version code, sonst lassen sie sich nicht \u00fcber dieses installieren.");
+        table.put("This build didn't record which report types it covers. Patch again to see them.",
+                "Dieser Build hat nicht festgehalten, welche Berichtsarten er abdeckt. Patche erneut, um sie zu sehen.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
-        table.put("Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.",
-                "Threads akzeptiert selbst installierte Zertifikate dort, wo Android sie pr\u00fcft. Die eigenen Pr\u00fcfungen von Threads f\u00fcr Metas Zertifikate sind unver\u00e4ndert, daher kann ein Proxy den Gro\u00dfteil des Datenverkehrs weiterhin nicht lesen.");
+        table.put("Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.",
+                "Threads akzeptiert Sicherheitszertifikate, die du auf deinem Handy hinzugef\u00fcgt hast. Die eigenen Pr\u00fcfungen der Meta-Zertifikate bleiben unver\u00e4ndert, deshalb kann ein Proxy den Gro\u00dfteil des Datenverkehrs weiterhin nicht lesen.");
         table.put("Threads can't read your phone's advertising ID. The permission for it is gone from this build.",
                 "Threads kann die Werbe-ID deines Telefons nicht lesen. Die Berechtigung daf\u00fcr fehlt in diesem Build.");
         table.put("Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.",
@@ -534,21 +538,23 @@ public final class L10nTranslations {
                 "Versuche es noch einmal oder kehre zu Threads zur\u00fcck.");
         table.put("Turn features on or off",
                 "Funktionen ein- oder ausschalten");
+        table.put("Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.",
+                "Schaltet beim n\u00e4chsten Start von Threads jeden HushThreads-Schalter au\u00dfer der Debug-Protokollierung aus. Was du beim Patchen gew\u00e4hlt hast, bleibt, und deine Auswahl bleibt gespeichert.");
         table.put("Undo",
                 "R\u00fcckg\u00e4ngig");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Bis zum Fortsetzen verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.");
         table.put("Updates",
                 "Updates");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("User certificates trusted",
                 "Eigenen Zertifikaten wird vertraut");
         table.put("Version",
                 "Version");
         table.put("Version %1$s for Threads %2$s",
                 "Version %1$s f\u00fcr Threads %2$s");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Version code raised",
                 "Versionscode erh\u00f6ht");
         table.put("Video file name",
@@ -561,8 +567,6 @@ public final class L10nTranslations {
                 "Videos in deinem Feed");
         table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
                 "Videos in deinem Feed warten auf ein Tippen, statt beim Scrollen abzuspielen.");
-        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
-                "Weblinks, die du antippst, \u00f6ffnen sich in deinem Standardbrowser oder in der App f\u00fcr diese Seite, ohne den Klick-Tracker von Threads. Seiten von Threads, Instagram und andere Meta-Seiten \u00f6ffnen sich weiter in Threads.");
         table.put("Where you left off in your feed",
                 "Wo du in deinem Feed aufgeh\u00f6rt hast");
         table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
@@ -573,10 +577,10 @@ public final class L10nTranslations {
                 "Du hast HushThreads pausiert.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Deine Auswahl bleibt gespeichert. Tippe auf Fortsetzen und starte Threads dann neu.");
-        table.put("Your controls are active.",
-                "Deine Einstellungen sind aktiv.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Deine Schalter entsprechen bereits dieser Datei, es \u00e4ndert sich also nichts.");
+        table.put("Your switches are working.",
+                "Deine Schalter sind aktiv.");
         table.put("none",
                 "keine");
         table.put("the raised version code",
@@ -592,7 +596,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(520);
+        Map<String, String> table = new HashMap<>(524);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -646,8 +650,8 @@ public final class L10nTranslations {
                 "Se interrumpi\u00f3 un guardado");
         table.put("About",
                 "Acerca de");
-        table.put("Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.",
-                "A\u00f1ade una opci\u00f3n para guardar al men\u00fa de una publicaci\u00f3n. Si una publicaci\u00f3n tiene varias fotos o videos, se guardan todos en orden. Desactivado o en pausa, el men\u00fa es el de Threads.");
+        table.put("Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.",
+                "A\u00f1ade Guardar al men\u00fa de una publicaci\u00f3n. Si tiene varias fotos o videos, se guardan todos. Si est\u00e1 desactivado o en pausa, ver\u00e1s el men\u00fa normal de Threads.");
         table.put("Ads and suggested accounts in your feed",
                 "Anuncios y cuentas sugeridas en tu feed");
         table.put("Advertising ID removed",
@@ -656,24 +660,24 @@ public final class L10nTranslations {
                 "Cobertura de direcciones de an\u00e1lisis");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 y las versiones anteriores no indican qu\u00e9 enlaces se abren aqu\u00ed. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.");
-        table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
-                "Android comprueba los enlaces de Threads con la clave de firma de Meta, que una versi\u00f3n firmada de nuevo no tiene. Al seleccionar las direcciones, sus enlaces vuelven a llegar aqu\u00ed. Eso no recupera la verificaci\u00f3n de Meta, y tus otros ajustes de enlaces se quedan como est\u00e1n.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
                 "Android no indic\u00f3 qu\u00e9 enlaces se abren aqu\u00ed. Toca para comprobarlo en los ajustes de Android.");
+        table.put("Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.",
+                "Android solo env\u00eda los enlaces de Threads a una app firmada por Meta. Al seleccionar las direcciones, sus enlaces llegan aqu\u00ed. Tus otros ajustes de enlaces no cambian.");
         table.put("Android verified this app for Threads' web addresses, so their links open here.",
                 "Android verific\u00f3 esta app para las direcciones web de Threads, as\u00ed que sus enlaces se abren aqu\u00ed.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "No se abrieron los ajustes de Android para esta app. Abre Informaci\u00f3n de la app desde el icono de Threads y luego Abrir de forma predeterminada.");
         table.put("Appearance",
                 "Apariencia");
-        table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
-                "Consulta GitHub una vez al d\u00eda al iniciar y muestra nuevas versiones en el resumen. Desactivado por defecto. No descarga nada.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
                 "Pregunta ahora mismo a GitHub por la versi\u00f3n m\u00e1s reciente, aunque el interruptor de arriba est\u00e9 desactivado.");
         table.put("Back",
                 "Atr\u00e1s");
         table.put("Best",
                 "La mejor");
+        table.put("Blocked: %1$s. Not found in this build: %2$s.",
+                "Bloqueados: %1$s. No encontrados en esta versi\u00f3n: %2$s.");
         table.put("Browse settings",
                 "Explorar ajustes");
         table.put("Build %1$s",
@@ -704,6 +708,8 @@ public final class L10nTranslations {
                 "Borrar datos de diagn\u00f3stico");
         table.put("Clear search",
                 "Borrar b\u00fasqueda");
+        table.put("Clears the saved log and patch check results that a report would include.",
+                "Borra el registro guardado y los resultados de las comprobaciones de parches que incluir\u00eda un informe.");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Copia un informe r\u00e1pido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si queda otro texto privado antes de compartirlo.");
         table.put("Copy a short report to the clipboard.",
@@ -720,11 +726,11 @@ public final class L10nTranslations {
                 "No se pudo abrir ese archivo. No se cambi\u00f3 nada.");
         table.put("Couldn't open the file picker. Try again.",
                 "No se pudo abrir el selector de archivos. Int\u00e9ntalo de nuevo.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "No se pudieron restaurar los datos de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "No se pudieron restaurar los datos de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "No se pudo contactar con GitHub. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("Couldn't save the settings file. Try again.",
@@ -735,10 +741,8 @@ public final class L10nTranslations {
                 "No se pudo iniciar la exportaci\u00f3n del informe. Int\u00e9ntalo de nuevo en breve.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "No se pudo volver a activar HushThreads. Int\u00e9ntalo de nuevo.");
-        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
-                "La cobertura no se registr\u00f3 en esta compilaci\u00f3n. Vuelve a aplicar los parches para ver los tipos de direcciones detectados.");
-        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
-                "El modo oscuro usa negro en lugar de gris oscuro. Activa el modo oscuro en Threads para verlo.");
+        table.put("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.",
+                "El modo oscuro usa negro puro en lugar de gris oscuro. Activa el modo oscuro en Threads para verlo. Reinicia Threads para ver el cambio.");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -747,8 +751,8 @@ public final class L10nTranslations {
                 "Se restauraron los datos de diagn\u00f3stico.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Informe de diagn\u00f3stico copiado en el portapapeles.");
-        table.put("Download failed",
-                "No se pudo descargar");
+        table.put("Download failed. Try again in a moment.",
+                "La descarga fall\u00f3. Int\u00e9ntalo de nuevo en un momento.");
         table.put("Download quality",
                 "Calidad de descarga");
         table.put("Downloading",
@@ -761,8 +765,6 @@ public final class L10nTranslations {
                 "Cada video se guarda con su calidad m\u00e1s baja, para que el archivo sea lo m\u00e1s peque\u00f1o posible.");
         table.put("Each video saves at the best quality the player streams.",
                 "Cada video se guarda con la mejor calidad que ofrece el reproductor.");
-        table.put("Empties the log and the hook findings a report would include.",
-                "Vac\u00eda el registro y los resultados de los hooks que incluir\u00eda un informe.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados, y lo que se aplic\u00f3 al parchear se mantiene. Tu configuraci\u00f3n no cambia.");
         table.put("Example without post details",
@@ -781,10 +783,6 @@ public final class L10nTranslations {
                 "Nombre de carpeta");
         table.put("Folder set to %1$s.",
                 "Carpeta establecida en %1$s.");
-        table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
-                "Para WhatsApp, editores de video como CapCut e InShot, o una galer\u00eda o un reproductor que reproduzca sin sonido los videos guardados. Puede bajar la calidad.");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Desde el pr\u00f3ximo inicio, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene, y tus preferencias quedan guardadas.");
         table.put("Full report saved to %1$s",
                 "Informe completo guardado en %1$s");
         table.put("Full size photos",
@@ -793,16 +791,20 @@ public final class L10nTranslations {
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub est\u00e1 rechazando por ahora las consultas desde esta red. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
-        table.put("GitHub's answer couldn't be used. Try again later.",
-                "No se pudo usar la respuesta de GitHub. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
+        table.put("GitHub sent back something HushThreads couldn't read. Try again later.",
+                "GitHub devolvi\u00f3 algo que HushThreads no pudo leer. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Ve directo a un grupo de ajustes. Atr\u00e1s te devuelve a donde estabas.");
+        table.put("Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.",
+                "Ayuda si WhatsApp, un editor como CapCut o InShot, o una galer\u00eda reproduce tu video guardado sin sonido. Puede bajar la calidad.");
         table.put("Hide ads",
                 "Ocultar anuncios");
         table.put("Hide screenshots from Threads",
                 "Ocultar capturas de pantalla a Threads");
         table.put("Hide suggested users",
                 "Ocultar usuarios sugeridos");
+        table.put("Hide the Instagram button",
+                "Ocultar el bot\u00f3n de Instagram");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "El progreso de la foto o el video que est\u00e1s guardando, con un bot\u00f3n para cancelar");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
@@ -845,15 +847,15 @@ public final class L10nTranslations {
                 "Licencias");
         table.put("Link expired. Reopen the post and try again",
                 "El enlace expir\u00f3. Vuelve a abrir la publicaci\u00f3n e int\u00e9ntalo de nuevo");
+        table.put("Links",
+                "Enlaces");
     }
 
     private static void fillEs2(Map<String, String> table) {
-        table.put("Links",
-                "Enlaces");
+        table.put("Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.",
+                "Los enlaces que tocas se abren en tu navegador o en la app del sitio, sin el seguimiento de enlaces de Threads. Las p\u00e1ginas de Threads e Instagram se siguen abriendo en Threads.");
         table.put("Links, updates, backup and more",
                 "Enlaces, actualizaciones, copia de seguridad y m\u00e1s");
-        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
-                "Las direcciones de an\u00e1lisis detectadas se redirigen a una direcci\u00f3n que no responde. Puede quedar otra telemetr\u00eda. Desactiva esto para usar las direcciones originales.");
         table.put("More settings",
                 "M\u00e1s ajustes");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -876,6 +878,8 @@ public final class L10nTranslations {
                 "No se guard\u00f3: el archivo supera los 512 MB");
         table.put("OK",
                 "Aceptar");
+        table.put("Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.",
+                "Una vez al d\u00eda, al abrir Threads, busca en GitHub un HushThreads m\u00e1s nuevo y te avisa aqu\u00ed. No se descarga nada.");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Solo algunas direcciones web de Threads est\u00e1n seleccionadas para esta app, y los enlaces a las dem\u00e1s se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
         table.put("Open links in your browser",
@@ -884,8 +888,6 @@ public final class L10nTranslations {
                 "\u201cAbrir enlaces compatibles\u201d est\u00e1 desactivado para esta app en los ajustes de Android. Toca para activarlo.");
         table.put("Page %1$d of %2$d",
                 "P\u00e1gina %1$d de %2$d");
-        table.put("Patched: %1$s. Missing: %2$s.",
-                "Modificadas: %1$s. Faltantes: %2$s.");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushThreads",
@@ -908,8 +910,8 @@ public final class L10nTranslations {
                 "Registra la actividad de los parches y muestra errores para un informe. D\u00e9jalo desactivado en el uso normal.");
         table.put("Remove tracking from shared links",
                 "Quitar el seguimiento de los enlaces compartidos");
-        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
-                "Elimina las tarjetas verificadas que sugieren cuentas para seguir. Las publicaciones normales y los reposts permanecen.");
+        table.put("Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.",
+                "Quita las tarjetas que sugieren cuentas para seguir, en tu feed y en los perfiles. Las publicaciones normales y los reposts se quedan.");
         table.put("Reopen the post and save again.",
                 "Vuelve a abrir la publicaci\u00f3n y gu\u00e1rdala otra vez.");
         table.put("Resume",
@@ -962,19 +964,17 @@ public final class L10nTranslations {
                 "Guardando el archivo de configuraci\u00f3n");
         table.put("Saving...",
                 "Guardando...");
-        table.put("Saving... Cancel: Downloads in HushThreads.",
-                "Guardando... Cancelar: Descargas en HushThreads.");
-        table.put("Screens that check Threads' own signature open again on this re-signed build.",
-                "Las pantallas que comprueban la firma propia de Threads vuelven a abrirse en esta versi\u00f3n firmada de nuevo.");
+        table.put("Saving... To cancel, open Downloads in HushThreads settings.",
+                "Guardando... Para cancelar, abre Descargas en los ajustes de HushThreads.");
         table.put("Search settings",
                 "Buscar ajustes");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Selecting links by hand",
                 "Seleccionar enlaces a mano");
         table.put("Set when you patched",
                 "Aplicado al parchear");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Settings couldn't open",
                 "No se pudo abrir la configuraci\u00f3n");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
@@ -993,6 +993,8 @@ public final class L10nTranslations {
                 "Entrada del men\u00fa para compartir eliminada");
         table.put("Smallest",
                 "La m\u00e1s peque\u00f1a");
+        table.put("Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.",
+                "Algunas pantallas de Threads comprueban qui\u00e9n firm\u00f3 la app y fallan en una parcheada. Esta correcci\u00f3n hace que vuelvan a abrirse.");
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -1003,10 +1005,14 @@ public final class L10nTranslations {
                 "Se mantiene durante la pausa");
         table.put("Stop analytics uploads",
                 "Detener el env\u00edo de anal\u00edticas");
+        table.put("Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.",
+                "Evita que la mayor\u00eda de los informes de uso lleguen a Meta. Algunos a\u00fan pueden pasar. Desact\u00edvalo para enviarlos como antes.");
         table.put("Suggested accounts in your feed",
                 "Cuentas sugeridas en tu feed");
         table.put("Supported links",
                 "Enlaces compatibles");
+        table.put("Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.",
+                "Quita el bot\u00f3n de Instagram de la parte de arriba de los perfiles, el tuyo y los de otras personas. Reinicia Threads para ver el cambio.");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
                 "Quita las etiquetas de seguimiento, como xmt y slof, de los enlaces de publicaciones que copias o compartes. Un enlace corto para compartir pasa a ser el enlace propio de la publicaci\u00f3n.");
         table.put("Tap to play videos",
@@ -1049,18 +1055,20 @@ public final class L10nTranslations {
                 "No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "El archivo de configuraci\u00f3n se guard\u00f3, pero al volver a leerlo no coincide con lo que se escribi\u00f3. Gu\u00e1rdalo de nuevo como un archivo nuevo.");
+        table.put("The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
+                "El n\u00famero de versi\u00f3n est\u00e1 en el m\u00e1ximo que permite Android, as\u00ed que Google Play no ofrecer\u00e1 las actualizaciones de Meta sobre esta versi\u00f3n. Threads sigue viendo su versi\u00f3n real. Para volver al Threads original, desinstala esta primero, lo que borra los datos de Threads en este tel\u00e9fono. Las versiones posteriores de HushThreads tambi\u00e9n necesitan Change version code, o no se instalar\u00e1n sobre esta.");
         table.put("There's no diagnostic data to clear.",
                 "No hay datos de diagn\u00f3stico que borrar.");
         table.put("There's no diagnostic data to put back.",
                 "No hay datos de diagn\u00f3stico que restaurar.");
         table.put("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.",
                 "Se eligen en Morphe Manager al parchear, y Pausar no los desactiva. Vuelve a parchear para cambiarlos.");
-        table.put("This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
-                "El c\u00f3digo de versi\u00f3n de esta compilaci\u00f3n es el m\u00e1s alto que permite Android, as\u00ed que Google Play no ofrece las actualizaciones de Meta sobre ella. Las comprobaciones de Threads contra la versi\u00f3n con la que se compil\u00f3 siguen viendo el real. Para volver al Threads original, desinstala primero este, lo que borra los datos de Threads en este tel\u00e9fono. Las pr\u00f3ximas compilaciones de HushThreads tambi\u00e9n necesitan Change version code o no se instalar\u00e1n sobre esta.");
+        table.put("This build didn't record which report types it covers. Patch again to see them.",
+                "Esta versi\u00f3n no registr\u00f3 qu\u00e9 tipos de informe cubre. Vuelve a parchear para verlos.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
-        table.put("Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.",
-                "Threads acepta los certificados que instalaste t\u00fa mismo donde Android los comprueba. Sus propias comprobaciones de los certificados de Meta no han cambiado, as\u00ed que un proxy sigue sin poder leer la mayor parte de su tr\u00e1fico.");
+        table.put("Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.",
+                "Threads acepta los certificados de seguridad que a\u00f1adiste a tu tel\u00e9fono. Sus propias comprobaciones de los certificados de Meta no cambian, as\u00ed que un proxy sigue sin poder leer la mayor parte de su tr\u00e1fico.");
         table.put("Threads can't read your phone's advertising ID. The permission for it is gone from this build.",
                 "Threads no puede leer el ID de publicidad de tu tel\u00e9fono. El permiso para ello ya no est\u00e1 en esta versi\u00f3n.");
         table.put("Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.",
@@ -1079,21 +1087,23 @@ public final class L10nTranslations {
                 "Int\u00e9ntalo de nuevo o vuelve a Threads.");
         table.put("Turn features on or off",
                 "Activa o desactiva funciones");
+        table.put("Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.",
+                "Desactiva todos los interruptores de HushThreads, salvo el Registro de depuraci\u00f3n, la pr\u00f3xima vez que se abra Threads. Lo que elegiste al parchear se mantiene y tus preferencias quedan guardadas.");
         table.put("Undo",
                 "Deshacer");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Hasta que reanudes, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene.");
         table.put("Updates",
                 "Actualizaciones");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("User certificates trusted",
                 "Certificados del usuario de confianza");
         table.put("Version",
                 "Versi\u00f3n");
         table.put("Version %1$s for Threads %2$s",
                 "Versi\u00f3n %1$s para Threads %2$s");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Version code raised",
                 "C\u00f3digo de versi\u00f3n aumentado");
         table.put("Video file name",
@@ -1106,8 +1116,6 @@ public final class L10nTranslations {
                 "Videos de tu feed");
         table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
                 "Los videos de tu feed esperan a que los toques en lugar de reproducirse mientras te desplazas.");
-        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
-                "Los enlaces web que tocas se abren en tu navegador predeterminado, o en la app de ese sitio, sin el rastreador de clics de Threads. Las p\u00e1ginas de Threads, Instagram y otras de Meta siguen abri\u00e9ndose en Threads.");
         table.put("Where you left off in your feed",
                 "Donde te quedaste en tu feed");
         table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
@@ -1118,10 +1126,10 @@ public final class L10nTranslations {
                 "Pausaste HushThreads.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Tus preferencias est\u00e1n guardadas. Toca Reanudar y luego reinicia Threads.");
-        table.put("Your controls are active.",
-                "Tus controles est\u00e1n activos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Tus interruptores ya coinciden con ese archivo, as\u00ed que no cambiar\u00e1 nada.");
+        table.put("Your switches are working.",
+                "Tus interruptores est\u00e1n funcionando.");
         table.put("none",
                 "ninguna");
         table.put("the raised version code",
@@ -1137,7 +1145,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(520);
+        Map<String, String> table = new HashMap<>(524);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1191,8 +1199,8 @@ public final class L10nTranslations {
                 "Penyimpanan terputus");
         table.put("About",
                 "Tentang");
-        table.put("Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.",
-                "Menambahkan baris Simpan ke menu postingan. Postingan dengan beberapa foto atau video menyimpan semuanya secara berurutan. Jika dimatikan atau dijeda, menunya tetap menu Threads sendiri.");
+        table.put("Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.",
+                "Menambahkan Simpan ke menu postingan. Postingan dengan beberapa foto atau video menyimpan semuanya. Saat mati atau dijeda, menunya kembali seperti biasa di Threads.");
         table.put("Ads and suggested accounts in your feed",
                 "Iklan dan akun yang disarankan di feed Anda");
         table.put("Advertising ID removed",
@@ -1201,24 +1209,24 @@ public final class L10nTranslations {
                 "Cakupan alamat analitik");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.");
-        table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
-                "Android memeriksa tautan Threads dengan kunci penandatanganan Meta, yang tidak dimiliki build yang ditandatangani ulang. Memilih alamatnya akan mengirim tautannya ke sini lagi. Itu tidak memulihkan verifikasi Meta, dan pengaturan tautan Anda yang lain tetap seperti semula.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
                 "Android tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk memeriksanya di pengaturan Android.");
+        table.put("Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.",
+                "Android hanya mengirim tautan Threads ke aplikasi yang ditandatangani Meta. Memilih alamat itu mengarahkan tautannya ke sini. Pengaturan tautan Anda yang lain tidak berubah.");
         table.put("Android verified this app for Threads' web addresses, so their links open here.",
                 "Android telah memverifikasi aplikasi ini untuk alamat web Threads, jadi tautannya terbuka di sini.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Threads, lalu Buka secara default.");
         table.put("Appearance",
                 "Tampilan");
-        table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
-                "Periksa GitHub sekali sehari saat mulai dan tampilkan rilis baru di ringkasan. Mati secara bawaan. Tidak mengunduh apa pun.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
                 "Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.");
         table.put("Back",
                 "Kembali");
         table.put("Best",
                 "Terbaik");
+        table.put("Blocked: %1$s. Not found in this build: %2$s.",
+                "Diblokir: %1$s. Tidak ditemukan di build ini: %2$s.");
         table.put("Browse settings",
                 "Jelajahi pengaturan");
         table.put("Build %1$s",
@@ -1249,6 +1257,8 @@ public final class L10nTranslations {
                 "Hapus data diagnostik");
         table.put("Clear search",
                 "Hapus pencarian");
+        table.put("Clears the saved log and patch check results that a report would include.",
+                "Menghapus log tersimpan dan hasil pemeriksaan patch yang akan dimuat dalam laporan.");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.");
         table.put("Copy a short report to the clipboard.",
@@ -1265,11 +1275,11 @@ public final class L10nTranslations {
                 "File itu tidak dapat dibuka. Tidak ada yang diubah.");
         table.put("Couldn't open the file picker. Try again.",
                 "Pemilih file tidak dapat dibuka. Coba lagi.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "Data diagnostik tidak dapat dikembalikan. Coba lagi.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "Data diagnostik tidak dapat dikembalikan. Coba lagi.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "GitHub tidak dapat dihubungi. Coba lagi nanti.");
         table.put("Couldn't save the settings file. Try again.",
@@ -1280,10 +1290,8 @@ public final class L10nTranslations {
                 "Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "HushThreads tidak dapat diaktifkan lagi. Coba lagi.");
-        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
-                "Cakupan tidak dicatat dalam build ini. Terapkan patch lagi untuk melihat jenis alamat yang ditemukan.");
-        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
-                "Mode gelap memakai warna hitam, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya.");
+        table.put("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.",
+                "Mode gelap memakai hitam pekat, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya. Mulai ulang Threads untuk melihat perubahannya.");
         table.put("Debug logging",
                 "Pencatatan debug");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1292,8 +1300,8 @@ public final class L10nTranslations {
                 "Data diagnostik dikembalikan.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Laporan diagnostik disalin ke papan klip.");
-        table.put("Download failed",
-                "Unduhan gagal");
+        table.put("Download failed. Try again in a moment.",
+                "Unduhan gagal. Coba lagi sebentar lagi.");
         table.put("Download quality",
                 "Kualitas unduhan");
         table.put("Downloading",
@@ -1306,8 +1314,6 @@ public final class L10nTranslations {
                 "Setiap video disimpan dengan kualitas terendahnya, agar ukuran filenya sekecil mungkin.");
         table.put("Each video saves at the best quality the player streams.",
                 "Setiap video disimpan dengan kualitas streaming terbaik dari pemutar.");
-        table.put("Empties the log and the hook findings a report would include.",
-                "Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.");
         table.put("Example without post details",
@@ -1326,10 +1332,6 @@ public final class L10nTranslations {
                 "Nama folder");
         table.put("Folder set to %1$s.",
                 "Folder diatur menjadi %1$s.");
-        table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
-                "Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.");
         table.put("Full report saved to %1$s",
                 "Laporan lengkap disimpan ke %1$s");
         table.put("Full size photos",
@@ -1338,16 +1340,20 @@ public final class L10nTranslations {
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.");
-        table.put("GitHub's answer couldn't be used. Try again later.",
-                "Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.");
+        table.put("GitHub sent back something HushThreads couldn't read. Try again later.",
+                "GitHub mengirim sesuatu yang tidak bisa dibaca HushThreads. Coba lagi nanti.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.");
+        table.put("Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.",
+                "Membantu jika WhatsApp, editor seperti CapCut atau InShot, atau galeri memutar video tersimpan Anda tanpa suara. Kualitas bisa turun.");
         table.put("Hide ads",
                 "Sembunyikan iklan");
         table.put("Hide screenshots from Threads",
                 "Sembunyikan tangkapan layar dari Threads");
         table.put("Hide suggested users",
                 "Sembunyikan pengguna yang disarankan");
+        table.put("Hide the Instagram button",
+                "Sembunyikan tombol Instagram");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
@@ -1390,15 +1396,15 @@ public final class L10nTranslations {
                 "Lisensi");
         table.put("Link expired. Reopen the post and try again",
                 "Tautan kedaluwarsa. Buka ulang postingan lalu coba lagi");
+        table.put("Links",
+                "Tautan");
     }
 
     private static void fillIn2(Map<String, String> table) {
-        table.put("Links",
-                "Tautan");
+        table.put("Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.",
+                "Tautan yang Anda ketuk terbuka di browser atau aplikasi situsnya, tanpa pelacakan tautan Threads. Halaman Threads dan Instagram tetap terbuka di Threads.");
         table.put("Links, updates, backup and more",
                 "Tautan, pembaruan, cadangan, dan lainnya");
-        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
-                "Alamat analitik yang ditemukan dialihkan ke alamat yang tidak merespons. Telemetri lain mungkin masih ada. Nonaktifkan ini untuk menggunakan alamat asli.");
         table.put("More settings",
                 "Pengaturan lainnya");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1421,6 +1427,8 @@ public final class L10nTranslations {
                 "Tidak disimpan: file lebih dari 512 MB");
         table.put("OK",
                 "Oke");
+        table.put("Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.",
+                "Sekali sehari, saat Threads dibuka, memeriksa GitHub untuk HushThreads yang lebih baru dan memberi tahu Anda di sini. Tidak ada yang diunduh.");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Hanya sebagian alamat web Threads yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
         table.put("Open links in your browser",
@@ -1429,8 +1437,6 @@ public final class L10nTranslations {
                 "\u201cBuka link yang didukung\u201d nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.");
         table.put("Page %1$d of %2$d",
                 "Halaman %1$d dari %2$d");
-        table.put("Patched: %1$s. Missing: %2$s.",
-                "Dipatch: %1$s. Tidak ditemukan: %2$s.");
         table.put("Pause",
                 "Jeda");
         table.put("Pause HushThreads",
@@ -1453,8 +1459,8 @@ public final class L10nTranslations {
                 "Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.");
         table.put("Remove tracking from shared links",
                 "Hapus pelacakan dari tautan yang dibagikan");
-        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
-                "Menghapus kartu terverifikasi yang menyarankan akun untuk diikuti. Postingan biasa dan repost tetap ada.");
+        table.put("Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.",
+                "Menghapus kartu yang menyarankan akun untuk diikuti, di feed Anda dan di profil. Postingan biasa dan repost tetap ada.");
         table.put("Reopen the post and save again.",
                 "Buka kembali postingan dan simpan lagi.");
         table.put("Resume",
@@ -1507,19 +1513,17 @@ public final class L10nTranslations {
                 "Menyimpan file pengaturan");
         table.put("Saving...",
                 "Menyimpan...");
-        table.put("Saving... Cancel: Downloads in HushThreads.",
-                "Menyimpan... Batal: Unduhan di HushThreads.");
-        table.put("Screens that check Threads' own signature open again on this re-signed build.",
-                "Layar yang memeriksa tanda tangan Threads sendiri dapat dibuka lagi di build yang ditandatangani ulang ini.");
+        table.put("Saving... To cancel, open Downloads in HushThreads settings.",
+                "Menyimpan... Untuk membatalkan, buka Unduhan di pengaturan HushThreads.");
         table.put("Search settings",
                 "Cari pengaturan");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Selecting links by hand",
                 "Memilih tautan secara manual");
         table.put("Set when you patched",
                 "Diatur saat Anda menambal");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Settings couldn't open",
                 "Pengaturan tidak dapat dibuka");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
@@ -1538,6 +1542,8 @@ public final class L10nTranslations {
                 "Entri lembar bagikan dihapus");
         table.put("Smallest",
                 "Terkecil");
+        table.put("Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.",
+                "Beberapa layar Threads memeriksa siapa yang menandatangani aplikasi dan gagal pada aplikasi yang ditambal. Perbaikan ini membuatnya terbuka lagi.");
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -1548,10 +1554,14 @@ public final class L10nTranslations {
                 "Tetap aktif saat dijeda");
         table.put("Stop analytics uploads",
                 "Hentikan unggahan analitik");
+        table.put("Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.",
+                "Menghentikan sebagian besar laporan penggunaan agar tidak sampai ke Meta. Beberapa mungkin masih lolos. Matikan untuk mengirimnya seperti semula.");
         table.put("Suggested accounts in your feed",
                 "Akun yang disarankan di feed Anda");
         table.put("Supported links",
                 "Tautan yang didukung");
+        table.put("Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.",
+                "Menghapus tombol Instagram di bagian atas profil, milik Anda dan milik orang lain. Mulai ulang Threads untuk melihat perubahannya.");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
                 "Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Tautan berbagi pendek diganti dengan tautan postingan itu sendiri.");
         table.put("Tap to play videos",
@@ -1594,18 +1604,20 @@ public final class L10nTranslations {
                 "Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.");
+        table.put("The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
+                "Nomor versi diatur setinggi yang diizinkan Android, jadi Google Play tidak akan menawarkan pembaruan Meta untuk menimpa build ini. Threads tetap melihat versi aslinya. Untuk kembali ke Threads asli, copot pemasangan yang ini dulu, yang menghapus data Threads di ponsel ini. Build HushThreads berikutnya juga butuh Change version code, atau tidak bisa dipasang menimpa yang ini.");
         table.put("There's no diagnostic data to clear.",
                 "Tidak ada data diagnostik yang dapat dihapus.");
         table.put("There's no diagnostic data to put back.",
                 "Tidak ada data diagnostik yang dapat dikembalikan.");
         table.put("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.",
                 "Semua ini dipilih di Morphe Manager saat Anda menambal, dan Jeda tidak mematikannya. Tambal ulang untuk mengubahnya.");
-        table.put("This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
-                "Kode versi build ini adalah yang tertinggi yang diizinkan Android, jadi Google Play tidak menawarkan pembaruan Meta di atasnya. Pemeriksaan Threads terhadap versi saat ia dibuat tetap melihat kode aslinya. Untuk kembali ke Threads asli, copot pemasangan yang ini dulu, yang menghapus data Threads di ponsel ini. Build HushThreads berikutnya juga memerlukan Change version code, atau tidak akan bisa dipasang di atas yang ini.");
+        table.put("This build didn't record which report types it covers. Patch again to see them.",
+                "Build ini tidak mencatat jenis laporan apa yang dicakup. Tambal ulang untuk melihatnya.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
-        table.put("Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.",
-                "Threads menerima sertifikat yang kamu pasang sendiri di tempat Android memeriksanya. Pemeriksaan Threads sendiri atas sertifikat Meta tidak berubah, jadi proxy tetap tidak bisa membaca sebagian besar lalu lintasnya.");
+        table.put("Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.",
+                "Threads menerima sertifikat keamanan yang Anda tambahkan ke ponsel. Pemeriksaan sendiri atas sertifikat Meta tidak berubah, jadi proxy tetap tidak bisa membaca sebagian besar lalu lintasnya.");
         table.put("Threads can't read your phone's advertising ID. The permission for it is gone from this build.",
                 "Threads tidak dapat membaca ID iklan ponsel Anda. Izin untuk itu sudah dihapus dari build ini.");
         table.put("Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.",
@@ -1624,21 +1636,23 @@ public final class L10nTranslations {
                 "Coba lagi, atau kembali ke Threads.");
         table.put("Turn features on or off",
                 "Aktifkan atau nonaktifkan fitur");
+        table.put("Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.",
+                "Mematikan semua sakelar HushThreads kecuali Pencatatan debug saat Threads dibuka berikutnya. Yang Anda pilih saat menambal tetap berlaku, dan pilihan Anda tersimpan.");
         table.put("Undo",
                 "Urungkan");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.");
         table.put("Updates",
                 "Pembaruan");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("User certificates trusted",
                 "Sertifikat pengguna dipercaya");
         table.put("Version",
                 "Versi");
         table.put("Version %1$s for Threads %2$s",
                 "Versi %1$s untuk Threads %2$s");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Version code raised",
                 "Kode versi dinaikkan");
         table.put("Video file name",
@@ -1651,8 +1665,6 @@ public final class L10nTranslations {
                 "Video di feed Anda");
         table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
                 "Video di feed Anda menunggu diketuk, bukan diputar saat Anda menggulir.");
-        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
-                "Tautan web yang Anda ketuk terbuka di browser default Anda, atau aplikasi untuk situs itu, tanpa pelacak klik Threads. Halaman Threads, Instagram, dan halaman Meta lainnya tetap terbuka di Threads.");
         table.put("Where you left off in your feed",
                 "Posisi terakhir Anda di feed");
         table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
@@ -1663,10 +1675,10 @@ public final class L10nTranslations {
                 "Anda menjeda HushThreads.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Threads.");
-        table.put("Your controls are active.",
-                "Kontrol Anda aktif.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.");
+        table.put("Your switches are working.",
+                "Sakelar Anda aktif.");
         table.put("none",
                 "tidak ada");
         table.put("the raised version code",
@@ -1682,7 +1694,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(520);
+        Map<String, String> table = new HashMap<>(524);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1736,8 +1748,8 @@ public final class L10nTranslations {
                 "Um salvamento foi interrompido");
         table.put("About",
                 "Sobre");
-        table.put("Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.",
-                "Adiciona uma op\u00e7\u00e3o de salvar ao menu de uma publica\u00e7\u00e3o. Uma publica\u00e7\u00e3o com v\u00e1rias fotos ou v\u00eddeos salva todos, em ordem. Desativado ou pausado, o menu \u00e9 o do pr\u00f3prio Threads.");
+        table.put("Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.",
+                "Adiciona Salvar ao menu de uma publica\u00e7\u00e3o. Se ela tiver v\u00e1rias fotos ou v\u00eddeos, todos s\u00e3o salvos. Desligado ou pausado, voc\u00ea v\u00ea o menu normal do Threads.");
         table.put("Ads and suggested accounts in your feed",
                 "An\u00fancios e contas sugeridas no seu feed");
         table.put("Advertising ID removed",
@@ -1746,24 +1758,24 @@ public final class L10nTranslations {
                 "Cobertura dos endere\u00e7os de an\u00e1lise");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "O Android 11 e as vers\u00f5es anteriores n\u00e3o informam quais links abrem aqui. Toque para abrir as configura\u00e7\u00f5es deste app e depois Abrir por padr\u00e3o.");
-        table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
-                "O Android confere os links do Threads com a chave de assinatura da Meta, que uma vers\u00e3o com nova assinatura n\u00e3o tem. Selecionar os endere\u00e7os faz os links deles voltarem para c\u00e1. Isso n\u00e3o restaura a verifica\u00e7\u00e3o da Meta, e suas outras configura\u00e7\u00f5es de links continuam como est\u00e3o.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
                 "O Android n\u00e3o informou quais links abrem aqui. Toque para conferir nas configura\u00e7\u00f5es do Android.");
+        table.put("Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.",
+                "O Android s\u00f3 envia links do Threads para um app assinado pela Meta. Ao selecionar os endere\u00e7os, os links deles v\u00eam para c\u00e1. Suas outras configura\u00e7\u00f5es de links n\u00e3o mudam.");
         table.put("Android verified this app for Threads' web addresses, so their links open here.",
                 "O Android verificou este app para os endere\u00e7os web do Threads, ent\u00e3o os links deles abrem aqui.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "As configura\u00e7\u00f5es do Android para este app n\u00e3o abriram. Abra Informa\u00e7\u00f5es do app pelo \u00edcone do Threads e depois Abrir por padr\u00e3o.");
         table.put("Appearance",
                 "Apar\u00eancia");
-        table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
-                "Consulta o GitHub uma vez por dia ao iniciar e mostra novas vers\u00f5es na vis\u00e3o geral. Desativado por padr\u00e3o. Nada \u00e9 baixado.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
                 "Consulta o GitHub agora mesmo em busca da vers\u00e3o mais nova, mesmo que a op\u00e7\u00e3o acima esteja desativada.");
         table.put("Back",
                 "Voltar");
         table.put("Best",
                 "A melhor");
+        table.put("Blocked: %1$s. Not found in this build: %2$s.",
+                "Bloqueados: %1$s. N\u00e3o encontrados nesta vers\u00e3o: %2$s.");
         table.put("Browse settings",
                 "Explorar configura\u00e7\u00f5es");
         table.put("Build %1$s",
@@ -1794,6 +1806,8 @@ public final class L10nTranslations {
                 "Limpar dados de diagn\u00f3stico");
         table.put("Clear search",
                 "Limpar busca");
+        table.put("Clears the saved log and patch check results that a report would include.",
+                "Apaga o registro salvo e os resultados das verifica\u00e7\u00f5es dos patches que um relat\u00f3rio incluiria.");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Copie um relat\u00f3rio r\u00e1pido ou salve o relat\u00f3rio completo em Download/Morphe. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Verifique se h\u00e1 outros textos privados antes de compartilhar.");
         table.put("Copy a short report to the clipboard.",
@@ -1810,11 +1824,11 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel abrir esse arquivo. Nada foi alterado.");
         table.put("Couldn't open the file picker. Try again.",
                 "N\u00e3o foi poss\u00edvel abrir o seletor de arquivos. Tente de novo.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "N\u00e3o foi poss\u00edvel restaurar os dados de diagn\u00f3stico. Tente de novo.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "N\u00e3o foi poss\u00edvel restaurar os dados de diagn\u00f3stico. Tente de novo.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "N\u00e3o foi poss\u00edvel conectar-se ao GitHub. Tente novamente mais tarde.");
         table.put("Couldn't save the settings file. Try again.",
@@ -1825,10 +1839,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel iniciar a exporta\u00e7\u00e3o do relat\u00f3rio. Tente de novo daqui a pouco.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "N\u00e3o foi poss\u00edvel reativar o HushThreads. Tente novamente.");
-        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
-                "A cobertura n\u00e3o foi registrada nesta compila\u00e7\u00e3o. Aplique os patches novamente para ver os tipos de endere\u00e7o encontrados.");
-        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
-                "O modo escuro usa preto em vez de cinza-escuro. Ative o modo escuro no Threads para v\u00ea-lo.");
+        table.put("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.",
+                "O modo escuro usa preto puro em vez de cinza-escuro. Ative o modo escuro no Threads para ver. Reinicie o Threads para ver a mudan\u00e7a.");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1837,8 +1849,8 @@ public final class L10nTranslations {
                 "Dados de diagn\u00f3stico restaurados.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Relat\u00f3rio de diagn\u00f3stico copiado para a \u00e1rea de transfer\u00eancia.");
-        table.put("Download failed",
-                "Falha no download");
+        table.put("Download failed. Try again in a moment.",
+                "O download falhou. Tente de novo em instantes.");
         table.put("Download quality",
                 "Qualidade do download");
         table.put("Downloading",
@@ -1851,8 +1863,6 @@ public final class L10nTranslations {
                 "Cada v\u00eddeo \u00e9 salvo na menor qualidade dispon\u00edvel, para gerar o menor arquivo poss\u00edvel.");
         table.put("Each video saves at the best quality the player streams.",
                 "Cada v\u00eddeo \u00e9 salvo na melhor qualidade que o player reproduz.");
-        table.put("Empties the log and the hook findings a report would include.",
-                "Apaga o registro e os resultados dos hooks que seriam inclu\u00eddos em um relat\u00f3rio.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Todas as op\u00e7\u00f5es, exceto Registro de depura\u00e7\u00e3o, funcionam como se estivessem desativadas, e o que foi definido ao aplicar os patches permanece ativo. Suas configura\u00e7\u00f5es n\u00e3o s\u00e3o alteradas.");
         table.put("Example without post details",
@@ -1871,10 +1881,6 @@ public final class L10nTranslations {
                 "Nome da pasta");
         table.put("Folder set to %1$s.",
                 "Pasta definida como %1$s.");
-        table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
-                "Para o WhatsApp, editores de v\u00eddeo como CapCut e InShot ou uma galeria ou player que reproduza os v\u00eddeos salvos sem som. Pode reduzir a qualidade.");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "A partir da pr\u00f3xima abertura, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo, e suas escolhas ficam salvas.");
         table.put("Full report saved to %1$s",
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("Full size photos",
@@ -1883,16 +1889,20 @@ public final class L10nTranslations {
                 "GPL-3.0, com os avisos dos projetos em que o HushThreads se baseia");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "O GitHub est\u00e1 recusando consultas desta rede por enquanto. Tente novamente mais tarde.");
-        table.put("GitHub's answer couldn't be used. Try again later.",
-                "N\u00e3o foi poss\u00edvel usar a resposta do GitHub. Tente novamente mais tarde.");
+        table.put("GitHub sent back something HushThreads couldn't read. Try again later.",
+                "O GitHub enviou algo que o HushThreads n\u00e3o conseguiu ler. Tente de novo mais tarde.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "V\u00e1 diretamente para um grupo de configura\u00e7\u00f5es. Voltar leva voc\u00ea de volta ao ponto em que estava.");
+        table.put("Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.",
+                "Ajuda se o WhatsApp, um editor como CapCut ou InShot ou uma galeria reproduz o v\u00eddeo salvo sem som. Pode reduzir a qualidade.");
         table.put("Hide ads",
                 "Ocultar an\u00fancios");
         table.put("Hide screenshots from Threads",
                 "Esconder capturas de tela do Threads");
         table.put("Hide suggested users",
                 "Ocultar usu\u00e1rios sugeridos");
+        table.put("Hide the Instagram button",
+                "Ocultar o bot\u00e3o do Instagram");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Indica o progresso do salvamento de uma foto ou v\u00eddeo, com um bot\u00e3o para cancel\u00e1-lo");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
@@ -1935,15 +1945,15 @@ public final class L10nTranslations {
                 "Licen\u00e7as");
         table.put("Link expired. Reopen the post and try again",
                 "Link expirado. Abra a publica\u00e7\u00e3o novamente e tente de novo");
+        table.put("Links",
+                "Links");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
-        table.put("Links",
-                "Links");
+        table.put("Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.",
+                "Os links que voc\u00ea toca abrem no navegador ou no app do site, sem o rastreamento de links do Threads. P\u00e1ginas do Threads e do Instagram continuam abrindo no Threads.");
         table.put("Links, updates, backup and more",
                 "Links, atualiza\u00e7\u00f5es, backup e mais");
-        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
-                "Os endere\u00e7os de an\u00e1lise encontrados s\u00e3o redirecionados para um endere\u00e7o que n\u00e3o responde. Outras telemetrias podem permanecer. Desative isto para usar os endere\u00e7os originais.");
         table.put("More settings",
                 "Mais configura\u00e7\u00f5es");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1966,6 +1976,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi salvo: o arquivo tem mais de 512 MB");
         table.put("OK",
                 "OK");
+        table.put("Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.",
+                "Uma vez por dia, quando o Threads abre, procura no GitHub um HushThreads mais novo e avisa voc\u00ea aqui. Nada \u00e9 baixado.");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "S\u00f3 alguns endere\u00e7os web do Threads est\u00e3o selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
         table.put("Open links in your browser",
@@ -1974,8 +1986,6 @@ public final class L10nTranslations {
                 "\u201cAbrir links compat\u00edveis\u201d est\u00e1 desativado para este app nas configura\u00e7\u00f5es do Android. Toque para ativar.");
         table.put("Page %1$d of %2$d",
                 "P\u00e1gina %1$d de %2$d");
-        table.put("Patched: %1$s. Missing: %2$s.",
-                "Modificados: %1$s. Ausentes: %2$s.");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushThreads",
@@ -1998,8 +2008,8 @@ public final class L10nTranslations {
                 "Registra a atividade dos patches e mostra os erros para um relat\u00f3rio de problema. Mantenha desativado durante o uso normal.");
         table.put("Remove tracking from shared links",
                 "Remover o rastreamento dos links compartilhados");
-        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
-                "Remove cart\u00f5es verificados que sugerem contas para seguir. Publica\u00e7\u00f5es comuns e reposts permanecem.");
+        table.put("Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.",
+                "Remove os cart\u00f5es que sugerem contas para seguir, no seu feed e nos perfis. Publica\u00e7\u00f5es comuns e reposts continuam.");
         table.put("Reopen the post and save again.",
                 "Abra a publica\u00e7\u00e3o novamente e salve outra vez.");
         table.put("Resume",
@@ -2052,19 +2062,17 @@ public final class L10nTranslations {
                 "Salvando o arquivo de configura\u00e7\u00f5es");
         table.put("Saving...",
                 "Salvando...");
-        table.put("Saving... Cancel: Downloads in HushThreads.",
-                "Salvando... Cancelar: Downloads no HushThreads.");
-        table.put("Screens that check Threads' own signature open again on this re-signed build.",
-                "As telas que conferem a assinatura do pr\u00f3prio Threads voltam a abrir nesta vers\u00e3o com nova assinatura.");
+        table.put("Saving... To cancel, open Downloads in HushThreads settings.",
+                "Salvando... Para cancelar, abra Downloads nas configura\u00e7\u00f5es do HushThreads.");
         table.put("Search settings",
                 "Buscar configura\u00e7\u00f5es");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Selecting links by hand",
                 "Selecionar links manualmente");
         table.put("Set when you patched",
                 "Definido ao aplicar os patches");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Settings couldn't open",
                 "N\u00e3o foi poss\u00edvel abrir as configura\u00e7\u00f5es");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
@@ -2083,6 +2091,8 @@ public final class L10nTranslations {
                 "Entrada do menu de compartilhamento removida");
         table.put("Smallest",
                 "A menor");
+        table.put("Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.",
+                "Algumas telas do Threads verificam quem assinou o app e falham em um app com patches. Esta corre\u00e7\u00e3o faz com que abram de novo.");
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -2093,10 +2103,14 @@ public final class L10nTranslations {
                 "O que continua ativo na pausa");
         table.put("Stop analytics uploads",
                 "Parar o envio de dados de an\u00e1lise");
+        table.put("Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.",
+                "Impede que a maioria dos relat\u00f3rios de uso chegue \u00e0 Meta. Alguns ainda podem passar. Desligue para envi\u00e1-los como antes.");
         table.put("Suggested accounts in your feed",
                 "Contas sugeridas no seu feed");
         table.put("Supported links",
                 "Links compat\u00edveis");
+        table.put("Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.",
+                "Remove o bot\u00e3o do Instagram do topo dos perfis, o seu e os de outras pessoas. Reinicie o Threads para ver a mudan\u00e7a.");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
                 "Remove dos links de publica\u00e7\u00f5es que voc\u00ea copia ou compartilha as tags de rastreamento, como xmt e slof. Um link curto de compartilhamento vira o link da pr\u00f3pria publica\u00e7\u00e3o.");
         table.put("Tap to play videos",
@@ -2139,18 +2153,20 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel concluir a atualiza\u00e7\u00e3o da configura\u00e7\u00e3o. O valor salvo est\u00e1 sendo mostrado.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "O arquivo de configura\u00e7\u00f5es foi salvo, mas ao ser lido de volta n\u00e3o corresponde ao que foi gravado. Salve de novo como um arquivo novo.");
+        table.put("The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
+                "O n\u00famero da vers\u00e3o est\u00e1 no m\u00e1ximo que o Android permite, ent\u00e3o o Google Play n\u00e3o oferece as atualiza\u00e7\u00f5es da Meta sobre esta vers\u00e3o. O Threads continua vendo sua vers\u00e3o real. Para voltar ao Threads original, desinstale este primeiro, o que apaga os dados do Threads neste celular. As pr\u00f3ximas vers\u00f5es do HushThreads tamb\u00e9m precisam de Change version code, ou n\u00e3o ser\u00e3o instaladas sobre esta.");
         table.put("There's no diagnostic data to clear.",
                 "N\u00e3o h\u00e1 dados de diagn\u00f3stico para limpar.");
         table.put("There's no diagnostic data to put back.",
                 "N\u00e3o h\u00e1 dados de diagn\u00f3stico para restaurar.");
         table.put("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.",
                 "Eles s\u00e3o escolhidos no Morphe Manager quando voc\u00ea aplica os patches, e a pausa n\u00e3o os desativa. Aplique os patches novamente para alter\u00e1-los.");
-        table.put("This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
-                "O c\u00f3digo de vers\u00e3o deste build \u00e9 o mais alto que o Android permite, ent\u00e3o o Google Play n\u00e3o oferece as atualiza\u00e7\u00f5es da Meta por cima dele. As verifica\u00e7\u00f5es do Threads contra a vers\u00e3o com que ele foi compilado continuam vendo o real. Para voltar ao Threads original, desinstale este primeiro, o que apaga os dados do Threads neste celular. Os pr\u00f3ximos builds do HushThreads tamb\u00e9m precisam do Change version code, sen\u00e3o n\u00e3o instalam por cima deste.");
+        table.put("This build didn't record which report types it covers. Patch again to see them.",
+                "Esta vers\u00e3o n\u00e3o registrou quais tipos de relat\u00f3rio cobre. Aplique os patches de novo para ver.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
-        table.put("Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.",
-                "O Threads aceita certificados que voc\u00ea mesmo instalou onde o Android os verifica. As verifica\u00e7\u00f5es do pr\u00f3prio Threads nos certificados da Meta n\u00e3o mudaram, ent\u00e3o um proxy ainda n\u00e3o consegue ler a maior parte do tr\u00e1fego.");
+        table.put("Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.",
+                "O Threads aceita certificados de seguran\u00e7a que voc\u00ea adicionou ao celular. As verifica\u00e7\u00f5es pr\u00f3prias dos certificados da Meta n\u00e3o mudam, ent\u00e3o um proxy ainda n\u00e3o consegue ler a maior parte do tr\u00e1fego.");
         table.put("Threads can't read your phone's advertising ID. The permission for it is gone from this build.",
                 "O Threads n\u00e3o consegue ler o ID de publicidade do seu celular. A permiss\u00e3o para isso foi removida desta vers\u00e3o.");
         table.put("Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.",
@@ -2169,21 +2185,23 @@ public final class L10nTranslations {
                 "Tente novamente ou volte para o Threads.");
         table.put("Turn features on or off",
                 "Ative ou desative recursos");
+        table.put("Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.",
+                "Desliga todas as op\u00e7\u00f5es do HushThreads, menos o Registro de depura\u00e7\u00e3o, na pr\u00f3xima vez que o Threads abrir. O que voc\u00ea escolheu ao aplicar os patches continua, e suas escolhas ficam salvas.");
         table.put("Undo",
                 "Desfazer");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "At\u00e9 voc\u00ea retomar, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.");
         table.put("Updates",
                 "Atualiza\u00e7\u00f5es");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("User certificates trusted",
                 "Certificados do usu\u00e1rio confi\u00e1veis");
         table.put("Version",
                 "Vers\u00e3o");
         table.put("Version %1$s for Threads %2$s",
                 "Vers\u00e3o %1$s para o Threads %2$s");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Version code raised",
                 "C\u00f3digo de vers\u00e3o aumentado");
         table.put("Video file name",
@@ -2196,8 +2214,6 @@ public final class L10nTranslations {
                 "V\u00eddeos do seu feed");
         table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
                 "Os v\u00eddeos do seu feed esperam um toque em vez de come\u00e7ar a tocar enquanto voc\u00ea rola a tela.");
-        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
-                "Links da web que voc\u00ea toca abrem no seu navegador padr\u00e3o, ou no app desse site, sem o rastreador de cliques do Threads. P\u00e1ginas do Threads, do Instagram e outras da Meta continuam abrindo no Threads.");
         table.put("Where you left off in your feed",
                 "Onde voc\u00ea parou no seu feed");
         table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
@@ -2208,10 +2224,10 @@ public final class L10nTranslations {
                 "Voc\u00ea pausou o HushThreads.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Suas escolhas est\u00e3o salvas. Toque em Retomar e depois reinicie o Threads.");
-        table.put("Your controls are active.",
-                "Seus controles est\u00e3o ativos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Suas op\u00e7\u00f5es j\u00e1 correspondem \u00e0s desse arquivo, ent\u00e3o nada ser\u00e1 alterado.");
+        table.put("Your switches are working.",
+                "Suas op\u00e7\u00f5es est\u00e3o funcionando.");
         table.put("none",
                 "nenhum");
         table.put("the raised version code",
@@ -2227,7 +2243,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(520);
+        Map<String, String> table = new HashMap<>(524);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2281,8 +2297,8 @@ public final class L10nTranslations {
                 "Bir kaydetme i\u015flemi kesildi");
         table.put("About",
                 "Hakk\u0131nda");
-        table.put("Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.",
-                "Bir g\u00f6nderinin men\u00fcs\u00fcne Kaydet sat\u0131r\u0131 ekler. Birden fazla foto\u011fraf veya video i\u00e7eren bir g\u00f6nderide hepsi s\u0131rayla kaydedilir. Kapal\u0131yken veya duraklat\u0131ld\u0131\u011f\u0131nda men\u00fc Threads'in kendi men\u00fcs\u00fcd\u00fcr.");
+        table.put("Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.",
+                "Bir g\u00f6nderinin men\u00fcs\u00fcne Kaydet ekler. Birden \u00e7ok foto\u011fraf veya video varsa hepsi kaydedilir. Kapal\u0131yken veya duraklat\u0131lm\u0131\u015fken Threads'in normal men\u00fcs\u00fcn\u00fc g\u00f6r\u00fcrs\u00fcn.");
         table.put("Ads and suggested accounts in your feed",
                 "Ak\u0131\u015f\u0131n\u0131zdaki reklamlar ve \u00f6nerilen hesaplar");
         table.put("Advertising ID removed",
@@ -2291,24 +2307,24 @@ public final class L10nTranslations {
                 "Analiz adresi kapsam\u0131");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 ve \u00f6ncesi burada hangi ba\u011flant\u0131lar\u0131n a\u00e7\u0131ld\u0131\u011f\u0131n\u0131 bildirmez. Bu uygulaman\u0131n ayarlar\u0131n\u0131 a\u00e7mak i\u00e7in dokunun, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'a gidin.");
-        table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
-                "Android, Threads'in ba\u011flant\u0131lar\u0131n\u0131 Meta'n\u0131n imzalama anahtar\u0131yla denetler ve yeniden imzalanm\u0131\u015f bir s\u00fcr\u00fcmde bu anahtar yoktur. Adresleri se\u00e7mek ba\u011flant\u0131lar\u0131n\u0131 yeniden buraya g\u00f6nderir. Bu, Meta'n\u0131n do\u011frulamas\u0131n\u0131 geri getirmez ve di\u011fer ba\u011flant\u0131 ayarlar\u0131n\u0131z oldu\u011fu gibi kal\u0131r.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
                 "Android burada hangi ba\u011flant\u0131lar\u0131n a\u00e7\u0131ld\u0131\u011f\u0131n\u0131 bildirmedi. Android ayarlar\u0131nda kontrol etmek i\u00e7in dokunun.");
+        table.put("Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.",
+                "Android, Threads ba\u011flant\u0131lar\u0131n\u0131 yaln\u0131zca Meta'n\u0131n imzalad\u0131\u011f\u0131 bir uygulamaya g\u00f6nderir. Adresleri se\u00e7ersen ba\u011flant\u0131lar\u0131 bunun yerine buraya gelir. Di\u011fer ba\u011flant\u0131 ayarlar\u0131n ayn\u0131 kal\u0131r.");
         table.put("Android verified this app for Threads' web addresses, so their links open here.",
                 "Android bu uygulamay\u0131 Threads'in web adresleri i\u00e7in do\u011frulad\u0131, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "Bu uygulaman\u0131n Android ayarlar\u0131 a\u00e7\u0131lamad\u0131. Threads simgesinden Uygulama bilgileri'ni, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'\u0131 a\u00e7\u0131n.");
         table.put("Appearance",
                 "G\u00f6r\u00fcn\u00fcm");
-        table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
-                "Ba\u015flang\u0131\u00e7ta g\u00fcnde bir kez GitHub'\u0131 kontrol eder ve yeni s\u00fcr\u00fcmleri genel bak\u0131\u015fta g\u00f6sterir. Varsay\u0131lan olarak kapal\u0131d\u0131r. Hi\u00e7bir \u015fey indirilmez.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
                 "Yukar\u0131daki anahtar kapal\u0131 olsa bile GitHub'a en yeni s\u00fcr\u00fcm\u00fc hemen sorar.");
         table.put("Back",
                 "Geri");
         table.put("Best",
                 "En iyi");
+        table.put("Blocked: %1$s. Not found in this build: %2$s.",
+                "Engellenen: %1$s. Bu s\u00fcr\u00fcmde bulunamayan: %2$s.");
         table.put("Browse settings",
                 "Ayarlar\u0131 ke\u015ffet");
         table.put("Build %1$s",
@@ -2339,6 +2355,8 @@ public final class L10nTranslations {
                 "Tan\u0131lama verilerini temizle");
         table.put("Clear search",
                 "Aramay\u0131 temizle");
+        table.put("Clears the saved log and patch check results that a report would include.",
+                "Bir raporun i\u00e7erece\u011fi kay\u0131tl\u0131 g\u00fcnl\u00fc\u011f\u00fc ve yama kontrol sonu\u00e7lar\u0131n\u0131 temizler.");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "K\u0131sa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve oturum belirte\u00e7leri \u00e7\u0131kar\u0131l\u0131r. Payla\u015fmadan \u00f6nce ba\u015fka \u00f6zel bilgi olup olmad\u0131\u011f\u0131na bak.");
         table.put("Copy a short report to the clipboard.",
@@ -2355,11 +2373,11 @@ public final class L10nTranslations {
                 "Bu dosya a\u00e7\u0131lamad\u0131. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("Couldn't open the file picker. Try again.",
                 "Dosya se\u00e7ici a\u00e7\u0131lamad\u0131. Tekrar dene.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "Tan\u0131lama verileri geri getirilemedi. Tekrar dene.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "Tan\u0131lama verileri geri getirilemedi. Tekrar dene.");
         table.put("Couldn't reach GitHub. Try again later.",
                 "GitHub'a ula\u015f\u0131lamad\u0131. Daha sonra tekrar dene.");
         table.put("Couldn't save the settings file. Try again.",
@@ -2370,10 +2388,8 @@ public final class L10nTranslations {
                 "Rapor d\u0131\u015fa aktar\u0131m\u0131 ba\u015flat\u0131lamad\u0131. Birazdan tekrar dene.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "HushThreads yeniden a\u00e7\u0131lamad\u0131. Tekrar dene.");
-        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
-                "Bu derlemede kapsam kaydedilmedi. Bulunan adres t\u00fcrlerini g\u00f6rmek i\u00e7in yeniden yama uygula.");
-        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
-                "Karanl\u0131k mod koyu gri yerine siyah g\u00f6r\u00fcn\u00fcr. G\u00f6rmek i\u00e7in Threads'te karanl\u0131k modu a\u00e7.");
+        table.put("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.",
+                "Karanl\u0131k mod koyu gri yerine ger\u00e7ek siyah\u0131 kullan\u0131r. G\u00f6rmek i\u00e7in Threads'te karanl\u0131k modu a\u00e7. De\u011fi\u015fikli\u011fi g\u00f6rmek i\u00e7in Threads'i yeniden ba\u015flat.");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -2382,8 +2398,8 @@ public final class L10nTranslations {
                 "Tan\u0131lama verileri geri getirildi.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Tan\u0131lama raporu panoya kopyaland\u0131.");
-        table.put("Download failed",
-                "\u0130ndirme ba\u015far\u0131s\u0131z oldu");
+        table.put("Download failed. Try again in a moment.",
+                "\u0130ndirme ba\u015far\u0131s\u0131z oldu. Biraz sonra tekrar dene.");
         table.put("Download quality",
                 "\u0130ndirme kalitesi");
         table.put("Downloading",
@@ -2396,8 +2412,6 @@ public final class L10nTranslations {
                 "Her video en d\u00fc\u015f\u00fck kalitesinde kaydedilir, b\u00f6ylece dosya en k\u00fc\u00e7\u00fck olur.");
         table.put("Each video saves at the best quality the player streams.",
                 "Her video, oynat\u0131c\u0131n\u0131n sundu\u011fu en iyi kalitede kaydedilir.");
-        table.put("Empties the log and the hook findings a report would include.",
-                "Bir raporun i\u00e7erece\u011fi g\u00fcnl\u00fc\u011f\u00fc ve hook bulgular\u0131n\u0131 bo\u015falt\u0131r.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r, yamalad\u0131\u011f\u0131nda ayarlananlar ise devrede kal\u0131r. Ayarlar\u0131n oldu\u011fu gibi kal\u0131r.");
         table.put("Example without post details",
@@ -2416,10 +2430,6 @@ public final class L10nTranslations {
                 "Klas\u00f6r ad\u0131");
         table.put("Folder set to %1$s.",
                 "Klas\u00f6r %1$s olarak ayarland\u0131.");
-        table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
-                "WhatsApp, CapCut ve InShot gibi video d\u00fczenleyiciler ya da kaydedilen videolar\u0131 sessiz oynatan bir galeri veya oynat\u0131c\u0131 i\u00e7in. Kaliteyi d\u00fc\u015f\u00fcrebilir.");
-        table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
-                "Sonraki a\u00e7\u0131l\u0131\u015ftan itibaren Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
         table.put("Full report saved to %1$s",
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("Full size photos",
@@ -2428,16 +2438,20 @@ public final class L10nTranslations {
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub \u015fu an bu a\u011fdan gelen sorgular\u0131 geri \u00e7eviriyor. Daha sonra tekrar dene.");
-        table.put("GitHub's answer couldn't be used. Try again later.",
-                "GitHub'\u0131n yan\u0131t\u0131 kullan\u0131lamad\u0131. Daha sonra tekrar dene.");
+        table.put("GitHub sent back something HushThreads couldn't read. Try again later.",
+                "GitHub, HushThreads'in okuyamad\u0131\u011f\u0131 bir yan\u0131t g\u00f6nderdi. Daha sonra tekrar dene.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Do\u011frudan bir ayar grubuna git. Geri, bulundu\u011fun yere d\u00f6nd\u00fcr\u00fcr.");
+        table.put("Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.",
+                "WhatsApp, CapCut veya InShot gibi bir d\u00fczenleyici ya da bir galeri kaydetti\u011fin videoyu sessiz oynat\u0131yorsa yard\u0131mc\u0131 olur. Kaliteyi d\u00fc\u015f\u00fcrebilir.");
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
         table.put("Hide screenshots from Threads",
                 "Ekran g\u00f6r\u00fcnt\u00fclerini Threads'ten gizle");
         table.put("Hide suggested users",
                 "\u00d6nerilen kullan\u0131c\u0131lar\u0131 gizle");
+        table.put("Hide the Instagram button",
+                "Instagram d\u00fc\u011fmesini gizle");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Kaydetti\u011fin foto\u011fraf veya videonun ilerleme durumu ve iptal etmek i\u00e7in bir d\u00fc\u011fme");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
@@ -2480,15 +2494,15 @@ public final class L10nTranslations {
                 "Lisanslar");
         table.put("Link expired. Reopen the post and try again",
                 "Ba\u011flant\u0131n\u0131n s\u00fcresi doldu. G\u00f6nderiyi yeniden a\u00e7\u0131p tekrar dene");
+        table.put("Links",
+                "Ba\u011flant\u0131lar");
     }
 
     private static void fillTr2(Map<String, String> table) {
-        table.put("Links",
-                "Ba\u011flant\u0131lar");
+        table.put("Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.",
+                "Dokundu\u011fun ba\u011flant\u0131lar taray\u0131c\u0131nda veya sitenin uygulamas\u0131nda a\u00e7\u0131l\u0131r, Threads'in ba\u011flant\u0131 takibi atlan\u0131r. Threads ve Instagram sayfalar\u0131 yine Threads'te a\u00e7\u0131l\u0131r.");
         table.put("Links, updates, backup and more",
                 "Ba\u011flant\u0131lar, g\u00fcncellemeler, yedekleme ve daha fazlas\u0131");
-        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
-                "Bulunan analiz adresleri yan\u0131t vermeyen bir adrese y\u00f6nlendirilir. Di\u011fer telemetri devam edebilir. \u00d6zg\u00fcn adresleri kullanmak i\u00e7in bunu kapat.");
         table.put("More settings",
                 "Di\u011fer ayarlar");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -2511,6 +2525,8 @@ public final class L10nTranslations {
                 "Kaydedilmedi: Dosya 512 MB'tan b\u00fcy\u00fck");
         table.put("OK",
                 "Tamam");
+        table.put("Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.",
+                "G\u00fcnde bir kez, Threads a\u00e7\u0131l\u0131rken GitHub'da daha yeni bir HushThreads olup olmad\u0131\u011f\u0131na bakar ve burada s\u00f6yler. Hi\u00e7bir \u015fey indirilmez.");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Threads'in web adreslerinden yaln\u0131zca baz\u0131lar\u0131 bu uygulama i\u00e7in se\u00e7ili ve di\u011ferlerinin ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
         table.put("Open links in your browser",
@@ -2519,8 +2535,6 @@ public final class L10nTranslations {
                 "\u201cDesteklenen ba\u011flant\u0131lar\u0131 a\u00e7\u201d Android ayarlar\u0131nda bu uygulama i\u00e7in kapal\u0131. A\u00e7mak i\u00e7in dokunun.");
         table.put("Page %1$d of %2$d",
                 "%1$d / %2$d sayfa");
-        table.put("Patched: %1$s. Missing: %2$s.",
-                "Yamalanan: %1$s. Eksik: %2$s.");
         table.put("Pause",
                 "Duraklat");
         table.put("Pause HushThreads",
@@ -2543,8 +2557,8 @@ public final class L10nTranslations {
                 "Hata raporu i\u00e7in yama etkinli\u011fini kaydeder ve hatalar\u0131 g\u00f6sterir. Normal kullan\u0131mda kapal\u0131 b\u0131rak\u0131n.");
         table.put("Remove tracking from shared links",
                 "Payla\u015f\u0131lan ba\u011flant\u0131lardan izlemeyi kald\u0131r");
-        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
-                "Takip edilecek hesaplar \u00f6neren do\u011frulanm\u0131\u015f kartlar\u0131 kald\u0131r\u0131r. Normal g\u00f6nderiler ve yeniden payla\u015f\u0131mlar kal\u0131r.");
+        table.put("Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.",
+                "Takip edilecek hesaplar \u00f6neren kartlar\u0131 ak\u0131\u015f\u0131n\u0131zdan ve profillerden kald\u0131r\u0131r. Normal g\u00f6nderiler ve yeniden payla\u015f\u0131mlar kal\u0131r.");
         table.put("Reopen the post and save again.",
                 "G\u00f6nderiyi yeniden a\u00e7\u0131p tekrar kaydet.");
         table.put("Resume",
@@ -2597,19 +2611,17 @@ public final class L10nTranslations {
                 "Ayar dosyas\u0131 kaydediliyor");
         table.put("Saving...",
                 "Kaydediliyor...");
-        table.put("Saving... Cancel: Downloads in HushThreads.",
-                "Kaydediliyor... \u0130ptal: HushThreads'ta \u0130ndirmeler.");
-        table.put("Screens that check Threads' own signature open again on this re-signed build.",
-                "Threads'in kendi imzas\u0131n\u0131 denetleyen ekranlar bu yeniden imzalanm\u0131\u015f s\u00fcr\u00fcmde tekrar a\u00e7\u0131l\u0131r.");
+        table.put("Saving... To cancel, open Downloads in HushThreads settings.",
+                "Kaydediliyor... \u0130ptal etmek i\u00e7in HushThreads ayarlar\u0131nda \u0130ndirmeler'i a\u00e7.");
         table.put("Search settings",
                 "Ayarlarda ara");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Selecting links by hand",
                 "Ba\u011flant\u0131lar\u0131 elle se\u00e7me");
         table.put("Set when you patched",
                 "Yamalad\u0131\u011f\u0131nda ayarlananlar");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Settings couldn't open",
                 "Ayarlar a\u00e7\u0131lamad\u0131");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
@@ -2628,6 +2640,8 @@ public final class L10nTranslations {
                 "Payla\u015f\u0131m men\u00fcs\u00fc giri\u015fi kald\u0131r\u0131ld\u0131");
         table.put("Smallest",
                 "En k\u00fc\u00e7\u00fck");
+        table.put("Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.",
+                "Baz\u0131 Threads ekranlar\u0131 uygulamay\u0131 kimin imzalad\u0131\u011f\u0131na bakar ve yamal\u0131 uygulamada a\u00e7\u0131lmaz. Bu d\u00fczeltme onlar\u0131 yeniden a\u00e7\u0131l\u0131r yapar.");
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -2638,10 +2652,14 @@ public final class L10nTranslations {
                 "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop analytics uploads",
                 "Analiz y\u00fcklemelerini durdur");
+        table.put("Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.",
+                "Kullan\u0131m raporlar\u0131n\u0131n \u00e7o\u011funun Meta'ya ula\u015fmas\u0131n\u0131 engeller. Baz\u0131lar\u0131 yine de ge\u00e7ebilir. Eskisi gibi g\u00f6ndermek i\u00e7in kapat.");
         table.put("Suggested accounts in your feed",
                 "Ak\u0131\u015f\u0131n\u0131zdaki \u00f6nerilen hesaplar");
         table.put("Supported links",
                 "Desteklenen ba\u011flant\u0131lar");
+        table.put("Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.",
+                "Kendi profilinin ve ba\u015fkalar\u0131n\u0131n profillerinin \u00fcst\u00fcndeki Instagram d\u00fc\u011fmesini kald\u0131r\u0131r. De\u011fi\u015fikli\u011fi g\u00f6rmek i\u00e7in Threads'i yeniden ba\u015flat.");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n g\u00f6nderi ba\u011flant\u0131lar\u0131ndan xmt ve slof gibi izleme etiketlerini kald\u0131r\u0131r. K\u0131sa payla\u015f\u0131m ba\u011flant\u0131s\u0131, g\u00f6nderinin kendi ba\u011flant\u0131s\u0131na d\u00f6n\u00fc\u015f\u00fcr.");
         table.put("Tap to play videos",
@@ -2684,18 +2702,20 @@ public final class L10nTranslations {
                 "Ayar\u0131n g\u00fcncellenmesi tamamlanamad\u0131. Kay\u0131tl\u0131 de\u011feri g\u00f6steriliyor.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Ayar dosyas\u0131 kaydedildi, ancak geri okundu\u011funda yaz\u0131lanla ayn\u0131 de\u011fil. Yeni bir dosya olarak tekrar kaydet.");
+        table.put("The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
+                "S\u00fcr\u00fcm numaras\u0131 Android'in izin verdi\u011fi en y\u00fcksek de\u011fere ayarl\u0131, bu y\u00fczden Google Play Meta g\u00fcncellemelerini bu s\u00fcr\u00fcm\u00fcn \u00fczerine \u00f6nermez. Threads yine ger\u00e7ek s\u00fcr\u00fcm\u00fcn\u00fc g\u00f6r\u00fcr. Orijinal Threads'e d\u00f6nmek i\u00e7in \u00f6nce bunu kald\u0131r, bu da Threads'in bu telefondaki verilerini siler. Sonraki HushThreads s\u00fcr\u00fcmleri de Change version code ister, yoksa bunun \u00fczerine kurulmaz.");
         table.put("There's no diagnostic data to clear.",
                 "Temizlenecek tan\u0131lama verisi yok.");
         table.put("There's no diagnostic data to put back.",
                 "Geri getirilecek tan\u0131lama verisi yok.");
         table.put("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.",
                 "Bunlar yamalarken Morphe Manager'da se\u00e7ilir ve Duraklatma bunlar\u0131 kapatmaz. De\u011fi\u015ftirmek i\u00e7in yeniden yamala.");
-        table.put("This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.",
-                "Bu derlemenin s\u00fcr\u00fcm kodu Android'in izin verdi\u011fi en y\u00fcksek de\u011ferdir, bu y\u00fczden Google Play bunun \u00fczerine Meta'n\u0131n g\u00fcncellemelerini sunmaz. Threads'in derlendi\u011fi s\u00fcr\u00fcmle yapt\u0131\u011f\u0131 kontroller ger\u00e7ek kodu g\u00f6rmeye devam eder. Orijinal Threads'e d\u00f6nmek i\u00e7in \u00f6nce bunu kald\u0131r\u0131n. Bu, Threads'in bu telefondaki verilerini siler. Sonraki HushThreads derlemelerinin de Change version code i\u00e7ermesi gerekir, yoksa bunun \u00fczerine y\u00fcklenmezler.");
+        table.put("This build didn't record which report types it covers. Patch again to see them.",
+                "Bu s\u00fcr\u00fcm hangi rapor t\u00fcrlerini kapsad\u0131\u011f\u0131n\u0131 kaydetmedi. G\u00f6rmek i\u00e7in yeniden yamala.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
-        table.put("Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.",
-                "Threads, Android'in denetledi\u011fi yerlerde kendi y\u00fckledi\u011fin sertifikalar\u0131 kabul eder. Threads'in Meta sertifikalar\u0131 i\u00e7in kendi denetimleri de\u011fi\u015fmedi, bu y\u00fczden bir proxy trafi\u011fin \u00e7o\u011funu yine okuyamaz.");
+        table.put("Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.",
+                "Threads, telefonuna ekledi\u011fin g\u00fcvenlik sertifikalar\u0131n\u0131 kabul eder. Meta sertifikalar\u0131na yapt\u0131\u011f\u0131 kendi kontroller de\u011fi\u015fmez, bu y\u00fczden bir proxy trafi\u011finin \u00e7o\u011funu yine okuyamaz.");
         table.put("Threads can't read your phone's advertising ID. The permission for it is gone from this build.",
                 "Threads telefonunuzun reklam kimli\u011fini okuyamaz. Bunun i\u00e7in gereken izin bu s\u00fcr\u00fcmden kald\u0131r\u0131ld\u0131.");
         table.put("Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.",
@@ -2714,21 +2734,23 @@ public final class L10nTranslations {
                 "Tekrar dene veya Threads'e geri d\u00f6n.");
         table.put("Turn features on or off",
                 "\u00d6zellikleri a\u00e7 veya kapat");
+        table.put("Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.",
+                "Threads bir sonraki a\u00e7\u0131l\u0131\u015f\u0131nda Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki t\u00fcm HushThreads anahtarlar\u0131n\u0131 kapat\u0131r. Yamalarken se\u00e7tiklerin kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
         table.put("Undo",
                 "Geri al");
         table.put("Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.",
                 "Devam ettirene kadar Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r.");
         table.put("Updates",
                 "G\u00fcncellemeler");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("User certificates trusted",
                 "Kullan\u0131c\u0131 sertifikalar\u0131na g\u00fcveniliyor");
         table.put("Version",
                 "S\u00fcr\u00fcm");
         table.put("Version %1$s for Threads %2$s",
                 "Threads %2$s i\u00e7in %1$s s\u00fcr\u00fcm\u00fc");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Version code raised",
                 "S\u00fcr\u00fcm kodu y\u00fckseltildi");
         table.put("Video file name",
@@ -2741,8 +2763,6 @@ public final class L10nTranslations {
                 "Ak\u0131\u015ftaki videolar");
         table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
                 "Ak\u0131\u015ftaki videolar, kayd\u0131r\u0131rken kendili\u011finden oynamak yerine dokunman\u0131 bekler.");
-        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
-                "Dokundu\u011fun web ba\u011flant\u0131lar\u0131, Threads'in t\u0131klama izleyicisi olmadan varsay\u0131lan taray\u0131c\u0131nda veya o sitenin uygulamas\u0131nda a\u00e7\u0131l\u0131r. Threads, Instagram ve di\u011fer Meta sayfalar\u0131 yine Threads'te a\u00e7\u0131l\u0131r.");
         table.put("Where you left off in your feed",
                 "Ak\u0131\u015fta kald\u0131\u011f\u0131n yer");
         table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
@@ -2753,10 +2773,10 @@ public final class L10nTranslations {
                 "HushThreads'u duraklatt\u0131n.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Tercihleriniz kay\u0131tl\u0131. Devam et'e dokunun, sonra Threads'i yeniden ba\u015flat\u0131n.");
-        table.put("Your controls are active.",
-                "Kontrolleriniz etkin.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Anahtarlar\u0131n zaten o dosyayla ayn\u0131, bu y\u00fczden hi\u00e7bir \u015fey de\u011fi\u015fmeyecek.");
+        table.put("Your switches are working.",
+                "Anahtarlar\u0131n \u00e7al\u0131\u015f\u0131yor.");
         table.put("none",
                 "yok");
         table.put("the raised version code",

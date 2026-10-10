@@ -34,9 +34,9 @@ private const val SYSTEM_SHARE = "$EXTENSION_PACKAGE/actions/SystemShare;"
 @Suppress("unused")
 val systemSharePatch = bytecodePatch(
     name = PATCH,
-    description = "Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. " +
-        "Turn it off in HushPinterest settings at any time.",
-    default = false,
+    description = "Uses Android's own share menu when you share a pin link. Screenshot and download actions work as" +
+        " before. Good if you want your usual share targets. Starts off. Turn it on in HushPinterest " +
+        "settings > Pin actions.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -95,8 +95,8 @@ val systemSharePatch = bytecodePatch(
         }?.let { (_, instruction) -> (instruction as OneRegisterInstruction).registerA }
             ?: throw PatchException("$PATCH: closeup share sheet source register changed")
         // The sheet closes through Pinterest's base screen fragment, whose obfuscated owner and
-        // name change every build (14.38.0 xu1/f.z6, 14.25.0 ds1/e.c7). Writing one build's name
-        // left the other calling a class it doesn't have.
+        // name change every build (xu1/f.z6 in 14.38.0). A written-in name once left a build
+        // calling a class it doesn't have, so the method is found above the fragment instead.
         val close = superclassChain(fragment.definingClass).flatMap { type ->
             classDefByOrNull(type)?.methods?.filter { it.closesScreen() }?.map { "$type->${it.name}()V" } ?: emptyList()
         }.toList().singleOrNull()

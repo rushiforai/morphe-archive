@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- app.tada.patches.music.interaction.jam -->
+  <string name="tada_music_jam_update_host_controls">Uppfæra Jam-plástur gestgjafans til að nota hlé og halda áfram</string>
+  <string name="tada_music_jam_probe_title">Deiling Jam-biðraðar</string>
+  <string name="tada_music_jam_probe_summary">Hýstu eða vertu með í nálægu Jam og breyttu biðröð þess í gegnum Jam Layer</string>
+  <string name="tada_music_jam_enabled_title">Virkja deilingu Jam-biðraðar</string>
+  <string name="tada_music_jam_enabled_summary">Virkjar Jam-samþættinguna eftir að YouTube Music er endurræst</string>
+  <string name="tada_music_jam_download_title">Sæktu Jam Layer til að fá þetta til að virka.</string>
+  <string name="tada_music_jam_download_summary">Opnaðu nýjustu Jam Layer-útgáfuna í vafranum þínum</string>
+  <string name="tada_music_jam_controls_title">Jam-stýringar</string>
+  <string name="tada_music_jam_controls_summary">Hýstu eða vertu með í nálægu Jam og stjórnaðu lotunni</string>
+  <string name="tada_music_jam_companion_package_title">Jam Layer-pakki</string>
+  <string name="tada_music_jam_companion_package_summary">Veldu uppsetta fylgiforritið sem notað er til að deila biðröð í nágrenninu</string>
+  <string name="tada_music_jam_package_message">Notaðu uppsett fylgipakka. Pörun krefst samþykkis þíns og staðbundins virknitákns</string>
+  <string name="tada_music_jam_wifi_title">Kveikja á Wi-Fi?</string>
+  <string name="tada_music_jam_wifi_message">Kveiktu á Wi-Fi, reyndu síðan að hefja eða tengjast Jam aftur</string>
+  <string name="tada_music_jam_wifi_settings">Opna Wi-Fi-stillingar</string>
+  <string name="tada_music_jam_cancel">Hætta við</string>
+  <string name="tada_music_jam_use_package">Nota pakka</string>
+  <string name="tada_music_jam_invalid_package">Sláðu inn gilt Android-pakkanafn</string>
+  <string name="tada_music_jam_package_saved">Pakki vistaður. Settu upp Jam Layer til að tengjast</string>
+  <string name="tada_music_jam_disconnected">Jam aftengt</string>
+  <string name="tada_music_jam_enable_layer_first">Virkjaðu Jam Layer fyrst.</string>
+  <string name="tada_music_jam_enable_patch_first">Virkjaðu deilingu Jam-biðraðar í stillingum og endurræstu svo YouTube Music.</string>
+  <string name="tada_music_jam_install_layer_first">Settu upp valinn Jam Layer-pakka fyrst.</string>
+  <string name="tada_music_jam_join_hint">Sláðu inn kóðann sem birtist á hýsilnum. Wi-Fi Aware getur tengt tæki í nágrenninu jafnvel þótt staðarnetin þeirra séu ólík</string>
+  <string name="tada_music_jam_join_with_code">Tengjast með kóða</string>
+  <string name="tada_music_jam_join">Tengjast</string>
+  <string name="tada_music_jam_scan_qr">Skanna QR</string>
+  <string name="tada_music_jam_invalid_invite">Sláðu inn átta stafa kóðann eða límdu inn boð.</string>
+  <string name="tada_music_jam_join_your_jam">Tengdu þig við Jam-ið þitt</string>
+  <string name="tada_music_jam_copy_code">Afrita kóða</string>
+  <string name="tada_music_jam_code_clip">Jam-kóði</string>
+  <string name="tada_music_jam_show_qr">Sýna QR</string>
+  <string name="tada_music_jam_done">Lokið</string>
+  <string name="tada_music_jam_invite_title">Bjóða í Jam-ið þitt</string>
+  <string name="tada_music_jam_invite_message">Skannaðu til að tengjast og breyta þessari biðröð. Ef Jam-inu lýkur er boðið afturkallað.</string>
+  <string name="tada_music_jam_copy_link">Afrita tengil</string>
+  <string name="tada_music_jam_invitation_clip">Jam-boð</string>
+  <string name="tada_music_jam_reconnecting_toast">Jam er að endurtengjast; reyndu aftur fljótlega.</string>
+  <string name="tada_music_jam_added_to_jam">Bætt í Jam</string>
+  <string name="tada_music_jam_unavailable_toast">Jam er ekki tiltækt; lagið var ekki bætt við.</string>
+  <string name="tada_music_jam_your_jam">Jam-ið þitt</string>
+  <string name="tada_music_jam_listening_together">Hlustum saman</string>
+  <string name="tada_music_jam_joining_jam">Tengist Jam</string>
+  <string name="tada_music_jam_listen_together">Hlusta saman</string>
+  <string name="tada_music_jam_updating">Uppfæri Jam…</string>
+  <string name="tada_music_jam_finding_host">Leita að gestgjafanum þínum á Wi-Fi…</string>
+  <string name="tada_music_jam_waiting_people">Bíð eftir fólki</string>
+  <string name="tada_music_jam_one_connected">%d einstaklingur tengdur</string>
+  <string name="tada_music_jam_many_connected">%d einstaklingar tengdir</string>
+  <string name="tada_music_jam_code_expires">Sláðu inn þennan kóða á tæki í nágrenninu. Wi-Fi Aware virkar milli aðskilinna staðarneta þegar það er stutt. Rennur út eftir %d mínútur.</string>
+  <string name="tada_music_jam_seek_to">Spóla að %s?</string>
+  <string name="tada_music_jam_edits_open">Breytingar opnar</string>
+  <string name="tada_music_jam_edits_locked">Breytingar læstar</string>
+  <string name="tada_music_jam_connected_aware">Tengt í gegnum Wi-Fi Aware</string>
+  <string name="tada_music_jam_connected_wifi">Tengt í gegnum Wi-Fi</string>
+  <string name="tada_music_jam_connected_bluetooth">Tengt í gegnum Bluetooth</string>
+  <string name="tada_music_jam_unsupported">Ekki stutt meðan á Jam stendur</string>
+  <string name="tada_music_jam_cancelled">Hætt við tengingu</string>
+  <string name="tada_music_jam_reconnecting_host">Endurtengist gestgjafanum þínum…</string>
+  <string name="tada_music_jam_share_prompt">Deildu biðröð. Leyfðu öllum að bæta við lögum.</string>
+  <string name="tada_music_jam_invite_people">Bjóða fólki</string>
+  <string name="tada_music_jam_guest_edits">Gestir geta breytt biðröðinni</string>
+  <string name="tada_music_jam_end_jam">Ljúka Jam</string>
+  <string name="tada_music_jam_participant_help">Gestgjafinn spilar tónlistina. Bættu við, færðu eða fjarlægðu lög beint í YouTube Music-biðröðinni.</string>
+  <string name="tada_music_jam_joining_help">Hafðu bæði tækin nálægt. Þú getur hætt við meðan við leitum að gestgjafanum.</string>
+  <string name="tada_music_jam_cancel_joining">Hætta við tengingu</string>
+  <string name="tada_music_jam_leave_jam">Yfirgefa Jam</string>
+  <string name="tada_music_jam_start_jam">Hefja Jam</string>
+  <string name="tada_music_jam_setup_layer">Settu upp Jam Layer</string>
+  <string name="tada_music_jam_manage">Stjórna</string>
+  <string name="tada_music_jam_details">Upplýsingar</string>
+  <string name="tada_music_jam_open">Opna</string>
+  <string name="tada_music_jam_loading_song_options">Hleð valkosti laga…</string>
+  <string name="tada_music_jam_song_options_unavailable">Valkostir laga eru ekki tiltækir; reyndu aftur.</string>
+  <string name="tada_music_jam_song_options_failed">Ekki tókst að opna valkosti laga.</string>
+  <string name="tada_music_jam_no_browser">Enginn vafri er tiltækur til að sækja Jam Layer.</string>
+  <string name="tada_music_jam_waiting_host_queue">Bíð eftir biðröð gestgjafans</string>
+  <string name="tada_music_jam_open_song_first">Opnaðu lag í YouTube Music fyrst.</string>
+  <string name="tada_music_jam_play_on_host">Spila á gestgjafanum</string>
+  <string name="tada_music_jam_quit_and_play">Hætta í Jam og spila staðbundið</string>
+  <string name="tada_music_jam_play_next">Spila næst í Jam</string>
+  <string name="tada_music_jam_add_to_queue">Bæta í Jam-biðröð</string>
+  <string name="tada_music_jam_play_track">Spila þetta Jam-lag</string>
+  <string name="tada_music_jam_choose_playback">Veldu hvar á að spila</string>
+  <string name="tada_music_jam_move_host_here">Færa gestgjafann hingað</string>
+  <string name="tada_music_jam_seek_not_ready">Lag varð ekki tilbúið til spólunar</string>
+  <string name="tada_music_jam_queue_changed_gesture">Biðröðin breyttist; reyndu bendinguna aftur.</string>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="tada_header_logo_title">Forsíðarlógó</string>
+  <string name="tada_header_logo_entry_1">Sjálfgefið</string>
+  <string name="tada_header_logo_entry_3">Sérsniðið</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="tada_music_play_album_songs_title">Spila hljóðlög úr albúmi</string>
+  <!-- 'Spoof video streams' should match the language used in 'tada_spoof_video_streams_screen_title' -->
+  <string name="tada_music_play_album_songs_summary">Spila eingöngu hljóðlög úr albúmi í stað tónlistarmyndbands. Krefst \'Blekkja myndbandastreymi\'</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="tada_external_downloader_screen_summary">Sæktu niður tónlistarmyndbönd, þætti eða lög með þriðja aðila niðurhal forrit</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="tada_external_downloader_action_button_title">Yfirskrifa niðurhalstakkann</string>
+  <string name="tada_external_downloader_action_button_summary">Notar valið ytri niðurhalsforrit í stað venjulega niðurhalshnappsins</string>
+  <string name="tada_external_downloader_flyout_menu_title">Hnekkja niðurhalsvalmynd</string>
+  <string name="tada_external_downloader_flyout_menu_summary">Notar valið ytri niðurhalsforrit í stað venjulegu niðurhalsvalmyndarinnar</string>
+  <string name="tada_music_in_app_downloads_title">Sækja í appinu</string>
+  <string name="tada_music_in_app_downloads_summary">Sækir hljóð inni í YouTube Music í stað þess að opna ytra niðurhalsforritið</string>
+  <string name="tada_music_in_app_downloads_user_dialog_message">"Lög eru vistuð í einkageymslu appsins og þeim er eytt ef YouTube Music er fjarlægt.
+
+Meðan þetta er kveikt sýnir Niðurhalsflipinn þessi lög í stað Music Premium-safnsins án nettengingar. Ef slökkt er á því endurheimtist flipinn og Premium niðurhal er aldrei snert."</string>
+  <string name="tada_music_downloads_screen_title">Niðurhal</string>
+  <string name="tada_music_downloads_empty">"Engin niðurhal
+Niðurhlaðin lög birtast hér"</string>
+  <string name="tada_music_downloads_track_subtitle">%1$s • %2$s • %3$s MB</string>
+  <string name="tada_music_downloads_summary">%1$s lög • %2$s MB</string>
+  <string name="tada_music_downloads_search_hint">Leita í niðurhali</string>
+  <string name="tada_music_downloads_sort">Raða</string>
+  <string name="tada_music_downloads_sort_artist">Raða eftir flytjanda</string>
+  <string name="tada_music_downloads_sort_title">Raða eftir titli</string>
+  <string name="tada_music_downloads_sort_size">Raða eftir stærð</string>
+  <string name="tada_music_downloads_delete_all">Eyða öllu niðurhali</string>
+  <string name="tada_music_downloads_delete_all_title">Eyða öllu niðurhali?</string>
+  <string name="tada_music_downloads_delete_all_message">Öllum niðurhlaðnum lögum verður eytt af þessu tæki</string>
+  <string name="tada_music_downloads_all_deleted">Niðurhali eytt</string>
+  <string name="tada_music_downloads_nothing_found">Ekkert fannst</string>
+  <string name="tada_music_downloads_actions_for">Aðgerðir fyrir %s</string>
+  <string name="tada_music_downloads_play">Spila</string>
+  <string name="tada_music_downloads_play_pause">Spila eða gera hlé</string>
+  <string name="tada_music_downloads_previous">Fyrra</string>
+  <string name="tada_music_downloads_next">Næsta</string>
+  <string name="tada_music_downloads_pause">Gera hlé</string>
+  <string name="tada_music_downloads_close">Loka</string>
+  <string name="tada_music_downloads_delete">Eyða</string>
+  <string name="tada_music_downloads_delete_track">Eyða niðurhali</string>
+  <string name="tada_music_downloads_delete_track_title">Eyða niðurhali?</string>
+  <string name="tada_music_downloads_delete_track_message">%s verður eytt af þessu tæki</string>
+  <string name="tada_music_downloads_track_deleted">Niðurhalinu var eytt</string>
+  <string name="tada_music_downloads_track_delete_failed">Ekki tókst að eyða niðurhalinu</string>
+  <string name="tada_music_downloads_play_failed">Ekki tókst að spila niðurhalið</string>
+  <string name="tada_music_downloads_notification_channel">Hljóðniðurhal</string>
+  <string name="tada_music_downloads_playback_channel">Afspilun án nettengingar</string>
+  <string name="tada_music_downloads_unknown_track">Ekki tókst að bera kennsl á lagið til niðurhals</string>
+  <string name="tada_music_downloads_already_running">Niðurhal er þegar í gangi</string>
+  <string name="tada_music_downloads_already_saved">Þegar niðurhlaðið</string>
+  <string name="tada_music_downloads_started">Niðurhal hafið</string>
+  <string name="tada_music_downloads_starting">Byrja niðurhal…</string>
+  <string name="tada_music_downloads_progress">Hleð niður %s%%</string>
+  <string name="tada_music_downloads_complete">Niðurhal lokið</string>
+  <string name="tada_music_downloads_failed">Niðurhal mistókst</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About TADa" (i.e., About this app). -->
+  <string name="tada_settings_music_screen_0_about_title">Um TADa</string>
+  <string name="tada_settings_music_screen_1_ads_title">Auglýsingar</string>
+  <string name="tada_settings_music_screen_2_feed_title">Straumur</string>
+  <string name="tada_settings_music_screen_3_general_title">Almennt</string>
+  <string name="tada_settings_music_screen_4_player_title">Spilari</string>
+  <string name="tada_settings_music_screen_5_lyrics_title">Lýrtextar</string>
+  <string name="tada_settings_music_screen_9_misc_title">Annað</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="tada_music_hide_get_premium_label_title">Fela merkið \'Fá TADa Premium\'</string>
+  <string name="tada_music_hide_music_premium_promotions_title">Fela kynningar á Music Premium</string>
+  <string name="tada_music_hide_video_ads_title">Fela myndbandsaug lýsingar</string>
+  <!-- layout.hide.general.hideLayoutComponentsPatch -->
+  <string name="tada_music_hide_audio_video_toggle_title">Taktu aftur Audio / Video ákveða</string>
+  <string name="tada_music_hide_explore_shelf_title">Fela Explore shelf</string>
+  <string name="tada_music_hide_grid_shelves_title">Fela grid shelves</string>
+  <string name="tada_music_hide_horizontal_shelves_title">Fela láréttar raðir</string>
+  <string name="tada_music_hide_list_shelves_title">Fela list shelves</string>
+  <string name="tada_music_hide_lyrics_panel_category_title">Lýríuflipull</string>
+  <string name="tada_music_hide_lyrics_share_button_title">Fela Hlutabótun hnappinn</string>
+  <string name="tada_music_hide_lyrics_translate_button_title">Fela Þýðingarhnappinn</string>
+  <string name="tada_music_hide_new_from_shelf_title">Fela \'New from\' shelf</string>
+  <string name="tada_music_hide_playlist_shelves_title">Fela playlist shelves</string>
+  <string name="tada_music_hide_podcast_episode_download_button_title">Fela niðurhalshnapp hlaðvarpsþátta</string>
+  <string name="tada_music_hide_repeat_button_title">Fela Repeat button</string>
+  <string name="tada_music_hide_shuffle_button_title">Fela Shuffle button</string>
+  <string name="tada_music_hide_speed_dial_shelf_title">Fela \'Speed dial\' shelf</string>
+  <string name="tada_music_comments_screen_title">Athugasemdir</string>
+  <string name="tada_music_comments_screen_summary">Veldu hvaða þættir koma fram í athugasemdadeildinni</string>
+  <string name="tada_music_hide_comments_community_guidelines_title">Fela samfélagsreglur</string>
+  <string name="tada_music_hide_comments_context_title">Fela samhengis skilaboð</string>
+  <string name="tada_music_hide_comments_emoji_button_title">Fela Emoji hnapp</string>
+  <string name="tada_music_hide_comments_info_button_title">Fela Info hnapp</string>
+  <string name="tada_music_hide_comments_timestamp_button_title">Fela Timestamp hnapp</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="tada_music_crossfade_screen_title">Krossfade</string>
+  <string name="tada_music_crossfade_screen_summary">Blanda lagum saman á sléttan hátt</string>
+  <string name="tada_music_crossfade_enabled_title">Virkja crossfade</string>
+  <string name="tada_music_crossfade_curve_title">Fade breyting</string>
+  <string name="tada_music_crossfade_curve_entry_equal_power">Jafnt afl</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_cubic">Fínar haldir</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_quad">Mildur léttir</string>
+  <string name="tada_music_crossfade_curve_entry_smoothstep">Slétt S-lögun</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="tada_music_crossfade_curve_preview_outgoing">Útgáfa</string>
+  <string name="tada_music_crossfade_curve_preview_incoming">Inngangur</string>
+  <string name="tada_music_crossfade_duration_title">Crossfade tímalengd</string>
+  <string name="tada_crossfade_duration_250ms">250 millisekúndur</string>
+  <string name="tada_crossfade_duration_500ms">500 millisekúndur</string>
+  <string name="tada_crossfade_duration_750ms">750 millisekúndur</string>
+  <string name="tada_crossfade_duration_1000ms">1 sekúnda</string>
+  <string name="tada_crossfade_duration_2000ms">2 sekúndur</string>
+  <string name="tada_crossfade_duration_3000ms">3 sekúndur</string>
+  <string name="tada_crossfade_duration_4000ms">4 sekúndur</string>
+  <string name="tada_crossfade_duration_5000ms">5 sekúndur</string>
+  <string name="tada_crossfade_duration_6000ms">6 sekúndur</string>
+  <string name="tada_crossfade_duration_7000ms">7 sekúndur</string>
+  <string name="tada_crossfade_duration_8000ms">8 sekúndur</string>
+  <string name="tada_crossfade_duration_9000ms">9 sekúndur</string>
+  <string name="tada_crossfade_duration_10000ms">10 sekúndur</string>
+  <string name="tada_crossfade_duration_11000ms">11 sekúndur</string>
+  <string name="tada_crossfade_duration_12000ms">12 sekúndur</string>
+  <string name="tada_music_crossfade_on_skip_title">Crossfade við handvirk skip</string>
+  <string name="tada_music_crossfade_on_skip_summary">Ákallar crossfade áhrif þegar þú skiptir handvirkt á næsta lag</string>
+  <string name="tada_music_crossfade_on_auto_advance_title">Crossfade við sjálfvirkan áframhæfingu</string>
+  <string name="tada_music_crossfade_on_auto_advance_summary">Ákallar crossfade áhrif þegar lag lýkur eðlilega</string>
+  <string name="tada_music_crossfade_session_control_title">Stjórn lotu</string>
+  <string name="tada_music_crossfade_session_control_summary">Veldu hvaða hnappi birtast í neðri stjórnbandinu</string>
+  <string name="tada_music_crossfade_paused_toast">Crossfade hefur verið hvílt fyrir þennan tíma</string>
+  <string name="tada_music_crossfade_resumed_toast">Crossfade hefur verið endurrært</string>
+  <string name="tada_music_crossfade_video_mode_disabled_toast">Myndbandsstilling er ekki í boði þegar crossfade er virkt</string>
+  <string name="tada_music_crossfade_cast_unstable_toast">Því miður er crossfade á pausa þegar tekið er á móti eða endursendur hljóð. Crossfade yfir sendingu/endursendingu er óstöðugt og það er mögulegt að það verði aldrei lagfært.</string>
+  <string name="tada_music_crossfade_about_title">Um</string>
+  <string name="tada_music_crossfade_about_summary">Hvernig crossfade virkar - og þegar það virkar ekki</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="tada_music_crossfade_about_how_title">Hvernig það virkar</string>
+  <string name="tada_music_crossfade_about_how_summary">"Crossfade setur lok hluta efnislags álag á upphaf næsta lags, með því að dempa eitt lag og hækka hinu yfir þann tíma og lögun sem valin hefur verið.
+
+Það virkar við sjálfvirka áframhald (þegar lag fer af sjálfu sér) og handvirka umskipti - hvert hefur sína eigin stillingu hér að ofan. Við sjálfvirkt áframhald byrjar blöndunin nokkrum sekúndum áður en lagið lýkur.
+
+Krefst YouTube Music 9.x eða nýrri útgáfu."</string>
+  <string name="tada_music_crossfade_about_best_title">Virkar best með</string>
+  <string name="tada_music_crossfade_about_best_summary">Venjulegum lagaspilun og sjálfvirka áframhald, endurtöku (lagið crossfade-ar inn í sjálft sig) og staðbundnu hljóði - símtalara, þráðlaus heyrna tól, Bluetooth eða USB.</string>
+  <string name="tada_music_crossfade_about_quirks_title">Virkar ekki alveg rétt</string>
+  <string name="tada_music_crossfade_about_quirks_summary">"Tónlistarvídeó spila bara með hljóði á meðan crossfade er virkt (langt ýta á blanda til að pausa ef þú vilt myndina)
+
+Lög sem eru styttri en fade tími þinn gætu sleppt fade
+
+Loka skjárinn eða tilkynningin geta stutt sýnt áfram gamlan ástandi á milli ábreiða"</string>
+  <string name="tada_music_crossfade_about_known_title">Þekktir vandamál</string>
+  <string name="tada_music_crossfade_about_known_summary">"Tónlistarvídeó sem er stillt sem fyrsta lagið — eða eitt sem er byrjað utan núverandi biðlista — gæti stuttlega sýnt mynd áður en aðeins hljóðstillingu er krafist
+
+Pausa crossfade til að horfa á tónlistarvídeó getur skilið sum vídeó svört (þau sem hljóðið kemur frá myndinni sjálfri). Pausa crossfade áður en þú velur lagið forðast það"</string>
+  <string name="tada_music_crossfade_about_unsupported_title">Virkar alls ekki</string>
+  <string name="tada_music_crossfade_about_unsupported_summary">"Sending eða speglun hljóðs (Chromecast, skjá- eða hljóðspeglun) — crossfade fer í pausa því það er óstöðugt þar og gæti aldrei verið lagað.
+
+YouTube Music 8.x — crossfade virkar bara á 9.x og nýrri útgáfum"</string>
+  <string name="tada_music_crossfade_about_credit_title">Kredit</string>
+  <string name="tada_music_crossfade_about_credit_summary">Crossfade virkni af VazerOG</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="tada_music_remember_repeat_state_title">Munaðu endurtakningarstilling</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="tada_music_remember_shuffle_state_title">Munaðu blöndunarstilling</string>
+  <!-- video.speed.playbackSpeedPatch -->
+  <string name="tada_music_playback_speed_title">Spilunarhraði</string>
+  <string name="tada_music_playback_speed_summary">Hraði sem notaður er fyrir öll lög. Við 100% er hraði forritsins notaður, eins og spilunarhraði hlaðvarpsins.</string>
+  <string name="tada_music_playback_speed_change_pitch_title">Breyta tónhæð með hraðanum</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="tada_music_disable_dislike_redirection_title">Gerðu kvíða útaf að breyta áttun þegar ólíka takkan er ýtt á</string>
+  <string name="tada_music_disable_dislike_redirection_summary">Kemur í veg fyrir að spila næsta lag þegar ólíka takkan er ýtt á</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="tada_music_hide_cast_button_title">Fela Cast hnapp</string>
+  <string name="tada_music_hide_history_button_title">Fela Sögu hnapp</string>
+  <string name="tada_music_hide_notification_button_title">Fela Tilkynninga hnapp</string>
+  <string name="tada_music_hide_search_button_title">Fela Leitarhnapp</string>
+  <string name="tada_music_hide_voice_search_button_title">Fela raddarleitarhnappinn</string>
+  <string name="tada_music_hide_sound_search_button_title">Fela hljóðleitarhnappinn</string>
+  <string name="tada_music_hide_library_new_button_title">Fela nýja hnappinn</string>
+  <string name="tada_music_hide_library_new_button_summary">Felur nýja hnappinn í Library flipanum</string>
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <string name="tada_music_action_buttons_screen_title">Gerðaknappar</string>
+  <string name="tada_music_action_buttons_screen_summary">Veldu hvaða gerðaknappar skulu sýndir undir spilaranum</string>
+  <string name="tada_music_hide_action_bar_title">Fela aðalstiku</string>
+  <string name="tada_music_hide_like_dislike_button_title">Fela Líkast og Ólíkast takka</string>
+  <string name="tada_music_hide_comments_button_title">Fela Athugasemda takka</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_live_chat_replay_button_title">Fela \'Endursýning lifandi spjalls\' hnappinn</string>
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_lyrics_button_title">Fela texta takka</string>
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_share_button_title">Fela deila hnappinn</string>
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_save_button_title">Fela vista hnappinn</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_download_button_title">Fela niðurhala hnappinn</string>
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_radio_button_title">Fela \'Byrja útvarp\' hnappinn</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="tada_music_hide_flyout_menu_components_screen_title">Fljótandi valmynd</string>
+  <string name="tada_music_hide_flyout_menu_components_screen_summary">Veldu hvaða þættir birtast í valmyndum spilarans og biðraðarins</string>
+  <string name="tada_music_hide_flyout_menu_3_column_component_title">Fela 3-þátta þáttinn</string>
+  <string name="tada_music_hide_flyout_menu_like_dislike_title">Fela Like og Dislike hnappa</string>
+  <string name="tada_music_hide_flyout_menu_taste_match_title">Fela \'Smakksamhæfni\' valmyndina</string>
+  <string name="tada_music_hide_flyout_menu_add_to_listen_later_title">Fela \'Bæta við í \'Spila seinna\' spilalistan\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_add_to_queue_title">Fela \'Bæta við í biðrað\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_captions_title">Fela Textana</string>
+  <string name="tada_music_hide_flyout_menu_delete_playlist_title">Fela \'Eyða spilunarlista\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_dismiss_queue_title">Fela \'Hætta við biðröð\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_dont_recommend_artist_title">Fela \'Ekki mæla með þessum listamanni\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_download_title">Fela Niðurhal valmynd</string>
+  <string name="tada_music_hide_flyout_menu_edit_playlist_title">Fela \'Breyta spilunarlista\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_go_to_album_title">Fela \'Farðu á albúm\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_go_to_artist_title">Fela \'Farðu á listamann\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_go_to_episode_title">Fela \'Farðu á þátt\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_go_to_podcast_title">Fela \'Farðu á podcast\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_help_title">Fela Hjálp valmynd</string>
+  <string name="tada_music_hide_flyout_menu_mark_episode_as_played_title">Fela \'Merkja þátt sem spilað\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_not_interested_title">Fela \'Ekki áhuga á\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_pin_to_speed_dial_title">Fela \'Festu á hraðahnapp\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_play_next_title">Fela \'Spila næst\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_quality_title">Fela Gæði valmynd</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_library_title">Fela \'Fjarlægja úr bókasafni\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_playlist_title">Fela \'Fjarlægja úr spilunarlista\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_report_title">Fela Tilkynna valmynd</string>
+  <string name="tada_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">Fela \'Vista þátt fyrir seinna\' / \'Vista í bókasafn\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_save_to_playlist_title">Fela \'Vista í spilunarlista\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_share_title">Fela Deila valmynd</string>
+  <string name="tada_music_hide_flyout_menu_shuffle_play_title">Fela \'Tilviljunarröðun\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_sleep_timer_title">Fela \'Svefntími\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_start_radio_title">Fela \'Ræsa útvarp\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_stats_for_nerds_title">Fela \'Tölfræði fyrir geðvita\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_subscribe_title">Fela Áskrifa valmynd</string>
+  <string name="tada_music_hide_flyout_menu_unpin_from_speed_dial_title">Fela \'Fjarlægja festu á hraðahnapp\' valmynd</string>
+  <string name="tada_music_hide_flyout_menu_view_song_credit_title">Fela \'Skoða lögskáld\' valmynd</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="tada_change_start_page_title">Forsíða</string>
+  <string name="tada_change_start_page_entry_default">Sjálfgefið</string>
+  <string name="tada_change_start_page_entry_charts">Ritlistar</string>
+  <string name="tada_change_start_page_entry_episodes_for_later">Þættir síðar</string>
+  <string name="tada_change_start_page_entry_explore">Kannaniðurstöður</string>
+  <string name="tada_change_start_page_entry_history">Saga</string>
+  <string name="tada_change_start_page_entry_library">Safn</string>
+  <string name="tada_change_start_page_entry_liked_music">Líkt tónlist</string>
+  <string name="tada_change_start_page_entry_playlists">Spilalistar</string>
+  <string name="tada_change_start_page_entry_search">Leit</string>
+  <string name="tada_change_start_page_entry_subscriptions">Áskrifanir</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="tada_music_hide_filter_bar_title">Fela síubjálka</string>
+  <!-- layout.orientation.forcePortraitOrientationPatch -->
+  <string name="tada_music_force_portrait_orientation_title">Þvinga lóðrétta stefnu</string>
+  <string name="tada_music_force_portrait_orientation_summary">Heldur forritinu í lóðréttri stefnu þegar tækinu er snúið</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="tada_music_change_miniplayer_color_title">Breyta lit mini spilarans</string>
+  <string name="tada_music_change_miniplayer_color_summary">Jafnar lit mini spilarans við fullskjá spilara</string>
+  <string name="tada_music_change_navigation_bar_color_title">Breyta litstiku litárunum</string>
+  <string name="tada_music_change_navigation_bar_color_summary">Samstæðir litstiku litinn við fullskjás spilarann</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="tada_music_miniplayer_next_button_title">Sýna næsta hnapp í mini spilara</string>
+  <string name="tada_music_miniplayer_previous_button_title">Sýna áður fyrri hnapp í mini spilara</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="tada_music_enable_forced_miniplayer_title">Virkja þvingaða mini spilara</string>
+  <string name="tada_music_enable_forced_miniplayer_summary">Kemur í veg fyrir að spilarinn stækki sjálfkrafa til fullskjá þegar nýtt lag hefst</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_title">Virkja drátt til að hylja mini spilara</string>
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_summary">Leyfir að hylja mini spilarann með því að draga niður á honum</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="tada_music_navigation_bar_screen_title">Stjórnband</string>
+  <string name="tada_music_navigation_bar_screen_summary">Veldu hvaða hnappi birtast í neðra stjórnbandinu</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_home_button_title">Fela heimhnappinn</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_samples_button_title">Fela sýnishnshnappinn</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_explore_button_title">Fela kannanihnappinn</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_library_button_title">Fela safnhnappinn</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_upgrade_button_title">Fela uppfærsluhnappinn</string>
+  <string name="tada_music_hide_navigation_bar_title">Fela stjórnband</string>
+  <string name="tada_music_hide_navigation_bar_labels_title">Fela lýsingar stjórnbandshnappa</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="tada_music_scrobbling_summary">Stilltu Last.fm og ListenBrainz samþættingu</string>
+  <string name="tada_music_scrobbling_summary_logged_out">Ekki innskráður. Ýttu hér til að stilla</string>
+  <string name="tada_music_scrobbling_log_out">Rýma</string>
+  <string name="tada_music_scrobbling_logged_out_toast">Rýmt</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_enabled_title">Virkaðu skrobbningu</string>
+  <string name="tada_music_scrobbling_now_playing_title">Senda \'Spila nú\' stöðu</string>
+  <string name="tada_music_scrobbling_min_song_duration_title">Lágmarkslengd laga</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="tada_music_scrobbling_min_song_duration_summary">Lög sem eru styttri en þetta verða ekki skrobböð</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_title">Skrobbunar töf percenta</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_summary">Ræsa skrobbun eftir að hafa hlustað á þennan hluta af laginu</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_title">Skrobbunar töf sekúndur</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_summary">Ræsa skrobbun eftir að hafa hlustað í þennan fjölda sekúnda</string>
+  <string name="tada_music_listenbrainz_token_title">ListenBrainz Reikningur</string>
+  <string name="tada_music_listenbrainz_token_summary_logged_in">Innskráð(ur). Ýttu hér til að stjórna reikningi</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_listenbrainz_token_dialog_instruction">Sláðu inn ListenBrainz notendatakkann þinn til að virkja spilun</string>
+  <string name="tada_music_listenbrainz_token_dialog_hint">Takkinn</string>
+  <string name="tada_music_listenbrainz_token_dialog_get_token">Skaffa Takkann</string>
+  <string name="tada_music_listenbrainz_token_dialog_verify">Staðfestu</string>
+  <string name="tada_music_listenbrainz_token_status_empty">Vinsamlegast sláðu inn takkann</string>
+  <string name="tada_music_listenbrainz_token_status_validating">Staðfesting…</string>
+  <string name="tada_music_listenbrainz_token_status_valid">Gildur takki! Notandi: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid">Ógildur takki: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid_unknown">Óþekkt</string>
+  <string name="tada_music_listenbrainz_token_status_failed">Staðfesting mistókst: %s</string>
+  <string name="tada_music_listenbrainz_token_toast_cleared">Takkinn hreinsaður</string>
+  <string name="tada_music_listenbrainz_token_toast_saved">Takkinn vistaður</string>
+  <string name="tada_music_listenbrainz_token_toast_invalid_warning">Varnarhluti: Vistaður takki er ógildur!</string>
+  <string name="tada_music_lastfm_love_on_like_title">Elska líktuð lög</string>
+  <string name="tada_music_lastfm_love_on_like_summary">Elska sjálfkrafa lög á Last.fm þegar þú líkar við þau á YouTube Music (og fjarlægja elskun þegar ólíkuð eða mislíkuð)</string>
+  <string name="tada_music_lastfm_token_title">Last.fm Reikningur</string>
+  <string name="tada_music_lastfm_token_summary_logged_in">Innskráð(ur) sem %s. Ýttu hér til að stjórna reikningi</string>
+  <string name="tada_music_lastfm_token_dialog_instruction">Sláðu inn Last.fm notendanafnið þitt til að skrá inn</string>
+  <string name="tada_music_lastfm_token_dialog_username_hint">Notendanafnið</string>
+  <string name="tada_music_lastfm_token_dialog_password_hint">Lykilorðið</string>
+  <string name="tada_music_lastfm_token_dialog_login">Skrá inn</string>
+  <string name="tada_music_lastfm_token_status_empty">Vinsamlegast sláðu inn notendanafnið og lykilorðið</string>
+  <string name="tada_music_lastfm_token_status_logging_in">Innskráning…</string>
+  <string name="tada_music_lastfm_token_status_success">Tókst að skrá inn!</string>
+  <string name="tada_music_lastfm_token_status_no_session">Tókst ekki að fá sessíu frá Last.fm</string>
+  <string name="tada_music_lastfm_token_status_failed">Innskráning mistókst: %s</string>
+  <string name="tada_music_lastfm_token_toast_saved">Last.fm notendaupplýsingar vistaðar!</string>
+  <string name="tada_settings_music_scrobbling_metadata_title">Hreinsun gagnabrjóta</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_title">Hreinsa gagnabrjóta</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_summary">Hreinsa sjálfkrafa óþarfa upplýsingar (eins og \"Hafist video\", \"Endurútgáfa\", \"Lifandi\") frá titlum, Flytjendum og albúmum áður en skráning fer fram</string>
+  <string name="tada_music_scrobbling_custom_regex_title">Sérsniðin regex hreinsun</string>
+  <string name="tada_music_scrobbling_custom_regex_summary">Sláðu inn sérstakt reglugerðarfyrirbæri til að fjarlægja auka texta úr lagtitlum, listamönnum eða albúmum. Dæmi: (?i)\\s*\\((clean|explicit)\\)</string>
+  <string name="tada_music_scrobbling_parse_title_title">Greina listamann og lag úr titli</string>
+  <string name="tada_music_scrobbling_parse_title_summary">Þrækja út listamanns- og lagheiti úr vídeótitli með \" - \" skiljanum.  Nýtt fyrir endurhleypta efnis þar sem nafn rásarinnar getur verið notað sem listamaður.</string>
+  <string name="tada_music_scrobbling_guess_album_title">Fylltu inn albúm sem vantar.</string>
+  <string name="tada_music_scrobbling_guess_album_summary">Þegar tónlistin inniheldur ekki albúm skaltu fletta því upp á Last.fm svo að scrobble þitt sé fullgert.</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_title">Um spilun</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_summary">"Scrobbling samstilla sjálfkranlega notkun þína á YouTube Music með prófílinu þínu á Last.fm eða ListenBrainz
+
+Til þess að tryggja að scrobbling sé samstilla á meðan spilað er í bakgrunni, vertu viss um að notkunarstilling YouTube Music rafmagns sé stillt á \"Ótakmarkað\""</string>
+  <!-- layout.lyrics.lyricsPatch -->
+  <string name="tada_music_lyrics_enabled_title">Nota lög frá þriðja aðila</string>
+  <string name="tada_music_lyrics_enabled_summary">Sýnir lög frá þriðja aðila, með fallbak til innbyggðra laga þegar engin eru fundin</string>
+  <string name="tada_music_lyrics_keep_screen_on_title">Haltu skjánum kveiktum meðan þú skoðar texta</string>
+  <string name="tada_music_lyrics_keep_screen_on_summary">Kemur í veg fyrir að skjárinn slökkvi á meðan textaglugginn er opinn</string>
+  <string name="tada_music_lyrics_section_service_title">Textaþjónusta</string>
+  <string name="tada_music_lyrics_section_overlay_title">Yfirlag</string>
+  <string name="tada_music_lyrics_section_sync_title">Samstilling</string>
+  <string name="tada_music_lyrics_section_about_title">Um</string>
+  <string name="tada_music_lyrics_source_all_disabled">Allar veitur óvirkjar — innbyggðir textar og innfelldir textar</string>
+  <string name="tada_music_lyrics_source_reset_title">Endurstilla forgangsröð?</string>
+  <string name="tada_music_lyrics_source_reset_message">Endurheimta veitur í sjálfgefna forgangsröð</string>
+  <string name="tada_music_token_dialog_get_token">Sækja token</string>
+  <string name="tada_music_apple_music_token_title">Apple Music miðlanotandamerki</string>
+  <string name="tada_music_apple_music_token_dialog_instruction">"Límdu vafrakökuna media-user-token úr music.apple.com
+
+Skref:
+1. Skráðu þig inn á music.apple.com sem skráður notandi
+2. Opnaðu DevTools → Application → Cookies → music.apple.com
+3. Afritaðu gildið af \"media-user-token\""</string>
+  <string name="tada_music_apple_music_token_toast_saved">Apple Music: media-user-token vistað</string>
+  <string name="tada_music_apple_music_token_toast_cleared">Apple Music: media-user-token hreinsað</string>
+  <string name="tada_music_apple_music_token_toast_invalid">Apple Music: ógilt media-user-token — athugaðu og reyndu aftur</string>
+  <string name="tada_music_spotify_token_title">Spotify: aðgangstákn gilt í %d mínútur</string>
+  <string name="tada_music_spotify_token_dialog_instruction">"Límdu vafrakökuna sp_dc úr Spotify.
+
+Skref:
+1. Skráðu þig inn á open.spotify.com
+2. Opnaðu DevTools → Application → Cookies → open.spotify.com
+3. Afritaðu gildið af \"sp_dc\""</string>
+  <string name="tada_music_spotify_token_toast_saved">Spotify: sp_dc vistað</string>
+  <string name="tada_music_spotify_token_toast_cleared">Spotify: sp_dc hreinsað</string>
+  <string name="tada_music_spotify_token_toast_invalid">Spotify: ógilt sp_dc — athugaðu og reyndu aftur</string>
+  <string name="tada_music_apple_token_optional_hint">Apple Music tóken er valkostinn. Án þess mun Lyrically vera notað sem fallback</string>
+  <string name="tada_music_deezer_arl_title">Deezer […] Afritaðu gildi \"arl\"</string>
+  <string name="tada_music_deezer_arl_dialog_instruction">"Límdu vafrakökuna arl úr Deezer.
+
+Skref:
+1. Skráðu þig inn á deezer.com
+2. Opnaðu DevTools → Application → Cookies → deezer.com
+3. Afritaðu gildið af \"arl\""</string>
+  <string name="tada_music_deezer_arl_toast_saved">Deezer: arl vistað</string>
+  <string name="tada_music_deezer_arl_toast_cleared">Deezer: arl hreinsað</string>
+  <string name="tada_music_deezer_arl_toast_invalid">Deezer: ógilt arl — athugaðu og reyndu aftur</string>
+  <string name="tada_music_musixmatch_token_title">Musixmatch Token</string>
+  <string name="tada_music_musixmatch_token_dialog_instruction">Bættu við aðgangslykli aðeins til að nota þinn eigin reikning. Hann verður að koma frá Musixmatch Android-appinu: aðgangslyklar afritaðir af musixmatch.com tilheyra hinu niðurlagða skrifborðsforriti og API-ið hafnar þeim.</string>
+  <string name="tada_music_musixmatch_token_optional_hint">Musixmatch virkar án aðgangslykils, svo þennan reit er hægt að skilja eftir auðan.</string>
+  <string name="tada_music_musixmatch_token_dialog_hint">notendatoken</string>
+  <string name="tada_music_musixmatch_token_toast_saved">Musixmatch: notandatákn vistað</string>
+  <string name="tada_music_musixmatch_token_toast_cleared">Musixmatch: notandatákn hreinsað</string>
+  <string name="tada_music_musixmatch_token_toast_invalid">Musixmatch: ógilt notandatákn — athugaðu og reyndu aftur</string>
+  <string name="tada_music_youtube_cookies_title">Vafrakökur YouTube</string>
+  <string name="tada_music_youtube_cookies_dialog_instruction">"Límdu vafrakökurnar þínar af YouTube til að sækja skjátexta og tímatexta af YouTube.
+
+Skref:
+1. […] Afritaðu allan vafrakökustrenginn (lykill=gildi pör aðskilin með semikommu)
+
+Nauðsynlegar vafrakökur: SID, HSID, SAPISID, __Secure-3PAPISID, __Secure-1PAPISID, LOGIN_INFO"</string>
+  <string name="tada_music_youtube_cookies_toast_saved">YouTube: vafrakökur vistaðar</string>
+  <string name="tada_music_youtube_cookies_toast_cleared">YouTube: vafrakökur hreinsaðar</string>
+  <string name="tada_music_youtube_cookies_toast_invalid">YouTube vafrakökurnar virðast ekki vera gildar. Endilega reyndu að afrita þær aftur.</string>
+  <string name="tada_music_lyrics_tap_to_seek_title">Tap á línu til að flýta</string>
+  <string name="tada_music_lyrics_tap_to_seek_summary">Að tap á línu fer í þann tíma í laginu.</string>
+  <string name="tada_music_lyrics_show_copy_button_title">Sýna afritunarhnapp</string>
+  <string name="tada_music_lyrics_show_copy_button_summary">Engar vafrakökur fundust. Gakktu úr skugga um að þú sért skráð(ur) inn á YouTube og reyndu aftur.</string>
+  <string name="tada_music_lyrics_show_translate_button_title">Sýna þýðingarhnapp</string>
+  <string name="tada_music_lyrics_show_translate_button_summary">Snertu til að kveikja/slökkva á þýðingu; ýttu lengi til að fá aðeins þýðingu. Notar þýðingar frá þjónustuveitu, Google Translate eða OpenAI-samhæft API.</string>
+  <string name="tada_music_lyrics_show_romanize_button_title">Sýna umritunarhnappinn</string>
+  <string name="tada_music_lyrics_show_romanize_button_summary">Snertu til að kveikja/slökkva á rómönskun; ýttu lengi til að fá aðeins rómönskun. Notar rómönskun frá þjónustuveitu, Google Translate eða OpenAI-samhæft API.</string>
+  <string name="tada_music_lyrics_show_refresh_button_title">Settu inn gildar vafrakökur til að leyfa YouTube-tengingu.</string>
+  <string name="tada_music_lyrics_show_refresh_button_summary">Pikkaðu til að skipta yfir í næsta textavalkost; haltu inni til að leita að texta eftir lagtitli og flytjanda.</string>
+  <string name="tada_music_lyrics_search_dialog_title">Leita að texta</string>
+  <string name="tada_music_lyrics_search_title_hint">Lagtitill</string>
+  <string name="tada_music_lyrics_search_artist_hint">Flytjandi</string>
+  <string name="tada_music_lyrics_search_empty">Sláðu inn lagtitil og flytjanda</string>
+  <string name="tada_music_lyrics_search_no_providers">Enginn af virkum þjónustuaðilum getur leitað að öðrum lögum.</string>
+  <string name="tada_music_lyrics_saved">Vistað</string>
+  <string name="tada_music_lyrics_word_sync_title">Auðkenna samstillt orð eða atkvæði</string>
+  <string name="tada_music_lyrics_word_sync_summary">Sérsníddu texta til að sýna lög og frumtexta.</string>
+  <string name="tada_music_lyrics_hide_played_title">Fela spilaða texta</string>
+  <string name="tada_music_lyrics_hide_played_summary">Fela textalínur fyrir ofan línuna sem spilast núna</string>
+  <string name="tada_music_lyrics_hide_unplayed_title">Fela óspilaða texta</string>
+  <string name="tada_music_lyrics_hide_unplayed_summary">Fela textalínur fyrir neðan línuna sem spilast núna</string>
+  <string name="tada_music_lyrics_mediasession_title">Sýna MediaSession-texta á læsisskjánum</string>
+  <string name="tada_music_lyrics_miniplayer_title">Sýna texta í smáspilara</string>
+  <string name="tada_music_lyrics_display_artist_first_title">Birtingarröð flytjanda og titils</string>
+  <string name="tada_music_lyrics_display_artist_first_summary">Notaðu lyklaborðið til að leita að texta. Stilltu leitarstillingarnar eftir þörfum.</string>
+  <string name="tada_settings_music_lyrics_metadata_title">Síur</string>
+  <string name="tada_music_lyrics_custom_regex_title">Regluleg segð fyrir lýsigögn</string>
+  <string name="tada_music_lyrics_custom_regex_summary">Regluleg segð sem er notuð á titla, flytjendur og plötur áður en leitað er að textum og þegar lagt er mat á hvort tveir titlar passi saman. Skildu það eftir tómt til að slökkva á báðum. Sjálfgefna stillingin fjarlægir algengt rusl eins og „Official Video“, „Remaster“, „【插曲】“ og „- Topic“.</string>
+  <string name="tada_music_lyrics_text_filter_title">Regluleg segð textasíu</string>
+  <string name="tada_music_lyrics_text_filter_summary">Regluleg segð sem er eingöngu beitt á upprunalega textann (ekki þýðingar eða rómavæðingar). Skilið eftir tómt til að slökkva á.</string>
+  <string name="tada_music_lyrics_credit_line_regex_title">Upplýsingalínumerki</string>
+  <string name="tada_music_lyrics_credit_line_regex_summary">Ef textar eru ranglega síaðir, stilltu eða hreinsaðu þetta. Skilið eftir tómt til að slökkva á</string>
+  <string name="tada_music_lyrics_text_size_title">Leturstærð</string>
+  <string name="tada_music_lyrics_text_size_summary">Stærð textans.</string>
+  <string name="tada_music_lyrics_offset_ms_title">Tímaleiðrétting</string>
+  <string name="tada_music_lyrics_offset_ms_summary">Samstilltir textar fylgja spilun. Ef þeir fara úr takti, stilltu tímahliðrunina. Færðu samstilta texta fram eða aftur. Notaðu jákvætt gildi ef textinn er á undan laginu.</string>
+  <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
+  <string name="tada_music_lyrics_source_label">Uppspretta: %s</string>
+  <string name="tada_music_lyrics_translated_by_google">Þýtt af Google</string>
+  <string name="tada_music_lyrics_romanized_by_google">Rómavætt af Google</string>
+  <string name="tada_music_lyrics_translated_by_ai">Þýtt af %s</string>
+  <string name="tada_music_lyrics_romanized_by_ai">Umritað af %s</string>
+  <!-- Tappable label under the lyrics that turns the translation on. -->
+  <string name="tada_music_lyrics_translate_hide">Þýddur</string>
+  <string name="tada_music_lyrics_translation_language_title">Þýðingartungumál</string>
+  <string name="tada_music_lyrics_translating">Þýðing á ferð…</string>
+  <string name="tada_music_lyrics_translate_failed">Gat ekki þýtt textann</string>
+  <string name="tada_music_lyrics_romanize_hide">Rómanseraður</string>
+  <string name="tada_music_lyrics_romanizing">Rómansera…</string>
+  <string name="tada_music_lyrics_romanize_failed">Ekki tókst að sækja texta. Athugaðu nettenginguna og reyndu aftur.</string>
+  <string name="tada_music_lyrics_translate_only">Aðeins þýtt</string>
+  <string name="tada_music_lyrics_romanize_only">Aðeins latnesk umritun</string>
+  <string name="tada_music_lyrics_copied">Afritað í klemmuskrá</string>
+  <string name="tada_music_lyrics_refreshing">Endurnýjun</string>
+  <string name="tada_music_lyrics_refreshed">Endurnýjað</string>
+  <string name="tada_music_lyrics_about_summary">"Lagatextar eru passaðir við titil og flytjanda, en óvenjuleg lýsigögn geta fundið ekkert eða ranga útgáfu. Notaðu endurnýjun til að skipta um útgáfu. Veitendur merktir með * þurfa aðgangstákn. Ekki er alltaf óskað eftir öllum virkum veitendum í þinni röð, heldur svara þeir eftir hraða sínum."</string>
+  <string name="tada_music_lyrics_hide_info_title">Fela upplýsingalínu</string>
+  <string name="tada_music_lyrics_hide_info_summary">Fela upplýsingalínuna sem sýnd er fyrir neðan textann</string>
+  <string name="tada_music_lyrics_swap_trans_roma_title">Víxla þýðingu og rómönskun</string>
+  <string name="tada_music_lyrics_swap_trans_roma_summary">ON setur rómönskun fyrir neðan texta og þýðingu fyrir ofan; OFF heldur rómönskun fyrir ofan og þýðingu fyrir neðan</string>
+  <string name="tada_music_lyrics_use_ai_translation_title">OpenAI-samhæfð þýðing</string>
+  <string name="tada_music_lyrics_use_ai_translation_summary">Notaðu sérsniðið OpenAI-samhæft API fyrir þýðingar og umritun í stað Google Translate</string>
+  <string name="tada_music_lyrics_ai_config_dialog_title">Stillingar gervigreindarþýðinga</string>
+  <string name="tada_music_lyrics_ai_config_dialog_instruction">Stilltu OpenAI-samhæfðan API-endapunkt fyrir gervigreindardrifna þýðingu og umritun lagatexta.</string>
+  <string name="tada_music_lyrics_ai_config_base_url_hint">Vefslóð API-endapunkts (t.d. https://text.pollinations.ai/openai)</string>
+  <string name="tada_music_lyrics_ai_config_api_token_hint">API-lykill (skildu eftir auðan fyrir nafnlausan aðgang)</string>
+  <string name="tada_music_lyrics_ai_config_model_hint">Heiti líkans (t.d. openai-fast, gpt-4o-mini)</string>
+  <string name="tada_music_lyrics_ai_config_prompt_hint">Sniðmát fyrir fyrirmæli (breytur: {language}, {task}, {title}, {artist}, {count}, {lines})</string>
+  <string name="tada_music_lyrics_ai_config_toast_saved">Stillingar gervigreindarþýðinga vistaðar</string>
+  <string name="tada_music_lyrics_ai_config_toast_invalid">Ekki tókst að tengjast gervigreindarendapunkti. Athugaðu stillingarnar þínar.</string>
+  <string name="tada_music_lyrics_ai_config_toast_reset">Stillingar gervigreindarþýðinga endurstilltar</string>
+  <string name="tada_music_lyrics_ai_config_status_configured">Stillt</string>
+  <string name="tada_music_lyrics_ai_config_status_not_configured">Snertu til að stilla</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_url">Grunnslóð má ekki vera tóm</string>
+  <string name="tada_music_lyrics_ai_config_status_invalid_url">Grunnslóð verður að byrja á http:// eða https://</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_model">Heiti líkans má ekki vera tómt</string>
+  <string name="tada_music_lyrics_ai_config_status_validating">Sannreyni tengingu…</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="tada_music_spoof_app_version_target_entry_8_23_51">8.23.51 - Slökkva á feitletruðum táknum</string>
+  <string name="tada_music_spoof_app_version_target_entry_9_13_51">9.13.51 - Endurheimta næst, texta og tengda flipa</string>
+</resources>

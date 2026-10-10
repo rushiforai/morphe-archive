@@ -13,7 +13,7 @@ A file named %1$s in %2$s paused HushThreads.	%2$s içindeki %1$s adlı bir dosy
 About	Hakkında
 Advertising ID removed	Reklam kimliği kaldırıldı
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 ve öncesi burada hangi bağlantıların açıldığını bildirmez. Bu uygulamanın ayarlarını açmak için dokunun, ardından Varsayılan olarak aç'a gidin.
-Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android, Threads'in bağlantılarını Meta'nın imzalama anahtarıyla denetler ve yeniden imzalanmış bir sürümde bu anahtar yoktur. Adresleri seçmek bağlantılarını yeniden buraya gönderir. Bu, Meta'nın doğrulamasını geri getirmez ve diğer bağlantı ayarlarınız olduğu gibi kalır.
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android, Threads bağlantılarını yalnızca Meta'nın imzaladığı bir uygulamaya gönderir. Adresleri seçersen bağlantıları bunun yerine buraya gelir. Diğer bağlantı ayarların aynı kalır.
 Android verified this app for Threads' web addresses, so their links open here.	Android bu uygulamayı Threads'in web adresleri için doğruladı, bu yüzden bağlantıları burada açılır.
 Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	Bu uygulamanın Android ayarları açılamadı. Threads simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
 Back	Geri
@@ -36,12 +36,12 @@ Debug logging	Hata ayıklama günlüğü
 Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri getirmek için tekrar dokun.
 Diagnostic data put back.	Tanılama verileri geri getirildi.
 Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
-Empties the log and the hook findings a report would include.	Bir raporun içereceği günlüğü ve hook bulgularını boşaltır.
+Clears the saved log and patch check results that a report would include.	Bir raporun içereceği kayıtlı günlüğü ve yama kontrol sonuçlarını temizler.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
 Export diagnostic report	Tanılama raporunu dışa aktar
 Export settings	Ayarları dışa aktar
 Feed	Akış
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	Threads bir sonraki açılışında Hata ayıklama günlüğü dışındaki tüm HushThreads anahtarlarını kapatır. Yamalarken seçtiklerin kalır ve tercihlerin kayıtlı kalır.
 Hide ads	Reklamları gizle
 HushThreads %1$s on Threads %2$s	Threads %2$s üzerinde HushThreads %1$s
 HushThreads %1$s targets Threads %2$s.	HushThreads %1$s, Threads %2$s için hazırlandı.
@@ -54,7 +54,7 @@ Only some of Threads' web addresses are selected for this app, and links to the 
 Privacy	Gizlilik
 Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
 Saved. Restart Threads to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Threads'i yeniden başlat.
-Screens that check Threads' own signature open again on this re-signed build.	Threads'in kendi imzasını denetleyen ekranlar bu yeniden imzalanmış sürümde tekrar açılır.
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	Bazı Threads ekranları uygulamayı kimin imzaladığına bakar ve yamalı uygulamada açılmaz. Bu düzeltme onları yeniden açılır yapar.
 Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama HushThreads'un onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
 # context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
 Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Sponsorlu gönderiler, Threads onları göstermeden önce Senin İçin ve Takip Edilenler akışlarından çıkarılır, böylece boşluk kalmaz.
@@ -71,10 +71,10 @@ The app holding the last settings file still hasn't answered. Try again later.	S
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushThreads beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
-Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.	Bulunan analiz adresleri yanıt vermeyen bir adrese yönlendirilir. Diğer telemetri devam edebilir. Özgün adresleri kullanmak için bunu kapat.
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	Kullanım raporlarının çoğunun Meta'ya ulaşmasını engeller. Bazıları yine de geçebilir. Eskisi gibi göndermek için kapat.
 Analytics address coverage	Analiz adresi kapsamı
-Patched: %1$s. Missing: %2$s.	Yamalanan: %1$s. Eksik: %2$s.
-Coverage wasn't recorded in this build. Patch again to see the matched address kinds.	Bu derlemede kapsam kaydedilmedi. Bulunan adres türlerini görmek için yeniden yama uygula.
+Blocked: %1$s. Not found in this build: %2$s.	Engellenen: %1$s. Bu sürümde bulunamayan: %2$s.
+This build didn't record which report types it covers. Patch again to see them.	Bu sürüm hangi rapor türlerini kapsadığını kaydetmedi. Görmek için yeniden yamala.
 none	yok
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads telefonunuzun reklam kimliğini okuyamaz. Bunun için gereken izin bu sürümden kaldırıldı.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushThreads kendini duraklattı.
@@ -102,7 +102,7 @@ Retry	Yeniden dene
 Save full report	Tam raporu kaydet
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushThreads releases	Yeni HushThreads sürümlerini denetle
-Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Başlangıçta günde bir kez GitHub'ı kontrol eder ve yeni sürümleri genel bakışta gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	Günde bir kez, Threads açılırken GitHub'da daha yeni bir HushThreads olup olmadığına bakar ve burada söyler. Hiçbir şey indirilmez.
 Check now	Şimdi denetle
 Asks GitHub for the newest release right now, even with the switch above off.	Yukarıdaki anahtar kapalı olsa bile GitHub'a en yeni sürümü hemen sorar.
 Checking GitHub now.	GitHub şu anda denetleniyor.
@@ -112,7 +112,7 @@ You have the newest HushThreads release.	En yeni HushThreads sürümünü kullan
 The newest HushThreads release is %1$s.	En yeni HushThreads sürümü %1$s.
 Couldn't reach GitHub. Try again later.	GitHub'a ulaşılamadı. Daha sonra tekrar dene.
 GitHub is turning away checks from this network for now. Try again later.	GitHub şu an bu ağdan gelen sorguları geri çeviriyor. Daha sonra tekrar dene.
-GitHub's answer couldn't be used. Try again later.	GitHub'ın yanıtı kullanılamadı. Daha sonra tekrar dene.
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub, HushThreads'in okuyamadığı bir yanıt gönderdi. Daha sonra tekrar dene.
 Saving the settings file	Ayar dosyası kaydediliyor
 Set when you patched	Yamaladığında ayarlananlar
 Settings couldn't open	Ayarlar açılamadı
@@ -160,7 +160,7 @@ No matching settings	Eşleşen ayar yok
 Try a different word or clear the search.	Başka bir kelime deneyin veya aramayı temizleyin.
 Search settings	Ayarlarda ara
 Clear search	Aramayı temizle
-Your controls are active.	Kontrolleriniz etkin.
+Your switches are working.	Anahtarların çalışıyor.
 Pause	Duraklat
 Resume	Devam et
 Undo	Geri al
@@ -175,14 +175,14 @@ the removed advertising ID permission	kaldırılan reklam kimliği izni
 
 # context: optional feed rule and its scope
 Hide suggested users	Önerilen kullanıcıları gizle
-Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.	Takip edilecek hesaplar öneren doğrulanmış kartları kaldırır. Normal gönderiler ve yeniden paylaşımlar kalır.
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	Takip edilecek hesaplar öneren kartları akışınızdan ve profillerden kaldırır. Normal gönderiler ve yeniden paylaşımlar kalır.
 Keep feed position on return	Geri dönünce akış konumunu koru
 Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Threads'e on dakika içinde dönersen kaldığın yer korunur. Yenilemek için aşağı çekmeye devam edebilirsin.
 No time limit	Süre sınırı yok
 With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Yukarıdaki anahtar açıkken ne kadar uzun süre uzakta kalırsan kal yerin korunur. Yenilemek için çekmek ve uygulamayı yeniden başlatmak yine yeni gönderileri yükler.
 Where you left off in your feed	Akışta kaldığın yer
 Open links in your browser	Bağlantıları tarayıcında aç
-Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.	Dokunduğun web bağlantıları, Threads'in tıklama izleyicisi olmadan varsayılan tarayıcında veya o sitenin uygulamasında açılır. Threads, Instagram ve diğer Meta sayfaları yine Threads'te açılır.
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	Dokunduğun bağlantılar tarayıcında veya sitenin uygulamasında açılır, Threads'in bağlantı takibi atlanır. Threads ve Instagram sayfaları yine Threads'te açılır.
 Tap to play videos	Videoları dokunarak oynat
 Videos in your feed wait for a tap instead of playing as you scroll.	Akıştaki videolar, kaydırırken kendiliğinden oynamak yerine dokunmanı bekler.
 Videos in your feed	Akıştaki videolar
@@ -195,7 +195,9 @@ Not in this build: %1$s. Morphe Manager selects it by default. Patch again with 
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Bu sürümde yok: %1$s. Morphe Manager bunları varsayılan olarak seçer. Yaptıkları işi almak için onları seçip yeniden yamala.
 Appearance	Görünüm
 Pure black dark mode	Saf siyah karanlık mod
-Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Karanlık mod koyu gri yerine siyah görünür. Görmek için Threads'te karanlık modu aç.
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	Karanlık mod koyu gri yerine gerçek siyahı kullanır. Görmek için Threads'te karanlık modu aç. Değişikliği görmek için Threads'i yeniden başlat.
+Hide the Instagram button	Instagram düğmesini gizle
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Kendi profilinin ve başkalarının profillerinin üstündeki Instagram düğmesini kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
 Turn features on or off	Özellikleri aç veya kapat
 # Fotoğrafları ve videoları kaydetme
 %1$d saved in lower quality than on Threads.	%1$d öğe Threads'tekinden daha düşük kalitede kaydedildi.
@@ -206,7 +208,7 @@ Turn features on or off	Özellikleri aç veya kapat
 %1$s so far	Şimdiye kadar %1$s
 A save stopped. Reopen the post and save again.	Bir kaydetme işlemi durdu. Gönderiyi yeniden açıp tekrar kaydet.
 A save was interrupted	Bir kaydetme işlemi kesildi
-Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.	Bir gönderinin menüsüne Kaydet satırı ekler. Birden fazla fotoğraf veya video içeren bir gönderide hepsi sırayla kaydedilir. Kapalıyken veya duraklatıldığında menü Threads'in kendi menüsüdür.
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	Bir gönderinin menüsüne Kaydet ekler. Birden çok fotoğraf veya video varsa hepsi kaydedilir. Kapalıyken veya duraklatılmışken Threads'in normal menüsünü görürsün.
 Best	En iyi
 Cancel saving this carousel	Bu çoklu gönderinin kaydını iptal et
 Cancel saving this photo	Bu fotoğrafın kaydedilmesini iptal et
@@ -214,7 +216,7 @@ Cancel saving this video	Bu videonun kaydedilmesini iptal et
 Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Çoklu gönderi iptal edildi. Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
 Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Movies ve Pictures altında bir klasör adı seç. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %1$s klasörünü kullanmak için boş bırak.
 Copying to the gallery	Galeriye kopyalanıyor
-Download failed	İndirme başarısız oldu
+Download failed. Try again in a moment.	İndirme başarısız oldu. Biraz sonra tekrar dene.
 Download quality	İndirme kalitesi
 Downloading	İndiriliyor
 Downloads	İndirmeler
@@ -226,7 +228,7 @@ File name	Dosya adı
 File name set to %1$s.	Dosya adı %1$s olarak ayarlandı.
 Folder name	Klasör adı
 Folder set to %1$s.	Klasör %1$s olarak ayarlandı.
-For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp, CapCut ve InShot gibi video düzenleyiciler ya da kaydedilen videoları sessiz oynatan bir galeri veya oynatıcı için. Kaliteyi düşürebilir.
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	WhatsApp, CapCut veya InShot gibi bir düzenleyici ya da bir galeri kaydettiğin videoyu sessiz oynatıyorsa yardımcı olur. Kaliteyi düşürebilir.
 How far a photo or video you're saving has got, with a button to cancel it	Kaydettiğin fotoğraf veya videonun ilerleme durumu ve iptal etmek için bir düğme
 HushThreads saves	HushThreads kaydetme işlemleri
 Joining the picture and sound	Görüntü ve ses birleştiriliyor
@@ -255,19 +257,19 @@ Saving a carousel	Çoklu gönderi kaydediliyor
 Saving a photo	Fotoğraf kaydediliyor
 Saving a video	Video kaydediliyor
 Saving...	Kaydediliyor...
-Saving... Cancel: Downloads in HushThreads.	Kaydediliyor... İptal: HushThreads'ta İndirmeler.
+Saving... To cancel, open Downloads in HushThreads settings.	Kaydediliyor... İptal etmek için HushThreads ayarlarında İndirmeler'i aç.
 Smallest	En küçük
 Video file name	Video dosya adı
 Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Videoların adı %1$s olur. Fotoğrafların adı her zaman %2$s ile başlar, ardından tarih ve saat gelir.
 Videos go to %1$s and photos to %2$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne kaydedilir.
 Version code raised	Sürüm kodu yükseltildi
-This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Bu derlemenin sürüm kodu Android'in izin verdiği en yüksek değerdir, bu yüzden Google Play bunun üzerine Meta'nın güncellemelerini sunmaz. Threads'in derlendiği sürümle yaptığı kontroller gerçek kodu görmeye devam eder. Orijinal Threads'e dönmek için önce bunu kaldırın. Bu, Threads'in bu telefondaki verilerini siler. Sonraki HushThreads derlemelerinin de Change version code içermesi gerekir, yoksa bunun üzerine yüklenmezler.
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Sürüm numarası Android'in izin verdiği en yüksek değere ayarlı, bu yüzden Google Play Meta güncellemelerini bu sürümün üzerine önermez. Threads yine gerçek sürümünü görür. Orijinal Threads'e dönmek için önce bunu kaldır, bu da Threads'in bu telefondaki verilerini siler. Sonraki HushThreads sürümleri de Change version code ister, yoksa bunun üzerine kurulmaz.
 the raised version code	yükseltilmiş sürüm kodu
 Share sheet entry removed	Paylaşım menüsü girişi kaldırıldı
 Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Diğer uygulamalardan paylaşırken Threads görünmez. Threads'ten diğer uygulamalara paylaşım çalışmaya devam eder.
 the removed share sheet entry	kaldırılan paylaşım menüsü girişi
 User certificates trusted	Kullanıcı sertifikalarına güveniliyor
-Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.	Threads, Android'in denetlediği yerlerde kendi yüklediğin sertifikaları kabul eder. Threads'in Meta sertifikaları için kendi denetimleri değişmedi, bu yüzden bir proxy trafiğin çoğunu yine okuyamaz.
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads, telefonuna eklediğin güvenlik sertifikalarını kabul eder. Meta sertifikalarına yaptığı kendi kontroller değişmez, bu yüzden bir proxy trafiğinin çoğunu yine okuyamaz.
 the user certificate trust	kullanıcı sertifikalarına duyulan güven
 Hide screenshots from Threads	Ekran görüntülerini Threads'ten gizle
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Ekran görüntüsü aldığında Threads'e haber verilmez, bu yüzden onu kaydedemez ya da ona tepki veremez.

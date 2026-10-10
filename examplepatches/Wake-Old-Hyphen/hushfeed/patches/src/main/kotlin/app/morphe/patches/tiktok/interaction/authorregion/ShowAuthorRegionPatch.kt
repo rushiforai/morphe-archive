@@ -55,9 +55,8 @@ internal val authorRowPatch = bytecodePatch {
 @Suppress("unused")
 val showAuthorRegionPatch = bytecodePatch(
     name = "Show author region",
-    description = "Show the country a video was posted from next to the " +
-        "creator's name on the feed. Switch: Hushfeed settings > Feed screen.",
-    default = false,
+    description = "Shows the country a video was posted from next to the creator's name. " +
+        "Starts off. Turn it on in Hushfeed settings > Feed screen.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, authorRowPatch)

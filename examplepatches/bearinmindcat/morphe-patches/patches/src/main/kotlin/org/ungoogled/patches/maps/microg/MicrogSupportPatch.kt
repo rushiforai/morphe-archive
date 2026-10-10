@@ -2,6 +2,7 @@ package org.ungoogled.patches.maps.microg
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.AvailabilityResolver
 import app.morphe.patcher.patch.InstallerType
@@ -9,6 +10,8 @@ import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -49,6 +52,11 @@ private val SHARING_ACTIONS = setOf(
     "com.google.android.gms.locationsharingreporter.service.START",
     "com.google.android.gms.location.reporting.service.START",
 )
+/** Location sharing's settings screen in Play services, which MicroG-RE opens only under an app.revanced name. */
+private const val LOCATION_SHARING_SETTINGS = "com.google.android.gms.location.settings.LOCATION_SHARING"
+private const val NOTICE_ACKED_REQUEST = "Lcom/google/android/gms/locationsharingreporter/NoticeAckedUpdateRequest;"
+/** Maps' own record that an account acknowledged Location sharing's notice. */
+private const val NOTICE_ACKED_KEY = "centralized_location_sharing_centralized_sharing_notice_acked"
 private const val CRONET_PROVIDER = "Lcom/google/android/gms/net/PlayServicesCronetProvider;"
 private const val USE_LOCATION_FAILED = "Failed to get 'Use Location for Services' setting"
 private const val MODULE_CLASS_FAILED = "Failed to instantiate module class: "
@@ -80,6 +88,11 @@ private val URI_ROUTES = listOf(
     "content://com.google.settings" to "content://$VENDOR.settings",
     "content://subscribedfeeds" to "content://$VENDOR.subscribedfeeds",
 )
+
+/** A const-string (or /jumbo) loading [value]. */
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.isString(value: String) =
+    (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
+        ((this as ReferenceInstruction).reference as StringReference).string == value
 
 private fun route(value: String): String? {
     STRING_ROUTES[value]?.let { return it }
@@ -155,7 +168,7 @@ val microgSupportPatch = bytecodePatch(
     // Shapes.wrap starts the microG notice (missing, or keeping the account from Maps), the
     // location-source switch reads microgPatched(), and Shapes.processStart decides where Play
     // services modules come from before Maps loads any.
-    dependsOn(sharedExtensionPatch, activityContextHookPatch, applicationStartHookPatch, microgManifestPatch)
+    dependsOn(sharedExtensionPatch, activityContextHookPatch, applicationStartHookPatch, microgManifestPatch, microgLocationDialogPatch)
 
     execute {
         MicrogSelection.select(this)
@@ -216,6 +229,105 @@ val microgSupportPatch = bytecodePatch(
                     """,
                 )
             }
+        }
+
+        // 1c. "Turn on location" (issues #27, #30): microgLocationDialogPatch, shared with the
+        //     Location provider toggle, whose microg Services source meets the same dialog.
+
+        // 1d. Location sharing's settings -- the gear on its screen, and Settings > Location
+        //     sharing (issue #30): MicroG-RE opens that screen only under an app.revanced action,
+        //     so the action is picked at runtime from what the installed microG answers.
+        val settingsHolders = mutableListOf<String>()
+        classDefForEach { c ->
+            if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+            if (c.methods.any { m -> m.implementation?.instructions?.any { it.isString(LOCATION_SHARING_SETTINGS) } == true }) {
+                settingsHolders += c.type
+            }
+        }
+        var settingsActions = 0
+        for (type in settingsHolders) {
+            for (method in mutableClassDefBy(type).methods) {
+                val instructions = method.implementation?.instructions?.toList() ?: continue
+                for (index in instructions.indices.reversed()) {
+                    if (!instructions[index].isString(LOCATION_SHARING_SETTINGS)) continue
+                    val register = (instructions[index] as OneRegisterInstruction).registerA
+                    method.addInstructions(
+                        index + 1,
+                        """
+                            invoke-static/range { v$register .. v$register }, $MICROG_CLASS->activityAction(Ljava/lang/String;)Ljava/lang/String;
+                            move-result-object v$register
+                        """,
+                    )
+                    settingsActions++
+                }
+            }
+        }
+        if (settingsActions != 2) throw PatchException("expected Location sharing's settings action twice, found $settingsActions")
+
+        // 1e. Location sharing's notice, "Updates to Google Location Sharing" (issue #30): Maps keeps
+        //     its banner up until Play services reports the notice acknowledged, and MicroG-RE keeps
+        //     no record of it, so the banner could not be dismissed. Maps' acknowledgement -- the one
+        //     method sending (Account, NoticeAckedUpdateRequest) -- now records it in the extension,
+        //     and Maps' own check for it reads that record too.
+        val senders = mutableListOf<Pair<String, com.android.tools.smali.dexlib2.iface.Method>>()
+        classDefForEach { c ->
+            if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+            for (m in c.methods) {
+                if (m.implementation != null &&
+                    m.parameterTypes.map(CharSequence::toString) == listOf("Landroid/accounts/Account;", NOTICE_ACKED_REQUEST)
+                ) senders += c.type to m
+            }
+        }
+        val (senderType, sender) = senders.singleOrNull()
+            ?: throw PatchException("expected one sender of Location sharing's notice acknowledgement, found ${senders.size}")
+        mutableClassDefBy(senderType).methods.single {
+            it.name == sender.name && it.parameterTypes == sender.parameterTypes && it.returnType == sender.returnType
+        }.apply {
+            if (AccessFlags.STATIC.isSet(accessFlags)) throw PatchException("notice acknowledgement sender is static")
+            addInstructions(0, "invoke-static/range { p1 .. p1 }, $MICROG_CLASS->acceptNotice(Landroid/accounts/Account;)V")
+        }
+        // Maps' check: the one method reading the record's key, a static field set from the key's name.
+        var keyField: String? = null
+        classDefForEach { c ->
+            if (keyField != null || c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+            val instructions = c.methods.firstOrNull { it.name == "<clinit>" }?.implementation?.instructions?.toList()
+                ?: return@classDefForEach
+            val at = instructions.indexOfFirst { it.isString(NOTICE_ACKED_KEY) }
+            if (at < 0) return@classDefForEach
+            val put = instructions.drop(at).firstOrNull { it.opcode == Opcode.SPUT_OBJECT } ?: return@classDefForEach
+            keyField = ((put as ReferenceInstruction).reference as FieldReference).let { "${it.definingClass}->${it.name}:${it.type}" }
+        }
+        val noticeKey = keyField ?: throw PatchException("Location sharing's notice record ($NOTICE_ACKED_KEY) not found")
+        val readers = mutableListOf<Pair<String, com.android.tools.smali.dexlib2.iface.Method>>()
+        classDefForEach { c ->
+            if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+            for (m in c.methods) {
+                if (m.returnType != "Z" || m.parameterTypes.size != 1) continue
+                val reads = m.implementation?.instructions?.any { insn ->
+                    insn.opcode == Opcode.SGET_OBJECT &&
+                        ((insn as ReferenceInstruction).reference as FieldReference).let { "${it.definingClass}->${it.name}:${it.type}" } == noticeKey
+                } == true
+                if (reads) readers += c.type to m
+            }
+        }
+        val (readerType, reader) = readers.singleOrNull()
+            ?: throw PatchException("expected one check of Location sharing's notice record, found ${readers.size}")
+        mutableClassDefBy(readerType).methods.single {
+            it.name == reader.name && it.parameterTypes == reader.parameterTypes && it.returnType == "Z"
+        }.apply {
+            // v0 must be a local: an instance method's this and one object parameter take the last two registers.
+            val code = implementation!!
+            if (AccessFlags.STATIC.isSet(accessFlags) || code.registerCount < 3) throw PatchException("notice check has no free register")
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $MICROG_CLASS->noticeAccepted(Ljava/lang/Object;)Z
+                    move-result v0
+                    if-eqz v0, :stock
+                    return v0
+                """,
+                ExternalLabel("stock", code.instructions.first()),
+            )
         }
 
         // 2. The Play services names in Maps' code: in finalize, below.

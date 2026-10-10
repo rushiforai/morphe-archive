@@ -152,9 +152,9 @@ internal val profileGridCountPatch = bytecodePatch {
 @Suppress("unused")
 val showEngagementRatePatch = bytecodePatch(
     name = "Show engagement rate",
-    description = "Shows a video's engagement rate, its likes, comments, shares and saves as a share of its views, " +
-        "next to the creator's name and after the view count on profile grids. Switch: Hushfeed settings > Feed screen.",
-    default = false,
+    description = "Shows how many people liked, commented on, shared or saved a video " +
+        "compared with how many watched it, next to the creator's name. Starts off. Turn it on in " +
+        "Hushfeed settings > Feed screen.",
 ) {
     category("Feed")
     // The author row install and the player's current video come with the row patch, the grid

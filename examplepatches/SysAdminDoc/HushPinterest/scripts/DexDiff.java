@@ -275,7 +275,8 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("boardMenu", 1), Map.entry("settings", 3),
+            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3223,6 +3224,150 @@ public class DexDiff {
             capability(c.callee, m != null && layout != null);
         }
 
+        /**
+         * The long-press menu's Download button: one call at the head of the menu's show method with
+         * the menu and its event, nothing borrowed, and six stubs bound to the members the clean APK
+         * has for them: the event's pin, the menu's shown id, the pin's id getter, the menu's button
+         * list and layout method, and Pinterest's own button model, icon, string, factory and styler.
+         */
+        void longPress(Contract c) {
+            String menuType = c.strings.get(1);
+            String item = "Lcom/pinterest/ui/menu/ContextMenuItemView;";
+            String arrayList = "Ljava/util/ArrayList;";
+            ClassDef menu = clean.classes.get(menuType);
+            List<Method> shows = new ArrayList<>(), lists = new ArrayList<>();
+            if (menu != null) for (Method method : menu.getMethods()) {
+                if (method.getImplementation() == null || AccessFlags.STATIC.isSet(method.getAccessFlags())) continue;
+                List<String> parameters = method.getParameterTypes().stream().map(Object::toString).toList();
+                if (parameters.size() == 2 && parameters.stream().allMatch(p -> p.startsWith("L") && !p.startsWith("Ljava/") && !p.startsWith("Landroid/")))
+                    shows.add(method);
+                if (method.getReturnType().equals("V") && parameters.equals(List.of("Ljava/util/List;"))
+                        && AccessFlags.PUBLIC.isSet(method.getAccessFlags()) && AccessFlags.FINAL.isSet(method.getAccessFlags())) lists.add(method);
+            }
+            Method show = unique(shows, "long-press menu show method");
+            Method list = unique(lists, "long-press menu item list method");
+            Method m = actual(show);
+            List<Integer> sites = calls(m, c.strings.get(0), 1);
+            if (m != null && sites.size() == 1) {
+                if (sites.get(0) != 0 || !arguments(instructions(m).get(0)).equals(List.of(parameter(m, -1), parameter(m, 0))))
+                    fail("long-press hook is not the show method's first instruction with the menu and its event");
+                remove(m, sites.get(0), sites.get(0) + 1);
+            }
+
+            // The clean members each stub has to name, found the way the patch finds them.
+            String event = show == null ? null : show.getParameterTypes().get(0).toString();
+            ClassDef eventClass = event == null ? null : clean.classes.get(event);
+            ClassDef pinMenu = clean.classes.get(PIN_MENU);
+            String pin = null;
+            if (pinMenu != null) for (Field field : pinMenu.getFields()) if (field.getName().equals("pin")) pin = field.getType();
+            ClassDef pinClass = pin == null ? null : clean.classes.get(pin);
+            List<Field> models = new ArrayList<>();
+            if (eventClass != null && pinClass != null) for (Field field : eventClass.getFields())
+                if (!AccessFlags.STATIC.isSet(field.getAccessFlags()) && pinClass.getInterfaces().contains(field.getType())) models.add(field);
+            if (models.size() != 1) fail("long-press event has " + models.size() + " pin interface fields, expected 1");
+            Field model = models.size() == 1 ? models.get(0) : null;
+            ClassDef face = model == null ? null : clean.classes.get(model.getType());
+            List<Method> getters = new ArrayList<>();
+            if (face != null) for (Method method : face.getMethods()) if (AccessFlags.ABSTRACT.isSet(method.getAccessFlags())
+                    && method.getParameterTypes().isEmpty() && method.getReturnType().equals("Ljava/lang/String;")) getters.add(method);
+            Method getter = unique(getters, "long-press pin id getter");
+            List<Field> shownFields = new ArrayList<>();
+            if (menu != null) for (Field field : menu.getFields())
+                if (!AccessFlags.STATIC.isSet(field.getAccessFlags()) && field.getType().equals("Ljava/lang/String;")) shownFields.add(field);
+            if (shownFields.size() != 1) fail("long-press menu has " + shownFields.size() + " shown id fields, expected 1");
+            // The button list is the ArrayList field whose value the list method hands to add().
+            Set<String> added = new TreeSet<>();
+            if (list != null) {
+                List<Instruction> body = instructions(list);
+                for (int at = 0; at < body.size(); at++) {
+                    if (body.get(at).getOpcode() != Opcode.IGET_OBJECT || !(reference(body.get(at)) instanceof FieldReference field)
+                            || !field.getDefiningClass().equals(menuType) || !field.getType().equals(arrayList)) continue;
+                    int held = firstRegister(body.get(at));
+                    for (int next = at + 1; next < body.size(); next++) {
+                        Instruction i = body.get(next);
+                        if (String.valueOf(reference(i)).equals(arrayList + "->add(Ljava/lang/Object;)Z") && !arguments(i).isEmpty()
+                                && arguments(i).get(0) == held) { added.add(field.toString()); break; }
+                        if (i.getOpcode().setsRegister() && firstRegister(i) == held) break;
+                    }
+                }
+            }
+            if (added.size() != 1) fail("long-press menu list method adds to " + added.size() + " button lists, expected 1");
+            List<ClassDef> buttonModels = new ArrayList<>(), strings = new ArrayList<>();
+            for (Method method : clean.holding("ContextMenuItemIcon(iconResId=")) if (method.getName().equals("toString")
+                    && clean.classes.get(method.getDefiningClass()) != null && !buttonModels.contains(clean.classes.get(method.getDefiningClass())))
+                buttonModels.add(clean.classes.get(method.getDefiningClass()));
+            ClassDef buttonModel = uniqueClass(buttonModels, "long-press menu button model");
+            String icon = null;
+            if (buttonModel != null) for (Method method : buttonModel.getMethods()) if (method.getName().equals("<init>")
+                    && method.getParameterTypes().size() == 4 && method.getParameterTypes().subList(1, 4).stream().map(Object::toString).toList()
+                    .equals(List.of("I", "I", "Lkotlin/jvm/functions/Function0;"))) icon = method.getParameterTypes().get(0).toString();
+            List<Method> factories = new ArrayList<>(), stylers = new ArrayList<>();
+            for (ClassDef owner : clean.classes.values()) {
+                if (owner.getType().startsWith(OWN)) continue;
+                Set<String> statics = new HashSet<>();
+                for (Field field : owner.getStaticFields()) if (field.getType().equals("I")) statics.add(field.getName());
+                if (statics.contains("download") && statics.contains("contextmenu_share")) strings.add(owner);
+                for (Method method : owner.getMethods()) {
+                    if (!AccessFlags.STATIC.isSet(method.getAccessFlags()) || method.getImplementation() == null) continue;
+                    List<String> parameters = method.getParameterTypes().stream().map(Object::toString).toList();
+                    if (buttonModel != null && method.getReturnType().equals(item) && parameters.equals(List.of("Landroid/content/Context;", buttonModel.getType())))
+                        factories.add(method);
+                    if (method.getReturnType().equals("V") && parameters.equals(List.of(item)) && instructions(method).stream().anyMatch(i ->
+                            reference(i) instanceof FieldReference field && field.getName().equals("themed_sema_color_icon_inverse"))) stylers.add(method);
+                }
+            }
+            Method factory = unique(factories, "long-press menu button factory");
+            Method styler = unique(stylers, "long-press menu button styler");
+            ClassDef stringsClass = uniqueClass(strings, "long-press Download string class");
+            boolean resolved = m != null && list != null && model != null && getter != null && shownFields.size() == 1 && added.size() == 1
+                    && icon != null && factory != null && styler != null && stringsClass != null;
+
+            if (resolved) {
+                String own = BASE + "actions/LongPressDownload;->";
+                String faceType = model.getType(), shown = shownFields.get(0).getName(), modelType = buttonModel.getType();
+                stub(own + "eventPin(Ljava/lang/Object;)Ljava/lang/Object;", List.of(Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT,
+                        Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT),
+                        Arrays.asList(null, event, event + "->" + model.getName() + ":" + faceType, pin, null, null, null, null));
+                stub(own + "menuModel(Ljava/lang/Object;)Ljava/lang/String;", List.of(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+                        Arrays.asList(menuType, menuType + "->" + shown + ":Ljava/lang/String;", null));
+                stub(own + "modelId(Ljava/lang/Object;)Ljava/lang/String;", List.of(Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE,
+                        Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), Arrays.asList(faceType, getter.toString(), null, null));
+                stub(own + "menuItems(Ljava/lang/Object;)Ljava/util/ArrayList;", List.of(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+                        Arrays.asList(menuType, added.iterator().next(), null));
+                stub(own + "layoutItems(Ljava/lang/Object;Ljava/util/List;)V", List.of(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID),
+                        Arrays.asList(menuType, list.toString(), null));
+                Method button = stub(own + "downloadItem(Landroid/content/Context;)Landroid/view/View;", List.of(Opcode.NEW_INSTANCE,
+                        Opcode.SGET_OBJECT, Opcode.SGET, Opcode.CONST_4, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
+                        Opcode.INVOKE_STATIC, Opcode.RETURN_OBJECT), Arrays.asList(modelType, icon + "->DOWNLOAD:" + icon,
+                        stringsClass.getType() + "->download:I", null, modelType + "-><init>(" + icon + "IILkotlin/jvm/functions/Function0;)V",
+                        factory.toString(), null, styler.toString(), null));
+                if (button != null) {
+                    List<Instruction> body = instructions(button);
+                    int made = firstRegister(body.get(0)), shaped = firstRegister(body.get(6));
+                    if (!arguments(body.get(4)).equals(List.of(made, firstRegister(body.get(1)), firstRegister(body.get(2)), firstRegister(body.get(2)),
+                            firstRegister(body.get(3)))) || ((NarrowLiteralInstruction) body.get(3)).getNarrowLiteral() != 0
+                            || !arguments(body.get(5)).equals(List.of(parameter(button, 0), made))
+                            || !arguments(body.get(7)).equals(List.of(shaped)) || firstRegister(body.get(8)) != shaped)
+                        fail("long-press download button stub builds the button from the wrong registers");
+                }
+            }
+            capability(c.callee, resolved);
+        }
+
+        /** An extension stub the patch filled: these opcodes, naming these references, its input cast first. */
+        Method stub(String key, List<Opcode> opcodes, List<String> references) {
+            Method m = actual(key);
+            if (m == null) return null;
+            List<Instruction> body = instructions(m);
+            if (!body.stream().map(Instruction::getOpcode).toList().equals(opcodes)) { fail(key + " is not the stub the patch writes"); return null; }
+            for (int at = 0; at < body.size(); at++) if (references.get(at) != null && !references.get(at).equals(String.valueOf(reference(body.get(at)))))
+                fail(key + " names " + reference(body.get(at)) + " where the clean APK has " + references.get(at));
+            int cast = body.get(0).getOpcode() == Opcode.CHECK_CAST ? 0 : body.get(1).getOpcode() == Opcode.CHECK_CAST ? 1 : -1;
+            if (cast >= 0 && !AccessFlags.STATIC.isSet(m.getAccessFlags())) fail(key + " is no static stub");
+            if (cast >= 0 && firstRegister(body.get(cast)) != parameter(m, 0)) fail(key + " casts something other than its input");
+            return m;
+        }
+
         void bridge(String key, String type, String name, String shape) {
             Method m = actual(key);
             if (m == null) return;
@@ -3528,6 +3673,137 @@ public class DexDiff {
             return from >= 0 && graph.normal.get(from).contains(at);
         }
 
+        /** The extra a board screen puts its board id under. */
+        static final String BOARD_ID_EXTRA = "com.pinterest.EXTRA_BOARD_ID";
+        static final Set<String> BOARD_OPTIONS = Set.of("Edit", "Merge", "Archive", "Unarchive", "PreviewBoard");
+
+        /**
+         * The board menu. The board screen's presenter is the one class holding the board id extra that
+         * builds the menu in an instance method taking nothing, with one static call answering the option
+         * group (the class whose toString writes "OptionGroup(label="), into a class whose own builder
+         * reads the board options enum. The menu hook goes right after that answer is moved into its
+         * register, reached only from there, with the menu and an untouched this, and its answer replaces
+         * the menu, cast back to the option group. Found in the clean target, never from the hook.
+         */
+        void boardMenu(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> groups = new ArrayList<>();
+            for (Method m : clean.holding("OptionGroup(label=")) if (m.getName().equals("toString")) groups.add(m);
+            Method described = unique(groups, "option group");
+            boolean found = false;
+            if (described != null) {
+                String group = described.getDefiningClass();
+                List<ClassDef> presenters = new ArrayList<>();
+                List<Method> builders = new ArrayList<>();
+                Map<Method, Integer> callAt = new HashMap<>();
+                for (ClassDef cd : clean.classesHolding(BOARD_ID_EXTRA)) {
+                    if (AccessFlags.INTERFACE.isSet(cd.getAccessFlags())) continue;
+                    List<Method> own = menuBuilds(cd, group, callAt);
+                    if (!own.isEmpty()) {
+                        presenters.add(cd);
+                        builders.addAll(own);
+                    }
+                }
+                ClassDef presenter = uniqueClass(presenters, "board screen presenter");
+                Method builder = presenter == null ? null : unique(builders, "board menu builder call");
+                if (builder != null) {
+                    List<Instruction> was = instructions(builder);
+                    int call = callAt.get(builder), self = parameter(builder, -1);
+                    int menu = call + 2 < was.size() && was.get(call + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT ? firstRegister(was.get(call + 1)) : -1;
+                    boolean ready = menu >= 0 && menu != self;
+                    for (int at = 0; ready && at <= call + 1; at++) ready = !writes(was.get(at), self);
+                    if (!ready) fail("the board screen presenter " + builder + " no longer keeps its built menu beside an untouched this");
+                    Method m = actual(builder);
+                    List<Integer> sites = calls(m, hook, 1);
+                    if (ready && m != null && sites.size() == 1) {
+                        List<Instruction> body = instructions(m);
+                        int at = sites.get(0);
+                        found = at == call + 2 && at + 3 < body.size() && arguments(body.get(at)).equals(List.of(menu, self))
+                                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == menu
+                                && body.get(at + 2).getOpcode() == Opcode.CHECK_CAST && firstRegister(body.get(at + 2)) == menu
+                                && group.equals(String.valueOf(reference(body.get(at + 2))))
+                                && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 3, at + 2);
+                        if (!found) fail(hook + " does not take the built board menu and this, in place, in " + m);
+                        else remove(m, at, at + 3);
+                    }
+                }
+            }
+            capability(c.callee, found);
+        }
+
+        /**
+         * Each instance method of [owner] taking nothing that makes a static call into a board menu
+         * builder answering [group], once per call, with the call's index put in [callAt].
+         */
+        List<Method> menuBuilds(ClassDef owner, String group, Map<Method, Integer> callAt) {
+            List<Method> out = new ArrayList<>();
+            for (Method m : owner.getMethods()) {
+                if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("()V")) continue;
+                List<Instruction> body = instructions(m);
+                for (int at = 0; at < body.size(); at++) {
+                    Instruction i = body.get(at);
+                    if ((i.getOpcode() == Opcode.INVOKE_STATIC || i.getOpcode() == Opcode.INVOKE_STATIC_RANGE) && reference(i) instanceof MethodReference r
+                            && r.getReturnType().equals(group) && takesOptions(r) && boardBuilder(r.getDefiningClass(), group)) {
+                        out.add(m);
+                        callAt.put(m, at);
+                    }
+                }
+            }
+            return out;
+        }
+
+        /** True for a method taking a list of options and a Function1 handler first, as the option group builders do. */
+        static boolean takesOptions(MethodReference r) {
+            List<? extends CharSequence> p = r.getParameterTypes();
+            return p.size() >= 2 && p.get(0).toString().equals("Ljava/util/List;") && p.get(1).toString().equals("Lkotlin/jvm/functions/Function1;");
+        }
+
+        /** True when [type] has a static method answering [group] from options that reads the board options enum. */
+        boolean boardBuilder(String type, String group) {
+            ClassDef owner = clean.classes.get(type);
+            if (owner == null) return false;
+            for (Method m : owner.getMethods()) {
+                if (m.getImplementation() == null || !AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals(group) || !takesOptions(m)) continue;
+                for (Instruction i : instructions(m))
+                    if (i.getOpcode() == Opcode.SGET_OBJECT && reference(i) instanceof FieldReference f && f.getType().equals(f.getDefiningClass())
+                            && boardOptions(f.getDefiningClass())) return true;
+            }
+            return false;
+        }
+
+        /** True for an enum with a constant for each of [BOARD_OPTIONS]. */
+        boolean boardOptions(String type) {
+            ClassDef options = clean.classes.get(type);
+            if (options == null || !"Ljava/lang/Enum;".equals(options.getSuperclass())) return false;
+            Set<String> names = new HashSet<>();
+            for (Field f : options.getFields()) if (AccessFlags.STATIC.isSet(f.getAccessFlags()) && f.getType().equals(type)) names.add(f.getName());
+            return names.containsAll(BOARD_OPTIONS);
+        }
+
+        /** True when [i] reads [register] as a value or as a call or array argument. */
+        static boolean readsRegister(Instruction i, int register) {
+            for (int[] read : valueReads(i)) if (read[0] == register || read[1] == 'W' && read[0] + 1 == register) return true;
+            if (i instanceof FiveRegisterInstruction || i instanceof RegisterRangeInstruction)
+                for (int argument : invokeRegisters(i)) if (argument == register) return true;
+            return false;
+        }
+
+        /** True when no path from [from], a handler included, reads [register] before writing it. */
+        static boolean unread(FeatureFlow graph, List<Instruction> body, int from, int register) {
+            BitSet seen = new BitSet();
+            Deque<Integer> work = new ArrayDeque<>(List.of(from));
+            if (from > 0) work.addAll(graph.handlers.get(from - 1));
+            while (!work.isEmpty()) {
+                int k = work.poll();
+                if (seen.get(k)) continue;
+                seen.set(k);
+                if (readsRegister(body.get(k), register)) return false;
+                work.addAll(graph.handlers.get(k));
+                if (!writes(body.get(k), register)) work.addAll(graph.normal.get(k));
+            }
+            return true;
+        }
+
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
 
         /**
@@ -3617,6 +3893,207 @@ public class DexDiff {
                     && descriptor(call).equals("(II)V") && arguments(retained.get(0)).equals(args);
             if (!inherited) fail(m + " lost its inherited original behavior");
             return inherited;
+        }
+
+        static final String SURVEY_DECLINE = "SURVEY_IN_BROWSER_PROMPT_DECLINE_BUTTON", SURVEY_DECLINE_COUNTER = "%s_%s_%d_%d";
+        static final String ALERT_DISMISS_REASON = "Lcom/pinterest/component/alert/AlertContainer$a;";
+        static final String FUNCTION1 = "Lkotlin/jvm/functions/Function1;";
+        static final String SPONSORED_POLL = "ANDROID_IN_APP_BRAND_SURVEY", POLL_VIEW = "Lcom/pinterest/expressSurvey/view/ExpressSurveyView;";
+
+        /**
+         * Each sponsored poll check in [m] as {arm start, branch target}: a sget-object of the
+         * ANDROID_IN_APP_BRAND_SURVEY constant typed as its own class, a static two-argument check
+         * answering a boolean that takes it second, the move-result and an if-eqz on that answer.
+         */
+        static List<int[]> sponsoredPollArms(Method m) {
+            List<int[]> arms = new ArrayList<>();
+            if (m.getImplementation() == null) return arms;
+            Layout layout = new Layout(m.getImplementation());
+            List<Instruction> body = layout.instructions;
+            for (int k = 0; k + 3 < body.size(); k++) {
+                Instruction read = body.get(k), check = body.get(k + 1), answer = body.get(k + 2), branch = body.get(k + 3);
+                if (read.getOpcode() != Opcode.SGET_OBJECT || !(reference(read) instanceof FieldReference f)
+                        || !f.getName().equals(SPONSORED_POLL) || !f.getType().equals(f.getDefiningClass())) continue;
+                if (check.getOpcode() != Opcode.INVOKE_STATIC || !(reference(check) instanceof MethodReference callee)
+                        || !callee.getReturnType().equals("Z") || callee.getParameterTypes().size() != 2
+                        || !callee.getParameterTypes().get(1).toString().equals(f.getType())
+                        || arguments(check).size() != 2 || arguments(check).get(1) != firstRegister(read)) continue;
+                if (answer.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ
+                        || firstRegister(branch) != firstRegister(answer)) continue;
+                int target = layout.addresses.indexOf(layout.addresses.get(k + 3) + ((OffsetInstruction) branch).getCodeOffset());
+                if (target > k + 4) arms.add(new int[]{k + 4, target});
+            }
+            return arms;
+        }
+
+        /** The survey invite launcher's shape, as the patch finds it: (String, Context, A, ScreenLocation, B, C, Bundle)V on an instance. */
+        static boolean surveyLauncher(Method m) {
+            if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")) return false;
+            List<String> t = m.getParameterTypes().stream().map(Object::toString).toList();
+            return t.size() == 7 && t.get(0).equals("Ljava/lang/String;") && t.get(1).equals("Landroid/content/Context;")
+                    && t.get(3).equals("Lcom/pinterest/framework/screens/ScreenLocation;") && t.get(6).equals("Landroid/os/Bundle;")
+                    && List.of(2, 4, 5).stream().allMatch(k -> t.get(k).startsWith("L") && !t.get(k).startsWith("Ljava/") && !t.get(k).startsWith("Landroid/"));
+        }
+
+        /** An alert's dismiss notifier for [field]: an instance method taking only a dismiss reason that reads the field and invokes it. */
+        static boolean alertNotifier(Method m, FieldReference field) {
+            if (m.getImplementation() == null || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V")
+                    || m.getParameterTypes().size() != 1 || !m.getParameterTypes().get(0).toString().equals(ALERT_DISMISS_REASON)) return false;
+            boolean reads = false, invokes = false;
+            for (Instruction i : instructions(m)) {
+                if (i.getOpcode() == Opcode.IGET_OBJECT && String.valueOf(reference(i)).equals(field.toString())) reads = true;
+                if (String.valueOf(reference(i)).equals(FUNCTION1 + "->invoke(Ljava/lang/Object;)Ljava/lang/Object;")) invokes = true;
+            }
+            return reads && invokes;
+        }
+
+        /**
+         * Pinterest's "Got a minute?" survey invite. Its Maybe later handler is the one class whose
+         * methods holding the "%s_%s_%d_%d" counter read SURVEY_IN_BROWSER_PROMPT_DECLINE_BUTTON, an
+         * enum constant typed as its own class, and the one launcher with the patch's shape builds it.
+         * The launcher's one store of a Function1 field whose class has exactly one notifier is the
+         * alert's dismiss listener, built new right above the store, and its invoke reads
+         * CONFIRM_BUTTON_CLICK. The hook goes right after the store, reached only from it: its answer
+         * in a local the clean launcher doesn't read from there on, a branch to the original next
+         * instruction, CANCEL_BUTTON_CLICK in the same local, the notifier with the alert and that
+         * reason, then return-void. Found in the clean target, never from the hook.
+         *
+         * Advertiser sponsored polls: the one launcher caller with a sponsored poll check whose arm
+         * builds a class that builds ExpressSurveyView, and whose skipped part still calls the
+         * launcher. The second hook opens that arm, reached only from the check's if-eqz: its answer
+         * in a local the clean caller doesn't read from there on, a branch to the arm's original
+         * first instruction, then return-void.
+         */
+        void surveyPrompts(Contract c) {
+            String hook = c.strings.get(0), pollHook = c.strings.get(1);
+            Set<String> declines = new TreeSet<>();
+            for (Method m : clean.holding(SURVEY_DECLINE_COUNTER)) for (Instruction i : instructions(m))
+                if (reference(i) instanceof FieldReference f && f.getName().equals(SURVEY_DECLINE) && f.getType().equals(f.getDefiningClass()))
+                    declines.add(m.getDefiningClass());
+            if (declines.size() != 1) fail("the survey Maybe later handler has " + declines.size() + " clean classes, expected 1");
+            List<Method> launchers = new ArrayList<>();
+            for (Method m : clean.methods.values()) if (!m.getDefiningClass().startsWith(OWN) && surveyLauncher(m)) launchers.add(m);
+            Method launcher = unique(launchers, "survey invite launcher");
+            ClassDef reason = clean.classes.get(ALERT_DISMISS_REASON);
+            boolean cancel = false;
+            if (reason != null) for (Field f : reason.getFields()) if (f.getName().equals("CANCEL_BUTTON_CLICK")
+                    && f.getType().equals(ALERT_DISMISS_REASON) && AccessFlags.STATIC.isSet(f.getAccessFlags())) cancel = true;
+            if (!cancel) fail(ALERT_DISMISS_REASON + " has no CANCEL_BUTTON_CLICK in the clean target");
+            boolean placed = false;
+            if (launcher != null && declines.size() == 1 && cancel) {
+                String decline = declines.iterator().next();
+                List<Instruction> was = instructions(launcher);
+                if (was.stream().noneMatch(i -> i.getOpcode() == Opcode.NEW_INSTANCE && String.valueOf(reference(i)).equals(decline)))
+                    fail("the survey invite launcher " + launcher + " no longer builds the Maybe later handler " + decline);
+                List<Integer> stores = new ArrayList<>();
+                List<Method> notifiers = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) {
+                    if (was.get(at).getOpcode() != Opcode.IPUT_OBJECT || !(reference(was.get(at)) instanceof FieldReference f)
+                            || !f.getType().equals(FUNCTION1) || clean.classes.get(f.getDefiningClass()) == null) continue;
+                    List<Method> own = new ArrayList<>();
+                    for (Method n : clean.classes.get(f.getDefiningClass()).getMethods()) if (alertNotifier(n, f)) own.add(n);
+                    if (own.size() == 1) { stores.add(at); notifiers.add(own.get(0)); }
+                }
+                if (stores.size() != 1) fail("the survey alert's dismiss listener has " + stores.size() + " clean stores, expected 1");
+                else {
+                    int store = stores.get(0);
+                    Method notifier = notifiers.get(0);
+                    TwoRegisterInstruction put = (TwoRegisterInstruction) was.get(store);
+                    Instruction built = store >= 2 ? was.get(store - 2) : null;
+                    String listener = built != null && built.getOpcode() == Opcode.NEW_INSTANCE && firstRegister(built) == put.getRegisterA()
+                            ? String.valueOf(reference(built)) : null;
+                    ClassDef listening = listener == null ? null : clean.classes.get(listener);
+                    boolean confirm = false;
+                    if (listening != null) for (Method n : listening.getMethods()) if (n.getName().equals("invoke") && n.getImplementation() != null)
+                        for (Instruction i : instructions(n)) if (i.getOpcode() == Opcode.SGET_OBJECT
+                                && String.valueOf(reference(i)).equals(ALERT_DISMISS_REASON + "->CONFIRM_BUTTON_CLICK:" + ALERT_DISMISS_REASON)) confirm = true;
+                    boolean confirms = confirm && reference(was.get(store - 1)) instanceof MethodReference ctor
+                            && ctor.getName().equals("<init>") && ctor.getDefiningClass().equals(listener);
+                    int alert = put.getRegisterB();
+                    if (!confirms) fail("the survey alert's dismiss listener in " + launcher + " no longer tells its primary button from the rest");
+                    if (alert > 15) fail("the survey alert is in v" + alert + ", out of reach of a plain invoke in " + launcher);
+                    Method m = actual(launcher);
+                    List<Integer> sites = calls(m, hook, 1);
+                    if (confirms && alert <= 15 && m != null && sites.size() == 1) {
+                        List<Instruction> body = instructions(m);
+                        Layout layout = new Layout(m.getImplementation());
+                        int at = sites.get(0);
+                        int scratch = at + 1 < body.size() ? firstRegister(body.get(at + 1)) : -1;
+                        Instruction branch = at + 2 < body.size() ? body.get(at + 2) : null;
+                        placed = at == store + 1 && at + 6 < body.size() && arguments(body.get(at)).isEmpty()
+                                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT
+                                && branch.getOpcode() == Opcode.IF_EQZ && firstRegister(branch) == scratch
+                                && layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset() == layout.addresses.get(at + 6)
+                                && body.get(at + 3).getOpcode() == Opcode.SGET_OBJECT && firstRegister(body.get(at + 3)) == scratch
+                                && String.valueOf(reference(body.get(at + 3))).equals(ALERT_DISMISS_REASON + "->CANCEL_BUTTON_CLICK:" + ALERT_DISMISS_REASON)
+                                && body.get(at + 4).getOpcode() == Opcode.INVOKE_VIRTUAL && arguments(body.get(at + 4)).equals(List.of(alert, scratch))
+                                && String.valueOf(reference(body.get(at + 4))).equals(notifier.toString())
+                                && body.get(at + 5).getOpcode() == Opcode.RETURN_VOID
+                                && scratch >= 0 && scratch <= 15 && scratch != alert && scratch < parameter(m, -1)
+                                && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 6, at + 2);
+                        if (!placed) fail(hook + " is not the survey alert's Maybe later dismissal right after its dismiss listener in " + m);
+                        else if (!unread(new FeatureFlow(launcher), was, store + 1, scratch)) {
+                            fail(hook + " borrows v" + scratch + " in " + m + ", which the launcher still reads after its dismiss listener");
+                            placed = false;
+                        }
+                        remove(m, at, at + 6);
+                    }
+                }
+            }
+            boolean pollPlaced = false;
+            if (launcher != null) {
+                String launch = launcher.toString();
+                List<Method> runners = new ArrayList<>();
+                List<int[]> arms = new ArrayList<>();
+                for (Map.Entry<String, Method> entry : clean.methods.entrySet()) {
+                    Method m = entry.getValue();
+                    if (entry.getKey().equals(launch) || m.getDefiningClass().startsWith(OWN)) continue;
+                    boolean reads = false;
+                    for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.SGET_OBJECT
+                            && reference(i) instanceof FieldReference f && f.getName().equals(SPONSORED_POLL)) { reads = true; break; }
+                    if (!reads || callSites(instructions(m), launch).isEmpty()) continue;
+                    for (int[] arm : sponsoredPollArms(m)) { runners.add(m); arms.add(arm); }
+                }
+                Method runner = unique(runners, "advertiser sponsored poll check");
+                if (runner != null) {
+                    int start = arms.get(0)[0], target = arms.get(0)[1];
+                    List<Instruction> was = instructions(runner);
+                    boolean opens = false;
+                    for (int k = start; k < target; k++) if (was.get(k).getOpcode() == Opcode.NEW_INSTANCE) {
+                        ClassDef modal = clean.classes.get(String.valueOf(reference(was.get(k))));
+                        if (modal != null) for (Method n : modal.getMethods()) for (Instruction i : instructions(n))
+                            if (i.getOpcode() == Opcode.NEW_INSTANCE && String.valueOf(reference(i)).equals(POLL_VIEW)) opens = true;
+                    }
+                    boolean passes = !callSites(was.subList(target, was.size()), launch).isEmpty();
+                    boolean returnsNothing = runner.getReturnType().equals("V");
+                    if (!opens) fail("the sponsored poll check in " + runner + " no longer opens the poll's own pop-up");
+                    if (!passes) fail("the sponsored poll check in " + runner + " no longer leaves other surveys to the invite launcher");
+                    if (!returnsNothing) fail("the sponsored poll check is in " + runner + ", which answers a value");
+                    Method m = actual(runner);
+                    List<Integer> sites = calls(m, pollHook, 1);
+                    if (opens && passes && returnsNothing && m != null && sites.size() == 1) {
+                        List<Instruction> body = instructions(m);
+                        Layout layout = new Layout(m.getImplementation());
+                        int at = sites.get(0);
+                        int scratch = at + 1 < body.size() ? firstRegister(body.get(at + 1)) : -1;
+                        Instruction branch = at + 2 < body.size() ? body.get(at + 2) : null;
+                        pollPlaced = at == start && at + 4 < body.size() && arguments(body.get(at)).isEmpty()
+                                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT
+                                && branch.getOpcode() == Opcode.IF_EQZ && firstRegister(branch) == scratch
+                                && layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset() == layout.addresses.get(at + 4)
+                                && body.get(at + 3).getOpcode() == Opcode.RETURN_VOID
+                                && scratch >= 0 && scratch < parameter(m, -1)
+                                && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 4, at + 2);
+                        if (!pollPlaced) fail(pollHook + " doesn't open the sponsored poll arm of " + m);
+                        else if (!unread(new FeatureFlow(runner), was, start, scratch)) {
+                            fail(pollHook + " borrows v" + scratch + " in " + m + ", which the sponsored poll arm still reads");
+                            pollPlaced = false;
+                        }
+                        remove(m, at, at + 4);
+                    }
+                }
+            }
+            capability(c.callee, placed && pollPlaced);
         }
 
         /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
@@ -3856,6 +4333,7 @@ public class DexDiff {
                     case "navigation": navigation(c); break;
                     case "menu": menu(c); break;
                     case "downloads": downloads(c); break;
+                    case "longPress": longPress(c); break;
                     case "comments": comments(c); break;
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;
@@ -3863,6 +4341,8 @@ public class DexDiff {
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
+                    case "boardMenu": boardMenu(c); break;
+                    case "surveyPrompts": surveyPrompts(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

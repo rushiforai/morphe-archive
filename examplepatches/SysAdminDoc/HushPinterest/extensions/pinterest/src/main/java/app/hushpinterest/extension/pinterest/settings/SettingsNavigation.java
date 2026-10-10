@@ -454,7 +454,7 @@ final class SettingsNavigation extends BaseAdapter {
         boolean paused = HushPinterestPause.isPaused();
         TextView summary = row.findViewById(android.R.id.summary);
         if (!paused && !nextPaused && ReleaseCheck.statusLine() == null) {
-            summary.setText(L10n.t("Your controls are active."));
+            summary.setText(L10n.t("Your switches are working."));
         } else if (paused && nextPaused && HushPinterestPause.reason() == HushPinterestPause.Reason.SWITCH
                 && !markerLeft()) {
             // A marker Resume couldn't remove keeps the card's own line, which says what to do.

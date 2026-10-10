@@ -1,3 +1,9 @@
+## [1.14.3](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.14.2...v1.14.3) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Localcreationdownloader:** Samsung specific optimization for local story and creation downloads ([aae1dc0](https://github.com/Akash-Sriram/morphe-google-photos/commit/aae1dc092c5d1b135290c646c621030904d008fc))
+
 ## [1.14.2](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.14.1...v1.14.2) (2026-10-08)
 
 ### 🐛 Bug Fixes

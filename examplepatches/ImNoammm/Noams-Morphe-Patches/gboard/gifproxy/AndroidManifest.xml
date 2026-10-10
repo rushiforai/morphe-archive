@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Network helper for the No-Google Gboard: its only network access, for GIFs and model downloads. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="app.nogoogle.gifproxy">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <package android:name="app.nogoogle.inputmethod.latin" />
+    </queries>
+
+    <application
+        android:label="Gboard (no Google) network helper"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false">
+        <provider
+            android:name=".FetchProvider"
+            android:authorities="app.nogoogle.gifproxy"
+            android:exported="true" />
+        <!-- Bound by the keyboard during transfers so this process isn't frozen mid-answer. -->
+        <service
+            android:name=".KeepAlive"
+            android:exported="true" />
+    </application>
+</manifest>

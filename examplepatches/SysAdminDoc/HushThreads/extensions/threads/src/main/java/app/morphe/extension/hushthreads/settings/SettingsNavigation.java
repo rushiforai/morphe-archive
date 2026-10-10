@@ -405,7 +405,7 @@ final class SettingsNavigation extends BaseAdapter {
         TextView summary = row.findViewById(android.R.id.summary);
         String build = "\n" + L10n.f("Build %1$s", L10n.isolate(HushThreadsPreferenceFragment.buildIdentitySummary()));
         if (!paused && !nextPaused && ReleaseCheck.statusLine() == null) {
-            summary.setText(L10n.t("Your controls are active.") + build);
+            summary.setText(L10n.t("Your switches are working.") + build);
         } else if (paused && nextPaused && HushThreadsPause.reason() == HushThreadsPause.Reason.SWITCH
                 && !markerLeft()) {
             // A marker Resume couldn't remove keeps the card's own line, which says what to do.

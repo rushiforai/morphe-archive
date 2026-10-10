@@ -12,7 +12,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.media.taptoplay.FRAGMENT_ACTIVITY
 import app.morphe.patches.facebook.media.taptoplay.MOTION_EVENT
 import app.morphe.patches.facebook.media.taptoplay.touchDispatches
@@ -43,12 +42,12 @@ private const val TOUCH = "$EXTENSION_PACKAGE/chats/MessengerIcon;->touch($MOTIO
 val openMessengerFromTopBarPatch = bytecodePatch(
     // The README table check reads this literal; ICON_PATCH carries the same text for the messages.
     name = "Open Messenger from the top bar",
-    description = "Lets the Messenger icon at the top of Facebook open the Messenger app instead of Facebook's own " +
-        "Chats. Without Messenger installed, Chats opens as before, and a long press on the icon still does what " +
-        "Facebook does with it. Its switch starts off, so turn it on under Chats in Hushfacebook's settings.",
+    description = "Makes the Messenger icon at the top of Facebook open the Messenger app instead of Facebook's " +
+        "own Chats, if you'd rather chat in Messenger. Without Messenger installed, Chats opens as before. " +
+        "Starts off. Turn it on in Hushfacebook settings > Chats.",
     default = true,
 ) {
-    category("Interface")
+    category("Chats")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
@@ -60,11 +59,13 @@ val openMessengerFromTopBarPatch = bytecodePatch(
         )
         val calls = buttonHandlerCalls(tap).distinctBy { it.toString() }
         val call = calls.singleOrNull() ?: throw PatchException(
-            "$ICON_PATCH: expected the tap to call one static Messenger button handler " +
+            "$ICON_PATCH: expected the tap to call one Messenger button handler " +
                 "(Context, FbUserSession, String, Z, Z)V, found ${calls.size}",
         )
-        val handler = classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) }?.takeIf(::isButtonHandler)
-            ?: throw PatchException("$ICON_PATCH: the tap's call to $call isn't a Messenger button handler loading \"$LONG_PRESS\"")
+        val handler = classDefByOrNull(call.definingClass)?.let { buttonHandler(it, call) }
+            ?: throw PatchException(
+                "$ICON_PATCH: the tap's call to $call doesn't reach a static Messenger button handler loading \"$LONG_PRESS\"",
+            )
         val activity = classDefByOrNull(FRAGMENT_ACTIVITY) ?: throw PatchException("$ICON_PATCH: this build has no $FRAGMENT_ACTIVITY")
         val dispatches = touchDispatches(activity)
         val dispatch = dispatches.singleOrNull() ?: throw PatchException(

@@ -24,6 +24,7 @@ public class ScreenCaptureTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     @After public void tearDown() {
         SettingsStatus.screenCaptureEnabled = false;
+        Settings.ALLOW_SCREEN_CAPTURE.resetToDefault();
     }
     private static final int SECURE = WindowManager.LayoutParams.FLAG_SECURE;
     private static final int KEEP = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
@@ -56,6 +57,20 @@ public class ScreenCaptureTest {
             assertEquals(SECURE | KEEP, attributes.flags);
             assertEquals(KEEP, activity.getWindow().getAttributes().flags & (SECURE | KEEP));
             assertEquals(0.65f, activity.getWindow().getAttributes().screenBrightness, 0f);
+        }
+    }
+    @Test public void layoutFlagWritesLoseOnlySecureWhileOn() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup()) {
+            Utils.setContext(owner.get());
+            var popup = new WindowManager.LayoutParams();
+            Settings.ALLOW_SCREEN_CAPTURE.save(false);
+            ScreenCapture.setLayoutFlags(popup, SECURE | KEEP);
+            assertEquals(SECURE | KEEP, popup.flags);
+            Settings.ALLOW_SCREEN_CAPTURE.save(true);
+            ScreenCapture.setLayoutFlags(popup, SECURE | KEEP);
+            assertEquals(KEEP, popup.flags);
+            ScreenCapture.setLayoutFlags(popup, 0);
+            assertEquals(0, popup.flags);
         }
     }
     @Test public void circleGateFollowsSetting() {

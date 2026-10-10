@@ -43,6 +43,8 @@ public class ReelLiftGuardTest {
         // A build with Keep the reel speed and without Hold a reel for 2x.
         ReelHold.holdInBuildForTests = false;
         ReelHold.keepInBuildForTests = true;
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.HOLD_REEL_FOR_2X.save(true);
     }
 
     @After

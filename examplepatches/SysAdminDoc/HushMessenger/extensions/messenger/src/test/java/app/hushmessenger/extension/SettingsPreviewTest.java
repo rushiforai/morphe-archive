@@ -39,7 +39,7 @@ public class SettingsPreviewTest {
             assertTrue(summary.contains("Mode: UI preview. Does not change Messenger.\n"));
             // The mode belongs to the header, not the list of controls below it.
             assertTrue(summary.contains("\nPaused: false\nSafe mode: false\nMode: UI preview. Does not change Messenger.\n"
-                + "Activity records show a control ran. They don't verify its visible effect or privacy protection.\nControls:\n"));
+                + "Activity notes only show that a control ran. They don't prove it had a visible effect or protected your privacy.\nControls:\n"));
             assertTrue(summary.contains("people: installed=true, selected=true, active=false,"));
             assertFalse(summary.contains("active=true"));
         }

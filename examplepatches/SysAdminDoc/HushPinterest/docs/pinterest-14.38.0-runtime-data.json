@@ -1,0 +1,418 @@
+{
+  "schema": 1,
+  "observation_date": "2026-10-09",
+  "app": {
+    "package": "com.pinterest",
+    "version": "14.38.0",
+    "version_code": 14388010,
+    "apk_sha256": "af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553",
+    "original_signed_apk": true,
+    "patches_applied": 0,
+    "signed_in": true,
+    "existing_data_and_cache_retained": true
+  },
+  "environment": {
+    "platform": "Android Emulator",
+    "android_version": "13",
+    "api": 33,
+    "guest_memory_mb": 1536,
+    "virtual_cpu_cores": 2,
+    "root_capable_guest_instrumentation": true,
+    "headless": true,
+    "host_audio_disabled": true,
+    "network": "emulated Wi-Fi",
+    "battery": "synthetic",
+    "physical_energy_measured": false,
+    "physical_battery_life_estimate": null
+  },
+  "method": {
+    "packet_capture": "guest tcpdump across interfaces, Linux cooked v2 framing",
+    "socket_match": "exact protocol and bidirectional endpoint tuple near a primary-UID socket observation",
+    "socket_correlation_window_seconds_each_side": 3,
+    "counter_source": "cumulative BPF primary-app-UID map",
+    "tls_decrypted": false,
+    "quic_decoded": false,
+    "uid_scope": "Packet and BPF network accounting uses the primary app UID only",
+    "batterystats_cpu_scope": "App-associated framework accounting can include mapped isolated-process CPU",
+    "outside_phase_packets_included": false
+  },
+  "source_sha256": {
+    "network_summary": "db0ee20868d60039b2f7155b99beee28044e70e7c5ffd1396bad79f1571c29aa",
+    "runtime_summary": "de053b0b3a5d575b9f1678e8162a5dc77381407f53d60e7ed85319441276cd64"
+  },
+  "phases": [
+    {
+      "name": "cold-launch",
+      "packet_window_seconds": 32.0,
+      "counter_snapshot_span_seconds": 41.75,
+      "socket_poll_interval_seconds": 1,
+      "interior_socket_polls": true,
+      "home_feed_swipes": 0,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 2448174,
+        "tx_bytes": 147923,
+        "rx_packets": 2184,
+        "tx_packets": 943
+      },
+      "main_process_cpu": {
+        "user_seconds": 3.35,
+        "kernel_seconds": 2.65,
+        "total_seconds": 6.0,
+        "incomplete_boundary_coverage": false
+      },
+      "app_batterystats_cpu_delta_ms": {
+        "user": 3522,
+        "kernel": 2505,
+        "total": 6027
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 5410,
+          "count": 1.0
+        },
+        "audio": {
+          "ms": 234,
+          "count": 1.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 1990,
+        "recorded_execution_count": 2,
+        "timing_note": "Job deltas span the sequential counter snapshots, including boundary collection overhead."
+      },
+      "registered_jobs_at_start": 0,
+      "registered_jobs_at_end": 2,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": {
+        "ownership": {
+          "primary_app_uid": {
+            "packets": 3033,
+            "ip_bytes": 2574185,
+            "transport_payload_bytes_including_retransmissions": 2474441
+          },
+          "other_uid": {
+            "packets": 242,
+            "ip_bytes": 83364,
+            "transport_payload_bytes_including_retransmissions": 75856
+          },
+          "unknown": {
+            "packets": 127,
+            "ip_bytes": 29251,
+            "transport_payload_bytes_including_retransmissions": 23443
+          },
+          "ambiguous": {
+            "packets": 0,
+            "ip_bytes": 0,
+            "transport_payload_bytes_including_retransmissions": 0
+          }
+        },
+        "primary_uid_udp": {
+          "all_udp_packets": 1820,
+          "all_udp_ip_bytes": 1725445,
+          "port_443_packets": 1820,
+          "port_443_ip_bytes": 1725445,
+          "port_443_share_of_primary_ip_bytes": 0.670288,
+          "port_443_payload_decoded": false
+        }
+      },
+      "primary_uid_visible_tls_services": [
+        {
+          "domain_group": "appsflyersdk.com",
+          "service_host": "*.inapps.appsflyersdk.com",
+          "label_redacted": true,
+          "client_hellos": 1
+        },
+        {
+          "domain_group": "appsflyersdk.com",
+          "service_host": "*.launches.appsflyersdk.com",
+          "label_redacted": true,
+          "client_hellos": 1
+        },
+        {
+          "domain_group": "gstatic.com",
+          "service_host": "www.gstatic.com",
+          "label_redacted": false,
+          "client_hellos": 1
+        },
+        {
+          "domain_group": "pinimg.com",
+          "service_host": "i.pinimg.com",
+          "label_redacted": false,
+          "client_hellos": 1
+        },
+        {
+          "domain_group": "pinimg.com",
+          "service_host": "s.pinimg.com",
+          "label_redacted": false,
+          "client_hellos": 1
+        },
+        {
+          "domain_group": "pinimg.com",
+          "service_host": "v1.pinimg.com",
+          "label_redacted": false,
+          "client_hellos": 1
+        },
+        {
+          "domain_group": "pinterest.com",
+          "service_host": "api.pinterest.com",
+          "label_redacted": false,
+          "client_hellos": 2
+        },
+        {
+          "domain_group": "pinterest.com",
+          "service_host": "trk.pinterest.com",
+          "label_redacted": false,
+          "client_hellos": 2
+        },
+        {
+          "domain_group": "recaptcha.net",
+          "service_host": null,
+          "label_redacted": true,
+          "client_hellos": 1
+        }
+      ]
+    },
+    {
+      "name": "foreground-browse",
+      "packet_window_seconds": 181.0,
+      "counter_snapshot_span_seconds": 186.09,
+      "socket_poll_interval_seconds": 2,
+      "interior_socket_polls": true,
+      "home_feed_swipes": 6,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 4205367,
+        "tx_bytes": 83982,
+        "rx_packets": 3507,
+        "tx_packets": 621
+      },
+      "main_process_cpu": {
+        "user_seconds": 6.04,
+        "kernel_seconds": 14.17,
+        "total_seconds": 20.21,
+        "incomplete_boundary_coverage": false
+      },
+      "app_batterystats_cpu_delta_ms": {
+        "user": 7726,
+        "kernel": 12485,
+        "total": 20211
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 94722,
+          "count": 2.0
+        },
+        "audio": {
+          "ms": 29726,
+          "count": 1.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 0,
+        "recorded_execution_count": 0,
+        "timing_note": "Job deltas span the sequential counter snapshots, including boundary collection overhead."
+      },
+      "registered_jobs_at_start": 2,
+      "registered_jobs_at_end": 2,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": {
+        "ownership": {
+          "primary_app_uid": {
+            "packets": 4110,
+            "ip_bytes": 4287338,
+            "transport_payload_bytes_including_retransmissions": 4170422
+          },
+          "other_uid": {
+            "packets": 34,
+            "ip_bytes": 1559,
+            "transport_payload_bytes_including_retransmissions": 199
+          },
+          "unknown": {
+            "packets": 16,
+            "ip_bytes": 1780,
+            "transport_payload_bytes_including_retransmissions": 1284
+          },
+          "ambiguous": {
+            "packets": 0,
+            "ip_bytes": 0,
+            "transport_payload_bytes_including_retransmissions": 0
+          }
+        },
+        "primary_uid_udp": {
+          "all_udp_packets": 3957,
+          "all_udp_ip_bytes": 4244181,
+          "port_443_packets": 3957,
+          "port_443_ip_bytes": 4244181,
+          "port_443_share_of_primary_ip_bytes": 0.989934,
+          "port_443_payload_decoded": false
+        }
+      },
+      "primary_uid_visible_tls_services": []
+    },
+    {
+      "name": "background-screen-on",
+      "packet_window_seconds": 601.0,
+      "counter_snapshot_span_seconds": 605.36,
+      "socket_poll_interval_seconds": 10,
+      "interior_socket_polls": true,
+      "home_feed_swipes": 0,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 3720,
+        "tx_bytes": 3552,
+        "rx_packets": 66,
+        "tx_packets": 61
+      },
+      "main_process_cpu": {
+        "user_seconds": 0.23,
+        "kernel_seconds": 0.09,
+        "total_seconds": 0.32,
+        "incomplete_boundary_coverage": false
+      },
+      "app_batterystats_cpu_delta_ms": {
+        "user": 271,
+        "kernel": 41,
+        "total": 312
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 0,
+          "count": 0.0
+        },
+        "audio": {
+          "ms": 0,
+          "count": 0.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 0,
+        "recorded_execution_count": 0,
+        "timing_note": "Job deltas span the sequential counter snapshots, including boundary collection overhead."
+      },
+      "registered_jobs_at_start": 2,
+      "registered_jobs_at_end": 2,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": {
+        "ownership": {
+          "primary_app_uid": {
+            "packets": 65,
+            "ip_bytes": 3632,
+            "transport_payload_bytes_including_retransmissions": 1584
+          },
+          "other_uid": {
+            "packets": 4,
+            "ip_bytes": 212,
+            "transport_payload_bytes_including_retransmissions": 52
+          },
+          "unknown": {
+            "packets": 135,
+            "ip_bytes": 25876,
+            "transport_payload_bytes_including_retransmissions": 21368
+          },
+          "ambiguous": {
+            "packets": 0,
+            "ip_bytes": 0,
+            "transport_payload_bytes_including_retransmissions": 0
+          }
+        },
+        "primary_uid_udp": {
+          "all_udp_packets": 46,
+          "all_udp_ip_bytes": 2737,
+          "port_443_packets": 46,
+          "port_443_ip_bytes": 2737,
+          "port_443_share_of_primary_ip_bytes": 0.753579,
+          "port_443_payload_decoded": false
+        }
+      },
+      "primary_uid_visible_tls_services": []
+    },
+    {
+      "name": "background-screen-off",
+      "packet_window_seconds": 601.0,
+      "counter_snapshot_span_seconds": 606.08,
+      "socket_poll_interval_seconds": null,
+      "interior_socket_polls": false,
+      "home_feed_swipes": 0,
+      "primary_uid_bpf_delta": {
+        "rx_bytes": 1229,
+        "tx_bytes": 1490,
+        "rx_packets": 23,
+        "tx_packets": 23
+      },
+      "main_process_cpu": {
+        "user_seconds": 0.44,
+        "kernel_seconds": 0.08,
+        "total_seconds": 0.52,
+        "incomplete_boundary_coverage": false
+      },
+      "app_batterystats_cpu_delta_ms": {
+        "user": 259,
+        "kernel": 52,
+        "total": 311
+      },
+      "app_media_timer_delta": {
+        "video": {
+          "ms": 0,
+          "count": 0.0
+        },
+        "audio": {
+          "ms": 0,
+          "count": 0.0
+        }
+      },
+      "app_job_timer_delta": {
+        "recorded_ms": 64,
+        "recorded_execution_count": 1,
+        "timing_note": "The 64 ms / one-execution delta is a boundary-transition job. JobScheduler history shows it already ran during the sequential start snapshot before the explicit screen-off packet phase; it is not proof of execution during the quiet 601-second interval."
+      },
+      "registered_jobs_at_start": 2,
+      "registered_jobs_at_end": 2,
+      "isolated_uid_mapping_observed_at_boundary": true,
+      "packet_observations": {
+        "ownership": {
+          "primary_app_uid": {
+            "packets": 0,
+            "ip_bytes": 0,
+            "transport_payload_bytes_including_retransmissions": 0
+          },
+          "other_uid": {
+            "packets": 0,
+            "ip_bytes": 0,
+            "transport_payload_bytes_including_retransmissions": 0
+          },
+          "unknown": {
+            "packets": 152,
+            "ip_bytes": 26565,
+            "transport_payload_bytes_including_retransmissions": 21225
+          },
+          "ambiguous": {
+            "packets": 0,
+            "ip_bytes": 0,
+            "transport_payload_bytes_including_retransmissions": 0
+          }
+        },
+        "primary_uid_udp": {
+          "all_udp_packets": 0,
+          "all_udp_ip_bytes": 0,
+          "port_443_packets": 0,
+          "port_443_ip_bytes": 0,
+          "port_443_share_of_primary_ip_bytes": null,
+          "port_443_payload_decoded": false
+        }
+      },
+      "primary_uid_visible_tls_services": []
+    }
+  ],
+  "limitations": [
+    "One signed-in account and one run. Feed content, cache state, server experiments and ads can change subsequent results.",
+    "Packet phase windows and sequential counter snapshot spans differ. Counter deltas include boundary collection overhead and must use their own elapsed interval.",
+    "Only exact socket tuple observations within three seconds support packet UID correlation. Ten-second background polling leaves gaps; screen-off has boundary snapshots only. Unknown traffic remains unknown.",
+    "Primary-UID counters exclude traffic under separate isolated UIDs. Point-in-time isolated UID mappings are recorded only as presence flags and are not extended across the run.",
+    "SNI identifies the visible name offered for TLS, not request paths, payload fields, telemetry purpose or successful server receipt. Existing connections and QUIC may reveal no service name.",
+    "IP bytes include headers, acknowledgments and retransmissions. Any-interface capture can duplicate traffic. These totals differ from unique content bytes, physical radio bytes and Android accounting counters.",
+    "Main-process CPU subtraction excludes processes that start and exit between boundaries or isolated processes without matching dumps. App Batterystats CPU can include mapped isolated-process accounting. Media timers do not classify sponsored content or prove audible playback.",
+    "CPU, media timers and modeled battery statistics are activity measures. The emulator has synthetic battery state and supplies no physical charge, energy or phone battery-life measurement.",
+    "The host had constrained available memory. Emulation and capture overhead affect timing and CPU behavior, so this is not a representative physical-phone performance benchmark.",
+    "Screen-on background started in deep ACTIVE and light ACTIVE states. Screen-off started with both INACTIVE and ended with deep INACTIVE and light IDLE. The display was Asleep at both screen-off boundaries. Another app's long partial wake lock persisted, and deep Doze or sustained suspend was not established.",
+    "Registered jobs are not executing jobs. Job timer increases do not establish the worker's business purpose. Missing named alarm entries do not prove that no alarm can occur.",
+    "Public data omits raw UIDs, process IDs, socket endpoints, IP addresses, account details, private file paths, unrelated app hostnames and configurable SDK hostname prefixes."
+  ]
+}

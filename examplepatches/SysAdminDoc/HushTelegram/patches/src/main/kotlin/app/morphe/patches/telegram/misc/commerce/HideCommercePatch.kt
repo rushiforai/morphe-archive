@@ -55,11 +55,12 @@ private val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opc
 @Suppress("unused")
 val hideCommercePatch = bytecodePatch(
     name = PATCH,
-    description = "Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs " +
-        "and the channel Gift button. Purchases and account controls keep their usual behavior.",
+    description = "Removes Premium, Stars, My Grams, Business and Send a Gift from Settings, Gifts tabs on profiles, " +
+        "and the Gift button in channels, for a less cluttered app. On by default. Turn it off in " +
+        "HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Ads")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
 

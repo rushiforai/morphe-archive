@@ -57,6 +57,8 @@ public class CommentDislikeGestureTest {
         ReflectionHelpers.<Set<String>>getStaticField(CommentTools.class, "IN_FLIGHT").clear();
         ReflectionHelpers.<Set<String>>getStaticField(CommentTools.class, "BLOCKED_UIDS").clear();
         ShadowToast.reset();
+        // The switch starts off; the gesture tests are about the block button it turns on.
+        app.morphe.extension.tiktok.settings.Settings.BLOCK_FROM_COMMENT.save(true);
     }
 
     @Test public void turningTheSettingOffHandsTheControlBackOnTheNextBind() throws Exception {

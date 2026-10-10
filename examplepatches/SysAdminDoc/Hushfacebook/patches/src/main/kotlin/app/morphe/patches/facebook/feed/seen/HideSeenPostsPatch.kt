@@ -62,9 +62,9 @@ internal const val SEEN = "$SEEN_POSTS->seen(Ljava/lang/Object;)V"
 val hideSeenPostsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hide seen posts",
-    description = "Keeps posts you've already scrolled past out of the feed when it loads again, for 1, 3, 7 or 30 " +
-        "days. The list stays on your phone. Turn it on under News feed.",
-    default = false,
+    description = "Keeps posts you've already scrolled past out of the feed when it loads again, for 1, 3, 7 or " +
+        "30 days, so you see something new. The list stays on your phone. Starts off. Turn it on in Hushfacebook " +
+        "settings > News feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, feedFilterHookPatch)

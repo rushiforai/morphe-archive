@@ -1,8 +1,15 @@
-# ✦ anxy's morphe patches
+<p align="center">
+  <img src="assets/icon.png" width="120" height="120" alt="anxy's morphe patches" />
+</p>
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/anxyis/anxy-patches/release.yml)
-![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)
-![Release](https://img.shields.io/github/v/release/anxyis/anxy-patches)
+<h1 align="center">✦ anxy's morphe patches</h1>
+
+<p align="center">
+  <img src="https://img.shields.io/github/actions/workflow/status/anxyis/anxy-patches/release.yml" alt="GitHub Workflow Status" />
+  <img src="https://img.shields.io/badge/License-GPL%20v3-yellow.svg" alt="GPLv3 License" />
+  <img src="https://img.shields.io/github/v/release/anxyis/anxy-patches" alt="Release" />
+  <a href="https://discord.gg/zpyTgS9Su"><img src="https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
+</p>
 
 <br/>
 

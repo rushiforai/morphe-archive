@@ -11,6 +11,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,12 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class DoubleTapLikeTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -57,8 +64,8 @@ public class DoubleTapLikeTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndEveryHookHoldsTheDoubleTapBack() {
-        assertTrue("the switch starts off", Settings.TURN_OFF_DOUBLE_TAP_LIKE.get());
+    public void theSwitchStartsOffAndOnEveryHookHoldsTheDoubleTapBack() {
+        assertFalse("the switch starts off", Settings.TURN_OFF_DOUBLE_TAP_LIKE.defaultValue);
         assertNull("the player's double-tap handler was handed over", DoubleTapLike.handler(new Object()));
         assertNull("the heart found its handler", DoubleTapLike.heart(new Object()));
         assertNull("the reel like's key was handed over", DoubleTapLike.likeKey("key"));

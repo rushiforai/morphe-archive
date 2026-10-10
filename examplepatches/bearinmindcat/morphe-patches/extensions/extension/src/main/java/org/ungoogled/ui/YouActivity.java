@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.InputType;
 import android.text.format.DateUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -128,18 +127,25 @@ public final class YouActivity extends UiScreen {
         SavedPlaces.refreshButtons();
     }
 
+    /** The Labeled page: Home, Work and the user's own labels (where Maps' search sends a Home that is not set). */
+    static Intent labeledIntent(android.content.Context c) {
+        Intent i = Screens.intent(c, YouActivity.class).putExtra(EXTRA_PAGE, LABELED);
+        if (!(c instanceof android.app.Activity)) i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return i;
+    }
+
     /** One of the user's lists' page (after a place is added to it from Maps' "Add a place"). */
     static Intent listIntent(android.content.Context c, String list) {
-        return new Intent(c, YouActivity.class).putExtra(EXTRA_PAGE, LIST).putExtra(EXTRA_LIST, list);
+        return Screens.intent(c, YouActivity.class).putExtra(EXTRA_PAGE, LIST).putExtra(EXTRA_LIST, list);
     }
 
     private void go(String to, String list) {
-        startActivity(new Intent(this, YouActivity.class).putExtra(EXTRA_PAGE, to).putExtra(EXTRA_LIST, list));
+        startActivity(Screens.intent(this, YouActivity.class).putExtra(EXTRA_PAGE, to).putExtra(EXTRA_LIST, list));
     }
 
     /** Your places, filtered: what the You page's search and filter chips open. */
     private void places(int withKind, String withList, String withCategory, boolean withSearch) {
-        startActivity(new Intent(this, YouActivity.class).putExtra(EXTRA_PAGE, PLACES).putExtra(EXTRA_KIND, withKind)
+        startActivity(Screens.intent(this, YouActivity.class).putExtra(EXTRA_PAGE, PLACES).putExtra(EXTRA_KIND, withKind)
                 .putExtra(EXTRA_SAVED_LIST, withList).putExtra(EXTRA_CATEGORY, withCategory).putExtra(EXTRA_SEARCH, withSearch));
     }
 
@@ -179,10 +185,10 @@ public final class YouActivity extends UiScreen {
             TextView explore = label("Explore Timeline", 14, accent(), textMedium);
             explore.setGravity(Gravity.CENTER);
             explore.setPadding(dp(12), dp(14), dp(12), dp(14));
-            explore.setOnClickListener(v -> startActivity(new Intent(this, TimelineActivity.class)));
+            explore.setOnClickListener(v -> startActivity(Screens.intent(this, TimelineActivity.class)));
             body.addView(explore, new LinearLayout.LayoutParams(-1, -2));
             body.addView(shortcut(new PathIcon(PathIcon.TIMELINE, onTonal()), "Timeline",
-                    v -> startActivity(new Intent(this, TimelineActivity.class))));
+                    v -> startActivity(Screens.intent(this, TimelineActivity.class))));
         }
 
         body.addView(bandView());
@@ -1045,27 +1051,7 @@ public final class YouActivity extends UiScreen {
 
     /** Names [p]; [old] is the label being renamed, or null. "Home" and "Work" set those. */
     private void labelDialog(SavedStore.Place p, String old) {
-        EditText field = new EditText(this);
-        field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        field.setHint("Label, like Gym");
-        if (old != null) field.setText(old);
-        FrameLayout box = new FrameLayout(this);
-        box.setPadding(dp(20), dp(8), dp(20), 0);
-        box.addView(field);
-        new AlertDialog.Builder(this, SavedPlaces.dialogTheme(this))
-                .setTitle(old != null ? "Rename label" : "Label " + name(p))
-                .setView(box)
-                .setPositiveButton("Save", (d, w) -> {
-                    String label = field.getText().toString().trim();
-                    if (label.isEmpty()) return;
-                    if (old != null) SavedStore.removeLabel(this, old);
-                    if (label.equalsIgnoreCase("home")) SavedStore.setHome(this, SavedStore.aliasOf(p));
-                    else if (label.equalsIgnoreCase("work")) SavedStore.setWork(this, SavedStore.aliasOf(p));
-                    else SavedStore.setLabel(this, label, p);
-                    render();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        SavedPlaces.labelDialog(this, p, old, label -> render());
     }
 
     // ---- place rows ---------------------------------------------------------------------------
@@ -1267,24 +1253,30 @@ public final class YouActivity extends UiScreen {
     private void listMenu(String id, String name) {
         if (name == null) return;
         List<String> names = new ArrayList<>();
+        List<Runnable> acts = new ArrayList<>();
         names.add("Open");
+        acts.add(() -> { if (!LIST.equals(page)) go(LIST, id); });
         names.add("Rename");
-        if (!SavedStore.isDefault(id)) names.add("Delete list");
+        acts.add(() -> SavedPlaces.newList(this, n -> { SavedStore.renameList(this, id, n); if (LIST.equals(page)) recreate(); else render(); }));
+        // Its places on Maps' map, with the list's icon (SavedOnMap).
+        boolean onMap = !SavedStore.hiddenOnMap.contains(id);
+        names.add(onMap ? "Hide on map" : "Show on map");
+        acts.add(() -> SavedStore.setOnMap(this, id, !onMap));
+        if (!SavedStore.isDefault(id)) {
+            names.add("Delete list");
+            acts.add(() -> new AlertDialog.Builder(this, SavedPlaces.dialogTheme(this))
+                    .setTitle("Delete " + name + "?")
+                    .setMessage("Its places stay in any other lists they are in.")
+                    .setPositiveButton("Delete", (d2, w) -> {
+                        SavedStore.deleteList(this, id);
+                        if (LIST.equals(page)) finish(); else render();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show());
+        }
         new AlertDialog.Builder(this, SavedPlaces.dialogTheme(this))
                 .setTitle(name)
-                .setItems(names.toArray(new String[0]), (d, which) -> {
-                    if (which == 0) { if (!LIST.equals(page)) go(LIST, id); }
-                    else if (which == 1) SavedPlaces.newList(this, n -> { SavedStore.renameList(this, id, n); if (LIST.equals(page)) recreate(); else render(); });
-                    else new AlertDialog.Builder(this, SavedPlaces.dialogTheme(this))
-                            .setTitle("Delete " + name + "?")
-                            .setMessage("Its places stay in any other lists they are in.")
-                            .setPositiveButton("Delete", (d2, w) -> {
-                                SavedStore.deleteList(this, id);
-                                if (LIST.equals(page)) finish(); else render();
-                            })
-                            .setNegativeButton("Cancel", null)
-                            .show();
-                })
+                .setItems(names.toArray(new String[0]), (d, which) -> acts.get(which).run())
                 .show();
     }
 

@@ -4,6 +4,52 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** The release facts check reads the push gate's kept run again when the pre-push hook starts it in a fresh PowerShell. It took git's first line straight off the pipeline, which stopped git before its exit code was set, so a fresh process saw no HEAD and fell back to the checkout's own build outputs. That's what refused the 0.0.8 index push until the gate's test results were copied in.
+
+## 0.0.8 (2026-10-09)
+
+* **Instagram:** HushGram 0.0.8 adds 1 patch, for 79 in all, and stays on Instagram 450.0.0.50.77 with Morphe Manager 1.34.0 or newer. All seven builds of that version patch: the arm64 ones (385611395, 385611400, 385611404, 385611431 and 385611438) and the x86 and x86_64 ones (385611439 and 385611440).
+
+* **Instagram:** New patch, Hide suggested accounts in DMs. Turn on its switch under Messages and restart Instagram, and the Accounts to follow section at the bottom of your messages isn't built. Your chats and follow requests stay, and so does a section of people who follow you. It's in the default selection with its switch off. Asked for in #112.
+
+* **Instagram:** Copy the commenter's username only shows up in HushGram settings when Copy username actually went into your build. On an Instagram build where it couldn't, Copy comment still works, the extra switch stays out of the way, and the diagnostic report says why.
+
+* **Tooling:** The patch contract check can count a name Instagram asks its shared string pool for, on the rules marked for it. Some 450 builds (385611395, 400, 439 and 440) ask the pool for a few names that 438 loads itself, so the check turned down the story link parser, the setup screen presenter and the share sheet's target list there even with the patch in the right place. Other rules still count only names a method loads itself, so a pool ask elsewhere can't confuse them.
+
+* **Tooling:** Release notes now have to open with a short What's new list of 5 to 8 one-line bullets, with the full list of changes under it. The notes builder won't write them without one, or with one that's grown too long to scan. Asked for in #86 and #106.
+
+* **Instagram:** With Hide the Stories tray on, the tray could still show up at the top of Home for a few seconds after you watched a story you opened in DMs. When you come back to Home partway down the feed, Instagram floats a copy of the tray over it, and that copy now stays hidden too. Reported in #88.
+
+* **Instagram:** Disable analytics is stricter about which saved address it treats as the crash reporter's. It only follows the address when it's saved right after it's built, so a later Instagram build that saves something else there won't have that value changed. Both places Instagram 450 saves it still qualify.
+
+* **Tooling:** Hide ads has tests of its own. One checks that only an on switch with HushGram ready and not paused hides an ad. The other checks that each supported Instagram build has exactly one place where ads go into a feed, and that HushGram's check is the first thing that runs there.
+
+* **Instagram:** Disable analytics won't apply to an Instagram build where it finds none of the addresses reports are sent to, even if it finds the contacts and location setup screens or Instagram's live event stream. Skipping those screens protects nothing by itself, and turning the stream off only moves events to the regular upload. When a build has only some of what Disable analytics or Sanitize sharing links work on, the switch's description in HushGram settings now says how many it covers.
+
+* **Instagram:** Opening HushGram's settings from the launcher shortcut while Instagram was restarting its screen could crash Instagram, because the screen still had Instagram's startup look and couldn't draw text yet. The settings now wait until the screen is ready and then open.
+
+* **Instagram:** View stories anonymously has a new switch, Gray out stories you've watched. It starts off, so a story you watch keeps its colored ring as it does now. Turn it on and a watched story turns gray and moves to the end of the row on your phone, while Instagram still isn't told you watched it. Asked for in #113 and on #92.
+
+* **Instagram:** Sanitize sharing links now also cleans a link that's copied to the clipboard as a link item rather than as text, which kept its share id before. Thanks to @Aholicknight, who spotted it and sent the approach in #107.
+
+* **Instagram:** With Hide suggested posts on, Home no longer sits on gray loading boxes after you switch to an account whose Home is all suggestions, such as a new account that follows nobody. Home used to remember every post it had kept since Instagram started, so the first account's posts kept it from ending. Now only Home's latest load counts. Reported in #104 and #105.
+
+* **Tooling:** The Instagram internals reference now includes measured network traffic, background activity and unplugged battery discharge, with exact installed-build evidence and the limits of each measurement. The observation uses an installation reporting HushGram 0.0.5 and does not establish savings against stock or validate the current release.
+
+* **Instagram:** Messages and notices are plainer too. Import and export results, save progress, the sign-in notice and the Developer page now say what happened and what to do next, without terms like "flag" or "cache". All six languages were updated.
+
+* **Instagram:** The rows in HushGram settings now explain themselves in plain English. Each summary says what you'll notice and, where it matters, to restart Instagram to see the change. The German, Spanish, Indonesian, Brazilian Portuguese, Turkish and Korean text was updated to match.
+
+* **Instagram:** Every patch description in Morphe Manager is rewritten in plain English. Each one says what changes, why you might want it, and ends with where its switch is, or that it works with no switch.
+
+* **Instagram:** Morphe Manager's simple mode now picks 75 of the 79 patches, so you don't need Expert mode to get a feature. Every patch with a switch in HushGram settings is in, and one that comes in this way changes nothing until you turn its switch on. The 25 that joined are Clean up Reels, Don't send reel watch history, Download any video, Hide group buttons on the share sheet, Hide Reels in the feed, Hide suggested accounts in Reels, Hide suggested people on profiles, Hide that you're typing, Hide the Explore grid, Hide the Reels tab, Hide the Repost button, Keep a seek bar on Reels, Keep Reels auto scroll on, Loop a story, Read messages without the seen receipt, Remove the empty space at the bottom, See who a story mentions, Show a post's exact time, Show a story's exact time, Spoof location, Start Home on Following, Stop Story auto-advance, Tap to play, Turn off double tap to like and View stories anonymously. Change version code, Open developer options, Pure black dark mode and View DM photos and videos anonymously stay out, and the README says why.
+
+* **Instagram:** Coming from an earlier build, 24 switches start off now where they used to start on once you picked their patch. Under Feed, Start Home on Following and Show a post's exact time. Under Explore, Hide the Explore grid. Under Reels, Hide Reels in the feed, Hide suggested accounts, Hide the Follow button, Hide creation and promotion pills, Hide friends' activity and comment previews, Don't send reel watch history, Turn off double tap to like, Hide the Reels tab, Keep a seek bar and Keep auto scroll on. Under Stories, Stop Story auto-advance, Loop a story, Show a story's exact time, See who a story mentions and View stories anonymously. Under Playback, Tap to play. Under Sharing, Hide group buttons and Hide the Repost button. Under Profiles, Hide suggested people. Under Layout, Remove the empty space at the bottom. Under Downloads, Download feed videos. If you used one and never changed its switch, turn it on again in HushGram settings, or import a settings backup you exported before updating. A switch you'd set yourself keeps your choice.
+
+* **Instagram:** Each patch's description in Morphe Manager now says where its switch is in HushGram settings and whether it starts on or off, and the install steps end with opening HushGram settings to turn on what you want.
+
+* **Instagram:** Expert mode groups the patches under 15 headings instead of 8, so Interface no longer holds 43 of them. The new ones are Ghost mode, Messages, Stories, Reels, Playback, Interaction and Profiles, and most match a section in HushGram settings.
+
 * **Instagram:** Download any story now also looks at the type a story was posted as before it picks the menu's rows, the way Instagram's own story viewer tells a photo story with music from a filmed video. Instagram sends most photo stories with music as a video, and only some of them carry the flag the menu checked until now, so the rest got a single Download that saved the video. A story posted as a photo that arrives as a video gets Download as video and Download as photo. Plain photo and video stories keep their one Download, and the diagnostic report counts which kind of story each menu was for. Reported in #98.
 
 * **Tooling:** The push gate, the release receipt, the dependency audit and the all-patches check wait their turn in the machine's build queue now, when it has one, instead of starting Gradle or the patcher straight away. The gate holds one slot from its first build to its last patch run, and a push made with `HUSHGRAM_ALLOW_RELEASE=1` goes ahead of everyday builds in the line. `BUILD_QUEUE_SCRIPT` names the queue and `HUSHGRAM_BUILD_WRAPPER` the script that runs Gradle. Without them the scripts run as they did before and say so.
@@ -25,6 +71,8 @@ Every HushGram release, newest first.
 * **Tooling:** A push that changes a PowerShell script has every tracked script parsed before anything else runs, and a script that doesn't parse stops the push. Most of them run only for a release or with a phone, so a slip such as a variable name run into a colon used to surface there first.
 
 * **Instagram:** Sanitize sharing links now also takes off the share id Instagram began adding to copied post, reel and profile links under a different short name each time, such as ?obrf= or ?mdxt=. Every other part of the link stays as Instagram wrote it.
+
+* **Instagram:** README's Troubleshooting has a section for an Instagram that feels slow right after a Root Mount install. Android's compiled copy of the app was made from Meta's code, so it's thrown out and Instagram runs uncompiled until it's compiled again, and the section gives the root shell command that does it straight away.
 
 ## 0.0.7 (2026-10-08)
 

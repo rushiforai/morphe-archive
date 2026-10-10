@@ -528,8 +528,8 @@ public class SettingsL10nTest {
      * try can end.
      */
     private static void addReleaseCheckText(Set<String> shown) {
-        shown.add(ReleaseCheck.statusLine("0.2.0", "451.0.0.40.70", "0.1.8", "449.0.0.54.82"));
-        shown.add(ReleaseCheck.statusLine("0.1.8", "449.0.0.54.82", "0.1.8", "447.0.0.50.72"));
+        shown.add(ReleaseCheck.statusLine("0.2.0", "451.0.0.40.70", "0.1.8", "450.0.0.51.78"));
+        shown.add(ReleaseCheck.statusLine("0.1.8", "450.0.0.51.78", "0.1.8", "449.0.0.54.82"));
         shown.add(ReleaseCheck.checkingSummary());
         shown.add(ReleaseCheck.idleSummary());
         for (ReleaseCheck.Result result : ReleaseCheck.Result.values()) {

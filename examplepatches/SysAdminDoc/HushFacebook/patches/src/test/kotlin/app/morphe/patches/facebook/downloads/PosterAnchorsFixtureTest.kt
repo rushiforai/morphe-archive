@@ -5,8 +5,8 @@
 package app.morphe.patches.facebook.downloads
 
 import app.morphe.Fixtures
+import app.morphe.patches.facebook.downloads.reel.isSidebarBuilder
 import app.morphe.patches.facebook.feed.FixtureDex
-import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -166,11 +166,12 @@ class PosterAnchorsFixtureTest {
             for (bundle in bundles(version)) {
                 val name = bundle.name
                 val builders = FixtureDex.classesHolding(bundle, SIDEBAR).flatMap { classDef ->
-                    classDef.methods.filter { holdsString(it, SIDEBAR) && it.parameterTypes.size == 1 && callsButtonFactory(it) }
+                    classDef.methods.filter(::isSidebarBuilder)
                         .map { classDef to it }
                 }
                 assertEquals("$name: sidebar builders ${builders.map { "${it.first.type}->${it.second.name}" }}", 1, builders.size)
                 val (component, builder) = builders.single()
+                assertEquals("$name: the sidebar builder's parameters", 1, builder.parameterTypes.size)
 
                 val instructions = builder.implementation!!.instructions.toList()
                 val assemblyIndex = instructions.indexOfFirst { instruction ->
@@ -252,10 +253,6 @@ class PosterAnchorsFixtureTest {
     private fun calls(method: Method): List<MethodReference> =
         method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty()
 
-    private fun callsButtonFactory(method: Method) = calls(method).any { reference ->
-        reference.parameterTypes.count { it.toString() == FUNCTION1 } == 4 &&
-            reference.parameterTypes.firstOrNull()?.toString() == FB_USER_SESSION
-    }
 
     private companion object {
         const val TREE_JNI = "Lcom/facebook/graphservice/tree/TreeJNI;"
@@ -264,7 +261,6 @@ class PosterAnchorsFixtureTest {
         const val STORY_CARD = "Lcom/facebook/stories/model/StoryCard;"
         const val REGULAR_STORY_CARD = "Lcom/facebook/audience/snacks/model/RegularStoryCard;"
         const val FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;"
-        const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
         const val ARRAY_LIST = "Ljava/util/ArrayList;"
         const val SIDEBAR = "UDDSideBarComponent"
 

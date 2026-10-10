@@ -34,14 +34,20 @@ import java.io.File
  * and skips without it.
  */
 class HideFeedsHeaderFixtureTest {
-    /** Each declared build's container type, the controller's type, and the controller's register. */
+    /** Each declared build's container type, the controller's type, and the controller's register, by ABI. */
     private val expected = mapOf(
-        "581.0.0.45.58" to Triple("LX/3vh;", "LX/a5t;", 5),
+        "582.0.0.50.54" to mapOf(
+            "arm64-v8a" to Triple("LX/22S;", "LX/eOR;", 5),
+            "armeabi-v7a" to Triple("LX/231;", "LX/ng5;", 5),
+        ),
     )
 
-    /** Each declared build's container controller and the runnable it posts with whether the filters show. */
+    /** Each declared build's container controller and the runnable it posts with whether the filters show, by ABI. */
     private val room = mapOf(
-        "581.0.0.45.58" to ("LX/asB;" to "LX/b6e;"),
+        "582.0.0.50.54" to mapOf(
+            "arm64-v8a" to ("LX/fBx;" to "LX/fU7;"),
+            "armeabi-v7a" to ("LX/c1X;" to "LX/cGY;"),
+        ),
     )
 
     private val frameInit = "Landroid/widget/FrameLayout;-><init>(Landroid/content/Context;)V"
@@ -62,7 +68,8 @@ class HideFeedsHeaderFixtureTest {
         for ((version, bundles) in declaredBundles()) {
             for (bundle in bundles) {
                 val name = bundle.name
-                val (containerController, runnable) = room.getValue(version)
+                val abi = name.substringAfter("-$version-").substringBefore(".apkm")
+                val (containerController, runnable) = room.getValue(version).getValue(abi)
                 val read = FixtureDex.classes(bundle, setOf(FEED_FILTERS_FRAGMENT, containerController))
                 val fragment = read[FEED_FILTERS_FRAGMENT]
                 assertNotNull("$name: no $FEED_FILTERS_FRAGMENT", fragment)
@@ -82,7 +89,7 @@ class HideFeedsHeaderFixtureTest {
                 val answers = navBarAnswers(fragment)
                 assertEquals("$name: the question's returns", listOf(7 to 0, 9 to 0), answers.returns)
                 val handOver = filtersHandOver(fragment)
-                val (type, controller, register) = expected.getValue(version)
+                val (type, controller, register) = expected.getValue(version).getValue(abi)
                 val original = handOver.method.code()
                 assertEquals("$name: the container's type", type, handOver.type)
                 assertEquals("$name: the controller made", controller, original[handOver.index].reference)

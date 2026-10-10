@@ -14,6 +14,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.media.taptoplay.isEnumNaming
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
@@ -39,8 +40,9 @@ internal const val MUSE_DISMISSED = "$EXTENSION_PACKAGE/menu/MuseCard;->dismisse
 @Suppress("unused")
 val hideMenuPromotionsPatch = bytecodePatch(
     name = "Hide Menu promotions",
-    description = "Hides the Upgrades and Also from Meta sections of Facebook's Menu, and its Muse card. " +
-        "Each has its own switch. Settings, Help and support, your shortcuts and the rest of the Menu stay.",
+    description = "Hides the Upgrades and Also from Meta sections and the Muse card in Facebook's Menu, so the " +
+        "Menu has fewer ads for Meta's products. Settings, Help and your shortcuts stay. On by default. Turn it " +
+        "off in Hushfacebook settings > Menu.",
     default = true,
 ) {
     category("Interface")
@@ -90,7 +92,9 @@ private fun BytecodePatchContext.single(string: String, what: String, wanted: (M
         ?: throw PatchException("$PATCH: expected one $what loading \"$string\", found ${found.size}")
 }
 
-private fun children(method: Method): ChildrenList = childrenList(method) ?: throw PatchException(
+private fun BytecodePatchContext.children(method: Method): ChildrenList = childrenList(method) { call ->
+    classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) }
+} ?: throw PatchException(
     "$PATCH: ${method.definingClass}->${method.name} doesn't read its children from one list it builds",
 )
 

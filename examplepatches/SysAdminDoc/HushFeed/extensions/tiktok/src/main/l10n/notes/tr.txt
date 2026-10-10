@@ -1,10 +1,64 @@
 ## Unreleased
 
+* **TikTok:** Bir yedeği geri yüklemek artık Ağ proxy'sini açmıyor ya da zaten olan proxy adresini değiştirmiyor, böylece başkasının hazırladığı bir yedek TikTok trafiğini kendi sunucusundan geçiremez. Henüz proxy kurulmamış bir telefonda adres anahtar kapalı olarak geliyor ve geri yüklemeden sonra bir not bunu söylüyor.
+
+* **TikTok:** Bu dilleri otomatik çevirme artık zh-Hant, zh-TW, zh-HK veya zh-MO yazdığında Geleneksel Çince'yi yazıldığı gibi bırakıyor, zh-Hans-TW ise yine Basitleştirilmiş Çince anlamına geliyor. Önceden bu girişler bunun yerine Basitleştirilmiş Çince'yi koruyordu (#121).
+
+* **TikTok:** Hide feed LIVE button artık yan menü düğmesinin bulunamadığı bir TikTok sürümüne de uygulanıyor. O kısım atlanıyor ve Yan menü düğmesini gizle satırı yalnızca düğme bulunduysa görünüyor (#128).
+
+* **TikTok:** Ayarlarda arama artık Derleme ayrıntıları ve Yenilikler'i buluyor. Feature Gate Lab ve Lisanslar gibi bazı sonuçlar artık bulundukları grubu gösteriyor, yalnızca noktalama işaretlerinden oluşan bir arama ise Eşleşen ayar yok diyor.
+
+* **TikTok:** Hushfeed ayarlarının altında çıkan bildirim artık dokununca kapanıyor ve dokunuş altındaki ayara gitmiyor. TalkBack bu eylemi Kapat olarak okuyor.
+
+* **TikTok:** Duraklat artık açıkken neyin kaldığını sade bir dille anlatıyor. Ayarların kayıtlı kalır, yamalarken yapılan değişiklikler de kalır, uygulamanın adı ya da simgesi gibi. TikTok'un Auto scroll özelliği de artık her satırda aynı yazılıyor.
+
+* **TikTok:** Akış filtresi ve Yorumlar'daki dil listeleri artık en,,es gibi fazladan bir virgülü kabul ediyor. Önceden liste, mesajda boş bir adla reddediliyordu.
+
+* **TikTok:** Derleme ayrıntılarını kopyalama başarısız olursa, mesaj artık Derleme ayrıntılarını kaydet seçeneğini kullanmanı söylüyor.
+
+* **TikTok:** Yenilikler artık ayar adlarının etrafında fazladan ters tırnak göstermiyor.
+
+* **TikTok:** Bir seriyi sürdür altındaki Ne zaman gönderilsin için saat seçici artık Hushfeed ayarlarına uyarak koyu ya da açık açılıyor.
+
+## 0.70.0 (2026-10-09)
+
+* **TikTok:** İçerik üreticisinin ad boyutu artık adın yanındaki paylaşım tarihini de boyutlandırıyor, böylece ikisi aynı boyutta kalıyor (#66).
+
+* **TikTok:** Yorum ayarlarında yeni bir satır var, Bu dilleri otomatik çevirme. Sen doldurana kadar boştur (#121). `es, de` gibi dil kodları yaz, TikTok senin için çevirdiğinde bu dillerdeki açıklamalar ve yorumlar yazıldığı gibi kalır. Çeviriyi gör'e dokunduğunda yine çalışır, TikTok'un kendi Çevirme listesi ise değişmez.
+
+* **TikTok:** Çevrimdışı videoları sen silene kadar tut artık TikTok'un listeni boşalttığı iki yolu daha kapsıyor. Anahtar açıkken TikTok'un Auto adjust özelliği TikTok açılırken çevrimdışı video sınırını düşürmez ve listeyi kırpmaz, TikTok'un çevrimdışı videoları varsayılan olarak açan denemesi bittiğinde yaptığı temizlik de atlanır (#123). Anahtarı değiştirdikten sonra TikTok'u yeniden başlat.
+
+* **TikTok:** TikTok'un eski bir sürümünde alınmış ayar yedeğini geri yüklediğinde, bu sürüme hâlâ uyan Feature Gate Lab geçersiz kılmaları artık geri geliyor. Uymayanlar saklanıyor ama kapalı hâlde.
+
+* **TikTok:** Akış ekranının yeni bir anahtarı var, Yan menü düğmesini gizle, sen açana kadar kapalı. Akışın sol üst köşesinde LIVE'ın yanında duran ve TikTok'un Siparişlerin, TikTok Minis ve daha fazlasını içeren yan menüsünü açan düğmeyi kaldırır. Değiştirdikten sonra TikTok'u yeniden başlat (#128).
+
+* **TikTok:** Morphe Manager'daki tüm yama açıklamaları sade bir İngilizceyle yeniden yazıldı. Artık her biri yamanın neyi değiştirdiğini, onu neden isteyebileceğini, düğmesinin açık mı kapalı mı başladığını ve Hushfeed ayarlarında nerede olduğunu söylüyor. Bazı yama seçenekleri de daha anlaşılır oldu ve Skip push setup artık Skip notification setup adını taşıyor.
+
+* **TikTok:** Hushfeed ayarlarındaki satırlar sade İngilizceyle yeniden yazıldı. Privacy, Comments, Downloads, Feed filter, Screen time, Region ve diğer sayfalar artık teknik terimler olmadan her anahtarın ne yaptığını ve neyi fark edeceğini söylüyor. Birkaç başlık da değişti, örneğin Stop TikTok's speed tests ve Clean up shared links.
+
+* **TikTok:** Birkaç mesaj ve durum satırı da daha sade oldu, örneğin Ghost mode durumu, Hook status açıklaması, proxy parolası bildirimi ve dosya adı önizlemesi.
+
+* **TikTok:** Morphe Manager'daki Dark background color seçeneği artık "onaltılık kod" yerine "renk kodu" diyor ve siyahın OLED ekranlarda bu pikselleri tamamen kapattığını açıklıyor.
+
+* **TikTok:** Hushfeed ayarları artık yedi grubun üzerinde küçük bir durum göstergesi ve aramayla açılıyor. İlgili sayfalar bir arada. Yedekler, tanılama ve Feature Gate Lab, Uygulama ve gelişmiş ayarlar altında. Hushfeed hakkında bölümünde derleme ayrıntıları ve lisanslar bir arada. Arama yine doğrudan ayara götürüyor ve kayıtlı seçimlerin korunuyor. Duraklatma açıklaması artık kayıtlı ayarların ve APK'ya işlenmiş değişikliklerin kaldığını açıklıyor.
+
 * **TikTok:** Hushfeed artık yalnızca TikTok 47.1.4'ü destekliyor. 47.0.3 veya 47.1.3 kullanıyorsan 47.1.4 APK'sını APKMirror'dan indir ve Morphe Manager'da aynı imza anahtarıyla yamala, böylece oturumun ve ayarların korunur. Feature Gate Lab, düğmesi 47.1.4'te hâlâ bulunan her geçersiz kılmayı korur ve gerisini her zamanki bildirimiyle kapatır.
 
 * **TikTok:** Özel çevrimdışı video sınırının Hushfeed ayarları > İndirilenler altında yeni bir anahtarı var, Çevrimdışı videoları sen silene kadar tut. Sen açana kadar kapalı (#123). TikTok, çevrimdışı izlemek için kaydettiği videoları belirli bir süre sonra, bazen yalnızca iki gün sonra atar ve tek seferde kaydedilen bir liste de tek seferde kaybolur, izlenmiş olsun olmasın. Anahtar açıkken videolar, sen TikTok'un Çevrimdışı videolar ayarlarından silene kadar kalır, yeni bir set almanın yolu da bu. Telefonunda yer azaldığında TikTok izlediğin videoları yine de silebilir, daha düşük bir sınır seçmek de listeyi yine kısaltır. Çevrimdışı video sınırının altındaki depolama satırına göz kulak ol. Anahtar, TikTok'un bir sonraki açılışında devreye girer.
 
 * **TikTok:** Profil kısayollarını gizle'nin Uygulama altında yeni bir anahtarı var, Profillerde Thoughts'u gizle, sen açana kadar kapalı (#122). TikTok'un bir profil fotoğrafının üstüne koyduğu Thoughts balonunu ve kendi profilinde bir tane paylaşma önerisini gizler. Değiştirdikten sonra TikTok'u yeniden başlat.
+
+* **TikTok:** Ekran görüntüsüne ve Circle to Search'e izin ver artık güvenli pencere işaretini, bunu kendi pencere ayarlarında koyan açılır pencerelerden ve kayan pencerelerden de kaldırıyor, örneğin TikTok'un Compose açılır pencerelerinden. Bunlar ekrana yamanın zaten değiştirdiği pencere çağrılarından geçmeden ulaşıyordu, bu yüzden ekran görüntülerinde ve ekran kayıtlarında hâlâ siyah görünebiliyorlardı. Fikir, icysymmetra'nın TikTok yamalarından geliyor.
+
+* **TikTok:** Tanılama'nın yeni bir satırı var, Akışı kaydet. Göstermesi anlatmasından kolay olan akış sorunları için. Ona dokun, sorun görünene kadar kaydır, sonra geri gelip yeniden dokun, Hushfeed de Download/Hushfeed klasörüne bir metin dosyası kaydeder. Dosyada akış filtrelerinin kayıt sırasında işlediği her video grubu için bir satır var, her videonun sonucu ve onu gizleyen kuralla birlikte. Videolar ve içerik üreticileri yalnızca her kayıt için yeniden oluşturulan kısa kodlarla görünür, dosyada da altyazı, ad, kullanıcı adı veya web adresi yok. Yine de paylaşmadan önce oku. Sen bir kayıt başlatana kadar hiçbir şey kaydedilmez. Fikir, icysymmetra'nın TikTok yamalarından geliyor.
+
+* **TikTok:** Temiz ekran kontrollerini gizle açıklaması artık Temiz ekrandan çıkmanın bir başka yolu olarak ekranı iki parmakla kıstırmayı da anıyor (#84).
+
+* **TikTok:** Bazı anahtarlar artık Hushfeed'in diğer anahtarları gibi kapalı başlıyor, çünkü yamaları varsayılan seçime giriyor. Bu yamalardan birini daha önce seçtiysen ve çalışmaya devam etmesini istiyorsan, güncellemeden sonra anahtarını yeniden aç. Gizlilik altında bunlar Kişi listesine erişimi engelle, Yüklü uygulama taramasını engelle, Konumu engelle, Pano okumalarını engelle, Hareket sensörlerini engelle, Yeni aramaları kaydetme ve Kamera veya mikrofon kullanılırken göster. Yorumlar altında Aşağı başparmak yorumu yazanı engeller, Yorumlardaki bağlantıların açılacağı yer ve Yorumlardaki açılır reklamları gizle, Uygulama altında ise Dokunsal titreşimi kapat ve Ekran geçişlerini kapat.
+
+* **TikTok:** Morphe Manager'ın basit modu artık Hushfeed'in 130 yamasından 55 yerine 107'sini seçiyor, yani çoğu için artık uzman moduna gerek yok. Yeni seçilen yamaların eklediği her anahtar kapalı başlıyor ve sen Hushfeed ayarlarında bir şeyi açana kadar TikTok geldiği gibi görünüp çalışıyor. Kalan 23 yama yine uzman modundan seçiliyor ve README'deki Patches bölümü her birini neden dışarıda kaldığıyla birlikte listeliyor. Her yamanın açıklaması artık anahtarının nerede olduğunu ve kapalı başladığını söylüyor.
+
+* **TikTok:** Morphe Manager'da TikTok'un görünüşünü değiştiren yamalar için yeni bir Interface grubu var. AMOLED koyu tema, Sistem yazı tipini kullan ve Ekran geçişlerini kapat oraya Performance'tan, Uygulama adını değiştir, Özel başlatıcı simgesi ve Başlatıcı kısayollarını gizle Settings'ten, Akış metin boyutları da Interaction'dan taşındı.
 
 ## 0.69.0 (2026-10-08)
 

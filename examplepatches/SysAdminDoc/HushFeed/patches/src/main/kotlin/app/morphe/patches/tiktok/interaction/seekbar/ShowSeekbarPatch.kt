@@ -67,7 +67,9 @@ internal fun MutableMethod.hookSeekbarTypeRefresh() {
 @Suppress("unused")
 val showSeekbarPatch = bytecodePatch(
     name = "Show the progress bar",
-    description = "Shows TikTok's native video seekbar where it would normally be hidden, including when one of TikTok's experiments takes it off every video but paid content. Switch: Hushfeed settings > Playback.",
+    description = "Shows the progress bar on videos where TikTok hides it, so you can see how " +
+        "long a video is and skip around. On by default. Turn it off in Hushfeed settings > " +
+        "Playback.",
     default = true,
 ) {
     category("Playback")
@@ -127,7 +129,8 @@ val showSeekbarPatch = bytecodePatch(
 @Suppress("unused")
 val showSeekbarThumbnailPatch = bytecodePatch(
     name = "Show the progress bar thumbnail",
-    description = "Shows TikTok's video preview thumbnail while dragging the seekbar.",
+    description = "Shows a small preview picture while you drag the progress bar, so you can " +
+        "find the part you want. On by default. Turn it off in Hushfeed settings > Playback.",
     default = true,
 ) {
     category("Playback")

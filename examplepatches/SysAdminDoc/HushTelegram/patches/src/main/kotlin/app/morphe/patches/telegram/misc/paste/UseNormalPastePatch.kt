@@ -26,10 +26,11 @@ private const val HTML = "Landroid/content/ClipData\$Item;->getHtmlText()Ljava/l
 @Suppress("unused")
 val useNormalPastePatch = bytecodePatch(
     name = "Use normal paste",
-    description = "Adds a switch, off by default, that pastes text with Android's plain-text action. Whitespace and URLs stay intact without Telegram's HTML, table or monospace conversion. Other clipboard actions stay available.",
+    description = "Pastes text exactly as you copied it, without Telegram adding formatting, tables or code styling. " +
+        "Starts off. Turn it on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

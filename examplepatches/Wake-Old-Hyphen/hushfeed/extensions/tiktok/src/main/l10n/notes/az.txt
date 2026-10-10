@@ -1,10 +1,44 @@
 ## Unreleased
 
+* **TikTok:** Şərhlər ayarlarında yeni sıra var, Bu dilləri avtomatik tərcümə etməyin. Siz doldurmayana qədər boşdur (#121). `es, de` kimi dil kodları yazın, TikTok sizin yerinizə tərcümə edəndə bu dillərdəki başlıqlar və şərhlər yazıldığı kimi qalır. Tərcüməyə bax toxunanda yenə işləyir, TikTok-un öz Tərcümə etmə siyahısı isə dəyişmir.
+
+* **TikTok:** Oflayn videoları siz silənə qədər saxlayın indi TikTok-un siyahını təmizlədiyi daha iki yolu əhatə edir. Açar aktiv olanda TikTok-un Auto adjust funksiyası TikTok açılanda oflayn video limitini azaltmır və siyahını kəsmir, oflayn videoları standart olaraq aktiv edən sınaq bitəndə TikTok-un işlətdiyi təmizləmə isə atlanır (#123). Açarı dəyişdikdən sonra TikTok-u yenidən başlat.
+
+* **TikTok:** Köhnə TikTok versiyasında hazırlanmış ayarlar ehtiyat nüsxəsini bərpa etdikdə, bu versiyaya hələ də uyğun gələn Feature Gate Lab əvəzləmələri geri qayıdır. Uyğun gəlməyənlər saxlanılır, amma söndürülür.
+
+* **TikTok:** Lent ekranında yeni açar var, Yan menyu düyməsini gizlədin, siz yandırana qədər söndürülü qalır. O, lentin yuxarı sol küncündə LIVE-ın yanındakı, TikTok-un Your orders, TikTok Minis və başqalarının olduğu yan menyusunu açan düyməni götürür. Dəyişdirdikdən sonra TikTok-u yenidən başladın (#128).
+
+* **TikTok:** Morphe Manager-dəki bütün yamaq təsvirləri sadə ingilis dilində yenidən yazılıb. İndi hər biri yamağın nəyi dəyişdiyini, onu niyə istəyə biləcəyini, açarının açıq və ya bağlı başladığını və Hushfeed ayarlarında harada olduğunu deyir. Bəzi yamaq seçimləri də daha aydın yazılıb, Skip push setup isə indi Skip notification setup adlanır.
+
+* **TikTok:** Hushfeed ayarlarındakı sətirlər sadə ingiliscə ilə yenidən yazıldı. Privacy, Comments, Downloads, Feed filter, Screen time, Region və digər səhifələr indi texniki terminlər olmadan hər açarın nə etdiyini və nəyi hiss edəcəyinizi deyir. Bir neçə başlıq da dəyişdi, məsələn Stop TikTok's speed tests və Clean up shared links.
+
+* **TikTok:** Bir neçə mesaj və status sətri də sadələşdirildi, məsələn Ghost mode statusu, Hook status izahı, proksi parolu bildirişi və fayl adı önbaxışı.
+
+* **TikTok:** Morphe Manager-dəki Dark background color seçimi indi "hex kod" əvəzinə "rəng kodu" deyir və qaranın OLED ekranlarda həmin pikselləri tamamilə söndürdüyünü izah edir.
+
+## 0.70.1 (2026-10-09)
+
+* **TikTok:** Hushfeed ayarları indi yeddi qrupun üstündə yığcam status və axtarışla açılır. Əlaqəli səhifələr bir yerdədir, ehtiyat nüsxələr, diaqnostika və Feature Gate Lab isə Tətbiq və əlavə ayarlar bölməsindədir. Hushfeed haqqında bölməsində quruluş məlumatları və lisenziyalar bir yerdədir. Axtarış sizi yenə birbaşa ayara aparır və saxlanmış seçimləriniz qorunur. Dayandırma mətni indi saxlanmış ayarların və APK-ya daxil edilmiş dəyişikliklərin qaldığını izah edir.
+
+## 0.70.0 (2026-10-09)
+
 * **TikTok:** Hushfeed indi yalnız TikTok 47.1.4-ü dəstəkləyir. 47.0.3 və ya 47.1.3 istifadə edirsənsə, 47.1.4 APK-sını APKMirror-dan endir və Morphe Manager-də eyni imza açarı ilə yamala ki, girişin və ayarların qalsın. Feature Gate Lab 47.1.4-də hələ də olan açarların dəyişikliklərini saxlayır, qalanlarını isə adi bildirişi ilə söndürür.
 
 * **TikTok:** Fərdi oflayn videolar limitinin Hushfeed ayarları > Endirmələr bölməsində yeni açarı var, Oflayn videoları siz silənə qədər saxlayın. Siz yandırana qədər söndürülüdür (#123). TikTok oflayn baxış üçün saxladığı videoları müəyyən vaxtdan sonra, bəzən cəmi iki gündən sonra atır və bir dəfəyə saxlanan siyahı da bir dəfəyə yox olur, baxılıb-baxılmamasından asılı olmayaraq. Açar yanılı olanda onlar siz TikTok-un Oflayn videolar ayarlarında silənə qədər qalır, yeni dəst almağın yolu da budur. Telefonunuzda yer azalanda TikTok baxdığınız videoları yenə də silə bilər, daha aşağı limit seçmək də siyahını yenə qısaldır. Oflayn videolar limitinin altındakı yaddaş sətrinə göz qoyun. Açar TikTok növbəti dəfə açılanda işə düşür.
 
 * **TikTok:** Profil qısayollarını gizlədin üçün Tətbiq altında yeni açar var, Profillərdə Thoughts-u gizlədin, siz yandırana qədər söndürülü qalır (#122). O, TikTok-un profil şəklinin üstünə qoyduğu Thoughts balonunu, öz profilinizdə isə onu paylaşmaq təklifini gizlədir. Dəyişdirdikdən sonra TikTok-u yenidən başladın.
+
+* **TikTok:** Ekran görüntülərinə və Circle to Search-ə icazə verin indi təhlükəsiz pəncərə işarəsini onu öz pəncərə ayarlarında qoyan açılan və üzən pəncərələrdən də götürür, məsələn TikTok-un Compose açılan pəncərələrindən. Onlar ekrana yamanın artıq dəyişdiyi pəncərə çağırışlarından keçmədən çatırdı, ona görə ekran görüntülərində və ekran yazılarında hələ də qara görünə bilirdilər. İdeya icysymmetra-nın TikTok yamalarından gəlir.
+
+* **TikTok:** Diaqnostika bölməsində yeni sətir var, Lenti qeydə alın. Göstərmək təsvir etməkdən asan olan lent problemləri üçündür. Ona toxunun, problem görünənə qədər sürüşdürün, sonra geri qayıdıb yenidən toxunun və Hushfeed Download/Hushfeed qovluğuna mətn faylı saxlayır. Faylda lent filtrlərinin qeyd zamanı işlədiyi hər video dəsti üçün bir sətir var, hər videonun nəticəsi və onu gizlədən qayda ilə birlikdə. Videolar və yaradıcılar yalnız hər qeyd üçün yenidən yaradılan qısa kodlarla görünür, faylda başlıqlar, adlar, istifadəçi adları və ya veb ünvanlar olmur. Yenə də paylaşmazdan əvvəl onu oxuyun. Siz qeydi başladana qədər heç nə qeyd edilmir. İdeya icysymmetra-nın TikTok yamalarından gəlir.
+
+* **TikTok:** Təmiz ekran idarəetmələrini gizlədin açarının təsviri indi Təmiz ekrandan çıxmağın başqa yolu kimi ekranı iki barmaqla sıxmağı da qeyd edir (#84).
+
+* **TikTok:** Bir neçə açar indi Hushfeed-in digər açarları kimi söndürülmüş başlayır, çünki onların yamaları susmaya görə seçimə daxil olur. Bu yamalardan birini əvvəl seçmisinizsə və işləməyə davam etməsini istəyirsinizsə, yenilədikdən sonra onun açarını yenidən yandırın. Məxfilik altında bunlar Kontakt siyahısına girişi bloklayın, Quraşdırılmış tətbiqlərin skanını bloklayın, Məkanı bloklayın, Mübadilə buferinin oxunmasını bloklayın, Hərəkət sensorlarını bloklayın, Yeni axtarışları saxlamayın və Kamera və ya mikrofon istifadə olunanda göstərin açarlarıdır. Şərhlər altında Bəyənməmə şərh yazanı bloklayır, Şərhlərdəki keçidlər açılır və Şərh pəncərəsi reklamlarını gizlədin, Tətbiq altında isə Haptik titrəməni söndürün və Ekran keçidlərini söndürün.
+
+* **TikTok:** Morphe Manager-in sadə rejimi indi Hushfeed-in 130 yamasından 55 əvəzinə 107-sini seçir, ona görə də onların çoxu üçün artıq ekspert rejimi lazım deyil. Yeni seçilən yamaların əlavə etdiyi hər açar söndürülmüş başlayır və siz Hushfeed ayarlarında nəyisə yandırana qədər TikTok olduğu kimi görünür və işləyir. Qalan 23 yama yenə ekspert rejimindən seçilir, README-dəki Patches bölməsi isə hər birini kənarda qalma səbəbi ilə sadalayır. Hər yamanın təsviri indi açarının harada olduğunu və söndürülmüş başladığını deyir.
+
+* **TikTok:** Morphe Manager-də TikTok-un görünüşünü dəyişən yamalar üçün yeni Interface qrupu var. AMOLED qaranlıq mövzu, Sistem şriftindən istifadə edin və Ekran keçidlərini söndürün ora Performance qrupundan, Tətbiqin adını dəyişin, Fərdi başladıcı ikonu və Başladıcı qısayollarını gizlədin Settings qrupundan, Lent mətn ölçüləri isə Interaction qrupundan köçdü.
 
 ## 0.69.0 (2026-10-08)
 

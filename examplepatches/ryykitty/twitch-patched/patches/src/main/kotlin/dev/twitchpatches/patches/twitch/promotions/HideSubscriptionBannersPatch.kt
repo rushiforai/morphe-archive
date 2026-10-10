@@ -17,10 +17,10 @@ private const val BANNER_POLICY = "Ldev/twitchpatches/extension/promotions/Subsc
 @Suppress("unused")
 val hideSubscriptionBannersPatch = bytecodePatch(
     name = "Hide subscription discount banners",
-    description = "Hides subscription offers and promotional labels, while retaining normal subscription actions.",
+    description = "Hides subscription offers, discount banners and promotional labels.",
     default = true,
 ) {
-    compatibleWith(TwitchTarget.candidateCompatibility)
+    compatibleWith(TwitchTarget.compatibility)
     dependsOn(settingsPatch, reactNativeBridgePatch, reactNativeSubscriptionBannersPatch)
     execute {
         val composer = resolveSettingsHooks().composer

@@ -448,11 +448,11 @@ public final class ClipboardLink {
                     }
                 });
             })) {
-                Feedback.show(application, L10n.t(application, "Download failed"), true);
+                Feedback.show(application, L10n.t(application, "Download failed. Try again in a moment."), true);
             }
         } catch (Throwable failure) {
             Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "could not start a copied link's save", failure);
-            Feedback.show(application, L10n.t(application, "Download failed"), true);
+            Feedback.show(application, L10n.t(application, "Download failed. Try again in a moment."), true);
         }
     }
 
@@ -507,7 +507,7 @@ public final class ClipboardLink {
             from.startActivity(view);
         } catch (Throwable failure) {
             Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "could not open a copied link", failure);
-            Feedback.show(application, L10n.t(application, "Download failed"), true);
+            Feedback.show(application, L10n.t(application, "Download failed. Try again in a moment."), true);
         }
     }
 
@@ -556,15 +556,30 @@ public final class ClipboardLink {
         }
     }
 
+    /**
+     * The User-Agent a short link is asked with. Facebook answers Android's own, Dalvik/2.1.0, with
+     * a page about the post and no redirect at all, so every copied share link named no video and
+     * opened in Facebook instead (#103). A plain browser name gets the redirects, from the share
+     * link to the post and on to the video's own page. A full browser's string got 400 Bad Request.
+     */
+    static final String USER_AGENT = "Mozilla/5.0";
+
+    /** The request for [link], not yet sent: one GET that doesn't follow a redirect. */
+    static HttpURLConnection request(String link) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URL(link).openConnection();
+        connection.setInstanceFollowRedirects(false);
+        connection.setConnectTimeout(10_000);
+        connection.setReadTimeout(10_000);
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("User-Agent", USER_AGENT);
+        return connection;
+    }
+
     /** One request for [link], without following it: the address it redirects to, or null. */
     @Nullable
     private static String httpRedirect(String link) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(link).openConnection();
+        HttpURLConnection connection = request(link);
         try {
-            connection.setInstanceFollowRedirects(false);
-            connection.setConnectTimeout(10_000);
-            connection.setReadTimeout(10_000);
-            connection.setRequestMethod("GET");
             int code = connection.getResponseCode();
             return code >= 300 && code < 400 ? connection.getHeaderField("Location") : null;
         } finally {

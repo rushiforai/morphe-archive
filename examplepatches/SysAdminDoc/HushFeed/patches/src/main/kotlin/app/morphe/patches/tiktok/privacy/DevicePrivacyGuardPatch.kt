@@ -189,8 +189,9 @@ private fun BytecodePatchContext.answerReads(
 @Suppress("unused")
 val devicePrivacyGuardPatch = bytecodePatch(
     name = "Device privacy guard",
-    description = "Stops TikTok reading a few things about your device. Blocking what you copied is on by default, and copying a link from TikTok still works. Hiding a VPN connection and handing it a blank advertising id are each a switch you turn on. All of them sit under Hushfeed settings > Privacy.",
-    default = false,
+    description = "Stops TikTok reading what you copied, hides that you're on a VPN, and " +
+        "gives it a blank advertising ID so apps can't match you by it. Each has its own switch. " +
+        "Starts off. Turn it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)

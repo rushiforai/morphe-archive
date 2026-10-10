@@ -52,13 +52,12 @@ internal enum class IconStyle(val key: String, val label: String, val background
 @Suppress("unused")
 val customLauncherIconPatch = resourcePatch(
     name = "Custom launcher icon",
-    description = "Gives TikTok's launcher icon a themed version, so on Android 13 and up it takes " +
-        "your wallpaper's color when themed icons are on. Its options can also swap in a black " +
-        "background or a plain one-color note on Android 8 and up, or put a PNG of your own " +
-        "in the note's place.",
+    description = "Gives TikTok's home screen icon a themed version that takes your " +
+        "wallpaper's color on Android 13 and up. The options can also make it black, plain or " +
+        "your own picture. Only patching again without it puts the old icon back.",
     default = false,
 ) {
-    category("Settings")
+    category("Interface")
     compatibleWith(*AppCompatibilities.tiktok())
     val style by stringOption(
         key = "iconStyle",
@@ -74,10 +73,10 @@ val customLauncherIconPatch = resourcePatch(
         key = "iconPicture",
         default = null,
         title = "Icon picture",
-        description = "The path of a square PNG of your own, from $MIN_PICTURE_SIDE to " +
-            "$MAX_PICTURE_SIDE pixels a side, to show in place of TikTok's note. Launchers cut " +
-            "the icon to their own shape, so keep what matters in the middle two thirds. With a " +
-            "picture the style only sets the color behind it, and the icon has no themed version. " +
+        description = "Where to find a square PNG picture of your own, $MIN_PICTURE_SIDE to " +
+            "$MAX_PICTURE_SIDE pixels on each side, to use instead of TikTok's note. Home screens " +
+            "trim icons to their own shape, so keep what matters in the middle two thirds. With " +
+            "a picture, the style only sets the color behind it and there's no themed icon. " +
             "Leave it empty to keep the note.",
         required = false,
     )

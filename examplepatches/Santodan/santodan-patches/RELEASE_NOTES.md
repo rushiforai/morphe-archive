@@ -1,3 +1,11 @@
+## Pending changes since v0.9.0
+
+- Add **Show merged progress provider**, disabled by default, under **Layout > Santodan-Patches** on beta.4/beta.5. Continue Watching cards display the winning provider's local Trakt, Simkl, MDBList, or Nuvio icon at the bottom-right while merging is enabled.
+- Defer merged refreshes, badge retries, and incremental badge updates during playback on beta.4/beta.5; resume deferred work after leaving playback.
+- Reread Next Up seeds after provider history and alias loading, avoiding publication of pre-refresh seed lists. This addresses a possible stale-data path; it does not yet establish the cause of the reported missing Rage of Bahamut / Virgin Soul card. Restarting did not restore the card in the user's test, but toggling merge off and on did.
+- Add provider snapshot counts and focused show-selection diagnostics under `SantodanMergedProgress`.
+- Local provider identity tests, watched-history checks, original beta.2/beta.4/beta.5 DEX checks, and the patch bundle build passed. The user confirmed provider icons work on device.
+
 # Changes since v0.8.0
 
 ## NuvioTV features

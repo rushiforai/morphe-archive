@@ -586,7 +586,7 @@ public final class FeatureGateLabStore {
                     "feed_long_press_panel_support_all_type:BOOLEAN:true"),
             new Preset("hold_to_speed_up", "TikTok's hold to speed up", CATALOG_BUILDS,
                     "long_press_speed_up_enable:BOOLEAN:true", "long_press_speed_up_lock:INT:120"),
-            new Preset("background_play", "TikTok's background play and auto-scroll", CATALOG_BUILDS,
+            new Preset("background_play", "TikTok's background play and Auto scroll", CATALOG_BUILDS,
                     "background_play_enable:INT:1", "fyp_auto_scroll:INT:1"),
             new Preset("feed_timestamps", "Post dates in the feed", CATALOG_BUILDS,
                     "feed_title_timestamp_trial:STRING:v3"),

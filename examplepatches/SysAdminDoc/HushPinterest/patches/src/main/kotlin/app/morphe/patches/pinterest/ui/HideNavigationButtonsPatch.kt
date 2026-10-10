@@ -27,10 +27,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val hideNavigationButtonsPatch = bytecodePatch(
     name = "Hide navigation buttons",
-    description = "Adds separate switches for the Create, Updates and Search navigation buttons. Home and Profile remain available.",
-    default = false,
+    description = "Lets you hide the Create, Notifications and Search buttons in the bottom bar, each with its own " +
+        "switch. Home and Profile stay. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
-    category("Interface")
+    category("Navigation")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {

@@ -97,10 +97,10 @@ internal fun MutableMethod.skipSetupSteps(step: String) {
 @Suppress("unused")
 val skipFirstLaunchSetupPatch = bytecodePatch(
     name = "Skip first-launch setup",
-    description = "Opens a fresh install on the feed without the interest picker, the language and gender " +
-        "questions, the creators to follow, the swipe up tutorial or TikTok's own notification page in front " +
-        "of it. Consent, age and sign-in screens still show, and so does Android's notification prompt. " +
-        "Its switch starts on once you pick the patch. Switch: Hushfeed settings > App.",
+    description = "Skips TikTok's setup screens on a fresh install, like the interest picker " +
+        "and the swipe tutorial. Sign-in and age screens still show. Its switch is on once " +
+        "picked, since setup runs before you can reach settings. Turn it off in Hushfeed settings " +
+        "> App.",
     default = false,
 ) {
     category("Settings")

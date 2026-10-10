@@ -23,6 +23,8 @@ Preserve register types, parameters, labels, exception handlers and Twitch's sch
 
 Keep preference keys stable and settings limited to selected patches. Use native Twitch layouts and concise labels. Comments should explain a constraint that the code cannot express clearly. Diagnostics use categories and counts.
 
+Every modifying patch must depend on the shared settings integration, which includes notification registration, theme synchronization and DJ playback settings. APK inspection remains read-only.
+
 Retain licenses and attribution when adapting upstream code. Keep originals, decompilations, signing material and run artifacts under `.local/`.
 
 ## Verification

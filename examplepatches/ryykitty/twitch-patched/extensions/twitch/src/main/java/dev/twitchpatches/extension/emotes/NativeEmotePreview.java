@@ -55,7 +55,7 @@ final class NativeEmotePreview {
         content.setPadding(content.getPaddingLeft(), content.getPaddingTop(), content.getPaddingRight(),
                 source.getResources().getDimensionPixelSize(ids[5]));
         name.setText(emote.code);
-        provider.setText(emote.url.startsWith("https://cdn.betterttv.net/") ? "BTTV emote" : "7TV emote");
+        provider.setText(emote.providerLabel() + " emote");
         dialog.setContentView(root);
         dialog.setTitle(emote.code);
         dialog.setOnDismissListener(ignored -> {

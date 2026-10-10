@@ -15,6 +15,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.util.getFreeRegisterProvider
@@ -164,7 +165,9 @@ private fun ClassDef.holdsResultsAndTask(): Boolean {
 @Suppress("unused")
 val commentTranslationPatch = bytecodePatch(
     name = "Translate comments",
-    description = "Adds comment translation controls using TikTok's translation system, with selectable language exclusions. Switch: Hushfeed settings > Comments.",
+    description = "Translates comments as they load, using TikTok's own translator, so you " +
+        "don't have to tap Translate on each one. Starts off. Turn it on in Hushfeed settings > " +
+        "Comments, where a second row lists languages TikTok's automatic translation should leave alone.",
     default = true,
 ) {
     category("Comments")
@@ -271,6 +274,24 @@ val commentTranslationPatch = bytecodePatch(
                 """
                     invoke-static/range {p0 .. p2}, $EXTENSION_CLASS_DESCRIPTOR->onNativeBatchStart(Ljava/lang/Object;Ljava/lang/Object;Z)V
                 """,
+            )
+        }
+
+        // The languages TikTok's automatic translation leaves alone (#121). Required on a declared
+        // build, where DoNotAutoTranslateAnchorsTest holds it, and left out with a note on any
+        // other, so a reworked translation service doesn't take comment translation down with it.
+        val doNotAutoTranslate = try {
+            hookDoNotAutoTranslate()
+            true
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[Translate comments] Left out Don't auto translate on ${packageMetadata.versionName}: ${problem.message}")
+            false
+        }
+        if (doNotAutoTranslate) {
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableDoNotAutoTranslate()V",
             )
         }
 

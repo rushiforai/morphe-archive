@@ -35,9 +35,15 @@ import org.junit.Test
 class ReelsAdPoolTest {
     private val hold = "Lapp/morphe/extension/facebook/ads/ReelsAdFilter;->holdPoolAd()Z"
 
-    /** The pool class and its two vends in each declared build. */
+    /**
+     * The pool class and its two vends in each declared build, then by the bundle's ABI. 581's two
+     * builds shared their names; 582's armeabi-v7a build has its own.
+     */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("LX/5eK;" to listOf("A0H", "A0J")),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to ("LX/6Gg;" to listOf("A0L", "A0N")),
+            "armeabi-v7a" to ("LX/6Hd;" to listOf("A0L", "A0N")),
+        ),
     )
 
     private fun method(
@@ -87,7 +93,8 @@ class ReelsAdPoolTest {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
                 val context = PatchContexts.of(FixtureDex.classesHolding(bundle, POOL_NO_AD))
                 val vends = with(context) { reelsAdPoolVends() }
-                val (pool, names) = expected.getValue(version)
+                val (pool, names) = expected.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+                    ?: throw AssertionError("${bundle.name} has no pin")
                 assertEquals("${bundle.name}: the pool", setOf(pool), vends.map { it.definingClass }.toSet())
                 assertEquals("${bundle.name}: the vends", names, vends.map { it.name }.sorted())
 

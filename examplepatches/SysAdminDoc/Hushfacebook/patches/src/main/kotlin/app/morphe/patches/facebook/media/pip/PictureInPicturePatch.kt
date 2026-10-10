@@ -159,18 +159,17 @@ internal const val HOME_FLAG_ALLOWED = "$PICTURE_IN_PICTURE->homeFlagAllowed(Z)Z
  * Facebook's own code then arms the window for the video on screen, and the rest here treats that
  * arming like any other: a paused video is held by the pause hook.
  *
- * Off in the default selection: it changes what leaving Facebook does. Picked, its switch starts on.
+ * In the default selection with its switch off: it changes what leaving Facebook does.
  */
 @Suppress("unused")
 val pictureInPicturePatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Picture-in-picture",
-    description = "A reel playing in the Reels tab, or a video playing in the Video tab or Facebook's full-screen " +
-        "Watch viewer, keeps going in a small window when you leave Facebook, through the picture-in-picture " +
-        "Facebook already has for them. Needs Android 12 or later.",
-    default = false,
+    description = "Keeps reels and videos from the Reels and Video tabs, or full screen, playing in a small " +
+        "window when you leave Facebook, so you can watch while using another app. Needs Android 12 or later. " +
+        "Starts off. Turn it on in Hushfacebook settings > Playback.",
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
@@ -567,17 +566,11 @@ internal fun BytecodePatchContext.applyViewerId(opening: Method) {
     )
 }
 
-/** Whether [call] is a MobileConfig boolean read: a static (Object, long) -> boolean call on Facebook's reader. */
-internal fun isConfigRead(instruction: Instruction): Boolean {
-    val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
-    return instruction.opcode == Opcode.INVOKE_STATIC && call.definingClass == PIP_MOBILE_CONFIG && call.returnType == "Z" &&
-        call.parameterList() == listOf("Ljava/lang/Object;", "J")
-}
-
 /**
  * Where the Watch topic feed's onResume asks its picture-in-picture flag: the index of the
  * move-result of the last MobileConfig boolean read before its call of [check], when an if-eqz
- * follows it. Changes nothing.
+ * follows it. 581 read it through the reader's static (Object, long) helper, 582 calls the
+ * reader's (long) method on the context itself, so either form counts. Changes nothing.
  */
 internal fun topicFlagAt(onResume: Method, check: Method): Int {
     val code = onResume.implementation?.instructions?.toList().orEmpty()
@@ -587,7 +580,7 @@ internal fun topicFlagAt(onResume: Method, check: Method): Int {
             call.name == check.name && call.parameterList() == listOf(ACTIVITY) && call.returnType == "Z"
     }
     if (asked < 0) return -1
-    val read = (asked - 1 downTo 0).firstOrNull { isConfigRead(code[it]) } ?: return -1
+    val read = (asked - 1 downTo 0).firstOrNull { isFlagRead(code[it]) } ?: return -1
     val result = code.getOrNull(read + 1)
     if (result?.opcode != Opcode.MOVE_RESULT || code.getOrNull(read + 2)?.opcode != Opcode.IF_EQZ) return -1
     return read + 1

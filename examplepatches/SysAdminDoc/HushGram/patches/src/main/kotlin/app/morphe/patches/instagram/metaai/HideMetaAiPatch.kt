@@ -71,13 +71,9 @@ internal val META_AI_UNITS = listOf("VIBES_IN_FEED_UNIT", "HATCH_IMMERSIVE_IN_FE
 @Suppress("unused")
 val hideMetaAiPatch = bytecodePatch(
     name = "Hide Meta AI",
-    description = "Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they " +
-        "search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's " +
-        "top bar and the message composer, hides its optional row in your inbox, and removes Meta AI's posts from your home feed. " +
-        "It can also take About this reel, or only its Ask Meta AI box, out of a reel's More menu, and Meta AI's " +
-        "target out of the share sheet. Search, posts, About this reel, Ask Meta AI and the share sheet have " +
-        "separate switches, and the last three start off. " +
-        "The search switch applies after Instagram restarts.",
+    description = "Removes Meta AI from Instagram's search bars, messages, home top bar, reels menus, share sheet " +
+        "and feed. Each part has its own switch, and some start on. Starts off. Turn it on in HushGram settings > " +
+        "Meta AI.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)

@@ -22,15 +22,15 @@ import app.morphe.extension.tiktok.settings.Settings;
  *
  * <p>Every ContentResolver.query TikTok makes lands here, whatever it is asking for, so the
  * authority decides: only the contacts provider is refused, and the media store and the rest
- * are handed straight through. A read before the settings context exists is refused too, since
- * the patch was chosen to block and a missing context is not a reader's choice.
+ * are handed straight through. The switch is off by default, so a read before the settings
+ * context exists goes through like any read with the switch off.
  */
 @SuppressWarnings("unused")
 public final class ContactListBlocker {
 
     private static boolean blocks(Uri uri) {
         if (uri == null || !ContactsContract.AUTHORITY.equals(uri.getAuthority())) return false;
-        if (Utils.getContext() != null && !Settings.BLOCK_CONTACT_LIST.get()) return false;
+        if (Utils.getContext() == null || !Settings.BLOCK_CONTACT_LIST.get()) return false;
         Logger.printInfo(() -> "Contact list blocker: blocked a query to " + uri);
         return true;
     }

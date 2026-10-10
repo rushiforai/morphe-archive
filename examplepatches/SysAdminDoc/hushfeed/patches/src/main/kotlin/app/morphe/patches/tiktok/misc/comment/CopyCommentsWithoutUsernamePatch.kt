@@ -74,7 +74,8 @@ internal val commentClipDataBuilderFingerprint = Fingerprint(
 @Suppress("unused")
 val copyCommentsWithoutUsernamePatch = bytecodePatch(
     name = "Copy comments without username",
-    description = "Copies only the comment text without including the creator's username. Switch: Hushfeed settings > Comments.",
+    description = "When you copy a comment, you get just its text, without the username in " +
+        "front. On by default. Turn it off in Hushfeed settings > Comments.",
     default = true,
 ) {
     category("Comments")

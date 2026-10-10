@@ -52,16 +52,15 @@ internal val LONG_CLICKS = mapOf(
  * Holds back the vibrations TikTok plays on its own taps and gestures. See the extension's
  * Haptics for when.
  *
- * Off in the default selection: TikTok's haptics are a matter of taste, not something it does to
- * you. Picked, its switch starts on.
+ * In the default selection with its switch off: TikTok's haptics are a matter of taste, not
+ * something it does to you, so nothing changes until the user asks.
  */
 @Suppress("unused")
 val turnOffHapticsPatch = bytecodePatch(
     name = "Turn off haptics",
-    description = "Stops the short vibrations TikTok plays on its own taps and gestures, the long press buzz included. " +
-        "Your keyboard and your phone's own haptics stay. Its switch starts on once you pick the patch. " +
-        "Switch: Hushfeed settings > App.",
-    default = false,
+    description = "Stops the little vibrations TikTok makes when you tap or hold things. Your " +
+        "keyboard and your phone's own vibrations stay. Starts off. Turn it on in Hushfeed " +
+        "settings > App.",
 ) {
     category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)

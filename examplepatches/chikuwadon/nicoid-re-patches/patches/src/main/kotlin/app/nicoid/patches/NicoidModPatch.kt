@@ -2,6 +2,9 @@ package app.nicoid.patches
 
 import app.morphe.patcher.patch.*
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.Opcode
@@ -13,6 +16,9 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.util.FieldUtil
@@ -383,6 +389,7 @@ val nicoidModPatch = bytecodePatch(
                     move-object/from16 v1, v$rowThis
                     move/from16 v2, v${rowThis + 1}
                     invoke-static {v0, v1, v2}, Le/e/a/PaidVideos;->bindAdapter(Landroid/view/View;Ljava/lang/Object;I)V
+                    invoke-static {v0, v1, v2}, Le/e/a/ListActions;->bind(Landroid/view/View;Ljava/lang/Object;I)V
                     return-object v$register
                 """.trimIndent())
             }
@@ -414,6 +421,182 @@ val nicoidModPatch = bytecodePatch(
         val activityRegister = infoCreateCode.registerCount - 2
         infoCreate.addInstructions(contentView + 1,
             "invoke-static/range {v$activityRegister .. v$activityRegister}, Le/e/a/VideoInfoUi;->hideDivider(Landroid/app/Activity;)V")
+        // Replace legacy authenticated writes before they inspect obsolete nullable metadata.
+        val commentPost = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoFragment;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/String;") && it.returnType == "V"
+        }
+        val commentThis = checkNotNull(commentPost.implementation).registerCount - 3
+        commentPost.addInstructions(0, """
+            invoke-static/range {v$commentThis .. v${commentThis + 2}}, Le/e/a/ModernPosting;->comment(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V
+            return-void
+        """.trimIndent())
+        val watchLater = mutableClassDefBy("Le/e/a/b1;").methods.single {
+            it.name == "b" && it.parameterTypes == listOf("Ljava/lang/String;") && it.returnType == "V"
+        }
+        val laterThis = checkNotNull(watchLater.implementation).registerCount - 2
+        watchLater.addInstructions(0, """
+            invoke-static/range {v$laterThis .. v${laterThis + 1}}, Le/e/a/ModernPosting;->later(Ljava/lang/Object;Ljava/lang/String;)V
+            return-void
+        """.trimIndent())
+        val languageChange = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidSetting\$e;").methods.single { it.name == "onPreferenceChange" }
+        val languageThis = checkNotNull(languageChange.implementation).registerCount - 3
+        languageChange.addInstructions(0, """
+            invoke-static/range {v$languageThis .. v${languageThis + 2}}, Le/e/a/Review181;->language(Ljava/lang/Object;Landroid/preference/Preference;Ljava/lang/Object;)Z
+            move-result v0
+            return v0
+        """.trimIndent())
+        val settingsCreate = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidSetting;").methods.single { it.name == "onCreate" }
+        val settingsThis = checkNotNull(settingsCreate.implementation).registerCount - 2
+        for ((index, instruction) in checkNotNull(settingsCreate.implementation).instructions.toList().withIndex().toList().asReversed()) {
+            if (instruction.opcode == Opcode.RETURN_VOID) settingsCreate.addInstructions(index,
+                "invoke-static/range {v$settingsThis .. v$settingsThis}, Le/e/a/Review181;->settings(Landroid/preference/PreferenceActivity;)V")
+        }
+        val popupClick = mutableClassDefBy("Le/e/a/b0\$a;").methods.single { it.name == "onClick" }
+        val popupCode = checkNotNull(popupClick.implementation)
+        val popupThis = popupCode.registerCount - 2
+        val showPopup = popupCode.instructions.toList().withIndex().single { (_, instruction) ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Ld/b/q/z;" && ref.name == "a" && ref.parameterTypes.isEmpty()
+        }
+        val popupRegister = (showPopup.value as FiveRegisterInstruction).registerC
+        popupClick.addInstructions(showPopup.index, """
+            invoke-static {v$popupThis, v$popupRegister}, Le/e/a/ListActions;->extra(Ljava/lang/Object;Ljava/lang/Object;)V
+        """.trimIndent())
+        popupClick.replaceInstruction(showPopup.index + 1,
+            "invoke-static {v$popupThis, v$popupRegister}, Le/e/a/ListActions;->show(Ljava/lang/Object;Ljava/lang/Object;)V")
+        val topMenu = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidTopActivity;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Landroid/content/Context;", "Landroid/widget/ListView;", "Z")
+        }
+        val menuIndex = checkNotNull(topMenu.implementation).instructions.toList().indexOfFirst { instruction ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Le/e/a/ModernShorts;" && ref.name == "finishMenu"
+        }
+        check(menuIndex >= 0) { "Device menu insertion point is missing" }
+        topMenu.addInstructions(menuIndex, "invoke-static {v0, v7}, Le/e/a/LocalPlaylists;->menu(Landroid/content/Context;Ljava/util/ArrayList;)V")
+        val devicePage = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidNicorepoActivity;").methods.single { it.name == "t" && it.parameterTypes.isEmpty() }
+        val pageThis = checkNotNull(devicePage.implementation).registerCount - 1
+        devicePage.addInstructions(0, """
+            invoke-static/range {v$pageThis .. v$pageThis}, Le/e/a/LocalPlaylists;->loadOrFeed(Landroid/app/Activity;)V
+            return-void
+        """.trimIndent())
+        val touch = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoActivity;").methods.single { it.name == "dispatchTouchEvent" }
+        touch.addInstructions(0, """
+            invoke-static {v1, v2}, Le/e/a/Review181;->seekTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z
+            move-result v0
+            if-eqz v0, :review_normal_touch
+            return v0
+            :review_normal_touch
+            nop
+            invoke-static {v1, v2}, Le/e/a/Review181;->shortTap(Landroid/app/Activity;Landroid/view/MotionEvent;)V
+        """.trimIndent())
+        val fullscreen = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoFragment;").methods.single { it.name == "h0" && it.parameterTypes.isEmpty() }
+        val fullscreenThis = checkNotNull(fullscreen.implementation).registerCount - 1
+        fullscreen.addInstructions(0, """
+            invoke-static/range {v$fullscreenThis .. v$fullscreenThis}, Le/e/a/Review181;->portraitFullscreen(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :review_normal_fullscreen
+            return-void
+            :review_normal_fullscreen
+            nop
+        """.trimIndent())
+        val preparedRun = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoFragment\$n;").methods.single { it.name == "onPrepared" }
+        val preparedIndex = checkNotNull(preparedRun.implementation).instructions.toList().indexOfFirst { instruction ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Le/e/a/PlaybackSession;" && ref.name == "prepared"
+        }
+        check(preparedIndex >= 0) { "Player preparation hook is missing" }
+        preparedRun.addInstructions(preparedIndex,"invoke-static {v0}, Le/e/a/Review181;->restorePosition(Ljava/lang/Object;)V")
+        val accountLoad=mutableClassDefBy("Le/e/a/b1;").methods.single {it.name=="a" && it.parameterTypes==listOf("Ljava/lang/String;")}
+        val loadThis=checkNotNull(accountLoad.implementation).registerCount-2
+        accountLoad.addInstructions(0,"""
+            invoke-static/range {v$loadThis .. v${loadThis+1}}, Le/e/a/AccountLists;->load(Ljava/lang/Object;Ljava/lang/String;)V
+            return-void
+        """.trimIndent())
+        val accountChooser = mutableClassDefBy("Le/e/a/b1;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Ljava/util/ArrayList;", "Ljava/lang/String;")
+        }
+        val chooserThis=checkNotNull(accountChooser.implementation).registerCount-3
+        accountChooser.addInstructions(0,"""
+            invoke-static/range {v$chooserThis .. v${chooserThis+2}}, Le/e/a/AccountLists;->show(Ljava/lang/Object;Ljava/util/ArrayList;Ljava/lang/String;)V
+            return-void
+        """.trimIndent())
+        val userCreate=mutableClassDefBy("Lcom/sauzask/nicoid/NicoidUserVideoListActivity;").methods.single {it.name=="onCreate"}
+        val userThis=checkNotNull(userCreate.implementation).registerCount-2
+        val userSuper=checkNotNull(userCreate.implementation).instructions.toList().indexOfFirst {
+            it.opcode==Opcode.INVOKE_SUPER && ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name=="onCreate"
+        }
+        check(userSuper>=0)
+        userCreate.addInstructionsWithLabels(userSuper+1,"""
+            invoke-static/range {v$userThis .. v$userThis}, Le/e/a/ChannelPage;->redirect(Landroid/app/Activity;)Z
+            move-result v0
+            if-eqz v0, :review_user_listing
+            return-void
+        """.trimIndent(), ExternalLabel("review_user_listing", userCreate.getInstruction(userSuper+1)))
+        val localActivity=mutableClassDefBy("Lcom/sauzask/nicoid/NicoidNicorepoActivity;")
+        val options=localActivity.methods.single {it.name=="onCreateOptionsMenu"}
+        for((i,insn) in checkNotNull(options.implementation).instructions.toList().withIndex()) {
+            val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference
+            if(ref?.definingClass=="Le/e/a/FollowFeed;" && ref.name=="menu") {
+                val r=insn as FiveRegisterInstruction
+                options.replaceInstruction(i,"invoke-static {v${r.registerC}, v${r.registerD}}, Le/e/a/LocalPlaylists;->menuOrFeed(Landroid/app/Activity;Landroid/view/Menu;)Z")
+            }
+        }
+        val localDestroy=localActivity.methods.single {it.name=="onDestroy"}
+        val destroyThis=checkNotNull(localDestroy.implementation).registerCount-1
+        localDestroy.addInstructions(0,"invoke-static/range {v$destroyThis .. v$destroyThis}, Le/e/a/LocalPlaylists;->destroy(Landroid/app/Activity;)V")
+        val localOptions=localActivity.methods.single {it.name=="onOptionsItemSelected"}
+        val optionThis=checkNotNull(localOptions.implementation).registerCount-2
+        localOptions.addInstructions(0,"""
+            invoke-static/range {v$optionThis .. v${optionThis+1}}, Le/e/a/LocalPlaylists;->home(Landroid/app/Activity;Landroid/view/MenuItem;)Z
+            move-result v0
+            if-eqz v0, :review_default_option
+            const/4 v0, 0x1
+            return v0
+            :review_default_option
+            nop
+        """.trimIndent())
+        val videoListActivity=mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoListActivity;")
+        val historyMenu=videoListActivity.methods.single {it.name=="onCreateOptionsMenu"}
+        // p1 is overwritten by move-result after the superclass call. Insert while it is still Menu.
+        val historyMenuSuper=checkNotNull(historyMenu.implementation).instructions.indexOfLast { it.opcode==Opcode.INVOKE_SUPER }
+        check(historyMenuSuper>=0)
+        historyMenu.addInstructions(historyMenuSuper,"invoke-static {p0, p1}, Le/e/a/ListActions;->adjustHistoryMenu(Ljava/lang/Object;Landroid/view/Menu;)V")
+        val historyOption=videoListActivity.methods.single {it.name=="onOptionsItemSelected"}
+        historyOption.addInstructions(0,"""
+            invoke-static {p0, p1}, Le/e/a/ListActions;->handleHistoryShuffle(Ljava/lang/Object;Landroid/view/MenuItem;)Z
+            move-result v0
+            if-eqz v0, :history_option_default
+            const/4 v0, 0x1
+            return v0
+            :history_option_default
+            nop
+        """.trimIndent())
+        val backMethod=ImmutableMethod(localActivity.type,"onBackPressed",emptyList(),"V",AccessFlags.PUBLIC.value,emptySet(),emptySet(),MutableMethodImplementation(2)).toMutable()
+        backMethod.addInstructions(0,"""
+            invoke-static {v1}, Le/e/a/LocalPlaylists;->back(Landroid/app/Activity;)Z
+            move-result v0
+            if-eqz v0, :review_back_default
+            return-void
+            :review_back_default
+            invoke-super {v1}, Lcom/sauzask/nicoid/NicoidActivity;->onBackPressed()V
+            return-void
+        """.trimIndent())
+        localActivity.methods.add(backMethod);localActivity.virtualMethods.add(backMethod)
+        // Apply the same palette to all existing native forms, including comments and account folders.
+        val dialogs=mutableListOf<String>()
+        classDefForEach {cls->if((cls.type.startsWith("Lcom/sauzask/nicoid/")||cls.type.startsWith("Le/e/a/")) && cls.type!="Le/e/a/UiDialogs;" && !cls.type.startsWith("Le/e/a/PlaybackSession")) dialogs.add(cls.type)}
+        for(type in dialogs) for(method in mutableClassDefBy(type).methods) {
+            val code=method.implementation?.instructions?.toList() ?: continue
+            for((i,insn) in code.withIndex()) {
+                val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                if(ref.name!="show" || ref.parameterTypes.isNotEmpty()) continue
+                val register=(insn as? FiveRegisterInstruction)?.registerC ?: continue
+                if(ref.definingClass=="Landroid/app/AlertDialog;" && ref.returnType=="V")
+                    method.replaceInstruction(i,"invoke-static/range {v$register .. v$register}, Le/e/a/UiDialogs;->show(Landroid/app/AlertDialog;)V")
+                else if(ref.definingClass=="Landroid/app/AlertDialog\$Builder;" && ref.returnType=="Landroid/app/AlertDialog;")
+                    method.replaceInstruction(i,"invoke-static/range {v$register .. v$register}, Le/e/a/UiDialogs;->showBuilder(Landroid/app/AlertDialog\$Builder;)Landroid/app/AlertDialog;")
+            }
+        }
         // Only known UI text is translated. URLs, IDs and preference values are preserved.
         val translatedStrings = Payload.open("ui-strings.txt").bufferedReader().useLines { lines ->
             lines.map { it.replace("\\n", "\n") }.toSet()

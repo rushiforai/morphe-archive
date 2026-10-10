@@ -224,7 +224,7 @@ public final class PostSave {
     private static void failed(Context context) {
         if (context == null) return;
         Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
-        Feedback.show(application, L10n.t(application, "Download failed"), true);
+        Feedback.show(application, L10n.t(application, "Download failed. Try again in a moment."), true);
     }
 
     /** The pages of [media] in order: a carousel's pages, or the post itself. */

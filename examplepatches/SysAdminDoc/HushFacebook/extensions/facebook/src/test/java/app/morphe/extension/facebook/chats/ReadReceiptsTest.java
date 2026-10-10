@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,12 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class ReadReceiptsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HIDE_READ_RECEIPTS.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -43,8 +50,8 @@ public class ReadReceiptsTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndHoldsReadsBack() {
-        assertTrue("the switch starts on", Settings.HIDE_READ_RECEIPTS.get());
+    public void theSwitchStartsOffAndOnHoldsReadsBack() {
+        assertFalse("the switch starts off", Settings.HIDE_READ_RECEIPTS.defaultValue);
         assertTrue(ReadReceipts.holdsChatRead());
         assertTrue(ReadReceipts.holdsChatRead());
         String line = statusLine();
@@ -56,7 +63,7 @@ public class ReadReceiptsTest {
     public void offOrPausedFacebookSendsTheRead() {
         Settings.HIDE_READ_RECEIPTS.save(false);
         assertFalse(ReadReceipts.holdsChatRead());
-        Settings.HIDE_READ_RECEIPTS.resetToDefault();
+        Settings.HIDE_READ_RECEIPTS.save(true);
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         assertFalse(ReadReceipts.holdsChatRead());
         PauseForTests.resume();

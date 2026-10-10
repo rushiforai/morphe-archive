@@ -26,7 +26,7 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;38 patches total
+> **[v1.10.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;40 patches total
 <details open>
 <summary>📦 SofaScore&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -201,6 +201,33 @@ Or
 </details>
 
 <details open>
+<summary>📦 Camera Opus Companion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;1.2.21 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Camera Opus Companion premium by forcing the license check to return true. WARNING: May cause crashes. |  |
+| [Wear Engine Scope Fix (Experimental)](#wear-engine-scope-fix-experimental) | Fixes Wear Engine scope authorization errors by forcing the error code check to succeed. WARNING: May cause crashes. |  |
+
+</details>
+
+<details open>
+<summary>📦 Photex Companion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Photex Companion premium by forcing the license check to return true. WARNING: May cause crashes. |  |
+| [Wear Engine Scope Fix (Experimental)](#wear-engine-scope-fix-experimental) | Fixes Wear Engine scope authorization errors in Photex Companion by forcing the error code check to succeed. WARNING: May cause crashes. |  |
+
+</details>
+
+<details open>
 <summary>📦 Audio Editor&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -332,31 +359,6 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium Features](#unlock-premium-features) | Forces the purchase verification method to always return true, unlocking premium features in Music Player. |  |
-
-</details>
-
-<details open>
-<summary>📦 Camera Opus Companion&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;1.2.21 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Unlocks Camera Opus Companion premium by forcing the license check to return true. |  |
-
-</details>
-
-<details open>
-<summary>📦 Photex Companion&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Unlocks Photex Companion premium by forcing the license check to return true. |  |
 
 </details>
 

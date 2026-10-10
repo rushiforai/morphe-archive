@@ -12,4 +12,10 @@ final class Emote {
         this.animated = animated;
         this.overlay = overlay;
     }
+
+    String providerLabel() {
+        if (url.startsWith("https://cdn.betterttv.net/")) return "BTTV";
+        if (url.startsWith("https://cdn.frankerfacez.com/")) return "FrankerFaceZ";
+        return "7TV";
+    }
 }

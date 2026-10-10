@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.facebook.misc.sharesheet.shareSheetHookPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 
 /**
@@ -22,22 +23,24 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  *
  * Every anchor is a kept class name, an enum constant's name or a literal (see
  * MetaUpsellAnchors.kt, ImagineAnchors.kt and ShareSheetAnchors.kt), and every one is required.
+ * The share sheet's hook is shareSheetHookPatch, shared with Share sheet items.
  * The hooks ask the extension, which answers Facebook's own way until the settings are ready, while
  * paused, and whenever it fails.
  *
- * Off by default: nobody has seen it on a signed-in account yet.
+ * In the default selection, but it changes nothing until it's turned on in Hushfacebook settings:
+ * nobody has seen it on a signed-in account yet.
  */
 @Suppress("unused")
 val hideMetaUpsellsPatch = bytecodePatch(
     name = "Hide Meta upsells",
-    description = "Hides the pushes for Edits, Threads cross-posting, Meta Verified, avatar stickers and Meta AI's " +
-        "Imagine outside the Menu, such as the Edits button in the Reels composer and the offer sheet after you post. " +
-        "Each has its own switch.",
-    default = false,
+    description = "Hides Meta's pushes for its other products, such as Edits, Threads cross-posting, Meta " +
+        "Verified, avatar stickers and Meta AI's Imagine, so you see fewer sales pitches. Starts off. Turn on " +
+        "the parts you want in Hushfacebook settings > Meta's other products.",
 ) {
     category("Interface")
     dependsOn(settingsPatch)
     dependsOn(facebookExtensionPatch)
+    dependsOn(shareSheetHookPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {

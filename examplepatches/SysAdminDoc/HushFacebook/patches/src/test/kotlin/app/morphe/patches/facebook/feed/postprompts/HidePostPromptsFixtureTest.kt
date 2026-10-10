@@ -66,8 +66,38 @@ class HidePostPromptsFixtureTest {
                 val returns = original.withIndex().filter { it.value.opcode == Opcode.RETURN }
                 assertTrue("$name: the predicate never returns", returns.isNotEmpty())
 
-                val context = PatchContexts.of(listOf(component, ExtensionDex.classDef(SETTINGS_STATUS)))
+                // The follow text plugin keeps its name, so it is found by it: one class, one static check
+                // taking the story and answering Z.
+                val plugin = FixtureDex.classes(bundle, setOf(FOLLOW_TEXT_PLUGIN))[FOLLOW_TEXT_PLUGIN]
+                assertTrue("$name: no $FOLLOW_TEXT_PLUGIN", plugin != null)
+                val followChecks = plugin!!.methods.filter(::isFollowLinkCheck)
+                assertEquals("$name: follow checks on the plugin", 1, followChecks.size)
+                val followCheck = followChecks.single()
+                val followOriginal = followCheck.code()
+                val followReturns = followOriginal.withIndex().filter { it.value.opcode == Opcode.RETURN }
+                assertTrue("$name: the follow check never returns", followReturns.isNotEmpty())
+
+                val context = PatchContexts.of(listOf(component, plugin, ExtensionDex.classDef(SETTINGS_STATUS)))
                 hidePostPromptsPatch.execute(context)
+
+                val followPatched = context.mutableClassDefBy(FOLLOW_TEXT_PLUGIN).methods
+                    .single { it.name == followCheck.name && isFollowLinkCheck(it) }.code()
+                assertEquals("$name: two instructions in front of each follow return",
+                    followOriginal.size + 2 * followReturns.size, followPatched.size)
+                val followPatchedReturns = followPatched.withIndex().filter { it.value.opcode == Opcode.RETURN }.map { it.index }
+                assertEquals("$name: follow returns", followReturns.size, followPatchedReturns.size)
+                for ((at, answer) in followPatchedReturns.zip(followReturns.map { (it.value as OneRegisterInstruction).registerA })) {
+                    val call = followPatched[at - 2]
+                    assertEquals("$name: the follow call before return v$answer", Opcode.INVOKE_STATIC_RANGE, call.opcode)
+                    assertEquals("$name: the follow call before return v$answer", SHOW_FOLLOW_LINK,
+                        ((call as ReferenceInstruction).reference as MethodReference).toString())
+                    assertEquals("$name: the register handed over", answer, (call as RegisterRangeInstruction).startRegister)
+                    assertEquals("$name: the extension's answer lands where the return reads it", answer,
+                        (followPatched[at - 1] as OneRegisterInstruction).registerA)
+                }
+                for ((branch, target) in branchTargets(followPatched)) {
+                    assertTrue("$name: the follow branch at $branch skips the extension", followPatched[target].opcode != Opcode.RETURN)
+                }
 
                 val patched = context.mutableClassDefBy(check.definingClass).methods
                     .single { it.name == check.name && isBumperCheck(it) }.code()

@@ -50,6 +50,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.authorRegionEnabled
                 || SettingsStatus.engagementRateEnabled
                 || SettingsStatus.hideFeedLiveButtonEnabled
+                || SettingsStatus.hideFeedSidebarButtonEnabled
                 || SettingsStatus.hideFeedSearchButtonEnabled
                 || SettingsStatus.feedFilterEnabled
                 || SettingsStatus.promotionalBannersEnabled
@@ -228,7 +229,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             descriptionSize.zeroMeans("TikTok's size");
             addPreference(descriptionSize);
             NumberInputPreference authorSize = new NumberInputPreference(context, "Author text size",
-                    L10n.f(context, "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling.",
+                    L10n.f(context, "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post date next to it, and keeps Android's font scaling.",
                             FeedTextSize.MIN_TEXT_SIZE, FeedTextSize.MAX_TEXT_SIZE),
                     Settings.FEED_AUTHOR_TEXT_SIZE, "%1$s point", "%1$s points") {
                 @Override protected int clamp(int value) { return FeedTextSize.clampSize(value); }
@@ -297,6 +298,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     private void addAroundTheVideo(Context context) {
         boolean any = SettingsStatus.videoOverlaysEnabled
                 || SettingsStatus.hideFeedLiveButtonEnabled
+                || SettingsStatus.hideFeedSidebarButtonEnabled
                 || SettingsStatus.hideFeedSearchButtonEnabled
                 || SettingsStatus.feedFilterEnabled;
         if (!any) return;
@@ -307,6 +309,17 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the LIVE button",
                     "Hide the LIVE button in the top left corner of the feed.",
                     Settings.HIDE_LIVE_ENTRANCE
+            ));
+        }
+        // TikTok builds the side menu button in code with no view id, so only the LIVE patch's
+        // toolbar check can take it away; the video overlay hider has nothing to find it by.
+        // A build the patch doesn't declare can leave that check out, so the row has its flag.
+        if (SettingsStatus.hideFeedSidebarButtonEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the side menu button",
+                    "Hide the button at the top left of the feed that opens TikTok's side menu, with Your orders, TikTok Minis and more.",
+                    Settings.HIDE_FEED_SIDEBAR_BUTTON
             ));
         }
         if (SettingsStatus.hideFeedSearchButtonEnabled) {
@@ -439,11 +452,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 addPreference(new TogglePreference(
                         context,
                         "Hide TikTok's wind-down screens",
-                        "Stop the bedtime wind-down, the breathing exercise and the daily limit screen "
-                                + "TikTok puts over the feed. It only works on an account TikTok knows is an "
-                                + "adult's. A teen's account keeps them, and so does one Family Pairing links "
-                                + "to a parent. With Leave when TikTok says time is up on, the daily limit "
-                                + "screen still comes up so that switch can act on it.",
+                        "Stops the bedtime wind-down, the breathing exercise and the daily "
+                                + "limit screen TikTok puts over the feed. Works only on "
+                                + "accounts TikTok knows belong to adults. Teen accounts, and "
+                                + "ones a parent links with Family Pairing, keep them. With "
+                                + "Leave when TikTok says time is up on, the daily limit screen "
+                                + "still shows so that switch can work.",
                         Settings.HIDE_WIND_DOWN_SCREENS
                 ));
             }
@@ -452,8 +466,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Skip content warnings",
-                    "Play videos TikTok has classified without the overlay asking to be tapped "
-                            + "through first.",
+                    "Plays videos that TikTok covers with a content warning without asking you "
+                            + "to tap through first.",
                     Settings.HIDE_SENSITIVE_WARNINGS
             ));
             // Left out with its hook on a build where the risk model getter wasn't found.
@@ -516,7 +530,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the Clear display controls",
-                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.",
+                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.",
                     Settings.HIDE_CLEAR_DISPLAY_CONTROLS
             ));
             addPreference(new NumberInputPreference(

@@ -480,16 +480,31 @@ try {
         $_ -in $runtimeTestInputs -or $_ -in $toolingClasspathInputs
     }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
+    # tools/ holds release_text.py, which every text step of release.ps1 runs, and its tests. A
+    # push of only tools/ ran no check at all, so it runs those tests and the release stage
+    # contracts that hold what release.ps1 hands it.
+    $touchesTools = @($paths | Where-Object { $_ -like 'tools/*' }).Count -gt 0
     # The contract tests read two files outside scripts/ that nothing else checks: the catalog,
     # held to the builds, signers and dependencies the release scripts expect, and the Gradle file
     # that writes the release bundle where common.ps1 reads it. A push that moved only one of them
     # never ran the tests, and the break surfaced on the next unrelated script push instead.
     # They also end with the marketing asset check, which holds the artwork's sizes and alpha and
     # the README's hero and links. A push of only artwork or only the README ran no check of them.
-    $touchesContracts = $touchesScripts -or @($paths | Where-Object {
+    $touchesContracts = $touchesScripts -or $touchesTools -or @($paths | Where-Object {
         $_ -eq 'patches-list.json' -or $_ -eq 'patches/build.gradle.kts' -or
         $_ -eq 'gradle/tooling-scopes.txt' -or
         $_ -like 'assets/*' -or $_ -eq 'README.md'
+    }).Count -gt 0
+    $touchesReleaseText = $touchesTools -or @($paths | Where-Object {
+        $_ -like 'scripts/release/*' -or $_ -eq 'scripts/test-release-text.ps1'
+    }).Count -gt 0
+    # The phone smoke check's report reading, which its suite exercises on hand-written reports.
+    $phoneSmokePaths = @(
+        'scripts/phone-smoke.ps1',
+        'scripts/test-phone-smoke.ps1'
+    )
+    $touchesPhoneSmoke = @($paths | Where-Object {
+        $_ -in $phoneSmokePaths
     }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
         'scripts/BadDexFixture.java',
@@ -634,7 +649,7 @@ try {
     $suites = @()
     if ($touchesContracts) {
         $contractsNotice = if ($touchesScripts) { 'scripts changed, running their contract tests' } else {
-            'the catalog, the release bundle''s Gradle file, the README or the artwork changed, running the script contract tests'
+            'the catalog, the release bundle''s Gradle file, the README, the artwork or tools/ changed, running the script contract tests'
         }
         $suites += , @('scripts/test-script-contracts.ps1', $contractsNotice,
             'The script contract tests did not pass.')
@@ -658,6 +673,14 @@ try {
     if ($touchesFacebookSources) {
         $suites += , @('scripts/test-facebook-sources.ps1', 'the Facebook-family source ledger or what it reads changed, running its rules',
             'The Facebook-family source ledger does not keep its rules.')
+    }
+    if ($touchesReleaseText) {
+        $suites += , @('scripts/test-release-text.ps1', 'the release text or the release stages changed, running the tests in tools/',
+            'The release text tests did not pass.')
+    }
+    if ($touchesPhoneSmoke) {
+        $suites += , @('scripts/test-phone-smoke.ps1', 'the phone smoke check changed, running its report reading checks',
+            'The phone smoke report reading checks did not pass.')
     }
     if ($suites.Count -gt 0) {
         $scriptsLock = $null

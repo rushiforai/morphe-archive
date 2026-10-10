@@ -27,10 +27,10 @@ hash, installed APK hash, app version/code, signing certificate and patch
 selection. Copy the installed APK and all its splits into that checkpoint.
 Retain the existing signing key and immutable originals.
 
-For a 31.4.2 evaluation, create the source checkpoint after synchronization:
+Create the source checkpoint after synchronization:
 
 ```powershell
-$upgradeId = 'twitch-31.4.2-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
+$upgradeId = 'twitch-update-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
 $checkpoint = Join-Path '.local/checkpoints' $upgradeId
 New-Item -ItemType Directory -Path $checkpoint | Out-Null
 git branch "codex/baseline-$upgradeId" HEAD
@@ -73,10 +73,11 @@ accepted. Installation, data clearing and publication are separate decisions.
 
 ## Inspect the original
 
-Supply an original APK or complete split bundle for the intended ABI. For example:
+Supply an original APK or complete split bundle for the intended ABI. Set
+`$targetVersion` to its Twitch version before running the intake:
 
 ```powershell
-./scripts/evaluate-update.ps1 -InputApk '.local/inputs/twitch-31.4.2.apkm' -ExpectedVersion '31.4.2' -Decompile
+./scripts/evaluate-update.ps1 -InputApk '.local/inputs/twitch.apkm' -ExpectedVersion $targetVersion -Decompile
 ```
 
 The intake verifies Twitch's publisher signature, package, version and split
@@ -95,8 +96,9 @@ require unique matches. Record missing or changed hooks before adapting them.
 ## Adapt and verify locally
 
 Make focused changes on `dev` and commit completed fixes separately. Add the
-candidate target locally and keep the previous target where both versions pass
-hook and regression checks. Update compatibility evidence after verification.
+candidate target locally while retaining the supported baseline during evaluation.
+After acceptance, retire the previous target and its exclusive hooks. Keep shared
+contracts used by the new baseline. Update compatibility evidence after verification.
 
 ```powershell
 ./scripts/check-source.ps1
@@ -119,6 +121,9 @@ audit must pass before the resulting APK becomes a device candidate. Also check
 representative reduced patch selections and rebuild the previous supported
 version when shared hook code changes.
 
+Every modifying selection must include the shared settings, notification, theme
+and DJ playback fixes. An inspection-only selection must leave the app unchanged.
+
 ## Device acceptance
 
 Install the verified APK through the selected recovery route. Record its exact
@@ -129,11 +134,13 @@ in-place update. Retain logs locally while the candidate is used overnight.
 | --- | --- |
 | Playback | Native, initial V2 Classic Split, Vertical View, swipe feed, rotation, background audio and raids. |
 | Ads | Actual preroll/midroll opportunities, stream continuity, quality and normal controls without stale ad overlays. |
-| Chat | Global/channel BTTV and 7TV emotes, previews, Back navigation and channel changes. |
+| Chat | Static and animated global/channel BTTV, FrankerFaceZ and 7TV emotes, previews, Back navigation and channel changes. |
 | Channel points | An available bonus is claimed without a manual tap. |
 | Promotions | Turbo, discounts and feed cards suppressed; Drops and train overlays remain usable. |
 | Reload | Double-tap works on initial entry and after view changes, retaining quality and mode. |
 | Settings | Feature toggles recover both ways; omitted patches have no settings. |
+| Theme | Dark, Light and System settings update Following, Live, Clips and navigation. Check initial entry, clip loading, refresh and tab changes; headers scroll and category labels remain visible. Patch settings opens immediately after a theme change. |
+| DJ playback | Background audio, audio-only and picture-in-picture controls work in native and V2 playback when the corresponding renditions are available. |
 | Notifications | A real live alert arrives in the background and opens its channel; record delivery timing separately. |
 
 Record a check as unobserved when the necessary event did not occur. For a bug,

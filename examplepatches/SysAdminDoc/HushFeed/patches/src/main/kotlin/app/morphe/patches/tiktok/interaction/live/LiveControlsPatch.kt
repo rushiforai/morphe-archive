@@ -157,9 +157,9 @@ private fun wrapped(instructions: List<Instruction>, at: Int, result: Int): Bool
 @Suppress("unused")
 val liveControlsPatch = bytecodePatch(
     name = "LIVE controls",
-    description = "Adds a switch that stops a LIVE in the feed counting down and taking you into the room on its " +
-        "own, so you stay in the feed until you tap it, and one that shows a LIVE's exact viewer count instead " +
-        "of TikTok's rounded one. Switches: Hushfeed settings > Playback.",
+    description = "Stops a LIVE in the feed from opening by itself after a countdown, and can " +
+        "show a LIVE's exact viewer count instead of a rounded one. Starts off. Turn it on in " +
+        "Hushfeed settings > Playback.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)

@@ -56,18 +56,16 @@ internal const val FOR_YOU_PICKER_FLAG = 0x810e6b00004f95L
 internal val FEED_PICKER_FLAGS = listOf(REMEMBERED_FEED_FLAG, FOR_YOU_PICKER_FLAG)
 
 /**
- * Opens Home on the Following feed. Off in the default selection: which feed Home starts on is the
- * user's pick, and For you stays one tap away at the top of Home.
+ * Opens Home on the Following feed. In the default selection with its switch off: which feed Home
+ * starts on is the user's pick, and For you stays one tap away at the top of Home.
  */
 @Suppress("unused")
 val startOnFollowingPatch = bytecodePatch(
     name = "Start Home on Following",
-    description = "Opens Home on posts from accounts you follow. Tap Following at the top to switch to For you, and " +
-        "Home remembers your pick. A second switch, off to start, takes For you out of Home. " +
-        "A change to either shows once Instagram restarts.",
-    default = false,
+    description = "Opens Home on posts from accounts you follow instead of For you. A second switch removes For " +
+        "you from Home. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Feed.",
 ) {
-    category("Interface")
+    category("Feed")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

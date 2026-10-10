@@ -146,6 +146,10 @@ $caseRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ("hushpinterest-f
 $junction = Join-Path $caseRoot 'reports'
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+# The wrapper runs below rank fixture-sized APKs, so they run straight away rather than waiting in
+# the machine's build queue behind real builds. The queue itself is held by test-script-contracts.ps1.
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$env:BUILD_QUEUE_SCRIPT = $null
 try {
     New-Item -ItemType Directory -Path $caseRoot | Out-Null
     $classes = Join-Path $caseRoot 'classes'
@@ -351,7 +355,7 @@ try {
     # A real Pinterest build, named by its version the way a maintainer names it, against itself. The
     # Application's onCreate keeps its class and name on every build, and every patch starts there.
     $fixtures = if ($env:HUSHPINTEREST_FIXTURE_DIR) { $env:HUSHPINTEREST_FIXTURE_DIR } else { Join-Path $Root 'fixtures' }
-    $pinterestVersion = '14.25.0'
+    $pinterestVersion = '14.38.0'
     Assert-True (@(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name.Contains($pinterestVersion) -and $_.Extension -eq '.apk' }).Count -eq 1) `
         ("The real-build case needs Pinterest $pinterestVersion in $fixtures, the folder HUSHPINTEREST_FIXTURE_DIR names. " +
@@ -391,6 +395,7 @@ try {
     Assert-True (@(Compare-Object $before $after).Count -eq 0) `
         ("Something under patches/ changed while the tool ran:`n" + (@(Compare-Object $before $after) | Out-String))
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
     foreach ($probe in $patchProbes) {
         if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Force }
     }

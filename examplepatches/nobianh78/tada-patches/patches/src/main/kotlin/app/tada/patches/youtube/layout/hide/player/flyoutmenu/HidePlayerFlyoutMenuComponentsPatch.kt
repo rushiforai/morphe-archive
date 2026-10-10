@@ -1,0 +1,159 @@
+/*
+ * Copyright 2026 TADa.
+ * https://github.com/TADaApp/tada-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to TADa contributions.
+ */
+
+package app.tada.patches.youtube.layout.hide.player.flyoutmenu
+
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.bytecodePatch
+import app.tada.patches.shared.misc.fix.proto.fixProtoLibraryPatch
+import app.tada.patches.shared.misc.litho.filter.addLithoFilter
+import app.tada.patches.shared.misc.litho.node.hookTreeNodeResult
+import app.tada.patches.shared.misc.proto.hookElement
+import app.tada.patches.shared.misc.settings.preference.BasePreference
+import app.tada.patches.shared.misc.settings.preference.PreferenceScreenPreference
+import app.tada.patches.shared.misc.settings.preference.SwitchPreference
+import app.tada.patches.youtube.misc.litho.filter.lithoFilterPatch
+import app.tada.patches.youtube.misc.litho.node.treeNodeElementHookPatch
+import app.tada.patches.youtube.misc.playertype.playerTypeHookPatch
+import app.tada.patches.youtube.misc.proto.elementProtoParserHookPatch
+import app.tada.patches.youtube.misc.settings.PreferenceScreen
+import app.tada.patches.youtube.misc.settings.settingsPatch
+import app.tada.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.util.fiveRegisters
+
+private const val EXTENSION_CLASS =
+    "Lapp/morphe/extension/youtube/patches/HidePlayerFlyoutMenuPatch;"
+private const val EXTENSION_FILTER =
+    "Lapp/morphe/extension/youtube/patches/components/PlayerFlyoutMenuComponentsFilter;"
+
+private val playerFlyoutMenuGroup = mutableSetOf<BasePreference>()
+
+internal fun addPlayerFlyoutMenuPreferences(vararg preferences: BasePreference) {
+    playerFlyoutMenuGroup += preferences
+}
+
+internal val playerFlyoutPreferences = bytecodePatch {
+    finalize {
+        PreferenceScreen.PLAYER.addPreferences(
+            PreferenceScreenPreference(
+                key = "tada_hide_player_flyout",
+                preferences = playerFlyoutMenuGroup
+            )
+        )
+    }
+}
+
+@Suppress("unused")
+val hidePlayerFlyoutMenuComponentsPatch = bytecodePatch(
+    name = "Hide player flyout menu components",
+    description = "Adds options to hide menu components that appear when pressing the gear icon in the video player."
+) {
+    dependsOn(
+        playerFlyoutPreferences,
+        lithoFilterPatch,
+        playerTypeHookPatch,
+        settingsPatch,
+        elementProtoParserHookPatch,
+        fixProtoLibraryPatch,
+        treeNodeElementHookPatch
+    )
+
+    compatibleWith(COMPATIBILITY_YOUTUBE)
+
+    execute {
+        addPlayerFlyoutMenuPreferences(
+            SwitchPreference("tada_hide_player_flyout_additional_settings"),
+            SwitchPreference("tada_hide_player_flyout_ambient_mode"),
+            SwitchPreference(
+                key = "tada_hide_player_flyout_audio_track",
+                tag = "app.morphe.extension.youtube.settings.preference.HideAudioFlyoutMenuPreference"
+            ),
+            SwitchPreference(
+                key = "tada_hide_player_flyout_audio_track_footer",
+                tag = "app.morphe.extension.youtube.settings.preference.HideAudioFlyoutMenuPreference"
+            ),
+            SwitchPreference("tada_hide_player_flyout_captions"),
+            SwitchPreference("tada_hide_player_flyout_captions_footer"),
+            SwitchPreference("tada_hide_player_flyout_captions_header"),
+            SwitchPreference("tada_hide_player_flyout_help"),
+            SwitchPreference("tada_hide_player_flyout_listen_with_youtube_music"),
+            SwitchPreference("tada_hide_player_flyout_lock_screen"),
+            SwitchPreference("tada_hide_player_flyout_loop_video"),
+            SwitchPreference("tada_hide_player_flyout_on_the_go"),
+            SwitchPreference("tada_hide_player_flyout_quality"),
+            SwitchPreference("tada_hide_player_flyout_quality_footer"),
+            SwitchPreference("tada_hide_player_flyout_quality_header"),
+            SwitchPreference("tada_hide_player_flyout_sleep_timer"),
+            SwitchPreference("tada_hide_player_flyout_speed"),
+            SwitchPreference("tada_hide_player_flyout_stable_volume"),
+            SwitchPreference("tada_hide_player_flyout_watch_in_vr")
+        )
+
+        addLithoFilter(EXTENSION_FILTER)
+        hookElement("$EXTENSION_CLASS->hideNativeBottomSheetHeader")
+        hookTreeNodeResult(
+            descriptor = "$EXTENSION_CLASS->hideNativeBottomSheetFooter",
+            isLazilyConvertedElement = false
+        )
+
+        // region Patch for the Shorts flyout
+
+        CaptionsOldBottomSheetLayoutInflaterFingerprint.matchAll(1 .. 2).forEach { match ->
+            match.let {
+                it.method.apply {
+                    val footerViewIndex = it.instructionMatches.last().index
+                    val footerViewArgs = fiveRegisters(footerViewIndex)
+
+                    replaceInstruction(
+                        footerViewIndex,
+                        "invoke-static { $footerViewArgs }, $EXTENSION_CLASS->" +
+                                "hideCaptionsOldBottomSheetFooter(Landroid/widget/ListView;Landroid/view/View;Ljava/lang/Object;Z)V"
+                    )
+
+                    val headerViewIndex = it.instructionMatches[1].index
+                    val headerViewArgs = fiveRegisters(headerViewIndex)
+
+                    replaceInstruction(
+                        headerViewIndex,
+                        "invoke-static { $headerViewArgs }, $EXTENSION_CLASS->" +
+                                "hideCaptionsOldBottomSheetHeader(Landroid/view/View;I)Landroid/view/View;"
+                    )
+                }
+            }
+        }
+
+        QualityOldBottomSheetLayoutInflaterFingerprint.matchAll(2 .. 3).forEach { match ->
+            match.let {
+                it.method.apply {
+                    val footerViewIndex = it.instructionMatches.last().index
+                    val footerViewArgs = fiveRegisters(footerViewIndex)
+
+                    replaceInstruction(
+                        footerViewIndex,
+                        "invoke-static { $footerViewArgs }, $EXTENSION_CLASS->" +
+                                "hideQualityOldBottomSheetFooter(Landroid/widget/ListView;Landroid/view/View;Ljava/lang/Object;Z)V"
+                    )
+
+                    val headerViewIndex = it.instructionMatches[1].index
+                    val headerViewArgs = fiveRegisters(headerViewIndex)
+
+                    replaceInstruction(
+                        headerViewIndex,
+                        "invoke-static { $headerViewArgs }, $EXTENSION_CLASS->" +
+                                "hideQualityOldBottomSheetHeader(Landroid/widget/ListView;Landroid/view/View;Ljava/lang/Object;Z)V"
+                    )
+                }
+            }
+        }
+
+        // endregion
+
+    }
+}

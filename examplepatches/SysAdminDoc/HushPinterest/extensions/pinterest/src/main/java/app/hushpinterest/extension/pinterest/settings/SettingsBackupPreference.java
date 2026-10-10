@@ -392,7 +392,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                 message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
                         switchValue(setting.persistedValue()), switchValue((Boolean) entry.getValue())));
                 if (!available(setting)) {
-                    message.append('\n').append(L10n.t("Saved choice only. This build doesn't include this control."));
+                    message.append('\n').append(L10n.t("Your choice is saved, but this build doesn't include the "
+                        + "patch for it."));
                 }
             }
             if (snapshot.unknown > 0) {
@@ -418,6 +419,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_strip_link_tracking": return L10n.t("Strip link tracking");
             case "hushpinterest_hide_ad_id": return L10n.t("Hide advertising ID");
             case "hushpinterest_download_pins": return L10n.t("Download pins");
+            case "hushpinterest_download_board": return L10n.t("Download board");
+            case "hushpinterest_long_press_download": return L10n.t("Long-press download");
             case "hushpinterest_external_browser": return L10n.t("Open links in your browser");
             case "hushpinterest_system_share": return L10n.t("System share sheet");
             case "hushpinterest_hide_screenshot_share": return L10n.t("No screenshot share menu");
@@ -432,6 +435,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_comments": return L10n.t("Hide comments");
             case "hushpinterest_hide_topic_suggestions": return L10n.t("Hide topic suggestions");
             case "hushpinterest_quiet_email_reminder": return L10n.t("Quiet email reminders");
+            case "hushpinterest_hide_survey_prompts": return L10n.t("Hide survey prompts");
             case "hushpinterest_hide_save_toasts": return L10n.t("Hide save toasts");
             case "hushpinterest_original_images": return L10n.t("Original-quality images");
             case "hushpinterest_disable_update_nag": return L10n.t("Disable update nag");

@@ -124,14 +124,14 @@ public class MessengerLinkCheckTest {
     @Test
     public void withoutASignedInSessionNoReaderIsMade() {
         reads.session = null;
-        assertEquals("No signed-in account to test with.", MessengerLinkCheck.run(context));
+        assertEquals("No signed-in account to test with. Sign in to Facebook and try again.", MessengerLinkCheck.run(context));
         assertEquals(List.of("session"), reads.calls);
     }
 
     @Test
     public void aReaderThatCantBeMadeStopsTheTestBeforeAnyRead() {
         reads.reader = null;
-        assertEquals("The Messenger link test couldn't start.", MessengerLinkCheck.run(context));
+        assertEquals("The Messenger link test couldn't start. Try again.", MessengerLinkCheck.run(context));
         assertEquals(List.of("session", "reader for the session"), reads.calls);
     }
 

@@ -11,10 +11,7 @@ object PhotexCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(
-                version = null,
-                isExperimental = true // Experimental – patch may cause crashes.
-            )
+            AppTarget(version = null, isExperimental = true)
         )
     )
 }

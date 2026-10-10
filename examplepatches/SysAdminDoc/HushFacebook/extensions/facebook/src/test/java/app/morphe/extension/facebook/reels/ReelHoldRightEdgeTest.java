@@ -44,6 +44,8 @@ public class ReelHoldRightEdgeTest {
         HookStatus.clear();
         ReelHold.holdInBuildForTests = true;
         Settings.HOLD_REEL_RIGHT_EDGE.save(true);
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.HOLD_REEL_FOR_2X.save(true);
     }
 
     @After

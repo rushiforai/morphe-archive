@@ -61,7 +61,8 @@ internal fun BytecodePatchContext.installFeedText() {
     fun bridge(name: String) = extension.methods.singleOrNull { it.name == name }
         ?: throw PatchException("Feed text sizes: missing $name bridge")
     val bridges = linkedMapOf<String, MutableMethod>()
-    for (name in listOf("descriptionViewOf", "authorViewOf", "resizeDescriptionBuilder", "refreshDescription", "refreshAuthor")) {
+    for (name in listOf("descriptionViewOf", "authorViewOf", "dateViewOf", "resizeDescriptionBuilder", "refreshDescription",
+            "refreshAuthor")) {
         bridges[name] = bridge(name)
     }
     fun rewrite(name: String, locals: Int, body: String) {
@@ -88,6 +89,16 @@ internal fun BytecodePatchContext.installFeedText() {
         if-eqz v0, :none
         check-cast p0, $AUTHOR
         iget-object v0, p0, ${native.authorView}
+        return-object v0
+        :none
+        const/4 v0, 0x0
+        return-object v0
+    """)
+    rewrite("dateViewOf", 1, """
+        instance-of v0, p0, $AUTHOR
+        if-eqz v0, :none
+        check-cast p0, $AUTHOR
+        iget-object v0, p0, ${native.dateView}
         return-object v0
         :none
         const/4 v0, 0x0
@@ -140,10 +151,10 @@ internal fun BytecodePatchContext.installFeedText() {
 @Suppress("unused")
 val feedTextSizePatch = bytecodePatch(
     name = "Feed text sizes",
-    description = "Sets independent sizes for video descriptions and creator names. Switch: Hushfeed settings > Feed screen.",
-    default = false,
+    description = "Lets you make video descriptions, creator names and post dates bigger or smaller, " +
+        "so they're easier to read. Starts off. Pick a size in Hushfeed settings > Feed screen.",
 ) {
-    category("Interaction")
+    category("Interface")
     compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, sharedExtensionPatch)
     execute {

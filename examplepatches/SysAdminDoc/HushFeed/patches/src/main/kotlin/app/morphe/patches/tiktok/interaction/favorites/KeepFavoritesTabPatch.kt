@@ -27,9 +27,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/fav
 @Suppress("unused")
 val keepFavoritesTabPatch = bytecodePatch(
     name = "Keep the Favorites tab",
-    description = "Keeps the Favorites tab on your profile when TikTok's server puts the account " +
-        "into an experiment that empties it. Two people saw that after patching: the tab was " +
-        "there and the saved videos were not. Switch: Hushfeed settings > App.",
+    description = "Keeps the Favorites tab and your saved videos on your profile when TikTok " +
+        "tries out a version of the app that hides them. On by default. Turn it off in Hushfeed " +
+        "settings > App.",
     default = true,
 ) {
     category("Settings")

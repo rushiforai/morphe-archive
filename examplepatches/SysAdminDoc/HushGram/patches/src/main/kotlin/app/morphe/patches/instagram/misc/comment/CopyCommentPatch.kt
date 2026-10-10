@@ -15,20 +15,25 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 @Suppress("unused")
 val copyCommentPatch = bytecodePatch(
     name = "Copy comment",
-    description = "Adds optional Copy and Copy username actions to the common comment menu. Copy keeps the original " +
-        "text with its line breaks, and Copy username copies the commenter's username. Their switches start off.",
+    description = "Adds Copy and Copy username to the menu you get on a comment, so you can copy its text or the " +
+        "commenter's username. Starts off. Turn it on in HushGram settings > Comments.",
     default = true,
 ) {
-    category("Interface")
+    category("Interaction")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
     execute {
         requireStatusMethod("commentCopy")
+        requireStatusMethod(COMMENT_AUTHOR_STATUS)
         val menu = findCommentMenu()
         applyCommentMenu(menu)
+        if (menu.author != null) enableStatus(COMMENT_AUTHOR_STATUS)
         enableStatus("commentCopy")
     }
 }
+
+/** The status of the second switch, Copy the commenter's username, which a build can lack while Copy goes in (#35). */
+internal const val COMMENT_AUTHOR_STATUS = "commentAuthor"
 
 /** Validate the extension too, so a missing bridge can't leave the native renderer half changed. */
 internal fun BytecodePatchContext.validateCommentStubs() {

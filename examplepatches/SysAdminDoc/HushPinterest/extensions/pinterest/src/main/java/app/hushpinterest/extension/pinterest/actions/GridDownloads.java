@@ -125,7 +125,7 @@ final class GridDownloads {
                     .setPositiveButton(L10n.t("Queue selected"), (dialog, which) -> {
                         List<Object> chosen = new ArrayList<>();
                         for (int i = 0; i < pins.size(); i++) if (selected[i]) chosen.add(pins.get(i));
-                        if (!chosen.isEmpty() && RUNNING.compareAndSet(false, true)) new Batch(activity, chosen).begin();
+                        if (!chosen.isEmpty()) queue(activity, chosen, L10n.t("Download visible pins"), null, 0, true);
                     })
                     .setNegativeButton(L10n.t("Cancel"), null).create();
             picker.show();
@@ -138,24 +138,50 @@ final class GridDownloads {
         }
     }
 
+    /** True while a batch, from the grid or a board, is still working through its pins. */
+    static boolean running() {
+        return RUNNING.get();
+    }
+
+    /**
+     * Starts one batch through {@link PinDownloads} unless another one is running. [known] pins were
+     * left out before the batch because Download history already has them: they count as skipped
+     * and the summary says so. [note] is shown under the summary, or nothing when it's null. A batch
+     * that doesn't [recordStops] leaves pins it never started out of Download history, so a long
+     * board stopped early doesn't push real downloads out of the history's 32 entries.
+     */
+    static boolean queue(Activity activity, List<Object> pins, String title, String note, int known, boolean recordStops) {
+        if (activity == null || pins.isEmpty() || !RUNNING.compareAndSet(false, true)) return false;
+        new Batch(activity, pins, title, note, known, recordStops).begin();
+        return true;
+    }
+
     private static final class Batch {
         final WeakReference<Activity> activity;
         final Context app;
         final List<Object> pins;
+        final String title, note;
+        final int known;
+        final boolean recordStops;
         AlertDialog progress;
         boolean stopped;
         int position, queued, saved, skipped, unsupported, failed, untracked;
 
-        Batch(Activity activity, List<Object> pins) {
+        Batch(Activity activity, List<Object> pins, String title, String note, int known, boolean recordStops) {
             this.activity = new WeakReference<>(activity);
             app = activity.getApplicationContext();
             this.pins = pins;
+            this.title = title;
+            this.note = note;
+            this.known = known;
+            this.recordStops = recordStops;
+            skipped = known;
         }
 
         void begin() {
             try {
                 progress = new AlertDialog.Builder(new ContextThemeWrapper(activity.get(), android.R.style.Theme_Material_Dialog_Alert))
-                        .setTitle(L10n.t("Download visible pins"))
+                        .setTitle(title)
                         .setMessage(summary())
                         .setNegativeButton(L10n.t("Stop selection"), (dialog, which) -> stopped = true).create();
                 progress.setOnCancelListener(dialog -> stopped = true);
@@ -170,6 +196,8 @@ final class GridDownloads {
 
         String summary() {
             return L10n.f("Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d", queued, saved, skipped, unsupported, failed)
+                    + (known == 0 ? "" : "\n\n" + L10n.f("Skipped because they're already in Download history: %d", known))
+                    + (note == null ? "" : "\n\n" + note)
                     + "\n\n" + L10n.t("Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.")
                     + (untracked == 0 ? "" : "\n\n" + L10n.f("History could not be saved for %d results. Check Downloads or your chosen files.", untracked));
         }
@@ -192,11 +220,11 @@ final class GridDownloads {
             Object pin = pins.get(position);
             String id = PinMedia.id(pin);
             if (stopped || host == null || host.isFinishing() || host.isDestroyed()) {
-                result(id, PinDownloads.Result.SKIPPED);
-            } else PinDownloads.start(pin, host, outcome -> result(id, outcome));
+                result(id, PinDownloads.Result.SKIPPED, recordStops);
+            } else PinDownloads.start(pin, host, outcome -> result(id, outcome, true));
         }
 
-        void result(String id, PinDownloads.Result outcome) {
+        void result(String id, PinDownloads.Result outcome, boolean record) {
             switch (outcome) {
                 case QUEUED: queued++; break;
                 case QUEUED_UNTRACKED: queued++; untracked++; break;
@@ -210,7 +238,7 @@ final class GridDownloads {
                 if (progress != null && progress.isShowing()) progress.setMessage(summary());
                 next();
             };
-            if (outcome == PinDownloads.Result.QUEUED || outcome == PinDownloads.Result.QUEUED_UNTRACKED) {
+            if (!record || outcome == PinDownloads.Result.QUEUED || outcome == PinDownloads.Result.QUEUED_UNTRACKED) {
                 Utils.runOnMainThread(advance);
             } else {
                 boolean scheduled = Utils.runOnBackgroundThread(() -> {

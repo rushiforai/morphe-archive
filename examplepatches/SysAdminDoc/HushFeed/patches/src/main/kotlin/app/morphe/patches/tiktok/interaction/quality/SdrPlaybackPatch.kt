@@ -51,8 +51,8 @@ internal object SimVideoUrlModelSetBitRateFingerprint : Fingerprint(
 @Suppress("unused")
 val sdrPlaybackPatch = bytecodePatch(
     name = "Play SDR instead of HDR",
-    description = "Plays the standard version of videos that also come in HDR, so the screen " +
-        "doesn't jump to full brightness when one starts. Switch: Hushfeed settings > Playback.",
+    description = "Plays the normal version of HDR videos, so your screen doesn't suddenly " +
+        "jump to full brightness. Starts off. Turn it on in Hushfeed settings > Playback.",
     default = true,
 ) {
     category("Playback")

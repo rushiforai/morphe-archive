@@ -73,6 +73,8 @@ public class HapticsTest {
         Context context = RuntimeEnvironment.getApplication();
         view = new CountingView(context);
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        // The switch starts off; these tests are about what it does once the reader turns it on.
+        Settings.TURN_OFF_HAPTICS.save(true);
     }
 
     @After public void tearDown() {
@@ -88,8 +90,10 @@ public class HapticsTest {
         return new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION).build();
     }
 
-    @Test public void theSwitchStartsOnAndTikToksHapticsDontPlay() {
-        assertTrue("picking the patch is the ask", Settings.TURN_OFF_HAPTICS.get());
+    @Test public void theSwitchStartsOffAndOnTikToksHapticsDontPlay() {
+        assertEquals("the patch is in the default selection, so its switch starts off",
+                Boolean.FALSE, Settings.TURN_OFF_HAPTICS.defaultValue);
+        assertTrue(Settings.TURN_OFF_HAPTICS.get());
 
         assertFalse("the view call answers as a view with haptics off does",
                 Haptics.performHapticFeedback(view, HapticFeedbackConstants.LONG_PRESS));

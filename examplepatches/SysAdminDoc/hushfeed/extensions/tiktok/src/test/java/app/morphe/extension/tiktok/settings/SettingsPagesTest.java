@@ -43,6 +43,11 @@ public class SettingsPagesTest {
     private static final String[] TITLES = {"Feed filter", "Feed tabs", "Feed screen", "Playback",
             "Screen time", "Comments", "Downloads", "Share sheet", "Inbox", "Privacy", "Region", "App",
             "Diagnostics", "Backup and restore"};
+    private static final String[] HUBS = {"FEED_LAYOUT", "COMMENTS_INBOX", "DOWNLOADS_SHARING",
+            "APP_ADVANCED", "ABOUT"};
+    private static final String[] ROOT_TITLES = {"Feed & layout", "Playback", "Privacy",
+            "Comments & inbox", "Downloads & sharing", "Screen time", "App & advanced",
+            "About Hushfeed"};
     private final Map<Field, Boolean> statuses = new LinkedHashMap<>();
 
     public static class PageActivity extends Activity {
@@ -82,12 +87,15 @@ public class SettingsPagesTest {
                     .replace(android.R.id.content, home).commit();
             activity.getFragmentManager().executePendingTransactions();
 
-            android.preference.PreferenceScreen screen = home.getPreferenceScreen();
-            for (int index = 0; index < screen.getPreferenceCount(); index++) {
-                CharSequence title = screen.getPreference(index).getTitle();
-                assertNotEquals("App has nothing in it without its patches",
-                        "App", title == null ? "" : title.toString());
+            java.util.Set<String> routes = reachableMenuTitles(activity, home);
+            for (String title : new String[]{"Feed & layout", "Feed filter", "Feed tabs", "Feed screen",
+                    "Playback", "Privacy", "Comments & inbox", "Comments", "Inbox",
+                    "Downloads & sharing", "Downloads", "Share sheet", "Screen time", "Region", "App"}) {
+                assertFalse(title + " has nothing in it without its patches", routes.contains(title));
             }
+            assertTrue(routes.contains("App & advanced"));
+            assertTrue(routes.contains("About Hushfeed"));
+            assertTrue(routes.contains("Backup and restore"));
         }
     }
 
@@ -160,17 +168,12 @@ public class SettingsPagesTest {
                         .replace(android.R.id.content, home).commit();
                 activity.getFragmentManager().executePendingTransactions();
 
-                java.util.Set<String> rows = new java.util.HashSet<>();
-                android.preference.PreferenceScreen screen = home.getPreferenceScreen();
-                for (int index = 0; index < screen.getPreferenceCount(); index++) {
-                    CharSequence title = screen.getPreference(index).getTitle();
-                    if (title != null) rows.add(title.toString());
-                }
+                java.util.Set<String> rows = reachableMenuTitles(activity, home);
                 for (int page = 0; page < pages.length; page++) {
                     boolean available = (Boolean) pages[page].getMethod("isAvailable").invoke(null);
                     if (available) {
                         assertTrue(titles[page] + " has rows to show with only " + flag.getName()
-                                + " set, but the home screen offers no way in",
+                                + " set, but the menu hierarchy offers no way in",
                                 rows.contains(titles[page]));
                         continue;
                     }
@@ -454,7 +457,7 @@ public class SettingsPagesTest {
         return built.getPreferenceCount();
     }
 
-    @Test public void theMasterMenuStartsWithStatusSearchAndSafeQuickRoutes() throws Exception {
+    @Test public void theMasterMenuHasEightDestinationsAndOneSearchEntry() throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setContext(activity);
@@ -465,52 +468,35 @@ public class SettingsPagesTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             android.preference.PreferenceScreen screen = home.getPreferenceScreen();
-            Preference status = screen.findPreference("hushfeed_status");
-            Preference quickRoutes = screen.findPreference("hushfeed_quick_routes");
-            assertNotNull("the master menu has no active status", status);
-            assertNotNull("the master menu has no quick routes", quickRoutes);
-            assertEquals("Hushfeed is active", String.valueOf(status.getTitle()));
+            assertNull("the full status card still occupies the home menu", screen.findPreference("hushfeed_status"));
+            assertNull("duplicate quick routes returned to the home menu", screen.findPreference("hushfeed_quick_routes"));
+            assertNull("Pause should be under App & advanced", screen.findPreference(
+                    app.morphe.extension.shared.settings.BaseSettings.PAUSED.key));
+            java.util.List<String> titles = new java.util.ArrayList<>();
+            for (var row : menuRows(home)) titles.add(String.valueOf(row.getTitle()));
+            assertEquals(java.util.Arrays.asList(ROOT_TITLES), titles);
+            Preference search = screen.findPreference("action_search_settings");
+            assertNotNull("the home menu has no search field", search);
+            assertEquals("Search settings", String.valueOf(search.getTitle()));
+            assertTrue("Search is not above the first destination",
+                    preferenceIndex(screen, search) < preferenceIndex(screen, menuRows(home).get(0)));
+            TextView heading = home.getView().findViewWithTag("hushfeed_page_title");
+            assertEquals("Settings", heading.getText().toString());
 
-            int statusIndex = preferenceIndex(screen, status);
-            int searchIndex = preferenceIndex(screen, preferenceNamed(screen, "Search settings"));
-            int quickIndex = preferenceIndex(screen, quickRoutes);
-            int firstSection = preferenceIndex(screen, preferenceNamed(screen, "Your feed"));
-            assertTrue("status is not before Search", statusIndex < searchIndex);
-            assertTrue("quick routes are not immediately useful after Search", searchIndex < quickIndex);
-            assertTrue("quick routes were buried in the category list", quickIndex < firstSection);
-
-            View statusView = status.getView(null, null);
-            View diagnostics = statusView.findViewWithTag("hushfeed_status_diagnostics");
-            assertAccessibleButton(activity, diagnostics, "Diagnostics");
-
-            View quickView = quickRoutes.getView(null, null);
-            View feed = quickView.findViewWithTag("hushfeed_quick_feed");
-            assertAccessibleButton(activity, feed, "Feed filter");
-            assertAccessibleButton(activity,
-                    quickView.findViewWithTag("hushfeed_quick_privacy"), "Privacy");
-            assertAccessibleButton(activity,
-                    quickView.findViewWithTag("hushfeed_quick_screen_time"), "Screen time");
-
-            assertTrue("the Feed filter quick route ignored the press", feed.performClick());
+            View status = home.getView().findViewWithTag("hushfeed_compact_status");
+            assertNotNull("the compact status is missing", status);
+            assertAccessibleButton(activity, status, String.valueOf(status.getContentDescription()));
+            assertTrue("the compact status has no spoken state", status.getContentDescription().length() > 0);
+            assertTrue("the compact status ignored the press", status.performClick());
             activity.getFragmentManager().executePendingTransactions();
-            TikTokPreferenceFragment feedPage = (TikTokPreferenceFragment) activity
+            TikTokPreferenceFragment advanced = (TikTokPreferenceFragment) activity
                     .getFragmentManager().findFragmentById(android.R.id.content);
-            assertEquals("the Feed filter quick route opened the wrong page", "FEED_FILTER",
-                    feedPage.getArguments().getString("morphe_settings_section"));
+            assertEquals("the compact status opened the wrong page", "APP_ADVANCED",
+                    advanced.getArguments().getString("morphe_settings_hub"));
+            assertNotNull("the detailed status is missing from App & advanced",
+                    advanced.findPreference("hushfeed_status"));
+            assertNotNull(advanced.findPreference(app.morphe.extension.shared.settings.BaseSettings.PAUSED.key));
         }
-    }
-
-    private static Preference preferenceNamed(
-            android.preference.PreferenceScreen screen,
-            String title
-    ) {
-        for (int index = 0; index < screen.getPreferenceCount(); index++) {
-            Preference preference = screen.getPreference(index);
-            if (preference.getTitle() != null && title.contentEquals(preference.getTitle())) {
-                return preference;
-            }
-        }
-        throw new AssertionError("no preference called " + title);
     }
 
     private static int preferenceIndex(
@@ -538,38 +524,10 @@ public class SettingsPagesTest {
 
     @Test
     @Config(qualifiers = "w480dp-h960dp-night-mdpi", fontScale = 2f)
-    public void masterActionsStackInsteadOfClippingAtLargeText() {
+    public void advancedStatusActionsStackInsteadOfClippingAtLargeText() {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setContext(activity);
-            java.util.List<app.morphe.extension.tiktok.settings.preference
-                    .SettingsQuickActionsPreference.Action> actions = java.util.Arrays.asList(
-                    new app.morphe.extension.tiktok.settings.preference
-                            .SettingsQuickActionsPreference.Action(
-                            "Feed filter", "hushfeed_quick_feed",
-                            app.morphe.extension.tiktok.settings.preference
-                                    .SettingsMenuPreference.Icon.FILTER,
-                            () -> {}),
-                    new app.morphe.extension.tiktok.settings.preference
-                            .SettingsQuickActionsPreference.Action(
-                            "Privacy", "hushfeed_quick_privacy",
-                            app.morphe.extension.tiktok.settings.preference
-                                    .SettingsMenuPreference.Icon.PRIVACY,
-                            () -> {}),
-                    new app.morphe.extension.tiktok.settings.preference
-                            .SettingsQuickActionsPreference.Action(
-                            "Screen time", "hushfeed_quick_screen_time",
-                            app.morphe.extension.tiktok.settings.preference
-                                    .SettingsMenuPreference.Icon.SCREEN_TIME,
-                            () -> {}));
-            Preference quick = new app.morphe.extension.tiktok.settings.preference
-                    .SettingsQuickActionsPreference(activity, actions);
-            View quickView = quick.getView(null, null);
-            android.widget.LinearLayout row = quickView.findViewWithTag(
-                    "hushfeed_quick_routes_row");
-            assertEquals("large text kept the three routes in one cramped line",
-                    android.widget.LinearLayout.VERTICAL, row.getOrientation());
-
             Preference status = new app.morphe.extension.tiktok.settings.preference
                     .SettingsStatusPreference(activity, () -> {});
             View statusView = status.getView(null, null);
@@ -584,7 +542,7 @@ public class SettingsPagesTest {
 
     @Test
     @Config(qualifiers = "w480dp-h960dp-night-mdpi", fontScale = 1.3f)
-    public void quickActionsStackAtTheFirstLargeTextPreset() {
+    public void theCompactHomeHeaderKeepsItsActionsReadableAtLargeText() {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setContext(activity);
@@ -594,13 +552,12 @@ public class SettingsPagesTest {
             activity.getFragmentManager().executePendingTransactions();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-            Preference quick = home.getPreferenceScreen().findPreference(
-                    "hushfeed_quick_routes");
-            View row = quick.getView(null, null).findViewWithTag(
-                    "hushfeed_quick_routes_row");
-            assertEquals("the first large-text preset split quick-action words",
-                    android.widget.LinearLayout.VERTICAL,
-                    ((android.widget.LinearLayout) row).getOrientation());
+            layout(home.getView(), 480, 960);
+            TextView title = home.getView().findViewWithTag("hushfeed_page_title");
+            assertTextFits(title);
+            View status = home.getView().findViewWithTag("hushfeed_compact_status");
+            assertAccessibleButton(activity, status, String.valueOf(status.getContentDescription()));
+            assertRootRowsReadable(home.getView().findViewById(android.R.id.list));
         }
     }
 
@@ -610,6 +567,37 @@ public class SettingsPagesTest {
     public void darkPagesNavigateAndRender() throws Exception { capturePages("dark"); }
     @Test @Config(sdk = 29, qualifiers = "w480dp-h960dp-notnight-mdpi")
     public void lightPagesNavigateAndRender() throws Exception { capturePages("light"); }
+
+    @Test @Config(sdk = 29, qualifiers = "w390dp-h844dp-night-mdpi")
+    public void theQuietIndexFitsAStandardPhoneInDarkTheme() throws Exception {
+        captureQuietIndex("dark");
+    }
+
+    @Test @Config(sdk = 29, qualifiers = "w390dp-h844dp-notnight-mdpi")
+    public void theQuietIndexFitsAStandardPhoneInLightTheme() throws Exception {
+        captureQuietIndex("light");
+    }
+
+    private void captureQuietIndex(String theme) throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = attachHome(activity);
+            layout(home.getView(), 390, 844);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            ListView list = home.getView().findViewById(android.R.id.list);
+            assertEquals("the default index no longer fits its eight destinations on a phone",
+                    list.getAdapter().getCount() - 1, list.getLastVisiblePosition());
+            for (var row : menuRows(home)) {
+                assertTrue("the root row returned to the oversized card layout", row.isCompact());
+                assertEquals("the root index grew a changed-setting badge", 0, row.activeCount());
+            }
+            TextView heading = home.getView().findViewWithTag("hushfeed_page_title");
+            assertTextFits(heading);
+            assertRootRowsReadable(list);
+            UiCapture.save(home.getView(), "pages/" + theme + "/settings-quiet-index.png", 390, 844);
+        }
+    }
 
     private void capturePages(String theme) throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
@@ -634,17 +622,24 @@ public class SettingsPagesTest {
             activity.getFragmentManager().executePendingTransactions();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             UiCapture.save(home.getView(), "pages/" + theme + "/settings.png");
-            for (int i = 0; i < SECTIONS.length; i++) {
-                Preference menu = null;
-                for (int j = 0; j < home.getPreferenceScreen().getPreferenceCount(); j++) {
-                    Preference candidate = home.getPreferenceScreen().getPreference(j);
-                    if (TITLES[i].equals(String.valueOf(candidate.getTitle()))) menu = candidate;
-                }
-                assertNotNull("Missing menu: " + SECTIONS[i], menu);
-                assertTrue(menu.getOnPreferenceClickListener().onPreferenceClick(menu));
-                activity.getFragmentManager().executePendingTransactions();
+            for (String hub : HUBS) {
+                TikTokPreferenceFragment page = openMenu(activity, home,
+                        "hub_" + hub.toLowerCase(java.util.Locale.ROOT));
+                assertEquals(hub, page.getArguments().getString("morphe_settings_hub"));
+                UiCapture.save(page.getView(), "pages/" + theme + "/hub-"
+                        + hub.toLowerCase(java.util.Locale.ROOT) + ".png");
+                assertTrue(activity.getFragmentManager().popBackStackImmediate());
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
-                TikTokPreferenceFragment page = (TikTokPreferenceFragment) activity.getFragmentManager().findFragmentById(android.R.id.content);
+                assertSame(home, activity.getFragmentManager().findFragmentById(android.R.id.content));
+            }
+            for (int i = 0; i < SECTIONS.length; i++) {
+                String hub = hubForSection(SECTIONS[i]);
+                TikTokPreferenceFragment parent = hub == null ? home : openMenu(activity, home,
+                        "hub_" + hub.toLowerCase(java.util.Locale.ROOT));
+                Preference menu = parent.findPreference("section_" + SECTIONS[i].toLowerCase(java.util.Locale.ROOT));
+                assertNotNull("Missing menu: " + SECTIONS[i], menu);
+                assertEquals(TITLES[i], String.valueOf(menu.getTitle()));
+                TikTokPreferenceFragment page = openMenu(activity, parent, menu.getKey());
                 assertEquals(SECTIONS[i], page.getArguments().getString("morphe_settings_section"));
                 assertTrue(page.getPreferenceScreen().getPreferenceCount() > 2);
                 String name = "pages/" + theme + "/" + SECTIONS[i].toLowerCase(java.util.Locale.ROOT);
@@ -674,6 +669,11 @@ public class SettingsPagesTest {
                 UiCapture.save(page.getView(), name + "-end.png");
                 activity.getFragmentManager().popBackStackImmediate();
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertSame(parent, activity.getFragmentManager().findFragmentById(android.R.id.content));
+                if (hub != null) {
+                    assertTrue(activity.getFragmentManager().popBackStackImmediate());
+                    Shadows.shadowOf(Looper.getMainLooper()).idle();
+                }
                 assertSame(home, activity.getFragmentManager().findFragmentById(android.R.id.content));
             }
         }
@@ -859,12 +859,12 @@ public class SettingsPagesTest {
                     .simSpoofEnabled;
             try {
                 app.morphe.extension.tiktok.settings.SettingsStatus.simSpoofEnabled = false;
-                assertTrue("a bundle without the patch still promised the operator rows",
-                        !summaryOfSimSwitch(activity).contains("operator"));
+                assertTrue("a bundle without the patch still promised the carrier rows",
+                        !summaryOfSimSwitch(activity).contains("carrier"));
 
                 app.morphe.extension.tiktok.settings.SettingsStatus.simSpoofEnabled = true;
-                assertTrue("a bundle with the patch stopped naming the operator rows",
-                        summaryOfSimSwitch(activity).contains("operator"));
+                assertTrue("a bundle with the patch stopped naming the carrier rows",
+                        summaryOfSimSwitch(activity).contains("carrier"));
             } finally {
                 app.morphe.extension.tiktok.settings.SettingsStatus.simSpoofEnabled = original;
             }
@@ -1041,7 +1041,7 @@ public class SettingsPagesTest {
         }
     }
 
-    /** Pause Hushfeed lives on the master menu, so its result has no section to open. */
+    /** Pause keeps its stable setting key and opens the maintenance group from search. */
     @Test public void settingsSearchOpensPauseHushfeedOnTheMasterMenu() throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             Activity activity = owner.get();
@@ -1066,6 +1066,7 @@ public class SettingsPagesTest {
             TikTokPreferenceFragment targetPage = (TikTokPreferenceFragment) activity.getFragmentManager()
                     .findFragmentById(android.R.id.content);
             assertNull(targetPage.getArguments().getString("morphe_settings_section"));
+            assertEquals("APP_ADVANCED", targetPage.getArguments().getString("morphe_settings_hub"));
             ListView list = targetPage.getView().findViewById(android.R.id.list);
             assertTrue(positionOf(list, app.morphe.extension.shared.settings.BaseSettings.PAUSED.key) >= 0);
         }
@@ -1713,7 +1714,7 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
                 setting.resetToDefault();
             }
 
-            TikTokPreferenceFragment home = attachHome(activity);
+            TikTokPreferenceFragment home = attachHub(activity, "FEED_LAYOUT");
             for (var row : menuRows(home)) {
                 assertEquals("\"" + row.getTitle() + "\" claims settings are on in a stock"
                                 + " install", 0, row.activeCount());
@@ -1721,11 +1722,11 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
 
             // A setting on the Feed filter page that the hand-kept list of 17 never named.
             Settings.HIDE_AI_GENERATED.save(true);
-            home = attachHome(activity);
+            home = attachHub(activity, "FEED_LAYOUT");
             assertEquals("the Feed filter badge did not count a setting that was turned on",
                     1, badgeFor(home, "Feed filter"));
             assertEquals("turning on a Feed filter setting moved another page's badge",
-                    0, badgeFor(home, "Downloads"));
+                    0, badgeFor(home, "Feed tabs"));
             Settings.HIDE_AI_GENERATED.resetToDefault();
         }
     }
@@ -1742,7 +1743,7 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             for (var setting : app.morphe.extension.shared.settings.Setting.allLoadedSettings()) {
                 setting.resetToDefault();
             }
-            TikTokPreferenceFragment home = attachHome(activity);
+            TikTokPreferenceFragment home = attachHub(activity, "FEED_LAYOUT");
             assertEquals(0, badgeFor(home, "Feed filter"));
 
             // What the reader does inside the section, without going through its rows.
@@ -1775,13 +1776,13 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             // Stored in an order the row would tidy, which is what made the write visible.
             Settings.FEED_NAVIGATION_TABS.save("MALL,HOT");
 
-            TikTokPreferenceFragment home = attachHome(activity);
+            TikTokPreferenceFragment home = attachHub(activity, "FEED_LAYOUT");
             home.onResume();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertEquals("opening the settings menu rewrote a setting nobody touched",
                     "MALL,HOT", Settings.FEED_NAVIGATION_TABS.get());
-            assertTrue("the menu was never built", menuRows(home).size() > 3);
+            assertEquals("the three feed menus were not built", 3, menuRows(home).size());
             Settings.FEED_NAVIGATION_TABS.resetToDefault();
         }
     }
@@ -1800,7 +1801,7 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
                         .SettingsMenuPreference) row);
             }
         }
-        assertTrue("the master menu has no rows, so this proves nothing", found.size() > 3);
+        assertFalse("the menu has no rows, so this proves nothing", found.isEmpty());
         return found;
     }
 
@@ -1956,6 +1957,65 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
         return fragment;
     }
 
+    private static TikTokPreferenceFragment attachHub(Activity activity, String hub) {
+        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString("morphe_settings_hub", hub);
+        fragment.setArguments(arguments);
+        activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+        activity.getFragmentManager().executePendingTransactions();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        return fragment;
+    }
+
+    private static TikTokPreferenceFragment openMenu(Activity activity,
+            TikTokPreferenceFragment parent, String key) {
+        Preference route = parent.findPreference(key);
+        assertNotNull("missing navigation row " + key, route);
+        assertNotNull("navigation row has no action " + key, route.getOnPreferenceClickListener());
+        assertTrue("navigation row ignored the press " + key,
+                route.getOnPreferenceClickListener().onPreferenceClick(route));
+        activity.getFragmentManager().executePendingTransactions();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        return (TikTokPreferenceFragment) activity.getFragmentManager().findFragmentById(android.R.id.content);
+    }
+
+    private static String hubForSection(String section) {
+        switch (section) {
+            case "FEED_FILTER": case "FEED_NAVIGATION": case "INTERFACE": return "FEED_LAYOUT";
+            case "COMMENTS": case "INBOX": return "COMMENTS_INBOX";
+            case "DOWNLOADS": case "SHARE": return "DOWNLOADS_SHARING";
+            case "REGION": case "BEHAVIOR": case "DIAGNOSTICS": case "BACKUP": return "APP_ADVANCED";
+            default: return null;
+        }
+    }
+
+    /** Walks only navigation rows, so diagnostics, exports and external links never fire. */
+    private static java.util.Set<String> reachableMenuTitles(Activity activity,
+            TikTokPreferenceFragment home) {
+        java.util.Set<String> titles = new java.util.HashSet<>();
+        java.util.List<String> hubs = new java.util.ArrayList<>();
+        for (var route : menuRows(home)) {
+            titles.add(String.valueOf(route.getTitle()));
+            if (route.getKey() != null && route.getKey().startsWith("hub_")) hubs.add(route.getKey());
+        }
+        for (String key : hubs) {
+            TikTokPreferenceFragment hub = openMenu(activity, home, key);
+            var screen = hub.getPreferenceScreen();
+            for (int index = 0; index < screen.getPreferenceCount(); index++) {
+                Preference row = screen.getPreference(index);
+                if (row.getKey() != null && row.getKey().startsWith("section_")) {
+                    titles.add(String.valueOf(row.getTitle()));
+                }
+            }
+            assertTrue("the hub did not create a return route", activity.getFragmentManager().popBackStackImmediate());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertSame("Back did not return to the root menu", home,
+                    activity.getFragmentManager().findFragmentById(android.R.id.content));
+        }
+        return titles;
+    }
+
     private static Preference findPreference(android.preference.PreferenceScreen screen, String title) {
         for (int index = 0; index < screen.getPreferenceCount(); index++) {
             Preference preference = screen.getPreference(index);
@@ -2015,6 +2075,22 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             if (title != null && title.getLayout() != null) assertTextFits(title);
             TextView summary = row.findViewById(android.R.id.summary);
             if (summary != null && summary.getLayout() != null) assertTextFits(summary);
+        }
+    }
+
+    private static void assertRootRowsReadable(ListView list) {
+        assertNotNull(list);
+        int target = app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(list.getContext(), 48);
+        for (int index = 0; index < list.getChildCount(); index++) {
+            View view = list.getChildAt(index);
+            Object item = list.getAdapter().getItem(index + list.getFirstVisiblePosition());
+            if (item instanceof Preference && ((Preference) item).isSelectable()) {
+                assertTrue("a home action is smaller than 48dp", view.getHeight() >= target);
+            }
+            TextView title = view.findViewById(android.R.id.title);
+            TextView summary = view.findViewById(android.R.id.summary);
+            if (title != null && title.getVisibility() == View.VISIBLE) assertTextFits(title);
+            if (summary != null && summary.getVisibility() == View.VISIBLE) assertTextFits(summary);
         }
     }
 

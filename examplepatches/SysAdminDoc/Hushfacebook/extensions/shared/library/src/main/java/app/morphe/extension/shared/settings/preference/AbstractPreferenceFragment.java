@@ -634,7 +634,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     public static void showRestartDialog(Context context) {
         Utils.verifyOnMainThread();
         CharSequence message = savedMessage == null
-                ? L10n.t(context, "Saved. Restart Facebook to apply this change.")
+                ? L10n.t(context, "Saved. Restart Facebook to see the change.")
                 : savedMessage;
         RestartFeedbackPresenter presenter = restartFeedbackPresenter;
         if (presenter != null) {

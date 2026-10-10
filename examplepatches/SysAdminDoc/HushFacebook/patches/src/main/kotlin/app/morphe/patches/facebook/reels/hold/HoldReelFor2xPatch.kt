@@ -76,8 +76,8 @@ internal val reelLiftGuardPatch = bytecodePatch {
  * hold's lift gets the speed the reel played at before the hold, which the extension reads through
  * the player's speed getter, filled into its stub.
  *
- * Off in the default selection: while its switch is on, a hold on a reel speeds it up instead of
- * opening Facebook's long-press menu, which is a choice to make. Picked, its switch starts on.
+ * In the default selection with its switch off: while it's on, a hold on a reel speeds it up
+ * instead of opening Facebook's long-press menu, which is a choice to make.
  *
  * The touch dispatch, the speed-up paths, the release listeners' flags and the speed setter come
  * from [reelLiftGuardPatch], which Keep the reel speed brings too; this patch adds the rest.
@@ -86,11 +86,11 @@ internal val reelLiftGuardPatch = bytecodePatch {
 val holdReelFor2xPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hold a reel for 2x",
-    description = "Holding a reel plays it at double speed until you let go. The hold takes the place of " +
-        "Facebook's long-press menu, which the reel's more button still opens.",
-    default = false,
+    description = "Hold a reel to play it at double speed, and let go to go back to normal. Handy for skimming. " +
+        "The reel's more button still opens Facebook's long-press menu. Starts off. Turn it on in Hushfacebook " +
+        "settings > Reels and Watch.",
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch, reelLiftGuardPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

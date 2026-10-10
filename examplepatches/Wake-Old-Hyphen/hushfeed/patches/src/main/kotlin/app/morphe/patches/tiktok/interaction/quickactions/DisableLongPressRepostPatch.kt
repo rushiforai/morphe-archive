@@ -21,7 +21,8 @@ private const val FEATURE_CONTROLS_DESCRIPTOR =
 @Suppress("unused")
 val disableLongPressRepostPatch = bytecodePatch(
     name = "Disable the long press repost",
-    description = "Keeps holding Like from opening TikTok's repost action. Switch: Hushfeed settings > Feed screen.",
+    description = "Stops a long press on Like from opening TikTok's repost option, so you " +
+        "don't repost by accident. Starts off. Turn it on in Hushfeed settings > Feed screen.",
     default = true,
 ) {
     category("Interaction")

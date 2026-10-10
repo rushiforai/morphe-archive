@@ -35,12 +35,12 @@ function Metadata-Lines([string]$name, [string]$value) {
         "          A: http://schemas.android.com/apk/res/android:name=`"$name`"",
         "          A: http://schemas.android.com/apk/res/android:value=$value")
 }
-<# Both declared builds ask for the ad permissions, carry the ad services property beside another
-   application property, and declare Google's four consent defaults as true. #>
+<# The declared build asks for the ad permissions, carries the ad services property beside another
+   application property, and declares Google's four consent defaults as true. #>
 function Fixture-Facts([string[]]$features = @(), [string]$build = '14.38.0',
         [ValidateSet('Absent', 'Resource', 'True', 'False')][string]$flag = 'Absent', [switch]$NoQueries,
         [switch]$NoConsentDefaults, [switch]$NoAdServices, [switch]$WithSignature) {
-    $code = if ($build -eq '14.25.0') { '14258020' } else { '14388010' }
+    $code = '14388010'
     $lines = [System.Collections.Generic.List[string]]::new()
     $lines.AddRange([string[]]@(
         'N: android=http://schemas.android.com/apk/res/android (line=1)',
@@ -176,7 +176,7 @@ $signatureWritten = @($signatureMetadata.Keys | ForEach-Object {
         attributes = [pscustomobject]@{ 'android:name' = $_; 'android:value' = $signatureMetadata[$_] }; children = @() })) })
 Assert-Manifest ((@($signatureTemplates | Sort-Object -CaseSensitive) -join "`n") -ceq (@($signatureWritten | Sort-Object -CaseSensitive) -join "`n")) `
     "The allowlist approves other signature metadata than the patch writes: $($signatureTemplates -join '; ')"
-foreach ($build in @('14.38.0', '14.25.0')) {
+foreach ($build in @('14.38.0')) {
     $stock = Fixture-Facts -build $build
     Assert-Manifest ($stock.components.Count -eq 6 -and $stock.metadata.Count -eq 6 -and $stock.intentFilters.Count -eq 2) `
         'The parser lost a nonexported component or nested declaration.'

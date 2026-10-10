@@ -22,17 +22,17 @@ import com.android.tools.smali.dexlib2.iface.Field
  * the box decides to look people up for a plain word, and the extension's TagSuggestions for when
  * it keeps Facebook's answer.
  *
- * Off in the default selection: it takes away something Facebook does on purpose. Picked, its
- * switch starts on.
+ * In the default selection with its switch off: it takes away something Facebook does on purpose,
+ * so turning it on is the choice.
  */
 @Suppress("unused")
 val tagSuggestionsOnlyAfterAtPatch = bytecodePatch(
     name = "Tag suggestions only after @",
-    description = "Stops Facebook offering people to tag while you type ordinary words in posts and comments. " +
-        "Typing @ still brings up the list. Photo tags and your text aren't touched.",
-    default = false,
+    description = "Stops Facebook offering people to tag while you type ordinary words in posts and comments, so " +
+        "names don't pop up in your way. Typing @ still brings up the list. Starts off. Turn it on in " +
+        "Hushfacebook settings > Writing.",
 ) {
-    category("Interface")
+    category("Comments")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

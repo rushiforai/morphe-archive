@@ -1,0 +1,555 @@
+{
+  "schema_version": 1,
+  "observation_date": "2026-10-09",
+  "device_model": "SM-S938B",
+  "android_version": "16",
+  "android_build": "S938BXXUACZF1",
+  "messenger_version": "580.0.0.49.91",
+  "messenger_version_code": 346013440,
+  "hush_version": "0.21.0",
+  "hush_pause_enabled": true,
+  "messenger_restarted_after_pause": true,
+  "apk_contains_hush_modifications": true,
+  "physical_usb_disconnected": true,
+  "connection": "Wireless ADB",
+  "battery_history_manually_reset": false,
+  "environment": {
+    "brightness": "Adaptive, preserved",
+    "always_on_display": "Preserved",
+    "battery_saver": false,
+    "capture_tool": "PCAPdroid 2.0.2",
+    "application_tls_decryption": false,
+    "battery_sample_interval_seconds": 30,
+    "per_sample_display_diagnostics": "Present in the no-capture attempts"
+  },
+  "phases": [
+    {
+      "phase": "A",
+      "condition": "Cold start and foreground",
+      "capture_vpn_active": true,
+      "battery_sample_seconds": 180.123,
+      "checkpoint_seconds": 181.575,
+      "whole_device_net_charge_loss_mah": 9.8,
+      "whole_device_boundary_net_charge_loss_mah": 9.8,
+      "observed_charge_step_gcd_mah": 4.9,
+      "distinct_charge_counter_values": 3,
+      "fuel_counter_unchanged_in_all_samples": false,
+      "repeated_charge_counter_intervals": 4,
+      "all_samples_reported_discharging": true,
+      "uid_accounted_cpu_ms": 3941,
+      "uid_accounted_cpu_user_ms": 2777,
+      "uid_accounted_cpu_system_ms": 1164,
+      "aggregate_partial_wakelock_ms": 0,
+      "aggregate_background_partial_wakelock_ms": 0,
+      "uid_estimated_charge_delta_mah": 6.31,
+      "uid_estimated_screen_delta_mah": 6.02,
+      "uid_foreground_activity_ms": 181455,
+      "uid_top_residency_ms": 181474,
+      "uid_background_residency_ms": 0,
+      "uid_cached_residency_ms": 40,
+      "device_screen_on_ms": 181621,
+      "device_screen_off_ms": 0,
+      "device_screen_doze_ms": 0,
+      "device_interactive_ms": 181621,
+      "device_on_battery_uptime_ms": 181621,
+      "device_on_battery_realtime_ms": 181621,
+      "device_screen_on_count_change": 0,
+      "uid_successful_job_completion_count_change": 3,
+      "uid_canceled_job_completion_count_change": 0,
+      "uid_wakeup_alarm_count_change": 0,
+      "lollipop_upload_service_job_duration_delta_ms": 0,
+      "lollipop_upload_service_pending_minimum_latency": "+15m0s0ms",
+      "lollipop_upload_service_pending_maximum_delay": "+45m0s0ms",
+      "boundary_wakefulness": [
+        "Awake",
+        "Awake"
+      ],
+      "sampled_wakefulness_counts": {},
+      "sampled_device_idle_mode_counts": {},
+      "human_csv_cpu_agree_at_boundaries": [
+        true,
+        true
+      ],
+      "samples": [
+        {
+          "elapsed_seconds": 0.0,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 87.08
+        },
+        {
+          "elapsed_seconds": 30.112,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 87.26
+        },
+        {
+          "elapsed_seconds": 60.185,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 87.08
+        },
+        {
+          "elapsed_seconds": 90.415,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 86.9
+        },
+        {
+          "elapsed_seconds": 120.628,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 86.9
+        },
+        {
+          "elapsed_seconds": 150.846,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 86.72
+        },
+        {
+          "elapsed_seconds": 180.123,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 86.54
+        }
+      ]
+    },
+    {
+      "phase": "B",
+      "condition": "Background, mixed display state",
+      "capture_vpn_active": true,
+      "battery_sample_seconds": 600.19,
+      "checkpoint_seconds": 601.64,
+      "whole_device_net_charge_loss_mah": 14.7,
+      "whole_device_boundary_net_charge_loss_mah": 14.7,
+      "observed_charge_step_gcd_mah": 4.9,
+      "distinct_charge_counter_values": 4,
+      "fuel_counter_unchanged_in_all_samples": false,
+      "repeated_charge_counter_intervals": 17,
+      "all_samples_reported_discharging": true,
+      "uid_accounted_cpu_ms": 6863,
+      "uid_accounted_cpu_user_ms": 4216,
+      "uid_accounted_cpu_system_ms": 2647,
+      "aggregate_partial_wakelock_ms": 221,
+      "aggregate_background_partial_wakelock_ms": 221,
+      "uid_estimated_charge_delta_mah": 0.4,
+      "uid_estimated_screen_delta_mah": 0.1,
+      "uid_foreground_activity_ms": 531,
+      "uid_top_residency_ms": 814,
+      "uid_background_residency_ms": 120374,
+      "uid_cached_residency_ms": 480438,
+      "device_screen_on_ms": 252307,
+      "device_screen_off_ms": 349319,
+      "device_screen_doze_ms": 0,
+      "device_interactive_ms": 252282,
+      "device_on_battery_uptime_ms": 346316,
+      "device_on_battery_realtime_ms": 601626,
+      "device_screen_on_count_change": 1,
+      "uid_successful_job_completion_count_change": 3,
+      "uid_canceled_job_completion_count_change": 0,
+      "uid_wakeup_alarm_count_change": 1,
+      "lollipop_upload_service_job_duration_delta_ms": 0,
+      "lollipop_upload_service_pending_minimum_latency": "+3h0m0s0ms",
+      "lollipop_upload_service_pending_maximum_delay": "+4h0m0s0ms",
+      "boundary_wakefulness": [
+        "Awake",
+        "Awake"
+      ],
+      "sampled_wakefulness_counts": {},
+      "sampled_device_idle_mode_counts": {},
+      "human_csv_cpu_agree_at_boundaries": [
+        true,
+        true
+      ],
+      "samples": [
+        {
+          "elapsed_seconds": 0.0,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.54
+        },
+        {
+          "elapsed_seconds": 30.377,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.54
+        },
+        {
+          "elapsed_seconds": 60.478,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.36
+        },
+        {
+          "elapsed_seconds": 90.68,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.36
+        },
+        {
+          "elapsed_seconds": 121.084,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.18
+        },
+        {
+          "elapsed_seconds": 151.501,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.0
+        },
+        {
+          "elapsed_seconds": 182.017,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 86.0
+        },
+        {
+          "elapsed_seconds": 212.232,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.82
+        },
+        {
+          "elapsed_seconds": 242.438,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.82
+        },
+        {
+          "elapsed_seconds": 272.846,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.64
+        },
+        {
+          "elapsed_seconds": 302.964,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.64
+        },
+        {
+          "elapsed_seconds": 333.265,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 363.408,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 393.854,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 85.28
+        },
+        {
+          "elapsed_seconds": 424.655,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 89.24
+        },
+        {
+          "elapsed_seconds": 454.832,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 87.44
+        },
+        {
+          "elapsed_seconds": 484.971,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 85.82
+        },
+        {
+          "elapsed_seconds": 515.181,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 85.64
+        },
+        {
+          "elapsed_seconds": 545.376,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 85.64
+        },
+        {
+          "elapsed_seconds": 575.625,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 600.19,
+          "whole_device_net_charge_loss_mah": 14.7,
+          "temperature_f": 85.46
+        }
+      ]
+    },
+    {
+      "phase": "B2",
+      "condition": "Background follow-up, display on",
+      "capture_vpn_active": true,
+      "battery_sample_seconds": 180.178,
+      "checkpoint_seconds": 181.64,
+      "whole_device_net_charge_loss_mah": 4.9,
+      "whole_device_boundary_net_charge_loss_mah": 4.9,
+      "observed_charge_step_gcd_mah": 4.9,
+      "distinct_charge_counter_values": 2,
+      "fuel_counter_unchanged_in_all_samples": false,
+      "repeated_charge_counter_intervals": 5,
+      "all_samples_reported_discharging": true,
+      "uid_accounted_cpu_ms": 0,
+      "uid_accounted_cpu_user_ms": 0,
+      "uid_accounted_cpu_system_ms": 0,
+      "aggregate_partial_wakelock_ms": 0,
+      "aggregate_background_partial_wakelock_ms": 0,
+      "uid_estimated_charge_delta_mah": 0.1,
+      "uid_estimated_screen_delta_mah": 0.1,
+      "uid_foreground_activity_ms": 0,
+      "uid_top_residency_ms": 0,
+      "uid_background_residency_ms": 0,
+      "uid_cached_residency_ms": 181636,
+      "device_screen_on_ms": 181636,
+      "device_screen_off_ms": 0,
+      "device_screen_doze_ms": 0,
+      "device_interactive_ms": 181636,
+      "device_on_battery_uptime_ms": 181636,
+      "device_on_battery_realtime_ms": 181636,
+      "device_screen_on_count_change": 0,
+      "uid_successful_job_completion_count_change": 0,
+      "uid_canceled_job_completion_count_change": 0,
+      "uid_wakeup_alarm_count_change": 0,
+      "lollipop_upload_service_job_duration_delta_ms": 0,
+      "lollipop_upload_service_pending_minimum_latency": "+3h0m0s0ms",
+      "lollipop_upload_service_pending_maximum_delay": "+4h0m0s0ms",
+      "boundary_wakefulness": [
+        "Awake",
+        "Awake"
+      ],
+      "sampled_wakefulness_counts": {},
+      "sampled_device_idle_mode_counts": {},
+      "human_csv_cpu_agree_at_boundaries": [
+        true,
+        true
+      ],
+      "samples": [
+        {
+          "elapsed_seconds": 0.0,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 30.137,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 60.245,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 90.452,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 120.664,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 151.856,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 85.46
+        },
+        {
+          "elapsed_seconds": 180.178,
+          "whole_device_net_charge_loss_mah": 4.9,
+          "temperature_f": 85.46
+        }
+      ]
+    },
+    {
+      "phase": "D",
+      "condition": "Background, capture stopped",
+      "capture_vpn_active": false,
+      "battery_sample_seconds": 600.575,
+      "checkpoint_seconds": 602.186,
+      "whole_device_net_charge_loss_mah": 9.8,
+      "whole_device_boundary_net_charge_loss_mah": 9.8,
+      "observed_charge_step_gcd_mah": 9.8,
+      "distinct_charge_counter_values": 2,
+      "fuel_counter_unchanged_in_all_samples": false,
+      "repeated_charge_counter_intervals": 19,
+      "all_samples_reported_discharging": true,
+      "uid_accounted_cpu_ms": 813,
+      "uid_accounted_cpu_user_ms": 352,
+      "uid_accounted_cpu_system_ms": 461,
+      "aggregate_partial_wakelock_ms": 46,
+      "aggregate_background_partial_wakelock_ms": 46,
+      "uid_estimated_charge_delta_mah": 0.0,
+      "uid_estimated_screen_delta_mah": 0.0,
+      "uid_foreground_activity_ms": 0,
+      "uid_top_residency_ms": 0,
+      "uid_background_residency_ms": 28,
+      "uid_cached_residency_ms": 602292,
+      "device_screen_on_ms": 915,
+      "device_screen_off_ms": 601405,
+      "device_screen_doze_ms": 0,
+      "device_interactive_ms": 892,
+      "device_on_battery_uptime_ms": 181875,
+      "device_on_battery_realtime_ms": 602320,
+      "device_screen_on_count_change": 0,
+      "uid_successful_job_completion_count_change": 0,
+      "uid_canceled_job_completion_count_change": 0,
+      "uid_wakeup_alarm_count_change": 2,
+      "lollipop_upload_service_job_duration_delta_ms": 0,
+      "lollipop_upload_service_pending_minimum_latency": "+3h0m0s0ms",
+      "lollipop_upload_service_pending_maximum_delay": "+4h0m0s0ms",
+      "boundary_wakefulness": [
+        "Awake",
+        "Dozing"
+      ],
+      "sampled_wakefulness_counts": {
+        "Dozing": 21
+      },
+      "sampled_device_idle_mode_counts": {
+        "false": 21
+      },
+      "human_csv_cpu_agree_at_boundaries": [
+        true,
+        true
+      ],
+      "samples": [
+        {
+          "elapsed_seconds": 0.0,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.64,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 30.217,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.82,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 60.513,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.82,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 90.84,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.82,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 121.349,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.64,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 151.67,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.64,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 182.289,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.64,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 213.014,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 243.525,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 273.924,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 304.164,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.46,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 334.641,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.28,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 365.0,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.28,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 395.689,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.28,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 425.922,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.1,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 456.104,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.1,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 486.519,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 85.1,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 516.828,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 84.92,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 547.002,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 84.92,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 577.444,
+          "whole_device_net_charge_loss_mah": 0.0,
+          "temperature_f": 84.92,
+          "wakefulness": "Dozing"
+        },
+        {
+          "elapsed_seconds": 600.575,
+          "whole_device_net_charge_loss_mah": 9.8,
+          "temperature_f": 84.74,
+          "wakefulness": "Dozing"
+        }
+      ]
+    }
+  ],
+  "excluded_observations": [
+    {
+      "phase": "C",
+      "condition": "Initial no-capture background attempt",
+      "status": "Aborted",
+      "reason": "Device woke soon after the sleep request. This attempt was excluded from the comparison.",
+      "wake_actor": "Not inferred"
+    }
+  ],
+  "interpretation": [
+    "Runtime measurements used Messenger 580 with Hush 0.21.0 paused, distinct from the static Messenger 581 audit.",
+    "Physical charge loss is whole-device net loss. It includes unrelated applications, display use, wireless ADB and diagnostics.",
+    "Battery durations cover sample endpoints. CPU, lock, job and display counters cover the slightly longer checkpoint interval, including its transition.",
+    "Observed fuel-gauge step size describes these samples and does not establish the hardware resolution. Few steps limit precision.",
+    "A zero recorded charge change means the fuel counter did not resolve a loss in that window; it does not establish zero consumption.",
+    "Per-UID mAh is rounded Android attribution. Screen allocation and retrospective changes prevent treating it as directly measured app-only energy.",
+    "A zero UID CPU counter increase does not prove zero execution; per-process accounting can advance separately.",
+    "Job timers can merge overlapping jobs under a shared tag. Completion counters and scheduler history were reviewed separately.",
+    "Global display state varied and brightness was adaptive. The windows cannot establish that capture or a patch caused a battery-rate difference.",
+    "No jobs were forced. The uploader rescheduled to a three-hour minimum and four-hour deadline, beyond these short observations.",
+    "Upload execution findings concern the recorded LollipopUploadService job. Other Analytics2, native or Binder delivery routes require separate evidence.",
+    "No network totals are included here. Separate network analysis excludes duplicate VPN accounting."
+  ]
+}

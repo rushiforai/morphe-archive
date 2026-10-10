@@ -1,3 +1,84 @@
+## [1.1.0](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **ci:** remove backmerge plugin to fix semantic-release on dev ([07bd2e2](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/07bd2e2fa0fc362ce3380475ebbfa502f29f3a54))
+* **maps:** prevent crash on starting navigation and sync telemetry with v1.4.0 ([e707d7c](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e707d7c4fd2c9e540ba296c68dfad91bc7a97ced))
+
+### ✨ New Features
+
+* **maps:** add Black theme patch from v1.7.12 ([5104787](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5104787b4eefb2357937d684a25ce3c467f3ff90))
+* **maps:** add Customization screen, Power saving mode, and Zoom controls ([45a385d](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/45a385d81f7f8ba5470bf143d1efe18f25e375ef))
+* **maps:** add Location provider toggle and Network location fallback patches ([1591346](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/15913468f41eb80ffad17e5fb8330ae8ab74cbe1))
+* **maps:** add Remove telemetry and Remove permissions for Play Protect compliance bypass ([e7b4aa1](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e7b4aa1185848a768f0b30f4397c24e89eb2ff35))
+* **maps:** port Bypass Play Services checks and Add microG support from bearinmindcat ([ada04b4](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/ada04b4f22c945481f6765449bf3c8382827a544))
+* **maps:** use app.morphe.android.apps.maps and add full Morphe+ReVanced MicroG spoofing tags ([e6872c7](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e6872c7940bf5407a14a170c8f9e91601b3f4553))
+* rename bundle to Maps&Music patches and refine MicroG package metadata ([3ff06af](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/3ff06af9ac7afae974e47609ca34b9624840fbdf))
+
+## [1.1.0-dev.8](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.7...v1.1.0-dev.8) (2026-10-09)
+
+### ✨ New Features
+
+* **maps:** add Black theme patch from v1.7.12 ([5104787](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5104787b4eefb2357937d684a25ce3c467f3ff90))
+
+## [1.1.0-dev.7](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.6...v1.1.0-dev.7) (2026-10-09)
+
+### ✨ New Features
+
+* **maps:** add Customization screen, Power saving mode, and Zoom controls ([45a385d](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/45a385d81f7f8ba5470bf143d1efe18f25e375ef))
+
+## [1.1.0-dev.6](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.5...v1.1.0-dev.6) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **maps:** prevent crash on starting navigation and sync telemetry with v1.4.0 ([e707d7c](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e707d7c4fd2c9e540ba296c68dfad91bc7a97ced))
+
+## [1.1.0-dev.5](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.4...v1.1.0-dev.5) (2026-10-09)
+
+### ✨ New Features
+
+* **maps:** add Location provider toggle and Network location fallback patches ([1591346](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/15913468f41eb80ffad17e5fb8330ae8ab74cbe1))
+
+## [1.1.0-dev.4](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-10-09)
+
+### ✨ New Features
+
+* **maps:** add Remove telemetry and Remove permissions for Play Protect compliance bypass ([e7b4aa1](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e7b4aa1185848a768f0b30f4397c24e89eb2ff35))
+
+## [1.1.0-dev.3](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-10-09)
+
+### ✨ New Features
+
+* **maps:** use app.morphe.android.apps.maps and add full Morphe+ReVanced MicroG spoofing tags ([e6872c7](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e6872c7940bf5407a14a170c8f9e91601b3f4553))
+
+## [1.1.0-dev.2](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-09)
+
+### ✨ New Features
+
+* rename bundle to Maps&Music patches and refine MicroG package metadata ([3ff06af](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/3ff06af9ac7afae974e47609ca34b9624840fbdf))
+
+## [1.1.0-dev.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **ci:** remove backmerge plugin to fix semantic-release on dev ([07bd2e2](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/07bd2e2fa0fc362ce3380475ebbfa502f29f3a54))
+
+### ✨ New Features
+
+* **maps:** port Bypass Play Services checks and Add microG support from bearinmindcat ([ada04b4](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/ada04b4f22c945481f6765449bf3c8382827a544))
+
+## [1.1.0-dev.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-10-09)
+
+### ✨ New Features
+
+* **maps:** port Bypass Play Services checks and Add microG support from bearinmindcat ([ada04b4](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/ada04b4f22c945481f6765449bf3c8382827a544))
+
+## [1.0.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.0.0...v1.0.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* show only Google Maps and YouTube Music, add credits for bearinmindcat ([f91cab4](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/f91cab4c051a22468938fbb97736242ca693e968))
+
 ## 1.0.0 (2026-10-05)
 
 ### ✨ Initial Release

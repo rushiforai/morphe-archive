@@ -19,6 +19,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 
+import com.facebook.api.feedtype.FeedType;
+import com.facebook.feed.feedstab.tab.FeedsTab;
+import com.facebook.feed.fragment.FeedFiltersFragment;
 import com.facebook.feed.tab.FeedTab;
 import com.facebook.friending.tab.FriendRequestsTab;
 import com.facebook.katana.activity.FbMainTabActivity;
@@ -68,7 +71,13 @@ public class StartTabRouteTest {
     public void restore() {
         StartTabRoute.settled();
         StartTabRoute.failNextStartUpHook = null;
+        FeedsSubtabRoute.disarm();
         PauseForTests.resume();
+        HiddenTabs.inBuildForTests = null;
+        HiddenTabs.clearForTests();
+        Settings.HIDE_FEEDS_TAB.resetToDefault();
+        Settings.HIDE_FRIENDS_TAB.resetToDefault();
+        Settings.FEEDS_SUBTAB.resetToDefault();
         Settings.OPEN_ON_CHOSEN_TAB.resetToDefault();
         Settings.START_TAB.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
@@ -540,6 +549,178 @@ public class StartTabRouteTest {
     private static String foundLine() {
         String line = statusLine();
         return line != null && !line.contains(" 0 found") ? line : null;
+    }
+
+    /**
+     * A main screen a start from the launcher icon created, before Android runs its lifecycle, that
+     * Facebook builds with [shown] on the tab bar, or no readable bar for null, and [current] showing.
+     */
+    private static ActivityController<FbMainTabActivity> startedOn(Object current, List<Object> shown) {
+        ActivityController<FbMainTabActivity> controller =
+                Robolectric.buildActivity(FbMainTabActivity.class, StartTabRouteForTests.launcherStart());
+        FbMainTabActivity screen = controller.get();
+        StartTabRoute.onActivityCreate(screen, null);
+        if (shown != null) StartTabRouteForTests.tabBar(screen, shown, null);
+        screen.currentTab = current;
+        return controller;
+    }
+
+    /** What the screen started once the landing check ran, or null. */
+    private static Intent startedAfterTheLandingCheck(ActivityController<FbMainTabActivity> controller) {
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(StartTabRoute.LANDING_CHECK_MS));
+        return shadowOf(controller.get()).getNextStartedActivity();
+    }
+
+    /**
+     * Feeds chosen while Hide tabs keeps it off the bar: the start asks for Home, and once Facebook
+     * has built the main screen, the Feeds page opens over it through Facebook's own link, the way
+     * the Menu's Feeds row opens it with no Feeds tab. Back from it is Home, under it.
+     */
+    @Test
+    public void feedsOffTheBarOpensTheFeedsPageOverHome() {
+        HiddenTabs.inBuildForTests = Boolean.TRUE;
+        Settings.HIDE_FEEDS_TAB.save(true);
+        Settings.START_TAB.save(StartTab.FEEDS);
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        ActivityController<FbMainTabActivity> controller =
+                startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        FbMainTabActivity screen = controller.get();
+        assertEquals(FacebookTabs.HOME_ID, screen.getIntent().getLongExtra(FacebookTabs.TARGET_TAB_ID, -1));
+
+        controller.create().start().resume().visible();
+        assertNull("the page opened before the screen was built", shadowOf(screen).getNextStartedActivity());
+        Intent page = startedAfterTheLandingCheck(controller);
+
+        assertNotNull("no Feeds page", page);
+        assertEquals(Intent.ACTION_VIEW, page.getAction());
+        assertEquals(Uri.parse(StartTabRoute.FEEDS_PAGE_LINK), page.getData());
+        assertEquals("fb", page.getData().getScheme());
+        assertEquals("feeds", page.getData().getHost());
+        assertNotNull("Facebook's link map wants a source", page.getData().getQueryParameter("source"));
+        assertEquals("another app could answer the link", screen.getPackageName(), page.getPackage());
+        assertEquals(FamilyNames.START_TAB + ": invoked 1, 2 found, 0 missing", statusLine());
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("Start tab: the tab bar has no feeds tab, so opened the Feeds page over Home."));
+
+        // Once: coming back to the screen opens nothing more.
+        controller.pause().resume();
+        assertNull(startedAfterTheLandingCheck(controller));
+    }
+
+    /** The page gets the filter chosen for Feeds, the same as the tab would. */
+    @Test
+    public void theFeedsPageOpensOnTheChosenFilter() {
+        HiddenTabs.inBuildForTests = Boolean.TRUE;
+        Settings.HIDE_FEEDS_TAB.save(true);
+        Settings.START_TAB.save(StartTab.FEEDS);
+        Settings.FEEDS_SUBTAB.save(FeedsSubtab.FAVORITES);
+        startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        FeedFiltersFragment page = new FeedFiltersFragment();
+        page.filters.addAll(Arrays.asList(FeedType.TOP_STORIES, FeedType.FAVORITES, FeedType.MOST_RECENT));
+
+        page.onResume();
+
+        assertEquals("Favorites wasn't picked on the Feeds page", 1, page.picked);
+    }
+
+    /**
+     * An account whose bar has no Feeds tab gets the page too: Facebook was asked for Feeds and fell
+     * back to Home. With no bar to read, there's no knowing, and nothing opens.
+     */
+    @Test
+    public void aBarWithoutFeedsOfItsOwnGetsThePageAndAnUnreadableBarDoesNot() {
+        Settings.START_TAB.save(StartTab.FEEDS);
+        ActivityController<FbMainTabActivity> controller =
+                startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        assertEquals(FacebookTabs.FEEDS_ID, controller.get().getIntent().getLongExtra(FacebookTabs.TARGET_TAB_ID, -1));
+        controller.create().start().resume().visible();
+        Intent page = startedAfterTheLandingCheck(controller);
+        assertNotNull("no Feeds page", page);
+        assertEquals(Uri.parse(StartTabRoute.FEEDS_PAGE_LINK), page.getData());
+
+        ActivityController<FbMainTabActivity> unread = startedOn(new FeedTab(), null);
+        unread.create().start().resume().visible();
+        assertNull("opened the page without reading the bar", startedAfterTheLandingCheck(unread));
+    }
+
+    /** A bar with Feeds opens on the tab, as asked, and no page goes over it. */
+    @Test
+    public void aBarWithFeedsGetsTheTabAndNoPage() {
+        Settings.START_TAB.save(StartTab.FEEDS);
+        ActivityController<FbMainTabActivity> controller =
+                startedOn(new FeedsTab(), StartTabRouteForTests.tabs(new FeedTab(), new FeedsTab()));
+        controller.create().start().resume().visible();
+        assertNull(startedAfterTheLandingCheck(controller));
+        assertEquals(FamilyNames.START_TAB + ": invoked 1, 1 found, 0 missing", statusLine());
+
+        // Facebook opened Home with the tab on the bar: a route not taken, not a missing tab.
+        ActivityController<FbMainTabActivity> home =
+                startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new FeedsTab()));
+        home.create().start().resume().visible();
+        assertNull(startedAfterTheLandingCheck(home));
+    }
+
+    /**
+     * The person has gone somewhere by the time the screen is built: another tab, or another screen
+     * over this one. The page stays closed. So does every start that didn't choose Feeds.
+     */
+    @Test
+    public void noPageOnceThePersonHasMovedOnOrForAnotherTab() {
+        HiddenTabs.inBuildForTests = Boolean.TRUE;
+        Settings.HIDE_FEEDS_TAB.save(true);
+        Settings.START_TAB.save(StartTab.FEEDS);
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        ActivityController<FbMainTabActivity> tapped =
+                startedOn(new MarketplaceTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        tapped.create().start().resume().visible();
+        assertNull("over another tab", startedAfterTheLandingCheck(tapped));
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("Start tab: the tab bar has no feeds tab, but the main screen had already left Home, "
+                + "so the Feeds page stays closed."));
+
+        ActivityController<FbMainTabActivity> covered =
+                startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        covered.create().start().resume().visible().pause();
+        assertNull("behind another screen", startedAfterTheLandingCheck(covered));
+
+        // Friends kept off the bar has no page here; the start is Home's.
+        Settings.HIDE_FRIENDS_TAB.save(true);
+        Settings.START_TAB.save(StartTab.FRIENDS);
+        ActivityController<FbMainTabActivity> friends =
+                startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        friends.create().start().resume().visible();
+        assertNull(startedAfterTheLandingCheck(friends));
+
+        // The switch off: Facebook's own start, nothing watched, no page.
+        Settings.START_TAB.save(StartTab.FEEDS);
+        Settings.OPEN_ON_CHOSEN_TAB.save(false);
+        ActivityController<FbMainTabActivity> off =
+                startedOn(new FeedTab(), StartTabRouteForTests.tabs(new FeedTab(), new MarketplaceTab()));
+        off.create().start().resume().visible();
+        assertNull(startedAfterTheLandingCheck(off));
+    }
+
+    /** A main screen that can't start anything, for the failure below. */
+    public static final class RefusingScreen extends FbMainTabActivity {
+        @Override
+        public void startActivity(Intent intent) {
+            throw new SecurityException("for this test");
+        }
+    }
+
+    /** A failure opening the page leaves the screen on Home and says so in Hook status. */
+    @Test
+    public void aFailureOpeningTheFeedsPageFailsOpen() {
+        RefusingScreen screen = Robolectric.buildActivity(RefusingScreen.class, StartTabRouteForTests.launcherStart()).get();
+        screen.currentTab = new FeedTab();
+
+        StartTabRoute.openFeedsPage(screen, StartTab.HOME, StartTab.FEEDS, true);
+
+        String line = statusLine();
+        assertNotNull(line);
+        assertTrue(line, line.contains("'feeds page' hook (it threw java.lang.SecurityException)"));
     }
 
     @Test

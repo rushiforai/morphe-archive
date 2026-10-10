@@ -8,9 +8,11 @@ import app.morphe.Fixtures
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -46,7 +48,13 @@ class ScreenshotDetectionFixtureTest {
                 val bases = detectors.map { type -> classes[type]?.superclass }
                 assertEquals("${bundle.name}: detectors on one base, $bases", 1, bases.toSet().size)
                 val base = FixtureDex.classes(bundle, setOfNotNull(bases.first())).values.single()
-                assertTrue("${bundle.name}: the base holds the observer", base.fields.any { it.type == SCREENSHOT_OBSERVER })
+                // Up to 581 the base keeps the observer in a field. 582's (LX/9at;) gets it from a provider and casts it.
+                val castsToObserver = base.methods.any { method ->
+                    method.implementation?.instructions?.any {
+                        it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == SCREENSHOT_OBSERVER
+                    } == true
+                }
+                assertTrue("${bundle.name}: the base reaches the observer", base.fields.any { it.type == SCREENSHOT_OBSERVER } || castsToObserver)
 
                 // Each class's superclass, for the activity check along a chain, and a copy of each call
                 // named like a detection call, since a dex's classes don't outlive its visit.

@@ -9,6 +9,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.os.SystemClock;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -60,6 +62,7 @@ public class FeedSuggestionsTest {
         FeedSuggestions.homeReadsForTests = false;
         FeedSuggestions.homeLost = false;
         FeedSuggestions.homeKept = false;
+        FeedSuggestions.homeReadAt = 0;
     }
 
     @After
@@ -67,6 +70,8 @@ public class FeedSuggestionsTest {
         FeedSuggestions.homeReadsForTests = null;
         FeedSuggestions.homeLost = false;
         FeedSuggestions.homeKept = false;
+        FeedSuggestions.homeReadAt = 0;
+        FeedSuggestions.clock = SystemClock::elapsedRealtime;
         FeedSuggestions.tookOut = false;
     }
 
@@ -174,18 +179,23 @@ public class FeedSuggestionsTest {
      */
     @Test
     public void besideHideReelsInTheFeedEachTakesOutItsOwn() {
-        for (Kind kind : Kind.values()) {
-            boolean dropped = kind == Kind.CLIPS_NETEGO || FeedSuggestions.KINDS.contains(kind.name());
-            Item item = new Item(kind);
-            Object reelsFirst = FeedSuggestions.filter(FeedReels.filter(item));
-            Object suggestionsFirst = FeedReels.filter(FeedSuggestions.filter(item));
-            if (dropped) {
-                assertNull(kind.name(), reelsFirst);
-                assertNull(kind.name(), suggestionsFirst);
-            } else {
-                assertSame(kind.name(), item, reelsFirst);
-                assertSame(kind.name(), item, suggestionsFirst);
+        Settings.HIDE_FEED_REELS.save(true);
+        try {
+            for (Kind kind : Kind.values()) {
+                boolean dropped = kind == Kind.CLIPS_NETEGO || FeedSuggestions.KINDS.contains(kind.name());
+                Item item = new Item(kind);
+                Object reelsFirst = FeedSuggestions.filter(FeedReels.filter(item));
+                Object suggestionsFirst = FeedReels.filter(FeedSuggestions.filter(item));
+                if (dropped) {
+                    assertNull(kind.name(), reelsFirst);
+                    assertNull(kind.name(), suggestionsFirst);
+                } else {
+                    assertSame(kind.name(), item, reelsFirst);
+                    assertSame(kind.name(), item, suggestionsFirst);
+                }
             }
+        } finally {
+            Settings.HIDE_FEED_REELS.resetToDefault();
         }
     }
 
@@ -236,6 +246,32 @@ public class FeedSuggestionsTest {
         assertSame(post, FeedSuggestions.homeItem(FeedSuggestions.filter(post), item -> FeedSuggestions.PHOTO));
         assertEquals("Home kept a post", 0, FeedSuggestions.feedEnded(0));
         assertEquals(1, FeedSuggestions.feedEnded(1));
+    }
+
+    /**
+     * Only Home's latest read decides. A post an earlier read kept, the first account's before a
+     * switch, doesn't hold off the end of a Home whose next read lost everything (#104, #105), and a
+     * later read that keeps a post holds it off again.
+     */
+    @Test
+    public void aLaterReadIsJudgedOnItsOwn() {
+        long[] now = {50_000};
+        FeedSuggestions.clock = () -> now[0];
+        FeedSuggestions.homeReadsForTests = true;
+        Item post = new Item(Kind.MEDIA);
+        assertSame(post, FeedSuggestions.homeItem(FeedSuggestions.filter(post), item -> FeedSuggestions.PHOTO));
+        assertNull(FeedSuggestions.homeItem(FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY)), item -> 0));
+        assertEquals("the first account's Home kept a post", 0, FeedSuggestions.feedEnded(0));
+
+        now[0] += FeedSuggestions.READ_GAP_MS + 1;
+        assertNull(FeedSuggestions.homeItem(FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY)), item -> 0));
+        now[0] += 10;
+        assertNull(FeedSuggestions.homeItem(FeedSuggestions.filter(new Item(Kind.SUGGESTED_USERS)), item -> 0));
+        assertEquals("the next account's Home lost everything", 1, FeedSuggestions.feedEnded(0));
+
+        now[0] += FeedSuggestions.READ_GAP_MS + 1;
+        assertSame(post, FeedSuggestions.homeItem(FeedSuggestions.filter(post), item -> FeedSuggestions.PHOTO));
+        assertEquals("a later read kept a post", 0, FeedSuggestions.feedEnded(0));
     }
 
     @Test

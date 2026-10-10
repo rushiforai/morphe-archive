@@ -51,7 +51,10 @@ internal object AppCompatibilities {
         signatures = setOf(
             "5e95a289ea73c30af95199eed6d64a2abf0ffc59c578f7686f24c5ce902ea26c",
         ),
-        targets = listOf(AppTarget(version = "7.5.4", versionCode = 386, minSdk = 24)),
+        targets = listOf(
+            AppTarget(version = "7.5.4", versionCode = 386, minSdk = 24),
+            AppTarget(version = "7.5.6", versionCode = 388, minSdk = 24),
+        ),
     )
 
     val ATLOMAPS = Compatibility(
@@ -250,6 +253,17 @@ internal object AppCompatibilities {
             "1dc3da6664982c69c3c7326282beaf0c6f153daa7da36bd7ec4cd4313e664651",
         ),
         targets = listOf(AppTarget(version = "9.3.0", versionCode = 156, minSdk = 28)),
+    )
+
+    val IMO = Compatibility(
+        name = "imo",
+        packageName = "com.imo.android.imoim",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x1B4A91,
+        signatures = setOf(
+            "44483f98c17bf49fbde08d3376af09c6fc1f9370c7a046c35a3dca45f5785150",
+        ),
+        targets = listOf(AppTarget(version = "2026.08.1041", versionCode = 26081041, minSdk = 32)),
     )
 
     val JVDROID = Compatibility(
@@ -458,6 +472,7 @@ internal object AppCompatibilities {
             "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
         ),
         targets = listOf(
+            AppTarget(version = "7.11.10", versionCode = 18325, minSdk = 29),
             AppTarget(version = "7.11.9", versionCode = 18324, minSdk = 29),
             AppTarget(version = "7.11.8", versionCode = 18323, minSdk = 29),
             AppTarget(version = "7.11.5", versionCode = 18317, minSdk = 29),

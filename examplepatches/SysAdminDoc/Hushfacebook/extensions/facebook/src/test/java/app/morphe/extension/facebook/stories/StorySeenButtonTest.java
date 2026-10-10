@@ -52,6 +52,8 @@ public class StorySeenButtonTest {
     public void start() {
         StorySeenForTests.reset();
         StorySeenButton.cardIds = card -> (String) card;
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.VIEW_STORIES_ANONYMOUSLY.save(true);
     }
 
     @After

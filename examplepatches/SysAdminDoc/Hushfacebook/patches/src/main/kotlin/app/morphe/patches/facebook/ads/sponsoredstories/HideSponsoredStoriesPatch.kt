@@ -26,7 +26,8 @@ private const val SWITCH = "$EXTENSION_PACKAGE/feed/FeedFilter;->hideSponsoredSt
 @Suppress("unused")
 val hideSponsoredStoriesPatch = bytecodePatch(
     name = "Hide sponsored stories",
-    description = "Removes ad cards from the story viewer, so swiping through stories only shows stories people posted.",
+    description = "Removes ad cards from the story viewer, so swiping through stories shows only what people " +
+        "posted. On by default. Turn it off in Hushfacebook settings > Stories.",
     default = true,
 ) {
     category("Ads")

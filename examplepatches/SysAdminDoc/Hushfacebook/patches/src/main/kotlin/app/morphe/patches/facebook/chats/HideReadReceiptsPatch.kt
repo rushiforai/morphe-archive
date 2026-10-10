@@ -17,15 +17,15 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * Keeps Facebook from telling the sender that you've read a chat that opens inside Facebook. See
  * ReadReceiptAnchors.kt for where the hook goes, and the extension's ReadReceipts for when.
  *
- * Off in the default selection, like the rest of Privacy. Picked, its switch starts on.
+ * In the default selection with its switch off, so nothing changes until it's turned on.
  */
 @Suppress("unused")
 val hideReadReceiptsPatch = bytecodePatch(
     // The README table check reads this literal; READ_RECEIPTS_PATCH carries the same text for the messages.
     name = "Hide read receipts",
-    description = "People you chat with in a chat that opens inside Facebook don't see that you've read their messages. " +
-        "The chat can stay unread on this phone, and replying may still show you've read it. Its switch starts on, under Privacy.",
-    default = false,
+    description = "People you chat with in chats that open inside Facebook don't see that you've read their " +
+        "messages, so you can read now and reply later. Replying may still show you've read it. Starts off. Turn " +
+        "it on in Hushfacebook settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, facebookExtensionPatch)

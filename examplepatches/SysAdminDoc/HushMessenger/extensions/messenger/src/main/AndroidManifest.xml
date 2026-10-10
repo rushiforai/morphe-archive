@@ -26,6 +26,7 @@
         <meta-data android:name="hush.feature.emoji_search" android:value="true" />
         <meta-data android:name="hush.feature.original_photo" android:value="true" />
         <meta-data android:name="hush.feature.original_video" android:value="true" />
+        <meta-data android:name="hush.feature.disappearing_swipe" android:value="true" />
         <meta-data android:name="hush.feature.system_camera" android:value="true" />
         <meta-data android:name="hush.feature.external_browser" android:value="true" />
         <meta-data android:name="hush.feature.bubbles" android:value="true" />

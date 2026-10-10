@@ -91,11 +91,11 @@ private const val OBJECT = "Ljava/lang/Object;"
 @Suppress("unused")
 val keepReelSpeedPatch = bytecodePatch(
     name = "Keep the reel speed",
-    description = "Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play " +
-        "at 2x too, until you slide the lock off, hold the edge and let go, or Instagram restarts.",
+    description = "Keeps the 2x speed on for the next reels after you lock a reel at 2x (hold its edge, then " +
+        "slide down), until you slide the lock off. On by default. Turn it off in HushGram settings > Reels.",
     default = true,
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

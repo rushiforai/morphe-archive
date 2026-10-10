@@ -27,6 +27,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.patches.shared.compat.AppCompatibilities
 
 /**
  * FBNS's package check on each declared build reads the signers it hashes through the extension,
@@ -40,7 +41,8 @@ class RestoreTrustFbnsFixtureTest {
     @Test
     fun `each declared build's FBNS check hashes the signers the extension answers`() {
         val builds = Fixtures.declaredBuilds()
-        assertEquals("one build of each declared version", 3, builds.size)
+        val declaredVersions = AppCompatibilities.threads().single().targets.mapNotNull { it.version }.distinct().size
+        assertEquals("one build of each declared version", declaredVersions, builds.size)
         for (build in builds) {
             FbnsPackageCheckFingerprint.clearMatch()
             val classes = FixtureDex.classesWhere(build, { marker in it.stringSection }) { method ->

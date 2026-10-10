@@ -162,11 +162,18 @@ class LogoLongPressTest {
     /** The builder's other trace section, which only it holds. */
     private val initContents = "WordmarkNavigationBar.initContents"
 
-    /** Where each declared build gives its logo the touch listener, and the registers it uses. */
+    /** Where each declared bundle gives its logo the touch listener, and the registers it uses. */
     private data class Pin(val index: Int, val registers: List<Int>)
 
+    /**
+     * By build, then by the bundle's ABI. 581's two builds put the call at the same index; 582's
+     * armeabi-v7a build has nine more instructions ahead of it.
+     */
     private val pins = mapOf(
-        "581.0.0.45.58" to Pin(155, listOf(11, 1)),
+        "582.0.0.50.54" to mapOf(
+            "arm64-v8a" to Pin(173, listOf(11, 1)),
+            "armeabi-v7a" to Pin(182, listOf(11, 1)),
+        ),
     )
 
     /**
@@ -182,8 +189,9 @@ class LogoLongPressTest {
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
-                val pin = pins.getValue(version)
-                val bar = FixtureDex.classes(bundle, setOf(WORDMARK_NAVIGATION_BAR))[WORDMARK_NAVIGATION_BAR]
+                val pin = pins.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+                    ?: throw AssertionError("${bundle.name} has no pin")
+                val bar =FixtureDex.classes(bundle, setOf(WORDMARK_NAVIGATION_BAR))[WORDMARK_NAVIGATION_BAR]
                     ?: throw AssertionError("${bundle.name} has no $WORDMARK_NAVIGATION_BAR")
                 val builders = bar.methods.filter { holdsString(it, CREATE_WORDMARK_VIEW) }
                 assertEquals("${bundle.name}: methods holding the logo's trace section", 1, builders.size)

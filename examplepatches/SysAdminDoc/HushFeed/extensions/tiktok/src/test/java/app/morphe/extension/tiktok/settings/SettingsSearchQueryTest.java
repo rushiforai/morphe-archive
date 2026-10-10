@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -80,6 +81,28 @@ public class SettingsSearchQueryTest {
         // with the empty query only proved the word produced two rows rather than one.
         assertTrue("the query matched the whole catalogue: " + matches + " rows of " + indexed,
                 matches < indexed);
+    }
+
+    @Test public void groupingTheMenuPreservesTheLeafIndexWithoutIndexingNavigationRows() throws Exception {
+        TikTokPreferenceFragment search = attachSearch();
+        Field index = TikTokPreferenceFragment.class.getDeclaredField("searchIndex");
+        index.setAccessible(true);
+        java.util.Set<String> sections = new java.util.HashSet<>();
+        for (Object result : (java.util.List<?>) index.get(search)) {
+            Field key = result.getClass().getDeclaredField("key");
+            Field section = result.getClass().getDeclaredField("section");
+            key.setAccessible(true);
+            section.setAccessible(true);
+            String route = String.valueOf(key.get(result));
+            assertFalse("a group became a search result: " + route, route.startsWith("hub_"));
+            assertFalse("a section route became a duplicate search result: " + route,
+                    route.startsWith("section_"));
+            if (section.get(result) != null) sections.add(section.get(result).toString());
+        }
+        assertEquals("a settings page disappeared from the searchable catalogue",
+                java.util.Set.of("FEED_FILTER", "FEED_NAVIGATION", "INTERFACE", "PLAYBACK",
+                        "SCREEN_TIME", "COMMENTS", "DOWNLOADS", "SHARE", "INBOX", "PRIVACY",
+                        "REGION", "BEHAVIOR", "DIAGNOSTICS", "BACKUP"), sections);
     }
 
     @Test public void filteredSettingsExposeAndAnnounceTheirResultCount() throws Exception {
@@ -245,6 +268,76 @@ public class SettingsSearchQueryTest {
                 search(search, "hushfeed").contains("Hushfeed"));
         assertTrue("the About row's summary is not searched",
                 search(search, "github").contains("Hushfeed"));
+    }
+
+    /**
+     * Build details sat on About Hushfeed outside every walked category, so "build" found nothing
+     * and the empty state blamed unticked patches. The hand-indexed rows also all said they were
+     * in "Settings", which is no page a reader can find.
+     */
+    @Test public void handIndexedRowsAreFoundAndNameTheirPage() throws Exception {
+        TikTokPreferenceFragment search = attachSearch();
+        assertTrue("Build details is not indexed", search(search, "build details").contains("Build details"));
+        assertEquals("About Hushfeed", category(search, "Build details"));
+        assertEquals("About Hushfeed", category(search, "Hushfeed"));
+        assertEquals("App & advanced", category(search, "Pause Hushfeed"));
+    }
+
+    /**
+     * A hand-indexed About row has no section to open, so opening it fell through to the master
+     * menu. It lands on About Hushfeed with the row as the target.
+     */
+    @Test public void openingFoundBuildDetailsLandsOnAboutHushfeed() throws Exception {
+        TikTokPreferenceFragment search = attachSearch();
+        search(search, "build details");
+        Preference result = null;
+        PreferenceScreen screen = search.getPreferenceScreen();
+        for (int position = 0; position < screen.getPreferenceCount(); position++) {
+            Preference candidate = screen.getPreference(position);
+            if (candidate.getTitle() != null && "Build details".contentEquals(candidate.getTitle())) {
+                result = candidate;
+                break;
+            }
+        }
+        assertNotNull(result);
+        assertTrue(result.getOnPreferenceClickListener().onPreferenceClick(result));
+        search.getActivity().getFragmentManager().executePendingTransactions();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        android.app.Fragment opened = search.getActivity().getFragmentManager()
+                .findFragmentById(android.R.id.content);
+        assertTrue(opened instanceof TikTokPreferenceFragment);
+        assertEquals("ABOUT", opened.getArguments().getString("morphe_settings_hub"));
+        assertEquals("action_build_details", opened.getArguments().getString("morphe_settings_target_key"));
+    }
+
+    /** What's new leaves About Hushfeed once its notes are read, and its result goes with it. */
+    @Test public void whatsNewIsNotFoundWhenThereIsNothingNew() throws Exception {
+        // Unpatched, the release version is empty, so nothing is pending.
+        TikTokPreferenceFragment search = attachSearch();
+        assertFalse(search(search, "release notes").contains("What's new"));
+    }
+
+    /** "???" folds to nothing, and the page said Start typing under a box with text in it. */
+    @Test public void aQueryOfOnlyPunctuationSaysNothingMatched() throws Exception {
+        TikTokPreferenceFragment search = attachSearch();
+        java.util.List<String> titles = search(search, "???");
+        assertTrue("punctuation alone was answered with " + titles, titles.contains("No matching settings"));
+        assertFalse(titles.contains("Start typing"));
+        assertTrue(search(search, "  ").contains("Start typing"));
+    }
+
+    private static String category(TikTokPreferenceFragment fragment, String wanted) throws Exception {
+        java.lang.reflect.Field field = TikTokPreferenceFragment.class.getDeclaredField("searchIndex");
+        field.setAccessible(true);
+        for (Object entry : (java.util.List<?>) field.get(fragment)) {
+            java.lang.reflect.Field title = entry.getClass().getDeclaredField("title");
+            title.setAccessible(true);
+            if (!wanted.equals(title.get(entry))) continue;
+            java.lang.reflect.Field category = entry.getClass().getDeclaredField("category");
+            category.setAccessible(true);
+            return (String) category.get(entry);
+        }
+        throw new AssertionError(wanted + " is not in the index at all");
     }
 
     @Test public void openingAFoundBackupRowLandsOnDiagnostics() throws Exception {

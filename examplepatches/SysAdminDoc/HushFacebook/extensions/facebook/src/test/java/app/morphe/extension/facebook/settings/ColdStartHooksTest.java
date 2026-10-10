@@ -79,6 +79,7 @@ import app.morphe.extension.facebook.misc.ScreenshotDetection;
 import app.morphe.extension.facebook.misc.Haptics;
 import app.morphe.extension.facebook.misc.ScreenTransitionsForTests;
 import app.morphe.extension.facebook.misc.Screenshots;
+import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
@@ -335,6 +336,7 @@ public class ColdStartHooksTest {
         List<Thread.State> tools = Arrays.asList(Thread.State.values());
         assertSame("Create story's tools listed before the context changed", tools, MetaUpsells.storyTools(tools));
         assertSame("a share sheet built before the context changed", tools, MetaUpsells.shareTargets(tools));
+        assertSame("a share sheet built before the context went through the item picks", tools, ShareSheetItems.targets(tools));
         assertFalse("a results page built before the context lost its Meta AI answer", MetaAiSearchForTests.hidesAnswer());
         assertFalse("a results page built before the context lost its Meta AI prompts", MetaAiSearchForTests.dropsPrompts());
         assertFalse("a suggestion parsed before the context lost its Meta AI route",

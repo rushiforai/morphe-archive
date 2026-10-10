@@ -94,7 +94,7 @@ class SpoofPackageVersionPatchTest {
     fun descriptionStatesTheLimits() {
         val description = spoofPackageVersionPatch.description.orEmpty()
         assertContains(description, "Play Store")
-        assertContains(description, "may report this number to Meta")
+        assertContains(description, "may report it to Meta")
         assertContains(description, "uninstalling first")
         assertFalse(description.contains('—') || description.contains('–'))
     }

@@ -11,6 +11,7 @@ public class EmoteProvidersTest {
         assertEquals(1, emotes.size());
         assertTrue(emotes.get("Wave").url.contains("/local/"));
         assertTrue(emotes.get("Wave").animated);
+        assertTrue(emotes.get("Wave").url.endsWith("/2x.gif"));
     }
 
     @Test public void sevenTvUsesAliasAndPreferredWebpAndPreservesOverlayFlag() throws Exception {

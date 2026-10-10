@@ -14,9 +14,8 @@ import app.morphe.patcher.string
  * API response and a model list with a bookmark. Each is renamed in every build, but each still
  * describes itself in `toString()` with its Kotlin name, so that text finds the class.
  *
- * Found by reading 14.25.0 (2026-10-02), where they're `k12.e`, `mr1.g0` and `kh2.b`. In 14.38.0
- * they're `e52.d` (now with two list constructors), `gu1.l0` and `bm2.c`. The same
- * three texts mark them in 14.23 to 14.34 according to the Pinterest patch sources in
+ * In 14.38.0 they're `e52.d` (with two list constructors), `gu1.l0` and `bm2.c`. The same three
+ * texts mark them in 14.23 to 14.34 according to the Pinterest patch sources in
  * sources/pinterest-sources.json.
  */
 internal object FeedToStringFingerprint : Fingerprint(

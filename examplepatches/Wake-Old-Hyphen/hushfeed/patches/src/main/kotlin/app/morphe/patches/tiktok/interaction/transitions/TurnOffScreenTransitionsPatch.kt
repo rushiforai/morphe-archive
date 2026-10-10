@@ -46,16 +46,16 @@ internal fun screenTransitionsInstallIndex(method: Method): Int {
  * Opens and closes TikTok's screens without their slide. The extension's ScreenTransitions does
  * the work from activity callbacks, so the patch only installs it.
  *
- * Off in the default selection, like Turn off haptics. Picked, its switch starts on.
+ * In the default selection with its switch off, like Turn off haptics.
  */
 @Suppress("unused")
 val turnOffScreenTransitionsPatch = bytecodePatch(
     name = "Turn off screen transitions",
-    description = "Opens and closes TikTok's screens without their slide. Swipes inside a screen still " +
-        "follow your finger. Its switch starts on once you pick the patch. Switch: Hushfeed settings > App.",
-    default = false,
+    description = "Opens and closes TikTok's screens without the sliding animation, so moving " +
+        "around feels quicker. Swipes still follow your finger. Starts off. Turn it on in " +
+        "Hushfeed settings > App.",
 ) {
-    category("Performance")
+    category("Interface")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok())
 

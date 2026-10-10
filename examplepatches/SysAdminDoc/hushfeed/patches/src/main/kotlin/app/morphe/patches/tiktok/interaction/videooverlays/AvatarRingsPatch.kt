@@ -84,8 +84,9 @@ internal fun List<Instruction>.isLiveResults(): List<Int> = indices.filter { ind
 @Suppress("unused")
 val avatarRingsPatch = bytecodePatch(
     name = "Remove avatar rings",
-    description = "Adds switches that take the story ring and the pulsing LIVE ring off profile " +
-        "pictures, so a tap opens the profile. Switch: Hushfeed settings > Feed screen.",
+    description = "Takes the story and LIVE rings off profile pictures, so tapping a picture " +
+        "opens the profile instead of a story or LIVE. Starts off. Turn it on in Hushfeed " +
+        "settings > Feed screen.",
     default = true,
 ) {
     category("Feed")

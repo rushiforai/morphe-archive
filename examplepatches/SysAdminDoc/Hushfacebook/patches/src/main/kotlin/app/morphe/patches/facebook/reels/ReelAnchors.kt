@@ -5,6 +5,7 @@
 package app.morphe.patches.facebook.reels
 
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.tableStringsAsked
 import app.morphe.patches.facebook.shared.redexOriginalName
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -26,7 +27,10 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * - The chips under a reel: one static method takes the reel's attribution models as an
  *   ImmutableList, switches on each one's getTypeName() over the XFBFBShorts*Attribution literals,
  *   and returns the ones it will draw from an ImmutableList$Builder (580 LX/AyX;->A00, 577
- *   LX/B1d;->A00). Both builds end it in one `return-object` after `build()`.
+ *   LX/B1d;->A00). Both builds end it in one `return-object` after `build()`. 582's armeabi-v7a
+ *   builder (LX/8JF;->A00) asks a string table for one of the literals (LX/SoX;->A00 with 0xa for
+ *   XFBFBShortsExternalLinkAttribution) instead of loading it; its arm64 one (LX/8GT;->A00) loads
+ *   all eight.
  * - The Following button: the bug report dumper (the method holding "WatchFeedData.txt") writes
  *   each Reels viewer config value beside its name, and the value beside the name ending
  *   "removeFollowingButton" comes from a no-argument boolean getter (580 LX/4Xa;->A1c, written
@@ -126,20 +130,28 @@ internal fun calls(method: Method, callee: MethodReference): Boolean =
 
 /**
  * Whether [method] is the chip list builder: static, an ImmutableList in and out, every hidden chip
- * named, each item read by `getTypeName()`, and the answer built by `ImmutableList$Builder.build()`.
+ * named (loaded, or asked of a string table [resolve] finds), each item read by `getTypeName()`, and
+ * the answer built by `ImmutableList$Builder.build()`.
  */
-internal fun isChipListBuilder(method: Method): Boolean {
+internal fun isChipListBuilder(method: Method, resolve: (MethodReference) -> Method?): Boolean {
     if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != IMMUTABLE_LIST) return false
     if (method.parameterTypes.none { it.toString() == IMMUTABLE_LIST }) return false
     val body = method.body()
-    if (body.isEmpty() || !stringsOf(method).containsAll(HIDDEN_CHIPS)) return false
+    if (body.isEmpty() || !namesEvery(method, HIDDEN_CHIPS, resolve)) return false
     val calls = body.mapNotNull { it.methodReference }
     return calls.any { it.definingClass == IMMUTABLE_LIST_BUILDER && it.name == "build" && it.returnType == IMMUTABLE_LIST } &&
         calls.any { it.name == "getTypeName" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" }
 }
 
-/** The chip list builders [classDef] declares. */
-internal fun chipListBuilders(classDef: ClassDef): List<Method> = classDef.methods.filter(::isChipListBuilder)
+/** Whether [method] names every one of [literals], each loaded or asked of a string table [resolve] reads. */
+private fun namesEvery(method: Method, literals: List<String>, resolve: (MethodReference) -> Method?): Boolean {
+    val loaded = stringsOf(method)
+    return loaded.containsAll(literals) || (loaded + tableStringsAsked(method, resolve)).containsAll(literals)
+}
+
+/** The chip list builders [classDef] declares, with [resolve] finding the string tables they ask. */
+internal fun chipListBuilders(classDef: ClassDef, resolve: (MethodReference) -> Method?): List<Method> =
+    classDef.methods.filter { isChipListBuilder(it, resolve) }
 
 /** Whether [immutableList] has the public static `copyOf(Object[])` the chip hook rebuilds with. */
 internal fun hasCopyOfArray(immutableList: ClassDef): Boolean = immutableList.methods.any {

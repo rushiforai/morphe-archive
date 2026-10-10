@@ -5,6 +5,24 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public final class SettingRegistryTest {
+    @Test public void groupsResolveOnlyWhenTheirPatchRegistersThem() {
+        SettingRegistry registry = new SettingRegistry();
+        assertNull(registry.group("emotes"));
+        ToggleSetting child = setting("provider", SettingSection.CHAT);
+        SettingGroup group = new SettingGroup() {
+            @Override public String key() { return "emotes"; }
+            @Override public String title() { return "Emotes"; }
+            @Override public String summary() { return "Providers"; }
+            @Override public SettingSection section() { return SettingSection.CHAT; }
+            @Override public List<ToggleSetting> children() { return List.of(child); }
+        };
+        registry.register(group);
+        assertSame(group, registry.group("emotes"));
+        assertEquals(List.of(group), registry.snapshot());
+        assertEquals(List.of(child), group.children());
+        assertNull(registry.group("provider"));
+    }
+
     @Test public void omittedPatchesProduceNoOptions() {
         SettingRegistry registry = new SettingRegistry();
         assertTrue(registry.snapshot().isEmpty());

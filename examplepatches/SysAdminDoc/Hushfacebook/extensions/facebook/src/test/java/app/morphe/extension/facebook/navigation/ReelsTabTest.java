@@ -65,6 +65,8 @@ public class ReelsTabTest {
         ReelsTabForTests.inBuild(Boolean.TRUE);
         ReelsTab.forget();
         TabBarFilter.clearForTests();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.HIDE_REELS_TAB.save(true);
     }
 
     @After
@@ -103,8 +105,8 @@ public class ReelsTabTest {
     }
 
     @Test
-    public void theSwitchStartsOnBecausePickingThePatchIsTheChoice() {
-        assertTrue(Settings.HIDE_REELS_TAB.defaultValue);
+    public void theSwitchStartsOff() {
+        assertFalse(Settings.HIDE_REELS_TAB.defaultValue);
         assertTrue("Facebook builds the bar once, so a change waits for a restart", Settings.HIDE_REELS_TAB.rebootApp);
     }
 

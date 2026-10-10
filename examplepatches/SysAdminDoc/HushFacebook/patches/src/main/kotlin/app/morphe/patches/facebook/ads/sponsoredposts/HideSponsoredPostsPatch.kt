@@ -28,8 +28,9 @@ internal const val HOLDS_FEED_AD_PILL = "$EXTENSION_PACKAGE/ads/FeedAdPills;->ho
 @Suppress("unused")
 val hideSponsoredPostsPatch = bytecodePatch(
     name = "Hide sponsored posts",
-    description = "Removes sponsored and promoted posts from the news feed, with no gap left behind, " +
-        "and keeps the floating ad button off an ad's comments.",
+    description = "Removes sponsored and promoted posts from the news feed, with no gap left behind, so you see " +
+        "fewer ads. It also keeps the floating ad button off an ad's comments. On by default. Turn it off in " +
+        "Hushfacebook settings > News feed.",
     default = true,
 ) {
     category("Ads")

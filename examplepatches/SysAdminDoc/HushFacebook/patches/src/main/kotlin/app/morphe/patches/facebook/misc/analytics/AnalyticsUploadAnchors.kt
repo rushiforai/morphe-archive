@@ -13,6 +13,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.reels.watchhistory.callRegisters
+import app.morphe.patches.facebook.shared.readsMobileConfig
 import app.morphe.util.findFreeRegister
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -25,7 +26,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /*
- * Where Facebook uploads its app analytics, on the 577, 580 and 581 builds.
+ * Where Facebook uploads its app analytics, on the 577 to 582 builds.
  *
  * XAnalytics is the native event logger much of the app logs through. Its Java side keeps its
  * names: XAnalyticsNative's kickOffUpload() and resumeUploading(String) are native methods, and each
@@ -35,7 +36,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * resumeUploading(). The hook goes just before each call and skips it on a yes.
  *
  * Papaya is Meta's on-device learning. FBPapayaJobService keeps its name; onStartJob is declared on
- * it (577, 580) or on its renamed superclass (581). It asks Facebook's config whether Papaya is on
+ * it (577, 580) or on its renamed superclass (581, 582's `LX/PFS;`). It asks Facebook's config whether Papaya is on
  * and, when it isn't, returns false straight away with nothing started. The hook passes that answer
  * through the extension, so a held job takes Facebook's own off path.
  */
@@ -47,9 +48,6 @@ internal const val PAPAYA_SERVICE = "Lcom/facebook/papaya/fb/client/services/FBP
 internal const val PAPAYA_CONFIG = "papayaConfig"
 
 internal const val JOB_PARAMETERS = "Landroid/app/job/JobParameters;"
-
-/** Facebook's config reader, whose boolean answers the Papaya gate reads. */
-internal const val MOBILE_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
 
 internal const val XANALYTICS = "Lcom/facebook/xanalytics/XAnalyticsNative;"
 internal const val APP_JOB_HANDLER = "Lcom/facebook/xanalytics/provider/NativeXAnalyticsAppJobHandler;"
@@ -69,20 +67,18 @@ internal fun isJobStart(method: Method): Boolean =
 
 /**
  * The index of the move-result that takes the Papaya gate's answer in [method], or null when it
- * isn't the job's start or the gate isn't exactly once in it. The gate is a static boolean read of
- * [MOBILE_CONFIG] taking an Object and a long, its result tested by if-nez, whose fall-through
- * releases the lock and returns a register last set to 0.
+ * isn't the job's start or the gate isn't exactly once in it. The gate is a MobileConfig boolean
+ * read (MobileConfigUnsafeContext's own on 581, 582's `LX/3gg;->A1I` helper, which [classOf] looks
+ * into), its result tested by if-nez, whose fall-through releases the lock and returns a register
+ * last set to 0.
  */
-internal fun papayaGate(method: Method): Int? {
+internal fun papayaGate(method: Method, classOf: (String) -> ClassDef?): Int? {
     if (!isJobStart(method) || !holdsString(method, PAPAYA_CONFIG)) return null
     val instructions = method.implementation?.instructions?.toList() ?: return null
     val gates = (0 until instructions.size - 4).filter { index ->
-        val read = instructions[index]
-        val call = (read as? ReferenceInstruction)?.reference as? MethodReference
         val result = instructions[index + 1]
         val test = instructions[index + 2]
-        read.opcode == Opcode.INVOKE_STATIC && call?.definingClass == MOBILE_CONFIG && call.returnType == "Z" &&
-            call.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;", "J") &&
+        readsMobileConfig(instructions[index], "Z", classOf) &&
             result.opcode == Opcode.MOVE_RESULT && test.opcode == Opcode.IF_NEZ &&
             (test as OneRegisterInstruction).registerA == (result as OneRegisterInstruction).registerA &&
             instructions[index + 3].opcode == Opcode.MONITOR_EXIT && instructions[index + 4].opcode == Opcode.RETURN &&

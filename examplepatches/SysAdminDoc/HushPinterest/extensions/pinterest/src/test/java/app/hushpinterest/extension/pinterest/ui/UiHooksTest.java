@@ -56,7 +56,8 @@ public class UiHooksTest {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
+            Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS,
+            Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
     };
 
     @After public void restore() {
@@ -69,6 +70,8 @@ public class UiHooksTest {
         for (BooleanSetting setting : SWITCHES) assertFalse(setting.key, setting.defaultValue);
         assertFalse(UiHooks.hideScreenshotShare());
         assertFalse(UiHooks.quietEmailReminder());
+        assertFalse(UiHooks.hideSurveyPrompts());
+        assertFalse(UiHooks.hideSponsoredPolls());
         assertFalse(UiHooks.disableUpdateNag());
         assertFalse(UiHooks.originalImages());
         assertFalse(UiHooks.hideTopicSuggestions());
@@ -97,6 +100,25 @@ public class UiHooksTest {
         assertFalse(UiHooks.disableUpdateNag());
         assertFalse(UiHooks.originalImages());
         assertTrue(Settings.HIDE_SCREENSHOT_SHARE.savedValue());
+    }
+
+    @Test public void surveyInvitesAndSponsoredPollsAreSkippedOnlyWhileTheSwitchIsOnAndCounted() {
+        assertFalse("off by default, Pinterest shows its invite", UiHooks.hideSurveyPrompts());
+        assertFalse("off by default, Pinterest opens its poll", UiHooks.hideSponsoredPolls());
+        Settings.HIDE_SURVEY_PROMPTS.save(true);
+        assertTrue(UiHooks.hideSurveyPrompts());
+        assertTrue(UiHooks.hideSponsoredPolls());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("survey invite declined"));
+        assertTrue(report, report.contains("sponsored poll skipped"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse("paused, Pinterest shows its invite", UiHooks.hideSurveyPrompts());
+        assertFalse("paused, Pinterest opens its poll", UiHooks.hideSponsoredPolls());
+        assertTrue(Settings.HIDE_SURVEY_PROMPTS.savedValue());
+        PauseForTests.resume();
+        Settings.HIDE_SURVEY_PROMPTS.save(false);
+        assertFalse(UiHooks.hideSurveyPrompts());
+        assertFalse(UiHooks.hideSponsoredPolls());
     }
 
     @Test public void saveToastsDropOnlyTheNamedModelsWhileTheSwitchIsOn() {

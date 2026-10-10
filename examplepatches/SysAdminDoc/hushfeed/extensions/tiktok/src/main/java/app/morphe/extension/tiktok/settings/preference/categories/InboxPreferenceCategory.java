@@ -125,8 +125,8 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new InputTextPreference(
                     context,
                     "Hide rows by title",
-                    "Comma separated list of any other Inbox row titles to hide, matched exactly. "
-                            + "Use this for anything not listed above.",
+                    "Separate the titles of any other Inbox rows you want to hide with commas, "
+                            + "spelled exactly. Use this for anything not listed above.",
                     Settings.HIDE_INBOX_CUSTOM_TITLES
             ));
         }
@@ -210,10 +210,11 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Turn off push notifications",
-                    "TikTok's push service stays off and nothing it sends reaches the drawer. "
-                            + "It can't keep your phone awake either. You won't hear about new "
-                            + "messages until you open TikTok, and a notification hidden while "
-                            + "this is on doesn't come back. Ongoing ones like media controls stay.",
+                    "Turns off TikTok's notification service, so nothing it sends reaches your "
+                            + "notification shade and it can't wake your phone. You won't hear "
+                            + "about new messages until you open TikTok. Notifications hidden "
+                            + "while this is on don't come back. Ongoing ones like media "
+                            + "controls stay.",
                     Settings.TURN_OFF_PUSH_NOTIFICATIONS
             ));
             addPreference(new TogglePreference(

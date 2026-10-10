@@ -19,6 +19,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import app.morphe.extension.shared.settings.HushfeedPause;
+import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
+
 @SuppressWarnings("deprecation")
 public final class SettingsHeaderPreference extends Preference {
     /** The product name, which reads the same in every language and is not translated. */
@@ -34,15 +37,23 @@ public final class SettingsHeaderPreference extends Preference {
     private final String heading;
     private final String detail;
     private final Runnable backAction;
+    private Runnable statusAction;
+    private TextView statusView;
 
     public static SettingsHeaderPreference master(Context context, Runnable backAction) {
-        return new SettingsHeaderPreference(
+        return master(context, backAction, null);
+    }
+
+    public static SettingsHeaderPreference master(Context context, Runnable backAction, Runnable statusAction) {
+        SettingsHeaderPreference preference = new SettingsHeaderPreference(
                 context,
                 Kind.MASTER,
                 "Settings",
                 null,
                 backAction
         );
+        preference.statusAction = statusAction;
+        return preference;
     }
 
     public static SettingsHeaderPreference section(Context context, String title, Runnable backAction) {
@@ -81,17 +92,70 @@ public final class SettingsHeaderPreference extends Preference {
     }
 
     private View createMasterHeader() {
-        LinearLayout header = createHeader(getContext(), heading, backAction);
-        TextView subtitle = SettingsUi.text(getContext(), L10n.t(getContext(), "Make TikTok yours."),
-                SettingsUi.TEXT_BODY, SettingsUi.textSecondary(), 0);
-        LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(-1, -2);
-        subtitleParams.topMargin = SettingsUi.dp(getContext(), 12);
-        subtitleParams.setMarginStart(SettingsUi.dp(getContext(), 8));
-        // The "YOUR EXPERIENCE" label that used to sit here headed one card holding every row
-        // from Search to Licenses. The master menu carries its own group headings now.
-        subtitleParams.bottomMargin = SettingsUi.dp(getContext(), 8);
-        header.addView(subtitle, subtitleParams);
+        Context context = getContext();
+        LinearLayout header = createHeader(context, heading, backAction, true);
+        LinearLayout toolbar = header.findViewWithTag("hushfeed_toolbar");
+        statusView = SettingsUi.text(context, "", SettingsUi.TEXT_CAPTION,
+                SettingsUi.textSecondary(), 0);
+        statusView.setTag("hushfeed_compact_status");
+        statusView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
+        statusView.setMinimumHeight(SettingsUi.dp(context, 48));
+        statusView.setMinimumWidth(SettingsUi.dp(context, 48));
+        statusView.setPaddingRelative(SettingsUi.dp(context, 8), 0, 0, 0);
+        if (statusAction != null) {
+            SettingsUi.markAsButton(statusView);
+            statusView.setFocusable(true);
+            statusView.setBackground(SettingsUi.pressAndFocusOver(context,
+                    SettingsUi.RADIUS_CONTROL, new android.graphics.drawable.ColorDrawable(
+                            SettingsUi.background())));
+            statusView.setOnClickListener(view -> statusAction.run());
+        }
+        if (context.getResources().getConfiguration().fontScale > 1.3f) {
+            // Keep the product name whole when large text makes a single toolbar too narrow.
+            View brand = toolbar.getChildAt(1);
+            toolbar.removeView(brand);
+            LinearLayout state = new LinearLayout(context);
+            state.setOrientation(LinearLayout.VERTICAL);
+            state.setGravity(Gravity.END);
+            state.addView(brand, new LinearLayout.LayoutParams(-1, -2));
+            state.addView(statusView, new LinearLayout.LayoutParams(-2, -2));
+            toolbar.addView(state, new LinearLayout.LayoutParams(0, -2, 1));
+        } else {
+            toolbar.addView(statusView, new LinearLayout.LayoutParams(-2, -2));
+        }
+        refreshStatus();
         return header;
+    }
+
+    /** Keeps the compact state truthful after returning from a page with restart-gated settings. */
+    public void refreshStatus() {
+        if (statusView == null) return;
+        boolean pending = !AbstractPreferenceFragment.restartPending.isEmpty();
+        boolean paused = HushfeedPause.isPaused();
+        String label = L10n.t(getContext(), pending ? "Restart pending" : paused ? "Paused" : "Active");
+        statusView.setText(label);
+        statusView.setTextColor(pending ? SettingsUi.accent() : SettingsUi.textSecondary());
+        android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
+        dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        dot.setColor(paused && !pending ? SettingsUi.textSecondary() : SettingsUi.accent());
+        int dotSize = SettingsUi.dp(getContext(), 6);
+        dot.setBounds(0, 0, dotSize, dotSize);
+        statusView.setCompoundDrawablesRelative(dot, null, null, null);
+        statusView.setCompoundDrawablePadding(SettingsUi.dp(getContext(), 6));
+        String description = pending ? label
+                : L10n.t(getContext(), paused ? "Hushfeed is paused" : "Hushfeed is active");
+        statusView.setContentDescription(statusAction == null ? description
+                : L10n.f(getContext(), "%1$s, %2$s", description,
+                        L10n.t(getContext(), "App & advanced")));
+    }
+
+    @Override
+    protected void onBindView(View view) {
+        super.onBindView(view);
+        if (kind == Kind.MASTER) {
+            statusView = view.findViewWithTag("hushfeed_compact_status");
+            refreshStatus();
+        }
     }
 
     private View createSectionHeader() { return createHeader(getContext(), heading, backAction); }
@@ -106,10 +170,15 @@ public final class SettingsHeaderPreference extends Preference {
      * as 40 by 48 dp, and the clipped strip took no touches.
      */
     public static LinearLayout createHeader(Context context, String title, Runnable onBack) {
+        return createHeader(context, title, onBack, false);
+    }
+
+    private static LinearLayout createHeader(Context context, String title, Runnable onBack, boolean compact) {
         LinearLayout header = new LinearLayout(context);
         header.setTag("hushfeed_page_header");
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setPaddingRelative(0, SettingsUi.dp(context, 8), SettingsUi.dp(context, 8), 0);
+        header.setPaddingRelative(0, SettingsUi.dp(context, compact ? 24 : 8), SettingsUi.dp(context, compact ? 0 : 8),
+                SettingsUi.dp(context, compact ? 16 : 0));
         header.setBackgroundColor(SettingsUi.background());
         LinearLayout toolbar = new LinearLayout(context);
         toolbar.setTag("hushfeed_toolbar");
@@ -131,18 +200,20 @@ public final class SettingsHeaderPreference extends Preference {
         toolbar.addView(back, new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48)));
         TextView brand = SettingsUi.text(context, BRAND_MARK, SettingsUi.TEXT_CAPTION, SettingsUi.accent(), 1);
         brand.setLetterSpacing(0.12f);
+        if (compact) brand.setGravity(Gravity.END);
         LinearLayout.LayoutParams brandParams = new LinearLayout.LayoutParams(0, -2, 1);
         brandParams.setMarginStart(SettingsUi.dp(context, 8));
         toolbar.addView(brand, brandParams);
         header.addView(toolbar, new LinearLayout.LayoutParams(-1, -2));
         TextView heading = SettingsUi.text(
-                context, title, headingSizeSp(context, title), SettingsUi.textPrimary(), 1);
+                context, title, headingSizeSp(context, title),
+                SettingsUi.textPrimary(), 1);
         heading.setTag("hushfeed_page_title");
         heading.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);
         if (android.os.Build.VERSION.SDK_INT >= 28) heading.setAccessibilityHeading(true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
-        titleParams.topMargin = SettingsUi.dp(context, 24);
-        titleParams.setMarginStart(SettingsUi.dp(context, 8));
+        titleParams.topMargin = SettingsUi.dp(context, compact ? 12 : 24);
+        titleParams.setMarginStart(SettingsUi.dp(context, compact ? 0 : 8));
         header.addView(heading, titleParams);
         return header;
     }

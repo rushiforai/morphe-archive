@@ -576,10 +576,10 @@ public final class ReleaseCheck {
         Integer againstRunning = compare(newest, running);
         if (againstRunning != null && againstRunning > 0) {
             String out = L10n.f("HushTelegram %1$s is out. Update it in Morphe Manager.", L10n.isolate(newest));
-            return otherTarget ? out + " " + L10n.f("It targets Telegram %1$s.", L10n.isolate(target)) : out;
+            return otherTarget ? out + " " + L10n.f("It's made for Telegram %1$s.", L10n.isolate(target)) : out;
         }
         if (!otherTarget) return null;
-        return L10n.f("HushTelegram %1$s targets Telegram %2$s.", L10n.isolate(newest), L10n.isolate(target));
+        return L10n.f("HushTelegram %1$s is made for Telegram %2$s.", L10n.isolate(newest), L10n.isolate(target));
     }
 
     /** What the Check now row says: a try on its way, the last one's answer, or what a tap does. */
@@ -598,7 +598,7 @@ public final class ReleaseCheck {
     }
 
     static String idleSummary() {
-        return L10n.t("Asks GitHub for the newest release right now, even with the switch above off.");
+        return L10n.t("Checks GitHub for the newest release right now, even if the switch above is off.");
     }
 
     /** What a try that ended in [result] found, next to the running version [running]. */
@@ -616,12 +616,12 @@ public final class ReleaseCheck {
             case OFFLINE:
                 return L10n.t("Couldn't reach GitHub. Try again later.");
             case RATE_LIMITED:
-                return L10n.t("GitHub is turning away checks from this network for now. Try again later.");
+                return L10n.t("GitHub is blocking checks from this network for now. Try again later.");
             case NO_RELEASE:
                 // "Try again later" would send the reader back for an answer that hasn't changed.
                 return L10n.t("No HushTelegram release is out yet.");
             default:
-                return L10n.t("GitHub's answer couldn't be used. Try again later.");
+                return L10n.t("GitHub sent a reply HushTelegram couldn't read. Try again later.");
         }
     }
 

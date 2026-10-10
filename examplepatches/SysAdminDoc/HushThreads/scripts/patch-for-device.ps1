@@ -139,7 +139,6 @@ $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedName
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 $out = Join-Path $OutDir "hushthreads-$version-signed.apk"
 $unsigned = Join-Path $OutDir "hushthreads-$version-unsigned.apk"
-$signedReady = $false
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
 if (Test-Path $out) { Remove-Item $out -Force }
@@ -150,74 +149,82 @@ foreach ($name in $names) { $enable += '-e'; $enable += $name }
 $argumentFile = Join-Path $OutDir 'morphe-patch.args'
 $mergedInput = Join-Path $OutDir 'stock-merged.apk'
 $mergeRequired = [IO.Path]::GetExtension($Apk).TrimStart('.').ToLowerInvariant() -in @('apkm', 'apks', 'xapk')
+# Whether a signed APK came out, in a table the block below fills in: the block runs in a scope of
+# its own, so a plain assignment there wouldn't reach the cleanup.
+$deviceRun = @{ SignedReady = $false }
 try {
-    $patchInput = Get-MergedApk -Apk $Apk -Destination $mergedInput -Java $Java -DesktopJar $DesktopJar
-    $arguments = @('patch', '--exclusive', '--unsigned', '-p', $bundle, '-o', $unsigned, '-t', $temp, '-r', $result) + $enable + @($patchInput)
-    $argumentFileLines = @($arguments | ForEach-Object {
-        $value = [string]$_
-        if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
-            throw 'A Morphe command argument contains a newline and cannot be written safely.'
+    # The merge, the CLI, the alignment, the signing and the identity check, in one slot of the
+    # machine's build queue when there is one (Invoke-HeavyJob). A throw in it gives the slot back
+    # and stops the build here, as before.
+    Invoke-HeavyJob -Label "device $(Split-Path -Leaf $Apk)" -ScriptBlock {
+        $patchInput = Get-MergedApk -Apk $Apk -Destination $mergedInput -Java $Java -DesktopJar $DesktopJar
+        $arguments = @('patch', '--exclusive', '--unsigned', '-p', $bundle, '-o', $unsigned, '-t', $temp, '-r', $result) + $enable + @($patchInput)
+        $argumentFileLines = @($arguments | ForEach-Object {
+            $value = [string]$_
+            if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
+                throw 'A Morphe command argument contains a newline and cannot be written safely.'
+            }
+            '"' + $value.Replace('\', '\\').Replace('"', '\"') + '"'
+        })
+        [System.IO.File]::WriteAllLines(
+            $argumentFile,
+            $argumentFileLines,
+            (New-Object System.Text.UTF8Encoding($false)))
+        # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+        # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
+        $preference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = -1
+            & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
+                $line = [string]$_
+                if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+            }
+            $cliExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
         }
-        '"' + $value.Replace('\', '\\').Replace('"', '\"') + '"'
-    })
-    [System.IO.File]::WriteAllLines(
-        $argumentFile,
-        $argumentFileLines,
-        (New-Object System.Text.UTF8Encoding($false)))
-    # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
-    # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
-    $preference = $ErrorActionPreference
-    try {
-        $ErrorActionPreference = 'Continue'
-        $global:LASTEXITCODE = -1
-        & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
-            $line = [string]$_
-            if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+        if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
+        $report = if (Test-Path -LiteralPath $result -PathType Leaf) { Get-Content -LiteralPath $result -Raw | ConvertFrom-Json } else { $null }
+        $validation = Test-PatchingReport -Report $report -ExpectedNames $names -AllowedDependencyNames $dependencyNames `
+            -OutputPath $unsigned -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
+        if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+        $nativeId = [guid]::NewGuid().ToString('N')
+        $baseline = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
+        $patchedManifest = Get-ApkManifestFacts -Apk $unsigned -Aapt2 $Aapt2
+        $nativeStock = Get-NativePageFacts -Apk $patchInput -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath (Join-Path $OutDir "native-$nativeId-stock.json") -ExtractNativeLibs $baseline.extractNativeLibs
+        $nativeRaw = Get-NativePageFacts -Apk $unsigned -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath (Join-Path $OutDir "native-$nativeId-unaligned.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
+        Align-UnsignedNativeApk -Apk $unsigned -Aapt2 $Aapt2 -Java $Java -Facts $nativeRaw
+        $savedPassword = [Environment]::GetEnvironmentVariable($passwordVariable, [EnvironmentVariableTarget]::Process)
+        try {
+            [Environment]::SetEnvironmentVariable($passwordVariable, $keystorePassword, [EnvironmentVariableTarget]::Process)
+            $ErrorActionPreference = 'Continue'
+            $signOutput = @(& $Java -cp $DesktopJar (Join-Path $PSScriptRoot 'SignAlignedApk.java') $unsigned $out $Keystore $KeyAlias 2>&1)
+            $signCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+            [Environment]::SetEnvironmentVariable($passwordVariable, $savedPassword, [EnvironmentVariableTarget]::Process)
         }
-        $cliExitCode = $LASTEXITCODE
-    } finally {
-        $ErrorActionPreference = $preference
+        if ($signCode -ne 0) { throw "APK signing failed (exit $signCode): $($signOutput -join ' ')" }
+        $signOutput | ForEach-Object { Write-Host "[device] $_" }
+        $identityOutput = @(& $Java -cp $DesktopJar (Join-Path $PSScriptRoot 'IdentityApkCheck.java') $bundle $out 2>&1)
+        $identityCode = $LASTEXITCODE
+        $identityOutput | ForEach-Object { Write-Host "[device] $_" }
+        if ($identityCode -ne 0) { throw "APK identity verification failed (exit $identityCode)." }
+        $nativeFinal = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath (Join-Path $OutDir "native-$nativeId-signed.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
+        $nativeAlignment = Get-NativePageDelta -Stock $nativeStock -Patched $nativeFinal
+        $nativeAlignment | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $OutDir 'native-alignment.json') -Encoding UTF8
+        if ($nativeAlignment.packagingDefects.Count -gt 0) { throw "Native packaging defects: $($nativeAlignment.packagingDefects -join ', ')" }
+        if (-not $nativeAlignment.alignmentCompatible) { Write-Warning '[device] vendor ELF libraries remain incompatible with 16 KB pages.' }
+        $deviceRun.SignedReady = $true
     }
-    if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
-    $report = if (Test-Path -LiteralPath $result -PathType Leaf) { Get-Content -LiteralPath $result -Raw | ConvertFrom-Json } else { $null }
-    $validation = Test-PatchingReport -Report $report -ExpectedNames $names -AllowedDependencyNames $dependencyNames `
-        -OutputPath $unsigned -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
-    if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
-    $nativeId = [guid]::NewGuid().ToString('N')
-    $baseline = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
-    $patchedManifest = Get-ApkManifestFacts -Apk $unsigned -Aapt2 $Aapt2
-    $nativeStock = Get-NativePageFacts -Apk $patchInput -Java $Java -Aapt2 $Aapt2 `
-        -ReportPath (Join-Path $OutDir "native-$nativeId-stock.json") -ExtractNativeLibs $baseline.extractNativeLibs
-    $nativeRaw = Get-NativePageFacts -Apk $unsigned -Java $Java -Aapt2 $Aapt2 `
-        -ReportPath (Join-Path $OutDir "native-$nativeId-unaligned.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
-    Align-UnsignedNativeApk -Apk $unsigned -Aapt2 $Aapt2 -Java $Java -Facts $nativeRaw
-    $savedPassword = [Environment]::GetEnvironmentVariable($passwordVariable, [EnvironmentVariableTarget]::Process)
-    try {
-        [Environment]::SetEnvironmentVariable($passwordVariable, $keystorePassword, [EnvironmentVariableTarget]::Process)
-        $ErrorActionPreference = 'Continue'
-        $signOutput = @(& $Java -cp $DesktopJar (Join-Path $PSScriptRoot 'SignAlignedApk.java') $unsigned $out $Keystore $KeyAlias 2>&1)
-        $signCode = $LASTEXITCODE
-    } finally {
-        $ErrorActionPreference = $preference
-        [Environment]::SetEnvironmentVariable($passwordVariable, $savedPassword, [EnvironmentVariableTarget]::Process)
-    }
-    if ($signCode -ne 0) { throw "APK signing failed (exit $signCode): $($signOutput -join ' ')" }
-    $signOutput | ForEach-Object { Write-Host "[device] $_" }
-    $identityOutput = @(& $Java -cp $DesktopJar (Join-Path $PSScriptRoot 'IdentityApkCheck.java') $bundle $out 2>&1)
-    $identityCode = $LASTEXITCODE
-    $identityOutput | ForEach-Object { Write-Host "[device] $_" }
-    if ($identityCode -ne 0) { throw "APK identity verification failed (exit $identityCode)." }
-    $nativeFinal = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
-        -ReportPath (Join-Path $OutDir "native-$nativeId-signed.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
-    $nativeAlignment = Get-NativePageDelta -Stock $nativeStock -Patched $nativeFinal
-    $nativeAlignment | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $OutDir 'native-alignment.json') -Encoding UTF8
-    if ($nativeAlignment.packagingDefects.Count -gt 0) { throw "Native packaging defects: $($nativeAlignment.packagingDefects -join ', ')" }
-    if (-not $nativeAlignment.alignmentCompatible) { Write-Warning '[device] vendor ELF libraries remain incompatible with 16 KB pages.' }
-    $signedReady = $true
 } finally {
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $unsigned -Force -ErrorAction SilentlyContinue
-    if (-not $signedReady) { Remove-Item -LiteralPath $out -Force -ErrorAction SilentlyContinue }
+    if (-not $deviceRun.SignedReady) { Remove-Item -LiteralPath $out -Force -ErrorAction SilentlyContinue }
     if ($mergeRequired) { Remove-Item -LiteralPath $mergedInput -Force -ErrorAction SilentlyContinue }
     # The CLI unpacks the whole APK here and a run against Threads leaves gigabytes behind.
     if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }

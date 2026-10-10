@@ -66,9 +66,9 @@ private const val REMEMBER_HELPER = "hushfacebookRememberVideoSource"
 @Suppress("unused")
 val downloadVideoPatch = bytecodePatch(
     name = "Download any video",
-    description = "Adds Download to phone to the menu of videos in the feed and in Watch, below " +
-        "Facebook's own items. Videos save at the Download quality you set, best by default.",
-    default = false,
+    description = "Adds Download to phone to the menu of videos in the feed and in Watch, so you can save them " +
+        "to watch later. Videos save at the quality you set, best by default. Starts off. Turn it on in " +
+        "Hushfacebook settings > Downloads.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch)

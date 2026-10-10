@@ -118,15 +118,11 @@ internal object ShortcutPublishFingerprint : Fingerprint(
 @Suppress("unused")
 val hideLauncherShortcutsPatch = bytecodePatch(
     name = "Hide the launcher shortcuts",
-    description = "Empties the menu that opens on pressing and holding TikTok's icon on the " +
-        "home screen. The entries are built while the app runs rather than declared in it, and " +
-        "TikTok only rewrites them when it notices a difference, so this removes what is " +
-        "already published and answers the handover that would publish more. Turning it off " +
-        "asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut " +
-        "pinned to a home screen is left alone. Switch: Hushfeed settings > App.",
-    default = false,
+    description = "Empties the menu that pops up when you press and hold TikTok's icon on " +
+        "your home screen. Tapping the icon still opens the app. Starts off. Turn it on in " +
+        "Hushfeed settings > App.",
 ) {
-    category("Settings")
+    category("Interface")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok())

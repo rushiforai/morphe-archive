@@ -148,13 +148,13 @@ public class ImportPreviewTest {
     }
 
     @Test public void aLegacyStoriesImportNamesBothIndependentChoices() throws Exception {
-        AlertDialog preview = preview(file(StoriesSetting.LEGACY_KEY, false));
+        AlertDialog preview = preview(file(StoriesSetting.LEGACY_KEY, true));
         assertEquals("2 switches will change.", String.valueOf(shadowOf(preview).getMessage()));
         assertTrue(text(row(preview, Settings.HIDE_TOP_STORIES_TRAY)).contains("Hide the Stories tray"));
         assertTrue(text(row(preview, Settings.HIDE_STORIES_BETWEEN_POSTS)).contains("Hide Stories between posts"));
         assertFalse(text(preview.getWindow().getDecorView()).contains(StoriesSetting.LEGACY_KEY));
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-        assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+        assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
     }
 
     @Test public void phraseContentsExcludedKeysAndUnknownNamesStayOutOfThePreview() throws Exception {

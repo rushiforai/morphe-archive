@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -80,6 +81,28 @@ public class SettingsSearchQueryTest {
         // with the empty query only proved the word produced two rows rather than one.
         assertTrue("the query matched the whole catalogue: " + matches + " rows of " + indexed,
                 matches < indexed);
+    }
+
+    @Test public void groupingTheMenuPreservesTheLeafIndexWithoutIndexingNavigationRows() throws Exception {
+        TikTokPreferenceFragment search = attachSearch();
+        Field index = TikTokPreferenceFragment.class.getDeclaredField("searchIndex");
+        index.setAccessible(true);
+        java.util.Set<String> sections = new java.util.HashSet<>();
+        for (Object result : (java.util.List<?>) index.get(search)) {
+            Field key = result.getClass().getDeclaredField("key");
+            Field section = result.getClass().getDeclaredField("section");
+            key.setAccessible(true);
+            section.setAccessible(true);
+            String route = String.valueOf(key.get(result));
+            assertFalse("a group became a search result: " + route, route.startsWith("hub_"));
+            assertFalse("a section route became a duplicate search result: " + route,
+                    route.startsWith("section_"));
+            if (section.get(result) != null) sections.add(section.get(result).toString());
+        }
+        assertEquals("a settings page disappeared from the searchable catalogue",
+                java.util.Set.of("FEED_FILTER", "FEED_NAVIGATION", "INTERFACE", "PLAYBACK",
+                        "SCREEN_TIME", "COMMENTS", "DOWNLOADS", "SHARE", "INBOX", "PRIVACY",
+                        "REGION", "BEHAVIOR", "DIAGNOSTICS", "BACKUP"), sections);
     }
 
     @Test public void filteredSettingsExposeAndAnnounceTheirResultCount() throws Exception {

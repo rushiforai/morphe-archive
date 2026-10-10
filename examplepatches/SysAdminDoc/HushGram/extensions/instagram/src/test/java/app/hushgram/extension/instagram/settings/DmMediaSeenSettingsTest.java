@@ -65,7 +65,7 @@ public class DmMediaSeenSettingsTest {
         open(false);
         assertNull(page.getPreferenceScreen().findPreference(Settings.VIEW_DM_MEDIA_ANONYMOUSLY.key));
         assertFalse(Settings.VIEW_DM_MEDIA_ANONYMOUSLY.get());
-        assertTrue(Settings.VIEW_STORIES_ANONYMOUSLY.get());
+        assertFalse("the story switch keeps its own default", Settings.VIEW_STORIES_ANONYMOUSLY.get());
     }
 
     @Test public void directMediaPatchHasItsOwnOffByDefaultSwitchAndPausePreservesChoice() throws Exception {
@@ -74,7 +74,8 @@ public class DmMediaSeenSettingsTest {
         assertNotNull(row);
         assertEquals("View DM photos and videos anonymously", row.getTitle().toString());
         assertFalse(row.isChecked());
-        assertEquals("Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.", row.getSummary().toString());
+        assertEquals("Stops people seeing that you opened their view once photos and videos. They still disappear "
+                + "after you view them. This is a test feature and starts off.", row.getSummary().toString());
         assertEquals(1, PatchFamily.DM_MEDIA_SEEN.switches.size());
         assertSame(Settings.VIEW_DM_MEDIA_ANONYMOUSLY, PatchFamily.DM_MEDIA_SEEN.switches.get(0));
         Settings.VIEW_DM_MEDIA_ANONYMOUSLY.save(true);
@@ -85,6 +86,6 @@ public class DmMediaSeenSettingsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(Settings.VIEW_DM_MEDIA_ANONYMOUSLY.get());
-        assertTrue(Settings.VIEW_STORIES_ANONYMOUSLY.get());
+        assertFalse("the story switch keeps its own default", Settings.VIEW_STORIES_ANONYMOUSLY.get());
     }
 }

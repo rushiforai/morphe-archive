@@ -72,9 +72,9 @@ internal val browserQueriesPatch = resourcePatch {
 @Suppress("unused")
 val externalBrowserPatch = bytecodePatch(
     name = PATCH,
-    description = "Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. " +
-        "Turn it off in HushPinterest settings at any time.",
-    default = false,
+    description = "Opens a pin's Visit link and profile websites in your web browser. Pinterest links and sign-in " +
+        "work as before. Good if you prefer your own browser. Starts off. Turn it on in HushPinterest " +
+        "settings > More settings > Links.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch, browserQueriesPatch)

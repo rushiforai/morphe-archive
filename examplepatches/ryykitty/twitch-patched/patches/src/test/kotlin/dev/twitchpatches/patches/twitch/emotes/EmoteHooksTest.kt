@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import dev.twitchpatches.patches.twitch.shared.code
 import org.junit.Assert.*
 import org.junit.Test
 

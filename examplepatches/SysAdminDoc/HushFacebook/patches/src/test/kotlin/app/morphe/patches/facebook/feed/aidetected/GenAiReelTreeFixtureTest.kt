@@ -55,9 +55,8 @@ class GenAiReelTreeFixtureTest {
                 val name = bundle.name
 
                 // The reel model's type, the way the patch finds it: the attribution finder's parameter.
-                val holders = FixtureDex.classesHolding(bundle, TRANSPARENCY_ATTRIBUTION)
-                    .flatMap { methodsHolding(it, TRANSPARENCY_ATTRIBUTION) }
-                val finder = attributionFinder(holders + extensionHolders)
+                val (holders, resolve) = reelLabelHolders(bundle)
+                val finder = attributionFinder(holders + extensionHolders, resolve = resolve)
                 val modelType = finder.call?.parameterTypes?.get(0)?.toString()
                     ?: throw AssertionError("$name: ${finder.problem}")
 

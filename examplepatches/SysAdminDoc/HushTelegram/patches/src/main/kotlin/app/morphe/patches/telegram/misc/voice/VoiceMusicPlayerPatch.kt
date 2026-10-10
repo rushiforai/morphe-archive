@@ -45,10 +45,11 @@ private val VIRTUAL = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 @Suppress("unused")
 val voiceMusicPlayerPatch = bytecodePatch(
     name = "Voice messages in the music player",
-    description = "Adds a switch, off by default, so tapping the bar above a chat while a voice message plays opens Telegram's full music player with its seek bar instead of jumping to the message. View-once voice messages stay as they are.",
+    description = "Makes tapping the bar above a chat, while a voice message plays, open Telegram's full music player " +
+        "with a seek bar. Starts off. Turn it on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Playback")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

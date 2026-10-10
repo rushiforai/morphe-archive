@@ -56,17 +56,13 @@ class PureBlackFixtureTest {
     fun `every declared build loads the dark gray in its theme and passes it to its dark scheme as a background`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
-            // 450 moved the theme's dark literals into a helper it calls; 448 and 449 load them in the theme.
+            // 450 loads the theme's dark literals in a helper it calls, not in the theme itself.
             val loaders = fixture.builders.filter { it.darkLoads().isNotEmpty() }.map { it.signature() }
-            if (build.name.startsWith("threads-450.")) {
-                assertEquals(build.name, 1, loaders.size)
-                assertTrue(build.name, loaders.single() in fixture.helpers.map { it.signature() })
-            } else {
-                assertEquals(build.name, listOf(fixture.theme.signature()), loaders)
-            }
+            assertEquals(build.name, 1, loaders.size)
+            assertTrue(build.name, loaders.single() in fixture.helpers.map { it.signature() })
             val scheme = context(fixture).darkScheme(fixture.theme)
             assertEquals(build.name, fixture.holder, scheme.holder)
-            // Threads 448 and 449 each pass the gray twice: the screen's background and the feed's.
+            // Threads 450 passes the gray twice: the screen's background and the feed's.
             assertEquals(build.name, 2, scheme.registers.size)
             val body = scheme.initializer.body()
             val calls = body.indices.filter { body[it].isSchemeCall(fixture.scheme) }

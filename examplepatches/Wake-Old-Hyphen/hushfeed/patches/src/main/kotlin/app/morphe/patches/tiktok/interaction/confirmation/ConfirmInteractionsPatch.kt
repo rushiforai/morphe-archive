@@ -178,8 +178,9 @@ internal fun MutableMethod.hookStoryLike() {
 @Suppress("unused")
 val confirmInteractionsPatch = bytecodePatch(
     name = "Confirm feed interactions",
-    description = "Asks for a second tap before the feed Follow button, the like heart, a comment or story like, or a quick repost goes through. A short message asks for the second tap, and most armed buttons also get a white ring. Switches: Hushfeed settings > Feed screen.",
-    default = false,
+    description = "Asks for a second tap before Follow, a like, or a quick repost goes " +
+        "through, so a stray tap doesn't count. Starts off. Turn it on in Hushfeed settings > " +
+        "Feed screen.",
 ) {
     category("Interaction")
     compatibleWith(*AppCompatibilities.tiktok())

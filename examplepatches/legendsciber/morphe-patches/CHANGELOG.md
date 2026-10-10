@@ -1,3 +1,9 @@
+## [1.44.0](https://github.com/legendsciber/morphe-patches/compare/v1.43.10...v1.44.0) (2026-10-09)
+
+### ✨ New Features
+
+* **templerun2:** add free IAP and instant reward ad patches ([a4f3ced](https://github.com/legendsciber/morphe-patches/commit/a4f3ced6d9493b50579fe4fa547a27f0bb1941e8))
+
 ## [1.43.10](https://github.com/legendsciber/morphe-patches/compare/v1.43.9...v1.43.10) (2026-10-09)
 
 ### 🐛 Bug Fixes

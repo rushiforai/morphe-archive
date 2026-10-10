@@ -93,6 +93,19 @@ function Assert-Cleaned([object[]]$Starts, [string[]]$ActiveRoots = @()) {
                 ':extensions:shared:library:lint', ':extensions:telegram:lint')) {
             Assert-True (@($start.Tasks) -contains $task) "A concurrent gate dropped $task."
         }
+        # The first run leaves the fixture tests out, and the second adds them only after the
+        # advisory scan and the release facts passed.
+        Assert-True ((@($start.Tasks) -join ' ') -like '* -x :patches:fixtureTest') `
+            "Gate $($start.Case) did not leave the fixture tests out of its first run: $(@($start.Tasks) -join ' ')"
+        $full = Join-Path $records "full-$($start.Case)-$($start.Commit).json"
+        if ($start.Case -eq 'failed-two') {
+            Assert-True (-not (Test-Path -LiteralPath $full)) 'A gate whose release facts failed went on to the fixture tests.'
+        } else {
+            Assert-True (Test-Path -LiteralPath $full) "Gate $($start.Case) never ran the fixture tests for $($start.Commit)."
+            $fullRun = Get-Content -LiteralPath $full -Raw | ConvertFrom-Json
+            Assert-True ((@($fullRun.Tasks) -join ' ') -ceq ((@($start.Tasks) -join ' ') -replace ' -x :patches:fixtureTest$', '') -and
+                $fullRun.State -eq $start.State) "Gate $($start.Case) ran other tasks or another tree for its fixture tests."
+        }
         foreach ($stage in @('contracts', 'advisories', 'facts')) {
             $record = Join-Path $records "$stage-$($start.Case)-$($start.Commit).json"
             Assert-True (Test-Path -LiteralPath $record) "Gate $($start.Case) skipped $stage for $($start.Commit)."
@@ -126,6 +139,9 @@ try {
     }
     Set-Content -LiteralPath (Join-Path $repo '.gitignore') -Value @('**/build/', 'local-edit.txt') -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $repo 'patches-bundle.json') -Value '{}' -Encoding ASCII
+    # The gate runs a quick pass without the fixture tests only where the Gradle file has them.
+    Set-Content -LiteralPath (Join-Path $repo 'patches/build.gradle.kts') -Encoding ASCII `
+        -Value 'val fixtureTest = tasks.register<Test>("fixtureTest") { }'
     $recordStub = @(
         '$ErrorActionPreference = ''Stop''',
         '$state = (Get-Content -LiteralPath (Join-Path $Root ''patches/src/marker.txt'') -Raw).Trim()',
@@ -148,6 +164,12 @@ try {
         '$state = (Get-Content -LiteralPath $source -Raw).Trim()',
         '$commit = (& git rev-parse HEAD).Trim()',
         '$case = $env:HUSHTELEGRAM_GATE_CASE', '$records = $env:HUSHTELEGRAM_GATE_RECORDS',
+        '$startPath = Join-Path $records "start-$case-$commit.json"',
+        '# The quick pass left the start record; the second run is the fixture tests.',
+        'if (Test-Path -LiteralPath $startPath) {',
+        '    @{ Tasks = $Tasks; State = $state } | ConvertTo-Json |',
+        '        Set-Content -LiteralPath (Join-Path $records "full-$case-$commit.json") -Encoding ASCII',
+        '    exit 0', '}',
         '$proof = Join-Path $ProjectDir ''build/proof.txt''',
         'New-Item -ItemType Directory -Force -Path (Split-Path -Parent $proof) | Out-Null',
         'New-Item -ItemType Junction -Path (Join-Path $ProjectDir ''build/unrelated-alias'') -Target $env:HUSHTELEGRAM_GATE_UNRELATED | Out-Null',
@@ -155,7 +177,6 @@ try {
         '$startRecord = @{ Root = $ProjectDir; Case = $case; Commit = $commit; State = $state; Tasks = $Tasks;',
         '    Required = $env:HUSHTELEGRAM_REQUIRE_FIXTURES; FixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR;',
         '    GitDir = $env:GIT_DIR; Location = (Get-Location).ProviderPath } | ConvertTo-Json',
-        '$startPath = Join-Path $records "start-$case-$commit.json"',
         '[IO.File]::WriteAllText("$startPath.pending", $startRecord)',
         '[IO.File]::Move("$startPath.pending", $startPath)',
         '$clock = [Diagnostics.Stopwatch]::StartNew()',

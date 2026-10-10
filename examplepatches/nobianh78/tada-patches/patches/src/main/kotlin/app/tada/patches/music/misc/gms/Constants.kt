@@ -1,0 +1,8 @@
+package app.tada.patches.music.misc.gms
+
+object Constants {
+    internal const val MUSIC_MAIN_ACTIVITY_NAME = "com.google.android.apps.youtube.music.activities.MusicActivity"
+
+    internal const val MORPHE_MUSIC_PACKAGE_NAME = "app.tada.android.apps.youtube.music"
+    internal const val MUSIC_PACKAGE_NAME = "com.google.android.apps.youtube.music"
+}

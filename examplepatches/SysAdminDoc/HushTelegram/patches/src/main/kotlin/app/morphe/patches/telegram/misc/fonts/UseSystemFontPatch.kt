@@ -45,10 +45,11 @@ internal val ROBOTO_ASSETS = setOf("fonts/rmedium.ttf", "fonts/rmediumitalic.ttf
 @Suppress("unused")
 val useSystemFontPatch = bytecodePatch(
     name = "Use system font",
-    description = "Adds a switch, off by default, that draws Telegram's bold, italic and monospace text in your phone's font instead of the Roboto files built into the app. Regular text already uses the phone's font. Some number displays and Instant View pages keep Telegram's own. A change takes effect after Telegram restarts.",
+    description = "Draws Telegram's bold, italic and code text in your phone's font instead of the one built into the " +
+        "app. Starts off. Turn it on in HushTelegram settings > Chats, then restart Telegram.",
     default = true,
 ) {
-    category("Chats")
+    category("Theme")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

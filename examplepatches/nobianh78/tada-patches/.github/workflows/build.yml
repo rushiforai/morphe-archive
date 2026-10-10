@@ -1,0 +1,38 @@
+name: Build Patches Bundle
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
+      - name: Build Patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew build
+      - name: Build MPP Bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew :patches:buildAndroid
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-bundle
+          path: |
+            patches/build/libs/patches-*.mpp
+            patches-bundle.json

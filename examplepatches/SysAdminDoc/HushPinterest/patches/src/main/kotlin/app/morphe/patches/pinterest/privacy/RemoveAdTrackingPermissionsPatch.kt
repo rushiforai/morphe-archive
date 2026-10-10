@@ -67,10 +67,9 @@ internal val removeAdTrackingManifestPatch = resourcePatch {
 @Suppress("unused")
 val removeAdTrackingPermissionsPatch = bytecodePatch(
     name = PATCH,
-    description = "Removes Google's advertising ID permission and Android's Privacy Sandbox ad services " +
-        "from Pinterest. It can't be turned back on in settings, only by patching again without it. " +
-        "While it's in, Hide advertising ID's switch can't hand back the real ID, because Google Play " +
-        "services answers with zeros.",
+    description = "Removes Google's advertising ID permission and Android's Privacy Sandbox ad services from " +
+        "Pinterest, so it can't use them. Google Play services then answers with zeros. Works as soon as " +
+        "you patch it in, with no switch.",
     default = true,
 ) {
     category("Privacy")

@@ -97,6 +97,7 @@ public enum PatchFamily {
     MESSAGE_MENU_REPEAT(FamilyNames.MESSAGE_MENU_REPEAT, "messageMenuRepeat", null, Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD),
     KEEP_DELETED_MESSAGES(FamilyNames.KEEP_DELETED_MESSAGES, "keepDeleted", null, Settings.KEEP_DELETED_MESSAGES),
     ASK_BEFORE_STICKER(FamilyNames.ASK_BEFORE_STICKER, "askBeforeSending", null, Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL),
+    BETA_LOGS_OFF(FamilyNames.BETA_LOGS_OFF, "betaLogsOff", null, Settings.BETA_LOGS_OFF),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS),
     DISABLE_CALL_DEBUG(FamilyNames.DISABLE_CALL_DEBUG, "disableCallDebug", null,
@@ -161,7 +162,7 @@ public enum PatchFamily {
     /** The families whose switches the Chats page holds. The page and its home row both read this. */
     static final Set<PatchFamily> CHATS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_STORIES,
             HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, HIDE_CONTACTS_BLOCK, HIDE_GREETING_STICKERS, DISABLE_CHAT_SWIPE, DISABLE_CHANNEL_PULL, NORMAL_PASTE, SHOW_LOCAL_IDS, DISABLE_DOUBLE_TAP_REACTIONS,
-            QUIET_CONTACTS_NAG, HOLIDAY_LOOK, USE_SYSTEM_FONT, AMOLED_BLACK, HIDE_TRANSLATE_BAR, EXACT_NUMBERS, REVEAL_SPOILERS, HIDE_KEYBOARD_ON_SCROLL, KEEP_VIDEOS_MUTED, SWIPE_BACK_ON_PROFILES, HIDE_PHONE_NUMBER, MESSAGE_SECONDS, ALLOW_CHAT_BLUR, VOICE_ONE_AT_A_TIME, NO_HAPTICS, REACTION_EFFECTS_OFF, HIDE_FOLDER_COUNTERS, FORWARD_HIDE_SENDER, VOICE_MUSIC_PLAYER, SILENCE_NON_CONTACTS, DISABLE_ARCHIVE_PULL, REAR_CAMERA_FIRST, HIDE_GALLERY_CAMERA_TILE, HIDE_STICKER_TIME, IGNORE_MUTED_MENTIONS, HIDE_BLOCKED_IN_GROUPS, HIDE_FEATURES_AND_INVITE, MESSAGE_MENU_REPEAT, KEEP_DELETED_MESSAGES, ASK_BEFORE_STICKER));
+            QUIET_CONTACTS_NAG, HOLIDAY_LOOK, USE_SYSTEM_FONT, AMOLED_BLACK, HIDE_TRANSLATE_BAR, EXACT_NUMBERS, REVEAL_SPOILERS, HIDE_KEYBOARD_ON_SCROLL, KEEP_VIDEOS_MUTED, SWIPE_BACK_ON_PROFILES, HIDE_PHONE_NUMBER, MESSAGE_SECONDS, ALLOW_CHAT_BLUR, VOICE_ONE_AT_A_TIME, NO_HAPTICS, REACTION_EFFECTS_OFF, HIDE_FOLDER_COUNTERS, FORWARD_HIDE_SENDER, VOICE_MUSIC_PLAYER, SILENCE_NON_CONTACTS, DISABLE_ARCHIVE_PULL, REAR_CAMERA_FIRST, HIDE_GALLERY_CAMERA_TILE, HIDE_STICKER_TIME, IGNORE_MUTED_MENTIONS, HIDE_BLOCKED_IN_GROUPS, HIDE_FEATURES_AND_INVITE, MESSAGE_MENU_REPEAT, KEEP_DELETED_MESSAGES, ASK_BEFORE_STICKER, BETA_LOGS_OFF));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
@@ -181,6 +182,9 @@ public enum PatchFamily {
         PREMIUM_PROMO_TAP(DISABLE_ANALYTICS, "premiumPromoTap", "Premium promo taps"),
         PREMIUM_PROMO_ACCEPT(DISABLE_ANALYTICS, "premiumPromoAccept", "Premium promo accepts"),
         PREMIUM_PROMO_FAIL(DISABLE_ANALYTICS, "premiumPromoFail", "Premium promo failures"),
+        // Telegram Beta carries these SDKs and the regular build doesn't, so a build without them isn't missing anything.
+        CRASH_REPORTS(DISABLE_ANALYTICS, "crashReports", "Firebase crash reports", true),
+        SESSION_REPORTS(DISABLE_ANALYTICS, "sessionReports", "Firebase session reports", true),
         CALL_DEBUG_UPLOAD(DISABLE_CALL_DEBUG, "callDebugUpload", "call debug reports"),
         CALL_LOG_FILE_UPLOAD(DISABLE_CALL_DEBUG, "callLogFileUpload", "call log file uploads"),
         CALL_LOG_UPLOAD(DISABLE_CALL_DEBUG, "callLogUpload", "call log reports"),
@@ -210,11 +214,22 @@ public enum PatchFamily {
         public final PatchFamily family;
         final String statusMethod;
         public final String label;
+        /**
+         * Only some declared builds carry this target. Where its flag is off, the patch found nothing
+         * to change or said in its log why it couldn't, so coverage leaves it out rather than
+         * calling it missing.
+         */
+        public final boolean onlyWhereCarried;
 
         Capability(PatchFamily family, String statusMethod, String label) {
+            this(family, statusMethod, label, false);
+        }
+
+        Capability(PatchFamily family, String statusMethod, String label, boolean onlyWhereCarried) {
             this.family = family;
             this.statusMethod = statusMethod;
             this.label = label;
+            this.onlyWhereCarried = onlyWhereCarried;
         }
 
         /** A patch-time fact, independent of whether its switch is on or the app is paused. */
@@ -251,9 +266,21 @@ public enum PatchFamily {
         return Collections.unmodifiableSet(installed);
     }
 
+    /**
+     * The targets coverage speaks of in this build: every expected one, less those only some builds
+     * carry and this one didn't get.
+     */
+    Set<Capability> shownCapabilities() {
+        Set<Capability> shown = EnumSet.noneOf(Capability.class);
+        for (Capability capability : expectedCapabilities()) {
+            if (!capability.onlyWhereCarried || capability.installed()) shown.add(capability);
+        }
+        return Collections.unmodifiableSet(shown);
+    }
+
     /** Keeps the usual description for complete builds and names precise coverage for partial ones. */
     String coverageSummary(String completeSummary) {
-        Set<Capability> expected = expectedCapabilities();
+        Set<Capability> expected = shownCapabilities();
         Set<Capability> installed = installedCapabilities();
         if (installed.size() == expected.size()) return completeSummary;
         List<String> covered = new ArrayList<>();
@@ -261,14 +288,14 @@ public enum PatchFamily {
         for (Capability capability : expected) {
             (installed.contains(capability) ? covered : missing).add(L10n.t(capability.label));
         }
-        if (covered.isEmpty()) return L10n.f("This build has no coverage for %1$s.", L10n.join(missing));
-        return L10n.f("This build covers %1$s. Missing coverage: %2$s.", L10n.join(covered), L10n.join(missing));
+        if (covered.isEmpty()) return L10n.f("This patched app doesn't change %1$s.", L10n.join(missing));
+        return L10n.f("This patched app changes %1$s but not %2$s.", L10n.join(covered), L10n.join(missing));
     }
 
     private String coverageReportLine() {
         List<String> covered = new ArrayList<>();
         List<String> missing = new ArrayList<>();
-        for (Capability capability : expectedCapabilities()) {
+        for (Capability capability : shownCapabilities()) {
             (capability.installed() ? covered : missing).add(capability.label);
         }
         String line = patchName + " coverage: " + (covered.isEmpty() ? "none" : String.join(", ", covered));
@@ -331,10 +358,10 @@ public enum PatchFamily {
         }
         if (parts.isEmpty()) return null;
         return L10n.capitalize(L10n.quantity(parts.size(),
-                "%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
-                        + "and leave out that patch.",
-                "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                        + "again and leave out the patch in brackets after it.",
+                "%1$s. It was set when you patched, so Pause can't turn it off. To get rid of it, patch "
+                        + "again without that patch.",
+                "%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, "
+                        + "patch again without the patch named in brackets after it.",
                 L10n.join(parts)));
     }
 

@@ -350,7 +350,7 @@ private fun BytecodePatchContext.renameDexNames(): Int {
 @Suppress("unused")
 val installBesideMetaAppsPatch = bytecodePatch(
     name = PATCH_NAME,
-    description = "Renames two shared permissions so a re-signed Messenger can install beside Meta apps. Checked 580 builds only. Earlier clean installs stopped at a blank first-run screen.",
+    description = "Lets your patched Messenger install next to Facebook and other Meta apps. Without it, the apps can clash over shared permissions and the install can stop at a blank screen. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Fixes")

@@ -28,9 +28,9 @@ private const val ORIGINAL_SIGNERS = "Lapp/morphe/extension/facebook/misc/Facebo
 @Suppress("unused")
 val restoreTrustPatch = bytecodePatch(
     name = "Restore screens on re-signed builds",
-    description = "Makes profiles, photos, posts and some Settings pages open again on a re-signed build, and " +
-        "lets a Messenger, Messenger Lite or Facebook Lite you patch with this build's own key sign in through it, " +
-        "the same as the real Meta app would. A Root Mount install doesn't need this patch.",
+    description = "Fixes profiles, photos, posts and some Settings pages that won't open on a patched Facebook, " +
+        "and lets a Messenger or Facebook Lite patched in the same Manager sign in through it. Root Mount " +
+        "installs don't need it. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Fixes")

@@ -387,6 +387,135 @@ public class FeedTextSizeTest {
         }
     }
 
+    /** The name and the post date beside it, owned by one row the way TikTok's author owner holds them. */
+    private static final class AuthorRow {
+        TextView name;
+        TextView date;
+        Object item;
+        int binds;
+        float measuredDate;
+
+        void bind() {
+            FeedTextSize.authorBinding(this, item);
+            // Models the native binder measuring the date beside the name before setText.
+            measuredDate = date.getPaint().getTextSize();
+            binds++;
+            name.setText((CharSequence) item);
+            FeedTextSize.authorOwnerBound(this);
+        }
+
+        FeedTextSize.Native stand() {
+            AuthorRow row = this;
+            return new FeedTextSize.Native() {
+                @Override public View descriptionViewOf(Object value) { return null; }
+                @Override public TextView authorViewOf(Object value) { return value == row ? row.name : null; }
+                @Override public TextView postDateViewOf(Object value) { return value == row ? row.date : null; }
+                @Override public void resizeDescriptionBuilder(Object builder, View value) { }
+                @Override public void refreshDescription(Object value) { }
+                @Override public void refreshAuthor(Object value, Object bound) { assertSame(row.item, bound); row.bind(); }
+            };
+        }
+
+        void showIn(Activity activity) {
+            LinearLayout root = new LinearLayout(activity);
+            root.addView(name);
+            root.addView(date);
+            activity.setContentView(root);
+        }
+    }
+
+    @Test public void thePostDateFollowsTheAuthorSizeAndKeepsItsTextSpansAndVisibility() {
+        try (var activity = Robolectric.buildActivity(MainActivity.class).setup().visible()) {
+            AuthorRow row = new AuthorRow();
+            row.name = text(activity.get(), 17, "Initial name");
+            row.date = text(activity.get(), 17, "");
+            SpannableString posted = new SpannableString("2d ago");
+            StyleSpan weight = new StyleSpan(Typeface.BOLD);
+            posted.setSpan(weight, 0, posted.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            row.date.setText(posted);
+            CharSequence nativeDate = row.date.getText();
+            row.date.setVisibility(View.VISIBLE);
+            row.item = "A creator";
+            row.showIn(activity.get());
+            FeedTextSize.nativeForTests = row.stand();
+            row.bind();
+            assertEquals(17, row.date.getTextSize(), 0);
+
+            Settings.FEED_DESCRIPTION_TEXT_SIZE.save(40);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals("The description size leaves the date alone", 17, row.date.getTextSize(), 0);
+
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(32);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals(32, row.name.getTextSize(), 0);
+            assertEquals(32, row.date.getTextSize(), 0);
+            assertEquals("The native measurement sees the date's new size", 32, row.measuredDate, 0);
+            assertEquals("Only the name's entry rebinds the row", 2, row.binds);
+            assertSame(nativeDate, row.date.getText());
+            assertSame(weight, ((Spanned) row.date.getText()).getSpans(0, nativeDate.length(), StyleSpan.class)[0]);
+            assertEquals(View.VISIBLE, row.date.getVisibility());
+
+            // TikTok sets the date's font again when its text changes; the next pass sizes it back.
+            row.date.setTextSize(TypedValue.COMPLEX_UNIT_PX, 15);
+            FeedTextSize.applyTo(activity.get());
+            assertEquals(32, row.date.getTextSize(), 0);
+
+            PausedProcess.set(true);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals("Paused, the date is TikTok's latest size", 15, row.date.getTextSize(), 0);
+            assertEquals(17, row.name.getTextSize(), 0);
+            PausedProcess.set(false);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals(32, row.date.getTextSize(), 0);
+
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(0);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals(15, row.date.getTextSize(), 0);
+            assertEquals(17, row.name.getTextSize(), 0);
+            assertSame(nativeDate, row.date.getText());
+        }
+    }
+
+    @Test public void aRecycledRowReleasesItsOldPostDate() {
+        try (var activity = Robolectric.buildActivity(MainActivity.class).setup().visible()) {
+            AuthorRow row = new AuthorRow();
+            row.name = text(activity.get(), 17, "First creator");
+            row.date = text(activity.get(), 13, "1d ago");
+            row.item = "First creator";
+            row.showIn(activity.get());
+            FeedTextSize.nativeForTests = row.stand();
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(24);
+            row.bind();
+            assertEquals(24, row.date.getTextSize(), 0);
+            TextView firstDate = row.date;
+
+            // The owner is reused for another cell: onViewCreated stores a new name and date.
+            row.name = text(activity.get(), 19, "");
+            row.date = text(activity.get(), 14, "");
+            row.showIn(activity.get());
+            FeedTextSize.authorOwnerBound(row);
+            assertEquals("The released date returns to its native size", 13, firstDate.getTextSize(), 0);
+            assertEquals(24, row.date.getTextSize(), 0);
+
+            row.item = "Second creator";
+            row.bind();
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(30);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals(30, row.date.getTextSize(), 0);
+            assertEquals("A released date is never sized again", 13, firstDate.getTextSize(), 0);
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(0);
+            FeedTextSize.onSettingChanged();
+            idle();
+            assertEquals(14, row.date.getTextSize(), 0);
+        }
+    }
+
     private static TextView text(Activity activity, int size, String label) {
         TextView text = new TextView(activity);
         text.setText(label);

@@ -1,0 +1,911 @@
+{
+  "schema": "hushfeed.quiet-observations.v1",
+  "dataset_version": "1.0.0",
+  "observation_date": "2026-10-09",
+  "target": {
+    "package": "com.zhiliaoapp.musically",
+    "app_version": "47.1.4",
+    "installed_hushfeed_version": "0.68.0",
+    "runtime_patch_state": "Pause enabled and verified after app restart",
+    "build_label": "patched APK, runtime paused",
+    "source_review_hushfeed_version": "0.70.0",
+    "factory_build_comparison": false,
+    "static_patch_selection_fully_verified": false
+  },
+  "platform": {
+    "device_family": "Samsung Galaxy S25 Ultra",
+    "model": "SM-S938B",
+    "android_version": "16"
+  },
+  "observation_classification": {
+    "collection": "quiet collection with mixed screen activity",
+    "continuous_screen_off_observation": false,
+    "deep_idle_exercised": false,
+    "wake_cause_established": false,
+    "screen_activity_evidence": "Wider BatteryStats screen-on time increased 601867 ms. Both endpoint power states were Dozing. The wider interval adds about 65 seconds, so boundary overhead cannot explain all screen-on time.",
+    "causal_patch_savings_measured": false
+  },
+  "minimal_interval": {
+    "quiet_started_utc": "2026-10-09T22:24:51.917614+00:00",
+    "requested_seconds": 1800,
+    "wireless_adb_connected": true,
+    "in_interval_device_commands": 0,
+    "instrumentation": "no capture or polling",
+    "quiet_ended_utc": "2026-10-09T22:54:51.924229+00:00",
+    "elapsed_seconds": 1800.006615
+  },
+  "minimal_command_windows": {
+    "preflight-power": {
+      "started_utc": "2026-10-09T22:23:47.772967+00:00",
+      "ended_utc": "2026-10-09T22:23:47.907865+00:00",
+      "returncode": 0
+    },
+    "start-battery": {
+      "started_utc": "2026-10-09T22:24:51.466312+00:00",
+      "ended_utc": "2026-10-09T22:24:51.782366+00:00",
+      "returncode": 0
+    },
+    "start-clock": {
+      "started_utc": "2026-10-09T22:24:51.783375+00:00",
+      "ended_utc": "2026-10-09T22:24:51.917614+00:00",
+      "returncode": 0
+    },
+    "end-battery": {
+      "started_utc": "2026-10-09T22:54:51.924229+00:00",
+      "ended_utc": "2026-10-09T22:54:52.163239+00:00",
+      "returncode": 0
+    },
+    "end-clock": {
+      "started_utc": "2026-10-09T22:54:52.163239+00:00",
+      "ended_utc": "2026-10-09T22:54:52.255583+00:00",
+      "returncode": 0
+    },
+    "end-power": {
+      "started_utc": "2026-10-09T22:54:52.255583+00:00",
+      "ended_utc": "2026-10-09T22:54:52.409197+00:00",
+      "returncode": 0
+    }
+  },
+  "minimal_device_clock_utc": {
+    "before": "2026-10-09T22:24:52+00:00",
+    "after": "2026-10-09T22:54:52+00:00",
+    "precision_seconds": 1
+  },
+  "minimal_battery_endpoints": {
+    "before": {
+      "external_power": {
+        "AC": false,
+        "USB": false,
+        "Wireless": false,
+        "Dock": false
+      },
+      "updates_stopped": false,
+      "status_code": 3,
+      "status": "discharging",
+      "health_code": 2,
+      "present": true,
+      "charge_counter_uAh": 3724000,
+      "charge_counter_mAh": 3724.0,
+      "level": 75,
+      "scale": 100,
+      "percent": 75.0,
+      "temperature_f": 86.36,
+      "voltage_mV": 4093,
+      "voltage_V": 4.093
+    },
+    "after": {
+      "external_power": {
+        "AC": false,
+        "USB": false,
+        "Wireless": false,
+        "Dock": false
+      },
+      "updates_stopped": false,
+      "status_code": 3,
+      "status": "discharging",
+      "health_code": 2,
+      "present": true,
+      "charge_counter_uAh": 3679900,
+      "charge_counter_mAh": 3679.9,
+      "level": 75,
+      "scale": 100,
+      "percent": 75.0,
+      "temperature_f": 83.12,
+      "voltage_mV": 4083,
+      "voltage_V": 4.083
+    }
+  },
+  "minimal_whole_phone_charge": {
+    "runner_requested_seconds": 1800,
+    "runner_reported_elapsed_seconds": 1800.006615,
+    "runner_utc_elapsed_seconds": 1800.006615,
+    "battery_command_start_to_start_seconds": 1800.457917,
+    "battery_readout_elapsed_bounds_seconds": {
+      "minimum": 1800.141863,
+      "maximum": 1800.696927
+    },
+    "device_clock_elapsed_seconds": 1800.0,
+    "endpoint_conditions_valid_for_unpowered_charge_difference": true,
+    "signed_charge_counter_delta_uAh": -44100,
+    "net_whole_phone_discharge_mAh": 44.1,
+    "charge_counter_direction": "decrease",
+    "endpoint_derived_average_discharge_mA": 88.17756777372098,
+    "battery_percent_change_points": 0.0,
+    "temperature_change_f": -3.24,
+    "voltage_change_mV": -10
+  },
+  "charge_interpretation": {
+    "scope": "whole phone",
+    "counter_unit": "microampere-hour",
+    "microampere_hours_per_milliampere_hour": 1000,
+    "average_current_denominator": "battery command start-to-start seconds",
+    "exact_hardware_sample_times_known": false,
+    "average_current_use": "Endpoint-derived mean for this mixed-screen interval only. It is not an app drain rate or a deep-idle benchmark.",
+    "whole_percent_unchanged_means_zero_drain": false
+  },
+  "power_evidence": {
+    "preflight": {
+      "wakefulness": "Dozing",
+      "powered": false,
+      "plug_type": 0,
+      "battery_percent": 75,
+      "deep_device_idle": false,
+      "light_device_idle": false
+    },
+    "minimal_end": {
+      "wakefulness": "Dozing",
+      "powered": false,
+      "plug_type": 0,
+      "battery_percent": 75,
+      "deep_device_idle": false,
+      "light_device_idle": true
+    },
+    "full_before": {
+      "wakefulness": "Dozing",
+      "powered": false,
+      "plug_type": 0,
+      "battery_percent": 75,
+      "deep_device_idle": false,
+      "light_device_idle": false
+    },
+    "full_after": {
+      "wakefulness": "Dozing",
+      "powered": false,
+      "plug_type": 0,
+      "battery_percent": 75,
+      "deep_device_idle": false,
+      "light_device_idle": true
+    },
+    "retained_battery_power_event_log": {
+      "before_event_count": 20,
+      "after_event_count": 20,
+      "identical": true,
+      "last_event_utc": "2026-10-09T22:16:26.704000+00:00",
+      "last_event": "disconnected",
+      "new_retained_connection_events": 0,
+      "time_conversion": "Saved local time used UTC-04:00, with year supplied by the observation date.",
+      "limitation": "This is a bounded retained event log, not a continuous independent power monitor."
+    }
+  },
+  "wide_counter_interval": {
+    "full_snapshot_windows": {
+      "before": {
+        "started_utc": "2026-10-09T22:23:48.111585+00:00",
+        "ended_utc": "2026-10-09T22:23:51.465757+00:00"
+      },
+      "after": {
+        "started_utc": "2026-10-09T22:54:52.548385+00:00",
+        "ended_utc": "2026-10-09T22:54:55.381298+00:00"
+      }
+    },
+    "snapshot_start_to_start_seconds": 1864.4368,
+    "minimal_quiet_start_after_full_snapshot_start_seconds": 63.806029,
+    "command_readout_windows": {
+      "clock": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:48.112087+00:00",
+          "ended_utc": "2026-10-09T22:23:48.220540+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:52.549378+00:00",
+          "ended_utc": "2026-10-09T22:54:52.678675+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.437291
+      },
+      "battery": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:48.220540+00:00",
+          "ended_utc": "2026-10-09T22:23:48.435869+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:52.678675+00:00",
+          "ended_utc": "2026-10-09T22:54:52.837151+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.458135
+      },
+      "power": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:48.435869+00:00",
+          "ended_utc": "2026-10-09T22:23:48.573585+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:52.837151+00:00",
+          "ended_utc": "2026-10-09T22:54:53.022612+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.401282
+      },
+      "netstats-poll": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:48.573585+00:00",
+          "ended_utc": "2026-10-09T22:23:48.743080+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:53.022612+00:00",
+          "ended_utc": "2026-10-09T22:54:53.200146+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.449027
+      },
+      "netstats": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:48.743080+00:00",
+          "ended_utc": "2026-10-09T22:23:49.103185+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:53.200146+00:00",
+          "ended_utc": "2026-10-09T22:54:53.720428+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.457066
+      },
+      "batterystats": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:49.103185+00:00",
+          "ended_utc": "2026-10-09T22:23:49.643905+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:53.720428+00:00",
+          "ended_utc": "2026-10-09T22:54:54.262730+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.617243
+      },
+      "processes": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:49.643905+00:00",
+          "ended_utc": "2026-10-09T22:23:49.779551+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:54.262730+00:00",
+          "ended_utc": "2026-10-09T22:54:54.385655+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.618825
+      },
+      "exit-info": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:49.779551+00:00",
+          "ended_utc": "2026-10-09T22:23:50.190738+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:54.385655+00:00",
+          "ended_utc": "2026-10-09T22:54:54.508769+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.606104
+      },
+      "cpuinfo": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:50.190738+00:00",
+          "ended_utc": "2026-10-09T22:23:50.266852+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:54.508769+00:00",
+          "ended_utc": "2026-10-09T22:54:54.595945+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.318031
+      },
+      "services": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:50.266852+00:00",
+          "ended_utc": "2026-10-09T22:23:50.462894+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:54.595945+00:00",
+          "ended_utc": "2026-10-09T22:54:54.693029+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.329093
+      },
+      "jobs": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:50.463892+00:00",
+          "ended_utc": "2026-10-09T22:23:50.810475+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:54.693029+00:00",
+          "ended_utc": "2026-10-09T22:54:54.937544+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.229137
+      },
+      "alarms": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:50.810475+00:00",
+          "ended_utc": "2026-10-09T22:23:51.071524+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:54.937544+00:00",
+          "ended_utc": "2026-10-09T22:54:55.053274+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1864.127069
+      },
+      "thermal": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:51.071524+00:00",
+          "ended_utc": "2026-10-09T22:23:51.225979+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:55.053274+00:00",
+          "ended_utc": "2026-10-09T22:54:55.142299+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1863.98175
+      },
+      "deviceidle": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:51.225979+00:00",
+          "ended_utc": "2026-10-09T22:23:51.329032+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:55.142299+00:00",
+          "ended_utc": "2026-10-09T22:54:55.257563+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1863.91632
+      },
+      "sensors": {
+        "before": {
+          "started_utc": "2026-10-09T22:23:51.329032+00:00",
+          "ended_utc": "2026-10-09T22:23:51.464744+00:00",
+          "returncode": 0
+        },
+        "after": {
+          "started_utc": "2026-10-09T22:54:55.257563+00:00",
+          "ended_utc": "2026-10-09T22:54:55.380298+00:00",
+          "returncode": 0
+        },
+        "start_to_start_seconds": 1863.928531
+      }
+    },
+    "battery_endpoints": {
+      "before": {
+        "external_power": {
+          "AC": false,
+          "USB": false,
+          "Wireless": false,
+          "Dock": false
+        },
+        "updates_stopped": false,
+        "status_code": 3,
+        "status": "discharging",
+        "health_code": 2,
+        "present": true,
+        "charge_counter_uAh": 3724000,
+        "charge_counter_mAh": 3724.0,
+        "level": 75,
+        "scale": 100,
+        "percent": 75.0,
+        "temperature_f": 86.72,
+        "voltage_mV": 4077,
+        "voltage_V": 4.077
+      },
+      "after": {
+        "external_power": {
+          "AC": false,
+          "USB": false,
+          "Wireless": false,
+          "Dock": false
+        },
+        "updates_stopped": false,
+        "status_code": 3,
+        "status": "discharging",
+        "health_code": 2,
+        "present": true,
+        "charge_counter_uAh": 3679900,
+        "charge_counter_mAh": 3679.9,
+        "level": 75,
+        "scale": 100,
+        "percent": 75.0,
+        "temperature_f": 83.12,
+        "voltage_mV": 4077,
+        "voltage_V": 4.077
+      }
+    },
+    "phone_charge_counter_delta_uAh": -44100,
+    "system_timer_before_ms": {
+      "on_battery_realtime_ms": 68063877,
+      "on_battery_uptime_ms": 27102239,
+      "battery_screen_off_realtime_ms": 45359076,
+      "battery_screen_off_uptime_ms": 4397438,
+      "battery_screen_doze_ms": 27534,
+      "total_realtime_ms": 77061300,
+      "total_uptime_ms": 36099662,
+      "screen_on_ms": 22704801,
+      "interactive_ms": 22703896,
+      "device_light_idling_ms": 19326874,
+      "idle_mode_light_ms": 18097745,
+      "device_full_idling_ms": 25092453,
+      "idle_mode_full_ms": 24965529,
+      "total_full_wakelock_ms": 16505170,
+      "total_partial_wakelock_ms": 3749471
+    },
+    "system_timer_after_ms": {
+      "on_battery_realtime_ms": 69928516,
+      "on_battery_uptime_ms": 28044430,
+      "battery_screen_off_realtime_ms": 46621848,
+      "battery_screen_off_uptime_ms": 4737761,
+      "battery_screen_doze_ms": 27534,
+      "total_realtime_ms": 78925939,
+      "total_uptime_ms": 37041853,
+      "screen_on_ms": 23306668,
+      "interactive_ms": 23305726,
+      "device_light_idling_ms": 20368060,
+      "idle_mode_light_ms": 19133893,
+      "device_full_idling_ms": 25092453,
+      "idle_mode_full_ms": 24965529,
+      "total_full_wakelock_ms": 16505170,
+      "total_partial_wakelock_ms": 3762371
+    },
+    "system_timer_deltas_ms": {
+      "total_full_wakelock_ms": 0,
+      "screen_on_ms": 601867,
+      "battery_screen_off_uptime_ms": 340323,
+      "total_realtime_ms": 1864639,
+      "idle_mode_light_ms": 1036148,
+      "battery_screen_doze_ms": 0,
+      "device_light_idling_ms": 1041186,
+      "idle_mode_full_ms": 0,
+      "total_partial_wakelock_ms": 12900,
+      "battery_screen_off_realtime_ms": 1262772,
+      "interactive_ms": 601830,
+      "on_battery_realtime_ms": 1864639,
+      "on_battery_uptime_ms": 942191,
+      "device_full_idling_ms": 0,
+      "total_uptime_ms": 942191
+    },
+    "device_idle_endpoints": {
+      "before": {
+        "deep_state": "INACTIVE",
+        "light_state": "INACTIVE",
+        "screen_on": false,
+        "charging": false,
+        "deep_enabled": true,
+        "light_enabled": true
+      },
+      "after": {
+        "deep_state": "INACTIVE",
+        "light_state": "IDLE",
+        "screen_on": false,
+        "charging": false,
+        "deep_enabled": true,
+        "light_enabled": true
+      }
+    }
+  },
+  "target_wide_counter_observations": {
+    "accounting_scope": "Target app identity only. Associated sandbox identities are not included in these app counters.",
+    "counter_deltas": {
+      "foreground_activity_ms": 0,
+      "top_ms": 0,
+      "background_ms": 0,
+      "top_sleeping_ms": 0,
+      "cached_ms": 1864639,
+      "total_running_ms": 1864639,
+      "cpu_user_ms": 3,
+      "cpu_kernel_ms": 2,
+      "cpu_total_ms": 5,
+      "wifi_ap_wakeups": 0,
+      "wake_full_ms": 0,
+      "wake_blamed_partial_ms": 0,
+      "wake_actual_partial_ms": 0,
+      "wake_actual_background_partial_ms": 0,
+      "accelerometer_blamed_ms": 0,
+      "accelerometer_actual_ms": 0,
+      "accelerometer_actual_count": 0,
+      "ambient_light_blamed_ms": 0,
+      "ambient_light_actual_ms": 0,
+      "ambient_light_actual_count": 0,
+      "ambient_light_background_ms": 0,
+      "ambient_light_background_count": 0
+    },
+    "rounded_android_app_energy_estimate_mAh": {
+      "before": 789.0,
+      "after": 793.0,
+      "delta": 4.0,
+      "is_measured_whole_phone_charge": false,
+      "precision": "rounded cumulative Android estimate"
+    },
+    "historical_lifecycle_counter_deltas": {
+      "executed_jobs": {
+        "shared_record_count": 1,
+        "shared_counter_deltas": {
+          "executions": 0,
+          "runtime_ms": 0
+        },
+        "added_record_count": 0,
+        "removed_record_count": 0
+      },
+      "job_completions": {
+        "shared_record_count": 1,
+        "shared_counter_deltas": {
+          "successful_finish": 0
+        },
+        "added_record_count": 0,
+        "removed_record_count": 0
+      },
+      "service_lifecycle_counters": {
+        "shared_record_count": 6,
+        "shared_counter_deltas": {
+          "created_uptime_ms": 0,
+          "launches": 0,
+          "starts": 0
+        },
+        "added_record_count": 0,
+        "removed_record_count": 0
+      }
+    },
+    "endpoint_record_counts": {
+      "before": {
+        "scheduled_job_count": 0,
+        "active_job_count": 0,
+        "retained_job_history_record_count": 0,
+        "alarm_package_record_count": 0,
+        "alarm_stats_block_count": 0,
+        "sensor_connection_count": 0,
+        "current_service_record_count": 0,
+        "observed_process_count": 1,
+        "retained_exit_record_count": 11
+      },
+      "after": {
+        "scheduled_job_count": 0,
+        "active_job_count": 0,
+        "retained_job_history_record_count": 0,
+        "alarm_package_record_count": 0,
+        "alarm_stats_block_count": 0,
+        "sensor_connection_count": 0,
+        "current_service_record_count": 0,
+        "observed_process_count": 1,
+        "retained_exit_record_count": 11
+      }
+    },
+    "same_observed_processes": true,
+    "same_retained_exit_history": true,
+    "same_alarm_stats": true,
+    "alarm_execution_delta": null,
+    "alarm_execution_status": "No target package alarm records or alarm statistics were present at either endpoint. No numerical execution delta can be calculated."
+  },
+  "target_network": {
+    "parser_version": "0.0.6",
+    "status": "parsed_counter_difference",
+    "counter_status": "parsed_counter_difference",
+    "readout_windows": {
+      "before": {
+        "start_utc": "2026-10-09T22:23:48.743080+00:00",
+        "end_utc": "2026-10-09T22:23:49.103185+00:00"
+      },
+      "after": {
+        "start_utc": "2026-10-09T22:54:53.200146+00:00",
+        "end_utc": "2026-10-09T22:54:53.720428+00:00"
+      },
+      "boundary_start_to_start_seconds": 1864.457066
+    },
+    "groups": [
+      {
+        "transport": "VPN",
+        "set": "DEFAULT",
+        "accounting_state": "background",
+        "delta": {
+          "rx_bytes": 0,
+          "rx_packets": 0,
+          "tx_bytes": 0,
+          "tx_packets": 0,
+          "operations": 0
+        }
+      },
+      {
+        "transport": "VPN",
+        "set": "FOREGROUND",
+        "accounting_state": "foreground",
+        "delta": {
+          "rx_bytes": 0,
+          "rx_packets": 0,
+          "tx_bytes": 0,
+          "tx_packets": 0,
+          "operations": 0
+        }
+      },
+      {
+        "transport": "WIFI",
+        "set": "DEFAULT",
+        "accounting_state": "background",
+        "delta": {
+          "rx_bytes": 0,
+          "rx_packets": 0,
+          "tx_bytes": 0,
+          "tx_packets": 0,
+          "operations": 0
+        }
+      },
+      {
+        "transport": "WIFI",
+        "set": "FOREGROUND",
+        "accounting_state": "foreground",
+        "delta": {
+          "rx_bytes": 0,
+          "rx_packets": 0,
+          "tx_bytes": 0,
+          "tx_packets": 0,
+          "operations": 0
+        }
+      }
+    ],
+    "delta_totals": {
+      "rx_bytes": 0,
+      "rx_packets": 0,
+      "tx_bytes": 0,
+      "tx_packets": 0,
+      "operations": 0
+    },
+    "total_status": "counter_sum_not_verified_unique",
+    "unadjusted_group_sum": {
+      "rx_bytes": 0,
+      "rx_packets": 0,
+      "tx_bytes": 0,
+      "tx_packets": 0,
+      "operations": 0
+    },
+    "transport_accounting": {
+      "present_transports": [
+        "VPN",
+        "WIFI"
+      ],
+      "nonzero_delta_transports": [],
+      "ambiguous_total": false,
+      "warnings": [
+        "VPN history is present with zero difference. It adds nothing to this interval's sum, but this does not establish that the VPN was off."
+      ]
+    },
+    "negative_delta_count": 0,
+    "history_integrity_issue_count": 0,
+    "parsed_history_bucket_count": {
+      "before": 39,
+      "after": 39
+    },
+    "forced_poll_commands_succeeded": true
+  },
+  "integrity": {
+    "status": "matched_epoch_without_detected_decrease",
+    "same_batterystats_epoch": true,
+    "decreased_system_timer_count": 0,
+    "decreased_target_usage_counter_count": 0,
+    "missing_system_timer_fields": {
+      "before": [],
+      "after": []
+    },
+    "failed_snapshot_commands": {
+      "before": [],
+      "after": []
+    },
+    "failed_minimal_command_count": 0,
+    "analysis_version": "0.0.1",
+    "sanitizer_version": "0.0.1"
+  },
+  "limitations": [
+    "The minimal interval and the wider full-snapshot counter interval differ. Each command window is retained. Exact hardware sampling instants are unknown.",
+    "Charge came from the phone's fuel-gauge counter, not an external calibrated meter. Effective counter resolution and measurement uncertainty were not characterized.",
+    "Collection was quiet for 1800.006615 seconds with no device commands or capture during that interval. Wireless debugging remained connected and ordinary system or other-app activity continued.",
+    "The whole-phone charge counter fell 44.1 mAh. The screen-on timer increased during the wider interval, so this is not a continuous screen-off or deep-idle drain measurement.",
+    "Endpoint power flags were all false, the retained power-event list was unchanged, and wider on-battery realtime equaled total realtime. These observations do not replace continuous independent power monitoring.",
+    "Screen-off, screen-doze, light-idle and full-idle categories may overlap. Do not sum them as disjoint durations. PowerManager Dozing at an endpoint is not proof of deep device idle.",
+    "The target stayed in cached accounting throughout the wider BatteryStats interval. Low measured CPU and unchanged network or wake counters do not prove zero target energy use.",
+    "The rounded Android app estimate increased 4 mAh over the wider interval. It is separate from the whole-phone charge counter and cannot establish the target's share of the observed 44.1 mAh decrease.",
+    "Unchanged historical job and service counters measure no recorded increase in those counters. Empty endpoint schedules or alarm records cannot exclude unretained transient activity.",
+    "Matching endpoint process identities and unchanged retained exits do not prove uninterrupted process survival throughout the interval.",
+    "Sensor timer differences and endpoint connection counts are separate observations. A retained listener alone would not establish callback delivery.",
+    "All parsed network history differences were zero. Historical VPN rows remained present with zero difference. Their presence does not establish an active VPN, and these counters are not independently verified unique traffic.",
+    "Network differences use all saved history buckets, tag zero and default or foreground accounting. Counter resets followed by growth beyond the old values may evade a two-snapshot comparison.",
+    "This installed patched build had runtime Pause enabled. The source review used a newer patch version. No stock comparison, enabled-patch comparison, or causal drain saving was measured.",
+    "Raw source files remain private. Hashes identify the exact retained evidence without publishing device identities, addresses, account content or raw dumps."
+  ],
+  "source_hash_algorithm": "SHA-256",
+  "source_hashes": {
+    "minimal.commands": {
+      "sha256": "f3920f81486200ef4549e3e016ce2fada96aba453d8a843d326b53e629dd5f63",
+      "bytes": 854
+    },
+    "minimal.end_battery": {
+      "sha256": "0b3f67f2c625d136ddf032698aa066a18a6572eee159239c28a1fde5f56c94c4",
+      "bytes": 12240
+    },
+    "minimal.end_clock": {
+      "sha256": "553d320cc8a4477952c19d8648a8eca7c3d7086822ff745ad56d0c6f8951271f",
+      "bytes": 26
+    },
+    "minimal.end_power": {
+      "sha256": "4e8bdccace718ee1ef86b7a93b29cdb6f528809b8e9c603329d2a0866f74c31a",
+      "bytes": 267595
+    },
+    "minimal.interval": {
+      "sha256": "7cf72addb1a2077d4d50d60c2b906d5a9419d6a24201bf3508c0e49eafc45d85",
+      "bytes": 307
+    },
+    "minimal.preflight_power": {
+      "sha256": "fe66bef9ef5c12f8b265dd788865194ef66eb5dc337c9a335d76bf395e4c732e",
+      "bytes": 264467
+    },
+    "minimal.start_battery": {
+      "sha256": "c80d07b704e684bc058e2df3de98a3a64a38da21e92452a49207728cce9cf42e",
+      "bytes": 12240
+    },
+    "minimal.start_clock": {
+      "sha256": "b77d08998c166fe05435b7b0431b097deae97c48b835028c1a6651836d4f8a27",
+      "bytes": 26
+    },
+    "full_before.alarms": {
+      "sha256": "0361032d710424dbcc1ab2be27b735019a9519e87b14fce7808c7677289951ea",
+      "bytes": 298241
+    },
+    "full_before.battery": {
+      "sha256": "7665b1abcf88a8a5a7f2d207e0fee8d16732cf2b7bf734836584da5c0ef648e7",
+      "bytes": 12241
+    },
+    "full_before.batterystats": {
+      "sha256": "bf3cd71fc521ec8af13bedc7d207736e46c2e8029d7a5697e32c25955002ad8f",
+      "bytes": 215661
+    },
+    "full_before.boundary": {
+      "sha256": "c9af34f3605f494a197fb48231f4a32e717d018f81b37512e49d2e823ad0d3a6",
+      "bytes": 218
+    },
+    "full_before.clock": {
+      "sha256": "f5a39b14acf7f66f243dc403373fd53cc8d99d86c6494d3c18f0ee5c67d8709a",
+      "bytes": 44
+    },
+    "full_before.commands": {
+      "sha256": "ac77cac84733e06c443f5c40323b74bff1e1123a9b774aff5de9f8e6dec19f16",
+      "bytes": 2082
+    },
+    "full_before.cpuinfo": {
+      "sha256": "b802e4b3d42c5dfe58a7912f0b869e10c0e8fe212aaaf49b6334bcb8c3545c23",
+      "bytes": 3942
+    },
+    "full_before.deviceidle": {
+      "sha256": "2b7ba68067c4165c37e195e569696d08cfd102d040221ea353982f852ce01862",
+      "bytes": 15929
+    },
+    "full_before.exit_info": {
+      "sha256": "8b1d6239425ce6c90cc5120f60298b3fdf8f3cd62ad786549de69c09a5cd7f55",
+      "bytes": 4304
+    },
+    "full_before.jobs": {
+      "sha256": "851295dd4d740b77e8d30bcaf9e1a7c2b9e8075afd9170ca024fb5cd91cc81a6",
+      "bytes": 2068627
+    },
+    "full_before.netstats_poll": {
+      "sha256": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "bytes": 13
+    },
+    "full_before.netstats": {
+      "sha256": "52364db4b9a025cb75ac4869dd4e64aad5ae539edcaca418e3f05e9b5c787306",
+      "bytes": 2751519
+    },
+    "full_before.power": {
+      "sha256": "d25f25a20a55d8f445616b1b8416c586e6e35715f94a30cfa11ef99310656588",
+      "bytes": 264473
+    },
+    "full_before.processes": {
+      "sha256": "e0803c7a4a289c023e0c2d64e7d68b9a0751d4feed9328d6122aa4567fe69cb5",
+      "bytes": 54550
+    },
+    "full_before.sensors": {
+      "sha256": "bf42f585fd99d7a3f223bd32c908dd24eda5fdb90316823d5e1f9905553359fa",
+      "bytes": 241995
+    },
+    "full_before.services": {
+      "sha256": "44009d1664d1b66d17ec4859a9e03642b0125d242c05eac9c101806e2397fb7c",
+      "bytes": 68
+    },
+    "full_before.thermal": {
+      "sha256": "8856638b4840e9ec73e4754951a4a0768acbb44b241a3c1b8d6e8ffca1901eb8",
+      "bytes": 1529
+    },
+    "full_after.alarms": {
+      "sha256": "84a06459e032fa58b0650e84cc85b8901843cb9837940d7f308ff11822342aab",
+      "bytes": 296235
+    },
+    "full_after.battery": {
+      "sha256": "83cedcde24b1977c7dc65978ccdbd539b416c74170ad66bb769674df2d5ad42e",
+      "bytes": 12240
+    },
+    "full_after.batterystats": {
+      "sha256": "4b1a7f250c74c22dd812cebe8f6422971535309e9e7ede046bde257dade4b0bc",
+      "bytes": 216525
+    },
+    "full_after.boundary": {
+      "sha256": "f47085cec27664dc7f615ed152ad80f26f49074d560ce3f8719d48235022f7a9",
+      "bytes": 217
+    },
+    "full_after.clock": {
+      "sha256": "4943fb254330094cf5511617c547fe872a88f9fd489f05f8f08ee9a80d0a7903",
+      "bytes": 44
+    },
+    "full_after.commands": {
+      "sha256": "ddc2cd47555f1bba192950bea246fd311884135e8809035efa7db33fb2940d48",
+      "bytes": 2082
+    },
+    "full_after.cpuinfo": {
+      "sha256": "2fb96b3a6cc2b46976af5ec4a386127bb0a6336409c74d65aa36f476ffe138d1",
+      "bytes": 13432
+    },
+    "full_after.deviceidle": {
+      "sha256": "cee2b1fcfbb3899cca777f19042b76173936c72c7a658ab8221ea847edfefe7e",
+      "bytes": 15923
+    },
+    "full_after.exit_info": {
+      "sha256": "8b1d6239425ce6c90cc5120f60298b3fdf8f3cd62ad786549de69c09a5cd7f55",
+      "bytes": 4304
+    },
+    "full_after.jobs": {
+      "sha256": "c9ad1d12df3d4980b4801ee9d5f3713c9863f39259f24637b4b2596a4a0d0295",
+      "bytes": 2065465
+    },
+    "full_after.netstats_poll": {
+      "sha256": "c7abe78b7b8856eab200624133a4456e00c8c580e96530d3000e0cfa11349dd0",
+      "bytes": 13
+    },
+    "full_after.netstats": {
+      "sha256": "9178543a3c5d54c1c70719fc1ea00d05127797e24ba3d39cd8ca626e0dfca5a4",
+      "bytes": 2751689
+    },
+    "full_after.power": {
+      "sha256": "819471470ea22b864eb7af971cdc191eaf519256cf23a606538efa60e2a9c6ec",
+      "bytes": 267598
+    },
+    "full_after.processes": {
+      "sha256": "a81491999d9c31145722c8b0f14af1ba45680cc5bb8764cda2a6f008554daf07",
+      "bytes": 54477
+    },
+    "full_after.sensors": {
+      "sha256": "1c630d727d20ddd7157bad1ffb9ce73b2d7725a1cb5466d8b93e2ec1a411584f",
+      "bytes": 241796
+    },
+    "full_after.services": {
+      "sha256": "44009d1664d1b66d17ec4859a9e03642b0125d242c05eac9c101806e2397fb7c",
+      "bytes": 68
+    },
+    "full_after.thermal": {
+      "sha256": "d8bcfc95879b6dbd054c69cf9c034a8d7c2e5ae2c77a11b01730d2d57d05afba",
+      "bytes": 1529
+    }
+  }
+}

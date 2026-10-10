@@ -80,6 +80,14 @@ internal object CanBindAppWidgetPermissionFingerprint : Fingerprint(
     filters = listOf(opcode(Opcode.AND_INT_LIT8)),
 )
 
+/**
+ * Newer versions no longer check the system app flag in the same method.
+ */
+internal object CanBindAppWidgetPermissionNoFlagsFingerprint : Fingerprint(
+    returnType = "Z",
+    strings = listOf("android.permission.BIND_APPWIDGET"),
+)
+
 // endregion
 
 // region Privacy

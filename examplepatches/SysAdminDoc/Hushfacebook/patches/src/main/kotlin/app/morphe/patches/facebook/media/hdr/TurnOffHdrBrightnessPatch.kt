@@ -56,18 +56,18 @@ internal const val OWN_CAPABILITY_HDR_TYPES = "$HDR_BRIGHTNESS->getSupportedHdrT
  * fallback track. Display.isHdrSdrRatioAvailable stays Facebook's: the AV1 decoder backs its
  * own HDR lift off only when it can read a low ratio.
  *
- * Off in the default selection: HDR is how Facebook means those videos to look, and some people
- * want it. Picked, its switch starts on.
+ * In the default selection with its switch off: HDR is how Facebook means those videos to look,
+ * and some people want it.
  */
 @Suppress("unused")
 val turnOffHdrBrightnessPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off HDR brightness",
-    description = "Keeps HDR videos and photos from turning your screen up to full brightness. They play at the " +
-        "same resolution, in the screen's usual range. Its switch starts on, under Playback.",
-    default = false,
+    description = "Stops HDR videos and photos from turning your screen up to full brightness, which can be " +
+        "harsh in the dark. They keep their resolution. Starts off. Turn it on in Hushfacebook settings > " +
+        "Playback.",
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch, facebookExtensionPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

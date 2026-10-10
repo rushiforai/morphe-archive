@@ -18,9 +18,11 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 /**
  * The switches behind the hooks that ask before they act.
  *
- * <p>A switch's default is the second argument of its {@link BooleanSetting}. Picking a patch in
- * Morphe Manager is the choice to use it, and the switch is the way to turn it off again without
- * patching a second time. While HushThreads is paused, safe mode included
+ * <p>A switch's default is the second argument of its {@link BooleanSetting}. The patches that were
+ * in Morphe Manager's default selection from the start keep their switches on. The ones that joined
+ * it later (Block background-return feed refresh, Disable video autoplay, Max image quality, Disable
+ * screenshot detection and Pure black dark mode) start off, so a build patched with the defaults acts
+ * like Threads until a switch is turned on. While HushThreads is paused, safe mode included
  * ({@link app.morphe.extension.shared.settings.HushThreadsPause}), a switch answers off unless
  * {@link app.morphe.extension.shared.settings.Setting#keepWhenPaused} marks it, and the hook behind
  * it takes Threads' own path.
@@ -40,7 +42,7 @@ public class Settings extends BaseSettings {
 
     /** Keep the current feed when returning to Threads within ten minutes. */
     public static final BooleanSetting BLOCK_RETURN_REFRESH =
-            new BooleanSetting("hushthreads_block_return_refresh", TRUE);
+            new BooleanSetting("hushthreads_block_return_refresh", FALSE);
 
     /** With the switch above, keep the feed however long Threads stayed in the background. */
     public static final BooleanSetting RETURN_REFRESH_NO_LIMIT =
@@ -51,14 +53,14 @@ public class Settings extends BaseSettings {
      * cover frame, and a tap opens it full screen, where it plays.
      */
     public static final BooleanSetting DISABLE_VIDEO_AUTOPLAY =
-            new BooleanSetting("hushthreads_disable_video_autoplay", TRUE);
+            new BooleanSetting("hushthreads_disable_video_autoplay", FALSE);
 
     /**
      * Photos load at the largest size the server sent instead of the one closest to the screen's
      * width ({@link app.morphe.extension.hushthreads.feed.ImageQuality}).
      */
     public static final BooleanSetting MAX_IMAGE_QUALITY =
-            new BooleanSetting("hushthreads_max_image_quality", TRUE);
+            new BooleanSetting("hushthreads_max_image_quality", FALSE);
 
     /**
      * The tracking keys come off the post links Threads hands out when you copy or share one
@@ -87,14 +89,22 @@ public class Settings extends BaseSettings {
      * screenshots of the feed ({@link app.morphe.extension.hushthreads.misc.ScreenshotDetection}).
      */
     public static final BooleanSetting DISABLE_SCREENSHOT_DETECTION =
-            new BooleanSetting("hushthreads_disable_screenshot_detection", TRUE);
+            new BooleanSetting("hushthreads_disable_screenshot_detection", FALSE);
 
     /**
      * Dark mode's background is pure black instead of Threads' dark gray. Threads builds its colors
      * once a start, so a change waits for a restart.
      */
     public static final BooleanSetting PURE_BLACK =
-            new BooleanSetting("hushthreads_pure_black", TRUE, true);
+            new BooleanSetting("hushthreads_pure_black", FALSE, true);
+
+    /**
+     * The Instagram button at the top of a profile isn't drawn, on your own profile or anyone
+     * else's ({@link app.morphe.extension.hushthreads.profile.InstagramButton}). Threads keeps a
+     * header it has drawn, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_INSTAGRAM_BUTTON =
+            new BooleanSetting("hushthreads_hide_instagram_button", FALSE, true);
 
     /**
      * A post's menu gets a row that saves its photos and videos to the phone, every page of a

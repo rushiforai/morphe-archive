@@ -62,11 +62,8 @@ class AppCompatibilitiesMatchFixturesTest {
     @Test
     fun `every declared target carries the version code and floor of its vendor build`() {
         val targets = AppCompatibilities.threads().single().targets
-        assertEquals(
-            "declared versions, newest first",
-            listOf(AppCompatibilities.THREADS_TARGET_VERSION, "449.0.0.54.82", "448.0.0.54.85"),
-            targets.map { it.version },
-        )
+        // Only the newest stable build is declared; a newer one replaces it in the same release.
+        assertEquals("the declared version", listOf(AppCompatibilities.THREADS_TARGET_VERSION), targets.map { it.version })
         var checked = 0
         for (target in targets) {
             val version = checkNotNull(target.version)

@@ -32,10 +32,11 @@ internal const val LOCAL_ID_ROW = 0x48544944
 @Suppress("unused")
 val showLocalIdsPatch = bytecodePatch(
     name = "Show user and chat IDs",
-    description = "Adds a switch, off by default, that shows a copyable local user or chat ID in the inspected profile's menu, and a second one, off by default, that adds the data center holding the profile's photo. Neither exposes access hashes or asks Telegram's server for anything.",
+    description = "Adds a copyable ID number for a user or chat to the profile menu. A second switch also shows where " +
+        "the profile photo is stored. Both start off. Turn them on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

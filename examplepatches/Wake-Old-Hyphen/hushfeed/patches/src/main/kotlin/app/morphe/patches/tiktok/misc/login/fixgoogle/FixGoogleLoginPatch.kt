@@ -11,7 +11,8 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val fixGoogleLoginPatch = bytecodePatch(
     name = "Fix Google login",
-    description = "Restores Google account sign-in after patching.",
+    description = "Makes Sign in with Google work in the patched app, where it would " +
+        "otherwise fail. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")

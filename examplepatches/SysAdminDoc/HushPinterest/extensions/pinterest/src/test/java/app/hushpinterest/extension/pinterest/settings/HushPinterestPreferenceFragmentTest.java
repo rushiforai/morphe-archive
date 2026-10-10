@@ -94,6 +94,8 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, "Remove ad tracking permissions");
         ROW_TITLES.put(PatchFamily.SPOOF_SIGNATURE, "Spoof signature for Google sign-in");
         ROW_TITLES.put(PatchFamily.DOWNLOAD_PINS, "Download pins");
+        ROW_TITLES.put(PatchFamily.DOWNLOAD_BOARD, "Download board");
+        ROW_TITLES.put(PatchFamily.LONG_PRESS_DOWNLOAD, "Long-press download");
         ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
         ROW_TITLES.put(PatchFamily.SYSTEM_SHARE, "System share sheet");
         ROW_TITLES.put(PatchFamily.HIDE_SCREENSHOT_SHARE, "No screenshot share menu");
@@ -104,6 +106,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_COMMENTS, "Hide comments");
         ROW_TITLES.put(PatchFamily.HIDE_TOPIC_SUGGESTIONS, "Hide topic suggestions");
         ROW_TITLES.put(PatchFamily.QUIET_EMAIL_REMINDER, "Quiet email reminders");
+        ROW_TITLES.put(PatchFamily.HIDE_SURVEY_PROMPTS, "Hide survey prompts");
         ROW_TITLES.put(PatchFamily.HIDE_SAVE_TOASTS, "Hide save toasts");
         ROW_TITLES.put(PatchFamily.ORIGINAL_IMAGES, "Original-quality images");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_NAG, "Disable update nag");
@@ -170,7 +173,7 @@ public class HushPinterestPreferenceFragmentTest {
             }
             assertTrue("Debug logging is drawn above the Pause row", indexOfKey(rows, BaseSettings.DEBUG.key) > pause);
             assertTrue(String.valueOf(rows.get(pause).getSummary()),
-                    String.valueOf(rows.get(pause).getSummary()).contains("every switch but Debug logging acts as if it were off. Changes made when you patched stay in"));
+                    String.valueOf(rows.get(pause).getSummary()).contains("every HushPinterest switch except Debug logging the next time Pinterest starts. What you chose when you patched stays"));
         }
     }
 
@@ -228,17 +231,17 @@ public class HushPinterestPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = pageOf(controller);
             assertEquals("Hide ads", String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getTitle()));
-            assertEquals("Promoted pins leave the home feed, search, related pins and boards before they're shown, "
-                            + "and ad-only panels stay folded away.",
+            assertEquals("Removes promoted pins from your home feed, search, related pins and boards, and hides "
+                + "panels that only hold ads.",
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("Hide AI-labeled pins", String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getTitle()));
-            assertEquals("Pins that Pinterest labels as made or changed with AI leave the same lists. "
-                            + "AI images without Pinterest's label still show.",
+            assertEquals("Removes pins that Pinterest labels as made or changed with AI from the same places. AI "
+                + "images without the label still show.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));
-            // Both switches ship on: picking the patch in Morphe Manager is the choice to use it.
-            for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS)) {
-                assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
-            }
+            // Hide ads was always in Manager's default selection and ships on. Hide AI-labeled pins
+            // joined it later, so it starts off and a default build shows Pinterest's own feed.
+            assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_AI_PINS.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             for (Preference row : rows) {
@@ -262,10 +265,10 @@ public class HushPinterestPreferenceFragmentTest {
                 HushPinterestPreferenceFragment page = pageOf(controller);
                 String summary = String.valueOf(page.findPreference(missing.family.switches.get(0).key).getSummary());
                 if (missing.family.expectedCapabilities().size() == 1) {
-                    assertEquals("This build has no coverage for " + missing.label + ".", summary);
+                    assertEquals("This build doesn't include the parts that handle " + missing.label + ".", summary);
                 } else {
-                    assertTrue(summary, summary.startsWith("This build covers "));
-                    assertTrue(summary, summary.endsWith("Missing coverage: " + missing.label + "."));
+                    assertTrue(summary, summary.startsWith("This build handles "));
+                    assertTrue(summary, summary.endsWith("It's missing the parts for " + missing.label + "."));
                     for (PatchFamily.Capability covered : missing.family.expectedCapabilities()) {
                         if (covered != missing) assertTrue(summary, summary.contains(covered.label));
                     }
@@ -277,10 +280,10 @@ public class HushPinterestPreferenceFragmentTest {
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = pageOf(controller);
-            assertEquals("This build has no coverage for "
+            assertEquals("This build doesn't include the parts that handle "
                             + L10n.join(Arrays.asList("promoted pins in lists", "ad-only views", "Google ad SDK start")) + ".",
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
-            assertEquals("This build has no coverage for AI-labeled pins in lists.",
+            assertEquals("This build doesn't include the parts that handle AI-labeled pins in lists.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));
         }
     }
@@ -331,7 +334,7 @@ public class HushPinterestPreferenceFragmentTest {
             List<Preference> rows = rowsOf(controller);
             Preference card = rows.get(0);
             assertEquals("HushPinterest is on", String.valueOf(card.getTitle()));
-            assertEquals("Your controls are active.", String.valueOf(card.getSummary()));
+            assertEquals("Your switches are working.", String.valueOf(card.getSummary()));
             Preference version = null;
             for (Preference row : rows) {
                 if ("Version".contentEquals(row.getTitle())) version = row;

@@ -135,7 +135,7 @@ public final class MessengerLinkCheck {
             Logger.printInfo(() -> "Messenger link test: " + report);
             Utils.showToastLong(report);
         });
-        if (!queued) Utils.showToastLong(L10n.t("The Messenger link test couldn't start."));
+        if (!queued) Utils.showToastLong(L10n.t("The Messenger link test couldn't start. Try again."));
     }
 
     /** The test itself, on the calling thread. Says whether each read answered, never what. */
@@ -148,7 +148,7 @@ public final class MessengerLinkCheck {
             logFailure("the session lookup", failure);
             session = null;
         }
-        if (session == null) return L10n.t("No signed-in account to test with.");
+        if (session == null) return L10n.t("No signed-in account to test with. Sign in to Facebook and try again.");
         Object reader;
         try {
             reader = access.reader(session);
@@ -156,7 +156,7 @@ public final class MessengerLinkCheck {
             logFailure("the flag reader", failure);
             reader = null;
         }
-        if (reader == null) return L10n.t("The Messenger link test couldn't start.");
+        if (reader == null) return L10n.t("The Messenger link test couldn't start. Try again.");
         Object held = reader;
         String optOut = read("the opt-out read", () -> access.optOut(held));
         String triggered = read("the triggered read", () -> access.triggered(held));

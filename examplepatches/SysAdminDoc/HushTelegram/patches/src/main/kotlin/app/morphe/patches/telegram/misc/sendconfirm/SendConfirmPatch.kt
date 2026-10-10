@@ -72,10 +72,11 @@ internal enum class VideoShape(val target: List<String>, val hook: String, val r
 @Suppress("unused")
 val sendConfirmPatch = bytecodePatch(
     name = NAME,
-    description = "Adds switches, off by default, that ask before a sticker, a GIF, a voice or video message or a call goes out. Cancel drops it.",
+    description = "Asks you to confirm before a sticker, GIF, voice or video message, or call goes out, so a stray tap " +
+        "doesn't send it. All four start off. Turn them on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

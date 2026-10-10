@@ -13,7 +13,7 @@ A file named %1$s in %2$s paused HushThreads.	File bernama %1$s di %2$s menjeda 
 About	Tentang
 Advertising ID removed	ID iklan dihapus
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
-Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android memeriksa tautan Threads dengan kunci penandatanganan Meta, yang tidak dimiliki build yang ditandatangani ulang. Memilih alamatnya akan mengirim tautannya ke sini lagi. Itu tidak memulihkan verifikasi Meta, dan pengaturan tautan Anda yang lain tetap seperti semula.
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android hanya mengirim tautan Threads ke aplikasi yang ditandatangani Meta. Memilih alamat itu mengarahkan tautannya ke sini. Pengaturan tautan Anda yang lain tidak berubah.
 Android verified this app for Threads' web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Threads, jadi tautannya terbuka di sini.
 Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Threads, lalu Buka secara default.
 Back	Kembali
@@ -36,12 +36,12 @@ Debug logging	Pencatatan debug
 Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
 Diagnostic data put back.	Data diagnostik dikembalikan.
 Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
-Empties the log and the hook findings a report would include.	Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.
+Clears the saved log and patch check results that a report would include.	Menghapus log tersimpan dan hasil pemeriksaan patch yang akan dimuat dalam laporan.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
 Feed	Feed
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	Mematikan semua sakelar HushThreads kecuali Pencatatan debug saat Threads dibuka berikutnya. Yang Anda pilih saat menambal tetap berlaku, dan pilihan Anda tersimpan.
 Hide ads	Sembunyikan iklan
 HushThreads %1$s on Threads %2$s	HushThreads %1$s di Threads %2$s
 HushThreads %1$s targets Threads %2$s.	HushThreads %1$s ditujukan untuk Threads %2$s.
@@ -54,7 +54,7 @@ Only some of Threads' web addresses are selected for this app, and links to the 
 Privacy	Privasi
 Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
 Saved. Restart Threads to apply this change.	Tersimpan. Mulai ulang Threads untuk menerapkan perubahan ini.
-Screens that check Threads' own signature open again on this re-signed build.	Layar yang memeriksa tanda tangan Threads sendiri dapat dibuka lagi di build yang ditandatangani ulang ini.
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	Beberapa layar Threads memeriksa siapa yang menandatangani aplikasi dan gagal pada aplikasi yang ditambal. Perbaikan ini membuatnya terbuka lagi.
 Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushThreads membacanya kembali, jadi file itu tidak diperiksa.
 # context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
 Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Postingan bersponsor dihapus dari Untuk Anda dan Mengikuti sebelum Threads menampilkannya, jadi tidak ada celah kosong.
@@ -71,10 +71,10 @@ The app holding the last settings file still hasn't answered. Try again later.	A
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushThreads berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
-Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.	Alamat analitik yang ditemukan dialihkan ke alamat yang tidak merespons. Telemetri lain mungkin masih ada. Nonaktifkan ini untuk menggunakan alamat asli.
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	Menghentikan sebagian besar laporan penggunaan agar tidak sampai ke Meta. Beberapa mungkin masih lolos. Matikan untuk mengirimnya seperti semula.
 Analytics address coverage	Cakupan alamat analitik
-Patched: %1$s. Missing: %2$s.	Dipatch: %1$s. Tidak ditemukan: %2$s.
-Coverage wasn't recorded in this build. Patch again to see the matched address kinds.	Cakupan tidak dicatat dalam build ini. Terapkan patch lagi untuk melihat jenis alamat yang ditemukan.
+Blocked: %1$s. Not found in this build: %2$s.	Diblokir: %1$s. Tidak ditemukan di build ini: %2$s.
+This build didn't record which report types it covers. Patch again to see them.	Build ini tidak mencatat jenis laporan apa yang dicakup. Tambal ulang untuk melihatnya.
 none	tidak ada
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads tidak dapat membaca ID iklan ponsel Anda. Izin untuk itu sudah dihapus dari build ini.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushThreads menjeda dirinya sendiri.
@@ -102,7 +102,7 @@ Retry	Coba lagi
 Save full report	Simpan laporan lengkap
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushThreads releases	Periksa rilis HushThreads baru
-Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Periksa GitHub sekali sehari saat mulai dan tampilkan rilis baru di ringkasan. Mati secara bawaan. Tidak mengunduh apa pun.
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	Sekali sehari, saat Threads dibuka, memeriksa GitHub untuk HushThreads yang lebih baru dan memberi tahu Anda di sini. Tidak ada yang diunduh.
 Check now	Periksa sekarang
 Asks GitHub for the newest release right now, even with the switch above off.	Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.
 Checking GitHub now.	Sedang memeriksa GitHub.
@@ -112,7 +112,7 @@ You have the newest HushThreads release.	Anda sudah memakai rilis HushThreads te
 The newest HushThreads release is %1$s.	Rilis HushThreads terbaru adalah %1$s.
 Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi nanti.
 GitHub is turning away checks from this network for now. Try again later.	GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.
-GitHub's answer couldn't be used. Try again later.	Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub mengirim sesuatu yang tidak bisa dibaca HushThreads. Coba lagi nanti.
 Saving the settings file	Menyimpan file pengaturan
 Set when you patched	Diatur saat Anda menambal
 Settings couldn't open	Pengaturan tidak dapat dibuka
@@ -160,7 +160,7 @@ No matching settings	Tidak ada pengaturan yang cocok
 Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
 Search settings	Cari pengaturan
 Clear search	Hapus pencarian
-Your controls are active.	Kontrol Anda aktif.
+Your switches are working.	Sakelar Anda aktif.
 Pause	Jeda
 Resume	Lanjutkan
 Undo	Urungkan
@@ -175,14 +175,14 @@ the removed advertising ID permission	izin ID iklan yang dihapus
 
 # context: optional feed rule and its scope
 Hide suggested users	Sembunyikan pengguna yang disarankan
-Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.	Menghapus kartu terverifikasi yang menyarankan akun untuk diikuti. Postingan biasa dan repost tetap ada.
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	Menghapus kartu yang menyarankan akun untuk diikuti, di feed Anda dan di profil. Postingan biasa dan repost tetap ada.
 Keep feed position on return	Pertahankan posisi feed saat kembali
 Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Jika kembali ke Threads dalam sepuluh menit, posisi feed tetap sama. Tarik ke bawah untuk memuat ulang masih berfungsi.
 No time limit	Tanpa batas waktu
 With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Jika sakelar di atas aktif, posisi Anda tetap tersimpan berapa lama pun Anda pergi. Tarik untuk memuat ulang dan membuka ulang aplikasi tetap memuat postingan baru.
 Where you left off in your feed	Posisi terakhir Anda di feed
 Open links in your browser	Buka tautan di browser Anda
-Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.	Tautan web yang Anda ketuk terbuka di browser default Anda, atau aplikasi untuk situs itu, tanpa pelacak klik Threads. Halaman Threads, Instagram, dan halaman Meta lainnya tetap terbuka di Threads.
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	Tautan yang Anda ketuk terbuka di browser atau aplikasi situsnya, tanpa pelacakan tautan Threads. Halaman Threads dan Instagram tetap terbuka di Threads.
 Tap to play videos	Ketuk untuk memutar video
 Videos in your feed wait for a tap instead of playing as you scroll.	Video di feed Anda menunggu diketuk, bukan diputar saat Anda menggulir.
 Videos in your feed	Video di feed Anda
@@ -195,7 +195,9 @@ Not in this build: %1$s. Morphe Manager selects it by default. Patch again with 
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Tidak ada di build ini: %1$s. Morphe Manager memilihnya secara default. Pilih tambalan itu lalu tambal ulang untuk mendapatkan fungsinya.
 Appearance	Tampilan
 Pure black dark mode	Mode gelap hitam pekat
-Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Mode gelap memakai warna hitam, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya.
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	Mode gelap memakai hitam pekat, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya. Mulai ulang Threads untuk melihat perubahannya.
+Hide the Instagram button	Sembunyikan tombol Instagram
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Menghapus tombol Instagram di bagian atas profil, milik Anda dan milik orang lain. Mulai ulang Threads untuk melihat perubahannya.
 Turn features on or off	Aktifkan atau nonaktifkan fitur
 # Menyimpan foto dan video
 %1$d saved in lower quality than on Threads.	%1$d disimpan dengan kualitas lebih rendah daripada di Threads.
@@ -206,7 +208,7 @@ Turn features on or off	Aktifkan atau nonaktifkan fitur
 %1$s so far	%1$s terunduh
 A save stopped. Reopen the post and save again.	Penyimpanan terhenti. Buka kembali postingan dan simpan lagi.
 A save was interrupted	Penyimpanan terputus
-Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.	Menambahkan baris Simpan ke menu postingan. Postingan dengan beberapa foto atau video menyimpan semuanya secara berurutan. Jika dimatikan atau dijeda, menunya tetap menu Threads sendiri.
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	Menambahkan Simpan ke menu postingan. Postingan dengan beberapa foto atau video menyimpan semuanya. Saat mati atau dijeda, menunya kembali seperti biasa di Threads.
 Best	Terbaik
 Cancel saving this carousel	Batalkan penyimpanan carousel ini
 Cancel saving this photo	Batalkan penyimpanan foto ini
@@ -214,7 +216,7 @@ Cancel saving this video	Batalkan penyimpanan video ini
 Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carousel dibatalkan. Disimpan %1$d. Gagal %2$d. Dilewati %3$d.
 Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Pilih nama folder di Movies dan Pictures. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai folder bawaan, %1$s.
 Copying to the gallery	Menyalin ke galeri
-Download failed	Unduhan gagal
+Download failed. Try again in a moment.	Unduhan gagal. Coba lagi sebentar lagi.
 Download quality	Kualitas unduhan
 Downloading	Mengunduh
 Downloads	Unduhan
@@ -226,7 +228,7 @@ File name	Nama file
 File name set to %1$s.	Nama file diatur menjadi %1$s.
 Folder name	Nama folder
 Folder set to %1$s.	Folder diatur menjadi %1$s.
-For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	Membantu jika WhatsApp, editor seperti CapCut atau InShot, atau galeri memutar video tersimpan Anda tanpa suara. Kualitas bisa turun.
 How far a photo or video you're saving has got, with a button to cancel it	Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya
 HushThreads saves	Penyimpanan HushThreads
 Joining the picture and sound	Menggabungkan gambar dan suara
@@ -255,19 +257,19 @@ Saving a carousel	Menyimpan carousel
 Saving a photo	Menyimpan foto
 Saving a video	Menyimpan video
 Saving...	Menyimpan...
-Saving... Cancel: Downloads in HushThreads.	Menyimpan... Batal: Unduhan di HushThreads.
+Saving... To cancel, open Downloads in HushThreads settings.	Menyimpan... Untuk membatalkan, buka Unduhan di pengaturan HushThreads.
 Smallest	Terkecil
 Video file name	Nama file video
 Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Video diberi nama %1$s. Foto selalu diberi nama %2$s diikuti tanggal dan waktu.
 Videos go to %1$s and photos to %2$s.	Video disimpan ke %1$s dan foto ke %2$s.
 Version code raised	Kode versi dinaikkan
-This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Kode versi build ini adalah yang tertinggi yang diizinkan Android, jadi Google Play tidak menawarkan pembaruan Meta di atasnya. Pemeriksaan Threads terhadap versi saat ia dibuat tetap melihat kode aslinya. Untuk kembali ke Threads asli, copot pemasangan yang ini dulu, yang menghapus data Threads di ponsel ini. Build HushThreads berikutnya juga memerlukan Change version code, atau tidak akan bisa dipasang di atas yang ini.
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Nomor versi diatur setinggi yang diizinkan Android, jadi Google Play tidak akan menawarkan pembaruan Meta untuk menimpa build ini. Threads tetap melihat versi aslinya. Untuk kembali ke Threads asli, copot pemasangan yang ini dulu, yang menghapus data Threads di ponsel ini. Build HushThreads berikutnya juga butuh Change version code, atau tidak bisa dipasang menimpa yang ini.
 the raised version code	kode versi yang dinaikkan
 Share sheet entry removed	Entri lembar bagikan dihapus
 Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Threads tidak muncul saat kamu berbagi dari aplikasi lain. Berbagi dari Threads ke aplikasi lain tetap berfungsi.
 the removed share sheet entry	entri lembar bagikan yang dihapus
 User certificates trusted	Sertifikat pengguna dipercaya
-Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.	Threads menerima sertifikat yang kamu pasang sendiri di tempat Android memeriksanya. Pemeriksaan Threads sendiri atas sertifikat Meta tidak berubah, jadi proxy tetap tidak bisa membaca sebagian besar lalu lintasnya.
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads menerima sertifikat keamanan yang Anda tambahkan ke ponsel. Pemeriksaan sendiri atas sertifikat Meta tidak berubah, jadi proxy tetap tidak bisa membaca sebagian besar lalu lintasnya.
 the user certificate trust	kepercayaan pada sertifikat pengguna
 Hide screenshots from Threads	Sembunyikan tangkapan layar dari Threads
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads tidak diberi tahu saat kamu mengambil tangkapan layar, jadi tidak bisa mencatat atau menanggapinya.

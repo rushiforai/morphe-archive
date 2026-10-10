@@ -153,6 +153,7 @@ internal val expectedHooks = mapOf(
     ANALYTICS_UPLOADS to setOf(
         "LX/0c0;->onStartCommand(Landroid/content/Intent;II)I",
         "LX/0c0;->onStartJob(Landroid/app/job/JobParameters;)Z",
+        "LX/T7W;->run()V",
         "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
         "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
         "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
@@ -163,6 +164,7 @@ internal val expectedHooks = mapOf(
     ),
     MESSAGE_LOG to setOf(newMessageNotificationCtor("LX/5qJ;", "LX/5Yc;")),
     EMOJI_SEARCH to setOf("LX/7TX;->A8Y(Landroid/text/Editable;Z)V"),
+    DISAPPEARING_SWIPE to setOf(OVERSCROLL_START),
     EMOJI_DRAWER to setOf("Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A02()Z",
         "LX/H1n;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
     "original_photo" to setOf(TRANSCODE_IMAGE, TRANSCODE_IMAGE_ASYNC),
@@ -314,7 +316,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
                     it.opcode == Opcode.CONST_WIDE && (it as? WideLiteralInstruction)?.wideLiteral?.let { flag -> flag in BUBBLE_ROLLOUTS } == true
                 }) add("bubble_mode")
             if (method.returnType == "Z" && strings.containsAll(setOf("iab_skipped_reason", "user_prefers_external"))) add("browser")
-            if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type) &&
+            if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) && method.isPeopleSectionShape() &&
                 refs.any { it.toString() in peopleJewelKeys } && refs.any { it.toString() == activeProfile.preferenceGetter }) add("people_jewel")
             if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes == listOf(cls.type) &&
                 refs.any { (it as? DexMethodReference)?.publishesSuggestions() == true } &&
@@ -447,7 +449,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     if (changedViewer) found.getValue("screenshot_viewers").clear()
     found.getValue(EMOJI_DRAWER).addAll(connectEmojiDrawer(drawerReaders, drawerAnchors))
     found.getValue(EMOJI_SEARCH).addAll(findEmojiSearch(classes))
-    found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes))
+    found.getValue(DISAPPEARING_SWIPE).addAll(findDisappearingSwipe(classes))
+    found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes) + findBoundUploadTasks(classes))
     found.getValue(MESSAGE_LOG).addAll(findMessageLogHook(classes))
     messageLogContract = resolveMessageLogContract(classes)
     found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
@@ -740,8 +743,8 @@ internal fun Method.jumpTargets(): Set<Int> {
     return targets
 }
 
-/** The Notifications tab's server flag ID, renumbered by each release: 580's, then 581's. */
-private val PEOPLE_SERVER_FLAGS = setOf(72344235860374863L, 72344231565407716L)
+/** The Notifications tab's server flag ID, renumbered by each release: 580's, 581's, then 582's. */
+private val PEOPLE_SERVER_FLAGS = setOf(72344235860374863L, 72344231565407716L, 72344188615734930L)
 
 /**
  * Where the Notifications tab loads its server flag: the method's only constant with one of those values, after the
@@ -751,10 +754,16 @@ private fun List<Instruction>.peopleFlagIndex(): Int =
     indices.filter { i -> this[i].opcode == Opcode.CONST_WIDE && (this[i] as? WideLiteralInstruction)?.wideLiteral in PEOPLE_SERVER_FLAGS }
         .singleOrNull()?.takeIf { it in 16..17 } ?: -1
 
+/** The section check takes its owner, and from 582 on the suggestions logger before it. */
+private fun Method.isPeopleSectionShape() = parameterTypes.map(CharSequence::toString).let {
+    it == listOf(definingClass) || (it.size == 2 && it[1] == definingClass)
+}
+
 /**
  * The Notifications tab reads its stock "section hidden" preference into v0 and branches on it. A hidden
  * section is still shown when a server flag (v0, three instructions after its constant) is on; both branches
- * land on the final false return.
+ * land on the final false return. The false value lives in v4, or in v5 in 582's ten-register body, which logs
+ * a skipped impression under a monitor after the server branch.
  */
 internal fun MutableMethod.validatePeopleSection() {
     val code = implementation!!.instructions.toList()
@@ -764,24 +773,26 @@ internal fun MutableMethod.validatePeopleSection() {
     val at = code.peopleFlagIndex()
     val flag = code.getOrNull(at)
     val last = code.lastIndex
-    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" || parameterTypes != listOf(definingClass) ||
-        implementation!!.registerCount != 6 ||
+    val logged = parameterTypes.size == 2
+    val no = if (logged) 5 else 4
+    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" || !isPeopleSectionShape() ||
+        implementation!!.registerCount != (if (logged) 10 else 6) ||
         flag?.opcode != Opcode.CONST_WIDE || (flag as? OneRegisterInstruction)?.registerA != 0 ||
         code.getOrNull(at + 1)?.opcode != Opcode.INVOKE_STATIC ||
         (code[at + 1] as? ReferenceInstruction)?.reference.toString() != activeProfile.peopleFlagCheck ||
         code.getOrNull(at + 2)?.opcode != Opcode.MOVE_RESULT || (code[at + 2] as? OneRegisterInstruction)?.registerA != 0 ||
         code.getOrNull(at + 3)?.opcode != Opcode.IF_NEZ || (code[at + 3] as? OneRegisterInstruction)?.registerA != 0 ||
         code.branchTarget(12) != last || code.branchTarget(at + 3) != last ||
-        code[last].opcode != Opcode.RETURN || (code[last] as? OneRegisterInstruction)?.registerA != 4 ||
+        code[last].opcode != Opcode.RETURN || (code[last] as? OneRegisterInstruction)?.registerA != no ||
         code[last - 1].opcode != Opcode.RETURN || (code[last - 1] as? OneRegisterInstruction)?.registerA != 0 ||
         code[last - 2].opcode != Opcode.CONST_4 || (code[last - 2] as? WideLiteralInstruction)?.wideLiteral != 1L ||
         key?.opcode != Opcode.SGET_OBJECT || (key as? OneRegisterInstruction)?.registerA != 0 ||
         (key as? ReferenceInstruction)?.reference.toString() != activeProfile.peopleKey ||
-        default?.opcode != Opcode.CONST_4 || (default as? OneRegisterInstruction)?.registerA != 4 ||
+        default?.opcode != Opcode.CONST_4 || (default as? OneRegisterInstruction)?.registerA != no ||
         (default as? WideLiteralInstruction)?.wideLiteral != 0L ||
         code.getOrNull(10)?.opcode != Opcode.INVOKE_INTERFACE ||
         (code[10] as? ReferenceInstruction)?.reference.toString() != activeProfile.preferenceGetter ||
-        getter?.registerCount != 3 || getter.registerC != 1 || getter.registerD != 0 || getter.registerE != 4 ||
+        getter?.registerCount != 3 || getter.registerC != 1 || getter.registerD != 0 || getter.registerE != no ||
         code.getOrNull(11)?.opcode != Opcode.MOVE_RESULT || (code[11] as? OneRegisterInstruction)?.registerA != 0 ||
         code.getOrNull(12)?.opcode != Opcode.IF_EQZ || (code[12] as? OneRegisterInstruction)?.registerA != 0) {
         throw PatchException("Messenger controls: the Notifications tab suggestions setting no longer matches the tested build")

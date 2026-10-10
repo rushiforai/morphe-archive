@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.ui
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -47,8 +48,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
-/** Pinterest's closeup section binder, the topic row's interface, its one view class and that view's own ancestors, in both APKs. */
+/** Pinterest's closeup section binder, the topic row's interface, its one view class and that view's own ancestors, in each declared APK. */
+@Category(FixtureTests::class)
 class TopicSuggestionsFixtureTest {
     private class Build(val name: String, val binder: ClassDef, val face: ClassDef, val row: ClassDef, val ancestors: List<ClassDef>) {
         val classes get() = listOf(binder, face, row) + ancestors

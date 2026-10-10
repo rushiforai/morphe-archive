@@ -78,10 +78,8 @@ internal fun List<Instruction>.topPageRead(): Pair<Int, Int>? {
 @Suppress("unused")
 val commentSendFixPatch = bytecodePatch(
     name = "Comment send fix",
-    description = "Sends comments TikTok would drop without a word. TikTok checks a send against " +
-        "the most recently opened page, and when that page has already lost its screen it " +
-        "stops the comment and shows nothing. This checks it against the comment panel's own " +
-        "screen instead.",
+    description = "Fixes comments that TikTok sometimes drops without any message, so the " +
+        "comment you send actually posts. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Comments")

@@ -50,11 +50,10 @@ internal const val PATCH = "Tap to play"
 @Suppress("unused")
 val tapToPlayPatch = bytecodePatch(
     name = "Tap to play",
-    description = "Videos, reels, stories and music wait for your tap instead of starting by themselves. A tap " +
-        "plays as usual. While its switch is on, Facebook's own Autoplay setting reads Off.",
-    default = false,
+    description = "Videos, reels, stories and music wait for your tap instead of starting by themselves, so " +
+        "nothing plays until you want it to. Starts off. Turn it on in Hushfacebook settings > Playback.",
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

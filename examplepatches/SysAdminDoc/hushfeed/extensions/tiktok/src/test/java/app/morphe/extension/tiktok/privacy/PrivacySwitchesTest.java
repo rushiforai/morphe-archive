@@ -36,6 +36,8 @@ import android.provider.MediaStore;
 import android.view.ViewGroup;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.EarlyApplication;
 import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -79,6 +81,7 @@ public class PrivacySwitchesTest {
             setting.save(setting.defaultValue);
         }
         CameraMicIndicator.resetForTests();
+        EarlyApplication.reset();
         SettingsStatus.contactListBlockerEnabled = false;
         SettingsStatus.searchHistoryEnabled = false;
         SettingsStatus.watchHistoryEnabled = false;
@@ -302,19 +305,162 @@ public class PrivacySwitchesTest {
         assertTrue(DevicePrivacyGuard.interceptLimitAdTracking(false));
     }
 
-    /** TikTok checks its connection early in startup, before Hushfeed has a context to read settings with. */
-    @Test public void beforeTheExtensionHasAContextTheRealVpnStateAndIdComeThrough() {
-        NetworkCapabilities capabilities = org.robolectric.shadows.ShadowNetworkCapabilities.newInstance();
-        Shadows.shadowOf(capabilities).addTransportType(NetworkCapabilities.TRANSPORT_VPN);
-        Settings.HIDE_VPN.save(true);
-        Settings.BLOCK_ADVERTISING_ID.save(true);
-        Utils.setContext(null);
-        try {
+    /**
+     * One of each device read the blocks answer, set up so a read that goes through gets a real
+     * answer back and a refused one is plain to see.
+     */
+    private final class DeviceReads {
+        final ContentResolver resolver = context.getContentResolver();
+        final PackageManager pm = context.getPackageManager();
+        final Intent inventory = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        final LocationManager locations = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        final ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        final SensorManager sensors = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        final Sensor accelerometer = ShadowSensor.newInstance(Sensor.TYPE_ACCELEROMETER);
+        final SensorEventListener listener = new SensorEventListener() {
+            @Override public void onSensorChanged(SensorEvent event) {}
+            @Override public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        };
+        final NetworkCapabilities capabilities = org.robolectric.shadows.ShadowNetworkCapabilities.newInstance();
+
+        DeviceReads() {
+            Robolectric.setupContentProvider(OneRowProvider.class, ContactsContract.AUTHORITY);
+            ResolveInfo info = new ResolveInfo();
+            info.activityInfo = new ActivityInfo();
+            info.activityInfo.packageName = "com.example.other";
+            info.activityInfo.name = "com.example.other.Main";
+            Shadows.shadowOf(pm).addResolveInfoForIntent(inventory, info);
+            Shadows.shadowOf(locations).setLastKnownLocation(LocationManager.GPS_PROVIDER,
+                    new Location(LocationManager.GPS_PROVIDER));
+            clipboard.setPrimaryClip(ClipData.newPlainText("label", "hello"));
+            Shadows.shadowOf(capabilities).addTransportType(NetworkCapabilities.TRANSPORT_VPN);
+        }
+
+        void allGoThrough() {
+            assertEquals(1, ContactListBlocker.interceptQuery(resolver,
+                    ContactsContract.Contacts.CONTENT_URI, new String[]{"_id"}, null, null, null).getCount());
+            assertEquals(1, InstalledAppsBlocker.interceptQueryIntentActivities(pm, inventory, 0).size());
+            assertNotNull(LocationGovernor.interceptGetLastKnownLocation(locations, LocationManager.GPS_PROVIDER));
+            assertEquals("hello", DevicePrivacyGuard.interceptClipboardText(clipboard).toString());
+            assertTrue(ResourceBatteryGovernor.interceptSensorRegistration(sensors, listener, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL));
             assertTrue(DevicePrivacyGuard.interceptHasTransport(capabilities, NetworkCapabilities.TRANSPORT_VPN));
             assertEquals(REAL_AD_ID, DevicePrivacyGuard.interceptAdvertisingId(new FakeAdInfo()));
             assertEquals(REAL_AD_ID, DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
             assertEquals(0, DevicePrivacyGuard.interceptLimitAdTrackingReply(0));
             assertFalse(DevicePrivacyGuard.interceptLimitAdTracking(false));
+        }
+
+        void allRefused() {
+            assertEquals(0, ContactListBlocker.interceptQuery(resolver,
+                    ContactsContract.Contacts.CONTENT_URI, new String[]{"_id"}, null, null, null).getCount());
+            assertEquals(0, InstalledAppsBlocker.interceptQueryIntentActivities(pm, inventory, 0).size());
+            assertNull(LocationGovernor.interceptGetLastKnownLocation(locations, LocationManager.GPS_PROVIDER));
+            assertEquals("", DevicePrivacyGuard.interceptClipboardText(clipboard).toString());
+            assertFalse(ResourceBatteryGovernor.interceptSensorRegistration(sensors, listener, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL));
+            assertFalse(DevicePrivacyGuard.interceptHasTransport(capabilities, NetworkCapabilities.TRANSPORT_VPN));
+            assertEquals(BLANK_AD_ID, DevicePrivacyGuard.interceptAdvertisingId(new FakeAdInfo()));
+            assertEquals(BLANK_AD_ID, DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
+            assertEquals(1, DevicePrivacyGuard.interceptLimitAdTrackingReply(0));
+            assertTrue(DevicePrivacyGuard.interceptLimitAdTracking(false));
+        }
+    }
+
+    /** Built per test: a static field would load Settings before setUp has given it a context. */
+    private static app.morphe.extension.shared.settings.BooleanSetting[] deviceAccess() {
+        return new app.morphe.extension.shared.settings.BooleanSetting[]{
+                Settings.BLOCK_CONTACT_LIST, Settings.BLOCK_INSTALLED_APPS, Settings.BLOCK_LOCATION,
+                Settings.BLOCK_CLIPBOARD_READS, Settings.BLOCK_MOTION_SENSORS, Settings.HIDE_VPN,
+                Settings.BLOCK_ADVERTISING_ID};
+    }
+
+    /** The read before the settings context names each switch by a key of its own. */
+    @Test public void theEarlyKeysAreTheOnesTheSwitchesSaveUnder() {
+        assertEquals(Settings.BLOCK_CONTACT_LIST.key, ContactListBlocker.SWITCH_KEY);
+        assertEquals(Settings.BLOCK_INSTALLED_APPS.key, InstalledAppsBlocker.SWITCH_KEY);
+        assertEquals(Settings.BLOCK_LOCATION.key, LocationGovernor.SWITCH_KEY);
+        assertEquals(Settings.BLOCK_MOTION_SENSORS.key, ResourceBatteryGovernor.SWITCH_KEY);
+        assertEquals(Settings.BLOCK_CLIPBOARD_READS.key, DevicePrivacyGuard.CLIPBOARD_KEY);
+        assertEquals(Settings.HIDE_VPN.key, DevicePrivacyGuard.VPN_KEY);
+        assertEquals(Settings.BLOCK_ADVERTISING_ID.key, DevicePrivacyGuard.ADVERTISING_ID_KEY);
+    }
+
+    /** The device-access blocks start off, so a read before Hushfeed has a context goes through too. */
+    @Test public void beforeTheExtensionHasAContextNoDeviceReadIsBlockedWhileTheSwitchesAreOff() {
+        for (var setting : deviceAccess()) {
+            assertEquals("the patch is in the default selection, so " + setting.key + " starts off",
+                    Boolean.FALSE, setting.defaultValue);
+        }
+        assertEquals(Boolean.FALSE, Settings.CAMERA_MIC_INDICATOR.defaultValue);
+        DeviceReads reads = new DeviceReads();
+        EarlyApplication.set(context);
+        Utils.setContext(null);
+        try {
+            reads.allGoThrough();
+        } finally {
+            Utils.setContext(context);
+        }
+    }
+
+    /**
+     * TikTok checks its connection and reads the advertising id early in startup, before
+     * Hushfeed has a context to read settings with. A switch that's on still covers those reads,
+     * since the saved value is read straight from the file.
+     */
+    @Test public void beforeTheExtensionHasAContextASwitchThatsOnStillBlocks() {
+        DeviceReads reads = new DeviceReads();
+        for (var setting : deviceAccess()) {
+            setting.save(true);
+            saveInTheFile(setting.key, true);
+        }
+        EarlyApplication.set(context);
+        Utils.setContext(null);
+        try {
+            reads.allRefused();
+        } finally {
+            Utils.setContext(context);
+        }
+    }
+
+    /** Paused, the early read answers off the same way the switch does once the context is up. */
+    @Test public void beforeTheExtensionHasAContextAPausedStartHandsEveryReadThrough() {
+        DeviceReads reads = new DeviceReads();
+        for (var setting : deviceAccess()) {
+            setting.save(true);
+            saveInTheFile(setting.key, true);
+        }
+        BaseSettings.PAUSED.save(true);
+        saveInTheFile(BaseSettings.PAUSED.key, true);
+        EarlyApplication.set(context);
+        Utils.setContext(null);
+        try {
+            reads.allGoThrough();
+        } finally {
+            Utils.setContext(context);
+            BaseSettings.PAUSED.save(false);
+        }
+    }
+
+    /**
+     * The early read opens the application's own preferences file. Settings keep the handle from
+     * the first application this test JVM made, and Robolectric gives each test a fresh one, so a
+     * save through a setting alone doesn't reach the file this test's application reads. On a
+     * phone both are the same file.
+     */
+    private void saveInTheFile(String key, boolean value) {
+        context.getSharedPreferences(app.morphe.extension.shared.settings.Setting.PREFERENCES_NAME,
+                android.content.Context.MODE_PRIVATE).edit().putBoolean(key, value).commit();
+    }
+
+    /** No application to read from yet: TikTok's read goes through as it would unpatched. */
+    @Test public void beforeTikTokHasAnApplicationEveryReadGoesThrough() {
+        DeviceReads reads = new DeviceReads();
+        for (var setting : deviceAccess()) setting.save(true);
+        EarlyApplication.set(null);
+        Utils.setContext(null);
+        try {
+            reads.allGoThrough();
         } finally {
             Utils.setContext(context);
         }
@@ -388,8 +534,8 @@ public class PrivacySwitchesTest {
     }
 
     @Test public void searchHistoryIsSkippedOnlyWhileThePatchedSwitchIsOnAndHushfeedRuns() {
-        assertEquals("picking the patch is the choice, so its switch starts on",
-                Boolean.TRUE, Settings.STOP_SEARCH_HISTORY.defaultValue);
+        assertEquals("the patch is in the default selection, so its switch starts off",
+                Boolean.FALSE, Settings.STOP_SEARCH_HISTORY.defaultValue);
         Settings.STOP_SEARCH_HISTORY.save(true);
         assertFalse("a build without the patch never skips a write", SearchHistoryRecording.shouldSkip());
 

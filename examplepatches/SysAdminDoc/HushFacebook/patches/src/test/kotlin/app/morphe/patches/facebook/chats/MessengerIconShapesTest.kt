@@ -125,15 +125,37 @@ class MessengerIconShapesTest {
     }
 
     @Test
-    fun `the tap names the button handler by its static calls of that shape`() {
+    fun `the tap names the button handler by its static or virtual calls of that shape`() {
         val other = ImmutableMethodReference("Lfixture/Strings;", "A0h", listOf("Ljava/lang/String;", "Ljava/lang/String;"),
             "Ljava/lang/String;")
         val calls = listOf(invoke(Opcode.INVOKE_STATIC, other), invoke(Opcode.INVOKE_STATIC, handlerCall))
         assertEquals(listOf(handlerCall.toString()), buttonHandlerCalls(tap(calls = calls)).map { it.toString() })
-        // An instance call of the same shape isn't the static handler.
-        assertEquals(emptyList<String>(), buttonHandlerCalls(tap(calls = listOf(invoke(Opcode.INVOKE_VIRTUAL, handlerCall))))
+        // 582 calls a wrapper of that shape on the handler's singleton.
+        assertEquals(listOf(handlerCall.toString()), buttonHandlerCalls(tap(calls = listOf(invoke(Opcode.INVOKE_VIRTUAL, handlerCall))))
             .map { it.toString() })
+        // An interface or direct call of that shape isn't one.
+        val elsewhere = listOf(invoke(Opcode.INVOKE_INTERFACE, handlerCall), invoke(Opcode.INVOKE_DIRECT, handlerCall))
+        assertEquals(emptyList<String>(), buttonHandlerCalls(tap(calls = elsewhere)).map { it.toString() })
         assertEquals(emptyList<String>(), buttonHandlerCalls(tap()).map { it.toString() })
+    }
+
+    @Test
+    fun `the tap's call reaches the handler it names, or the one its class's wrapper calls`() {
+        val owner = handlerCall.definingClass
+        val handler = handler(owner = owner)
+        assertEquals("A00", buttonHandler(classDef(owner, handler), handlerCall)?.name)
+
+        val wrapperCall = ImmutableMethodReference(owner, "A01", BUTTON_PARAMETERS, "V")
+        fun wrapper(vararg calls: Instruction, static: Boolean = false) =
+            method("A01", BUTTON_PARAMETERS, 10, calls.toList() + returnVoid, static, owner = owner)
+        assertEquals("A00", buttonHandler(classDef(owner, handler, wrapper(invoke(Opcode.INVOKE_STATIC, handlerCall))), wrapperCall)?.name)
+        // A wrapper that calls no handler, a static method that isn't one, or a handler in another class reaches none.
+        assertEquals(null, buttonHandler(classDef(owner, handler, wrapper()), wrapperCall))
+        assertEquals(null, buttonHandler(classDef(owner, handler, wrapper(invoke(Opcode.INVOKE_STATIC, handlerCall), static = true)), wrapperCall))
+        val foreign = ImmutableMethodReference("Lfixture/Other;", "A00", BUTTON_PARAMETERS, "V")
+        assertEquals(null, buttonHandler(classDef(owner, handler, wrapper(invoke(Opcode.INVOKE_STATIC, foreign))), wrapperCall))
+        // Nor does a call to a method the class doesn't declare.
+        assertEquals(null, buttonHandler(classDef(owner), handlerCall))
     }
 
     private fun MutableMethod.at(index: Int) = implementation!!.instructions.elementAt(index)
@@ -261,6 +283,27 @@ class MessengerIconShapesTest {
         val handler = context.mutableClassDefBy(handlerCall.definingClass).methods.single()
         assertEquals("open", ((handler.at(2) as ReferenceInstruction).reference as MethodReference).name)
         assertTouchFirst(context.mutableClassDefBy(FRAGMENT_ACTIVITY).methods.single())
+    }
+
+    /** 582's route: the tap calls a wrapper on the handler's singleton, and the handler behind it asks first. */
+    @Test
+    fun `through the singleton's wrapper the handler asks first and the wrapper is left alone`() {
+        val owner = handlerCall.definingClass
+        val wrapperCall = ImmutableMethodReference(owner, "A01", BUTTON_PARAMETERS, "V")
+        val wrapper = method("A01", BUTTON_PARAMETERS, 10, listOf(invoke(Opcode.INVOKE_STATIC, handlerCall), returnVoid),
+            static = false, owner = owner)
+        val context = PatchContexts.of(
+            listOf(
+                classDef("Lfixture/MessengerIcon;", tap(calls = listOf(invoke(Opcode.INVOKE_VIRTUAL, wrapperCall)))),
+                classDef(owner, handler(owner = owner), wrapper),
+                classDef(FRAGMENT_ACTIVITY, dispatch()),
+                ExtensionDex.classDef(SETTINGS_STATUS),
+            ),
+        )
+        openMessengerFromTopBarPatch.execute(context)
+        val methods = context.mutableClassDefBy(owner).methods
+        assertEquals("open", ((methods.single { it.name == "A00" }.at(2) as ReferenceInstruction).reference as MethodReference).name)
+        assertEquals(2, methods.single { it.name == "A01" }.implementation!!.instructions.count())
     }
 
     /**

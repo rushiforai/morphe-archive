@@ -35,11 +35,12 @@ internal const val PATCH = "Resume long videos"
 @Suppress("unused")
 val resumeLongVideosPatch = bytecodePatch(
     name = "Resume long videos",
-    description = "A video longer than two minutes that you left partway picks up where you left it the next " +
-        "time it plays, in the feed or full screen. Short reels, live videos and ads start as usual. Its switch starts off.",
+    description = "A video longer than two minutes picks up where you left off the next time it plays, in the " +
+        "feed or full screen, so you don't lose your place. Reels, live videos and ads start as usual. Starts " +
+        "off. Turn it on in Hushfacebook settings > Playback.",
     default = true,
 ) {
-    category("Interface")
+    category("Playback")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

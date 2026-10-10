@@ -54,8 +54,8 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
                 || item instanceof SettingsHeaderPreference || item instanceof PreferenceCategory
                 || item instanceof SectionHeadingPreference
                 || item instanceof SettingsStatusPreference
-                || item instanceof SettingsQuickActionsPreference
                 || item instanceof SettingsSearchInputPreference
+                || item instanceof SettingsSearchEntryPreference
                 || item instanceof CalmFeedPresetPreference;
     }
 
@@ -80,6 +80,11 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         }
         if (isBoundary(position)) return row;
         Preference preference = (Preference) getItem(position);
+        if (preference instanceof SettingsMenuPreference && ((SettingsMenuPreference) preference).isCompact()) {
+            SettingsUi.styleCompactMenuRow(row, isBoundary(position + 1),
+                    ((SettingsMenuPreference) preference).isAbout());
+            return row;
+        }
         SettingsUi.stylePreferenceRow(row);
         SettingsUi.applyGroupedRow(row, isBoundary(position - 1), isBoundary(position + 1));
         if (preference instanceof SwitchPreference) SettingsUi.reflowSwitchRow(row, rowWidth(parent));

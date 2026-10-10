@@ -57,6 +57,8 @@ public class TapToPlayTest {
         SystemClock.sleep(60_000);
         TapToPlayForTests.forget();
         HookStatus.clear();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.TAP_TO_PLAY.save(true);
     }
 
     @After
@@ -135,8 +137,8 @@ public class TapToPlayTest {
     }
 
     @Test
-    public void theSwitchStartsOn() {
-        assertTrue("picking the patch is the choice to use it", Settings.TAP_TO_PLAY.get());
+    public void theSwitchStartsOff() {
+        assertFalse("the switch starts off", Settings.TAP_TO_PLAY.defaultValue);
     }
 
     @Test

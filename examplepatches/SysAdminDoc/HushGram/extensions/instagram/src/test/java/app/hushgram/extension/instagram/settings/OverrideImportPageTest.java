@@ -186,7 +186,7 @@ public class OverrideImportPageTest {
         click("hushgram_reset_overrides");
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
-        assertEquals("Removed 2 overrides. Restart Instagram to go back to its own flags.",
+        assertEquals("Removed 2 overrides. Restart Instagram to go back to its own settings.",
                 HushgramPreferenceFragment.overrideResetFeedback);
         // The null override can't be put back, so it stays.
         java.util.Map<String, String> left = new java.util.TreeMap<>();
@@ -249,7 +249,8 @@ public class OverrideImportPageTest {
         click("hushgram_discard_overrides");
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
-        assertEquals("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+        assertEquals("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Instagram's "
+                + "overrides haven't changed.",
                 HushgramPreferenceFragment.overrideDiscardFeedback);
         assertArrayEquals(OverrideImportTest.NATIVE, Files.readAllBytes(NativeTable.file.toPath()));
         assertEquals(0, NativeTable.writes);
@@ -283,7 +284,8 @@ public class OverrideImportPageTest {
         click("hushgram_restore_overrides");
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
-        assertEquals("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
+        assertEquals("Couldn't restore overrides. There's no saved copy for this account and Instagram version. "
+                + "Nothing changed.",
                 HushgramPreferenceFragment.overrideRestoreFeedback);
         click("hushgram_discard_overrides");
         Utils.awaitBackgroundTasksForTests();

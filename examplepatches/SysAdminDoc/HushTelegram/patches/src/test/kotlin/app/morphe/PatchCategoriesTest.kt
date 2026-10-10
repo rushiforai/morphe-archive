@@ -27,12 +27,25 @@ import org.junit.Test
  */
 class PatchCategoriesTest {
     /**
-     * One name per group, and no more than fits on a phone screen without scrolling. Hushfacebook's
-     * Feed, Downloads and Interface come back when a Telegram patch needs one.
+     * One name per group, and no more than fits on a phone screen without scrolling. The names are
+     * the Hush family's: Chats is Telegram's chat list, Conversations is what happens inside a chat,
+     * and Notifications and Updates match the HushTelegram settings pages of the same name.
      */
     private val taxonomy = setOf(
-        "Ads", "Chats", "Privacy", "Fixes", "Settings",
+        "Ads", "Chats", "Conversations", "Interface", "Notifications", "Playback", "Privacy", "Search",
+        "Stories", "Theme", "Updates", "Fixes", "Settings",
     )
+
+    /**
+     * Chats once held 41 of 55 patches, and finding one there meant reading all of them. Expert
+     * mode is where a reader goes to look a patch up, so no group runs past what fits on a phone
+     * screen.
+     */
+    @Test
+    fun `no group is too long to scan`() {
+        val sizes = shippedPatches().groupingBy { it.get("category").asString }.eachCount()
+        assertEquals("split a group people have to scroll through", emptyMap<String, Int>(), sizes.filterValues { it > 15 })
+    }
 
     private fun shippedPatches() = run {
         val catalog = File("../patches-list.json").takeIf { it.isFile } ?: File("patches-list.json")

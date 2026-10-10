@@ -1,0 +1,1176 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-10-09",
+  "package": "com.facebook.orca",
+  "build_context": "Messenger 580.0.0.49.91 (version code 346013440) with Hush 0.21.0, Pause enabled; patched and re-signed baseline",
+  "capture_settings": {
+    "tool": "PCAPdroid 2.0.2",
+    "app_filter": "com.facebook.orca",
+    "tls_decryption": false,
+    "private_dns_block": false,
+    "quic_block": false,
+    "ip_families": "both",
+    "snaplen_bytes": 4096
+  },
+  "clock_alignment": {
+    "device_ahead_midpoint_seconds": 0.1855781078338623,
+    "sampled_range_seconds": [
+      0.12168407440185547,
+      0.24947214126586914
+    ],
+    "assumption": "Stable offset within sampled range, without a pre-capture calibration"
+  },
+  "full_capture": {
+    "packet_count": 4713,
+    "capture_saved_packet_bytes": 3519072,
+    "capture_original_packet_bytes": 3863559,
+    "first_to_last_packet_span_seconds": 744.9454939365387,
+    "direction_totals": {
+      "out": {
+        "packets": 1490,
+        "captured_ip_bytes": 736517,
+        "original_ip_bytes": 1079459,
+        "header_ip_bytes": 1079459
+      },
+      "in": {
+        "packets": 3223,
+        "captured_ip_bytes": 2782555,
+        "original_ip_bytes": 2784100,
+        "header_ip_bytes": 2784100
+      }
+    },
+    "ip_version_packets": {
+      "4": 4639,
+      "6": 74
+    },
+    "five_tuple_count": 135,
+    "transport_five_tuple_counts": {
+      "UDP": 89,
+      "TCP": 46
+    },
+    "diagnostics": {
+      "quic_client_initial_authenticated": 21,
+      "quic_client_initial_authenticated_version_0xfaceb002": 1,
+      "quic_client_initial_authenticated_version_0x00000001": 20,
+      "snaplen_truncated_records": 70
+    },
+    "hostname_transport_groups": [
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent-mia5-1.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 2,
+        "packets_out": 153,
+        "packets_in": 1722,
+        "original_ip_bytes_out": 23172,
+        "original_ip_bytes_in": 2135308,
+        "saved_ip_bytes_out": 23172,
+        "saved_ip_bytes_in": 2135308,
+        "ipv4_five_tuples": 2,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "TCP",
+        "hostnames": [
+          "b-www.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 4,
+        "packets_out": 115,
+        "packets_in": 65,
+        "original_ip_bytes_out": 620040,
+        "original_ip_bytes_in": 35827,
+        "saved_ip_bytes_out": 279534,
+        "saved_ip_bytes_in": 34282,
+        "ipv4_five_tuples": 4,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "graph.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 3,
+        "packets_out": 354,
+        "packets_in": 429,
+        "original_ip_bytes_out": 223589,
+        "original_ip_bytes_in": 330731,
+        "saved_ip_bytes_out": 223589,
+        "saved_ip_bytes_in": 330731,
+        "ipv4_five_tuples": 3,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "TCP",
+        "hostnames": [
+          "z-m-gateway.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 16,
+        "packets_out": 413,
+        "packets_in": 438,
+        "original_ip_bytes_out": 88026,
+        "original_ip_bytes_in": 47224,
+        "saved_ip_bytes_out": 85590,
+        "saved_ip_bytes_in": 47224,
+        "ipv4_five_tuples": 16,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "z-m-gateway.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 3,
+        "packets_out": 124,
+        "packets_in": 139,
+        "original_ip_bytes_out": 32965,
+        "original_ip_bytes_in": 33842,
+        "saved_ip_bytes_out": 32965,
+        "saved_ip_bytes_in": 33842,
+        "ipv4_five_tuples": 3,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "payments-graph.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 2,
+        "packets_out": 40,
+        "packets_in": 41,
+        "original_ip_bytes_out": 18894,
+        "original_ip_bytes_in": 20044,
+        "saved_ip_bytes_out": 18894,
+        "saved_ip_bytes_in": 20044,
+        "ipv4_five_tuples": 2,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent-mia3-2.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 16,
+        "packets_in": 31,
+        "original_ip_bytes_out": 7665,
+        "original_ip_bytes_in": 27175,
+        "saved_ip_bytes_out": 7665,
+        "saved_ip_bytes_in": 27175,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent-mia3-3.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 12,
+        "packets_in": 32,
+        "original_ip_bytes_out": 3820,
+        "original_ip_bytes_in": 28809,
+        "saved_ip_bytes_out": 3820,
+        "saved_ip_bytes_in": 28809,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "web.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 16,
+        "packets_in": 32,
+        "original_ip_bytes_out": 6897,
+        "original_ip_bytes_in": 24298,
+        "saved_ip_bytes_out": 6897,
+        "saved_ip_bytes_in": 24298,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent-mia3-1.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 15,
+        "packets_in": 26,
+        "original_ip_bytes_out": 7601,
+        "original_ip_bytes_in": 19887,
+        "saved_ip_bytes_out": 7601,
+        "saved_ip_bytes_in": 19887,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent-ord5-1.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 2,
+        "packets_out": 20,
+        "packets_in": 23,
+        "original_ip_bytes_out": 8839,
+        "original_ip_bytes_in": 12913,
+        "saved_ip_bytes_out": 8839,
+        "saved_ip_bytes_in": 12913,
+        "ipv4_five_tuples": 2,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "TCP",
+        "hostnames": [
+          "edge-mqtt.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 3,
+        "packets_out": 51,
+        "packets_in": 46,
+        "original_ip_bytes_out": 11302,
+        "original_ip_bytes_in": 6778,
+        "saved_ip_bytes_out": 11302,
+        "saved_ip_bytes_in": 6778,
+        "ipv4_five_tuples": 3,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 13,
+        "packets_in": 20,
+        "original_ip_bytes_out": 4676,
+        "original_ip_bytes_in": 11996,
+        "saved_ip_bytes_out": 4676,
+        "saved_ip_bytes_in": 11996,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "scontent-mia5-2.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 8,
+        "packets_in": 16,
+        "original_ip_bytes_out": 3281,
+        "original_ip_bytes_in": 12425,
+        "saved_ip_bytes_out": 3281,
+        "saved_ip_bytes_in": 12425,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "www.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 8,
+        "packets_in": 16,
+        "original_ip_bytes_out": 4017,
+        "original_ip_bytes_in": 11211,
+        "saved_ip_bytes_out": 4017,
+        "saved_ip_bytes_in": 11211,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [],
+        "hostname_basis": "dns_port",
+        "five_tuple_count": 68,
+        "packets_out": 68,
+        "packets_in": 68,
+        "original_ip_bytes_out": 4754,
+        "original_ip_bytes_in": 7760,
+        "saved_ip_bytes_out": 4754,
+        "saved_ip_bytes_in": 7760,
+        "ipv4_five_tuples": 68,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [
+          "b-graph.facebook.com"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 1,
+        "packets_out": 7,
+        "packets_in": 11,
+        "original_ip_bytes_out": 4113,
+        "original_ip_bytes_in": 6637,
+        "saved_ip_bytes_out": 4113,
+        "saved_ip_bytes_in": 6637,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "TCP",
+        "hostnames": [],
+        "hostname_basis": "no_recovered_sni",
+        "five_tuple_count": 19,
+        "packets_out": 37,
+        "packets_in": 37,
+        "original_ip_bytes_out": 2960,
+        "original_ip_bytes_in": 2220,
+        "saved_ip_bytes_out": 2960,
+        "saved_ip_bytes_in": 2220,
+        "ipv4_five_tuples": 0,
+        "ipv6_five_tuples": 19
+      },
+      {
+        "transport": "TCP",
+        "hostnames": [
+          "scontent-mia5-1.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 2,
+        "packets_out": 9,
+        "packets_in": 9,
+        "original_ip_bytes_out": 752,
+        "original_ip_bytes_in": 3616,
+        "saved_ip_bytes_out": 752,
+        "saved_ip_bytes_in": 3616,
+        "ipv4_five_tuples": 2,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "TCP",
+        "hostnames": [
+          "scontent-ord5-1.xx.fbcdn.net"
+        ],
+        "hostname_basis": "client_hello_sni",
+        "five_tuple_count": 2,
+        "packets_out": 9,
+        "packets_in": 9,
+        "original_ip_bytes_out": 752,
+        "original_ip_bytes_in": 3136,
+        "saved_ip_bytes_out": 752,
+        "saved_ip_bytes_in": 3136,
+        "ipv4_five_tuples": 2,
+        "ipv6_five_tuples": 0
+      },
+      {
+        "transport": "UDP",
+        "hostnames": [],
+        "hostname_basis": "no_recovered_sni",
+        "five_tuple_count": 1,
+        "packets_out": 2,
+        "packets_in": 13,
+        "original_ip_bytes_out": 1344,
+        "original_ip_bytes_in": 2263,
+        "saved_ip_bytes_out": 1344,
+        "saved_ip_bytes_in": 2263,
+        "ipv4_five_tuples": 1,
+        "ipv6_five_tuples": 0
+      }
+    ]
+  },
+  "dns_question_names": [
+    "b-graph.facebook.com",
+    "b-www.facebook.com",
+    "chat-e2ee-mini.facebook.com",
+    "edge-mqtt.facebook.com",
+    "graph.facebook.com",
+    "payments-graph.facebook.com",
+    "scontent-mia3-1.xx.fbcdn.net",
+    "scontent-mia3-2.xx.fbcdn.net",
+    "scontent-mia3-3.xx.fbcdn.net",
+    "scontent-mia5-1.xx.fbcdn.net",
+    "scontent-mia5-2.xx.fbcdn.net",
+    "scontent-ord5-1.xx.fbcdn.net",
+    "scontent.xx.fbcdn.net",
+    "web.facebook.com",
+    "www.facebook.com",
+    "z-m-gateway.facebook.com"
+  ],
+  "observed_handshakes": {
+    "b-graph.facebook.com": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "b-www.facebook.com": {
+      "tls_client_hellos": 4,
+      "quic_client_hellos": 0,
+      "alpn": [
+        "http/1.1"
+      ],
+      "quic_versions": []
+    },
+    "edge-mqtt.facebook.com": {
+      "tls_client_hellos": 3,
+      "quic_client_hellos": 0,
+      "alpn": [],
+      "quic_versions": []
+    },
+    "graph.facebook.com": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 3,
+      "alpn": [
+        "h3-alias-02",
+        "h3-fb-05"
+      ],
+      "quic_versions": [
+        "0x00000001",
+        "0xfaceb002"
+      ]
+    },
+    "payments-graph.facebook.com": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 2,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent-mia3-1.xx.fbcdn.net": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent-mia3-2.xx.fbcdn.net": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent-mia3-3.xx.fbcdn.net": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent-mia5-1.xx.fbcdn.net": {
+      "tls_client_hellos": 2,
+      "quic_client_hellos": 2,
+      "alpn": [
+        "h2",
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent-mia5-2.xx.fbcdn.net": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent-ord5-1.xx.fbcdn.net": {
+      "tls_client_hellos": 2,
+      "quic_client_hellos": 2,
+      "alpn": [
+        "h2",
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "scontent.xx.fbcdn.net": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "web.facebook.com": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "www.facebook.com": {
+      "tls_client_hellos": 0,
+      "quic_client_hellos": 1,
+      "alpn": [
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    },
+    "z-m-gateway.facebook.com": {
+      "tls_client_hellos": 16,
+      "quic_client_hellos": 3,
+      "alpn": [
+        "h2",
+        "h3-alias-02"
+      ],
+      "quic_versions": [
+        "0x00000001"
+      ]
+    }
+  },
+  "phases": [
+    {
+      "phase": "foreground",
+      "description": "Foreground inbox",
+      "observation_seconds": 180.17013096809387,
+      "packet_count": 1263,
+      "direction_totals": {
+        "out": {
+          "packets": 603,
+          "captured_ip_bytes": 340794,
+          "original_ip_bytes": 567402,
+          "header_ip_bytes": 567402
+        },
+        "in": {
+          "packets": 660,
+          "captured_ip_bytes": 198740,
+          "original_ip_bytes": 198740,
+          "header_ip_bytes": 198740
+        }
+      },
+      "five_tuple_count": 58,
+      "transport_five_tuple_counts": {
+        "TCP": 28,
+        "UDP": 30
+      },
+      "clock_counter_lower_bound": {
+        "out": {
+          "packets": 603,
+          "captured_ip_bytes": 340794,
+          "original_ip_bytes": 567402,
+          "header_ip_bytes": 567402
+        },
+        "in": {
+          "packets": 660,
+          "captured_ip_bytes": 198740,
+          "original_ip_bytes": 198740,
+          "header_ip_bytes": 198740
+        }
+      },
+      "clock_counter_upper_bound": {
+        "out": {
+          "packets": 603,
+          "captured_ip_bytes": 340794,
+          "original_ip_bytes": 567402,
+          "header_ip_bytes": 567402
+        },
+        "in": {
+          "packets": 660,
+          "captured_ip_bytes": 198740,
+          "original_ip_bytes": 198740,
+          "header_ip_bytes": 198740
+        }
+      },
+      "poll_boundary_uid_deltas": {
+        "wifi_attributed": {
+          "received_bytes": 202187,
+          "sent_bytes": 578501,
+          "received_packets": 594,
+          "sent_packets": 628
+        },
+        "vpn_tunnel": {
+          "received_bytes": 202847,
+          "sent_bytes": 609067,
+          "received_packets": 656,
+          "sent_packets": 645
+        },
+        "mobile": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        }
+      },
+      "hostname_transport_groups": [
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "b-www.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 2,
+          "packets_out": 70,
+          "packets_in": 41,
+          "original_ip_bytes_out": 411024,
+          "original_ip_bytes_in": 18254,
+          "saved_ip_bytes_out": 186852,
+          "saved_ip_bytes_in": 18254,
+          "ipv4_five_tuples": 2,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "z-m-gateway.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 11,
+          "packets_out": 288,
+          "packets_in": 312,
+          "original_ip_bytes_out": 65391,
+          "original_ip_bytes_in": 36575,
+          "saved_ip_bytes_out": 62955,
+          "saved_ip_bytes_in": 36575,
+          "ipv4_five_tuples": 11,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "graph.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 89,
+          "packets_in": 89,
+          "original_ip_bytes_out": 40591,
+          "original_ip_bytes_in": 37115,
+          "saved_ip_bytes_out": 40591,
+          "saved_ip_bytes_in": 37115,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-mia5-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 17,
+          "packets_in": 37,
+          "original_ip_bytes_out": 8015,
+          "original_ip_bytes_in": 33598,
+          "saved_ip_bytes_out": 8015,
+          "saved_ip_bytes_in": 33598,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-mia3-2.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 15,
+          "packets_in": 30,
+          "original_ip_bytes_out": 7569,
+          "original_ip_bytes_in": 27121,
+          "saved_ip_bytes_out": 7569,
+          "saved_ip_bytes_in": 27121,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-mia3-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 14,
+          "packets_in": 25,
+          "original_ip_bytes_out": 7505,
+          "original_ip_bytes_in": 19833,
+          "saved_ip_bytes_out": 7505,
+          "saved_ip_bytes_in": 19833,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "payments-graph.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 21,
+          "packets_in": 22,
+          "original_ip_bytes_out": 10806,
+          "original_ip_bytes_in": 9835,
+          "saved_ip_bytes_out": 10806,
+          "saved_ip_bytes_in": 9835,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-ord5-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 11,
+          "packets_in": 12,
+          "original_ip_bytes_out": 5711,
+          "original_ip_bytes_in": 6163,
+          "saved_ip_bytes_out": 5711,
+          "saved_ip_bytes_in": 6163,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "z-m-gateway.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 2,
+          "packets_out": 6,
+          "packets_in": 21,
+          "original_ip_bytes_out": 2807,
+          "original_ip_bytes_in": 3564,
+          "saved_ip_bytes_out": 2807,
+          "saved_ip_bytes_in": 3564,
+          "ipv4_five_tuples": 2,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "edge-mqtt.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 18,
+          "packets_in": 17,
+          "original_ip_bytes_out": 3795,
+          "original_ip_bytes_in": 2366,
+          "saved_ip_bytes_out": 3795,
+          "saved_ip_bytes_in": 2366,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [],
+          "hostname_basis": "dns_port",
+          "five_tuple_count": 22,
+          "packets_out": 22,
+          "packets_in": 22,
+          "original_ip_bytes_out": 1556,
+          "original_ip_bytes_in": 2540,
+          "saved_ip_bytes_out": 1556,
+          "saved_ip_bytes_in": 2540,
+          "ipv4_five_tuples": 22,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [],
+          "hostname_basis": "no_recovered_sni",
+          "five_tuple_count": 12,
+          "packets_out": 24,
+          "packets_in": 24,
+          "original_ip_bytes_out": 1920,
+          "original_ip_bytes_in": 1440,
+          "saved_ip_bytes_out": 1920,
+          "saved_ip_bytes_in": 1440,
+          "ipv4_five_tuples": 0,
+          "ipv6_five_tuples": 12
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "scontent-mia5-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 4,
+          "packets_in": 4,
+          "original_ip_bytes_out": 356,
+          "original_ip_bytes_in": 168,
+          "saved_ip_bytes_out": 356,
+          "saved_ip_bytes_in": 168,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "scontent-ord5-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 4,
+          "packets_in": 4,
+          "original_ip_bytes_out": 356,
+          "original_ip_bytes_in": 168,
+          "saved_ip_bytes_out": 356,
+          "saved_ip_bytes_in": 168,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        }
+      ]
+    },
+    {
+      "phase": "background",
+      "description": "Background observation",
+      "observation_seconds": 600.2513179779053,
+      "packet_count": 485,
+      "direction_totals": {
+        "out": {
+          "packets": 270,
+          "captured_ip_bytes": 148217,
+          "original_ip_bytes": 148217,
+          "header_ip_bytes": 148217
+        },
+        "in": {
+          "packets": 215,
+          "captured_ip_bytes": 70511,
+          "original_ip_bytes": 70511,
+          "header_ip_bytes": 70511
+        }
+      },
+      "five_tuple_count": 39,
+      "transport_five_tuple_counts": {
+        "UDP": 23,
+        "TCP": 16
+      },
+      "clock_counter_lower_bound": {
+        "out": {
+          "packets": 270,
+          "captured_ip_bytes": 148217,
+          "original_ip_bytes": 148217,
+          "header_ip_bytes": 148217
+        },
+        "in": {
+          "packets": 215,
+          "captured_ip_bytes": 70511,
+          "original_ip_bytes": 70511,
+          "header_ip_bytes": 70511
+        }
+      },
+      "clock_counter_upper_bound": {
+        "out": {
+          "packets": 271,
+          "captured_ip_bytes": 148257,
+          "original_ip_bytes": 148257,
+          "header_ip_bytes": 148257
+        },
+        "in": {
+          "packets": 215,
+          "captured_ip_bytes": 70511,
+          "original_ip_bytes": 70511,
+          "header_ip_bytes": 70511
+        }
+      },
+      "poll_boundary_uid_deltas": {
+        "wifi_attributed": {
+          "received_bytes": 69958,
+          "sent_bytes": 149191,
+          "received_packets": 184,
+          "sent_packets": 272
+        },
+        "vpn_tunnel": {
+          "received_bytes": 70238,
+          "sent_bytes": 166443,
+          "received_packets": 207,
+          "sent_packets": 289
+        },
+        "mobile": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        }
+      },
+      "hostname_transport_groups": [
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "graph.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 118,
+          "packets_in": 64,
+          "original_ip_bytes_out": 122016,
+          "original_ip_bytes_in": 50918,
+          "saved_ip_bytes_out": 122016,
+          "saved_ip_bytes_in": 50918,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "z-m-gateway.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 9,
+          "packets_out": 95,
+          "packets_in": 94,
+          "original_ip_bytes_out": 15784,
+          "original_ip_bytes_in": 7884,
+          "saved_ip_bytes_out": 15784,
+          "saved_ip_bytes_in": 7884,
+          "ipv4_five_tuples": 9,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "b-graph.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 7,
+          "packets_in": 11,
+          "original_ip_bytes_out": 4113,
+          "original_ip_bytes_in": 6637,
+          "saved_ip_bytes_out": 4113,
+          "saved_ip_bytes_in": 6637,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [
+            "edge-mqtt.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 2,
+          "packets_out": 20,
+          "packets_in": 16,
+          "original_ip_bytes_out": 3984,
+          "original_ip_bytes_in": 2278,
+          "saved_ip_bytes_out": 3984,
+          "saved_ip_bytes_in": 2278,
+          "ipv4_five_tuples": 2,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [],
+          "hostname_basis": "dns_port",
+          "five_tuple_count": 16,
+          "packets_out": 16,
+          "packets_in": 16,
+          "original_ip_bytes_out": 1120,
+          "original_ip_bytes_in": 1938,
+          "saved_ip_bytes_out": 1120,
+          "saved_ip_bytes_in": 1938,
+          "ipv4_five_tuples": 16,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "TCP",
+          "hostnames": [],
+          "hostname_basis": "no_recovered_sni",
+          "five_tuple_count": 5,
+          "packets_out": 9,
+          "packets_in": 9,
+          "original_ip_bytes_out": 720,
+          "original_ip_bytes_in": 540,
+          "saved_ip_bytes_out": 720,
+          "saved_ip_bytes_in": 540,
+          "ipv4_five_tuples": 0,
+          "ipv6_five_tuples": 5
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-ord5-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 1,
+          "packets_in": 1,
+          "original_ip_bytes_out": 96,
+          "original_ip_bytes_in": 93,
+          "saved_ip_bytes_out": 96,
+          "saved_ip_bytes_in": 93,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "payments-graph.facebook.com"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 1,
+          "packets_in": 1,
+          "original_ip_bytes_out": 96,
+          "original_ip_bytes_in": 61,
+          "saved_ip_bytes_out": 96,
+          "saved_ip_bytes_in": 61,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-mia5-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 1,
+          "packets_in": 1,
+          "original_ip_bytes_out": 96,
+          "original_ip_bytes_in": 54,
+          "saved_ip_bytes_out": 96,
+          "saved_ip_bytes_in": 54,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-mia3-2.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 1,
+          "packets_in": 1,
+          "original_ip_bytes_out": 96,
+          "original_ip_bytes_in": 54,
+          "saved_ip_bytes_out": 96,
+          "saved_ip_bytes_in": 54,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        },
+        {
+          "transport": "UDP",
+          "hostnames": [
+            "scontent-mia3-1.xx.fbcdn.net"
+          ],
+          "hostname_basis": "client_hello_sni",
+          "five_tuple_count": 1,
+          "packets_out": 1,
+          "packets_in": 1,
+          "original_ip_bytes_out": 96,
+          "original_ip_bytes_in": 54,
+          "saved_ip_bytes_out": 96,
+          "saved_ip_bytes_in": 54,
+          "ipv4_five_tuples": 1,
+          "ipv6_five_tuples": 0
+        }
+      ]
+    },
+    {
+      "phase": "background_followup",
+      "description": "Display-on background follow-up",
+      "observation_seconds": 180.2552649974823,
+      "packet_count": 0,
+      "direction_totals": {},
+      "five_tuple_count": 0,
+      "transport_five_tuple_counts": {},
+      "clock_counter_lower_bound": {},
+      "clock_counter_upper_bound": {},
+      "poll_boundary_uid_deltas": {
+        "wifi_attributed": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        },
+        "vpn_tunnel": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        },
+        "mobile": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        }
+      },
+      "hostname_transport_groups": []
+    },
+    {
+      "phase": "background_without_capture",
+      "description": "D. Background in ambient/sleep, capture stopped",
+      "capture_vpn_active": false,
+      "packet_capture_available": false,
+      "battery_sample_seconds": 600.575,
+      "poll_boundary_uid_deltas": {
+        "wifi_attributed": {
+          "received_bytes": 11876,
+          "sent_bytes": 135919,
+          "received_packets": 45,
+          "sent_packets": 132
+        },
+        "vpn_tunnel": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        },
+        "mobile": {
+          "received_bytes": 0,
+          "sent_bytes": 0,
+          "received_packets": 0,
+          "sent_packets": 0
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "The full capture includes setup traffic. Timed phase totals exclude setup and gaps.",
+    "Saved and original packet lengths describe the capture VPN view, not physical-wire or radio bytes.",
+    "A hostname is a destination clue. It does not reveal encrypted paths, GraphQL operation names, identifiers or message contents.",
+    "ClientHello ALPN values are offered protocols, not proof of the protocol selected by the server.",
+    "Same-five-tuple SNI associations can originate before a phase; DNS names remain separate evidence.",
+    "Wi-Fi and VPN histories overlap; their bytes must not be summed. UID poll boundaries differ from exact packet windows.",
+    "No packets in the short follow-up file window and unchanged UID histories does not establish long-term background silence or prove analytics blocking.",
+    "The follow-up did not cover a known analytics-job eligibility point because the job had been rescheduled.",
+    "A paused Hush build remains patched and re-signed. These are not stock-signed factory-install observations.",
+    "Positive capture-health checks were not taken at both B2 boundaries; its empty file window is corroborated by unchanged UID histories only.",
+    "D has UID counter observations only because capture was stopped. There is no per-host or packet evidence for D.",
+    "D follows earlier capture windows with different display and process history. This is not a matched measurement of VPN overhead."
+  ]
+}

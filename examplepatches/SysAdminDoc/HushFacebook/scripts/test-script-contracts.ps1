@@ -2649,15 +2649,15 @@ try {
         Set-Content -LiteralPath $contractsStubPath -Value $contractsStubText -Encoding UTF8 -NoNewline
     }
 
-    # The five verifier suites run only when their own files move, and pre-push.ps1 decides which
+    # The seven verifier suites run only when their own files move, and pre-push.ps1 decides which
     # files those are. A push of pre-push.ps1 runs this suite and no other, so an edit that put a
     # suite line behind a dead branch, or dropped a file from a suite's list, went out through the
-    # gate it switched off. This suite is the one place that holds the routing, then: all six
+    # gate it switched off. This suite is the one place that holds the routing, then: all eight
     # suite lines read through the parser (script-wiring.ps1), each also tried behind a dead
     # branch so the check can't pass by passing everything, and every file a verifier suite guards
     # pushed through the hook against stub suites that record they ran. A file starts exactly the
-    # suites whose lists hold it. The source ledger's suite also guards files outside scripts/,
-    # which are pushed after.
+    # suites whose lists hold it. The source ledger's and the release text's suites also guard
+    # files outside scripts/, which are pushed after.
     $prePushSource = [System.IO.File]::ReadAllText($prePushScript)
     $deadSuiteCopy = Join-Path $hookRoot 'pre-push-dead-suite.ps1'
     $verifierRoutes = [ordered]@{
@@ -2673,6 +2673,8 @@ try {
             'test-fingerprint-candidates.ps1')
         'scripts/test-facebook-sources.ps1' = @('audit-facebook-sources.ps1', 'facebook-sources.ps1', 'patch-target.ps1',
             'test-facebook-sources.ps1')
+        'scripts/test-release-text.ps1' = @('release/release.ps1', 'test-release-text.ps1')
+        'scripts/test-phone-smoke.ps1' = @('phone-smoke.ps1', 'test-phone-smoke.ps1')
     }
     foreach ($suite in @('scripts/test-script-contracts.ps1') + @($verifierRoutes.Keys)) {
         Assert-True (Test-PushGateRunsSuite $prePushScript $suite) "The push gate does not run $suite."
@@ -2708,6 +2710,15 @@ try {
             Assert-True (-not (Test-Path -LiteralPath $contractsMarker) -and -not (Test-Path -LiteralPath $factsMarker)) `
                 "A push of $file ran the contract tests or the release facts, which read nothing it changes."
         }
+    }
+    # tools/ is release_text.py and its tests. A push of either ran no check before; now it runs
+    # their suite and the contract tests, whose release stage cases hold what release.ps1 hands it.
+    foreach ($file in @('tools/release_text.py', 'tools/test_release_text.py')) {
+        foreach ($suite in $verifierRoutes.Keys) { Remove-Item -LiteralPath (& $verifierMarker $suite) -Force -ErrorAction SilentlyContinue }
+        Invoke-Hook -Paths @($file)
+        $ran = @($verifierRoutes.Keys | Where-Object { Test-Path -LiteralPath (& $verifierMarker $_) }) -join ', '
+        Assert-True ($ran -eq 'scripts/test-release-text.ps1') "A push of $file ran [$ran], not the release text suite alone."
+        Assert-True (Test-Path -LiteralPath $contractsMarker) "A push of $file skipped the script contract tests."
     }
 
     # The catalog is held to Meta's two signers, the builds every patch declares and the internal
@@ -3327,13 +3338,13 @@ try {
         $applySaved = @{ Fixtures = $env:HUSHFACEBOOK_FIXTURE_DIR; Jar = $env:HUSHFACEBOOK_DESKTOP_JAR }
         try {
             New-Item -ItemType Directory -Path $applyFixtures -Force | Out-Null
-            foreach ($name in @('facebook-581.0.0.45.58-arm64.apkm', 'facebook-581.0.0.45.58-armv7.apkm', 'facebook-580.0.0.51.74.apkm')) {
+            foreach ($name in @('facebook-582.0.0.50.54-arm64.apkm', 'facebook-582.0.0.50.54-armv7.apkm', 'facebook-580.0.0.51.74.apkm')) {
                 Set-Content -LiteralPath (Join-Path $applyFixtures $name) -Value 'fixture' -Encoding ASCII
             }
             Set-Content -LiteralPath $applyJar -Value 'cli' -Encoding ASCII
             Set-Content -LiteralPath $applyFiles[0] -Value 'version = 9.9.9' -Encoding ASCII
             Set-Content -LiteralPath $applyFiles[1] -Encoding UTF8 -Value ('{"patches":[{"name":"A","compatibility":' +
-                '[{"packageName":"com.facebook.katana","targets":[{"version":"581.0.0.45.58"}]}]}]}')
+                '[{"packageName":"com.facebook.katana","targets":[{"version":"582.0.0.50.54"}]}]}]}')
             Set-Content -LiteralPath $applyFiles[2] -Encoding UTF8 -Value @(
                 'param([string]$Apk, [string]$DesktopJar, [string]$WorkDir, [string]$Bundle, [string]$KeepIn)',
                 "Add-Content -LiteralPath '$applyLog' -Value (""apk="" + (Split-Path -Leaf `$Apk) + "" bundle=`$Bundle keep=`$KeepIn"")",
@@ -3362,7 +3373,7 @@ try {
                     $builds[1] -like '* :patches:buildAndroid *') `
                     "A push of $moved did not build the release bundle in the full pass alone: $($builds -join ' | ')"
                 $applied = @(Get-Content -LiteralPath $applyLog -ErrorAction SilentlyContinue | Sort-Object)
-                $declared = @('facebook-581.0.0.45.58-arm64.apkm', 'facebook-581.0.0.45.58-armv7.apkm')
+                $declared = @('facebook-582.0.0.50.54-arm64.apkm', 'facebook-582.0.0.50.54-armv7.apkm')
                 $rightRuns = @(for ($at = 0; $at -lt $applied.Count; $at++) {
                     $run = [regex]::Match($applied[$at], '^apk=(?<apk>\S+) bundle=(?<bundle>.+) keep=(?<keep>.+)$')
                     if ($run.Success -and $at -lt $declared.Count -and $run.Groups['apk'].Value -eq $declared[$at] -and
@@ -5887,22 +5898,42 @@ Write-Host '[scripts] release bundle path contracts passed'
 # --- scripts/release/release.ps1 -----------------------------------------------------------------
 #
 # The release stages, run in a fixture repository whose checks are stand-ins that log what they
-# were handed: the contract suite, the facts check and the build wrapper. Nothing here builds.
+# were handed: the contract suite, the facts check, the receipt and the build wrapper as scripts,
+# and py and gh as functions here, which release.ps1 finds before the real commands. Nothing here
+# builds, patches or reaches GitHub. The origin is a bare repository beside the fixture.
 
 $releaseFlow = Join-Path ([System.IO.Path]::GetTempPath()) ('hushfacebook-release-flow-' + [guid]::NewGuid().ToString('N'))
-$flowNames = @('HUSHFACEBOOK_BUILD_WRAPPER', 'GITHUB_ACTOR', 'GITHUB_TOKEN', 'BUILD_QUEUE_PRIORITY')
+$flowNames = @('HUSHFACEBOOK_BUILD_WRAPPER', 'HUSHFACEBOOK_FIXTURE_DIR', 'GITHUB_ACTOR', 'GITHUB_TOKEN', 'BUILD_QUEUE_PRIORITY')
 $flowBefore = @{}
 foreach ($name in $flowNames) { $flowBefore[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
 try {
     $flowRepo = Join-Path $releaseFlow 'repo'
+    $flowOrigin = Join-Path $releaseFlow 'origin.git'
+    $flowAssets = Join-Path $flowRepo 'build/release-assets/1.2.3'
     $flowLog = Join-Path $releaseFlow 'flow.log'
     $flowFails = Join-Path $releaseFlow 'fail.txt'
+    $flowTamper = $null
     New-Item -ItemType Directory -Path (Join-Path $flowRepo 'scripts/release') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'common.ps1') -Destination (Join-Path $flowRepo 'scripts')
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'release/release.ps1') -Destination (Join-Path $flowRepo 'scripts/release')
     Set-Content -LiteralPath (Join-Path $flowRepo 'gradle.properties') -Value 'version = 1.2.3' -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $flowRepo 'CHANGELOG.md') -Value '# Changelog' -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $flowRepo '.gitignore') -Value @('build/', 'patches/build/', 'extensions/facebook/build/',
+        'release-receipt-*.json') -Encoding ASCII
+    $flowTarget = '{"packageName":"com.facebook.katana","targets":[{"version":"582.0.0.50.54"}]}'
+    Set-Content -LiteralPath (Join-Path $flowRepo 'patches-list.json') -Encoding ASCII -Value (
+        '{"patches":[{"name":"A","compatibility":[' + $flowTarget + ']},{"name":"B","compatibility":[' + $flowTarget + ']}]}')
     $logLiteral = $flowLog.Replace("'", "''")
     $failLiteral = $flowFails.Replace("'", "''")
+    # The receipt names the commit it saw, as the real one does, and the bundle stage copies it.
+    Set-Content -LiteralPath (Join-Path $flowRepo 'scripts/build-release-receipt.ps1') -Encoding UTF8 -Value @(
+        'param([string[]]$Fixture, [string]$WorkDir, [string]$Root, [string]$Bundle, [string]$AppliedDir)',
+        "Add-Content -LiteralPath '$logLiteral' -Value (""receipt fixtures="" + ((`$Fixture | ForEach-Object { Split-Path -Leaf `$_ }) -join ',') +",
+        "    "" bundle="" + (Split-Path -Leaf `$Bundle) + "" applied="" + `$AppliedDir.Replace('\', '/'))",
+        "if ((Get-Content -LiteralPath '$failLiteral' -ErrorAction SilentlyContinue) -eq 'receipt') { exit 1 }",
+        '$commit = (git -C $Root rev-parse HEAD).Trim()',
+        'Set-Content -LiteralPath (Join-Path $Root ''release-receipt-1.2.3.json'') -Value (''{"source":{"commit":"'' + $commit + ''"}}'') -Encoding ASCII',
+        'exit 0')
     # Each stand-in fails when fail.txt names it, so a case can stop the run at any step.
     Set-Content -LiteralPath (Join-Path $flowRepo 'scripts/test-script-contracts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root)',
@@ -5920,11 +5951,47 @@ try {
         'param([string]$ProjectDir, [string[]]$Tasks)',
         "Add-Content -LiteralPath '$logLiteral' -Value (""gradle dir=`$ProjectDir priority=`$env:BUILD_QUEUE_PRIORITY tasks= "" + (`$Tasks -join ' ') + ' ')",
         "if ((Get-Content -LiteralPath '$failLiteral' -ErrorAction SilentlyContinue) -eq 'gradle') { exit 1 }",
+        # The bundle task leaves what :patches:buildAndroid writes beside the bundle.
+        'if ($Tasks -contains '':patches:buildAndroid'') {',
+        '    $out = Join-Path $ProjectDir ''patches/build/release''',
+        '    New-Item -ItemType Directory -Force -Path $out | Out-Null',
+        '    foreach ($kind in ''mpp'', ''cdx.json'', ''tooling.json'') { Set-Content -LiteralPath (Join-Path $out "patches-1.2.3.$kind") -Value "built $kind" -Encoding ASCII }',
+        '}',
         'exit 0')
-    & git -C $flowRepo init --quiet
+    # py and gh log their arguments and fail when fail.txt names their subcommand. release_text's
+    # cut writes to the CHANGELOG and github-notes writes its --out file, so a stage that fails
+    # later has something to put back, and gh hands back what the release was given.
+    function py {
+        $call = @($args | ForEach-Object { [string]$_ })
+        Add-Content -LiteralPath $flowLog -Value ('py ' + ($call -join ' '))
+        $global:LASTEXITCODE = 0
+        if ((Get-Content -LiteralPath $flowFails -ErrorAction SilentlyContinue) -eq $call[3]) { $global:LASTEXITCODE = 1; return }
+        if ($call[3] -eq 'cut') { Add-Content -LiteralPath (Join-Path $flowRepo 'CHANGELOG.md') -Value '## cut' }
+        if ($call[3] -eq 'github-notes') { Set-Content -LiteralPath $call[[array]::IndexOf($call, '--out') + 1] -Value 'notes' -Encoding ASCII }
+    }
+    function gh {
+        $call = @($args | ForEach-Object { [string]$_ })
+        Add-Content -LiteralPath $flowLog -Value ('gh ' + ($call -join ' '))
+        $global:LASTEXITCODE = 0
+        $what = "$($call[0]) $($call[1])"
+        if ((Get-Content -LiteralPath $flowFails -ErrorAction SilentlyContinue) -eq $what) { $global:LASTEXITCODE = 1; return }
+        if ($what -eq 'release download') {
+            $into = $call[[array]::IndexOf($call, '-D') + 1]
+            New-Item -ItemType Directory -Force -Path $into | Out-Null
+            Get-ChildItem -LiteralPath $flowAssets -File | Copy-Item -Destination $into
+            if ($flowTamper) { Set-Content -LiteralPath (Join-Path $into $flowTamper) -Value 'tampered' -Encoding ASCII }
+        }
+        if ($what -eq 'release view') { '2026-10-09T21:03:04Z' }
+        if ($what -eq 'repo view') { 'Hushfacebook v1.2.2: 1 patches for Facebook 582.0.0.50.54 with Morphe.' }
+    }
+    & git init --quiet --bare $flowOrigin
+    & git -C $flowRepo init --quiet --initial-branch=main
     & git -C $flowRepo config user.name 'Release Contract'
     & git -C $flowRepo config user.email 'release@example.invalid'
     & git -C $flowRepo config core.autocrlf false
+    # No hook of the machine's runs on the fixture's pushes.
+    & git -C $flowRepo config core.hooksPath (Join-Path $releaseFlow 'no-hooks')
+    & git -C $flowRepo remote add origin $flowOrigin
     & git -C $flowRepo add -A
     & git -C $flowRepo commit --quiet -m 'release fixture'
     $flowScript = Join-Path $flowRepo 'scripts/release/release.ps1'
@@ -5937,29 +6004,69 @@ try {
         Get-Content -LiteralPath $flowLog
         Remove-Item -LiteralPath $flowLog -Force
     }
+    function Test-FlowClean { return @(& git -C $flowRepo status --porcelain --untracked-files=all).Count -eq 0 }
 
-    # Preflight runs the contract suite, one quick Gradle run and the facts check with the index
-    # allowed to lag, in that order, all at release priority, and puts the priority back after.
+    # Source cuts the CHANGELOG with the summary file, bumps the version, writes the patch list and
+    # checks the translations, in that order, at release priority.
+    $flowSummary = Join-Path $releaseFlow 'summary.txt'
+    Set-Content -LiteralPath $flowSummary -Value 'A summary.' -Encoding ASCII
+    & $flowScript -Stage source -Version 1.2.4 -Summary $flowSummary -Date 2026-10-09 6> $null 3> $null
+    $flow = @(Read-FlowLog)
+    Assert-True ($flow.Count -eq 4 -and $flow[0] -like 'py -3.13 -I *release_text.py cut --version 1.2.4 --summary *' -and
+        $flow[0].EndsWith(' --date 2026-10-09') -and $flow[1] -like 'py * bump --version 1.2.4' -and
+        $flow[2] -like 'gradle * tasks= :patches:generatePatchesList ' -and $flow[2].Contains(' priority=release ') -and
+        $flow[3] -like 'py * check-translations') "Source did not cut, bump, list and check in order: $($flow -join ' | ')"
+    Assert-True (-not (Test-FlowClean)) 'Source left no cut behind to review.'
+    & git -C $flowRepo checkout --quiet -- .
+
+    # A failing step puts the tree back, so the stage can run again after the fix.
+    Set-Content -LiteralPath $flowFails -Value 'bump' -Encoding ASCII
+    Assert-Throws { & $flowScript -Stage source -Version 1.2.4 -Summary $flowSummary 6> $null 3> $null } '*version bump did not pass*' `
+        'Source carried on past a failing bump.'
+    Assert-True (@(Read-FlowLog).Count -eq 2 -and (Test-FlowClean)) 'A failed source stage ran on, or left its CHANGELOG cut behind.'
+    Remove-Item -LiteralPath $flowFails -Force
+
+    # No summary, a tag that exists or a branch other than main is refused before anything runs.
+    Assert-Throws { & $flowScript -Stage source -Version 1.2.4 6> $null } '*-Summary*' 'Source ran without a summary.'
+    & git -C $flowRepo tag v1.2.4
+    Assert-Throws { & $flowScript -Stage source -Version 1.2.4 -Summary $flowSummary 6> $null } '*v1.2.4 already exists*' `
+        'Source cut a version that is already tagged.'
+    & git -C $flowRepo tag -d v1.2.4 | Out-Null
+    & git -C $flowRepo checkout --quiet -b side
+    Assert-Throws { & $flowScript -Stage source -Version 1.2.4 -Summary $flowSummary 6> $null } '*cut on main*' `
+        'Source cut a release off main.'
+    & git -C $flowRepo checkout --quiet main
+    & git -C $flowRepo branch --quiet -D side
+    Assert-True (@(Read-FlowLog).Count -eq 0) 'A refused source stage still ran a step.'
+
+    # Preflight runs the contract suite, the release text tests, the translation check, a notes
+    # draft, one quick Gradle run and the facts check with the index allowed to lag, in that order,
+    # all at release priority, and puts the priority back after.
     & $flowScript -Stage preflight -Version 1.2.3 6> $null 3> $null
     $flow = @(Read-FlowLog)
-    Assert-True ($flow.Count -eq 3 -and $flow[0] -like 'contracts root=*' -and $flow[1] -like 'gradle *' -and $flow[2] -like 'facts *') `
-        "Preflight did not run the contracts, Gradle and the facts check in order: $($flow -join ' | ')"
+    Assert-True ($flow.Count -eq 6 -and $flow[0] -like 'contracts root=*' -and $flow[1] -like 'py -3.13 -I -m unittest discover -s *tools -p test_*.py' -and
+        $flow[2] -like 'py * check-translations' -and $flow[3] -like 'py * github-notes --version 1.2.3 --draft --out *notes-draft.md' -and
+        $flow[4] -like 'gradle *' -and $flow[5] -like 'facts *') `
+        "Preflight did not run the contracts, text checks, Gradle and the facts check in order: $($flow -join ' | ')"
     Assert-True ([IO.Path]::GetFullPath($flow[0].Substring('contracts root='.Length)).TrimEnd('\', '/') -ieq
         [IO.Path]::GetFullPath($flowRepo).TrimEnd('\', '/')) "Preflight ran the contract suite on another tree: $($flow[0])"
+    Assert-True ((Test-Path -LiteralPath (Join-Path $flowAssets 'notes-draft.md')) -and (Test-FlowClean)) `
+        'Preflight wrote no notes draft into the release assets, or left the tree changed.'
     foreach ($wanted in @(' :patches:test -x :patches:fixtureTest -x :patches:verifyPatchTestSelection ',
             ' :extensions:facebook:testDebugUnitTest --tests *L10nTest ', ' --tests *ReleaseCheckTest ',
             ' :extensions:shared:library:lint ', ' :extensions:facebook:lint ', ' priority=release ')) {
-        Assert-True ($flow[1].Contains($wanted)) "Preflight's Gradle run lacks '$($wanted.Trim())': $($flow[1])"
+        Assert-True ($flow[4].Contains($wanted)) "Preflight's Gradle run lacks '$($wanted.Trim())': $($flow[4])"
     }
-    Assert-True ($flow[1] -notmatch '(?<!-x) :patches:fixtureTest ' -and -not $flow[1].Contains(':patches:buildAndroid')) `
-        "Preflight's Gradle run reached the fixture tests or the bundle: $($flow[1])"
-    Assert-True ($flow[2] -eq 'facts skipCount=True lag=True skipResults=True priority=release') `
-        "Preflight's facts check was not the lagging-index precheck at release priority: $($flow[2])"
+    Assert-True ($flow[4] -notmatch '(?<!-x) :patches:fixtureTest ' -and -not $flow[4].Contains(':patches:buildAndroid')) `
+        "Preflight's Gradle run reached the fixture tests or the bundle: $($flow[4])"
+    Assert-True ($flow[5] -eq 'facts skipCount=True lag=True skipResults=True priority=release') `
+        "Preflight's facts check was not the lagging-index precheck at release priority: $($flow[5])"
     Assert-True (-not $env:BUILD_QUEUE_PRIORITY -and $env:HUSHFACEBOOK_BUILD_WRAPPER -eq $flowWrapper) `
         'Preflight left its release priority behind, or lost the wrapper it was given.'
 
     # Any step that fails stops the run there, so nothing after it reads as checked.
-    foreach ($case in @(@{ Step = 'contracts'; Seen = 1 }, @{ Step = 'gradle'; Seen = 2 }, @{ Step = 'facts'; Seen = 3 })) {
+    foreach ($case in @(@{ Step = 'contracts'; Seen = 1 }, @{ Step = 'unittest'; Seen = 2 }, @{ Step = 'github-notes'; Seen = 4 },
+            @{ Step = 'gradle'; Seen = 5 }, @{ Step = 'facts'; Seen = 6 })) {
         Set-Content -LiteralPath $flowFails -Value $case.Step -Encoding ASCII
         Assert-Throws { & $flowScript -Stage preflight -Version 1.2.3 6> $null 3> $null } '*did not pass*' `
             "Preflight carried on past a failing $($case.Step) step."
@@ -5977,8 +6084,83 @@ try {
         'Preflight checked a working tree that is not a commit.'
     Remove-Item -LiteralPath (Join-Path $flowRepo 'stray.txt') -Force
     Assert-True (@(Read-FlowLog).Count -eq 0) 'A refused preflight still ran a check.'
+
+    # Bundle, publish and index start from the pushed source commit, and a commit origin lacks is
+    # refused before anything is built.
+    Assert-Throws { & $flowScript -Stage bundle -Version 1.2.3 6> $null } '*Push the source commit first*' `
+        'The bundle was built from a commit origin does not have.'
+    & git -C $flowRepo push --quiet origin main
+    $flowFixtures = Join-Path $releaseFlow 'fixtures'
+    New-Item -ItemType Directory -Force -Path $flowFixtures | Out-Null
+    $env:HUSHFACEBOOK_FIXTURE_DIR = $flowFixtures
+    Assert-Throws { & $flowScript -Stage bundle -Version 1.2.3 6> $null 3> $null } '*no fixture of Facebook 582.0.0.50.54*' `
+        'The bundle stage cut a receipt without a fixture of the declared build.'
+    Assert-True (@(Read-FlowLog).Count -eq 1) 'The bundle stage went past a declared build with no fixture.'
+    foreach ($abi in 'arm64-v8a', 'armeabi-v7a') { Set-Content -LiteralPath (Join-Path $flowFixtures "facebook-582.0.0.50.54-$abi.apkm") -Value $abi }
+    Set-Content -LiteralPath (Join-Path $flowFixtures 'facebook-580.0.0.51.74-arm64-v8a.apkm') -Value 'undeclared'
+
+    # Bundle builds once, hands the receipt every declared build's fixtures and the gate's kept
+    # runs, and lists the five assets' hashes in SHA256SUMS.txt.
+    & $flowScript -Stage bundle -Version 1.2.3 6> $null 3> $null
+    $flow = @(Read-FlowLog)
+    Assert-True ($flow.Count -eq 2 -and $flow[0] -like 'gradle * tasks= :patches:buildAndroid ' -and
+        $flow[1] -like ('receipt fixtures=facebook-582.0.0.50.54-arm64-v8a.apkm,facebook-582.0.0.50.54-armeabi-v7a.apkm ' +
+            'bundle=patches-1.2.3.mpp applied=*/repo/patches/build/fixture-apply')) `
+        "The bundle stage did not build and cut the receipt over the declared fixtures: $($flow -join ' | ')"
+    $sums = @(Get-Content -LiteralPath (Join-Path $flowAssets 'SHA256SUMS.txt'))
+    $listed = @($sums | ForEach-Object { ($_ -split '  ', 2)[1] })
+    Assert-True (($listed -join ',') -eq 'patches-1.2.3.mpp,patches-1.2.3.cdx.json,patches-1.2.3.tooling.json,release-receipt-1.2.3.json') `
+        "SHA256SUMS.txt lists $($listed -join ', ')."
+    foreach ($line in $sums) {
+        $hash, $name = $line -split '  ', 2
+        Assert-True ($hash -ceq (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $flowAssets $name)).Hash.ToLowerInvariant()) `
+            "SHA256SUMS.txt's hash of $name is not the asset's."
+    }
+    Assert-True (Test-FlowClean) 'The bundle stage left the tree changed.'
+
+    # Publish writes the notes with the checked paragraph, tags and pushes the commit, creates the
+    # release with the five assets and holds each downloaded copy to the local one.
+    Assert-Throws { & $flowScript -Stage publish -Version 1.2.3 6> $null } '*-Checked*' 'Publish ran without a checked paragraph.'
+    $flowChecked = Join-Path $releaseFlow 'checked.txt'
+    Set-Content -LiteralPath $flowChecked -Value 'Checked.' -Encoding ASCII
+    & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked 6> $null 3> $null
+    $flow = @(Read-FlowLog)
+    Assert-True ($flow.Count -eq 3 -and $flow[0] -like "py * github-notes --version 1.2.3 --checked $flowChecked --out *notes.md" -and
+        $flow[1] -like 'gh release create v1.2.3 -R SysAdminDoc/HushFacebook --verify-tag --title v1.2.3 --notes-file *notes.md *' -and
+        $flow[2] -like 'gh release download v1.2.3 -R SysAdminDoc/HushFacebook -D *') "Publish did not write, create and download back: $($flow -join ' | ')"
+    foreach ($name in 'patches-1.2.3.mpp', 'patches-1.2.3.cdx.json', 'patches-1.2.3.tooling.json', 'release-receipt-1.2.3.json', 'SHA256SUMS.txt') {
+        Assert-True ($flow[1].Contains($name)) "Publish created the release without $name."
+    }
+    Assert-True ((& git -C $flowOrigin rev-parse 'v1.2.3^{commit}') -eq (& git -C $flowRepo rev-parse HEAD)) `
+        'Publish did not push a v1.2.3 tag on the source commit.'
+    $flowTamper = 'patches-1.2.3.mpp'
+    Assert-Throws { & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked 6> $null 3> $null } '*hosted patches-1.2.3.mpp differs*' `
+        'Publish passed a release whose hosted bundle is not the one it built.'
+    $flowTamper = $null
+    $null = Read-FlowLog
+
+    # Index reads the publish time and the gate's test counts, writes the index through
+    # release_text, puts the receipt back in the root and updates the repository description.
+    Assert-Throws { & $flowScript -Stage index -Version 1.2.3 6> $null } '*-ReadmeSummary*' 'Index ran without its summaries.'
+    foreach ($results in @(@{ Dir = 'extensions/facebook/build/test-results/testDebugUnitTest'; Cases = 2 },
+            @{ Dir = 'patches/build/test-results/test'; Cases = 3 }, @{ Dir = 'patches/build/test-results/fixtureTest'; Cases = 1 })) {
+        New-Item -ItemType Directory -Force -Path (Join-Path $flowRepo $results.Dir) | Out-Null
+        Set-Content -LiteralPath (Join-Path $flowRepo "$($results.Dir)/TEST-a.xml") -Encoding ASCII `
+            -Value ('<testsuite>' + ('<testcase/>' * $results.Cases) + '</testsuite>')
+    }
+    Remove-Item -LiteralPath (Join-Path $flowRepo 'release-receipt-1.2.3.json') -Force
+    & $flowScript -Stage index -Version 1.2.3 -ReadmeSummary $flowSummary -BundleSummary $flowSummary 6> $null 3> $null
+    $flow = @(Read-FlowLog)
+    Assert-True ($flow.Count -eq 4 -and $flow[0] -eq 'gh release view v1.2.3 -R SysAdminDoc/HushFacebook --json publishedAt --jq .publishedAt' -and
+        $flow[1] -like 'py * index --version 1.2.3 --created 2026-10-09T21:03:04 --bundle-summary * --readme-summary * --runtime 2 --patch 4' -and
+        $flow[2] -like 'gh repo view *' -and
+        $flow[3] -eq 'gh repo edit SysAdminDoc/HushFacebook --description Hushfacebook v1.2.3: 2 patches for Facebook 582.0.0.50.54 with Morphe.') `
+        "Index did not read the release, write the index and update the description: $($flow -join ' | ')"
+    Assert-True (Test-Path -LiteralPath (Join-Path $flowRepo 'release-receipt-1.2.3.json') -PathType Leaf) `
+        'Index did not put the receipt back where the facts check reads it.'
 } finally {
     foreach ($name in $flowNames) { [Environment]::SetEnvironmentVariable($name, $flowBefore[$name], 'Process') }
+    Remove-Item -LiteralPath Function:\py, Function:\gh -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $releaseFlow -Recurse -Force -ErrorAction SilentlyContinue
 }
 

@@ -72,7 +72,7 @@ public class GhostModePrivacyTest {
             TikTokPreferenceFragment page = privacy(owner.get());
             Preference row = page.findPreference(Settings.GHOST_MODE.key);
             View shown = row.getView(null, (ViewGroup) page.getView());
-            assertTrue("the untouched process was not identified", summary(row).contains("No reporting call"));
+            assertTrue("the untouched process was not identified", summary(row).contains("hasn't seen TikTok send any reports since it started."));
             failStoryGetter();
             idle();
             assertTrue("the open row never learned about the failure", summary(row).contains("may still be reported"));
@@ -105,7 +105,7 @@ public class GhostModePrivacyTest {
         GhostMode.shouldBlockProfileView();
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             Preference row = privacy(owner.get()).findPreference(Settings.GHOST_MODE.key);
-            assertTrue(summary(row), summary(row).contains("hasn't been verified"));
+            assertTrue(summary(row), summary(row).contains("It hasn't confirmed that you stay off viewer lists."));
             PausedProcess.set(true);
             row.getView(null, null);
             assertTrue(summary(row), summary(row).contains("paused"));

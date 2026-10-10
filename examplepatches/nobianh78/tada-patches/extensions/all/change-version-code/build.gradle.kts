@@ -1,0 +1,22 @@
+extension {
+    name = "extensions/all/versioncode/change-version-code.mpe"
+}
+
+android {
+    lint { abortOnError = false }
+    namespace = "app.morphe.extension"
+    compileSdk = 37
+
+    defaultConfig {
+        minSdk = 26
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    compileOnly(libs.annotation)
+}

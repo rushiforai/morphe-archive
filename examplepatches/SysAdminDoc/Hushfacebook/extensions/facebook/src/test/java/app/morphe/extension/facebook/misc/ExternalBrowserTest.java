@@ -6,13 +6,17 @@ package app.morphe.extension.facebook.misc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 
 import org.junit.After;
@@ -22,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowPackageManager;
 
 import java.lang.reflect.Method;
 
@@ -88,8 +93,52 @@ public class ExternalBrowserTest {
 
         assertTrue(ExternalBrowser.redirect(browser, browser.getIntent()));
         Intent started = shadowOf(browser).getNextStartedActivity();
-        assertEquals("HTTPS://example.org/", started.getDataString());
+        assertEquals("https://example.org/", started.getDataString());
         assertTrue(started.hasCategory(Intent.CATEGORY_BROWSABLE));
+    }
+
+    /** A browser as every browser declares itself: http and https, in lower case, with no host. */
+    private static void installBrowser(Activity from) {
+        ComponentName browser = new ComponentName("org.example.browser", "org.example.browser.Main");
+        ShadowPackageManager packages = shadowOf(from.getPackageManager());
+        packages.addActivityIfNotPresent(browser);
+        IntentFilter web = new IntentFilter(Intent.ACTION_VIEW);
+        web.addCategory(Intent.CATEGORY_DEFAULT);
+        web.addCategory(Intent.CATEGORY_BROWSABLE);
+        web.addDataScheme("http");
+        web.addDataScheme("https");
+        packages.addIntentFilterForActivity(browser, web);
+    }
+
+    /**
+     * #108: a Page's post linked HTTPS://JEANSFELLOW.SHOP, and on a POCO with a browser installed
+     * the link stayed in Facebook with "No external browser took the link
+     * (ActivityNotFoundException)". Android matches a filter's scheme and host case by case, so the
+     * link went out as HTTPS:// and matched no browser. Lower-cased, a browser takes it, and the
+     * path, the query and the user information keep the case the site may read.
+     */
+    @Test
+    public void aLinkWrittenInCapitalsFindsTheBrowser() {
+        Activity browser = browserWith("https://l.facebook.com/l.php?u="
+                + Uri.encode("HTTPS://Ann@SHOP.EXAMPLE:8443/New/Shoes?Size=L") + "&h=AT0x");
+        installBrowser(browser);
+
+        assertTrue(ExternalBrowser.redirect(browser, browser.getIntent()));
+        Intent started = shadowOf(browser).getNextStartedActivity();
+        assertEquals("https://Ann@shop.example:8443/New/Shoes?Size=L", started.getDataString());
+        assertNotNull("a browser that declares http and https takes the link",
+                browser.getPackageManager().resolveActivity(started, PackageManager.MATCH_DEFAULT_ONLY));
+    }
+
+    /** The control: written as Android reads it, the capitals would match no browser at all. */
+    @Test
+    public void capitalsAloneMatchNoBrowser() {
+        Activity browser = browserWith("https://example.org/");
+        installBrowser(browser);
+
+        Intent asWritten = new Intent(Intent.ACTION_VIEW, Uri.parse("HTTPS://SHOP.EXAMPLE/"))
+                .addCategory(Intent.CATEGORY_BROWSABLE);
+        assertNull(browser.getPackageManager().resolveActivity(asWritten, PackageManager.MATCH_DEFAULT_ONLY));
     }
 
     /**

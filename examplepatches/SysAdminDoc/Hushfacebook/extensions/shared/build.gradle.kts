@@ -11,7 +11,7 @@ android {
     namespace = "app.morphe.extension.shared"
 
     defaultConfig {
-        // The library it carries runs only inside Facebook 581, which declares API 30.
+        // The library it carries runs only inside Facebook 582, which declares API 30.
         minSdk = 30
     }
 }

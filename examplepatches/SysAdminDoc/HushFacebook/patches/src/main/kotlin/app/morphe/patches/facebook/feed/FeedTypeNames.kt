@@ -5,8 +5,10 @@
 package app.morphe.patches.facebook.feed
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -88,6 +90,20 @@ private fun tableString(table: Method, index: Int): String? {
     return byAddress[target]?.string()
 }
 
+/**
+ * Every index a string table method answers [literal] for, read from its first switch in one pass.
+ * A table holds thousands of entries, so a search over every caller reads it once this way rather
+ * than once per call.
+ */
+internal fun tableIndices(table: Method, literal: String): Set<Int> {
+    val byAddress = addressed(table)
+    val (switchAddress, switch) = byAddress.entries.firstOrNull {
+        it.value.opcode == Opcode.SPARSE_SWITCH || it.value.opcode == Opcode.PACKED_SWITCH
+    } ?: return emptySet()
+    val payload = byAddress[switchAddress + (switch as OffsetInstruction).codeOffset] as? SwitchPayload ?: return emptySet()
+    return payload.switchElements.filter { byAddress[switchAddress + it.offset]?.string() == literal }.mapTo(HashSet()) { it.key }
+}
+
 private val INT_CONSTANTS = setOf(Opcode.CONST, Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST_HIGH16)
 
 /** Whether [instruction] calls something shaped like a string table: a static `(I)Ljava/lang/String;`. */
@@ -106,26 +122,68 @@ internal fun isStringTableCall(instruction: Instruction): Boolean {
  */
 internal fun tableStringsAsked(method: Method, resolve: (MethodReference) -> Method?): List<String> {
     val code = method.implementation?.instructions?.toList() ?: return emptyList()
-    return code.indices.mapNotNull { index ->
-        val instruction = code[index]
-        if (!isStringTableCall(instruction)) return@mapNotNull null
-        val register = when (instruction) {
-            is RegisterRangeInstruction -> instruction.startRegister
-            is FiveRegisterInstruction -> instruction.registerC
-            else -> return@mapNotNull null
-        }
-        val load = code.getOrNull(index - 1)
-        if (load == null || load.opcode !in INT_CONSTANTS || (load as OneRegisterInstruction).registerA != register) {
-            return@mapNotNull null
-        }
-        resolve(instruction.methodCall()!!)?.let { tableString(it, (load as NarrowLiteralInstruction).narrowLiteral) }
+    return code.indices.mapNotNull { index -> tableStringAt(code, index, resolve) }
+}
+
+/**
+ * The literal the instruction at [index] of [code] asks a string table for, the way
+ * [tableStringsAsked] reads one: a call to a static `(I)Ljava/lang/String;` that [resolve] finds,
+ * straight after an int constant loaded into the register it takes. Null for anything else.
+ */
+internal fun tableStringAt(code: List<Instruction>, index: Int, resolve: (MethodReference) -> Method?): String? {
+    val key = tableIndexAt(code, index) ?: return null
+    return resolve(code[index].methodCall()!!)?.let { tableString(it, key) }
+}
+
+/**
+ * The index the instruction at [index] of [code] asks a string table for: the int constant loaded
+ * straight before a call to a static `(I)Ljava/lang/String;`, into the register it takes. Null
+ * for anything else.
+ */
+internal fun tableIndexAt(code: List<Instruction>, index: Int): Int? {
+    val instruction = code.getOrNull(index) ?: return null
+    if (!isStringTableCall(instruction)) return null
+    val register = when (instruction) {
+        is RegisterRangeInstruction -> instruction.startRegister
+        is FiveRegisterInstruction -> instruction.registerC
+        else -> return null
     }
+    val load = code.getOrNull(index - 1)
+    if (load == null || load.opcode !in INT_CONSTANTS || (load as OneRegisterInstruction).registerA != register) {
+        return null
+    }
+    return (load as NarrowLiteralInstruction).narrowLiteral
 }
 
 /** Whether [method] holds [literal] or asks a string table for it ([tableStringsAsked]). */
 internal fun namesString(method: Method, literal: String, resolve: (MethodReference) -> Method?): Boolean =
     method.implementation?.instructions?.any { it.string() == literal } == true ||
         literal in tableStringsAsked(method, resolve)
+
+/** Whether [method] is shaped like a string table: a static `(I)Ljava/lang/String;` with a body. */
+internal fun isStringTable(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null &&
+        method.returnType == "Ljava/lang/String;" && method.parameterTypes.map { it.toString() } == listOf("I")
+
+/**
+ * The methods outside the extension that [wanted] takes and that name [literal] ([namesString]):
+ * the literal's holders' own, and, where one of those holders is a string table ([isStringTable]),
+ * every method asking that table for it. Redex moves literals into tables between releases (582's
+ * `bookmarks_menu` and share footer anchor are in `LX/6zX;` and `LX/mDc;`), and a caller of a
+ * table holds no literal of its own, so only that case sweeps every class.
+ */
+internal fun BytecodePatchContext.methodsNaming(literal: String, wanted: (Method) -> Boolean): List<Method> {
+    val holders = classDefByStrings(literal, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }.associateBy { it.type }
+    val found = holders.values.flatMapTo(mutableListOf()) { owner -> owner.methods.filter { wanted(it) && holdsString(it, literal) } }
+    if (holders.values.none { owner -> owner.methods.any { isStringTable(it) && holdsString(it, literal) } }) return found
+    val resolve: (MethodReference) -> Method? = { call -> holders[call.definingClass]?.let { resolveStatic(it, call) } }
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        owner.methods.filterTo(found) { wanted(it) && !holdsString(it, literal) && namesString(it, literal, resolve) }
+    }
+    return found
+}
 
 /**
  * The name [method], a tree model's `getTypeName()`, answers for a model tagged [tag], or null.

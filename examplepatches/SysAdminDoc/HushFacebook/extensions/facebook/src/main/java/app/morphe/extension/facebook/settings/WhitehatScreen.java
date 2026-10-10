@@ -56,8 +56,9 @@ final class WhitehatScreen {
         Preference row = new Row(context);
         row.setTitle(L10n.t("Facebook's Whitehat settings"));
         row.setSummary(available(context)
-                ? L10n.t("Facebook's own screen for security research, where it can trust certificates you installed "
-                        + "and send its traffic through a proxy. Hushfacebook doesn't change anything there.")
+                ? L10n.t("Facebook's own screen for security testing. It can make Facebook trust security certificates you "
+                        + "installed, or send its data through a proxy (a go-between server). Hushfacebook doesn't change "
+                        + "anything there.")
                 : L10n.t("Facebook hasn't downloaded this screen to this phone, so a tap opens the Whitehat page "
                         + "on the web instead."));
         row.setPersistent(false);

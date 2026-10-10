@@ -22,17 +22,16 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * (TransitionAnchors.kt). A tab strip inside a screen asks its pager for the page, and the patch
  * asks the extension first in the two places a tap goes through (PagerTabs.kt).
  *
- * Off in the default selection: Facebook's transitions are a matter of taste, not something it
- * does to you. Picked, its switch starts on.
+ * In the default selection with its switch off: Facebook's transitions are a matter of taste, not
+ * something it does to you.
  */
 @Suppress("unused")
 val turnOffScreenTransitionsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off screen transitions",
-    description = "Shows Facebook's tabs, the tab strips inside its screens, its Menu and the screens that open over it " +
-        "at once, without the slide between them. Swiping and animations inside a page stay. Its switch starts on, " +
-        "under Appearance.",
-    default = false,
+    description = "Shows Facebook's tabs, Menu and new screens at once, without the slide between them, so the " +
+        "app feels quicker. Swipes and animations inside a page stay. Starts off. Turn it on in Hushfacebook " +
+        "settings > Appearance.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, facebookExtensionPatch)

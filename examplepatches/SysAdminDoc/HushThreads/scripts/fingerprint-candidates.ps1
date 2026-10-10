@@ -25,21 +25,21 @@
     build and the transitions confirmed on it, so until then -Calibrate takes -CalibrationPath.
 
     An APK argument is a path to an .apk, .apkm or .xapk, or a version that names exactly one fixture
-    in the folder HUSHTHREADS_FIXTURE_DIR names, such as 449 or 449.0.0.54.82.
+    in the folder HUSHTHREADS_FIXTURE_DIR names, such as 450 or 450.0.0.51.78.
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -OldApk 448 -Method '<descriptor>' -NewApk 449
+    scripts/fingerprint-candidates.ps1 -OldApk 450 -Method '<descriptor>' -NewApk 451
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -OldApk 449 -Method '<descriptor>' -SignaturePath feed-merge.json
+    scripts/fingerprint-candidates.ps1 -OldApk 450 -Method '<descriptor>' -SignaturePath feed-merge.json
 
     Captures the signature only, for a build that isn't out yet.
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -Signature feed-merge.json -NewApk C:\bundles\threads-450.xapk
+    scripts/fingerprint-candidates.ps1 -Signature feed-merge.json -NewApk C:\bundles\threads-451.xapk
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -Calibrate -CalibrationPath 449-to-450.txt -OldApk 449 -NewApk 450
+    scripts/fingerprint-candidates.ps1 -Calibrate -CalibrationPath 450-to-451.txt -OldApk 450 -NewApk 451
 
     Checks the ranking against transitions confirmed on a later pair of builds.
 #>
@@ -96,13 +96,17 @@ function Resolve-Build {
 
 # The tool, with Continue only in here: Windows PowerShell 5.1 turns a program's stderr into a
 # terminating error under Stop. A java that can't start still throws out of here into the script's
-# Stop, and the exit code starts at -1 so a run that never started can't read as a pass.
+# Stop, and the exit code starts at -1 so a run that never started can't read as a pass. It waits
+# for a slot of the machine's build queue when there is one (Invoke-HeavyJob): two full Threads dex
+# sets on an 8 GB heap.
 function Invoke-Candidates {
     param([string[]]$Arguments)
-    $ErrorActionPreference = 'Continue'
-    $global:LASTEXITCODE = -1
-    & $script:JavaPath '-Xmx8g' '-cp' $script:DesktopJarPath (Join-Path $PSScriptRoot 'FingerprintCandidates.java') @Arguments 2>&1 |
-        ForEach-Object { Write-Host "$_" }
+    Invoke-HeavyJob -Label 'fingerprint candidates' -ScriptBlock {
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        & $script:JavaPath '-Xmx8g' '-cp' $script:DesktopJarPath (Join-Path $PSScriptRoot 'FingerprintCandidates.java') @Arguments 2>&1 |
+            ForEach-Object { Write-Host "$_" }
+    }
     return $LASTEXITCODE
 }
 

@@ -28,7 +28,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/spo
 @Suppress("unused")
 val simSpoofPatch = bytecodePatch(
     name = "SIM spoof",
-    description = "Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup. Switch: Hushfeed settings > Region.",
+    description = "Makes TikTok see the SIM country and carrier you choose. It may not change " +
+        "your region, since TikTok also goes by your internet connection and account. Starts off. " +
+        "Turn it on in Hushfeed settings > Region.",
     default = true,
 ) {
     category("Settings")

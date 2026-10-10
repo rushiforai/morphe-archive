@@ -1,0 +1,1 @@
+package android.graphics;import java.io.*;public class BitmapFactory{public static Bitmap decodeStream(InputStream in){try{DataInputStream d=new DataInputStream(in);int w=d.readInt(),h=d.readInt();return w>0&&h>0?new Bitmap(w,h):null;}catch(IOException e){return null;}}}

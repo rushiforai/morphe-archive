@@ -10,6 +10,7 @@ import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.media.resume.TRACK_START
 import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
 import app.morphe.patches.facebook.media.resume.paramsGetters
@@ -179,11 +180,15 @@ class KeepReelSpeedFixtureTest {
                 assertEquals("$name: methods holding \"$SPEED_RANGE_LOG\"", 1, ranged.size)
                 val speedRange = ranged.single()
                 assertEquals("$name: loads of the ${HERO_FLOOR}f floor", 1, speedFloors(speedRange).size)
-                assertTrue("$name: the floor isn't kept with Math.max", callsFloatMax(speedRange))
+                // 582 keeps it through an outlined static float clamp.
+                val clamps = FixtureDex.classes(bundle, speedRange.code().filter { it.opcode == Opcode.INVOKE_STATIC }
+                    .mapNotNull { it.call?.takeIf { call -> call.returnType == "F" }?.definingClass }.toSet()).values
+                val resolveClamp = { call: MethodReference -> clamps.singleOrNull { it.type == call.definingClass }?.let { resolveStatic(it, call) } }
+                assertTrue("$name: the floor isn't kept with Math.max", callsFloatMax(speedRange, resolveClamp))
                 val rangeClass = rangeHolders.single { it.type == speedRange.definingClass }
 
-                fun classes() = listOf(owner, toastClass, gearClass, paramsClass, dropdownClass, sheetClass, rangeClass,
-                    ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS)).distinctBy { it.type }
+                fun classes() = (listOf(owner, toastClass, gearClass, paramsClass, dropdownClass, sheetClass, rangeClass) + clamps +
+                    listOf(ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS))).distinctBy { it.type }
                 val context = PatchContexts.of(classes())
                 keepReelSpeedPatch.execute(context)
 

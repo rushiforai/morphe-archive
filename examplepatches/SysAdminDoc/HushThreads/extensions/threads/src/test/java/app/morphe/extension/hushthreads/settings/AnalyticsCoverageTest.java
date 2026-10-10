@@ -79,7 +79,7 @@ public class AnalyticsCoverageTest {
                 PreferenceGroup screen = open(controller.get());
                 Preference coverage = titled(screen, L10n.t("Analytics address coverage"));
                 assertNotNull(coverage);
-                assertEquals(L10n.f("Patched: %1$s. Missing: %2$s.", L10n.isolate(found),
+                assertEquals(L10n.f("Blocked: %1$s. Not found in this build: %2$s.", L10n.isolate(found),
                         missing.isEmpty() ? L10n.t("none") : L10n.isolate(absent)), coverage.getSummary());
                 assertFalse(coverage.isSelectable());
             }
@@ -145,7 +145,7 @@ public class AnalyticsCoverageTest {
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 Preference row = titled(open(controller.get()), L10n.t("Analytics address coverage"));
                 assertNotNull(row);
-                assertEquals(L10n.t("Coverage wasn't recorded in this build. Patch again to see the matched address kinds."),
+                assertEquals(L10n.t("This build didn't record which report types it covers. Patch again to see them."),
                         row.getSummary());
             }
             assertTrue(PatchFamily.reportLines(PatchFamily.inThisBuild(), false)

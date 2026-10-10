@@ -61,7 +61,8 @@ public final class PostMenu {
         READER("reader", "DraftTweetId", "Reader mode"),
         TRANSLATE("translate", "TwitterShare", "Translate with Google"),
         DEBUG("debug", "ViewDebugDialog", "Post data"),
-        KEYWORDS("keywords", "SendToAudioSpace", "Filtered keywords");
+        KEYWORDS("keywords", "SendToAudioSpace", "Filtered keywords"),
+        SETTINGS("settings", "PromotedDismissAd", "Feed filters");
 
         final String key;
         final String type;
@@ -204,6 +205,7 @@ public final class PostMenu {
             case TRANSLATE -> translate(context, post);
             case DEBUG -> showText(context, "Post data", String.valueOf(post));
             case KEYWORDS -> editKeywords(context);
+            case SETTINGS -> openSettings(context);
         }
     }
 
@@ -286,6 +288,17 @@ public final class PostMenu {
                 .appendQueryParameter("text", text(post))
                 .build();
         context.startActivity(new Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+    }
+
+    private static void openSettings(Context context) {
+        try {
+            Intent intent = new Intent(context, SettingsActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } catch (Exception ex) {
+            Logger.printException(() -> "Open settings failure", ex);
+            Toast.makeText(context, "Could not open settings: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     /** Edits the keywords whose posts are hidden, one per line. */

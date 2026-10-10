@@ -157,7 +157,7 @@ public class BuildDetailsPreferenceTest {
         }
     }
 
-    @Test public void deniedClipboardShowsTheExistingTranslatedSaveFallback() {
+    @Test public void deniedClipboardPointsToSaveBuildDetails() {
         try (var owner = root()) {
             Context denied = new ContextWrapper(owner.get()) {
                 @Override public Object getSystemService(String name) {
@@ -170,7 +170,8 @@ public class BuildDetailsPreferenceTest {
             ShadowToast.reset();
             ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("Couldn't copy the report. Use Save report instead.", String.valueOf(ShadowToast.getTextOfLatestToast()));
+            assertEquals("Couldn't copy the build details. Use Save build details instead.",
+                    String.valueOf(ShadowToast.getTextOfLatestToast()));
         }
     }
 
@@ -197,11 +198,17 @@ public class BuildDetailsPreferenceTest {
         var owner = Robolectric.buildActivity(SettingsActivity.class, new Intent("morphe_settings").putExtra("morphe", true))
                 .setup().visible();
         settle(owner.get());
+        Preference about = page(owner.get()).findPreference("hub_about");
+        assertNotNull("the home menu has no About Hushfeed route", about);
+        assertTrue(about.getOnPreferenceClickListener().onPreferenceClick(about));
+        settle(owner.get());
+        assertEquals("ABOUT", page(owner.get()).getArguments().getString("morphe_settings_hub"));
         return owner;
     }
 
     private static TikTokPreferenceFragment page(SettingsActivity activity) {
-        return (TikTokPreferenceFragment) activity.getFragmentManager().findFragmentByTag("hushfeed_settings_root");
+        var root = activity.getFragmentManager().findFragmentByTag("hushfeed_settings_root");
+        return (TikTokPreferenceFragment) activity.getFragmentManager().findFragmentById(root.getId());
     }
 
     private static AlertDialog clickDetails(SettingsActivity activity) {

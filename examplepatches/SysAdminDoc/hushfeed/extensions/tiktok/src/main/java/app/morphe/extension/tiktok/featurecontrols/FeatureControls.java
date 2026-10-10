@@ -6,10 +6,12 @@ package app.morphe.extension.tiktok.featurecontrols;
 
 import android.view.View;
 
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 public final class FeatureControls {
     private static final int DEFAULT_LONG_PRESS_LOCK_DISTANCE_DP = 140;
+    static final String SIDEBAR_BUTTON_FAMILY = "side menu button";
 
     private FeatureControls() {
     }
@@ -85,6 +87,18 @@ public final class FeatureControls {
     /** The same question for the search button: false hides it. */
     public static boolean hideFeedSearchButtonEnabled(boolean originalEnabled) {
         return !Settings.HIDE_FEED_SEARCH_BUTTON.get() && originalEnabled;
+    }
+
+    /**
+     * The same question for the side menu button beside LIVE (#128), the one that opens
+     * TikTok's drawer with Your orders, TikTok Minis and the rest: false hides it. The toolbar
+     * asks as it builds the feed's top bar. The icon has no view id, so the Hook status line is
+     * the one sign in a report that this check ran.
+     */
+    public static boolean hideFeedSidebarButtonEnabled(boolean originalEnabled) {
+        boolean hide = Settings.HIDE_FEED_SIDEBAR_BUTTON.get();
+        HookStatus.bound(SIDEBAR_BUTTON_FAMILY, hide ? "hidden" : "left to TikTok");
+        return !hide && originalEnabled;
     }
 
     public static int overrideLongPressQuickShare(int originalMode) {

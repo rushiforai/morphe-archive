@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -18,6 +19,7 @@ import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -365,8 +367,8 @@ private fun String.toRevancedContentUriRoute(): String = when {
 }
 
 private fun stringReferenceOf(instruction: Any): StringReference? = when (instruction) {
-    is Instruction21c -> instruction.reference as? StringReference
-    is Instruction31c -> instruction.reference as? StringReference
+    is Instruction21c -> instruction.getReference<StringReference>()
+    is Instruction31c -> instruction.getReference<StringReference>()
     else -> null
 }
 
@@ -524,8 +526,7 @@ private val mediaAlertAudioAttributesFingerprint = Fingerprint(
     },
 )
 
-private fun Any.methodReferenceOrNull() =
-    (this as? ReferenceInstruction)?.reference as? MethodReference
+private fun Instruction.methodReferenceOrNull() = getReference<MethodReference>()
 
 private fun Method.hasAudioStreamCall() = implementation?.instructions?.any {
     it.methodReferenceOrNull()?.matches(
@@ -768,13 +769,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchAvailabilityCheck
             return v0
         """.trimIndent(),
     )
-}
-
-private fun Any.invokeRegisters(): List<Int>? = when (this) {
-    is FiveRegisterInstruction ->
-        listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
-    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
-    else -> null
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.connectionResultErrorField(): FieldReference {

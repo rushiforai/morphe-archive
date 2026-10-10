@@ -38,7 +38,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 private const val PATCH = "Hide ads"
 private const val ADS = "$EXTENSION_PACKAGE/ads/Ads;"
 
-/** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant in both builds. */
+/** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant. */
 internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
 
 /**
@@ -53,16 +53,16 @@ internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
  *
  * Pinterest's main screen also starts Google's mobile ads SDK for accounts in its GMA experiment.
  * That launch step returns first while the switch is on, so the SDK never starts and Pinterest's own
- * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05, both builds).
+ * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05).
  *
- * Found by reading 14.25.0 (2026-10-02). The four views keep their names in 14.38.0.
+ * The four views keep their names in 14.38.0.
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
     name = PATCH,
-    description = "Removes promoted pins from the home feed, search, related pins and boards, and hides " +
-        "Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Turn it off in " +
-        "HushPinterest settings at any time.",
+    description = "Removes promoted pins from your home feed, search, related pins and boards, and hides panels " +
+        "that only hold ads. Good for a cleaner feed. On by default. Turn it off in HushPinterest " +
+        "settings > Feed.",
     default = true,
 ) {
     category("Ads")

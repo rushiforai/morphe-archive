@@ -44,7 +44,7 @@ class ReadReceiptFixtureTest {
                 val at = read.futureReadyIndex()
                 val future = (before[at - 1] as OneRegisterInstruction).registerA
                 assertTrue("$name: the future is made before anything is posted",
-                    before.take(at).none { it.opcode.name.startsWith("INVOKE") && it.called()?.contains("MailboxCallback") == true })
+                    before.take(at).none { it.opcode.name.startsWith("invoke") && it.called()?.contains("MailboxCallback") == true })
                 assertTrue("$name: the call is posted after it",
                     before.drop(at).any { it.called()?.contains("Lcom/facebook/msys/mca/MailboxCallback;") == true })
 

@@ -11,14 +11,17 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.Setting;
 
-/** The two Stories choices, including a value-preserving upgrade from the old combined choice. */
+/**
+ * The two Stories choices, including a value-preserving upgrade from the old combined choice. Both
+ * start off. The old combined choice started on, so a saved legacy value is carried over as it was.
+ */
 final class StoriesSetting extends BooleanSetting {
     static final String LEGACY_KEY = "hushfacebook_hide_stories_tray";
     static final String TOP_KEY = "hushfacebook_hide_top_stories_tray";
     static final String BETWEEN_KEY = "hushfacebook_hide_stories_between_posts";
 
     StoriesSetting(String key) {
-        super(key, true, false);
+        super(key, false, false);
     }
 
     /** Run before the independent settings load. A failed write keeps the old choice readable. */
@@ -35,7 +38,7 @@ final class StoriesSetting extends BooleanSetting {
         synchronized (Setting.class) {
             SharedPreferences store = preferences.preferences;
             if (!store.contains(LEGACY_KEY) || !Utils.isMainProcess()) return;
-            commit(store, null, null);
+            commit(store, null, null, null);
         }
     }
 
@@ -65,11 +68,11 @@ final class StoriesSetting extends BooleanSetting {
             if (!Utils.isMainProcess()) {
                 throw new IllegalStateException("Stories settings are writable only from the main process");
             }
-            commit(preferences.preferences, key, next);
+            commit(preferences.preferences, key, next, defaultValue);
         }
     }
 
-    private static void commit(SharedPreferences store, String changedKey, Boolean next) {
+    private static void commit(SharedPreferences store, String changedKey, Boolean next, Boolean defaultValue) {
         SharedPreferences.Editor editor = store.edit();
         if (store.contains(LEGACY_KEY)) {
             Object legacy = store.getAll().get(LEGACY_KEY);
@@ -81,8 +84,8 @@ final class StoriesSetting extends BooleanSetting {
             editor.remove(LEGACY_KEY);
         }
         if (changedKey != null) {
-            if (Boolean.TRUE.equals(next)) editor.remove(changedKey);
-            else editor.putBoolean(changedKey, false);
+            if (defaultValue.equals(next)) editor.remove(changedKey);
+            else editor.putBoolean(changedKey, next);
         }
         if (!editor.commit()) throw new IllegalStateException("Could not save the Stories settings");
     }

@@ -14,10 +14,10 @@ import dev.twitchpatches.patches.twitch.shared.*
 @Suppress("unused")
 val hideDisplayAdsPatch = bytecodePatch(
     name = "Hide feed and display ads",
-    description = "Removes sponsored feed cards and display ads using Twitch's no-ad responses.",
+    description = "Hides sponsored feed cards, banners and display ads.",
     default = true,
 ) {
-    compatibleWith(TwitchTarget.candidateCompatibility)
+    compatibleWith(TwitchTarget.compatibility)
     dependsOn(settingsPatch, reactNativeBridgePatch, reactNativeFeedAdsPatch)
     execute {
         val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>().apply { classDefForEach { add(it) } }
@@ -46,6 +46,7 @@ val hideDisplayAdsPatch = bytecodePatch(
             sget-object v0, $noAd
             return-object v0
         """, ExternalLabel("original", code.first()))
+        blockBrowseDisplayAds(classes.flatMap { it.methods })
         initializeAdFeature(1)
     }
 }

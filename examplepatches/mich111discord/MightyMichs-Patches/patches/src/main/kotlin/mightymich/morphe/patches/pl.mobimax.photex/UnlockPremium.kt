@@ -7,28 +7,23 @@ import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
-    name = "Unlock Premium Features",
-    description = "Unlocks Photex Companion premium by forcing the license check to return true.",
-    default = true
+    name = "Unlock Premium (Experimental)",
+    description = "Unlocks Photex Companion premium by forcing the license check to return true. WARNING: May cause crashes.",
+    default = false
 ) {
     compatibleWith(PhotexCompatibility.PHOTEX)
 
-    // Fingerprint: locate the method c()Z in the App class.
-    // This method is called to determine the license status (PREMIUM/FREE).
     val licenseCheckFingerprint = Fingerprint(
         definingClass = "Lpl/mobimax/photex/App;",
-        name = "c",
+        name = "b",
         returnType = "Z"
     )
 
     execute {
         licenseCheckFingerprint.let { fingerprint ->
             val method = fingerprint.method
-                ?: throw PatchException("Could not find c()Z method in App class.")
+                ?: throw PatchException("Could not find b()Z method in App class.")
 
-            // Insert instructions at the very beginning:
-            //   const/4 v0, 0x1  -> load 1 (true) into register v0
-            //   return v0        -> return true immediately
             method.addInstructions(
                 0,
                 """

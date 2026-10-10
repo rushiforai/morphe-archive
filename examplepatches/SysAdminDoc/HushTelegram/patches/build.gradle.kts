@@ -7,6 +7,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.MessageDigest
@@ -880,10 +881,62 @@ gradle.projectsEvaluated {
     }
 }
 
+// The patch tests that open the vendor Telegram APKs, most of the module's test time. They run in
+// fixtureTest, which :patches:test depends on and leaves out, so :patches:test still runs every
+// patch test while `-x :patches:fixtureTest` runs the rest on their own: the pre-push gate's quick
+// pass. A --tests selection given to :patches:test is handed on to fixtureTest, and one that
+// matches nothing in either task still fails.
+val fixtureTestClasses = listOf(
+    "**/*FixtureTest.class", "**/*FixtureTest$*.class",
+    "**/AppCompatibilitiesMatchFixturesTest.class", "**/AppCompatibilitiesMatchFixturesTest$*.class",
+    "**/ShortcutCallsTest.class", "**/ShortcutCallsTest$*.class",
+)
+val fixtureTest = tasks.register<Test>("fixtureTest") {
+    group = "verification"
+    description = "Runs the patch tests that read the vendor Telegram APKs."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    include(fixtureTestClasses)
+    // TestFilter has no public getter for --tests patterns in Gradle 9.7.1. The selection is read
+    // as an input before snapshotting and applied just before the tests run.
+    inputs.property("suiteSelection", provider {
+        (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns.sorted()
+    })
+    failOnNoDiscoveredTests.set(provider {
+        (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns.isEmpty()
+    })
+    doFirst {
+        val selected = (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
+        if (selected.isNotEmpty()) {
+            setTestNameIncludePatterns(selected.toList())
+            filter.isFailOnNoMatchingTests = false
+        }
+    }
+}
+tasks.test {
+    dependsOn(fixtureTest)
+    exclude(fixtureTestClasses)
+    failOnNoDiscoveredTests.set(provider { (filter as DefaultTestFilter).commandLineIncludePatterns.isEmpty() })
+    val partitions = listOf("test", "fixtureTest").map { layout.buildDirectory.dir("test-results/$it") }
+    doFirst {
+        if ((filter as DefaultTestFilter).commandLineIncludePatterns.isNotEmpty()) filter.isFailOnNoMatchingTests = false
+    }
+    doLast {
+        val selected = (filter as DefaultTestFilter).commandLineIncludePatterns
+        if (selected.isNotEmpty()) {
+            val ran = partitions.sumOf { partition ->
+                partition.get().asFile.listFiles().orEmpty().count { it.name.startsWith("TEST-") && it.extension == "xml" }
+            }
+            check(ran > 0) { "No patch test matched --tests ${selected.joinToString(" ")}" }
+        }
+    }
+}
+
 tasks {
     // The README tests read the README and the patch list, both outside this module. Declare
-    // those inputs so Gradle reruns them when either changes.
-    test {
+    // those inputs so Gradle reruns them when either changes. Both patch test tasks take them, as
+    // :patches:test did before the fixture tests moved out.
+    withType<Test>().matching { it.name == "test" || it.name == "fixtureTest" }.configureEach {
         inputs.file(rootProject.file("README.md"))
             .withPropertyName("readme")
             .withPathSensitivity(PathSensitivity.RELATIVE)

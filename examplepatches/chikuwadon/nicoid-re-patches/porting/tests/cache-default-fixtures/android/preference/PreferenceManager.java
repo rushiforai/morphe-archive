@@ -1,0 +1,1 @@
+package android.preference;import android.content.*;public class PreferenceManager{public static SharedPreferences prefs;public static SharedPreferences getDefaultSharedPreferences(Context c){return prefs;}}

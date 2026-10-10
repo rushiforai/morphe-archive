@@ -1,3 +1,25 @@
+## [1.13.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.12.0...v1.13.0) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **X:** Fix feed filters — ActionBar overlap, following detection, settings access ([32022eb](https://github.com/ahmedyarub/morphe-patches/commit/32022ebc7ae3e460fb43eaa02227fe2c822528d5))
+
+### ✨ New Features
+
+* **X:** Add feed filters — media only, hide followed, include keywords ([82c5742](https://github.com/ahmedyarub/morphe-patches/commit/82c5742809712bafcf1a38f4277bed8844087b62))
+
+## [1.13.0-dev.2](https://github.com/ahmedyarub/morphe-patches/compare/v1.13.0-dev.1...v1.13.0-dev.2) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **X:** Fix feed filters — ActionBar overlap, following detection, settings access ([32022eb](https://github.com/ahmedyarub/morphe-patches/commit/32022ebc7ae3e460fb43eaa02227fe2c822528d5))
+
+## [1.13.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.12.0...v1.13.0-dev.1) (2026-10-09)
+
+### ✨ New Features
+
+* **X:** Add feed filters — media only, hide followed, include keywords ([82c5742](https://github.com/ahmedyarub/morphe-patches/commit/82c5742809712bafcf1a38f4277bed8844087b62))
+
 ## [1.12.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.11.0...v1.12.0) (2026-10-07)
 
 ### ✨ New Features

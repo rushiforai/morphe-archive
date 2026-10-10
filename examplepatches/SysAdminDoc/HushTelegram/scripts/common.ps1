@@ -449,3 +449,80 @@ function Find-MachineNames {
     $global:LASTEXITCODE = 0
     return $hits.ToArray()
 }
+
+function Invoke-InHushTelegramQueue {
+    <#
+    .SYNOPSIS
+        Runs a heavy job in a slot of the machine-wide build queue, labelled "hushtelegram <Job>",
+        and returns its exit code.
+    .DESCRIPTION
+        Several projects' builds share this machine's cores. BUILD_QUEUE_SCRIPT names the queue's
+        script, which defines Invoke-InBuildQueue: the job waits for a free slot, runs at low
+        priority on that slot's cores and shows in the script's -Status while it runs. A desktop
+        CLI run patches the whole Telegram APK, as heavy as a Gradle build, and used to start
+        whenever it was asked. A hook, or a shell started before the variable was set, may lack
+        it, so the user's environment is read too. BUILD_QUEUE_PRIORITY=release, which the release
+        stages set, puts the job ahead of everyday builds.
+
+        Unset, or naming no file, the job runs straight away with a warning. HUSHTELEGRAM_QUEUED_JOB
+        is set for the job's length either way, so a script that queues itself by running itself
+        again inside the slot knows it's already there. The queue script is dot-sourced here, in
+        this function's scope, so its parameters can't land in the caller's variables.
+
+        The block runs inside the queue's functions and finds the caller's variables by dynamic
+        scope, so it mustn't read one named like theirs: Label, Priority, Run, Status, ScriptBlock,
+        Job, held or process. Those resolve to the queue's own values first.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Job,
+        [Parameter(Mandatory = $true)][scriptblock]$ScriptBlock
+    )
+    $queueScript = $env:BUILD_QUEUE_SCRIPT
+    if ([string]::IsNullOrWhiteSpace($queueScript)) {
+        $queueScript = [Environment]::GetEnvironmentVariable('BUILD_QUEUE_SCRIPT', [EnvironmentVariableTarget]::User)
+    }
+    $queueLabel = "hushtelegram $Job"
+    $queuePriority = if ($env:BUILD_QUEUE_PRIORITY -eq 'release') { 'release' } else { 'normal' }
+    $savedQueuedJob = $env:HUSHTELEGRAM_QUEUED_JOB
+    $env:HUSHTELEGRAM_QUEUED_JOB = $Job
+    try {
+        if ([string]::IsNullOrWhiteSpace($queueScript) -or -not (Test-Path -LiteralPath $queueScript -PathType Leaf)) {
+            Write-Warning ("BUILD_QUEUE_SCRIPT is unset or names no file, so $queueLabel runs now, outside the " +
+                'machine-wide build queue. Point it at the queue script to share the cores with other builds.')
+            $global:LASTEXITCODE = 0
+            & $ScriptBlock | Out-Host
+            return $LASTEXITCODE
+        }
+        . $queueScript
+        return (Invoke-InBuildQueue -Label $queueLabel -Priority $queuePriority -ScriptBlock $ScriptBlock)
+    } finally {
+        $env:HUSHTELEGRAM_QUEUED_JOB = $savedQueuedJob
+    }
+}
+
+function Import-UserEnvironment {
+    <#
+    .SYNOPSIS
+        Fills each named variable this process has unset or empty from the user's environment.
+    .DESCRIPTION
+        A git hook runs with git's environment, which can predate a variable set in the user scope
+        or leave it out. Empty counts as unset: pwsh keeps a variable set to an empty string, where
+        Windows PowerShell removes it, so an empty HUSHTELEGRAM_BUILD_WRAPPER would otherwise win
+        over the user's and the gate would run gradlew outside the wrapper. A value of spaces is
+        left alone, since the fixture gate tests set one to keep the machine's folder out of a
+        case, and so is a user value that's blank too. -ReadUser stands in for the registry in the
+        contract tests.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string[]]$Name,
+        [scriptblock]$ReadUser = {
+            param([string]$Variable)
+            [Environment]::GetEnvironmentVariable($Variable, [EnvironmentVariableTarget]::User)
+        }
+    )
+    foreach ($variable in $Name) {
+        if (-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($variable))) { continue }
+        $value = [string](& $ReadUser $variable)
+        if (-not [string]::IsNullOrWhiteSpace($value)) { Set-Item -LiteralPath "Env:\$variable" -Value $value }
+    }
+}

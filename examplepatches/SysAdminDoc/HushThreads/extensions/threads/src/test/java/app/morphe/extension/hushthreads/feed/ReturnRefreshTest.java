@@ -40,8 +40,17 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 public class ReturnRefreshTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    /** Before as well as after, so a test that stopped half way, or another class, leaves nothing behind. */
-    @Before @After public void restore() {
+    /**
+     * The patch is in Morphe Manager's default selection with its switch off; these tests turn it
+     * on. Cleared first as well, so a test that stopped half way, or another class, leaves nothing
+     * behind.
+     */
+    @Before public void turnTheSwitchOn() {
+        restore();
+        Settings.BLOCK_RETURN_REFRESH.save(true);
+    }
+
+    @After public void restore() {
         PauseForTests.resume();
         Settings.BLOCK_RETURN_REFRESH.resetToDefault();
         Settings.RETURN_REFRESH_NO_LIMIT.resetToDefault();

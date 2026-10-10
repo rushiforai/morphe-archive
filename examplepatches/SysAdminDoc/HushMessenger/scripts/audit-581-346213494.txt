@@ -1,0 +1,70 @@
+# Messenger 581.0.0.49.91 code 346213494, audit revision 1, 2026-10-09.
+# Stock SHA-256 8c1dfe7313236ca7c257298f50d6603912e0048389fc4903caedb88b87d94045
+# DexInspector input. Keep disassembly output private. Names must be remapped for other builds.
+
+# Inbox rows, interface dispatch and visibility events
+class:Lcom/facebook/messaging/business/inboxads/common/InboxAdsItem;
+method:LX/2LJ;->D3q
+method:LX/1vy;->A01
+callers:LX/5Ln;->D3q
+method:LX/2Kf;->apply
+reads:LX/2Kd;->A02
+method:LX/24f;->Df7
+callers:LX/5li;->Df7
+strings:inbox_ad_impression
+
+# Business-ad navigation, mutation, banner and details
+method:LX/4AU;->A06
+method:LX/6WM;->call
+method:LX/6J3;->A00
+callers:LX/6J3;->A00
+method:LX/HGR;->A00
+method:LX/HGR;->Cg0
+method:LX/NHL;->onViewCreated
+method:LX/PJz;->ADM
+method:LX/PJy;->ADM
+method:LX/N99;->CBl
+
+# Analytics service starts and conditional Binder task
+class:Lcom/facebook/analytics2/logger/GooglePlayUploadService;
+method:LX/TM8;->onBind
+method:LX/4I2;->handleMessage
+method:LX/4I2;->A00
+method:LX/TM8;->A00
+method:LX/W1y;->A01
+method:LX/W1y;->run
+method:LX/W1y;->A00
+method:LX/6Lk;->BvA
+method:LX/4Po;->A02
+method:LX/4Po;->A04
+method:LX/4QV;->A00
+
+# Native analytics, attribution and independent diagnostics
+class:Lcom/facebook/xanalytics/XAnalyticsNative;
+method:LX/7f3;-><init>
+method:LX/6r0;->logEventImmediately
+method:LX/YaG;->run
+method:LX/6hY;->A03
+method:Lcom/facebook/attribution/LatStatusJob;->A00
+method:LX/7gM;->BO7
+method:Lcom/facebook/acra/ErrorReporter;->sendCrashReport
+method:Lcom/facebook/acra/ErrorReporter;->startUploadIfReady
+strings:contacts_upload_messaging
+strings:android_id
+
+# Gesture eligibility, cleanup and autoplay feature gates
+method:LX/58i;->A02
+method:Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll
+method:Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStopNestedScroll
+method:LX/8Mb;->A00
+method:LX/8Mb;->A01
+method:LX/1o0;->A05
+method:LX/9n9;->A04
+
+# Native account/thread receipt policy
+method:LX/DX2;->onCreateView
+method:LX/4jI;->A00
+method:LX/4jI;->A02
+method:LX/ERK;->onClick
+method:LX/CbJ;->onCompletion
+class:LX/DXO;

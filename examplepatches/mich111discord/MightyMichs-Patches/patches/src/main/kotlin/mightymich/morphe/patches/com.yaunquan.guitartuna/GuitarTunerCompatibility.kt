@@ -7,11 +7,11 @@ import app.morphe.patcher.patch.Compatibility
 object GuitarTunerCompatibility {
     val GUITAR_TUNER = Compatibility(
         name = "Guitar Tuner",
-        packageName = "com.yaunquan.guitartuna",
+        packageName = "com.ovelin.guitartuna",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(version = "null")
+            AppTarget(version = "7.102.0")
         )
     )
 }

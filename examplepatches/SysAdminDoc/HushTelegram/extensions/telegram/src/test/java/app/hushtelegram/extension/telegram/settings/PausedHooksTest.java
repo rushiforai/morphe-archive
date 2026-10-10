@@ -310,6 +310,9 @@ public class PausedHooksTest {
                 () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.gifOn(),
                 () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.voiceVideoOn(),
                 () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.callOn()));
+        // Telegram Beta stops forcing its debug logs on.
+        probes.put(PatchFamily.BETA_LOGS_OFF, Collections.singletonList(
+                () -> !app.hushtelegram.extension.telegram.misc.BetaLogs.forceLogs(true)));
         // The gallery's camera stays off until a tap, and a tap that asks for the permission wakes it.
         probes.put(PatchFamily.GALLERY_CAMERA_ON_TAP, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.keepCameraOff(new Object()),
@@ -320,13 +323,17 @@ public class PausedHooksTest {
                     return app.hushtelegram.extension.telegram.misc.GalleryCamera.openWhenReady(gallery, new Object());
                 }));
         // A device statistics report is never read or sent, and neither is a channel's read time.
+        // On Telegram Beta, Crashlytics never starts and Sessions reads its override as off.
         probes.put(PatchFamily.DISABLE_ANALYTICS, Arrays.asList(
                 () -> Analytics.skipDeviceStats(new DeviceStatsController(true, false)),
                 () -> Analytics.skipReadMetrics(new ArrayList<>()),
                 () -> Analytics.skipPremiumAppLog("premium.promo_screen_show"),
                 () -> Analytics.skipPremiumAppLog("premium.promo_screen_tap"),
                 () -> Analytics.skipPremiumAppLog("premium.promo_screen_accept"),
-                () -> Analytics.skipPremiumAppLog("premium.promo_screen_fail")));
+                () -> Analytics.skipPremiumAppLog("premium.promo_screen_fail"),
+                () -> Analytics.skipCrashReporterStart(),
+                () -> Analytics.skipErrorReport(),
+                () -> Boolean.FALSE.equals(Analytics.sessionsEnabled(null))));
         probes.put(PatchFamily.OPEN_EXTERNAL_LINKS, Collections.singletonList(PausedHooksTest::externalBrowserOpened));
         probes.put(PatchFamily.STRIP_LINK_TRACKING, Arrays.asList(
                 () -> PROBE_URL.equals(LinkRouting.cleanOpenedUri(Uri.parse(TRACKED_URL), false, new boolean[1]).toString()),

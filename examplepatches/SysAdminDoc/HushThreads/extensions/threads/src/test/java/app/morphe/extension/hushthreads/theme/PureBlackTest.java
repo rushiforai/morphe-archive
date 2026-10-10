@@ -5,6 +5,7 @@
 package app.morphe.extension.hushthreads.theme;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -31,15 +32,25 @@ public class PureBlackTest {
 
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    /** Before as well as after, so a test that stopped half way, or another class, leaves nothing behind. */
-    @Before @After public void restore() {
+    /**
+     * The patch is in Morphe Manager's default selection with its switch off; these tests turn it
+     * on. Cleared first as well, so a test that stopped half way, or another class, leaves nothing
+     * behind.
+     */
+    @Before public void turnTheSwitchOn() {
+        restore();
+        Settings.PURE_BLACK.save(true);
+    }
+
+    @After public void restore() {
         PauseForTests.resume();
         Settings.PURE_BLACK.resetToDefault();
         HookStatus.clear();
     }
 
-    /** Picking the patch is the choice to use it: the switch ships on and the gray comes back black. */
-    @Test public void theSwitchShipsOnAndTurnsTheGrayBlack() {
+    /** The switch starts off, so a default build keeps Threads' gray until it's turned on. */
+    @Test public void theSwitchStartsOffAndOnTurnsTheGrayBlack() {
+        assertFalse("the switch starts on", Settings.PURE_BLACK.defaultValue);
         assertTrue(Settings.PURE_BLACK.get());
         assertEquals(0xff000000L, PureBlack.argb(GRAY_ARGB));
         assertEquals(0xff00000000000000L, PureBlack.color(GRAY_COLOR));

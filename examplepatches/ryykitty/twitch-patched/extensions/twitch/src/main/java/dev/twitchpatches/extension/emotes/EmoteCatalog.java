@@ -22,6 +22,7 @@ final class EmoteCatalog {
     private final Consumer<String> changed;
     private final Fetcher fetcher;
     private final Runnable unavailable;
+    private int providerMask = EmotePolicy.ALL;
 
     interface Fetcher { String get(String url, boolean optional) throws java.io.IOException; }
 
@@ -39,6 +40,7 @@ final class EmoteCatalog {
     synchronized void ensure(String id) {
         schedule(null, global, 0);
         schedule(null, global, 1);
+        schedule(null, global, 2);
         if (id == null) return;
         Channel state = channels.get(id);
         if (state == null) {
@@ -52,11 +54,17 @@ final class EmoteCatalog {
         }
         schedule(id, state, 0);
         schedule(id, state, 1);
+        schedule(id, state, 2);
     }
 
     synchronized Map<String, Emote> snapshot(String id) {
         Channel state = id == null ? null : channels.get(id);
         return state == null ? global.combined : state.combined;
+    }
+
+    synchronized Map<String, Emote> providerSnapshot(String id, int index) {
+        Channel state = id == null ? global : channels.get(id);
+        return state == null ? Collections.emptyMap() : entries(state, index);
     }
 
     synchronized void cancelOutside(String id) {
@@ -70,17 +78,31 @@ final class EmoteCatalog {
         workers.purge();
     }
 
-    private static void cancel(Channel state) {
-        for (Provider provider : state.providers) {
-            if (provider.task != null) {
-                provider.generation++;
-                provider.task.cancel(true);
-                provider.task = null;
-            }
+    synchronized void setProviderMask(int mask) {
+        providerMask = mask & EmotePolicy.ALL;
+        for (int index = 0; index < 3; index++) {
+            if (EmotePolicy.includes(providerMask, index)) continue;
+            cancel(global.providers[index]);
+            for (Channel state : channels.values()) cancel(state.providers[index]);
         }
+        global.combined = compose(Collections.emptyMap(), global);
+        channels.values().forEach(state -> state.combined = compose(global.combined, state));
+        workers.purge();
+    }
+
+    private static void cancel(Channel state) {
+        for (Provider provider : state.providers) cancel(provider);
+    }
+
+    private static void cancel(Provider provider) {
+        if (provider.task == null) return;
+        provider.generation++;
+        provider.task.cancel(true);
+        provider.task = null;
     }
 
     private void schedule(String id, Channel state, int index) {
+        if (!EmotePolicy.includes(providerMask, index)) return;
         Provider provider = state.providers[index];
         long now = System.currentTimeMillis();
         if (provider.task != null || now < provider.retryAfter || now - provider.loadedAt < TTL) return;
@@ -93,10 +115,9 @@ final class EmoteCatalog {
     private void load(String id, Channel state, int index, long generation) {
         Map<String, Emote> loaded = null;
         try {
-            String url = index == 0 ? (id == null ? EmoteProviders.BTTV_GLOBAL : "https://api.betterttv.net/3/cached/users/twitch/" + id)
-                    : (id == null ? EmoteProviders.SEVEN_GLOBAL : "https://7tv.io/v3/users/twitch/" + id);
+            String url = EmoteProviders.catalogUrl(index, id);
             String json = fetcher.get(url, id != null);
-            loaded = index == 0 ? EmoteProviders.bttv(json, id == null) : EmoteProviders.sevenTv(json, id == null);
+            loaded = EmoteProviders.parse(index, json, id == null);
         } catch (java.io.IOException | JSONException error) {
             unavailable.run();
         }
@@ -110,23 +131,30 @@ final class EmoteCatalog {
             provider.loadedAt = now;
             provider.retryAfter = 0;
             if (id == null) {
-                global.combined = combine(Collections.emptyMap(), global.providers[0].entries, global.providers[1].entries);
-                channels.values().forEach(channel -> channel.combined = combine(global.combined,
-                        channel.providers[0].entries, channel.providers[1].entries));
-            } else state.combined = combine(global.combined, state.providers[0].entries, state.providers[1].entries);
+                global.combined = compose(Collections.emptyMap(), global);
+                channels.values().forEach(channel -> channel.combined = compose(global.combined, channel));
+            } else state.combined = compose(global.combined, state);
         }
         changed.accept(id);
     }
 
-    static Map<String, Emote> combine(Map<String, Emote> globals, Map<String, Emote> bttv, Map<String, Emote> seven) {
+    private Map<String, Emote> compose(Map<String, Emote> globals, Channel channel) {
+        return combine(globals, entries(channel, 2), entries(channel, 0), entries(channel, 1));
+    }
+
+    private Map<String, Emote> entries(Channel channel, int index) {
+        return EmotePolicy.includes(providerMask, index) ? channel.providers[index].entries : Collections.emptyMap();
+    }
+
+    @SafeVarargs
+    static Map<String, Emote> combine(Map<String, Emote> globals, Map<String, Emote>... providers) {
         Map<String, Emote> result = new LinkedHashMap<>(globals);
-        result.putAll(bttv);
-        result.putAll(seven);
+        for (Map<String, Emote> provider : providers) result.putAll(provider);
         return Collections.unmodifiableMap(result);
     }
 
     private static final class Channel {
-        final Provider[] providers = {new Provider(), new Provider()};
+        final Provider[] providers = {new Provider(), new Provider(), new Provider()};
         Map<String, Emote> combined = Collections.emptyMap();
     }
 

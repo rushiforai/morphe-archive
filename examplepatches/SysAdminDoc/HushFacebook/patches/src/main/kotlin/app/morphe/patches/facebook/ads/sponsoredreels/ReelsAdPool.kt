@@ -21,7 +21,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /**
- * Facebook's Reels and Watch ad pool, which it calls VideoHomeSponsoredPool (581 `LX/5eK;`). The
+ * Facebook's Reels and Watch ad pool, which it calls VideoHomeSponsoredPool (582 `LX/6Gg;`). The
  * client-side story loader that fills the Reels tab asks it for an ad whenever a slot comes up,
  * through the pool base class every story pool shares. The pool marks the ad it hands out as used
  * and logs the ad position before the loader puts it in a page, so the page filters only see an ad

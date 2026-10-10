@@ -8,12 +8,12 @@ import dev.twitchpatches.patches.twitch.shared.*
 
 @Suppress("unused")
 val thirdPartyEmotesPatch = bytecodePatch(
-    name = "BTTV and 7TV emotes",
-    description = "Renders global and channel emotes in chat with provider previews on tap.",
+    name = "BTTV, FFZ and 7TV emotes",
+    description = "Adds global and channel emotes to chat and the emote picker, with animations, provider settings and tap previews.",
     default = true,
 ) {
-    compatibleWith(TwitchTarget.candidateCompatibility)
-    dependsOn(settingsPatch, reactNativeEmotesPatch, nativeEmotePreviewPatch)
+    compatibleWith(TwitchTarget.compatibility)
+    dependsOn(settingsPatch, reactNativeEmotesPatch, nativeEmotePreviewPatch, nativeEmotePickerPatch)
     execute {
         val hooks = resolveEmoteHooks()
         val application = classDefBy("Ltv/twitch/android/app/consumer/TwitchApplication;").methods.filter {

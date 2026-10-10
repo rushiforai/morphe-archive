@@ -17,7 +17,7 @@ body:
     attributes:
       label: Hushfeed and TikTok versions
       description: In TikTok, open Settings and privacy and tap Hushfeed. The card at the top says "Hushfeed is active", with both versions on the line under it. Copy that line here.
-      placeholder: Version 0.69.0 for TikTok 47.1.4
+      placeholder: Version 0.70.0 for TikTok 47.1.4
     validations:
       required: true
   - type: dropdown
@@ -52,7 +52,7 @@ body:
     attributes:
       label: Which patches did you select?
       description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
-      placeholder: The default selection, plus Advanced downloads.
+      placeholder: The default selection, plus AMOLED dark theme.
     validations:
       required: true
   - type: dropdown

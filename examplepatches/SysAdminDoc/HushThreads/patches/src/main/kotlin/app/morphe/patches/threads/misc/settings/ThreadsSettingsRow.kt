@@ -120,7 +120,7 @@ internal fun BytecodePatchContext.implementFunction0(type: String, patch: String
 
 /**
  * Reads where the row goes and refuses a build where any of it differs from what was read on 449
- * and 448: one settings row taking (composer, modifier, Integer, Function0, int, int, int, int,
+ * and 448, which 450 keeps: one settings row taking (composer, modifier, Integer, Function0, int, int, int, int,
  * boolean); one Accounts Center row taking (composer, modifier, String, String, Function0, int,
  * int, int, boolean); one list lambda that switches on its entry enum's ordinal and draws More
  * settings with a case that starts the entry's group on the composer, sets its click, label and

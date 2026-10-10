@@ -1,6 +1,7 @@
 <# Exercise phone-smoke.ps1's report reading on hand-written reports, without a phone. #>
 [CmdletBinding()]
-param()
+# The push gate hands every suite -Root. These checks read only the reports written below.
+param([string]$Root)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'phone-smoke.ps1')
 
@@ -10,7 +11,7 @@ function Assert-That([bool]$Condition, [string]$Message) {
 }
 
 function New-Report([string[]]$Hooks, [string]$State = 'hushfacebook: running', [string[]]$Crash = @()) {
-    $lines = @('MORPHE DIAGNOSTIC REPORT', 'schema: 1', 'app: com.facebook.katana 581.0.0.45.58 (2147483647)', $State,
+    $lines = @('MORPHE DIAGNOSTIC REPORT', 'schema: 1', 'app: com.facebook.katana 582.0.0.50.54 (2147483647)', $State,
         'debug_logging: off', '', '[APP STATE]', 'locale -> en-US')
     if ($Crash.Count -gt 0) { $lines += @('', '[LATEST JAVA CRASH]') + $Crash }
     if ($Hooks.Count -gt 0) { $lines += @('', '[HOOK STATUS]') + $Hooks }

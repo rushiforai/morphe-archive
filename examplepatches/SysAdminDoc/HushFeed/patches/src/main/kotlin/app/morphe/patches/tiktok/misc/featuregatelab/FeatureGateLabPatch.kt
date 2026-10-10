@@ -97,7 +97,9 @@ private val boundaries = listOf(
 @Suppress("unused")
 val featureGateLabPatch = bytecodePatch(
     name = "Feature Gate Lab",
-    description = "Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.",
+    description = "Adds an advanced page that lists the hidden settings TikTok uses to test " +
+        "features and lets you change them. It's for people who like to experiment. Starts off. " +
+        "Turn it on in Hushfeed settings > Diagnostics.",
     default = true,
 ) {
     category("Settings")

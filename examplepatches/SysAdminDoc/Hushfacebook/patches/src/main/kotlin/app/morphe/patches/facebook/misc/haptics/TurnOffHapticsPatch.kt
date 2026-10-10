@@ -16,16 +16,16 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * Holds back the haptics Facebook plays on its own taps and gestures. See HapticsAnchors.kt for
  * what it changes, and the extension's Haptics for when.
  *
- * Off in the default selection: Facebook's haptics are a matter of taste, not something it does to
- * you. Picked, its switch starts on.
+ * In the default selection with its switch off: Facebook's haptics are a matter of taste, not
+ * something it does to you.
  */
 @Suppress("unused")
 val turnOffHapticsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off haptics",
-    description = "Stops the short vibrations Facebook plays on its own taps and gestures. The keyboard and " +
-        "your phone's own haptics stay. Its switch starts on, under Appearance.",
-    default = false,
+    description = "Stops the short vibrations Facebook plays when you tap and swipe in it, if you find them " +
+        "distracting. Your keyboard and your phone's own vibrations stay. Starts off. Turn it on in Hushfacebook " +
+        "settings > Appearance.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, facebookExtensionPatch)

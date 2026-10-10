@@ -2,8 +2,8 @@ group = "com.bartlomiejfornalczyk.patches"
 
 patches {
     about {
-        name = "Google Maps Morphe Patches"
-        description = "Custom patches for Google Maps navigation media player"
+        name = "Maps&Music patches"
+        description = "Custom patches for Google Maps and YouTube Music"
         source = "https://github.com/bartlomiejfornalczyk/morphe-patches.git"
         author = "Bartlomiej Fornalczyk"
         contact = "na"

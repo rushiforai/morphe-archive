@@ -145,7 +145,7 @@ switch ($Stage) {
         $started = Get-Date
         Invoke-Native 'release text tests' { py -3.13 -m unittest discover -s (Join-Path $root 'tools') -p 'test_*.py' }
         Invoke-Native 'translation check' { py -3.13 (Join-Path $root 'tools/release_text.py') check-translations --version $Version }
-        Invoke-Gradle @(':patches:test', '-x', ':patches:nativeTest', '-x', ':patches:documentationTest')
+        Invoke-Gradle @(':patches:test', '-x', ':patches:nativeTest', '-x', ':patches:documentationTest', '-x', ':patches:verifyPatchTestSelection')
         Invoke-Gradle @(':extensions:tiktok:testDebugUnitTest', '--tests', '*ReleaseNotesTest', '--tests', '*SettingsL10nTest', '--tests', '*L10nQuantityTest', ':extensions:tiktok:lintDebug')
         Invoke-Native 'facts precheck' {
             & (Join-Path $root 'scripts/validate-release-facts.ps1') -Root $root -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults

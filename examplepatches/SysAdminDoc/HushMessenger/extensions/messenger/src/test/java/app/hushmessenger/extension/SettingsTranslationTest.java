@@ -206,7 +206,7 @@ public class SettingsTranslationTest {
             View root = screen.get().getWindow().getDecorView();
             assertEquals("ES Controls", ((TextView) root.findViewWithTag("tab_controls")).getText().toString());
             assertTrue(showsText(root, "ES Hide People You May Know"));
-            assertTrue(showsText(root, "ES Removes suggested people from chats, search and stories, and from the People and Notifications tabs."));
+            assertTrue(showsText(root, "ES Hides suggested people in chats, search and stories, and on the People and Notifications tabs. Good if you only want people you know."));
             assertFalse(showsText(root, "Hide People You May Know"));
             root.findViewWithTag("people").performClick();
             assertEquals(Map.of("people", true), Settings.preferences.getAll());
@@ -242,7 +242,7 @@ public class SettingsTranslationTest {
             String report = screen.get().getSystemService(android.content.ClipboardManager.class)
                 .getPrimaryClip().getItemAt(0).getText().toString();
             String prefix = translated ? "ES " : "";
-            assertTrue(report.contains(prefix + "Activity records show a control ran. They don't verify its visible effect or privacy protection.\n"));
+            assertTrue(report.contains(prefix + "Activity notes only show that a control ran. They don't prove it had a visible effect or protected your privacy.\n"));
             for (String[] control : SettingsActivity.CONTROLS)
                 assertTrue(control[0], report.contains(", scope=" + prefix + control[2] + "\n"));
             assertEquals(before, Settings.preferences.getAll());

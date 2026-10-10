@@ -120,10 +120,9 @@ internal val notificationFilterPatch = bytecodePatch {
 @Suppress("unused")
 val suggestedVideoPushBlockPatch = bytecodePatch(
     name = "Block suggested video notifications",
-    description = "Stops TikTok's \"Videos you might like\" notifications, the pushes about " +
-        "popular videos it picked for you. They're blocked from the start, and the switch lets " +
-        "them through again. Messages, comments, likes, follows and posts from accounts you " +
-        "follow aren't touched. Switch: Hushfeed settings > Inbox.",
+    description = "Stops TikTok's \"Videos you might like\" notifications about popular videos " +
+        "it picked for you. Messages, comments, likes and posts from people you follow still come " +
+        "through. On by default. Turn it off in Hushfeed settings > Inbox.",
     default = true,
 ) {
     category("Inbox")

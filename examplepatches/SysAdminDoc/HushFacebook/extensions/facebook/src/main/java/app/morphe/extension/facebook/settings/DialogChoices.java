@@ -14,7 +14,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ListAdapter;
 
-/** Styles the framework's real single-choice rows without replacing their selection behavior. */
+/** Styles the framework's real single and multiple choice rows without replacing their selection behavior. */
 final class DialogChoices extends BaseAdapter {
     private final ListAdapter source;
     private final ScreenColors colors;

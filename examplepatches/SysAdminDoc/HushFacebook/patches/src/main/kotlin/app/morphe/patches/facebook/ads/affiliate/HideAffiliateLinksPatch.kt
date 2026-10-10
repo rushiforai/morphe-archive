@@ -95,9 +95,9 @@ internal const val KEEP_REEL_CTAS = "$AFFILIATE_LINKS->keepReelCtas($LIST$LIST)$
 val hideAffiliateLinksPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hide affiliate product links",
-    description = "Removes the product cards of affiliate shop links from reels, feed posts and the " +
-        "comment sheet, plus the Shop now cards reels get for tagged products, a creator's storefront " +
-        "and Shop similar. The \"Commission eligible\" label stays.",
+    description = "Removes the shopping cards that affiliate links add to reels, feed posts and comments, plus " +
+        "Shop now cards on reels, so you see fewer sales pitches while you scroll. On by default. Turn it off in " +
+        "Hushfacebook settings > News feed.",
 ) {
     category("Ads")
     dependsOn(settingsPatch)

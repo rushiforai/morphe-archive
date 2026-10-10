@@ -349,12 +349,13 @@ public class SupportedLinksTest {
 
     /** The row says that selecting addresses sends links here without making the build verified. */
     @Test
-    public void theScreenExplainsWhatSelectingDoesntRestore() throws Exception {
+    public void theScreenExplainsWhatSelectingChanges() throws Exception {
         answer = state(true, hosts(NONE, NONE));
         PreferenceGroup links = show(true).findPreference(KEY).getParent();
         Preference explanation = links.getPreference(links.getPreferenceCount() - 1);
         assertFalse(explanation.isSelectable());
-        assertTrue(String.valueOf(explanation.getSummary()), String.valueOf(explanation.getSummary())
-                .contains("doesn't restore"));
+        String summary = String.valueOf(explanation.getSummary());
+        assertTrue(summary, summary.contains("Selecting the addresses sends their links here instead"));
+        assertTrue(summary, summary.contains("Your other link settings stay as they are"));
     }
 }

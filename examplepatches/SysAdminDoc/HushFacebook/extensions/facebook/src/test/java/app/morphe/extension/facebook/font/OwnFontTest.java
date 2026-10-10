@@ -16,6 +16,7 @@ import static org.robolectric.Shadows.shadowOf;
 import android.graphics.Typeface;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +59,12 @@ public class OwnFontTest {
             Family.OPTIMISTIC_TEXT_APP_MEDIUM, Family.OPTIMISTIC_TEXT_APP_BOLD, Family.OPTIMISTIC_VARIABLE_APP_LITE,
             Family.OPTIMISTIC_AI, Family.OPTIMISTIC_AI_1_BETA, Family.OPTIMISTIC_AI_2_BETA, Family.OPTIMISTIC_AI_3_BETA,
             Family.OPTIMISTIC_VF_APP_LITE, Family.FACEBOOK_SANS_VARIABLE);
+
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.USE_SYSTEM_FONT.save(true);
+    }
 
     @After
     public void restore() {

@@ -12,6 +12,7 @@ import static org.robolectric.Shadows.shadowOf;
 import android.os.Looper;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,13 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 @Config(sdk = 30)
 public class StoriesTrayTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    /** The patch is in Morphe Manager's default selection with its switches off; these tests turn them on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HIDE_TOP_STORIES_TRAY.save(true);
+        Settings.HIDE_STORIES_BETWEEN_POSTS.save(true);
+    }
 
     @After
     public void restore() {
@@ -106,10 +114,10 @@ public class StoriesTrayTest {
         assertEquals("paused, a new composer row shows", 1, FeedFilter.storiesTrayCount(new Tray(), FeedFilter.HOME_COMPOSER, 1));
     }
 
-    /** Picking the patch is the choice to hide the tray, so its switch starts on. */
+    /** The patch is in Morphe Manager's default selection, so the tray stays until its switch is turned on. */
     @Test
-    public void theSwitchStartsOnOnceThePatchIsPicked() {
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.defaultValue);
+    public void theSwitchStartsOff() {
+        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.defaultValue);
     }
 
     /** Each adapter decides at its first count and keeps that answer however often the feed asks. */

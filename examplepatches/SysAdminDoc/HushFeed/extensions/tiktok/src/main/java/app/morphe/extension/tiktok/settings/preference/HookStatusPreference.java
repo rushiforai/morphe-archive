@@ -89,7 +89,8 @@ public class HookStatusPreference extends Preference {
                     "Nothing has been checked yet, so there's nothing to report."));
         } else {
             message.append(L10n.t(context,
-                    "Each area, how many of the things it looks for are in this build and how many aren't."));
+                    "Each area shows how many of the things Hushfeed looks for were found in "
+                            + "this TikTok and how many are missing."));
             for (String line : report) message.append("\n\n").append(line);
         }
 

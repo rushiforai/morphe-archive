@@ -22,3 +22,10 @@ tasks.withType<Jar>().configureEach {
     // これが無いと、以前のビルドで残った空のフォルダがバンドルに入ってしまう。
     includeEmptyDirs = false
 }
+
+tasks.processResources {
+    // 拡張の診断ログにパッチの版を書くため、バンドルの版をリソースに埋め込む。
+    val bundleVersion = project.version.toString()
+    inputs.property("version", bundleVersion)
+    filesMatching("**/autoexpand-version.txt") { expand("version" to bundleVersion) }
+}

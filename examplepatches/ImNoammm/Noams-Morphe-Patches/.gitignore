@@ -1,0 +1,20 @@
+# Build output
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.mpp
+*.mpe
+*.log
+
+# Gboard's native libraries and network helper app, built on the phone from gboard/
+/patches/src/main/resources/nogoogle-native/
+/patches/src/main/resources/nogoogle-helper/
+
+# Local toolchain, test runs, release files and the script that syncs each app's project into this repo
+/.build-deps/
+/dist/
+/tools/
+
+.idea/
+.vscode/

@@ -34,9 +34,9 @@ import java.io.File
  * it.
  */
 class KeepPostDatesFixtureTest {
-    /** Where each declared build keeps the choice: the subtitle's class and the choice's register. */
+    /** Where each declared build keeps the choice, by ABI: the subtitle's class and the choice's register. */
     private val expected = mapOf(
-        "581.0.0.45.58" to ("LX/34Z;" to 14),
+        "582.0.0.50.54" to mapOf("arm64-v8a" to ("LX/31y;" to 14), "armeabi-v7a" to ("LX/32s;" to 14)),
     )
 
     private fun Method.code(): List<Instruction> = implementation!!.instructions.toList()
@@ -65,7 +65,7 @@ class KeepPostDatesFixtureTest {
                 val owner = owners.single { it.type == choice.method.definingClass }
                 assertTrue("$name: ${owner.type} doesn't name itself FDSPostHeaderSubtitle",
                     owner.methods.any { it.name == "<init>" && holdsString(it, "FDSPostHeaderSubtitle") })
-                assertEquals("$name: the subtitle's class and the choice's register", expected[version],
+                assertEquals("$name: the subtitle's class and the choice's register", expected[version]?.get(name.substringAfter("-$version-").substringBefore(".apkm")),
                     owner.type to choice.register)
                 val original = choice.method.code()
 

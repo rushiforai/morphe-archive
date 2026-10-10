@@ -549,13 +549,14 @@ public class L10nCatalogTest {
         return out.toString();
     }
 
-    /** Hushfacebook 88a7f512: the surviving Turkish GitHub row uses the catalog's apostrophe. */
+    /** The Turkish locative suffix after GitHub uses the catalog's straight apostrophe. */
     @Test
-    public void upstream88a7f512KeepsTheTurkishGitHubApostropheConsistent() throws IOException {
-        String key = "Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.";
+    public void turkishGithubUsesTheStraightLocativeApostrophe() throws IOException {
+        String key = "Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. "
+            + "Nothing is downloaded.";
         String translated = readTable("tr").get(key);
-        assertTrue(translated, translated.contains("GitHub'ı"));
-        assertFalse(translated, translated.contains("GitHub\u2019ı"));
+        assertTrue(translated, translated.contains("GitHub'da"));
+        assertFalse(translated, translated.contains("GitHub\u2019da"));
         assertEquals(translated, L10nTranslations.of("tr").get(key));
     }
 }

@@ -1,3 +1,46 @@
+## [1.7.13](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.12...v1.7.13) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* directions to Home, Work and your own labels; issue [#36](https://github.com/bearinmindcat/morphe-patches/issues/36) ([9827770](https://github.com/bearinmindcat/morphe-patches/commit/98277703504fd6bccbc62f91555115407cad2528))
+* show local saved places on the map with a hide switch per list; issue [#36](https://github.com/bearinmindcat/morphe-patches/issues/36) ([7b82e80](https://github.com/bearinmindcat/morphe-patches/commit/7b82e807c3af4bf5aa6be636dd2118427a53efe7))
+
+## [1.7.12](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.11...v1.7.12) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* Home, Work and your own labels work in Maps' search and Add label; issue [#36](https://github.com/bearinmindcat/morphe-patches/issues/36) ([a504eab](https://github.com/bearinmindcat/morphe-patches/commit/a504eab1af955c58a758a99d7bedc8199212eed1))
+
+## [1.7.11](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.10...v1.7.11) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* choose microg Services or Google Play Services location in both apps ([1e7c8a5](https://github.com/bearinmindcat/morphe-patches/commit/1e7c8a5681249794a21d46f93e76e66a7edb76f0))
+
+## [1.7.10](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.9...v1.7.10) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* location sharing settings, notice and my location button in microG Maps; issue [#30](https://github.com/bearinmindcat/morphe-patches/issues/30) ([bd6a34a](https://github.com/bearinmindcat/morphe-patches/commit/bd6a34a25451666d61b121f17c1894a303b18306))
+
+## [1.7.9](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.8...v1.7.9) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* Customization and the other added screens open on root mount installs; issue [#25](https://github.com/bearinmindcat/morphe-patches/issues/25) ([00ddf32](https://github.com/bearinmindcat/morphe-patches/commit/00ddf32177525aa99b1ac9bb4db0f492055c4404))
+
+## [1.7.8](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.7...v1.7.8) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* my location no longer crashes microG Maps when location is off; issue [#27](https://github.com/bearinmindcat/morphe-patches/issues/27) ([a1d74bb](https://github.com/bearinmindcat/morphe-patches/commit/a1d74bbd53ad9d4e0d78fdb5768fba9f8c133c38))
+
+## [1.7.7](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.6...v1.7.7) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* pick any music app as the default media app in navigation; issue [#9](https://github.com/bearinmindcat/morphe-patches/issues/9) ([e831ff1](https://github.com/bearinmindcat/morphe-patches/commit/e831ff186a4660978eae26076bd2bf8df8b9bb12))
+
 ## [1.7.6](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.5...v1.7.6) (2026-10-08)
 
 ### 🐛 Bug Fixes

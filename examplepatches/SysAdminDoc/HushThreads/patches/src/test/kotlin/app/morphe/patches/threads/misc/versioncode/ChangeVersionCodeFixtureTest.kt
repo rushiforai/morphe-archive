@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.patches.shared.compat.AppCompatibilities
 
 /**
  * Change version code on every declared build: Threads' reads of its own code are found and sent
@@ -103,7 +104,8 @@ class ChangeVersionCodeFixtureTest {
                 assertTrue("${build.name}: ${refused?.message}", refused is PatchException && refused.message!!.startsWith("$PATCH: "))
             }
         }
-        assertEquals("one build of each declared version", 3, builds.size)
+        val declaredVersions = AppCompatibilities.threads().single().targets.mapNotNull { it.version }.distinct().size
+        assertEquals("one build of each declared version", declaredVersions, builds.size)
     }
 
     /**

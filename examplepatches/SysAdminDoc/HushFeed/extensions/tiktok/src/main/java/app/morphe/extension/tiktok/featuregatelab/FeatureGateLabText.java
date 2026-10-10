@@ -39,8 +39,8 @@ final class FeatureGateLabText {
         if (failure == null) return "";
         switch (failure.reason) {
             case NO_OBJECT:
-                return L10n.t(context, "TikTok hasn't handed this setting an object to change"
-                        + " yet. Open the part of the app that uses it, then come back.");
+                return L10n.t(context, "TikTok hasn't loaded this setting yet. Open the part of "
+                        + "the app that uses it, then come back.");
             case CANNOT_COPY:
                 return L10n.t(context, "This setting's value can't be copied on this build, so"
                         + " it can't be overridden. Reset the override.");

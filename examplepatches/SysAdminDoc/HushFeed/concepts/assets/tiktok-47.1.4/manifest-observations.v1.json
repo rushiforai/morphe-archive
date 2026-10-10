@@ -1,0 +1,5905 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "static manifest declarations from original declared-target APK fixture",
+  "identity": {
+    "package": "com.zhiliaoapp.musically",
+    "version_name": "47.1.4",
+    "version_code": "2024701040",
+    "minSdkVersion": "23",
+    "targetSdkVersion": "36",
+    "apk_sha256": "4226ed5d3031b68208c29f62d80ac421b281fc74201bc4163d98e442d0991a40",
+    "apk_bytes": 472239331,
+    "signer_verification": {
+      "tool": "Android SDK apksigner 37.0.0",
+      "result": "verified offline",
+      "apk_signer_count": 1,
+      "apk_signer_certificate_sha256": "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba",
+      "matches_declared_target_certificate": true,
+      "signature_schemes": {
+        "v1": true,
+        "v2": true,
+        "v3": true
+      },
+      "source_stamp_is_separate": true,
+      "warnings": {
+        "total": 150,
+        "meta_inf_jar_entry_signature_warnings": 146,
+        "java_native_access_warning_lines": 4,
+        "scope": "The receipt reports 146 META-INF entry protection warnings covering license files, library version metadata, service descriptors and other metadata, plus four Java native-access warning lines. v1, v2 and v3 verification succeeded. This records scheme verification and signer identity, not a warning-free or generally safe artifact."
+      }
+    }
+  },
+  "distinction": {
+    "installed_measurement_app": "TikTok 47.1.4 with Hushfeed 0.68.0 paused, a different modified artifact",
+    "factory_ui_observation": "Separate unpatched TikTok 38.3.3 emulator observation",
+    "runtime_measurement_of_this_fixture": false
+  },
+  "source_artifact_hashes": {
+    "manifest.txt": "9625c24751c6ff00c471e6bcf7d6066fe7e49f0ee67d9148e6a54ef4bb06cf05",
+    "permissions.txt": "24b6129163be4ceabceba4bbb0a6476cdc4592a2e3deb09066582d8f782c604d",
+    "badging.txt": "06d3a33431a0eb6d4a0ec369df9cad6a03029a6ef504602a981f59a2780460ad",
+    "summary.json": "eb3c18ca7002262d5ccc52ff085ca6dc265a1f6dead18c0eba8ae45002dac410",
+    "signer.txt": "e8840ccd47f8898826cf98f37149c5ed6b8f59ca06b5d4b5445d253f252cc896",
+    "fullBackupContent.txt": "4533241abda5218a5699bf8223fce54c0372150a1ff404f4db25a382be7cdb4e",
+    "networkSecurityConfig.txt": "9651f4df65f4ceed4cb28089b090f14dd90d575d4013b2999585652c21c2c0c9",
+    "resource-policy-summary.json": "b2338b06da8d9cfc5827d63f0252f55d49e70e03d38db3ca8b80605d2196134a"
+  },
+  "application_flags": {
+    "debuggable": "not declared",
+    "allowBackup": true,
+    "backupAgent": "com.ss.android.ugc.aweme.AutoBackupAgent",
+    "fullBackupOnly": true,
+    "fullBackupContent": "@0x7f150009",
+    "dataExtractionRules": "not declared",
+    "usesCleartextTraffic": true,
+    "networkSecurityConfig": "@0x7f150014",
+    "permission": "not declared",
+    "testOnly": "not declared",
+    "persistent": false,
+    "requestLegacyExternalStorage": true,
+    "enableOnBackInvokedCallback": false
+  },
+  "application_metadata_keys": [
+    "com.google.android.gms.ads.APPLICATION_ID",
+    "com.google.android.engage.service.ENV",
+    "com.oplus.ocs.systemstability.AUTH_CODE",
+    "com.google.android.geo.API_KEY",
+    "asset_statements",
+    "com.facebook.sdk.ClientToken",
+    "com.coloros.ocs.camera.AUTH_CODE",
+    "com.coloros.ocs.olk.AUTH_CODE",
+    "UPDATE_VERSION_CODE",
+    "SS_VERSION_NAME",
+    "SS_VERSION_CODE",
+    "google_analytics_automatic_screen_reporting_enabled",
+    "google_analytics_automatic_screen_reporting_enabled",
+    "com.google.android.gms.wallet.api.enabled",
+    "com.google.android.actions",
+    "TTOPEN_SDK_NEWSARTICLE_CLIENT_KEY",
+    "com.facebook.sdk.AutoLogAppEventsEnabled",
+    "android.max_aspect",
+    "android.vivo_multidisplay_support",
+    "APPKEY",
+    "com.google.android.gms.version",
+    "com.facebook.sdk.ApplicationId",
+    "firebase_analytics_collection_enabled",
+    "google_analytics_default_allow_analytics_storage",
+    "google_analytics_default_allow_ad_storage",
+    "google_analytics_default_allow_ad_user_data",
+    "google_analytics_default_allow_ad_personalization_signals",
+    "ELEMENT_com.ss.ugc.android.editortrack.MAIN",
+    "com.oplus.ocs.media.AUTH_CODE",
+    "com.google.android.play.billingclient.version",
+    "sdkVersion",
+    "supportTimePushVerify",
+    "supportCallkitDataBind",
+    "com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME",
+    "com.google.ar.core",
+    "com.google.ar.core.min_apk_version",
+    "pipo_sdk_schema",
+    "com.coloros.ocs.hyper.AUTH_CODE",
+    "com.android.dynamic.apk.fused.modules",
+    "com.android.stamp.source",
+    "com.android.stamp.type",
+    "com.android.vending.splits",
+    "com.android.vending.derived.apk.id"
+  ],
+  "component_counts": {
+    "activity": {
+      "total": 498,
+      "explicit_exported_true": 30,
+      "explicit_exported_false": 57,
+      "exported_attribute_absent": 411
+    },
+    "activity-alias": {
+      "total": 2,
+      "explicit_exported_true": 2,
+      "explicit_exported_false": 0,
+      "exported_attribute_absent": 0
+    },
+    "service": {
+      "total": 87,
+      "explicit_exported_true": 17,
+      "explicit_exported_false": 48,
+      "exported_attribute_absent": 22
+    },
+    "receiver": {
+      "total": 52,
+      "explicit_exported_true": 12,
+      "explicit_exported_false": 37,
+      "exported_attribute_absent": 3
+    },
+    "provider": {
+      "total": 11,
+      "explicit_exported_true": 6,
+      "explicit_exported_false": 5,
+      "exported_attribute_absent": 0
+    }
+  },
+  "explicitly_exported_components": [
+    {
+      "type": "activity",
+      "manifest_dump_line": 569,
+      "attributes": {
+        "name": "net.openid.appauth.RedirectUriReceiverActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "com.googleusercontent.apps.[embedded-client-id-redacted]"
+            },
+            {
+              "scheme": "com.googleusercontent.apps.[embedded-client-id-redacted]"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 586,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.music.addtodsp.auth.RedirectUriReceiverActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "com.googleusercontent.apps.[embedded-client-id-redacted]"
+            },
+            {
+              "scheme": "com.googleusercontent.apps.[embedded-client-id-redacted]"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 661,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.main.MainActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity-alias",
+      "manifest_dump_line": 675,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.splash.ApplinkHookActivity",
+        "enabled": false,
+        "exported": true,
+        "targetActivity": "com.ss.android.ugc.aweme.main.MainActivity"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "app-va.tiktokv.com"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/m_otl_redirect"
+            },
+            {
+              "pathPrefix": "/m_m2_redirect"
+            },
+            {
+              "pathPrefix": "/m_only_redirect"
+            },
+            {
+              "pathPrefix": "/m_litem2_redirect"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktokv.com"
+            },
+            {
+              "pathPattern": "/"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/m_otl_redirect"
+            },
+            {
+              "pathPrefix": "/m_m2_redirect"
+            },
+            {
+              "pathPrefix": "/m_only_redirect"
+            },
+            {
+              "pathPrefix": "/m_litem2_redirect"
+            },
+            {
+              "pathPrefix": "/i18n/share/music/"
+            },
+            {
+              "pathPrefix": "/i18n/share/video/"
+            },
+            {
+              "pathPrefix": "/i18n/share/challenge/"
+            },
+            {
+              "pathPrefix": "/i18n/share/user/"
+            },
+            {
+              "pathPrefix": "/share/stickers/detail/"
+            },
+            {
+              "pathPrefix": "/share/live/"
+            },
+            {
+              "pathPrefix": "/live/monetization/square/"
+            },
+            {
+              "pathPrefix": "/share/game/"
+            },
+            {
+              "pathPrefix": "/chatting/message"
+            },
+            {
+              "pathPrefix": "/bulletin_board"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "m.tiktok.com"
+            },
+            {
+              "host": "t.tiktok.com"
+            },
+            {
+              "pathPattern": "/"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/v/"
+            },
+            {
+              "pathPrefix": "/V/"
+            },
+            {
+              "pathPrefix": "/live/"
+            },
+            {
+              "pathPrefix": "/h5/share/usr/"
+            },
+            {
+              "pathPrefix": "/h5/share/tag/"
+            },
+            {
+              "pathPrefix": "/h5/share/music/"
+            },
+            {
+              "pathPrefix": "/H5/share/"
+            },
+            {
+              "pathPrefix": "/i18n/share/music/"
+            },
+            {
+              "pathPrefix": "/i18n/share/video/"
+            },
+            {
+              "pathPrefix": "/i18n/share/challenge/"
+            },
+            {
+              "pathPrefix": "/i18n/share/user/"
+            },
+            {
+              "pathPrefix": "/share/stickers/detail/"
+            },
+            {
+              "pathPrefix": "/share/live/"
+            },
+            {
+              "pathPrefix": "/live/monetization/square/"
+            },
+            {
+              "pathPrefix": "/share/game/"
+            },
+            {
+              "pathPrefix": "/playlist-music/"
+            },
+            {
+              "pathPrefix": "/ucenter_web/deeplink"
+            },
+            {
+              "pathPrefix": "/bulletin_board"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktok.com"
+            },
+            {
+              "pathPrefix": "/content/"
+            },
+            {
+              "pathPrefix": "/topic/"
+            },
+            {
+              "pathPrefix": "/q/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktok.com"
+            },
+            {
+              "host": "us.tiktok.com"
+            },
+            {
+              "path": ""
+            },
+            {
+              "pathPattern": "/"
+            },
+            {
+              "pathPattern": "/@.*"
+            },
+            {
+              "pathPattern": "/share/@.*"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/tag/"
+            },
+            {
+              "pathPrefix": "/music/"
+            },
+            {
+              "pathPrefix": "/playlist-music/"
+            },
+            {
+              "pathPrefix": "/sticker/"
+            },
+            {
+              "pathPrefix": "/v/"
+            },
+            {
+              "pathPrefix": "/V/"
+            },
+            {
+              "pathPrefix": "/share/live/"
+            },
+            {
+              "pathPrefix": "/live/monetization/square/"
+            },
+            {
+              "pathPrefix": "/share/stickers/detail/"
+            },
+            {
+              "pathPrefix": "/share/game/"
+            },
+            {
+              "pathPrefix": "/share/tag/"
+            },
+            {
+              "pathPrefix": "/share/music/"
+            },
+            {
+              "pathPrefix": "/share/sticker/"
+            },
+            {
+              "pathPrefix": "/share/video/"
+            },
+            {
+              "pathPrefix": "/share/user/"
+            },
+            {
+              "pathPrefix": "/share/challenge/"
+            },
+            {
+              "pathPrefix": "/h5/share/usr/"
+            },
+            {
+              "pathPrefix": "/h5/share/tag/"
+            },
+            {
+              "pathPrefix": "/h5/share/music/"
+            },
+            {
+              "pathPrefix": "/H5/share/"
+            },
+            {
+              "pathPrefix": "/i18n/share/music/"
+            },
+            {
+              "pathPrefix": "/i18n/share/video/"
+            },
+            {
+              "pathPrefix": "/i18n/share/challenge/"
+            },
+            {
+              "pathPrefix": "/i18n/share/user/"
+            },
+            {
+              "pathPrefix": "/messages/"
+            },
+            {
+              "pathPrefix": "/t/"
+            },
+            {
+              "pathPrefix": "/search/campaign/"
+            },
+            {
+              "pathPrefix": "/question/"
+            },
+            {
+              "pathPrefix": "/discover/"
+            },
+            {
+              "pathPrefix": "/find/"
+            },
+            {
+              "pathPrefix": "/channel/"
+            },
+            {
+              "pathPrefix": "/revenue/subscription/invitation"
+            },
+            {
+              "pathPrefix": "/ug/ads/landing/"
+            },
+            {
+              "pathPrefix": "/now"
+            },
+            {
+              "pathPrefix": "/place/"
+            },
+            {
+              "pathPrefix": "/v2/h5/auth/authorize"
+            },
+            {
+              "pathPrefix": "/third-party-oauth-redirect/"
+            },
+            {
+              "pathPrefix": "/ucenter_web/passkey_wizard"
+            },
+            {
+              "pathPrefix": "/ucenter_web/deeplink"
+            },
+            {
+              "pathPattern": "/view/product/.*"
+            },
+            {
+              "pathPattern": "/.*/trending/.*"
+            },
+            {
+              "pathPrefix": "/minis/"
+            },
+            {
+              "path": "/shop"
+            },
+            {
+              "pathPattern": "/shop/pdp/.*"
+            },
+            {
+              "pathPattern": "/product/.*"
+            },
+            {
+              "pathPattern": "/shop/product/.*"
+            },
+            {
+              "pathPattern": "/shop/c/.*"
+            },
+            {
+              "pathPattern": "/shop/k/.*"
+            },
+            {
+              "pathPattern": "/shop/blog/.*"
+            },
+            {
+              "pathPattern": "/shop/store/.*"
+            },
+            {
+              "pathPattern": "/shop/open_homepage.*"
+            },
+            {
+              "pathPattern": "/shop/ug/ads.*"
+            },
+            {
+              "pathPrefix": "/bulletin_board"
+            },
+            {
+              "pathPrefix": "/d/1/"
+            },
+            {
+              "pathPrefix": "/d/7/"
+            },
+            {
+              "pathPrefix": "/d/8/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktok.com"
+            },
+            {
+              "host": "us.tiktok.com"
+            },
+            {
+              "pathPrefix": "/video/"
+            },
+            {
+              "pathPrefix": "/short-video/"
+            },
+            {
+              "pathPrefix": "/discover-"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "vm.tiktok.com"
+            },
+            {
+              "host": "vt.tiktok.com"
+            },
+            {
+              "pathPattern": "/.*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tt.site"
+            },
+            {
+              "host": "www.tt.inc"
+            },
+            {
+              "host": "www.tt.fun"
+            },
+            {
+              "host": "vt.tokopedia.com"
+            },
+            {
+              "pathPrefix": "/t/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "link.e.tiktok.com"
+            },
+            {
+              "pathPrefix": "/uni/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "oec-api.tiktokv.com"
+            },
+            {
+              "pathPattern": "/view/product/.*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "shop.tiktok.com"
+            },
+            {
+              "pathPattern": "/view/product/.*"
+            },
+            {
+              "path": "/us"
+            },
+            {
+              "pathPattern": "/us/.*"
+            },
+            {
+              "path": "/sg"
+            },
+            {
+              "pathPattern": "/sg/.*"
+            },
+            {
+              "path": "/my"
+            },
+            {
+              "pathPattern": "/my/.*"
+            },
+            {
+              "path": "/jp"
+            },
+            {
+              "pathPattern": "/jp/.*"
+            },
+            {
+              "path": "/vn"
+            },
+            {
+              "pathPattern": "/vn/.*"
+            },
+            {
+              "path": "/th"
+            },
+            {
+              "pathPattern": "/th/.*"
+            },
+            {
+              "path": "/ph"
+            },
+            {
+              "pathPattern": "/ph/.*"
+            },
+            {
+              "path": "/mx"
+            },
+            {
+              "pathPattern": "/mx/.*"
+            },
+            {
+              "path": "/sa"
+            },
+            {
+              "pathPattern": "/sa/.*"
+            },
+            {
+              "path": "/br"
+            },
+            {
+              "pathPattern": "/br/.*"
+            },
+            {
+              "path": "/gb"
+            },
+            {
+              "pathPattern": "/gb/.*"
+            },
+            {
+              "path": "/ie"
+            },
+            {
+              "pathPattern": "/ie/.*"
+            },
+            {
+              "path": "/es"
+            },
+            {
+              "pathPattern": "/es/.*"
+            },
+            {
+              "path": "/de"
+            },
+            {
+              "pathPattern": "/de/.*"
+            },
+            {
+              "path": "/it"
+            },
+            {
+              "pathPattern": "/it/.*"
+            },
+            {
+              "path": "/fr"
+            },
+            {
+              "pathPattern": "/fr/.*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "tiktok.me"
+            },
+            {
+              "pathPattern": "/.*"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity-alias",
+      "manifest_dump_line": 1131,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.splash.SplashActivity",
+        "exported": true,
+        "targetActivity": "com.ss.android.ugc.aweme.main.MainActivity"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.MAIN"
+          ],
+          "categories": [
+            "android.intent.category.LAUNCHER"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 1180,
+      "attributes": {
+        "name": "com.kakao.sdk.auth.AuthCodeHandlerActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "kakao[embedded-app-id-redacted]",
+              "host": "oauth"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1206,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.crash.cp.ExportedShellProvider",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.provider.ttreferrer;com.zhiliaoapp.musically.provider.drama.ttreferrer;com.zhiliaoapp.musically.preinstall.attribution"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1540,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.common.net.NetworkReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.net.conn.CONNECTIVITY_CHANGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1570,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.livewallpaper.WallPaperDataProvider",
+        "permission": "com.zhiliaoapp.musically.permission.wallpaper",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.wallpapercaller"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1575,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.account.provider.OneTapLoginTokenProvider",
+        "writePermission": "com.zhiliaoapp.musically.permission.WRITE_OTL_TOKEN",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.provider.onetaplogintoken"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1580,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.account.provider.AccountInfoProvider",
+        "writePermission": "com.zhiliaoapp.musically.permission.WRITE_OTL_TOKEN",
+        "exported": true,
+        "process": ":account",
+        "authorities": "com.zhiliaoapp.musically.provider.account_info"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1680,
+      "attributes": {
+        "name": "com.ss.android.ugc.trill.account.TiktokAuthService",
+        "enabled": true,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.accounts.AccountAuthenticator"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.accounts.AccountAuthenticator"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1692,
+      "attributes": {
+        "name": "com.appsflyer.MultipleInstallBroadcastReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.android.vending.INSTALL_REFERRER"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1698,
+      "attributes": {
+        "name": "com.appsflyer.SingleInstallBroadcastReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.android.vending.INSTALL_REFERRER"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1704,
+      "attributes": {
+        "name": "com.ss.android.ugc.trill.abtest.impl.NotificationBroadcastReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "notification_cancelled",
+            "notification_clicked"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1733,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.common.net.NetWorkStateReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.net.conn.CONNECTIVITY_CHANGE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1816,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tile.PublishTileService",
+        "permission": "android.permission.BIND_QUICK_SETTINGS_TILE",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.service.quicksettings.action.QS_TILE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.service.quicksettings.ACTIVE_TILE"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1829,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tile.HotVideoTileService",
+        "permission": "android.permission.BIND_QUICK_SETTINGS_TILE",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.service.quicksettings.action.QS_TILE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.service.quicksettings.ACTIVE_TILE"
+      ]
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 1886,
+      "attributes": {
+        "name": "com.ss.android.sdk.activity.BootstrapActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "snssdk0"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2086,
+      "attributes": {
+        "name": "com.ss.android.message.NotifyService",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.message.action.PUSH_SERVICE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 2443,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.share.SystemShareActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.SEND"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/png"
+            },
+            {
+              "mimeType": "image/jpg"
+            },
+            {
+              "mimeType": "image/jpeg"
+            },
+            {
+              "mimeType": "image/webp"
+            },
+            {
+              "mimeType": "image/heif"
+            },
+            {
+              "mimeType": "video/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.SEND_MULTIPLE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/png"
+            },
+            {
+              "mimeType": "image/jpg"
+            },
+            {
+              "mimeType": "image/jpeg"
+            },
+            {
+              "mimeType": "image/webp"
+            },
+            {
+              "mimeType": "image/heif"
+            },
+            {
+              "mimeType": "video/*"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 2489,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.share.linkshare.OpenLinkShareActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.LINK"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.VIDEO"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "video/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.IMAGE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.MUSIC"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.MUSIC_FEED"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.MUSIC_MESSAGE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "text/*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.LINK_SHARE_V1"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "*/*"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 2550,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.share.linkshare.OpenLinkShareMainActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.tiktok.opensdk.share.PROXY_LINK_SHARE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3146,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tools.policysecurity.OriginalSoundUploadService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3150,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tools.extract.video.VideoFramesUploadService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 3618,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.shortvideo.ui.VideoRecordPermissionActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.intent.action.redirect.record"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 3631,
+      "attributes": {
+        "name": "com.ss.android.ugc.gamora.recorder.sticker.aigc.AIGCGenerationDraftCompatActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4271,
+      "attributes": {
+        "name": "androidx.browser.customtabs.PostMessageService",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4448,
+      "attributes": {
+        "name": "com.ss.android.ugc.tiktok.samsungfinder.SamsungSearchTikTokBrowserService",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.media.browse.MediaBrowserService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4482,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.lifecycle.service.OplusVideoDownloadService",
+        "permission": "com.oplus.permission.safe.APP_MANAGER",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.APP_RESOURCE_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 4524,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.cubes.engage.EngageBroadcastReceiver",
+        "enabled": true,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.engage.action.PUBLISH_RECOMMENDATION"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4699,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.comp.impl.gameanchor.mirror.activity.UsbSourceProxyActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
+      ]
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4715,
+      "attributes": {
+        "name": "com.byted.cast.usbsource.usbdisplaysource.UsbSourceActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4786,
+      "attributes": {
+        "name": "com.ss.android.ugc.tiktok.pns.privacy.setting.paprompt.ui.PaPromptContainerActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4838,
+      "attributes": {
+        "name": "com.zhiliaoapp.musically.openauthorize.AwemeAuthorizedActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "BD_PLATFORM_SDK_VERSION"
+      ]
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4851,
+      "attributes": {
+        "name": "com.aweme.account.login.OTLIntentHandlerActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 4861,
+      "attributes": {
+        "name": "com.facebook.FacebookContentProvider",
+        "exported": true,
+        "authorities": "com.facebook.app.FacebookContentProvider[embedded-app-id-redacted]"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4865,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.deeplink.DeepLinkActivityV2",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.sdk.snssdk1180"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "snssdk1180"
+            },
+            {
+              "scheme": "musically"
+            },
+            {
+              "scheme": "snssdk1233"
+            },
+            {
+              "scheme": "tiktok"
+            },
+            {
+              "scheme": "snssdkonly1233"
+            },
+            {
+              "scheme": "snssdkotl1233"
+            },
+            {
+              "scheme": "snssdkm21233"
+            },
+            {
+              "scheme": "snssdklitem21233"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 4902,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.deeplink.AppLinkHandlerV2",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "app-va.tiktokv.com"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/m_otl_redirect"
+            },
+            {
+              "pathPrefix": "/m_m2_redirect"
+            },
+            {
+              "pathPrefix": "/m_only_redirect"
+            },
+            {
+              "pathPrefix": "/m_litem2_redirect"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktokv.com"
+            },
+            {
+              "pathPattern": "/"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/m_otl_redirect"
+            },
+            {
+              "pathPrefix": "/m_m2_redirect"
+            },
+            {
+              "pathPrefix": "/m_only_redirect"
+            },
+            {
+              "pathPrefix": "/m_litem2_redirect"
+            },
+            {
+              "pathPrefix": "/i18n/share/music/"
+            },
+            {
+              "pathPrefix": "/i18n/share/video/"
+            },
+            {
+              "pathPrefix": "/i18n/share/challenge/"
+            },
+            {
+              "pathPrefix": "/i18n/share/user/"
+            },
+            {
+              "pathPrefix": "/share/stickers/detail/"
+            },
+            {
+              "pathPrefix": "/share/live/"
+            },
+            {
+              "pathPrefix": "/live/monetization/square/"
+            },
+            {
+              "pathPrefix": "/share/game/"
+            },
+            {
+              "pathPrefix": "/chatting/message"
+            },
+            {
+              "pathPrefix": "/bulletin_board"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "m.tiktok.com"
+            },
+            {
+              "host": "t.tiktok.com"
+            },
+            {
+              "pathPattern": "/"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/v/"
+            },
+            {
+              "pathPrefix": "/V/"
+            },
+            {
+              "pathPrefix": "/live/"
+            },
+            {
+              "pathPrefix": "/h5/share/usr/"
+            },
+            {
+              "pathPrefix": "/h5/share/tag/"
+            },
+            {
+              "pathPrefix": "/h5/share/music/"
+            },
+            {
+              "pathPrefix": "/H5/share/"
+            },
+            {
+              "pathPrefix": "/i18n/share/music/"
+            },
+            {
+              "pathPrefix": "/i18n/share/video/"
+            },
+            {
+              "pathPrefix": "/i18n/share/challenge/"
+            },
+            {
+              "pathPrefix": "/i18n/share/user/"
+            },
+            {
+              "pathPrefix": "/share/stickers/detail/"
+            },
+            {
+              "pathPrefix": "/share/live/"
+            },
+            {
+              "pathPrefix": "/live/monetization/square/"
+            },
+            {
+              "pathPrefix": "/share/game/"
+            },
+            {
+              "pathPrefix": "/playlist-music/"
+            },
+            {
+              "pathPrefix": "/ucenter_web/deeplink"
+            },
+            {
+              "pathPrefix": "/bulletin_board"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktok.com"
+            },
+            {
+              "pathPrefix": "/content/"
+            },
+            {
+              "pathPrefix": "/topic/"
+            },
+            {
+              "pathPrefix": "/q/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktok.com"
+            },
+            {
+              "host": "us.tiktok.com"
+            },
+            {
+              "path": ""
+            },
+            {
+              "pathPattern": "/"
+            },
+            {
+              "pathPattern": "/@.*"
+            },
+            {
+              "pathPattern": "/share/@.*"
+            },
+            {
+              "pathPrefix": "/redirect"
+            },
+            {
+              "pathPrefix": "/tag/"
+            },
+            {
+              "pathPrefix": "/music/"
+            },
+            {
+              "pathPrefix": "/playlist-music/"
+            },
+            {
+              "pathPrefix": "/sticker/"
+            },
+            {
+              "pathPrefix": "/v/"
+            },
+            {
+              "pathPrefix": "/V/"
+            },
+            {
+              "pathPrefix": "/share/live/"
+            },
+            {
+              "pathPrefix": "/live/monetization/square/"
+            },
+            {
+              "pathPrefix": "/share/stickers/detail/"
+            },
+            {
+              "pathPrefix": "/share/game/"
+            },
+            {
+              "pathPrefix": "/share/tag/"
+            },
+            {
+              "pathPrefix": "/share/music/"
+            },
+            {
+              "pathPrefix": "/share/sticker/"
+            },
+            {
+              "pathPrefix": "/share/video/"
+            },
+            {
+              "pathPrefix": "/share/user/"
+            },
+            {
+              "pathPrefix": "/share/challenge/"
+            },
+            {
+              "pathPrefix": "/h5/share/usr/"
+            },
+            {
+              "pathPrefix": "/h5/share/tag/"
+            },
+            {
+              "pathPrefix": "/h5/share/music/"
+            },
+            {
+              "pathPrefix": "/H5/share/"
+            },
+            {
+              "pathPrefix": "/i18n/share/music/"
+            },
+            {
+              "pathPrefix": "/i18n/share/video/"
+            },
+            {
+              "pathPrefix": "/i18n/share/challenge/"
+            },
+            {
+              "pathPrefix": "/i18n/share/user/"
+            },
+            {
+              "pathPrefix": "/messages/"
+            },
+            {
+              "pathPrefix": "/t/"
+            },
+            {
+              "pathPrefix": "/search/campaign/"
+            },
+            {
+              "pathPrefix": "/question/"
+            },
+            {
+              "pathPrefix": "/discover/"
+            },
+            {
+              "pathPrefix": "/find/"
+            },
+            {
+              "pathPrefix": "/channel/"
+            },
+            {
+              "pathPrefix": "/revenue/subscription/invitation"
+            },
+            {
+              "pathPrefix": "/ug/ads/landing/"
+            },
+            {
+              "pathPrefix": "/now"
+            },
+            {
+              "pathPrefix": "/place/"
+            },
+            {
+              "pathPrefix": "/v2/h5/auth/authorize"
+            },
+            {
+              "pathPrefix": "/third-party-oauth-redirect/"
+            },
+            {
+              "pathPrefix": "/ucenter_web/passkey_wizard"
+            },
+            {
+              "pathPrefix": "/ucenter_web/deeplink"
+            },
+            {
+              "pathPattern": "/view/product/.*"
+            },
+            {
+              "pathPattern": "/.*/trending/.*"
+            },
+            {
+              "pathPrefix": "/minis/"
+            },
+            {
+              "path": "/shop"
+            },
+            {
+              "pathPattern": "/shop/pdp/.*"
+            },
+            {
+              "pathPattern": "/product/.*"
+            },
+            {
+              "pathPattern": "/shop/product/.*"
+            },
+            {
+              "pathPattern": "/shop/c/.*"
+            },
+            {
+              "pathPattern": "/shop/k/.*"
+            },
+            {
+              "pathPattern": "/shop/blog/.*"
+            },
+            {
+              "pathPattern": "/shop/store/.*"
+            },
+            {
+              "pathPattern": "/shop/open_homepage.*"
+            },
+            {
+              "pathPattern": "/shop/ug/ads.*"
+            },
+            {
+              "pathPrefix": "/bulletin_board"
+            },
+            {
+              "pathPrefix": "/d/1/"
+            },
+            {
+              "pathPrefix": "/d/7/"
+            },
+            {
+              "pathPrefix": "/d/8/"
+            },
+            {
+              "pathPrefix": "/shortdrama/episode/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tiktok.com"
+            },
+            {
+              "host": "us.tiktok.com"
+            },
+            {
+              "pathPrefix": "/video/"
+            },
+            {
+              "pathPrefix": "/short-video/"
+            },
+            {
+              "pathPrefix": "/discover-"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "vm.tiktok.com"
+            },
+            {
+              "host": "vt.tiktok.com"
+            },
+            {
+              "pathPattern": "/.*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "www.tt.site"
+            },
+            {
+              "host": "www.tt.inc"
+            },
+            {
+              "host": "www.tt.fun"
+            },
+            {
+              "host": "vt.tokopedia.com"
+            },
+            {
+              "pathPrefix": "/t/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "link.e.tiktok.com"
+            },
+            {
+              "pathPrefix": "/uni/"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "oec-api.tiktokv.com"
+            },
+            {
+              "pathPattern": "/view/product/.*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "shop.tiktok.com"
+            },
+            {
+              "pathPattern": "/view/product/.*"
+            },
+            {
+              "path": "/us"
+            },
+            {
+              "pathPattern": "/us/.*"
+            },
+            {
+              "path": "/sg"
+            },
+            {
+              "pathPattern": "/sg/.*"
+            },
+            {
+              "path": "/my"
+            },
+            {
+              "pathPattern": "/my/.*"
+            },
+            {
+              "path": "/jp"
+            },
+            {
+              "pathPattern": "/jp/.*"
+            },
+            {
+              "path": "/vn"
+            },
+            {
+              "pathPattern": "/vn/.*"
+            },
+            {
+              "path": "/th"
+            },
+            {
+              "pathPattern": "/th/.*"
+            },
+            {
+              "path": "/ph"
+            },
+            {
+              "pathPattern": "/ph/.*"
+            },
+            {
+              "path": "/mx"
+            },
+            {
+              "pathPattern": "/mx/.*"
+            },
+            {
+              "path": "/sa"
+            },
+            {
+              "pathPattern": "/sa/.*"
+            },
+            {
+              "path": "/br"
+            },
+            {
+              "pathPattern": "/br/.*"
+            },
+            {
+              "path": "/gb"
+            },
+            {
+              "pathPattern": "/gb/.*"
+            },
+            {
+              "path": "/ie"
+            },
+            {
+              "pathPattern": "/ie/.*"
+            },
+            {
+              "path": "/es"
+            },
+            {
+              "pathPattern": "/es/.*"
+            },
+            {
+              "path": "/de"
+            },
+            {
+              "pathPattern": "/de/.*"
+            },
+            {
+              "path": "/it"
+            },
+            {
+              "pathPattern": "/it/.*"
+            },
+            {
+              "path": "/fr"
+            },
+            {
+              "pathPattern": "/fr/.*"
+            }
+          ]
+        },
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "host": "tiktok.me"
+            },
+            {
+              "pathPattern": "/.*"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 5430,
+      "attributes": {
+        "name": "com.ss.n_project.opensdk_tt.ui.Lemon8AuthActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 5436,
+      "attributes": {
+        "name": "com.ss.n_project.opensdk_tt.ui.WebAuthActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 5452,
+      "attributes": {
+        "name": "com.tokopedia.loginkit.view.LoginLauncherActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 5582,
+      "attributes": {
+        "name": "com.facebook.CustomTabActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "fbconnect",
+              "host": "cct.com.zhiliaoapp.musically"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 5616,
+      "attributes": {
+        "name": "com.bytedance.globalpayment.googlepayapi.PIPOPayActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5643,
+      "attributes": {
+        "name": "com.ss.android.push.window.oppo.ScreenReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.USER_PRESENT"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5659,
+      "attributes": {
+        "name": "com.google.firebase.iid.FirebaseInstanceIdReceiver",
+        "permission": "com.google.android.c2dm.permission.SEND",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.c2dm.intent.RECEIVE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5718,
+      "attributes": {
+        "name": "com.google.android.gms.auth.api.signin.RevocationBoundService",
+        "permission": "com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5777,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemjob.SystemJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "enabled": "@0x7f070007",
+        "exported": true,
+        "directBootAware": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5851,
+      "attributes": {
+        "name": "androidx.work.impl.diagnostics.DiagnosticsReceiver",
+        "permission": "android.permission.DUMP",
+        "enabled": true,
+        "exported": true,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "androidx.work.diagnostics.REQUEST_DIAGNOSTICS"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5872,
+      "attributes": {
+        "name": "androidx.core.telecom.internal.MuteStateReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.media.action.MICROPHONE_MUTE_CHANGED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5878,
+      "attributes": {
+        "name": "androidx.core.telecom.internal.JetpackConnectionService",
+        "permission": "android.permission.BIND_TELECOM_CONNECTION_SERVICE",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.telecom.ConnectionService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5903,
+      "attributes": {
+        "name": "com.coloros.service.OppoMessageHandleService",
+        "permission": "com.heytap.mcs.permission.SEND_PUSH_MESSAGE",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.heytap.mcs.action.RECEIVE_MCS_MESSAGE",
+            "com.heytap.msp.push.RECEIVE_MCS_MESSAGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5913,
+      "attributes": {
+        "name": "com.coloros.service.CompatibleOppoMessageHandleService",
+        "permission": "com.coloros.mcs.permission.SEND_MCS_MESSAGE",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.coloros.mcs.action.RECEIVE_MCS_MESSAGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 5934,
+      "attributes": {
+        "name": "com.ss.android.account.share.data.write.activity.ShareDataActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 5947,
+      "attributes": {
+        "name": "com.ss.android.account.share.data.write.provider.SecShareDataProvider",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.SecShareProviderAuthority"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5980,
+      "attributes": {
+        "name": "com.adm.push.ADMMessageHandler$Receiver",
+        "permission": "com.amazon.device.messaging.permission.SEND",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.amazon.device.messaging.intent.REGISTRATION",
+            "com.amazon.device.messaging.intent.RECEIVE"
+          ],
+          "categories": [
+            "com.zhiliaoapp.musically"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6008,
+      "attributes": {
+        "name": "com.heytap.msp.push.service.DataMessageReceivingService",
+        "exported": true,
+        "directBootAware": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.heytap.mcs.action.LAUNCH_COMPONENT_VIA_MCS"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6188,
+      "attributes": {
+        "name": "com.bytedance.effectcreatormobile.creatortiktok.preview.CKENewEffectEditorActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "description"
+      ]
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6210,
+      "attributes": {
+        "name": "com.bytedance.effectcreatormobile.effectimgcreator.EffectImgCreatorActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6249,
+      "attributes": {
+        "name": "com.google.android.play.core.assetpacks.AssetPackExtractionService",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "com.google.android.play.core.assetpacks.versionCode"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 6261,
+      "attributes": {
+        "name": "com.google.android.play.core.assetpacks.SessionStateBroadcastReceiver",
+        "permission": "android.permission.INSTALL_PACKAGES",
+        "enabled": true,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.play.core.assetpacks.receiver.ACTION_SESSION_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6283,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.pipo.payments.braintree.PayPalTransitionActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "com.zhiliaoapp.musically.braintree"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6299,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.pipo.payments.braintree.VenmoTransitionActivity",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6306,
+      "attributes": {
+        "name": "com.braintreepayments.api.BraintreeDeepLinkActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "com.zhiliaoapp.musically.braintree.deeplinkhandler"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6319,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.livewallpaper.AmeLiveWallpaper",
+        "permission": "android.permission.BIND_WALLPAPER",
+        "enabled": true,
+        "exported": true,
+        "process": ":wallpaper"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.service.wallpaper.WallpaperService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.service.wallpaper"
+      ]
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6408,
+      "attributes": {
+        "name": "com.bytedance.pipo.checkout.sdk.internal.CheckoutActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "snssdk1180",
+              "host": "pipopay",
+              "path": "/payin_checkout"
+            },
+            {
+              "scheme": "snssdk1180",
+              "host": "pipopay",
+              "path": "/payin_checkout_bind"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "activity",
+      "manifest_dump_line": 6428,
+      "attributes": {
+        "name": "com.bytedance.pipo.checkout.sdk.internal.PIManagementActivity",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "data": [
+            {
+              "scheme": "snssdk1180",
+              "host": "pipopay",
+              "path": "/payin_pi_management"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    }
+  ],
+  "service_and_provider_inventory": [
+    {
+      "type": "provider",
+      "manifest_dump_line": 1163,
+      "attributes": {
+        "name": "androidx.startup.InitializationProvider",
+        "enabled": true,
+        "exported": false,
+        "authorities": "com.zhiliaoapp.musically.androidx-startup"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "androidx.lifecycle.ProcessLifecycleInitializer"
+      ]
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1198,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.crash.cp.ShellProvider",
+        "exported": false,
+        "authorities": "com.zhiliaoapp.musically.WsChannelMultiProcessSharedProvider;com.zhiliaoapp.musically.ttlive_provider;com.ss.android.common.multiprocess.SHARE_PROVIDER_AUTHORITY1233;com.zhiliaoapp.musically.push.SHARE_PROVIDER_AUTHORITY;com.zhiliaoapp.musically.bdinstall.provider;com.zhiliaoapp.musically.push.settings;com.zhiliaoapp.musically.auth_token.SHARE_PROVIDER_AUTHORITY;com.zhiliaoapp.musically.dynamic.provider;com.zhiliaoapp.musically.resources.AndroidContextProvider;com.zhiliaoapp.musically.mlkitinitprovider"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.support.FILE_PROVIDER_PATHS"
+      ]
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1206,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.crash.cp.ExportedShellProvider",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.provider.ttreferrer;com.zhiliaoapp.musically.provider.drama.ttreferrer;com.zhiliaoapp.musically.preinstall.attribution"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1548,
+      "attributes": {
+        "name": "com.ss.android.push.DefaultService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1558,
+      "attributes": {
+        "name": "com.bytedance.ies.telecom.RequestMobileService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1570,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.livewallpaper.WallPaperDataProvider",
+        "permission": "com.zhiliaoapp.musically.permission.wallpaper",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.wallpapercaller"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1575,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.account.provider.OneTapLoginTokenProvider",
+        "writePermission": "com.zhiliaoapp.musically.permission.WRITE_OTL_TOKEN",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.provider.onetaplogintoken"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1580,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.account.provider.AccountInfoProvider",
+        "writePermission": "com.zhiliaoapp.musically.permission.WRITE_OTL_TOKEN",
+        "exported": true,
+        "process": ":account",
+        "authorities": "com.zhiliaoapp.musically.provider.account_info"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1680,
+      "attributes": {
+        "name": "com.ss.android.ugc.trill.account.TiktokAuthService",
+        "enabled": true,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.accounts.AccountAuthenticator"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.accounts.AccountAuthenticator"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1690,
+      "attributes": {
+        "name": "com.bytedance.ttnet.hostmonitor.HostMonitor"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1718,
+      "attributes": {
+        "name": "androidx.core.content.FileProvider",
+        "exported": false,
+        "authorities": "com.zhiliaoapp.musically.fileprovider",
+        "grantUriPermissions": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.support.FILE_PROVIDER_PATHS"
+      ]
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 1726,
+      "attributes": {
+        "name": "com.google.firebase.provider.FirebaseInitProvider",
+        "enabled": false,
+        "exported": false,
+        "authorities": "com.zhiliaoapp.musically.firebaseinitprovider",
+        "initOrder": "100",
+        "directBootAware": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1816,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tile.PublishTileService",
+        "permission": "android.permission.BIND_QUICK_SETTINGS_TILE",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.service.quicksettings.action.QS_TILE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.service.quicksettings.ACTIVE_TILE"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 1829,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tile.HotVideoTileService",
+        "permission": "android.permission.BIND_QUICK_SETTINGS_TILE",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.service.quicksettings.action.QS_TILE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.service.quicksettings.ACTIVE_TILE"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2038,
+      "attributes": {
+        "name": "com.benchmark.BenchmarkService",
+        "process": ":bm"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2041,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.effect.EffectJobService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2044,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.effect.EffectCompatJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2048,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.live.livehostimpl.BgBroadcastService",
+        "enabled": true,
+        "foregroundServiceType": "0x000000a0"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2068,
+      "attributes": {
+        "name": "com.ss.android.ugc.awemepushlib.di.ies.MessageHandler",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.message"
+          ],
+          "categories": [],
+          "data": []
+        },
+        {
+          "actions": [
+            "com.ss.android.newmedia.message.cache.action"
+          ],
+          "categories": [],
+          "data": []
+        },
+        {
+          "actions": [
+            "com.ss.android.newmedia.message.notify.delete.action"
+          ],
+          "categories": [],
+          "data": []
+        },
+        {
+          "actions": [
+            "com.ss.android.fcm.message"
+          ],
+          "categories": [],
+          "data": []
+        },
+        {
+          "actions": [
+            "com.ss.android.adm.message"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2086,
+      "attributes": {
+        "name": "com.ss.android.message.NotifyService",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.message.action.PUSH_SERVICE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2114,
+      "attributes": {
+        "name": "com.ss.android.http.OpenUrlService",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.action.openurl"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2282,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.app.crash.LaunchProtectService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "process": ":launch_protect"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 2286,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.memory.kill.RestartApplicationService",
+        "exported": false,
+        "process": ":memopt"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 2290,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.memory.kill.RestartContentProvider",
+        "exported": false,
+        "authorities": "com.zhiliaoapp.musically.RestartContentProvider"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3142,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.scheduler.PublishService",
+        "exported": false,
+        "foregroundServiceType": "0x00000001"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3146,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tools.policysecurity.OriginalSoundUploadService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3150,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tools.extract.video.VideoFramesUploadService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3320,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.notificatoin.AudioLiveService",
+        "exported": false,
+        "foregroundServiceType": "0x00000002"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3516,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.tools.cutsamemv.CutSameSdkDownloadService",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.ugc.cut_downloader.DOWNLOAD"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3897,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.widget.AppWidgetSchedulerService",
+        "permission": "android.permission.BIND_JOB_SERVICE"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3988,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.feed.background.BackgroundAudioBrowserService",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.media.browse.MediaBrowserService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 3994,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.feed.background.AudioMediaSessionService",
+        "exported": false,
+        "foregroundServiceType": "0x00000002"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.media.browse.MediaBrowserService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4030,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.lancet.jobscheduler.SubJobInfoSchedulerService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false,
+        "process": ":jobInfoSchedulerService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4076,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.account.otl.LoginSyncService",
+        "exported": false,
+        "foregroundServiceType": "0x00000001"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4271,
+      "attributes": {
+        "name": "androidx.browser.customtabs.PostMessageService",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4448,
+      "attributes": {
+        "name": "com.ss.android.ugc.tiktok.samsungfinder.SamsungSearchTikTokBrowserService",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.media.browse.MediaBrowserService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4454,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.push.downgrade.notice.MainProcessWsChannelService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4464,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.lifecycle.task.TaskLifecycleProbeService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4468,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.lifecycle.task.ForegroundShortService",
+        "exported": false,
+        "foregroundServiceType": "0x00000800"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4472,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.lifecycle.task.KeepWarmJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4482,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.lifecycle.service.OplusVideoDownloadService",
+        "permission": "com.oplus.permission.safe.APP_MANAGER",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.APP_RESOURCE_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4621,
+      "attributes": {
+        "name": "com.aweme.storage.JobService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4624,
+      "attributes": {
+        "name": "com.aweme.storage.CompatJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4640,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.broadcast.record.service.LiveBroadcastRecordLiveService",
+        "enabled": true,
+        "foregroundServiceType": "0x00000020"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4644,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.broadcast.notification.BgVideoBroadcastService",
+        "enabled": true,
+        "foregroundServiceType": "0x00000002"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4648,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.broadcast.notification.BgVideoBroadcastService2",
+        "enabled": true,
+        "foregroundServiceType": "0x000000c2"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4652,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.broadcast.notification.BgVideoBroadcastService3",
+        "enabled": true,
+        "foregroundServiceType": "0x000000c2"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4657,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.broadcast.notification.BroadcastKeepAliveService",
+        "enabled": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 4695,
+      "attributes": {
+        "name": "com.bytedance.android.livesdk.comp.impl.gameanchor.service.ForegroundMirrorCastService",
+        "enabled": true,
+        "foregroundServiceType": "0x000000a0"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 4861,
+      "attributes": {
+        "name": "com.facebook.FacebookContentProvider",
+        "exported": true,
+        "authorities": "com.facebook.app.FacebookContentProvider[embedded-app-id-redacted]"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5422,
+      "attributes": {
+        "name": "com.ss.android.ugc.cut_ui_impl.core.TemplateService",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.ugc.cut_ui.CUT_SERVICE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5464,
+      "attributes": {
+        "name": "com.ss.android.ugc.mediabox.bgplay.notification.BgPlayService",
+        "enabled": true,
+        "exported": false,
+        "foregroundServiceType": "0x00000002"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5527,
+      "attributes": {
+        "name": "com.bytedance.ies.xelement.defaultimpl.player.impl.plugin.mediasession.session.MediaSessionService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5529,
+      "attributes": {
+        "name": "com.bytedance.memdump.upload.HprofUploadJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5532,
+      "attributes": {
+        "name": "com.bytedance.apm6.traffic.TrafficTransportService",
+        "enabled": true,
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5560,
+      "attributes": {
+        "name": "com.ss.android.ugc.cut_imageloader_fresco_dmt.DmtToolsFrescoImageService",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.ugc.cut_ui.image.LOADER"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5603,
+      "attributes": {
+        "name": "com.bytedance.common.wschannel.server.WsChannelService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5607,
+      "attributes": {
+        "name": "com.bytedance.common.wschannel.client.WsClientService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5632,
+      "attributes": {
+        "name": "com.ss.android.newmedia.redbadge.RedbadgeHandler",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.redbadge.message"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5638,
+      "attributes": {
+        "name": "com.ss.android.newmedia.redbadge.RedBadgePushProcessService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5640,
+      "attributes": {
+        "name": "com.ss.android.message.log.LogService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5649,
+      "attributes": {
+        "name": "com.fcm.service.SSGcmListenerService",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.firebase.MESSAGING_EVENT"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5655,
+      "attributes": {
+        "name": "com.fcm.service.FcmRegistrationJobIntentService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5666,
+      "attributes": {
+        "name": "com.google.firebase.messaging.FirebaseMessagingService",
+        "exported": false,
+        "directBootAware": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.firebase.MESSAGING_EVENT"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5674,
+      "attributes": {
+        "name": "com.google.firebase.components.ComponentDiscoveryService",
+        "exported": false,
+        "directBootAware": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar",
+        "com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar",
+        "com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar",
+        "com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar",
+        "com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5693,
+      "attributes": {
+        "name": "androidx.credentials.playservices.CredentialProviderMetadataHolder",
+        "enabled": true,
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "androidx.credentials.CREDENTIAL_PROVIDER_KEY"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5718,
+      "attributes": {
+        "name": "com.google.android.gms.auth.api.signin.RevocationBoundService",
+        "permission": "com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION",
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5763,
+      "attributes": {
+        "name": "com.google.android.gms.measurement.AppMeasurementService",
+        "enabled": true,
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5767,
+      "attributes": {
+        "name": "com.google.android.gms.measurement.AppMeasurementJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "enabled": true,
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5772,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.SystemAlarmService",
+        "enabled": "@0x7f070005",
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5777,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemjob.SystemJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "enabled": "@0x7f070007",
+        "exported": true,
+        "directBootAware": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5783,
+      "attributes": {
+        "name": "androidx.work.impl.foreground.SystemForegroundService",
+        "enabled": "@0x7f070006",
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5878,
+      "attributes": {
+        "name": "androidx.core.telecom.internal.JetpackConnectionService",
+        "permission": "android.permission.BIND_TELECOM_CONNECTION_SERVICE",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.telecom.ConnectionService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5899,
+      "attributes": {
+        "name": "androidx.room.MultiInstanceInvalidationService",
+        "exported": false,
+        "directBootAware": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5903,
+      "attributes": {
+        "name": "com.coloros.service.OppoMessageHandleService",
+        "permission": "com.heytap.mcs.permission.SEND_PUSH_MESSAGE",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.heytap.mcs.action.RECEIVE_MCS_MESSAGE",
+            "com.heytap.msp.push.RECEIVE_MCS_MESSAGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5913,
+      "attributes": {
+        "name": "com.coloros.service.CompatibleOppoMessageHandleService",
+        "permission": "com.coloros.mcs.permission.SEND_MCS_MESSAGE",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.coloros.mcs.action.RECEIVE_MCS_MESSAGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5921,
+      "attributes": {
+        "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "backend:com.google.android.datatransport.cct.CctBackendFactory"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5927,
+      "attributes": {
+        "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "provider",
+      "manifest_dump_line": 5947,
+      "attributes": {
+        "name": "com.ss.android.account.share.data.write.provider.SecShareDataProvider",
+        "exported": true,
+        "authorities": "com.zhiliaoapp.musically.SecShareProviderAuthority"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5951,
+      "attributes": {
+        "name": "com.ss.android.socialbase.downloader.downloader.IndependentProcessDownloadService",
+        "exported": false,
+        "process": ":downloader"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.socialbase.downloader.remote"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5958,
+      "attributes": {
+        "name": "com.ss.android.socialbase.downloader.notification.DownloadNotificationService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5961,
+      "attributes": {
+        "name": "com.ss.android.socialbase.downloader.downloader.DownloadService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5964,
+      "attributes": {
+        "name": "com.ss.android.socialbase.downloader.impls.DownloadHandleService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5967,
+      "attributes": {
+        "name": "com.ss.android.socialbase.downloader.downloader.SqlDownloadCacheService"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5973,
+      "attributes": {
+        "name": "com.adm.push.ADMMessageHandler",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 5976,
+      "attributes": {
+        "name": "com.adm.push.ADMMessageHandlerJob",
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6008,
+      "attributes": {
+        "name": "com.heytap.msp.push.service.DataMessageReceivingService",
+        "exported": true,
+        "directBootAware": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.heytap.mcs.action.LAUNCH_COMPONENT_VIA_MCS"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6025,
+      "attributes": {
+        "name": "com.byted.cast.capture.NotifyServer.ProjectionService",
+        "exported": false,
+        "foregroundServiceType": "0x00000020"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6032,
+      "attributes": {
+        "name": "com.google.android.gms.cast.framework.media.MediaNotificationService",
+        "exported": false,
+        "foregroundServiceType": "0x00000002"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6036,
+      "attributes": {
+        "name": "com.google.android.gms.cast.framework.ReconnectionService",
+        "exported": false
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6050,
+      "attributes": {
+        "name": "com.google.android.gms.metadata.ModuleDependencies",
+        "enabled": false,
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.gms.metadata.MODULE_DEPENDENCIES"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "photopicker_activity:0:required"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6096,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.im.callroom.callkit.CallkitService",
+        "exported": false,
+        "foregroundServiceType": "0x00000084"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6219,
+      "attributes": {
+        "name": "com.benchmark.collection.service.ByteBenchService",
+        "process": ":bm"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6249,
+      "attributes": {
+        "name": "com.google.android.play.core.assetpacks.AssetPackExtractionService",
+        "enabled": false,
+        "exported": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "com.google.android.play.core.assetpacks.versionCode"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6256,
+      "attributes": {
+        "name": "com.google.android.play.core.assetpacks.ExtractionForegroundService",
+        "enabled": false,
+        "exported": false,
+        "foregroundServiceType": "0x00000001"
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6269,
+      "attributes": {
+        "name": "com.google.mlkit.common.internal.MlKitComponentDiscoveryService",
+        "exported": false,
+        "directBootAware": true
+      },
+      "intent_filters": [],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6319,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.livewallpaper.AmeLiveWallpaper",
+        "permission": "android.permission.BIND_WALLPAPER",
+        "enabled": true,
+        "exported": true,
+        "process": ":wallpaper"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.service.wallpaper.WallpaperService"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.service.wallpaper"
+      ]
+    },
+    {
+      "type": "service",
+      "manifest_dump_line": 6355,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.dsp.playerservice.plugin.mediasession.common.MediaSessionService",
+        "exported": false,
+        "foregroundServiceType": "0x00000002"
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.MEDIA_BUTTON",
+            "android.media.browse.MediaBrowserService",
+            "android.media.AUDIO_BECOMING_NOISY"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    }
+  ],
+  "receivers_with_intent_filters": [
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1540,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.common.net.NetworkReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.net.conn.CONNECTIVITY_CHANGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1560,
+      "attributes": {
+        "name": "com.ss.android.common.applog.HotsoonReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.PACKAGE_INSTALL",
+            "android.intent.action.PACKAGE_ADDED"
+          ],
+          "categories": [],
+          "data": [
+            {
+              "scheme": "package"
+            }
+          ]
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1692,
+      "attributes": {
+        "name": "com.appsflyer.MultipleInstallBroadcastReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.android.vending.INSTALL_REFERRER"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1698,
+      "attributes": {
+        "name": "com.appsflyer.SingleInstallBroadcastReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.android.vending.INSTALL_REFERRER"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1704,
+      "attributes": {
+        "name": "com.ss.android.ugc.trill.abtest.impl.NotificationBroadcastReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "notification_cancelled",
+            "notification_clicked"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1733,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.common.net.NetWorkStateReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.net.conn.CONNECTIVITY_CHANGE"
+          ],
+          "categories": [
+            "android.intent.category.DEFAULT"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1768,
+      "attributes": {
+        "name": "com.ss.android.message.MessageReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.net.conn.CONNECTIVITY_CHANGE",
+            "android.intent.action.MEDIA_MOUNTED",
+            "android.intent.action.MEDIA_UNMOUNTED",
+            "android.intent.action.SCREEN_OFF",
+            "android.intent.action.SCREEN_ON",
+            "android.intent.action.ACTION_POWER_CONNECTED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1855,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.share.systemshare.SystemShareTargetChosenReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.systemshare.targetchosen.action"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 1861,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.push.CustomActionPushReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.action.PUSH_CUSTOM_ACTION"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 2120,
+      "attributes": {
+        "name": "com.ss.android.ugc.awemepushlib.os.receiver.NotificationBroadcastReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "notification_cancelled"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 2126,
+      "attributes": {
+        "name": "com.ss.android.ugc.awemepushlib.PushDislikeActionReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.action.PUSH_DISLIKE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 2132,
+      "attributes": {
+        "name": "com.ss.android.ugc.awemepushlib.PushDirectReplyReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.action.PUSH_DIRECT_REPLY"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 2138,
+      "attributes": {
+        "name": "com.ss.android.ugc.awemepushlib.SystemEventReceiver",
+        "enabled": false,
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.LOCALE_CHANGED",
+            "android.intent.action.TIMEZONE_CHANGED",
+            "android.intent.action.TIME_SET",
+            "android.app.action.NEXT_ALARM_CLOCK_CHANGED",
+            "android.intent.action.MY_PACKAGE_REPLACED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 2294,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.xtrace.RangeTracerReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "rangetracer.action",
+            "rangetracer.action.start",
+            "rangetracer.action.stop"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 2899,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.search.widget.core.ui.SearchMiddleWidget",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 3487,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.follow.widget.FollowBigWidgetProvider",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE",
+            "com.ss.android.ugc.aweme.follow.BIG_WIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 3755,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.story.widget.LargeStoryWidget",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 3765,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.story.widget.SmallStoryWidget",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 3783,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.im.sdk.notification.PushQuickActionReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.zhiliaoapp.musically.action.PUSH_DIRECT_REPLY_CONTENT_ACHIEVE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 3881,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.core.SmallAppWidgetProvider",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider",
+        "trans_widget",
+        "transWidgetVersion"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 4294,
+      "attributes": {
+        "name": "com.bytedance.touchpoint.core.appwidget.ReferralWidget",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 4334,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.appwidget.CameraWidgetProvider",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 4476,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.keepalive.KeepAliveReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.ss.android.ugc.aweme.keepalive.action.HINT"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 4524,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.cubes.engage.EngageBroadcastReceiver",
+        "enabled": true,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.engage.action.PUBLISH_RECOMMENDATION"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 4552,
+      "attributes": {
+        "name": "com.ss.android.ugc.aweme.ecommerce.marketing.widget.BonusWidgetProvider",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.appwidget.action.APPWIDGET_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": [
+        "android.appwidget.provider"
+      ]
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5643,
+      "attributes": {
+        "name": "com.ss.android.push.window.oppo.ScreenReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.USER_PRESENT"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5659,
+      "attributes": {
+        "name": "com.google.firebase.iid.FirebaseInstanceIdReceiver",
+        "permission": "com.google.android.c2dm.permission.SEND",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.c2dm.intent.RECEIVE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5793,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy",
+        "enabled": false,
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.ACTION_POWER_CONNECTED",
+            "android.intent.action.ACTION_POWER_DISCONNECTED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5803,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy",
+        "enabled": false,
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.BATTERY_OKAY",
+            "android.intent.action.BATTERY_LOW"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5813,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy",
+        "enabled": false,
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.DEVICE_STORAGE_LOW",
+            "android.intent.action.DEVICE_STORAGE_OK"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5823,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy",
+        "enabled": false,
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.net.conn.CONNECTIVITY_CHANGE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5831,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.RescheduleReceiver",
+        "enabled": false,
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.BOOT_COMPLETED",
+            "android.intent.action.TIME_SET",
+            "android.intent.action.TIMEZONE_CHANGED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5843,
+      "attributes": {
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver",
+        "enabled": "@0x7f070005",
+        "exported": false,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "androidx.work.impl.background.systemalarm.UpdateProxies"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5851,
+      "attributes": {
+        "name": "androidx.work.impl.diagnostics.DiagnosticsReceiver",
+        "permission": "android.permission.DUMP",
+        "enabled": true,
+        "exported": true,
+        "directBootAware": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "androidx.work.diagnostics.REQUEST_DIAGNOSTICS"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5860,
+      "attributes": {
+        "name": "com.facebook.CurrentAccessTokenExpirationBroadcastReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.facebook.sdk.ACTION_CURRENT_ACCESS_TOKEN_CHANGED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5866,
+      "attributes": {
+        "name": "com.facebook.AuthenticationTokenManager$CurrentAuthenticationTokenChangedBroadcastReceiver",
+        "exported": false
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.facebook.sdk.ACTION_CURRENT_AUTHENTICATION_TOKEN_CHANGED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5872,
+      "attributes": {
+        "name": "androidx.core.telecom.internal.MuteStateReceiver",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "android.media.action.MICROPHONE_MUTE_CHANGED"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 5980,
+      "attributes": {
+        "name": "com.adm.push.ADMMessageHandler$Receiver",
+        "permission": "com.amazon.device.messaging.permission.SEND",
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.amazon.device.messaging.intent.REGISTRATION",
+            "com.amazon.device.messaging.intent.RECEIVE"
+          ],
+          "categories": [
+            "com.zhiliaoapp.musically"
+          ],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    },
+    {
+      "type": "receiver",
+      "manifest_dump_line": 6261,
+      "attributes": {
+        "name": "com.google.android.play.core.assetpacks.SessionStateBroadcastReceiver",
+        "permission": "android.permission.INSTALL_PACKAGES",
+        "enabled": true,
+        "exported": true
+      },
+      "intent_filters": [
+        {
+          "actions": [
+            "com.google.android.play.core.assetpacks.receiver.ACTION_SESSION_UPDATE"
+          ],
+          "categories": [],
+          "data": []
+        }
+      ],
+      "provider_path_rules": [],
+      "metadata_keys": []
+    }
+  ],
+  "declared_permissions": [
+    {
+      "label": "@0x7f1119b9",
+      "name": "com.zhiliaoapp.musically.permission.wallpaper",
+      "protectionLevel": "0x00000002"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.permission.WRITE_OTL_TOKEN",
+      "protectionLevel": "0x00000002"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.permission.PRF_INTERNAL",
+      "protectionLevel": "0x00000002"
+    },
+    {
+      "label": "preinstall_attribution",
+      "name": "com.zhiliaoapp.musically.permission.ATTRIBUTION_INFO",
+      "protectionLevel": "0x00000002"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+      "protectionLevel": "0x00000002"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.permission.RECEIVE_ADM_MESSAGE",
+      "protectionLevel": "0x00000002"
+    }
+  ],
+  "requested_permission_declaration_count": 65,
+  "requested_permission_unique_count": 64,
+  "requested_permissions": [
+    {
+      "name": "android.permission.ACCESS_COARSE_LOCATION"
+    },
+    {
+      "name": "android.permission.ACCESS_FINE_LOCATION"
+    },
+    {
+      "name": "android.permission.CHANGE_WIFI_STATE"
+    },
+    {
+      "name": "com.google.android.gms.permission.AD_ID"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE_MICROPHONE"
+    },
+    {
+      "name": "com.oplus.ocs.permission.third"
+    },
+    {
+      "name": "com.oplus.ocs.permission.third"
+    },
+    {
+      "name": "android.permission.SYSTEM_ALERT_WINDOW"
+    },
+    {
+      "name": "android.permission.DETECT_SCREEN_RECORDING"
+    },
+    {
+      "name": "android.permission.ACCESS_LOCAL_NETWORK"
+    },
+    {
+      "name": "android.permission.DETECT_SCREEN_CAPTURE"
+    },
+    {
+      "name": "android.permission.WRITE_EXTERNAL_STORAGE"
+    },
+    {
+      "name": "android.permission.READ_EXTERNAL_STORAGE",
+      "maxSdkVersion": "32"
+    },
+    {
+      "name": "android.permission.REORDER_TASKS"
+    },
+    {
+      "name": "android.permission.INTERNET"
+    },
+    {
+      "name": "android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+    },
+    {
+      "name": "android.permission.ACCESS_NETWORK_STATE"
+    },
+    {
+      "name": "android.permission.ACCESS_WIFI_STATE"
+    },
+    {
+      "name": "android.permission.CAMERA"
+    },
+    {
+      "name": "android.permission.RECORD_AUDIO"
+    },
+    {
+      "name": "android.permission.WAKE_LOCK"
+    },
+    {
+      "name": "android.permission.READ_CONTACTS"
+    },
+    {
+      "name": "android.permission.VIBRATE"
+    },
+    {
+      "name": "android.permission.BLUETOOTH",
+      "maxSdkVersion": "30"
+    },
+    {
+      "name": "com.android.launcher.permission.READ_SETTINGS"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"
+    },
+    {
+      "name": "com.sec.android.provider.badge.permission.READ"
+    },
+    {
+      "name": "com.sec.android.provider.badge.permission.WRITE"
+    },
+    {
+      "name": "android.permission.POST_NOTIFICATIONS"
+    },
+    {
+      "name": "com.orange.update.permission.READ_ATTRIBUTION"
+    },
+    {
+      "name": "com.samsung.android.mapsagent.permission.READ_APP_INFO"
+    },
+    {
+      "name": "com.tiktok.preload.permission.IDENTIFY"
+    },
+    {
+      "name": "com.tiktok.manager.SYS_START_PERMISSION"
+    },
+    {
+      "name": "android.permission.READ_MEDIA_IMAGES"
+    },
+    {
+      "name": "android.permission.READ_MEDIA_VIDEO"
+    },
+    {
+      "name": "android.permission.BLUETOOTH_SCAN",
+      "usesPermissionFlags": "0x00010000"
+    },
+    {
+      "name": "android.permission.BLUETOOTH_ADVERTISE",
+      "usesPermissionFlags": "0x00010000"
+    },
+    {
+      "name": "android.permission.BLUETOOTH_CONNECT",
+      "usesPermissionFlags": "0x00010000"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+    },
+    {
+      "name": "android.permission.ACCESS_MEDIA_LOCATION"
+    },
+    {
+      "name": "android.permission.READ_MEDIA_AUDIO"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.permission.PRF_INTERNAL"
+    },
+    {
+      "name": "android.permission.CHANGE_NETWORK_STATE"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE_CAMERA"
+    },
+    {
+      "name": "android.permission.MODIFY_AUDIO_SETTINGS"
+    },
+    {
+      "name": "android.permission.NFC"
+    },
+    {
+      "name": "com.zhiliao.musically.livewallpaper.permission.wallpaperplugin"
+    },
+    {
+      "name": "android.permission.USE_BIOMETRIC"
+    },
+    {
+      "name": "android.permission.USE_FINGERPRINT"
+    },
+    {
+      "name": "com.google.android.c2dm.permission.RECEIVE"
+    },
+    {
+      "name": "com.android.vending.BILLING"
+    },
+    {
+      "name": "android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
+    },
+    {
+      "name": "android.permission.ACCESS_ADSERVICES_AD_ID"
+    },
+    {
+      "name": "com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"
+    },
+    {
+      "name": "android.permission.MANAGE_OWN_CALLS"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    },
+    {
+      "name": "com.huawei.appmarket.service.commondata.permission.GET_COMMON_DATA"
+    },
+    {
+      "name": "com.zhiliaoapp.musically.permission.RECEIVE_ADM_MESSAGE"
+    },
+    {
+      "name": "com.amazon.device.messaging.permission.RECEIVE"
+    },
+    {
+      "name": "android.permission.USE_FULL_SCREEN_INTENT"
+    },
+    {
+      "name": "android.permission.FOREGROUND_SERVICE_PHONE_CALL"
+    },
+    {
+      "name": "com.google.android.apps.aicore.service.BIND_SERVICE"
+    },
+    {
+      "name": "android.permission.SET_WALLPAPER"
+    }
+  ],
+  "query_all_packages_permission_requested": false,
+  "selected_permissions_not_requested": [
+    "android.permission.QUERY_ALL_PACKAGES",
+    "android.permission.RECEIVE_BOOT_COMPLETED",
+    "android.permission.SCHEDULE_EXACT_ALARM",
+    "android.permission.USE_EXACT_ALARM"
+  ],
+  "package_visibility": {
+    "packages": [
+      "com.zhiliao.musically.livewallpaper",
+      "com.google.ar.core",
+      "com.sprint.w.installer",
+      "com.sec.android.app.sbrowser",
+      "com.android.chrome",
+      "org.mozilla.firefox",
+      "com.dti.tracfone",
+      "com.moonvideo.android.resso",
+      "com.whatsapp",
+      "com.snapchat.android",
+      "com.twitter.android",
+      "com.twitter.android.beta",
+      "projekt.substratum",
+      "com.vkontakte.android",
+      "com.reddit.frontpage",
+      "com.facebook.mlite",
+      "com.facebook.orca",
+      "com.LogiaGroup.LogiaDeck",
+      "com.nhn.android.band",
+      "com.kakao.story",
+      "com.nhn.android.blog",
+      "com.zing.zalo",
+      "com.dti.cricket",
+      "jp.naver.line.android",
+      "org.telegram.messenger",
+      "com.imgur.mobile",
+      "com.viber.voip",
+      "com.facebook.lite",
+      "com.instagram.android",
+      "com.kakao.talk",
+      "com.facebook.katana",
+      "com.nhn.android.navercafe",
+      "com.ironsrc.aura.tmo",
+      "com.chrome.beta",
+      "com.chrome.dev",
+      "com.ironsrc.aura.appmanager.tmo",
+      "com.zhiliaoapp.musically.go",
+      "com.ss.android.lark",
+      "com.tiktok.android.music",
+      "com.ss.android.ugc.now",
+      "com.ss.android.ugc.spark",
+      "com.ticketmaster.mobile.android.na",
+      "com.apple.android.music",
+      "com.amazon.mp3",
+      "com.iloen.melon",
+      "deezer.android.app",
+      "com.soundcloud.android",
+      "com.google.android.apps.youtube.music",
+      "com.anghami",
+      "com.sprint.ce.updater",
+      "com.ss.android.ttmd.video",
+      "com.samsung.android.mapsagent",
+      "com.tmobile.dm.cm",
+      "com.tiktok.manager",
+      "com.ss.android.ugc.trill",
+      "com.zhiliaoapp.musically",
+      "com.android.vending",
+      "com.nc.tiktok.usmain",
+      "com.tiktok.lite.go",
+      "com.google.android.webview",
+      "com.google.android.webview.beta",
+      "com.google.android.webview.dev",
+      "com.google.android.webview.canary",
+      "com.google.android.webview.debug",
+      "com.android.webview",
+      "com.coloros.ocs.opencapabilityservice",
+      "com.oplus.ocs",
+      "com.coloros.karaoke",
+      "com.bairenkeji.icaller",
+      "com.coloros.safecenter",
+      "com.yulong.android.security",
+      "com.meizu.safe.security.SHOW_APPSEC",
+      "com.miui.securitycenter",
+      "com.sonymobile.cta",
+      "com.discord",
+      "com.pinterest",
+      "com.google.android.youtube",
+      "com.whatsapp.w4b",
+      "com.bd.nproject",
+      "com.google.android.apps.maps",
+      "com.google.android.engage.verifyapp",
+      "com.google.android.gms.policy_cast_dynamite",
+      "com.oplus.cosa",
+      "com.coloros.gamespace",
+      "com.kakao.talk.alpha",
+      "com.kakao.talk.sandbox",
+      "com.kakao.onetalk",
+      "com.google.android.aicore",
+      "com.venmo",
+      "com.paypal.android.p2pmobile",
+      "com.spotify.music",
+      "com.spotify.music.debug",
+      "com.spotify.music.canary",
+      "com.spotify.music.partners"
+    ],
+    "intent_queries": [
+      {
+        "actions": [
+          "android.intent.action.VIEW"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "scheme": "*",
+            "host": "*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.MAIN"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "com.vkontakte.android.action.SDK_AUTH"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.intent.action.SENDTO"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "scheme": "*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.DIAL"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "scheme": "tel"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.support.customtabs.action.CustomTabsService"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.intent.action.SEND"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "*/*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.SEND_MULTIPLE"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "*/*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.INSERT"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "vnd.android.cursor.item/event"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.PICK"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "*/*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.SEND"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "text/plain"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.SEND"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "image/*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.SEND"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "video/*"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.settings.CHANNEL_NOTIFICATION_SETTINGS"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.settings.APP_NOTIFICATION_SETTINGS"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.media.action.IMAGE_CAPTURE"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.intent.action.VIEW"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "scheme": "http"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.VIEW"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "scheme": "https"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "android.intent.action.GET_CONTENT"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.intent.action.OPEN_DOCUMENT"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "com.android.vending.billing.InAppBillingService.BIND"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "com.google.android.apps.play.billingtestcompanion.BillingOverrideService.BIND"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "com.appsflyer.referrer.INSTALL_PROVIDER"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "android.intent.action.VIEW"
+        ],
+        "categories": [
+          "android.intent.category.BROWSABLE"
+        ],
+        "data": [
+          {
+            "scheme": "https"
+          }
+        ]
+      },
+      {
+        "actions": [
+          "com.google.android.play.core.install.BIND_INSTALL_SERVICE"
+        ],
+        "categories": [],
+        "data": []
+      },
+      {
+        "actions": [
+          "com.spotify.sso.action.START_AUTH_FLOW"
+        ],
+        "categories": [],
+        "data": [
+          {
+            "mimeType": "text/plain"
+          }
+        ]
+      }
+    ],
+    "provider_queries": [
+      {
+        "authorities": "com.zhiliaoapp.musically.identifierprovider"
+      }
+    ],
+    "limitation": "Visibility declarations describe packages and intent handlers that may be discoverable, not observed enumeration or uploaded inventory."
+  },
+  "limitations": [
+    "Manifest declarations do not establish executed code, granted permissions, transmitted data, exploitability, or a security vulnerability.",
+    "Exported counts include only literal android:exported=true declarations. Missing attributes remain separate; no reachability is inferred from counts alone.",
+    "No component permission attribute is not proof of unauthenticated behavior. Platform rules, enabled state, URI grants, calling-UID checks and runtime code can add restrictions.",
+    "SDK-family component names and metadata keys are static leads, not proof that an SDK initialized or sent a request.",
+    "Metadata values are omitted. Embedded Google OAuth client identifiers, Kakao application identifiers and Facebook application identifiers in intent schemes or provider authorities are redacted. No device, account or network-session content is included.",
+    "The network and backup XML resources were decoded without decompiling executable code. Runtime policy enforcement, provider caller checks and backup-agent behavior remain unreviewed."
+  ],
+  "network_security_policy": {
+    "resource_id": "0x7f150014",
+    "apk_entry": "res/au/o.xml",
+    "base_cleartext_traffic_permitted": true,
+    "base_trust_anchor_source": "system",
+    "base_trust_anchor_override_pins": true,
+    "base_certificate_transparency_enabled": false,
+    "debug_overrides_user_trust_anchors": true,
+    "debug_overrides_limit": "Android applies debug overrides only when android:debuggable is true; that attribute is absent in this manifest and defaults false.",
+    "explicit_cleartext_allowed_domains": [
+      {
+        "domain": "zero-rating.tiktok.com",
+        "include_subdomains": false
+      }
+    ],
+    "explicit_cleartext_denied_domains": [
+      {
+        "domain": "tiktokcdn.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokv.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokcdn-us.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "isnssdk.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ibyteimg.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "bytegecko-i18n.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "goofy-cdn.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "pitaya-clientai.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ibytedtos.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ttlstatic.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteoversea.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "bytedapm.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ttwstatic.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteeffecttos-g.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktok.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ttapis.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "capcutvod.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "capcut.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteicdn.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ifdmstatic.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "oecstatic.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "bytedgame.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "fdmstatic.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "sgsnssdk.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ttlimgs.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteingress.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "g-p-static.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteintl.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "muscdn.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteoversea.net",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokglobalshopv.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "xzcs3zlph.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "g-t-static.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "fdmimgs.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "musical.ly",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokstaticb.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "goofy.app",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteintl.net",
+        "include_subdomains": true
+      },
+      {
+        "domain": "bitssec.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "resso.me",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteintlapi.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "ifdmimgs.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "yhgfb-static.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "resso.app",
+        "include_subdomains": true
+      },
+      {
+        "domain": "byteintlstatic.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "zhiliaoapp.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokmusic.me",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokglobalshop.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "topbuzzcdn.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "rtcplus.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "tiktokv-us.com",
+        "include_subdomains": true
+      },
+      {
+        "domain": "oneunita.com",
+        "include_subdomains": true
+      }
+    ],
+    "pin_set_element_present": false,
+    "interpretation": "A declared policy for clients that honor Android Network Security Configuration. The base system trust anchor explicitly sets overridePins=true, and this XML has no pin-set. This does not prove cleartext transfer, universal client enforcement, or absence of separate code-level pinning.",
+    "platform_reference": "https://developer.android.com/privacy-and-security/security-config"
+  },
+  "backup_policy_resource": {
+    "resource_id": "0x7f150009",
+    "apk_entry": "res/au/i.xml",
+    "includes": [
+      {
+        "domain": "sharedpref",
+        "path": "tpc_sp.xml"
+      }
+    ],
+    "exclude_elements": 0,
+    "interpretation": "The referenced legacy full-backup-content XML contains this single include. Actual cloud backup and device transfer depend on OS policy, settings and unreviewed custom backup-agent behavior; no successful backup or exposed file is established."
+  }
+}

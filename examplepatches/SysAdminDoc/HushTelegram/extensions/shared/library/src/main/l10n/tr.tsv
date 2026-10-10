@@ -1,7 +1,7 @@
 # Turkish for HushTelegram: the English key, a tab, the translation. One row per string.
 # context: Chat-list-only story controls and immutable hook coverage.
 Hide Stories	Hikâyeleri gizle
-Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.	Sohbet listesindeki hikâye çubuğunu, avatar hikâye halkalarını ve Hikâye Paylaş düğmesini gizler, hikâye listesini almayı durdurur. Profil hikâyeleri ve arşivler kullanılabilir durumda kalır.
+Removes the story bar above your chats, the rings around profile pictures and the Post Story button. Profile stories and archives stay.	Sohbetlerinizin üstündeki hikâye çubuğunu, profil fotoğraflarının etrafındaki halkaları ve hikâye paylaşma düğmesini kaldırır. Profillerdeki ve arşivdeki hikâyeler kalır.
 story list requests	hikâye listesi istekleri
 chat-list story bar	sohbet listesindeki hikâye çubuğu
 Post Story button	Hikâye Paylaş düğmesi
@@ -12,17 +12,17 @@ avatar story taps	avatarlardaki hikâye dokunuşları
 %1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	O dosyadaki %1$d öğe, HushTelegram'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
 %1$d switch will change.	%1$d anahtar değişecek.
 %1$d switches will change.	%1$d anahtar değişecek.
-%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Yamaladığında ayarlandığı için Duraklatma bunu kapatamaz. Bunu elemek için yeniden yamala ve o yamayı dışarıda bırak.
-%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Yamaladığında ayarlandıkları için Duraklatma bunları kapatamaz. Birini elemek için yeniden yamala ve onun ardından parantez içinde yazan yamayı dışarıda bırak.
+%1$s. It was set when you patched, so Pause can't turn it off. To get rid of it, patch again without that patch.	%1$s. Bu, yamalama sırasında ayarlandı, bu yüzden Duraklat bunu kapatamaz. Kurtulmak için o yama olmadan yeniden yamalayın.
+%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, patch again without the patch named in brackets after it.	%1$s. Bunlar yamalama sırasında ayarlandı, bu yüzden Duraklat bunları kapatamaz. Birinden kurtulmak için, yanında parantez içinde adı geçen yama olmadan yeniden yamalayın.
 A diagnostic report is already being saved.	Bir tanılama raporu zaten kaydediliyor.
 A file named %1$s in %2$s paused HushTelegram.	%2$s içindeki %1$s adlı bir dosya HushTelegram'u duraklattı.
 About	Hakkında
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 ve öncesi burada hangi bağlantıların açıldığını bildirmez. Bu uygulamanın ayarlarını açmak için dokunun, ardından Varsayılan olarak aç'a gidin.
 Back	Geri
 Cancel	İptal
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.	Bir ayar dosyası seç. İçe aktarmadan önce kaç anahtarın değişeceğini görürsün. İçe aktardıkların bu Telegram uygulamasındaki tüm hesaplar için geçerli olur.
+Loads switch choices from a saved file. You see how many switches it will change before anything is applied. It applies to all accounts.	Kayıtlı bir dosyadan anahtar seçimlerini yükler. Hiçbir şey uygulanmadan önce kaç anahtarın değişeceğini görürsünüz. Tüm hesaplar için geçerlidir.
 Clear diagnostic data	Tanılama verilerini temizle
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
+Copy a short report or save the full one to Download/Morphe. Links, IDs and sign-in details are left out. Look it over before sharing.	Kısa bir rapor kopyalayın veya tam raporu Download/Morphe içine kaydedin. Bağlantılar, kimlikler ve oturum bilgileri dahil edilmez. Paylaşmadan önce göz atın.
 Copy quick report	Hızlı raporu kopyala
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Ayarlar içe aktarılamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki anahtarları kontrol et.
 Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
@@ -37,24 +37,24 @@ Debug logging	Hata ayıklama günlüğü
 Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri getirmek için tekrar dokun.
 Diagnostic data put back.	Tanılama verileri geri getirildi.
 Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
-Empties the log and the hook findings a report would include.	Bir raporun içereceği günlüğü ve hook bulgularını boşaltır.
-Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
+Clears the activity log and patch checks that a report would include.	Bir raporda yer alacak etkinlik günlüğünü ve yama denetimlerini temizler.
+Every switch except Debug logging acts as if it were off. Edits made when you patched stay in. Your choices stay saved.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamalama sırasında yapılan değişiklikler geçerli kalır. Seçimleriniz kayıtlı kalır.
 Export diagnostic report	Tanılama raporunu dışa aktar
 Export settings	Ayarları dışa aktar
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
+After Telegram restarts, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Telegram yeniden başlatıldıktan sonra Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Seçimleriniz kayıtlı kalır. Yamalama sırasında yapılan değişiklikler geçerli kalır.
 Hide ads	Reklamları gizle
 Links, updates, backup and more	Bağlantılar, güncellemeler, yedekleme ve daha fazlası
 Privacy	Gizlilik
-Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Anahtarlar bu Telegram uygulamasındaki tüm hesaplar için geçerlidir. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
+Saves your switch choices to a file, for all accounts in this Telegram app. Pause, Debug logging and the update check aren't included.	Anahtar seçimlerinizi bir dosyaya kaydeder; bu Telegram uygulamasındaki tüm hesaplar için geçerlidir. Duraklat, Hata ayıklama günlüğü ve güncelleme denetimi dahil değildir.
 Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama HushTelegram'un onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
 The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden HushTelegram beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
 The app holding the last settings file still hasn't answered. Try again later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
 The app holding the settings file is taking too long, so HushTelegram stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushTelegram beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
-The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
-Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
+The settings file was saved, but what's in it doesn't match what was written. Save it again as a new file.	Ayar dosyası kaydedildi ama içeriği yazılanla eşleşmiyor. Yeni bir dosya olarak yeniden kaydedin.
+Until you resume, every switch except Debug logging acts as if it were off. Edits made when you patched stay in.	Devam edene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamalama sırasında yapılan değişiklikler geçerli kalır.
 Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
-GPL-3.0, with the notices of the projects this is built on	GPL-3.0, üzerine kurulduğu projelerin lisans bildirimleriyle
+The GPL-3.0 license, and credits for the projects HushTelegram is built on	GPL-3.0 lisansı ve HushTelegram'ın dayandığı projelerin teşekkür notları
 HushTelegram is on	HushTelegram açık
 HushTelegram is paused	HushTelegram duraklatıldı
 HushTelegram settings	HushTelegram ayarları
@@ -71,16 +71,16 @@ Retry	Yeniden dene
 Save full report	Tam raporu kaydet
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushTelegram releases	Yeni HushTelegram sürümlerini denetle
-Ask GitHub once a day when Telegram starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Telegram açıldığında günde bir kez GitHub'ı kontrol eder ve daha yeni bir sürümü bu ayarların en üstünde gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
+Once a day, when Telegram starts, checks GitHub for a newer HushTelegram and shows it at the top of these settings. Nothing is downloaded.	Günde bir kez, Telegram açıldığında GitHub'da daha yeni bir HushTelegram arar ve bu ayarların en üstünde gösterir. Hiçbir şey indirilmez.
 Check now	Şimdi denetle
-Asks GitHub for the newest release right now, even with the switch above off.	Yukarıdaki anahtar kapalı olsa bile GitHub'a en yeni sürümü hemen sorar.
+Checks GitHub for the newest release right now, even if the switch above is off.	GitHub'da en yeni sürümü hemen arar, yukarıdaki anahtar kapalı olsa bile.
 Checking GitHub now.	GitHub şu anda denetleniyor.
 HushTelegram %1$s is out. Update it in Morphe Manager.	HushTelegram %1$s çıktı. Morphe Manager'da güncelle.
 You have the newest HushTelegram release.	En yeni HushTelegram sürümünü kullanıyorsun.
 The newest HushTelegram release is %1$s.	En yeni HushTelegram sürümü %1$s.
 Couldn't reach GitHub. Try again later.	GitHub'a ulaşılamadı. Daha sonra tekrar dene.
-GitHub is turning away checks from this network for now. Try again later.	GitHub şu an bu ağdan gelen sorguları geri çeviriyor. Daha sonra tekrar dene.
-GitHub's answer couldn't be used. Try again later.	GitHub'ın yanıtı kullanılamadı. Daha sonra tekrar dene.
+GitHub is blocking checks from this network for now. Try again later.	GitHub şu an bu ağdan gelen denetimleri engelliyor. Daha sonra tekrar deneyin.
+GitHub sent a reply HushTelegram couldn't read. Try again later.	GitHub, HushTelegram'ın okuyamadığı bir yanıt gönderdi. Daha sonra tekrar deneyin.
 Saving the settings file	Ayar dosyası kaydediliyor
 Set when you patched	Yamaladığında ayarlananlar
 Settings couldn't open	Ayarlar açılamadı
@@ -101,12 +101,12 @@ That settings file was written by a newer HushTelegram than this one. Nothing wa
 The diagnostic report couldn't be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
 The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedilemedi. Tekrar dene.
 The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	%1$s dosyası kaldırılamadı. HushTelegram'u yeniden açmak için onu %2$s içinden sil.
-The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
+That setting couldn't be updated. The switch shows the value that is saved.	Bu ayar güncellenemedi. Anahtar kayıtlı değeri gösterir.
 There's no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
 There's no diagnostic data to put back.	Geri getirilecek tanılama verisi yok.
 This phone has no file picker, so there's no way to choose a file here.	Bu telefonda dosya seçici yok, bu yüzden burada dosya seçmenin bir yolu yok.
 Version	Sürüm
-Record patch activity and show errors for a bug report. Leave off during normal use.	Hata raporu için yama etkinliğini kaydeder ve hataları gösterir. Normal kullanımda kapalı bırakın.
+Records what HushTelegram does and shows error messages, to help with a bug report. Leave it off for everyday use.	HushTelegram'ın yaptıklarını kaydeder ve hata mesajlarını gösterir; bir hata raporuna yardımcı olur. Günlük kullanımda kapalı bırakın.
 You paused HushTelegram.	HushTelegram'u duraklattın.
 Your switches already match that file, so nothing will change.	Anahtarların zaten o dosyayla aynı, bu yüzden hiçbir şey değişmeyecek.
 Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
@@ -127,7 +127,7 @@ No matching settings	Eşleşen ayar yok
 Try a different word or clear the search.	Başka bir kelime deneyin veya aramayı temizleyin.
 Search settings	Ayarlarda ara
 Clear search	Aramayı temizle
-Your controls are active.	Kontrolleriniz etkin.
+Your switches are working.	Anahtarlarınız çalışıyor.
 Pause	Duraklat
 Resume	Devam et
 Undo	Geri al
@@ -139,16 +139,16 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Bağlantıları elle seçme
 
 A change here applies after Telegram restarts.	Buradaki bir değişiklik Telegram yeniden başladıktan sonra geçerli olur.
-Android opens t.me links in an app only when its addresses are selected for that app. Selecting them sends their links here, and your other link settings stay as they are.	Android, t.me bağlantılarını yalnızca bir uygulamanın adresleri o uygulama için seçiliyse o uygulamada açar. Onları seçmek bağlantılarını buraya gönderir ve diğer bağlantı ayarlarınız olduğu gibi kalır.
+Android opens t.me links in this app only if you select their addresses on its Open by default page. Other link settings don't change.	Android, t.me bağlantılarını bu uygulamada yalnızca adreslerini uygulamanın Varsayılan olarak aç sayfasında seçerseniz açar. Diğer bağlantı ayarları değişmez.
 Android verified this app for Telegram's web addresses, so their links open here.	Android bu uygulamayı Telegram'ın web adresleri için doğruladı, bu yüzden bağlantıları burada açılır.
 Android's settings for this app didn't open. Open App info from Telegram's icon, then Open by default.	Bu uygulamanın Android ayarları açılamadı. Telegram simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
-Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.	Kanallarda sponsorlu mesaj, aramada sponsorlu hesap gösterilmez ve videolar reklamsız oynar. Telegram bunları hiç istemez, bu yüzden hiçbiri görüntülenmiş sayılmaz.
+Removes sponsored messages in channels, sponsored accounts in search and ads in videos. They're never loaded, so none count as seen.	Kanallardaki sponsorlu mesajları, aramadaki sponsorlu hesapları ve videolardaki reklamları kaldırır. Hiçbiri yüklenmez, bu yüzden hiçbiri görülmüş sayılmaz.
 Chats	Sohbetler
 HushTelegram %1$s on Telegram %2$s	Telegram %2$s üzerinde HushTelegram %1$s
-HushTelegram %1$s targets Telegram %2$s.	HushTelegram %1$s, Telegram %2$s için hazırlandı.
+HushTelegram %1$s is made for Telegram %2$s.	HushTelegram %1$s, Telegram %2$s için hazırlandı.
 HushTelegram pauses when Telegram restarts.	HushTelegram, Telegram yeniden başladığında duraklatılır.
 HushTelegram turns back on when Telegram restarts.	HushTelegram, Telegram yeniden başladığında tekrar açılır.
-It targets Telegram %1$s.	Telegram %1$s için hazırlandı.
+It's made for Telegram %1$s.	Telegram %1$s için hazırlandı.
 None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Telegram'ın web adreslerinden hiçbiri bu uygulama için seçili değil, bu yüzden bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
 Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Telegram'ın web adreslerinden yalnızca bazıları bu uygulama için seçili ve diğerlerinin bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
 Saved. Restart Telegram to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Telegram'ı yeniden başlat.
@@ -163,8 +163,8 @@ video ads	video reklamları
 search ads	arama reklamları
 device statistics reports	cihaz istatistik raporları
 channel read metrics	kanal okuma ölçümleri
-This build has no coverage for %1$s.	Bu derleme %1$s için kapsam sağlamaz.
-This build covers %1$s. Missing coverage: %2$s.	Bu derlemenin kapsamı: %1$s. Eksik kapsam: %2$s.
+This patched app doesn't change %1$s.	Yamalanmış bu uygulamada %1$s değişmedi.
+This patched app changes %1$s but not %2$s.	Yamalanmış bu uygulamada %1$s değişti, %2$s değişmedi.
 Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushTelegram kendini duraklattı.
 Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Telegram'ın web adresleri Android ayarlarında bu uygulama için seçili, bu yüzden bağlantıları burada açılır.
 Usage reports and call diagnostics	Kullanım raporları ve arama tanılamaları
@@ -176,43 +176,46 @@ Your choices are saved. Tap Resume, then restart Telegram.	Tercihleriniz kayıtl
 Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram, telegram.org güncellemelerini sunmayı bırakır. Bunlar bu yamalı sürümün üzerine kurulamaz, bu yüzden her yeni sürümü Morphe Manager'da yamala.
 No HushTelegram release is out yet.	Henüz bir HushTelegram sürümü yayınlanmadı.
 Hide recommendations	Önerileri gizle
-Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.	Benzer kanalları ve botları, kayıtlı öneriler dahil gizler. Anahtar açıkken Telegram yeni öneri istemez.
+Hides suggested similar channels and bots, including ones already saved, and stops asking Telegram for new ones.	Önerilen benzer kanalları ve botları, daha önce kaydedilmiş olanlar dahil, gizler ve Telegram'dan yenilerini istemeyi bırakır.
 similar channels and bots	benzer kanallar ve botlar
 cached recommendations	kayıtlı öneriler
 Stop call diagnostics	Arama tanılamalarını durdur
-Stops automatic call debug reports and log-file uploads requested by Telegram's server.	Telegram sunucusunun istediği otomatik arama hata ayıklama raporlarını ve günlük dosyası yüklemelerini durdurur.
+Stops your phone from automatically sending call problem reports and log files when Telegram's server asks for them.	Telegram sunucusu istediğinde telefonunuzun arama sorunu raporlarını ve günlük dosyalarını otomatik göndermesini engeller.
 call debug reports	arama hata ayıklama raporları
 call log file uploads	arama günlük dosyası yüklemeleri
 call log reports	arama günlük raporları
 Hide Premium, gifts and Stars	Premium, hediyeler ve Stars'ı gizle
-Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.	Ayarlar'daki Premium, Stars, My Grams, Business ve Hediye Gönder seçeneklerini, profillerdeki Hediyeler sekmelerini ve kanallardaki Hediye düğmesini gizler. Satın almalar ve hesap kontrolleri eskisi gibi çalışır.
+Removes Premium, Stars, My Grams, Business and Send a Gift from Settings, Gifts tabs on profiles, and the Gift button in channels.	Premium, Stars, My Grams, Business ve Hediye Gönder'i Ayarlar'dan, profillerdeki Hediyeler sekmelerini ve kanallardaki Hediye düğmesini kaldırır.
 Settings sales rows	Ayarlar'daki satış seçenekleri
 profile Gifts tabs	profil Hediyeler sekmeleri
 channel Gift button	kanal Hediye düğmesi
 Hide promotional banners	Tanıtım afişlerini gizle
-Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.	Sohbet listesinde Premium, doğum günü ve düşük Stars bakiyesi afişlerini gizler. Hesap güvenliği bildirimleri ve diğer öneriler gösterilmeye devam eder. Hiçbir şey sizin adınıza kapatılmaz.
+Hides the Premium, birthday and low Stars balance banners above your chat list. Account security notices and other suggestions still show.	Sohbet listenizin üstündeki Premium, doğum günü ve düşük Stars bakiyesi afişlerini gizler. Hesap güvenliği bildirimleri ve diğer öneriler görünmeye devam eder.
 promotional suggestions	tanıtım önerileri
 birthday gift banner	doğum günü hediyesi afişi
 Hide sponsored proxy channel	Proxy'nin sponsorlu kanalını gizle
-Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.	Bir proxy'nin sponsorlu kanalını sohbet listesinden ve klasörlerden gizler. Proxy ayarlarını ve paylaşılan tanıtım verisi güncellemelerini olduğu gibi bırakır.
+Hides the sponsored channel a proxy adds to your chat list and folders. Your proxy settings aren't touched.	Bir proxy'nin sohbet listenize ve klasörlerinize eklediği sponsorlu kanalı gizler. Proxy ayarlarınıza dokunmaz.
 cached proxy channel	kayıtlı proxy kanalı
 cached proxy folder entries	klasörlerdeki kayıtlı proxy girdileri
 Open links externally	Bağlantıları harici tarayıcıda aç
-Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.	Normal HTTP(S) bağlantılarını tarayıcınızda açar. Telegram bağlantıları ile oturum açma, ödeme ve kimlik doğrulama yollarının mevcut davranışı korunur.
-Strip link tracking	Bağlantı takibini kaldır
-Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.	Bağlantı açarken ve Bağlantıyı Paylaş seçicisinde isteğe bağlı yerel temizleme. Yalnızca utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid ve fbclid kaldırılır. Bilinmeyen herhangi bir sorgu anahtarı varsa URL'nin tamamı korunur. Ayarlarda varsayılan olarak kapalıdır.
+Opens normal web links in your browser. Telegram links, sign-in and payment pages keep working the way they did.	Normal web bağlantılarını tarayıcınızda açar. Telegram bağlantıları, oturum açma ve ödeme sayfaları eskisi gibi çalışmaya devam eder.
+Remove link tracking tags	Bağlantı izleme etiketlerini kaldır
+Removes tracking tags like utm_source, gclid and fbclid from links you open or share. A link with any other tag is left unchanged.	Açtığınız veya paylaştığınız bağlantılardan utm_source, gclid ve fbclid gibi izleme etiketlerini kaldırır. Başka bir etiket içeren bağlantı değiştirilmez.
 external browser routing	harici tarayıcıya yönlendirme
 opened link tracking	açılan bağlantıların takibi
 shared link tracking	paylaşılan bağlantıların takibi
-Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.	Telegram, sunucusu istediğinde depolama türü istatistiğini veya her kanal gönderisinde ne kadar kaldığınızı göndermez. Premium ekran görüntülemeleri, özelliklere dokunmalar, kabul işlemleri ve satın alma hatalarıyla ilgili raporları da durdurur. Mesajlar ve aramalar eskisi gibi çalışır.
+Stops usage reports to Telegram, like how long you read each channel post and what you tap on Premium screens. Messages and calls work as before.	Telegram'a gönderilen kullanım raporlarını, örneğin her kanal gönderisini ne kadar okuduğunuzu ve Premium ekranlarında nelere dokunduğunuzu durdurur. Mesajlar ve aramalar eskisi gibi çalışır.
+Firebase crash and session reports stop too, from the next time Telegram starts.	Firebase çökme ve oturum raporları da Telegram'ın bir sonraki açılışından itibaren durur.
 Premium promo views	Premium tanıtım görüntülemeleri
 Premium promo taps	Premium tanıtım dokunuşları
 Premium promo accepts	Premium tanıtım onayları
 Premium promo failures	Premium tanıtım hataları
+Firebase crash reports	Firebase çökme raporları
+Firebase session reports	Firebase oturum raporları
 Accounts	Hesaplar
 Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Buradaki her anahtar yalnızca açık olan hesap için değil, bu Telegram uygulamasındaki tüm hesaplar için geçerlidir.
 No previews before sending	Göndermeden önce önizleme yok
-Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.	Telegram, bir mesaj henüz gönderilmemişken sunucusundan bağlantı önizlemesi istemez. Bu kural sohbetler, paylaşım sayfası, anketler, hikâye bağlantıları ve botların paylaştığı mesajlar için geçerlidir. Gönderilen mesajlar önizlemelerini almaya devam eder. Ayarlarda varsayılan olarak kapalıdır.
+Telegram doesn't look up link previews for messages you haven't sent yet, including shares, polls, story links and bots. Sent messages still get one.	Telegram, henüz göndermediğiniz mesajlar için bağlantı önizlemesi aramaz; paylaşımlar, anketler, hikâye bağlantıları ve botlar dahil. Gönderilen mesajlar yine önizleme alır.
 Draft link previews	Taslaklarda bağlantı önizlemeleri
 chat drafts	sohbet taslakları
 share sheet comments	paylaşım sayfası yorumları
@@ -220,83 +223,93 @@ poll links	anket bağlantıları
 story links	hikâye bağlantıları
 bot shares	botların paylaştığı mesajlar
 Camera only on tap	Kamera yalnızca dokununca
-Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.	Ek galerisini açmak kamerayı başlatmaz ve kamera erişimi istemez. Başlatmak için kamera kutucuğuna dokunun. Ayarlarda varsayılan olarak kapalıdır.
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it.	Ek galerisini açmak kamerayı başlatmaz ve kamera erişimi istemez. Başlatmak için kamera kutucuğuna dokunun.
 Gallery camera	Galeri kamerası
 No swipe actions on chats	Sohbetlerde kaydırma eylemi yok
-A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Sohbet listesinde bir sohbeti yana kaydırmak artık onu arşivlemez, sessize almaz, sabitlemez, silmez veya okundu olarak işaretlemez, böylece yanlışlıkla yapılan bir kaydırma sohbeti değiştirmez. Uzun basma tüm eylemleri sunmaya devam eder. Ayarlarda varsayılan olarak kapalıdır.
+Swiping a chat in your list no longer archives, mutes, pins, deletes or marks it read. Press and hold still offers every action.	Listenizdeki bir sohbeti kaydırmak onu artık arşivlemez, sessize almaz, sabitlemez, silmez veya okundu yapmaz. Basılı tutmak tüm eylemleri sunmaya devam eder.
 Hide popular apps	Popüler uygulamaları gizle
-Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	Aramadaki Uygulamalar sekmesi, Telegram'ın Popüler uygulamalar listesini başlığı ve yükleme satırlarıyla birlikte atlar ve Telegram bu listeyi istemez. Açtığınız uygulamalar ve diğer sonuçlar kalır.
+Hides the Popular apps list on the Apps tab of search, and doesn't ask Telegram for it. Apps you've opened and other results stay.	Aramanın Uygulamalar sekmesindeki Popüler uygulamalar listesini gizler ve Telegram'dan istemez. Açtığınız uygulamalar ve diğer sonuçlar kalır.
 Hide contacts on Telegram	Telegram'daki kişileri gizle
-A short chat list no longer lists your contacts on Telegram under it, with their heading and loading rows. Your chats, folders, contact sync and search stay. Off by default in settings.	Kısa bir sohbet listesi, altında Telegram'daki kişilerinizi başlığı ve yükleme satırlarıyla artık göstermez. Sohbetleriniz, klasörleriniz, kişi senkronizasyonu ve arama kalır. Ayarlarda varsayılan olarak kapalıdır.
+When your chat list is short, Telegram lists your contacts below it. This hides that list and its heading. Chats, folders and search stay.	Sohbet listeniz kısa olduğunda Telegram kişilerinizi altında gösterir. Bu, o listeyi ve başlığını gizler. Sohbetler, klasörler ve arama kalır.
 Hide greeting stickers	Selamlama çıkartmalarını gizle
-An empty private chat no longer offers a sticker to send as a greeting. Its text, business introductions, paid-message notices and the sticker picker stay. Off by default in settings.	Boş bir özel sohbet artık selamlama olarak gönderilecek bir çıkartma önermez. Metni, işletme tanıtımları, ücretli mesaj bildirimleri ve çıkartma seçici kalır. Ayarlarda varsayılan olarak kapalıdır.
+Empty private chats stop suggesting a sticker to say hello. Their other text and notices, and the sticker picker, stay.	Boş özel sohbetler merhaba demek için çıkartma önermeyi bırakır. Diğer metinleri, bildirimleri ve çıkartma seçici kalır.
 Quiet contacts prompts	Kişi isteklerini sustur
-Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Kişilere erişimi reddettikten sonra Kişiler sekmesi yeniden sormaz ve uyarı rozeti kaybolur. İlk istek, sekmenin kendi düğmeleri ve kişi eşitleme aynı kalır.
+After you say no to contacts access, the Contacts tab stops asking again and its warning badge goes away.	Kişilere erişimi reddettikten sonra Kişiler sekmesi tekrar sormaz ve uyarı rozeti kaybolur.
 
 New Year look all year	Yıl boyu yılbaşı görünümü
-Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegram'ın Noel Baba şapkası sohbet listesi logosunun üzerinde görünür. Yılbaşı karı her gün sohbet listesinin üst çubuğuna, animasyonlu sohbet arka planları açıkken de sohbet arka planlarına yağar. Ayarlarda varsayılan olarak kapalıdır.
+Shows Telegram's Santa hat and New Year snow all year, not only around New Year. Snow also falls on chat backgrounds if animated backgrounds are on.	Telegram'ın Noel Baba şapkasını ve yılbaşı karını sadece yılbaşında değil, yıl boyu gösterir. Animasyonlu arka planlar açıksa kar sohbet arka planlarına da yağar.
 Use system font	Sistem yazı tipini kullan
-Bold and italic text stops using the Roboto files built into Telegram and takes your phone's font, the one regular text already uses. Code takes the phone's monospace font. Some number displays and Instant View pages keep Telegram's own. Off by default in settings.	Kalın ve italik metin, Telegram'a gömülü Roboto dosyaları yerine telefonunuzun yazı tipini kullanır. Normal metin zaten onu kullanıyor. Kod, telefonun eş aralıklı yazı tipini kullanır. Bazı sayı göstergeleri ve Instant View sayfaları Telegram'ın kendi yazı tipini korur. Ayarlarda varsayılan olarak kapalıdır.
+Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	Kalın, italik ve kod metni, Telegram'ın yerleşik yazı tipi yerine telefonunuzun yazı tipini kullanır. Değişikliği görmek için Telegram'ı yeniden başlatın.
 AMOLED black	AMOLED siyahı
-Telegram's Night and Dark themes draw their screens in pure black, and a patterned chat background shows its pattern over black. Message bubbles and pop-up menus keep their colors, and themes you've installed from a file stay as they are. Off by default in settings.	Telegram'ın Gece ve Koyu temaları ekranları saf siyah gösterir, desenli sohbet arka planı da desenini siyahın üzerinde gösterir. Mesaj balonları ve açılır menüler renklerini korur, dosyadan yüklenen temalar olduğu gibi kalır. Ayarlarda varsayılan olarak kapalıdır.
+Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Gece ve Koyu temalar saf siyah ekranlar kullanır. Mesaj balonları ve menüler renklerini korur. Değişikliği görmek için Telegram'ı yeniden başlatın.
 Hide translate bar	Çeviri çubuğunu gizle
-Chats in another language stop showing Telegram's translate bar at the top, and Translate moves to the chat's menu. A chat you're translating keeps its bar so you can go back to the original. Off by default in settings.	Başka dildeki sohbetler üstte Telegram'ın çeviri çubuğunu artık göstermez ve Çevir, sohbetin menüsüne taşınır. Çevirdiğiniz bir sohbet, orijinale dönebilmeniz için çubuğunu korur. Ayarlarda varsayılan olarak kapalıdır.
+Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Başka dildeki sohbetler üstte çeviri çubuğunu göstermez. Çevir, sohbet menüsüne taşınır ve çevirdiğiniz bir sohbet çubuğunu korur.
 Exact numbers	Sayıları tam göster
-Member, subscriber, view, reply and reaction counts show the full number, like 12,345 instead of 12.3K. Off by default in settings.	Üye, abone, görüntülenme, yanıt ve tepki sayıları kısaltılmadan gösterilir, örneğin 12.3K yerine 12,345. Ayarlarda varsayılan olarak kapalıdır.
+Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Üye, abone, görüntülenme, yanıt ve tepki sayıları tam gösterilir, örneğin 12,3 B yerine 12.345.
 Reveal spoilers	Spoilerları göster
-Spoiler text, photos and videos show right away instead of waiting for a tap. View-once media, sensitive content and login codes stay covered, and text you're typing keeps its spoiler. Off by default in settings.	Spoiler metinleri, fotoğrafları ve videoları dokunmana gerek kalmadan hemen görünür. Tek görüntülemelik medya, hassas içerik ve giriş kodları kapalı kalır, yazdığın metin de spoiler’ını korur. Ayarlarda varsayılan olarak kapalıdır.
+Spoiler text, photos and videos show right away without a tap. View-once media, sensitive content and login codes stay covered.	Spoiler metin, fotoğraf ve videolar dokunmadan hemen görünür. Tek seferlik medya, hassas içerik ve giriş kodları kapalı kalır.
 Hide keyboard on scroll	Kaydırınca klavyeyi gizle
-Starting to scroll through a chat closes the keyboard, the way Telegram already does while you search a chat. Telegram's emoji and sticker panel stays open. Off by default in settings.	Bir sohbette kaydırmaya başlamak klavyeyi kapatır, tıpkı Telegram’ın sohbet içinde arama yaparken yaptığı gibi. Telegram’ın emoji ve çıkartma paneli açık kalır. Ayarlarda varsayılan olarak kapalıdır.
+The keyboard closes when you start scrolling a chat. The emoji and sticker panel stays open.	Bir sohbeti kaydırmaya başladığınızda klavye kapanır. Emoji ve çıkartma paneli açık kalır.
 Keep videos muted on volume keys	Ses tuşlarında videoları sessiz tut
-Volume keys in a chat change the volume instead of playing the video or round video on screen with sound. Tap a video to hear it. Off by default in settings.	Bir sohbetteki ses tuşları, ekrandaki videoyu veya yuvarlak videoyu sesli oynatmak yerine sesi değiştirir. Duymak için videoya dokun. Ayarlarda varsayılan olarak kapalıdır.
+Volume keys only change the volume. They no longer start the video or round video on screen with sound. Tap a video to hear it.	Ses tuşları yalnızca sesi değiştirir. Ekrandaki videoyu veya yuvarlak videoyu artık sesle başlatmaz. Duymak için bir videoya dokunun.
 Swipe back on profiles	Profillerde geri kaydır
-A swipe to the right on a profile's photos or media tabs goes back, like it does on the rest of the profile, instead of showing the previous photo or tab. Swiping left still moves forward. Off by default in settings.	Bir profilin fotoğraflarında veya medya sekmelerinde sağa kaydırmak, önceki fotoğrafı veya sekmeyi göstermek yerine profilin geri kalanında olduğu gibi geri gider. Sola kaydırmak yine ileri gider. Ayarlarda varsayılan olarak kapalıdır.
+Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, instead of showing the previous photo or tab.	Bir profilin fotoğraflarında veya medya sekmelerinde sağa kaydırmak, önceki fotoğraf ya da sekme yerine, profilin geri kalanında olduğu gibi geri gider.
 Hide phone number	Telefon numarasını gizle
-Your own phone number shows as dots in the side menu, Settings, your profile and anywhere else Telegram displays it, which helps with screenshots and screen sharing. Other people's numbers stay visible. Off by default in settings.	Kendi telefon numaran yan menüde, Ayarlarda, profilinde ve Telegram'ın gösterdiği her yerde nokta olarak görünür. Ekran görüntüleri ve ekran paylaşımı için kullanışlıdır. Başkalarının numaraları görünür kalır. Ayarlarda varsayılan olarak kapalıdır.
+Your own phone number shows as dots in the side menu, Settings and your profile, which helps with screenshots. Others' numbers stay visible.	Kendi telefon numaranız yan menüde, Ayarlar'da ve profilinizde nokta olarak görünür, bu ekran görüntülerinde işe yarar. Başkalarının numaraları görünür kalır.
 Message times with seconds	Saniyeli mesaj saati
-The time on each message shows seconds too, like 9:41:27 PM, so messages sent close together are easy to tell apart. Off by default in settings.	Her mesajın saati saniyeleri de gösterir, örneğin 21:41:27, böylece art arda gönderilen mesajlar kolayca ayırt edilir. Ayarlarda varsayılan olarak kapalıdır.
+Each message's time includes seconds, like 9:41:27 PM, so messages sent close together are easy to tell apart.	Her mesajın saati saniyeyi de içerir, örneğin 21:41:27, böylece peş peşe gönderilen mesajları ayırt etmek kolaylaşır.
 Allow chat blur on slower phones	Daha yavaş telefonlarda sohbet bulanıklığına izin ver
-Telegram only blurs the chat header and panels on phones it rates as fast. This lets any phone use it once Blur in chat is on under Power saving. Off by default in settings.	Telegram sohbet başlığını ve panelleri yalnızca hızlı saydığı telefonlarda bulanıklaştırır. Bu, Güç tasarrufu altında Sohbette bulanıklık açıldığında her telefonun bunu kullanmasını sağlar. Ayarlarda varsayılan olarak kapalıdır.
+Telegram only blurs chat headers and panels on fast phones. This lets any phone do it, once Blur in chat is on under Power saving.	Telegram sohbet başlığını ve panelleri yalnızca hızlı telefonlarda bulanıklaştırır. Bu, Güç tasarrufu altında Sohbette bulanıklık açıldığında her telefonun bunu yapmasını sağlar.
 Play voice messages one at a time	Sesli mesajları tek tek oynat
-When a voice or video message ends, the next one in the chat doesn't start on its own. Off by default in settings.	Bir sesli ya da görüntülü mesaj bittiğinde sohbetteki sonraki kendiliğinden başlamaz. Ayarlarda varsayılan olarak kapalıdır.
-Turn off haptic feedback	Dokunsal geri bildirimi kapat
-Taps, long presses, swipes and wrong entries in Telegram stop vibrating the phone. Incoming calls still vibrate, and notifications vibrate the way you set them. Off by default in settings.	Telegram'da dokunmalar, uzun basmalar, kaydırmalar ve hatalı girişler artık telefonu titreştirmez. Gelen aramalar titremeye devam eder, bildirimler de ayarladığınız gibi titrer. Ayarlarda varsayılan olarak kapalıdır.
+When a voice or video message ends, the next one doesn't start by itself.	Bir sesli veya görüntülü mesaj bittiğinde bir sonrakisi kendiliğinden başlamaz.
+Stop vibrations on taps	Dokunuşlardaki titreşimleri durdur
+Taps, long presses, swipes and wrong entries no longer vibrate the phone. Incoming calls still vibrate, and notifications follow your own settings.	Dokunmalar, uzun basmalar, kaydırmalar ve hatalı girişler artık telefonu titreştirmez. Gelen aramalar titreşmeye devam eder ve bildirimler kendi ayarlarınızı izler.
 Turn off reaction effects	Tepki efektlerini kapat
-When you or someone else reacts to a message, the emoji no longer flies across the screen and bursts. The reaction still shows on the message. Off by default in settings.	Siz ya da başka biri bir mesaja tepki verdiğinde emoji artık ekranda uçup patlamaz. Tepki yine mesajda görünür. Ayarlarda varsayılan olarak kapalıdır.
+When someone reacts to a message, the emoji doesn't fly across the screen and burst. The reaction still shows on the message.	Biri bir mesaja tepki verdiğinde emoji ekranda uçup patlamaz. Tepki mesajın üzerinde görünmeye devam eder.
 Hide folder tab counters	Klasör sekmesi sayaçlarını gizle
-The folder tabs above the chat list show just their names, without the number of unread chats. Chats stay unread and the app icon's badge doesn't change. Off by default in settings.	Sohbet listesinin üstündeki klasör sekmeleri okunmamış sohbet sayısı olmadan yalnızca adlarını gösterir. Sohbetler okunmamış kalır ve uygulama simgesindeki rozet değişmez. Ayarlarda varsayılan olarak kapalıdır.
+Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	Sohbet listesinin üstündeki klasör sekmeleri okunmamış sayısı olmadan yalnızca adlarını gösterir. Sohbetler okunmamış kalır ve uygulama simgesindeki rozet değişmez.
 Hide sender names when forwarding	İletirken gönderen adlarını gizle
-Each new forward starts with Telegram's Hide sender's name option turned on, so the copies arrive without the original author. You can still turn it off before sending, and article forwards follow Telegram's Premium rule. Off by default in settings.	Her yeni iletme, Telegram'ın Gönderen adını gizle seçeneği açık olarak başlar, böylece kopyalar asıl gönderen olmadan ulaşır. Göndermeden önce yine kapatabilirsiniz, makaleler ise Telegram'ın Premium kuralına uyar. Ayarlarda varsayılan olarak kapalıdır.
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Her yeni iletme, Gönderen adını gizle açık olarak başlar; böylece kopyalar asıl yazar olmadan ulaşır. Göndermeden önce yine kapatabilirsiniz.
 Voice messages in the music player	Sesli mesajlar müzik çalarda
-While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Bir sesli mesaj çalarken sohbetin üstündeki çubuğa dokunduğunuzda, mesaja atlamak yerine Telegram'ın arama çubuklu tam müzik çaları açılır. Tek seferlik sesli mesajlar olduğu gibi kalır. Ayarlarda varsayılan olarak kapalıdır.
+While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Bir sesli mesaj çalarken sohbetin üstündeki çubuğa dokunmak, mesaja atlamak yerine, ileri geri sarabileceğiniz tam müzik çaları açar.
 Silence people outside your contacts	Kişileriniz dışındakileri sessize al
-A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Kişileriniz arasında olmayan birinden gelen özel mesaj yine bildirim gösterir, yalnızca sessiz ve titreşimsiz. Botlar, hatırlatıcılar ve Telegram giriş kodları seslerini korur. Ayarlarda varsayılan olarak kapalıdır.
+Private messages from people not in your contacts still show a notification, but without sound or vibration. Bots, reminders and login codes keep their sound.	Kişilerinizde olmayan kişilerden gelen özel mesajlar yine bildirim gösterir ama sesli veya titreşimli olmaz. Botlar, hatırlatıcılar ve giriş kodları seslerini korur.
 Disable pull to archive	Arşive çekmeyi kapat
-Pulling down the chat list no longer brings up a hidden archive. You can open it from Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default in settings.	Sohbet listesini aşağı çektiğinizde gizli arşiv artık görünmez. Arşivi sohbet listesinin menüsündeki Arşivlenmiş sohbetler ile açabilir ya da listede kalması için sabitleyebilirsiniz. Ayarlarda varsayılan olarak kapalıdır.
+Pulling down the chat list no longer opens the archive. Use Archived chats in the list's menu instead. Restart Telegram to see the change.	Sohbet listesini aşağı çekmek artık arşivi açmaz. Bunun yerine listenin menüsündeki Arşivlenmiş sohbetler'i kullanın. Değişikliği görmek için Telegram'ı yeniden başlatın.
 Start the camera on the rear lens	Kamerayı arka lensle başlat
-The camera in the attachment menu starts on the rear lens every time you open it, instead of the lens you used last. You can still flip it while it's open. Off by default in settings.	Ek menüsündeki kamera, en son kullandığınız lens yerine her seferinde arka lensle açılır. Kamera açıkken yine de lensi değiştirebilirsiniz. Ayarlarda varsayılan olarak kapalıdır.
+The camera in the attachment menu always opens on the rear lens, not the lens you used last. You can still flip it.	Ek menüsündeki kamera, en son kullandığınız lens yerine her zaman arka lensle açılır. Yine de değiştirebilirsiniz.
 Hide gallery camera tile	Galerideki kamera kutucuğunu gizle
-The photo grid in the attachment menu starts with your photos instead of a live camera tile. A chat picks it up the next time you open it. Off by default in settings.	Ek menüsündeki fotoğraf ızgarası canlı kamera kutucuğu yerine fotoğraflarınızla başlar. Bir sohbet bunu, onu bir sonraki açışınızda uygular. Ayarlarda varsayılan olarak kapalıdır.
+The attachment menu's photo grid starts with your photos instead of a live camera tile. A chat picks this up the next time you open it.	Ek menüsündeki fotoğraf ızgarası, canlı kamera kutucuğu yerine fotoğraflarınızla başlar. Bir sohbet bunu bir sonraki açışınızda uygular.
 Hide time on stickers	Çıkartmalarda saati gizle
-Stickers and big animated emoji no longer carry the time and read checks in their corner. Every other message keeps its time. Off by default in settings.	Çıkartmalar ve büyük animasyonlu emojiler köşelerinde artık saati ve okundu işaretlerini göstermez. Diğer mesajlar saatlerini korur. Ayarlarda varsayılan olarak kapalıdır.
+Stickers and big animated emoji no longer show the time and read checks in their corner. Other messages keep their time.	Çıkartmalar ve büyük animasyonlu emojiler artık köşelerinde saati ve okundu işaretlerini göstermez. Diğer mesajlar saatini korur.
 Ignore mentions in muted chats	Sessize alınmış sohbetlerdeki bahsetmeleri yok say
-Telegram still notifies you when someone mentions you or replies to you in a group or channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you haven't muted notify as before. Off by default in settings.	Telegram, sessize aldığınız bir grupta ya da kanalda biri sizden bahsettiğinde veya size yanıt verdiğinde yine de bildirim gönderir. Bu açıkken bunlar da sohbetin geri kalanı kadar sessiz kalır. Sessize almadığınız sohbetler eskisi gibi bildirim gönderir. Ayarlarda varsayılan olarak kapalıdır.
+Mentions and replies in groups or channels you've muted no longer notify you. Chats you haven't muted notify as before.	Sessize aldığınız grup veya kanallardaki bahsetmeler ve yanıtlar artık bildirim göndermez. Sessize almadığınız sohbetler eskisi gibi bildirim gönderir.
 Hide blocked users in groups	Gruplarda engellenen kullanıcıları gizle
-Messages from people you've blocked are left out of the groups and supergroups you open. Private chats and channel posts stay as they are. Nothing is deleted, so turning it off and reopening the chat brings them back. Telegram loads a long blocked list a bit at a time, so someone it hasn't loaded yet still shows. Off by default in settings.	Engellediğiniz kişilerin mesajları açtığınız gruplarda ve süper gruplarda gösterilmez. Özel sohbetler ve kanal gönderileri olduğu gibi kalır. Hiçbir şey silinmez, bu yüzden kapatıp sohbeti yeniden açtığınızda mesajlar geri gelir. Telegram uzun bir engellenenler listesini parça parça yükler, bu yüzden henüz yüklemediği biri görünmeye devam eder. Ayarlarda varsayılan olarak kapalıdır.
+Messages from people you've blocked are left out of groups and supergroups you open. Nothing is deleted. Private chats and channel posts stay as they are.	Engellediğiniz kişilerin mesajları açtığınız grup ve süper gruplarda gösterilmez. Hiçbir şey silinmez. Özel sohbetler ve kanal gönderileri olduğu gibi kalır.
 Hide Telegram Features and Invite Friends	Telegram Özellikleri ve Arkadaşlarını Davet Et satırlarını gizle
-Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Ayarlar'da Telegram Özellikleri satırı, Kişiler'de ise Arkadaşlarını Davet Et satırı görünmez. Henüz hiç kişiniz yoksa Kişiler'in onların yerine gösterdiği davet listesi de kaldırılır. Ayarlarda varsayılan olarak kapalıdır.
+Removes the Telegram Features row from Settings and Invite Friends from Contacts. With no contacts yet, the invite list goes too.	Telegram Özellikleri satırını Ayarlar'dan, Arkadaşlarını Davet Et'i Kişiler'den kaldırır. Henüz kişiniz yoksa davet listesi de kalkar.
 Add Repeat to the message menu	Mesaj menüsüne Tekrarla ekle
-Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menüde İlet'in altına Tekrarla koyar. Mesajı aynı sohbete sizden yeni bir mesaj olarak yeniden gönderir. Yalnızca Telegram'ın İlet seçeneği sunduğu ve yazabildiğiniz yerlerde görünür, yani korumalı veya gizli sohbetlerde asla görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Adds Repeat under Forward in a message's press-and-hold menu. It sends the same message again to the chat. Not shown in protected or secret chats.	Bir mesajın basılı tutunca açılan menüsünde İlet'in altına Tekrarla ekler. Aynı mesajı sohbete yeniden gönderir. Korumalı veya gizli sohbetlerde görünmez.
 Keep deleted messages	Silinen mesajları sakla
-Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	Başkalarının sildiği mesajlar bu telefonda sohbetlerinizde kalır ve saatin yanında silindi olarak işaretlenir. Kendi sildikleriniz ile kendiliğinden kaybolan ya da korumalı her şey her zamanki gibi çalışır. Ayarlarda varsayılan olarak kapalıdır.
+Messages others delete stay in your chat on this phone, marked deleted next to the time. Your own deletes and disappearing messages work as usual.	Başkalarının sildiği mesajlar bu telefonda sohbetinizde kalır ve saatin yanında silindi olarak işaretlenir. Kendi sildikleriniz ve kaybolan mesajlar her zamanki gibi çalışır.
+# context: an action row under Keep deleted messages; a tap deletes every message that switch kept
+Clear kept messages	Saklanan mesajları temizle
+Deletes the messages this phone kept after others deleted them, in every account, the way Telegram would have.	Başkaları sildikten sonra bu telefonun sakladığı mesajları her hesapta, Telegram'ın yapacağı şekilde siler.
+# context: the notice after that tap when nothing was kept
+There are no kept messages to clear.	Temizlenecek saklanan mesaj yok.
+# context: the notice after that tap, with how many kept messages went
+Removed %1$d kept message.	%1$d saklanan mesaj kaldırıldı.
+Removed %1$d kept messages.	%1$d saklanan mesaj kaldırıldı.
 Ask before sending a sticker	Çıkartma göndermeden önce sor
-Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Dokunduğunuz bir çıkartma sohbete gitmeden önce Gönder veya İptal diye sorar. İptal onu bırakır, zamanlanmış çıkartma ise her zamanki gibi gider. Ayarlarda varsayılan olarak kapalıdır.
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled stickers go out without asking.	Dokunduğunuz bir çıkartma sohbete girmeden önce Gönder veya İptal sorar. İptal onu atar. Zamanlanmış çıkartmalar sormadan gider.
+Turn off beta debug logs	Beta hata ayıklama günlüklerini kapat
+Telegram Beta keeps debug logs on your phone all the time, its connection log included, and its own debug menu can't stop that. This stops them. Logs already saved stay until you clear them, and the regular build doesn't keep them, so nothing changes there. Restart Telegram to see the change.	Telegram Beta, bağlantı günlüğü dahil, telefonunuza sürekli hata ayıklama günlükleri yazar ve kendi hata ayıklama menüsü bunu durduramaz. Bu ayar onları durdurur. Önceden kaydedilmiş günlükler siz silene kadar kalır, normal sürüm ise bu günlükleri tutmaz, yani orada hiçbir şey değişmez. Değişikliği görmek için Telegram'ı yeniden başlatın.
 Ask before sending a GIF	GIF göndermeden önce sor
-Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Dokunduğunuz bir GIF sohbete gitmeden önce Gönder veya İptal diye sorar. İptal onu bırakır, zamanlanmış GIF ise her zamanki gibi gider. Ayarlarda varsayılan olarak kapalıdır.
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Dokunduğunuz bir GIF sohbete girmeden önce Gönder veya İptal sorar. İptal onu atar. Zamanlanmış GIF'ler sormadan gider.
 Ask before sending a voice or video message	Sesli veya görüntülü mesaj göndermeden önce sor
-Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Kaydettiğiniz bir sesli veya görüntülü mesaj sohbete gitmeden önce Gönder veya İptal diye sorar. İptal kaydı atar. Ayarlarda varsayılan olarak kapalıdır.
+Asks Send or Cancel before a voice or video message you recorded goes out. Cancel throws the recording away.	Kaydettiğiniz sesli veya görüntülü mesaj gitmeden önce Gönder veya İptal sorar. İptal kaydı çöpe atar.
 Ask before starting a call	Arama başlatmadan önce sor
-Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Bir sohbetin üst çubuğundaki veya bir profildeki arama düğmesi arama başlatmadan önce Ara veya İptal diye sorar. Ayarlarda varsayılan olarak kapalıdır.
+Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Bir sohbetteki veya profildeki arama düğmesi arama başlatmadan önce Ara veya İptal sorar.
 Send sticker	Çıkartma gönder
 Send this sticker to this chat?	Bu çıkartma bu sohbete gönderilsin mi?
 Send GIF	GIF gönder
@@ -313,9 +326,9 @@ Call	Ara
 # context: the label before the time of a message someone else deleted that this phone kept
 deleted	silindi
 Add Copy photo to the message menu	Mesaj menüsüne Fotoğrafı kopyala ekle
-Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Bir fotoğrafa uzun bastığınızda açılan menüde, fotoğraf indirildikten sonra İlet'in altına Fotoğrafı kopyala koyar. Resmin kendisini kopyalar, böylece başka bir uygulamaya yapıştırabilirsiniz. Korumalı veya gizli sohbetlerde görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Adds Copy photo to a downloaded photo's press-and-hold menu, so you can paste the picture into another app. Not shown in protected or secret chats.	İndirilmiş bir fotoğrafın basılı tutunca açılan menüsüne Fotoğrafı kopyala ekler; böylece resmi başka bir uygulamaya yapıştırabilirsiniz. Korumalı veya gizli sohbetlerde görünmez.
 Add Message details to the message menu	Mesaj menüsüne Mesaj ayrıntıları ekle
-Puts Message details at the end of a message's long-press menu. It shows the message's IDs, when it was sent and edited, where it was forwarded from and the file's data center and size, with a Copy button. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menünün sonuna Mesaj ayrıntıları koyar. Mesajın kimliklerini, ne zaman gönderilip düzenlendiğini, nereden iletildiğini ve dosyanın veri merkezi ile boyutunu bir Kopyala düğmesiyle gösterir. Ayarlarda varsayılan olarak kapalıdır.
+Adds Message details to a message's press-and-hold menu. It shows IDs, send and edit times, where it was forwarded from, and file info.	Bir mesajın basılı tutunca açılan menüsüne Mesaj ayrıntıları ekler. Kimlikleri, gönderme ve düzenleme saatlerini, nereden iletildiğini ve dosya bilgilerini gösterir.
 Repeat	Tekrarla
 Copy photo	Fotoğrafı kopyala
 Photo copied	Fotoğraf kopyalandı
@@ -333,7 +346,7 @@ File size: %1$s	Dosya boyutu: %1$s
 Copy	Kopyala
 Message details copied	Mesaj ayrıntıları kopyalandı
 Add Quick forward to the message menu	Mesaj menüsüne Hızlı ilet ekle
-Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menüde İlet'in altına Hızlı ilet koyar. Kayıtlı Mesajlar'ı ve son birkaç sohbeti listeler, bir dokunuşla mesaj gönderen görünür halde oraya iletilir, İletirken gönderen adlarını gizle açık değilse. Korumalı veya gizli sohbetlerde görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Adds Quick forward to a message's press-and-hold menu. One tap sends it to Saved Messages or a recent chat. Not in protected or secret chats.	Bir mesajın basılı tutunca açılan menüsüne Hızlı ilet ekler. Tek dokunuşla Kayıtlı Mesajlar'a veya yakın zamandaki bir sohbete gönderir. Korumalı veya gizli sohbetlerde yoktur.
 Quick forward	Hızlı ilet
 Forward to	İlet
 Forwarding to %1$s	%1$s sohbetine iletiliyor
@@ -343,25 +356,25 @@ No chat to forward to	İletilecek sohbet yok
 # context: Notifications repair and bottom-pull controls.
 Notifications	Bildirimler
 Repair Firebase push registration	Firebase bildirim kaydını düzelt
-Uses Telegram's official certificate for Firebase push registration. Notification permission and battery settings still apply.	Firebase bildirim kaydı için Telegram'ın resmi sertifikasını kullanır. Bildirim izni ve pil ayarları yine geçerlidir.
+Tries to help this patched Telegram sign up for push notifications with Firebase, Google's notification service, using Telegram's original certificate. Notification permission and battery settings still apply.	Yamalanmış bu Telegram'ın, Google'ın bildirim hizmeti Firebase üzerinden anlık bildirimlere kaydolmasına, Telegram'ın özgün sertifikasıyla yardımcı olmaya çalışır. Bildirim izni ve pil ayarları yine geçerlidir.
 Firebase certificate header	Firebase sertifika başlığı
 Stop pull to next channel	Sonraki kanala çekmeyi durdur
 Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.	Kanalın sonunda yukarı çekmek yalnızca içeriği kaydırır. Sonraki kanalı sohbet listenizden açın.
 Stop pull to next topic	Sonraki konuya çekmeyi durdur
-Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list. Off by default in settings.	Bir forum konusunun sonunda yukarı çekmek yalnızca içeriği kaydırır. Sonraki konuyu konu listesinden açın. Ayarlarda varsayılan olarak kapalıdır.
+Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list.	Bir forum konusunun sonunda yukarı çekmek yalnızca içeriği kaydırır. Sonraki konuyu konu listesinden açın.
 # context: Read-only local notification facts, independent of repair and Pause.
-Local notification status	Yerel bildirim durumu
+Notification status on this phone	Bu telefondaki bildirim durumu
 local notification status	yerel bildirim durumu
 Notification permission: %1$s	Bildirim izni: %1$s
-Push token saved: %1$s	Push belirteci kayıtlı: %1$s
+Notification ID saved on this phone: %1$s	Bu telefonda kayıtlı bildirim kimliği: %1$s
 Signed-in accounts: %1$s	Oturum açmış hesaplar: %1$s
-Accounts confirmed for push: %1$s	Push kaydı onaylanan hesaplar: %1$s
-Telegram's push answer: %1$s	Telegram'ın push kaydı yanıtı: %1$s
-None since Telegram started	Telegram açıldığından beri yok
+Accounts Telegram confirmed for notifications: %1$s	Telegram'ın bildirimler için onayladığı hesaplar: %1$s
+Telegram's reply to notification sign-up: %1$s	Telegram'ın bildirim kaydına yanıtı: %1$s
+No reply since Telegram started	Telegram açıldığından beri yanıt yok
 Accepted	Kabul edildi
 Refused	Reddedildi
 Refused (%1$s)	Reddedildi (%1$s)
-Read-only local state. This doesn't confirm notification delivery.	Yalnızca yerel durum okunur. Bu, bildirimlerin teslim edildiğini doğrulamaz.
+This only shows what's saved on this phone. It doesn't prove notifications will arrive.	Bu yalnızca bu telefonda nelerin kayıtlı olduğunu gösterir. Bildirimlerin ulaşacağını kanıtlamaz.
 Unknown	Bilinmiyor
 Allowed	İzin verildi
 Blocked	Engellendi
@@ -370,11 +383,11 @@ No	Hayır
 Use normal paste	Normal yapıştırmayı kullan
 Show user and chat IDs	Kullanıcı ve sohbet kimliklerini göster
 Disable double-tap reactions	Çift dokunma tepkilerini kapat
-Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Metni Telegram'ın HTML, tablo veya eş aralıklı yazı dönüşümü olmadan yapıştırır. Boşluklar ve URL'ler korunur. Diğer pano işlemleri kullanılabilir. Ayarlarda varsayılan olarak kapalıdır.
-Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Açılan profilin menüsünde kopyalanabilir yerel kullanıcı veya sohbet kimliğini gösterir. Erişim karmaları gizli kalır. Sunucu isteği eklenmez. Ayarlarda varsayılan olarak kapalıdır.
-Show profile data center	Profilin veri merkezini göster
-A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. A profile without a photo shows none, and no server request is added. Off by default in settings.	Bir profilin menüsü, profil fotoğrafının Telegram'ın 1 ile 5 arasındaki hangi veri merkezinde durduğunu da gösterir. Fotoğrafı olmayan bir profilde gösterilmez ve sunucuya ek istek gönderilmez. Ayarlarda varsayılan olarak kapalıdır.
-Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Çift dokunma sohbetlerde veya tepki önizlemesinde tepki eklemez. Kaydırma, dokunma, seçim ve tepki menüleri aynı kalır. Ayarlarda varsayılan olarak kapalıdır.
+Pastes text exactly as you copied it, without Telegram adding formatting, tables or code styling. Spaces and links stay as they were.	Metni kopyaladığınız gibi yapıştırır, Telegram biçimlendirme, tablo veya kod stili eklemez. Boşluklar ve bağlantılar olduğu gibi kalır.
+Adds a copyable ID number for a user or chat to the profile's menu. Telegram isn't asked for anything extra.	Profil menüsüne kullanıcı veya sohbet için kopyalanabilir bir kimlik numarası ekler. Telegram'dan fazladan bir şey istenmez.
+Show where a profile photo is stored	Profil fotoğrafının nerede saklandığını göster
+A profile's menu also shows which of Telegram's five data centers (its server locations) stores the profile photo. No photo, no number.	Profil menüsü ayrıca profil fotoğrafının Telegram'ın beş veri merkezinden (sunucu konumlarından) hangisinde saklandığını gösterir. Fotoğraf yoksa numara da yoktur.
+Double-tapping a message no longer adds a reaction. Scrolling, normal taps, selecting and the reaction menu work as before.	Bir mesaja çift dokunmak artık tepki eklemez. Kaydırma, normal dokunuşlar, seçme ve tepki menüsü eskisi gibi çalışır.
 compose text paste	mesaj yazarken metin yapıştırma
 caption text paste	açıklama metni yapıştırma
 profile local IDs	yerel profil kimlikleri

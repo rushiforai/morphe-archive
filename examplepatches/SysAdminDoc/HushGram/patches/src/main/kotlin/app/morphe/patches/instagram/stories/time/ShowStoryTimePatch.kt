@@ -53,18 +53,17 @@ private const val STRING = "Ljava/lang/String;"
 /**
  * Shows the date and time a story was posted in its header instead of how long ago, or, by the
  * extension's choice under the switch, the time left before it expires or only the time it went
- * up. Off in the default selection: Instagram's "3h" is its own design, so the date is the user's
- * pick. The choice lives wholly in the extension, which gets the posted time either way.
+ * up. In the default selection with its switch off: Instagram's "3h" is its own design, so the
+ * date is the user's pick. The choice lives wholly in the extension, which gets the posted time either way.
  */
 @Suppress("unused")
 val showStoryTimePatch = bytecodePatch(
     name = "Show a story's exact time",
-    description = "Shows the date and time a story was posted in its header, like Oct 2, 3:45 PM, instead of " +
-        "how long ago. A choice under its switch can show the time left before the story expires, or only the " +
-        "time it went up. It follows your phone's language and 12 or 24-hour setting.",
-    default = false,
+    description = "Shows the date and time a story was posted, like Oct 2, 3:45 PM, instead of how long ago. A " +
+        "choice under the switch can show the time left instead. Starts off. Turn it on in HushGram settings > " +
+        "Stories.",
 ) {
-    category("Interface")
+    category("Stories")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

@@ -127,6 +127,72 @@ class GenAiReelShapesTest {
         assertEquals("a call taking the literal as an Object", emptyList<String>(), finderCalls(logged).map { it.toString() })
     }
 
+    private val tableOwner = "Lfixture/Strings;"
+
+    /** A string table like the ones Redex outlines literals into: index 8 answers the type name. */
+    private val table = method(
+        "name", listOf("I"), "Ljava/lang/String;", 3, static = true, definingClass = tableOwner,
+        smali = """
+            packed-switch p0, :cases
+            const-string v0, "unused"
+            return-object v0
+            :literal
+            const-string v0, "$TRANSPARENCY_ATTRIBUTION"
+            return-object v0
+            :cases
+            .packed-switch 0x8
+                :literal
+            .end packed-switch
+        """,
+    )
+
+    private val tables = { call: MethodReference -> table.takeIf { call.definingClass == tableOwner && call.name == "name" } }
+
+    /** A holder that asks the table for entry [index] and hands the answer to [call] beside the model. */
+    private fun asksTable(call: String, index: Int = 8) = holder(
+        """
+            const/16 v1, 0x${Integer.toHexString(index)}
+            invoke-static { v1 }, $tableOwner->name(I)Ljava/lang/String;
+            move-result-object v1
+            invoke-static { p0, v1 }, $call
+            move-result-object v0
+            return-void
+        """,
+    )
+
+    @Test
+    fun `the literal asked of a string table is handed over too, and a void call is no finder call`() {
+        assertTrue(isStringTable(table))
+        assertFalse("a holder isn't a table", isStringTable(handsTo(finder)))
+        val entries = tableEntries(listOf(table), TRANSPARENCY_ATTRIBUTION)
+        assertEquals(mapOf("$tableOwner->name" to setOf(8)), entries)
+        assertEquals("a literal the table doesn't hold", emptyMap<String, Set<Int>>(), tableEntries(listOf(table), "XFBFBShortsRemixAttribution"))
+        assertTrue(asksTableFor(asksTable(finder), entries))
+        assertFalse("another entry", asksTableFor(asksTable(finder, 9), entries))
+        assertFalse("a table it doesn't ask", asksTableFor(asksTable(finder), mapOf("Lfixture/Other;->name" to setOf(8))))
+        assertFalse("a load of the literal itself", asksTableFor(handsTo(finder), entries))
+
+        assertEquals(listOf(finder), finderCalls(asksTable(finder), resolve = tables).map { it.toString() })
+        assertEquals("without the tables read", emptyList<String>(), finderCalls(asksTable(finder)).map { it.toString() })
+        assertEquals("another entry", emptyList<String>(), finderCalls(asksTable(finder, 9), resolve = tables).map { it.toString() })
+        val found = attributionFinder(listOf(asksTable(finder), handsTo(finder)), resolve = tables)
+        assertNull(found.problem, found.problem)
+        assertEquals(finder, found.call.toString())
+
+        // A helper that takes the name and answers nothing, the way 582's loop helper does, finds
+        // nothing, while the finder it's handed to next still counts.
+        val looped = holder(
+            """
+                const-string v1, "$TRANSPARENCY_ATTRIBUTION"
+                invoke-static { v1, p0 }, Lfixture/Loop;->each(Ljava/lang/String;$model)V
+                invoke-static { p0, v1 }, $finder
+                move-result-object v0
+                return-void
+            """,
+        )
+        assertEquals(listOf(finder), finderCalls(looped).map { it.toString() })
+    }
+
     @Test
     fun `the finder is the one method every holder hands the literal to`() {
         val found = attributionFinder(listOf(handsTo(finder), handsTo(finder)))

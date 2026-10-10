@@ -16,6 +16,11 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * one predicate on its component answers whether a story has one. The bumper plugin and every row
  * that keeps room for a bumper ask it, so with the switch on, a no means no strip and no gap.
  *
+ * <p>The same family holds a second switch, off by default: the header of a post from a Page or a
+ * person you don't follow shows a dot and "Follow" after the name, a text a title plugin adds when its own check says
+ * yes. {@link #showFollowLink} answers that check no, so the header is drawn as for a post that has
+ * no such text.
+ *
  * <p>Off, paused, before the settings are ready, or when anything here fails, the answer is
  * Facebook's own.
  */
@@ -23,9 +28,14 @@ public final class PostPrompts {
     /** Counted under the patch's name each time a story's bumper is answered away. */
     static final String HIDDEN = "Post prompt kept out";
 
+    /** Counted under the patch's name each time a header's Follow link is answered away. */
+    static final String FOLLOW_HIDDEN = "Follow link kept out";
+
     private static final String FAMILY = FamilyNames.POST_PROMPTS;
 
     private static volatile boolean logged;
+
+    private static volatile boolean followLogged;
 
     private PostPrompts() {
     }
@@ -57,6 +67,37 @@ public final class PostPrompts {
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "bumper check", failure);
             return hasBumper;
+        }
+    }
+
+    /**
+     * The entry the follow-link hook calls, handed the check's answer as an int for the same reason
+     * as {@link #keep(int)}.
+     */
+    public static boolean showFollowLink(int shown) {
+        return showFollowLink(shown != 0);
+    }
+
+    /**
+     * The hook, at each return of the check that decides whether a post's header carries the
+     * "Follow" (or "Subscribe") text after the name. The header builds without that text when the
+     * check says no, so the name, the date and the layout stay as Facebook draws a header without
+     * it. A yes becomes a no while the switch is on; everything else is Facebook's answer.
+     */
+    public static boolean showFollowLink(boolean shown) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!shown || !Utils.settingsReady() || !Settings.HIDE_POST_FOLLOW_LINK.get()) return shown;
+            HookStatus.bound(FAMILY, "follow link");
+            HookStatus.counted(FAMILY, FOLLOW_HIDDEN);
+            if (!followLogged) {
+                followLogged = true;
+                Logger.printDebug(() -> "Post prompts: a post header's Follow link was kept out");
+            }
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "follow link", failure);
+            return shown;
         }
     }
 }

@@ -123,3 +123,47 @@ val filterPostsByKeywordPatch = bytecodePatch(
         showSettingsSection("keywordsEnabled")
     }
 }
+
+// region Feed filters
+
+private object FeedFiltersEnabledFingerprint : Fingerprint(
+    definingClass = TIMELINE_FILTER_CLASS,
+    name = "feedFiltersEnabled",
+)
+
+private object InitialIncludeKeywordsFingerprint : Fingerprint(
+    definingClass = TIMELINE_FILTER_CLASS,
+    name = "initialIncludeKeywords",
+)
+
+@Suppress("unused")
+val feedFiltersPatch = bytecodePatch(
+    name = "Feed filters",
+    description = "Adds feed filters to timelines: media only (images, videos, GIFs), hide followed profiles, " +
+        "and include/exclude keyword filtering. Toggle each filter from the Morphe settings.",
+) {
+    compatibleWith(COMPATIBILITY_X)
+    dependsOn(timelineFilterPatch, postMenuPatch, settingsPatch)
+
+    val includeKeywords by stringsOption(
+        key = "includeKeywords",
+        default = emptyList(),
+        title = "Initial include keywords",
+        description = "When set, only posts containing at least one of these are shown. Edit in the app.",
+    )
+
+    execute {
+        FeedFiltersEnabledFingerprint.method.returnEarly(true)
+
+        val filtered = includeKeywords.orEmpty().map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+        filtered.firstOrNull { keyword -> keyword.any { it == '|' || it == '"' || it == '\\' || it.isISOControl() } }?.let {
+            throw PatchException("Include keywords cannot contain |, quotes or backslashes: $it")
+        }
+        InitialIncludeKeywordsFingerprint.method.returnEarly(filtered.joinToString("|"))
+
+        addPostAction("settings")
+        showSettingsSection("feedFiltersEnabled")
+    }
+}
+
+// endregion

@@ -26,12 +26,20 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/** Native description and author sizes, independent of the spoken-caption renderer. */
+/**
+ * Native description and author sizes, independent of the spoken-caption renderer.
+ *
+ * <p>The author size also sizes the post date beside the name. TikTok's own row draws both in the
+ * same font (tux font 42), so they share one size, and the row's owner holds both views.
+ */
 public final class FeedTextSize {
     public static final int MIN_TEXT_SIZE = 8;
     public static final int MAX_TEXT_SIZE = 48;
 
-    /** Native bind hooks supply only the owning author TextView. No generic title lookup. */
+    /**
+     * Native bind hooks supply only the owning author's name and date TextViews. No generic
+     * title lookup.
+     */
     private static final Map<TextView, AuthorSize> AUTHORS = new WeakHashMap<>();
     /** A controller is retained weakly. Its description View must not retain it through the value. */
     private static final Map<Object, DescriptionSize> DESCRIPTIONS = new WeakHashMap<>();
@@ -44,6 +52,8 @@ public final class FeedTextSize {
         float nativePx;
         float writtenPx = Float.NaN;
         float requestedPx;
+        /** The post date beside the name: sized with it, never rebinds the row itself. */
+        boolean date;
         WeakReference<Object> owner = new WeakReference<>(null);
         WeakReference<Object> item = new WeakReference<>(null);
 
@@ -128,21 +138,41 @@ public final class FeedTextSize {
     public static void authorOwnerBound(Object owner) {
         TextView view = authorViewOf(owner);
         if (view == null) return;
-        releaseReplacedAuthors(owner, view);
+        TextView date = dateViewOf(owner);
+        releaseReplacedAuthors(owner, view, date);
         authorBound(view);
+        dateBound(owner, date);
     }
 
-    /** The native binder measures and may shorten a name before setText, so size comes first. */
+    /**
+     * The native binder measures and may shorten a name before setText, so size comes first. It
+     * measures the post date beside the name too, so the date is sized before the name.
+     */
     public static void authorBinding(Object owner, Object item) {
         TextView view = authorViewOf(owner);
         if (view == null) return;
-        releaseReplacedAuthors(owner, view);
+        TextView date = dateViewOf(owner);
+        releaseReplacedAuthors(owner, view, date);
+        if (date != null) {
+            beforeAuthorBind(date);
+            dateBound(owner, date);
+        }
         beforeAuthorBind(view);
         authorBound(view);
         AuthorSize state = AUTHORS.get(view);
         state.owner = new WeakReference<>(owner);
         state.item = new WeakReference<>(item);
         state.requestedPx = authorPixels(view);
+    }
+
+    /** The post date follows the author size. Its text, spans and visibility stay TikTok's. */
+    private static void dateBound(Object owner, TextView date) {
+        if (date == null) return;
+        authorBound(date);
+        AuthorSize state = AUTHORS.get(date);
+        state.date = true;
+        state.owner = new WeakReference<>(owner);
+        state.requestedPx = authorPixels(date);
     }
 
     /** Restore before native rebinding, even when its new size happens to equal our override. */
@@ -187,13 +217,17 @@ public final class FeedTextSize {
         return size == 0 ? 0 : pixels(text, size);
     }
 
-    /** A recycled owner binds a new title. Its old title goes back to native and stops refreshing it. */
-    private static void releaseReplacedAuthors(Object owner, TextView current) {
+    /**
+     * A recycled owner binds a new title and date. Its old ones go back to native and stop
+     * refreshing it.
+     */
+    private static void releaseReplacedAuthors(Object owner, TextView current, TextView currentDate) {
         Iterator<Map.Entry<TextView, AuthorSize>> entries = AUTHORS.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry<TextView, AuthorSize> entry = entries.next();
-            if (entry.getKey() != current && entry.getValue().owner.get() == owner) {
-                restore(entry.getKey(), entry.getValue());
+            TextView key = entry.getKey();
+            if (key != current && key != currentDate && entry.getValue().owner.get() == owner) {
+                restore(key, entry.getValue());
                 entries.remove();
             }
         }
@@ -204,6 +238,8 @@ public final class FeedTextSize {
         apply(text, state);
         if (Float.compare(state.requestedPx, wanted) == 0) return;
         state.requestedPx = wanted;
+        // The name's entry rebinds the row, and that bind sizes the date before measuring it.
+        if (state.date) return;
         Object owner = state.owner.get();
         Object item = state.item.get();
         // Only an owner still holding this title may rebind it, or an old item lands in a new title.
@@ -332,6 +368,8 @@ public final class FeedTextSize {
     interface Native {
         View descriptionViewOf(Object owner);
         TextView authorViewOf(Object owner);
+        /** The post date beside the name, or null for a stand-in that has none. */
+        default TextView postDateViewOf(Object owner) { return null; }
         void resizeDescriptionBuilder(Object builder, View view);
         void refreshDescription(Object owner);
         void refreshAuthor(Object owner, Object item);
@@ -347,6 +385,11 @@ public final class FeedTextSize {
     static TextView authorViewOf(Object owner) {
         Native stand = nativeForTests;
         return stand == null ? null : stand.authorViewOf(owner);
+    }
+
+    static TextView dateViewOf(Object owner) {
+        Native stand = nativeForTests;
+        return stand == null ? null : stand.postDateViewOf(owner);
     }
 
     static void resizeDescriptionBuilder(Object builder, View view) {

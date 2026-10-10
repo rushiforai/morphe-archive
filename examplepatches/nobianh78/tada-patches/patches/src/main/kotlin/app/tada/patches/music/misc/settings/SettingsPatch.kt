@@ -1,0 +1,324 @@
+/*
+ * Copyright 2026 TADa.
+ * https://github.com/TADaApp/tada-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
+package app.tada.patches.music.misc.settings
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.tada.patches.all.misc.clone.setOrGetFallbackPackageName
+import app.morphe.patches.all.misc.fix.openurllinks.removeLinkVerification
+import app.tada.patches.all.misc.resources.addAppResources
+import app.tada.patches.all.misc.resources.addResourcesPatch
+import app.tada.patches.all.misc.resources.localesYouTube
+import app.tada.patches.all.misc.resources.setAddResourceLocale
+import app.tada.patches.music.misc.extension.hooks.youTubeMusicApplicationInitOnCreateHook
+import app.tada.patches.music.misc.extension.sharedExtensionPatch
+import app.tada.patches.music.misc.gms.Constants.MUSIC_PACKAGE_NAME
+import app.tada.patches.music.misc.playservice.versionCheckPatch
+import app.tada.patches.music.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
+import app.tada.patches.shared.BoldIconsFeatureFlagFingerprint
+import app.tada.patches.shared.GoogleApiActivityOnCreateFingerprint
+import app.tada.patches.shared.misc.checks.experimentalAppNoticePatch
+import app.tada.patches.shared.misc.initialization.initializationPatch
+import app.tada.patches.shared.misc.settings.MORPHE_SETTINGS_INTENT
+import app.tada.patches.shared.misc.settings.SETTINGS_NAME_PREFERENCE_KEY
+import app.tada.patches.shared.misc.settings.customSettingsNameInstructions
+import app.tada.patches.shared.misc.settings.customSettingsNamePreference
+import app.tada.patches.shared.misc.settings.preference.BasePreference
+import app.tada.patches.shared.misc.settings.preference.BasePreferenceScreen
+import app.tada.patches.shared.misc.settings.preference.InputType
+import app.tada.patches.shared.misc.settings.preference.IntentPreference
+import app.tada.patches.shared.misc.settings.preference.ListPreference
+import app.tada.patches.shared.misc.settings.preference.NonInteractivePreference
+import app.tada.patches.shared.misc.settings.preference.PreferenceScreenPreference
+import app.tada.patches.shared.misc.settings.preference.PreferenceScreenPreference.Sorting
+import app.tada.patches.shared.misc.settings.preference.SwitchPreference
+import app.tada.patches.shared.misc.settings.preference.TextPreference
+import app.tada.patches.shared.misc.settings.settingsPatch
+import app.tada.patches.youtube.misc.settings.modifyActivityForSettingsInjection
+import app.morphe.util.ResourceGroup
+import app.morphe.util.copyResources
+import app.morphe.util.copyXmlNode
+import app.morphe.util.getFreeRegisterProvider
+import app.morphe.util.getReference
+import app.morphe.util.inputStreamFromBundledResource
+import app.morphe.util.insertLiteralOverride
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+
+private const val MUSIC_ACTIVITY_HOOK_CLASS = "Lapp/morphe/extension/music/settings/MusicActivityHook;"
+
+private val preferences = mutableSetOf<BasePreference>()
+
+private val settingsResourcePatch = resourcePatch {
+    dependsOn(
+        settingsPatch(
+            rootPreferences = listOf(
+                IntentPreference(
+                    key = SETTINGS_NAME_PREFERENCE_KEY,
+                    titleKey = "tada_settings_title",
+                    summaryKey = null,
+                    intent = newIntent(MORPHE_SETTINGS_INTENT),
+                ) to "settings_headers"
+            ),
+            preferences = preferences
+        )
+    )
+
+    execute {
+        copyResources(
+            "settings",
+            ResourceGroup("drawable",
+                "tada_settings_screen_00_about.xml",
+                "tada_settings_screen_00_about_bold.xml",
+                "tada_settings_screen_01_ads.xml",
+                "tada_settings_screen_01_ads_bold.xml",
+                "tada_settings_screen_03_feed.xml",
+                "tada_settings_screen_03_feed_bold.xml",
+                "tada_settings_screen_04_general.xml",
+                "tada_settings_screen_04_general_bold.xml",
+                "tada_settings_screen_05_player.xml",
+                "tada_settings_screen_05_player_bold.xml",
+                "tada_settings_screen_09_return_youtube_dislike.xml",
+                "tada_settings_screen_09_return_youtube_dislike_bold.xml",
+                "tada_settings_screen_10_sponsorblock.xml",
+                "tada_settings_screen_10_sponsorblock_bold.xml",
+                "tada_settings_screen_11_misc.xml",
+                "tada_settings_screen_11_misc_bold.xml",
+                "tada_settings_screen_13_scrobbling.xml",
+                "tada_settings_screen_13_scrobbling_bold.xml",
+                "tada_settings_screen_14_lyrics.xml",
+                "tada_settings_screen_14_lyrics_bold.xml"
+            ),
+            ResourceGroup("layout",
+                "tada_preference_with_icon.xml",
+                "tada_color_dot_widget.xml"
+            )
+        )
+
+        // Set the style for the TADa settings to follow the style of the music settings,
+        // namely: action bar height, menu item padding and remove horizontal dividers.
+        val targetResource = "values/styles.xml"
+        inputStreamFromBundledResource(
+            "settings/music",
+            targetResource
+        )!!.let { inputStream ->
+            "resources".copyXmlNode(
+                document(inputStream),
+                document("res/$targetResource")
+            ).close()
+        }
+
+        // Remove horizontal dividers from the music settings.
+        val styleFile = get("res/values/styles.xml")
+        styleFile.writeText(
+            styleFile.readText()
+                .replace(
+                    "allowDividerAbove\">true",
+                    "allowDividerAbove\">false"
+                ).replace(
+                    "allowDividerBelow\">true",
+                    "allowDividerBelow\">false"
+                )
+        )
+    }
+}
+
+val settingsPatch = bytecodePatch(
+    description = "Adds settings for TADa to YouTube Music."
+) {
+    dependsOn(
+        sharedExtensionPatch,
+        settingsResourcePatch,
+        addResourcesPatch,
+        versionCheckPatch,
+        removeLinkVerification,
+        experimentalAppNoticePatch(
+            mainActivityFingerprint = youTubeMusicApplicationInitOnCreateHook.fingerprint,
+            recommendedAppVersion = COMPATIBILITY_YOUTUBE_MUSIC.targets.first { !it.isExperimental }.version!!
+        ),
+        initializationPatch(
+            extensionPatch = sharedExtensionPatch
+        )
+    )
+
+    execute {
+        setAddResourceLocale(localesYouTube)
+        addAppResources("shared-youtube")
+        addAppResources("music")
+
+        // Add an "About" preference to the top.
+        preferences += NonInteractivePreference(
+            key = "tada_settings_music_screen_0_about",
+            summaryKey = null,
+            icon = "@drawable/tada_settings_screen_00_about",
+            iconBold = "@drawable/tada_settings_screen_00_about_bold",
+            layout = "@layout/tada_preference_with_icon",
+            tag = "app.morphe.extension.shared.settings.preference.about.TADaAboutPreference",
+            selectable = true
+        )
+
+        PreferenceScreen.GENERAL.addPreferences(
+            SwitchPreference("tada_settings_search_history"),
+            SwitchPreference("tada_show_menu_icons"),
+            customSettingsNamePreference()
+        )
+
+        PreferenceScreen.MISC.addPreferences(
+            TextPreference(
+                key = null,
+                titleKey = "tada_pref_import_export_title",
+                summaryKey = "tada_pref_import_export_summary",
+                inputType = InputType.TEXT_MULTI_LINE,
+                tag = "app.morphe.extension.shared.settings.preference.ImportExportPreference"
+            ),
+            ListPreference(
+                key = "tada_language",
+                tag = "app.morphe.extension.shared.settings.preference.SortedListPreference"
+            )
+        )
+
+        SettingsHeadersOnCreatePreferencesFingerprint.let {
+            val fragmentField = it.instructionMatches.last()
+                .instruction.getReference<FieldReference>()!!
+
+            it.method.apply {
+                val insertIndex = implementation!!.instructions.size - 1
+                val peerRegister = it.instructionMatches[1]
+                    .getInstruction<OneRegisterInstruction>().registerA
+                val registerProvider = getFreeRegisterProvider(insertIndex, 3, peerRegister)
+                val screenRegister = registerProvider.getFreeRegister()
+                val preferenceRegister = registerProvider.getFreeRegister()
+                val nameRegister = registerProvider.getFreeRegister()
+
+                addInstructionsWithLabels(
+                    insertIndex,
+                    customSettingsNameInstructions(
+                        getPreferenceScreen = """
+                            iget-object v$screenRegister, v$peerRegister, $fragmentField
+                            invoke-virtual { v$screenRegister }, $SETTINGS_HEADERS_FRAGMENT_CLASS->getPreferenceScreen()Landroidx/preference/PreferenceScreen;
+                            move-result-object v$screenRegister
+                        """,
+                        screenRegister = screenRegister,
+                        preferenceRegister = preferenceRegister,
+                        nameRegister = nameRegister
+                    )
+                )
+            }
+        }
+
+        modifyActivityForSettingsInjection(
+            GoogleApiActivityOnCreateFingerprint,
+            MUSIC_ACTIVITY_HOOK_CLASS,
+            true
+        )
+
+        // The context is set before this, since the extension hooks are added in finalize.
+        youTubeMusicApplicationInitOnCreateHook.fingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, $MUSIC_ACTIVITY_HOOK_CLASS->onMainActivityCreate()V"
+        )
+
+        BoldIconsFeatureFlagFingerprint.matchAll().forEach {
+            it.method.insertLiteralOverride(
+                it.instructionMatches.first().index,
+                "$MUSIC_ACTIVITY_HOOK_CLASS->useBoldIcons(Z)Z"
+            )
+        }
+    }
+
+    finalize {
+        PreferenceScreen.close()
+    }
+}
+
+/**
+ * Creates an intent to open TADa settings.
+ */
+fun newIntent(settingsName: String) = IntentPreference.Intent(
+    data = settingsName,
+    targetClass = "com.google.android.gms.common.api.GoogleApiActivity"
+) {
+    // The package name change has to be reflected in the intent.
+    setOrGetFallbackPackageName(MUSIC_PACKAGE_NAME)
+}
+
+object PreferenceScreen : BasePreferenceScreen() {
+    val ADS = Screen(
+        key = "tada_settings_music_screen_1_ads",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_01_ads",
+        iconBold = "@drawable/tada_settings_screen_01_ads_bold",
+        layout = "@layout/tada_preference_with_icon"
+    )
+    val FEED = Screen(
+        key = "tada_settings_music_screen_2_feed",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_03_feed",
+        iconBold = "@drawable/tada_settings_screen_03_feed_bold",
+        layout = "@layout/tada_preference_with_icon"
+    )
+    val GENERAL = Screen(
+        key = "tada_settings_music_screen_3_general",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_04_general",
+        iconBold = "@drawable/tada_settings_screen_04_general_bold",
+        layout = "@layout/tada_preference_with_icon"
+    )
+    val PLAYER = Screen(
+        key = "tada_settings_music_screen_4_player",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_05_player",
+        iconBold = "@drawable/tada_settings_screen_05_player_bold",
+        layout = "@layout/tada_preference_with_icon"
+    )
+    val LYRICS = Screen(
+        key = "tada_settings_music_screen_5_lyrics",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_14_lyrics",
+        iconBold = "@drawable/tada_settings_screen_14_lyrics_bold",
+        layout = "@layout/tada_preference_with_icon",
+        sorting = Sorting.UNSORTED
+    )
+    val SCROBBLING = Screen(
+        key = "tada_settings_music_screen_6_scrobbling",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_13_scrobbling",
+        iconBold = "@drawable/tada_settings_screen_13_scrobbling_bold",
+        layout = "@layout/tada_preference_with_icon",
+        sorting = Sorting.UNSORTED
+    )
+    val RETURN_YOUTUBE_DISLIKE = Screen(
+        key = "tada_settings_music_screen_7_return_youtube_dislike",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_09_return_youtube_dislike",
+        iconBold = "@drawable/tada_settings_screen_09_return_youtube_dislike_bold",
+        layout = "@layout/tada_preference_with_icon",
+        sorting = Sorting.UNSORTED
+    )
+    val SPONSORBLOCK = Screen(
+        key = "tada_settings_music_screen_8_sponsorblock",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_10_sponsorblock",
+        iconBold = "@drawable/tada_settings_screen_10_sponsorblock_bold",
+        layout = "@layout/tada_preference_with_icon",
+        sorting = Sorting.UNSORTED
+    )
+    val MISC = Screen(
+        key = "tada_settings_music_screen_9_misc",
+        summaryKey = null,
+        icon = "@drawable/tada_settings_screen_11_misc",
+        iconBold = "@drawable/tada_settings_screen_11_misc_bold",
+        layout = "@layout/tada_preference_with_icon"
+    )
+
+    override fun commit(screen: PreferenceScreenPreference) {
+        preferences += screen
+    }
+}

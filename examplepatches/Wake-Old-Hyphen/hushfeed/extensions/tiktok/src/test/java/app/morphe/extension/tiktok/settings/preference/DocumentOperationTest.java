@@ -582,7 +582,7 @@ public class DocumentOperationTest {
         assertTrue(backup.isEnabled());
         assertTrue(restore.isEnabled());
         assertTrue(fragment.findPreference(RESET).isEnabled());
-        assertEquals("Save Hushfeed settings and Feature Gate Lab rules to a JSON file.",
+        assertEquals("Saves your Hushfeed settings and Feature Gate Lab rules to a file.",
                 String.valueOf(backup.getSummary()));
         assertEquals("Choose a backup file. Your current settings are kept for Undo.",
                 String.valueOf(restore.getSummary()));

@@ -120,7 +120,7 @@ public final class ExternalBrowser {
         if (isInternalHost(target.getHost()) || isOn(target.getHost(), SHORT_LINK_HOSTS)) return false;
         // Facebook adds fbclid to the destination inside the shim, so the site it opens can tell
         // Facebook the link was followed. It goes, and nothing else in the link changes.
-        target = Uri.parse(LinkCleaner.clean(target.toString()));
+        target = lowerCased(Uri.parse(LinkCleaner.clean(target.toString())));
 
         try {
             Intent view = new Intent(Intent.ACTION_VIEW, target);
@@ -225,6 +225,25 @@ public final class ExternalBrowser {
         Uri target = Uri.parse(wrapped);
         String targetHost = target.getHost();
         return isWebUrl(target) && targetHost != null && !targetHost.isEmpty() ? target : null;
+    }
+
+    /**
+     * {@code uri} with its scheme and host in lower case, and the rest as it came.
+     *
+     * <p>Android matches the scheme and the host of an intent filter case by case, unlike RFC 3986.
+     * Each browser declares {@code http} and {@code https} in lower case, thus a page's link written
+     * {@code HTTPS://SHOP.EXAMPLE} found no app at all, and stayed in the in-app browser with a
+     * toast. An app that claims a host, such as a video app for its own site, declares the host in
+     * lower case too. The user information, the path and the query keep their case, because a site
+     * may read them that way.
+     */
+    private static Uri lowerCased(Uri uri) {
+        Uri normalized = uri.normalizeScheme();
+        String authority = normalized.getEncodedAuthority();
+        if (authority == null) return normalized;
+        int at = authority.lastIndexOf('@');
+        String lowered = authority.substring(0, at + 1) + authority.substring(at + 1).toLowerCase(Locale.ROOT);
+        return lowered.equals(authority) ? normalized : normalized.buildUpon().encodedAuthority(lowered).build();
     }
 
     /** Whether {@code path} is one of the browser's warning pages, compared as its pattern does, in any case. */

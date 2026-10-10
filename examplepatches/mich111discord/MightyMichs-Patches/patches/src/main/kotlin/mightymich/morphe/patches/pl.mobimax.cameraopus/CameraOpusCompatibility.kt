@@ -13,7 +13,7 @@ object CameraOpusCompatibility {
         targets = listOf(
             AppTarget(
                 version = "1.2.21",
-            isExperimental = true
+                isExperimental = true
             )
         )
     )

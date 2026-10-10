@@ -99,6 +99,8 @@ import app.morphe.extension.facebook.misc.ScreenTransitionsForTests;
 import app.morphe.extension.facebook.misc.Screenshots;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
+import app.morphe.extension.facebook.misc.OwnPostLink;
+import app.morphe.extension.facebook.misc.ShareSheetGroups;
 import app.morphe.extension.facebook.navigation.BottomTabBar;
 import app.morphe.extension.facebook.navigation.TabBarScrollAway;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
@@ -113,6 +115,7 @@ import app.morphe.extension.facebook.reels.ReelHold;
 import app.morphe.extension.facebook.reels.ReelHoldForTests;
 import app.morphe.extension.facebook.reels.ReelCleanMode;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
+import app.morphe.extension.facebook.reels.ReelLoopForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.ReelPrompts;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
@@ -350,8 +353,11 @@ public class PausedHooksTest {
                         FeedGuardForTests.postText("Big SPOILER inside")),
                 () -> FeedGuardForTests.hidesPhotoPost(Category.ORGANIC),
                 () -> FeedGuardForTests.hidesPopularPost(Category.ORGANIC)));
-        // A story with a bumper is answered as one without, so no strip is drawn and no room kept.
-        probes.put(PatchFamily.POST_PROMPTS, Collections.singletonList(() -> !PostPrompts.keep(true)));
+        // A story with a bumper is answered as one without, so no strip is drawn and no room kept, and a
+        // header whose title plugin would add "Follow" is told it has nothing to add.
+        probes.put(PatchFamily.POST_PROMPTS, Arrays.asList(
+                () -> !PostPrompts.keep(true),
+                () -> !PostPrompts.showFollowLink(true)));
         // A post the store remembers is dropped by the feed guard while the switch is on.
         probes.put(PatchFamily.SEEN_POSTS, Collections.singletonList(SeenPostsForTests::hidesARememberedPost));
         // The pill socket's yes for Meta AI's questions is answered as a no, so it draws no row for
@@ -430,7 +436,8 @@ public class PausedHooksTest {
                 ReelDeclutter::skipHotComment,
                 ReelDeclutter::skipSocialBubbles,
                 ReelMidCardsForTests::dropsAThreadsCard,
-                () -> ReelCleanMode.startClean(false)));
+                () -> ReelCleanMode.startClean(false),
+                ReelLoopForTests::stopsAReel));
         // A reel that would get the interest prompt is answered as one that doesn't.
         probes.put(PatchFamily.REEL_PROMPTS, Collections.singletonList(() -> !ReelPrompts.keep(true)));
         // The Reels batcher's send of the reels you watched never reaches its executor.
@@ -611,6 +618,10 @@ public class PausedHooksTest {
                 () -> MetaUpsells.storyTools(Arrays.asList(StoryTool.values())).size() == 1,
                 () -> MetaUpsells.hidesImagineCta(MetaUpsells.META_AI_POST_PLUGINS.get(0)),
                 MetaUpsells::hidesDeepDiveBelowCaption));
+        // The share sheet's footer is built without Send to group, and a new-group entry answers off.
+        probes.put(PatchFamily.SHARE_SHEET_ITEMS, Arrays.asList(
+                () -> ShareSheetGroups.sendToGroupButton(new Object()) == null,
+                () -> !ShareSheetGroups.offerNewGroup(true)));
         // Search leaves out its Meta AI answer and its prompt modules, and a suggestion set to open
         // Meta AI opens the results.
         probes.put(PatchFamily.META_AI_SEARCH, Arrays.asList(
@@ -673,10 +684,14 @@ public class PausedHooksTest {
                 NotificationKindsForTests::blocksEventInvite,
                 NotificationKindsForTests::blocksLiveVideo,
                 NotificationKindsForTests::blocksReaction));
-        // A shared link loses what the app added to it.
-        probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Collections.singletonList(() -> {
+        // A shared link loses what the app added to it, and a post's /share/ link gives way to
+        // its own address.
+        probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Arrays.asList(() -> {
             String shared = "https://www.facebook.com/share/p/1AbCdEf/?mibextid=WC7FNe";
             return !shared.equals(LinkCleaner.sanitizeShared(shared));
+        }, () -> {
+            String own = "https://www.facebook.com/story.php?story_fbid=1&id=2";
+            return own.equals(OwnPostLink.shareLink("https://www.facebook.com/share/p/1AbCdEf/", own));
         }));
         // Both Meta App Manager promotion filters fail, the force-sync push is skipped, and the
         // chat filter that targets older versions fails.

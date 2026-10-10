@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 
 import android.view.View;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.ghostmode.GhostMode;
 import app.morphe.extension.tiktok.inbox.InboxControls;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -33,6 +35,8 @@ public class FeatureSwitchesTest {
     }
 
     @After public void tearDown() {
+        PausedProcess.set(false);
+        HookStatus.clear();
         for (var setting : new app.morphe.extension.shared.settings.BooleanSetting[]{
                 Settings.GHOST_MODE, Settings.DISABLE_ANALYTICS,
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS, Settings.HIDE_INBOX_STORIES,
@@ -40,6 +44,7 @@ public class FeatureSwitchesTest {
                 Settings.HIDE_PROFILE_REWARDS_SHORTCUT,
                 Settings.HIDE_FEED_FOLLOW_BUTTON, Settings.HIDE_FEED_SAVE_BUTTON,
                 Settings.HIDE_LIVE_ENTRANCE, Settings.HIDE_FEED_SEARCH_BUTTON,
+                Settings.HIDE_FEED_SIDEBAR_BUTTON,
                 Settings.HIDE_COMMENT_QUICK_REACTIONS, Settings.ENABLE_LONG_PRESS_SPEED_LOCK}) {
             setting.save(setting.defaultValue);
         }
@@ -156,6 +161,30 @@ public class FeatureSwitchesTest {
         Settings.HIDE_FEED_SEARCH_BUTTON.save(true);
         assertFalse(FeatureControls.hideFeedLiveButtonEnabled(true));
         assertFalse(FeatureControls.hideFeedSearchButtonEnabled(true));
+    }
+
+    /**
+     * #128: the side menu button beside LIVE answers the same "is it enabled" question, with its
+     * own switch. Pause Hushfeed hands it back to TikTok, and the Hook status line says the check
+     * ran, since the button has no view id a report could name.
+     */
+    @Test public void theSideMenuButtonIsDisabledByItsOwnSwitchAndComesBackWhilePaused() {
+        assertFalse("the switch starts off", Settings.HIDE_FEED_SIDEBAR_BUTTON.get());
+        assertTrue(FeatureControls.hideFeedSidebarButtonEnabled(true));
+        assertFalse("TikTok's own no still wins", FeatureControls.hideFeedSidebarButtonEnabled(false));
+        assertTrue(String.join(" ", HookStatus.report()).contains(FeatureControls.SIDEBAR_BUTTON_FAMILY));
+
+        Settings.HIDE_LIVE_ENTRANCE.save(true);
+        assertTrue("the LIVE switch must not take the side menu button too",
+                FeatureControls.hideFeedSidebarButtonEnabled(true));
+
+        Settings.HIDE_FEED_SIDEBAR_BUTTON.save(true);
+        assertFalse(FeatureControls.hideFeedSidebarButtonEnabled(true));
+        assertFalse(FeatureControls.hideFeedSidebarButtonEnabled(false));
+
+        PausedProcess.set(true);
+        assertTrue("Pause Hushfeed leaves the button to TikTok",
+                FeatureControls.hideFeedSidebarButtonEnabled(true));
     }
 
     @Test public void theSpeedLockKeepsTheHostsDistanceAndFillsInAMissingOne() {

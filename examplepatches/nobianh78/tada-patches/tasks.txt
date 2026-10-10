@@ -1,0 +1,3006 @@
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'tada-patches'
+------------------------------------------------------------
+
+Android tasks
+-------------
+extensions:all:change-version-code:signingReport - Displays the signing info for the base and test modules
+extensions:music:signingReport - Displays the signing info for the base and test modules
+extensions:reddit:signingReport - Displays the signing info for the base and test modules
+extensions:reddit:stub:signingReport - Displays the signing info for the base and test modules
+extensions:shared:signingReport - Displays the signing info for the base and test modules
+extensions:shared:library:signingReport - Displays the signing info for the base and test modules
+extensions:shared-youtube:signingReport - Displays the signing info for the base and test modules
+extensions:shared-youtube:library:signingReport - Displays the signing info for the base and test modules
+extensions:shared-youtube:stub:signingReport - Displays the signing info for the base and test modules
+extensions:youtube:signingReport - Displays the signing info for the base and test modules
+extensions:youtube:stub:signingReport - Displays the signing info for the base and test modules
+
+Build tasks
+-----------
+extensions:all:change-version-code:assemble - Assemble main outputs for all the variants.
+extensions:music:assemble - Assemble main outputs for all the variants.
+extensions:reddit:assemble - Assemble main outputs for all the variants.
+extensions:reddit:stub:assemble - Assemble main outputs for all the variants.
+extensions:shared:assemble - Assemble main outputs for all the variants.
+extensions:shared:library:assemble - Assemble main outputs for all the variants.
+extensions:shared-youtube:assemble - Assemble main outputs for all the variants.
+extensions:shared-youtube:library:assemble - Assemble main outputs for all the variants.
+extensions:shared-youtube:stub:assemble - Assemble main outputs for all the variants.
+extensions:youtube:assemble - Assemble main outputs for all the variants.
+extensions:youtube:stub:assemble - Assemble main outputs for all the variants.
+patches:assemble - Assembles the outputs of this project.
+patches:stub:assemble - Assembles the outputs of this project.
+extensions:all:change-version-code:assembleAndroidTest - Assembles all the Test applications.
+extensions:music:assembleAndroidTest - Assembles all the Test applications.
+extensions:reddit:assembleAndroidTest - Assembles all the Test applications.
+extensions:reddit:stub:assembleAndroidTest - Assembles all the Test applications.
+extensions:shared:assembleAndroidTest - Assembles all the Test applications.
+extensions:shared:library:assembleAndroidTest - Assembles all the Test applications.
+extensions:shared-youtube:assembleAndroidTest - Assembles all the Test applications.
+extensions:shared-youtube:library:assembleAndroidTest - Assembles all the Test applications.
+extensions:shared-youtube:stub:assembleAndroidTest - Assembles all the Test applications.
+extensions:youtube:assembleAndroidTest - Assembles all the Test applications.
+extensions:youtube:stub:assembleAndroidTest - Assembles all the Test applications.
+extensions:all:change-version-code:assembleUnitTest - Assembles all the unit test applications.
+extensions:music:assembleUnitTest - Assembles all the unit test applications.
+extensions:reddit:assembleUnitTest - Assembles all the unit test applications.
+extensions:reddit:stub:assembleUnitTest - Assembles all the unit test applications.
+extensions:shared:assembleUnitTest - Assembles all the unit test applications.
+extensions:shared:library:assembleUnitTest - Assembles all the unit test applications.
+extensions:shared-youtube:assembleUnitTest - Assembles all the unit test applications.
+extensions:shared-youtube:library:assembleUnitTest - Assembles all the unit test applications.
+extensions:shared-youtube:stub:assembleUnitTest - Assembles all the unit test applications.
+extensions:youtube:assembleUnitTest - Assembles all the unit test applications.
+extensions:youtube:stub:assembleUnitTest - Assembles all the unit test applications.
+extensions:all:change-version-code:build - Assembles and tests this project.
+extensions:music:build - Assembles and tests this project.
+extensions:reddit:build - Assembles and tests this project.
+extensions:reddit:stub:build - Assembles and tests this project.
+extensions:shared:build - Assembles and tests this project.
+extensions:shared:library:build - Assembles and tests this project.
+extensions:shared-youtube:build - Assembles and tests this project.
+extensions:shared-youtube:library:build - Assembles and tests this project.
+extensions:shared-youtube:stub:build - Assembles and tests this project.
+extensions:youtube:build - Assembles and tests this project.
+extensions:youtube:stub:build - Assembles and tests this project.
+patches:build - Assembles and tests this project.
+patches:stub:build - Assembles and tests this project.
+patches:buildAndroid - Builds the project for Android by compiling to DEX and adding it to the patches file.
+extensions:all:change-version-code:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:music:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:reddit:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:reddit:stub:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:shared:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:shared:library:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:shared-youtube:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:shared-youtube:library:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:shared-youtube:stub:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:youtube:buildDependents - Assembles and tests this project and all projects that depend on it.
+extensions:youtube:stub:buildDependents - Assembles and tests this project and all projects that depend on it.
+patches:buildDependents - Assembles and tests this project and all projects that depend on it.
+patches:stub:buildDependents - Assembles and tests this project and all projects that depend on it.
+patches:buildKotlinToolingMetadata - Build metadata json file containing information about the used Kotlin tooling
+extensions:all:change-version-code:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:music:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:reddit:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:reddit:stub:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:shared:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:shared:library:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:shared-youtube:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:shared-youtube:library:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:shared-youtube:stub:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:youtube:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:youtube:stub:buildNeeded - Assembles and tests this project and all projects it depends on.
+patches:buildNeeded - Assembles and tests this project and all projects it depends on.
+patches:stub:buildNeeded - Assembles and tests this project and all projects it depends on.
+extensions:all:change-version-code:bundle - Assemble bundles for all the variants.
+extensions:music:bundle - Assemble bundles for all the variants.
+extensions:reddit:bundle - Assemble bundles for all the variants.
+extensions:shared:bundle - Assemble bundles for all the variants.
+extensions:shared-youtube:bundle - Assemble bundles for all the variants.
+extensions:youtube:bundle - Assemble bundles for all the variants.
+patches:classes - Assembles main classes.
+patches:stub:classes - Assembles main classes.
+extensions:all:change-version-code:clean - Deletes the build directory.
+extensions:music:clean - Deletes the build directory.
+extensions:reddit:clean - Deletes the build directory.
+extensions:reddit:stub:clean - Deletes the build directory.
+extensions:shared:clean - Deletes the build directory.
+extensions:shared:library:clean - Deletes the build directory.
+extensions:shared-youtube:clean - Deletes the build directory.
+extensions:shared-youtube:library:clean - Deletes the build directory.
+extensions:shared-youtube:stub:clean - Deletes the build directory.
+extensions:youtube:clean - Deletes the build directory.
+extensions:youtube:stub:clean - Deletes the build directory.
+patches:clean - Deletes the build directory.
+patches:stub:clean - Deletes the build directory.
+extensions:all:change-version-code:compileDebugAndroidTestSources
+extensions:music:compileDebugAndroidTestSources
+extensions:reddit:compileDebugAndroidTestSources
+extensions:reddit:stub:compileDebugAndroidTestSources
+extensions:shared:compileDebugAndroidTestSources
+extensions:shared:library:compileDebugAndroidTestSources
+extensions:shared-youtube:compileDebugAndroidTestSources
+extensions:shared-youtube:library:compileDebugAndroidTestSources
+extensions:shared-youtube:stub:compileDebugAndroidTestSources
+extensions:youtube:compileDebugAndroidTestSources
+extensions:youtube:stub:compileDebugAndroidTestSources
+extensions:all:change-version-code:compileDebugSources
+extensions:music:compileDebugSources
+extensions:reddit:compileDebugSources
+extensions:reddit:stub:compileDebugSources
+extensions:shared:compileDebugSources
+extensions:shared:library:compileDebugSources
+extensions:shared-youtube:compileDebugSources
+extensions:shared-youtube:library:compileDebugSources
+extensions:shared-youtube:stub:compileDebugSources
+extensions:youtube:compileDebugSources
+extensions:youtube:stub:compileDebugSources
+extensions:all:change-version-code:compileDebugUnitTestSources
+extensions:music:compileDebugUnitTestSources
+extensions:reddit:compileDebugUnitTestSources
+extensions:reddit:stub:compileDebugUnitTestSources
+extensions:shared:compileDebugUnitTestSources
+extensions:shared:library:compileDebugUnitTestSources
+extensions:shared-youtube:compileDebugUnitTestSources
+extensions:shared-youtube:library:compileDebugUnitTestSources
+extensions:shared-youtube:stub:compileDebugUnitTestSources
+extensions:youtube:compileDebugUnitTestSources
+extensions:youtube:stub:compileDebugUnitTestSources
+extensions:all:change-version-code:compileReleaseSources
+extensions:music:compileReleaseSources
+extensions:reddit:compileReleaseSources
+extensions:reddit:stub:compileReleaseSources
+extensions:shared:compileReleaseSources
+extensions:shared:library:compileReleaseSources
+extensions:shared-youtube:compileReleaseSources
+extensions:shared-youtube:library:compileReleaseSources
+extensions:shared-youtube:stub:compileReleaseSources
+extensions:youtube:compileReleaseSources
+extensions:youtube:stub:compileReleaseSources
+extensions:reddit:stub:extractDebugAnnotations - Extracts Android annotations for the debug variant into the archive file
+extensions:shared:library:extractDebugAnnotations - Extracts Android annotations for the debug variant into the archive file
+extensions:shared-youtube:library:extractDebugAnnotations - Extracts Android annotations for the debug variant into the archive file
+extensions:shared-youtube:stub:extractDebugAnnotations - Extracts Android annotations for the debug variant into the archive file
+extensions:youtube:stub:extractDebugAnnotations - Extracts Android annotations for the debug variant into the archive file
+extensions:reddit:stub:extractReleaseAnnotations - Extracts Android annotations for the release variant into the archive file
+extensions:shared:library:extractReleaseAnnotations - Extracts Android annotations for the release variant into the archive file
+extensions:shared-youtube:library:extractReleaseAnnotations - Extracts Android annotations for the release variant into the archive file
+extensions:shared-youtube:stub:extractReleaseAnnotations - Extracts Android annotations for the release variant into the archive file
+extensions:youtube:stub:extractReleaseAnnotations - Extracts Android annotations for the release variant into the archive file
+patches:jar - Assembles a jar archive containing the classes of the 'main' feature.
+patches:stub:jar - Assembles a jar archive containing the classes of the 'main' feature.
+patches:javadocJar - Assembles a jar archive containing the main javadoc.
+patches:kotlinSourcesJar - Assembles a jar archive containing the sources of target 'kotlin'.
+patches:sourcesJar - Assembles a jar archive containing the main sources.
+patches:testClasses - Assembles test classes.
+patches:stub:testClasses - Assembles test classes.
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+updateDaemonJvm - Generates or updates the Gradle Daemon JVM criteria.
+wrapper - Generates Gradle wrapper files.
+
+Documentation tasks
+-------------------
+patches:javadoc - Generates Javadoc API documentation for the 'main' feature.
+patches:stub:javadoc - Generates Javadoc API documentation for the 'main' feature.
+
+Help tasks
+----------
+artifactTransforms - Displays the Artifact Transforms that can be executed in root project 'tada-patches'.
+extensions:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions'.
+extensions:all:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:all'.
+extensions:all:change-version-code:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:all:change-version-code'.
+extensions:music:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:music'.
+extensions:reddit:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:reddit'.
+extensions:reddit:stub:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:reddit:stub'.
+extensions:shared:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:shared'.
+extensions:shared:library:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:shared:library'.
+extensions:shared-youtube:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:shared-youtube:stub'.
+extensions:youtube:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:youtube'.
+extensions:youtube:stub:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':extensions:youtube:stub'.
+patches:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':patches'.
+patches:stub:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':patches:stub'.
+buildEnvironment - Displays all buildscript dependencies declared in root project 'tada-patches'.
+extensions:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions'.
+extensions:all:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:all'.
+extensions:all:change-version-code:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:all:change-version-code'.
+extensions:music:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:music'.
+extensions:reddit:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:reddit'.
+extensions:reddit:stub:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:reddit:stub'.
+extensions:shared:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:shared'.
+extensions:shared:library:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:shared:library'.
+extensions:shared-youtube:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:shared-youtube:stub'.
+extensions:youtube:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:youtube'.
+extensions:youtube:stub:buildEnvironment - Displays all buildscript dependencies declared in project ':extensions:youtube:stub'.
+patches:buildEnvironment - Displays all buildscript dependencies declared in project ':patches'.
+patches:stub:buildEnvironment - Displays all buildscript dependencies declared in project ':patches:stub'.
+dependencies - Displays all dependencies declared in root project 'tada-patches'.
+extensions:dependencies - Displays all dependencies declared in project ':extensions'.
+extensions:all:dependencies - Displays all dependencies declared in project ':extensions:all'.
+extensions:all:change-version-code:dependencies - Displays all dependencies declared in project ':extensions:all:change-version-code'.
+extensions:music:dependencies - Displays all dependencies declared in project ':extensions:music'.
+extensions:reddit:dependencies - Displays all dependencies declared in project ':extensions:reddit'.
+extensions:reddit:stub:dependencies - Displays all dependencies declared in project ':extensions:reddit:stub'.
+extensions:shared:dependencies - Displays all dependencies declared in project ':extensions:shared'.
+extensions:shared:library:dependencies - Displays all dependencies declared in project ':extensions:shared:library'.
+extensions:shared-youtube:dependencies - Displays all dependencies declared in project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:dependencies - Displays all dependencies declared in project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:dependencies - Displays all dependencies declared in project ':extensions:shared-youtube:stub'.
+extensions:youtube:dependencies - Displays all dependencies declared in project ':extensions:youtube'.
+extensions:youtube:stub:dependencies - Displays all dependencies declared in project ':extensions:youtube:stub'.
+patches:dependencies - Displays all dependencies declared in project ':patches'.
+patches:stub:dependencies - Displays all dependencies declared in project ':patches:stub'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'tada-patches'.
+extensions:dependencyInsight - Displays the insight into a specific dependency in project ':extensions'.
+extensions:all:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:all'.
+extensions:all:change-version-code:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:all:change-version-code'.
+extensions:music:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:music'.
+extensions:reddit:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:reddit'.
+extensions:reddit:stub:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:reddit:stub'.
+extensions:shared:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:shared'.
+extensions:shared:library:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:shared:library'.
+extensions:shared-youtube:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:shared-youtube:stub'.
+extensions:youtube:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:youtube'.
+extensions:youtube:stub:dependencyInsight - Displays the insight into a specific dependency in project ':extensions:youtube:stub'.
+patches:dependencyInsight - Displays the insight into a specific dependency in project ':patches'.
+patches:stub:dependencyInsight - Displays the insight into a specific dependency in project ':patches:stub'.
+help - Displays a help message.
+extensions:help - Displays a help message.
+extensions:all:help - Displays a help message.
+extensions:all:change-version-code:help - Displays a help message.
+extensions:music:help - Displays a help message.
+extensions:reddit:help - Displays a help message.
+extensions:reddit:stub:help - Displays a help message.
+extensions:shared:help - Displays a help message.
+extensions:shared:library:help - Displays a help message.
+extensions:shared-youtube:help - Displays a help message.
+extensions:shared-youtube:library:help - Displays a help message.
+extensions:shared-youtube:stub:help - Displays a help message.
+extensions:youtube:help - Displays a help message.
+extensions:youtube:stub:help - Displays a help message.
+patches:help - Displays a help message.
+patches:stub:help - Displays a help message.
+javaToolchains - Displays the detected java toolchains.
+extensions:javaToolchains - Displays the detected java toolchains.
+extensions:all:javaToolchains - Displays the detected java toolchains.
+extensions:all:change-version-code:javaToolchains - Displays the detected java toolchains.
+extensions:music:javaToolchains - Displays the detected java toolchains.
+extensions:reddit:javaToolchains - Displays the detected java toolchains.
+extensions:reddit:stub:javaToolchains - Displays the detected java toolchains.
+extensions:shared:javaToolchains - Displays the detected java toolchains.
+extensions:shared:library:javaToolchains - Displays the detected java toolchains.
+extensions:shared-youtube:javaToolchains - Displays the detected java toolchains.
+extensions:shared-youtube:library:javaToolchains - Displays the detected java toolchains.
+extensions:shared-youtube:stub:javaToolchains - Displays the detected java toolchains.
+extensions:youtube:javaToolchains - Displays the detected java toolchains.
+extensions:youtube:stub:javaToolchains - Displays the detected java toolchains.
+patches:javaToolchains - Displays the detected java toolchains.
+patches:stub:javaToolchains - Displays the detected java toolchains.
+kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:all:change-version-code:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:music:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:reddit:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:reddit:stub:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:shared:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:shared:library:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:shared-youtube:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:shared-youtube:library:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:shared-youtube:stub:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:youtube:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+extensions:youtube:stub:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+patches:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+patches:stub:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+outgoingVariants - Displays the outgoing variants of root project 'tada-patches'.
+extensions:outgoingVariants - Displays the outgoing variants of project ':extensions'.
+extensions:all:outgoingVariants - Displays the outgoing variants of project ':extensions:all'.
+extensions:all:change-version-code:outgoingVariants - Displays the outgoing variants of project ':extensions:all:change-version-code'.
+extensions:music:outgoingVariants - Displays the outgoing variants of project ':extensions:music'.
+extensions:reddit:outgoingVariants - Displays the outgoing variants of project ':extensions:reddit'.
+extensions:reddit:stub:outgoingVariants - Displays the outgoing variants of project ':extensions:reddit:stub'.
+extensions:shared:outgoingVariants - Displays the outgoing variants of project ':extensions:shared'.
+extensions:shared:library:outgoingVariants - Displays the outgoing variants of project ':extensions:shared:library'.
+extensions:shared-youtube:outgoingVariants - Displays the outgoing variants of project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:outgoingVariants - Displays the outgoing variants of project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:outgoingVariants - Displays the outgoing variants of project ':extensions:shared-youtube:stub'.
+extensions:youtube:outgoingVariants - Displays the outgoing variants of project ':extensions:youtube'.
+extensions:youtube:stub:outgoingVariants - Displays the outgoing variants of project ':extensions:youtube:stub'.
+patches:outgoingVariants - Displays the outgoing variants of project ':patches'.
+patches:stub:outgoingVariants - Displays the outgoing variants of project ':patches:stub'.
+projects - Displays the sub-projects of root project 'tada-patches'.
+extensions:projects - Displays the sub-projects of project ':extensions'.
+extensions:all:projects - Displays the sub-projects of project ':extensions:all'.
+extensions:all:change-version-code:projects - Displays the sub-projects of project ':extensions:all:change-version-code'.
+extensions:music:projects - Displays the sub-projects of project ':extensions:music'.
+extensions:reddit:projects - Displays the sub-projects of project ':extensions:reddit'.
+extensions:reddit:stub:projects - Displays the sub-projects of project ':extensions:reddit:stub'.
+extensions:shared:projects - Displays the sub-projects of project ':extensions:shared'.
+extensions:shared:library:projects - Displays the sub-projects of project ':extensions:shared:library'.
+extensions:shared-youtube:projects - Displays the sub-projects of project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:projects - Displays the sub-projects of project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:projects - Displays the sub-projects of project ':extensions:shared-youtube:stub'.
+extensions:youtube:projects - Displays the sub-projects of project ':extensions:youtube'.
+extensions:youtube:stub:projects - Displays the sub-projects of project ':extensions:youtube:stub'.
+patches:projects - Displays the sub-projects of project ':patches'.
+patches:stub:projects - Displays the sub-projects of project ':patches:stub'.
+properties - Displays the properties of root project 'tada-patches'.
+extensions:properties - Displays the properties of project ':extensions'.
+extensions:all:properties - Displays the properties of project ':extensions:all'.
+extensions:all:change-version-code:properties - Displays the properties of project ':extensions:all:change-version-code'.
+extensions:music:properties - Displays the properties of project ':extensions:music'.
+extensions:reddit:properties - Displays the properties of project ':extensions:reddit'.
+extensions:reddit:stub:properties - Displays the properties of project ':extensions:reddit:stub'.
+extensions:shared:properties - Displays the properties of project ':extensions:shared'.
+extensions:shared:library:properties - Displays the properties of project ':extensions:shared:library'.
+extensions:shared-youtube:properties - Displays the properties of project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:properties - Displays the properties of project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:properties - Displays the properties of project ':extensions:shared-youtube:stub'.
+extensions:youtube:properties - Displays the properties of project ':extensions:youtube'.
+extensions:youtube:stub:properties - Displays the properties of project ':extensions:youtube:stub'.
+patches:properties - Displays the properties of project ':patches'.
+patches:stub:properties - Displays the properties of project ':patches:stub'.
+resolvableConfigurations - Displays the configurations that can be resolved in root project 'tada-patches'.
+extensions:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions'.
+extensions:all:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:all'.
+extensions:all:change-version-code:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:all:change-version-code'.
+extensions:music:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:music'.
+extensions:reddit:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:reddit'.
+extensions:reddit:stub:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:reddit:stub'.
+extensions:shared:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:shared'.
+extensions:shared:library:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:shared:library'.
+extensions:shared-youtube:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:shared-youtube'.
+extensions:shared-youtube:library:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:shared-youtube:stub'.
+extensions:youtube:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:youtube'.
+extensions:youtube:stub:resolvableConfigurations - Displays the configurations that can be resolved in project ':extensions:youtube:stub'.
+patches:resolvableConfigurations - Displays the configurations that can be resolved in project ':patches'.
+patches:stub:resolvableConfigurations - Displays the configurations that can be resolved in project ':patches:stub'.
+tasks - Displays the tasks runnable from root project 'tada-patches' (some of the displayed tasks may belong to subprojects).
+extensions:tasks - Displays the tasks runnable from project ':extensions' (some of the displayed tasks may belong to subprojects).
+extensions:all:tasks - Displays the tasks runnable from project ':extensions:all' (some of the displayed tasks may belong to subprojects).
+extensions:all:change-version-code:tasks - Displays the tasks runnable from project ':extensions:all:change-version-code'.
+extensions:music:tasks - Displays the tasks runnable from project ':extensions:music'.
+extensions:reddit:tasks - Displays the tasks runnable from project ':extensions:reddit' (some of the displayed tasks may belong to subprojects).
+extensions:reddit:stub:tasks - Displays the tasks runnable from project ':extensions:reddit:stub'.
+extensions:shared:tasks - Displays the tasks runnable from project ':extensions:shared' (some of the displayed tasks may belong to subprojects).
+extensions:shared:library:tasks - Displays the tasks runnable from project ':extensions:shared:library'.
+extensions:shared-youtube:tasks - Displays the tasks runnable from project ':extensions:shared-youtube' (some of the displayed tasks may belong to subprojects).
+extensions:shared-youtube:library:tasks - Displays the tasks runnable from project ':extensions:shared-youtube:library'.
+extensions:shared-youtube:stub:tasks - Displays the tasks runnable from project ':extensions:shared-youtube:stub'.
+extensions:youtube:tasks - Displays the tasks runnable from project ':extensions:youtube' (some of the displayed tasks may belong to subprojects).
+extensions:youtube:stub:tasks - Displays the tasks runnable from project ':extensions:youtube:stub'.
+patches:tasks - Displays the tasks runnable from project ':patches' (some of the displayed tasks may belong to subprojects).
+patches:stub:tasks - Displays the tasks runnable from project ':patches:stub'.
+
+Install tasks
+-------------
+extensions:all:change-version-code:installDebug - Installs the Debug build.
+extensions:music:installDebug - Installs the Debug build.
+extensions:reddit:installDebug - Installs the Debug build.
+extensions:shared:installDebug - Installs the Debug build.
+extensions:shared-youtube:installDebug - Installs the Debug build.
+extensions:youtube:installDebug - Installs the Debug build.
+extensions:all:change-version-code:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:music:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:reddit:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:reddit:stub:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:shared:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:shared:library:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:shared-youtube:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:shared-youtube:library:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:shared-youtube:stub:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:youtube:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:youtube:stub:installDebugAndroidTest - Installs the android (on device) tests for the Debug build.
+extensions:all:change-version-code:uninstallAll - Uninstall all applications.
+extensions:music:uninstallAll - Uninstall all applications.
+extensions:reddit:uninstallAll - Uninstall all applications.
+extensions:reddit:stub:uninstallAll - Uninstall all applications.
+extensions:shared:uninstallAll - Uninstall all applications.
+extensions:shared:library:uninstallAll - Uninstall all applications.
+extensions:shared-youtube:uninstallAll - Uninstall all applications.
+extensions:shared-youtube:library:uninstallAll - Uninstall all applications.
+extensions:shared-youtube:stub:uninstallAll - Uninstall all applications.
+extensions:youtube:uninstallAll - Uninstall all applications.
+extensions:youtube:stub:uninstallAll - Uninstall all applications.
+extensions:all:change-version-code:uninstallDebug - Uninstalls the Debug build.
+extensions:music:uninstallDebug - Uninstalls the Debug build.
+extensions:reddit:uninstallDebug - Uninstalls the Debug build.
+extensions:shared:uninstallDebug - Uninstalls the Debug build.
+extensions:shared-youtube:uninstallDebug - Uninstalls the Debug build.
+extensions:youtube:uninstallDebug - Uninstalls the Debug build.
+extensions:all:change-version-code:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:music:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:reddit:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:reddit:stub:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:shared:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:shared:library:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:shared-youtube:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:shared-youtube:library:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:shared-youtube:stub:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:youtube:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:youtube:stub:uninstallDebugAndroidTest - Uninstalls the android (on device) tests for the Debug build.
+extensions:all:change-version-code:uninstallRelease - Uninstalls the Release build.
+extensions:music:uninstallRelease - Uninstalls the Release build.
+extensions:reddit:uninstallRelease - Uninstalls the Release build.
+extensions:shared:uninstallRelease - Uninstalls the Release build.
+extensions:shared-youtube:uninstallRelease - Uninstalls the Release build.
+extensions:youtube:uninstallRelease - Uninstalls the Release build.
+
+Publishing tasks
+----------------
+patches:publish - Publishes all publications produced by this project.
+patches:publishAllPublicationsToDummyMavenLocalRepository - Publishes all Maven publications produced by this project to the DummyMavenLocal repository.
+patches:publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+
+Verification tasks
+------------------
+extensions:all:change-version-code:check - Runs all checks.
+extensions:music:check - Runs all checks.
+extensions:reddit:check - Runs all checks.
+extensions:reddit:stub:check - Runs all checks.
+extensions:shared:check - Runs all checks.
+extensions:shared:library:check - Runs all checks.
+extensions:shared-youtube:check - Runs all checks.
+extensions:shared-youtube:library:check - Runs all checks.
+extensions:shared-youtube:stub:check - Runs all checks.
+extensions:youtube:check - Runs all checks.
+extensions:youtube:stub:check - Runs all checks.
+patches:check - Runs all checks.
+patches:stub:check - Runs all checks.
+extensions:all:change-version-code:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:music:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:reddit:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:reddit:stub:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:shared:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:shared:library:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:shared-youtube:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:shared-youtube:library:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:shared-youtube:stub:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:youtube:checkJetifier - Checks whether Jetifier is needed for the current project
+extensions:youtube:stub:checkJetifier - Checks whether Jetifier is needed for the current project
+patches:checkKotlinGradlePluginConfigurationErrors - Checks that Kotlin Gradle Plugin hasn't reported project configuration errors, failing otherwise. This task always runs before compileKotlin* or similar tasks.
+extensions:all:change-version-code:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:music:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:reddit:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:reddit:stub:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:shared:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:shared:library:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:shared-youtube:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:shared-youtube:library:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:shared-youtube:stub:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:youtube:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:youtube:stub:connectedAndroidTest - Installs and runs instrumentation tests for all flavors on connected devices.
+extensions:all:change-version-code:connectedCheck - Runs all device checks on currently connected devices.
+extensions:music:connectedCheck - Runs all device checks on currently connected devices.
+extensions:reddit:connectedCheck - Runs all device checks on currently connected devices.
+extensions:reddit:stub:connectedCheck - Runs all device checks on currently connected devices.
+extensions:shared:connectedCheck - Runs all device checks on currently connected devices.
+extensions:shared:library:connectedCheck - Runs all device checks on currently connected devices.
+extensions:shared-youtube:connectedCheck - Runs all device checks on currently connected devices.
+extensions:shared-youtube:library:connectedCheck - Runs all device checks on currently connected devices.
+extensions:shared-youtube:stub:connectedCheck - Runs all device checks on currently connected devices.
+extensions:youtube:connectedCheck - Runs all device checks on currently connected devices.
+extensions:youtube:stub:connectedCheck - Runs all device checks on currently connected devices.
+extensions:all:change-version-code:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:music:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:reddit:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:reddit:stub:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:shared:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:shared:library:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:shared-youtube:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:shared-youtube:library:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:shared-youtube:stub:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:youtube:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:youtube:stub:connectedDebugAndroidTest - Installs and runs the tests for debug on connected devices.
+extensions:all:change-version-code:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:music:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:reddit:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:reddit:stub:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:shared:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:shared:library:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:shared-youtube:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:shared-youtube:library:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:shared-youtube:stub:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:youtube:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:youtube:stub:deviceAndroidTest - Installs and runs instrumentation tests using all Device Providers.
+extensions:all:change-version-code:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:music:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:reddit:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:reddit:stub:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:shared:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:shared:library:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:shared-youtube:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:shared-youtube:library:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:shared-youtube:stub:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:youtube:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:youtube:stub:deviceCheck - Runs all device checks using Device Providers and Test Servers.
+extensions:all:change-version-code:lint - Runs lint on the default variant.
+extensions:music:lint - Runs lint on the default variant.
+extensions:reddit:lint - Runs lint on the default variant.
+extensions:reddit:stub:lint - Runs lint on the default variant.
+extensions:shared:lint - Runs lint on the default variant.
+extensions:shared:library:lint - Runs lint on the default variant.
+extensions:shared-youtube:lint - Runs lint on the default variant.
+extensions:shared-youtube:library:lint - Runs lint on the default variant.
+extensions:shared-youtube:stub:lint - Runs lint on the default variant.
+extensions:youtube:lint - Runs lint on the default variant.
+extensions:youtube:stub:lint - Runs lint on the default variant.
+extensions:all:change-version-code:lintDebug - Print text output from the corresponding lint report task
+extensions:music:lintDebug - Print text output from the corresponding lint report task
+extensions:reddit:lintDebug - Print text output from the corresponding lint report task
+extensions:reddit:stub:lintDebug - Print text output from the corresponding lint report task
+extensions:shared:lintDebug - Print text output from the corresponding lint report task
+extensions:shared:library:lintDebug - Print text output from the corresponding lint report task
+extensions:shared-youtube:lintDebug - Print text output from the corresponding lint report task
+extensions:shared-youtube:library:lintDebug - Print text output from the corresponding lint report task
+extensions:shared-youtube:stub:lintDebug - Print text output from the corresponding lint report task
+extensions:youtube:lintDebug - Print text output from the corresponding lint report task
+extensions:youtube:stub:lintDebug - Print text output from the corresponding lint report task
+extensions:all:change-version-code:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:music:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:reddit:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:reddit:stub:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:shared:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:shared:library:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:shared-youtube:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:shared-youtube:library:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:shared-youtube:stub:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:youtube:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:youtube:stub:lintFix - Runs lint on the default variant and applies any safe suggestions to the source code.
+extensions:all:change-version-code:lintRelease - Print text output from the corresponding lint report task
+extensions:music:lintRelease - Print text output from the corresponding lint report task
+extensions:reddit:lintRelease - Print text output from the corresponding lint report task
+extensions:reddit:stub:lintRelease - Print text output from the corresponding lint report task
+extensions:shared:lintRelease - Print text output from the corresponding lint report task
+extensions:shared:library:lintRelease - Print text output from the corresponding lint report task
+extensions:shared-youtube:lintRelease - Print text output from the corresponding lint report task
+extensions:shared-youtube:library:lintRelease - Print text output from the corresponding lint report task
+extensions:shared-youtube:stub:lintRelease - Print text output from the corresponding lint report task
+extensions:youtube:lintRelease - Print text output from the corresponding lint report task
+extensions:youtube:stub:lintRelease - Print text output from the corresponding lint report task
+extensions:all:change-version-code:lintVitalRelease - Print text output from the corresponding lint report task
+extensions:music:lintVitalRelease - Print text output from the corresponding lint report task
+extensions:reddit:lintVitalRelease - Print text output from the corresponding lint report task
+extensions:shared:lintVitalRelease - Print text output from the corresponding lint report task
+extensions:shared-youtube:lintVitalRelease - Print text output from the corresponding lint report task
+extensions:youtube:lintVitalRelease - Print text output from the corresponding lint report task
+extensions:all:change-version-code:test - Run unit tests for all variants.
+extensions:music:test - Run unit tests for all variants.
+extensions:reddit:test - Run unit tests for all variants.
+extensions:reddit:stub:test - Run unit tests for all variants.
+extensions:shared:test - Run unit tests for all variants.
+extensions:shared:library:test - Run unit tests for all variants.
+extensions:shared-youtube:test - Run unit tests for all variants.
+extensions:shared-youtube:library:test - Run unit tests for all variants.
+extensions:shared-youtube:stub:test - Run unit tests for all variants.
+extensions:youtube:test - Run unit tests for all variants.
+extensions:youtube:stub:test - Run unit tests for all variants.
+patches:test - Runs the test suite.
+patches:stub:test - Runs the test suite.
+extensions:all:change-version-code:testDebugUnitTest - Run unit tests for the debug build.
+extensions:music:testDebugUnitTest - Run unit tests for the debug build.
+extensions:reddit:testDebugUnitTest - Run unit tests for the debug build.
+extensions:reddit:stub:testDebugUnitTest - Run unit tests for the debug build.
+extensions:shared:testDebugUnitTest - Run unit tests for the debug build.
+extensions:shared:library:testDebugUnitTest - Run unit tests for the debug build.
+extensions:shared-youtube:testDebugUnitTest - Run unit tests for the debug build.
+extensions:shared-youtube:library:testDebugUnitTest - Run unit tests for the debug build.
+extensions:shared-youtube:stub:testDebugUnitTest - Run unit tests for the debug build.
+extensions:youtube:testDebugUnitTest - Run unit tests for the debug build.
+extensions:youtube:stub:testDebugUnitTest - Run unit tests for the debug build.
+extensions:all:change-version-code:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:music:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:reddit:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:reddit:stub:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:shared:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:shared:library:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:shared-youtube:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:shared-youtube:library:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:shared-youtube:stub:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:youtube:updateLintBaseline - Updates the lint baseline using the default variant.
+extensions:youtube:stub:updateLintBaseline - Updates the lint baseline using the default variant.
+patches:validateJam - Patches a supplied YouTube Music APK for Jam validation and optional device testing
+
+Other tasks
+-----------
+extensions:all:change-version-code:aggregatedTestResultsCollectionDebug
+extensions:music:aggregatedTestResultsCollectionDebug
+extensions:reddit:aggregatedTestResultsCollectionDebug
+extensions:reddit:stub:aggregatedTestResultsCollectionDebug
+extensions:shared:aggregatedTestResultsCollectionDebug
+extensions:shared:library:aggregatedTestResultsCollectionDebug
+extensions:shared-youtube:aggregatedTestResultsCollectionDebug
+extensions:shared-youtube:library:aggregatedTestResultsCollectionDebug
+extensions:shared-youtube:stub:aggregatedTestResultsCollectionDebug
+extensions:youtube:aggregatedTestResultsCollectionDebug
+extensions:youtube:stub:aggregatedTestResultsCollectionDebug
+extensions:all:change-version-code:aggregatedTestResultsCollectionRelease
+extensions:music:aggregatedTestResultsCollectionRelease
+extensions:reddit:aggregatedTestResultsCollectionRelease
+extensions:reddit:stub:aggregatedTestResultsCollectionRelease
+extensions:shared:aggregatedTestResultsCollectionRelease
+extensions:shared:library:aggregatedTestResultsCollectionRelease
+extensions:shared-youtube:aggregatedTestResultsCollectionRelease
+extensions:shared-youtube:library:aggregatedTestResultsCollectionRelease
+extensions:shared-youtube:stub:aggregatedTestResultsCollectionRelease
+extensions:youtube:aggregatedTestResultsCollectionRelease
+extensions:youtube:stub:aggregatedTestResultsCollectionRelease
+extensions:all:change-version-code:analyzeDebugAndroidTestDependencies
+extensions:music:analyzeDebugAndroidTestDependencies
+extensions:reddit:analyzeDebugAndroidTestDependencies
+extensions:reddit:stub:analyzeDebugAndroidTestDependencies
+extensions:shared:analyzeDebugAndroidTestDependencies
+extensions:shared:library:analyzeDebugAndroidTestDependencies
+extensions:shared-youtube:analyzeDebugAndroidTestDependencies
+extensions:shared-youtube:library:analyzeDebugAndroidTestDependencies
+extensions:shared-youtube:stub:analyzeDebugAndroidTestDependencies
+extensions:youtube:analyzeDebugAndroidTestDependencies
+extensions:youtube:stub:analyzeDebugAndroidTestDependencies
+extensions:all:change-version-code:analyzeDebugDependencies
+extensions:music:analyzeDebugDependencies
+extensions:reddit:analyzeDebugDependencies
+extensions:reddit:stub:analyzeDebugDependencies
+extensions:shared:analyzeDebugDependencies
+extensions:shared:library:analyzeDebugDependencies
+extensions:shared-youtube:analyzeDebugDependencies
+extensions:shared-youtube:library:analyzeDebugDependencies
+extensions:shared-youtube:stub:analyzeDebugDependencies
+extensions:youtube:analyzeDebugDependencies
+extensions:youtube:stub:analyzeDebugDependencies
+extensions:all:change-version-code:analyzeDebugUnitTestDependencies
+extensions:music:analyzeDebugUnitTestDependencies
+extensions:reddit:analyzeDebugUnitTestDependencies
+extensions:reddit:stub:analyzeDebugUnitTestDependencies
+extensions:shared:analyzeDebugUnitTestDependencies
+extensions:shared:library:analyzeDebugUnitTestDependencies
+extensions:shared-youtube:analyzeDebugUnitTestDependencies
+extensions:shared-youtube:library:analyzeDebugUnitTestDependencies
+extensions:shared-youtube:stub:analyzeDebugUnitTestDependencies
+extensions:youtube:analyzeDebugUnitTestDependencies
+extensions:youtube:stub:analyzeDebugUnitTestDependencies
+extensions:all:change-version-code:analyzeReleaseDependencies
+extensions:music:analyzeReleaseDependencies
+extensions:reddit:analyzeReleaseDependencies
+extensions:reddit:stub:analyzeReleaseDependencies
+extensions:shared:analyzeReleaseDependencies
+extensions:shared:library:analyzeReleaseDependencies
+extensions:shared-youtube:analyzeReleaseDependencies
+extensions:shared-youtube:library:analyzeReleaseDependencies
+extensions:shared-youtube:stub:analyzeReleaseDependencies
+extensions:youtube:analyzeReleaseDependencies
+extensions:youtube:stub:analyzeReleaseDependencies
+extensions:all:change-version-code:assembleDebug - Assembles main output for variant debug
+extensions:music:assembleDebug - Assembles main output for variant debug
+extensions:reddit:assembleDebug - Assembles main output for variant debug
+extensions:reddit:stub:assembleDebug - Assembles main output for variant debug
+extensions:shared:assembleDebug - Assembles main output for variant debug
+extensions:shared:library:assembleDebug - Assembles main output for variant debug
+extensions:shared-youtube:assembleDebug - Assembles main output for variant debug
+extensions:shared-youtube:library:assembleDebug - Assembles main output for variant debug
+extensions:shared-youtube:stub:assembleDebug - Assembles main output for variant debug
+extensions:youtube:assembleDebug - Assembles main output for variant debug
+extensions:youtube:stub:assembleDebug - Assembles main output for variant debug
+extensions:all:change-version-code:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:music:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:reddit:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:reddit:stub:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:shared:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:shared:library:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:shared-youtube:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:shared-youtube:library:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:shared-youtube:stub:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:youtube:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:youtube:stub:assembleDebugAndroidTest - Assembles main output for variant debugAndroidTest
+extensions:all:change-version-code:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:music:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:reddit:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:reddit:stub:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:shared:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:shared:library:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:shared-youtube:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:shared-youtube:library:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:shared-youtube:stub:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:youtube:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:youtube:stub:assembleDebugUnitTest - Assembles main output for variant debugUnitTest
+extensions:all:change-version-code:assembleRelease - Assembles main output for variant release
+extensions:music:assembleRelease - Assembles main output for variant release
+extensions:reddit:assembleRelease - Assembles main output for variant release
+extensions:reddit:stub:assembleRelease - Assembles main output for variant release
+extensions:shared:assembleRelease - Assembles main output for variant release
+extensions:shared:library:assembleRelease - Assembles main output for variant release
+extensions:shared-youtube:assembleRelease - Assembles main output for variant release
+extensions:shared-youtube:library:assembleRelease - Assembles main output for variant release
+extensions:shared-youtube:stub:assembleRelease - Assembles main output for variant release
+extensions:youtube:assembleRelease - Assembles main output for variant release
+extensions:youtube:stub:assembleRelease - Assembles main output for variant release
+extensions:all:change-version-code:buildDebugPreBundle
+extensions:music:buildDebugPreBundle
+extensions:reddit:buildDebugPreBundle
+extensions:shared:buildDebugPreBundle
+extensions:shared-youtube:buildDebugPreBundle
+extensions:youtube:buildDebugPreBundle
+extensions:all:change-version-code:buildReleasePreBundle
+extensions:music:buildReleasePreBundle
+extensions:reddit:buildReleasePreBundle
+extensions:shared:buildReleasePreBundle
+extensions:shared-youtube:buildReleasePreBundle
+extensions:youtube:buildReleasePreBundle
+extensions:all:change-version-code:bundleDebug - Assembles bundle for variant debug
+extensions:music:bundleDebug - Assembles bundle for variant debug
+extensions:reddit:bundleDebug - Assembles bundle for variant debug
+extensions:shared:bundleDebug - Assembles bundle for variant debug
+extensions:shared-youtube:bundleDebug - Assembles bundle for variant debug
+extensions:youtube:bundleDebug - Assembles bundle for variant debug
+extensions:reddit:stub:bundleDebugAar - Assembles a bundle containing the library in debug.
+extensions:shared:library:bundleDebugAar - Assembles a bundle containing the library in debug.
+extensions:shared-youtube:library:bundleDebugAar - Assembles a bundle containing the library in debug.
+extensions:shared-youtube:stub:bundleDebugAar - Assembles a bundle containing the library in debug.
+extensions:youtube:stub:bundleDebugAar - Assembles a bundle containing the library in debug.
+extensions:all:change-version-code:bundleDebugClassesToCompileJar
+extensions:music:bundleDebugClassesToCompileJar
+extensions:reddit:bundleDebugClassesToCompileJar
+extensions:shared:bundleDebugClassesToCompileJar
+extensions:shared-youtube:bundleDebugClassesToCompileJar
+extensions:youtube:bundleDebugClassesToCompileJar
+extensions:all:change-version-code:bundleDebugClassesToRuntimeJar
+extensions:music:bundleDebugClassesToRuntimeJar
+extensions:reddit:bundleDebugClassesToRuntimeJar
+extensions:shared:bundleDebugClassesToRuntimeJar
+extensions:shared-youtube:bundleDebugClassesToRuntimeJar
+extensions:youtube:bundleDebugClassesToRuntimeJar
+extensions:reddit:stub:bundleDebugLocalLintAar - Assembles a bundle containing the library in debug.
+extensions:shared:library:bundleDebugLocalLintAar - Assembles a bundle containing the library in debug.
+extensions:shared-youtube:library:bundleDebugLocalLintAar - Assembles a bundle containing the library in debug.
+extensions:shared-youtube:stub:bundleDebugLocalLintAar - Assembles a bundle containing the library in debug.
+extensions:youtube:stub:bundleDebugLocalLintAar - Assembles a bundle containing the library in debug.
+extensions:all:change-version-code:bundleDebugResources
+extensions:music:bundleDebugResources
+extensions:reddit:bundleDebugResources
+extensions:shared:bundleDebugResources
+extensions:shared-youtube:bundleDebugResources
+extensions:youtube:bundleDebugResources
+extensions:reddit:stub:bundleLibCompileToJarDebug
+extensions:shared:library:bundleLibCompileToJarDebug
+extensions:shared-youtube:library:bundleLibCompileToJarDebug
+extensions:shared-youtube:stub:bundleLibCompileToJarDebug
+extensions:youtube:stub:bundleLibCompileToJarDebug
+extensions:reddit:stub:bundleLibCompileToJarRelease
+extensions:shared:library:bundleLibCompileToJarRelease
+extensions:shared-youtube:library:bundleLibCompileToJarRelease
+extensions:shared-youtube:stub:bundleLibCompileToJarRelease
+extensions:youtube:stub:bundleLibCompileToJarRelease
+extensions:reddit:stub:bundleLibRuntimeToDirDebug
+extensions:shared:library:bundleLibRuntimeToDirDebug
+extensions:shared-youtube:library:bundleLibRuntimeToDirDebug
+extensions:shared-youtube:stub:bundleLibRuntimeToDirDebug
+extensions:youtube:stub:bundleLibRuntimeToDirDebug
+extensions:reddit:stub:bundleLibRuntimeToDirRelease
+extensions:shared:library:bundleLibRuntimeToDirRelease
+extensions:shared-youtube:library:bundleLibRuntimeToDirRelease
+extensions:shared-youtube:stub:bundleLibRuntimeToDirRelease
+extensions:youtube:stub:bundleLibRuntimeToDirRelease
+extensions:reddit:stub:bundleLibRuntimeToJarDebug
+extensions:shared:library:bundleLibRuntimeToJarDebug
+extensions:shared-youtube:library:bundleLibRuntimeToJarDebug
+extensions:shared-youtube:stub:bundleLibRuntimeToJarDebug
+extensions:youtube:stub:bundleLibRuntimeToJarDebug
+extensions:reddit:stub:bundleLibRuntimeToJarRelease
+extensions:shared:library:bundleLibRuntimeToJarRelease
+extensions:shared-youtube:library:bundleLibRuntimeToJarRelease
+extensions:shared-youtube:stub:bundleLibRuntimeToJarRelease
+extensions:youtube:stub:bundleLibRuntimeToJarRelease
+extensions:all:change-version-code:bundleRelease - Assembles bundle for variant release
+extensions:music:bundleRelease - Assembles bundle for variant release
+extensions:reddit:bundleRelease - Assembles bundle for variant release
+extensions:shared:bundleRelease - Assembles bundle for variant release
+extensions:shared-youtube:bundleRelease - Assembles bundle for variant release
+extensions:youtube:bundleRelease - Assembles bundle for variant release
+extensions:reddit:stub:bundleReleaseAar - Assembles a bundle containing the library in release.
+extensions:shared:library:bundleReleaseAar - Assembles a bundle containing the library in release.
+extensions:shared-youtube:library:bundleReleaseAar - Assembles a bundle containing the library in release.
+extensions:shared-youtube:stub:bundleReleaseAar - Assembles a bundle containing the library in release.
+extensions:youtube:stub:bundleReleaseAar - Assembles a bundle containing the library in release.
+extensions:all:change-version-code:bundleReleaseClassesToCompileJar
+extensions:music:bundleReleaseClassesToCompileJar
+extensions:reddit:bundleReleaseClassesToCompileJar
+extensions:shared:bundleReleaseClassesToCompileJar
+extensions:shared-youtube:bundleReleaseClassesToCompileJar
+extensions:youtube:bundleReleaseClassesToCompileJar
+extensions:all:change-version-code:bundleReleaseClassesToRuntimeJar
+extensions:music:bundleReleaseClassesToRuntimeJar
+extensions:reddit:bundleReleaseClassesToRuntimeJar
+extensions:shared:bundleReleaseClassesToRuntimeJar
+extensions:shared-youtube:bundleReleaseClassesToRuntimeJar
+extensions:youtube:bundleReleaseClassesToRuntimeJar
+extensions:reddit:stub:bundleReleaseLocalLintAar - Assembles a bundle containing the library in release.
+extensions:shared:library:bundleReleaseLocalLintAar - Assembles a bundle containing the library in release.
+extensions:shared-youtube:library:bundleReleaseLocalLintAar - Assembles a bundle containing the library in release.
+extensions:shared-youtube:stub:bundleReleaseLocalLintAar - Assembles a bundle containing the library in release.
+extensions:youtube:stub:bundleReleaseLocalLintAar - Assembles a bundle containing the library in release.
+extensions:all:change-version-code:bundleReleaseResources
+extensions:music:bundleReleaseResources
+extensions:reddit:bundleReleaseResources
+extensions:shared:bundleReleaseResources
+extensions:shared-youtube:bundleReleaseResources
+extensions:youtube:bundleReleaseResources
+extensions:all:change-version-code:checkDebugAarMetadata
+extensions:music:checkDebugAarMetadata
+extensions:reddit:checkDebugAarMetadata
+extensions:reddit:stub:checkDebugAarMetadata
+extensions:shared:checkDebugAarMetadata
+extensions:shared:library:checkDebugAarMetadata
+extensions:shared-youtube:checkDebugAarMetadata
+extensions:shared-youtube:library:checkDebugAarMetadata
+extensions:shared-youtube:stub:checkDebugAarMetadata
+extensions:youtube:checkDebugAarMetadata
+extensions:youtube:stub:checkDebugAarMetadata
+extensions:all:change-version-code:checkDebugAndroidTestAarMetadata
+extensions:music:checkDebugAndroidTestAarMetadata
+extensions:reddit:checkDebugAndroidTestAarMetadata
+extensions:reddit:stub:checkDebugAndroidTestAarMetadata
+extensions:shared:checkDebugAndroidTestAarMetadata
+extensions:shared:library:checkDebugAndroidTestAarMetadata
+extensions:shared-youtube:checkDebugAndroidTestAarMetadata
+extensions:shared-youtube:library:checkDebugAndroidTestAarMetadata
+extensions:shared-youtube:stub:checkDebugAndroidTestAarMetadata
+extensions:youtube:checkDebugAndroidTestAarMetadata
+extensions:youtube:stub:checkDebugAndroidTestAarMetadata
+extensions:all:change-version-code:checkDebugAndroidTestDuplicateClasses
+extensions:music:checkDebugAndroidTestDuplicateClasses
+extensions:reddit:checkDebugAndroidTestDuplicateClasses
+extensions:reddit:stub:checkDebugAndroidTestDuplicateClasses
+extensions:shared:checkDebugAndroidTestDuplicateClasses
+extensions:shared:library:checkDebugAndroidTestDuplicateClasses
+extensions:shared-youtube:checkDebugAndroidTestDuplicateClasses
+extensions:shared-youtube:library:checkDebugAndroidTestDuplicateClasses
+extensions:shared-youtube:stub:checkDebugAndroidTestDuplicateClasses
+extensions:youtube:checkDebugAndroidTestDuplicateClasses
+extensions:youtube:stub:checkDebugAndroidTestDuplicateClasses
+extensions:all:change-version-code:checkDebugDuplicateClasses
+extensions:music:checkDebugDuplicateClasses
+extensions:reddit:checkDebugDuplicateClasses
+extensions:shared:checkDebugDuplicateClasses
+extensions:shared-youtube:checkDebugDuplicateClasses
+extensions:youtube:checkDebugDuplicateClasses
+extensions:all:change-version-code:checkDebugManifest
+extensions:music:checkDebugManifest
+extensions:reddit:checkDebugManifest
+extensions:reddit:stub:checkDebugManifest
+extensions:shared:checkDebugManifest
+extensions:shared:library:checkDebugManifest
+extensions:shared-youtube:checkDebugManifest
+extensions:shared-youtube:library:checkDebugManifest
+extensions:shared-youtube:stub:checkDebugManifest
+extensions:youtube:checkDebugManifest
+extensions:youtube:stub:checkDebugManifest
+extensions:all:change-version-code:checkReleaseAarMetadata
+extensions:music:checkReleaseAarMetadata
+extensions:reddit:checkReleaseAarMetadata
+extensions:reddit:stub:checkReleaseAarMetadata
+extensions:shared:checkReleaseAarMetadata
+extensions:shared:library:checkReleaseAarMetadata
+extensions:shared-youtube:checkReleaseAarMetadata
+extensions:shared-youtube:library:checkReleaseAarMetadata
+extensions:shared-youtube:stub:checkReleaseAarMetadata
+extensions:youtube:checkReleaseAarMetadata
+extensions:youtube:stub:checkReleaseAarMetadata
+extensions:all:change-version-code:checkReleaseDuplicateClasses
+extensions:music:checkReleaseDuplicateClasses
+extensions:reddit:checkReleaseDuplicateClasses
+extensions:shared:checkReleaseDuplicateClasses
+extensions:shared-youtube:checkReleaseDuplicateClasses
+extensions:youtube:checkReleaseDuplicateClasses
+extensions:all:change-version-code:checkReleaseManifest
+extensions:music:checkReleaseManifest
+extensions:reddit:checkReleaseManifest
+extensions:reddit:stub:checkReleaseManifest
+extensions:shared:checkReleaseManifest
+extensions:shared:library:checkReleaseManifest
+extensions:shared-youtube:checkReleaseManifest
+extensions:shared-youtube:library:checkReleaseManifest
+extensions:shared-youtube:stub:checkReleaseManifest
+extensions:youtube:checkReleaseManifest
+extensions:youtube:stub:checkReleaseManifest
+patches:checkStringResources - Checks resource strings for invalid formatting
+extensions:all:change-version-code:collectDebugAggregatedCoverage
+extensions:music:collectDebugAggregatedCoverage
+extensions:reddit:collectDebugAggregatedCoverage
+extensions:shared:collectDebugAggregatedCoverage
+extensions:shared-youtube:collectDebugAggregatedCoverage
+extensions:youtube:collectDebugAggregatedCoverage
+extensions:all:change-version-code:collectDebugCoverage
+extensions:music:collectDebugCoverage
+extensions:reddit:collectDebugCoverage
+extensions:reddit:stub:collectDebugCoverage
+extensions:shared:collectDebugCoverage
+extensions:shared:library:collectDebugCoverage
+extensions:shared-youtube:collectDebugCoverage
+extensions:shared-youtube:library:collectDebugCoverage
+extensions:shared-youtube:stub:collectDebugCoverage
+extensions:youtube:collectDebugCoverage
+extensions:youtube:stub:collectDebugCoverage
+extensions:all:change-version-code:collectReleaseAggregatedCoverage
+extensions:music:collectReleaseAggregatedCoverage
+extensions:reddit:collectReleaseAggregatedCoverage
+extensions:shared:collectReleaseAggregatedCoverage
+extensions:shared-youtube:collectReleaseAggregatedCoverage
+extensions:youtube:collectReleaseAggregatedCoverage
+extensions:all:change-version-code:collectReleaseCoverage
+extensions:music:collectReleaseCoverage
+extensions:reddit:collectReleaseCoverage
+extensions:reddit:stub:collectReleaseCoverage
+extensions:shared:collectReleaseCoverage
+extensions:shared:library:collectReleaseCoverage
+extensions:shared-youtube:collectReleaseCoverage
+extensions:shared-youtube:library:collectReleaseCoverage
+extensions:shared-youtube:stub:collectReleaseCoverage
+extensions:youtube:collectReleaseCoverage
+extensions:youtube:stub:collectReleaseCoverage
+extensions:all:change-version-code:collectReleaseDependencies
+extensions:music:collectReleaseDependencies
+extensions:reddit:collectReleaseDependencies
+extensions:shared:collectReleaseDependencies
+extensions:shared-youtube:collectReleaseDependencies
+extensions:youtube:collectReleaseDependencies
+extensions:all:change-version-code:compileDebugAndroidTestJavaWithJavac
+extensions:music:compileDebugAndroidTestJavaWithJavac
+extensions:reddit:compileDebugAndroidTestJavaWithJavac
+extensions:reddit:stub:compileDebugAndroidTestJavaWithJavac
+extensions:shared:compileDebugAndroidTestJavaWithJavac
+extensions:shared:library:compileDebugAndroidTestJavaWithJavac
+extensions:shared-youtube:compileDebugAndroidTestJavaWithJavac
+extensions:shared-youtube:library:compileDebugAndroidTestJavaWithJavac
+extensions:shared-youtube:stub:compileDebugAndroidTestJavaWithJavac
+extensions:youtube:compileDebugAndroidTestJavaWithJavac
+extensions:youtube:stub:compileDebugAndroidTestJavaWithJavac
+extensions:all:change-version-code:compileDebugAndroidTestKotlin
+extensions:music:compileDebugAndroidTestKotlin
+extensions:reddit:compileDebugAndroidTestKotlin
+extensions:reddit:stub:compileDebugAndroidTestKotlin
+extensions:shared:compileDebugAndroidTestKotlin
+extensions:shared:library:compileDebugAndroidTestKotlin
+extensions:shared-youtube:compileDebugAndroidTestKotlin
+extensions:shared-youtube:library:compileDebugAndroidTestKotlin
+extensions:shared-youtube:stub:compileDebugAndroidTestKotlin
+extensions:youtube:compileDebugAndroidTestKotlin
+extensions:youtube:stub:compileDebugAndroidTestKotlin
+extensions:all:change-version-code:compileDebugAndroidTestNavigationResources
+extensions:music:compileDebugAndroidTestNavigationResources
+extensions:reddit:compileDebugAndroidTestNavigationResources
+extensions:reddit:stub:compileDebugAndroidTestNavigationResources
+extensions:shared:compileDebugAndroidTestNavigationResources
+extensions:shared:library:compileDebugAndroidTestNavigationResources
+extensions:shared-youtube:compileDebugAndroidTestNavigationResources
+extensions:shared-youtube:library:compileDebugAndroidTestNavigationResources
+extensions:shared-youtube:stub:compileDebugAndroidTestNavigationResources
+extensions:youtube:compileDebugAndroidTestNavigationResources
+extensions:youtube:stub:compileDebugAndroidTestNavigationResources
+extensions:all:change-version-code:compileDebugArtProfile
+extensions:music:compileDebugArtProfile
+extensions:reddit:compileDebugArtProfile
+extensions:shared:compileDebugArtProfile
+extensions:shared-youtube:compileDebugArtProfile
+extensions:youtube:compileDebugArtProfile
+extensions:all:change-version-code:compileDebugJavaWithJavac
+extensions:music:compileDebugJavaWithJavac
+extensions:reddit:compileDebugJavaWithJavac
+extensions:reddit:stub:compileDebugJavaWithJavac
+extensions:shared:compileDebugJavaWithJavac
+extensions:shared:library:compileDebugJavaWithJavac
+extensions:shared-youtube:compileDebugJavaWithJavac
+extensions:shared-youtube:library:compileDebugJavaWithJavac
+extensions:shared-youtube:stub:compileDebugJavaWithJavac
+extensions:youtube:compileDebugJavaWithJavac
+extensions:youtube:stub:compileDebugJavaWithJavac
+extensions:all:change-version-code:compileDebugKotlin
+extensions:music:compileDebugKotlin
+extensions:reddit:compileDebugKotlin
+extensions:reddit:stub:compileDebugKotlin
+extensions:shared:compileDebugKotlin
+extensions:shared:library:compileDebugKotlin
+extensions:shared-youtube:compileDebugKotlin
+extensions:shared-youtube:library:compileDebugKotlin
+extensions:shared-youtube:stub:compileDebugKotlin
+extensions:youtube:compileDebugKotlin
+extensions:youtube:stub:compileDebugKotlin
+extensions:reddit:stub:compileDebugLibraryResources
+extensions:shared:library:compileDebugLibraryResources
+extensions:shared-youtube:library:compileDebugLibraryResources
+extensions:shared-youtube:stub:compileDebugLibraryResources
+extensions:youtube:stub:compileDebugLibraryResources
+extensions:all:change-version-code:compileDebugNavigationResources
+extensions:music:compileDebugNavigationResources
+extensions:reddit:compileDebugNavigationResources
+extensions:reddit:stub:compileDebugNavigationResources
+extensions:shared:compileDebugNavigationResources
+extensions:shared:library:compileDebugNavigationResources
+extensions:shared-youtube:compileDebugNavigationResources
+extensions:shared-youtube:library:compileDebugNavigationResources
+extensions:shared-youtube:stub:compileDebugNavigationResources
+extensions:youtube:compileDebugNavigationResources
+extensions:youtube:stub:compileDebugNavigationResources
+extensions:all:change-version-code:compileDebugUnitTestJavaWithJavac
+extensions:music:compileDebugUnitTestJavaWithJavac
+extensions:reddit:compileDebugUnitTestJavaWithJavac
+extensions:reddit:stub:compileDebugUnitTestJavaWithJavac
+extensions:shared:compileDebugUnitTestJavaWithJavac
+extensions:shared:library:compileDebugUnitTestJavaWithJavac
+extensions:shared-youtube:compileDebugUnitTestJavaWithJavac
+extensions:shared-youtube:library:compileDebugUnitTestJavaWithJavac
+extensions:shared-youtube:stub:compileDebugUnitTestJavaWithJavac
+extensions:youtube:compileDebugUnitTestJavaWithJavac
+extensions:youtube:stub:compileDebugUnitTestJavaWithJavac
+extensions:all:change-version-code:compileDebugUnitTestKotlin
+extensions:music:compileDebugUnitTestKotlin
+extensions:reddit:compileDebugUnitTestKotlin
+extensions:reddit:stub:compileDebugUnitTestKotlin
+extensions:shared:compileDebugUnitTestKotlin
+extensions:shared:library:compileDebugUnitTestKotlin
+extensions:shared-youtube:compileDebugUnitTestKotlin
+extensions:shared-youtube:library:compileDebugUnitTestKotlin
+extensions:shared-youtube:stub:compileDebugUnitTestKotlin
+extensions:youtube:compileDebugUnitTestKotlin
+extensions:youtube:stub:compileDebugUnitTestKotlin
+patches:compileJava - Compiles main Java source.
+patches:stub:compileJava - Compiles main Java source.
+patches:compileKotlin - Compiles the compilation 'main' in target ''.
+extensions:all:change-version-code:compileLint
+extensions:music:compileLint
+extensions:reddit:compileLint
+extensions:reddit:stub:compileLint
+extensions:shared:compileLint
+extensions:shared:library:compileLint
+extensions:shared-youtube:compileLint
+extensions:shared-youtube:library:compileLint
+extensions:shared-youtube:stub:compileLint
+extensions:youtube:compileLint
+extensions:youtube:stub:compileLint
+extensions:all:change-version-code:compileLintChecks
+extensions:music:compileLintChecks
+extensions:reddit:compileLintChecks
+extensions:reddit:stub:compileLintChecks
+extensions:shared:compileLintChecks
+extensions:shared:library:compileLintChecks
+extensions:shared-youtube:compileLintChecks
+extensions:shared-youtube:library:compileLintChecks
+extensions:shared-youtube:stub:compileLintChecks
+extensions:youtube:compileLintChecks
+extensions:youtube:stub:compileLintChecks
+extensions:all:change-version-code:compileReleaseArtProfile
+extensions:music:compileReleaseArtProfile
+extensions:reddit:compileReleaseArtProfile
+extensions:shared:compileReleaseArtProfile
+extensions:shared-youtube:compileReleaseArtProfile
+extensions:youtube:compileReleaseArtProfile
+extensions:all:change-version-code:compileReleaseJavaWithJavac
+extensions:music:compileReleaseJavaWithJavac
+extensions:reddit:compileReleaseJavaWithJavac
+extensions:reddit:stub:compileReleaseJavaWithJavac
+extensions:shared:compileReleaseJavaWithJavac
+extensions:shared:library:compileReleaseJavaWithJavac
+extensions:shared-youtube:compileReleaseJavaWithJavac
+extensions:shared-youtube:library:compileReleaseJavaWithJavac
+extensions:shared-youtube:stub:compileReleaseJavaWithJavac
+extensions:youtube:compileReleaseJavaWithJavac
+extensions:youtube:stub:compileReleaseJavaWithJavac
+extensions:all:change-version-code:compileReleaseKotlin
+extensions:music:compileReleaseKotlin
+extensions:reddit:compileReleaseKotlin
+extensions:reddit:stub:compileReleaseKotlin
+extensions:shared:compileReleaseKotlin
+extensions:shared:library:compileReleaseKotlin
+extensions:shared-youtube:compileReleaseKotlin
+extensions:shared-youtube:library:compileReleaseKotlin
+extensions:shared-youtube:stub:compileReleaseKotlin
+extensions:youtube:compileReleaseKotlin
+extensions:youtube:stub:compileReleaseKotlin
+extensions:reddit:stub:compileReleaseLibraryResources
+extensions:shared:library:compileReleaseLibraryResources
+extensions:shared-youtube:library:compileReleaseLibraryResources
+extensions:shared-youtube:stub:compileReleaseLibraryResources
+extensions:youtube:stub:compileReleaseLibraryResources
+extensions:all:change-version-code:compileReleaseNavigationResources
+extensions:music:compileReleaseNavigationResources
+extensions:reddit:compileReleaseNavigationResources
+extensions:reddit:stub:compileReleaseNavigationResources
+extensions:shared:compileReleaseNavigationResources
+extensions:shared:library:compileReleaseNavigationResources
+extensions:shared-youtube:compileReleaseNavigationResources
+extensions:shared-youtube:library:compileReleaseNavigationResources
+extensions:shared-youtube:stub:compileReleaseNavigationResources
+extensions:youtube:compileReleaseNavigationResources
+extensions:youtube:stub:compileReleaseNavigationResources
+patches:compileTestJava - Compiles test Java source.
+patches:stub:compileTestJava - Compiles test Java source.
+patches:compileTestKotlin - Compiles the compilation 'test' in target ''.
+extensions:all:change-version-code:compressDebugAndroidTestAssets
+extensions:music:compressDebugAndroidTestAssets
+extensions:reddit:compressDebugAndroidTestAssets
+extensions:reddit:stub:compressDebugAndroidTestAssets
+extensions:shared:compressDebugAndroidTestAssets
+extensions:shared:library:compressDebugAndroidTestAssets
+extensions:shared-youtube:compressDebugAndroidTestAssets
+extensions:shared-youtube:library:compressDebugAndroidTestAssets
+extensions:shared-youtube:stub:compressDebugAndroidTestAssets
+extensions:youtube:compressDebugAndroidTestAssets
+extensions:youtube:stub:compressDebugAndroidTestAssets
+extensions:all:change-version-code:compressDebugAssets
+extensions:music:compressDebugAssets
+extensions:reddit:compressDebugAssets
+extensions:shared:compressDebugAssets
+extensions:shared-youtube:compressDebugAssets
+extensions:youtube:compressDebugAssets
+extensions:all:change-version-code:compressReleaseAssets
+extensions:music:compressReleaseAssets
+extensions:reddit:compressReleaseAssets
+extensions:shared:compressReleaseAssets
+extensions:shared-youtube:compressReleaseAssets
+extensions:youtube:compressReleaseAssets
+extensions:all:change-version-code:configureReleaseDependencies
+extensions:music:configureReleaseDependencies
+extensions:reddit:configureReleaseDependencies
+extensions:shared:configureReleaseDependencies
+extensions:shared-youtube:configureReleaseDependencies
+extensions:youtube:configureReleaseDependencies
+extensions:all:change-version-code:consumeConfigAttr
+extensions:music:consumeConfigAttr
+extensions:reddit:consumeConfigAttr
+extensions:reddit:stub:consumeConfigAttr
+extensions:shared:consumeConfigAttr
+extensions:shared:library:consumeConfigAttr
+extensions:shared-youtube:consumeConfigAttr
+extensions:shared-youtube:library:consumeConfigAttr
+extensions:shared-youtube:stub:consumeConfigAttr
+extensions:youtube:consumeConfigAttr
+extensions:youtube:stub:consumeConfigAttr
+extensions:reddit:stub:copyDebugJniLibsProjectAndLocalJars
+extensions:shared:library:copyDebugJniLibsProjectAndLocalJars
+extensions:shared-youtube:library:copyDebugJniLibsProjectAndLocalJars
+extensions:shared-youtube:stub:copyDebugJniLibsProjectAndLocalJars
+extensions:youtube:stub:copyDebugJniLibsProjectAndLocalJars
+extensions:reddit:stub:copyDebugJniLibsProjectOnly
+extensions:shared:library:copyDebugJniLibsProjectOnly
+extensions:shared-youtube:library:copyDebugJniLibsProjectOnly
+extensions:shared-youtube:stub:copyDebugJniLibsProjectOnly
+extensions:youtube:stub:copyDebugJniLibsProjectOnly
+extensions:reddit:stub:copyReleaseJniLibsProjectAndLocalJars
+extensions:shared:library:copyReleaseJniLibsProjectAndLocalJars
+extensions:shared-youtube:library:copyReleaseJniLibsProjectAndLocalJars
+extensions:shared-youtube:stub:copyReleaseJniLibsProjectAndLocalJars
+extensions:youtube:stub:copyReleaseJniLibsProjectAndLocalJars
+extensions:reddit:stub:copyReleaseJniLibsProjectOnly
+extensions:shared:library:copyReleaseJniLibsProjectOnly
+extensions:shared-youtube:library:copyReleaseJniLibsProjectOnly
+extensions:shared-youtube:stub:copyReleaseJniLibsProjectOnly
+extensions:youtube:stub:copyReleaseJniLibsProjectOnly
+extensions:all:change-version-code:createAggregatedCoverageReport
+extensions:music:createAggregatedCoverageReport
+extensions:reddit:createAggregatedCoverageReport
+extensions:shared:createAggregatedCoverageReport
+extensions:shared-youtube:createAggregatedCoverageReport
+extensions:youtube:createAggregatedCoverageReport
+extensions:all:change-version-code:createAggregatedTestReport
+extensions:music:createAggregatedTestReport
+extensions:reddit:createAggregatedTestReport
+extensions:reddit:stub:createAggregatedTestReport
+extensions:shared:createAggregatedTestReport
+extensions:shared:library:createAggregatedTestReport
+extensions:shared-youtube:createAggregatedTestReport
+extensions:shared-youtube:library:createAggregatedTestReport
+extensions:shared-youtube:stub:createAggregatedTestReport
+extensions:youtube:createAggregatedTestReport
+extensions:youtube:stub:createAggregatedTestReport
+extensions:all:change-version-code:createCoverageReport
+extensions:music:createCoverageReport
+extensions:reddit:createCoverageReport
+extensions:reddit:stub:createCoverageReport
+extensions:shared:createCoverageReport
+extensions:shared:library:createCoverageReport
+extensions:shared-youtube:createCoverageReport
+extensions:shared-youtube:library:createCoverageReport
+extensions:shared-youtube:stub:createCoverageReport
+extensions:youtube:createCoverageReport
+extensions:youtube:stub:createCoverageReport
+extensions:all:change-version-code:createDebugAndroidTestApkListingFileRedirect
+extensions:music:createDebugAndroidTestApkListingFileRedirect
+extensions:reddit:createDebugAndroidTestApkListingFileRedirect
+extensions:reddit:stub:createDebugAndroidTestApkListingFileRedirect
+extensions:shared:createDebugAndroidTestApkListingFileRedirect
+extensions:shared:library:createDebugAndroidTestApkListingFileRedirect
+extensions:shared-youtube:createDebugAndroidTestApkListingFileRedirect
+extensions:shared-youtube:library:createDebugAndroidTestApkListingFileRedirect
+extensions:shared-youtube:stub:createDebugAndroidTestApkListingFileRedirect
+extensions:youtube:createDebugAndroidTestApkListingFileRedirect
+extensions:youtube:stub:createDebugAndroidTestApkListingFileRedirect
+extensions:all:change-version-code:createDebugApkListingFileRedirect
+extensions:music:createDebugApkListingFileRedirect
+extensions:reddit:createDebugApkListingFileRedirect
+extensions:shared:createDebugApkListingFileRedirect
+extensions:shared-youtube:createDebugApkListingFileRedirect
+extensions:youtube:createDebugApkListingFileRedirect
+extensions:all:change-version-code:createDebugApksFromBundleListingFileRedirect
+extensions:music:createDebugApksFromBundleListingFileRedirect
+extensions:reddit:createDebugApksFromBundleListingFileRedirect
+extensions:shared:createDebugApksFromBundleListingFileRedirect
+extensions:shared-youtube:createDebugApksFromBundleListingFileRedirect
+extensions:youtube:createDebugApksFromBundleListingFileRedirect
+extensions:all:change-version-code:createDebugBundleListingFileRedirect
+extensions:music:createDebugBundleListingFileRedirect
+extensions:reddit:createDebugBundleListingFileRedirect
+extensions:shared:createDebugBundleListingFileRedirect
+extensions:shared-youtube:createDebugBundleListingFileRedirect
+extensions:youtube:createDebugBundleListingFileRedirect
+extensions:all:change-version-code:createDebugCompatibleScreenManifests
+extensions:music:createDebugCompatibleScreenManifests
+extensions:reddit:createDebugCompatibleScreenManifests
+extensions:shared:createDebugCompatibleScreenManifests
+extensions:shared-youtube:createDebugCompatibleScreenManifests
+extensions:youtube:createDebugCompatibleScreenManifests
+extensions:reddit:stub:createFullJarDebug
+extensions:shared:library:createFullJarDebug
+extensions:shared-youtube:library:createFullJarDebug
+extensions:shared-youtube:stub:createFullJarDebug
+extensions:youtube:stub:createFullJarDebug
+extensions:reddit:stub:createFullJarRelease
+extensions:shared:library:createFullJarRelease
+extensions:shared-youtube:library:createFullJarRelease
+extensions:shared-youtube:stub:createFullJarRelease
+extensions:youtube:stub:createFullJarRelease
+extensions:all:change-version-code:createMockableJar
+extensions:music:createMockableJar
+extensions:reddit:createMockableJar
+extensions:reddit:stub:createMockableJar
+extensions:shared:createMockableJar
+extensions:shared:library:createMockableJar
+extensions:shared-youtube:createMockableJar
+extensions:shared-youtube:library:createMockableJar
+extensions:shared-youtube:stub:createMockableJar
+extensions:youtube:createMockableJar
+extensions:youtube:stub:createMockableJar
+extensions:all:change-version-code:createReleaseApkListingFileRedirect
+extensions:music:createReleaseApkListingFileRedirect
+extensions:reddit:createReleaseApkListingFileRedirect
+extensions:shared:createReleaseApkListingFileRedirect
+extensions:shared-youtube:createReleaseApkListingFileRedirect
+extensions:youtube:createReleaseApkListingFileRedirect
+extensions:all:change-version-code:createReleaseApksFromBundleListingFileRedirect
+extensions:music:createReleaseApksFromBundleListingFileRedirect
+extensions:reddit:createReleaseApksFromBundleListingFileRedirect
+extensions:shared:createReleaseApksFromBundleListingFileRedirect
+extensions:shared-youtube:createReleaseApksFromBundleListingFileRedirect
+extensions:youtube:createReleaseApksFromBundleListingFileRedirect
+extensions:all:change-version-code:createReleaseBundleListingFileRedirect
+extensions:music:createReleaseBundleListingFileRedirect
+extensions:reddit:createReleaseBundleListingFileRedirect
+extensions:shared:createReleaseBundleListingFileRedirect
+extensions:shared-youtube:createReleaseBundleListingFileRedirect
+extensions:youtube:createReleaseBundleListingFileRedirect
+extensions:all:change-version-code:createReleaseCompatibleScreenManifests
+extensions:music:createReleaseCompatibleScreenManifests
+extensions:reddit:createReleaseCompatibleScreenManifests
+extensions:shared:createReleaseCompatibleScreenManifests
+extensions:shared-youtube:createReleaseCompatibleScreenManifests
+extensions:youtube:createReleaseCompatibleScreenManifests
+extensions:all:change-version-code:createTestReport
+extensions:music:createTestReport
+extensions:reddit:createTestReport
+extensions:reddit:stub:createTestReport
+extensions:shared:createTestReport
+extensions:shared:library:createTestReport
+extensions:shared-youtube:createTestReport
+extensions:shared-youtube:library:createTestReport
+extensions:shared-youtube:stub:createTestReport
+extensions:youtube:createTestReport
+extensions:youtube:stub:createTestReport
+extensions:all:change-version-code:desugarDebugAndroidTestFileDependencies
+extensions:music:desugarDebugAndroidTestFileDependencies
+extensions:reddit:desugarDebugAndroidTestFileDependencies
+extensions:reddit:stub:desugarDebugAndroidTestFileDependencies
+extensions:shared:desugarDebugAndroidTestFileDependencies
+extensions:shared:library:desugarDebugAndroidTestFileDependencies
+extensions:shared-youtube:desugarDebugAndroidTestFileDependencies
+extensions:shared-youtube:library:desugarDebugAndroidTestFileDependencies
+extensions:shared-youtube:stub:desugarDebugAndroidTestFileDependencies
+extensions:youtube:desugarDebugAndroidTestFileDependencies
+extensions:youtube:stub:desugarDebugAndroidTestFileDependencies
+extensions:all:change-version-code:desugarDebugFileDependencies
+extensions:music:desugarDebugFileDependencies
+extensions:reddit:desugarDebugFileDependencies
+extensions:shared:desugarDebugFileDependencies
+extensions:shared-youtube:desugarDebugFileDependencies
+extensions:youtube:desugarDebugFileDependencies
+extensions:all:change-version-code:dexBuilderDebug
+extensions:music:dexBuilderDebug
+extensions:reddit:dexBuilderDebug
+extensions:shared:dexBuilderDebug
+extensions:shared-youtube:dexBuilderDebug
+extensions:youtube:dexBuilderDebug
+extensions:all:change-version-code:dexBuilderDebugAndroidTest
+extensions:music:dexBuilderDebugAndroidTest
+extensions:reddit:dexBuilderDebugAndroidTest
+extensions:reddit:stub:dexBuilderDebugAndroidTest
+extensions:shared:dexBuilderDebugAndroidTest
+extensions:shared:library:dexBuilderDebugAndroidTest
+extensions:shared-youtube:dexBuilderDebugAndroidTest
+extensions:shared-youtube:library:dexBuilderDebugAndroidTest
+extensions:shared-youtube:stub:dexBuilderDebugAndroidTest
+extensions:youtube:dexBuilderDebugAndroidTest
+extensions:youtube:stub:dexBuilderDebugAndroidTest
+extensions:all:change-version-code:expandReleaseArtProfileWildcards
+extensions:music:expandReleaseArtProfileWildcards
+extensions:reddit:expandReleaseArtProfileWildcards
+extensions:shared:expandReleaseArtProfileWildcards
+extensions:shared-youtube:expandReleaseArtProfileWildcards
+extensions:youtube:expandReleaseArtProfileWildcards
+extensions:reddit:stub:exportDebugConsumerProguardFiles
+extensions:shared:library:exportDebugConsumerProguardFiles
+extensions:shared-youtube:library:exportDebugConsumerProguardFiles
+extensions:shared-youtube:stub:exportDebugConsumerProguardFiles
+extensions:youtube:stub:exportDebugConsumerProguardFiles
+extensions:reddit:stub:exportReleaseConsumerProguardFiles
+extensions:shared:library:exportReleaseConsumerProguardFiles
+extensions:shared-youtube:library:exportReleaseConsumerProguardFiles
+extensions:shared-youtube:stub:exportReleaseConsumerProguardFiles
+extensions:youtube:stub:exportReleaseConsumerProguardFiles
+extensions:shared-youtube:library:extractAndroidTestDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractAndroidTestDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractAndroidTestProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractAndroidTestProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractAndroidTestReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractAndroidTestReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:all:change-version-code:extractApksForDebug
+extensions:music:extractApksForDebug
+extensions:reddit:extractApksForDebug
+extensions:shared:extractApksForDebug
+extensions:shared-youtube:extractApksForDebug
+extensions:youtube:extractApksForDebug
+extensions:all:change-version-code:extractApksForRelease
+extensions:music:extractApksForRelease
+extensions:reddit:extractApksForRelease
+extensions:shared:extractApksForRelease
+extensions:shared-youtube:extractApksForRelease
+extensions:youtube:extractApksForRelease
+extensions:all:change-version-code:extractApksFromBundleForDebug
+extensions:music:extractApksFromBundleForDebug
+extensions:reddit:extractApksFromBundleForDebug
+extensions:shared:extractApksFromBundleForDebug
+extensions:shared-youtube:extractApksFromBundleForDebug
+extensions:youtube:extractApksFromBundleForDebug
+extensions:all:change-version-code:extractApksFromBundleForRelease
+extensions:music:extractApksFromBundleForRelease
+extensions:reddit:extractApksFromBundleForRelease
+extensions:shared:extractApksFromBundleForRelease
+extensions:shared-youtube:extractApksFromBundleForRelease
+extensions:youtube:extractApksFromBundleForRelease
+extensions:all:change-version-code:extractDebugNativeDebugMetadata
+extensions:music:extractDebugNativeDebugMetadata
+extensions:reddit:extractDebugNativeDebugMetadata
+extensions:shared:extractDebugNativeDebugMetadata
+extensions:shared-youtube:extractDebugNativeDebugMetadata
+extensions:youtube:extractDebugNativeDebugMetadata
+extensions:all:change-version-code:extractDebugNativeSymbolTables
+extensions:music:extractDebugNativeSymbolTables
+extensions:reddit:extractDebugNativeSymbolTables
+extensions:shared:extractDebugNativeSymbolTables
+extensions:shared-youtube:extractDebugNativeSymbolTables
+extensions:youtube:extractDebugNativeSymbolTables
+extensions:shared-youtube:library:extractDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:reddit:stub:extractDebugSupportedLocales
+extensions:shared:library:extractDebugSupportedLocales
+extensions:shared-youtube:library:extractDebugSupportedLocales
+extensions:shared-youtube:stub:extractDebugSupportedLocales
+extensions:youtube:stub:extractDebugSupportedLocales
+extensions:all:change-version-code:extractDeepLinksDebug
+extensions:music:extractDeepLinksDebug
+extensions:reddit:extractDeepLinksDebug
+extensions:reddit:stub:extractDeepLinksDebug
+extensions:shared:extractDeepLinksDebug
+extensions:shared:library:extractDeepLinksDebug
+extensions:shared-youtube:extractDeepLinksDebug
+extensions:shared-youtube:library:extractDeepLinksDebug
+extensions:shared-youtube:stub:extractDeepLinksDebug
+extensions:youtube:extractDeepLinksDebug
+extensions:youtube:stub:extractDeepLinksDebug
+extensions:reddit:stub:extractDeepLinksForAarDebug
+extensions:shared:library:extractDeepLinksForAarDebug
+extensions:shared-youtube:library:extractDeepLinksForAarDebug
+extensions:shared-youtube:stub:extractDeepLinksForAarDebug
+extensions:youtube:stub:extractDeepLinksForAarDebug
+extensions:reddit:stub:extractDeepLinksForAarRelease
+extensions:shared:library:extractDeepLinksForAarRelease
+extensions:shared-youtube:library:extractDeepLinksForAarRelease
+extensions:shared-youtube:stub:extractDeepLinksForAarRelease
+extensions:youtube:stub:extractDeepLinksForAarRelease
+extensions:all:change-version-code:extractDeepLinksRelease
+extensions:music:extractDeepLinksRelease
+extensions:reddit:extractDeepLinksRelease
+extensions:reddit:stub:extractDeepLinksRelease
+extensions:shared:extractDeepLinksRelease
+extensions:shared:library:extractDeepLinksRelease
+extensions:shared-youtube:extractDeepLinksRelease
+extensions:shared-youtube:library:extractDeepLinksRelease
+extensions:shared-youtube:stub:extractDeepLinksRelease
+extensions:youtube:extractDeepLinksRelease
+extensions:youtube:stub:extractDeepLinksRelease
+extensions:shared-youtube:library:extractIncludeDebugAndroidTestProto - Extracts proto files from compile dependencies for includes
+extensions:youtube:extractIncludeDebugAndroidTestProto - Extracts proto files from compile dependencies for includes
+extensions:shared-youtube:library:extractIncludeDebugProto - Extracts proto files from compile dependencies for includes
+extensions:youtube:extractIncludeDebugProto - Extracts proto files from compile dependencies for includes
+extensions:shared-youtube:library:extractIncludeDebugUnitTestProto - Extracts proto files from compile dependencies for includes
+extensions:youtube:extractIncludeDebugUnitTestProto - Extracts proto files from compile dependencies for includes
+extensions:shared-youtube:library:extractIncludeReleaseProto - Extracts proto files from compile dependencies for includes
+extensions:youtube:extractIncludeReleaseProto - Extracts proto files from compile dependencies for includes
+extensions:all:change-version-code:extractProguardFiles
+extensions:music:extractProguardFiles
+extensions:reddit:extractProguardFiles
+extensions:reddit:stub:extractProguardFiles
+extensions:shared:extractProguardFiles
+extensions:shared:library:extractProguardFiles
+extensions:shared-youtube:extractProguardFiles
+extensions:shared-youtube:library:extractProguardFiles
+extensions:shared-youtube:stub:extractProguardFiles
+extensions:youtube:extractProguardFiles
+extensions:youtube:stub:extractProguardFiles
+extensions:shared-youtube:library:extractProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:all:change-version-code:extractReleaseNativeDebugMetadata
+extensions:music:extractReleaseNativeDebugMetadata
+extensions:reddit:extractReleaseNativeDebugMetadata
+extensions:shared:extractReleaseNativeDebugMetadata
+extensions:shared-youtube:extractReleaseNativeDebugMetadata
+extensions:youtube:extractReleaseNativeDebugMetadata
+extensions:all:change-version-code:extractReleaseNativeSymbolTables
+extensions:music:extractReleaseNativeSymbolTables
+extensions:reddit:extractReleaseNativeSymbolTables
+extensions:shared:extractReleaseNativeSymbolTables
+extensions:shared-youtube:extractReleaseNativeSymbolTables
+extensions:youtube:extractReleaseNativeSymbolTables
+extensions:shared-youtube:library:extractReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:reddit:stub:extractReleaseSupportedLocales
+extensions:shared:library:extractReleaseSupportedLocales
+extensions:shared-youtube:library:extractReleaseSupportedLocales
+extensions:shared-youtube:stub:extractReleaseSupportedLocales
+extensions:youtube:stub:extractReleaseSupportedLocales
+extensions:all:change-version-code:extractReleaseVersionControlInfo
+extensions:music:extractReleaseVersionControlInfo
+extensions:reddit:extractReleaseVersionControlInfo
+extensions:shared:extractReleaseVersionControlInfo
+extensions:shared-youtube:extractReleaseVersionControlInfo
+extensions:youtube:extractReleaseVersionControlInfo
+extensions:shared-youtube:library:extractTestDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractTestDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractTestFixturesDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractTestFixturesDebugProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractTestFixturesProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractTestFixturesProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractTestFixturesReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractTestFixturesReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractTestProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractTestProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:shared-youtube:library:extractTestReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:youtube:extractTestReleaseProto - Extracts proto files/dependencies specified by 'protobuf' configuration
+extensions:all:change-version-code:generateDebugAndroidTestAssets
+extensions:music:generateDebugAndroidTestAssets
+extensions:reddit:generateDebugAndroidTestAssets
+extensions:reddit:stub:generateDebugAndroidTestAssets
+extensions:shared:generateDebugAndroidTestAssets
+extensions:shared:library:generateDebugAndroidTestAssets
+extensions:shared-youtube:generateDebugAndroidTestAssets
+extensions:shared-youtube:library:generateDebugAndroidTestAssets
+extensions:shared-youtube:stub:generateDebugAndroidTestAssets
+extensions:youtube:generateDebugAndroidTestAssets
+extensions:youtube:stub:generateDebugAndroidTestAssets
+extensions:all:change-version-code:generateDebugAndroidTestLintModel
+extensions:music:generateDebugAndroidTestLintModel
+extensions:reddit:generateDebugAndroidTestLintModel
+extensions:reddit:stub:generateDebugAndroidTestLintModel
+extensions:shared:generateDebugAndroidTestLintModel
+extensions:shared:library:generateDebugAndroidTestLintModel
+extensions:shared-youtube:generateDebugAndroidTestLintModel
+extensions:shared-youtube:library:generateDebugAndroidTestLintModel
+extensions:shared-youtube:stub:generateDebugAndroidTestLintModel
+extensions:youtube:generateDebugAndroidTestLintModel
+extensions:youtube:stub:generateDebugAndroidTestLintModel
+extensions:shared-youtube:library:generateDebugAndroidTestProto - Compiles Proto source for 'debugAndroidTest'
+extensions:youtube:generateDebugAndroidTestProto - Compiles Proto source for 'debugAndroidTest'
+extensions:all:change-version-code:generateDebugAndroidTestResources
+extensions:music:generateDebugAndroidTestResources
+extensions:reddit:generateDebugAndroidTestResources
+extensions:reddit:stub:generateDebugAndroidTestResources
+extensions:shared:generateDebugAndroidTestResources
+extensions:shared:library:generateDebugAndroidTestResources
+extensions:shared-youtube:generateDebugAndroidTestResources
+extensions:shared-youtube:library:generateDebugAndroidTestResources
+extensions:shared-youtube:stub:generateDebugAndroidTestResources
+extensions:youtube:generateDebugAndroidTestResources
+extensions:youtube:stub:generateDebugAndroidTestResources
+extensions:all:change-version-code:generateDebugAndroidTestRFile
+extensions:music:generateDebugAndroidTestRFile
+extensions:reddit:generateDebugAndroidTestRFile
+extensions:reddit:stub:generateDebugAndroidTestRFile
+extensions:shared:generateDebugAndroidTestRFile
+extensions:shared:library:generateDebugAndroidTestRFile
+extensions:shared-youtube:generateDebugAndroidTestRFile
+extensions:shared-youtube:library:generateDebugAndroidTestRFile
+extensions:shared-youtube:stub:generateDebugAndroidTestRFile
+extensions:youtube:generateDebugAndroidTestRFile
+extensions:youtube:stub:generateDebugAndroidTestRFile
+extensions:all:change-version-code:generateDebugAndroidTestSources
+extensions:music:generateDebugAndroidTestSources
+extensions:reddit:generateDebugAndroidTestSources
+extensions:reddit:stub:generateDebugAndroidTestSources
+extensions:shared:generateDebugAndroidTestSources
+extensions:shared:library:generateDebugAndroidTestSources
+extensions:shared-youtube:generateDebugAndroidTestSources
+extensions:shared-youtube:library:generateDebugAndroidTestSources
+extensions:shared-youtube:stub:generateDebugAndroidTestSources
+extensions:youtube:generateDebugAndroidTestSources
+extensions:youtube:stub:generateDebugAndroidTestSources
+extensions:all:change-version-code:generateDebugAssets
+extensions:music:generateDebugAssets
+extensions:reddit:generateDebugAssets
+extensions:reddit:stub:generateDebugAssets
+extensions:shared:generateDebugAssets
+extensions:shared:library:generateDebugAssets
+extensions:shared-youtube:generateDebugAssets
+extensions:shared-youtube:library:generateDebugAssets
+extensions:shared-youtube:stub:generateDebugAssets
+extensions:youtube:generateDebugAssets
+extensions:youtube:stub:generateDebugAssets
+extensions:reddit:stub:generateDebugExternalPublicTxt
+extensions:shared:library:generateDebugExternalPublicTxt
+extensions:shared-youtube:library:generateDebugExternalPublicTxt
+extensions:shared-youtube:stub:generateDebugExternalPublicTxt
+extensions:youtube:stub:generateDebugExternalPublicTxt
+extensions:all:change-version-code:generateDebugFeatureMetadata
+extensions:music:generateDebugFeatureMetadata
+extensions:reddit:generateDebugFeatureMetadata
+extensions:shared:generateDebugFeatureMetadata
+extensions:shared-youtube:generateDebugFeatureMetadata
+extensions:youtube:generateDebugFeatureMetadata
+extensions:all:change-version-code:generateDebugFeatureTransitiveDeps
+extensions:music:generateDebugFeatureTransitiveDeps
+extensions:reddit:generateDebugFeatureTransitiveDeps
+extensions:shared:generateDebugFeatureTransitiveDeps
+extensions:shared-youtube:generateDebugFeatureTransitiveDeps
+extensions:youtube:generateDebugFeatureTransitiveDeps
+extensions:all:change-version-code:generateDebugLintModel
+extensions:music:generateDebugLintModel
+extensions:reddit:generateDebugLintModel
+extensions:reddit:stub:generateDebugLintModel
+extensions:shared:generateDebugLintModel
+extensions:shared:library:generateDebugLintModel
+extensions:shared-youtube:generateDebugLintModel
+extensions:shared-youtube:library:generateDebugLintModel
+extensions:shared-youtube:stub:generateDebugLintModel
+extensions:youtube:generateDebugLintModel
+extensions:youtube:stub:generateDebugLintModel
+extensions:all:change-version-code:generateDebugLintReportModel
+extensions:music:generateDebugLintReportModel
+extensions:reddit:generateDebugLintReportModel
+extensions:reddit:stub:generateDebugLintReportModel
+extensions:shared:generateDebugLintReportModel
+extensions:shared:library:generateDebugLintReportModel
+extensions:shared-youtube:generateDebugLintReportModel
+extensions:shared-youtube:library:generateDebugLintReportModel
+extensions:shared-youtube:stub:generateDebugLintReportModel
+extensions:youtube:generateDebugLintReportModel
+extensions:youtube:stub:generateDebugLintReportModel
+extensions:reddit:stub:generateDebugLintVitalModel
+extensions:shared:library:generateDebugLintVitalModel
+extensions:shared-youtube:library:generateDebugLintVitalModel
+extensions:shared-youtube:stub:generateDebugLintVitalModel
+extensions:youtube:stub:generateDebugLintVitalModel
+extensions:all:change-version-code:generateDebugManifestClass
+extensions:music:generateDebugManifestClass
+extensions:reddit:generateDebugManifestClass
+extensions:shared:generateDebugManifestClass
+extensions:shared-youtube:generateDebugManifestClass
+extensions:youtube:generateDebugManifestClass
+extensions:shared-youtube:library:generateDebugProto - Compiles Proto source for 'debug'
+extensions:youtube:generateDebugProto - Compiles Proto source for 'debug'
+extensions:all:change-version-code:generateDebugResources
+extensions:music:generateDebugResources
+extensions:reddit:generateDebugResources
+extensions:reddit:stub:generateDebugResources
+extensions:shared:generateDebugResources
+extensions:shared:library:generateDebugResources
+extensions:shared-youtube:generateDebugResources
+extensions:shared-youtube:library:generateDebugResources
+extensions:shared-youtube:stub:generateDebugResources
+extensions:youtube:generateDebugResources
+extensions:youtube:stub:generateDebugResources
+extensions:all:change-version-code:generateDebugRFile
+extensions:music:generateDebugRFile
+extensions:reddit:generateDebugRFile
+extensions:reddit:stub:generateDebugRFile
+extensions:shared:generateDebugRFile
+extensions:shared:library:generateDebugRFile
+extensions:shared-youtube:generateDebugRFile
+extensions:shared-youtube:library:generateDebugRFile
+extensions:shared-youtube:stub:generateDebugRFile
+extensions:youtube:generateDebugRFile
+extensions:youtube:stub:generateDebugRFile
+extensions:all:change-version-code:generateDebugSources
+extensions:music:generateDebugSources
+extensions:reddit:generateDebugSources
+extensions:reddit:stub:generateDebugSources
+extensions:shared:generateDebugSources
+extensions:shared:library:generateDebugSources
+extensions:shared-youtube:generateDebugSources
+extensions:shared-youtube:library:generateDebugSources
+extensions:shared-youtube:stub:generateDebugSources
+extensions:youtube:generateDebugSources
+extensions:youtube:stub:generateDebugSources
+extensions:all:change-version-code:generateDebugUnitTestAssets
+extensions:music:generateDebugUnitTestAssets
+extensions:reddit:generateDebugUnitTestAssets
+extensions:reddit:stub:generateDebugUnitTestAssets
+extensions:shared:generateDebugUnitTestAssets
+extensions:shared:library:generateDebugUnitTestAssets
+extensions:shared-youtube:generateDebugUnitTestAssets
+extensions:shared-youtube:library:generateDebugUnitTestAssets
+extensions:shared-youtube:stub:generateDebugUnitTestAssets
+extensions:youtube:generateDebugUnitTestAssets
+extensions:youtube:stub:generateDebugUnitTestAssets
+extensions:all:change-version-code:generateDebugUnitTestLintModel
+extensions:music:generateDebugUnitTestLintModel
+extensions:reddit:generateDebugUnitTestLintModel
+extensions:reddit:stub:generateDebugUnitTestLintModel
+extensions:shared:generateDebugUnitTestLintModel
+extensions:shared:library:generateDebugUnitTestLintModel
+extensions:shared-youtube:generateDebugUnitTestLintModel
+extensions:shared-youtube:library:generateDebugUnitTestLintModel
+extensions:shared-youtube:stub:generateDebugUnitTestLintModel
+extensions:youtube:generateDebugUnitTestLintModel
+extensions:youtube:stub:generateDebugUnitTestLintModel
+extensions:shared-youtube:library:generateDebugUnitTestProto - Compiles Proto source for 'debugUnitTest'
+extensions:youtube:generateDebugUnitTestProto - Compiles Proto source for 'debugUnitTest'
+extensions:all:change-version-code:generateDebugUnitTestResources
+extensions:music:generateDebugUnitTestResources
+extensions:reddit:generateDebugUnitTestResources
+extensions:reddit:stub:generateDebugUnitTestResources
+extensions:shared:generateDebugUnitTestResources
+extensions:shared:library:generateDebugUnitTestResources
+extensions:shared-youtube:generateDebugUnitTestResources
+extensions:shared-youtube:library:generateDebugUnitTestResources
+extensions:shared-youtube:stub:generateDebugUnitTestResources
+extensions:youtube:generateDebugUnitTestResources
+extensions:youtube:stub:generateDebugUnitTestResources
+extensions:all:change-version-code:generateDebugUnitTestSources
+extensions:music:generateDebugUnitTestSources
+extensions:reddit:generateDebugUnitTestSources
+extensions:reddit:stub:generateDebugUnitTestSources
+extensions:shared:generateDebugUnitTestSources
+extensions:shared:library:generateDebugUnitTestSources
+extensions:shared-youtube:generateDebugUnitTestSources
+extensions:shared-youtube:library:generateDebugUnitTestSources
+extensions:shared-youtube:stub:generateDebugUnitTestSources
+extensions:youtube:generateDebugUnitTestSources
+extensions:youtube:stub:generateDebugUnitTestSources
+extensions:reddit:stub:generateDebugUnitTestStubRFile
+extensions:shared:library:generateDebugUnitTestStubRFile
+extensions:shared-youtube:library:generateDebugUnitTestStubRFile
+extensions:shared-youtube:stub:generateDebugUnitTestStubRFile
+extensions:youtube:stub:generateDebugUnitTestStubRFile
+patches:generatePatchesList - Build patch with patch list
+extensions:all:change-version-code:generateReleaseAssets
+extensions:music:generateReleaseAssets
+extensions:reddit:generateReleaseAssets
+extensions:reddit:stub:generateReleaseAssets
+extensions:shared:generateReleaseAssets
+extensions:shared:library:generateReleaseAssets
+extensions:shared-youtube:generateReleaseAssets
+extensions:shared-youtube:library:generateReleaseAssets
+extensions:shared-youtube:stub:generateReleaseAssets
+extensions:youtube:generateReleaseAssets
+extensions:youtube:stub:generateReleaseAssets
+extensions:reddit:stub:generateReleaseExternalPublicTxt
+extensions:shared:library:generateReleaseExternalPublicTxt
+extensions:shared-youtube:library:generateReleaseExternalPublicTxt
+extensions:shared-youtube:stub:generateReleaseExternalPublicTxt
+extensions:youtube:stub:generateReleaseExternalPublicTxt
+extensions:all:change-version-code:generateReleaseFeatureMetadata
+extensions:music:generateReleaseFeatureMetadata
+extensions:reddit:generateReleaseFeatureMetadata
+extensions:shared:generateReleaseFeatureMetadata
+extensions:shared-youtube:generateReleaseFeatureMetadata
+extensions:youtube:generateReleaseFeatureMetadata
+extensions:all:change-version-code:generateReleaseFeatureTransitiveDeps
+extensions:music:generateReleaseFeatureTransitiveDeps
+extensions:reddit:generateReleaseFeatureTransitiveDeps
+extensions:shared:generateReleaseFeatureTransitiveDeps
+extensions:shared-youtube:generateReleaseFeatureTransitiveDeps
+extensions:youtube:generateReleaseFeatureTransitiveDeps
+extensions:all:change-version-code:generateReleaseLintModel
+extensions:music:generateReleaseLintModel
+extensions:reddit:generateReleaseLintModel
+extensions:reddit:stub:generateReleaseLintModel
+extensions:shared:generateReleaseLintModel
+extensions:shared:library:generateReleaseLintModel
+extensions:shared-youtube:generateReleaseLintModel
+extensions:shared-youtube:library:generateReleaseLintModel
+extensions:shared-youtube:stub:generateReleaseLintModel
+extensions:youtube:generateReleaseLintModel
+extensions:youtube:stub:generateReleaseLintModel
+extensions:all:change-version-code:generateReleaseLintReportModel
+extensions:music:generateReleaseLintReportModel
+extensions:reddit:generateReleaseLintReportModel
+extensions:reddit:stub:generateReleaseLintReportModel
+extensions:shared:generateReleaseLintReportModel
+extensions:shared:library:generateReleaseLintReportModel
+extensions:shared-youtube:generateReleaseLintReportModel
+extensions:shared-youtube:library:generateReleaseLintReportModel
+extensions:shared-youtube:stub:generateReleaseLintReportModel
+extensions:youtube:generateReleaseLintReportModel
+extensions:youtube:stub:generateReleaseLintReportModel
+extensions:reddit:stub:generateReleaseLintVitalModel
+extensions:shared:library:generateReleaseLintVitalModel
+extensions:shared-youtube:library:generateReleaseLintVitalModel
+extensions:shared-youtube:stub:generateReleaseLintVitalModel
+extensions:youtube:stub:generateReleaseLintVitalModel
+extensions:all:change-version-code:generateReleaseLintVitalReportModel
+extensions:music:generateReleaseLintVitalReportModel
+extensions:reddit:generateReleaseLintVitalReportModel
+extensions:shared:generateReleaseLintVitalReportModel
+extensions:shared-youtube:generateReleaseLintVitalReportModel
+extensions:youtube:generateReleaseLintVitalReportModel
+extensions:all:change-version-code:generateReleaseManifestClass
+extensions:music:generateReleaseManifestClass
+extensions:reddit:generateReleaseManifestClass
+extensions:shared:generateReleaseManifestClass
+extensions:shared-youtube:generateReleaseManifestClass
+extensions:youtube:generateReleaseManifestClass
+extensions:shared-youtube:library:generateReleaseProto - Compiles Proto source for 'release'
+extensions:youtube:generateReleaseProto - Compiles Proto source for 'release'
+extensions:all:change-version-code:generateReleaseResources
+extensions:music:generateReleaseResources
+extensions:reddit:generateReleaseResources
+extensions:reddit:stub:generateReleaseResources
+extensions:shared:generateReleaseResources
+extensions:shared:library:generateReleaseResources
+extensions:shared-youtube:generateReleaseResources
+extensions:shared-youtube:library:generateReleaseResources
+extensions:shared-youtube:stub:generateReleaseResources
+extensions:youtube:generateReleaseResources
+extensions:youtube:stub:generateReleaseResources
+extensions:all:change-version-code:generateReleaseRFile
+extensions:music:generateReleaseRFile
+extensions:reddit:generateReleaseRFile
+extensions:reddit:stub:generateReleaseRFile
+extensions:shared:generateReleaseRFile
+extensions:shared:library:generateReleaseRFile
+extensions:shared-youtube:generateReleaseRFile
+extensions:shared-youtube:library:generateReleaseRFile
+extensions:shared-youtube:stub:generateReleaseRFile
+extensions:youtube:generateReleaseRFile
+extensions:youtube:stub:generateReleaseRFile
+extensions:all:change-version-code:generateReleaseSources
+extensions:music:generateReleaseSources
+extensions:reddit:generateReleaseSources
+extensions:reddit:stub:generateReleaseSources
+extensions:shared:generateReleaseSources
+extensions:shared:library:generateReleaseSources
+extensions:shared-youtube:generateReleaseSources
+extensions:shared-youtube:library:generateReleaseSources
+extensions:shared-youtube:stub:generateReleaseSources
+extensions:youtube:generateReleaseSources
+extensions:youtube:stub:generateReleaseSources
+extensions:all:change-version-code:javaPreCompileDebug
+extensions:music:javaPreCompileDebug
+extensions:reddit:javaPreCompileDebug
+extensions:reddit:stub:javaPreCompileDebug
+extensions:shared:javaPreCompileDebug
+extensions:shared:library:javaPreCompileDebug
+extensions:shared-youtube:javaPreCompileDebug
+extensions:shared-youtube:library:javaPreCompileDebug
+extensions:shared-youtube:stub:javaPreCompileDebug
+extensions:youtube:javaPreCompileDebug
+extensions:youtube:stub:javaPreCompileDebug
+extensions:all:change-version-code:javaPreCompileDebugAndroidTest
+extensions:music:javaPreCompileDebugAndroidTest
+extensions:reddit:javaPreCompileDebugAndroidTest
+extensions:reddit:stub:javaPreCompileDebugAndroidTest
+extensions:shared:javaPreCompileDebugAndroidTest
+extensions:shared:library:javaPreCompileDebugAndroidTest
+extensions:shared-youtube:javaPreCompileDebugAndroidTest
+extensions:shared-youtube:library:javaPreCompileDebugAndroidTest
+extensions:shared-youtube:stub:javaPreCompileDebugAndroidTest
+extensions:youtube:javaPreCompileDebugAndroidTest
+extensions:youtube:stub:javaPreCompileDebugAndroidTest
+extensions:all:change-version-code:javaPreCompileDebugUnitTest
+extensions:music:javaPreCompileDebugUnitTest
+extensions:reddit:javaPreCompileDebugUnitTest
+extensions:reddit:stub:javaPreCompileDebugUnitTest
+extensions:shared:javaPreCompileDebugUnitTest
+extensions:shared:library:javaPreCompileDebugUnitTest
+extensions:shared-youtube:javaPreCompileDebugUnitTest
+extensions:shared-youtube:library:javaPreCompileDebugUnitTest
+extensions:shared-youtube:stub:javaPreCompileDebugUnitTest
+extensions:youtube:javaPreCompileDebugUnitTest
+extensions:youtube:stub:javaPreCompileDebugUnitTest
+extensions:all:change-version-code:javaPreCompileRelease
+extensions:music:javaPreCompileRelease
+extensions:reddit:javaPreCompileRelease
+extensions:reddit:stub:javaPreCompileRelease
+extensions:shared:javaPreCompileRelease
+extensions:shared:library:javaPreCompileRelease
+extensions:shared-youtube:javaPreCompileRelease
+extensions:shared-youtube:library:javaPreCompileRelease
+extensions:shared-youtube:stub:javaPreCompileRelease
+extensions:youtube:javaPreCompileRelease
+extensions:youtube:stub:javaPreCompileRelease
+extensions:all:change-version-code:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:music:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:reddit:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:reddit:stub:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:shared:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:shared:library:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:shared-youtube:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:shared-youtube:library:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:shared-youtube:stub:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:youtube:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:youtube:stub:lintAnalyzeDebug - Run lint analysis on the debug component
+extensions:all:change-version-code:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:music:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:reddit:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:reddit:stub:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:shared:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:shared:library:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:shared-youtube:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:shared-youtube:library:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:shared-youtube:stub:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:youtube:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:youtube:stub:lintAnalyzeDebugAndroidTest - Run lint analysis on the debugAndroidTest component
+extensions:all:change-version-code:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:music:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:reddit:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:reddit:stub:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:shared:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:shared:library:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:shared-youtube:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:shared-youtube:library:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:shared-youtube:stub:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:youtube:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:youtube:stub:lintAnalyzeDebugUnitTest - Run lint analysis on the debugUnitTest component
+extensions:all:change-version-code:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:music:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:reddit:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:reddit:stub:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:shared:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:shared:library:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:shared-youtube:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:shared-youtube:library:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:shared-youtube:stub:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:youtube:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:youtube:stub:lintAnalyzeRelease - Run lint analysis on the release component
+extensions:all:change-version-code:lintFixDebug - Fix lint on the debug variant
+extensions:music:lintFixDebug - Fix lint on the debug variant
+extensions:reddit:lintFixDebug - Fix lint on the debug variant
+extensions:reddit:stub:lintFixDebug - Fix lint on the debug variant
+extensions:shared:lintFixDebug - Fix lint on the debug variant
+extensions:shared:library:lintFixDebug - Fix lint on the debug variant
+extensions:shared-youtube:lintFixDebug - Fix lint on the debug variant
+extensions:shared-youtube:library:lintFixDebug - Fix lint on the debug variant
+extensions:shared-youtube:stub:lintFixDebug - Fix lint on the debug variant
+extensions:youtube:lintFixDebug - Fix lint on the debug variant
+extensions:youtube:stub:lintFixDebug - Fix lint on the debug variant
+extensions:all:change-version-code:lintFixRelease - Fix lint on the release variant
+extensions:music:lintFixRelease - Fix lint on the release variant
+extensions:reddit:lintFixRelease - Fix lint on the release variant
+extensions:reddit:stub:lintFixRelease - Fix lint on the release variant
+extensions:shared:lintFixRelease - Fix lint on the release variant
+extensions:shared:library:lintFixRelease - Fix lint on the release variant
+extensions:shared-youtube:lintFixRelease - Fix lint on the release variant
+extensions:shared-youtube:library:lintFixRelease - Fix lint on the release variant
+extensions:shared-youtube:stub:lintFixRelease - Fix lint on the release variant
+extensions:youtube:lintFixRelease - Fix lint on the release variant
+extensions:youtube:stub:lintFixRelease - Fix lint on the release variant
+extensions:all:change-version-code:lintReportDebug - Run lint on the debug variant
+extensions:music:lintReportDebug - Run lint on the debug variant
+extensions:reddit:lintReportDebug - Run lint on the debug variant
+extensions:reddit:stub:lintReportDebug - Run lint on the debug variant
+extensions:shared:lintReportDebug - Run lint on the debug variant
+extensions:shared:library:lintReportDebug - Run lint on the debug variant
+extensions:shared-youtube:lintReportDebug - Run lint on the debug variant
+extensions:shared-youtube:library:lintReportDebug - Run lint on the debug variant
+extensions:shared-youtube:stub:lintReportDebug - Run lint on the debug variant
+extensions:youtube:lintReportDebug - Run lint on the debug variant
+extensions:youtube:stub:lintReportDebug - Run lint on the debug variant
+extensions:all:change-version-code:lintReportRelease - Run lint on the release variant
+extensions:music:lintReportRelease - Run lint on the release variant
+extensions:reddit:lintReportRelease - Run lint on the release variant
+extensions:reddit:stub:lintReportRelease - Run lint on the release variant
+extensions:shared:lintReportRelease - Run lint on the release variant
+extensions:shared:library:lintReportRelease - Run lint on the release variant
+extensions:shared-youtube:lintReportRelease - Run lint on the release variant
+extensions:shared-youtube:library:lintReportRelease - Run lint on the release variant
+extensions:shared-youtube:stub:lintReportRelease - Run lint on the release variant
+extensions:youtube:lintReportRelease - Run lint on the release variant
+extensions:youtube:stub:lintReportRelease - Run lint on the release variant
+extensions:reddit:stub:lintVitalAnalyzeDebug - Run lint analysis with only the fatal issues enabled on the debug variant
+extensions:shared:library:lintVitalAnalyzeDebug - Run lint analysis with only the fatal issues enabled on the debug variant
+extensions:shared-youtube:library:lintVitalAnalyzeDebug - Run lint analysis with only the fatal issues enabled on the debug variant
+extensions:shared-youtube:stub:lintVitalAnalyzeDebug - Run lint analysis with only the fatal issues enabled on the debug variant
+extensions:youtube:stub:lintVitalAnalyzeDebug - Run lint analysis with only the fatal issues enabled on the debug variant
+extensions:all:change-version-code:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+extensions:music:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+extensions:reddit:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+extensions:reddit:stub:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled on the release variant
+extensions:shared:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+extensions:shared:library:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled on the release variant
+extensions:shared-youtube:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+extensions:shared-youtube:library:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled on the release variant
+extensions:shared-youtube:stub:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled on the release variant
+extensions:youtube:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled 
+extensions:youtube:stub:lintVitalAnalyzeRelease - Run lint analysis with only the fatal issues enabled on the release variant
+extensions:all:change-version-code:lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+extensions:music:lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+extensions:reddit:lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+extensions:shared:lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+extensions:shared-youtube:lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+extensions:youtube:lintVitalReportRelease - Run lint with only the fatal issues enabled on the release variant
+patches:mainClasses
+extensions:all:change-version-code:makeApkFromBundleForDebug
+extensions:music:makeApkFromBundleForDebug
+extensions:reddit:makeApkFromBundleForDebug
+extensions:shared:makeApkFromBundleForDebug
+extensions:shared-youtube:makeApkFromBundleForDebug
+extensions:youtube:makeApkFromBundleForDebug
+extensions:all:change-version-code:makeApkFromBundleForRelease
+extensions:music:makeApkFromBundleForRelease
+extensions:reddit:makeApkFromBundleForRelease
+extensions:shared:makeApkFromBundleForRelease
+extensions:shared-youtube:makeApkFromBundleForRelease
+extensions:youtube:makeApkFromBundleForRelease
+extensions:all:change-version-code:mapDebugAndroidTestSourceSetPaths
+extensions:music:mapDebugAndroidTestSourceSetPaths
+extensions:reddit:mapDebugAndroidTestSourceSetPaths
+extensions:reddit:stub:mapDebugAndroidTestSourceSetPaths
+extensions:shared:mapDebugAndroidTestSourceSetPaths
+extensions:shared:library:mapDebugAndroidTestSourceSetPaths
+extensions:shared-youtube:mapDebugAndroidTestSourceSetPaths
+extensions:shared-youtube:library:mapDebugAndroidTestSourceSetPaths
+extensions:shared-youtube:stub:mapDebugAndroidTestSourceSetPaths
+extensions:youtube:mapDebugAndroidTestSourceSetPaths
+extensions:youtube:stub:mapDebugAndroidTestSourceSetPaths
+extensions:all:change-version-code:mapDebugSourceSetPaths
+extensions:music:mapDebugSourceSetPaths
+extensions:reddit:mapDebugSourceSetPaths
+extensions:reddit:stub:mapDebugSourceSetPaths
+extensions:shared:mapDebugSourceSetPaths
+extensions:shared:library:mapDebugSourceSetPaths
+extensions:shared-youtube:mapDebugSourceSetPaths
+extensions:shared-youtube:library:mapDebugSourceSetPaths
+extensions:shared-youtube:stub:mapDebugSourceSetPaths
+extensions:youtube:mapDebugSourceSetPaths
+extensions:youtube:stub:mapDebugSourceSetPaths
+extensions:all:change-version-code:mapReleaseSourceSetPaths
+extensions:music:mapReleaseSourceSetPaths
+extensions:reddit:mapReleaseSourceSetPaths
+extensions:reddit:stub:mapReleaseSourceSetPaths
+extensions:shared:mapReleaseSourceSetPaths
+extensions:shared:library:mapReleaseSourceSetPaths
+extensions:shared-youtube:mapReleaseSourceSetPaths
+extensions:shared-youtube:library:mapReleaseSourceSetPaths
+extensions:shared-youtube:stub:mapReleaseSourceSetPaths
+extensions:youtube:mapReleaseSourceSetPaths
+extensions:youtube:stub:mapReleaseSourceSetPaths
+extensions:all:change-version-code:mergeDebugAndroidTestAssets
+extensions:music:mergeDebugAndroidTestAssets
+extensions:reddit:mergeDebugAndroidTestAssets
+extensions:reddit:stub:mergeDebugAndroidTestAssets
+extensions:shared:mergeDebugAndroidTestAssets
+extensions:shared:library:mergeDebugAndroidTestAssets
+extensions:shared-youtube:mergeDebugAndroidTestAssets
+extensions:shared-youtube:library:mergeDebugAndroidTestAssets
+extensions:shared-youtube:stub:mergeDebugAndroidTestAssets
+extensions:youtube:mergeDebugAndroidTestAssets
+extensions:youtube:stub:mergeDebugAndroidTestAssets
+extensions:all:change-version-code:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:music:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:reddit:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:reddit:stub:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:shared:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:shared:library:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:shared-youtube:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:shared-youtube:library:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:shared-youtube:stub:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:youtube:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:youtube:stub:mergeDebugAndroidTestGeneratedProguardFiles
+extensions:all:change-version-code:mergeDebugAndroidTestGlobalSynthetics
+extensions:music:mergeDebugAndroidTestGlobalSynthetics
+extensions:reddit:mergeDebugAndroidTestGlobalSynthetics
+extensions:shared:mergeDebugAndroidTestGlobalSynthetics
+extensions:shared:library:mergeDebugAndroidTestGlobalSynthetics
+extensions:shared-youtube:mergeDebugAndroidTestGlobalSynthetics
+extensions:shared-youtube:library:mergeDebugAndroidTestGlobalSynthetics
+extensions:youtube:mergeDebugAndroidTestGlobalSynthetics
+extensions:all:change-version-code:mergeDebugAndroidTestJavaResource
+extensions:music:mergeDebugAndroidTestJavaResource
+extensions:reddit:mergeDebugAndroidTestJavaResource
+extensions:reddit:stub:mergeDebugAndroidTestJavaResource
+extensions:shared:mergeDebugAndroidTestJavaResource
+extensions:shared:library:mergeDebugAndroidTestJavaResource
+extensions:shared-youtube:mergeDebugAndroidTestJavaResource
+extensions:shared-youtube:library:mergeDebugAndroidTestJavaResource
+extensions:shared-youtube:stub:mergeDebugAndroidTestJavaResource
+extensions:youtube:mergeDebugAndroidTestJavaResource
+extensions:youtube:stub:mergeDebugAndroidTestJavaResource
+extensions:all:change-version-code:mergeDebugAndroidTestJniLibFolders
+extensions:music:mergeDebugAndroidTestJniLibFolders
+extensions:reddit:mergeDebugAndroidTestJniLibFolders
+extensions:reddit:stub:mergeDebugAndroidTestJniLibFolders
+extensions:shared:mergeDebugAndroidTestJniLibFolders
+extensions:shared:library:mergeDebugAndroidTestJniLibFolders
+extensions:shared-youtube:mergeDebugAndroidTestJniLibFolders
+extensions:shared-youtube:library:mergeDebugAndroidTestJniLibFolders
+extensions:shared-youtube:stub:mergeDebugAndroidTestJniLibFolders
+extensions:youtube:mergeDebugAndroidTestJniLibFolders
+extensions:youtube:stub:mergeDebugAndroidTestJniLibFolders
+extensions:all:change-version-code:mergeDebugAndroidTestNativeLibs
+extensions:music:mergeDebugAndroidTestNativeLibs
+extensions:reddit:mergeDebugAndroidTestNativeLibs
+extensions:reddit:stub:mergeDebugAndroidTestNativeLibs
+extensions:shared:mergeDebugAndroidTestNativeLibs
+extensions:shared:library:mergeDebugAndroidTestNativeLibs
+extensions:shared-youtube:mergeDebugAndroidTestNativeLibs
+extensions:shared-youtube:library:mergeDebugAndroidTestNativeLibs
+extensions:shared-youtube:stub:mergeDebugAndroidTestNativeLibs
+extensions:youtube:mergeDebugAndroidTestNativeLibs
+extensions:youtube:stub:mergeDebugAndroidTestNativeLibs
+extensions:all:change-version-code:mergeDebugAndroidTestResources
+extensions:music:mergeDebugAndroidTestResources
+extensions:reddit:mergeDebugAndroidTestResources
+extensions:reddit:stub:mergeDebugAndroidTestResources
+extensions:shared:mergeDebugAndroidTestResources
+extensions:shared:library:mergeDebugAndroidTestResources
+extensions:shared-youtube:mergeDebugAndroidTestResources
+extensions:shared-youtube:library:mergeDebugAndroidTestResources
+extensions:shared-youtube:stub:mergeDebugAndroidTestResources
+extensions:youtube:mergeDebugAndroidTestResources
+extensions:youtube:stub:mergeDebugAndroidTestResources
+extensions:all:change-version-code:mergeDebugArtProfile
+extensions:music:mergeDebugArtProfile
+extensions:reddit:mergeDebugArtProfile
+extensions:shared:mergeDebugArtProfile
+extensions:shared-youtube:mergeDebugArtProfile
+extensions:youtube:mergeDebugArtProfile
+extensions:all:change-version-code:mergeDebugAssets
+extensions:music:mergeDebugAssets
+extensions:reddit:mergeDebugAssets
+extensions:reddit:stub:mergeDebugAssets
+extensions:shared:mergeDebugAssets
+extensions:shared:library:mergeDebugAssets
+extensions:shared-youtube:mergeDebugAssets
+extensions:shared-youtube:library:mergeDebugAssets
+extensions:shared-youtube:stub:mergeDebugAssets
+extensions:youtube:mergeDebugAssets
+extensions:youtube:stub:mergeDebugAssets
+extensions:reddit:stub:mergeDebugConsumerProguardFiles
+extensions:shared:library:mergeDebugConsumerProguardFiles
+extensions:shared-youtube:library:mergeDebugConsumerProguardFiles
+extensions:shared-youtube:stub:mergeDebugConsumerProguardFiles
+extensions:youtube:stub:mergeDebugConsumerProguardFiles
+extensions:all:change-version-code:mergeDebugGeneratedProguardFiles
+extensions:music:mergeDebugGeneratedProguardFiles
+extensions:reddit:mergeDebugGeneratedProguardFiles
+extensions:reddit:stub:mergeDebugGeneratedProguardFiles
+extensions:shared:mergeDebugGeneratedProguardFiles
+extensions:shared:library:mergeDebugGeneratedProguardFiles
+extensions:shared-youtube:mergeDebugGeneratedProguardFiles
+extensions:shared-youtube:library:mergeDebugGeneratedProguardFiles
+extensions:shared-youtube:stub:mergeDebugGeneratedProguardFiles
+extensions:youtube:mergeDebugGeneratedProguardFiles
+extensions:youtube:stub:mergeDebugGeneratedProguardFiles
+extensions:all:change-version-code:mergeDebugGlobalSynthetics
+extensions:music:mergeDebugGlobalSynthetics
+extensions:reddit:mergeDebugGlobalSynthetics
+extensions:shared:mergeDebugGlobalSynthetics
+extensions:shared-youtube:mergeDebugGlobalSynthetics
+extensions:youtube:mergeDebugGlobalSynthetics
+extensions:all:change-version-code:mergeDebugJavaResource
+extensions:music:mergeDebugJavaResource
+extensions:reddit:mergeDebugJavaResource
+extensions:reddit:stub:mergeDebugJavaResource
+extensions:shared:mergeDebugJavaResource
+extensions:shared:library:mergeDebugJavaResource
+extensions:shared-youtube:mergeDebugJavaResource
+extensions:shared-youtube:library:mergeDebugJavaResource
+extensions:shared-youtube:stub:mergeDebugJavaResource
+extensions:youtube:mergeDebugJavaResource
+extensions:youtube:stub:mergeDebugJavaResource
+extensions:all:change-version-code:mergeDebugJniLibFolders
+extensions:music:mergeDebugJniLibFolders
+extensions:reddit:mergeDebugJniLibFolders
+extensions:reddit:stub:mergeDebugJniLibFolders
+extensions:shared:mergeDebugJniLibFolders
+extensions:shared:library:mergeDebugJniLibFolders
+extensions:shared-youtube:mergeDebugJniLibFolders
+extensions:shared-youtube:library:mergeDebugJniLibFolders
+extensions:shared-youtube:stub:mergeDebugJniLibFolders
+extensions:youtube:mergeDebugJniLibFolders
+extensions:youtube:stub:mergeDebugJniLibFolders
+extensions:all:change-version-code:mergeDebugNativeDebugMetadata
+extensions:music:mergeDebugNativeDebugMetadata
+extensions:reddit:mergeDebugNativeDebugMetadata
+extensions:shared:mergeDebugNativeDebugMetadata
+extensions:shared-youtube:mergeDebugNativeDebugMetadata
+extensions:youtube:mergeDebugNativeDebugMetadata
+extensions:all:change-version-code:mergeDebugNativeLibs
+extensions:music:mergeDebugNativeLibs
+extensions:reddit:mergeDebugNativeLibs
+extensions:reddit:stub:mergeDebugNativeLibs
+extensions:shared:mergeDebugNativeLibs
+extensions:shared:library:mergeDebugNativeLibs
+extensions:shared-youtube:mergeDebugNativeLibs
+extensions:shared-youtube:library:mergeDebugNativeLibs
+extensions:shared-youtube:stub:mergeDebugNativeLibs
+extensions:youtube:mergeDebugNativeLibs
+extensions:youtube:stub:mergeDebugNativeLibs
+extensions:all:change-version-code:mergeDebugResources
+extensions:music:mergeDebugResources
+extensions:reddit:mergeDebugResources
+extensions:reddit:stub:mergeDebugResources
+extensions:shared:mergeDebugResources
+extensions:shared:library:mergeDebugResources
+extensions:shared-youtube:mergeDebugResources
+extensions:shared-youtube:library:mergeDebugResources
+extensions:shared-youtube:stub:mergeDebugResources
+extensions:youtube:mergeDebugResources
+extensions:youtube:stub:mergeDebugResources
+extensions:all:change-version-code:mergeDebugStartupProfile
+extensions:music:mergeDebugStartupProfile
+extensions:reddit:mergeDebugStartupProfile
+extensions:shared:mergeDebugStartupProfile
+extensions:shared-youtube:mergeDebugStartupProfile
+extensions:youtube:mergeDebugStartupProfile
+extensions:all:change-version-code:mergeExtDexDebug
+extensions:music:mergeExtDexDebug
+extensions:reddit:mergeExtDexDebug
+extensions:shared:mergeExtDexDebug
+extensions:shared-youtube:mergeExtDexDebug
+extensions:youtube:mergeExtDexDebug
+extensions:all:change-version-code:mergeExtDexDebugAndroidTest
+extensions:music:mergeExtDexDebugAndroidTest
+extensions:reddit:mergeExtDexDebugAndroidTest
+extensions:reddit:stub:mergeExtDexDebugAndroidTest
+extensions:shared:mergeExtDexDebugAndroidTest
+extensions:shared:library:mergeExtDexDebugAndroidTest
+extensions:shared-youtube:mergeExtDexDebugAndroidTest
+extensions:shared-youtube:library:mergeExtDexDebugAndroidTest
+extensions:shared-youtube:stub:mergeExtDexDebugAndroidTest
+extensions:youtube:mergeExtDexDebugAndroidTest
+extensions:youtube:stub:mergeExtDexDebugAndroidTest
+extensions:all:change-version-code:mergeLibDexDebug
+extensions:music:mergeLibDexDebug
+extensions:reddit:mergeLibDexDebug
+extensions:shared:mergeLibDexDebug
+extensions:shared-youtube:mergeLibDexDebug
+extensions:youtube:mergeLibDexDebug
+extensions:all:change-version-code:mergeLibDexDebugAndroidTest
+extensions:music:mergeLibDexDebugAndroidTest
+extensions:reddit:mergeLibDexDebugAndroidTest
+extensions:reddit:stub:mergeLibDexDebugAndroidTest
+extensions:shared:mergeLibDexDebugAndroidTest
+extensions:shared:library:mergeLibDexDebugAndroidTest
+extensions:shared-youtube:mergeLibDexDebugAndroidTest
+extensions:shared-youtube:library:mergeLibDexDebugAndroidTest
+extensions:shared-youtube:stub:mergeLibDexDebugAndroidTest
+extensions:youtube:mergeLibDexDebugAndroidTest
+extensions:youtube:stub:mergeLibDexDebugAndroidTest
+extensions:all:change-version-code:mergeProjectDexDebug
+extensions:music:mergeProjectDexDebug
+extensions:reddit:mergeProjectDexDebug
+extensions:shared:mergeProjectDexDebug
+extensions:shared-youtube:mergeProjectDexDebug
+extensions:youtube:mergeProjectDexDebug
+extensions:all:change-version-code:mergeProjectDexDebugAndroidTest
+extensions:music:mergeProjectDexDebugAndroidTest
+extensions:reddit:mergeProjectDexDebugAndroidTest
+extensions:reddit:stub:mergeProjectDexDebugAndroidTest
+extensions:shared:mergeProjectDexDebugAndroidTest
+extensions:shared:library:mergeProjectDexDebugAndroidTest
+extensions:shared-youtube:mergeProjectDexDebugAndroidTest
+extensions:shared-youtube:library:mergeProjectDexDebugAndroidTest
+extensions:shared-youtube:stub:mergeProjectDexDebugAndroidTest
+extensions:youtube:mergeProjectDexDebugAndroidTest
+extensions:youtube:stub:mergeProjectDexDebugAndroidTest
+extensions:all:change-version-code:mergeReleaseArtProfile
+extensions:music:mergeReleaseArtProfile
+extensions:reddit:mergeReleaseArtProfile
+extensions:shared:mergeReleaseArtProfile
+extensions:shared-youtube:mergeReleaseArtProfile
+extensions:youtube:mergeReleaseArtProfile
+extensions:all:change-version-code:mergeReleaseAssets
+extensions:music:mergeReleaseAssets
+extensions:reddit:mergeReleaseAssets
+extensions:reddit:stub:mergeReleaseAssets
+extensions:shared:mergeReleaseAssets
+extensions:shared:library:mergeReleaseAssets
+extensions:shared-youtube:mergeReleaseAssets
+extensions:shared-youtube:library:mergeReleaseAssets
+extensions:shared-youtube:stub:mergeReleaseAssets
+extensions:youtube:mergeReleaseAssets
+extensions:youtube:stub:mergeReleaseAssets
+extensions:reddit:stub:mergeReleaseConsumerProguardFiles
+extensions:shared:library:mergeReleaseConsumerProguardFiles
+extensions:shared-youtube:library:mergeReleaseConsumerProguardFiles
+extensions:shared-youtube:stub:mergeReleaseConsumerProguardFiles
+extensions:youtube:stub:mergeReleaseConsumerProguardFiles
+extensions:all:change-version-code:mergeReleaseGeneratedProguardFiles
+extensions:music:mergeReleaseGeneratedProguardFiles
+extensions:reddit:mergeReleaseGeneratedProguardFiles
+extensions:reddit:stub:mergeReleaseGeneratedProguardFiles
+extensions:shared:mergeReleaseGeneratedProguardFiles
+extensions:shared:library:mergeReleaseGeneratedProguardFiles
+extensions:shared-youtube:mergeReleaseGeneratedProguardFiles
+extensions:shared-youtube:library:mergeReleaseGeneratedProguardFiles
+extensions:shared-youtube:stub:mergeReleaseGeneratedProguardFiles
+extensions:youtube:mergeReleaseGeneratedProguardFiles
+extensions:youtube:stub:mergeReleaseGeneratedProguardFiles
+extensions:all:change-version-code:mergeReleaseJavaResource
+extensions:music:mergeReleaseJavaResource
+extensions:reddit:mergeReleaseJavaResource
+extensions:reddit:stub:mergeReleaseJavaResource
+extensions:shared:mergeReleaseJavaResource
+extensions:shared:library:mergeReleaseJavaResource
+extensions:shared-youtube:mergeReleaseJavaResource
+extensions:shared-youtube:library:mergeReleaseJavaResource
+extensions:shared-youtube:stub:mergeReleaseJavaResource
+extensions:youtube:mergeReleaseJavaResource
+extensions:youtube:stub:mergeReleaseJavaResource
+extensions:all:change-version-code:mergeReleaseJniLibFolders
+extensions:music:mergeReleaseJniLibFolders
+extensions:reddit:mergeReleaseJniLibFolders
+extensions:reddit:stub:mergeReleaseJniLibFolders
+extensions:shared:mergeReleaseJniLibFolders
+extensions:shared:library:mergeReleaseJniLibFolders
+extensions:shared-youtube:mergeReleaseJniLibFolders
+extensions:shared-youtube:library:mergeReleaseJniLibFolders
+extensions:shared-youtube:stub:mergeReleaseJniLibFolders
+extensions:youtube:mergeReleaseJniLibFolders
+extensions:youtube:stub:mergeReleaseJniLibFolders
+extensions:all:change-version-code:mergeReleaseNativeDebugMetadata
+extensions:music:mergeReleaseNativeDebugMetadata
+extensions:reddit:mergeReleaseNativeDebugMetadata
+extensions:shared:mergeReleaseNativeDebugMetadata
+extensions:shared-youtube:mergeReleaseNativeDebugMetadata
+extensions:youtube:mergeReleaseNativeDebugMetadata
+extensions:all:change-version-code:mergeReleaseNativeLibs
+extensions:music:mergeReleaseNativeLibs
+extensions:reddit:mergeReleaseNativeLibs
+extensions:reddit:stub:mergeReleaseNativeLibs
+extensions:shared:mergeReleaseNativeLibs
+extensions:shared:library:mergeReleaseNativeLibs
+extensions:shared-youtube:mergeReleaseNativeLibs
+extensions:shared-youtube:library:mergeReleaseNativeLibs
+extensions:shared-youtube:stub:mergeReleaseNativeLibs
+extensions:youtube:mergeReleaseNativeLibs
+extensions:youtube:stub:mergeReleaseNativeLibs
+extensions:all:change-version-code:mergeReleaseResources
+extensions:music:mergeReleaseResources
+extensions:reddit:mergeReleaseResources
+extensions:reddit:stub:mergeReleaseResources
+extensions:shared:mergeReleaseResources
+extensions:shared:library:mergeReleaseResources
+extensions:shared-youtube:mergeReleaseResources
+extensions:shared-youtube:library:mergeReleaseResources
+extensions:shared-youtube:stub:mergeReleaseResources
+extensions:youtube:mergeReleaseResources
+extensions:youtube:stub:mergeReleaseResources
+extensions:all:change-version-code:mergeReleaseStartupProfile
+extensions:music:mergeReleaseStartupProfile
+extensions:reddit:mergeReleaseStartupProfile
+extensions:shared:mergeReleaseStartupProfile
+extensions:shared-youtube:mergeReleaseStartupProfile
+extensions:youtube:mergeReleaseStartupProfile
+extensions:all:change-version-code:minifyReleaseWithR8
+extensions:music:minifyReleaseWithR8
+extensions:reddit:minifyReleaseWithR8
+extensions:shared:minifyReleaseWithR8
+extensions:shared-youtube:minifyReleaseWithR8
+extensions:youtube:minifyReleaseWithR8
+extensions:all:change-version-code:optimizeReleaseResources
+extensions:music:optimizeReleaseResources
+extensions:reddit:optimizeReleaseResources
+extensions:shared:optimizeReleaseResources
+extensions:shared-youtube:optimizeReleaseResources
+extensions:youtube:optimizeReleaseResources
+extensions:all:change-version-code:packageDebug
+extensions:music:packageDebug
+extensions:reddit:packageDebug
+extensions:shared:packageDebug
+extensions:shared-youtube:packageDebug
+extensions:youtube:packageDebug
+extensions:all:change-version-code:packageDebugAndroidTest
+extensions:music:packageDebugAndroidTest
+extensions:reddit:packageDebugAndroidTest
+extensions:reddit:stub:packageDebugAndroidTest
+extensions:shared:packageDebugAndroidTest
+extensions:shared:library:packageDebugAndroidTest
+extensions:shared-youtube:packageDebugAndroidTest
+extensions:shared-youtube:library:packageDebugAndroidTest
+extensions:shared-youtube:stub:packageDebugAndroidTest
+extensions:youtube:packageDebugAndroidTest
+extensions:youtube:stub:packageDebugAndroidTest
+extensions:all:change-version-code:packageDebugAndroidTestResources
+extensions:music:packageDebugAndroidTestResources
+extensions:reddit:packageDebugAndroidTestResources
+extensions:reddit:stub:packageDebugAndroidTestResources
+extensions:shared:packageDebugAndroidTestResources
+extensions:shared:library:packageDebugAndroidTestResources
+extensions:shared-youtube:packageDebugAndroidTestResources
+extensions:shared-youtube:library:packageDebugAndroidTestResources
+extensions:shared-youtube:stub:packageDebugAndroidTestResources
+extensions:youtube:packageDebugAndroidTestResources
+extensions:youtube:stub:packageDebugAndroidTestResources
+extensions:all:change-version-code:packageDebugBundle
+extensions:music:packageDebugBundle
+extensions:reddit:packageDebugBundle
+extensions:shared:packageDebugBundle
+extensions:shared-youtube:packageDebugBundle
+extensions:youtube:packageDebugBundle
+extensions:reddit:stub:packageDebugRenderscript
+extensions:shared:library:packageDebugRenderscript
+extensions:shared-youtube:library:packageDebugRenderscript
+extensions:shared-youtube:stub:packageDebugRenderscript
+extensions:youtube:stub:packageDebugRenderscript
+extensions:all:change-version-code:packageDebugResources
+extensions:music:packageDebugResources
+extensions:reddit:packageDebugResources
+extensions:reddit:stub:packageDebugResources
+extensions:shared:packageDebugResources
+extensions:shared:library:packageDebugResources
+extensions:shared-youtube:packageDebugResources
+extensions:shared-youtube:library:packageDebugResources
+extensions:shared-youtube:stub:packageDebugResources
+extensions:youtube:packageDebugResources
+extensions:youtube:stub:packageDebugResources
+extensions:all:change-version-code:packageDebugUniversalApk
+extensions:music:packageDebugUniversalApk
+extensions:reddit:packageDebugUniversalApk
+extensions:shared:packageDebugUniversalApk
+extensions:shared-youtube:packageDebugUniversalApk
+extensions:youtube:packageDebugUniversalApk
+extensions:all:change-version-code:packageRelease
+extensions:music:packageRelease
+extensions:reddit:packageRelease
+extensions:shared:packageRelease
+extensions:shared-youtube:packageRelease
+extensions:youtube:packageRelease
+extensions:all:change-version-code:packageReleaseBundle
+extensions:music:packageReleaseBundle
+extensions:reddit:packageReleaseBundle
+extensions:shared:packageReleaseBundle
+extensions:shared-youtube:packageReleaseBundle
+extensions:youtube:packageReleaseBundle
+extensions:reddit:stub:packageReleaseRenderscript
+extensions:shared:library:packageReleaseRenderscript
+extensions:shared-youtube:library:packageReleaseRenderscript
+extensions:shared-youtube:stub:packageReleaseRenderscript
+extensions:youtube:stub:packageReleaseRenderscript
+extensions:all:change-version-code:packageReleaseResources
+extensions:music:packageReleaseResources
+extensions:reddit:packageReleaseResources
+extensions:reddit:stub:packageReleaseResources
+extensions:shared:packageReleaseResources
+extensions:shared:library:packageReleaseResources
+extensions:shared-youtube:packageReleaseResources
+extensions:shared-youtube:library:packageReleaseResources
+extensions:shared-youtube:stub:packageReleaseResources
+extensions:youtube:packageReleaseResources
+extensions:youtube:stub:packageReleaseResources
+extensions:all:change-version-code:packageReleaseUniversalApk
+extensions:music:packageReleaseUniversalApk
+extensions:reddit:packageReleaseUniversalApk
+extensions:shared:packageReleaseUniversalApk
+extensions:shared-youtube:packageReleaseUniversalApk
+extensions:youtube:packageReleaseUniversalApk
+extensions:all:change-version-code:parseDebugAndroidTestLocalResources
+extensions:music:parseDebugAndroidTestLocalResources
+extensions:reddit:parseDebugAndroidTestLocalResources
+extensions:reddit:stub:parseDebugAndroidTestLocalResources
+extensions:shared:parseDebugAndroidTestLocalResources
+extensions:shared:library:parseDebugAndroidTestLocalResources
+extensions:shared-youtube:parseDebugAndroidTestLocalResources
+extensions:shared-youtube:library:parseDebugAndroidTestLocalResources
+extensions:shared-youtube:stub:parseDebugAndroidTestLocalResources
+extensions:youtube:parseDebugAndroidTestLocalResources
+extensions:youtube:stub:parseDebugAndroidTestLocalResources
+extensions:all:change-version-code:parseDebugIntegrityConfig
+extensions:music:parseDebugIntegrityConfig
+extensions:reddit:parseDebugIntegrityConfig
+extensions:shared:parseDebugIntegrityConfig
+extensions:shared-youtube:parseDebugIntegrityConfig
+extensions:youtube:parseDebugIntegrityConfig
+extensions:all:change-version-code:parseDebugLocalResources
+extensions:music:parseDebugLocalResources
+extensions:reddit:parseDebugLocalResources
+extensions:reddit:stub:parseDebugLocalResources
+extensions:shared:parseDebugLocalResources
+extensions:shared:library:parseDebugLocalResources
+extensions:shared-youtube:parseDebugLocalResources
+extensions:shared-youtube:library:parseDebugLocalResources
+extensions:shared-youtube:stub:parseDebugLocalResources
+extensions:youtube:parseDebugLocalResources
+extensions:youtube:stub:parseDebugLocalResources
+extensions:all:change-version-code:parseReleaseIntegrityConfig
+extensions:music:parseReleaseIntegrityConfig
+extensions:reddit:parseReleaseIntegrityConfig
+extensions:shared:parseReleaseIntegrityConfig
+extensions:shared-youtube:parseReleaseIntegrityConfig
+extensions:youtube:parseReleaseIntegrityConfig
+extensions:all:change-version-code:parseReleaseLocalResources
+extensions:music:parseReleaseLocalResources
+extensions:reddit:parseReleaseLocalResources
+extensions:reddit:stub:parseReleaseLocalResources
+extensions:shared:parseReleaseLocalResources
+extensions:shared:library:parseReleaseLocalResources
+extensions:shared-youtube:parseReleaseLocalResources
+extensions:shared-youtube:library:parseReleaseLocalResources
+extensions:shared-youtube:stub:parseReleaseLocalResources
+extensions:youtube:parseReleaseLocalResources
+extensions:youtube:stub:parseReleaseLocalResources
+extensions:all:change-version-code:preBuild
+extensions:music:preBuild
+extensions:reddit:preBuild
+extensions:reddit:stub:preBuild
+extensions:shared:preBuild
+extensions:shared:library:preBuild
+extensions:shared-youtube:preBuild
+extensions:shared-youtube:library:preBuild
+extensions:shared-youtube:stub:preBuild
+extensions:youtube:preBuild
+extensions:youtube:stub:preBuild
+extensions:all:change-version-code:preDebugAndroidTestBuild
+extensions:music:preDebugAndroidTestBuild
+extensions:reddit:preDebugAndroidTestBuild
+extensions:reddit:stub:preDebugAndroidTestBuild
+extensions:shared:preDebugAndroidTestBuild
+extensions:shared:library:preDebugAndroidTestBuild
+extensions:shared-youtube:preDebugAndroidTestBuild
+extensions:shared-youtube:library:preDebugAndroidTestBuild
+extensions:shared-youtube:stub:preDebugAndroidTestBuild
+extensions:youtube:preDebugAndroidTestBuild
+extensions:youtube:stub:preDebugAndroidTestBuild
+extensions:all:change-version-code:preDebugBuild
+extensions:music:preDebugBuild
+extensions:reddit:preDebugBuild
+extensions:reddit:stub:preDebugBuild
+extensions:shared:preDebugBuild
+extensions:shared:library:preDebugBuild
+extensions:shared-youtube:preDebugBuild
+extensions:shared-youtube:library:preDebugBuild
+extensions:shared-youtube:stub:preDebugBuild
+extensions:youtube:preDebugBuild
+extensions:youtube:stub:preDebugBuild
+extensions:all:change-version-code:preDebugUnitTestBuild
+extensions:music:preDebugUnitTestBuild
+extensions:reddit:preDebugUnitTestBuild
+extensions:reddit:stub:preDebugUnitTestBuild
+extensions:shared:preDebugUnitTestBuild
+extensions:shared:library:preDebugUnitTestBuild
+extensions:shared-youtube:preDebugUnitTestBuild
+extensions:shared-youtube:library:preDebugUnitTestBuild
+extensions:shared-youtube:stub:preDebugUnitTestBuild
+extensions:youtube:preDebugUnitTestBuild
+extensions:youtube:stub:preDebugUnitTestBuild
+extensions:reddit:stub:prepareDebugArtProfile
+extensions:shared:library:prepareDebugArtProfile
+extensions:shared-youtube:library:prepareDebugArtProfile
+extensions:shared-youtube:stub:prepareDebugArtProfile
+extensions:youtube:stub:prepareDebugArtProfile
+prepareKotlinBuildScriptModel
+extensions:all:change-version-code:prepareLintJarForPublish
+extensions:music:prepareLintJarForPublish
+extensions:reddit:prepareLintJarForPublish
+extensions:reddit:stub:prepareLintJarForPublish
+extensions:shared:prepareLintJarForPublish
+extensions:shared:library:prepareLintJarForPublish
+extensions:shared-youtube:prepareLintJarForPublish
+extensions:shared-youtube:library:prepareLintJarForPublish
+extensions:shared-youtube:stub:prepareLintJarForPublish
+extensions:youtube:prepareLintJarForPublish
+extensions:youtube:stub:prepareLintJarForPublish
+extensions:reddit:stub:prepareReleaseArtProfile
+extensions:shared:library:prepareReleaseArtProfile
+extensions:shared-youtube:library:prepareReleaseArtProfile
+extensions:shared-youtube:stub:prepareReleaseArtProfile
+extensions:youtube:stub:prepareReleaseArtProfile
+extensions:all:change-version-code:preReleaseBuild
+extensions:music:preReleaseBuild
+extensions:reddit:preReleaseBuild
+extensions:reddit:stub:preReleaseBuild
+extensions:shared:preReleaseBuild
+extensions:shared:library:preReleaseBuild
+extensions:shared-youtube:preReleaseBuild
+extensions:shared-youtube:library:preReleaseBuild
+extensions:shared-youtube:stub:preReleaseBuild
+extensions:youtube:preReleaseBuild
+extensions:youtube:stub:preReleaseBuild
+extensions:all:change-version-code:processApplicationManifestDebugForBundle
+extensions:music:processApplicationManifestDebugForBundle
+extensions:reddit:processApplicationManifestDebugForBundle
+extensions:shared:processApplicationManifestDebugForBundle
+extensions:shared-youtube:processApplicationManifestDebugForBundle
+extensions:youtube:processApplicationManifestDebugForBundle
+extensions:all:change-version-code:processApplicationManifestReleaseForBundle
+extensions:music:processApplicationManifestReleaseForBundle
+extensions:reddit:processApplicationManifestReleaseForBundle
+extensions:shared:processApplicationManifestReleaseForBundle
+extensions:shared-youtube:processApplicationManifestReleaseForBundle
+extensions:youtube:processApplicationManifestReleaseForBundle
+extensions:all:change-version-code:processDebugAndroidTestJavaRes
+extensions:music:processDebugAndroidTestJavaRes
+extensions:reddit:processDebugAndroidTestJavaRes
+extensions:reddit:stub:processDebugAndroidTestJavaRes
+extensions:shared:processDebugAndroidTestJavaRes
+extensions:shared:library:processDebugAndroidTestJavaRes
+extensions:shared-youtube:processDebugAndroidTestJavaRes
+extensions:shared-youtube:library:processDebugAndroidTestJavaRes
+extensions:shared-youtube:stub:processDebugAndroidTestJavaRes
+extensions:youtube:processDebugAndroidTestJavaRes
+extensions:youtube:stub:processDebugAndroidTestJavaRes
+extensions:all:change-version-code:processDebugAndroidTestManifest
+extensions:music:processDebugAndroidTestManifest
+extensions:reddit:processDebugAndroidTestManifest
+extensions:reddit:stub:processDebugAndroidTestManifest
+extensions:shared:processDebugAndroidTestManifest
+extensions:shared:library:processDebugAndroidTestManifest
+extensions:shared-youtube:processDebugAndroidTestManifest
+extensions:shared-youtube:library:processDebugAndroidTestManifest
+extensions:shared-youtube:stub:processDebugAndroidTestManifest
+extensions:youtube:processDebugAndroidTestManifest
+extensions:youtube:stub:processDebugAndroidTestManifest
+extensions:all:change-version-code:processDebugAndroidTestNavigationResources
+extensions:music:processDebugAndroidTestNavigationResources
+extensions:reddit:processDebugAndroidTestNavigationResources
+extensions:reddit:stub:processDebugAndroidTestNavigationResources
+extensions:shared:processDebugAndroidTestNavigationResources
+extensions:shared:library:processDebugAndroidTestNavigationResources
+extensions:shared-youtube:processDebugAndroidTestNavigationResources
+extensions:shared-youtube:library:processDebugAndroidTestNavigationResources
+extensions:shared-youtube:stub:processDebugAndroidTestNavigationResources
+extensions:youtube:processDebugAndroidTestNavigationResources
+extensions:youtube:stub:processDebugAndroidTestNavigationResources
+extensions:all:change-version-code:processDebugAndroidTestResources
+extensions:music:processDebugAndroidTestResources
+extensions:reddit:processDebugAndroidTestResources
+extensions:reddit:stub:processDebugAndroidTestResources
+extensions:shared:processDebugAndroidTestResources
+extensions:shared:library:processDebugAndroidTestResources
+extensions:shared-youtube:processDebugAndroidTestResources
+extensions:shared-youtube:library:processDebugAndroidTestResources
+extensions:shared-youtube:stub:processDebugAndroidTestResources
+extensions:youtube:processDebugAndroidTestResources
+extensions:youtube:stub:processDebugAndroidTestResources
+extensions:all:change-version-code:processDebugJavaRes
+extensions:music:processDebugJavaRes
+extensions:reddit:processDebugJavaRes
+extensions:reddit:stub:processDebugJavaRes
+extensions:shared:processDebugJavaRes
+extensions:shared:library:processDebugJavaRes
+extensions:shared-youtube:processDebugJavaRes
+extensions:shared-youtube:library:processDebugJavaRes
+extensions:shared-youtube:stub:processDebugJavaRes
+extensions:youtube:processDebugJavaRes
+extensions:youtube:stub:processDebugJavaRes
+extensions:all:change-version-code:processDebugMainManifest
+extensions:music:processDebugMainManifest
+extensions:reddit:processDebugMainManifest
+extensions:shared:processDebugMainManifest
+extensions:shared-youtube:processDebugMainManifest
+extensions:youtube:processDebugMainManifest
+extensions:all:change-version-code:processDebugManifest
+extensions:music:processDebugManifest
+extensions:reddit:processDebugManifest
+extensions:reddit:stub:processDebugManifest
+extensions:shared:processDebugManifest
+extensions:shared:library:processDebugManifest
+extensions:shared-youtube:processDebugManifest
+extensions:shared-youtube:library:processDebugManifest
+extensions:shared-youtube:stub:processDebugManifest
+extensions:youtube:processDebugManifest
+extensions:youtube:stub:processDebugManifest
+extensions:all:change-version-code:processDebugManifestForPackage
+extensions:music:processDebugManifestForPackage
+extensions:reddit:processDebugManifestForPackage
+extensions:shared:processDebugManifestForPackage
+extensions:shared-youtube:processDebugManifestForPackage
+extensions:youtube:processDebugManifestForPackage
+extensions:all:change-version-code:processDebugNavigationResources
+extensions:music:processDebugNavigationResources
+extensions:reddit:processDebugNavigationResources
+extensions:reddit:stub:processDebugNavigationResources
+extensions:shared:processDebugNavigationResources
+extensions:shared:library:processDebugNavigationResources
+extensions:shared-youtube:processDebugNavigationResources
+extensions:shared-youtube:library:processDebugNavigationResources
+extensions:shared-youtube:stub:processDebugNavigationResources
+extensions:youtube:processDebugNavigationResources
+extensions:youtube:stub:processDebugNavigationResources
+extensions:shared-youtube:library:processDebugProtoResources - Copies .proto files into the resources for packaging in the AAR.
+extensions:all:change-version-code:processDebugResources
+extensions:music:processDebugResources
+extensions:reddit:processDebugResources
+extensions:shared:processDebugResources
+extensions:shared-youtube:processDebugResources
+extensions:youtube:processDebugResources
+extensions:all:change-version-code:processDebugUnitTestJavaRes
+extensions:music:processDebugUnitTestJavaRes
+extensions:reddit:processDebugUnitTestJavaRes
+extensions:reddit:stub:processDebugUnitTestJavaRes
+extensions:shared:processDebugUnitTestJavaRes
+extensions:shared:library:processDebugUnitTestJavaRes
+extensions:shared-youtube:processDebugUnitTestJavaRes
+extensions:shared-youtube:library:processDebugUnitTestJavaRes
+extensions:shared-youtube:stub:processDebugUnitTestJavaRes
+extensions:youtube:processDebugUnitTestJavaRes
+extensions:youtube:stub:processDebugUnitTestJavaRes
+extensions:all:change-version-code:processManifestDebugForFeature
+extensions:music:processManifestDebugForFeature
+extensions:reddit:processManifestDebugForFeature
+extensions:shared:processManifestDebugForFeature
+extensions:shared-youtube:processManifestDebugForFeature
+extensions:youtube:processManifestDebugForFeature
+extensions:all:change-version-code:processManifestReleaseForFeature
+extensions:music:processManifestReleaseForFeature
+extensions:reddit:processManifestReleaseForFeature
+extensions:shared:processManifestReleaseForFeature
+extensions:shared-youtube:processManifestReleaseForFeature
+extensions:youtube:processManifestReleaseForFeature
+extensions:all:change-version-code:processReleaseJavaRes
+extensions:music:processReleaseJavaRes
+extensions:reddit:processReleaseJavaRes
+extensions:reddit:stub:processReleaseJavaRes
+extensions:shared:processReleaseJavaRes
+extensions:shared:library:processReleaseJavaRes
+extensions:shared-youtube:processReleaseJavaRes
+extensions:shared-youtube:library:processReleaseJavaRes
+extensions:shared-youtube:stub:processReleaseJavaRes
+extensions:youtube:processReleaseJavaRes
+extensions:youtube:stub:processReleaseJavaRes
+extensions:all:change-version-code:processReleaseMainManifest
+extensions:music:processReleaseMainManifest
+extensions:reddit:processReleaseMainManifest
+extensions:shared:processReleaseMainManifest
+extensions:shared-youtube:processReleaseMainManifest
+extensions:youtube:processReleaseMainManifest
+extensions:all:change-version-code:processReleaseManifest
+extensions:music:processReleaseManifest
+extensions:reddit:processReleaseManifest
+extensions:reddit:stub:processReleaseManifest
+extensions:shared:processReleaseManifest
+extensions:shared:library:processReleaseManifest
+extensions:shared-youtube:processReleaseManifest
+extensions:shared-youtube:library:processReleaseManifest
+extensions:shared-youtube:stub:processReleaseManifest
+extensions:youtube:processReleaseManifest
+extensions:youtube:stub:processReleaseManifest
+extensions:all:change-version-code:processReleaseManifestForPackage
+extensions:music:processReleaseManifestForPackage
+extensions:reddit:processReleaseManifestForPackage
+extensions:shared:processReleaseManifestForPackage
+extensions:shared-youtube:processReleaseManifestForPackage
+extensions:youtube:processReleaseManifestForPackage
+extensions:all:change-version-code:processReleaseNavigationResources
+extensions:music:processReleaseNavigationResources
+extensions:reddit:processReleaseNavigationResources
+extensions:reddit:stub:processReleaseNavigationResources
+extensions:shared:processReleaseNavigationResources
+extensions:shared:library:processReleaseNavigationResources
+extensions:shared-youtube:processReleaseNavigationResources
+extensions:shared-youtube:library:processReleaseNavigationResources
+extensions:shared-youtube:stub:processReleaseNavigationResources
+extensions:youtube:processReleaseNavigationResources
+extensions:youtube:stub:processReleaseNavigationResources
+extensions:shared-youtube:library:processReleaseProtoResources - Copies .proto files into the resources for packaging in the AAR.
+extensions:all:change-version-code:processReleaseResources
+extensions:music:processReleaseResources
+extensions:reddit:processReleaseResources
+extensions:shared:processReleaseResources
+extensions:shared-youtube:processReleaseResources
+extensions:youtube:processReleaseResources
+patches:processResources - Processes main resources.
+patches:stub:processResources - Processes main resources.
+patches:processTestResources - Processes test resources.
+patches:stub:processTestResources - Processes test resources.
+extensions:all:change-version-code:produceDebugBundleIdeListingFile
+extensions:music:produceDebugBundleIdeListingFile
+extensions:reddit:produceDebugBundleIdeListingFile
+extensions:shared:produceDebugBundleIdeListingFile
+extensions:shared-youtube:produceDebugBundleIdeListingFile
+extensions:youtube:produceDebugBundleIdeListingFile
+extensions:all:change-version-code:produceReleaseBundleIdeListingFile
+extensions:music:produceReleaseBundleIdeListingFile
+extensions:reddit:produceReleaseBundleIdeListingFile
+extensions:shared:produceReleaseBundleIdeListingFile
+extensions:shared-youtube:produceReleaseBundleIdeListingFile
+extensions:youtube:produceReleaseBundleIdeListingFile
+extensions:shared-youtube:library:protobufDummy
+extensions:youtube:protobufDummy
+extensions:all:change-version-code:resolveConfigAttr
+extensions:music:resolveConfigAttr
+extensions:reddit:resolveConfigAttr
+extensions:reddit:stub:resolveConfigAttr
+extensions:shared:resolveConfigAttr
+extensions:shared:library:resolveConfigAttr
+extensions:shared-youtube:resolveConfigAttr
+extensions:shared-youtube:library:resolveConfigAttr
+extensions:shared-youtube:stub:resolveConfigAttr
+extensions:youtube:resolveConfigAttr
+extensions:youtube:stub:resolveConfigAttr
+extensions:all:change-version-code:sdkReleaseDependencyData
+extensions:music:sdkReleaseDependencyData
+extensions:reddit:sdkReleaseDependencyData
+extensions:shared:sdkReleaseDependencyData
+extensions:shared-youtube:sdkReleaseDependencyData
+extensions:youtube:sdkReleaseDependencyData
+extensions:all:change-version-code:signDebugBundle
+extensions:music:signDebugBundle
+extensions:reddit:signDebugBundle
+extensions:shared:signDebugBundle
+extensions:shared-youtube:signDebugBundle
+extensions:youtube:signDebugBundle
+extensions:all:change-version-code:signingConfigWriterDebug
+extensions:music:signingConfigWriterDebug
+extensions:reddit:signingConfigWriterDebug
+extensions:shared:signingConfigWriterDebug
+extensions:shared-youtube:signingConfigWriterDebug
+extensions:youtube:signingConfigWriterDebug
+extensions:all:change-version-code:signingConfigWriterDebugAndroidTest
+extensions:music:signingConfigWriterDebugAndroidTest
+extensions:reddit:signingConfigWriterDebugAndroidTest
+extensions:reddit:stub:signingConfigWriterDebugAndroidTest
+extensions:shared:signingConfigWriterDebugAndroidTest
+extensions:shared:library:signingConfigWriterDebugAndroidTest
+extensions:shared-youtube:signingConfigWriterDebugAndroidTest
+extensions:shared-youtube:library:signingConfigWriterDebugAndroidTest
+extensions:shared-youtube:stub:signingConfigWriterDebugAndroidTest
+extensions:youtube:signingConfigWriterDebugAndroidTest
+extensions:youtube:stub:signingConfigWriterDebugAndroidTest
+extensions:all:change-version-code:signingConfigWriterRelease
+extensions:music:signingConfigWriterRelease
+extensions:reddit:signingConfigWriterRelease
+extensions:shared:signingConfigWriterRelease
+extensions:shared-youtube:signingConfigWriterRelease
+extensions:youtube:signingConfigWriterRelease
+extensions:all:change-version-code:signReleaseBundle
+extensions:music:signReleaseBundle
+extensions:reddit:signReleaseBundle
+extensions:shared:signReleaseBundle
+extensions:shared-youtube:signReleaseBundle
+extensions:youtube:signReleaseBundle
+extensions:all:change-version-code:stripDebugAndroidTestDebugSymbols
+extensions:music:stripDebugAndroidTestDebugSymbols
+extensions:reddit:stripDebugAndroidTestDebugSymbols
+extensions:reddit:stub:stripDebugAndroidTestDebugSymbols
+extensions:shared:stripDebugAndroidTestDebugSymbols
+extensions:shared:library:stripDebugAndroidTestDebugSymbols
+extensions:shared-youtube:stripDebugAndroidTestDebugSymbols
+extensions:shared-youtube:library:stripDebugAndroidTestDebugSymbols
+extensions:shared-youtube:stub:stripDebugAndroidTestDebugSymbols
+extensions:youtube:stripDebugAndroidTestDebugSymbols
+extensions:youtube:stub:stripDebugAndroidTestDebugSymbols
+extensions:all:change-version-code:stripDebugDebugSymbols
+extensions:music:stripDebugDebugSymbols
+extensions:reddit:stripDebugDebugSymbols
+extensions:reddit:stub:stripDebugDebugSymbols
+extensions:shared:stripDebugDebugSymbols
+extensions:shared:library:stripDebugDebugSymbols
+extensions:shared-youtube:stripDebugDebugSymbols
+extensions:shared-youtube:library:stripDebugDebugSymbols
+extensions:shared-youtube:stub:stripDebugDebugSymbols
+extensions:youtube:stripDebugDebugSymbols
+extensions:youtube:stub:stripDebugDebugSymbols
+extensions:all:change-version-code:stripReleaseDebugSymbols
+extensions:music:stripReleaseDebugSymbols
+extensions:reddit:stripReleaseDebugSymbols
+extensions:reddit:stub:stripReleaseDebugSymbols
+extensions:shared:stripReleaseDebugSymbols
+extensions:shared:library:stripReleaseDebugSymbols
+extensions:shared-youtube:stripReleaseDebugSymbols
+extensions:shared-youtube:library:stripReleaseDebugSymbols
+extensions:shared-youtube:stub:stripReleaseDebugSymbols
+extensions:youtube:stripReleaseDebugSymbols
+extensions:youtube:stub:stripReleaseDebugSymbols
+extensions:reddit:stub:syncDebugLibJars
+extensions:shared:library:syncDebugLibJars
+extensions:shared-youtube:library:syncDebugLibJars
+extensions:shared-youtube:stub:syncDebugLibJars
+extensions:youtube:stub:syncDebugLibJars
+extensions:all:change-version-code:syncExtension
+extensions:music:syncExtension
+extensions:reddit:syncExtension
+extensions:shared:syncExtension
+extensions:shared-youtube:syncExtension
+extensions:youtube:syncExtension
+extensions:reddit:stub:syncReleaseLibJars
+extensions:shared:library:syncReleaseLibJars
+extensions:shared-youtube:library:syncReleaseLibJars
+extensions:shared-youtube:stub:syncReleaseLibJars
+extensions:youtube:stub:syncReleaseLibJars
+extensions:all:change-version-code:testResultsCollectionDebug
+extensions:music:testResultsCollectionDebug
+extensions:reddit:testResultsCollectionDebug
+extensions:reddit:stub:testResultsCollectionDebug
+extensions:shared:testResultsCollectionDebug
+extensions:shared:library:testResultsCollectionDebug
+extensions:shared-youtube:testResultsCollectionDebug
+extensions:shared-youtube:library:testResultsCollectionDebug
+extensions:shared-youtube:stub:testResultsCollectionDebug
+extensions:youtube:testResultsCollectionDebug
+extensions:youtube:stub:testResultsCollectionDebug
+extensions:all:change-version-code:testResultsCollectionRelease
+extensions:music:testResultsCollectionRelease
+extensions:reddit:testResultsCollectionRelease
+extensions:reddit:stub:testResultsCollectionRelease
+extensions:shared:testResultsCollectionRelease
+extensions:shared:library:testResultsCollectionRelease
+extensions:shared-youtube:testResultsCollectionRelease
+extensions:shared-youtube:library:testResultsCollectionRelease
+extensions:shared-youtube:stub:testResultsCollectionRelease
+extensions:youtube:testResultsCollectionRelease
+extensions:youtube:stub:testResultsCollectionRelease
+extensions:all:change-version-code:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:music:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:reddit:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:reddit:stub:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:shared:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:shared:library:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:shared-youtube:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:shared-youtube:library:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:shared-youtube:stub:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:youtube:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:youtube:stub:updateLintBaselineDebug - Update the lint baseline using the debug variant
+extensions:all:change-version-code:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:music:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:reddit:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:reddit:stub:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:shared:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:shared:library:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:shared-youtube:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:shared-youtube:library:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:shared-youtube:stub:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:youtube:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:youtube:stub:updateLintBaselineRelease - Update the lint baseline using the release variant
+extensions:all:change-version-code:validateSigningDebug
+extensions:music:validateSigningDebug
+extensions:reddit:validateSigningDebug
+extensions:shared:validateSigningDebug
+extensions:shared-youtube:validateSigningDebug
+extensions:youtube:validateSigningDebug
+extensions:all:change-version-code:validateSigningDebugAndroidTest
+extensions:music:validateSigningDebugAndroidTest
+extensions:reddit:validateSigningDebugAndroidTest
+extensions:reddit:stub:validateSigningDebugAndroidTest
+extensions:shared:validateSigningDebugAndroidTest
+extensions:shared:library:validateSigningDebugAndroidTest
+extensions:shared-youtube:validateSigningDebugAndroidTest
+extensions:shared-youtube:library:validateSigningDebugAndroidTest
+extensions:shared-youtube:stub:validateSigningDebugAndroidTest
+extensions:youtube:validateSigningDebugAndroidTest
+extensions:youtube:stub:validateSigningDebugAndroidTest
+extensions:reddit:stub:verifyReleaseResources
+extensions:shared:library:verifyReleaseResources
+extensions:shared-youtube:library:verifyReleaseResources
+extensions:shared-youtube:stub:verifyReleaseResources
+extensions:youtube:stub:verifyReleaseResources
+extensions:reddit:stub:writeDebugAarMetadata
+extensions:shared:library:writeDebugAarMetadata
+extensions:shared-youtube:library:writeDebugAarMetadata
+extensions:shared-youtube:stub:writeDebugAarMetadata
+extensions:youtube:stub:writeDebugAarMetadata
+extensions:all:change-version-code:writeDebugAndroidTestSigningConfigVersions
+extensions:music:writeDebugAndroidTestSigningConfigVersions
+extensions:reddit:writeDebugAndroidTestSigningConfigVersions
+extensions:reddit:stub:writeDebugAndroidTestSigningConfigVersions
+extensions:shared:writeDebugAndroidTestSigningConfigVersions
+extensions:shared:library:writeDebugAndroidTestSigningConfigVersions
+extensions:shared-youtube:writeDebugAndroidTestSigningConfigVersions
+extensions:shared-youtube:library:writeDebugAndroidTestSigningConfigVersions
+extensions:shared-youtube:stub:writeDebugAndroidTestSigningConfigVersions
+extensions:youtube:writeDebugAndroidTestSigningConfigVersions
+extensions:youtube:stub:writeDebugAndroidTestSigningConfigVersions
+extensions:all:change-version-code:writeDebugApplicationId
+extensions:music:writeDebugApplicationId
+extensions:reddit:writeDebugApplicationId
+extensions:shared:writeDebugApplicationId
+extensions:shared-youtube:writeDebugApplicationId
+extensions:youtube:writeDebugApplicationId
+extensions:all:change-version-code:writeDebugAppMetadata
+extensions:music:writeDebugAppMetadata
+extensions:reddit:writeDebugAppMetadata
+extensions:shared:writeDebugAppMetadata
+extensions:shared-youtube:writeDebugAppMetadata
+extensions:youtube:writeDebugAppMetadata
+extensions:reddit:stub:writeDebugLintModelMetadata
+extensions:shared:library:writeDebugLintModelMetadata
+extensions:shared-youtube:library:writeDebugLintModelMetadata
+extensions:shared-youtube:stub:writeDebugLintModelMetadata
+extensions:youtube:stub:writeDebugLintModelMetadata
+extensions:all:change-version-code:writeDebugModuleMetadata
+extensions:music:writeDebugModuleMetadata
+extensions:reddit:writeDebugModuleMetadata
+extensions:shared:writeDebugModuleMetadata
+extensions:shared-youtube:writeDebugModuleMetadata
+extensions:youtube:writeDebugModuleMetadata
+extensions:all:change-version-code:writeDebugSigningConfigVersions
+extensions:music:writeDebugSigningConfigVersions
+extensions:reddit:writeDebugSigningConfigVersions
+extensions:shared:writeDebugSigningConfigVersions
+extensions:shared-youtube:writeDebugSigningConfigVersions
+extensions:youtube:writeDebugSigningConfigVersions
+extensions:reddit:stub:writeReleaseAarMetadata
+extensions:shared:library:writeReleaseAarMetadata
+extensions:shared-youtube:library:writeReleaseAarMetadata
+extensions:shared-youtube:stub:writeReleaseAarMetadata
+extensions:youtube:stub:writeReleaseAarMetadata
+extensions:all:change-version-code:writeReleaseApplicationId
+extensions:music:writeReleaseApplicationId
+extensions:reddit:writeReleaseApplicationId
+extensions:shared:writeReleaseApplicationId
+extensions:shared-youtube:writeReleaseApplicationId
+extensions:youtube:writeReleaseApplicationId
+extensions:all:change-version-code:writeReleaseAppMetadata
+extensions:music:writeReleaseAppMetadata
+extensions:reddit:writeReleaseAppMetadata
+extensions:shared:writeReleaseAppMetadata
+extensions:shared-youtube:writeReleaseAppMetadata
+extensions:youtube:writeReleaseAppMetadata
+extensions:reddit:stub:writeReleaseLintModelMetadata
+extensions:shared:library:writeReleaseLintModelMetadata
+extensions:shared-youtube:library:writeReleaseLintModelMetadata
+extensions:shared-youtube:stub:writeReleaseLintModelMetadata
+extensions:youtube:stub:writeReleaseLintModelMetadata
+extensions:all:change-version-code:writeReleaseModuleMetadata
+extensions:music:writeReleaseModuleMetadata
+extensions:reddit:writeReleaseModuleMetadata
+extensions:shared:writeReleaseModuleMetadata
+extensions:shared-youtube:writeReleaseModuleMetadata
+extensions:youtube:writeReleaseModuleMetadata
+extensions:all:change-version-code:writeReleaseSigningConfigVersions
+extensions:music:writeReleaseSigningConfigVersions
+extensions:reddit:writeReleaseSigningConfigVersions
+extensions:shared:writeReleaseSigningConfigVersions
+extensions:shared-youtube:writeReleaseSigningConfigVersions
+extensions:youtube:writeReleaseSigningConfigVersions
+extensions:all:change-version-code:zipApksForDebug
+extensions:music:zipApksForDebug
+extensions:reddit:zipApksForDebug
+extensions:shared:zipApksForDebug
+extensions:shared-youtube:zipApksForDebug
+extensions:youtube:zipApksForDebug
+extensions:all:change-version-code:zipApksForRelease
+extensions:music:zipApksForRelease
+extensions:reddit:zipApksForRelease
+extensions:shared:zipApksForRelease
+extensions:shared-youtube:zipApksForRelease
+extensions:youtube:zipApksForRelease
+
+[Incubating] Problems report is available at: file:///home/tuananh/Code/TADaManager/tada-patches/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.0/userguide/configuration_cache_enabling.html

@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.interaction.antirecording
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.util.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -26,12 +27,36 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/capture/ScreenCapture;"
+private const val LAYOUT_PARAMS = "Landroid/view/WindowManager\$LayoutParams;"
 private data class CaptureSite(val owner: ClassDef, val method: Method, val index: Int, val replacement: String)
+
+private fun writesLayoutFlags(instruction: Instruction) =
+    instruction.opcode == Opcode.IPUT &&
+        instruction.getReference<FieldReference>()?.let { it.definingClass == LAYOUT_PARAMS && it.name == "flags" } == true
+
+/**
+ * Every write of a layout parameters' flags. Popups and floating windows built from their own
+ * parameters, Compose's PopupLayout among them (47.1.4 X.01tC), set the secure flag there and reach
+ * the window manager without a Window call. The extension's own writes are left out: hooking them
+ * would have the extension call itself.
+ */
+private object LayoutFlagsWriteFingerprint : Fingerprint(
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(fieldAccess(definingClass = LAYOUT_PARAMS, name = "flags", opcode = Opcode.IPUT)),
+    custom = { method, classDef ->
+        !classDef.type.startsWith("Lapp/morphe/extension/") &&
+            method.implementation?.instructions?.any(::writesLayoutFlags) == true
+    },
+)
 
 private object CircleSearchBlockFingerprint : Fingerprint(
     strings = listOf("circle_search_block"),
@@ -41,8 +66,9 @@ private object CircleSearchBlockFingerprint : Fingerprint(
 @Suppress("unused")
 val allowScreenCapturePatch = bytecodePatch(
     name = "Allow screenshots and Circle to Search",
-    description = "Removes secure window flags and disables the Circle to Search block. Off by default. Restart after changing. Switch: Hushfeed settings > App.",
-    default = false,
+    description = "Lets screenshots, screen recordings and Circle to Search work on TikTok " +
+        "screens that would otherwise come out black. Starts off. Turn it on in Hushfeed settings " +
+        "> App, then restart TikTok.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch, sharedExtensionPatch)
@@ -95,8 +121,24 @@ val allowScreenCapturePatch = bytecodePatch(
                 )
             }
         }
+        val layoutWrites = LayoutFlagsWriteFingerprint.matchAllOrNull().orEmpty().map { match ->
+            match.method to match.method.implementation!!.instructions.withIndex()
+                .filter { writesLayoutFlags(it.value) }.map { it.index }
+        }
+        if (layoutWrites.none { it.second.isNotEmpty() }) {
+            throw PatchException("Allow screenshots and Circle to Search: nothing writes a layout parameters' flags.")
+        }
         sites.forEach { site ->
             mutableClassDefBy(site.owner).findMutableMethodOf(site.method).replaceInstruction(site.index, site.replacement)
+        }
+        // Each store is replaced rather than its value rewritten, because TikTok can read the
+        // register again after it. iput's registers are 4-bit, so the five-register form fits.
+        layoutWrites.forEach { (method, writes) ->
+            writes.forEach { index ->
+                val store = method.getInstruction<TwoRegisterInstruction>(index)
+                method.replaceInstruction(index,
+                    "invoke-static { v${store.registerB}, v${store.registerA} }, $EXTENSION->setLayoutFlags(${LAYOUT_PARAMS}I)V")
+            }
         }
         CircleSearchBlockFingerprint.method.apply {
             findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN_OBJECT }.forEach { index ->

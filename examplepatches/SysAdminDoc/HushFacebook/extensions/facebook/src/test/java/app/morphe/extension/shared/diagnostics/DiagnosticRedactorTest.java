@@ -197,7 +197,7 @@ public class DiagnosticRedactorTest {
      */
     @Test public void aNameThatOnlyLooksLikeAFacebookHostStays() {
         String[] lines = {
-                "app: com.facebook.katana 581.0.0.45.58 (475215365)",
+                "app: com.facebook.katana 582.0.0.50.54 (475417104)",
                 "at com.facebook.common.util.TriState.valueOf(TriState.java:12)",
                 "at com.facebook.messenger.app.Thread.run(Thread.java:1012)",
                 "notfacebook.com/page and facebook.community/page",
@@ -538,8 +538,8 @@ public class DiagnosticRedactorTest {
         assertEquals("access_token=[omitted]&next=1", DiagnosticRedactor.redact("access_token=EAABquery123&next=1"));
         assertEquals("Authorization=[omitted]", DiagnosticRedactor.redact("Authorization:Bearer EAABnospace12"));
         assertEquals("sent Bearer [omitted]", DiagnosticRedactor.redact("sent Bearer%20EAABpercent12"));
-        assertEquals("app: com.facebook.katana 581.0.0.45.58 (475215365) at 1790000000000",
-                DiagnosticRedactor.redact("app: com.facebook.katana 581.0.0.45.58 (475215365) at 1790000000000"));
+        assertEquals("app: com.facebook.katana 582.0.0.50.54 (475417104) at 1790000000000",
+                DiagnosticRedactor.redact("app: com.facebook.katana 582.0.0.50.54 (475417104) at 1790000000000"));
     }
 
     /**
@@ -549,7 +549,7 @@ public class DiagnosticRedactorTest {
      */
     @Test public void buildDataTimestampsAndStackFramesStay() {
         String[] lines = {
-                "app: com.facebook.katana 581.0.0.45.58 (475215365)",
+                "app: com.facebook.katana 582.0.0.50.54 (475417104)",
                 "abi: app arm64, process 64-bit, device arm64-v8a,armeabi-v7a",
                 "morphe: 0.3.4",
                 "generated_utc: 2026-09-28T12:00:00.000Z",

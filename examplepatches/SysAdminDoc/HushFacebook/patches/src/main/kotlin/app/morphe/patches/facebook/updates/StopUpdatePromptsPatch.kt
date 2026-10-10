@@ -35,9 +35,9 @@ private const val BLOCK_VERSION_CEILING = "$UPDATE_PROMPTS->blockVersionCeiling(
 val stopUpdatePromptsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Stop update prompts",
-    description ="Stops Facebook's own update prompts on a patched build, which can't install Meta's updates " +
-        "anyway. Meta App Manager's update promotions and the push message that has it look for an update go, " +
-        "and so do chat promotions aimed at older versions.",
+    description = "Stops Facebook asking you to update, since a patched app can't install Meta's updates anyway. " +
+        "Meta App Manager's update prompts and chat prompts aimed at older versions go too. On by default. Turn " +
+        "it off in Hushfacebook settings > Updates.",
     default = true,
 ) {
     category("Fixes")

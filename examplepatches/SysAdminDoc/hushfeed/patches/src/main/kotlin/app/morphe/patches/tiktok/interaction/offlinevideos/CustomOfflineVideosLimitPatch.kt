@@ -50,7 +50,9 @@ internal fun isCustomOfflineOptionConstructor(instruction: Instruction, optionEn
 @Suppress("unused")
 val customOfflineVideosLimitPatch = bytecodePatch(
     name = "Custom offline videos limit",
-    description = "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 10,000 videos, with the storage it needs shown under the setting, and a switch that keeps offline videos until you delete them. Switch: Hushfeed settings > Downloads.",
+    description = "Lets you pick how many videos TikTok saves for watching offline, from 1 to " +
+        "10,000, and keep them until you delete them. Handy when you're often without internet. " +
+        "Starts off. Turn it on in Hushfeed settings > Downloads.",
     default = true,
 ) {
     category("Feed")
@@ -147,6 +149,21 @@ val customOfflineVideosLimitPatch = bytecodePatch(
             null
         }
 
+        // The same switch keeps TikTok's Auto adjust and its default-on clean-up from trimming or
+        // clearing the list at start (#123). All three are required together on a declared build
+        // and left out together, with a note, on any other.
+        val tierGuards = try {
+            Triple(
+                AutoAdjustBootFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) },
+                AutoAdjustRollbackFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) },
+                DefaultEnableStateFingerprint.method.also { it.defaultEnableCleanupReturnIndex(PATCH_NAME) },
+            )
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Keep offline videos through Auto adjust on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
+
         settingsStatus.addInstruction(
             0,
             "invoke-static {}, " +
@@ -174,6 +191,11 @@ val customOfflineVideosLimitPatch = bytecodePatch(
         )
 
         if (lifetime != null) {
+            tierGuards?.let { (autoAdjust, rollback, defaultEnable) ->
+                autoAdjust.keepThroughAutoAdjust(PATCH_NAME)
+                rollback.keepThroughAutoAdjust(PATCH_NAME)
+                defaultEnable.keepThroughDefaultEnableCleanup(PATCH_NAME)
+            }
             lifetime.keepOfflineVideos(PATCH_NAME)
             settingsStatus.addInstruction(
                 0,

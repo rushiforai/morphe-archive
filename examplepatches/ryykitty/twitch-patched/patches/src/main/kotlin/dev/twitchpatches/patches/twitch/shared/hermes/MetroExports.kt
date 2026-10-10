@@ -3,17 +3,6 @@ package dev.twitchpatches.patches.twitch.shared.hermes
 internal data class MetroExport(val module: Int, val name: String)
 
 internal class MetroExports(private val bundle: HermesBundle) {
-    fun resolveAny(name: String, alternatives: Set<String>, params: Int = 2): MetroExport {
-        require(alternatives.isNotEmpty())
-        val function = bundle.functions.single { bundle.strings[it.name] == name && it.params == params }
-        val properties = bundle.instructions(function).filter {
-            it.name.startsWith("GetById") || it.name == "TryGetById"
-        }.map { bundle.strings[it.args.last()] }.toSet()
-        val matched = alternatives.intersect(properties).singleOrNull()
-            ?: error("Modern Twitch: $name backing contract changed.")
-        return resolve(name, setOf(matched), params)
-    }
-
     fun resolveAsync(name: String, properties: Set<String>, strings: Set<String>): MetroExport {
         val target = resolve(name, setOf("apply"))
         val function = bundle.functions.single { bundle.strings[it.name] == name && it.params == 2 }
@@ -99,14 +88,14 @@ internal class MetroExports(private val bundle: HermesBundle) {
         return arrays.single()[read.args[2]]
     }
     fun resolve(name: String, requiredProperties: Set<String>, params: Int = 2): MetroExport {
-        val function = bundle.functions.filter { bundle.strings[it.name] == name && it.params == params }
-            .singleOrNull() ?: error("Modern Twitch: expected one $name function.")
-        val body = bundle.instructions(function)
-        val properties = body.mapNotNull { ins ->
-            if (ins.name.startsWith("GetById") || ins.name == "TryGetById")
-                bundle.strings.getOrNull(ins.args.last()) else null
-        }.toSet()
-        require(properties.containsAll(requiredProperties)) { "Modern Twitch: $name contract changed." }
+        val named = bundle.functions.filter { bundle.strings[it.name] == name && it.params == params }
+        check(named.isNotEmpty()) { "Modern Twitch: expected a $name function with arity $params." }
+        val candidates = named.filter { candidate -> bundle.instructions(candidate).mapNotNull { ins ->
+                if (ins.name.startsWith("GetById") || ins.name == "TryGetById")
+                    bundle.strings.getOrNull(ins.args.last()) else null
+            }.toSet().containsAll(requiredProperties) }
+        require(candidates.isNotEmpty()) { "Modern Twitch: $name contract changed." }
+        val function = candidates.singleOrNull() ?: error("Modern Twitch: expected one $name function matching its contract.")
         val parents = bundle.functions.filter { it.params == 8 }.filter { fn ->
             val instructions = bundle.instructions(fn)
             instructions.zipWithNext().any { (create, put) ->

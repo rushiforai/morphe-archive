@@ -18,15 +18,15 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * comment boxes. See TypingAnchors.kt for where each hook goes, and the extension's TypingIndicator
  * for when.
  *
- * Off in the default selection, like the rest of Privacy. Picked, both of its switches start on.
+ * In the default selection with both switches off, so nothing changes until one is turned on.
  */
 @Suppress("unused")
 val hideTypingIndicatorPatch = bytecodePatch(
     // The README table check reads this literal; TYPING_PATCH carries the same text for the messages.
     name = "Hide typing indicator",
-    description = "Others don't see that you're typing, in chats that open inside Facebook and in comment boxes. " +
-        "What you write sends as usual. Its switches start on, under Privacy.",
-    default = false,
+    description = "Others don't see that you're typing, in chats that open inside Facebook and in comment boxes, " +
+        "so you can write without anyone watching. Your messages send as usual. Starts off. Turn on the parts " +
+        "you want in Hushfacebook settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, facebookExtensionPatch)

@@ -22,11 +22,15 @@ import app.morphe.extension.tiktok.settings.L10n;
 public final class BuildDetailsPreference extends Preference implements ImmediateAction {
     @Override public boolean actsOnTap() { return true; }
 
+    /** The row's key and summary, shared with the settings search's entry for it. */
+    static final String KEY = "action_build_details";
+    static final String SUMMARY = "Copy or save which patches and options this Hushfeed was built with.";
+
     public BuildDetailsPreference(Context context) {
         super(context);
-        setKey("action_build_details");
+        setKey(KEY);
         setTitle(L10n.t(context, "Build details"));
-        setSummary(L10n.t(context, "Copy or save patch-time choices and build identity."));
+        setSummary(L10n.t(context, SUMMARY));
         setOnPreferenceClickListener(preference -> {
             String report = BuildDetails.report();
             AlertDialog dialog = new AlertDialog.Builder(context)
@@ -54,7 +58,8 @@ public final class BuildDetailsPreference extends Preference implements Immediat
             Utils.showToastShort(L10n.t(context, "Build details copied to the clipboard"));
         } catch (Exception failure) {
             Logger.printException(() -> "Failed to copy build details", failure);
-            Utils.showToastLong(L10n.t(context, "Couldn't copy the report. Use Save report instead."));
+            Utils.showToastLong(L10n.t(context,
+                    "Couldn't copy the build details. Use Save build details instead."));
         }
     }
 

@@ -59,7 +59,10 @@ param(
     [string]$Sbom,
     # For working with no network only: OSV isn't asked about the SBOM's libraries, and the run
     # says so. The index push asks again, so a release can't go out on it.
-    [switch]$SkipAdvisoryCheck
+    [switch]$SkipAdvisoryCheck,
+    # Where verify-all-patches.ps1 -KeepIn kept its clean runs. A fixture with a kept run of this
+    # commit, bundle, patch list and CLI, under the same -f, is read from it instead of patched again.
+    [string]$AppliedDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,6 +74,20 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
 . (Join-Path $PSScriptRoot 'release-advisories.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
+
+# Patching every fixture is as heavy as a build, so the whole run waits for a slot in the
+# machine-wide build queue and runs there, by running this script again inside the slot. Already in
+# one, it goes straight on.
+if (-not $env:HUSHTELEGRAM_QUEUED_JOB) {
+    $selfScript = $PSCommandPath
+    $selfArguments = $PSBoundParameters
+    $queuedRun = @{ Output = @() }
+    $queuedExit = Invoke-InHushTelegramQueue -Job 'receipt' -ScriptBlock {
+        $queuedRun.Output = @(& $selfScript @selfArguments)
+    }
+    $queuedRun.Output
+    exit $queuedExit
+}
 
 $Java = Resolve-Java -Explicit $Java
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $Root
@@ -330,23 +347,38 @@ foreach ($apk in $Fixture) {
         $mergedApk = Resolve-WithinRoot -Path (Join-Path $runDir 'stock-merged.apk') -Root $workRoot
         $patchInput = Get-MergedApk -Apk $apk -Destination $mergedApk -Java $Java -DesktopJar $DesktopJar
 
-        $enable = @()
-        foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
-        $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
-            '-o', $out, '-t', $temp, '-r', $resultPath)
-        if ($forced) { $arguments += '-f' }
-        $arguments = $arguments + $enable + @($patchInput)
-        # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
-        # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code
-        # are what decide.
-        $preference = $ErrorActionPreference
-        try {
-            $ErrorActionPreference = 'Continue'
-            $global:LASTEXITCODE = -1
-            & $Java '-jar' $DesktopJar @arguments 2>&1 | Out-Null
-            $cliExitCode = $LASTEXITCODE
-        } finally {
-            $ErrorActionPreference = $preference
+        # verify-all-patches.ps1 -KeepIn ran these same CLI arguments on this fixture and bundle, at
+        # this commit, and passed. Its report and patched APK are read below in place of a second
+        # run, and everything after the CLI is checked here again all the same.
+        $kept = $null
+        if ($AppliedDir) {
+            $kept = Find-VerifiedApply -AppliedDir $AppliedDir -Stamp (Get-VerifiedApplyStamp -Root $Root -Apk $apk `
+                -Bundle $Bundle -PatchList $PatchList -DesktopJar $DesktopJar -Forced $forced)
+        }
+        if ($kept) {
+            Write-Host "[receipt] $label has a verified run of this commit and bundle, reading it from $($kept.Directory)"
+            $out = $kept.PatchedApk
+            $resultPath = $kept.ResultPath
+            $cliExitCode = 0
+        } else {
+            $enable = @()
+            foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
+            $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+                '-o', $out, '-t', $temp, '-r', $resultPath)
+            if ($forced) { $arguments += '-f' }
+            $arguments = $arguments + $enable + @($patchInput)
+            # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+            # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code
+            # are what decide.
+            $preference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                $global:LASTEXITCODE = -1
+                & $Java '-jar' $DesktopJar @arguments 2>&1 | Out-Null
+                $cliExitCode = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $preference
+            }
         }
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {

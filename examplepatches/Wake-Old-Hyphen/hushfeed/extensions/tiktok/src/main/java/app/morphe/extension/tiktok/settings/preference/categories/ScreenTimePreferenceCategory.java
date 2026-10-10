@@ -106,10 +106,10 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
 
         addPreference(new SectionHeadingPreference(context, "Daily budget"));
         addPreference(new NumberInputPreference(context, "Daily video budget",
-                "Zero switches this off. Count every video that comes up in the feed, however you "
-                        + "got to it, and say so once the count is reached. This is separate from "
-                        + "the auto-advance session limit under Playback, which only counts videos "
-                        + "Hushfeed itself advanced past.", Settings.SESSION_BUDGET_VIDEOS, "%1$s video", "%1$s videos") {
+                "Zero switches this off. Counts every video that comes up in the feed and tells "
+                        + "you when you reach the limit. Separate from the auto-advance session "
+                        + "limit under Playback, which counts only videos Hushfeed moved past "
+                        + "for you.", Settings.SESSION_BUDGET_VIDEOS, "%1$s video", "%1$s videos") {
             @Override protected String extraSummaryLine() {
                 String waiting = waitingLine(getContext(), Settings.SESSION_BUDGET_VIDEOS, this::shown);
                 if (Settings.SESSION_BUDGET_VIDEOS.savedValue() <= 0) return waiting;
@@ -147,16 +147,15 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
             }
         });
         addPreference(new TogglePreference(context, "Fade the feed out before the hold",
-                "The feed dims over the last three quarters of a minute before the hold, "
-                        + "so you arrive at it rather than land on it. Needs a time budget and "
-                        + "a hold to arrive at.",
+                "The feed slowly dims during the last 45 seconds before the hold, so it doesn't "
+                        + "come as a sudden stop. Needs a time budget and a hold.",
                 Settings.SESSION_BUDGET_RAMP));
         // The limit is formatted in from the constant that enforces it.
         addPreference(new TogglePreference(context, "Let the last video finish",
                 L10n.f(context, "When the budget runs out, the video on screen plays to its end "
-                        + "before the hold covers the feed, and the feed won't swipe to another "
-                        + "video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs "
-                        + "a hold to wait for. It waits %1$d minutes at most.",
+                        + "before the hold starts, and you can't swipe to another video "
+                        + "meanwhile. If the fade already dimmed the feed, the hold starts "
+                        + "right away. Needs a hold. It waits %1$d minutes at most.",
                         FinishLastVideo.LONGEST_MS / 60_000L),
                 Settings.SESSION_BUDGET_FINISH_VIDEO));
         addPreference(new TogglePreference(context, "Show what is left of the budget",
@@ -164,8 +163,8 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         + "budget, whichever is closer to running out.",
                 Settings.SESSION_BUDGET_CUE));
         addPreference(new ClockHourPreference(context, "Start the day at",
-                "The hour both budgets reset, on a 24 hour clock. Four in the morning by default, "
-                        + "because someone still scrolling at one is having last night.",
+                "The hour both budgets reset, on a 24 hour clock. The default is 4 in the "
+                        + "morning, so a late night still counts as the same day.",
                 Settings.SESSION_BUDGET_RESET_HOUR) {
             @Override protected String extraSummaryLine() {
                 return waitingLine(getContext(), Settings.SESSION_BUDGET_RESET_HOUR, this::shown);
@@ -177,21 +176,21 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         + "Turn this off any time before the budget runs out.",
                 Settings.SESSION_BUDGET_LOCK));
         addPreference(new NumberInputPreference(context, "Times you can open the feed anyway",
-                "Zero leaves the way out of the hold there every time, which is what it has "
-                        + "always done. Anything else is how many times a day it works, and once "
-                        + "they are gone the hold stays up until the day starts over. Ignored "
-                        + "while the budget is locked, which takes the way out away entirely.",
+                "Zero means the way out of the hold is always there. Any other number is how "
+                        + "many times a day it works. Once they're used up, the hold stays "
+                        + "until the day starts over. Ignored while the budget is locked, which "
+                        + "removes the way out.",
                 Settings.SESSION_BUDGET_PASSES_PER_DAY, "%1$s time", "%1$s times") {
             @Override protected String extraSummaryLine() {
                 return waitingLine(getContext(), Settings.SESSION_BUDGET_PASSES_PER_DAY, this::shown);
             }
         }.zeroMeansOff());
         addPreference(new TogglePreference(context, "Wait a day to loosen the budget",
-                "A change that loosens the budget waits until the day starts over and one that "
-                        + "tightens it applies at once. A higher budget or no budget loosens it. "
-                        + "So do a shorter hold and more times to open the feed anyway. Moving the "
-                        + "hour the day starts and turning this off wait too. A restored backup "
-                        + "follows the same rule and Start today over is off while this is on.",
+                "A change that makes your budget looser waits until the day starts over, and a "
+                        + "stricter one applies at once. Looser means a higher or no budget, a "
+                        + "shorter hold, more times to open the feed anyway, a new start hour, "
+                        + "or turning this off. A restored backup follows the same rule, and "
+                        + "Start today over is off while this is on.",
                 Settings.SESSION_BUDGET_WAIT_TO_LOOSEN));
 
         // Everything the budget is made of, refused for the rest of a locked day. A commitment

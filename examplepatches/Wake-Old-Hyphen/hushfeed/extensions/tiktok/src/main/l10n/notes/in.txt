@@ -1,10 +1,44 @@
 ## Unreleased
 
+* **TikTok:** Pengaturan Komentar punya baris baru, Jangan terjemahkan otomatis bahasa ini. Barisnya kosong sampai kamu mengisinya (#121). Ketik kode bahasa seperti `es, de`, dan saat TikTok menerjemahkan untukmu, keterangan dan komentar dalam bahasa itu tetap seperti saat ditulis. Lihat terjemahan tetap berfungsi saat kamu mengetuknya, dan daftar Jangan terjemahkan milik TikTok sendiri tidak berubah.
+
+* **TikTok:** Simpan video offline sampai kamu menghapusnya sekarang mencakup dua cara lagi TikTok mengosongkan daftarmu. Saat sakelar menyala, Auto adjust TikTok tidak lagi menurunkan batas video offline atau memangkas daftar saat TikTok dimulai, dan pembersihan yang dijalankan TikTok saat ujicoba menyalakan video offline secara bawaan berakhir dilewati (#123). Mulai ulang TikTok setelah kamu mengubah sakelar.
+
+* **TikTok:** Memulihkan cadangan pengaturan dari versi TikTok yang lebih lama sekarang mengembalikan penimpaan Feature Gate Lab yang masih cocok dengan versi ini. Yang tidak cocok tetap disimpan, tetapi dimatikan.
+
+* **TikTok:** Layar feed punya sakelar baru, Sembunyikan tombol menu samping, yang mati sampai kamu menyalakannya. Sakelar ini menghilangkan tombol di pojok kiri atas feed, di samping LIVE, yang membuka menu samping TikTok berisi Pesananmu, TikTok Minis, dan lainnya. Mulai ulang TikTok setelah kamu mengubahnya (#128).
+
+* **TikTok:** Semua deskripsi patch di Morphe Manager ditulis ulang dalam bahasa Inggris yang sederhana. Masing-masing kini menjelaskan apa yang diubah patch, kenapa kamu mungkin menginginkannya, dan apakah sakelarnya mulai menyala atau mati serta letaknya di pengaturan Hushfeed. Beberapa opsi patch juga lebih jelas, dan Skip push setup kini bernama Skip notification setup.
+
+* **TikTok:** Baris di pengaturan Hushfeed ditulis ulang dalam bahasa Inggris yang sederhana. Privacy, Comments, Downloads, Feed filter, Screen time, Region, dan halaman lain kini menjelaskan tanpa istilah teknis apa yang dilakukan tiap sakelar dan apa yang akan kamu rasakan. Beberapa judul juga berubah, misalnya Stop TikTok's speed tests dan Clean up shared links.
+
+* **TikTok:** Beberapa pesan dan baris status juga lebih mudah dipahami, misalnya status mode Ghost, penjelasan Hook status, pemberitahuan kata sandi proxy, dan pratinjau nama file.
+
+* **TikTok:** Opsi Dark background color di Morphe Manager kini menyebut "kode warna", bukan "kode hex", dan menjelaskan bahwa hitam mematikan piksel itu sepenuhnya di layar OLED.
+
+## 0.70.1 (2026-10-09)
+
+* **TikTok:** Pengaturan Hushfeed kini dibuka dengan status ringkas dan pencarian di atas tujuh grup. Halaman yang berkaitan berada bersama, sementara cadangan, diagnostik, dan Feature Gate Lab ada di Aplikasi & pengaturan lanjutan. Tentang Hushfeed menyatukan detail build dan lisensi. Pencarian tetap membawamu langsung ke pengaturan, dan pilihan yang tersimpan tetap ada. Keterangan Jeda kini menjelaskan bahwa pengaturan tersimpan dan perubahan yang tertanam dalam APK tetap ada.
+
+## 0.70.0 (2026-10-09)
+
 * **TikTok:** Hushfeed kini hanya mendukung TikTok 47.1.4. Jika kamu memakai 47.0.3 atau 47.1.3, unduh APK 47.1.4 dari APKMirror lalu patch di Morphe Manager dengan kunci penandatanganan yang sama, agar login dan pengaturanmu tetap ada. Feature Gate Lab mempertahankan setiap override yang sakelarnya masih ada di 47.1.4 dan mematikan sisanya dengan pemberitahuan seperti biasa.
 
 * **TikTok:** Batas video offline kustom punya sakelar baru di pengaturan Hushfeed > Unduhan, Simpan video offline sampai kamu menghapusnya. Sakelarnya mati sampai kamu menyalakannya (#123). TikTok membuang video yang disimpannya untuk ditonton offline setelah waktu tertentu, kadang hanya dua hari, dan daftar yang disimpan sekaligus juga hilang sekaligus, sudah ditonton atau belum. Dengan sakelar ini aktif, video tetap ada sampai kamu menghapusnya di pengaturan Video offline TikTok, dan begitu juga cara mendapatkan set baru. TikTok masih bisa menghapus video yang sudah kamu tonton saat penyimpanan ponselmu hampir penuh, dan memilih batas yang lebih rendah tetap memangkas daftarnya. Perhatikan baris penyimpanan di bawah batas video offline. Sakelar ini berlaku saat TikTok dibuka berikutnya.
 
 * **TikTok:** Sembunyikan pintasan profil punya sakelar baru di bawah Aplikasi, Sembunyikan Thoughts di profil, yang mati sampai kamu menyalakannya (#122). Sakelar ini menyembunyikan gelembung Thoughts yang TikTok pasang di atas foto profil, dan di profilmu sendiri ajakan untuk membagikannya. Mulai ulang TikTok setelah kamu mengubahnya.
+
+* **TikTok:** Izinkan tangkapan layar dan Circle to Search kini juga melepas tanda jendela aman dari pop-up dan jendela mengambang yang memasangnya di pengaturan jendelanya sendiri, seperti pop-up Compose milik TikTok. Jendela itu muncul di layar tanpa lewat panggilan jendela yang sudah diubah patch ini, jadi masih bisa tampak hitam di tangkapan layar dan rekaman layar. Idenya berasal dari patch TikTok milik icysymmetra.
+
+* **TikTok:** Diagnostik punya baris baru, Rekam feed, untuk masalah feed yang lebih mudah ditunjukkan daripada dijelaskan. Ketuk barisnya, gulir sampai masalahnya muncul, lalu kembali dan ketuk lagi, dan Hushfeed menyimpan file teks di Download/Hushfeed. File itu berisi satu baris untuk setiap kelompok video yang ditangani filter feed selama perekaman, dengan hasil untuk tiap video dan aturan yang menyembunyikannya. Video dan kreator hanya muncul sebagai kode pendek yang dibuat baru untuk setiap rekaman, dan file itu tidak berisi takarir, nama, nama pengguna, atau alamat web. Tetap baca dulu sebelum kamu membagikannya. Tidak ada yang direkam sampai kamu memulai rekaman. Idenya berasal dari patch TikTok milik icysymmetra.
+
+* **TikTok:** Deskripsi Sembunyikan kontrol Tampilan bersih kini menyebut mencubit layar sebagai cara lain untuk keluar dari Tampilan bersih (#84).
+
+* **TikTok:** Beberapa sakelar kini mulai dalam keadaan mati, seperti sakelar Hushfeed lainnya, karena patch-nya masuk ke pilihan bawaan. Kalau sebelumnya kamu sudah memilih salah satu patch ini dan ingin patch itu tetap bekerja, nyalakan lagi sakelarnya setelah memperbarui. Di Privasi, sakelar itu adalah Blokir akses ke daftar kontak, Blokir pemindaian aplikasi terpasang, Blokir lokasi, Blokir pembacaan papan klip, Blokir sensor gerak, Jangan simpan pencarian baru, dan Tampilkan saat kamera atau mikrofon dipakai. Di Komentar ada Jempol ke bawah memblokir pengomentar, Tautan di komentar bisa dibuka, dan Sembunyikan iklan popup di komentar, lalu di Aplikasi ada Matikan getaran haptik dan Matikan transisi layar.
+
+* **TikTok:** Mode sederhana Morphe Manager kini memilih 107 dari 130 patch Hushfeed, bukan 55 lagi, jadi sebagian besar patch tidak perlu mode ahli lagi. Setiap sakelar yang ditambahkan patch yang baru dipilih mulai dalam keadaan mati, dan TikTok tampil serta bekerja seperti aslinya sampai kamu menyalakan sesuatu di pengaturan Hushfeed. Sisa 23 patch tetap dipilih lewat mode ahli, dan bagian Patches di README mencantumkan masing-masing beserta alasan patch itu tidak ikut. Deskripsi setiap patch kini menyebut letak sakelarnya dan bahwa sakelar itu mulai dalam keadaan mati.
+
+* **TikTok:** Morphe Manager punya grup baru, Interface, untuk patch yang mengubah tampilan TikTok. Tema gelap AMOLED, Gunakan font sistem, dan Matikan transisi layar pindah ke sana dari Performance, Ubah nama aplikasi, Ikon peluncur kustom, dan Sembunyikan pintasan peluncur dari Settings, serta Ukuran teks feed dari Interaction.
 
 ## 0.69.0 (2026-10-08)
 

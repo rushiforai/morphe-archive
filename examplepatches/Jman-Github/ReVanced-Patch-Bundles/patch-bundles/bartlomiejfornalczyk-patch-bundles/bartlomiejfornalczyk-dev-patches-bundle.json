@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-05T23:04:45",
-  "description": "## [1.1.0-dev.4](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-10-05)\n\n### \ud83d\udc1b Bug Fixes\n\n* **maps:** load MicroG accounts directly via AccountManager and bypass AANG service ([e0976d3](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e0976d3233d8e7c94c645aff26ca2f41167f9c1c))\n",
-  "download_url": "https://github.com/bartlomiejfornalczyk/morphe-patches/releases/download/v1.1.0-dev.4/patches-1.1.0-dev.4.mpp",
+  "created_at": "2026-10-09T22:30:08",
+  "description": "## [1.1.0-dev.8](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.1.0-dev.7...v1.1.0-dev.8) (2026-10-09)\n\n### \u2728 New Features\n\n* **maps:** add Black theme patch from v1.7.12 ([5104787](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5104787b4eefb2357937d684a25ce3c467f3ff90))\n",
+  "download_url": "https://github.com/bartlomiejfornalczyk/morphe-patches/releases/download/v1.1.0-dev.8/patches-1.1.0-dev.8.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.1.0-dev.4"
+  "version": "v1.1.0-dev.8"
 }

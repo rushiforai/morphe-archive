@@ -71,3 +71,9 @@ Roadmap_Blocked.md
 *.md
 !README.md
 !CHANGELOG.md
+!docs/pinterest-14.38.0-factory-map.md
+!docs/pinterest-14.38.0-audit.md
+!docs/pinterest-14.38.0-ads.md
+!docs/pinterest-14.38.0-privacy.md
+!docs/pinterest-14.38.0-patch-reference.md
+!docs/pinterest-14.38.0-runtime.md

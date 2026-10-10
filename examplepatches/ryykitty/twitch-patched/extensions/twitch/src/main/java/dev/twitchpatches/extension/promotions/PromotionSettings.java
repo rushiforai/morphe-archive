@@ -19,7 +19,7 @@ public final class PromotionSettings {
         PatchSettings.register(new ToggleSetting() {
             @Override public String key() { return "hide_turbo"; }
             @Override public String title() { return "Hide Turbo promotions"; }
-            @Override public String summary() { return "Hide Turbo entries, player upsells and Turbo purchase buttons in Drops cards."; }
+            @Override public String summary() { return "Hide Twitch Turbo promotions and purchase prompts."; }
             @Override public SettingSection section() { return SettingSection.PROMOTIONS; }
             @Override public boolean isEnabled() { return blocked(); }
             @Override public void setEnabled(boolean checked) {

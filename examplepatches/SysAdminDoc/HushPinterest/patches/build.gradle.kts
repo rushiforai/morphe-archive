@@ -810,7 +810,8 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
 }
 
 // By type rather than by the one name, so a second test task cannot start on a graph nothing
-// has looked at. :patches:test is what scripts/pre-push.ps1 runs when a patch source changes.
+// has looked at. :patches:test and :patches:fixtureTest are what scripts/pre-push.ps1 runs when a
+// patch source changes.
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleBuildGraph)
 }
@@ -878,10 +879,15 @@ gradle.projectsEvaluated {
     }
 }
 
+// The JUnit category in patches/src/test/kotlin/app/morphe/Fixtures.kt that marks every test reading a
+// vendor Pinterest APK. :patches:test leaves those out and :patches:fixtureTest runs only those.
+val fixtureCategory = "app.morphe.FixtureTests"
+
 tasks {
     // The README tests read the README and the patch list, both outside this module. Declare
-    // those inputs so Gradle reruns them when either changes.
-    test {
+    // those inputs so Gradle reruns them when either changes. Both test tasks run from the same
+    // classes, so both declare them.
+    withType<Test>().configureEach {
         inputs.file(rootProject.file("README.md"))
             .withPropertyName("readme")
             .withPathSensitivity(PathSensitivity.RELATIVE)
@@ -911,6 +917,26 @@ tasks {
         )
             .withPropertyName("shippedSources")
             .withPathSensitivity(PathSensitivity.RELATIVE)
+    }
+    // The quick run: everything but the vendor APKs. A test that reads them without the category
+    // fails here (Fixtures.TASK_PROPERTY) rather than slowing this task down.
+    test {
+        useJUnit { excludeCategories(fixtureCategory) }
+        systemProperty("hushpinterest.fixtures", "refuse")
+    }
+    // The tests that open the vendor APKs, after the quick ones. One fork: FixtureDex keeps each
+    // build's dex files for the whole run, about 60 MB for Pinterest 14.38.0, and the decoded
+    // manifests beside them, so every build is unzipped once per run instead of once per test.
+    // A second fork would read every build again and need this heap as well.
+    val fixtureTest = register<Test>("fixtureTest") {
+        group = "verification"
+        description = "Runs the patch tests that read the vendor Pinterest APKs in HUSHPINTEREST_FIXTURE_DIR."
+        testClassesDirs = sourceSets["test"].output.classesDirs
+        classpath = sourceSets["test"].runtimeClasspath
+        useJUnit { includeCategories(fixtureCategory) }
+        shouldRunAfter(test)
+        maxParallelForks = 1
+        maxHeapSize = "1g"
         // The fixture tests skip when this is unset and read the folder when it is set. What the
         // folder holds is the input, not its name: a run whose APK was swapped, re-signed or
         // deleted under the same path has to run again, not come back up to date or out of the
@@ -922,6 +948,41 @@ tasks {
         inputs.files(fixtureDirectory.map { if (it.isBlank()) emptyList() else listOf(File(it)) }.orElse(emptyList()))
             .withPropertyName("fixtures")
             .withPathSensitivity(PathSensitivity.RELATIVE)
+        // Gradle counts a skipped test as a pass, and a category nothing carries runs no test at
+        // all. Either would let the push gate through without a fixture read, so the results are
+        // counted here: no test is always a failure, and a skip is one whenever the gate asks for
+        // the fixtures (HUSHPINTEREST_REQUIRE_FIXTURES=1).
+        val results = reports.junitXml.outputLocation
+        val required = providers.environmentVariable("HUSHPINTEREST_REQUIRE_FIXTURES").map { it == "1" }.orElse(false)
+        inputs.property("requireFixtures", required)
+        val category = fixtureCategory
+        doLast {
+            val suites = results.get().asFile.listFiles { file -> file.name.startsWith("TEST-") && file.name.endsWith(".xml") }.orEmpty()
+            var ran = 0
+            var skipped = 0
+            for (suite in suites) {
+                val header = Regex("""<testsuite\b[^>]*>""").find(suite.readText())?.value
+                    ?: throw GradleException("${suite.name} holds no testsuite element.")
+                ran += Regex("""\btests="(\d+)"""").find(header)?.groupValues?.get(1)?.toInt() ?: 0
+                skipped += Regex("""\bskipped="(\d+)"""").find(header)?.groupValues?.get(1)?.toInt() ?: 0
+            }
+            if (ran == 0) {
+                throw GradleException(
+                    "fixtureTest ran no tests. Nothing carries the $category category, or a filter left none."
+                )
+            }
+            if (required.get() && skipped > 0) {
+                throw GradleException(
+                    "fixtureTest skipped $skipped of $ran tests while the push gate requires the fixtures. " +
+                        "Read the skipped tests' reasons in ${results.get().asFile}."
+                )
+            }
+        }
+    }
+    // Without the fixtures every one of them skips, as they did inside :patches:test, so check
+    // still runs them and a contributor without the APKs sees why.
+    check {
+        dependsOn(fixtureTest)
     }
     // The bundle a release publishes lives in build/release, not build/libs. The plugin's
     // buildAndroid merges the DEX payload into the jar task's own output in place, so any later

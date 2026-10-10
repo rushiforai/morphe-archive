@@ -80,23 +80,26 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new InputTextPreference(
                     context,
                     "Video filename",
-                    "Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.",
+                    "Use {creator}, {date} and {video_id} to build the name. Start with "
+                            + "{creator}/ to put each creator in a folder. The file ending is "
+                            + "added for you.",
                     Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
             ).withNameKeyboard().withPreview(DownloadNamePreview::video));
             addPreference(new InputTextPreference(
                     context,
                     "Photo filename",
-                    "Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a "
-                            + "slideshow you save with Download original photos. Anything saved through "
-                            + "TikTok's own button is numbered by the folder instead. The file "
-                            + "extension is kept automatically.",
+                    "Use {creator}, {date}, {video_id} and {index} to build the name. {index} "
+                            + "numbers the photos of a slideshow saved with Download original "
+                            + "photos. TikTok's own save button numbers files by folder "
+                            + "instead. The file ending is added for you.",
                     Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
             ).withNameKeyboard().withPreview(DownloadNamePreview::photo));
             if (SettingsStatus.downloadEnabled) {
                 addPreference(new InputTextPreference(
                         context,
                         "Comment media filename",
-                        "Tokens: {date}, {media_id}. Works for image and video stickers.",
+                        "Use {date} and {media_id} to build the name. Works for image and video "
+                                + "stickers.",
                         Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
                 ).withNameKeyboard().withPreview(DownloadNamePreview::commentMedia));
                 addPreference(new TogglePreference(
@@ -126,25 +129,30 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(context, "Show download progress",
                     "Show a progress bar while a video saves.", Settings.DOWNLOAD_PROGRESS));
             addPreference(new TogglePreference(context, "Save details beside the video",
-                    "Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.",
+                    "Saves the caption, creator, link and post date in a text file next to the "
+                            + "video. On Android 10 and later, the pair goes in Download or "
+                            + "Documents under the same folder name. Applies to saves made by "
+                            + "Hushfeed.",
                     Settings.DOWNLOAD_DETAILS));
             addPreference(new TogglePreference(context, "Save details as JSON",
-                    "Write the details file as JSON instead of plain text, for scripts and archive tools.",
+                    "Saves the details file in JSON format instead of plain text. Useful if "
+                            + "another tool will read it.",
                     Settings.DOWNLOAD_DETAILS_JSON));
             addPreference(new TogglePreference(context, "Tag saved videos with their details",
-                    "Write the caption, creator, publication date and link into the video file itself, where media players and tools like ffprobe can read them. Applies to saves handled here.",
+                    "Stores the caption, creator, post date and link inside the video file, "
+                            + "where media players can read them. Applies to saves made by "
+                            + "Hushfeed.",
                     Settings.DOWNLOAD_TAGS));
             addPreference(new TogglePreference(context, "Check for already-saved videos",
-                    L10n.f(context, "Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.",
+                    L10n.f(context, "Remembers up to %1$s videos you saved here. If the file is "
+                            + "still there, you get Open or Save again instead of a second "
+                            + "copy.",
                             java.text.NumberFormat.getIntegerInstance().format(SavedVideoArchive.LIMIT)),
                     Settings.CHECK_SAVED_VIDEOS));
             addPreference(new TogglePreference(context, "Mark saved videos",
-                    "Put a ✓ before the view count on profile grids, and before the time on a feed "
-                            + "video's creator row, for videos Hushfeed saved here. The feed's mark shows "
-                            + "wherever Always show publish date shows the time. "
-                            + "It reads the record Check for already-saved videos keeps, so it works only "
-                            + "while that switch is on. Photo posts aren't marked, and a video you've deleted "
-                            + "since keeps its mark until you use Forget saved videos.",
+                    "Puts a ✓ by videos you saved with Hushfeed, on profile grids and next to "
+                            + "the time in the feed. Works only while Check for already-saved "
+                            + "videos is on. Photo posts aren't marked.",
                     Settings.MARK_SAVED_VIDEOS));
             addPreference(new ForgetSavedVideosPreference(context));
         }
@@ -155,10 +163,9 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(context, "Download original photos",
                     "Save every photo in the post at full size as a JPEG, not as the screen shows it.", Settings.DOWNLOAD_ORIGINAL_PHOTOS));
             addPreference(new TogglePreference(context, "Save photo posts as a video",
-                    "Download video on a one-photo post makes the MP4 here, with the post's sound "
-                            + "and no TikTok logo or end card. On a post with several photos, Download "
-                            + "asks whether you want the photos you picked as full-size originals or "
-                            + "as one video.", Settings.DOWNLOAD_PHOTOS_AS_VIDEO));
+                    "On a one-photo post, Download video makes an MP4 with the post's sound and "
+                            + "no TikTok logo or end card. On a post with several photos, "
+                            + "Download asks if you want the originals or one video.", Settings.DOWNLOAD_PHOTOS_AS_VIDEO));
             addPreference(new NumberInputPreference(context, "Seconds per photo",
                     "How long each photo stays on screen in a video made from a photo post.",
                     Settings.PHOTO_VIDEO_SECONDS, "%1$s second", "%1$s seconds"));
@@ -181,7 +188,11 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.subtitleToolsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Subtitles"));
             addPreference(new TogglePreference(context, "Save subtitles beside videos",
-                    "Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.", Settings.DOWNLOAD_SUBTITLES));
+                    "Saves subtitle (SRT) files with the video. They go to Movies on Android 11 "
+                            + "and newer, Download on Android 10, and your video folder on "
+                            + "older versions. On Android 11 and newer with Save details on, "
+                            + "the video moves to Download or Documents and the subtitles stay "
+                            + "in Movies.", Settings.DOWNLOAD_SUBTITLES));
             addPreference(new ChoicePreference(context, "Subtitle language", Settings.SUBTITLE_LANGUAGE,
                     new String[]{"Original language", "Device language, then original", "All available languages"},
                     new String[]{"original", "device", "all"}));
@@ -191,20 +202,20 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new InputTextPreference(
                     context,
                     "Send links to another app",
-                    "An app's package name, like com.dv.adm. The save button sends the video's "
-                            + "link there instead of saving it here. Leave it empty to save here.",
+                    "Type the other app's ID, like com.dv.adm. The save button sends the "
+                            + "video's link there instead of saving. Leave empty to save here.",
                     Settings.EXTERNAL_DOWNLOADER_PACKAGE)
                     .withCheck(value -> ExternalDownloader.packageNameProblem(value.trim()))
                     .withNameKeyboard());
             ChoicePreference ytdlnisType = new ChoicePreference(context, "YTDLnis download type",
                     Settings.YTDLNIS_DOWNLOAD_TYPE, new String[]{"Video", "Audio"},
                     new String[]{"video", "audio"});
-            ytdlnisType.setSummary("For com.deniscerri.ytdl only. Ask YTDLnis for audio or video "
-                    + "when the save button hands it a link.");
+            ytdlnisType.setSummary("Works only with YTDLnis (com.deniscerri.ytdl). Picks audio "
+                    + "or video when the save button sends it a link.");
             addPreference(ytdlnisType);
             addPreference(new TogglePreference(context, "YTDLnis background mode",
-                    "For com.deniscerri.ytdl only. Hide its download card and start the handoff in "
-                            + "the background.", Settings.YTDLNIS_BACKGROUND));
+                    "Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the "
+                            + "background without showing its download card.", Settings.YTDLNIS_BACKGROUND));
         }
         if (SettingsStatus.customOfflineVideosEnabled) {
             addPreference(new SectionHeadingPreference(context, "Offline videos"));
@@ -230,10 +241,11 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                 addPreference(new TogglePreference(
                         context,
                         "Keep offline videos until you delete them",
-                        "TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, "
-                                + "watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. "
-                                + "Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your "
-                                + "phone runs low on space.",
+                        "TikTok removes videos saved for offline viewing after a set time, "
+                                + "sometimes only two days, watched or not. With this on they "
+                                + "stay until you delete them in TikTok's Offline videos "
+                                + "settings. TikTok can still clear watched ones when your "
+                                + "phone is low on space.",
                         Settings.KEEP_OFFLINE_VIDEOS
                 ));
             }

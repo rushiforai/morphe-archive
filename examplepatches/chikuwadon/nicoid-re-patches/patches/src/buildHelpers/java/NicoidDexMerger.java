@@ -55,7 +55,7 @@ public final class NicoidDexMerger {
 
         // Keep DEX-only helpers (for example DynamicTheme and ModernDebug).
         for (ClassDef classDef : existing.getClasses()) {
-            if (!generatedTypes.contains(classDef.getType()) && !overridden(classDef.getType(), overrideTypes)) {
+            if (!overridden(classDef.getType(), generatedTypes) && !overridden(classDef.getType(), overrideTypes)) {
                 mergedTypes.add(classDef.getType());
                 pool.internClass(classDef);
             }

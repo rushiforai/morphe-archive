@@ -40,6 +40,9 @@ class InboxRefreshTest {
         val other = fixtureMethod("$INBOX_SUPPLIER->A05($INBOX_SUPPLIER)V", "return-void", 1,
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
         assertEquals(INBOX_ROUTE, resolve(listOf(inboxSupplierClass(subscribe = listOf(inboxSubscribeMethod(), other)), inboxObserverClass())))
+        // 582 builds the observer from its own one-argument constructor.
+        val own = inboxSubscribeMethod(init = "<init>($INBOX_SUPPLIER)V", args = "v1, v2")
+        assertEquals(INBOX_ROUTE, resolve(listOf(inboxSupplierClass(subscribe = listOf(own)), inboxObserverClass())))
     }
 
     @Test fun anyChangeToTheRouteFailsClosed() {
@@ -52,6 +55,8 @@ class InboxRefreshTest {
                 inboxObserverClass()),
             "observer constructor changed" to listOf(inboxSupplierClass(subscribe = listOf(
                 inboxSubscribeMethod(init = "<init>(Ljava/lang/Object;Ljava/lang/Object;)V"))), inboxObserverClass()),
+            "supplier-only constructor given an extra value" to listOf(inboxSupplierClass(subscribe = listOf(
+                inboxSubscribeMethod(init = "<init>($INBOX_SUPPLIER)V"))), inboxObserverClass()),
             "observer created elsewhere" to listOf(inboxSupplierClass(subscribe = listOf(inboxSubscribeMethod(between = "const/4 v3, 0x0"))),
                 inboxObserverClass()),
             "observer missing" to listOf(inboxSupplierClass()),

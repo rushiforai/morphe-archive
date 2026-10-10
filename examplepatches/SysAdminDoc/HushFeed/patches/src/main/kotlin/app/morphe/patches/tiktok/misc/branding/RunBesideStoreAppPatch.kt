@@ -191,13 +191,9 @@ private fun MutableMethod.swapAfterLoad(index: Int, method: String) {
 @Suppress("unused")
 val runBesideStoreAppPatch = bytecodePatch(
     name = "Run beside the store app",
-    description = "Lets a TikTok copy renamed with Morphe's Clone app patch sign in while the store app stays " +
-        "installed. Select it together with Clone app. When the copy registers your phone with TikTok it gives " +
-        "TikTok's own package name, because TikTok's servers don't hand out a device ID for a name they don't " +
-        "know and signing in fails without one. Its settings shared between TikTok's processes, its live " +
-        "wallpaper data and the app links it checks for its own name are pointed at the copy as well, not at " +
-        "the store app beside it. A build that keeps TikTok's package name is left alone. Google and Facebook " +
-        "sign-in can't work in a renamed copy, so log in with your email or phone number.",
+    description = "Lets a renamed copy of TikTok, made with Morphe's Clone app patch, sign in " +
+        "while the regular TikTok stays installed. Pick it together with Clone app. Google and " +
+        "Facebook sign-in won't work in the copy, so use email or phone.",
     default = false,
 ) {
     category("Settings")

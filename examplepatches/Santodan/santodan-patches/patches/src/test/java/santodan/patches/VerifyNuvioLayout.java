@@ -148,6 +148,20 @@ public final class VerifyNuvioLayout {
         }
         hook("hookRepository", owner(repository));
         if (newer) {
+            NuvioMergedProgressPatch.hookPlaybackPause(owner(NuvioLayout.current("Lv9/i4;")));
+            NuvioRemainingEpisodesPatch.hookCard(owner(NuvioLayout.current("Lba/e2;")), "Lc7/a;",
+                "Lsoftware/santodan/extension/nuviomerged/NuvioMergedProgress;", "prepareProviderBadge", "renderProviderBadge");
+            field(NuvioLayout.current("Lba/e2;"), "x", "Lcom/nuvio/tv/domain/model/WatchProgress;");
+            String nextCard = NuvioLayout.BETA5.equals(version) ? "Lla/g0;" : "Lla/f0;";
+            field(NuvioLayout.current("Lba/e2;"), "y", nextCard);
+            field(NuvioLayout.BETA5.equals(version) ? "Lla/f0;" : "Lla/e0;", "a", NuvioLayout.current("Lla/aa;"));
+            field("Lw1/b;", "i", "Lw1/i;");
+            field("Lu2/l;", "b", "Lu2/b1;");
+            method("Lc7/a;", "b", 15);
+            method("Landroidx/compose/foundation/layout/b;", "m", 2);
+            method("Le0/b;", "u", 2);
+            method("Ly/l;", "g", 3);
+            System.out.println("PASS: merged provider badge identity, image, size, and bottom-right alignment contracts");
             hook("hookInlinedCutoff", owner(NuvioLayout.current("Lla/h5;")));
             hook("hookInlinedCutoff", owner(NuvioLayout.current("Lla/w1;")));
             NuvioMergedProgressPatch.hookBadgeCacheHit(owner(NuvioLayout.current("Lla/e5;")));

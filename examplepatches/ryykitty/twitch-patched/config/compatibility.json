@@ -3,6 +3,171 @@
   "packageName": "tv.twitch.android.app",
   "targets": [
     {
+      "versionName": "31.5.2",
+      "versionCode": 3105026,
+      "status": "supported",
+      "evaluatedAbis": [
+        "arm64-v8a"
+      ],
+      "deviceAndroidApis": [
+        33
+      ],
+      "original": {
+        "bundleSha256": "357f7b6dd63917603da416c36a5cf81611600bdf730ed9ff5ddf72c0445d65c3",
+        "baseSha256": "c531666060d398fff457aa4e8ef14881eaafee142b01de9b668a2a369184b8d6",
+        "mergedSha256": "a37ae3c60e8c3388cd274770b7b2871fd34b0acda3a7d741a200d07ed1c60a5f",
+        "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
+      },
+      "toolchain": {
+        "morpheDesktop": "1.18.0",
+        "jadx": "1.5.6",
+        "java": 21,
+        "androidBuildTools": "36.0.0"
+      },
+      "appliedPatches": [
+        "Auto-claim bonus channel points",
+        "BTTV, FFZ and 7TV emotes",
+        "Block client-requested ads",
+        "Block stream ads",
+        "Hide Turbo promotions",
+        "Hide feed and display ads",
+        "Hide subscription discount banners",
+        "Inspect Twitch APK",
+        "Playback diagnostics",
+        "Reload stream"
+      ],
+      "verification": {
+        "javaKotlinTests": 177,
+        "javaScriptTests": 23,
+        "standaloneVerifierTests": "passed",
+        "fullDexRebuild": "passed",
+        "sdkPerDexAndApkChecks": "passed",
+        "originalHierarchyFindings": 93,
+        "introducedHierarchyFindings": 0,
+        "typeContracts": 69,
+        "deviceArtVerification": "passed",
+        "note": "Original-aware checks retain upstream hierarchy findings. Extended device checks are pending."
+      },
+      "evaluatedArtifact": {
+        "date": "2026-10-07",
+        "bundleSha256": "2086271ba84c88dd4f3bc81f08e4512daa5a8e3c33ffc395bcbea311b522512c",
+        "apkSha256": "bdd5305380392086b864561e32d822047cd60593e12c674ddc6eca77d3af47dd",
+        "deviceInstall": "passed; package, signing key, UID and first installation time retained",
+        "startup": "cold launch passed; no fatal app crash or DEX verification error in the observed buffer",
+        "postUpgradeDeviceChecks": "Light feed text, navigation and Patch settings confirmed functional. Live category labels remain visible beneath the header. Following headliner and reserved slot are absent. DJ playback controls confirmed functional."
+      },
+      "additionalSelections": [
+        {
+          "name": "Reload only",
+          "patches": [
+            "Reload stream"
+          ],
+          "bundleSha256": "9c6d439a2739b3fc121c321009c2883dff91fbb7db0cf893d1bf86cbb3df37d5",
+          "apkSha256": "1ce62a7386944242621d9c5a9bfc569da79237a8d1f8fd8dfba72657833fe553",
+          "fullDexRebuild": "passed",
+          "originalAwareAudit": "passed; zero introduced findings"
+        },
+        {
+          "name": "Full selection after cleanup",
+          "date": "2026-10-07",
+          "sourceRevision": "0fd837300e3cb1a602dbd47386da25c1803d3150",
+          "patches": [
+            "Auto-claim bonus channel points",
+            "BTTV, FFZ and 7TV emotes",
+            "Block client-requested ads",
+            "Block stream ads",
+            "Hide Turbo promotions",
+            "Hide feed and display ads",
+            "Hide subscription discount banners",
+            "Inspect Twitch APK",
+            "Playback diagnostics",
+            "Reload stream"
+          ],
+          "bundleSha256": "dde5c3e66ece7f8c95a358b5ed86621d64a4aff300fdc870714f4a01de12b3f7",
+          "apkSha256": "e0250a65cc128548d058152e60589ea49211abcf67e4dd6e440d1072e2e84845",
+          "javaKotlinTests": 179,
+          "javaScriptTests": 23,
+          "standaloneVerifierTests": "passed",
+          "fullDexRebuild": "passed",
+          "sdkPerDexAndApkChecks": "passed",
+          "originalHierarchyFindings": 93,
+          "introducedHierarchyFindings": 0,
+          "typeContracts": 69,
+          "sharedIntegration": "Patch settings, notification registration, theme synchronization and DJ settings included; adapter placeholders resolved",
+          "deviceInstallation": "not performed for this cleanup build"
+        },
+        {
+          "name": "Default selection with feed theme correction",
+          "date": "2026-10-08",
+          "patches": [
+            "Auto-claim bonus channel points",
+            "BTTV, FFZ and 7TV emotes",
+            "Block client-requested ads",
+            "Block stream ads",
+            "Hide Turbo promotions",
+            "Hide feed and display ads",
+            "Hide subscription discount banners",
+            "Reload stream"
+          ],
+          "bundleSha256": "eabcc1f31414f747b1418d09843b978095f59b1fc840526c8e48bcb0165beff5",
+          "apkSha256": "42a6e36f4c8d68fe1d2371b96299f38e251119fbf376b67ebf5b5c64d3b58f01",
+          "javaKotlinTests": 184,
+          "javaScriptTests": 23,
+          "standaloneVerifierTests": "passed",
+          "fullDexRebuild": "passed",
+          "sdkPerDexAndApkChecks": "passed",
+          "originalHierarchyFindings": 93,
+          "introducedHierarchyFindings": 0,
+          "typeContracts": 69,
+          "androidManager": {
+            "version": "1.34.0",
+            "patcherVersion": "1.15.1",
+            "patching": "passed",
+            "apkSha256": "b6541cf5ef6cc4bf9e6e8d05dc8ae833a87a5d5920b190dcf9d9c7873a508161",
+            "signerCertificateSha256": "2359337c7c455b62bd5e040411b24a52b49ecb7fb50eb424ead8b404651187cc",
+            "deviceInstallation": "passed; existing Manager signing key and app data retained",
+            "deviceArtVerification": "passed",
+            "startupErrorLines": 0,
+            "assetComparison": "Hermes bundle and runtime adapter hashes match the verified Desktop output",
+            "deviceChecks": [
+              "Light Clips header and navigation remain correctly themed after playback loads",
+              "Clips header collapses when scrolling; category labels remain visible",
+              "Light Live feed text and navigation",
+              "Dark feed presentation",
+              "Patch settings opens immediately after Dark-to-Light transition without restarting"
+            ]
+          }
+        }
+      ],
+      "adaptedContracts": [
+        "Existing feature hooks resolve without version-specific alternatives.",
+        "Turbo startup offer navigation is gated by the promotion setting.",
+        "Feed theme selection retains the parent palette with equal-length Hermes instructions.",
+        "Feed navigation follows the app theme.",
+        "DJ restrictions are removed from settings presentation; rendition availability and player actions remain intact.",
+        "Following headliners use native and React Native no-fill completions.",
+        "Feed ad creatives unmount and V2 stream display-ad surfaces use native disabled-state cleanup.",
+        "Light header fade ends at the measured tab bar."
+      ],
+      "observedFeatures": [
+        "Same-key update, ART verification and cold startup on Android 13",
+        "Patch settings and individual emote provider controls",
+        "Reload on initial V2 Classic Split entry",
+        "External emote tap previews",
+        "Native Turbo startup offer dispatch suppressed, restored and suppressed again without process restart",
+        "Light-mode category labels and app-themed bottom navigation",
+        "Following headliner suppressed with its slot removed"
+      ],
+      "remainingChecks": [
+        "Repeated preroll and midroll opportunities, stream quality and ad-state recovery",
+        "Channel-point bonus claiming",
+        "Promotion suppression with Drops and train overlays retained",
+        "Real background live-notification delivery",
+        "Rotation, background playback, raids and extended use",
+        "Additional devices, ABIs and omitted-feature combinations"
+      ]
+    },
+    {
       "versionName": "31.4.2",
       "versionCode": 3104026,
       "status": "supported",
@@ -84,6 +249,108 @@
           "apkSha256": "574842fff70835596023362cd003b2f6f0b3312d8d319d58e9fd5feba899dc93",
           "fullDexRebuild": "passed",
           "originalAwareAudit": "passed; zero introduced findings"
+        },
+        {
+          "name": "31.5.2 shared-hook regression",
+          "date": "2026-10-07",
+          "patches": [
+            "Auto-claim bonus channel points",
+            "BTTV, FFZ and 7TV emotes",
+            "Block client-requested ads",
+            "Block stream ads",
+            "Hide Turbo promotions",
+            "Hide feed and display ads",
+            "Hide subscription discount banners",
+            "Inspect Twitch APK",
+            "Playback diagnostics",
+            "Reload stream"
+          ],
+          "bundleSha256": "cefbcbea089abab77c069043ff09f941879e48c65ef03c0be4505505535ee88c",
+          "apkSha256": "c08e005c4e921c683f515dc9fa15a981cf8491894802411a1dd1fefe8a59918b",
+          "fullDexRebuild": "passed",
+          "originalAwareAudit": "passed; zero introduced findings",
+          "originalHierarchyFindings": 93,
+          "introducedHierarchyFindings": 0,
+          "typeContracts": 69,
+          "deviceTesting": "Native offer bridge verified on Android; full app regression installation not performed."
+        },
+        {
+          "name": "Theme and DJ playback settings regression",
+          "date": "2026-10-07",
+          "patches": [
+            "Auto-claim bonus channel points",
+            "BTTV, FFZ and 7TV emotes",
+            "Block client-requested ads",
+            "Block stream ads",
+            "Hide Turbo promotions",
+            "Hide feed and display ads",
+            "Hide subscription discount banners",
+            "Inspect Twitch APK",
+            "Playback diagnostics",
+            "Reload stream"
+          ],
+          "bundleSha256": "1a7287f0d2e8d5bc4ca17bee9c4224bc7063440c27463347996c7041c2b5102c",
+          "apkSha256": "52bde9868f2df72420f5ef0a02b369b32ad118e72fd6b5c8534c2b4b383e6577",
+          "fullDexRebuild": "passed",
+          "originalAwareAudit": "passed; zero introduced findings",
+          "javaKotlinTests": 173,
+          "javaScriptTests": 19,
+          "deviceTesting": "This revision was not installed on 31.4.2."
+        },
+        {
+          "name": "Shared settings and display-ad regression",
+          "date": "2026-10-07",
+          "patches": [
+            "Auto-claim bonus channel points",
+            "BTTV, FFZ and 7TV emotes",
+            "Block client-requested ads",
+            "Block stream ads",
+            "Hide Turbo promotions",
+            "Hide feed and display ads",
+            "Hide subscription discount banners",
+            "Inspect Twitch APK",
+            "Playback diagnostics",
+            "Reload stream"
+          ],
+          "bundleSha256": "2086271ba84c88dd4f3bc81f08e4512daa5a8e3c33ffc395bcbea311b522512c",
+          "apkSha256": "647dc4b33f1fd6a8e89b390aec8305cd4d801e62675f95fc1480cd4f0934b808",
+          "fullDexRebuild": "passed",
+          "originalAwareAudit": "passed; zero introduced findings",
+          "javaKotlinTests": 177,
+          "javaScriptTests": 23,
+          "deviceTesting": "This revision was not installed on 31.4.2."
+        },
+        {
+          "name": "Playback diagnostics only",
+          "date": "2026-10-07",
+          "sourceRevision": "0fd837300e3cb1a602dbd47386da25c1803d3150",
+          "patches": [
+            "Playback diagnostics"
+          ],
+          "bundleSha256": "dde5c3e66ece7f8c95a358b5ed86621d64a4aff300fdc870714f4a01de12b3f7",
+          "apkSha256": "1f2d8b4964c264841327a24dc8a24627624c4a4b912cb866bb1813209e7b7acc",
+          "javaKotlinTests": 179,
+          "javaScriptTests": 23,
+          "standaloneVerifierTests": "passed",
+          "fullDexRebuild": "passed",
+          "sdkPerDexAndApkChecks": "passed",
+          "originalHierarchyFindings": 93,
+          "introducedHierarchyFindings": 0,
+          "typeContracts": 69,
+          "sharedIntegration": "Patch settings, notification registration, theme synchronization and DJ settings included; adapter placeholders resolved",
+          "deviceInstallation": "not performed for this cleanup build"
+        },
+        {
+          "name": "Reload only with feed theme correction",
+          "date": "2026-10-08",
+          "patches": [
+            "Reload stream"
+          ],
+          "bundleSha256": "eabcc1f31414f747b1418d09843b978095f59b1fc840526c8e48bcb0165beff5",
+          "apkSha256": "9949cabafbfdaa80959ac2200295f9ec36a397eaf7293abf30327c3eb935cb19",
+          "fullDexRebuild": "passed",
+          "originalAwareAudit": "passed; zero introduced findings, 93 original findings, 69 type contracts",
+          "deviceInstallation": "not performed; device testing used 31.5.2"
         }
       ],
       "adaptedContracts": [
@@ -106,96 +373,6 @@
         "Rotation, background playback, raids and extended use",
         "Additional devices, ABIs and omitted-feature combinations"
       ]
-    },
-    {
-      "versionName": "31.3.0",
-      "versionCode": 3103006,
-      "status": "supported",
-      "evaluatedAbis": [
-        "arm64-v8a"
-      ],
-      "deviceAndroidApis": [
-        33
-      ],
-      "original": {
-        "bundleSha256": "d56e057494aa7017feb2c95fa633885f27cf331fcca063380fcc474becd86bef",
-        "baseSha256": "798313fb7817548ebbcdb4c49c84076f8e98c930466d3338dcf700e4c254e77f",
-        "mergedSha256": "6b695f9acdb8a1400ec57740e26a037700d676d62dc130702129020ccca68ddf",
-        "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
-      },
-      "toolchain": {
-        "morpheDesktop": "1.18.0",
-        "jadx": "1.5.6",
-        "java": 21,
-        "androidBuildTools": "36.0.0"
-      },
-      "appliedPatches": [
-        "Auto-claim bonus channel points",
-        "Hide feed and display ads",
-        "Hide Turbo promotions",
-        "Hide subscription discount banners",
-        "Block stream ads",
-        "Playback diagnostics",
-        "BTTV and 7TV emotes",
-        "Reload stream"
-      ],
-      "verification": {
-        "javaKotlinTests": 131,
-        "javaScriptSuites": 7,
-        "standaloneVerifierTests": "passed",
-        "fullDexRebuild": "passed",
-        "sdkPerDexAndApkChecks": "passed",
-        "originalHierarchyFindings": 93,
-        "introducedHierarchyFindings": 0,
-        "typeContracts": 69,
-        "note": "Original-aware checks retain upstream hierarchy findings. Device results are feature-specific."
-      },
-      "evaluatedArtifact": {
-        "date": "2026-10-03",
-        "bundleSha256": "3f6f463a921a2d6b826d256c3ae6245c23bdbafe2c68187f32ee200e9f7a2e2a",
-        "apkSha256": "2042a7e1c716e23836740966c497a5cb7a7fc5606723ca5a2355b183f96dd223",
-        "postCleanupDeviceChecks": [
-          "Initial V2 Classic Split Reload works",
-          "BTTV/7TV emote preview works"
-        ]
-      },
-      "notificationRegistration": {
-        "date": "2026-10-04",
-        "appliedWithFeaturePatches": true,
-        "originalCertificateSha1": "8c68c13822723a2b1fa844bed340031beb1f9463",
-        "bundleSha256": "3c0522ecf33fcc452c204ea50076c70e988bf52ff6b8081b8307f2b8c9bf465e",
-        "apkSha256": "816e116a54fd5d27de70984fb1e96a8fe58e07a5273a757c82c2165e4fb2b6ca",
-        "syntheticHookTests": 7,
-        "fullDexRebuild": "passed",
-        "introducedHierarchyFindings": 0,
-        "typeContracts": 69,
-        "deviceInstall": "passed with existing signing key and app data",
-        "startup": "app running; no Firebase or crash errors in the observed buffer",
-        "livePushDelivery": "confirmed on Android 13; receiver process start to live-notification posting: 3.8 seconds"
-      },
-      "observedFeatures": [
-        "Bonus channel-point claiming in native and swipe-feed playback",
-        "Feed-card removal and Turbo/discount promotion suppression",
-        "BTTV/7TV rendering and previews in native and RN chat",
-        "Reload on initial V2 Classic Split, Vertical and RN playback",
-        "Stream replacement during observed preroll and midroll opportunities",
-        "Stream-ad and promotion toggles recover without restarting",
-        "Selected-feature settings and saved preferences across same-key updates"
-      ],
-      "remainingChecks": [
-        "Repeated ad opportunities and unmatched-media association failures",
-        "Native Reload toggles, quality conservation and extended lifecycle coverage",
-        "Rotation, accessibility, large fonts and light theme",
-        "Additional devices, ABIs and omitted-feature combinations"
-      ],
-      "upgradeRegression": {
-        "date": "2026-10-04",
-        "bundleSha256": "775e17fe45f62bcea4e356eccc387ba6805e45428c411f6c7b1c28ecfbd1d324",
-        "apkSha256": "917788b683174cbc382de8ad0c1067f72145ccccdcd4b59a01880b057118e7e5",
-        "fullDexRebuild": "passed",
-        "originalAwareAudit": "passed; zero introduced findings",
-        "deviceReinstall": "not performed"
-      }
     }
   ],
   "knownLimitations": {
@@ -237,15 +414,271 @@
         "patchesApplied": 10,
         "fullDexRebuild": "passed",
         "originalAwareAudit": "passed; zero introduced findings"
-      },
-      {
-        "versionName": "31.3.0",
-        "bundleSha256": "6c3b5f37a886f656ca0dd61cc31c52d069a3362851552b00e686fab617fa53e9",
-        "apkSha256": "3a2ea1209f08b5d48a33eacc0d7ce7d816ecc823dc4a3b7f66803a8182dbe3a5",
-        "patchesApplied": 10,
-        "fullDexRebuild": "passed",
-        "originalAwareAudit": "passed; zero introduced findings"
       }
     ]
+  },
+  "baselineCleanup": {
+    "date": "2026-10-07",
+    "versionName": "31.4.2",
+    "javaKotlinTests": 152,
+    "javaScriptTests": 12,
+    "standaloneVerifierTests": "passed",
+    "patchesApplied": 10,
+    "fullDexRebuild": "passed",
+    "sdkPerDexAndApkChecks": "passed",
+    "originalHierarchyFindings": 93,
+    "introducedHierarchyFindings": 0,
+    "typeContracts": 69,
+    "auditedBundleSha256": "4b8b967b2b9a688cd9b80c976bdbfe8bab888cdaac53af805327b604d7df70bc",
+    "apkSha256": "897ec1615d7206dcc3439f63b060096b9c804cd4bb0316fe30bf335f1e00ad14",
+    "androidContractChecks": {
+      "androidApi": 33,
+      "morpheManager": "1.34.0",
+      "resourceParsing": "passed",
+      "adDefaults": "passed",
+      "scope": "Resource validators and compiled preference code executed on Android. No Twitch installation or playback test performed for this cleanup."
+    },
+    "builtBundleSha256": "bf917de8c2148257507422b387033bfbce61ac456fdfd31e5a4b2a947258b0ad",
+    "finalBuildComparison": "Extension entries match the audited bundle; the only changed JVM class has identical instructions and constants after removing an unused import.",
+    "androidBuild": {
+      "morpheManager": "1.34.0",
+      "patcher": "1.15.1",
+      "androidApi": 33,
+      "patchesApplied": 9,
+      "selection": "All eight feature patches and Inspect Twitch APK",
+      "apkSha256": "8d9a816accf643a731bde7e86a66af59134ad65cf1ea60bedf3e7c6ff9b0637e",
+      "patching": "passed",
+      "resourceCompilation": "passed",
+      "signing": "passed",
+      "originalAwareAudit": "passed",
+      "originalHierarchyFindings": 93,
+      "introducedHierarchyFindings": 0,
+      "typeContracts": 69
+    },
+    "desktopBuild": {
+      "morpheDesktop": "1.18.0",
+      "bytecodeMode": "FULL",
+      "patchesApplied": 10,
+      "bundleSha256": "bf917de8c2148257507422b387033bfbce61ac456fdfd31e5a4b2a947258b0ad",
+      "apkSha256": "d53b3192561e80267054a7af7d242ac0d8dd7b12ebeff0154f2de4c52fc934b8",
+      "fullDexRebuild": "passed",
+      "originalAwareAudit": "passed",
+      "originalHierarchyFindings": 93,
+      "introducedHierarchyFindings": 0,
+      "typeContracts": 69
+    },
+    "deviceInstallation": {
+      "date": "2026-10-07",
+      "versionName": "31.4.2",
+      "versionCode": 3104026,
+      "androidApi": 33,
+      "artifact": "desktopBuild",
+      "install": "passed",
+      "priorInstallation": "Twitch was absent before installation",
+      "signingCertificateSha256": "2f78b7f3b40f4a1859e446317ea7dbeac0070f5b607af4930c6582ed22d18239",
+      "artVerification": "passed",
+      "coldStartup": "passed",
+      "startupErrorLines": 0,
+      "settings": "Patch settings displayed; both ad-block controls present and enabled",
+      "scope": "Installation, ART verification, startup and settings checks. Extended feature acceptance remains pending."
+    }
+  },
+  "emoteSupport": {
+    "date": "2026-10-07",
+    "versionName": "31.4.2",
+    "versionCode": 3104026,
+    "providers": [
+      "BTTV",
+      "FrankerFaceZ",
+      "7TV"
+    ],
+    "patchName": "BTTV, FFZ and 7TV emotes",
+    "bundleSha256": "efe69db95e378275ca25cce3451424037662a3bfef8c622e805764e334cb8198",
+    "apkSha256": "08c5d99ae26a0b4924341297e568b1bfe5003aab93a0763fc506b08ab9776dc0",
+    "javaKotlinTests": 156,
+    "javaScriptTests": 13,
+    "standaloneVerifierTests": "passed",
+    "fullDexRebuild": "passed",
+    "sdkPerDexAndApkChecks": "passed",
+    "introducedHierarchyFindings": 0,
+    "typeContracts": 69,
+    "androidApi": 33,
+    "deviceInstallation": "passed; existing signing key and app data retained",
+    "deviceArtVerification": "passed",
+    "coldStartup": "passed",
+    "androidImageChecks": [
+      "BTTV GIF larger than 1 MiB",
+      "7TV GIF and animated WebP",
+      "7TV animated channel emote",
+      "FrankerFaceZ GIF and animated WebP",
+      "Independent drawable bounds and callbacks",
+      "Animation stop and resume"
+    ],
+    "androidCatalogChecks": [
+      "FrankerFaceZ default global sets and assigned channel set",
+      "7TV global and channel entries",
+      "BTTV global entries"
+    ],
+    "regressionChecks": [
+      "Provider precedence and native emote preservation",
+      "Channel cancellation and late responses",
+      "Provider failure isolation",
+      "FrankerFaceZ preview metadata"
+    ],
+    "scope": "Animation frames and lifecycle verified with compiled runtime code on Android. V2 provider parsing, image routing and previews verified with adapter tests. Live chat acceptance remains pending."
+  },
+  "emoteProviderSettings": {
+    "date": "2026-10-07",
+    "versionName": "31.4.2",
+    "versionCode": 3104026,
+    "bundleSha256": "38784c51a02c7f088267326c505bfca579e9930821def399510d219586bfa619",
+    "apkSha256": "1ff86a9ab74da95e000702ca50303e58ce462e4b2db9454a347cd8963d04a0ba",
+    "javaKotlinTests": 161,
+    "javaScriptTests": 13,
+    "standaloneVerifierTests": "passed",
+    "fullDexRebuild": "passed",
+    "sdkPerDexAndApkChecks": "passed",
+    "introducedHierarchyFindings": 0,
+    "typeContracts": 69,
+    "androidApi": 33,
+    "deviceInstallation": "passed; existing signing key and app data retained",
+    "deviceArtVerification": "passed",
+    "startupErrorLines": 0,
+    "deviceChecks": [
+      "Native Emotes submenu and provider switches",
+      "All providers enabled by default",
+      "Individual provider selection and partial-selection summary",
+      "Enable all and disable all",
+      "Selections retained after closing the page and restarting Twitch",
+      "Toolbar and Android Back navigation"
+    ],
+    "regressionChecks": [
+      "Legacy preference migration and all provider combinations",
+      "Native and V2 catalog filtering and cached reactivation",
+      "Disabled-provider cancellation and late responses",
+      "Provider-specific preview dismissal",
+      "Settings groups omitted with unselected patches"
+    ],
+    "scope": "Native settings controls verified on Android. Provider filtering and lifecycle covered by catalog and adapter tests."
+  },
+  "sharedSettingsFixes": {
+    "date": "2026-10-07",
+    "versionName": "31.5.2",
+    "androidApi": 33,
+    "javaKotlinTests": 177,
+    "javaScriptTests": 23,
+    "standaloneVerifierTests": "passed",
+    "fullDexRebuild": "passed",
+    "sdkPerDexAndApkChecks": "passed",
+    "introducedHierarchyFindings": 0,
+    "deviceArtVerification": "passed",
+    "themeDeviceResult": "Light feed text, navigation and Patch settings confirmed functional. Live category labels remain visible beneath the measured header fade.",
+    "djDeviceResult": "Enabled settings controls and actual playback behavior confirmed on a DJ-labeled live stream.",
+    "scope": "Settings presentation and app theme. DRM, stream authorization and server enforcement are unchanged."
+  },
+  "displayAdCoverage": {
+    "date": "2026-10-07",
+    "versions": [
+      "31.5.2",
+      "31.4.2"
+    ],
+    "javaKotlinTests": 177,
+    "javaScriptTests": 23,
+    "fullDexRebuild": "passed",
+    "originalAwareSdkAudit": "passed; zero introduced findings",
+    "deviceVersion": "31.5.2",
+    "deviceAndroidApi": 33,
+    "deviceArtVerification": "passed",
+    "followingHeadliner": "Absent on the tested Following feed; native reserved slot removed.",
+    "contracts": [
+      "Native display/VAST no-ad singleton",
+      "Native Following headliner empty Optional and Rx Single factory",
+      "React Native in-feed request and coordinator",
+      "React Native headliner request and state lifecycle",
+      "React Native feed ad creative unmount",
+      "V2 pushdown and left-strip display-ad surface"
+    ],
+    "scope": "Display-ad injection. Creator sponsorship disclosures, Drops and train announcements remain available.",
+    "remainingChecks": [
+      "Repeated server-filled ad opportunities and live setting changes on additional devices",
+      "V2 display-ad opportunities during extended playback"
+    ]
+  },
+  "feedThemeVerification": {
+    "date": "2026-10-08",
+    "versionName": "31.5.2",
+    "androidApi": 33,
+    "javaKotlinTests": 184,
+    "javaScriptTests": 23,
+    "sharedIntegration": "Included with every modifying patch",
+    "nativeContracts": "Feed lifecycle overrides and feed dependency contexts follow the app preference",
+    "reactNativeContracts": "Header palette resolved from the native theme module; existing header animation and geometry retained",
+    "deviceResult": "Manager build verified after clip loading, scrolling and app theme transitions",
+    "scope": "Observed feed theme transitions on one Android device; extended use remains a rollout check"
+  },
+  "emotePickerVerification": {
+    "date": "2026-10-09",
+    "patchName": "BTTV, FFZ and 7TV emotes",
+    "bundleSha256": "7ede9a9b8f3afff20a01b234f63747b6652352e321db797eb130cb2de87a85ef",
+    "javaKotlinTests": 187,
+    "javaScriptTests": 24,
+    "standaloneVerifierTests": "passed",
+    "desktopSelection": ["BTTV, FFZ and 7TV emotes"],
+    "desktopArtifacts": [
+      {
+        "versionName": "31.5.2",
+        "versionCode": 3105026,
+        "apkSha256": "3b193533884254038d6b22fa6ea4a45c0806723b87df47cac27eb41302e57bc4"
+      },
+      {
+        "versionName": "31.4.2",
+        "versionCode": 3104026,
+        "apkSha256": "a96dd97f6d1656bd83ba2d4c33afc2ecab3ab59362056456786db9a791bc5cfc"
+      }
+    ],
+    "fullDexRebuild": "passed",
+    "sdkPerDexAndApkChecks": "passed",
+    "introducedHierarchyFindings": 0,
+    "typeContracts": 69,
+    "androidManager": {
+      "version": "1.34.0",
+      "patcherVersion": "1.15.1",
+      "versionName": "31.5.2",
+      "versionCode": 3105026,
+      "androidApi": 33,
+      "patches": [
+        "Auto-claim bonus channel points",
+        "BTTV, FFZ and 7TV emotes",
+        "Block client-requested ads",
+        "Block stream ads",
+        "Hide Turbo promotions",
+        "Hide feed and display ads",
+        "Hide subscription discount banners",
+        "Reload stream"
+      ],
+      "patching": "passed",
+      "apkSha256": "9a45ce269634fca61b4f14bb316c015023b1443ba57692140b1ae73817926710",
+      "assetComparison": "Picker adapter matches the verified Desktop output",
+      "signerCertificateSha256": "2359337c7c455b62bd5e040411b24a52b49ecb7fb50eb424ead8b404651187cc",
+      "deviceInstallation": "passed; existing signing key, package identity and app data retained",
+      "deviceArtVerification": "passed",
+      "startupErrorLines": 0,
+      "deviceChecks": [
+        "Native and V2 picker provider navigation and animated image rendering",
+        "Native and V2 external emote draft insertion and backspace; no chat messages sent",
+        "Native visible grids load while stationary after catalog jumps",
+        "CorgiCam channel catalog follows Twitch channel sections; global-only BTTV catalog remains at the bottom",
+        "Native picker retains keyboard and original footer controls"
+      ]
+    },
+    "regressionChecks": [
+      "Provider catalogs preserve duplicate names and channel/global scope",
+      "Provider settings remove disabled catalogs and controls",
+      "Current-channel sections precede external channel catalogs; global catalogs remain last",
+      "Visible requests replace queued off-screen work",
+      "Cancelled completions cannot overwrite replacement requests",
+      "V2 prefetch is bounded and native image URLs retain their options"
+    ],
+    "scope": "Picker checks on one Android device. Load times depend on provider connectivity; large-catalog scrolling remains a normal-use acceptance check."
   }
 }

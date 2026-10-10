@@ -7,18 +7,21 @@
 package app.morphe.patches.pinterest.ads
 
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
+@Category(FixtureTests::class)
 class ShoppingFixtureTest {
     private fun Field.json(): String? = annotations.flatMap { it.elements }.firstNotNullOfOrNull {
         if (it.name == "value") (it.value as? StringEncodedValue)?.value else null
     }
 
-    @Test fun `both builds retain shoppable pins featured boards and typed shopping stories`() {
+    @Test fun `each declared build retains shoppable pins featured boards and typed shopping stories`() {
         for (build in Fixtures.declaredBuilds()) {
             var shoppable = false
             var featured = false

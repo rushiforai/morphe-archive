@@ -106,10 +106,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting ALLOW_SCREEN_CAPTURE = new BooleanSetting("allow_screen_capture", FALSE, true);
     public static final BooleanSetting SYSTEM_FONT = new BooleanSetting("system_font", FALSE, true);
     public static final BooleanSetting SYSTEM_EMOJI = new BooleanSetting("system_emoji", FALSE, true);
-    // On once the patch is picked: it's out of the default selection, so picking it is the ask.
-    public static final BooleanSetting TURN_OFF_HAPTICS = new BooleanSetting("turn_off_haptics", TRUE);
+    // Off by default: both patches are in the default selection, so the switch is the ask.
+    public static final BooleanSetting TURN_OFF_HAPTICS = new BooleanSetting("turn_off_haptics", FALSE);
     public static final BooleanSetting TURN_OFF_SCREEN_TRANSITIONS =
-            new BooleanSetting("turn_off_screen_transitions", TRUE);
+            new BooleanSetting("turn_off_screen_transitions", FALSE);
     public static final BooleanSetting AUTOMATIC_CLEAR_DISPLAY = new BooleanSetting("automatic_clear_display", FALSE);
     public static final IntegerSetting AUTOMATIC_CLEAR_DISPLAY_DELAY =
             new IntegerSetting("automatic_clear_display_delay", 1000, false,
@@ -390,6 +390,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
     public static final BooleanSetting HIDE_BOTTOM_SEARCH_BAR = new BooleanSetting("hide_bottom_search_bar", FALSE, true);
     public static final BooleanSetting COMMENT_BATCH_TRANSLATION = new BooleanSetting("comment_batch_translation", FALSE);
+    /** Languages TikTok's automatic translation leaves alone, added to its own Don't translate list (#121). */
+    public static final StringSetting DONT_AUTO_TRANSLATE_LANGUAGES = new StringSetting("dont_auto_translate_languages", "");
     // Restart-gated: the comment keyboard builds its slot tree once per session, and the
     // trigger that adds the emoji row is asked at that moment only.
     public static final BooleanSetting HIDE_COMMENT_QUICK_REACTIONS =
@@ -774,32 +776,32 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting GHOST_HIDE_ONLINE_STATUS =
             new BooleanSetting("ghost_hide_online_status", FALSE, false, Setting.parent(GHOST_MODE));
     public static final BooleanSetting DISABLE_ANALYTICS = new BooleanSetting("disable_analytics", FALSE);
-    // One switch per device-access patch, on by default: the patch was chosen to block, so it
-    // blocks until the reader says otherwise. Each is read at the intercepted call, so none
-    // needs a restart.
-    public static final BooleanSetting BLOCK_CONTACT_LIST = new BooleanSetting("block_contact_list", TRUE);
-    public static final BooleanSetting BLOCK_INSTALLED_APPS = new BooleanSetting("block_installed_apps", TRUE);
-    public static final BooleanSetting BLOCK_LOCATION = new BooleanSetting("block_location", TRUE);
-    public static final BooleanSetting BLOCK_CLIPBOARD_READS = new BooleanSetting("block_clipboard_reads", TRUE);
-    // Off by default, unlike the blocks above. Hiding a VPN changes what TikTok reads your
-    // connection as, and a blank advertising id can affect attribution the reader may want kept,
-    // so each is a switch to turn on rather than a default. Both are read at the intercepted call,
-    // so neither needs a restart, and a paused build answers TikTok's real value.
+    // One switch per device-access patch, off by default: the patches are in the default selection,
+    // so TikTok reads as it ships until the reader turns a block on. Each is read at the
+    // intercepted call, so none needs a restart.
+    public static final BooleanSetting BLOCK_CONTACT_LIST = new BooleanSetting("block_contact_list", FALSE);
+    public static final BooleanSetting BLOCK_INSTALLED_APPS = new BooleanSetting("block_installed_apps", FALSE);
+    public static final BooleanSetting BLOCK_LOCATION = new BooleanSetting("block_location", FALSE);
+    public static final BooleanSetting BLOCK_CLIPBOARD_READS = new BooleanSetting("block_clipboard_reads", FALSE);
+    // Off by default like the blocks above. Hiding a VPN changes what TikTok reads your
+    // connection as, and a blank advertising id can affect attribution the reader may want kept.
+    // Both are read at the intercepted call, so neither needs a restart, and a paused build
+    // answers TikTok's real value.
     public static final BooleanSetting HIDE_VPN = new BooleanSetting("hide_vpn", FALSE);
     public static final BooleanSetting BLOCK_ADVERTISING_ID = new BooleanSetting("block_advertising_id", FALSE);
-    public static final BooleanSetting BLOCK_MOTION_SENSORS = new BooleanSetting("block_motion_sensors", TRUE);
-    // On by default for the same reason, and read at each history write, so no restart.
-    public static final BooleanSetting STOP_SEARCH_HISTORY = new BooleanSetting("stop_search_history", TRUE);
-    // Off even with its patch picked, unlike the one above: people use Watch history to find a
-    // video again, and the report it holds back also counts views and feeds For You.
+    public static final BooleanSetting BLOCK_MOTION_SENSORS = new BooleanSetting("block_motion_sensors", FALSE);
+    // Off by default for the same reason, and read at each history write, so no restart.
+    public static final BooleanSetting STOP_SEARCH_HISTORY = new BooleanSetting("stop_search_history", FALSE);
+    // Off by default too: people use Watch history to find a video again, and the report it
+    // holds back also counts views and feeds For You.
     public static final BooleanSetting STOP_WATCH_HISTORY = new BooleanSetting("stop_watch_history", FALSE);
-    // Off by default, unlike the blocks above: it rides on the sensor patch, so picking that
-    // patch is not a choice about the benchmark (#64). Put into effect by BenchmarkRuns.
+    // Off by default: it rides on the sensor patch, so turning on the sensor block is not a
+    // choice about the benchmark (#64). Put into effect by BenchmarkRuns.
     public static final BooleanSetting STOP_BENCHMARK_RUNS = new BooleanSetting("stop_benchmark_runs", FALSE);
     // Off by default: TikTok's own hybrid pages, the shop checkout and the CAPTCHA page among
     // them, are built on that bridge and stop working without it.
     public static final BooleanSetting BLOCK_WEBVIEW_JS_INTERFACES = new BooleanSetting("block_webview_js_interfaces", FALSE);
-    public static final BooleanSetting CAMERA_MIC_INDICATOR = new BooleanSetting("camera_mic_indicator", TRUE);
+    public static final BooleanSetting CAMERA_MIC_INDICATOR = new BooleanSetting("camera_mic_indicator", FALSE);
     // On once the patch is picked, which is the opt-in. A restart, because TikTok works its
     // signature hash out once and keeps it.
     public static final BooleanSetting STORE_IDENTITY = new BooleanSetting("store_identity", TRUE, true);
@@ -847,15 +849,19 @@ public class Settings extends BaseSettings {
     // Opens a short vt/vm.tiktok.com share link once to swap the full link onto the clipboard.
     public static final BooleanSetting EXPAND_SHORT_SHARE_LINKS = new BooleanSetting("expand_short_share_links", FALSE);
     public static final BooleanSetting HIDE_LIVE_ENTRANCE = new BooleanSetting("hide_live_entrance", FALSE);
+    // The side menu button beside LIVE (#128). The toolbar asks once, as it builds the feed's
+    // top bar, so a change needs a restart.
+    public static final BooleanSetting HIDE_FEED_SIDEBAR_BUTTON =
+            new BooleanSetting("hide_feed_sidebar_button", FALSE, true);
     // Comment tools.
     public static final BooleanSetting COMMENT_KEYWORD_FILTER = new BooleanSetting("comment_keyword_filter", FALSE);
     public static final StringSetting COMMENT_BLOCKED_KEYWORDS = new StringSetting("comment_blocked_keywords", "");
     public static final StringSetting COMMENT_BLOCKED_USERS = new StringSetting("comment_blocked_users", "");
-    public static final BooleanSetting BLOCK_FROM_COMMENT = new BooleanSetting("block_from_comment", TRUE);
+    public static final BooleanSetting BLOCK_FROM_COMMENT = new BooleanSetting("block_from_comment", FALSE);
     public static final BooleanSetting COMMENT_SEARCH = new BooleanSetting("comment_search", FALSE);
     /** Adds Export CSV and Export JSON under the comment search box. */
     public static final BooleanSetting COMMENT_EXPORT = new BooleanSetting("comment_export", FALSE);
-    public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", TRUE);
+    public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
     /** Answers no survey from TikTok's comment survey config, so a comment list carries none. */
@@ -874,7 +880,7 @@ public class Settings extends BaseSettings {
             new BooleanSetting("compact_comment_header", FALSE, true);
     public static final BooleanSetting LARGER_COMMENT_LIKE_TARGET =
             new BooleanSetting("larger_comment_like_target", FALSE, true);
-    public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", TRUE);
+    public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", FALSE);
     public static final BooleanSetting COMMENT_SORT_CONTROLS = new BooleanSetting("comment_sort_controls", FALSE);
     // Share sheet tools.
     public static final BooleanSetting HIDE_SHARE_CONTACTS = new BooleanSetting("hide_share_contacts", FALSE);

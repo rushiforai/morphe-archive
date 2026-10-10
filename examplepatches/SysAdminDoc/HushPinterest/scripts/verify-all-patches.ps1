@@ -159,7 +159,9 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
 
     # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
     # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code decide.
+    # The run waits for a slot in the machine's build queue first (Enter-HushPinterestQueue).
     $preference = $ErrorActionPreference
+    $queued = Enter-HushPinterestQueue -Job 'verify patch'
     try {
         $ErrorActionPreference = 'Continue'
         $global:LASTEXITCODE = -1
@@ -167,6 +169,7 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
         $cliExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $preference
+        Exit-HushPinterestQueue $queued
     }
     # WARNING lines are the patches' own: a patch that works down a list of targets names each one
     # the build lacks there, and still applies.
@@ -231,6 +234,7 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
         # Continue for the call alone, as for the CLI: a JDK note or a stack trace on stderr would
         # otherwise end the run under Windows PowerShell 5.1 before the exit code is read.
         $preference = $ErrorActionPreference
+        $queued = Enter-HushPinterestQueue -Job 'verify resources'
         try {
             $ErrorActionPreference = 'Continue'
             $global:LASTEXITCODE = -1
@@ -239,6 +243,7 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
             $resourceExitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $preference
+            Exit-HushPinterestQueue $queued
         }
         $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
         Write-Host "[verify] resource report: $resourceReport"

@@ -18,10 +18,12 @@ import android.os.Build;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -182,6 +184,30 @@ public final class DownloadLedger {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record batch outcome", failure);
             return false;
         }
+    }
+
+    /**
+     * The pins whose saved history holds a request handed to Android's Downloads or a file saved
+     * through the picker. Skipped, unsupported and failed results don't count, and neither does a
+     * request Android reports failed or missing, so those pins can be tried again. A request Android
+     * can't be asked about still counts, so a pin isn't saved twice. Asks Android's Downloads about
+     * this app's own requests only, so call it off the main thread.
+     */
+    static Set<String> downloadedPinIds(Context context) {
+        Set<String> ids = new HashSet<>();
+        if (context == null || !Utils.isMainProcess()) return ids;
+        try {
+            DownloadLedger ledger = new DownloadLedger(context);
+            synchronized (LOCK) {
+                for (Job job : ledger.query(ledger.load())) {
+                    boolean requested = job.id >= 0 && job.state != State.FAILED && job.state != State.MISSING;
+                    if (requested || job.state == State.SAVED) ids.add(job.pinId);
+                }
+            }
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "read download history", failure);
+        }
+        return ids;
     }
 
     /** Reconciles missed broadcasts without changing Android's retries, notifications or jobs. */

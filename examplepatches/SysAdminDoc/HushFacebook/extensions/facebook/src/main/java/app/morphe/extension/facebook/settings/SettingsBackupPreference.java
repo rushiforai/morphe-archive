@@ -54,6 +54,7 @@ import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.feed.ReactionCeiling;
 import app.morphe.extension.facebook.theme.AccentColor;
@@ -259,15 +260,14 @@ public class SettingsBackupPreference extends Preference {
             back = read(resolver, uri, run);
         } catch (SettingsBackup.Rejected refused) {
             if (refused.reason == SettingsBackup.Reason.UNREADABLE) {
-                return L10n.t("Settings exported. The app holding the file wouldn't let Hushfacebook read it back, "
-                        + "so it wasn't checked.");
+                return L10n.t("Settings exported. Hushfacebook couldn't read the file back to check it.");
             }
             back = null;
         }
         if (new String(bytes, StandardCharsets.UTF_8).equals(back)) return L10n.t("Settings exported.");
         Logger.printInfo(() -> "Settings export read back differently");
-        return L10n.t("The settings file was saved, but it doesn't read back as what was written. "
-                + "Save it again as a new file.");
+        return L10n.t("The settings file was saved, but it doesn't match what Hushfacebook wrote. Save it again as a new "
+                + "file.");
     }
 
     private static void readForPreview(HushfacebookPreferenceFragment page, Uri uri) {
@@ -315,7 +315,7 @@ public class SettingsBackupPreference extends Preference {
             case DAMAGED:
                 return L10n.t("That settings file is damaged or only partly downloaded. Nothing was changed.");
             case DUPLICATE:
-                return L10n.t("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.");
+                return L10n.t("That file lists a setting twice, so Hushfacebook can't tell which value to use. Nothing was changed.");
             case FORMAT:
                 return L10n.t("That isn't a Hushfacebook settings file. Nothing was changed.");
             case SCHEMA:
@@ -388,6 +388,7 @@ public class SettingsBackupPreference extends Preference {
                     snapshot.storiesQualityChange(), snapshot.quietFromChange(), snapshot.quietUntilChange(),
                     snapshot.lockAfterChange(), snapshot.textSizeChange(), snapshot.accentChange()));
             if (snapshot.ceilingChange() != null) parts.add(ceilingSentence(snapshot.ceilingChange()));
+            if (snapshot.shareItemsChange() != null) parts.add(shareItemsSentence(snapshot.shareItemsChange()));
             if (snapshot.seenKeep != null && snapshot.changes().containsKey(SettingsBackup.SEEN_KEEP)) {
                 parts.add(L10n.f("Posts you've seen will stay hidden for %1$s.",
                         HushfacebookPreferenceFragment.seenKeepLabel(snapshot.seenKeep)));
@@ -565,7 +566,7 @@ public class SettingsBackupPreference extends Preference {
     /** The sentence that says which accent color Facebook will have after an import. */
     static String accentSentence(AccentColor.Preset accent) {
         if (accent == AccentColor.Preset.FACEBOOK) return L10n.t("Facebook will keep its own blue.");
-        return L10n.f("With Accent color in the build, Facebook's blue will be %1$s.",
+        return L10n.f("If your patched Facebook includes Accent color, Facebook's blue will be %1$s.",
                 HushfacebookPreferenceFragment.accentLabel(accent));
     }
 
@@ -643,6 +644,14 @@ public class SettingsBackupPreference extends Preference {
         if (rules == 0) return L10n.t("Your list of people, Pages and sites to hide will be empty.");
         return L10n.quantity(rules, "Your list of people, Pages and sites to hide will hold %1$d entry.",
                 "Your list of people, Pages and sites to hide will hold %1$d entries.", rules);
+    }
+
+    /** The sentence that says how many share sheet items will be hidden after an import. */
+    static String shareItemsSentence(String list) {
+        int items = ShareSheetItems.count(list);
+        if (items == 0) return L10n.t("Your list of share sheet items to hide will be empty.");
+        return L10n.quantity(items, "Your list of share sheet items to hide will hold %1$d item.",
+                "Your list of share sheet items to hide will hold %1$d items.", items);
     }
 
     /** A sentence for each setting that isn't a switch an import changes, with no word list among them. */
@@ -853,7 +862,8 @@ public class SettingsBackupPreference extends Preference {
                     snapshot.videoSubfolderChange(), snapshot.photoSubfolderChange(), snapshot.reelsQualityChange(),
                     snapshot.storiesQualityChange(), snapshot.quietFromChange(), snapshot.quietUntilChange(),
                     snapshot.lockAfterChange(), snapshot.textSizeChange(), snapshot.accentChange())
-                    + (snapshot.ceilingChange() == null ? "" : " " + ceilingSentence(snapshot.ceilingChange()));
+                    + (snapshot.ceilingChange() == null ? "" : " " + ceilingSentence(snapshot.ceilingChange()))
+                    + (snapshot.shareItemsChange() == null ? "" : " " + shareItemsSentence(snapshot.shareItemsChange()));
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {
                     SettingsBackup.apply(snapshot);

@@ -34,10 +34,11 @@ public final class GhostModePreference extends TogglePreference {
                 text = "Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.";
                 break;
             case BLOCKED:
-                text = "Reporting calls were blocked here. Viewer-list privacy hasn't been verified.";
+                text = "Hushfeed blocked TikTok's reports here. It hasn't confirmed that you "
+                        + "stay off viewer lists.";
                 break;
             default:
-                text = "On. No reporting call has been observed in this process.";
+                text = "On. Hushfeed hasn't seen TikTok send any reports since it started.";
                 break;
         }
         return L10n.t(getContext(), text);

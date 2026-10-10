@@ -126,10 +126,9 @@ private const val HOLD_TAB_ENTRY_HOT_LOAD = "$EXTENSION_PACKAGE/feed/ReturnRefre
 @Suppress("unused")
 val blockReturnRefreshPatch = bytecodePatch(
     name = "Block background-return feed refresh",
-    description = "Keeps your feed position when you return to Facebook within ten minutes, or " +
-        "for any time away with No time limit on, and when you switch back to Home. Pull to refresh and a " +
-        "fresh launch still work.",
-    default = false,
+    description = "Keeps your place in the feed when you come back to Facebook within ten minutes, or any time " +
+        "with No time limit on, so you don't lose what you were reading. Starts off. Turn it on in Hushfacebook " +
+        "settings > News feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

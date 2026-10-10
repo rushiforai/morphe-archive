@@ -67,10 +67,9 @@ private fun Method.returnEarlyIfTelemetryDisabled(disabledInstructions: (registe
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Adds a switch on the Privacy page that stops ByteDance AppLog analytics, AppsFlyer " +
-        "attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup " +
-        "reporting. TikTok's own diagnostics go quiet with them. Off by default. Switch: Hushfeed settings > Privacy.",
-    default = false,
+    description = "Stops TikTok sending usage statistics and crash reports to TikTok and the " +
+        "tracking services it uses, so less of what you do in the app leaves your phone. Starts " +
+        "off. Turn it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(

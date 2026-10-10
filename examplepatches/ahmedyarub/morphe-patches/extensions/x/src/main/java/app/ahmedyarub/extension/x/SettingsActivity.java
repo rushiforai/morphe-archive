@@ -19,8 +19,10 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.Window;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -45,6 +47,9 @@ public final class SettingsActivity extends Activity {
     /** Rewritten to true by Delete from database. */
     private static boolean databaseEnabled() { return false; }
 
+    /** Rewritten to true by Feed filters. */
+    private static boolean feedFiltersEnabled() { return false; }
+
     private static final String ACCOUNT_TYPE = "com.twitter.android.auth.login";
     private static final String TOKEN = "com.twitter.android.oauth.token";
     private static final String SECRET = "com.twitter.android.oauth.token.secret";
@@ -57,16 +62,32 @@ public final class SettingsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        setTitle("Morphe settings");
 
         list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         ScrollView scroll = new ScrollView(this);
+        scroll.setFitsSystemWindows(true);
         scroll.addView(list);
         setContentView(scroll);
 
-        if (keywordsEnabled()) {
+        TextView title = new TextView(this);
+        title.setText("Morphe settings");
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+        title.setPadding(dp(20), dp(16), dp(20), dp(8));
+        list.addView(title);
+
+        if (feedFiltersEnabled()) {
+            header("Feed Filters");
+            toggle("Media only", "Only show posts with images, videos, or GIFs.",
+                    TimelineFilter.isMediaOnlyEnabled(), TimelineFilter::setMediaOnly);
+            toggle("Hide followed profiles", "Hide posts from profiles you follow.",
+                    TimelineFilter.isHideFollowedEnabled(), TimelineFilter::setHideFollowed);
+            row("Include keywords", "Only show posts containing at least one of these words.", this::editIncludeKeywords);
+            row("Exclude keywords", "Hide posts containing any of these words.", this::editKeywords);
+        }
+        if (keywordsEnabled() && !feedFiltersEnabled()) {
             header("Timeline");
             row("Filtered keywords", "Posts containing any of these are hidden.", this::editKeywords);
         }
@@ -125,6 +146,45 @@ public final class SettingsActivity extends Activity {
         list.addView(row);
     }
 
+    @SuppressWarnings("deprecation")
+    private void toggle(String title, String summary, boolean checked, java.util.function.Consumer<Boolean> onChange) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(dp(20), dp(12), dp(20), dp(12));
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setClickable(true);
+        TypedValue ripple = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+        row.setBackgroundResource(ripple.resourceId);
+
+        LinearLayout texts = new LinearLayout(this);
+        texts.setOrientation(LinearLayout.VERTICAL);
+
+        TextView titleView = new TextView(this);
+        titleView.setText(title);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        texts.addView(titleView);
+
+        TextView summaryView = new TextView(this);
+        summaryView.setText(summary);
+        summaryView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        summaryView.setAlpha(0.7f);
+        texts.addView(summaryView);
+
+        Switch toggle = new Switch(this);
+        toggle.setChecked(checked);
+        toggle.setOnCheckedChangeListener((v, isChecked) -> {
+            onChange.accept(isChecked);
+            Toast.makeText(this, "Refresh a timeline to apply.", Toast.LENGTH_SHORT).show();
+        });
+
+        row.addView(texts, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(toggle, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        row.setOnClickListener(v -> toggle.toggle());
+        list.addView(row);
+    }
+
     private void confirm(String question, Runnable action) {
         new AlertDialog.Builder(this)
                 .setMessage(question)
@@ -150,6 +210,20 @@ public final class SettingsActivity extends Activity {
     }
 
     // endregion
+
+    private void editIncludeKeywords() {
+        EditText editor = editor(TimelineFilter.includeKeywordsText(), "One keyword or phrase per line");
+        new AlertDialog.Builder(this)
+                .setTitle("Include keywords")
+                .setMessage("When set, only posts containing at least one of these are shown.")
+                .setView(padded(editor))
+                .setPositiveButton("Save", (dialog, which) -> {
+                    TimelineFilter.setIncludeKeywords(editor.getText().toString());
+                    Toast.makeText(this, "Saved. Refresh a timeline to apply.", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
 
     private void editKeywords() {
         EditText editor = editor(TimelineFilter.keywordsText(), "One keyword or phrase per line");

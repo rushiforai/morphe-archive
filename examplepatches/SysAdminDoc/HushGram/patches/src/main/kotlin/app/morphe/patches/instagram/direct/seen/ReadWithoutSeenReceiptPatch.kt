@@ -18,17 +18,18 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 
 internal const val THREAD_SEEN_PATCH = "Read messages without the seen receipt"
 
-/** Opt-in, one-sided chat receipt protection, independent of the view-once receipt patch. */
+/**
+ * One-sided chat receipt protection, independent of the view-once receipt patch. In the default
+ * selection with its switch off.
+ */
 @Suppress("unused")
 val readWithoutSeenReceiptPatch = bytecodePatch(
     name = "Read messages without the seen receipt",
-    description = "Adds an off-by-default switch so opening a chat doesn't tell people you've seen their " +
-        "messages. Unlike turning off read receipts in Instagram's settings, you still see when they've seen " +
-        "yours. Instagram's Mark as read still lets them know, whether you long press one chat or pick " +
-        "several. View-once photos and videos have their own patch.",
-    default = false,
+    description = "Opening a chat no longer tells people you've seen their messages. You still see when they've " +
+        "seen yours. Mark as read still tells them. Ghost mode turns it on too. Starts off. Turn it on in " +
+        "HushGram settings > Messages.",
 ) {
-    category("Privacy")
+    category("Ghost mode")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
     execute {

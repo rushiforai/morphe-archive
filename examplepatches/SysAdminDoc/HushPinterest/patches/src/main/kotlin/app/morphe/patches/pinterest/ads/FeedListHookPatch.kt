@@ -43,7 +43,7 @@ internal val feedListHookPatch = bytecodePatch {
             ModelListToStringFingerprint to "model list with bookmark",
         )
         feedListHoldersHooked = handleTargets(PATCH, "list holders", holders) { (fingerprint, what) ->
-            val toString = fingerprint.methodOrNull ?: return@handleTargets "no $what class describes itself the way 14.25 does"
+            val toString = fingerprint.methodOrNull ?: return@handleTargets "no $what class describes itself the way 14.38.0 does"
             val constructors = mutableClassDefBy(toString.definingClass).methods.filter { method ->
                 method.name == "<init>" && method.implementation != null &&
                     method.parameterTypes.count { it.toString() == LIST } == 1

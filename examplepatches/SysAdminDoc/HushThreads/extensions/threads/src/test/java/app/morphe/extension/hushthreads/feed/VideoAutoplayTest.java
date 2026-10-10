@@ -30,15 +30,25 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class VideoAutoplayTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    /** Before as well as after, so a test that stopped half way, or another class, leaves nothing behind. */
-    @Before @After public void restore() {
+    /**
+     * The patch is in Morphe Manager's default selection with its switch off; these tests turn it
+     * on. Cleared first as well, so a test that stopped half way, or another class, leaves nothing
+     * behind.
+     */
+    @Before public void turnTheSwitchOn() {
+        restore();
+        Settings.DISABLE_VIDEO_AUTOPLAY.save(true);
+    }
+
+    @After public void restore() {
         PauseForTests.resume();
         Settings.DISABLE_VIDEO_AUTOPLAY.resetToDefault();
         HookStatus.clear();
     }
 
-    /** Picking the patch is the choice to use it: the switch ships on and holds a video Threads picked. */
-    @Test public void theSwitchShipsOnAndHoldsAVideoThreadsWouldPlay() {
+    /** The switch starts off, so a default build plays videos as Threads does until it's turned on. */
+    @Test public void theSwitchStartsOffAndOnHoldsAVideoThreadsWouldPlay() {
+        assertFalse("the switch starts on", Settings.DISABLE_VIDEO_AUTOPLAY.defaultValue);
         assertTrue(Settings.DISABLE_VIDEO_AUTOPLAY.get());
         assertFalse(VideoAutoplay.play(true));
         String report = String.join("\n", HookStatus.report());

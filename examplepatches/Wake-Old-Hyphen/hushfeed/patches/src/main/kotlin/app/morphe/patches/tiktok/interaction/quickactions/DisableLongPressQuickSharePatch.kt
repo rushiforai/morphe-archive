@@ -24,7 +24,9 @@ private const val FEATURE_CONTROLS_DESCRIPTOR =
 @Suppress("unused")
 val disableLongPressQuickSharePatch = bytecodePatch(
     name = "Disable the long press quick share",
-    description = "Keeps long-pressing Share from opening TikTok's quick-share interaction. Switch: Hushfeed settings > Feed screen.",
+    description = "Stops a long press on Share from opening TikTok's quick share, so you " +
+        "don't send a video by accident. Starts off. Turn it on in Hushfeed settings > Feed " +
+        "screen.",
     default = true,
 ) {
     category("Interaction")

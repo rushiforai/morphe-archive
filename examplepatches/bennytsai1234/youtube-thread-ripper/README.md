@@ -8,6 +8,7 @@ playback with spoofed (non-SABR) video streams smoother:
 | **Multi-connection video download** | Splits each video byte range into 1 MiB chunks, downloads them over 8 concurrent requests on the app's own network stack (Cronet, HTTP/3), and hands the bytes to the player strictly in order. The chunk the player is waiting for gets the highest request priority, so startup is not slowed by chunks further ahead. |
 | **Video buffer preload** | Lets the player keep loading until 900 s of video is buffered or the buffer holds 250 MiB, whichever comes first. YouTube itself stops at about 21 MB, which is only 10–25 s of 4K. |
 | **Stall recovery** | Adds an option, off by default, to resume playback after a stall once 1.6 s of video is buffered instead of the app's 5 s. It may stall again sooner, so try it and keep it only if it feels better. |
+| **Cloudflare WARP while open** | Adds an option, off by default, to route YouTube, and only YouTube, through [Cloudflare WARP](https://one.one.one.one/) while it is in the foreground, and back to the normal connection when it goes to the background (other app, home, recents, screen off). For connections that are slow to YouTube at peak hours but fast through WARP. Built in: no other app needed. |
 
 All patches are on by default and need no setup. Their options are in **YouTube → Settings →
 Morphe → Thread Ripper** (this screen needs the official Morphe Patches, which add the Morphe
@@ -71,8 +72,15 @@ obfuscated names, so other versions may work; they are marked experimental.
 
 **Morphe → Thread Ripper** has: buffer preload on/off, preload target (seconds of video), preload
 memory limit (MiB, 16–300), multi-connection download on/off, connections per range (1–32),
-"resume sooner after a stall" on/off and its threshold (milliseconds of video, 0–5000).
-Changes apply to the next media request; no restart needed.
+"resume sooner after a stall" on/off and its threshold (milliseconds of video, 0–5000), and
+"WARP while YouTube is open" on/off.
+Changes apply to the next media request; no restart needed. The WARP switch applies the next time
+YouTube comes to the foreground.
+
+WARP runs inside YouTube as a VPN that covers only YouTube (a WireGuard client written in Java,
+with a free WARP device registered on first use the way [wgcf](https://github.com/ViRb3/wgcf) does).
+The first time, Android asks for VPN permission. Android allows one VPN at a time: if another VPN
+(for example the 1.1.1.1 app) is already on when YouTube opens, YouTube leaves it alone.
 
 ### Overrides for testing (adb)
 
@@ -88,6 +96,7 @@ reboot; an empty value falls back to the settings screen.
 | `debug.tr.preload_s` | `900` | Preload target in seconds of video; `0` turns preload off |
 | `debug.tr.preload_mib` | `250` | Preload memory limit. Keep it at 300 or below: the app itself uses 100–170 MiB of its 512 MiB heap |
 | `debug.tr.rebuffer_ms` | off | After a stall, resume once this much video is buffered (ms, at most 5000); `0` = off |
+| `debug.tr.warp` | `false` | Connect WARP while YouTube is in the foreground |
 | `debug.tr.log` | `false` | Log each range and buffer decision (tag `ThreadRipper`, info level) |
 
 Example: `adb shell setprop debug.tr.preload_s 120`
@@ -99,14 +108,14 @@ GITHUB_ACTOR=<user> GITHUB_TOKEN=$(gh auth token) ./gradlew buildAndroid
 ```
 
 The token needs `read:packages` (Morphe's Gradle plugin and patcher are on GitHub Packages).
-Output: `patches/build/libs/patches-<version>.mpp`. See [AGENTS.md](AGENTS.md) for the hook
-details, the on-device test scripts in `scripts/device/`, and how measurements were taken.
+Output: `patches/build/libs/patches-<version>.mpp`. See [docs/](docs/) for the hook details and
+[docs/measurements.md](docs/measurements.md) for the measurements; the on-device test scripts are
+in `scripts/device/`.
 
 ## Credits and license
 
 - The chunked, in-order download design follows
-  [Bilibili-thread-ripper](https://github.com/MrTangLuyao/Bilibili-thread-ripper) (BTR); `archive/web-userscript/` keeps an earlier
-  browser userscript with BTR's license and attribution.
+  [Bilibili-thread-ripper](https://github.com/MrTangLuyao/Bilibili-thread-ripper) (BTR).
 - Built with the Morphe patcher and patch template. This project is not affiliated with or endorsed
   by Morphe; see [NOTICE](NOTICE).
 - License: [GPLv3](LICENSE).
@@ -124,7 +133,9 @@ details, the on-device test scripts in `scripts/device/`, and how measurements w
 
 **卡住後恢復（Stall recovery）**：預設關閉。開啟後，卡住時只要緩衝 1.6 秒影片就恢復播放，不用等 App 原本的 5 秒；但緩衝較薄，可能比較快又卡住，覺得有改善再留著。
 
-**設定**：YouTube → 設定 → Morphe → **Thread Ripper**，可調預載開關、秒數、記憶體上限、多線下載開關與連線數，以及卡住後恢復的開關與門檻。改完下一個影片請求就生效，不用重開 App。需要和官方 Morphe Patches 一起修補（設定選單是官方補丁加的）。
+**WARP 連動（Cloudflare WARP while open）**：預設關閉。開啟後，YouTube 在前景時只有 YouTube 走 Cloudflare WARP，退到背景（切到別的 App、回桌面、開多工畫面、關螢幕）時改回原本的網路，背景只聽聲音就走原本的網路。適合尖峰時段直連 YouTube 很慢、走 WARP 很快的網路。WARP 直接內建在 YouTube 裡（自己實作的 WireGuard，第一次使用時比照 wgcf 註冊一組免費 WARP），不用另外裝 App；第一次會詢問 VPN 權限。Android 同時只能有一個 VPN，開 YouTube 時如果已經有別的 VPN（例如 1.1.1.1）在跑，就不會動它。
+
+**設定**：YouTube → 設定 → Morphe → **Thread Ripper**，可調預載開關、秒數、記憶體上限、多線下載開關與連線數、卡住後恢復的開關與門檻，以及 WARP 連動開關。改完下一個影片請求就生效，不用重開 App；WARP 開關在下次 YouTube 回到前景時生效。需要和官方 Morphe Patches 一起修補（設定選單是官方補丁加的）。
 
 **安裝**：在 Morphe Manager 新增補丁來源
 `https://raw.githubusercontent.com/bennytsai1234/youtube-thread-ripper/main/patches-bundle.json`

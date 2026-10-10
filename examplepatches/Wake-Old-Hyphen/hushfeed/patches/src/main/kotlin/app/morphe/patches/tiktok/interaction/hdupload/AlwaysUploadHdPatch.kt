@@ -80,9 +80,9 @@ internal fun hdChoiceReads(method: Method): List<Int> {
 @Suppress("unused")
 val alwaysUploadHdPatch = bytecodePatch(
     name = "Always upload in HD",
-    description = "Makes TikTok treat its own HD upload choice as on for every video you post, as if you'd " +
-        "turned it on yourself on the post page. A clip TikTok doesn't count as high quality posts as before. " +
-        "Switch: Hushfeed settings > App.",
+    description = "Posts every video you upload in HD, as if you'd turned on TikTok's own HD " +
+        "upload setting each time. Videos TikTok doesn't count as high quality post as usual. " +
+        "Starts off. Turn it on in Hushfeed settings > App.",
 ) {
     category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)

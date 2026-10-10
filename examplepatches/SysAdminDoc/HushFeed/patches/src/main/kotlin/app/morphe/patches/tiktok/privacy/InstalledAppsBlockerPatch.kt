@@ -18,8 +18,9 @@ private const val PACKAGE_MANAGER = "Landroid/content/pm/PackageManager;"
 @Suppress("unused")
 val installedAppsBlockerPatch = bytecodePatch(
     name = "Block installed app scanning",
-    description = "Answers TikTok's scan of the apps installed on your phone with an empty list. Checks for one named app, which TikTok also uses to open an app you tap, are left alone. Switch: Hushfeed settings > Privacy.",
-    default = false,
+    description = "Gives TikTok an empty list when it asks which apps are on your phone, so " +
+        "it learns less about you. Opening another app from TikTok still works. Starts off. Turn " +
+        "it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)

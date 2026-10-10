@@ -45,7 +45,7 @@ import java.io.File;
 public class PauseSettingsScreenTest {
     private static final String BACK_ON_AT_RESTART = "Hushfeed turns back on when TikTok restarts.";
     private static final String SWITCH_SUMMARY =
-            "TikTok runs as if it weren't patched. Your settings stay as they are.";
+            "Hushfeed runtime changes are paused. Your settings stay saved. Changes built into the APK remain.";
 
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
@@ -64,7 +64,16 @@ public class PauseSettingsScreenTest {
                 .replace(android.R.id.content, home).commit();
         activity.getFragmentManager().executePendingTransactions();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        return home;
+        assertNull("the pause switch should not occupy the root menu", home.findPreference(BaseSettings.PAUSED.key));
+        Preference advanced = home.findPreference("hub_app_advanced");
+        assertNotNull("App & advanced is missing", advanced);
+        assertTrue(advanced.getOnPreferenceClickListener().onPreferenceClick(advanced));
+        activity.getFragmentManager().executePendingTransactions();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        TikTokPreferenceFragment page = (TikTokPreferenceFragment) activity.getFragmentManager()
+                .findFragmentById(android.R.id.content);
+        assertEquals("APP_ADVANCED", page.getArguments().getString("morphe_settings_hub"));
+        return page;
     }
 
     @Test public void aStartPausedByACrashLoopSaysSoAndOffersTheWayBack() {
@@ -233,13 +242,52 @@ public class PauseSettingsScreenTest {
         }
     }
 
-    @Test public void thePauseSwitchIsOnTheHomePage() {
+    @Test public void thePauseSwitchIsReachableThroughAppAndAdvanced() {
         try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
             TikTokPreferenceFragment home = openHome(owner.get());
             Preference row = home.getPreferenceScreen().findPreference(BaseSettings.PAUSED.key);
-            assertTrue("no Pause Hushfeed switch on the home page", row instanceof TogglePreference);
+            assertTrue("no Pause Hushfeed switch on App & advanced", row instanceof TogglePreference);
             assertEquals("Pause Hushfeed", String.valueOf(row.getTitle()));
+            assertTrue(String.valueOf(row.getSummary()).contains(
+                    "Pause runtime changes after restarting TikTok. Your settings stay saved. Changes built into the APK remain."));
+            assertFalse(String.valueOf(row.getSummary()).contains("as if it weren't patched"));
             assertFalse(((TogglePreference) row).isChecked());
+        }
+    }
+
+    @Test public void theCompactHomeStatusFollowsPauseAndRestartState() {
+        HushfeedPause.pauseForTests(HushfeedPause.Reason.NONE);
+        AbstractPreferenceFragment.restartPending.clear();
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = new TikTokPreferenceFragment();
+            activity.getFragmentManager().beginTransaction().replace(android.R.id.content, home).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            TextView status = home.getView().findViewWithTag("hushfeed_compact_status");
+            assertNotNull(status);
+            assertEquals("Active", status.getText().toString());
+            assertEquals("Hushfeed is active, App & advanced", String.valueOf(status.getContentDescription()));
+
+            BaseSettings.PAUSED.save(true);
+            HushfeedPause.pauseForTests(HushfeedPause.Reason.SWITCH);
+            AbstractPreferenceFragment.restartPending.clear();
+            home.onResume();
+            assertEquals("Paused", status.getText().toString());
+            assertEquals("Hushfeed is paused, App & advanced", String.valueOf(status.getContentDescription()));
+
+            AbstractPreferenceFragment.restartPending.add(BaseSettings.PAUSED.key);
+            home.onResume();
+            assertEquals("Restart pending", status.getText().toString());
+            assertEquals("Restart pending, App & advanced", String.valueOf(status.getContentDescription()));
+
+            assertTrue(status.performClick());
+            activity.getFragmentManager().executePendingTransactions();
+            TikTokPreferenceFragment advanced = (TikTokPreferenceFragment) activity.getFragmentManager()
+                    .findFragmentById(android.R.id.content);
+            assertEquals("APP_ADVANCED", advanced.getArguments().getString("morphe_settings_hub"));
+            assertNotNull(advanced.findPreference(SettingsStatusPreference.KEY));
         }
     }
 

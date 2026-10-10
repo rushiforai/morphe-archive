@@ -5,6 +5,7 @@ const path = require('node:path');
 const assets = path.resolve(__dirname, '../../patches/src/main/resources/reactnative');
 const targets = new Map(), events = [];
 let enabled = true, foreground = true, active, rowContext;
+let bttv = true;
 function host() { return {state: [], effects: [], cursor: 0, deps: []}; }
 const React = {
     Fragment: 'Fragment',
@@ -34,7 +35,7 @@ function render(owner, fn, props) { active = owner; owner.cursor = 0; return fn(
 function flush(owner) { owner.effects.splice(0).forEach(fn => fn()); }
 const runtime = {
     target(id, name, adapter) { targets.set(name, adapter); },
-    enabled(index) { return index === 5 ? enabled : foreground; },
+    enabled(index) { return index === 8 ? bttv : index === 5 ? enabled : foreground; },
     policyHook(react, index) { return this.enabled(index); },
     log(value) { events.push(value); },
     emotes: {loaded() {}, fail() {}, matched() {}, subscribe() {}, snapshot() { return new Map(); }, retain() { return () => {}; }, failed: new Set()}
@@ -50,6 +51,7 @@ const descriptor = descriptors.get('Example');
 const id = runtime.emoteProviders.augment('Example', [], descriptors, new Set())[0].id;
 assert.equal(runtime.emoteDetails.label(descriptor), 'BTTV global emote');
 assert.equal(runtime.emoteDetails.label({...descriptor, provider: '7tv', channel: true}), '7TV channel emote');
+assert.equal(runtime.emoteDetails.label({...descriptor, provider: 'ffz', channel: true}), 'FrankerFaceZ channel emote');
 assert.equal(runtime.emoteDetails.decode('twitchpatches:%invalid'), null);
 for (const change of [{provider: 'other'}, {name: 'bad name'}, {ratio: 50}, {url: 'https://other.test/a'}, {staticURL: ''}]) {
     assert.equal(runtime.emoteDetails.decode('twitchpatches:' + encodeURIComponent(JSON.stringify({...descriptor, ...change}))), null);
@@ -95,6 +97,11 @@ modal.props.onClose(); modal = render(detailsOwner, detailsElement.type, details
 assert.equal(modal.props.visible, false, 'close preserves sheet dismissal animation');
 modal.props.onClosed(); assert.equal(render(owner, row, rowProps).type, 'Provider');
 result.props.onPress();
+bttv = false; rowElement = render(owner, row, rowProps);
+const providerOwner = host(), providerDetails = rowElement.props.children[1];
+render(providerOwner, providerDetails.type, providerDetails.props); flush(providerOwner);
+assert.equal(render(providerOwner, providerDetails.type, providerDetails.props).props.visible, false, 'disabling the provider dismisses its preview');
+bttv = true;
 enabled = false; rowElement = render(owner, row, rowProps);
 const disabledOwner = host(), disabled = rowElement.props.children[1];
 render(disabledOwner, disabled.type, disabled.props); flush(disabledOwner);

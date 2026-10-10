@@ -1,3 +1,13 @@
+## [1.10.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.9.0...v1.10.0) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* fixed camera opus error [skip ci] ([f042b75](https://github.com/mich111discord/MightyMichs-Patches/commit/f042b75059602159f1772ed76f3ce72ff365f658))
+
+### ✨ New Features
+
+* added suport for photex companion ([ff2fb5a](https://github.com/mich111discord/MightyMichs-Patches/commit/ff2fb5ad1a8df0413e00ce07382da7100063d0b1))
+
 ## [1.9.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.8.0...v1.9.0) (2026-10-08)
 
 ### 🐛 Bug Fixes

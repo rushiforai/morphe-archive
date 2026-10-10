@@ -95,7 +95,7 @@ public class FontFilePreferenceTest {
             assertEquals("Use the system font", String.valueOf(toggle.getTitle()));
             Preference choose = page.findPreference(FontFilePreference.CHOOSE_KEY);
             assertEquals("Font file", String.valueOf(choose.getTitle()));
-            assertEquals("None chosen, so your phone's font is used. Choose a TrueType or OpenType file of up to "
+            assertEquals("None chosen, so your phone's font is used. Choose a .ttf or .otf font file of up to "
                     + "20 MB.", String.valueOf(choose.getSummary()));
             assertTrue(choose.isEnabled());
             assertNull("a way back to the phone's font with nothing picked",
@@ -243,7 +243,7 @@ public class FontFilePreferenceTest {
             HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             byte[] photo = {(byte) 0x89, 'P', 'N', 'G', 13, 10, 26, 10};
             deliver(activity, tap(activity, page), "content://font-test/photo.png", photo);
-            assertEquals("That isn't a TrueType or OpenType font file. Your font didn't change.",
+            assertEquals("That isn't a .ttf or .otf font file. Your font didn't change.",
                     ShadowToast.getTextOfLatestToast());
             assertEquals("", Settings.FONT_SOURCE.savedValue());
             assertFalse(copy().exists());
@@ -252,7 +252,7 @@ public class FontFilePreferenceTest {
         }
         assertEquals("That font file is over 20 MB. Your font didn't change.",
                 FontFilePreference.refusal(FontFile.Refusal.TOO_LARGE));
-        assertEquals("Android couldn't draw with that font file. Your font didn't change.",
+        assertEquals("Android couldn't use that font file. Your font didn't change.",
                 FontFilePreference.refusal(FontFile.Refusal.WONT_LOAD));
         assertEquals("Couldn't open that file. Your font didn't change.",
                 FontFilePreference.refusal(FontFile.Refusal.UNREADABLE));

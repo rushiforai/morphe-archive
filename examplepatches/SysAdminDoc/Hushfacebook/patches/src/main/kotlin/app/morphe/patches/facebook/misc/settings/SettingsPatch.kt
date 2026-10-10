@@ -76,9 +76,9 @@ internal fun BytecodePatchContext.declaredInHierarchy(
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Hushfacebook settings",
-    description = "Adds Hushfacebook settings to Facebook. Long-press the Facebook logo at the top of " +
-        "your feed, or Facebook's launcher icon, to turn features on or off, pause Hushfacebook, save your " +
-        "switches to a file or load them, and export diagnostics. The licenses are there too.",
+    description = "Adds Hushfacebook settings to Facebook, where you turn features on or off, pause Hushfacebook " +
+        "and back up your choices. To open them, long-press the Facebook logo at the top of your feed or " +
+        "Facebook's app icon. Other patches need it, so keep it selected.",
     default = true,
 ) {
     category("Settings")

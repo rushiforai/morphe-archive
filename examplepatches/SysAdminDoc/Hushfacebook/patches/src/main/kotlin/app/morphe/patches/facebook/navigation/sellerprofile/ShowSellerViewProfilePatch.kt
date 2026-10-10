@@ -78,9 +78,9 @@ internal fun isByIdBooleanRead(method: Method): Boolean {
 val showSellerViewProfilePatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Show View profile on Marketplace sellers",
-    description = "Every seller's page in Marketplace gets View profile, which opens the seller's regular " +
-        "Facebook profile so you can check who you're buying from. Facebook shows that button to only some " +
-        "accounts. Its switch starts on, under Marketplace.",
+    description = "Adds View profile to every seller's Marketplace page. It opens their regular Facebook " +
+        "profile, so you can check who you're buying from. Facebook shows that button to only some accounts. On " +
+        "by default. Turn it off in Hushfacebook settings > Marketplace.",
     default = true,
 ) {
     category("Interface")

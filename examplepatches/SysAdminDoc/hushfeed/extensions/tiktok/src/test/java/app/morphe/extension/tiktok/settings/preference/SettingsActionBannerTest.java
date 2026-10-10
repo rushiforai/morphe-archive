@@ -127,6 +127,49 @@ public class SettingsActionBannerTest {
         assertNull(content.findViewWithTag(SettingsActionBanner.BANNER_TAG));
     }
 
+    /**
+     * A tap on the banner went through to the row under it: the banner wasn't clickable, so the
+     * pause notice could sit on Pause Hushfeed and a tap on the notice flipped the switch.
+     */
+    @Test public void aTapOnTheBannerClosesItAndNeverReachesTheRowUnderIt() {
+        AtomicInteger beneath = new AtomicInteger();
+        View row = new View(activity);
+        row.setOnClickListener(view -> beneath.incrementAndGet());
+        content.addView(row, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        SettingsActionBanner.showNotice(activity, "Today's budget is locked");
+        View banner = content.findViewWithTag(SettingsActionBanner.BANNER_TAG);
+        assertNotNull(banner);
+
+        AccessibilityNodeInfo node = banner.createAccessibilityNodeInfo();
+        boolean labelled = false;
+        for (AccessibilityNodeInfo.AccessibilityAction action : node.getActionList()) {
+            if (action.getId() == AccessibilityNodeInfo.ACTION_CLICK
+                    && "Close".contentEquals(action.getLabel())) labelled = true;
+        }
+        node.recycle();
+        assertTrue("TalkBack isn't told what a tap on the banner does", labelled);
+
+        content.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
+        content.layout(0, 0, 1080, 1920);
+        float x = banner.getLeft() + banner.getWidth() / 2f;
+        float y = banner.getTop() + banner.getHeight() / 2f;
+        android.view.MotionEvent down = android.view.MotionEvent.obtain(
+                0, 0, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+        android.view.MotionEvent up = android.view.MotionEvent.obtain(
+                0, 10, android.view.MotionEvent.ACTION_UP, x, y, 0);
+        content.dispatchTouchEvent(down);
+        content.dispatchTouchEvent(up);
+        down.recycle();
+        up.recycle();
+        Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+        assertEquals("the tap went through the banner to the row it covered", 0, beneath.get());
+        assertNull("a tap on the banner left it up", content.findViewWithTag(
+                SettingsActionBanner.BANNER_TAG));
+    }
+
     @Test public void replacingFeedbackLeavesExactlyOneBanner() {
         SettingsActionBanner.showNotice(activity, "first");
         SettingsActionBanner.showUndo(activity, "second", () -> { });

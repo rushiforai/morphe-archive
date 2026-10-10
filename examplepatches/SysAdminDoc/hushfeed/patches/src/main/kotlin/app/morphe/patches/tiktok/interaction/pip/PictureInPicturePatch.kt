@@ -118,9 +118,9 @@ private val pictureInPictureManifestPatch = resourcePatch {
 @Suppress("unused")
 val pictureInPicturePatch = bytecodePatch(
     name = "Picture-in-picture",
-    description = "Adds a switch that keeps the video you're watching playing in a small window when " +
-        "you leave TikTok, with a button to pause it. Works in the feed and on videos opened from a " +
-        "profile, search or a sound. Switch: Hushfeed settings > Playback.",
+    description = "Keeps the video playing in a small window when you leave TikTok, so you " +
+        "can keep watching while you use other apps. Starts off. Turn it on in Hushfeed settings " +
+        "> Playback.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch, sessionPlaybackBridgePatch, pictureInPictureManifestPatch)

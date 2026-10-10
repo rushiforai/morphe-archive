@@ -11,7 +11,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.9.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v0.10.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details>
 <summary>📦 MEO (Android TV)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -39,6 +39,12 @@ These are the available patches for NuvioTV:
 ### Continue Watching
 
 - **Merge tracking progress**: Combines Nuvio Sync and connected tracking-provider progress and watched-show history, with a choice between highest progress and the most recent update. Library and collection Watched labels follow the selected provider for each show. Cached progress and watched history load without waiting for provider refresh; synchronization continues in the background. Incremental Watched badge updates process changed cached metadata and limit progress logging.
+
+    - Enable **Show merged progress provider** to display the winning provider's icon (Trakt, Simkl, MDBList, or Nuvio) at the bottom-right of each Continue Watching poster. The option is disabled by default and displays icons only while merging is enabled.
+
+| Card | Poster |
+| -- | -- |
+| <img src="images/NuvioTVProvidersCard.png" width="400" alt="Collections"> | <img src="images/NuvioTVProvidersPoster.png" width="400" alt="Library"> |
 
 - **Remaining episodes in Continue Watching**: Adds a setting to show the number of aired, unwatched episodes on Continue Watching cards. Counting runs in the background for recently displayed cards and stops when disabled.<br>
 
@@ -68,13 +74,7 @@ These are the available patches for NuvioTV:
 
 - **Side-by-side installation**: Lets you choose a different package name and launcher name so the patched app can coexist with the official app.
 
-On NuvioTV **1.1.0-beta.4 and beta.5**, patch settings are under **Layout > Santodan-Patches**, grouped under **Continue Watching**, **UI**, and **Streams** labels. Labels appear only for installed patch groups. Airing-series, finale-date, upcoming-movie-date, and stream-preloading patches support beta.4 and beta.5; merged progress, remaining episodes, and side-by-side installation also support beta.2. Package and launcher names are configured when patching the APK.
-
-The two **Streams** switches are independent and disabled by default. Preloading uses Nuvio's native search cache and installed addons/plugins, with bounded background work. It pauses new preloads while native playback pauses source searches. Source results retain Nuvio's profile/configuration checks and cache expiration; media playback begins when you press Play.
-
-Include `"SantodanMovieRelease:V"` for movie-date diagnostics. Toggle messages identify the library or collections setting; routine settings recompositions stay silent.
-
-Include `"SantodanStreams:V"` in your logcat filters to see preload starts, completion times, source counts, and timeout/cancellation events. Repeated composition hits stay silent, and diagnostics omit stream URLs and redact custom video IDs.
+The patch settings are under **Layout > Santodan-Patches**, grouped under **Continue Watching**, **UI**, and **Streams** labels. Labels appear only for installed patch groups. Airing-series, finale-date, upcoming-movie-date, and stream-preloading patches support beta.4 and beta.5; merged progress, remaining episodes, and side-by-side installation also support beta.2. Package and launcher names are configured when patching the APK.
 
 <img src="images/NuvioTVMenu.png" width="800" alt="Santodan-Patches menu">
 
@@ -112,10 +112,18 @@ Include `"SantodanStreams:V"` in your logcat filters to see preload starts, comp
 </details>
 
 <details>
-<summary>📦 Pillo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Pillo&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Banner/Light mode, it keeps fullscreen alarms while the device is locked and uses banner notifications while the device is unlocked.
+
+**Import weight history from JSON** supports Pillo 0.6.20. Open **Weight > Add record**, select the profile, and tap the blue **+ Import weights JSON** button above **Skip** in the weight-entry step. Choose kilograms or pounds (kilograms is the default), select an SWT JSON backup, review its date range, and tap **Import**. The importer preserves each epoch-millisecond date as Pillo's epoch-second recording time, converts kilograms to Pillo's internal pounds, and adds ordinary extra weight records. Existing records stay unchanged; entries with the same recording time and weight in that profile are skipped. The import runs locally and does not upload the file.
+
+**Local backup and restore** supports Pillo 0.6.20. Open **Settings > Backup and restore > Local file** to export Pillo's database, settings and app-managed files to a `.pillo-backup.zip`, or restore a previously exported file without Google sign-in. Restore replaces current data, saves a recovery copy, and restarts Pillo. The existing Google flow is available through **Google backup**. See [local backup details](docs/PilloLocalBackup.md) for included data, format limits and device-bound credential limitations.
+
+**Weight change summaries** supports Pillo 0.6.20. Adds **Total** beside **Latest** for signed weight change across the selected records, makes **All** the default filter, and replaces **Avg** with a tappable **Last since** date comparison. Choose a date to compare the first weight recorded on or after it with the latest weight; the selected date is saved locally. **Last 30 days / Last 15 days / Change** appear between **Last since / Min / Max** and the graph. Negative values mean weight lost, positive values mean weight gained, and insufficient data shows **—**. See [weight summary details](docs/PilloWeightSummary.md) for calculation periods and signs.
+
+<img src="images/PilloWeightSummary.png" width="400" alt="Pillo weight chart with signed total, selectable comparison date, and 30-day and 15-day changes">
 
 **🎯 Supported versions:**
 
@@ -125,6 +133,9 @@ Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Ba
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Pillo - Hybrid Lock-Screen Notifications](#pillo-hybrid-lock-screen-notifications) | Use fullscreen alarms while the phone is locked and banner notifications while it is unlocked. Select Pillo's Banner/Light notification mode. |  |
+| [Pillo - Import weight history from JSON](#pillo-import-weight-history-from-json) | Adds a native Import weights JSON button above Skip in Weight > Add record. Imports SWT backup weights with their dates into the selected profile, with kg/lb selection and duplicate skipping. |  |
+| [Pillo - Local backup and restore](#pillo-local-backup-and-restore) | Adds local-file export and restore of Pillo's database, settings and app-managed files, without Google sign-in. Restore replaces current data, keeps a recovery backup and restarts Pillo. |  |
+| [Pillo - Weight change summaries](#pillo-weight-change-summaries) | Adds signed Total weight change, an All default filter, a selectable Last since date, and Last 30 days / Last 15 days / Change summaries using full profile history. |  |
 
 </details>
 
@@ -185,5 +196,6 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 | Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.19`, `0.6.20` | Hybrid Lock-Screen Notifications |
+| Pillo | `xyz.rtrvr.pillo` | `0.6.20` | Import weight history from JSON; Local backup and restore; Weight change summaries |
 
 See [AI_Guide.md](AI_Guide.md) for implementation details and device-testing notes.

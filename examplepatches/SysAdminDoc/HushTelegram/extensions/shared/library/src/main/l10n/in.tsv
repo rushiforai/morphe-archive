@@ -1,7 +1,7 @@
 # Indonesian for HushTelegram: the English key, a tab, the translation. One row per string.
 # context: Chat-list-only story controls and immutable hook coverage.
 Hide Stories	Sembunyikan Cerita
-Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.	Menyembunyikan bilah cerita di daftar chat, lingkaran cerita pada avatar dan tombol Kirim Cerita, serta berhenti mengambil daftar cerita. Cerita profil dan arsip tetap tersedia.
+Removes the story bar above your chats, the rings around profile pictures and the Post Story button. Profile stories and archives stay.	Menghapus bilah cerita di atas obrolan Anda, lingkaran di sekitar foto profil, dan tombol untuk memposting cerita. Cerita di profil dan arsip tetap ada.
 story list requests	permintaan daftar cerita
 chat-list story bar	bilah cerita di daftar chat
 Post Story button	tombol Kirim Cerita
@@ -12,17 +12,17 @@ avatar story taps	ketukan cerita pada avatar
 %1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushTelegram ini, jadi tidak akan disertakan.
 %1$d switch will change.	%1$d sakelar akan berubah.
 %1$d switches will change.	%1$d sakelar akan berubah.
-%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
-%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+%1$s. It was set when you patched, so Pause can't turn it off. To get rid of it, patch again without that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak bisa mematikannya. Untuk menghilangkannya, tambal ulang tanpa tambalan itu.
+%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, patch again without the patch named in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak bisa mematikannya. Untuk menghilangkan salah satunya, tambal ulang tanpa tambalan yang disebut dalam tanda kurung setelahnya.
 A diagnostic report is already being saved.	Sudah ada laporan diagnostik yang sedang disimpan.
 A file named %1$s in %2$s paused HushTelegram.	File bernama %1$s di %2$s menjeda HushTelegram.
 About	Tentang
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
 Back	Kembali
 Cancel	Batal
-Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.	Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah. Yang Anda impor berlaku untuk semua akun di aplikasi Telegram ini.
+Loads switch choices from a saved file. You see how many switches it will change before anything is applied. It applies to all accounts.	Memuat pilihan sakelar dari berkas yang disimpan. Anda melihat berapa sakelar yang akan berubah sebelum apa pun diterapkan. Berlaku untuk semua akun.
 Clear diagnostic data	Hapus data diagnostik
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
+Copy a short report or save the full one to Download/Morphe. Links, IDs and sign-in details are left out. Look it over before sharing.	Salin laporan singkat atau simpan yang lengkap ke Download/Morphe. Tautan, ID, dan data masuk tidak disertakan. Periksa dulu sebelum membagikannya.
 Copy quick report	Salin laporan singkat
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
 Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
@@ -37,24 +37,24 @@ Debug logging	Pencatatan debug
 Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
 Diagnostic data put back.	Data diagnostik dikembalikan.
 Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
-Empties the log and the hook findings a report would include.	Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.
-Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
+Clears the activity log and patch checks that a report would include.	Menghapus catatan aktivitas dan hasil pemeriksaan tambalan yang akan disertakan dalam laporan.
+Every switch except Debug logging acts as if it were off. Edits made when you patched stay in. Your choices stay saved.	Semua sakelar kecuali Pencatatan debug dianggap mati. Perubahan yang dibuat saat menambal tetap berlaku. Pilihan Anda tetap tersimpan.
 Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+After Telegram restarts, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Setelah Telegram dimulai ulang, semua sakelar kecuali Pencatatan debug dianggap mati. Pilihan Anda tetap tersimpan. Perubahan yang dibuat saat menambal tetap berlaku.
 Hide ads	Sembunyikan iklan
 Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
 Privacy	Privasi
-Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Telegram ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
+Saves your switch choices to a file, for all accounts in this Telegram app. Pause, Debug logging and the update check aren't included.	Menyimpan pilihan sakelar Anda ke berkas, untuk semua akun di aplikasi Telegram ini. Jeda, Pencatatan debug, dan pemeriksaan pembaruan tidak disertakan.
 Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushTelegram membacanya kembali, jadi file itu tidak diperiksa.
 The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushTelegram berhenti menunggu. Tidak ada yang diubah.
 The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
 The app holding the settings file is taking too long, so HushTelegram stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushTelegram berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
-The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
-Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
+The settings file was saved, but what's in it doesn't match what was written. Save it again as a new file.	Berkas pengaturan tersimpan, tetapi isinya tidak sama dengan yang ditulis. Simpan lagi sebagai berkas baru.
+Until you resume, every switch except Debug logging acts as if it were off. Edits made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap mati. Perubahan yang dibuat saat menambal tetap berlaku.
 Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
-GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
+The GPL-3.0 license, and credits for the projects HushTelegram is built on	Lisensi GPL-3.0 dan kredit untuk proyek-proyek yang menjadi dasar HushTelegram
 HushTelegram is on	HushTelegram aktif
 HushTelegram is paused	HushTelegram dijeda
 HushTelegram settings	Pengaturan HushTelegram
@@ -71,16 +71,16 @@ Retry	Coba lagi
 Save full report	Simpan laporan lengkap
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushTelegram releases	Periksa rilis HushTelegram baru
-Ask GitHub once a day when Telegram starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Periksa GitHub sekali sehari saat Telegram dimulai dan tampilkan rilis yang lebih baru di bagian atas pengaturan ini. Mati secara bawaan. Tidak mengunduh apa pun.
+Once a day, when Telegram starts, checks GitHub for a newer HushTelegram and shows it at the top of these settings. Nothing is downloaded.	Sekali sehari, saat Telegram dimulai, memeriksa GitHub untuk HushTelegram yang lebih baru dan menampilkannya di bagian atas pengaturan ini. Tidak ada yang diunduh.
 Check now	Periksa sekarang
-Asks GitHub for the newest release right now, even with the switch above off.	Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.
+Checks GitHub for the newest release right now, even if the switch above is off.	Memeriksa GitHub sekarang untuk rilis terbaru, meski sakelar di atas mati.
 Checking GitHub now.	Sedang memeriksa GitHub.
 HushTelegram %1$s is out. Update it in Morphe Manager.	HushTelegram %1$s sudah dirilis. Perbarui di Morphe Manager.
 You have the newest HushTelegram release.	Anda sudah memakai rilis HushTelegram terbaru.
 The newest HushTelegram release is %1$s.	Rilis HushTelegram terbaru adalah %1$s.
 Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi nanti.
-GitHub is turning away checks from this network for now. Try again later.	GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.
-GitHub's answer couldn't be used. Try again later.	Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.
+GitHub is blocking checks from this network for now. Try again later.	GitHub sedang memblokir pemeriksaan dari jaringan ini untuk sementara. Coba lagi nanti.
+GitHub sent a reply HushTelegram couldn't read. Try again later.	GitHub mengirim balasan yang tidak bisa dibaca HushTelegram. Coba lagi nanti.
 Saving the settings file	Menyimpan file pengaturan
 Set when you patched	Diatur saat Anda menambal
 Settings couldn't open	Pengaturan tidak dapat dibuka
@@ -101,12 +101,12 @@ That settings file was written by a newer HushTelegram than this one. Nothing wa
 The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
 The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
 The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushTelegram lagi.
-The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
+That setting couldn't be updated. The switch shows the value that is saved.	Pengaturan itu tidak bisa diperbarui. Sakelar menampilkan nilai yang tersimpan.
 There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
 There's no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dikembalikan.
 This phone has no file picker, so there's no way to choose a file here.	Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.
 Version	Versi
-Record patch activity and show errors for a bug report. Leave off during normal use.	Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.
+Records what HushTelegram does and shows error messages, to help with a bug report. Leave it off for everyday use.	Mencatat apa yang dilakukan HushTelegram dan menampilkan pesan kesalahan, untuk membantu laporan bug. Biarkan mati untuk pemakaian sehari-hari.
 You paused HushTelegram.	Anda menjeda HushTelegram.
 Your switches already match that file, so nothing will change.	Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.
 Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
@@ -127,7 +127,7 @@ No matching settings	Tidak ada pengaturan yang cocok
 Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
 Search settings	Cari pengaturan
 Clear search	Hapus pencarian
-Your controls are active.	Kontrol Anda aktif.
+Your switches are working.	Sakelar Anda aktif.
 Pause	Jeda
 Resume	Lanjutkan
 Undo	Urungkan
@@ -139,16 +139,16 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Memilih tautan secara manual
 
 A change here applies after Telegram restarts.	Perubahan di sini berlaku setelah Telegram dimulai ulang.
-Android opens t.me links in an app only when its addresses are selected for that app. Selecting them sends their links here, and your other link settings stay as they are.	Android hanya membuka tautan t.me di sebuah aplikasi saat alamatnya dipilih untuk aplikasi itu. Memilihnya akan mengirim tautannya ke sini, dan pengaturan tautan Anda yang lain tetap seperti semula.
+Android opens t.me links in this app only if you select their addresses on its Open by default page. Other link settings don't change.	Android membuka tautan t.me di aplikasi ini hanya jika Anda memilih alamatnya di halaman Buka secara default milik aplikasi. Pengaturan tautan lain tidak berubah.
 Android verified this app for Telegram's web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Telegram, jadi tautannya terbuka di sini.
 Android's settings for this app didn't open. Open App info from Telegram's icon, then Open by default.	Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Telegram, lalu Buka secara default.
-Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.	Saluran tidak menampilkan pesan bersponsor, pencarian tidak menampilkan akun bersponsor, dan video diputar tanpa iklan. Telegram tidak pernah memintanya, jadi tidak ada yang dihitung sebagai dilihat.
+Removes sponsored messages in channels, sponsored accounts in search and ads in videos. They're never loaded, so none count as seen.	Menghapus pesan bersponsor di kanal, akun bersponsor di pencarian, dan iklan di video. Semuanya tidak pernah dimuat, jadi tidak ada yang dihitung sebagai dilihat.
 Chats	Chat
 HushTelegram %1$s on Telegram %2$s	HushTelegram %1$s di Telegram %2$s
-HushTelegram %1$s targets Telegram %2$s.	HushTelegram %1$s ditujukan untuk Telegram %2$s.
+HushTelegram %1$s is made for Telegram %2$s.	HushTelegram %1$s dibuat untuk Telegram %2$s.
 HushTelegram pauses when Telegram restarts.	HushTelegram dijeda saat Telegram dimulai ulang.
 HushTelegram turns back on when Telegram restarts.	HushTelegram aktif lagi saat Telegram dimulai ulang.
-It targets Telegram %1$s.	Rilis ini ditujukan untuk Telegram %1$s.
+It's made for Telegram %1$s.	Rilis ini dibuat untuk Telegram %1$s.
 None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Tidak ada alamat web Telegram yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Telegram yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Saved. Restart Telegram to apply this change.	Tersimpan. Mulai ulang Telegram untuk menerapkan perubahan ini.
@@ -163,8 +163,8 @@ video ads	iklan video
 search ads	iklan pencarian
 device statistics reports	laporan statistik perangkat
 channel read metrics	metrik pembacaan saluran
-This build has no coverage for %1$s.	Versi ini tidak mencakup %1$s.
-This build covers %1$s. Missing coverage: %2$s.	Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.
+This patched app doesn't change %1$s.	Aplikasi yang ditambal ini tidak mengubah %1$s.
+This patched app changes %1$s but not %2$s.	Aplikasi yang ditambal ini mengubah %1$s, tetapi tidak %2$s.
 Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushTelegram menjeda dirinya sendiri.
 Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Telegram dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
 Usage reports and call diagnostics	Laporan penggunaan dan diagnostik panggilan
@@ -176,43 +176,46 @@ Your choices are saved. Tap Resume, then restart Telegram.	Pilihan Anda tersimpa
 Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram berhenti menawarkan pembaruan dari telegram.org. Pembaruan itu tidak bisa dipasang di atas build yang sudah di-patch ini, jadi patch setiap versi baru di Morphe Manager.
 No HushTelegram release is out yet.	Belum ada rilis HushTelegram.
 Hide recommendations	Sembunyikan rekomendasi
-Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.	Menyembunyikan saluran dan bot serupa, termasuk rekomendasi tersimpan. Telegram tidak meminta rekomendasi baru selama sakelar aktif.
+Hides suggested similar channels and bots, including ones already saved, and stops asking Telegram for new ones.	Menyembunyikan saran kanal dan bot serupa, termasuk yang sudah tersimpan, dan berhenti meminta saran baru dari Telegram.
 similar channels and bots	saluran dan bot serupa
 cached recommendations	rekomendasi tersimpan
 Stop call diagnostics	Hentikan diagnostik panggilan
-Stops automatic call debug reports and log-file uploads requested by Telegram's server.	Menghentikan laporan debug panggilan otomatis dan unggahan berkas log yang diminta server Telegram.
+Stops your phone from automatically sending call problem reports and log files when Telegram's server asks for them.	Mencegah ponsel Anda mengirim laporan masalah panggilan dan berkas log secara otomatis saat server Telegram memintanya.
 call debug reports	laporan debug panggilan
 call log file uploads	unggahan berkas log panggilan
 call log reports	laporan log panggilan
 Hide Premium, gifts and Stars	Sembunyikan Premium, hadiah dan Stars
-Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.	Menyembunyikan Premium, Stars, My Grams, Business dan Kirim Hadiah di Pengaturan, tab Hadiah pada profil dan tombol Hadiah pada kanal. Pembelian dan kontrol akun tetap berfungsi seperti biasa.
+Removes Premium, Stars, My Grams, Business and Send a Gift from Settings, Gifts tabs on profiles, and the Gift button in channels.	Menghapus Premium, Stars, My Grams, Business, dan Kirim Hadiah dari Pengaturan, tab Hadiah di profil, dan tombol Hadiah di kanal.
 Settings sales rows	Penawaran di Pengaturan
 profile Gifts tabs	tab Hadiah pada profil
 channel Gift button	tombol Hadiah pada kanal
 Hide promotional banners	Sembunyikan banner promosi
-Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.	Menyembunyikan banner Premium, ulang tahun dan saldo Stars rendah di daftar chat. Pemberitahuan keamanan akun dan saran lainnya tetap ada. Tidak ada yang ditutup atas nama Anda.
+Hides the Premium, birthday and low Stars balance banners above your chat list. Account security notices and other suggestions still show.	Menyembunyikan banner Premium, ulang tahun, dan saldo Stars yang menipis di atas daftar obrolan Anda. Pemberitahuan keamanan akun dan saran lainnya tetap tampil.
 promotional suggestions	saran promosi
 birthday gift banner	banner hadiah ulang tahun
 Hide sponsored proxy channel	Sembunyikan kanal bersponsor proxy
-Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.	Menyembunyikan kanal bersponsor milik proxy dari daftar chat dan folder. Pengaturan proxy dan pembaruan data promosi bersama tetap seperti biasa.
+Hides the sponsored channel a proxy adds to your chat list and folders. Your proxy settings aren't touched.	Menyembunyikan kanal bersponsor yang ditambahkan proxy ke daftar obrolan dan folder Anda. Pengaturan proxy Anda tidak diubah.
 cached proxy channel	kanal proxy tersimpan
 cached proxy folder entries	entri proxy tersimpan di folder
 Open links externally	Buka tautan di luar aplikasi
-Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.	Membuka tautan HTTP(S) biasa di browser Anda. Tautan Telegram serta jalur login, pembayaran dan autentikasi tetap berperilaku seperti biasa.
-Strip link tracking	Hapus pelacakan tautan
-Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.	Pembersihan lokal opsional saat membuka tautan dan di pemilih Bagikan Tautan. Hanya menghapus utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid dan fbclid. Parameter kueri yang tidak dikenal membuat seluruh URL tetap utuh. Secara default nonaktif di pengaturan.
+Opens normal web links in your browser. Telegram links, sign-in and payment pages keep working the way they did.	Membuka tautan web biasa di browser Anda. Tautan Telegram, halaman masuk, dan pembayaran tetap berfungsi seperti sebelumnya.
+Remove link tracking tags	Hapus tag pelacakan tautan
+Removes tracking tags like utm_source, gclid and fbclid from links you open or share. A link with any other tag is left unchanged.	Menghapus tag pelacakan seperti utm_source, gclid, dan fbclid dari tautan yang Anda buka atau bagikan. Tautan dengan tag lain tidak diubah.
 external browser routing	pengarahan ke browser eksternal
 opened link tracking	pelacakan tautan yang dibuka
 shared link tracking	pelacakan tautan yang dibagikan
-Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.	Telegram tidak mengirim statistik jenis penyimpanannya saat server meminta, atau berapa lama Anda melihat setiap postingan saluran. Laporan tentang tampilan layar Premium, ketukan fitur, persetujuan dan kegagalan pembelian juga tidak dikirim. Pesan dan panggilan tetap berfungsi seperti biasa.
+Stops usage reports to Telegram, like how long you read each channel post and what you tap on Premium screens. Messages and calls work as before.	Menghentikan laporan penggunaan ke Telegram, seperti berapa lama Anda membaca tiap kiriman kanal dan apa yang Anda ketuk di layar Premium. Pesan dan panggilan berfungsi seperti biasa.
+Firebase crash and session reports stop too, from the next time Telegram starts.	Laporan crash dan sesi Firebase juga berhenti, mulai saat Telegram dibuka berikutnya.
 Premium promo views	tampilan promosi Premium
 Premium promo taps	ketukan promosi Premium
 Premium promo accepts	persetujuan promosi Premium
 Premium promo failures	kegagalan promosi Premium
+Firebase crash reports	laporan crash Firebase
+Firebase session reports	laporan sesi Firebase
 Accounts	Akun
 Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Setiap sakelar di sini berlaku untuk semua akun di aplikasi Telegram ini, bukan hanya akun yang sedang Anda buka.
 No previews before sending	Tanpa pratinjau sebelum mengirim
-Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.	Telegram tidak meminta pratinjau tautan ke servernya selama pesan belum dikirim. Ini berlaku untuk chat, lembar berbagi, polling, tautan cerita, dan pesan yang dibagikan bot. Pesan yang sudah terkirim tetap mendapat pratinjaunya. Secara default nonaktif di pengaturan.
+Telegram doesn't look up link previews for messages you haven't sent yet, including shares, polls, story links and bots. Sent messages still get one.	Telegram tidak mencari pratinjau tautan untuk pesan yang belum Anda kirim, termasuk berbagi, polling, tautan cerita, dan bot. Pesan yang sudah terkirim tetap mendapat pratinjau.
 Draft link previews	Pratinjau tautan di draf
 chat drafts	draf chat
 share sheet comments	komentar di lembar berbagi
@@ -220,83 +223,93 @@ poll links	tautan polling
 story links	tautan cerita
 bot shares	pesan yang dibagikan bot
 Camera only on tap	Kamera hanya saat diketuk
-Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.	Membuka galeri lampiran tidak menyalakan kamera atau meminta akses kamera. Ketuk ubin kamera untuk menyalakannya. Secara default nonaktif di pengaturan.
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it.	Membuka galeri lampiran tidak menyalakan kamera atau meminta akses kamera. Ketuk kotak kamera untuk menyalakannya.
 Gallery camera	Kamera galeri
 No swipe actions on chats	Tanpa aksi geser pada chat
-A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Menggeser chat ke samping di daftar chat tidak lagi mengarsipkan, membisukan, menyematkan, menghapus, atau menandainya sebagai dibaca, jadi geseran tak sengaja tidak mengubah chat. Tekan lama tetap menampilkan semua aksi. Secara default nonaktif di pengaturan.
+Swiping a chat in your list no longer archives, mutes, pins, deletes or marks it read. Press and hold still offers every action.	Menggeser obrolan di daftar Anda tidak lagi mengarsipkan, membisukan, menyematkan, menghapus, atau menandainya sudah dibaca. Tekan lama tetap menyediakan semua aksi.
 Hide popular apps	Sembunyikan aplikasi populer
-Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	Tab Aplikasi di pencarian melewati daftar Aplikasi populer dari Telegram, beserta judul dan baris pemuatannya, dan Telegram tidak memintanya. Aplikasi yang pernah kamu buka dan hasil lainnya tetap ada.
+Hides the Popular apps list on the Apps tab of search, and doesn't ask Telegram for it. Apps you've opened and other results stay.	Menyembunyikan daftar Aplikasi populer di tab Aplikasi pada pencarian, dan tidak memintanya dari Telegram. Aplikasi yang pernah Anda buka dan hasil lainnya tetap ada.
 Hide contacts on Telegram	Sembunyikan kontak di Telegram
-A short chat list no longer lists your contacts on Telegram under it, with their heading and loading rows. Your chats, folders, contact sync and search stay. Off by default in settings.	Daftar chat yang pendek tidak lagi menampilkan kontakmu di Telegram di bawahnya, beserta judul dan baris pemuatannya. Chat, folder, sinkronisasi kontak, dan pencarian tetap ada. Secara default nonaktif di pengaturan.
+When your chat list is short, Telegram lists your contacts below it. This hides that list and its heading. Chats, folders and search stay.	Saat daftar obrolan Anda pendek, Telegram menampilkan kontak Anda di bawahnya. Ini menyembunyikan daftar itu beserta judulnya. Obrolan, folder, dan pencarian tetap ada.
 Hide greeting stickers	Sembunyikan stiker sapaan
-An empty private chat no longer offers a sticker to send as a greeting. Its text, business introductions, paid-message notices and the sticker picker stay. Off by default in settings.	Chat pribadi yang kosong tidak lagi menawarkan stiker untuk dikirim sebagai sapaan. Teksnya, perkenalan bisnis, pemberitahuan pesan berbayar, dan pemilih stiker tetap ada. Secara default nonaktif di pengaturan.
+Empty private chats stop suggesting a sticker to say hello. Their other text and notices, and the sticker picker, stay.	Obrolan pribadi yang kosong tidak lagi menyarankan stiker untuk menyapa. Teks dan pemberitahuan lainnya, serta pemilih stiker, tetap ada.
 Quiet contacts prompts	Senyapkan permintaan kontak
-Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Setelah kamu menolak akses kontak, tab Kontak berhenti meminta lagi dan lencana peringatannya hilang. Permintaan pertama, tombol milik tab itu sendiri, dan sinkronisasi kontak tetap ada.
+After you say no to contacts access, the Contacts tab stops asking again and its warning badge goes away.	Setelah Anda menolak akses ke kontak, tab Kontak tidak meminta lagi dan lencana peringatannya hilang.
 
 New Year look all year	Tampilan Tahun Baru sepanjang tahun
-Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Topi Santa Telegram berada di logo daftar chat. Salju Tahun Baru turun setiap hari di bilah atas daftar chat dan, saat latar belakang chat animasi aktif, di latar belakang chat. Secara default nonaktif di pengaturan.
+Shows Telegram's Santa hat and New Year snow all year, not only around New Year. Snow also falls on chat backgrounds if animated backgrounds are on.	Menampilkan topi Santa Telegram dan salju Tahun Baru sepanjang tahun, bukan hanya saat Tahun Baru. Salju juga turun di latar obrolan jika latar animasi aktif.
 Use system font	Gunakan font sistem
-Bold and italic text stops using the Roboto files built into Telegram and takes your phone's font, the one regular text already uses. Code takes the phone's monospace font. Some number displays and Instant View pages keep Telegram's own. Off by default in settings.	Teks tebal dan miring tidak lagi memakai file Roboto bawaan Telegram dan beralih ke font ponsel Anda, yang sudah dipakai teks biasa. Kode memakai font monospace ponsel. Beberapa tampilan angka dan halaman Instant View tetap memakai font Telegram. Nonaktif secara default di pengaturan.
+Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	Teks tebal, miring, dan kode memakai font ponsel Anda, bukan font bawaan Telegram. Mulai ulang Telegram untuk melihat perubahannya.
 AMOLED black	Hitam AMOLED
-Telegram's Night and Dark themes draw their screens in pure black, and a patterned chat background shows its pattern over black. Message bubbles and pop-up menus keep their colors, and themes you've installed from a file stay as they are. Off by default in settings.	Tema Malam dan Gelap Telegram menampilkan layar dalam hitam pekat, dan latar obrolan bermotif menampilkan motifnya di atas hitam. Gelembung pesan dan menu pop-up tetap memakai warnanya, dan tema yang dipasang dari file tetap seperti semula. Nonaktif secara default di pengaturan.
+Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Tema Malam dan Gelap memakai layar hitam pekat. Gelembung pesan dan menu tetap berwarna. Mulai ulang Telegram untuk melihat perubahannya.
 Hide translate bar	Sembunyikan bilah terjemahan
-Chats in another language stop showing Telegram's translate bar at the top, and Translate moves to the chat's menu. A chat you're translating keeps its bar so you can go back to the original. Off by default in settings.	Obrolan dalam bahasa lain tidak lagi menampilkan bilah terjemahan Telegram di atas, dan Terjemahkan pindah ke menu obrolan. Obrolan yang sedang Anda terjemahkan tetap memiliki bilahnya agar Anda bisa kembali ke teks asli. Nonaktif secara default di pengaturan.
+Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Obrolan dalam bahasa lain tidak lagi menampilkan bilah terjemahan di bagian atas. Terjemahkan pindah ke menu obrolan, dan obrolan yang sedang Anda terjemahkan tetap menampilkan bilahnya.
 Exact numbers	Angka lengkap
-Member, subscriber, view, reply and reaction counts show the full number, like 12,345 instead of 12.3K. Off by default in settings.	Jumlah anggota, pelanggan, tayangan, balasan, dan reaksi ditampilkan lengkap, misalnya 12,345, bukan 12.3K. Nonaktif secara default di pengaturan.
+Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Jumlah anggota, pelanggan, tayangan, balasan, dan reaksi ditampilkan lengkap, misalnya 12.345 dan bukan 12,3 rb.
 Reveal spoilers	Tampilkan spoiler
-Spoiler text, photos and videos show right away instead of waiting for a tap. View-once media, sensitive content and login codes stay covered, and text you're typing keeps its spoiler. Off by default in settings.	Teks, foto, dan video spoiler langsung terlihat tanpa perlu diketuk. Media sekali lihat, konten sensitif, dan kode masuk tetap tertutup, dan teks yang sedang kamu ketik tetap memakai spoiler-nya. Nonaktif secara default di pengaturan.
+Spoiler text, photos and videos show right away without a tap. View-once media, sensitive content and login codes stay covered.	Teks, foto, dan video spoiler langsung tampil tanpa perlu diketuk. Media sekali lihat, konten sensitif, dan kode masuk tetap tertutup.
 Hide keyboard on scroll	Sembunyikan keyboard saat menggulir
-Starting to scroll through a chat closes the keyboard, the way Telegram already does while you search a chat. Telegram's emoji and sticker panel stays open. Off by default in settings.	Mulai menggulir obrolan akan menutup keyboard, seperti yang sudah dilakukan Telegram saat kamu mencari di obrolan. Panel emoji dan stiker Telegram tetap terbuka. Nonaktif secara default di pengaturan.
+The keyboard closes when you start scrolling a chat. The emoji and sticker panel stays open.	Keyboard menutup saat Anda mulai menggulir obrolan. Panel emoji dan stiker tetap terbuka.
 Keep videos muted on volume keys	Biarkan video tanpa suara saat tombol volume ditekan
-Volume keys in a chat change the volume instead of playing the video or round video on screen with sound. Tap a video to hear it. Off by default in settings.	Tombol volume di obrolan mengubah volume, bukan memutar video atau video bulat di layar dengan suara. Ketuk video untuk mendengarnya. Nonaktif secara default di pengaturan.
+Volume keys only change the volume. They no longer start the video or round video on screen with sound. Tap a video to hear it.	Tombol volume hanya mengubah volume. Tombol ini tidak lagi memutar video atau video bulat di layar dengan suara. Ketuk video untuk mendengarnya.
 Swipe back on profiles	Geser kembali di profil
-A swipe to the right on a profile's photos or media tabs goes back, like it does on the rest of the profile, instead of showing the previous photo or tab. Swiping left still moves forward. Off by default in settings.	Geser ke kanan pada foto atau tab media profil akan kembali, seperti di bagian profil lainnya, bukan menampilkan foto atau tab sebelumnya. Geser ke kiri tetap maju. Nonaktif secara default di pengaturan.
+Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, instead of showing the previous photo or tab.	Menggeser ke kanan pada foto atau tab media profil akan kembali, seperti di bagian profil lainnya, bukan menampilkan foto atau tab sebelumnya.
 Hide phone number	Sembunyikan nomor telepon
-Your own phone number shows as dots in the side menu, Settings, your profile and anywhere else Telegram displays it, which helps with screenshots and screen sharing. Other people's numbers stay visible. Off by default in settings.	Nomor teleponmu sendiri tampil sebagai titik di menu samping, Pengaturan, profilmu, dan di mana pun Telegram menampilkannya, berguna untuk tangkapan layar dan berbagi layar. Nomor orang lain tetap terlihat. Nonaktif secara default di pengaturan.
+Your own phone number shows as dots in the side menu, Settings and your profile, which helps with screenshots. Others' numbers stay visible.	Nomor telepon Anda sendiri tampil sebagai titik-titik di menu samping, Pengaturan, dan profil Anda, yang berguna untuk tangkapan layar. Nomor orang lain tetap terlihat.
 Message times with seconds	Waktu pesan dengan detik
-The time on each message shows seconds too, like 9:41:27 PM, so messages sent close together are easy to tell apart. Off by default in settings.	Waktu di setiap pesan juga menampilkan detik, misalnya 21:41:27, sehingga pesan yang dikirim berdekatan mudah dibedakan. Nonaktif secara default di pengaturan.
+Each message's time includes seconds, like 9:41:27 PM, so messages sent close together are easy to tell apart.	Waktu setiap pesan menyertakan detik, misalnya 21.41.27, sehingga pesan yang dikirim berdekatan mudah dibedakan.
 Allow chat blur on slower phones	Izinkan blur obrolan di ponsel yang lebih lambat
-Telegram only blurs the chat header and panels on phones it rates as fast. This lets any phone use it once Blur in chat is on under Power saving. Off by default in settings.	Telegram hanya memburamkan header dan panel obrolan di ponsel yang dianggapnya cepat. Ini membuat ponsel mana pun bisa memakainya setelah Blur di obrolan dinyalakan di Hemat daya. Nonaktif secara default di pengaturan.
+Telegram only blurs chat headers and panels on fast phones. This lets any phone do it, once Blur in chat is on under Power saving.	Telegram hanya mengaburkan header dan panel obrolan di ponsel yang cepat. Ini memungkinkan ponsel apa pun melakukannya, setelah Blur di obrolan aktif di bawah Penghemat daya.
 Play voice messages one at a time	Putar pesan suara satu per satu
-When a voice or video message ends, the next one in the chat doesn't start on its own. Off by default in settings.	Saat pesan suara atau video selesai, pesan berikutnya di obrolan tidak diputar sendiri. Nonaktif secara default di pengaturan.
-Turn off haptic feedback	Matikan getaran haptik
-Taps, long presses, swipes and wrong entries in Telegram stop vibrating the phone. Incoming calls still vibrate, and notifications vibrate the way you set them. Off by default in settings.	Ketukan, tekan lama, geser, dan entri yang salah di Telegram tidak lagi membuat ponsel bergetar. Panggilan masuk tetap bergetar, dan notifikasi bergetar sesuai pengaturan Anda. Nonaktif secara default di pengaturan.
+When a voice or video message ends, the next one doesn't start by itself.	Saat pesan suara atau video selesai, pesan berikutnya tidak mulai sendiri.
+Stop vibrations on taps	Hentikan getaran saat mengetuk
+Taps, long presses, swipes and wrong entries no longer vibrate the phone. Incoming calls still vibrate, and notifications follow your own settings.	Ketukan, tekan lama, geseran, dan input yang salah tidak lagi membuat ponsel bergetar. Panggilan masuk tetap bergetar, dan notifikasi mengikuti pengaturan Anda sendiri.
 Turn off reaction effects	Matikan efek reaksi
-When you or someone else reacts to a message, the emoji no longer flies across the screen and bursts. The reaction still shows on the message. Off by default in settings.	Saat Anda atau orang lain bereaksi pada pesan, emoji tidak lagi terbang melintasi layar dan meledak. Reaksinya tetap muncul di pesan. Nonaktif secara default di pengaturan.
+When someone reacts to a message, the emoji doesn't fly across the screen and burst. The reaction still shows on the message.	Saat seseorang bereaksi pada pesan, emoji tidak melayang melintasi layar dan meledak. Reaksinya tetap tampil di pesan.
 Hide folder tab counters	Sembunyikan penghitung tab folder
-The folder tabs above the chat list show just their names, without the number of unread chats. Chats stay unread and the app icon's badge doesn't change. Off by default in settings.	Tab folder di atas daftar obrolan hanya menampilkan namanya, tanpa jumlah obrolan yang belum dibaca. Obrolan tetap belum dibaca dan lencana ikon aplikasi tidak berubah. Nonaktif secara default di pengaturan.
+Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	Tab folder di atas daftar obrolan hanya menampilkan namanya, tanpa jumlah belum dibaca. Obrolan tetap belum dibaca dan lencana ikon aplikasi tidak berubah.
 Hide sender names when forwarding	Sembunyikan nama pengirim saat meneruskan
-Each new forward starts with Telegram's Hide sender's name option turned on, so the copies arrive without the original author. You can still turn it off before sending, and article forwards follow Telegram's Premium rule. Off by default in settings.	Setiap penerusan baru dimulai dengan opsi Sembunyikan nama pengirim milik Telegram menyala, sehingga salinannya tiba tanpa pengirim aslinya. Anda tetap bisa mematikannya sebelum mengirim, dan artikel mengikuti aturan Premium Telegram. Nonaktif secara default di pengaturan.
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Setiap penerusan baru dimulai dengan Sembunyikan nama pengirim aktif, sehingga salinan tiba tanpa penulis aslinya. Anda tetap bisa mematikannya sebelum mengirim.
 Voice messages in the music player	Pesan suara di pemutar musik
-While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Saat pesan suara diputar, mengetuk bilah di atas obrolan membuka pemutar musik lengkap Telegram dengan bilah geser, bukan melompat ke pesannya. Pesan suara sekali dengar tetap seperti semula. Nonaktif secara default di pengaturan.
+While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Saat pesan suara diputar, mengetuk bilah di atas obrolan membuka pemutar musik penuh, tempat Anda bisa menggeser untuk melompat, bukan melompat ke pesannya.
 Silence people outside your contacts	Senyapkan orang di luar kontak Anda
-A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Pesan pribadi dari orang yang tidak ada di kontak Anda tetap menampilkan notifikasi, hanya tanpa suara atau getaran. Bot, pengingat, dan kode masuk Telegram tetap bersuara. Nonaktif secara default di pengaturan.
+Private messages from people not in your contacts still show a notification, but without sound or vibration. Bots, reminders and login codes keep their sound.	Pesan pribadi dari orang yang tidak ada di kontak Anda tetap menampilkan notifikasi, tetapi tanpa suara atau getaran. Bot, pengingat, dan kode masuk tetap bersuara.
 Disable pull to archive	Nonaktifkan tarik ke arsip
-Pulling down the chat list no longer brings up a hidden archive. You can open it from Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default in settings.	Menarik daftar obrolan ke bawah tidak lagi memunculkan arsip yang tersembunyi. Anda bisa membukanya dari Obrolan yang diarsipkan di menu daftar obrolan, atau menyematkannya agar tetap ada di daftar. Nonaktif secara default di pengaturan.
+Pulling down the chat list no longer opens the archive. Use Archived chats in the list's menu instead. Restart Telegram to see the change.	Menarik daftar obrolan ke bawah tidak lagi membuka arsip. Gunakan Obrolan yang diarsipkan di menu daftar. Mulai ulang Telegram untuk melihat perubahannya.
 Start the camera on the rear lens	Mulai kamera dengan lensa belakang
-The camera in the attachment menu starts on the rear lens every time you open it, instead of the lens you used last. You can still flip it while it's open. Off by default in settings.	Kamera di menu lampiran selalu dimulai dengan lensa belakang, bukan lensa yang terakhir Anda pakai. Anda tetap bisa membaliknya saat kamera terbuka. Nonaktif secara default di pengaturan.
+The camera in the attachment menu always opens on the rear lens, not the lens you used last. You can still flip it.	Kamera di menu lampiran selalu terbuka dengan lensa belakang, bukan lensa yang terakhir Anda pakai. Anda tetap bisa menggantinya.
 Hide gallery camera tile	Sembunyikan kotak kamera galeri
-The photo grid in the attachment menu starts with your photos instead of a live camera tile. A chat picks it up the next time you open it. Off by default in settings.	Kisi foto di menu lampiran dimulai dengan foto Anda, bukan kotak kamera langsung. Sebuah obrolan menerapkannya saat Anda membukanya lagi. Nonaktif secara default di pengaturan.
+The attachment menu's photo grid starts with your photos instead of a live camera tile. A chat picks this up the next time you open it.	Kisi foto di menu lampiran dimulai dengan foto Anda, bukan kotak kamera langsung. Obrolan akan menerapkannya saat Anda membukanya lagi.
 Hide time on stickers	Sembunyikan waktu pada stiker
-Stickers and big animated emoji no longer carry the time and read checks in their corner. Every other message keeps its time. Off by default in settings.	Stiker dan emoji animasi besar tidak lagi menampilkan waktu dan tanda centang baca di sudutnya. Pesan lain tetap menampilkan waktunya. Nonaktif secara default di pengaturan.
+Stickers and big animated emoji no longer show the time and read checks in their corner. Other messages keep their time.	Stiker dan emoji animasi besar tidak lagi menampilkan waktu dan tanda terbaca di sudutnya. Pesan lain tetap menampilkan waktunya.
 Ignore mentions in muted chats	Abaikan sebutan di obrolan yang dibisukan
-Telegram still notifies you when someone mentions you or replies to you in a group or channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you haven't muted notify as before. Off by default in settings.	Telegram tetap memberi tahu Anda saat seseorang menyebut atau membalas Anda di grup atau kanal yang Anda bisukan. Jika ini aktif, notifikasi itu ikut senyap seperti isi obrolan lainnya. Obrolan yang tidak Anda bisukan tetap memberi notifikasi seperti biasa. Nonaktif secara default di pengaturan.
+Mentions and replies in groups or channels you've muted no longer notify you. Chats you haven't muted notify as before.	Sebutan dan balasan di grup atau kanal yang Anda bisukan tidak lagi memberi notifikasi. Obrolan yang tidak Anda bisukan tetap memberi notifikasi seperti biasa.
 Hide blocked users in groups	Sembunyikan pengguna yang diblokir di grup
-Messages from people you've blocked are left out of the groups and supergroups you open. Private chats and channel posts stay as they are. Nothing is deleted, so turning it off and reopening the chat brings them back. Telegram loads a long blocked list a bit at a time, so someone it hasn't loaded yet still shows. Off by default in settings.	Pesan dari orang yang Anda blokir tidak ditampilkan di grup dan supergrup yang Anda buka. Obrolan pribadi dan postingan kanal tetap seperti biasa. Tidak ada yang dihapus, jadi mematikannya lalu membuka ulang obrolan akan memunculkannya lagi. Telegram memuat daftar blokir yang panjang sedikit demi sedikit, jadi orang yang belum dimuat tetap terlihat. Nonaktif secara default di pengaturan.
+Messages from people you've blocked are left out of groups and supergroups you open. Nothing is deleted. Private chats and channel posts stay as they are.	Pesan dari orang yang Anda blokir dilewati di grup dan supergrup yang Anda buka. Tidak ada yang dihapus. Obrolan pribadi dan kiriman kanal tidak berubah.
 Hide Telegram Features and Invite Friends	Sembunyikan Fitur Telegram dan Undang Teman
-Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Pengaturan tidak lagi menampilkan baris Fitur Telegram dan Kontak tidak lagi menampilkan Undang Teman. Jika Anda belum punya kontak, daftar undangan yang muncul di Kontak sebagai gantinya juga hilang. Nonaktif secara default di pengaturan.
+Removes the Telegram Features row from Settings and Invite Friends from Contacts. With no contacts yet, the invite list goes too.	Menghapus baris Fitur Telegram dari Pengaturan dan Undang Teman dari Kontak. Jika Anda belum punya kontak, daftar undangan juga hilang.
 Add Repeat to the message menu	Tambahkan Ulangi ke menu pesan
-Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Menaruh Ulangi di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah pesan. Pesan itu dikirim lagi ke obrolan yang sama sebagai pesan baru dari Anda. Hanya muncul jika Telegram menawarkan Teruskan dan Anda bisa menulis, jadi tidak pernah di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Adds Repeat under Forward in a message's press-and-hold menu. It sends the same message again to the chat. Not shown in protected or secret chats.	Menambahkan Ulangi di bawah Teruskan pada menu pesan yang muncul saat ditekan lama. Ini mengirim pesan yang sama lagi ke obrolan. Tidak tampil di obrolan yang dilindungi atau rahasia.
 Keep deleted messages	Simpan pesan yang dihapus
-Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	Pesan yang dihapus orang lain tetap ada di obrolan Anda di ponsel ini, ditandai dihapus di samping jam. Penghapusan oleh Anda sendiri dan semua yang hilang sendiri atau dilindungi tetap berjalan seperti biasa. Nonaktif secara default di pengaturan.
+Messages others delete stay in your chat on this phone, marked deleted next to the time. Your own deletes and disappearing messages work as usual.	Pesan yang dihapus orang lain tetap ada di obrolan Anda di ponsel ini, ditandai terhapus di samping waktu. Penghapusan oleh Anda dan pesan yang menghilang berfungsi seperti biasa.
+# context: an action row under Keep deleted messages; a tap deletes every message that switch kept
+Clear kept messages	Hapus pesan yang disimpan
+Deletes the messages this phone kept after others deleted them, in every account, the way Telegram would have.	Menghapus pesan yang disimpan ponsel ini setelah orang lain menghapusnya, di setiap akun, seperti yang akan dilakukan Telegram.
+# context: the notice after that tap when nothing was kept
+There are no kept messages to clear.	Tidak ada pesan yang disimpan untuk dihapus.
+# context: the notice after that tap, with how many kept messages went
+Removed %1$d kept message.	%1$d pesan yang disimpan telah dihapus.
+Removed %1$d kept messages.	%1$d pesan yang disimpan telah dihapus.
 Ask before sending a sticker	Tanya dulu sebelum mengirim stiker
-Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Menanyakan Kirim atau Batal sebelum stiker yang Anda ketuk masuk ke obrolan. Batal membuangnya, dan stiker terjadwal tetap lewat seperti biasa. Nonaktif secara default di pengaturan.
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled stickers go out without asking.	Menanyakan Kirim atau Batal sebelum stiker yang Anda ketuk masuk ke obrolan. Batal membuangnya. Stiker terjadwal terkirim tanpa bertanya.
+Turn off beta debug logs	Matikan log debug beta
+Telegram Beta keeps debug logs on your phone all the time, its connection log included, and its own debug menu can't stop that. This stops them. Logs already saved stay until you clear them, and the regular build doesn't keep them, so nothing changes there. Restart Telegram to see the change.	Telegram Beta selalu menyimpan log debug di ponsel Anda, termasuk log koneksinya, dan menu debug miliknya sendiri tidak bisa menghentikannya. Ini menghentikannya. Log yang sudah tersimpan tetap ada sampai Anda menghapusnya, dan versi biasa tidak menyimpannya, jadi di sana tidak ada yang berubah. Mulai ulang Telegram untuk melihat perubahannya.
 Ask before sending a GIF	Tanya dulu sebelum mengirim GIF
-Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Menanyakan Kirim atau Batal sebelum GIF yang Anda ketuk masuk ke obrolan. Batal membuangnya, dan GIF terjadwal tetap lewat seperti biasa. Nonaktif secara default di pengaturan.
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Menanyakan Kirim atau Batal sebelum GIF yang Anda ketuk masuk ke obrolan. Batal membuangnya. GIF terjadwal terkirim tanpa bertanya.
 Ask before sending a voice or video message	Tanya dulu sebelum mengirim pesan suara atau video
-Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Menanyakan Kirim atau Batal sebelum pesan suara atau video yang Anda rekam masuk ke obrolan. Batal membuang rekamannya. Nonaktif secara default di pengaturan.
+Asks Send or Cancel before a voice or video message you recorded goes out. Cancel throws the recording away.	Menanyakan Kirim atau Batal sebelum pesan suara atau video yang Anda rekam terkirim. Batal membuang rekamannya.
 Ask before starting a call	Tanya dulu sebelum memulai panggilan
-Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Menanyakan Panggil atau Batal sebelum tombol panggilan di header obrolan atau di profil memulai panggilan. Nonaktif secara default di pengaturan.
+Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Menanyakan Panggil atau Batal sebelum tombol panggilan di obrolan atau profil memulai panggilan.
 Send sticker	Kirim stiker
 Send this sticker to this chat?	Kirim stiker ini ke obrolan ini?
 Send GIF	Kirim GIF
@@ -313,9 +326,9 @@ Call	Panggil
 # context: the label before the time of a message someone else deleted that this phone kept
 deleted	dihapus
 Add Copy photo to the message menu	Tambahkan Salin foto ke menu pesan
-Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Menaruh Salin foto di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah foto, setelah foto itu terunduh. Gambarnya sendiri yang disalin, jadi Anda bisa menempelkannya di aplikasi lain. Tidak muncul di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Adds Copy photo to a downloaded photo's press-and-hold menu, so you can paste the picture into another app. Not shown in protected or secret chats.	Menambahkan Salin foto pada menu foto yang sudah diunduh saat ditekan lama, sehingga Anda bisa menempel gambarnya di aplikasi lain. Tidak tampil di obrolan yang dilindungi atau rahasia.
 Add Message details to the message menu	Tambahkan Detail pesan ke menu pesan
-Puts Message details at the end of a message's long-press menu. It shows the message's IDs, when it was sent and edited, where it was forwarded from and the file's data center and size, with a Copy button. Off by default in settings.	Menaruh Detail pesan di akhir menu yang Anda buka dengan menekan lama sebuah pesan. Menampilkan ID pesan, kapan dikirim dan diedit, dari mana diteruskan, serta pusat data dan ukuran file, dengan tombol Salin. Nonaktif secara default di pengaturan.
+Adds Message details to a message's press-and-hold menu. It shows IDs, send and edit times, where it was forwarded from, and file info.	Menambahkan Detail pesan pada menu pesan yang muncul saat ditekan lama. Menampilkan ID, waktu kirim dan edit, asal penerusan, dan info berkas.
 Repeat	Ulangi
 Copy photo	Salin foto
 Photo copied	Foto disalin
@@ -333,7 +346,7 @@ File size: %1$s	Ukuran file: %1$s
 Copy	Salin
 Message details copied	Detail pesan disalin
 Add Quick forward to the message menu	Tambahkan Teruskan cepat ke menu pesan
-Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Menaruh Teruskan cepat di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah pesan. Menampilkan Pesan Tersimpan dan beberapa obrolan terbaru, dan satu ketukan meneruskan pesan ke sana dengan pengirim tetap terlihat, kecuali Sembunyikan nama pengirim saat meneruskan sedang aktif. Tidak muncul di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Adds Quick forward to a message's press-and-hold menu. One tap sends it to Saved Messages or a recent chat. Not in protected or secret chats.	Menambahkan Teruskan cepat pada menu pesan yang muncul saat ditekan lama. Satu ketukan mengirimnya ke Pesan Tersimpan atau obrolan terbaru. Tidak ada di obrolan yang dilindungi atau rahasia.
 Quick forward	Teruskan cepat
 Forward to	Teruskan ke
 Forwarding to %1$s	Meneruskan ke %1$s
@@ -343,25 +356,25 @@ No chat to forward to	Tidak ada obrolan tujuan
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notifikasi
 Repair Firebase push registration	Perbaiki pendaftaran notifikasi Firebase
-Uses Telegram's official certificate for Firebase push registration. Notification permission and battery settings still apply.	Menggunakan sertifikat resmi Telegram untuk pendaftaran notifikasi Firebase. Izin notifikasi dan pengaturan baterai tetap berlaku.
+Tries to help this patched Telegram sign up for push notifications with Firebase, Google's notification service, using Telegram's original certificate. Notification permission and battery settings still apply.	Mencoba membantu Telegram yang sudah ditambal ini mendaftar untuk notifikasi push lewat Firebase, layanan notifikasi Google, dengan sertifikat asli Telegram. Izin notifikasi dan pengaturan baterai tetap berlaku.
 Firebase certificate header	Header sertifikat Firebase
 Stop pull to next channel	Hentikan tarikan ke kanal berikutnya
 Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.	Menarik ke atas di bagian bawah kanal hanya menggulir tampilan. Buka kanal berikutnya dari daftar obrolan.
 Stop pull to next topic	Hentikan tarikan ke topik berikutnya
-Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list. Off by default in settings.	Menarik ke atas di bagian bawah topik forum hanya menggulir tampilan. Buka topik berikutnya dari daftar topik. Secara default nonaktif di pengaturan.
+Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list.	Menarik ke atas di bagian bawah topik forum hanya menggulir tampilan. Buka topik berikutnya dari daftar topik.
 # context: Read-only local notification facts, independent of repair and Pause.
-Local notification status	Status notifikasi lokal
+Notification status on this phone	Status notifikasi di ponsel ini
 local notification status	status notifikasi lokal
 Notification permission: %1$s	Izin notifikasi: %1$s
-Push token saved: %1$s	Token push tersimpan: %1$s
+Notification ID saved on this phone: %1$s	ID notifikasi tersimpan di ponsel ini: %1$s
 Signed-in accounts: %1$s	Akun yang masuk: %1$s
-Accounts confirmed for push: %1$s	Akun dengan pendaftaran push terkonfirmasi: %1$s
-Telegram's push answer: %1$s	Jawaban Telegram untuk pendaftaran push: %1$s
-None since Telegram started	Belum ada sejak Telegram dibuka
+Accounts Telegram confirmed for notifications: %1$s	Akun yang dikonfirmasi Telegram untuk notifikasi: %1$s
+Telegram's reply to notification sign-up: %1$s	Balasan Telegram atas pendaftaran notifikasi: %1$s
+No reply since Telegram started	Belum ada balasan sejak Telegram dibuka
 Accepted	Diterima
 Refused	Ditolak
 Refused (%1$s)	Ditolak (%1$s)
-Read-only local state. This doesn't confirm notification delivery.	Hanya membaca status lokal. Ini tidak memastikan bahwa notifikasi telah terkirim.
+This only shows what's saved on this phone. It doesn't prove notifications will arrive.	Ini hanya menunjukkan apa yang tersimpan di ponsel ini. Ini tidak membuktikan bahwa notifikasi akan sampai.
 Unknown	Tidak diketahui
 Allowed	Diizinkan
 Blocked	Diblokir
@@ -370,11 +383,11 @@ No	Tidak
 Use normal paste	Gunakan tempel biasa
 Show user and chat IDs	Tampilkan ID pengguna dan chat
 Disable double-tap reactions	Nonaktifkan reaksi ketuk dua kali
-Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Menempel teks tanpa konversi HTML, tabel, atau monospace Telegram. Spasi dan URL tetap utuh. Tindakan papan klip lainnya tetap tersedia. Nonaktif secara default di pengaturan.
-Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Menampilkan ID pengguna atau chat lokal yang dapat disalin di menu profil yang dibuka. Hash akses tetap tersembunyi. Tidak menambah permintaan server. Nonaktif secara default di pengaturan.
-Show profile data center	Tampilkan pusat data profil
-A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. A profile without a photo shows none, and no server request is added. Off by default in settings.	Menu profil juga menampilkan pusat data Telegram, 1 sampai 5, tempat foto profil disimpan. Profil tanpa foto tidak menampilkannya, dan tidak ada permintaan server tambahan. Nonaktif secara default di pengaturan.
-Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Ketuk dua kali tidak menambahkan reaksi di chat atau pratinjau reaksi. Menggulir, mengetuk, memilih, dan menu reaksi tetap seperti biasa. Nonaktif secara default di pengaturan.
+Pastes text exactly as you copied it, without Telegram adding formatting, tables or code styling. Spaces and links stay as they were.	Menempel teks persis seperti yang Anda salin, tanpa Telegram menambahkan format, tabel, atau gaya kode. Spasi dan tautan tetap seperti semula.
+Adds a copyable ID number for a user or chat to the profile's menu. Telegram isn't asked for anything extra.	Menambahkan nomor ID yang bisa disalin untuk pengguna atau obrolan ke menu profil. Tidak ada permintaan tambahan ke Telegram.
+Show where a profile photo is stored	Tampilkan lokasi penyimpanan foto profil
+A profile's menu also shows which of Telegram's five data centers (its server locations) stores the profile photo. No photo, no number.	Menu profil juga menampilkan di mana dari lima pusat data Telegram (lokasi servernya) foto profil disimpan. Tanpa foto, tidak ada nomor.
+Double-tapping a message no longer adds a reaction. Scrolling, normal taps, selecting and the reaction menu work as before.	Mengetuk dua kali pesan tidak lagi menambahkan reaksi. Menggulir, ketukan biasa, memilih, dan menu reaksi berfungsi seperti biasa.
 compose text paste	tempel teks saat menulis
 caption text paste	tempel teks keterangan
 profile local IDs	ID profil lokal

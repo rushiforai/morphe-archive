@@ -133,22 +133,35 @@ public final class SetupGuidancePreference extends DialogPreference {
             scroll.addView(content, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
             heading(L10n.t(getContext(), "Installed patches and switches"));
-            paragraph(L10n.t(getContext(), "Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app."));
+            paragraph(L10n.t(getContext(), "Pick the patches in Morphe Manager when you patch the app. The switches "
+                + "here only control patches that are in your build. Changing a switch "
+                + "doesn't add or remove a patch. Pause keeps your saved choices, but "
+                + "anything set while patching stays in the app."));
 
             heading(L10n.t(getContext(), "Sign in to your existing account"));
-            paragraph(L10n.t(getContext(), "Use the email linked to your existing Pinterest account and a Pinterest password. Google sign-in isn't supported with this build's changed signing key. Pinterest no longer offers Facebook login. Push notifications haven't been verified."));
+            paragraph(L10n.t(getContext(), "Use the email on your Pinterest account and a Pinterest password. "
+                + "Google sign-in isn't supported, because this patched app is signed with "
+                + "a different key. Pinterest no longer offers Facebook login. Push "
+                + "notifications haven't been tested."));
             paragraph(L10n.t(getContext(), "If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google."));
             action(L10n.t(getContext(), "Pinterest password help"), () -> openHelp(PASSWORD_HELP));
 
             heading(L10n.t(getContext(), "Supported links"));
-            paragraph(L10n.t(getContext(), "Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings."));
+            paragraph(L10n.t(getContext(), "Android may not trust a patched app's links on its own. You can choose "
+                + "the web addresses in Android's Open by default settings."));
             links = paragraph("");
             links.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
             action(L10n.t(getContext(), "Open link settings"), this::openLinkSettings);
 
             heading(L10n.t(getContext(), "Back up before changing builds"));
-            paragraph(L10n.t(getContext(), "Export settings saves HushPinterest's feature switches. It doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key. Keep the settings file and Manager's signing-key backup somewhere you can find them."));
-            paragraph(L10n.t(getContext(), "An accepted upgrade signed with the same key keeps the app's data. A build with a different key isn't a compatible update, and Android may refuse a downgrade. Keep the installed app and its data if an update is refused."));
+            paragraph(L10n.t(getContext(), "Export settings saves HushPinterest's switches. It doesn't include your "
+                + "Pinterest account, pins, downloaded files or Morphe Manager's signing "
+                + "key. Keep the settings file and a backup of Manager's signing key "
+                + "somewhere you can find them."));
+            paragraph(L10n.t(getContext(), "An update signed with the same key keeps the app's data. A build signed "
+                + "with a different key can't update this one, and Android may refuse to "
+                + "install an older version. If an update is refused, keep the installed "
+                + "app and its data."));
             paragraph(L10n.t(getContext(), "Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using."));
             action(L10n.t(getContext(), "Pinterest data export help"), () -> openHelp(DATA_HELP));
         }

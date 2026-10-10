@@ -15,8 +15,8 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
 /**
- * Decides which timeline items are left out: promoted ones, when Remove Ads is applied, and posts
- * containing a filtered keyword.
+ * Decides which timeline items are left out: promoted ones, when Remove Ads is applied, posts
+ * containing a filtered keyword, and posts not matching the active feed filters.
  */
 @SuppressWarnings("unused")
 public final class TimelineFilter {
@@ -34,12 +34,31 @@ public final class TimelineFilter {
         return "";
     }
 
+    /** Rewritten to true by Feed filters. */
+    private static boolean feedFiltersEnabled() {
+        return false;
+    }
+
+    /**
+     * The include keywords set at patch time, lowercase, separated by |.
+     * Rewritten by Feed filters.
+     */
+    private static String initialIncludeKeywords() {
+        return "";
+    }
+
     private static final String PREFERENCES = "morphe_x";
     private static final String KEYWORDS_KEY = "filter_keywords";
+    private static final String MEDIA_ONLY_KEY = "feed_media_only";
+    private static final String HIDE_FOLLOWED_KEY = "feed_hide_followed";
+    private static final String INCLUDE_KEYWORDS_KEY = "feed_include_keywords";
 
     private static final class Setup {
         static final boolean HIDE_PROMOTED = hidePromoted();
+        static final boolean FEED_FILTERS = feedFiltersEnabled();
     }
+
+    // region Exclude keywords
 
     /** The filtered keywords, lowercase. Loaded on first use, replaced when edited. */
     private static volatile List<String> keywords;
@@ -65,6 +84,56 @@ public final class TimelineFilter {
         keywords = parsed;
     }
 
+    // endregion
+
+    // region Include keywords
+
+    /** The include keywords, lowercase. Loaded on first use, replaced when edited. */
+    private static volatile List<String> includeKeywords;
+
+    private static List<String> includeKeywords() {
+        List<String> current = includeKeywords;
+        if (current == null) {
+            current = parse(preferences().getString(INCLUDE_KEYWORDS_KEY, initialIncludeKeywords().replace('|', '\n')));
+            includeKeywords = current;
+        }
+        return current;
+    }
+
+    /** The include keywords, one per line, for editing. */
+    public static String includeKeywordsText() {
+        return String.join("\n", includeKeywords());
+    }
+
+    /** Replaces the include keywords with the given lines. */
+    public static void setIncludeKeywords(String text) {
+        List<String> parsed = parse(text == null ? "" : text);
+        preferences().edit().putString(INCLUDE_KEYWORDS_KEY, String.join("\n", parsed)).apply();
+        includeKeywords = parsed;
+    }
+
+    // endregion
+
+    // region Feed filter toggles
+
+    public static boolean isMediaOnlyEnabled() {
+        return preferences().getBoolean(MEDIA_ONLY_KEY, false);
+    }
+
+    public static void setMediaOnly(boolean enabled) {
+        preferences().edit().putBoolean(MEDIA_ONLY_KEY, enabled).apply();
+    }
+
+    public static boolean isHideFollowedEnabled() {
+        return preferences().getBoolean(HIDE_FOLLOWED_KEY, false);
+    }
+
+    public static void setHideFollowed(boolean enabled) {
+        preferences().edit().putBoolean(HIDE_FOLLOWED_KEY, enabled).apply();
+    }
+
+    // endregion
+
     private static SharedPreferences preferences() {
         return Utils.getContext().getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
     }
@@ -82,13 +151,32 @@ public final class TimelineFilter {
     public static boolean hide(Object item) {
         if (item == null) return false;
 
-        return (Setup.HIDE_PROMOTED && Ads.isPromoted(item)) || containsKeyword(item);
+        if (Setup.HIDE_PROMOTED && Ads.isPromoted(item)) return true;
+        if (containsExcludeKeyword(item)) return true;
+
+        if (Setup.FEED_FILTERS && isPost(item)) {
+            boolean needsMedia = isMediaOnlyEnabled();
+            boolean needsNotFollowed = isHideFollowedEnabled();
+            List<String> include = includeKeywords();
+
+            if (needsMedia || needsNotFollowed) {
+                String repr = String.valueOf(item);
+                if (needsMedia && !hasMediaIn(repr)) return true;
+                if (needsNotFollowed && isFollowedIn(repr)) return true;
+            }
+
+            if (!include.isEmpty() && !matchesAnyKeyword(item, include)) return true;
+        }
+
+        return false;
     }
 
     /** The timeline item, or null when it is left out, which the app then skips. */
     public static Object filter(Object item) {
         return hide(item) ? null : item;
     }
+
+    // region Post detection and text extraction
 
     /** A post's getText keeps its name; items that are not posts have none. */
     private static final Map<Class<?>, Method> TEXT = new ConcurrentHashMap<>();
@@ -102,30 +190,86 @@ public final class TimelineFilter {
         }
     }
 
-    private static boolean containsKeyword(Object item) {
+    private static Method textMethod(Object item) {
+        return TEXT.computeIfAbsent(item.getClass(), itemClass -> {
+            try {
+                return itemClass.getMethod("getText");
+            } catch (NoSuchMethodException ex) {
+                return NO_TEXT;
+            }
+        });
+    }
+
+    private static boolean isPost(Object item) {
+        return textMethod(item) != NO_TEXT;
+    }
+
+    private static String getPostText(Object item) {
+        try {
+            Method getText = textMethod(item);
+            if (getText == NO_TEXT) return null;
+            Object text = getText.invoke(item);
+            return text == null ? null : text.toString();
+        } catch (Exception ex) {
+            Logger.printException(() -> "getPostText failure", ex);
+            return null;
+        }
+    }
+
+    // endregion
+
+    // region Exclude keyword filter
+
+    private static boolean containsExcludeKeyword(Object item) {
         List<String> filtered = keywords();
         if (filtered.isEmpty()) return false;
 
-        try {
-            Method getText = TEXT.computeIfAbsent(item.getClass(), itemClass -> {
-                try {
-                    return itemClass.getMethod("getText");
-                } catch (NoSuchMethodException ex) {
-                    return NO_TEXT;
-                }
-            });
-            if (getText == NO_TEXT) return false;
+        String text = getPostText(item);
+        if (text == null) return false;
 
-            Object text = getText.invoke(item);
-            if (text == null) return false;
-
-            String lower = text.toString().toLowerCase(Locale.ROOT);
-            for (String keyword : filtered) {
-                if (lower.contains(keyword)) return true;
-            }
-        } catch (Exception ex) {
-            Logger.printException(() -> "Keyword filter failure", ex);
+        String lower = text.toLowerCase(Locale.ROOT);
+        for (String keyword : filtered) {
+            if (lower.contains(keyword)) return true;
         }
         return false;
     }
+
+    // endregion
+
+    // region Include keyword filter
+
+    private static boolean matchesAnyKeyword(Object item, List<String> keywords) {
+        String text = getPostText(item);
+        if (text == null) return false;
+
+        String lower = text.toLowerCase(Locale.ROOT);
+        for (String keyword : keywords) {
+            if (lower.contains(keyword)) return true;
+        }
+        return false;
+    }
+
+    // endregion
+
+    // region Media detection
+
+    /**
+     * Whether a post's data-class toString contains media content markers. Videos, GIFs and images
+     * are all serialised by name in the X data model.
+     */
+    private static boolean hasMediaIn(String repr) {
+        return repr.contains("MediaContentVideo(")
+                || repr.contains("MediaContentGif(")
+                || repr.contains("MediaContentImage(");
+    }
+
+    // endregion
+
+    // region Following detection
+
+    private static boolean isFollowedIn(String repr) {
+        return repr.contains("isFollowedByMe=true");
+    }
+
+    // endregion
 }

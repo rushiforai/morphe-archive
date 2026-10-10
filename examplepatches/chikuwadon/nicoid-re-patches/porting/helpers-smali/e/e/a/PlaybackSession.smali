@@ -546,6 +546,8 @@
 
     invoke-static {p0}, Le/e/a/FeedbackFixes;->form(Landroid/app/AlertDialog;)V
 
+    invoke-static/range {p0 .. p0}, Le/e/a/UiDialogs;->style(Landroid/app/AlertDialog;)V
+
     return-void
 .end method
 
@@ -2658,6 +2660,17 @@
 .end method
 
 .method public static styleDialog(Landroid/app/AlertDialog;)V
+    .registers 1
+
+    # Keep the dialog reference separate from legacy scratch registers.
+    invoke-static {p0}, Le/e/a/PlaybackSession;->legacyStyleDialog(Landroid/app/AlertDialog;)V
+
+    invoke-static {p0}, Le/e/a/UiDialogs;->style(Landroid/app/AlertDialog;)V
+
+    return-void
+.end method
+
+.method private static legacyStyleDialog(Landroid/app/AlertDialog;)V
     .registers 10
 
     .line 42

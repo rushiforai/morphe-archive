@@ -19,7 +19,9 @@ private const val FEATURE_CONTROLS_DESCRIPTOR =
 @Suppress("unused")
 val hideQuickCommentReactionsPatch = bytecodePatch(
     name = "Hide comment typing suggestions",
-    description = "Hides automatic emoji and sticker suggestions above the comment box. Manual buttons stay available. Switch: Hushfeed settings > Comments.",
+    description = "Hides the emoji and sticker suggestions that pop up above the comment box " +
+        "while you type. The emoji and sticker buttons still work. Starts off. Turn it on in " +
+        "Hushfeed settings > Comments.",
     default = true,
 ) {
     category("Comments")

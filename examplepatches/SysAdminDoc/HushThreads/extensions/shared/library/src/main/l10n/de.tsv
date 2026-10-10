@@ -13,7 +13,7 @@ A file named %1$s in %2$s paused HushThreads.	Eine Datei namens %1$s in %2$s hat
 About	Info
 Advertising ID removed	Werbe-ID entfernt
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 und älter melden nicht, welche Links sich hier öffnen. Tippe, um die Einstellungen dieser App zu öffnen, dann auf „Standardmäßig öffnen“.
-Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android prüft die Links von Threads mit dem Signaturschlüssel von Meta, den ein neu signierter Build nicht hat. Wenn du die Adressen auswählst, kommen ihre Links wieder hierher. Die Bestätigung durch Meta kommt dadurch nicht zurück, und deine anderen Link-Einstellungen bleiben, wie sie sind.
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android schickt Threads-Links nur an eine App, die von Meta signiert ist. Wenn du die Adressen auswählst, kommen ihre Links stattdessen hierher. Deine anderen Link-Einstellungen bleiben, wie sie sind.
 Android verified this app for Threads' web addresses, so their links open here.	Android hat diese App für die Webadressen von Threads bestätigt, deshalb öffnen sich ihre Links hier.
 Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	Die Android-Einstellungen für diese App ließen sich nicht öffnen. Öffne die App-Info über das Threads-Symbol, dann „Standardmäßig öffnen“.
 Back	Zurück
@@ -36,12 +36,12 @@ Debug logging	Debug-Protokollierung
 Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
 Diagnostic data put back.	Diagnosedaten wiederhergestellt.
 Diagnostic report copied to the clipboard.	Diagnosebericht in die Zwischenablage kopiert.
-Empties the log and the hook findings a report would include.	Leert das Protokoll und die Hook-Ergebnisse, die ein Bericht enthalten würde.
+Clears the saved log and patch check results that a report would include.	Leert das gespeicherte Protokoll und die Patch-Prüfergebnisse, die ein Bericht enthalten würde.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
 Export diagnostic report	Diagnosebericht exportieren
 Export settings	Einstellungen exportieren
 Feed	Feed
-From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Ab dem nächsten Start verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	Schaltet beim nächsten Start von Threads jeden HushThreads-Schalter außer der Debug-Protokollierung aus. Was du beim Patchen gewählt hast, bleibt, und deine Auswahl bleibt gespeichert.
 Hide ads	Werbung ausblenden
 HushThreads %1$s on Threads %2$s	HushThreads %1$s auf Threads %2$s
 HushThreads %1$s targets Threads %2$s.	HushThreads %1$s ist für Threads %2$s gedacht.
@@ -54,7 +54,7 @@ Only some of Threads' web addresses are selected for this app, and links to the 
 Privacy	Datenschutz
 Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Speichert deine Schalter in einer Datei. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.
 Saved. Restart Threads to apply this change.	Gespeichert. Starte Threads neu, um diese Änderung zu übernehmen.
-Screens that check Threads' own signature open again on this re-signed build.	Bildschirme, die die eigene Signatur von Threads prüfen, öffnen sich in diesem neu signierten Build wieder.
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	Manche Threads-Bildschirme prüfen, wer die App signiert hat, und scheitern bei einer gepatchten. Dieser Fix lässt sie wieder öffnen.
 Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Einstellungen exportiert. Die App, in der die Datei liegt, ließ HushThreads sie nicht zurücklesen, daher wurde sie nicht geprüft.
 # context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
 Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Gesponserte Beiträge werden aus „Für dich“ und „Gefolgt“ entfernt, bevor Threads sie zeigt, deshalb bleibt keine Lücke.
@@ -71,10 +71,10 @@ The app holding the last settings file still hasn't answered. Try again later.	D
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Die App, in der die Einstellungsdatei liegt, braucht zu lange, deshalb wartet HushThreads nicht mehr. Sie kann das Speichern noch abschließen, also prüfe die Datei, bevor du dich darauf verlässt.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Die Datei %1$s ließ sich nicht entfernen. Lösche sie aus %2$s und tippe dann noch einmal auf Fortsetzen.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zurück, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.
-Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.	Gefundene Analyseadressen werden an eine Adresse umgeleitet, die nicht antwortet. Andere Telemetrie kann bleiben. Schalte dies aus, um die ursprünglichen Adressen zu verwenden.
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	Hält die meisten Nutzungsberichte von Meta fern. Einige können trotzdem durchkommen. Schalte das aus, um sie wie zuvor zu senden.
 Analytics address coverage	Abdeckung der Analyseadressen
-Patched: %1$s. Missing: %2$s.	Gepatcht: %1$s. Fehlend: %2$s.
-Coverage wasn't recorded in this build. Patch again to see the matched address kinds.	Die Abdeckung wurde in diesem Build nicht erfasst. Patche erneut, um die gefundenen Adresstypen zu sehen.
+Blocked: %1$s. Not found in this build: %2$s.	Blockiert: %1$s. In diesem Build nicht gefunden: %2$s.
+This build didn't record which report types it covers. Patch again to see them.	Dieser Build hat nicht festgehalten, welche Berichtsarten er abdeckt. Patche erneut, um sie zu sehen.
 none	keine
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads kann die Werbe-ID deines Telefons nicht lesen. Die Berechtigung dafür fehlt in diesem Build.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads ist dreimal hintereinander innerhalb einer Minute nach dem Start abgestürzt oder hängen geblieben, deshalb hat sich HushThreads selbst pausiert.
@@ -102,7 +102,7 @@ Retry	Erneut versuchen
 Save full report	Vollständigen Bericht speichern
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushThreads releases	Nach neuen HushThreads-Versionen suchen
-Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Fragt GitHub einmal täglich beim Start ab und zeigt neue Versionen in der Übersicht. Standardmäßig aus. Es wird nichts heruntergeladen.
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	Prüft einmal am Tag beim Start von Threads auf GitHub, ob es ein neueres HushThreads gibt, und sagt es dir hier. Es wird nichts heruntergeladen.
 Check now	Jetzt prüfen
 Asks GitHub for the newest release right now, even with the switch above off.	Fragt GitHub sofort nach der neuesten Version, auch wenn der Schalter darüber aus ist.
 Checking GitHub now.	GitHub wird gerade gefragt.
@@ -112,7 +112,7 @@ You have the newest HushThreads release.	Du hast die neueste Version von HushThr
 The newest HushThreads release is %1$s.	Die neueste Version von HushThreads ist %1$s.
 Couldn't reach GitHub. Try again later.	GitHub war nicht erreichbar. Versuche es später noch einmal.
 GitHub is turning away checks from this network for now. Try again later.	GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es später noch einmal.
-GitHub's answer couldn't be used. Try again later.	Mit der Antwort von GitHub ließ sich nichts anfangen. Versuche es später noch einmal.
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub hat etwas geschickt, das HushThreads nicht lesen konnte. Versuche es später noch einmal.
 Saving the settings file	Einstellungsdatei wird gespeichert
 Set when you patched	Beim Patchen festgelegt
 Settings couldn't open	Einstellungen ließen sich nicht öffnen
@@ -160,7 +160,7 @@ No matching settings	Keine passenden Einstellungen
 Try a different word or clear the search.	Versuch ein anderes Wort oder lösche die Suche.
 Search settings	Einstellungen suchen
 Clear search	Suche löschen
-Your controls are active.	Deine Einstellungen sind aktiv.
+Your switches are working.	Deine Schalter sind aktiv.
 Pause	Pausieren
 Resume	Fortsetzen
 Undo	Rückgängig
@@ -175,14 +175,14 @@ the removed advertising ID permission	die entfernte Berechtigung für die Werbe-
 
 # context: optional feed rule and its scope
 Hide suggested users	Vorgeschlagene Nutzer ausblenden
-Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.	Entfernt bestätigte Karten mit Konten zum Folgen. Normale Beiträge und Reposts bleiben.
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	Entfernt die Karten, die Konten zum Folgen vorschlagen, in deinem Feed und in Profilen. Normale Beiträge und Reposts bleiben.
 Keep feed position on return	Feedposition beim Zurückkehren beibehalten
 Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Wenn du innerhalb von zehn Minuten zu Threads zurückkehrst, bleibst du an derselben Stelle. Zum Aktualisieren kannst du weiter nach unten ziehen.
 No time limit	Kein Zeitlimit
 With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Wenn der Schalter oben an ist, bleibt deine Stelle erhalten, egal wie lange du weg bist. Zum Aktualisieren ziehen und ein Neustart laden weiterhin neue Beiträge.
 Where you left off in your feed	Wo du in deinem Feed aufgehört hast
 Open links in your browser	Links in deinem Browser öffnen
-Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.	Weblinks, die du antippst, öffnen sich in deinem Standardbrowser oder in der App für diese Seite, ohne den Klick-Tracker von Threads. Seiten von Threads, Instagram und andere Meta-Seiten öffnen sich weiter in Threads.
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	Links, die du antippst, öffnen sich in deinem Browser oder in der App der Seite, ohne Threads' Link-Tracking. Threads- und Instagram-Seiten öffnen sich weiter in Threads.
 Tap to play videos	Videos per Tippen abspielen
 Videos in your feed wait for a tap instead of playing as you scroll.	Videos in deinem Feed warten auf ein Tippen, statt beim Scrollen abzuspielen.
 Videos in your feed	Videos in deinem Feed
@@ -195,7 +195,9 @@ Not in this build: %1$s. Morphe Manager selects it by default. Patch again with 
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Nicht in diesem Build: %1$s. Morphe Manager wählt diese Patches standardmäßig aus. Wähle sie aus und patche erneut, um zu bekommen, was sie tun.
 Appearance	Darstellung
 Pure black dark mode	Rein schwarzer Dunkelmodus
-Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen.
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	Der Dunkelmodus nutzt echtes Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen. Starte Threads neu, damit die Änderung greift.
+Hide the Instagram button	Instagram-Button ausblenden
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Entfernt den Instagram-Button oben in Profilen, in deinem und in denen anderer. Starte Threads neu, damit die Änderung greift.
 Turn features on or off	Funktionen ein- oder ausschalten
 # Fotos und Videos speichern
 %1$d saved in lower quality than on Threads.	%1$d in niedrigerer Qualität als auf Threads gespeichert.
@@ -206,7 +208,7 @@ Turn features on or off	Funktionen ein- oder ausschalten
 %1$s so far	Bisher %1$s
 A save stopped. Reopen the post and save again.	Ein Speichervorgang wurde gestoppt. Öffne den Beitrag erneut und speichere noch einmal.
 A save was interrupted	Ein Speichervorgang wurde unterbrochen
-Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.	Fügt dem Menü eines Beitrags eine Zeile zum Speichern hinzu. Hat ein Beitrag mehrere Fotos oder Videos, werden alle der Reihe nach gespeichert. Ausgeschaltet oder pausiert bleibt das Menü so, wie Threads es zeigt.
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	Fügt dem Beitragsmenü Speichern hinzu. Ein Beitrag mit mehreren Fotos oder Videos speichert sie alle. Aus oder pausiert, siehst du das normale Menü von Threads.
 Best	Beste
 Cancel saving this carousel	Speichern dieses Karussells abbrechen
 Cancel saving this photo	Speichern dieses Fotos abbrechen
@@ -214,7 +216,7 @@ Cancel saving this video	Speichern dieses Videos abbrechen
 Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Karussell abgebrochen. Gespeichert %1$d. Fehlgeschlagen %2$d. Übersprungen %3$d.
 Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Wähle einen Ordnernamen unter Movies und Pictures. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardordner %1$s zu verwenden.
 Copying to the gallery	Wird in die Galerie kopiert
-Download failed	Download fehlgeschlagen
+Download failed. Try again in a moment.	Download fehlgeschlagen. Versuche es gleich noch einmal.
 Download quality	Download-Qualität
 Downloading	Wird heruntergeladen
 Downloads	Downloads
@@ -226,7 +228,7 @@ File name	Dateiname
 File name set to %1$s.	Dateiname auf %1$s gesetzt.
 Folder name	Ordnername
 Folder set to %1$s.	Ordner auf %1$s gesetzt.
-For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Für WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualität senken.
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	Hilft, wenn WhatsApp, ein Editor wie CapCut oder InShot oder eine Galerie dein gespeichertes Video ohne Ton abspielt. Kann die Qualität senken.
 How far a photo or video you're saving has got, with a button to cancel it	Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen
 HushThreads saves	Speichern mit HushThreads
 Joining the picture and sound	Bild und Ton werden zusammengefügt
@@ -255,19 +257,19 @@ Saving a carousel	Karussell wird gespeichert
 Saving a photo	Foto wird gespeichert
 Saving a video	Video wird gespeichert
 Saving...	Wird gespeichert …
-Saving... Cancel: Downloads in HushThreads.	Wird gespeichert … Abbrechen: Downloads in HushThreads.
+Saving... To cancel, open Downloads in HushThreads settings.	Speichern ... Zum Abbrechen öffne Downloads in den HushThreads-Einstellungen.
 Smallest	Kleinste
 Video file name	Dateiname für Videos
 Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Videos heißen %1$s. Fotos heißen immer %2$s, gefolgt von Datum und Uhrzeit.
 Videos go to %1$s and photos to %2$s.	Videos landen in %1$s und Fotos in %2$s.
 Version code raised	Versionscode erhöht
-This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Der Versionscode dieses Builds ist der höchste, den Android zulässt, daher bietet Google Play darüber keine Updates von Meta an. Die Prüfungen von Threads gegen die Version, als die es gebaut wurde, sehen weiterhin den echten. Um zum Original-Threads zurückzukehren, deinstalliere zuerst dieses, wodurch die Daten von Threads auf diesem Telefon gelöscht werden. Spätere HushThreads-Builds brauchen ebenfalls Change version code, sonst lassen sie sich nicht über dieses installieren.
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Die Versionsnummer ist so hoch gesetzt, wie Android es erlaubt, deshalb bietet Google Play keine Updates von Meta über diesen Build an. Threads sieht weiterhin seine echte Version. Um zum originalen Threads zurückzukehren, deinstalliere zuerst diese App, wodurch die Daten von Threads auf diesem Handy gelöscht werden. Spätere HushThreads-Builds brauchen ebenfalls Change version code, sonst lassen sie sich nicht über diesen installieren.
 the raised version code	der erhöhte Versionscode
 Share sheet entry removed	Eintrag im Teilen-Menü entfernt
 Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Threads erscheint nicht mehr, wenn du aus anderen Apps teilst. Aus Threads in andere Apps teilen funktioniert weiterhin.
 the removed share sheet entry	der entfernte Eintrag im Teilen-Menü
 User certificates trusted	Eigenen Zertifikaten wird vertraut
-Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.	Threads akzeptiert selbst installierte Zertifikate dort, wo Android sie prüft. Die eigenen Prüfungen von Threads für Metas Zertifikate sind unverändert, daher kann ein Proxy den Großteil des Datenverkehrs weiterhin nicht lesen.
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads akzeptiert Sicherheitszertifikate, die du auf deinem Handy hinzugefügt hast. Die eigenen Prüfungen der Meta-Zertifikate bleiben unverändert, deshalb kann ein Proxy den Großteil des Datenverkehrs weiterhin nicht lesen.
 the user certificate trust	das Vertrauen in eigene Zertifikate
 Hide screenshots from Threads	Screenshots vor Threads verbergen
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads erfährt nicht, wenn du einen Screenshot machst, und kann ihn daher weder protokollieren noch darauf reagieren.

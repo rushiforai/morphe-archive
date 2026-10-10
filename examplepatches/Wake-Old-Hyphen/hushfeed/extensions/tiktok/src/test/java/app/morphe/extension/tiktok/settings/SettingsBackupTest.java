@@ -366,7 +366,7 @@ public class SettingsBackupTest {
         Settings.BLOCKED_CREATORS.save("from the backup");
         Settings.AUTO_ADVANCE.save(true);
         String backup = SettingsBackup.create(false);
-        String otherVersion = new JSONObject(backup).put("target", "40.0.0").toString();
+        String otherVersion = fromUnknownBuild(new JSONObject(backup)).toString();
 
         // State that must survive: a Lab rule this backup knows nothing about.
         Settings.BLOCKED_CREATORS.save("changed since");
@@ -384,6 +384,16 @@ public class SettingsBackupTest {
                 FeatureGateLabStore.rule("abmock", "rule_for_this_build", "INT"));
         assertTrue("the Lab master switch was changed by a backup for another build",
                 FeatureGateLabStore.masterEnabled());
+    }
+
+    /**
+     * A backup whose Lab block can't be tied to a TikTok build: the target is one no catalog has
+     * and the Lab names no build of its own, so nothing says which gates its rules mean.
+     */
+    private static JSONObject fromUnknownBuild(JSONObject backup) throws Exception {
+        backup.put("target", "40.0.0");
+        backup.getJSONObject("lab").remove("tiktok_version");
+        return backup;
     }
 
     @Test public void everyRefusalSaysWhichOneItWas() throws Exception {
@@ -435,7 +445,7 @@ public class SettingsBackupTest {
         // as "does not match", and the startup path rolled a successful restore back.
         var app = Utils.getContext();
         Settings.BLOCKED_CREATORS.save("from the backup");
-        String backup = new JSONObject(SettingsBackup.create(false)).put("target", "40.0.0").toString();
+        String backup = fromUnknownBuild(new JSONObject(SettingsBackup.create(false))).toString();
 
         Settings.BLOCKED_CREATORS.save("changed since");
         String before = SettingsBackup.create(false);
@@ -1152,8 +1162,8 @@ public class SettingsBackupTest {
 
     @Test public void skippedKeysAndMissingCurrentSettingsStaySeparateAcrossHostsAndUndo() throws Exception {
         Settings.MAX_VIDEO_SECONDS.save(81);
-        JSONObject file = new JSONObject(withoutKeys(SettingsBackup.create(false), Settings.REGION_SPOOF.key))
-                .put("target", "40.0.0");
+        JSONObject file = fromUnknownBuild(
+                new JSONObject(withoutKeys(SettingsBackup.create(false), Settings.REGION_SPOOF.key)));
         file.getJSONObject("settings").put("retired_or_future_option", new JSONObject().put("value", true))
                 .put(Settings.AUTO_STREAK_STATE.key, "state-from-another-phone");
         file.getJSONArray("setting_keys").put("retired_or_future_option").put(Settings.AUTO_STREAK_STATE.key);
@@ -1375,8 +1385,7 @@ public class SettingsBackupTest {
             SettingsStatus.diagnosticsEnabled = false;
 
             Settings.MAX_VIDEO_SECONDS.save(73);
-            String undoCopy = new JSONObject(SettingsBackup.create(false))
-                    .put("target", "40.0.0").toString();
+            String undoCopy = fromUnknownBuild(new JSONObject(SettingsBackup.create(false))).toString();
             File undoFile = new File(activity.getApplicationContext().getFilesDir(),
                     "hushfeed-settings-undo.json");
             try (FileOutputStream output = new FileOutputStream(undoFile)) {

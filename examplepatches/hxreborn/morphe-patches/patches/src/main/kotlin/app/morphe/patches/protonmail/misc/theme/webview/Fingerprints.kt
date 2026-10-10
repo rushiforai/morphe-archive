@@ -19,12 +19,8 @@ internal object CachedMessageBodyFingerprint : Fingerprint(
 )
 
 internal object InlineMessageBodyFingerprint : Fingerprint(
-    name = "invokeSuspend",
-    returnType = "Ljava/lang/Object;",
-    strings = listOf(
-        "message-webview: setting initial value on webview ",
-        "https://ch.proton.local.body.host/body/",
-    ),
+    strings = listOf("https://ch.proton.local.body.host/body/"),
+    filters = listOf(methodCall(definingClass = "Landroid/webkit/WebView;", name = "loadDataWithBaseURL")),
 )
 
 internal object ComposerCssFingerprint : Fingerprint(

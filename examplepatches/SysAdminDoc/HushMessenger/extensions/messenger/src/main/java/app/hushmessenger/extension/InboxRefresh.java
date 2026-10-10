@@ -14,14 +14,16 @@ import java.util.List;
 /**
  * After a cold start Messenger's first subscription to the chat list can stay silent, so the supplier's listed count
  * stays 0 and the list keeps its load-more footer under the chats. While Hide People You May Know is in effect, each
- * supplier gets at most two more subscribe calls, and only while its count is still 0.
+ * supplier gets at most {@link #CHECKS_MS}.length more subscribe calls, and only while its count is still 0.
  */
 public final class InboxRefresh {
     static final String KEY = "people";
-    /** From the supplier's first items read to the first check. */
-    static final long FIRST_CHECK_MS = 2_500L;
-    /** From the first subscribe call to the last check. */
-    static final long LAST_CHECK_MS = 8_000L;
+    /**
+     * When each check runs, counted from the supplier's first items read. Stock reruns the same subscribe on every chat
+     * list change, so a spare one while nothing has arrived costs one query: the early checks keep the footer short
+     * (#30 still saw about 5 seconds with a single check at 2.5 s), the later ones catch a mailbox that is slow to open.
+     */
+    static final long[] CHECKS_MS = {600L, 1_500L, 3_500L, 8_000L};
     /** Suppliers already scheduled. Messenger keeps a handful, so a list with identity checks is enough. */
     static final List<WeakReference<Object>> tracked = new ArrayList<>();
 
@@ -38,7 +40,7 @@ public final class InboxRefresh {
             if (supplier == null || route == null || route.isEmpty() || !Settings.wouldUse(KEY) || !firstSight(supplier)) return;
             Route target = Route.of(route, supplier.getClass());
             WeakReference<Object> reference = new WeakReference<>(supplier);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> check(reference, target, true), FIRST_CHECK_MS);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> check(reference, target, 0), CHECKS_MS[0]);
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Can't schedule the chat list refresh", error);
         }
@@ -55,12 +57,16 @@ public final class InboxRefresh {
     }
 
     /** Runs on the main thread. A count above 0 means rows arrived, so Messenger is left alone from then on. */
-    static void check(WeakReference<Object> reference, Route route, boolean first) {
+    static void check(WeakReference<Object> reference, Route route, int index) {
         try {
             Object supplier = reference.get();
             if (supplier == null || route.listed(supplier) != 0 || !Settings.enabled(KEY)) return;
             route.subscribe(supplier);
-            if (first) new Handler(Looper.getMainLooper()).postDelayed(() -> check(reference, route, false), LAST_CHECK_MS);
+            int next = index + 1;
+            if (next < CHECKS_MS.length) {
+                new Handler(Looper.getMainLooper()).postDelayed(
+                    () -> check(reference, route, next), CHECKS_MS[next] - CHECKS_MS[index]);
+            }
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Can't refresh the chat list", error);
         }

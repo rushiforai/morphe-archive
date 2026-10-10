@@ -31,6 +31,7 @@ public class FeedTextBridgeContractTest {
         Map<String, Class<?>[]> expected = new LinkedHashMap<>();
         expected.put("descriptionViewOf", new Class<?>[]{Object.class});
         expected.put("authorViewOf", new Class<?>[]{Object.class});
+        expected.put("dateViewOf", new Class<?>[]{Object.class});
         expected.put("resizeDescriptionBuilder", new Class<?>[]{Object.class, View.class});
         expected.put("refreshDescription", new Class<?>[]{Object.class});
         expected.put("refreshAuthor", new Class<?>[]{Object.class, Object.class});
@@ -43,7 +44,8 @@ public class FeedTextBridgeContractTest {
             Method bridge = named.get(0);
             assertArrayEquals(entry.getKey() + " parameters", entry.getValue(), bridge.getParameterTypes());
             Class<?> result = entry.getKey().equals("descriptionViewOf") ? View.class
-                    : entry.getKey().equals("authorViewOf") ? TextView.class : void.class;
+                    : entry.getKey().equals("authorViewOf") || entry.getKey().equals("dateViewOf") ? TextView.class
+                    : void.class;
             assertEquals(entry.getKey() + " return type", result, bridge.getReturnType());
             assertTrue(entry.getKey() + " must be static", Modifier.isStatic(bridge.getModifiers()));
         }

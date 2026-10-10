@@ -290,8 +290,8 @@ public class SettingsNavigationTest {
         }
     }
 
-    private static final String PAUSED_LINE = "Until you resume, every switch but Debug logging acts as if it "
-            + "were off. Changes made when you patched stay in.";
+    private static final String PAUSED_LINE = "Until you resume, every switch except Debug logging acts as if it were off. Edits made when you "
+            + "patched stay in.";
 
     /**
      * Paused, a category page opens with a short line that says so, and the saved switches keep

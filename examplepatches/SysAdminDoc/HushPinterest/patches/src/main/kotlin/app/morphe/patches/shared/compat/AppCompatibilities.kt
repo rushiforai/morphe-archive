@@ -49,14 +49,11 @@ internal object AppCompatibilities {
      */
     const val PINTEREST_TARGET_VERSION_CODE = 14388010
 
-    /** Pinterest's own floor on this build, Android 10. */
-    const val PINTEREST_TARGET_MIN_SDK = 29
-
     /**
-     * HushPinterest's floor, Android 9, which 14.25.0 keeps. It's Pinterest's own floor for that
-     * build too, and the extension's settings screen and diagnostics use Android 9 APIs.
+     * Pinterest's own floor on this build, Android 10. Manager offers the patches only where the
+     * build itself installs.
      */
-    const val PINTEREST_FLOOR_MIN_SDK = 28
+    const val PINTEREST_TARGET_MIN_SDK = 29
 
     fun pinterest(): Array<Compatibility> = arrayOf(
         Compatibility(
@@ -70,11 +67,6 @@ internal object AppCompatibilities {
                     version = PINTEREST_TARGET_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to PINTEREST_TARGET_VERSION_CODE),
                     minSdk = PINTEREST_TARGET_MIN_SDK,
-                ),
-                AppTarget(
-                    version = "14.25.0",
-                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to 14258020),
-                    minSdk = PINTEREST_FLOOR_MIN_SDK,
                 ),
             ),
         ),

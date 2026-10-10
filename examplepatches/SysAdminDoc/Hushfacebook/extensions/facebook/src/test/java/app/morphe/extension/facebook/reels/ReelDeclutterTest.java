@@ -11,6 +11,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +51,14 @@ public class ReelDeclutterTest {
     private static final String SONG = "XFBFBShortsSoundtrackTitle";
     private static final String LOCATION = "XFBFBShortsLocationAttribution";
 
+    /** The patch is in Morphe Manager's default selection with its switches off; these tests turn them on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HIDE_REEL_CHIPS.save(true);
+        Settings.HIDE_REEL_FOLLOW_BUTTON.save(true);
+        Settings.HIDE_REEL_SOCIAL_FOOTER.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -73,12 +82,12 @@ public class ReelDeclutterTest {
         return null;
     }
 
-    /** Picking the patch is the choice to clean the viewer up, so all three switches start on. */
+    /** The patch is in Morphe Manager's default selection, so all three switches start off. */
     @Test
-    public void everySwitchStartsOnOnceThePatchIsPicked() {
-        assertTrue(Settings.HIDE_REEL_CHIPS.defaultValue);
-        assertTrue(Settings.HIDE_REEL_FOLLOW_BUTTON.defaultValue);
-        assertTrue(Settings.HIDE_REEL_SOCIAL_FOOTER.defaultValue);
+    public void everySwitchStartsOff() {
+        assertFalse(Settings.HIDE_REEL_CHIPS.defaultValue);
+        assertFalse(Settings.HIDE_REEL_FOLLOW_BUTTON.defaultValue);
+        assertFalse(Settings.HIDE_REEL_SOCIAL_FOOTER.defaultValue);
     }
 
     /**

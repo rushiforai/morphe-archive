@@ -88,6 +88,7 @@ public final class FamilyNames {
     public static final String MESSENGER_ICON = "Open Messenger from the top bar";
     public static final String MENU_PROMOTIONS = "Hide Menu promotions";
     public static final String META_UPSELLS = "Hide Meta upsells";
+    public static final String SHARE_SHEET_ITEMS = "Share sheet items";
     public static final String META_AI_SEARCH = "Hide Meta AI in search";
     public static final String PROMO_NOTIFICATIONS = "Block promotional notifications";
     public static final String AD_PREFETCH = "Block background ad prefetch";

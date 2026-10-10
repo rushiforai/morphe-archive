@@ -38,10 +38,17 @@ public class ClockTimePreference extends NumberInputPreference {
         return false;
     }
 
+    /**
+     * The picker took its look from TikTok's activity theme, which can disagree with the dark or
+     * light mode the settings pages follow, so it could open as a light clock over a dark page.
+     */
     @Override
     protected void onClick() {
         int value = clamp(Integer.parseInt(getValue()));
-        new TimePickerDialog(getContext(), (picker, hour, minute) -> {
+        int theme = SettingsUi.isDarkMode()
+                ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+        new TimePickerDialog(getContext(), theme, (picker, hour, minute) -> {
             String picked = String.valueOf(hour * 60 + minute);
             if (callChangeListener(picked)) setValue(picked);
         }, value / 60, value % 60, DateFormat.is24HourFormat(getContext())).show();

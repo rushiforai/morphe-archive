@@ -856,8 +856,8 @@ public class FeatureGatePagesTest {
             String id = FeatureGateLabStore.idFor(entry.manager, entry.key, entry.type);
             Map<FeatureGateFailure, String> expected = new java.util.LinkedHashMap<>();
             expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.NO_OBJECT),
-                    "TikTok hasn't handed this setting an object to change yet. Open the part"
-                            + " of the app that uses it, then come back.");
+                    "TikTok hasn't loaded this setting yet. Open the part of the app that uses "
+                            + "it, then come back.");
             expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.CANNOT_COPY),
                     "This setting's value can't be copied on this build, so it can't be"
                             + " overridden. Reset the override.");

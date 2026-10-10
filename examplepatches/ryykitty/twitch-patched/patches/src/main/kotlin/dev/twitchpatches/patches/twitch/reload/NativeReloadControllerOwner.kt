@@ -77,8 +77,7 @@ internal fun BytecodePatchContext.installNativeReloadControllerOwner(all: List<M
             } == true)
     }) throw PatchException("Reload stream: loaded live model data flow changed.")
     val base = mutableClassDefBy(views.transport.definingClass)
-    val existing = base.methods.single { it.name == "reloadControlsOwner" && it.parameterTypes.isEmpty() }
-    base.methods.remove(existing)
+    base.interfaces.add(NATIVE_OWNER)
     base.methods.add(nativeReloadMethod(base.type, "reloadControlsOwner", emptyList(), "Ljava/lang/Object;", 3, """
         const/4 v0, 0x0
         instance-of v1, p0, ${liveType.type}

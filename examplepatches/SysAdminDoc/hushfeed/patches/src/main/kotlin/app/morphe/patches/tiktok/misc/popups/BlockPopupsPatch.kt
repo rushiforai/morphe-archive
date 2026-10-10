@@ -230,7 +230,10 @@ internal fun MutableMethod.returnEarlyWhen(switch: String, returning: String) {
 @Suppress("unused")
 val blockPopupsPatch = bytecodePatch(
     name = "Block popups",
-    description = "Lets you stop TikTok's own popups one at a time, like the follow-your-friends card or an upsell. The checklist lists each popup TikTok has tried to show on your phone, the sheets its server sends as campaigns included, so one appears there after its first showing. Tick it and it stays away from then on. A switch beside it hides the LIVE bubble at the top of the feed, which never reaches the checklist. Another keeps TikTok's bedtime wind-down and daily limit screens off the feed, on an account TikTok knows is an adult's. Nothing is blocked until you tick something or turn it on. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed and never blocked. Switch: Hushfeed settings > Feed screen.",
+    description = "Lets you stop TikTok's popups, like friend suggestions and offers. Each " +
+        "one joins a checklist after it first appears, and once ticked it won't come back. " +
+        "Sign-in, age and verification screens are never blocked. Starts off. Turn it on in " +
+        "Hushfeed settings > Feed screen.",
     default = true,
 ) {
     category("Feed")

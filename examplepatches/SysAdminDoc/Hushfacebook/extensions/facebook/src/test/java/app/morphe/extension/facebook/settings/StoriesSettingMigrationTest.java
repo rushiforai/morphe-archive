@@ -45,10 +45,10 @@ public class StoriesSettingMigrationTest {
         try (FailingStore counted = FailingStore.install()) {
             StoriesSetting.finishMigration();
             assertEquals(0, counted.editors.get());
-            assertTrue(Settings.HIDE_TOP_STORIES_TRAY.defaultValue);
-            assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.defaultValue);
-            assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-            assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+            assertFalse(Settings.HIDE_TOP_STORIES_TRAY.defaultValue);
+            assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.defaultValue);
+            assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+            assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
         }
     }
 
@@ -85,16 +85,16 @@ public class StoriesSettingMigrationTest {
         }
     }
 
-    @Test public void resettingAnIndependentChoiceToDefaultNeverRemigratesTheOldOffValue() {
-        store().edit().putBoolean(StoriesSetting.LEGACY_KEY, false).commit();
+    @Test public void resettingAnIndependentChoiceToDefaultNeverRemigratesTheOldOnValue() {
+        store().edit().putBoolean(StoriesSetting.LEGACY_KEY, true).commit();
         StoriesSetting.finishMigration();
         reload();
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.save(true));
+        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.save(false));
         assertFalse(store().contains(StoriesSetting.TOP_KEY));
         StoriesSetting.finishMigration();
         reload();
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-        assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+        assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
     }
 
     @Test public void failedStartupWritesPreserveTheOldChoiceAndCanBeRetried() {
@@ -102,52 +102,52 @@ public class StoriesSettingMigrationTest {
                 FailingStore.Fault.STAGE_THROWS, FailingStore.Fault.LOST, FailingStore.Fault.COMMIT_THROWS,
                 FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING}) {
             clearChoices();
-            store().edit().putBoolean(StoriesSetting.LEGACY_KEY, false).commit();
+            store().edit().putBoolean(StoriesSetting.LEGACY_KEY, true).commit();
             try (FailingStore failed = FailingStore.install(fault)) {
                 StoriesSetting.migrate();
                 reload();
-                assertFalse(fault.name(), Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-                assertFalse(fault.name(), Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+                assertTrue(fault.name(), Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+                assertTrue(fault.name(), Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
             }
             StoriesSetting.finishMigration();
             assertFalse(fault.name(), store().contains(StoriesSetting.LEGACY_KEY));
             reload();
-            assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-            assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+            assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+            assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
         }
     }
 
     @Test public void aLaterIndividualSaveFinishesAFailedMigrationWithoutLosingTheOtherChoice() {
         leaveFailedMigration();
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.save(true));
+        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.save(false));
         assertFalse(store().contains(StoriesSetting.LEGACY_KEY));
         reload();
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-        assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+        assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
     }
 
     @Test public void aLaterSparseImportFinishesAFailedMigrationWithoutLosingTheOtherChoice() throws Exception {
         leaveFailedMigration();
-        JSONObject values = new JSONObject().put(StoriesSetting.TOP_KEY, true);
+        JSONObject values = new JSONObject().put(StoriesSetting.TOP_KEY, false);
         String file = new JSONObject().put("format", SettingsBackup.FORMAT).put("schema", 1)
                 .put("settings", values).toString();
         assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(file)));
         assertFalse(store().contains(StoriesSetting.LEGACY_KEY));
         reload();
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-        assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+        assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
     }
 
     @Test public void thePreferenceFrameworksDefaultCleanupAlsoFinishesAFailedMigration() {
         leaveFailedMigration();
         // Android's Preference stores the selected value before the framework updates Setting.
-        store().edit().putBoolean(StoriesSetting.TOP_KEY, true).commit();
-        BooleanSetting.privateSetValue(Settings.HIDE_TOP_STORIES_TRAY, true);
+        store().edit().putBoolean(StoriesSetting.TOP_KEY, false).commit();
+        BooleanSetting.privateSetValue(Settings.HIDE_TOP_STORIES_TRAY, false);
         assertFalse(store().contains(StoriesSetting.LEGACY_KEY));
         assertFalse(store().contains(StoriesSetting.TOP_KEY));
         reload();
-        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-        assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+        assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
     }
 
     @Test public void aFailedIndividualSaveRollsBothChoicesBackAfterStartupMigrationFailed() {
@@ -157,16 +157,16 @@ public class StoriesSettingMigrationTest {
             clearChoices();
             leaveFailedMigration();
             try (FailingStore failed = FailingStore.install(fault)) {
-                assertFalse(fault.name(), Settings.HIDE_TOP_STORIES_TRAY.save(true));
+                assertFalse(fault.name(), Settings.HIDE_TOP_STORIES_TRAY.save(false));
             }
             reload();
-            assertFalse(fault.name(), Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-            assertFalse(fault.name(), Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+            assertTrue(fault.name(), Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+            assertTrue(fault.name(), Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
         }
     }
 
     @Test public void aSecondaryProcessReadsTheLegacyChoiceWithoutWritingIt() {
-        store().edit().putBoolean(StoriesSetting.LEGACY_KEY, false).commit();
+        store().edit().putBoolean(StoriesSetting.LEGACY_KEY, true).commit();
         var app = RuntimeEnvironment.getApplication().getApplicationInfo();
         String previous = app.processName;
         app.processName = RuntimeEnvironment.getApplication().getPackageName() + ":secondary";
@@ -175,23 +175,24 @@ public class StoriesSettingMigrationTest {
             reload();
             assertEquals(0, counted.editors.get());
             assertTrue(store().contains(StoriesSetting.LEGACY_KEY));
-            assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-            assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
-            assertFalse(Settings.HIDE_TOP_STORIES_TRAY.save(true));
+            assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+            assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+            assertFalse(Settings.HIDE_TOP_STORIES_TRAY.save(false));
         } finally {
             app.processName = previous;
         }
     }
 
+    /** The old combined choice started on, so a legacy value of on is the one that differs from the defaults. */
     private static void leaveFailedMigration() {
-        store().edit().putBoolean(StoriesSetting.LEGACY_KEY, false).commit();
+        store().edit().putBoolean(StoriesSetting.LEGACY_KEY, true).commit();
         try (FailingStore ignored = FailingStore.install(FailingStore.Fault.LOST)) {
             StoriesSetting.migrate();
         }
         reload();
         assertTrue(store().contains(StoriesSetting.LEGACY_KEY));
-        assertFalse(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
-        assertFalse(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+        assertTrue(Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
     }
 
     private static SharedPreferences store() {

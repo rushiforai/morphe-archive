@@ -473,13 +473,11 @@ if ($SkipDescriptionTestCount) {
 # run that never opened a Pinterest APK. Only a check that holds the description to its counts reads
 # them: they are a fact about the release, and a push that rewrites no description has no count
 # to compare them with and no reason to have run them.
+#
+# Two tasks write them. :patches:test holds the quick tests and :patches:fixtureTest the ones that
+# open the vendor APKs, each in a folder of its own, and the count is the two together. A test
+# class with one fixture test among others has results in both.
 if (-not $SkipDescriptionTestCount) {
-    $patchTestRoot = Join-Path $rootPath 'patches/build/test-results/test'
-    $patchTestFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
-    if ($patchTestFiles.Count -eq 0) {
-        throw ("No patch test results found under $patchTestRoot. Run :patches:test with " +
-            'HUSHPINTEREST_FIXTURE_DIR set first.')
-    }
     # Stale and partial runs, read the same way as the runtime results above: the trees the patch
     # tests build from, and every test class the module has.
     $patchSourceRoots = @('patches/src', 'extensions/pinterest/src/main', 'extensions/shared/library/src/main') |
@@ -489,12 +487,27 @@ if (-not $SkipDescriptionTestCount) {
         ForEach-Object { Get-ChildItem -LiteralPath $_ -Recurse -File -ErrorAction SilentlyContinue } |
         Sort-Object LastWriteTimeUtc -Descending |
         Select-Object -First 1
-    $newestPatchResult = $patchTestFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-    if ($null -ne $newestPatchSource -and $newestPatchResult.LastWriteTimeUtc -lt $newestPatchSource.LastWriteTimeUtc) {
-        throw ("Patch test results are older than the sources. The newest result " +
-            "$($newestPatchResult.Name) was written $($newestPatchResult.LastWriteTimeUtc.ToString('u')) but " +
-            "$($newestPatchSource.FullName) changed $($newestPatchSource.LastWriteTimeUtc.ToString('u')). " +
-            'Run :patches:test --rerun.')
+    $patchTestFiles = @()
+    foreach ($patchTask in @(
+            [pscustomobject]@{ Task = ':patches:test'; Folder = 'patches/build/test-results/test' },
+            [pscustomobject]@{ Task = ':patches:fixtureTest'; Folder = 'patches/build/test-results/fixtureTest' })) {
+        $patchTestRoot = Join-Path $rootPath $patchTask.Folder
+        $taskFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
+        if ($taskFiles.Count -eq 0) {
+            throw ("No patch test results found under $patchTestRoot. Run $($patchTask.Task) with " +
+                'HUSHPINTEREST_FIXTURE_DIR set first.')
+        }
+        # Each task reads every source the other does, so each reruns after any edit, and each
+        # folder's newest result has to be newer than the newest source.
+        $newestPatchResult = $taskFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+        if ($null -ne $newestPatchSource -and $newestPatchResult.LastWriteTimeUtc -lt $newestPatchSource.LastWriteTimeUtc) {
+            throw ("Patch test results are older than the sources. The newest result " +
+                "$($newestPatchResult.Name) from $($patchTask.Task) was written " +
+                "$($newestPatchResult.LastWriteTimeUtc.ToString('u')) but " +
+                "$($newestPatchSource.FullName) changed $($newestPatchSource.LastWriteTimeUtc.ToString('u')). " +
+                "Run $($patchTask.Task) --rerun.")
+        }
+        $patchTestFiles += $taskFiles
     }
     $patchTestSourceRoot = Join-Path $rootPath 'patches/src/test'
     if (Test-Path -LiteralPath $patchTestSourceRoot) {
@@ -505,13 +518,13 @@ if (-not $SkipDescriptionTestCount) {
         if ($missing.Count -gt 0) {
             throw ("Patch test results are missing " + $missing.Count + " of " + $patchClasses.Count +
                 " test classes, so the counts here describe part of a run: " +
-                (($missing | Select-Object -First 8) -join ', ') + ". Run :patches:test unfiltered.")
+                (($missing | Select-Object -First 8) -join ', ') + ". Run :patches:test and :patches:fixtureTest unfiltered.")
         }
-        $orphaned = @($ranPatchClasses | Where-Object { $patchClasses -notcontains $_ } | Sort-Object)
+        $orphaned = @($ranPatchClasses | Where-Object { $patchClasses -notcontains $_ } | Sort-Object -Unique)
         if ($orphaned.Count -gt 0) {
             throw ("Patch test results include " + $orphaned.Count + " test class(es) with no source " +
                 "any more, left from a run before they were deleted or renamed: " +
-                (($orphaned | Select-Object -First 8) -join ', ') + ". Run :patches:test --rerun.")
+                (($orphaned | Select-Object -First 8) -join ', ') + ". Run :patches:test and :patches:fixtureTest --rerun.")
         }
     }
     $patchTestCount = 0

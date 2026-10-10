@@ -133,12 +133,12 @@ class PictureInPictureFixtureTest {
                 val flagRegister = (originalResume[resumeAt] as OneRegisterInstruction).registerA
                 assertTrue("$name: the flag's register v$flagRegister isn't a local of ${resume.localRegisterCount()}",
                     flagRegister < resume.localRegisterCount())
-                assertTrue("$name: the flag read isn't a MobileConfig boolean read", isConfigRead(originalResume[resumeAt - 1]))
+                assertTrue("$name: the flag read isn't a MobileConfig boolean read", isFlagRead(originalResume[resumeAt - 1]))
                 val resumeCheckAt = originalResume.indexOfFirst {
                     it.call?.name == check.name && it.call?.definingClass == check.definingClass
                 }
                 assertTrue("$name: the flag read isn't the last one before the check",
-                    (resumeAt until resumeCheckAt).none { isConfigRead(originalResume[it]) })
+                    (resumeAt until resumeCheckAt).none { isFlagRead(originalResume[it]) })
 
                 val homeHolders = FixtureDex.classesHolding(bundle, VIDEO_TAB_SURFACE).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
                 val homes = homeHolders.flatMap { homeHolder -> homeHolder.methods.filter { isHome(it, check) } }

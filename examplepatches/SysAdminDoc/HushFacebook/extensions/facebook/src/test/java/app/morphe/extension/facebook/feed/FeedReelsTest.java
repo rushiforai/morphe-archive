@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import com.facebook.graphql.model.GraphQLStory;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +50,12 @@ public class FeedReelsTest {
         SHOWCASE_FB_SHORTS_CFU, SHOWCASE_FB_SHORTS_DYNAMIC_MIDCARD, SHOWCASE_FB_SHORTS_MIDCARD,
         SHOWCASE_FB_SHORTS_PROMO, SHOWCASE_FRIEND_DIGEST, SHOWCASE_GROUP_DIGEST, SHOWCASE_LOCAL_NEWS,
         SHOWCASE_MARKETPLACE, SHOWCASE_SHORT_VIDEO, SHOWCASE_TODAY_IN, SHOWCASE_UCP_INTEREST, SHOWCASE_UNKNOWN
+    }
+
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HIDE_FEED_REELS.save(true);
     }
 
     @After
@@ -301,7 +308,7 @@ public class FeedReelsTest {
     public void thePreEofRowIsBuiltWithoutTheSwitchOrTheSettings() {
         Settings.HIDE_FEED_REELS.save(false);
         assertFalse("switched off", FeedFilter.hidePreEofReels());
-        Settings.HIDE_FEED_REELS.resetToDefault();
+        Settings.HIDE_FEED_REELS.save(true);
 
         for (HushfacebookPause.Reason why : new HushfacebookPause.Reason[]{
                 HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,

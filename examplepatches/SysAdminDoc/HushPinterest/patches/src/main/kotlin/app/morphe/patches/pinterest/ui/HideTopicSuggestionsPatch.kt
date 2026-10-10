@@ -36,7 +36,7 @@ private const val PATCH = "Hide topic suggestions"
 
 /**
  * Pinterest's log line for a topic row whose presenter is the wrong kind. It sits in the topic arm
- * of the binder, so it names the binder in both declared builds.
+ * of the binder, so it names the binder in the declared build.
  */
 internal const val TOPIC_BINDER_ANCHOR = "Presenter bound to BubblesListView must be of type BubblesListPresenter"
 
@@ -131,9 +131,8 @@ private fun BytecodePatchContext.isFrameworkView(type: ClassDef): Boolean {
 @Suppress("unused")
 val hideTopicSuggestionsPatch = bytecodePatch(
     name = PATCH,
-    description = "Hides the \"Ideas you might love\" row of topic bubbles under pins without leaving a gap. " +
-        "Comments and related pins stay. Its switch starts off, so turn it on in HushPinterest settings.",
-    default = false,
+    description = "Hides the Ideas you might love row of topic bubbles under pins, without leaving a gap. Comments " +
+        "and related pins stay. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)

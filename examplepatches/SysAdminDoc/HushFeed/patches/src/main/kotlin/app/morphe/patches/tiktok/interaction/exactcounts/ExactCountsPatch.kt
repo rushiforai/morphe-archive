@@ -81,7 +81,8 @@ internal val COMPACT_COUNT_FORMATTERS = 4..5
 @Suppress("unused")
 val showExactCountsPatch = bytecodePatch(
     name = "Show exact counts",
-    description = "Shows counts as full numbers, like 1,234,567 instead of 1.2M. Switch: Hushfeed settings > Feed screen.",
+    description = "Shows likes, comments and other counts as full numbers, like 1,234,567 " +
+        "instead of 1.2M. Starts off. Turn it on in Hushfeed settings > Feed screen.",
     default = true,
 ) {
     category("Feed")

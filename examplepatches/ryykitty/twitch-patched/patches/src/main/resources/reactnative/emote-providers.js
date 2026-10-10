@@ -2,11 +2,33 @@
     'use strict';
     function safeURL(url) {
         return typeof url === 'string' && url.length < 512 &&
-            /^https:\/\/(cdn\.betterttv\.net|cdn\.7tv\.(app|io))\/[A-Za-z0-9_./-]+$/.test(url);
+            /^https:\/\/(cdn\.betterttv\.net|cdn\.7tv\.(app|io)|cdn\.frankerfacez\.com)\/[A-Za-z0-9_./-]+$/.test(url);
+    }
+    function ffzValues(data, channel) {
+        var selected = channel ? (data.room ? [data.room.set] : []) : data.default_sets;
+        if (!Array.isArray(selected) || !data.sets) return [];
+        return selected.slice(0, 64).reduce(function (values, id) {
+            var set = data.sets[String(id)];
+            return values.concat(set && Array.isArray(set.emoticons) ? set.emoticons : []);
+        }, []);
+    }
+    function ffzURL(urls, animated) {
+        if (!urls || typeof urls !== 'object') return null;
+        for (var size of (animated ? ['1', '2', '4'] : ['2', '1', '4'])) {
+            var url = urls[size];
+            if (typeof url !== 'string') continue;
+            if (url.indexOf('//') === 0) url = 'https:' + url;
+            if (safeURL(url) && url.indexOf('https://cdn.frankerfacez.com/') === 0) return url;
+        }
+        return null;
+    }
+    function sevenFile(files, extension) {
+        return files.find(function (file) { return file && file.name === '2x.' + extension; }) ||
+            files.find(function (file) { return file && new RegExp('^[1-4]x[.]' + extension + '$').test(file.name); });
     }
     function parse(provider, data, channel) {
         var result = new Map();
-        var values = provider === 'bttv' ? (channel ?
+        var values = provider === 'ffz' ? ffzValues(data, channel) : provider === 'bttv' ? (channel ?
             [].concat(data.sharedEmotes || [], data.channelEmotes || []) : data) :
             ((channel ? data.emote_set : data) || {}).emotes;
         if (!Array.isArray(values)) return result;
@@ -17,14 +39,20 @@
             var url, staticURL, ratio = 1, format = 'webp';
             if (provider === 'bttv') {
                 if (typeof item.id !== 'string' || !/^[A-Za-z0-9]+$/.test(item.id)) return;
-                url = 'https://cdn.betterttv.net/emote/' + item.id + '/2x';
+                format = item.animated === true || item.imageType === 'gif' ? 'gif' : 'webp';
+                url = 'https://cdn.betterttv.net/emote/' + item.id + '/2x.' + format;
                 staticURL = url;
-                format = item.imageType === 'gif' ? 'gif' : 'png';
+            } else if (provider === 'ffz') {
+                staticURL = ffzURL(item.urls);
+                var animationURL = ffzURL(item.animated, true);
+                url = animationURL ? animationURL + '.gif' : staticURL;
+                format = animationURL ? 'gif' : 'png';
+                if (item.width > 0 && item.height > 0) ratio = Math.min(4, Math.max(0.25, item.width / item.height));
             } else {
                 var host = item.data && item.data.host;
                 if (!host || typeof host.url !== 'string' || !Array.isArray(host.files)) return;
-                var gif = item.data.animated === true && host.files.find(function (value) { return value && value.name === '2x.gif'; });
-                var file = gif || host.files.find(function (value) { return value && value.name === '2x.webp'; });
+                var gif = item.data.animated === true && sevenFile(host.files, 'gif');
+                var file = gif || sevenFile(host.files, 'webp');
                 if (!file) return;
                 var base = host.url.indexOf('//') === 0 ? 'https:' + host.url : host.url;
                 format = gif ? 'gif' : 'webp';

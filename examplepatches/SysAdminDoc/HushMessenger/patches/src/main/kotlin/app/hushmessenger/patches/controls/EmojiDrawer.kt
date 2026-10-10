@@ -19,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val EMOJI_DRAWER = "emoji_drawer"
 
-/** Meta's server flag for the redesigned emoji drawer, renumbered by each release: 580's, then 581's. */
-internal val EMOJI_DRAWER_FLAGS = setOf(36320734536089357L, 36320704471318256L)
+/** Meta's server flag for the redesigned emoji drawer, renumbered by each release: 580's, 581's, then 582's. */
+internal val EMOJI_DRAWER_FLAGS = setOf(36320734536089357L, 36320704471318256L, 36320652931710646L)
 
 /** The drawer renderer throws this when the redesign can't draw. It's what ties the flag to the emoji drawer. */
 internal const val EMOJI_DRAWER_ANCHOR = "Cannot render redesigned drawer with search icon "

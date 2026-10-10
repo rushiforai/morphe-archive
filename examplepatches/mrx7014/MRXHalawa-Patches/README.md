@@ -25,7 +25,7 @@ The patches are designed to customize app behavior and appearance, hide unwanted
 The generated list below contains the supported applications, patch descriptions, and target versions. It is updated automatically during the release workflow.
 
 <!-- PATCHES_START -->
-> **[v1.49.0](https://github.com/mrx7014/MRXHalawa-Patches/releases/tag/v1.49.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;105 patches total
+> **[v1.49.1](https://github.com/mrx7014/MRXHalawa-Patches/releases/tag/v1.49.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;105 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;82 patches</summary>
 <br>
@@ -139,7 +139,6 @@ The generated list below contains the supported applications, patch descriptions
 | [Disable screenshot popup](#disable-screenshot-popup) | Adds an option to disable the popup that appears when taking a screenshot. |  |
 | [Force system font](#force-system-font) | Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto. |  |
 | [Hide Ask button](#hide-ask-button) | Adds an option to hide Ask button in the search bar. |  |
-| [Hide Enable NSFW button](#hide-enable-nsfw-button) | Removes the Enable NSFW button from Reddit settings. |  |
 | [Hide Reddit search](#hide-reddit-search) | Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting |  |
 | [Hide Trending shelves](#hide-trending-shelves) | Adds an option to hide the Trending shelves from feed and search suggestions. |  |
 | [Hide ads](#hide-ads) | Adds options to hide ads. |  |
@@ -148,6 +147,7 @@ The generated list below contains the supported applications, patch descriptions
 | [Hide sidebar components](#hide-sidebar-components) | Adds options to hide the sidebar components. |  |
 | [Open links directly](#open-links-directly) | Adds an option to skip over redirection URLs in external links. |  |
 | [Open links externally](#open-links-externally) | Adds an option to always open links in your browser instead of with the in-app-browser. |  |
+| [Remove Enable NSFW button](#remove-enable-nsfw-button) | Forcibly removes the Enable NSFW button from Reddit settings. |  |
 | [Remove subreddit dialog](#remove-subreddit-dialog) | Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically. |  |
 | [Sanitize sharing links](#sanitize-sharing-links) | Adds an option to sanitize sharing links by removing tracking query parameters. |  |
 | [Show view count](#show-view-count) | Adds an option to show the view count of Posts. |  |

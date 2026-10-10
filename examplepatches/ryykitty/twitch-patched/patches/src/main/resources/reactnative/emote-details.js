@@ -11,14 +11,15 @@
         var emote;
         try { emote = JSON.parse(decodeURIComponent(id.slice('twitchpatches:'.length))); }
         catch (error) { return null; }
-        if (!emote || (emote.provider !== 'bttv' && emote.provider !== '7tv') ||
+        if (!emote || !['bttv', '7tv', 'ffz'].includes(emote.provider) ||
             typeof emote.name !== 'string' || !emote.name.length || emote.name.length > 100 || /\s/.test(emote.name) ||
             !runtime.emoteProviders.safeURL(emote.url) || !runtime.emoteProviders.safeURL(emote.staticURL) ||
             typeof emote.ratio !== 'number' || emote.ratio < 0.25 || emote.ratio > 4) return null;
         return emote;
     }
     function label(emote) {
-        return (emote.provider === 'bttv' ? 'BTTV' : '7TV') + (emote.channel ? ' channel emote' : ' global emote');
+        return (emote.provider === 'bttv' ? 'BTTV' : emote.provider === 'ffz' ? 'FrankerFaceZ' : '7TV') +
+            (emote.channel ? ' channel emote' : ' global emote');
     }
     function create(React, require) {
         var Card, Sheet;
@@ -48,8 +49,9 @@
             }
             var state = React.useState(true), visible = state[0], setVisible = state[1];
             var enabled = runtime.policyHook(React, 5), foreground = runtime.policyHook(React, 3);
+            var provider = runtime.policyHook(React, 8 + ['bttv', '7tv', 'ffz'].indexOf(props.emote.provider));
             var close = function () { setVisible(false); };
-            React.useEffect(function () { if (!enabled || !foreground) close(); }, [enabled, foreground]);
+            React.useEffect(function () { if (!enabled || !foreground || !provider) close(); }, [enabled, foreground, provider]);
             React.useEffect(function () { runtime.log('emotes details opened'); }, []);
             return React.createElement(Sheet, {visible: visible, onClose: close, onClosed: props.onClosed,
                 accessibilityLabel: props.emote.name + ', ' + label(props.emote), initialDetent: false,

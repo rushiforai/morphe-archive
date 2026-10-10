@@ -6,7 +6,11 @@ package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,6 +18,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
@@ -252,5 +257,115 @@ public class AnalyticsTest {
                         "a working 'switch read' hook (it threw java.lang.NullPointerException)"),
                 HookStatus.missing(FamilyNames.DISABLE_ANALYTICS));
         assertFalse("a throw must not count as a skip", HookStatus.report().get(0).contains("Counted:"));
+    }
+
+    // ---- Firebase reporters on Telegram Beta ------------------------------------------------
+
+    private static SharedPreferences crashlytics() {
+        return RuntimeEnvironment.getApplication().getSharedPreferences(Analytics.CRASHLYTICS_PREFS, Context.MODE_PRIVATE);
+    }
+
+    @After
+    public void forgetFirebaseState() {
+        crashlytics().edit().clear().commit();
+        Analytics.startupWaitMillis = 2_000L;
+    }
+
+    @Test
+    public void onTheCrashReporterNeverStartsAndItsOwnSwitchIsSavedOff() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        // What Telegram Beta's own start saved on the launch before.
+        crashlytics().edit().putBoolean(Analytics.CRASHLYTICS_COLLECTION, true).commit();
+        assertTrue(Analytics.skipCrashReporterStart());
+        assertFalse(crashlytics().getBoolean(Analytics.CRASHLYTICS_COLLECTION, true));
+        assertTrue(Analytics.skipCrashReporterStart());
+        assertTrue(Analytics.skipErrorReport());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("crash reporter start skipped 2"));
+        assertTrue("an already saved off isn't saved again: " + report, report.contains("crash reports off from the next start 1"));
+        assertTrue(report, report.contains("error report skipped 1"));
+    }
+
+    @Test
+    public void offPausedOrEarlyTheCrashReporterRunsAsTelegramHasItAndNothingIsSaved() {
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertFalse(Analytics.skipCrashReporterStart());
+        assertFalse(Analytics.skipErrorReport());
+        Settings.DISABLE_ANALYTICS.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertFalse(reason.name(), Analytics.skipCrashReporterStart());
+            assertFalse(reason.name(), Analytics.skipErrorReport());
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> {
+            assertFalse(Analytics.skipCrashReporterStart());
+            assertFalse(Analytics.skipErrorReport());
+        });
+        assertFalse("stock decides Crashlytics' switch: Telegram's own start saves it on again",
+                crashlytics().contains(Analytics.CRASHLYTICS_COLLECTION));
+        assertFalse(String.join("\n", HookStatus.report()).contains("Counted:"));
+    }
+
+    @Test
+    public void aCrashReporterSwitchThatCannotBeReadLeavesTelegramAlone() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        SettingReadsForTests.breakReads(Settings.DISABLE_ANALYTICS);
+        assertFalse(Analytics.skipCrashReporterStart());
+        assertFalse(Analytics.skipErrorReport());
+        assertNull(Analytics.sessionsEnabled(null));
+        assertFalse(crashlytics().contains(Analytics.CRASHLYTICS_COLLECTION));
+        assertFalse(HookStatus.missing(FamilyNames.DISABLE_ANALYTICS).isEmpty());
+    }
+
+    @Test
+    public void onSessionsReadsItsOverrideAsOffWhateverTheManifestSays() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        assertEquals(Boolean.FALSE, Analytics.sessionsEnabled(null));
+        assertEquals(Boolean.FALSE, Analytics.sessionsEnabled(Boolean.TRUE));
+        assertEquals(Boolean.FALSE, Analytics.sessionsEnabled(Boolean.FALSE));
+        assertTrue(String.join("\n", HookStatus.report()).contains("session reports turned off 3"));
+    }
+
+    @Test
+    public void offPausedOrBeforeTheSettingsAreReadySessionsGetsTheManifestsAnswerBack() throws Exception {
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertNull(Analytics.sessionsEnabled(null));
+        assertEquals(Boolean.TRUE, Analytics.sessionsEnabled(Boolean.TRUE));
+        Settings.DISABLE_ANALYTICS.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertNull(reason.name(), Analytics.sessionsEnabled(null));
+            assertEquals(reason.name(), Boolean.TRUE, Analytics.sessionsEnabled(Boolean.TRUE));
+            PauseForTests.resume();
+        }
+        // On the main thread an early read can't wait; on a worker it waits a little, then gives up.
+        Analytics.startupWaitMillis = 50L;
+        Boolean[] worker = new Boolean[1];
+        SettingsContextRule.withoutContext(() -> {
+            assertEquals(Boolean.TRUE, Analytics.sessionsEnabled(Boolean.TRUE));
+            Thread thread = new Thread(() -> worker[0] = Analytics.sessionsEnabled(Boolean.TRUE));
+            thread.start();
+            try {
+                thread.join(5_000L);
+            } catch (InterruptedException interrupted) {
+                throw new AssertionError(interrupted);
+            }
+        });
+        assertEquals(Boolean.TRUE, worker[0]);
+        assertTrue(String.join("\n", HookStatus.report()).contains("session reports decided before app start 2"));
+        assertFalse(String.join("\n", HookStatus.report()).contains("session reports turned off"));
+    }
+
+    @Test
+    public void aSessionsReadOnAWorkerOnceTheSettingsAreReadyIsTurnedOff() throws Exception {
+        Settings.DISABLE_ANALYTICS.save(true);
+        Boolean[] worker = new Boolean[1];
+        Thread thread = new Thread(() -> worker[0] = Analytics.sessionsEnabled(null));
+        thread.start();
+        thread.join(5_000L);
+        assertEquals(Boolean.FALSE, worker[0]);
     }
 }

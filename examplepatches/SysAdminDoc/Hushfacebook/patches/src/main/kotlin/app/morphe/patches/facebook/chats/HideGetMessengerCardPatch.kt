@@ -28,12 +28,12 @@ private const val HIDE = "$EXTENSION_PACKAGE/chats/MessengerCard;->hide()Z"
 @Suppress("unused")
 val hideGetMessengerCardPatch = bytecodePatch(
     name = "Hide the Get Messenger card",
-    description = "Hides the \"Get the Messenger app\" card at the top of Chats while Messenger is installed. " +
-        "Facebook only counts a Messenger signed with its own key, so a re-signed Facebook shows the card even " +
-        "with Messenger right there. Without Messenger the card stays.",
+    description = "Hides the \"Get the Messenger app\" card at the top of Chats when Messenger is already " +
+        "installed. A patched Facebook may not see that Messenger is there, so it keeps showing the card. On by " +
+        "default. Turn it off in Hushfacebook settings > Chats.",
     default = true,
 ) {
-    category("Interface")
+    category("Chats")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

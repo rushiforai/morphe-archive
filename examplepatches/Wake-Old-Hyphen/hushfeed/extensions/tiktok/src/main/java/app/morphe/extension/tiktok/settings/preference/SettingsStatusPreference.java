@@ -98,7 +98,7 @@ public final class SettingsStatusPreference extends Preference {
             case MARKER_FILE:
                 return L10n.t(context, "A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.");
             default:
-                return L10n.t(context, "TikTok runs as if it weren't patched. Your settings stay as they are.");
+                return L10n.t(context, "Hushfeed runtime changes are paused. Your settings stay saved. Changes built into the APK remain.");
         }
     }
 

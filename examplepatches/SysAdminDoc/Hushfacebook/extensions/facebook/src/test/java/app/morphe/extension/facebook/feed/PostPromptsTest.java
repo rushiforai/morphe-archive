@@ -42,6 +42,7 @@ public class PostPromptsTest {
     public void restore() {
         PauseForTests.resume();
         Settings.HIDE_POST_PROMPTS.resetToDefault();
+        Settings.HIDE_POST_FOLLOW_LINK.resetToDefault();
         HookStatus.clear();
     }
 
@@ -73,6 +74,57 @@ public class PostPromptsTest {
             assertTrue("a Hushfacebook paused by " + reason + " hid a bumper", PostPrompts.keep(true));
             PauseForTests.resume();
         }
+    }
+
+    /**
+     * The Follow link: the switch starts off, so the title plugin's yes stays a yes. Turned on, a yes
+     * becomes a no, a no stays a no, and the count and the status line say so.
+     */
+    @Test
+    public void theFollowLinkStaysUntilItsSwitchIsOn() {
+        assertFalse("the switch doesn't start off", Settings.HIDE_POST_FOLLOW_LINK.get());
+        assertTrue(PostPrompts.showFollowLink(true));
+        assertFalse(PostPrompts.showFollowLink(false));
+
+        Settings.HIDE_POST_FOLLOW_LINK.save(true);
+        assertFalse("a header kept its Follow link", PostPrompts.showFollowLink(true));
+        assertFalse(PostPrompts.showFollowLink(false));
+        assertTrue("the status line doesn't count the hidden link", statusLine().contains(PostPrompts.FOLLOW_HIDDEN + " 1"));
+    }
+
+    /** The two switches are independent: neither one's hook answers for the other. */
+    @Test
+    public void thePromptsSwitchAndTheFollowSwitchDontShareAnAnswer() {
+        Settings.HIDE_POST_FOLLOW_LINK.save(true);
+        Settings.HIDE_POST_PROMPTS.save(false);
+        assertTrue("the follow switch hid a bumper", PostPrompts.keep(true));
+        assertFalse(PostPrompts.showFollowLink(true));
+        Settings.HIDE_POST_FOLLOW_LINK.save(false);
+        Settings.HIDE_POST_PROMPTS.save(true);
+        assertFalse(PostPrompts.keep(true));
+        assertTrue("the prompts switch hid a Follow link", PostPrompts.showFollowLink(true));
+    }
+
+    @Test
+    public void pausedTheFollowLinkStays() {
+        Settings.HIDE_POST_FOLLOW_LINK.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP}) {
+            PauseForTests.pause(reason);
+            assertTrue("a Hushfacebook paused by " + reason + " hid the Follow link", PostPrompts.showFollowLink(true));
+            PauseForTests.resume();
+        }
+    }
+
+    /** The follow hook hands Facebook's answer over as an int too. */
+    @Test
+    public void theFollowEntrysIntReadsNonZeroAsYes() {
+        Settings.HIDE_POST_FOLLOW_LINK.save(true);
+        assertFalse(PostPrompts.showFollowLink(1));
+        assertFalse(PostPrompts.showFollowLink(0));
+        Settings.HIDE_POST_FOLLOW_LINK.save(false);
+        assertTrue(PostPrompts.showFollowLink(1));
+        assertFalse(PostPrompts.showFollowLink(0));
     }
 
     /** The patch hands Facebook's answer over as an int, since a boolean method may return one. */

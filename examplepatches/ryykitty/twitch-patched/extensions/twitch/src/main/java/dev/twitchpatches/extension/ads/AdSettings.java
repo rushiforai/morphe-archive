@@ -15,9 +15,9 @@ public final class AdSettings {
     private static final String[] KEYS = {"client_ads", "display_ads", "stitched_ads"};
     private static final String[] TITLES = {"Block client-requested ads", "Hide feed and display ads",
             "Block stream ads"};
-    private static final String[] SUMMARIES = {"Suppress native ad requests. Restart Twitch after changing this setting.",
-            "Remove sponsored feed cards and display ads.",
-            "Replace detected ads with alternate direct Twitch playback."};
+    private static final String[] SUMMARIES = {"Block native player ad requests. Restart Twitch after changing this setting.",
+            "Hide sponsored feed cards, banners and display ads.",
+            "Replace detected preroll and midroll ads with direct Twitch playback."};
 
     private AdSettings(Application application) {
         preferences = application.getSharedPreferences("twitch_patches_ads", 0);

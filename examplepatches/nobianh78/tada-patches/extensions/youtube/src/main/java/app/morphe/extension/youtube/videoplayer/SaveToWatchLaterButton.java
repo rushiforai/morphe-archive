@@ -1,0 +1,86 @@
+/*
+ * Copyright 2026 TADa.
+ * https://github.com/TADaApp/tada-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to TADa contributions.
+ */
+
+package app.morphe.extension.youtube.videoplayer;
+
+import android.view.View;
+
+import java.lang.ref.WeakReference;
+import java.util.function.Function;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.youtube.patches.SaveToWatchLaterPatch;
+import app.morphe.extension.youtube.patches.VideoInformation;
+import app.morphe.extension.youtube.patches.utils.PlaylistPatch;
+import app.morphe.extension.youtube.settings.Settings;
+
+@SuppressWarnings("unused")
+public class SaveToWatchLaterButton {
+
+    public static final int addToQueueResourceId =
+            ResourceUtils.getIdentifier(ResourceType.DRAWABLE, PlayerIcons.name(
+                    "tada_add_to_queue_button",
+                    "yt_outline_list_add_black_24",
+                    "yt_outline_experimental_playlist_add_vd_theme_24"
+            ));
+
+    static {
+        if (Settings.SAVE_TO_WATCH_LATER_OVERLAY_BUTTON.get()) {
+            LegacyPlayerControlButton.incrementUpperButtonCount();
+        }
+    }
+
+    /**
+     * injection point.
+     */
+    public static void initializeLegacyButton(View controlsView) {
+        try {
+            // Start syncing queue playlist items in the background so that by the time
+            // the user opens the queue menu, lastVideoIds is already populated.
+            PlaylistPatch.syncIfNeeded();
+
+            final boolean swapSaveAndQueue = Settings.SWAP_SAVE_AND_QUEUE_ACTIONS.get();
+            //noinspection ExtractMethodRecommender
+            WeakReference<View> controlsRef = new WeakReference<>(controlsView);
+
+            Function<Boolean, Void> clickAction = openQueue -> {
+                if (openQueue) {
+                    View controls = controlsRef.get();
+                    if (controls == null) {
+                        Logger.printException(() -> "Context is null");
+                        return null;
+                    }
+                    PlaylistPatch.prepareDialogBuilder(controls.getContext(), VideoInformation.getVideoId());
+                } else {
+                    SaveToWatchLaterPatch.saveVideo(VideoInformation.getVideoId());
+                }
+                return null;
+            };
+
+            LegacyPlayerControlButton instance = new LegacyPlayerControlButton(
+                    controlsView,
+                    "tada_save_to_watch_later_button",
+                    null,
+                    swapSaveAndQueue ? null : "tada_save_to_watch_later_button",
+                    Settings.SAVE_TO_WATCH_LATER_OVERLAY_BUTTON,
+                    v -> clickAction.apply(swapSaveAndQueue),
+                    v -> {
+                        clickAction.apply(!swapSaveAndQueue);
+                        return true;
+                    }
+            );
+
+            if (swapSaveAndQueue) {
+                instance.setIcon(addToQueueResourceId);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "initialize failure", ex);
+        }
+    }
+}

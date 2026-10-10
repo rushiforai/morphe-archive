@@ -86,12 +86,20 @@ final class GateReportExport {
     }
 
     static String write(Context context, String report) throws IOException {
-        String name = fileName();
+        return write(context, report, fileName(), "application/json");
+    }
+
+    /**
+     * Writes {@code report} as {@code name} in the Hushfeed folder under Download, or in the app's
+     * own Documents folder before Android 10, and says where it went. The feed capture saves
+     * through here too, so both files land in the same place.
+     */
+    static String write(Context context, String report, String name, String mimeType) throws IOException {
         if (Build.VERSION.SDK_INT >= 29) {
             var resolver = context.getContentResolver();
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-            values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, FOLDER);
             values.put(MediaStore.MediaColumns.IS_PENDING, 1);
             Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
@@ -110,8 +118,11 @@ final class GateReportExport {
         File directory = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
         if (directory == null || (!directory.isDirectory() && !directory.mkdirs())) throw new IOException("Documents unavailable");
         File file = new File(directory, name);
+        int dot = name.lastIndexOf('.');
+        String stem = dot < 0 ? name : name.substring(0, dot);
+        String extension = dot < 0 ? "" : name.substring(dot);
         for (int copy = 2; file.exists(); copy++) {
-            file = new File(directory, name.replace(".json", "-" + copy + ".json"));
+            file = new File(directory, stem + "-" + copy + extension);
         }
         try { writeText(new FileOutputStream(file), report); }
         catch (IOException | RuntimeException error) {

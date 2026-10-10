@@ -306,7 +306,7 @@ public class PinActionsTest {
         assertFalse(PinDownloads.start(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
                 "hls", Map.of("url", "https://v.pinimg.com/master.m3u8")))), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("Pinterest supplied an adaptive video stream, but no downloadable MP4.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Pinterest only offered a streaming video for this pin, not a file that can be downloaded.", ShadowToast.getTextOfLatestToast());
         ShadowToast.reset();
         assertFalse(PinDownloads.start(Map.of("id", "123"), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();

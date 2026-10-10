@@ -41,9 +41,9 @@ private data class FollowCallPatch(
 @Suppress("unused")
 val followDiagnosticsPatch = bytecodePatch(
     name = "Follow diagnostics",
-    description = "Reads what the server said about a follow. A follow TikTok turns down comes " +
-        "back looking like a success, so this reports the refusal and its reason once per session " +
-        "and, with diagnostic logging on, writes the whole exchange to the report.",
+    description = "Tells you when TikTok quietly turned down a follow, and why, since the app " +
+        "shows it as if it worked. With diagnostic logging on, the details go in the report too. " +
+        "Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Interaction")

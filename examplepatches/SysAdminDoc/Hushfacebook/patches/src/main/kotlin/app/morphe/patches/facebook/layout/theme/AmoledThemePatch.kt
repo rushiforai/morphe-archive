@@ -184,13 +184,12 @@ internal fun backgroundProblem(value: String?): String? {
     val looksLikeAColour = (hex.length == 6 || hex.length == 8) && hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
     return when {
         !looksLikeAColour && hex.isNotEmpty() ->
-            "Background colour \"$value\" isn't a colour. Give it as #RRGGBB, like #0D1117, or leave it blank for black."
+            "Background color \"$value\" isn't a color. Type it as a six-digit color code (#RRGGBB), like #0D1117, or leave it blank for black."
         parsedBackground(value) == null ->
-            "Background colour $value is see-through. Give an opaque #RRGGBB colour, like #0D1117."
+            "Background color $value is see-through. Type a solid six-digit color code (#RRGGBB), like #0D1117."
         backgroundColour(value) == null ->
-            "Background colour $value is too light to keep Facebook's text readable. Pick a darker colour: " +
-                "any grey up to #3A3A3A keeps Facebook's own text, and a little lighter, up to about " +
-                "$LIGHTEST_ADMITTED_GREY for a grey, gets lighter text to match."
+            "Background color $value is too light for Facebook's text to stay readable. Pick a darker color. " +
+                "Grays up to about $LIGHTEST_ADMITTED_GREY work."
         else -> null
     }
 }
@@ -402,11 +401,12 @@ private fun isDarkBackground(value: String): Boolean {
 @Suppress("unused")
 val amoledThemePatch = bytecodePatch(
     name = "AMOLED black theme",
-    description = "Makes Facebook's dark mode black, or a dark colour you pick, instead of dark grey. " +
-        "Turn on dark mode in Facebook first.",
+    description = "Makes Facebook's dark mode black, or a dark color you pick, instead of dark gray, which can " +
+        "save battery on OLED screens. Turn on dark mode in Facebook first. It isn't selected by default because " +
+        "undoing it means patching again. Turn on Expert mode in Manager to pick it.",
     default = false,
 ) {
-    category("Interface")
+    category("Theme")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
@@ -415,16 +415,15 @@ val amoledThemePatch = bytecodePatch(
     val backgroundOption by colorOption(
         key = "backgroundColour",
         default = "#000000",
-        title = "Background colour",
-        description = "The colour dark mode's backgrounds take, as #RRGGBB. Cards and inputs take a lighter " +
-            "step of it. Leave it blank for black. Greys up to #3A3A3A keep Facebook's own text. A little " +
-            "lighter, up to about $LIGHTEST_ADMITTED_GREY for a grey, gets smaller steps and lighter grey text " +
-            "so it stays readable. Anything lighter is refused.",
+        title = "Background color",
+        description = "The color dark mode's backgrounds use, as a six-digit color code (#RRGGBB), like #0D1117. Leave it blank for " +
+            "black. Cards and inputs get a slightly lighter shade. Grays up to about $LIGHTEST_ADMITTED_GREY " +
+            "work, and lighter colors are refused so text stays readable.",
         required = false,
     ) { backgroundColour(it) != null }
     val background = {
         backgroundColour(backgroundOption)
-            ?: throw PatchException(backgroundProblem(backgroundOption) ?: "Background colour $backgroundOption is refused")
+            ?: throw PatchException(backgroundProblem(backgroundOption) ?: "Background color $backgroundOption can't be used")
     }
 
     dependsOn(amoledThemeResourcePatch(background))

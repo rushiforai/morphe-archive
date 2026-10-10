@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.43.10](https://github.com/legendsciber/morphe-patches/releases/tag/v1.43.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
+> **[v1.44.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.44.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;25 patches total
 <details open>
 <summary>📦 Aphelion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -198,6 +198,22 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 |----------|----------------|-----------|
 | [Subway Surfers Currency Hack](#subway-surfers-currency-hack) | Coins and keys always report 2,147,483,647 and every purchase is always affordable. |  |
 | [Subway Surfers Free IAP](#subway-surfers-free-iap) | Coins, keys and shop items are granted instantly and free without Google Play billing. |  |
+
+</details>
+
+<details open>
+<summary>📦 Temple Run 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.136.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Temple Run 2 Free IAP](#temple-run-2-free-iap) | All store purchases (coins, gems, no-ads, characters, deals, potions and perks) are granted instantly and free without Google Play billing, online or offline. |  |
+| [Temple Run 2 Instant Rewards](#temple-run-2-instant-rewards) | Every ad-gated reward works without watching an ad and without a network connection: rewarded-map unlocks, potions, power-ups, dailies, battle pass, advent calendar, weekly rewards and rewarded boosts are granted instantly. |  |
 
 </details>
 

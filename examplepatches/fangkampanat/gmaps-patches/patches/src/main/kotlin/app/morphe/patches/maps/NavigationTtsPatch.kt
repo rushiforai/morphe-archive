@@ -6,22 +6,19 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction30t
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import java.util.logging.Logger
 
-private fun requireTts(value: Boolean, reason: String) {
-    if (!value) throw PatchException("Unrecognized navigation TTS layout: $reason")
-}
-private fun Instruction.call() = (this as? ReferenceInstruction)?.reference as? MethodReference
-private fun Instruction.field() = (this as? ReferenceInstruction)?.reference as? FieldReference
-private fun Instruction.regs(): List<Int> = when (this) {
-    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
-    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+private fun Instruction.call() = getReference<MethodReference>()
+private fun Instruction.field() = getReference<FieldReference>()
+private fun Instruction.regs(): List<Int> = invokeRegisters() ?: when (this) {
     is TwoRegisterInstruction -> listOf(registerA, registerB)
     is OneRegisterInstruction -> listOf(registerA)
     else -> emptyList()
@@ -32,7 +29,46 @@ private fun List<Instruction>.target(index: Int): Int {
     val offset = take(index).sumOf { it.codeUnits } + (this[index] as OffsetInstruction).codeOffset
     var position = 0
     forEachIndexed { i, instruction -> if (position == offset) return i; position += instruction.codeUnits }
-    throw PatchException("Invalid TTS branch target")
+    throw PatchException("Invalid TTS branch target: index=$index; code offset=$offset; instructions=${size}")
+}
+
+/** Failure-only context; successful matches retain the same layout and value-flow guards. */
+private class TtsLayout(
+    private val method: Method,
+    private val code: List<Instruction>,
+    private val inspected: IntRange = code.indices,
+) {
+    fun target(index: Int): Int = try {
+        code.target(index)
+    } catch (error: PatchException) {
+        fail(error.message ?: "Invalid TTS branch target")
+    }
+
+    fun require(value: Boolean, reason: String, related: TtsLayout? = null) {
+        if (value) return
+        fail(reason, related)
+    }
+
+    private fun fail(reason: String, related: TtsLayout? = null): Nothing = throw PatchException(
+        "Unrecognized navigation TTS layout: $reason; ${details()}" +
+            (related?.let { "; related: ${it.details()}" } ?: ""),
+    )
+
+    private fun details(): String {
+        val implementation = method.implementation!!
+        val details = inspected.filter { it in code.indices }.joinToString("; ") { index ->
+            val instruction = code[index]
+            buildString {
+                append("$index:${instruction.opcode} regs=${instruction.regs()}")
+                instruction.getReference<com.android.tools.smali.dexlib2.iface.reference.Reference>()
+                    ?.let { append(" ref=$it") }
+                (instruction as? NarrowLiteralInstruction)?.let { append(" literal=${it.narrowLiteral}") }
+                (instruction as? OffsetInstruction)?.let { append(" branchOffset=${it.codeOffset}") }
+            }
+        }
+        return "method=$method; registerCount=${implementation.registerCount}; " +
+            "tryBlocks=${implementation.tryBlocks.size}; instructions=${code.size}; inspected=$inspected; $details"
+    }
 }
 private fun MethodReference.same(other: MethodReference?) = other != null &&
     definingClass == other.definingClass && name == other.name && returnType == other.returnType && parameterTypes == other.parameterTypes
@@ -52,39 +88,40 @@ internal fun BytecodePatchContext.patchNavigationTts() {
         h[it].call()?.toString() == "Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V"
     }?.plus(1) ?: throw PatchException("Missing unique TTS cache initialization")
     val create = gate + 22
-    requireTts(h.size > create + 18 && h.subList(gate, create).shape("""
+    val factoryLayout = TtsLayout(factory, h, gate - 1..create + 17)
+    factoryLayout.require(h.size > create + 18 && h.subList(gate, create).shape("""
         INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET INVOKE_STATIC MOVE_RESULT CONST_4 IF_NEZ MOVE
         ADD_INT_LIT8 IF_EQZ IF_EQ INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET_OBJECT IF_EQZ
         IGET_BOOLEAN IF_EQZ IGET_BOOLEAN IF_EQZ GOTO IGET_BOOLEAN IF_NEZ
     """), "provider selection block")
     val dynamicFactory = h[create].call() ?: throw PatchException("Missing dynamic provider factory")
-    requireTts(h.subList(create, create + 18).shape("""
+    factoryLayout.require(h.subList(create, create + 18).shape("""
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO
         IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO INVOKE_VIRTUAL MOVE_RESULT_OBJECT
         MOVE_OBJECT MOVE_OBJECT MOVE_OBJECT NEW_INSTANCE INVOKE_DIRECT IPUT_OBJECT
     """), "provider creation/merge")
-    requireTts(dynamicFactory.parameterTypes.size == 2 && dynamicFactory.returnType.startsWith("L") &&
+    factoryLayout.require(dynamicFactory.parameterTypes.size == 2 && dynamicFactory.returnType.startsWith("L") &&
         dynamicFactory.same(h[create + 10].call()) && h[create].regs() == listOf(0, 2, 5) &&
         h[create + 1].regs() == listOf(2) && h[create + 10].regs() == listOf(0, 1, 5) &&
         h[create + 3].regs() == listOf(0, 1, 5, 3, 4) && h[create + 4].regs() == listOf(0) &&
         h[create + 2].regs() == listOf(4, 0) && h[create + 16].regs() == listOf(1, 2, 0),
         "provider operands")
     // The skipped block must not initialize any input needed by the both-provider path.
-    requireTts(h.subList(gate, create).filter { it.opcode.setsRegister() }.all {
+    factoryLayout.require(h.subList(gate, create).filter { it.opcode.setsRegister() }.all {
         (it as? OneRegisterInstruction)?.registerA in listOf(4, 6)
     } && h.take(gate).any { it.opcode == Opcode.CONST_4 && it.regs() == listOf(2) &&
         (it as NarrowLiteralInstruction).narrowLiteral == 0 }, "provider live registers")
-    requireTts(h.target(gate + 9) == create + 10 && h.target(gate + 10) == create + 6 &&
-        h.target(gate + 19) == create + 2 && h.target(gate + 21) == create + 2 &&
-        h.target(create + 5) == create + 15 && h.target(create + 9) == create + 15,
+    factoryLayout.require(factoryLayout.target(gate + 9) == create + 10 && factoryLayout.target(gate + 10) == create + 6 &&
+        factoryLayout.target(gate + 19) == create + 2 && factoryLayout.target(gate + 21) == create + 2 &&
+        factoryLayout.target(create + 5) == create + 15 && factoryLayout.target(create + 9) == create + 15,
         "provider branch relationships")
     val pairConstructor = h[create + 16].call()!!
-    requireTts(pairConstructor.name == "<init>" && pairConstructor.parameterTypes.size == 2 &&
+    factoryLayout.require(pairConstructor.name == "<init>" && pairConstructor.parameterTypes.size == 2 &&
         pairConstructor.parameterTypes[0] == pairConstructor.parameterTypes[1], "provider pair")
     val providerType = pairConstructor.parameterTypes[0].toString()
-    requireTts(classDefBy(dynamicFactory.returnType).interfaces.contains(providerType), "dynamic provider interface")
+    factoryLayout.require(classDefBy(dynamicFactory.returnType).interfaces.contains(providerType), "dynamic provider interface")
     val cacheField = h[create + 17].field()!!
-    requireTts(cacheField.definingClass == owner.type && cacheField.type == pairConstructor.definingClass,
+    factoryLayout.require(cacheField.definingClass == owner.type && cacheField.type == pairConstructor.definingClass,
         "cached provider pair")
 
     val resolver = owner.methods.singleOrNull { method ->
@@ -92,7 +129,8 @@ internal fun BytecodePatchContext.patchNavigationTts() {
             method.implementation?.instructions?.count { it.call()?.toString() == "Ljava/io/File;->canRead()Z" } == 1
     } ?: throw PatchException("Missing unique navigation audio resolver")
     val g = resolver.implementation!!.instructions.toList()
-    requireTts(!AccessFlags.STATIC.isSet(resolver.accessFlags) && resolver.implementation!!.registerCount == 8 &&
+    val resolverLayout = TtsLayout(resolver, g)
+    resolverLayout.require(!AccessFlags.STATIC.isSet(resolver.accessFlags) && resolver.implementation!!.registerCount == 8 &&
         resolver.implementation!!.tryBlocks.isEmpty() && g.shape("""
         INVOKE_DIRECT MOVE_RESULT CONST_4 CONST_4 IF_EQZ INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT CHECK_CAST IGET_OBJECT IGET_OBJECT IGET_OBJECT INVOKE_STATIC
@@ -106,7 +144,7 @@ internal fun BytecodePatchContext.patchNavigationTts() {
     val firstField = g[39].field()!!
     val secondField = g[40].field()!!
     val alertConstructor = g[42].call()!!
-    requireTts(dynamicGetter.definingClass == owner.type && dynamicGetter.parameterTypes.isEmpty() &&
+    resolverLayout.require(dynamicGetter.definingClass == owner.type && dynamicGetter.parameterTypes.isEmpty() &&
         dynamicGetter.returnType == providerType && dynamicGetter.same(g[24].call()) &&
         lookup.definingClass == providerType && lookup.returnType == "Ljava/io/File;" &&
         lookup.parameterTypes == resolver.parameterTypes &&
@@ -118,16 +156,16 @@ internal fun BytecodePatchContext.patchNavigationTts() {
         g[42].regs() == listOf(1, 0, 7, 6, 2) &&
         g[3].regs() == listOf(2) && (g[3] as NarrowLiteralInstruction).narrowLiteral == 0 &&
         g[20].regs() == listOf(2) && (g[20] as NarrowLiteralInstruction).narrowLiteral == 1 &&
-        g.target(23) == 31 && g.target(26) == 31 && g.target(35) == 43 && g.target(38) == 43,
+        resolverLayout.target(23) == 31 && resolverLayout.target(26) == 31 && resolverLayout.target(35) == 43 && resolverLayout.target(38) == 43,
         "resolver value flow / canned=true, dynamic=false")
     val getter = owner.methods.single { dynamicGetter.same(it) }
     val getterCode = getter.implementation!!.instructions.toList()
-    requireTts(getterCode.shape("INVOKE_DIRECT IGET_OBJECT IGET_OBJECT RETURN_OBJECT") &&
+    TtsLayout(getter, getterCode).require(getterCode.shape("INVOKE_DIRECT IGET_OBJECT IGET_OBJECT RETURN_OBJECT") &&
         factory.same(getterCode[0].call()) && getterCode[1].field() == cacheField,
         "dynamic getter initializes this factory")
-    val pairBody = classDefBy(pairConstructor.definingClass).methods.single { pairConstructor.same(it) }
-        .implementation!!.instructions.toList()
-    requireTts(pairBody.any { it.opcode == Opcode.IPUT_OBJECT && it.field() == getterCode[2].field() &&
+    val pairMethod = classDefBy(pairConstructor.definingClass).methods.single { pairConstructor.same(it) }
+    val pairBody = pairMethod.implementation!!.instructions.toList()
+    TtsLayout(pairMethod, pairBody).require(pairBody.any { it.opcode == Opcode.IPUT_OBJECT && it.field() == getterCode[2].field() &&
         it.regs() == listOf(1, 0) }, "first pair component is dynamic")
 
     val ready = owner.methods.singleOrNull { method ->
@@ -136,20 +174,21 @@ internal fun BytecodePatchContext.patchNavigationTts() {
         } == true
     } ?: throw PatchException("Missing unique navigation audio readiness check")
     val f = ready.implementation!!.instructions.toList()
-    requireTts(ready.implementation!!.registerCount == 5 && ready.implementation!!.tryBlocks.isEmpty() && f.shape("""
+    val readyLayout = TtsLayout(ready, f)
+    readyLayout.require(ready.implementation!!.registerCount == 5 && ready.implementation!!.tryBlocks.isEmpty() && f.shape("""
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT CONST_4 IF_EQZ INVOKE_DIRECT MOVE_RESULT CONST_4 IF_EQZ
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ SGET_OBJECT CHECK_CAST IGET_OBJECT IF_EQ RETURN RETURN RETURN
     """), "audio readiness")
     val resolveRequest = owner.methods.single { f[0].call()!!.same(it) }
     val requestBody = resolveRequest.implementation!!.instructions.toList()
-    requireTts(requestBody.shape("IGET_OBJECT INVOKE_DIRECT MOVE_RESULT_OBJECT RETURN_OBJECT") &&
+    TtsLayout(resolveRequest, requestBody).require(requestBody.shape("IGET_OBJECT INVOKE_DIRECT MOVE_RESULT_OBJECT RETURN_OBJECT") &&
         resolver.same(requestBody[1].call()) && f[1].regs() == listOf(4) && f[3].regs() == listOf(4) &&
-        f.target(3) == 17 && f[2].regs() == listOf(0) && (f[2] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+        readyLayout.target(3) == 17 && f[2].regs() == listOf(0) && (f[2] as NarrowLiteralInstruction).narrowLiteral == 0 &&
         f[6].regs() == listOf(2) && (f[6] as NarrowLiteralInstruction).narrowLiteral == 1 &&
         f[13].field()?.definingClass == resolver.returnType && f[13].regs() == listOf(4, 4) &&
-        f[14].regs() == listOf(4, 3) && f.target(14) == 16 &&
+        f[14].regs() == listOf(4, 3) && readyLayout.target(14) == 16 &&
         f[15].regs() == listOf(0) && f[16].regs() == listOf(2) && f[17].regs() == listOf(0),
-        "readiness result flow")
+        "readiness result flow", readyLayout)
 
     // All discovery/guards finish before mutation. Preserve synchronization, callbacks and cleanup.
     factory.addInstruction(gate, BuilderInstruction30t(Opcode.GOTO_32,

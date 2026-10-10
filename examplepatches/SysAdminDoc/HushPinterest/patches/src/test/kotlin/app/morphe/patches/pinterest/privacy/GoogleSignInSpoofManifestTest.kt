@@ -7,6 +7,7 @@
 package app.morphe.patches.pinterest.privacy
 
 import app.morphe.ExtensionDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
@@ -14,7 +15,6 @@ import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.apksig.ApkVerifier
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
-import com.reandroid.apk.ApkModule
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.security.MessageDigest
@@ -24,13 +24,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 /**
  * The signature spoofing metadata: its two constants against the certificate each declared build
- * is signed with, the manifest edit on both builds, its refusals and the build flag.
+ * is signed with, the manifest edit on each declared build, its refusals and the build flag.
  */
+@Category(FixtureTests::class)
 class GoogleSignInSpoofManifestTest {
     @Test
     fun `both constants are the certificate each declared build is signed with`() {
@@ -112,12 +114,7 @@ class GoogleSignInSpoofManifestTest {
     }
 
     /** The decoded manifest of [apk], as the resource patch reads it. */
-    private fun decode(apk: File): Document = ApkModule.loadApkFile(apk).use { module ->
-        val manifest = module.androidManifest
-        // References in the manifest resolve against the APK's own resource table.
-        manifest.setPackageBlock(module.tableBlock.pickOne())
-        parse(manifest.serializeToXml())
-    }
+    private fun decode(apk: File): Document = parse(Fixtures.manifest(apk))
 
     private fun parse(xml: String): Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         .parse(ByteArrayInputStream(xml.trimIndent().toByteArray()))

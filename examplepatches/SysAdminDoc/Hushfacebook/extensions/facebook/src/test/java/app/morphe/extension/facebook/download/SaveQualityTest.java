@@ -87,6 +87,7 @@ public class SaveQualityTest {
         waitForSaves();
         MediaDownload.policyForTests = null;
         Settings.DOWNLOAD_QUALITY.resetToDefault();
+        Settings.DOWNLOAD_VIDEOS.resetToDefault();
         LogBufferManager.clearLogBuffer();
     }
 

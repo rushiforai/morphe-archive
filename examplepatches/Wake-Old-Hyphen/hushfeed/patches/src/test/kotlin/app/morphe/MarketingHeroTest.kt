@@ -89,7 +89,7 @@ class MarketingHeroTest {
         )
         assertArrayEquals(
             "the selected hero changed",
-            HexFormat.of().parseHex("5a2a2fd68c5e01dc199d558e8f546b0335f27d7da6d6b7b3463f2e99d8058df9"),
+            HexFormat.of().parseHex("318c0038f90ac1be9167075856ea94c16cbc9c4b468e8ec2415868b92f85b0f1"),
             digest(File(root, "assets/readme-hero.png")),
         )
     }

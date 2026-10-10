@@ -11,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import javax.xml.parsers.DocumentBuilderFactory
+import app.morphe.patches.shared.compat.AppCompatibilities
 
 /**
  * Remove share targets on every declared build: the decoded manifest loses Threads' share intent
@@ -54,7 +55,8 @@ class RemoveShareTargetsFixtureTest {
             val again = runCatching { removeShareFilters(manifest) }.exceptionOrNull()
             assertTrue("${build.name}: ${again?.message}", again is PatchException && again.message!!.contains("takes a share"))
         }
-        assertEquals("one build of each declared version", 3, builds.size)
+        val declaredVersions = AppCompatibilities.threads().single().targets.mapNotNull { it.version }.distinct().size
+        assertEquals("one build of each declared version", declaredVersions, builds.size)
 
         val shortcuts = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(("<shortcuts>" +
             "<shortcut android:shortcutId=\"compose\"/><share-target android:targetClass=\"$handler\"/></shortcuts>").byteInputStream())

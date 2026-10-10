@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,12 @@ import app.morphe.extension.shared.settings.PauseForTests;
 @Config(sdk = 30)
 public class AnalyticsUploadsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.HOLD_ANALYTICS_UPLOADS.save(true);
+    }
 
     @After
     public void restore() {
@@ -56,8 +63,8 @@ public class AnalyticsUploadsTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndHoldsBothSendersBack() {
-        assertTrue("the switch starts off", Settings.HOLD_ANALYTICS_UPLOADS.get());
+    public void theSwitchStartsOffAndOnHoldsBothSendersBack() {
+        assertFalse("the switch starts off", Settings.HOLD_ANALYTICS_UPLOADS.defaultValue);
         assertTrue("an XAnalytics upload went out", AnalyticsUploads.holdXAnalyticsUpload());
         assertFalse("a Papaya job ran", AnalyticsUploads.papayaOn(true));
         assertEquals(AnalyticsUploads.ROUTE + ": 2 lists, 2 items, 2 removed. Last reason: " + AnalyticsUploads.PAPAYA

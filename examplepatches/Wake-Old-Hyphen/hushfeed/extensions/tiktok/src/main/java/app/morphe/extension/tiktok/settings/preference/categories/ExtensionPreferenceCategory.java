@@ -86,8 +86,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Use system font",
-                    "Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift "
-                            + "animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.",
+                    "Shows TikTok's text in your phone's font instead of TikTok Sans. Icons and "
+                            + "gift animations keep their own fonts. Restart TikTok to see the "
+                            + "change.",
                     Settings.SYSTEM_FONT
             ));
             // Its own hook, in androidx EmojiCompat rather than the font engine, but the same
@@ -95,9 +96,8 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Use system emoji",
-                    "Draw every emoji with your device's emoji font. TikTok normally draws the newest "
-                            + "ones your device doesn't have yet with Google's emoji, and those may show "
-                            + "as a box or in pieces with this on.",
+                    "Shows every emoji in your phone's own emoji font. The newest emoji your "
+                            + "phone doesn't have yet may show as a box or in pieces.",
                     Settings.SYSTEM_EMOJI
             ));
         }
@@ -171,7 +171,8 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Keep the Favorites tab",
-                    "TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.",
+                    "TikTok sometimes tests a change that empties the Favorites tab on your "
+                            + "profile. This keeps the tab and your saved videos.",
                     Settings.KEEP_FAVORITES_TAB
             ));
         }
@@ -271,9 +272,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Keep the screen's refresh rate",
-                    "Stop TikTok asking the screen to run at the frame rate of the video it's "
-                            + "playing. On a 90 or 120 Hz phone that ask slows the whole app down "
-                            + "to the video's rate, scrolling included.",
+                    "Stops TikTok from slowing your screen to match each video's frame rate. On "
+                            + "a 90 or 120 Hz phone, that request makes the whole app, "
+                            + "scrolling too, run slower.",
                     Settings.UNCAP_REFRESH_RATE
             ));
         }
@@ -301,13 +302,14 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.storeIdentityEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Look like the store app to TikTok's checks",
-                    "Answer TikTok's own checks of how it was signed and installed the way the Play "
-                            + "Store app would. For follows or likes that undo themselves on a refresh. "
-                            + "TikTok can also check from native code this doesn't reach, so it may not help.",
+                    "Pass TikTok's install checks",
+                    "TikTok checks how it was signed and installed. This answers those checks "
+                            + "the way the Play Store version would. Try it if follows or likes "
+                            + "undo themselves after a refresh. It may not help, since TikTok "
+                            + "has other checks.",
                     Settings.STORE_IDENTITY
             ));
-            addPreference(new ChoicePreference(context, "Store TikTok reads as its installer",
+            addPreference(new ChoicePreference(context, "Store TikTok thinks it came from",
                     Settings.STORE_IDENTITY_INSTALLER,
                     new String[]{"Play Store", "Galaxy Store", "AppGallery", "Amazon Appstore"},
                     StoreIdentity.installers()));

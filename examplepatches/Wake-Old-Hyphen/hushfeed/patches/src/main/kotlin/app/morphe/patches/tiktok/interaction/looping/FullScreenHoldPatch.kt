@@ -37,9 +37,9 @@ internal object LandscapeAutoPlayGateFingerprint : Fingerprint(
 @Suppress("unused")
 val fullScreenHoldPatch = bytecodePatch(
     name = "Stay on the video in full screen",
-    description = "Keeps TikTok's full-screen viewer on a video when it ends instead of moving to " +
-        "the next one, and leaves out its next-video countdown. Swiping still moves on. " +
-        "Switch: Hushfeed settings > Playback.",
+    description = "When a video ends in TikTok's full screen view, it stays on that video " +
+        "instead of moving to the next one. Swiping still moves on. Starts off. Turn it on in " +
+        "Hushfeed settings > Playback.",
     default = true,
 ) {
     category("Playback")

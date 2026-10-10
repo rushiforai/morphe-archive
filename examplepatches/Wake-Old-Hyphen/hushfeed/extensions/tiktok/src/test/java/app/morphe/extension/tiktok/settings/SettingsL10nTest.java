@@ -67,6 +67,17 @@ public class SettingsL10nTest {
     private static final Map<String, String> GERMAN = L10nTranslations.of("de");
     private static final Map<String, String> INDONESIAN = L10nTranslations.of("in");
 
+    private static final String[] QUIET_INDEX_COPY = {
+            "Customize", "Feed & layout", "Comments & inbox", "Downloads & sharing",
+            "App & advanced", "About Hushfeed", "Filters, tabs and on-screen controls",
+            "Filters, translation and inbox controls", "Files, subtitles and share sheet",
+            "Region, backups and diagnostics", "Version, changes and licenses",
+            "Budgets and reminders",
+            "Active", "Paused", "Restart pending", "Hushfeed is active", "Hushfeed is paused",
+            "Pause runtime changes after restarting TikTok. Your settings stay saved. Changes built into the APK remain.",
+            "Hushfeed runtime changes are paused. Your settings stay saved. Changes built into the APK remain."
+    };
+
     @Before
     public void clearStatusBeforeMountingSettings() throws Exception {
         setEveryStatus(false);
@@ -132,6 +143,26 @@ public class SettingsL10nTest {
         changed.put(key, changed.get(key) + " x");
         assertNotEquals("a changed value read the same", table.get(key), changed.get(key));
         assertFalse("the tables compare equal after a change", table.equals(changed));
+    }
+
+    @Test public void everyQuietIndexLabelAndPauseBoundaryHasATranslation() throws Exception {
+        for (String language : languages()) {
+            Map<String, String> source = readTable(language);
+            Map<String, String> generated = L10nTranslations.of(language);
+            for (String key : QUIET_INDEX_COPY) {
+                assertTrue(language + " has no source translation for " + key, source.containsKey(key));
+                assertFalse(language + " has a blank translation for " + key, source.get(key).trim().isEmpty());
+                assertEquals(language + " did not generate " + key, source.get(key), generated.get(key));
+            }
+            for (String retired : new String[]{
+                    "From the next start TikTok runs as if it weren't patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.",
+                    "TikTok runs as if it weren't patched. Your settings stay as they are."}) {
+                assertFalse(language + " still carries the claim that Pause restores the original app",
+                        source.containsKey(retired));
+                assertFalse(language + " still bundles the claim that Pause restores the original app",
+                        generated.containsKey(retired));
+            }
+        }
     }
 
     /**
@@ -2246,13 +2277,10 @@ public class SettingsL10nTest {
             // This About action is unconditional and doesn't belong to a patch-gated category.
             screen.addPreference(new app.morphe.extension.tiktok.settings.preference.BuildDetailsPreference(activity));
             collect(screen, strings);
-            // The master menu's own words: the section titles and subtitles its rows carry,
-            // the four group headings above them, and the header. None of these is built by a
-            // category, so they are named here.
+            // Navigation labels are built outside the leaf categories.
             for (String section : new String[]{"Feed filter", "Feed tabs", "Feed screen",
                     "Playback", "Screen time", "Comments", "Downloads", "Share sheet", "Inbox",
                     "Privacy", "Region", "App", "Diagnostics", "Backup and restore", "Settings",
-                    "Your feed", "Watching and sharing", "Privacy and system", "About",
                     "Choose what reaches your feed", "Arrange your feed and bottom tabs",
                     "Captions, gestures and on-screen controls", "Quality, speed and auto-advance",
                     "Daily budgets, reminders and the hold", "Filters, translation and copy options",
@@ -2262,6 +2290,7 @@ public class SettingsL10nTest {
                     "Logging, hook status and reports", "Save, restore, reset and undo your settings"}) {
                 strings.add(L10n.t(activity, section));
             }
+            for (String text : QUIET_INDEX_COPY) strings.add(L10n.t(activity, text));
             strings.add(L10n.t(activity, "Back up settings"));
             strings.add(L10n.t(activity, "Restore settings"));
             strings.add(L10n.t(activity, "Reset settings"));

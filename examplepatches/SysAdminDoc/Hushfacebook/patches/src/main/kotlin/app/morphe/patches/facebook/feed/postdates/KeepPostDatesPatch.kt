@@ -57,9 +57,9 @@ internal const val VALUE_OF_BOOLEAN = "Ljava/lang/String;->valueOf(Z)Ljava/lang/
 val keepPostDatesPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Keep post dates",
-    description = "Keeps the date under the poster's name. Facebook's newer post header can swap that line for " +
-        "rotating details a moment after a post shows, and on some phones the line goes blank. With this on, " +
-        "the line stays put.",
+    description = "Keeps the date under the poster's name, so you can always tell how old a post is. Facebook's " +
+        "newer header can swap it for rotating details, and on some phones the line goes blank. On by default. " +
+        "Turn it off in Hushfacebook settings > News feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)

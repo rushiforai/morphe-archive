@@ -8,9 +8,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.facebook.feed.TREE_JNI
+import app.morphe.patches.facebook.feed.isStringTableCall
+import app.morphe.patches.facebook.feed.tableIndexAt
+import app.morphe.patches.facebook.feed.tableIndices
+import app.morphe.patches.facebook.feed.tableStringAt
 import app.morphe.patches.facebook.feed.treeFieldKey
 import app.morphe.patches.facebook.reels.FB_USER_SESSION
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -34,6 +39,10 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *   "FbShortsAdsSponsoredInfoRowAnimationKey", and from one Litho component's builder. Every other
  *   method holding the literal only compares it with String.equals. So the finder is the one
  *   static method the literal is handed to, and its first parameter is the reel model's type.
+ *   On 582 (read 2026-10-10) the finder is arm64 LX/8NX;->A02 and armeabi-v7a LX/8QP;->A02. The
+ *   v7a build's callers (LX/CwR;->A18, LX/ATI;->A00) never load the literal: they ask the string
+ *   table LX/SoX;->A00 for it with 8, so the methods asking a table that holds the literal count as
+ *   holders too.
  * - That attribution carries was_detected_as_ai_generated (0x723ea5fe) as a boolean of its own,
  *   beside was_self_disclosed_as_ai_generated (0xbc6e7b43) and gen_ai_detected_transparency_type.
  *   The viewer's decision whether to draw the label (580 LX/Axm;->A01, 577 LX/B0Q;->A01) is
@@ -96,19 +105,28 @@ private fun writes(instruction: Instruction, register: Int): Boolean {
 
 /**
  * The static calls in [method] that are handed [literal] as a String argument: from each load of
- * the literal, every static invoke passing its register in a String parameter's place, until
- * something writes that register again.
+ * the literal, every static invoke answering something and passing its register in a String
+ * parameter's place, until something writes that register again. A load is a const-string of the
+ * literal, or, with [resolve], the result of asking a string table [resolve] reads for it (582's
+ * armeabi-v7a build hands the finder the literal that way). A void call answers nothing, so it
+ * can't be the finder: 582's own loop helper (arm64 LX/5LI;->A04) takes the literal that way.
  */
-internal fun finderCalls(method: Method, literal: String = TRANSPARENCY_ATTRIBUTION): List<MethodReference> {
+internal fun finderCalls(
+    method: Method,
+    literal: String = TRANSPARENCY_ATTRIBUTION,
+    resolve: ((MethodReference) -> Method?)? = null,
+): List<MethodReference> {
     val body = method.body()
     val calls = mutableListOf<MethodReference>()
     for ((index, load) in body.withIndex()) {
-        if (load.string != literal) continue
+        val loaded = load.string == literal || resolve != null && load.opcode == Opcode.MOVE_RESULT_OBJECT &&
+            tableStringAt(body, index - 1, resolve) == literal
+        if (!loaded) continue
         val register = (load as OneRegisterInstruction).registerA
         for (next in body.subList(index + 1, body.size)) {
             val registers = argumentRegisters(next)
             val call = next.methodReference
-            if (call != null && next.opcode.name.startsWith("invoke-static") && register in registers) {
+            if (call != null && next.opcode.name.startsWith("invoke-static") && call.returnType != "V" && register in registers) {
                 val at = registers.indexOf(register)
                 if (call.parameterTypes.getOrNull(at)?.toString() == STRING) calls += call
             }
@@ -136,9 +154,16 @@ internal const val EXTENSION_CLASSES = "Lapp/morphe/extension/"
  * A holder in the extension doesn't count. The patcher searches the APK with the extension merged
  * in, and the reel filter hands the same literal to its own stub, which both fixture builds counted
  * as a second finder until this left it out (2026-09-26).
+ *
+ * [resolve], when given, reads the string tables [holders] ask for the literal ([asksTableFor]),
+ * so a holder handing over a table's answer counts the way a load of the literal does.
  */
-internal fun attributionFinder(holders: List<Method>, literal: String = TRANSPARENCY_ATTRIBUTION): Finder {
-    val calls = holders.filterNot { it.definingClass.startsWith(EXTENSION_CLASSES) }.flatMap { finderCalls(it, literal) }
+internal fun attributionFinder(
+    holders: List<Method>,
+    literal: String = TRANSPARENCY_ATTRIBUTION,
+    resolve: ((MethodReference) -> Method?)? = null,
+): Finder {
+    val calls = holders.filterNot { it.definingClass.startsWith(EXTENSION_CLASSES) }.flatMap { finderCalls(it, literal, resolve) }
     if (calls.isEmpty()) {
         return Finder(null, "no method holding \"$literal\" hands it to a static call as a String")
     }
@@ -154,6 +179,35 @@ internal fun attributionFinder(holders: List<Method>, literal: String = TRANSPAR
         return Finder(null, "${call.signature()} isn't a (model, String) finder answering a model")
     }
     return Finder(call, null)
+}
+
+/** Whether [method] is a string table: a static `(I)Ljava/lang/String;` with a body. */
+internal fun isStringTable(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null && method.returnType == STRING &&
+        method.parameterTypes.map { it.toString() } == listOf("I")
+
+/**
+ * The entries of [tables] (string tables, [isStringTable]) that answer [literal]: each table's
+ * `class->name` with the indexes it answers the literal for. Each table is read once.
+ */
+internal fun tableEntries(tables: List<Method>, literal: String): Map<String, Set<Int>> =
+    tables.associate { "${it.definingClass}->${it.name}" to tableIndices(it, literal) }.filterValues { it.isNotEmpty() }
+
+/**
+ * Whether [method] asks a string table for one of [entries] ([tableEntries]): an int constant
+ * loaded straight before the table's call, into the register it takes. Redex outlines a literal
+ * many methods share into such a table, and 582's armeabi-v7a build (LX/SoX;->A00 with 8) hands
+ * the attribution's type name to the finder from there.
+ */
+internal fun asksTableFor(method: Method, entries: Map<String, Set<Int>>): Boolean {
+    val instructions = method.implementation?.instructions ?: return false
+    if (instructions.none(::isStringTableCall)) return false
+    val body = instructions.toList()
+    return body.indices.any { index ->
+        val key = tableIndexAt(body, index) ?: return@any false
+        val call = body[index].methodReference ?: return@any false
+        key in entries["${call.definingClass}->${call.name}"].orEmpty()
+    }
 }
 
 /**

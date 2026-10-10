@@ -1,0 +1,15 @@
+package app.templerun2.patches.shared
+
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+
+object Constants {
+    val COMPATIBILITY_TEMPLERUN2 = Compatibility(
+        name = "Temple Run 2",
+        packageName = "com.imangi.templerun2",
+        appIconColor = 0x8D6E63,
+        targets = listOf(
+            AppTarget(version = "1.136.0")
+        )
+    )
+}

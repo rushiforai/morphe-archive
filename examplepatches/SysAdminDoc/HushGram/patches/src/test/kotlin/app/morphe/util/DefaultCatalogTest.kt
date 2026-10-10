@@ -17,6 +17,7 @@ import app.morphe.patches.instagram.direct.screenshots.dontReportScreenshotsPatc
 import app.morphe.patches.instagram.direct.notes.hideNotesRowPatch
 import app.morphe.patches.instagram.direct.seen.readWithoutSeenReceiptPatch
 import app.morphe.patches.instagram.direct.seen.viewDmMediaAnonymouslyPatch
+import app.morphe.patches.instagram.direct.suggested.hideInboxSuggestionsPatch
 import app.morphe.patches.instagram.direct.typing.hideTypingPatch
 import app.morphe.patches.instagram.download.reel.downloadReelPatch
 import app.morphe.patches.instagram.download.story.downloadStoryPatch
@@ -88,40 +89,72 @@ import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** Reviewed selection policy for every named patch, separate from each saved runtime choice. */
+/**
+ * Reviewed selection policy for every named patch, separate from each saved runtime choice.
+ *
+ * Simple mode picks every patch whose switch keeps Instagram as it is until the reader turns it on,
+ * so [neutral] holds every switch-gated patch whose switch starts off. [optIn] is what changes the
+ * build itself or isn't ready yet, each with its reason in DefaultSelectionPolicyTest.
+ */
 class DefaultCatalogTest {
     private val neutral = listOf<Patch<*>>(
+        allowScreenshotsPatch,
         askBeforeCallPatch,
         askBeforeLikePatch,
         askBeforeRefreshPatch,
         changeLikeAnimationPatch,
+        cleanUpReelsPatch,
         clearMediaCachePatch,
         copyCommentPatch,
+        dataSaverPatch,
+        dontReportScreenshotsPatch,
         dontSaveRecentSearchesPatch,
+        dontSendReelWatchHistoryPatch,
+        downloadVideoPatch,
+        downloadVoiceMessagesPatch,
         emojiStylePatch,
         fullResolutionPhotosPatch,
-        dataSaverPatch,
         groupNotificationsPatch,
         hideCommentsPatch,
+        hideExploreGridPatch,
+        hideFeedReelsPatch,
         hideHighlightsPatch,
-        hideThreadsButtonPatch,
-        hideShareButtonPatch,
         hideHomeFeedPatch,
+        hideInboxSuggestionsPatch,
         hideInstantsPatch,
         hideNotesRowPatch,
-        lockMessagesPatch,
-        viewLiveAnonymouslyPatch,
+        hideProfileSuggestionsPatch,
+        hideReelsSuggestionsPatch,
+        hideReelsTabPatch,
+        hideRepostButtonPatch,
+        hideShareButtonPatch,
+        hideShareSheetGroupPatch,
+        hideThreadsButtonPatch,
+        hideTypingPatch,
         keepInChatPatch,
-        allowScreenshotsPatch,
-        dontReportScreenshotsPatch,
+        keepReelsAutoScrollPatch,
+        lockMessagesPatch,
+        loopStoryPatch,
+        readWithoutSeenReceiptPatch,
+        reelSeekBarPatch,
+        removeBottomSpacePatch,
         saveCommentPhotoPatch,
         saveProfilePicturePatch,
-        downloadVoiceMessagesPatch,
+        showPostTimePatch,
+        showStoryTimePatch,
+        spoofLocationPatch,
+        startOnFollowingPatch,
         stopReelsScrollingPatch,
+        stopStoryAutoAdvancePatch,
         stopSwipeToCreatePatch,
         stopTabSwipingPatch,
+        storyMentionsPatch,
         storyRingSizePatch,
+        tapToPlayPatch,
+        turnOffDoubleTapLikePatch,
         turnOffHdrBoostsPatch,
+        viewLiveAnonymouslyPatch,
+        viewStoriesAnonymouslyPatch,
     )
 
     private val prior = listOf<Patch<*>>(
@@ -147,34 +180,9 @@ class DefaultCatalogTest {
 
     private val optIn = listOf<Patch<*>>(
         changeVersionCodePatch,
-        cleanUpReelsPatch,
-        dontSendReelWatchHistoryPatch,
-        downloadVideoPatch,
-        hideExploreGridPatch,
-        hideFeedReelsPatch,
-        hideProfileSuggestionsPatch,
-        hideReelsSuggestionsPatch,
-        hideReelsTabPatch,
-        hideRepostButtonPatch,
-        hideShareSheetGroupPatch,
-        hideTypingPatch,
-        keepReelsAutoScrollPatch,
-        loopStoryPatch,
         openDeveloperOptionsPatch,
         pureBlackPatch,
-        readWithoutSeenReceiptPatch,
-        reelSeekBarPatch,
-        removeBottomSpacePatch,
-        showPostTimePatch,
-        showStoryTimePatch,
-        spoofLocationPatch,
-        startOnFollowingPatch,
-        stopStoryAutoAdvancePatch,
-        storyMentionsPatch,
-        tapToPlayPatch,
-        turnOffDoubleTapLikePatch,
         viewDmMediaAnonymouslyPatch,
-        viewStoriesAnonymouslyPatch,
     )
 
     @Test fun existingDefaultsRetainTheirSelections() {
@@ -183,19 +191,19 @@ class DefaultCatalogTest {
     }
 
     @Test fun initiallyNeutralControlsAreAvailableInSimpleMode() {
-        assertEquals(31, neutral.size)
+        assertEquals(57, neutral.size)
         neutral.forEach { assertEquals(it.name, true, it.use) }
     }
 
-    @Test fun immediateBehaviorChangesAndUnacceptedDmReceiptsStayOptIn() {
-        assertEquals(29, optIn.size)
+    @Test fun patchTimeChangesDeveloperToolsAndUnacceptedDmReceiptsStayOptIn() {
+        assertEquals(4, optIn.size)
         optIn.forEach { assertEquals(it.name, false, it.use) }
     }
 
     @Test fun generatedCatalogMatchesAllReviewedDeclarations() {
         val all = prior + neutral + optIn
         val declarations = all.associate { it.name!! to it.use }
-        assertEquals("every named patch needs one reviewed decision", 78, all.size)
+        assertEquals("every named patch needs one reviewed decision", 79, all.size)
         assertEquals("the review must not name a patch twice", all.size, declarations.size)
         val file = File("patches-list.json").takeIf(File::isFile) ?: File("../patches-list.json")
         val rows = JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("patches")

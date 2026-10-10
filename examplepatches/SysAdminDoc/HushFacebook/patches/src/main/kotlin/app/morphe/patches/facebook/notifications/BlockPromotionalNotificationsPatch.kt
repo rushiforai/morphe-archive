@@ -30,10 +30,9 @@ internal const val BLOCK = "$EXTENSION_PACKAGE/notifications/NotificationKinds;-
 @Suppress("unused")
 val blockPromotionalNotificationsPatch = bytecodePatch(
     name = "Block promotional notifications",
-    description = "Keeps the kinds of notification you pick off your phone, such as trending videos, memories and " +
-        "birthdays. Each kind has its own switch, and they all start off. Quiet hours can limit them to the " +
-        "night, or to any hours you pick. Messages, friend requests, comments, mentions and login alerts " +
-        "always come through.",
+    description = "Blocks the kinds of notification you pick, such as trending videos, memories and birthdays, " +
+        "so you get fewer pings you don't care about. Messages, friend requests, comments and login alerts " +
+        "always come through. Starts off. Turn on the kinds you want in Hushfacebook settings > Notifications.",
     default = true,
 ) {
     category("Interface")

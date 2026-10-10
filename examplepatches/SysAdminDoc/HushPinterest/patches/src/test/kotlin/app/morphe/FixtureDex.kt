@@ -26,10 +26,11 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
 /**
- * Reads the classes a fixture test needs out of a Pinterest build, one dex at a time, so no APK lands
- * on disk and no more than one dex is held at once. A build is an .apkm or .xapk, whose base APK is
- * read from inside it, or a merged .apk. What it hands back are immutable copies, which keep none
- * of the dex they came from.
+ * Reads the classes a fixture test needs out of a Pinterest build, without writing an APK to disk.
+ * A build is an .apkm or .xapk, whose base APK is read from inside it, or a merged .apk. Each build
+ * is unzipped once per test JVM and its dex files kept for the rest of the run, about 60 MB for
+ * Pinterest 14.38.0, which `:patches:fixtureTest` sizes its heap for. What it hands back are
+ * immutable copies, which keep none of the dex they came from.
  */
 internal object FixtureDex {
     private val DEX = Regex("""classes\d*\.dex""")
@@ -37,20 +38,30 @@ internal object FixtureDex {
     /** The base APK's entry in a bundle: base.apk in an .apkm, the package's name in an .xapk. */
     private val BASE_NAMES = listOf("base.apk", "com.pinterest.apk")
 
-    private fun forEachDex(build: File, visit: (DexBackedDexFile) -> Unit) {
+    private val builds = FixtureCache { build ->
+        val found = mutableListOf<DexBackedDexFile>()
         fun read(apk: InputStream) = ZipInputStream(apk.buffered()).use { entries ->
             while (true) {
                 val entry = entries.nextEntry ?: break
-                if (DEX.matches(entry.name)) visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(entries.readBytes())))
+                if (DEX.matches(entry.name)) found += DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(entries.readBytes()))
             }
         }
-        if (build.extension == "apk") return build.inputStream().use(::read)
-        ZipFile(build).use { zip ->
-            val base = BASE_NAMES.firstNotNullOfOrNull { zip.getEntry(it) }
-                ?: error("${build.name} holds none of ${BASE_NAMES.joinToString()}")
-            zip.getInputStream(base).use(::read)
+        if (build.extension == "apk") {
+            build.inputStream().use(::read)
+        } else {
+            ZipFile(build).use { zip ->
+                val base = BASE_NAMES.firstNotNullOfOrNull { zip.getEntry(it) }
+                    ?: error("${build.name} holds none of ${BASE_NAMES.joinToString()}")
+                zip.getInputStream(base).use(::read)
+            }
         }
+        found.toList()
     }
+
+    private fun forEachDex(build: File, visit: (DexBackedDexFile) -> Unit) = builds[build].forEach(visit)
+
+    /** How many times [build] has been unzipped in this JVM: once, however many tests read it. */
+    fun reads(build: File): Int = builds.reads(build)
 
     /**
      * Every dex of the build, one at a time, for a test that looks for several things in one pass.

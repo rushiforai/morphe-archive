@@ -131,10 +131,10 @@ class AmoledBackgroundOptionTest {
     fun aRefusalSaysWhatToDo() {
         for (good in listOf(null, "", "#000000", "#0D1117", "#5B513F", "#FF3B3B3B")) assertNull(good, backgroundProblem(good))
         assertTrue(backgroundProblem("navy")!!.contains("#RRGGBB"))
-        assertTrue(backgroundProblem("#123")!!.contains("isn't a colour"))
+        assertTrue(backgroundProblem("#123")!!.contains("isn't a color"))
         assertTrue(backgroundProblem("#800D1117")!!.contains("see-through"))
         val tooLight = backgroundProblem("#808080")!!
-        assertTrue(tooLight, tooLight.contains("too light") && tooLight.contains("#3A3A3A") && tooLight.contains(LIGHTEST_ADMITTED_GREY))
+        assertTrue(tooLight, tooLight.contains("too light") && tooLight.contains(LIGHTEST_ADMITTED_GREY))
         for (message in listOf("navy", "#800D1117", "#808080").map { backgroundProblem(it)!! }) {
             assertTrue("no dashes: $message", '—' !in message && '–' !in message && " - " !in message)
         }

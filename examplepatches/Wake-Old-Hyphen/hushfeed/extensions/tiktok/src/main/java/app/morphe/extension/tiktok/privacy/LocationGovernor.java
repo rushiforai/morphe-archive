@@ -18,13 +18,14 @@ import app.morphe.extension.tiktok.settings.Settings;
  * Location reads answered with nothing while the switch is on.
  *
  * <p>The last known location comes back null and an update request is dropped on the floor, so
- * its listener never hears anything. A read before the settings context exists is refused too.
+ * its listener never hears anything. The switch is off by default, so a read before the settings
+ * context exists goes through.
  */
 @SuppressWarnings({"unused", "deprecation"})
 public final class LocationGovernor {
 
     private static boolean blocks(String what) {
-        if (Utils.getContext() != null && !Settings.BLOCK_LOCATION.get()) return false;
+        if (Utils.getContext() == null || !Settings.BLOCK_LOCATION.get()) return false;
         Logger.printInfo(() -> "Location governor: blocked " + what);
         return true;
     }

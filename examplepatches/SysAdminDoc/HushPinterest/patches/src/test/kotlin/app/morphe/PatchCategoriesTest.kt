@@ -30,12 +30,23 @@ import org.junit.Test
  */
 class PatchCategoriesTest {
     /**
-     * One name per group, and no more than fits on a phone screen without scrolling. Hushfacebook's
-     * Downloads, Interface and Privacy come back when a Pinterest patch needs one.
+     * One name per group, and no more than fits on a phone screen without scrolling. The names are
+     * the Hush family's, and Updates matches the HushPinterest settings page that holds its switch.
      */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Settings", "Privacy", "Interface", "Downloads",
+        "Ads", "Feed", "Settings", "Privacy", "Interface", "Navigation", "Downloads", "Updates",
     )
+
+    /**
+     * With every patch but one in the default selection, Expert mode is where a reader goes to look
+     * one up, so no group runs past what fits on a phone screen. Hushfacebook's Interface once held
+     * 42, and finding one patch there meant reading all of them.
+     */
+    @Test
+    fun `no group is too long to scan`() {
+        val sizes = shippedPatches().groupingBy { it.get("category").asString }.eachCount()
+        assertEquals("split a group people have to scroll through", emptyMap<String, Int>(), sizes.filterValues { it > 15 })
+    }
 
     private fun shippedPatches() = run {
         val catalog = File("../patches-list.json").takeIf { it.isFile } ?: File("patches-list.json")

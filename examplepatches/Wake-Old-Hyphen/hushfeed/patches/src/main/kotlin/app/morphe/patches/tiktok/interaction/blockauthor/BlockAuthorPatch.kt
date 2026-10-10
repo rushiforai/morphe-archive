@@ -61,16 +61,9 @@ internal val sessionPlaybackBridgePatch = bytecodePatch {
 @Suppress("unused")
 val blockAuthorPatch = bytecodePatch(
     name = "Block author button",
-    description = "Adds one-tap controls for blocking the creator, hiding them locally and " +
-        "blocking the current sound. A confirmed account block skips to the next video and " +
-        "shows a small Unblock button at the top left for two seconds. " +
-        "Every control starts off and has its own switch, so nothing shows on videos until you " +
-        "turn one on, and any one can show without the others. Long press any visible control " +
-        "to move it. " +
-        "Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the " +
-        "window changes. A local action shows Undo only after its setting was saved. All " +
-        "controls hide while comments are open. Switch: Hushfeed settings > Feed screen.",
-    default = false,
+    description = "Adds buttons on videos to block the creator, hide them only on your phone, " +
+        "or block the sound, so you can get rid of what you don't want in one tap. Starts off. " +
+        "Turn it on in Hushfeed settings > Feed screen.",
 ) {
     category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch, sessionPlaybackBridgePatch)

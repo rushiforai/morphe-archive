@@ -33,9 +33,10 @@ class DownloadReelShapesTest {
     /**
      * A sidebar builder whose button list comes from a helper declared to return a plain List, as
      * a build could hand it, and whose markers are a new ArrayList. The block goes in front of the
-     * nop standing in for the assembly's argument moves.
+     * nop standing in for the assembly's argument moves. The story sits in [story], and the helper
+     * call names it in [storyScratch].
      */
-    private fun sidebar(): MutableMethod = MutableMethod(
+    private fun sidebar(story: Int = 33, storyScratch: Int = 4): MutableMethod = MutableMethod(
         ImmutableMethod(
             "Lfixture/Sidebar;",
             "build",
@@ -65,8 +66,8 @@ class DownloadReelShapesTest {
                 session = 30,
                 scoped = 31,
                 player = 32,
-                story = 33,
-                storyScratch = 4,
+                story = story,
+                storyScratch = storyScratch,
                 helper = HELPER,
                 buttons = 20,
                 icon = "Lfixture/Icon;->DOWNLOAD:Lfixture/Icon;",
@@ -101,6 +102,23 @@ class DownloadReelShapesTest {
         // The switch is still asked first, and the story's copy sits after the three the helper always took.
         assertTrue(body[4].call!!.endsWith("->showsButton()Z"))
         assertEquals(listOf(30, 31, 32), (at - 4 until at - 1).map { (body[it] as TwoRegisterInstruction).registerB })
+    }
+
+    /**
+     * 582 hands the assembly its arguments from v3 up, so the story already sits in a 4-bit
+     * register. The helper call names it there, and nothing is copied over it.
+     */
+    @Test
+    fun `a story already in a low register goes to the helper as it is`() {
+        val body = sidebar(story = 4, storyScratch = 4).implementation!!.instructions.toList()
+        val at = body.indexOfFirst { it.call == HELPER }
+        assertTrue("no call to the helper", at > 0)
+        val call = body[at] as FiveRegisterInstruction
+        assertEquals(listOf(0, 1, 2, 4), listOf(call.registerC, call.registerD, call.registerE, call.registerF))
+        assertEquals("only the three copies the helper always takes", listOf(30, 31, 32),
+            (at - 3 until at).map { (body[it] as TwoRegisterInstruction).registerB })
+        assertEquals("the switch's branch comes straight before them", Opcode.IF_EQZ, body[at - 4].opcode)
+        assertTrue("nothing writes v4", body.none { (it as? TwoRegisterInstruction)?.registerA == 4 && it.opcode == Opcode.MOVE_OBJECT_FROM16 })
     }
 
     /**
@@ -190,10 +208,20 @@ class DownloadReelShapesTest {
 
     @Test
     fun `the story's local is the lowest above v2 that nothing reads and the block doesn't`() {
-        assertEquals(3, builderEnd().storyScratchRegister(injectAt, reads = listOf(20, 21)))
+        assertEquals(3, builderEnd().storyScratchRegister(injectAt, reads = listOf(20, 21, 22), story = 22))
         // v3 is read after the call, and v4 holds something the block reads.
         val method = builderEnd(after = "invoke-static { v3 }, Lfixture/Log;->note(I)V")
-        assertEquals(5, method.storyScratchRegister(injectAt, reads = listOf(4, 20, 21)))
+        assertEquals(5, method.storyScratchRegister(injectAt, reads = listOf(4, 20, 21, 22), story = 22))
+    }
+
+    @Test
+    fun `a story from v3 to v15 is named in its own register, and one in v0 to v2 is copied`() {
+        // v3 is read after the call: it's the story the call gets, and the helper only reads it.
+        val method = builderEnd(after = "invoke-static { v3 }, Lfixture/Log;->note(I)V")
+        assertEquals(3, method.storyScratchRegister(injectAt, reads = listOf(3, 20, 21), story = 3))
+        assertEquals(15, builderEnd().storyScratchRegister(injectAt, reads = listOf(15, 20, 21), story = 15))
+        // The block writes v0 to v2 before the helper call, so a story there needs a copy.
+        assertEquals(3, builderEnd().storyScratchRegister(injectAt, reads = listOf(2, 20, 21), story = 2))
     }
 
     private fun field(name: String, type: String) = ImmutableField("Lfixture/Sidebar;", name, type, AccessFlags.PUBLIC.value, null, null, null)

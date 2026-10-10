@@ -47,7 +47,7 @@ public class AppIconsTest {
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("app_icons")).findFirst().orElseThrow();
         assertEquals("Unlock app icons", row[1]);
         assertEquals("theme", row[3]);
-        assertTrue(row[2].contains("Messenger still decides whether that setting appears"));
+        assertTrue(row[2].contains("Messenger decides whether that setting shows"));
         assertTrue(row[2].contains("default icon back"));
     }
 }

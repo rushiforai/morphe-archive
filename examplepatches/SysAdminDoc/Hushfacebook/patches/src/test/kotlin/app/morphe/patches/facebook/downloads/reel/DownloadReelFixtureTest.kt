@@ -25,9 +25,9 @@ import org.junit.Test
 
 /**
  * Download any reel run whole on each declared build's own sidebar and the classes it reaches: the
- * block goes in three instructions before the assembly call, borrowing v0 to v2 and a fourth local
- * for the story, each proved free there by the liveness of the whole builder, and each register it
- * reads unchanged up to the call. The build's one FbShortsSideBarComponent render, which the button
+ * block goes in three instructions before the assembly call, borrowing v0 to v2, and a fourth local
+ * for the story when its argument register is above v15, each proved free there by the liveness of
+ * the whole builder, and each register it reads unchanged up to the call. The build's one FbShortsSideBarComponent render, which the button
  * can't go in, gets a counter as its first instruction and nothing else (#18). And the More sheet's
  * builder asks for a Download row first thing, through a helper on its class, with the handler made
  * to take the row's click interface (#18).
@@ -43,9 +43,12 @@ class DownloadReelFixtureTest {
         method.parameterTypes.map(CharSequence::toString) == builder.parameterTypes.map(CharSequence::toString) &&
         method.returnType == builder.returnType && holdsString(method, otherSidebarName)
 
-    /** The story's local, v3 and up, on each declared build. */
+    /**
+     * The story's register in the helper call, v3 and up, on each declared build. 582 hands the
+     * assembly its arguments from v3 to v19, the story second, so the call names v4 as it is.
+     */
     private val storyLocal = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to 3,
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to 4,
     )
 
     private fun callsButtonFactory(method: Method) = method.implementation?.instructions?.any { instruction ->

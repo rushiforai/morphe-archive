@@ -225,7 +225,7 @@ public class DiagnosticRedactorTest {
      */
     @Test public void aNameThatOnlyLooksLikeAPinterestHostStays() {
         String[] lines = {
-                "app: com.pinterest 14.25.0 (14258020)",
+                "app: com.pinterest 14.38.0 (14388010)",
                 "at com.pinterest.ui.grid.PinterestRecyclerView.onLayout(PinterestRecyclerView.java:12)",
                 "at com.pinterest.activity.PinterestActivity.onCreate(PinterestActivity.java:40)",
                 "at com.pinterest.camera.CameraView.start(CameraView.java:9)",
@@ -298,11 +298,11 @@ public class DiagnosticRedactorTest {
             "Pinterest probe pin_id=81027031 boardId=-81027032 section_id=81027033 conversation_id=-10081027034"
                     + " access_hash=7810234567890 phone=+1 (602) 555-0173"
                     + " link=pinterest://board/pinterestProbePrivate"
-                    + " app_version=14.25.0 version_code=14258020 timestamp=1790000000000 retries=3 counter=8";
+                    + " app_version=14.38.0 version_code=14388010 timestamp=1790000000000 retries=3 counter=8";
     public static final String PINTEREST_EXPORT_REDACTED =
             "Pinterest probe pin_id=[omitted] boardId=[omitted] section_id=[omitted] conversation_id=[omitted]"
                     + " access_hash=[omitted] phone=[omitted] link=[url omitted]"
-                    + " app_version=14.25.0 version_code=14258020 timestamp=1790000000000 retries=3 counter=8";
+                    + " app_version=14.38.0 version_code=14388010 timestamp=1790000000000 retries=3 counter=8";
 
     public static final String[][] CREDENTIAL_CORPUS = inEveryForm(NAMES_IN_EVERY_FORM, new String[][]{
             {"{\"access_token\":\"EAABjsonKeyA1\",\"locale\":\"en_US\"}", "EAABjsonKeyA1"},
@@ -499,14 +499,14 @@ public class DiagnosticRedactorTest {
         assertEquals("opened [url omitted] and [url omitted] retries=3",
                 DiagnosticRedactor.redact("opened pinterest://pin/pinterestShortLink"
                         + " and https://pin.it/pinterestLongLink retries=3"));
-        String ordinary = "pinterest:status=3 pinterest_status=ready app=14.25.0 timestamp=1790000000000";
+        String ordinary = "pinterest:status=3 pinterest_status=ready app=14.38.0 timestamp=1790000000000";
         assertEquals(ordinary, DiagnosticRedactor.redact(ordinary));
     }
 
     @Test public void pinterestFieldNamesDoNotHideCountersOrUnrelatedPhoneWords() {
         String ordinary = "board_count=3 boardId_count=4 pinCount=5 section_count=6 conversationCount=7"
                 + " access_hash_count=8 accessHashCount=9 phoneCount=10 phone_number_length=11"
-                + " headphone=12 microphone=13 phonebook=14 version=14.25.0 timestamp=1790000000000";
+                + " headphone=12 microphone=13 phonebook=14 version=14.38.0 timestamp=1790000000000";
         assertEquals(ordinary, DiagnosticRedactor.redact(ordinary));
     }
 
@@ -645,8 +645,8 @@ public class DiagnosticRedactorTest {
         assertEquals("access_token=[omitted]&next=1", DiagnosticRedactor.redact("access_token=EAABquery123&next=1"));
         assertEquals("Authorization=[omitted]", DiagnosticRedactor.redact("Authorization:Bearer EAABnospace12"));
         assertEquals("sent Bearer [omitted]", DiagnosticRedactor.redact("sent Bearer%20EAABpercent12"));
-        assertEquals("app: com.pinterest 14.25.0 (14258020) at 1790000000000",
-                DiagnosticRedactor.redact("app: com.pinterest 14.25.0 (14258020) at 1790000000000"));
+        assertEquals("app: com.pinterest 14.38.0 (14388010) at 1790000000000",
+                DiagnosticRedactor.redact("app: com.pinterest 14.38.0 (14388010) at 1790000000000"));
     }
 
     /**
@@ -656,7 +656,7 @@ public class DiagnosticRedactorTest {
      */
     @Test public void buildDataTimestampsAndStackFramesStay() {
         String[] lines = {
-                "app: com.pinterest 14.25.0 (14258020)",
+                "app: com.pinterest 14.38.0 (14388010)",
                 "abi: app arm64, process 64-bit, device arm64-v8a,armeabi-v7a",
                 "morphe: 0.3.4",
                 "generated_utc: 2026-09-28T12:00:00.000Z",

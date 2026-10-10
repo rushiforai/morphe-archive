@@ -136,11 +136,11 @@ public class SettingsTest {
             Switch choice = root.findViewWithTag("keep_unsent");
             assertTrue(choice.isChecked());
             String spoken = choice.getContentDescription().toString();
-            assertTrue(spoken.contains("legacy unsend routes"));
-            assertTrue(spoken.contains("End-to-end encrypted chats aren't supported"));
-            assertTrue(spoken.contains("group coverage isn't verified"));
-            assertTrue(spoken.contains("not whether a chat is supported"));
-            assertEquals("No unsend activity observed since restart",
+            assertTrue(spoken.contains("after someone unsends them"));
+            assertTrue(spoken.contains("Encrypted chats aren't supported"));
+            assertTrue(spoken.contains("group chats aren't tested"));
+            assertTrue(spoken.contains("Your own unsends may be limited"));
+            assertEquals("No unsent message seen since Messenger started",
                 ((android.widget.TextView) root.findViewWithTag("active_keep_unsent")).getText().toString());
         }
         assertEquals("[unsent] original text", Settings.labelKeptUnsent("original text", "retained-message"));

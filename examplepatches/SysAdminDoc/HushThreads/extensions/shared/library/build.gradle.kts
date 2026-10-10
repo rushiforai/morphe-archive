@@ -7,7 +7,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // Threads 449 declares minSdk 28, and this library only ever runs inside it.
+        // Threads 450 declares minSdk 28, and this library only ever runs inside it.
         minSdk = 28
     }
 

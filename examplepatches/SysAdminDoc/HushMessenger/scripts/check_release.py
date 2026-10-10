@@ -18,6 +18,14 @@ import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
+if __package__:
+    from .build_queue import gradle, time_limit
+else:
+    # Run as a script, or loaded by file path from the tests.
+    if str(Path(__file__).resolve().parent) not in sys.path:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from build_queue import gradle, time_limit
+
 RELEASE_SIGNERS = Path("scripts/release_signers")
 RELEASE_SIGNER = "SysAdminDoc"
 SIGNATURE_NAMESPACE = "hushmessenger-release"
@@ -337,18 +345,44 @@ def stop_process_tree(process):
     process.kill()
 
 
+def run_bounded(command, *, timeout, capture_output=False, **kwargs):
+    """subprocess.run that stops the whole process tree when the limit passes.
+
+    Through the build queue the direct child is PowerShell, which starts the real job.
+    subprocess.run kills only that child and then waits on pipes the job still holds, so a
+    hung job would hang the caller and keep running outside any queue slot.
+    """
+    if capture_output:
+        kwargs["stdout"] = kwargs["stderr"] = subprocess.PIPE
+    with subprocess.Popen(command, start_new_session=sys.platform != "win32", **kwargs) as process:
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            stop_process_tree(process)
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                process.communicate(timeout=30)
+            raise subprocess.TimeoutExpired(command, timeout) from None
+        except BaseException:
+            stop_process_tree(process)
+            raise
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
 def validate_catalog(root, bundle, evidence):
     """Run the same catalog/definition checks without invoking a bundle producer."""
     evidence.unlink(missing_ok=True)
+    limit = time_limit(CATALOG_TIMEOUT, gradle_job=True)
     process = subprocess.Popen(
-        [
-            str(root / "gradlew.bat" if sys.platform == "win32" else root / "gradlew"),
-            ":patches:checkFrozenPatchCatalog",
-            f"-PvalidationBundle={bundle.resolve()}",
-            f"-PvalidationEvidence={evidence.resolve()}",
-            "--no-daemon",
-            "--no-configuration-cache",
-        ],
+        gradle(
+            root,
+            [
+                ":patches:checkFrozenPatchCatalog",
+                f"-PvalidationBundle={bundle.resolve()}",
+                f"-PvalidationEvidence={evidence.resolve()}",
+                "--no-daemon",
+                "--no-configuration-cache",
+            ],
+        ),
         cwd=root,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -358,7 +392,7 @@ def validate_catalog(root, bundle, evidence):
         start_new_session=sys.platform != "win32",
     )
     try:
-        stdout, stderr = process.communicate(timeout=CATALOG_TIMEOUT)
+        stdout, stderr = process.communicate(timeout=limit)
     except subprocess.TimeoutExpired:
         # Killing only the wrapper leaves the Gradle JVM holding the output pipes.
         stop_process_tree(process)
@@ -367,7 +401,7 @@ def validate_catalog(root, bundle, evidence):
         except subprocess.TimeoutExpired:
             stdout, stderr = "", "A leftover process still holds the output pipes."
         raise ValueError(
-            f"Catalog/DEX validation timed out after {CATALOG_TIMEOUT} s\n"
+            f"Catalog/DEX validation timed out after {limit} s\n"
             + (stdout + stderr)[-4000:]
         ) from None
     require(

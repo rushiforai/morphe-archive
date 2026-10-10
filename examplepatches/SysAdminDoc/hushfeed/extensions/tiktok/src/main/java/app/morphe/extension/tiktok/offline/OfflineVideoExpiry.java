@@ -48,4 +48,28 @@ public final class OfflineVideoExpiry {
     public static long keptLifetimeMs() {
         return KEPT_LIFETIME_MS;
     }
+
+    /**
+     * Whether TikTok's Auto adjust sits out this start. At every start it can clamp the offline
+     * limit to its server range, move the tier up or down, or fall back to a legacy tier, and a
+     * lower tier makes the next step trim the list down to it. With the switch on the limit stays
+     * where the user put it, so those steps don't run.
+     */
+    public static boolean keepThroughAutoAdjust() {
+        boolean keep = Settings.KEEP_OFFLINE_VIDEOS.get();
+        HookStatus.bound("offline auto adjust", keep ? "limit left alone" : "TikTok's own");
+        return keep;
+    }
+
+    /**
+     * Whether TikTok's clean-up of the list it started by default may run. When the experiment
+     * that turned offline mode on ends, TikTok clears everything it saved. {@code cleanup} is its answer
+     * and the switch turns it into "nothing to clean up".
+     */
+    public static boolean keepThroughDefaultEnableCleanup(boolean cleanup) {
+        if (!cleanup) return false;
+        boolean keep = Settings.KEEP_OFFLINE_VIDEOS.get();
+        HookStatus.bound("offline default cleanup", keep ? "skipped" : "TikTok's own");
+        return !keep;
+    }
 }

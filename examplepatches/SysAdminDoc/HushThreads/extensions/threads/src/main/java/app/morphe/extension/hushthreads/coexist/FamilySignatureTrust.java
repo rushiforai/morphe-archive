@@ -77,7 +77,7 @@ public final class FamilySignatureTrust {
     static final String META_THREADS_SHA256 = "5367570bad488d8da6a0fab78d9766a1a4c23c3c70fac0ad2e91c8f0bd58b432";
 
     /**
-     * The SHA-256 of every certificate Meta signs Threads with. Threads 449 rotates its signer with
+     * The SHA-256 of every certificate Meta signs Threads with. Threads 450 rotates its signer with
      * an APK v3.1 lineage: the original certificate ({@link #META_THREADS_SHA256}, read up to API 32)
      * and a newer one read from API 33. A build whose current signer is either of these isn't
      * re-signed, so the hook steps aside, whatever Android version it runs on.

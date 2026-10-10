@@ -83,8 +83,8 @@ public class PinMenuTest {
         String text = details();
         assertTrue(text, text.contains("Supplied width: 3000 pixels"));
         assertTrue(text, text.contains("Supplied height: 2000 pixels"));
-        assertTrue(text, text.contains("Supplied URL type: image/png"));
-        assertTrue(text, text.contains("The file hasn't been inspected."));
+        assertTrue(text, text.contains("Link type: image/png"));
+        assertTrue(text, text.contains("HushPinterest hasn't opened the file to check them."));
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }
@@ -143,7 +143,7 @@ public class PinMenuTest {
         String text = details();
         assertTrue(text, text.contains("Supplied width: 1920 pixels"));
         assertTrue(text, text.contains("Supplied height: 1080 pixels"));
-        assertTrue(text, text.contains("Supplied URL type: video/mp4"));
+        assertTrue(text, text.contains("Link type: video/mp4"));
         assertFalse(text, text.contains("3840"));
         assertNoDownload();
     }
@@ -158,9 +158,10 @@ public class PinMenuTest {
         assertEquals("Download unavailable", ((TextView) row).getText());
         assertTrue(row.isEnabled());
         assertTrue(row.isFocusable());
-        assertTrue(row.getContentDescription().toString().contains("adaptive video stream"));
+        assertTrue(row.getContentDescription().toString().contains("streaming video"));
         assertTrue(row.performClick());
-        assertTrue(details().contains("Pinterest supplied an adaptive video stream, but no downloadable MP4."));
+        assertTrue(details().contains("Pinterest only offered a streaming video for this pin, not a file that can "
+            + "be downloaded."));
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }
@@ -232,7 +233,7 @@ public class PinMenuTest {
         assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertFalse(clipboard().hasPrimaryClip());
-        assertEquals("The supplied media link isn't a supported public Pinterest link.", ShadowToast.getTextOfLatestToast());
+        assertEquals("This media link isn't a public Pinterest link HushPinterest can use.", ShadowToast.getTextOfLatestToast());
         assertEquals(0, host.dismissed);
     }
 
@@ -266,7 +267,7 @@ public class PinMenuTest {
         image.put("url", "https://i.pinimg.com/originals/source.unknown");
         assertTrue(host.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("The supplied image type isn't supported for download.", ShadowToast.getTextOfLatestToast());
+        assertEquals("HushPinterest can't download this type of image.", ShadowToast.getTextOfLatestToast());
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }

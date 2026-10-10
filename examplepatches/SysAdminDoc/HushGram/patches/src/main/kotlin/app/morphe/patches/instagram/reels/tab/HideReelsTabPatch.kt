@@ -55,18 +55,16 @@ internal const val SESSION = "Lcom/instagram/common/session/UserSession;"
  * tab host's switch to a tab is where every start, notification and link that picks a tab ends up;
  * both hand their Reels to the extension, which answers with Home.
  *
- * Off in the default selection, like Hushfacebook's: picking it is the choice, and its switch
- * starts on.
+ * In the default selection with its switch off, so the tab bar stays as it was until the reader turns it
+ * on.
  */
 @Suppress("unused")
 val hideReelsTabPatch = bytecodePatch(
     name = "Hide the Reels tab",
-    description = "Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. " +
-        "Reels in your feed and reels people send you still open, and a change to the switch shows once " +
-        "Instagram restarts.",
-    default = false,
+    description = "Takes the Reels tab off the tab bar. Reels in your feed and reels people send you still open. " +
+        "Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Reels.",
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

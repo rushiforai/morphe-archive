@@ -1,3 +1,5 @@
+import java.util.Properties
+
 group = "software.santodan.patches"
 
 patches {
@@ -16,15 +18,35 @@ patches {
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
+// Match Android's SDK lookup on developer machines and GitHub-hosted runners.
+// JVM verification sources reference Android types but must not bundle SDK stubs.
+val androidSdkDirectory = providers.provider {
+    val sdkProperties = Properties()
+    rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use {
+        sdkProperties.load(it)
+    }
+    sdkProperties.getProperty("sdk.dir")
+        ?: providers.environmentVariable("ANDROID_HOME")
+            .orElse(providers.environmentVariable("ANDROID_SDK_ROOT")).orNull
+        ?: throw GradleException("Android SDK not found: set sdk.dir in local.properties or ANDROID_HOME / ANDROID_SDK_ROOT")
+}
+val androidTestJar = androidSdkDirectory.map { file("$it/platforms/android-36/android.jar") }
+
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    testImplementation("org.json:json:20240303")
+    testCompileOnly(files(androidTestJar))
 }
 
 kotlin.sourceSets.named("test") {
     kotlin.srcDir("../extensions/nuvio-stream-preload/src/main/java")
 }
+
+sourceSets["test"].java.srcDir("../extensions/pillo-weight-import/src/main/java")
+sourceSets["test"].java.srcDir("../extensions/pillo-local-backup/src/main/java")
+sourceSets["test"].java.srcDir("../extensions/pillo-weight-summary/src/main/java")
 
 // The Morphe patch runtime targets Java 11. Pin Java sources explicitly so
 // local builds remain reproducible even when Gradle runs on a newer JDK.
@@ -49,11 +71,76 @@ tasks.named<org.gradle.api.tasks.compile.JavaCompile>("compileTestJava") {
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioProviderLayout.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioWatchedHistory.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioBadgeDelta.java"))
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioProviderBadge.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioSettingsStoreResolver.java"))
     source(file("../extensions/nuvio-remaining-episodes/src/main/java/software/santodan/extension/nuvioremaining/NuvioEpisodeCounts.java"))
 }
 
 tasks {
+    register<JavaExec>("verifyPilloWeightSummaryBundle") {
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloWeightSummaryBundleKt")
+        maxHeapSize = "4g"
+        args(file("../../.inspect-pillo-620/xyz.rtrvr.pillo.apk").absolutePath,
+            file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/pillo-summary-bundle").absolutePath,
+            file("../../Apps/Pillo/Pillo-0.6.20-patches-1.46.0.apk").absolutePath)
+    }
+    register<JavaExec>("verifyPilloLocalArchive") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloLocalArchive")
+        args(file("${layout.buildDirectory.get()}/verification").absolutePath)
+    }
+    register<JavaExec>("verifyPilloLocalBackup") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloLocalBackup")
+        args(file("../../.inspect-pillo-620").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/pillo-local-backup.dex").absolutePath)
+    }
+    register<JavaExec>("verifyPilloLocalBackupBundle") {
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloLocalBackupBundleKt")
+        maxHeapSize = "4g"
+        args(file("../../.inspect-pillo-620/xyz.rtrvr.pillo.apk").absolutePath,
+            file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/pillo-local-bundle").absolutePath)
+    }
+
+    register<JavaExec>("verifyPilloWeightImportBundle") {
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloWeightImportBundleKt")
+        maxHeapSize = "4g"
+        args(file("../../.inspect-pillo-620/xyz.rtrvr.pillo.apk").absolutePath,
+            file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/pillo-import-bundle").absolutePath)
+    }
+
+    register<JavaExec>("verifyPilloWeightImport") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloWeightImport")
+        args(file("../../.inspect-pillo-620").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/pillo-weight-import.dex").absolutePath)
+    }
+
+    register<JavaExec>("verifyPilloWeightImportRuntime") {
+        dependsOn("testClasses")
+        // Android's org.json classes are JVM stubs; use the real JSON library first.
+        classpath = sourceSets["test"].runtimeClasspath.filter { it.name != "android.jar" } +
+            files(androidTestJar)
+        mainClass.set("santodan.patches.VerifyPilloWeightImportRuntimeKt")
+        providers.gradleProperty("weightBackup").orNull?.let { args(it) }
+    }
+    register<JavaExec>("verifyNuvioProviderBadge") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioProviderBadge")
+    }
     register<JavaExec>("verifyNuvioMovieReleaseRuntime") {
         dependsOn("testClasses")
         classpath = sourceSets["test"].runtimeClasspath

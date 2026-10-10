@@ -67,7 +67,10 @@ CODEX_CHANGELOG.md
 RESEARCH.md
 Roadmap_Blocked.md
 
-# Keep working documents local; publish usage and release notes.
+# Keep working documents local; publish usage, release notes, and the named maintainer guides.
 *.md
 !README.md
 !CHANGELOG.md
+!/docs/threads-app-reference.md
+!/docs/patch-authoring.md
+!/docs/threads-runtime-audit.md

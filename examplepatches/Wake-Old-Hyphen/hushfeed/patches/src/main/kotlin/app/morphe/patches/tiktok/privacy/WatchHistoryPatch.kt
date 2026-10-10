@@ -78,11 +78,9 @@ internal fun MutableMethod.skipWhenWatchHistoryOff() = guardAtEntry(
 @Suppress("unused")
 val watchHistoryPatch = bytecodePatch(
     name = "Stop recording watch history",
-    description = "Stops the view report TikTok sends for each video you watch, which is how videos get into " +
-        "your Watch history. Your views stop adding to view counts and For You has less to learn from, " +
-        "while likes, follows, searches and TikTok's usage logs still reach it. Off until you turn it on. " +
-        "Switch: Hushfeed settings > Privacy.",
-    default = false,
+    description = "Stops TikTok adding the videos you watch to your Watch history. The catch: " +
+        "your views stop counting, and For You learns less about what you like. Starts off. Turn " +
+        "it on in Hushfeed settings > Privacy.",
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)

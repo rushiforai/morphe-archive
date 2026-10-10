@@ -8,13 +8,11 @@ package app.morphe.patches.pinterest.ui
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
-import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
@@ -22,14 +20,19 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-/** The floor build lacks this update manager and therefore claims no installed hook. */
+/**
+ * Guards the update branch of the one coroutine that hands Play Core's in-app update manager its
+ * prompt. Every declared build has it, so a build without the anchor refuses rather than claiming
+ * a hook it never installed.
+ */
 @Suppress("unused")
 val disableUpdateNagPatch = bytecodePatch(
     name = "Disable update nag",
-    description = "Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself.",
-    default = false,
+    description = "Stops Pinterest's pop-ups asking you to update from the Play Store. You can still update " +
+        "Pinterest yourself. Good if the reminders get annoying. Starts off. Turn it on in HushPinterest " +
+        "settings > More settings > Updates.",
 ) {
-    category("Interface")
+    category("Updates")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {
@@ -37,13 +40,6 @@ val disableUpdateNagPatch = bytecodePatch(
         requireStatusMethod("updateNag")
         val candidates = methodsWithString("inAppUpdateManager").filter {
             it.name == "invokeSuspend" && it.parameters() == listOf("Ljava/lang/Object;") && it.returnType == "Ljava/lang/Object;"
-        }
-        if (candidates.isEmpty()) {
-            var managerPresent = false
-            classDefForEach { if (it.type.startsWith("Lcom/google/android/play/core/appupdate/")) managerPresent = true }
-            if (managerPresent) throw PatchException("Play Core update manager exists but its prompt anchor is missing")
-            patchLog.info("Disable update nag: this build has no Play Core in-app update manager")
-            return@execute
         }
         val target = mutable(candidates.one("In-app Play Store update prompt"))
         val at = target.instructions().indexOfFirst {

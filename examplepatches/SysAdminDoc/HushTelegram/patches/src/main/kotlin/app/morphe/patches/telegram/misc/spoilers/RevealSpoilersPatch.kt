@@ -66,10 +66,12 @@ internal val ASKS_TELEGRAM = setOf(
 @Suppress("unused")
 val revealSpoilersPatch = bytecodePatch(
     name = "Reveal spoilers",
-    description = "Adds a switch, off by default, that shows spoiler text, photos and videos without the cover. View-once media, sensitive content and login codes stay covered.",
+    description = "Shows spoiler text, photos and videos without the cover, so you don't have to tap. View-once media, " +
+        "sensitive content and login codes stay covered. Starts off. Turn it on in HushTelegram settings > " +
+        "Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

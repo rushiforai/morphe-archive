@@ -65,6 +65,17 @@ public class RepostDiagnosticsTest {
         public int getErrorCode() { return 2098; }
     }
 
+    /** The raw response 47.1.4 hands the request stage: the HTTP code is a field, with no LIZ(). */
+    public static final class RawResponse {
+        public final int LIZIZ;
+        RawResponse(int code) { LIZIZ = code; }
+    }
+
+    public static final class HttpFailure extends RuntimeException {
+        HttpFailure() { super("private repost note"); }
+        public int getStatusCode() { return 503; }
+    }
+
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         previousDebug = BaseSettings.DEBUG.get();
@@ -115,6 +126,26 @@ public class RepostDiagnosticsTest {
                 new Body(0, "", Collections.emptyList()), hash, 100L, 101L));
         assertEquals("no_recent_request", RepostDiagnostics.readbackTarget(
                 new Body(0, "", Collections.emptyList()), hash, 100L, 120_101L));
+    }
+
+    @Test public void theRawResponseAndHttpFailureNameTheirCodesAsOn4714() {
+        assertEquals("200", RepostDiagnostics.rawHttpCode(new RawResponse(200)));
+        assertEquals("a parsed-style response still answers through LIZ()",
+                "200", RepostDiagnostics.rawHttpCode(new Parsed(null)));
+        assertEquals("unknown", RepostDiagnostics.rawHttpCode(new Object()));
+
+        assertEquals("2098", RepostDiagnostics.errorStatus(new ServerRefusal()));
+        assertEquals("503", RepostDiagnostics.errorStatus(new HttpFailure()));
+        assertEquals("unknown", RepostDiagnostics.errorStatus(new RuntimeException()));
+
+        RepostDiagnostics.onNetworkResponse(new Request("/tiktok/v1/upvote/publish"), new RawResponse(200));
+        RepostDiagnostics.onParseThrowable(new Request("/tiktok/v1/upvote/publish"), new HttpFailure());
+        String report = LogBufferManager.snapshotForCrash(100_000);
+        assertTrue(report, report.contains("network response id="));
+        assertTrue(report, report.contains("http=200"));
+        assertTrue(report, report.contains("parse error id="));
+        assertTrue(report, report.contains("status_code=503"));
+        assertFalse(report, report.contains("private repost note"));
     }
 
     @Test public void parseErrorNamesTheRefusalCode() {

@@ -59,6 +59,8 @@ public enum PatchFamily {
             Settings.SAVE_MEDIA, Settings.DOWNLOAD_COMPATIBLE),
     PURE_BLACK(FamilyNames.PURE_BLACK, "pureBlack", null,
             Settings.PURE_BLACK),
+    HIDE_INSTAGRAM_BUTTON(FamilyNames.HIDE_INSTAGRAM_BUTTON, "hideInstagramButton", null,
+            Settings.HIDE_INSTAGRAM_BUTTON),
     // A manifest can't be switched at run time: the permission is gone from the APK whether or not
     // HushThreads is paused.
     REMOVE_AD_ID(FamilyNames.REMOVE_AD_ID, "removeAdId", "the removed advertising ID permission"),
@@ -96,10 +98,22 @@ public enum PatchFamily {
     static final List<BooleanSetting> ENTRY_SWITCHES = Collections.singletonList(Settings.CHECK_FOR_RELEASES);
 
 
-    /** Manager's defaults, held to patches-list.json by PatchFamilyTest (Hushfacebook 814acd23). */
-    static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.of(
-            HIDE_ADS, HIDE_SUGGESTED_USERS, SANITIZE_SHARING_LINKS, EXTERNAL_BROWSER,
-            DISABLE_ANALYTICS, SAVE_MEDIA, REMOVE_AD_ID, RESTORE_TRUST));
+    /**
+     * The patches Morphe Manager leaves out of its default selection. Each one goes in when you
+     * patch with no switch to leave Threads as it ships: Change version code raises the version
+     * every later build has to keep, Remove share targets takes entries out of the manifest, and
+     * Trust user-added certificates lets your own certificates past Android's checks. Everything
+     * else is in the default selection, with any switch a patch brought in from this list starting
+     * off.
+     */
+    private static final EnumSet<PatchFamily> OPT_IN =
+            EnumSet.of(VERSION_CODE, REMOVE_SHARE_TARGETS, TRUST_USER_CERTIFICATES);
+
+    /**
+     * Manager's defaults, held to patches-list.json by PatchFamilyTest (Hushfacebook 814acd23), so a
+     * new patch fails it until patches-list.json and {@link #OPT_IN} agree on it.
+     */
+    static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.complementOf(OPT_IN));
 
     /** The families a test says this build carries, instead of asking {@link SettingsStatus}. */
     @Nullable

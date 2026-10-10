@@ -100,7 +100,9 @@ internal fun liveAwemeBridgeBody(controller: String, awemeGetter: MethodReferenc
 @Suppress("unused")
 val playbackSpeedPatch = bytecodePatch(
     name = "Playback speed",
-    description = "Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x and your own speed for the hold gesture. Switch: Hushfeed settings > Playback.",
+    description = "Remembers the speed you picked for the next video, and lets you set a " +
+        "default speed, add speeds up to 3x to the menu and choose the speed for press and hold. " +
+        "On by default. Turn it off in Hushfeed settings > Playback.",
     default = true,
 ) {
     category("Playback")

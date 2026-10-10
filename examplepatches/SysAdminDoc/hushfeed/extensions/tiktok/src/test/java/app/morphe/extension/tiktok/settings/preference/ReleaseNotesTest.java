@@ -203,6 +203,14 @@ public class ReleaseNotesTest {
         assertEquals("Hushfeed 0.60.0 (date)\n\n• Comments send again.", shown);
     }
 
+    /** A setting name in backticks reads as code on GitHub; the dialog showed the backticks. */
+    @Test
+    public void settingNamesLoseTheirBackticks() {
+        String shown = ReleaseNotes.text(
+                "## 0.60.0 (date)\n\n* **TikTok:** Turn `Hide series` back on.\n", "0.60.0", null);
+        assertEquals("Hushfeed 0.60.0 (date)\n\n• Turn Hide series back on.", shown);
+    }
+
     /**
      * #91: the title and buttons follow the phone's language and the notes are the English
      * changelog, so an Azerbaijani or Turkish reader is told the notes are English first.

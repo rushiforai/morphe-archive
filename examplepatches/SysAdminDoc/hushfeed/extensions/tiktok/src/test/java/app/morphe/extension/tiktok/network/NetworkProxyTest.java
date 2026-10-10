@@ -584,6 +584,54 @@ public class NetworkProxyTest {
         assertEquals("", Settings.NETWORK_PROXY_PASSWORD.get());
     }
 
+    @Test public void aRestoredFileNeverTurnsTheProxyOnOrMovesIt() throws Exception {
+        turnOn(NetworkProxy.TYPE_SOCKS5, "theirs.example.com", "1080", "", "");
+        String theirs = SettingsBackup.create(false);
+
+        // A phone with no proxy yet, the move to a new phone.
+        Settings.NETWORK_PROXY.save(false);
+        Settings.NETWORK_PROXY_HOST.save("");
+        assertEquals(SettingsBackup.ProxyHold.LEFT_OFF, SettingsBackup.proxyHold(theirs));
+        SettingsBackup.restore(context, theirs, false);
+        assertFalse("a file can't turn the proxy on", Settings.NETWORK_PROXY.get());
+        assertEquals("its address comes along for the user to switch on", "theirs.example.com",
+                Settings.NETWORK_PROXY_HOST.get());
+
+        // A phone with its own proxy, on and then off: the file's address never replaces it,
+        // so turning the switch on later can't send the sign-in saved here to the file's server.
+        turnOn(NetworkProxy.TYPE_HTTP, "mine.example.com", "8080", USER, PASSWORD);
+        for (boolean on : new boolean[] {true, false}) {
+            Settings.NETWORK_PROXY.save(on);
+            assertEquals(SettingsBackup.ProxyHold.KEPT_THIS_PHONES, SettingsBackup.proxyHold(theirs));
+            SettingsBackup.restore(context, theirs, false);
+            assertEquals(on, Settings.NETWORK_PROXY.get());
+            assertEquals("a file can't move this phone's proxy", "mine.example.com", Settings.NETWORK_PROXY_HOST.get());
+            assertEquals("8080", Settings.NETWORK_PROXY_PORT.get());
+            assertEquals(NetworkProxy.TYPE_HTTP, Settings.NETWORK_PROXY_TYPE.get());
+        }
+
+        Settings.NETWORK_PROXY.save(false);
+        String off = SettingsBackup.create(false);
+        Settings.NETWORK_PROXY.save(true);
+        assertEquals(SettingsBackup.ProxyHold.NONE, SettingsBackup.proxyHold(off));
+        SettingsBackup.restore(context, off, false);
+        assertFalse("a file can still turn it off", Settings.NETWORK_PROXY.get());
+    }
+
+    /** Undo reads the phone's own copy, which the guard doesn't hold back. */
+    @Test public void undoPutsTheProxyBackExactly() throws Exception {
+        turnOn(NetworkProxy.TYPE_HTTP, "mine.example.com", "8080", USER, PASSWORD);
+        Settings.NETWORK_PROXY.save(false);
+        String off = SettingsBackup.create(false);
+        Settings.NETWORK_PROXY.save(true);
+
+        SettingsBackup.restore(context, off, true);
+        assertFalse(Settings.NETWORK_PROXY.get());
+        SettingsBackup.undo(context);
+        assertTrue("undo left the proxy off", Settings.NETWORK_PROXY.get());
+        assertEquals("mine.example.com", Settings.NETWORK_PROXY_HOST.get());
+    }
+
     // -- The rows -------------------------------------------------------------------------------------
 
     @Test public void thePasswordRowNeverShowsThePassword() {

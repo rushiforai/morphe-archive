@@ -38,13 +38,12 @@ internal const val IMMUTABLE_COPY_OF = "$IMMUTABLE_LIST_TYPE->copyOf(Ljava/util/
 val cleanUpChatListPatch = bytecodePatch(
     // The README table check reads this literal; CHAT_LIST_PATCH carries the same text for the messages.
     name = "Clean up Facebook's chat list",
-    description = "Two switches for Chats inside Facebook, both off until you turn them on. One empties the list behind the row " +
-        "above your chats, so friends' notes and who's active go, and your own note tile may go too. The other takes out the " +
-        "promotional banners at the top of Chats, like the one asking you to turn on notifications. Your chats, search " +
-        "and new messages stay.",
+    description = "Tidies Chats inside Facebook. One switch empties the row of notes and who's active above your " +
+        "chats, and another removes promotional banners like the one asking you to turn on notifications. Your " +
+        "chats stay. Starts off. Turn on the parts you want in Hushfacebook settings > Chats.",
     default = true,
 ) {
-    category("Interface")
+    category("Chats")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 

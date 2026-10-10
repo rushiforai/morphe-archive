@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,12 @@ public class OwnFontFileTest {
     private static final String LATIN = "Hushfacebook draws the feed";
     /** Khmer letters, which Noto Sans Khmer draws, heavier along its weight axis. */
     private static final String KHMER = "កខគឃងចឆជឈញ";
+
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.USE_SYSTEM_FONT.save(true);
+    }
 
     @After
     public void restore() {

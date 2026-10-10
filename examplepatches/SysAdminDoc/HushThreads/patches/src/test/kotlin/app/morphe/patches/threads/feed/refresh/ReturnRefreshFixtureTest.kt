@@ -266,17 +266,9 @@ class ReturnRefreshFixtureTest {
             val compare = (logged downTo 0).first { stock[it].opcode == Opcode.CMP_LONG }
             val calls = fixture.warm.thresholdCalls(compare)!!
             fun key(call: Int) = (stock[call] as FiveRegisterInstruction).registerD
-            if (build.name.startsWith("threads-450.")) {
-                // 450 asks a second key first when an experiment is on, from a call of its own.
-                assertEquals(build.name, 2, calls.size)
-                assertEquals(build.name, 2, threshold.keys.size)
-            } else {
-                // 448 and 449 load the one key far above the call, across the branches that reach it.
-                val call = calls.single()
-                assertTrue(build.name, (call - 6 until call).none {
-                    stock[it].opcode == Opcode.CONST_WIDE && (stock[it] as OneRegisterInstruction).registerA == key(call)
-                })
-            }
+            // 450 asks a second key first when an experiment is on, from a call of its own.
+            assertEquals(build.name, 2, calls.size)
+            assertEquals(build.name, 2, threshold.keys.size)
             val answer = (stock[compare] as ThreeRegisterInstruction).registerA
 
             // Every path asks another key: the warm check still applies, the swap no longer matches it.

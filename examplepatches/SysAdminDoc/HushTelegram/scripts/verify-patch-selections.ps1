@@ -49,7 +49,7 @@ function Get-SelectionStatusModel {
     $all = @($families.Status) + @($capabilities.Status)
     $declared = @([regex]::Matches((Get-Content (Join-Path $source 'SettingsStatus.java') -Raw),
         'public static boolean ([A-Za-z]+)\(\)') | ForEach-Object { $_.Groups[1].Value })
-    if ($families.Count -ne 52 -or $all.Count -ne @($all | Sort-Object -Unique).Count -or
+    if ($families.Count -ne 53 -or $all.Count -ne @($all | Sort-Object -Unique).Count -or
         (Compare-Object ($all | Sort-Object) ($declared | Sort-Object))) { throw 'STATUS_MODEL_INVALID' }
     [pscustomobject]@{ Families = $families; Capabilities = $capabilities; StatusNames = $all }
 }
@@ -61,7 +61,7 @@ function Get-PatchSelectionCases {
     $all = @($Catalog.patches.name)
     $defaults = @($Catalog.patches | Where-Object { $_.use -is [bool] -and $_.use } | ForEach-Object { $_.name })
     $required = @($StatusModel.Families.Name) + @('HushTelegram settings', $api, $maps)
-    if ($all.Count -ne 55 -or $defaults.Count -ne 53 -or $defaults -ccontains $api -or $defaults -ccontains $maps -or
+    if ($all.Count -ne 56 -or $defaults.Count -ne 54 -or $defaults -ccontains $api -or $defaults -ccontains $maps -or
         @($Catalog.patches | Where-Object { $_.use -isnot [bool] }).Count -or
         (Compare-Object ($all | Sort-Object) ($required | Sort-Object) -CaseSensitive)) { throw 'CATALOG_INVALID' }
     $syntheticApiId = '19077001'
@@ -76,8 +76,8 @@ function Get-PatchSelectionCases {
             ApiConfigured = $ApiConfigured; MapsConfigured = $MapsConfigured; Default = $Default; Malformed = $Malformed
             ApiId = $syntheticApiId; ApiHash = $hash; MapsKey = $key; Canaries = @($syntheticApiId, $hash, $key, $sentinel) }
     }
-    New-SelectionCase 'default53' $defaults -Default $true
-    New-SelectionCase 'full55' $all
+    New-SelectionCase 'default54' $defaults -Default $true
+    New-SelectionCase 'full56' $all
     New-SelectionCase 'settings-only' @('HushTelegram settings')
     foreach ($family in $StatusModel.Families) {
         New-SelectionCase ('single-' + $family.Enum.ToLowerInvariant().Replace('_', '-')) @($family.Name)
@@ -213,13 +213,20 @@ function Invoke-PatchSelectionMatrix {
     $plans = @(Get-PatchSelectionCases -Catalog $catalog -StatusModel $model)
     if ($Case.Count) {
         if (@($Case | Where-Object { $plans.Id -cnotcontains $_ }).Count) { throw 'CASE_INVALID' }
-        if ($Case -ccontains 'full-configured' -and $Case -cnotcontains 'full55') { $Case += 'full55' }
+        if ($Case -ccontains 'full-configured' -and $Case -cnotcontains 'full56') { $Case += 'full56' }
         $plans = @($plans | Where-Object { $Case -ccontains $_.Id })
     }
     $stock = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Aapt2
     $target = Get-PatchTarget -PatchList $catalog -PackageName $stock.package
     if (-not (Test-DeclaredBuild -Target $target -VersionName $stock.versionName -VersionCode $stock.versionCode)) {
         throw 'TARGET_UNSUPPORTED'
+    }
+    # From here the fixture is patched case after case, as heavy as a build, so the matrix waits for
+    # a slot in the machine-wide build queue and runs again inside it. Already in one, it goes on.
+    if (-not $env:HUSHTELEGRAM_QUEUED_JOB) {
+        $matrixArguments = $PSBoundParameters
+        $null = Invoke-InHushTelegramQueue -Job 'selections' -ScriptBlock { Invoke-PatchSelectionMatrix @matrixArguments }
+        return
     }
     New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
     $workRoot = (Resolve-Path -LiteralPath $WorkDir).Path
@@ -232,7 +239,12 @@ function Invoke-PatchSelectionMatrix {
         (Join-Path $PSScriptRoot 'ResourceTableCheck.java')) -PrivateOutput (Join-Path $run 'compiler-private.txt')
     if ($compiled -ne 0) { throw 'CHECKER_COMPILE_FAILED' }
     $classPath = $classes + [IO.Path]::PathSeparator + $DesktopJar
+    # The fixture is hashed once a run, not once a case: every case compares its size and write
+    # time, which a rewrite moves, and the whole hash is read again once after the last case.
     $sourceHash = Get-Sha256Hex -Path $Apk
+    $sourceItem = Get-Item -LiteralPath $Apk
+    $sourceLength = $sourceItem.Length
+    $sourceWritten = $sourceItem.LastWriteTimeUtc
     $bundleHash = (Get-Sha256Hex -Path $Bundle).ToLowerInvariant()
     $evidence = [Collections.Generic.List[object]]::new()
     $elapsed = [Diagnostics.Stopwatch]::StartNew()
@@ -270,7 +282,8 @@ function Invoke-PatchSelectionMatrix {
             if (-not $public.Written -or -not (Test-SelectionPublicText -Text (Get-Content $summaryPath -Raw) -Canaries $selection.Canaries)) {
                 throw 'PUBLIC_SUMMARY_FAILED'
             }
-            if ((Get-Sha256Hex -Path $Apk) -cne $sourceHash -or
+            $sourceNow = Get-Item -LiteralPath $Apk
+            if ($sourceNow.Length -ne $sourceLength -or $sourceNow.LastWriteTimeUtc -ne $sourceWritten -or
                 ((Test-Path $optionPath) -and (Get-Sha256Hex -Path $optionPath) -cne $optionHash)) { throw 'INPUT_MUTATED' }
             if ($selection.Failure) {
                 if ($cliCode -eq 0 -or (Test-Path -LiteralPath $output)) { throw 'REFUSAL_NOT_ATOMIC' }
@@ -300,7 +313,7 @@ function Invoke-PatchSelectionMatrix {
             $checkerArguments = @('-Xmx2g', '-XX:ActiveProcessorCount=2', '-cp', $classPath,
                 'SelectionCheck', $Apk, $output, $expectationPath, $compiledPath)
             if ($selection.Id -ceq 'full-configured') {
-                $baseline = Join-Path $run 'full55-private.apk'
+                $baseline = Join-Path $run 'full56-private.apk'
                 if (-not (Test-Path -LiteralPath $baseline -PathType Leaf)) { throw 'FULL_BASELINE_MISSING' }
                 $checkerArguments += $baseline
             }
@@ -315,7 +328,7 @@ function Invoke-PatchSelectionMatrix {
                 $resourceText -cnotmatch '\[resources\] renamed by the rebuild[^\r\n]*: 0' -or
                 $resourceText -cnotmatch '\[resources\] added resources: 0') { throw 'RESOURCE_PRESERVATION_FAILED' }
             $native = Get-NativePackagingEvidence -StockApk $Apk -PatchedApk $output -Java $Java -Aapt2 $Aapt2 `
-                -ReportPath (Join-Path $caseDir 'native-private.json')
+                -ReportPath (Join-Path $caseDir 'native-private.json') -StockSha256 $sourceHash -SourceSha256 $sourceHash
             if ($expected.settings) {
                 # Preserve the full validator's nonempty-extension premises and all mutation contracts.
                 $dexCode = Invoke-SelectionTool -Program $Java -Arguments @('-Xmx2g', '-XX:ActiveProcessorCount=2', '-cp', $classPath, 'DexDiff',
@@ -330,7 +343,7 @@ function Invoke-PatchSelectionMatrix {
                 changedMethods = $facts.changedMethods; addedMethods = $facts.addedMethods; structuralFindings = $facts.structuralFindings
                 nativeEntries = $native.NativeLibraries.stock.nativeEntryCount; zipalignPassed = $native.ZipAlignment.passed })
             $casePassed = $true
-            if ($selection.Id -ceq 'full55') { Copy-Item -LiteralPath $output -Destination (Join-Path $run 'full55-private.apk') }
+            if ($selection.Id -ceq 'full56') { Copy-Item -LiteralPath $output -Destination (Join-Path $run 'full56-private.apk') }
             Write-Host "[selections] $($selection.Id) SELECTION_PASSED"
         } catch {
             # CLI and Java failures can contain option values. Only this fixed code reaches the console.
@@ -344,6 +357,7 @@ function Invoke-PatchSelectionMatrix {
         }
     }
     $elapsed.Stop()
+    if ((Get-Sha256Hex -Path $Apk) -cne $sourceHash) { throw 'INPUT_MUTATED' }
     [IO.File]::WriteAllText((Join-Path $run 'matrix-private.json'), (ConvertTo-Json -InputObject $evidence.ToArray() -Depth 8) + "`n", [Text.UTF8Encoding]::new($false))
     Write-Host "[selections] MATRIX_PASSED cases=$($plans.Count) seconds=$([int]$elapsed.Elapsed.TotalSeconds)"
 }

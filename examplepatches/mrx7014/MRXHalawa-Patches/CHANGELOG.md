@@ -1,3 +1,9 @@
+## [1.49.1](https://github.com/mrx7014/MRXHalawa-Patches/compare/v1.49.0...v1.49.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **reddit:** forcibly remove Enable NSFW button ([8667fca](https://github.com/mrx7014/MRXHalawa-Patches/commit/8667fca23c44f4d6fa6da6f6f75dcbba81403b6c))
+
 ## [1.49.0](https://github.com/mrx7014/MRXHalawa-Patches/compare/v1.48.0...v1.49.0) (2026-10-02)
 
 ### 🐛 Bug Fixes

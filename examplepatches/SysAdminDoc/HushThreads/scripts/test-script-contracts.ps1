@@ -45,16 +45,55 @@ function New-NotFoundAnswer {
     return $answer
 }
 
+# The machine's build queue, which the heavy jobs wait for (Invoke-HeavyJob in common.ps1), is a
+# stand-in for the whole suite: it runs each job at once and notes its label, with a mark when
+# the job came from inside a slot already, so no case waits in the real queue or holds one of its
+# slots, and the cases can read which jobs went through it. The variable set, the pre-push runs
+# below keep it; unset, the hook would import the real one from the registry. The stand-in takes
+# the real script's parameters too, which a dot-source binds in the caller's scope.
+$queueBefore = @{ Script = $env:BUILD_QUEUE_SCRIPT; Ticket = $env:BUILD_QUEUE_TICKET }
+$queueStandIn = [System.IO.Path]::GetFullPath((Join-Path ([System.IO.Path]::GetTempPath()) `
+    ('hushthreads-queue-' + [guid]::NewGuid().ToString('N'))))
+New-Item -ItemType Directory -Path $queueStandIn | Out-Null
+$queueLog = Join-Path $queueStandIn 'queue.log'
+$env:BUILD_QUEUE_SCRIPT = Join-Path $queueStandIn 'build-queue.ps1'
+Remove-Item -LiteralPath Env:\BUILD_QUEUE_TICKET -ErrorAction SilentlyContinue
+[System.IO.File]::WriteAllText($env:BUILD_QUEUE_SCRIPT, @'
+[CmdletBinding()]
+param([switch]$Status, [string]$Label, [ValidateSet('release', 'normal')][string]$Priority, [string]$Run)
+function Invoke-InBuildQueue {
+    param([string]$Label = 'build', [string]$Priority, [Parameter(Mandatory)][scriptblock]$ScriptBlock)
+    $nested = [bool]$env:BUILD_QUEUE_TICKET
+    $note = if ($nested) { "$Label (inside a slot)" } else { $Label }
+    [System.IO.File]::AppendAllText('QUEUE_LOG', $note + "`n")
+    if (-not $nested) { $env:BUILD_QUEUE_TICKET = 'stand-in' }
+    $global:LASTEXITCODE = 0
+    try {
+        & $ScriptBlock | Out-Host
+        return $LASTEXITCODE
+    } finally {
+        if (-not $nested) { Remove-Item -LiteralPath Env:\BUILD_QUEUE_TICKET -ErrorAction SilentlyContinue }
+    }
+}
+'@.Replace('QUEUE_LOG', $queueLog.Replace("'", "''")))
+function Read-QueueLog {
+    # The labels the stand-in queue saw since the last read, which empties it. Call it in @().
+    if (-not (Test-Path -LiteralPath $queueLog -PathType Leaf)) { return }
+    [System.IO.File]::ReadAllLines($queueLog) | Where-Object { $_ }
+    Remove-Item -LiteralPath $queueLog -Force
+}
+
 # --- patch-target.ps1 ------------------------------------------------------------------------
 #
-# Threads ships a build a week, so the catalog declares the build the bundle was last proved on
-# and can keep the one before it. They come back newest first, by number and not by text, and every
-# patch has to declare the same builds: a build only some patches declare is one the bundle can't
-# fully patch, and the release scripts would take it for a declared target.
+# Threads ships a build a week, and the catalog declares only the newest stable one, the build the
+# bundle was last proved on: a newer stable build replaces it in the same release. Several declared
+# builds still come back newest first, by number and not by text (the cases below), and every patch
+# has to declare the same builds: a build only some patches declare is one the bundle can't fully
+# patch, and the release scripts would take it for a declared target.
 $catalog = Get-Content -LiteralPath (Join-Path $Root 'patches-list.json') -Raw | ConvertFrom-Json
 $target = Get-PatchTarget -PatchList $catalog
 Assert-True ($target.PackageName -eq 'com.instagram.barcelona') 'The catalog package was not resolved.'
-Assert-True (@($target.PackageVersions).Count -ge 1 -and $target.PackageVersion -eq $target.PackageVersions[0]) `
+Assert-True (@($target.PackageVersions).Count -eq 1 -and $target.PackageVersion -eq $target.PackageVersions[0]) `
     "The catalog's declared Threads builds were not read: $($target.PackageVersions -join ', ')"
 foreach ($patch in @($catalog.patches)) {
     Assert-True (((@($patch.compatiblePackages.'com.instagram.barcelona') | Sort-Object) -join ',') -eq
@@ -2646,6 +2685,28 @@ try {
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused test results that match the description.'
 
+        # The patch tests run in two partitions, test and fixtureTest, each with its own results
+        # folder: the count is both together, and a fixture test that skipped in its own folder is
+        # refused as one in test would be.
+        $fixtureResults = 'patches/build/test-results/fixtureTest'
+        try {
+            Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+            Write-FactsResults $fixtureResults 'PatchFixtureTest' 2
+            Invoke-StrictFacts
+            Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+                'The strict release check refused patch results split between test and fixtureTest.'
+            Write-FactsResults $fixtureResults 'PatchFixtureTest' 2 -Skipped 1
+            Assert-Throws { Invoke-StrictFacts } '*PatchFixtureTest*skipped 1 test*' `
+                'A release was checked against fixtureTest results with a skipped fixture test.'
+            Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+            Write-FactsResults $fixtureResults 'PatchFixtureTest' 1
+            Assert-Throws { Invoke-StrictFacts } '*patch test count*' `
+                'The strict release check left the fixtureTest results out of the patch test count.'
+        } finally {
+            Remove-Item -LiteralPath (Join-Path $factsRoot $fixtureResults) -Recurse -Force -ErrorAction SilentlyContinue
+            Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        }
+
         # A fixture test that skipped, which Gradle reports as a pass.
         Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
         Assert-Throws { Invoke-StrictFacts } '*skipped 1 test*' `
@@ -2932,8 +2993,8 @@ try {
         'scripts/test-injected-registers.ps1' = @('BadDexFixture.java', 'DexDiff.java', 'injected-mutation-contracts.txt',
             'injected-register-contracts.ps1', 'injected-register-removal-allowlist.txt', 'script-wiring.ps1',
             'test-injected-registers.ps1', 'verify-all-patches.ps1', 'verify-injected-registers.ps1')
-        'scripts/test-resource-table-check.ps1' = @('MergeSplits.java', 'ResourceTableCheck.java', 'test-resource-table-check.ps1',
-            'verify-all-patches.ps1')
+        'scripts/test-resource-table-check.ps1' = @('MergeSplits.java', 'ResourceTableCheck.java', 'resource-file-allowlist.txt',
+            'test-resource-table-check.ps1', 'verify-all-patches.ps1')
         'scripts/test-injected-register-device.ps1' = @('injected-register-device.ps1', 'script-wiring.ps1',
             'test-injected-register-device.ps1', 'verify-injected-registers.ps1')
         'scripts/test-fingerprint-candidates.ps1' = @('FingerprintCandidates.java', 'FingerprintFixture.java',
@@ -3541,6 +3602,46 @@ try {
         Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('patches/build.gradle.kts') 6> $null } `
             '*HUSHTHREADS_BUILD_WRAPPER*' 'A build wrapper that is not there was ignored rather than reported.'
 
+        # Two Gradle passes, the quick one first. Everything but the tests that read the Threads
+        # fixtures runs before them, so a slip in a quick test or a lint stops the push before the
+        # fixture scans start, and the full run comes second. The stub logs every pass it's handed
+        # and fails the quick one while a marker file exists.
+        $passLog = Join-Path $hookRoot 'gradle-passes.txt'
+        $quickFails = Join-Path $hookRoot 'quick-pass-fails.txt'
+        $passStub = Join-Path $hookRoot 'pass-wrapper.ps1'
+        Set-Content -LiteralPath $passStub -Encoding UTF8 -Value @(
+            'param([string]$ProjectDir, [string[]]$Tasks)',
+            "Add-Content -LiteralPath '$passLog' -Value (`$Tasks -join ' ')",
+            "if ((`$Tasks -contains '-x') -and (Test-Path -LiteralPath '$quickFails')) { exit 1 }",
+            'exit 0')
+        $env:HUSHTHREADS_BUILD_WRAPPER = $passStub
+        try {
+            Remove-Item -LiteralPath $passLog, $quickFails -Force -ErrorAction SilentlyContinue
+            & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/threads/src/main/java/Any.java') 6> $null
+            $passes = @(Get-Content -LiteralPath $passLog -ErrorAction SilentlyContinue)
+            Assert-True ($passes.Count -eq 2) "The gate did not run Gradle twice, quick then full: $($passes -join ' | ')"
+            $quickPass = " $($passes[0]) "
+            $fullPass = " $($passes[1]) "
+            Assert-True ($quickPass -like '* :patches:test *' -and $quickPass -like '* :extensions:threads:test *' -and
+                $quickPass -like '* :extensions:threads:lint *' -and $quickPass -like '* -x :patches:fixtureTest *' -and
+                $quickPass -like '* -x :patches:verifyPatchTestSelection *') `
+                "The first pass was not the quick one without the fixture tests: $($passes[0])"
+            Assert-True ($fullPass -like '* :patches:test *' -and $fullPass -like '* :extensions:threads:lint *' -and
+                $fullPass -notlike '* -x *') `
+                "The second pass left the fixture tests or their selection check out: $($passes[1])"
+
+            # A failing quick pass stops the push there: the fixture run never starts.
+            Remove-Item -LiteralPath $passLog -Force -ErrorAction SilentlyContinue
+            Set-Content -LiteralPath $quickFails -Value 'fail' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/threads/src/main/java/Any.java') 6> $null } `
+                '*did not pass*' 'A failing quick pass did not stop the push.'
+            $passes = @(Get-Content -LiteralPath $passLog -ErrorAction SilentlyContinue)
+            Assert-True ($passes.Count -eq 1 -and " $($passes[0]) " -like '* -x :patches:fixtureTest *') `
+                "A failing quick pass still started the full run: $($passes -join ' | ')"
+        } finally {
+            Remove-Item -LiteralPath $passLog, $quickFails, $passStub -Force -ErrorAction SilentlyContinue
+        }
+
         # The gate builds what is pushed, not what happens to be in the working tree. A stub build
         # fails on any tree whose marker says broken, and records the tree it was handed.
         $gateRepo = Join-Path ([System.IO.Path]::GetTempPath()) ("hushthreads-gate-" + [guid]::NewGuid().ToString('N'))
@@ -4003,6 +4104,18 @@ $wrappedTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \
     "`$1`n* **Tooling:** a development-only`n  change.") -ExpectedVersion '0.42.0'
 Assert-True ($wrappedTooling.Reason -like '*continues the bullet*') `
     "A wrapped Tooling bullet was not held to one line like the others: $($wrappedTooling.Reason)"
+# A documentation change is written "* **Docs:** ...", and Manager shows it to nobody the same way.
+# Unreleased held three when the release stages came in, and the check refused every one.
+$withDocs = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Threads:\*\* a third\.)',
+    "`$1`n* **Docs:** the README says more.") -ExpectedVersion '0.42.0'
+Assert-True ($withDocs.Valid -and $withDocs.Bullets -eq 3) `
+    "A Docs bullet in the released entry was refused or counted: $($withDocs.Reason), $($withDocs.Bullets) bullets"
+$docsOnly = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`n* **Docs:** only this.`n" -ExpectedVersion '0.42.0'
+Assert-True (-not $docsOnly.Valid -and $docsOnly.Reason -like '*no "* **Threads:** " bullet*') `
+    "An entry with Docs bullets alone, which gets no update badge, was not refused for that: $($docsOnly.Reason)"
+$lowerDocs = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Threads:\*\* a third\.)',
+    "`$1`n* **docs:** spelled another way.") -ExpectedVersion '0.42.0'
+Assert-True (-not $lowerDocs.Valid) 'A scope spelled "docs" passed as the Docs scope.'
 
 Assert-True (-not (Test-ChangelogManagerEntry -Current $readable -ExpectedVersion '0.43.0').Valid) `
     'An entry for a version the CHANGELOG does not name was accepted.'
@@ -4175,7 +4288,7 @@ try {
 
     $apkm = Join-Path $commonRoot 'threads.apkm'
     $apkmEntries = [ordered]@{
-        'info.json' = '{"versioncode":"511908382"}'
+        'info.json' = '{"versioncode":"512008342"}'
         'base.apk' = 'base'
         'split_config.arm64_v8a.apk' = ('native code ' * 64)
     }
@@ -4377,6 +4490,112 @@ public final class ApkMerger {
     if (Test-Path -LiteralPath $mergeIsolationPath) { Remove-Item -LiteralPath $mergeIsolationPath -Recurse -Force }
 }
 
+# --- the machine's build queue -------------------------------------------------------------------
+#
+# Gradle reached the machine's build queue through the governor, while the desktop CLI runs, the
+# merges and the DexDiff and fingerprint runs started whenever they were asked for, beside two
+# builds, and the queue's status never showed them. Invoke-HeavyJob in common.ps1 runs each one in
+# a slot when BUILD_QUEUE_SCRIPT names the queue's script, the stand-in at the top of this suite
+# here, and straight away when it doesn't. Either way the block's exit code comes back, the block
+# reads the caller's variables, a throw in it stops the caller, and the queue script's parameters
+# don't land on the caller's names. The release root below runs the scripts through it.
+$null = @(Read-QueueLog)
+$heldOutput = @{ Lines = @() }
+$jobInput = 'from the caller'
+Invoke-HeavyJob -Label 'contract job' -ScriptBlock {
+    $heldOutput.Lines = @("read $jobInput")
+    & cmd.exe /d /c exit 3
+}
+Assert-True ($LASTEXITCODE -eq 3) "Invoke-HeavyJob gave back exit $LASTEXITCODE for a queued job that ended with 3."
+Assert-True (($heldOutput.Lines -join '') -eq 'read from the caller') `
+    "A queued job didn't read the caller's variables or keep what it put in the caller's table: $($heldOutput.Lines)"
+$seen = @(Read-QueueLog)
+Assert-True (($seen -join '|') -eq 'hushthreads contract job') "The queue saw $($seen -join ', ') for one job labeled contract job."
+function Test-QueueKeepsCallerNames {
+    $Label = 'mine'; $Priority = 'mine'; $Run = 'mine'; $Status = 'mine'
+    Invoke-HeavyJob -Label 'names' -ScriptBlock { }
+    return "$Label/$Priority/$Run/$Status"
+}
+Assert-True ((Test-QueueKeepsCallerNames) -eq 'mine/mine/mine/mine') `
+    "Loading the queue script reset the caller's own Label, Priority, Run or Status."
+# A job started from inside one is left to the queue, which runs it at once (the stand-in marks it).
+Invoke-HeavyJob -Label 'outer' -ScriptBlock { Invoke-HeavyJob -Label 'inner' -ScriptBlock { } }
+Assert-Throws { Invoke-HeavyJob -Label 'failing' -ScriptBlock { throw 'the job broke' } } '*the job broke*' `
+    'A queued job that threw did not stop its caller.'
+$seen = @(Read-QueueLog)
+Assert-True (($seen -join '|') -eq 'hushthreads names|hushthreads outer|hushthreads inner (inside a slot)|hushthreads failing') `
+    "The queue saw $($seen -join ', ') for the names, nested and failing jobs."
+# With no queue named, or one that isn't there, the job runs at once, and the second warns.
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+try {
+    Remove-Item -LiteralPath Env:\BUILD_QUEUE_SCRIPT
+    $heldOutput.Lines = @()
+    Invoke-HeavyJob -Label 'direct' -ScriptBlock { $heldOutput.Lines = @("read $jobInput"); & cmd.exe /d /c exit 4 }
+    Assert-True ($LASTEXITCODE -eq 4 -and ($heldOutput.Lines -join '') -eq 'read from the caller') `
+        "With no queue named, the job didn't run here and give back its exit code (exit $LASTEXITCODE)."
+    Assert-Throws { Invoke-HeavyJob -Label 'failing' -ScriptBlock { throw 'the job broke' } } '*the job broke*' `
+        'A job that threw outside the queue did not stop its caller.'
+    $env:BUILD_QUEUE_SCRIPT = Join-Path $queueStandIn 'no-such-queue.ps1'
+    $warned = @(Invoke-HeavyJob -Label 'missing' -ScriptBlock { & cmd.exe /d /c exit 5 } 3>&1 | ForEach-Object { "$_" })
+    Assert-True ($LASTEXITCODE -eq 5 -and ($warned -join ' ') -like '*no-such-queue.ps1*not there*') `
+        "A queue script that isn't there didn't warn and run the job here: exit $LASTEXITCODE, $($warned -join ' ')"
+} finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+}
+$seen = @(Read-QueueLog)
+Assert-True ($seen.Count -eq 0) "Jobs went through the queue with none named, or one that isn't there: $($seen -join ', ')"
+
+# And every heavy run the scripts make sits in such a job, where the script reaches it
+# (script-wiring.ps1): the desktop CLI, the merge, ResourceTableCheck, DexDiff, the signing and
+# identity checks and FingerprintCandidates. A block handed to anything else, or stored, runs
+# outside the queue.
+function Get-UnqueuedHeavyRuns {
+    param([string]$Path)
+    $live = @(Get-LiveCommands (Get-ScriptAst $Path))
+    $heavy = @($live | Where-Object {
+        ($_.InvocationOperator -eq [System.Management.Automation.Language.TokenKind]::Ampersand -and
+            ($_.CommandElements[0].Extent.Text -match '^\$(script:)?\w*java\w*$' -or
+                $_.CommandElements[0].Extent.Text -match 'gradlew')) -or $_.GetCommandName() -eq 'Get-MergedApk' })
+    if ($heavy.Count -eq 0) { return 'no heavy run at all' }
+    foreach ($call in $heavy) {
+        $queued = $false
+        for ($up = $call.Parent; $null -ne $up -and -not $queued; $up = $up.Parent) {
+            if ($up -isnot [System.Management.Automation.Language.ScriptBlockExpressionAst] -or -not (Test-RunsScriptBlock $up)) { continue }
+            $holder = $up.Parent
+            if ($holder -is [System.Management.Automation.Language.CommandParameterAst]) { $holder = $holder.Parent }
+            $queued = $holder -is [System.Management.Automation.Language.CommandAst] -and $holder.GetCommandName() -eq 'Invoke-HeavyJob'
+        }
+        if (-not $queued) { ($call.Extent.Text -split "`n")[0].Trim() }
+    }
+}
+# The release script's Gradle run too, when no build wrapper takes it to the queue.
+$heavyScripts = @('verify-all-patches.ps1', 'build-release-receipt.ps1', 'patch-for-device.ps1',
+    'validate-release-facts.ps1', 'verify-injected-registers.ps1', 'fingerprint-candidates.ps1', 'release/release.ps1')
+foreach ($name in $heavyScripts) {
+    $unqueued = @(Get-UnqueuedHeavyRuns (Join-Path $PSScriptRoot $name))
+    Assert-True ($unqueued.Count -eq 0) "$name runs these outside the build queue (Invoke-HeavyJob): $($unqueued -join '; ')"
+}
+$queueCopy = Join-Path $queueStandIn 'verify-all-patches.ps1'
+foreach ($unqueuedShape in @(
+        @{ Name = 'handed to another command'; From = 'Invoke-HeavyJob -Label'; To = 'Register-HeavyJob -Label' },
+        @{ Name = 'run with & instead'; From = 'Invoke-HeavyJob -Label "verify $(Split-Path -Leaf $Apk)" -ScriptBlock {'; To = '& {' })) {
+    $text = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'verify-all-patches.ps1'))
+    Assert-True ($text.Contains($unqueuedShape.From)) "verify-all-patches.ps1 no longer has the job the '$($unqueuedShape.Name)' case edits."
+    [System.IO.File]::WriteAllText($queueCopy, $text.Replace($unqueuedShape.From, $unqueuedShape.To))
+    Assert-True (@(Get-UnqueuedHeavyRuns $queueCopy).Count -gt 0) `
+        "The queue check passed verify-all-patches.ps1 with its heavy runs $($unqueuedShape.Name)."
+}
+Remove-Item -LiteralPath $queueCopy -Force
+# The pre-push hook imports the variable from the user's registry like its own, since a hook can
+# start without it, and the heavy runs of its suites and release facts check would then skip the queue.
+$importList = (Get-ScriptAst (Join-Path $PSScriptRoot 'pre-push.ps1')).Find({ param($node)
+    $node -is [System.Management.Automation.Language.ForEachStatementAst] -and
+    $node.Variable.VariablePath.UserPath -eq 'envName' }, $true)
+Assert-True ($null -ne $importList -and $importList.Condition.Extent.Text -match "'BUILD_QUEUE_SCRIPT'") `
+    'pre-push.ps1 does not import BUILD_QUEUE_SCRIPT from the user environment.'
+
+Write-Host '[scripts] build queue contracts passed'
+
 # --- relative paths ------------------------------------------------------------------------------
 #
 # .NET reads a relative path against the process directory, which Set-Location doesn't move, while
@@ -4456,19 +4675,19 @@ try {
         Copy-ReleaseFile $relative $destination
     }
     # The cases below need a declared build older than the newest, one a receipt can leave out.
-    # When this checkout's catalog declares a single build, the fixture's copy declares the one
-    # before it too, on every patch at a version code of its own, the way the catalog keeps the
-    # previous build when Threads moves on.
+    # The checkout's catalog declares only the newest stable build, so the fixture's copy declares
+    # the one before it too, on every patch at a version code of its own, the way the published
+    # receipts of earlier releases ran it beside the newest.
     $releaseCatalogPath = Join-Path $releaseRepo 'patches-list.json'
     $releaseCatalogCopy = Get-Content -LiteralPath $releaseCatalogPath -Raw | ConvertFrom-Json
     $copiedTarget = Get-PatchTarget -PatchList $releaseCatalogCopy
     if (@($copiedTarget.PackageVersions).Count -lt 2) {
-        $previousBuild = '448.0.0.54.85'
+        $previousBuild = '449.0.0.54.82'
         foreach ($patch in @($releaseCatalogCopy.patches)) {
             $patch.compatiblePackages.($copiedTarget.PackageName) = @(@($patch.compatiblePackages.($copiedTarget.PackageName)) + $previousBuild)
             foreach ($compatibility in @($patch.compatibility | Where-Object { $_.packageName -eq $copiedTarget.PackageName })) {
                 $compatibility.targets = @(@($compatibility.targets) + [pscustomobject]@{ version = $previousBuild
-                        experimental = $false; versionCodes = [pscustomobject]@{ ARM64_V8A = 511808302 } })
+                        experimental = $false; versionCodes = [pscustomobject]@{ ARM64_V8A = 511908382 } })
             }
         }
         [System.IO.File]::WriteAllText($releaseCatalogPath, ($releaseCatalogCopy | ConvertTo-Json -Depth 20),
@@ -4758,7 +4977,7 @@ try {
         'copy /y "%~5.merged.txt" "%~6" >nul || exit /b 7',
         '>"%~6.source" echo %~5',
         'exit /b 0',
-        'rem ResourceTableCheck.java <stock> <patched> <report>: keeps what it was handed as the stock side.',
+        'rem ResourceTableCheck.java <stock> <patched> <report> <written>: keeps what it was handed as the stock side.',
         ':resources',
         'copy /y "%~5" "!HERE!resource-stock.txt" >nul || exit /b 8',
         'echo Note: the source launcher compiled with a warning 1>&2',
@@ -4884,7 +5103,8 @@ try {
     # above, and what the builder says is kept in $builderSaid, warnings included.
     $builderSaid = ''
     function Invoke-ReceiptBuilder([string[]]$Fixtures, [string]$Bundle,
-            [string]$WorkDir = (Join-Path $releaseRoot 'work'), [string]$DesktopJar = $stubJar, [switch]$SkipAdvisoryCheck) {
+            [string]$WorkDir = (Join-Path $releaseRoot 'work'), [string]$DesktopJar = $stubJar, [switch]$SkipAdvisoryCheck,
+            [string]$AppliedDir) {
         Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
         $saved = @{}
         foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
@@ -4898,6 +5118,7 @@ try {
                 Java = $stubJava; Aapt2 = $stubAapt2 }
             if ($Bundle) { $arguments['Bundle'] = $Bundle }
             if ($SkipAdvisoryCheck) { $arguments['SkipAdvisoryCheck'] = $true }
+            if ($AppliedDir) { $arguments['AppliedDir'] = $AppliedDir }
             $script:builderSaid = @(& (Join-Path $PSScriptRoot 'build-release-receipt.ps1') @arguments 3>&1 6>&1 |
                 ForEach-Object { "$_" }) -join "`n"
             if ($LASTEXITCODE -ne 0) { throw "build-release-receipt.ps1 exited $LASTEXITCODE." }
@@ -4911,11 +5132,16 @@ try {
     # manifest is held to the merge and not to the base.
     $builtBuilds = @($releaseTarget.PackageVersions) + @($newerBuild)
     $allFixtures = @($builtBuilds | ForEach-Object { $fixturePaths[$_] })
+    $null = @(Read-QueueLog)
     try {
         Invoke-ReceiptBuilder -Fixtures $allFixtures
     } catch {
         throw "build-release-receipt.ps1 refused a run of every declared build: $($_.Exception.Message)"
     }
+    # Every merge and patch run in one job of the build queue (the stand-in at the top).
+    $seen = @(Read-QueueLog)
+    Assert-True (($seen -join '|') -eq 'hushthreads receipt') `
+        "The receipt's merges and patch runs did not share one job of the build queue: $($seen -join ', ')"
     $built = Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json
     $builtTargets = @($built.targets)
     $builtVersions = @($builtTargets | ForEach-Object { [string]$_.source.versionName })
@@ -4995,19 +5221,28 @@ try {
     Set-Content -LiteralPath (Join-Path $tools 'apksigner.bat') -Encoding ASCII -Value @(
         '@echo off', "echo Signer #1 certificate SHA-256 digest: $($releaseSigner[0])", 'exit /b 0')
     $verifyAllScript = Join-Path $PSScriptRoot 'verify-all-patches.ps1'
-    function Invoke-VerifyAll([string]$Apk) {
+    function Invoke-VerifyAll([string]$Apk, [string]$KeepIn, [switch]$Force) {
         Remove-Item -LiteralPath $javaLog, $mergeLog, $resourceStock -Force -ErrorAction SilentlyContinue
         $global:LASTEXITCODE = 0
+        $keep = @{}
+        if ($KeepIn) { $keep['KeepIn'] = $KeepIn }
+        if ($Force) { $keep['Force'] = $true }
         $said = @(& $verifyAllScript -Apk $Apk -DesktopJar $stubJar -WorkDir (Join-Path $releaseRoot 'verify-work') `
             -Bundle $releaseBundle -PatchList (Join-Path $releaseRepo 'patches-list.json') -Java $stubJava `
-            -Aapt2 $stubAapt2 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
+            -Aapt2 $stubAapt2 @keep 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
         if ($LASTEXITCODE -ne 0) { throw "verify-all-patches.ps1 exited $LASTEXITCODE`: $said" }
         return $said
     }
     $newestFixture = $fixturePaths[$releaseTarget.PackageVersion]
+    $null = @(Read-QueueLog)
     $said = Invoke-VerifyAll -Apk $newestFixture
     Assert-True ($said -like "*merged $(Split-Path -Leaf $newestFixture) into one APK for the CLI*" -and
         $said -like '*success: every requested patch applied*') "verify-all-patches.ps1 did not merge the bundle and pass: $said"
+    # The merge, the CLI and the checks in one job of the build queue, and the register check's
+    # DexDiff inside that same slot rather than in line behind it.
+    $seen = @(Read-QueueLog)
+    Assert-True (($seen -join '|') -eq "hushthreads verify $(Split-Path -Leaf $newestFixture)|hushthreads register check (inside a slot)") `
+        "verify-all-patches.ps1 did not run its heavy part as one job of the build queue: $($seen -join ', ')"
     Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join "`n") -eq "merge $newestFixture" -and
         (@(Get-Content -LiteralPath $javaLog) -join "`n") -eq "patch $newestFixture merged forced=0") `
         ("verify-all-patches.ps1 did not merge the bundle once and hand the CLI that merge: " +
@@ -5048,6 +5283,93 @@ try {
     }
     Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
         'verify-all-patches.ps1 left a run folder behind.'
+
+    # Kept runs. verify-all-patches.ps1 -KeepIn keeps a passing run of each fixture with a stamp
+    # naming what it patched with, and build-release-receipt.ps1 -AppliedDir reads a kept run whose
+    # stamp names its own bundle, APK, patch list and CLI instead of patching that fixture again.
+    # The checks run on what was kept, so the receipt comes out as a fresh one does. The stand-in
+    # aapt2 reads a patched APK's manifest from the .xmltree file the stand-in CLI writes beside its
+    # output, which a keep doesn't carry, so each case puts it back beside the kept APK.
+    $appliedRoot = Join-Path $releaseRoot 'fixture-apply'
+    $null = @(Read-QueueLog)
+    Invoke-ReceiptBuilder -Fixtures $allFixtures
+    $freshTargets = (Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json).targets | ConvertTo-Json -Depth 12
+    $listHash = Get-Sha256Hex -Path (Join-Path $releaseRepo 'patches-list.json')
+    foreach ($build in $builtBuilds) {
+        $fixture = $fixturePaths[$build]
+        $keptDir = Join-Path $appliedRoot (Split-Path -Leaf $fixture)
+        $forcedHere = $releaseTarget.PackageVersions -notcontains $build
+        $said = Invoke-VerifyAll -Apk $fixture -KeepIn $keptDir -Force:$forcedHere
+        Assert-True ($said -like "*kept this run for the release receipt in $keptDir*") "verify-all-patches.ps1 did not keep its run of ${build}: $said"
+        $keptNames = @(Get-ChildItem -LiteralPath $keptDir -File | ForEach-Object { $_.Name } | Sort-Object)
+        Assert-True (($keptNames -join ',') -eq 'patched.apk,result.json,stamp.json,stock-merged.apk') `
+            "The kept run of $build is not the patched APK, the report, the merge and the stamp: $($keptNames -join ', ')"
+        $stamp = Get-Content -LiteralPath (Join-Path $keptDir 'stamp.json') -Raw | ConvertFrom-Json
+        Assert-True ($stamp.bundleSha256 -ceq (Get-Sha256Hex -Path $releaseBundle) -and $stamp.apkSha256 -ceq (Get-Sha256Hex -Path $fixture) -and
+            $stamp.patchListSha256 -ceq $listHash -and $stamp.desktopJarSha256 -ceq (Get-Sha256Hex -Path $stubJar) -and
+            $stamp.versionName -ceq $build -and $stamp.forced -eq $forcedHere -and $stamp.merged -eq $true) `
+            "The kept run of $build is stamped with something else than what it patched: $($stamp | ConvertTo-Json -Compress)"
+        Copy-Item -LiteralPath "$fixture.patched.txt" -Destination (Join-Path $keptDir 'patched.apk.xmltree')
+    }
+    function Get-KeptHashes {
+        @(Get-ChildItem -LiteralPath $appliedRoot -File -Recurse | Sort-Object FullName |
+            ForEach-Object { "$($_.FullName)=$(Get-Sha256Hex -Path $_.FullName)" }) -join "`n"
+    }
+    $keptBefore = Get-KeptHashes
+    $null = @(Read-QueueLog)
+    Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir $appliedRoot
+    Assert-True (-not (Test-Path -LiteralPath $javaLog) -and -not (Test-Path -LiteralPath $mergeLog)) `
+        "The receipt patched or merged a fixture whose kept run matched: $(@(Get-Content -LiteralPath $javaLog -ErrorAction SilentlyContinue) -join '; ')"
+    Assert-True (@([regex]::Matches($builderSaid, 'reading the kept run of')).Count -eq $builtBuilds.Count) `
+        "The receipt did not say it read each kept run: $builderSaid"
+    Assert-True (((Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json).targets | ConvertTo-Json -Depth 12) -ceq $freshTargets) `
+        'The receipt read from kept runs differs from the one fresh runs gave.'
+    Assert-True ((Get-KeptHashes) -ceq $keptBefore) 'The receipt changed the kept runs it read.'
+
+    # A kept run that doesn't match is patched again, that fixture alone: a stamp naming another
+    # bundle, one gone, and one that says a split bundle wasn't merged.
+    $declaredFixture = $fixturePaths[$releaseTarget.PackageVersion]
+    $declaredStamp = Join-Path $appliedRoot "$(Split-Path -Leaf $declaredFixture)/stamp.json"
+    $stampText = [System.IO.File]::ReadAllText($declaredStamp)
+    $staleStamps = @(
+        @{ Name = 'another bundle'; Text = $stampText.Replace((Get-Sha256Hex -Path $releaseBundle), ('0' * 64)); Said = '*made with another bundle*' },
+        @{ Name = 'no stamp'; Text = $null; Said = '*no kept run of*' },
+        @{ Name = 'no merge'; Text = ($stampText -replace '"merged":\s*true', '"merged": false'); Said = '*made with another bundle*' })
+    foreach ($stale in $staleStamps) {
+        if ($null -eq $stale.Text) { Remove-Item -LiteralPath $declaredStamp -Force }
+        else {
+            Assert-True ($stale.Text -cne $stampText) "The '$($stale.Name)' stamp case changed nothing."
+            [System.IO.File]::WriteAllText($declaredStamp, $stale.Text)
+        }
+        try {
+            Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir $appliedRoot
+            Assert-True ((@(Get-Content -LiteralPath $javaLog) -join "`n") -eq "patch $declaredFixture merged forced=0" -and
+                $builderSaid -like $stale.Said) `
+                "With $($stale.Name) the receipt did not patch that fixture alone: $(@(Get-Content -LiteralPath $javaLog -ErrorAction SilentlyContinue) -join '; ')"
+        } finally {
+            [System.IO.File]::WriteAllText($declaredStamp, $stampText)
+        }
+    }
+
+    # A run that fails leaves no stamp behind, and a keep folder holding anything else is left alone.
+    $declaredKept = Split-Path -Parent $declaredStamp
+    Remove-Item -LiteralPath (Join-Path $declaredKept 'patched.apk.xmltree') -Force
+    Set-Content -LiteralPath (Join-Path $tools 'merge-fails.txt') -Value 'on' -Encoding ASCII
+    try {
+        Assert-Throws { Invoke-VerifyAll -Apk $declaredFixture -KeepIn $declaredKept } '*Could not merge*' `
+            'verify-all-patches.ps1 went ahead with a merge that failed.'
+    } finally {
+        Remove-Item -LiteralPath (Join-Path $tools 'merge-fails.txt') -Force
+    }
+    Assert-True (-not (Test-Path -LiteralPath $declaredStamp)) 'A failed run left the stamp of the run before it to be read.'
+    $foreignKeep = Join-Path $appliedRoot 'not-a-keep'
+    New-Item -ItemType Directory -Path $foreignKeep -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $foreignKeep 'notes.txt') -Value 'mine' -Encoding ASCII
+    Assert-Throws { Invoke-VerifyAll -Apk $declaredFixture -KeepIn $foreignKeep } '*as well as a kept run*' `
+        'verify-all-patches.ps1 emptied a keep folder that holds something else.'
+    Assert-True ((Test-Path -LiteralPath (Join-Path $foreignKeep 'notes.txt')) -and -not (Test-Path -LiteralPath $javaLog)) `
+        'verify-all-patches.ps1 touched a keep folder holding something else, or patched first.'
+    Remove-Item -LiteralPath $appliedRoot -Recurse -Force
 
     # The newest build alone, or beside the undeclared one, is not enough for a receipt: the older
     # declared build has no run. The builder says so before it patches anything. It used to patch
@@ -5190,6 +5512,7 @@ try {
     }
     $deviceApk = Join-Path $deviceOut "hushthreads-$releaseVersionHere-signed.apk"
     foreach ($build in $releaseTarget.PackageVersions) {
+        $null = @(Read-QueueLog)
         try {
             Invoke-DeviceBuild -Apk $fixturePaths[$build]
         } catch {
@@ -5199,6 +5522,10 @@ try {
         Assert-True ($deviceRuns.Count -eq 1 -and $deviceRuns[0] -eq "patch $($fixturePaths[$build]) merged forced=0" -and
             (Test-Path -LiteralPath $deviceApk -PathType Leaf)) `
             "patch-for-device.ps1 did not build $build once, without -f: $($deviceRuns -join '; ')"
+        # The merge, the CLI, the signing and the identity check as one job of the build queue.
+        $seen = @(Read-QueueLog)
+        Assert-True (($seen -join '|') -eq "hushthreads device $(Split-Path -Leaf $fixturePaths[$build])") `
+            "patch-for-device.ps1 did not run its heavy part as one job of the build queue: $($seen -join ', ')"
         Assert-True (-not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-base.apk'))) `
             "patch-for-device.ps1 left the base APK it read for $build behind."
         Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join '') -ceq "merge $($fixturePaths[$build])" -and
@@ -5395,7 +5722,12 @@ try {
         SkipUrlCheck = $true; DesktopJar = $stubJar; Java = $listJava }
     try {
         Invoke-FixtureGit -Root $releaseRepo -Arguments @('tag', '-d', "v$indexVersionHere") | Out-Null
+        $null = @(Read-QueueLog)
         $said = Invoke-IndexPushCheck $publishedRun
+        # The CLI counted the published bundle's patches as a job of the build queue.
+        $seen = @(Read-QueueLog)
+        Assert-True (@($seen | Where-Object { $_ -eq 'hushthreads list published patches' }).Count -eq 1) `
+            "The release check did not count the published patches as one job of the build queue: $($seen -join ', ')"
         Assert-True ($said -like "*published bundle is pinned to v$indexVersionHere ($releaseCommit)*" -and
             $said -like "*the index asks for Morphe Manager $releaseFloor or newer, as tag v$indexVersionHere pins*") `
             "The index push was not held to the Manager floor its published tag pins: $said"
@@ -5843,6 +6175,32 @@ Assert-True ($gradleFile -match 'commandLine\("git", "--no-optional-locks", "sta
     $gradleFile -match '(?s)val sourceDateEpoch: Long = run \{.*?if \(uncommittedChanges\?\.isEmpty\(\) != true\) return@run 0L.*?"log", "-1", "--format=%ct"') `
     'patches/build.gradle.kts stamps the bundle with the commit time without asking git whether the tree has uncommitted changes.'
 
+# The patch tests run in two partitions. fixtureTest takes the classes whose source calls Fixtures
+# or FixtureDex and declares the fixture folder's files and SHA-256 digests as inputs; test runs the
+# rest without HUSHTHREADS_FIXTURE_DIR, after fixtureTest when it's asked for by name, and
+# verifyPatchTestSelection holds both result sets to every *Test.kt. The pick holds only while
+# Fixtures.kt is the one patch test source that reads the environment, so that's checked too.
+foreach ($wired in @(
+        @{ Pattern = 'tasks\.register<Test>\("fixtureTest"\)'; What = 'registers no fixtureTest' },
+        @{ Pattern = 'Regex\("""\\b\(Fixtures\|FixtureDex\)\\\.\[A-Za-z\]"""\)'; What = 'picks fixture tests by another rule' },
+        @{ Pattern = '(?s)register<Test>\("fixtureTest"\).*?include\(fixtureTestPatterns\).*?inputs\.files\(fixtureFiles\)\.withPropertyName\("fixtures"\).*?inputs\.property\("fixtureBytes"'
+            What = 'does not give fixtureTest the fixture classes, files and digests' },
+        @{ Pattern = '(?s)\n    test \{\s*dependsOn\(fixtureTest\)\s*finalizedBy\(verifyPatchTestSelection\)\s*exclude\(fixtureTestPatterns\)\s*environment\.remove\("HUSHTHREADS_FIXTURE_DIR"\)'
+            What = 'does not run test after fixtureTest, without the fixture classes and the fixture folder' },
+        @{ Pattern = 'check\(skipped\.getValue\("fixtureTest"\)\.isEmpty\(\)\)'; What = 'lets fixture tests skip with the folder set' })) {
+    Assert-True ($gradleFile -match $wired.Pattern) "patches/build.gradle.kts $($wired.What)."
+}
+$environmentReaders = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/src/test') -Recurse -File -Filter '*.kt' |
+    Where-Object { [System.IO.File]::ReadAllText($_.FullName) -match '\b(System\.getenv|getenv)\s*\(' } | ForEach-Object { $_.Name })
+Assert-True (($environmentReaders -join ',') -eq 'Fixtures.kt') `
+    "Patch test sources other than Fixtures.kt read the environment, which fixtureTest's pick can't see: $($environmentReaders -join ', ')"
+# FixtureParseMemoTest reads synthetic bundles through the same reader and belongs in the quick
+# half, so its source must never name the two helpers the pick looks for.
+$memoTest = [System.IO.File]::ReadAllText((Join-Path $Root 'patches/src/test/kotlin/app/morphe/FixtureParseMemoTest.kt'))
+Assert-True ($memoTest -notmatch '\b(Fixtures|FixtureDex)\.[A-Za-z]') `
+    'FixtureParseMemoTest.kt calls Fixtures or FixtureDex, which moves it into fixtureTest.'
+Write-Host '[scripts] patch test partition contracts passed'
+
 # Code only: a comment may say where the bundle used to be read from.
 $libsReaders = New-Object System.Collections.Generic.List[string]
 foreach ($script in @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' -File)) {
@@ -5869,6 +6227,546 @@ Assert-True ($libsReaders.Count -eq 0) `
         ($libsReaders -join ', '))
 
 Write-Host '[scripts] release bundle path contracts passed'
+
+# --- scripts/release/release.ps1 -----------------------------------------------------------------
+#
+# The release stages, run in order in a fixture repository with a bare origin. Every check and tool
+# they call is a stand-in that logs what it was handed: the build wrapper, the release text helper,
+# the contract suite, the facts check, the fixture run, the receipt, gh and the pre-push hook.
+# Nothing here builds, patches or reaches GitHub. Each stage refuses to run before the one it
+# follows, a failing step stops its stage with nothing after it run and no tag or push made, and a
+# stage run again checks what it already did instead of doing it twice.
+
+$releaseFlow = Join-Path ([System.IO.Path]::GetTempPath()) ('hushthreads-release-flow-' + [guid]::NewGuid().ToString('N'))
+$flowNames = @('HUSHTHREADS_BUILD_WRAPPER', 'HUSHTHREADS_FIXTURE_DIR', 'HUSHTHREADS_DESKTOP_JAR', 'HUSHTHREADS_PYTHON',
+    'GITHUB_ACTOR', 'GITHUB_TOKEN', 'BUILD_QUEUE_PRIORITY')
+$flowBefore = @{}
+foreach ($name in $flowNames) { $flowBefore[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
+try {
+    $flowRepo = Join-Path $releaseFlow 'repo'
+    $flowOrigin = Join-Path $releaseFlow 'origin.git'
+    $flowHooks = Join-Path $releaseFlow 'hooks'
+    $flowFixtures = Join-Path $releaseFlow 'fixtures'
+    $flowLog = Join-Path $releaseFlow 'flow.log'
+    $flowFails = Join-Path $releaseFlow 'fail.txt'
+    $flowBundle = Join-Path $releaseFlow 'bundle.mpp'
+    $flowHead = Join-Path $releaseFlow 'head.txt'
+    $flowHosted = Join-Path $releaseFlow 'hosted'
+    $flowDescription = Join-Path $releaseFlow 'description.txt'
+    foreach ($folder in (Join-Path $flowRepo 'scripts/release'), (Join-Path $flowRepo '.github/ISSUE_TEMPLATE'), $flowHooks, $flowFixtures) {
+        New-Item -ItemType Directory -Path $folder -Force | Out-Null
+    }
+    foreach ($name in 'common.ps1', 'patch-target.ps1', 'release/release.ps1') {
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $flowRepo "scripts/$name")
+    }
+    $flowFiles = [ordered]@{
+        '.gitignore' = "build/`nrelease-receipt-*.json`n"
+        'gradle.properties' = "version = 1.2.2`n"
+        'CHANGELOG.md' = "# Changelog`n`n## Unreleased`n`n* **Threads:** A fixture change.`n`n## 1.2.2 (2026-10-01)`n`n* **Threads:** The release before.`n"
+        'README.md' = "The latest release is [v1.2.2](https://github.com/Owner/Repo/releases/tag/v1.2.2), with 2 patches.`n"
+        'patches-list.json' = ('{"patches":[' +
+            '{"name":"Hide ads","compatiblePackages":{"com.instagram.barcelona":["450.0.0.51.78"]}},' +
+            '{"name":"Hide suggestions","compatiblePackages":{"com.instagram.barcelona":["450.0.0.51.78"]}}]}' + "`n")
+        'patches-bundle.json' = ('{"created_at":"2026-10-01T12:00:00","description":"HushThreads v1.2.2 has 2 patches.",' +
+            '"download_url":"https://github.com/Owner/Repo/releases/download/v1.2.2/patches-1.2.2.mpp",' +
+            '"signature_download_url":null,"version":"1.2.2"}' + "`n")
+        '.github/ISSUE_TEMPLATE/bug_report.yml' = "      placeholder: Version 1.2.2 for Threads 450.0.0.51.78`n"
+    }
+    foreach ($name in $flowFiles.Keys) { [IO.File]::WriteAllText((Join-Path $flowRepo $name), $flowFiles[$name]) }
+
+    # The stand-ins name their files through these placeholders, each written as a quoted literal.
+    $flowLiterals = [ordered]@{ FLOW_LOG = $flowLog; FLOW_FAIL = $flowFails; FLOW_REPO = $flowRepo; FLOW_BUNDLE = $flowBundle; FLOW_HEAD = $flowHead }
+    function Write-FlowStub([string]$Path, [string]$Text) {
+        foreach ($key in $flowLiterals.Keys) { $Text = $Text.Replace($key, "'" + $flowLiterals[$key].Replace("'", "''") + "'") }
+        [IO.File]::WriteAllText($Path, $Text, (New-Object Text.UTF8Encoding($true)))
+    }
+    # Each stand-in fails when fail.txt names its step, so a case can stop a stage at any step. The
+    # wrapper names its step from the tasks: the comparator, the patch list, the bundle, the release
+    # test run (--rerun) or the quick run. 'stale' has the patch list come out changed.
+    $flowWrapper = Join-Path $releaseFlow 'wrapper.ps1'
+    Write-FlowStub $flowWrapper @'
+param([string]$ProjectDir, [string[]]$Tasks)
+$only = if (@($Tasks).Count -eq 1) { $Tasks[0] } else { '' }
+$step = switch ($only) {
+    'prepareAdvisoryTool' { 'prepare' }
+    ':patches:generatePatchesList' { 'list' }
+    ':patches:buildAndroid' { 'bundle' }
+    default { if (@($Tasks) -contains '--rerun') { 'tests' } else { 'quick' } }
+}
+Add-Content -LiteralPath FLOW_LOG -Value ("gradle $step dir=$ProjectDir priority=$env:BUILD_QUEUE_PRIORITY tasks= " + ($Tasks -join ' ') + ' ')
+$failing = Get-Content -LiteralPath FLOW_FAIL -ErrorAction SilentlyContinue
+if ($failing -eq $step) { exit 1 }
+if ($step -eq 'list' -and $failing -eq 'stale') { Add-Content -LiteralPath (Join-Path $ProjectDir 'patches-list.json') -Value ' ' }
+if ($step -eq 'bundle') {
+    $out = Join-Path $ProjectDir 'patches/build/release'
+    New-Item -ItemType Directory -Force -Path $out | Out-Null
+    $bundle = Join-Path $out 'patches-1.2.3.mpp'
+    Copy-Item -LiteralPath FLOW_BUNDLE -Destination $bundle
+    [IO.File]::WriteAllText((Join-Path $out 'patches-1.2.3.cdx.json'), '{}')
+    [IO.File]::WriteAllText((Join-Path $out 'bundle.sha256'), (Get-FileHash -Algorithm SHA256 -LiteralPath $bundle).Hash.ToLowerInvariant())
+}
+exit 0
+'@
+    # release_text.py's stand-in, run as HUSHTHREADS_PYTHON: it gets -I, then the script and its
+    # command, or -m unittest for the text tests, and makes the edits each command would.
+    $flowPython = Join-Path $releaseFlow 'python.ps1'
+    Write-FlowStub $flowPython @'
+$said = @($args | ForEach-Object { "$_" })
+$step = if ($said[1] -eq '-m') { 'pytests' } else { $said[2] }
+Add-Content -LiteralPath FLOW_LOG -Value ("python $step " + (@($said | Select-Object -Skip 3) -join ' ') + " priority=$env:BUILD_QUEUE_PRIORITY")
+if ((Get-Content -LiteralPath FLOW_FAIL -ErrorAction SilentlyContinue) -eq $step) { exit 1 }
+function Get-Option([string]$Name) { $said[[Array]::IndexOf($said, $Name) + 1] }
+function Edit-Text([string]$Name, [string]$Old, [string]$New) {
+    $path = Join-Path FLOW_REPO $Name
+    [IO.File]::WriteAllText($path, [IO.File]::ReadAllText($path).Replace($Old, $New))
+}
+$version = Get-Option '--version'
+switch ($step) {
+    'cut' {
+        $date = if ($said -contains '--date') { Get-Option '--date' } else { Get-Date -Format 'yyyy-MM-dd' }
+        Edit-Text 'gradle.properties' 'version = 1.2.2' "version = $version"
+        Edit-Text 'CHANGELOG.md' '## Unreleased' "## $version ($date)"
+    }
+    'readme' { Edit-Text 'README.md' 'v1.2.2' "v$version" }
+    'notes' { [IO.File]::WriteAllText((Get-Option '--out'), "Notes for v$version.`n") }
+    'description' { [IO.File]::WriteAllText((Get-Option '--out'), [IO.File]::ReadAllText((Get-Option '--current')).Replace('v1.2.2', "v$version")) }
+    'index' {
+        Edit-Text 'patches-bundle.json' '1.2.2' $version
+        Edit-Text '.github/ISSUE_TEMPLATE/bug_report.yml' 'Version 1.2.2' "Version $version"
+    }
+}
+exit 0
+'@
+    Write-FlowStub (Join-Path $flowRepo 'scripts/test-script-contracts.ps1') @'
+param([string]$Root)
+Add-Content -LiteralPath FLOW_LOG -Value "contracts root=$Root"
+if ((Get-Content -LiteralPath FLOW_FAIL -ErrorAction SilentlyContinue) -eq 'contracts') { exit 1 }
+exit 0
+'@
+    Write-FlowStub (Join-Path $flowRepo 'scripts/validate-release-facts.ps1') @'
+param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag, [switch]$SkipTestResults,
+    [switch]$VerifyPublishedAsset, [string]$ArtifactPath, [string]$Receipt)
+$line = if ($VerifyPublishedAsset) { "facts published artifact=$(Split-Path -Leaf $ArtifactPath) receipt=$(Split-Path -Leaf $Receipt)" }
+else { "facts precheck skipCount=$SkipDescriptionTestCount lag=$AllowPublishedIndexLag skipResults=$SkipTestResults" }
+Add-Content -LiteralPath FLOW_LOG -Value "$line priority=$env:BUILD_QUEUE_PRIORITY"
+if ((Get-Content -LiteralPath FLOW_FAIL -ErrorAction SilentlyContinue) -eq 'facts') { exit 1 }
+exit 0
+'@
+    Write-FlowStub (Join-Path $flowRepo 'scripts/verify-all-patches.ps1') @'
+param([string]$Apk, [string]$DesktopJar, [string]$WorkDir, [string]$KeepIn)
+Add-Content -LiteralPath FLOW_LOG -Value ("verify apk=$(Split-Path -Leaf $Apk) jar=$(Split-Path -Leaf $DesktopJar) keep=" +
+    $KeepIn.Replace('\', '/') + " priority=$env:BUILD_QUEUE_PRIORITY")
+if ((Get-Content -LiteralPath FLOW_FAIL -ErrorAction SilentlyContinue) -eq 'verify') { exit 1 }
+exit 0
+'@
+    Write-FlowStub (Join-Path $flowRepo 'scripts/build-release-receipt.ps1') @'
+param([string[]]$Fixture, [string]$WorkDir, [string]$AppliedDir, [string]$DesktopJar)
+Add-Content -LiteralPath FLOW_LOG -Value ('receipt fixtures=' + (@($Fixture | ForEach-Object { Split-Path -Leaf $_ }) -join ',') +
+    ' applied=' + $AppliedDir.Replace('\', '/') + " priority=$env:BUILD_QUEUE_PRIORITY")
+if ((Get-Content -LiteralPath FLOW_FAIL -ErrorAction SilentlyContinue) -eq 'receipt') { exit 1 }
+[IO.File]::WriteAllText((Join-Path FLOW_REPO 'release-receipt-1.2.3.json'), ('{"release":{"commit":"' + [IO.File]::ReadAllText(FLOW_HEAD).Trim() + '"}}'))
+exit 0
+'@
+    # The fixture's pre-push hook notes each push and the priority it ran at, which is what the
+    # real gate queues at.
+    [IO.File]::WriteAllText((Join-Path $flowHooks 'pre-push'),
+        "#!/bin/sh`nprintf 'push priority=%s\n' `"`$BUILD_QUEUE_PRIORITY`" >> '$($flowLog.Replace('\', '/'))'`n")
+
+    # gh: release view answers once a release is created, create keeps the assets it was handed,
+    # download serves them back ('corrupt' changes the bundle on the way), and repo view and edit
+    # read and write the description.
+    $flowGh = {
+        $said = @($args | ForEach-Object { "$_" })
+        $failing = Get-Content -LiteralPath $flowFails -ErrorAction SilentlyContinue
+        Add-Content -LiteralPath $flowLog -Value ('gh ' + ($said -join ' '))
+        $global:LASTEXITCODE = 0
+        switch ("$($said[0]) $($said[1])") {
+            'release view' {
+                if (-not (Test-Path -LiteralPath $flowHosted -PathType Container)) { $global:LASTEXITCODE = 1; return }
+                if ($said -contains 'publishedAt') { return '2026-10-09T18:30:05Z' }
+                return $said[2]
+            }
+            'release create' {
+                New-Item -ItemType Directory -Path $flowHosted -Force | Out-Null
+                $said | Select-Object -Last 4 | ForEach-Object { Copy-Item -LiteralPath $_ -Destination $flowHosted }
+                return
+            }
+            'release download' {
+                $into = $said[[Array]::IndexOf($said, '-D') + 1]
+                New-Item -ItemType Directory -Path $into -Force | Out-Null
+                Get-ChildItem -LiteralPath $flowHosted -File | Copy-Item -Destination $into
+                if ($failing -eq 'corrupt') { Add-Content -LiteralPath (Join-Path $into 'patches-1.2.3.mpp') -Value 'x' }
+                return
+            }
+            'repo view' { return [IO.File]::ReadAllText($flowDescription).Trim() }
+            'repo edit' {
+                [IO.File]::WriteAllText($flowDescription, $said[[Array]::IndexOf($said, '--description') + 1])
+                return
+            }
+        }
+        $global:LASTEXITCODE = 1
+    }.GetNewClosure()
+
+    function Read-FlowLog {
+        if (-not (Test-Path -LiteralPath $flowLog -PathType Leaf)) { return }
+        Get-Content -LiteralPath $flowLog
+        Remove-Item -LiteralPath $flowLog -Force
+    }
+    function Get-FlowSteps([object[]]$Lines) {
+        # The step a log line names, joined: 'gh release view', 'python cut', 'gradle list', 'facts
+        # precheck', 'push priority=release', 'contracts', 'verify', 'receipt'.
+        (@(foreach ($line in $Lines) {
+                    $words = @("$line" -split ' ')
+                    $take = switch ($words[0]) { 'gh' { 3 } 'contracts' { 1 } 'verify' { 1 } 'receipt' { 1 } default { 2 } }
+                    ($words | Select-Object -First $take) -join ' '
+                }) -join ' | ')
+    }
+    function Set-FlowFail([string]$Step) {
+        if ($Step) { Set-Content -LiteralPath $flowFails -Value $Step -Encoding ASCII }
+        else { Remove-Item -LiteralPath $flowFails -Force -ErrorAction SilentlyContinue }
+    }
+    function Get-FlowRef([string]$Repo, [string]$Ref) {
+        # The commit a ref names, or '' when there's no such ref.
+        "$(Invoke-FixtureGit -Root $Repo -Arguments @('rev-parse', '--verify', '--quiet', "$Ref^{commit}") | Select-Object -First 1)".Trim()
+    }
+    function Reset-FlowTree {
+        # What a failed stage left in the tracked files, put back the way a person would before a rerun.
+        Invoke-FixtureGit -Root $flowRepo -Arguments @('reset', '--hard', '--quiet') | Out-Null
+        Invoke-FixtureGit -Root $flowRepo -Arguments @('clean', '-fdq') | Out-Null
+    }
+    function New-FlowBundle([string]$Stamp, [switch]$NoDex) {
+        # The bundle the wrapper's buildAndroid hands over: a manifest stamp and, unless -NoDex, a dex.
+        $entries = [ordered]@{ 'META-INF/MANIFEST.MF' = "Manifest-Version: 1.0`r`nTimestamp: $Stamp`r`n" }
+        if (-not $NoDex) { $entries['classes.dex'] = 'dex' }
+        if (Test-Path -LiteralPath $flowBundle) { Remove-Item -LiteralPath $flowBundle -Force }
+        Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+        $zip = [IO.Compression.ZipFile]::Open($flowBundle, [IO.Compression.ZipArchiveMode]::Create)
+        try {
+            foreach ($name in $entries.Keys) {
+                $writer = New-Object IO.StreamWriter($zip.CreateEntry($name).Open())
+                try { $writer.Write($entries[$name]) } finally { $writer.Dispose() }
+            }
+        } finally {
+            $zip.Dispose()
+        }
+    }
+    function Invoke-FlowStage { & $flowScript @args 6> $null 3> $null }
+
+    # The fixture and its origin, with git's environment cleared (Invoke-FixtureGit) and the git
+    # directory checked before anything is committed.
+    Invoke-FixtureGit -Root $flowRepo -Arguments @('init', '--quiet') | Out-Null
+    $flowGitDir = "$(Invoke-FixtureGit -Root $flowRepo -Arguments @('rev-parse', '--absolute-git-dir') | Select-Object -First 1)".Trim()
+    Assert-True ($flowGitDir -and [IO.Path]::GetFullPath($flowGitDir).TrimEnd('\', '/') -ieq
+        [IO.Path]::GetFullPath((Join-Path $flowRepo '.git')).TrimEnd('\', '/')) `
+        "The release fixture resolved to $flowGitDir, not its own .git. Refusing to write to it."
+    foreach ($command in @(@('symbolic-ref', 'HEAD', 'refs/heads/main'), @('config', 'user.name', 'Release Contract'),
+            @('config', 'user.email', 'release@example.invalid'), @('config', 'core.autocrlf', 'false'),
+            @('config', 'core.hooksPath', $flowHooks), @('add', '-A'), @('commit', '--quiet', '-m', 'release fixture'),
+            @('init', '--bare', '--quiet', $flowOrigin), @('remote', 'add', 'origin', $flowOrigin))) {
+        Invoke-FixtureGit -Root $flowRepo -Arguments $command | Out-Null
+    }
+    Invoke-FixtureGit -Root $flowOrigin -Arguments @('config', 'core.hooksPath', $flowHooks) | Out-Null
+    Invoke-FixtureGit -Root $flowRepo -Arguments @('push', '--quiet', 'origin', 'main') | Out-Null
+    $flowFirst = Get-FlowRef $flowRepo 'HEAD'
+    Assert-True ($flowFirst -and (Get-FlowRef $flowOrigin 'refs/heads/main') -eq $flowFirst) 'The release fixture did not reach its origin.'
+
+    $flowScript = Join-Path $flowRepo 'scripts/release/release.ps1'
+    [IO.File]::WriteAllText((Join-Path $flowFixtures 'threads-450.0.0.51.78-arm64.apkm'), 'fixture')
+    $flowJar = Join-Path $releaseFlow 'morphe-desktop-1.0.0.jar'
+    [IO.File]::WriteAllText($flowJar, 'jar')
+    [IO.File]::WriteAllText($flowDescription, 'HushThreads v1.2.2: 2 patches for Threads 450.0.0.51.78.')
+    $env:HUSHTHREADS_BUILD_WRAPPER = $flowWrapper
+    $env:HUSHTHREADS_PYTHON = $flowPython
+    $env:HUSHTHREADS_FIXTURE_DIR = $flowFixtures
+    $env:HUSHTHREADS_DESKTOP_JAR = $flowJar
+    $env:GITHUB_ACTOR = 'contract'
+    $env:GITHUB_TOKEN = 'contract'
+    Remove-Item -LiteralPath Env:\BUILD_QUEUE_PRIORITY -ErrorAction SilentlyContinue
+    Set-Item -LiteralPath Function:\gh -Value $flowGh
+    Read-FlowLog | Out-Null
+
+    # Before prepare, every later stage is refused on the version gradle.properties still carries.
+    foreach ($stage in 'preflight', 'build', 'publish', 'index') {
+        Assert-Throws { Invoke-FlowStage -Stage $stage -Version 1.2.3 } '*says 1.2.2, not 1.2.3*' "-Stage $stage ran before prepare."
+    }
+    Assert-True (@(Read-FlowLog).Count -eq 0) 'A stage refused before prepare still ran a step.'
+
+    # prepare: the text cut, the patch list, the README line, then the facts with the index still on
+    # the previous release. A failing step stops it there.
+    foreach ($case in @(@{ Step = 'cut'; Seen = 1 }, @{ Step = 'list'; Seen = 2 }, @{ Step = 'readme'; Seen = 3 },
+            @{ Step = 'facts'; Seen = 4 })) {
+        Set-FlowFail $case.Step
+        Assert-Throws { Invoke-FlowStage -Stage prepare -Version 1.2.3 } '*did not pass*' "Prepare carried on past a failing $($case.Step) step."
+        $flow = @(Read-FlowLog)
+        Assert-True ($flow.Count -eq $case.Seen) "A failing $($case.Step) step in prepare still ran what follows it: $($flow -join ' | ')"
+        Assert-True (-not $env:BUILD_QUEUE_PRIORITY) "A failing $($case.Step) step in prepare left the release priority behind."
+        Reset-FlowTree
+    }
+    Set-FlowFail ''
+    Invoke-FlowStage -Stage prepare -Version 1.2.3 -Date 2026-10-09
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'python cut | gradle list | python readme | facts precheck') `
+        "Prepare did not cut the text, list the patches, write the README line and check the facts in order: $($flow -join ' | ')"
+    Assert-True ($flow[0] -eq 'python cut --version 1.2.3 --date 2026-10-09 priority=release') "Prepare handed the cut something else: $($flow[0])"
+    Assert-True ($flow[1].EndsWith(' priority=release tasks= :patches:generatePatchesList ')) "Prepare's patch list run was not the list alone: $($flow[1])"
+    Assert-True ($flow[3] -eq 'facts precheck skipCount=True lag=True skipResults=True priority=release') `
+        "Prepare's facts check was not the lagging-index precheck at release priority: $($flow[3])"
+    Assert-True ((Get-BundleVersion -Root $flowRepo) -eq '1.2.3' -and
+        [IO.File]::ReadAllText((Join-Path $flowRepo 'CHANGELOG.md')).Contains("`n## 1.2.3 (2026-10-09)`n")) `
+        'Prepare did not leave the new version and the dated CHANGELOG heading.'
+    Assert-True (-not $env:BUILD_QUEUE_PRIORITY) 'Prepare left its release priority behind.'
+
+    # Its edits are reviewed and committed by hand, so a tree still holding them isn't a prep commit.
+    Assert-Throws { Invoke-FlowStage -Stage preflight -Version 1.2.3 } '*working tree has changes*' 'Preflight ran on an uncommitted prep.'
+    Assert-Throws { Invoke-FlowStage -Stage prepare -Version 1.2.3 } '*working tree has changes*' 'Prepare ran again over its own uncommitted edits.'
+    Invoke-FixtureGit -Root $flowRepo -Arguments @('commit', '--quiet', '-a', '-m', 'chore(release): prepare v1.2.3') | Out-Null
+    $flowPrep = Get-FlowRef $flowRepo 'HEAD'
+
+    # Run again at the prep commit, prepare checks instead of editing: the patch list, which has to
+    # come out unchanged, and the facts.
+    Invoke-FlowStage -Stage prepare -Version 1.2.3
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gradle list | facts precheck') "Prepare run again at the prep commit did more than check it: $($flow -join ' | ')"
+    Set-FlowFail 'stale'
+    Assert-Throws { Invoke-FlowStage -Stage prepare -Version 1.2.3 } '*patch list is stale*' 'Prepare passed a prep commit whose patch list is stale.'
+    Assert-True (@(Read-FlowLog).Count -eq 1) 'Prepare checked the facts after a stale patch list.'
+    Set-FlowFail ''
+    Reset-FlowTree
+
+    # The prep commit isn't on origin yet: build and publish want the push preflight makes, and
+    # index wants a published release.
+    foreach ($stage in 'build', 'publish') {
+        Assert-Throws { Invoke-FlowStage -Stage $stage -Version 1.2.3 } '*Run -Stage preflight*' "-Stage $stage ran on a prep commit preflight never pushed."
+    }
+    Assert-Throws { Invoke-FlowStage -Stage index -Version 1.2.3 } '*Run -Stage publish first*' '-Stage index ran before the release was published.'
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gh release view') "A stage refused for its order still ran a step: $($flow -join ' | ')"
+
+    # preflight: the comparator the contract suite reads, the contract suite, the release text tests,
+    # one quick Gradle run and the facts precheck. A failing step stops it there and nothing is pushed.
+    foreach ($case in @(@{ Step = 'prepare'; Seen = 1 }, @{ Step = 'contracts'; Seen = 2 }, @{ Step = 'pytests'; Seen = 3 },
+            @{ Step = 'quick'; Seen = 4 }, @{ Step = 'facts'; Seen = 5 })) {
+        Set-FlowFail $case.Step
+        Assert-Throws { Invoke-FlowStage -Stage preflight -Version 1.2.3 } '*did not pass*' "Preflight carried on past a failing $($case.Step) step."
+        $flow = @(Read-FlowLog)
+        Assert-True ($flow.Count -eq $case.Seen) "A failing $($case.Step) step still ran what follows it: $($flow -join ' | ')"
+        Assert-True ((Get-FlowRef $flowOrigin 'refs/heads/main') -eq $flowFirst) "Preflight pushed past a failing $($case.Step) step."
+        Assert-True (-not $env:BUILD_QUEUE_PRIORITY) "A failing $($case.Step) step left the release priority behind."
+    }
+    Set-FlowFail ''
+
+    # A version gradle.properties doesn't carry, or a tree with changes, is refused before any check.
+    Assert-Throws { Invoke-FlowStage -Stage preflight -Version 1.2.4 } '*says 1.2.3, not 1.2.4*' `
+        'Preflight checked a version the source does not carry.'
+    Set-Content -LiteralPath (Join-Path $flowRepo 'stray.txt') -Value 'stray' -Encoding ASCII
+    Assert-Throws { Invoke-FlowStage -Stage preflight -Version 1.2.3 } '*working tree has changes*' `
+        'Preflight checked a working tree that is not a commit.'
+    Remove-Item -LiteralPath (Join-Path $flowRepo 'stray.txt') -Force
+    Assert-True (@(Read-FlowLog).Count -eq 0) 'A refused preflight still ran a check.'
+
+    # All five in order at release priority, then the prep commit pushed, the gate at release
+    # priority too, and the priority put back after.
+    Invoke-FlowStage -Stage preflight -Version 1.2.3
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gradle prepare | contracts | python pytests | gradle quick | facts precheck | push priority=release') `
+        "Preflight did not run the comparator, the contracts, the text tests, Gradle and the facts check, then push: $($flow -join ' | ')"
+    Assert-True ($flow[0].EndsWith(' priority=release tasks= prepareAdvisoryTool ')) `
+        "Preflight's first Gradle run was not the comparator alone at release priority: $($flow[0])"
+    Assert-True ([IO.Path]::GetFullPath($flow[1].Substring('contracts root='.Length)).TrimEnd('\', '/') -ieq
+        [IO.Path]::GetFullPath($flowRepo).TrimEnd('\', '/')) "Preflight ran the contract suite on another tree: $($flow[1])"
+    Assert-True ($flow[2] -like 'python pytests discover -s * -p test_release_text.py priority=release') `
+        "Preflight's text tests were not the unittest discovery of test_release_text.py: $($flow[2])"
+    foreach ($wanted in @(' :patches:test -x :patches:fixtureTest -x :patches:verifyPatchTestSelection ',
+            ' :extensions:threads:testDebugUnitTest --tests *L10nTest ', ' --tests *ReleaseCheckTest ',
+            ' :extensions:shared:library:lint ', ' :extensions:threads:lint ', ' priority=release ')) {
+        Assert-True ($flow[3].Contains($wanted)) "Preflight's Gradle run lacks '$($wanted.Trim())': $($flow[3])"
+    }
+    Assert-True ($flow[3] -notmatch '(?<!-x) :patches:fixtureTest ' -and -not $flow[3].Contains(':patches:buildAndroid')) `
+        "Preflight's Gradle run reached the fixture tests or the bundle: $($flow[3])"
+    Assert-True ($flow[4] -eq 'facts precheck skipCount=True lag=True skipResults=True priority=release') `
+        "Preflight's facts check was not the lagging-index precheck at release priority: $($flow[4])"
+    Assert-True ((Get-FlowRef $flowOrigin 'refs/heads/main') -eq $flowPrep) 'Preflight did not push the prep commit to main.'
+    Assert-True (-not $env:BUILD_QUEUE_PRIORITY -and $env:HUSHTHREADS_BUILD_WRAPPER -eq $flowWrapper) `
+        'Preflight left its release priority behind, or lost the wrapper it was given.'
+    Invoke-FlowStage -Stage preflight -Version 1.2.3
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gradle prepare | contracts | python pytests | gradle quick | facts precheck') `
+        'Preflight run again pushed a commit origin has.'
+
+    # Pushed but not built: publish wants the tag build makes last, and index still wants a release.
+    Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 } '*Run -Stage build first*' '-Stage publish ran before build tagged the release.'
+    Assert-Throws { Invoke-FlowStage -Stage index -Version 1.2.3 } '*Run -Stage publish first*' '-Stage index ran before the release was published.'
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view') 'A stage refused before build still ran a step.'
+
+    # build wants the folder of Threads fixtures, and one fixture of each declared build in it.
+    $flowStamp = "$(Invoke-FixtureGit -Root $flowRepo -Arguments @('log', '-1', '--format=%ct', 'HEAD') | Select-Object -First 1)".Trim() + '000'
+    [IO.File]::WriteAllText($flowHead, $flowPrep)
+    New-FlowBundle -Stamp $flowStamp
+    $env:HUSHTHREADS_FIXTURE_DIR = Join-Path $releaseFlow 'no-fixtures'
+    Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } '*HUSHTHREADS_FIXTURE_DIR has to name*' 'Build ran with no fixture folder.'
+    $env:HUSHTHREADS_FIXTURE_DIR = $flowFixtures
+    $secondFixture = Join-Path $flowFixtures 'threads-450.0.0.51.78-other.xapk'
+    [IO.File]::WriteAllText($secondFixture, 'fixture')
+    Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } '*Expected one threads-450.0.0.51.78-* fixture in*' `
+        'Build picked one of two fixtures of the same build.'
+    Remove-Item -LiteralPath $secondFixture -Force
+    Assert-True (@(Read-FlowLog).Count -eq 0) 'A refused build still ran a step.'
+
+    # A failing step stops build there, before any tag: the tests, a stale patch list, the bundle,
+    # a bundle stamped 0 or with no dex, the fixture run, the receipt.
+    foreach ($case in @(
+            @{ Step = 'tests'; Seen = 1; Says = '*did not pass*' },
+            @{ Step = 'stale'; Seen = 2; Says = '*patch list is stale*' },
+            @{ Step = 'bundle'; Seen = 3; Says = '*did not pass*' },
+            @{ Step = 'stamp'; Seen = 3; Says = "*stamped '0'*" },
+            @{ Step = 'dex'; Seen = 3; Says = '*no classes.dex*' },
+            @{ Step = 'verify'; Seen = 4; Says = '*did not pass on threads-450.0.0.51.78-arm64.apkm*' },
+            @{ Step = 'receipt'; Seen = 5; Says = '*build-release-receipt.ps1 did not pass*' })) {
+        Set-FlowFail $case.Step
+        if ($case.Step -eq 'stamp') { New-FlowBundle -Stamp '0' } elseif ($case.Step -eq 'dex') { New-FlowBundle -Stamp $flowStamp -NoDex }
+        Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } $case.Says "Build carried on past a failing $($case.Step) step."
+        $flow = @(Read-FlowLog)
+        Assert-True ($flow.Count -eq $case.Seen) "A failing $($case.Step) step in build still ran what follows it: $($flow -join ' | ')"
+        Assert-True (-not (Get-FlowRef $flowRepo 'refs/tags/v1.2.3') -and -not (Get-FlowRef $flowOrigin 'refs/tags/v1.2.3')) `
+            "A failing $($case.Step) step in build left a v1.2.3 tag."
+        Assert-True (-not $env:BUILD_QUEUE_PRIORITY) "A failing $($case.Step) step in build left the release priority behind."
+        New-FlowBundle -Stamp $flowStamp
+        Reset-FlowTree
+    }
+    Set-FlowFail ''
+    Read-QueueLog | Out-Null
+
+    # The release folder starts empty, the tests rerun, the list comes out unchanged, the fixture
+    # is patched once in a queue slot and kept, the receipt reads it in a slot, the four assets and
+    # their sums are written, and only then is the commit tagged and the tag pushed.
+    $oldBundle = Join-Path $flowRepo 'patches/build/release/patches-1.2.2.mpp'
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $oldBundle) | Out-Null
+    [IO.File]::WriteAllText($oldBundle, 'old')
+    Invoke-FlowStage -Stage build -Version 1.2.3
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gradle tests | gradle list | gradle bundle | verify | receipt | push priority=release') `
+        "Build did not test, list, bundle, patch the fixture, write the receipt and push the tag in order: $($flow -join ' | ')"
+    Assert-True ($flow[0].EndsWith((' priority=release tasks= :extensions:threads:testDebugUnitTest --rerun :patches:test --rerun ' +
+                ':extensions:shared:library:lint :extensions:threads:lint '))) "Build's test run was not every test again with both lints: $($flow[0])"
+    Assert-True ($flow[3] -like ('verify apk=threads-450.0.0.51.78-arm64.apkm jar=morphe-desktop-1.0.0.jar ' +
+            'keep=*/patches/build/fixture-apply/threads-450.0.0.51.78-arm64.apkm priority=release')) `
+        "Build did not keep the fixture run where the receipt reads it: $($flow[3])"
+    Assert-True ($flow[4] -like 'receipt fixtures=threads-450.0.0.51.78-arm64.apkm applied=*/patches/build/fixture-apply priority=release') `
+        "Build's receipt did not read the kept run: $($flow[4])"
+    $queued = @(Read-QueueLog)
+    Assert-True (($queued -join ' | ') -eq 'hushthreads release verify threads-450.0.0.51.78-arm64.apkm | hushthreads release receipt') `
+        "Build's fixture run and receipt did not each wait for a slot of the queue: $($queued -join ' | ')"
+    Assert-True (-not (Test-Path -LiteralPath $oldBundle)) 'Build left an older bundle in patches/build/release.'
+    $flowAssets = Join-Path $flowRepo 'build/release-assets/1.2.3'
+    $built = @(Get-ChildItem -LiteralPath $flowAssets -File | ForEach-Object Name | Sort-Object)
+    Assert-True (($built -join ',') -eq 'patches-1.2.3.cdx.json,patches-1.2.3.mpp,release-receipt-1.2.3.json,SHA256SUMS.txt') `
+        "Build did not leave the four release assets: $($built -join ', ')"
+    $flowSums = [IO.File]::ReadAllText((Join-Path $flowAssets 'SHA256SUMS.txt'))
+    $wantedSums = @('patches-1.2.3.mpp', 'patches-1.2.3.cdx.json', 'release-receipt-1.2.3.json' | ForEach-Object {
+            '{0}  {1}' -f (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $flowAssets $_)).Hash.ToLowerInvariant(), $_ })
+    Assert-True ($flowSums -eq (($wantedSums -join "`n") + "`n")) "SHA256SUMS.txt is not one LF line per asset: $flowSums"
+    Assert-True ((Get-FlowRef $flowRepo 'refs/tags/v1.2.3') -eq $flowPrep -and (Get-FlowRef $flowOrigin 'refs/tags/v1.2.3') -eq $flowPrep) `
+        'Build did not tag the prep commit v1.2.3, here and on origin.'
+    Assert-True (-not $env:BUILD_QUEUE_PRIORITY) 'Build left its release priority behind.'
+
+    # Run again, build makes the same assets and leaves the tag, with nothing to push.
+    Invoke-FlowStage -Stage build -Version 1.2.3
+    Read-QueueLog | Out-Null
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gradle tests | gradle list | gradle bundle | verify | receipt') `
+        'Build run again pushed a tag origin has.'
+    Assert-True ([IO.File]::ReadAllText((Join-Path $flowAssets 'SHA256SUMS.txt')) -eq $flowSums) 'Build run again made other assets.'
+    Assert-Throws { Invoke-FlowStage -Stage prepare -Version 1.2.3 } '*already exists*' 'Prepare ran again after v1.2.3 was tagged.'
+
+    # publish wants the notes' opening paragraphs and Update steps the first time.
+    Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 } '*-Intro and -Update*' `
+        'Publish made a release without its opening paragraphs and Update steps.'
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view') 'Publish went past its missing notes.'
+    $flowIntro = Join-Path $releaseFlow 'intro.md'
+    $flowUpdate = Join-Path $releaseFlow 'update.md'
+    [IO.File]::WriteAllText($flowIntro, "The fixture release.`n")
+    [IO.File]::WriteAllText($flowUpdate, "Update the fixture.`n")
+
+    # A hosted asset that differs from the built one stops it, and the description stays on the
+    # release that's out.
+    Set-FlowFail 'corrupt'
+    Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Intro $flowIntro -Update $flowUpdate } '*hosted patches-1.2.3.mpp differs*' `
+        'Publish passed a hosted bundle that differs from the built one.'
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gh release view | python notes | gh release create | gh release download') `
+        "Publish did not write the notes, create the release and download it back in order: $($flow -join ' | ')"
+    Assert-True ($flow[1] -like 'python notes --version 1.2.3 --intro *intro.md --update *update.md --out *notes.md priority=release') `
+        "Publish handed the notes something else: $($flow[1])"
+    Assert-True ($flow[2] -like 'gh release create v1.2.3 -R Owner/Repo --verify-tag --title v1.2.3 --notes-file *notes.md *') `
+        "Publish did not create v1.2.3 on the index's repository from the pushed tag: $($flow[2])"
+    $hosted = @(Get-ChildItem -LiteralPath $flowHosted -File | ForEach-Object Name | Sort-Object)
+    Assert-True (($hosted -join ',') -eq ($built -join ',')) "Publish did not attach the four assets: $($hosted -join ', ')"
+    Assert-True ([IO.File]::ReadAllText($flowDescription) -like 'HushThreads v1.2.2:*') 'Publish moved the description past a hosted asset that differs.'
+    Set-FlowFail ''
+
+    # Run again, publish leaves the release it made, checks the assets and moves the description.
+    # Once more, the description already names the release and isn't edited.
+    Invoke-FlowStage -Stage publish -Version 1.2.3
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gh release view | gh release download | gh repo view | python description | gh repo edit') `
+        "Publish run again did not check the assets, then move the description: $($flow -join ' | ')"
+    Assert-True ([IO.File]::ReadAllText($flowDescription) -eq 'HushThreads v1.2.3: 2 patches for Threads 450.0.0.51.78.') `
+        "Publish left the description at: $([IO.File]::ReadAllText($flowDescription))"
+    Invoke-FlowStage -Stage publish -Version 1.2.3
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view | gh release download | gh repo view | python description') `
+        'Publish run again edited a description that already names the release.'
+
+    # index wants the summary Morphe Manager shows.
+    $flowSummary = Join-Path $releaseFlow 'summary.txt'
+    [IO.File]::WriteAllText($flowSummary, "What changed.`n")
+    Assert-Throws { Invoke-FlowStage -Stage index -Version 1.2.3 } '*-Summary names*' 'Index ran without the summary Morphe Manager shows.'
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view') 'Index wrote the index without its summary.'
+
+    # A failing facts check stops it before the commit, and the next run writes its files again.
+    Set-FlowFail 'facts'
+    Assert-Throws { Invoke-FlowStage -Stage index -Version 1.2.3 -Summary $flowSummary } '*published release facts check did not pass*' `
+        'Index carried on past a failing facts check.'
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view | python index | facts published') 'Index ran past a failing facts check.'
+    Assert-True ((Get-FlowRef $flowRepo 'HEAD') -eq $flowPrep -and (Get-FlowRef $flowOrigin 'refs/heads/main') -eq $flowPrep) `
+        'Index committed or pushed past a failing facts check.'
+    Set-FlowFail ''
+    Invoke-FlowStage -Stage index -Version 1.2.3 -Summary $flowSummary
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gh release view | python index | facts published | push priority=release') `
+        "Index did not write the index, check it against the published assets and push it in order: $($flow -join ' | ')"
+    Assert-True ($flow[1] -like 'python index --version 1.2.3 --created 2026-10-09T18:30:05 --summary *summary.txt priority=release') `
+        "Index did not date the index from the publish time in UTC with no zone: $($flow[1])"
+    Assert-True ($flow[2] -eq 'facts published artifact=patches-1.2.3.mpp receipt=release-receipt-1.2.3.json priority=release') `
+        "Index did not check the facts against the bundle and receipt built here: $($flow[2])"
+    $flowIndex = Get-FlowRef $flowRepo 'HEAD'
+    $indexSubject = "$(Invoke-FixtureGit -Root $flowRepo -Arguments @('log', '-1', '--format=%s', 'HEAD') | Select-Object -First 1)".Trim()
+    $indexChanged = @(Invoke-FixtureGit -Root $flowRepo -Arguments @('show', '--name-only', '--format=', 'HEAD') |
+            ForEach-Object { "$_".Trim() } | Where-Object { $_ } | Sort-Object)
+    Assert-True ($indexSubject -eq 'chore(release): point the index at v1.2.3' -and
+        ($indexChanged -join ',') -eq '.github/ISSUE_TEMPLATE/bug_report.yml,patches-bundle.json') `
+        "Index's commit is '$indexSubject' over $($indexChanged -join ', ')."
+    Assert-True ((Get-FlowRef $flowRepo 'HEAD^') -eq $flowPrep -and (Get-FlowRef $flowOrigin 'refs/heads/main') -eq $flowIndex) `
+        'Index did not push one commit on top of the prep commit.'
+
+    # An index commit origin doesn't have is checked and pushed again, not made twice, and one
+    # origin has is left as it is.
+    Invoke-FixtureGit -Root $flowRepo -Arguments @('push', '--quiet', '--force', 'origin', 'HEAD^:refs/heads/main') | Out-Null
+    Read-FlowLog | Out-Null
+    Invoke-FlowStage -Stage index -Version 1.2.3
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view | facts published | push priority=release') `
+        'Index did not check and push again the index commit origin was missing.'
+    Assert-True ((Get-FlowRef $flowRepo 'HEAD') -eq $flowIndex -and (Get-FlowRef $flowOrigin 'refs/heads/main') -eq $flowIndex) `
+        'Index made a second index commit instead of pushing the first.'
+    Invoke-FlowStage -Stage index -Version 1.2.3
+    Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view') 'Index run again after its push did more than see it done.'
+    Assert-True ((Get-FlowRef $flowRepo 'HEAD') -eq $flowIndex) 'Index run again after its push moved HEAD.'
+    Assert-True (-not $env:BUILD_QUEUE_PRIORITY -and $env:HUSHTHREADS_PYTHON -eq $flowPython) `
+        'A release stage left its priority behind, or lost the Python it was given.'
+} finally {
+    foreach ($name in $flowNames) { [Environment]::SetEnvironmentVariable($name, $flowBefore[$name], 'Process') }
+    Remove-Item -LiteralPath Function:\gh -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $releaseFlow -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host '[scripts] release stage contracts passed'
 
 # --- tracked files name no machine -----------------------------------------------------------
 #
@@ -6011,6 +6909,14 @@ try {
 }
 
 Write-Host '[scripts] upstream drift contracts passed'
+
+# The queue the suite started with, and the stand-in's folder gone.
+foreach ($queueName in 'Script', 'Ticket') {
+    $variable = "Env:\BUILD_QUEUE_$($queueName.ToUpperInvariant())"
+    if ($queueBefore[$queueName]) { Set-Item -LiteralPath $variable -Value $queueBefore[$queueName] }
+    else { Remove-Item -LiteralPath $variable -ErrorAction SilentlyContinue }
+}
+Remove-Item -LiteralPath $queueStandIn -Recurse -Force -ErrorAction SilentlyContinue
 
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'

@@ -1,7 +1,6 @@
 package dev.twitchpatches.patches.twitch.promotions
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -26,13 +25,14 @@ private const val POLICY = "Ldev/twitchpatches/extension/promotions/PromotionSet
 @Suppress("unused")
 val hideTurboPromotionsPatch = bytecodePatch(
     name = "Hide Turbo promotions",
-    description = "Hides Turbo entries, upsells and purchase buttons.",
+    description = "Hides Twitch Turbo promotions and purchase prompts.",
     default = true,
 ) {
-    compatibleWith(TwitchTarget.candidateCompatibility)
+    compatibleWith(TwitchTarget.compatibility)
     dependsOn(settingsPatch, reactNativeBridgePatch, reactNativeTurboPatch)
     execute {
         hideTurboHomeTab()
+        hideTurboStartupOffer()
         val settings = resolveSettingsHooks()
         val owner = classDefBy(settings.row.definingClass)
         val group = owner.methods.filter { it.returnType == "V" && AccessFlags.STATIC.isSet(it.accessFlags) &&

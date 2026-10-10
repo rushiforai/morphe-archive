@@ -105,27 +105,52 @@ class MaterialYouTokenFixtureTest {
          * helper there. 581 has the same 18 calls under other names (looked at 2026-10-02): `Cuj.A02`,
          * `FMh.A00`, `c0D.A0K`, `emC.EwX` (whose six calls ask `gZV.A00`, a dimension read like
          * `gi9.A00`), `epS.DA9`, `fjh.A04`, `fmc`'s constructor and `fmc.A0f`, and Mapbox's three.
+         * 582 has the same 18 calls with the same signatures, each within four instructions of where
+         * 581 had it (2026-10-10): `CM1.A02`, `ksB.A00`, `9MV.A0Q`, `S2K.EzN`, `S47.DCV`, `U0q.A04`,
+         * `U3I`'s constructor and `U3I.A0f`, and Mapbox's three. The 32-bit build has them under
+         * other names again, a few at an instruction or two apart, so each build has its own list.
          */
+        private val MAPBOX = setOf(
+            "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getAccentColor(Landroid/content/Context;)I@13",
+            "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryColor(Landroid/content/Context;)I@13",
+            "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryDarkColor(Landroid/content/Context;)I@13",
+        )
         val UNRESOLVED = mapOf(
-            "581.0.0.45.58" to setOf(
-                "LX/Cuj;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
-                "LX/FMh;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
-                "LX/c0D;->A0K(Ljava/lang/Integer;)V@16",
-                "LX/emC;->EwX(LX/gmM;)V@151",
-                "LX/emC;->EwX(LX/gmM;)V@165",
-                "LX/emC;->EwX(LX/gmM;)V@50",
-                "LX/emC;->EwX(LX/gmM;)V@63",
-                "LX/emC;->EwX(LX/gmM;)V@75",
-                "LX/emC;->EwX(LX/gmM;)V@78",
-                "LX/epS;->DA9(LX/l99;I)V@168",
-                "LX/epS;->DA9(LX/l99;I)V@224",
-                "LX/epS;->DA9(LX/l99;I)V@32",
-                "LX/fjh;->A04(LX/fjh;LX/fs6;)V@9",
-                "LX/fmc;-><init>(Landroid/content/Context;)V@111",
-                "LX/fmc;->A0f()V@35",
-                "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getAccentColor(Landroid/content/Context;)I@13",
-                "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryColor(Landroid/content/Context;)I@13",
-                "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryDarkColor(Landroid/content/Context;)I@13",
+            "582.0.0.50.54" to mapOf(
+                "arm64-v8a" to MAPBOX + setOf(
+                    "LX/9MV;->A0Q(Ljava/lang/Integer;)V@16",
+                    "LX/CM1;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
+                    "LX/S2K;->EzN(LX/UrJ;)V@155",
+                    "LX/S2K;->EzN(LX/UrJ;)V@169",
+                    "LX/S2K;->EzN(LX/UrJ;)V@54",
+                    "LX/S2K;->EzN(LX/UrJ;)V@67",
+                    "LX/S2K;->EzN(LX/UrJ;)V@79",
+                    "LX/S2K;->EzN(LX/UrJ;)V@82",
+                    "LX/S47;->DCV(LX/6CH;I)V@169",
+                    "LX/S47;->DCV(LX/6CH;I)V@226",
+                    "LX/S47;->DCV(LX/6CH;I)V@32",
+                    "LX/U0q;->A04(LX/U0q;LX/U6D;)V@9",
+                    "LX/U3I;-><init>(Landroid/content/Context;)V@114",
+                    "LX/U3I;->A0f()V@35",
+                    "LX/ksB;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
+                ),
+                "armeabi-v7a" to MAPBOX + setOf(
+                    "LX/9Pn;->A0Q(Ljava/lang/Integer;)V@16",
+                    "LX/CQK;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
+                    "LX/ctJ;->EzQ(LX/eig;)V@154",
+                    "LX/ctJ;->EzQ(LX/eig;)V@168",
+                    "LX/ctJ;->EzQ(LX/eig;)V@54",
+                    "LX/ctJ;->EzQ(LX/eig;)V@67",
+                    "LX/ctJ;->EzQ(LX/eig;)V@79",
+                    "LX/ctJ;->EzQ(LX/eig;)V@82",
+                    "LX/cwt;->DCW(LX/6Ct;I)V@171",
+                    "LX/cwt;->DCW(LX/6Ct;I)V@228",
+                    "LX/cwt;->DCW(LX/6Ct;I)V@33",
+                    "LX/dme;->A04(LX/dme;LX/dtT;)V@11",
+                    "LX/dpO;-><init>(Landroid/content/Context;)V@114",
+                    "LX/dpO;->A0f()V@36",
+                    "LX/hUD;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
+                ),
             ),
         )
     }
@@ -515,7 +540,8 @@ class MaterialYouTokenFixtureTest {
         val plain = scan.tokens
         assertEquals("$build: the tokens read as TypedValue data", DATA_READ_TOKENS, plain)
         assertEquals("$build: the tokens resolved where the read isn't checked", UNCHECKED_TOKENS, scan.unchecked.keys)
-        assertEquals("$build: the data reads the scan can't follow", UNRESOLVED[version], scan.unresolved)
+        assertEquals("$build: the data reads the scan can't follow",
+            UNRESOLVED[version]?.get(build.substringAfter("-$version-").substringBefore(".apkm")), scan.unresolved)
 
         val styles = fdsStyles(apk, attributes.values.toSet())
         val light = styles.values.single { it.parent == 0 && it.sets > 300 }

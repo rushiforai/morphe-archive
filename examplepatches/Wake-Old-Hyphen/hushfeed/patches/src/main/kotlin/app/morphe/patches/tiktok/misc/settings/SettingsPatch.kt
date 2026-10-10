@@ -249,7 +249,9 @@ private fun BytecodePatchContext.settingsIconResourceId(): Int {
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Settings",
-    description = "Adds the Hushfeed settings screen to TikTok and keeps its entry first in Settings and privacy.",
+    description = "Adds the Hushfeed settings page to TikTok, at the top of Settings and " +
+        "privacy. That's where you turn Hushfeed's features on and off. Works as soon as you " +
+        "patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")

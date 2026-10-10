@@ -45,6 +45,10 @@ public class StorySeenTest {
     @Before
     public void start() {
         StorySeenForTests.reset();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.VIEW_STORIES_ANONYMOUSLY.save(true);
+        FeedFilterCounters.clear();
+        HookStatus.clear();
     }
 
     @After
@@ -72,8 +76,8 @@ public class StorySeenTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndKeepsEveryBatchBack() {
-        assertTrue("the switch starts off", Settings.VIEW_STORIES_ANONYMOUSLY.get());
+    public void theSwitchStartsOffAndOnKeepsEveryBatchBack() {
+        assertFalse("the switch starts off", Settings.VIEW_STORIES_ANONYMOUSLY.defaultValue);
         assertFalse("the button's switch starts on", Settings.MARK_STORIES_SEEN.get());
         for (int i = 0; i < 3; i++) assertNull("batch " + (i + 1) + " was sent", send(ACCOUNT, cards("a", "b")));
         assertEquals(StorySeen.ROUTE + ": 3 lists, 3 items, 3 removed. Last reason: " + StorySeen.HELD_BACK

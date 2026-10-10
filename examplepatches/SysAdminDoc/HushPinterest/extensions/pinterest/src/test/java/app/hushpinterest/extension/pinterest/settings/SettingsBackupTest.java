@@ -235,12 +235,13 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS,
                         Settings.HIDE_SHOPPING, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING,
-                        Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.EXTERNAL_BROWSER, Settings.SYSTEM_SHARE,
+                        Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.DOWNLOAD_BOARD, Settings.LONG_PRESS_DOWNLOAD,
+                        Settings.EXTERNAL_BROWSER, Settings.SYSTEM_SHARE,
                         Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
                         Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
                         Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
                         Settings.HIDE_PIN_MENU_PIN_BOOST, Settings.HIDE_COMMENTS, Settings.HIDE_TOPIC_SUGGESTIONS,
-                        Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
+                        Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
                         Settings.DISABLE_UPDATE_NAG),
                 SettingsBackup.ALLOWLIST);
     }
@@ -288,7 +289,7 @@ public class SettingsBackupTest {
             assertEquals(setting.key, setting.savedValue(), switches.get(setting.key));
         }
         assertEquals(false, switches.get(Settings.HIDE_ADS.key));
-        assertEquals(true, switches.get(Settings.HIDE_AI_PINS.key));
+        assertEquals(true, switches.get(Settings.STRIP_LINK_TRACKING.key));
         for (Setting<?> setting : Setting.allLoadedSettings()) {
             if (SettingsBackup.ALLOWLIST.contains(setting)) continue;
             assertFalse(setting.key + " is in the file", text.contains(setting.key));
@@ -334,7 +335,7 @@ public class SettingsBackupTest {
         Settings.HIDE_ADS.save(false);
         String file = SettingsBackup.create();
         Settings.HIDE_ADS.save(true);
-        Settings.HIDE_AI_PINS.save(false);
+        Settings.STRIP_LINK_TRACKING.save(false);
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
         assertEquals(2, snapshot.changes().size());
 
@@ -347,7 +348,7 @@ public class SettingsBackupTest {
         assertEquals("commits", 1, counts.commits.get());
         assertEquals("asynchronous applies", 0, counts.applies.get());
         assertFalse(Settings.HIDE_ADS.savedValue());
-        assertTrue(Settings.HIDE_AI_PINS.savedValue());
+        assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
 
         // A file that changes nothing writes nothing.
         Counts none = new Counts();
@@ -360,7 +361,7 @@ public class SettingsBackupTest {
 
     @Test
     public void aFailedCommitIsPutBackAndSaysSo() throws Exception {
-        String file = fileWith(Settings.HIDE_ADS, false, Settings.HIDE_AI_PINS, false);
+        String file = fileWith(Settings.HIDE_ADS, false, Settings.STRIP_LINK_TRACKING, false);
         Map<String, ?> before = store();
         Counts counts = new Counts();
         SettingsBackup.ApplyFailed failure = withStore(
@@ -376,7 +377,7 @@ public class SettingsBackupTest {
         assertTrue("the switches are back, and the failure says they aren't", failure.rolledBack);
         assertEquals(before, store());
         assertTrue(Settings.HIDE_ADS.savedValue());
-        assertTrue(Settings.HIDE_AI_PINS.savedValue());
+        assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
     }
 
     @Test
@@ -405,7 +406,7 @@ public class SettingsBackupTest {
      */
     @Test
     public void everyFailedWriteLeavesTheLiveSwitchesOnWhatTheStoreKeeps() throws Exception {
-        String file = fileWith(Settings.HIDE_ADS, false, Settings.HIDE_AI_PINS, false);
+        String file = fileWith(Settings.HIDE_ADS, false, Settings.STRIP_LINK_TRACKING, false);
         Map<String, ?> before = store();
         for (FailingStore.Fault fault : new FailingStore.Fault[]{FailingStore.Fault.EDIT_THROWS,
                 FailingStore.Fault.STAGE_THROWS, FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.COMMIT_THROWS,
@@ -414,7 +415,7 @@ public class SettingsBackupTest {
             assertTrue(fault + " said the switches may have changed", failure.rolledBack);
             assertEquals(fault + " left the store changed", before, store());
             assertTrue(fault + " left a live switch changed", Settings.HIDE_ADS.savedValue());
-            assertTrue(fault + " left a live switch changed", Settings.HIDE_AI_PINS.savedValue());
+            assertTrue(fault + " left a live switch changed", Settings.STRIP_LINK_TRACKING.savedValue());
         }
     }
 
@@ -424,7 +425,7 @@ public class SettingsBackupTest {
      */
     @Test
     public void aRollbackThatFailsSaysSoAndTheSwitchesHoldWhatTheStoreKept() throws Exception {
-        String file = fileWith(Settings.HIDE_ADS, false, Settings.HIDE_AI_PINS, false);
+        String file = fileWith(Settings.HIDE_ADS, false, Settings.STRIP_LINK_TRACKING, false);
         FailingStore.Fault[][] scripts = {
                 {FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.LOST},
                 {FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.COMMIT_THROWS},
@@ -436,9 +437,9 @@ public class SettingsBackupTest {
             assertFalse(name + " said the switches are back", failure.rolledBack);
             assertEquals(name, false, store().get(Settings.HIDE_ADS.key));
             assertFalse(name + " runs a switch the store doesn't hold", Settings.HIDE_ADS.savedValue());
-            assertFalse(name + " runs a switch the store doesn't hold", Settings.HIDE_AI_PINS.savedValue());
+            assertFalse(name + " runs a switch the store doesn't hold", Settings.STRIP_LINK_TRACKING.savedValue());
             Settings.HIDE_ADS.resetToDefault();
-            Settings.HIDE_AI_PINS.resetToDefault();
+            Settings.STRIP_LINK_TRACKING.resetToDefault();
         }
     }
 
@@ -537,13 +538,13 @@ public class SettingsBackupTest {
             Preference undo = page.findPreference(UNDO_ROW);
             assertNotNull(undo);
             assertTrue(undo.isEnabled());
-            Settings.HIDE_AI_PINS.save(false);
+            Settings.STRIP_LINK_TRACKING.save(false);
             settle();
             assertFalse(undo.isEnabled());
             assertEquals("Undo ended because a saved switch changed.", undo.getSummary().toString());
             assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
             assertFalse(Settings.HIDE_ADS.savedValue());
-            assertFalse("Undo overwrote the later edit", Settings.HIDE_AI_PINS.savedValue());
+            assertFalse("Undo overwrote the later edit", Settings.STRIP_LINK_TRACKING.savedValue());
         }
     }
 
@@ -604,14 +605,14 @@ public class SettingsBackupTest {
         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
         Map<Setting<?>, Object> changed = new LinkedHashMap<>();
         changed.put(Settings.HIDE_ADS, true);
-        changed.put(Settings.HIDE_AI_PINS, false);
+        changed.put(Settings.STRIP_LINK_TRACKING, false);
         Setting.saveAll(changed);
         changed.put(Settings.HIDE_ADS, false);
-        changed.put(Settings.HIDE_AI_PINS, true);
+        changed.put(Settings.STRIP_LINK_TRACKING, true);
         Setting.saveAll(changed);
         assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
         assertFalse(Settings.HIDE_ADS.savedValue());
-        assertTrue(Settings.HIDE_AI_PINS.savedValue());
+        assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
     }
 
     @Test
@@ -620,13 +621,13 @@ public class SettingsBackupTest {
             SettingsBackup.discardUndo();
             Settings.HIDE_ADS.resetToDefault();
             SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
-            Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
-            assertTrue(Setting.preferences.preferences.getBoolean(Settings.HIDE_AI_PINS.key, true));
-            if (batch) Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, false));
-            else assertTrue(Settings.HIDE_AI_PINS.save(false));
+            Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
+            assertTrue(Setting.preferences.preferences.getBoolean(Settings.STRIP_LINK_TRACKING.key, true));
+            if (batch) Setting.saveAll(Collections.singletonMap(Settings.STRIP_LINK_TRACKING, false));
+            else assertTrue(Settings.STRIP_LINK_TRACKING.save(false));
             assertFalse("the requested edit wasn't persisted",
-                    Setting.preferences.preferences.getBoolean(Settings.HIDE_AI_PINS.key, true));
-            Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "true");
+                    Setting.preferences.preferences.getBoolean(Settings.STRIP_LINK_TRACKING.key, true));
+            Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "true");
             assertEquals(batch ? "batch" : "single", SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
             assertFalse(Settings.HIDE_ADS.savedValue());
         }
@@ -638,12 +639,12 @@ public class SettingsBackupTest {
             SettingsBackup.discardUndo();
             Settings.HIDE_ADS.resetToDefault();
             SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
-            long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
-            Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
-            if (batch) Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
-            else assertTrue(Settings.HIDE_AI_PINS.save(true));
-            assertTrue(Settings.HIDE_AI_PINS.savedValue());
-            assertEquals("a stored no-op became an edit", revision, Settings.HIDE_AI_PINS.savedWriteRevision());
+            long revision = Settings.STRIP_LINK_TRACKING.savedWriteRevision();
+            Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
+            if (batch) Setting.saveAll(Collections.singletonMap(Settings.STRIP_LINK_TRACKING, true));
+            else assertTrue(Settings.STRIP_LINK_TRACKING.save(true));
+            assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
+            assertEquals("a stored no-op became an edit", revision, Settings.STRIP_LINK_TRACKING.savedWriteRevision());
             assertEquals(batch ? "batch" : "single", SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
         }
     }
@@ -660,28 +661,28 @@ public class SettingsBackupTest {
                     SettingsBackup.discardUndo();
                     Settings.HIDE_ADS.resetToDefault();
                     if (explicitDefault) {
-                        Setting.preferences.preferences.edit().putBoolean(Settings.HIDE_AI_PINS.key, true).commit();
+                        Setting.preferences.preferences.edit().putBoolean(Settings.STRIP_LINK_TRACKING.key, true).commit();
                     }
                     try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE, fault,
                             FailingStore.Fault.NONE)) {
                         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
                         Map<String, ?> original = store();
-                        long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
-                        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+                        long revision = Settings.STRIP_LINK_TRACKING.savedWriteRevision();
+                        Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
                         if (batch) {
                             try {
-                                Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+                                Setting.saveAll(Collections.singletonMap(Settings.STRIP_LINK_TRACKING, true));
                                 fail(mode + " was reported as saved");
                             } catch (Setting.BatchFailed failed) {
                                 assertTrue(mode, failed.restored);
                             }
                         } else {
-                            assertFalse(mode + " was reported as saved", Settings.HIDE_AI_PINS.save(true));
+                            assertFalse(mode + " was reported as saved", Settings.STRIP_LINK_TRACKING.save(true));
                         }
                         assertEquals(mode, original, store());
-                        assertFalse(mode + " changed the previous live value", Settings.HIDE_AI_PINS.savedValue());
-                        assertEquals(mode, revision, Settings.HIDE_AI_PINS.savedWriteRevision());
-                        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "true");
+                        assertFalse(mode + " changed the previous live value", Settings.STRIP_LINK_TRACKING.savedValue());
+                        assertEquals(mode, revision, Settings.STRIP_LINK_TRACKING.savedWriteRevision());
+                        Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "true");
                         assertEquals(mode, SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
                     }
                 }
@@ -694,7 +695,7 @@ public class SettingsBackupTest {
         for (boolean batch : new boolean[]{false, true}) {
             SettingsBackup.discardUndo();
             Settings.HIDE_ADS.resetToDefault();
-            Settings.HIDE_AI_PINS.resetToDefault();
+            Settings.STRIP_LINK_TRACKING.resetToDefault();
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
                 settle();
@@ -704,15 +705,15 @@ public class SettingsBackupTest {
                     SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
                     settle();
                     Map<String, ?> original = store();
-                    assertEquals("the explicit-default fixture was normalized", true, original.get(Settings.HIDE_AI_PINS.key));
-                    long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
-                    Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+                    assertEquals("the explicit-default fixture was normalized", true, original.get(Settings.STRIP_LINK_TRACKING.key));
+                    long revision = Settings.STRIP_LINK_TRACKING.savedWriteRevision();
+                    Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
                     java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
                     try {
                         java.util.concurrent.Future<Boolean> saved = pool.submit(() -> {
-                            if (!batch) return Settings.HIDE_AI_PINS.save(true);
+                            if (!batch) return Settings.STRIP_LINK_TRACKING.save(true);
                             try {
-                                Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+                                Setting.saveAll(Collections.singletonMap(Settings.STRIP_LINK_TRACKING, true));
                                 return true;
                             } catch (Setting.BatchFailed failed) {
                                 assertTrue(failed.restored);
@@ -720,14 +721,14 @@ public class SettingsBackupTest {
                             }
                         });
                         assertFalse(saved.get(5, TimeUnit.SECONDS));
-                        assertFalse("the failure changed the temporary live value", Settings.HIDE_AI_PINS.savedValue());
+                        assertFalse("the failure changed the temporary live value", Settings.STRIP_LINK_TRACKING.savedValue());
                         assertEquals(original, store());
                         // Restore the temporary value without normalizing the explicitly stored default.
-                        ReflectionHelpers.setField(Settings.HIDE_AI_PINS, "value", true);
+                        ReflectionHelpers.setField(Settings.STRIP_LINK_TRACKING, "value", true);
                         settle();
                         assertEquals("a queued callback rewrote the recovered store", original, store());
                         assertEquals("a rollback callback became an edit", revision,
-                                Settings.HIDE_AI_PINS.savedWriteRevision());
+                                Settings.STRIP_LINK_TRACKING.savedWriteRevision());
                         assertTrue(page.findPreference(UNDO_ROW).isEnabled());
                         assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
                     } finally {
@@ -741,22 +742,22 @@ public class SettingsBackupTest {
     @Test
     public void queuedFailedWriteCallbacksDoNotCountATemporaryLiveMismatchAsASavedEdit() throws Exception {
         for (boolean batch : new boolean[]{false, true}) {
-            Settings.HIDE_AI_PINS.resetToDefault();
+            Settings.STRIP_LINK_TRACKING.resetToDefault();
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 SettingsL10nTest.show(controller.get());
                 settle();
                 preserveAnExplicitAiDefault();
                 Map<String, ?> original = store();
-                long revision = Settings.HIDE_AI_PINS.savedWriteRevision();
-                Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
+                long revision = Settings.STRIP_LINK_TRACKING.savedWriteRevision();
+                Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
                 try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING,
                         FailingStore.Fault.NONE)) {
                     java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
                     try {
                         java.util.concurrent.Future<Boolean> saved = pool.submit(() -> {
-                            if (!batch) return Settings.HIDE_AI_PINS.save(true);
+                            if (!batch) return Settings.STRIP_LINK_TRACKING.save(true);
                             try {
-                                Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+                                Setting.saveAll(Collections.singletonMap(Settings.STRIP_LINK_TRACKING, true));
                                 return true;
                             } catch (Setting.BatchFailed failed) {
                                 assertTrue(failed.restored);
@@ -765,16 +766,16 @@ public class SettingsBackupTest {
                         });
                         assertFalse(saved.get(5, TimeUnit.SECONDS));
                         settle();
-                        assertFalse("a queued callback changed the temporary live value", Settings.HIDE_AI_PINS.savedValue());
+                        assertFalse("a queued callback changed the temporary live value", Settings.STRIP_LINK_TRACKING.savedValue());
                         assertEquals("a queued callback rewrote the recovered store", original, store());
                         assertEquals("a rollback notification became a successful edit", revision,
-                                Settings.HIDE_AI_PINS.savedWriteRevision());
+                                Settings.STRIP_LINK_TRACKING.savedWriteRevision());
                     } finally {
                         pool.shutdownNow();
                     }
                 }
             } finally {
-                Settings.HIDE_AI_PINS.resetToDefault();
+                Settings.STRIP_LINK_TRACKING.resetToDefault();
             }
         }
     }
@@ -783,26 +784,26 @@ public class SettingsBackupTest {
         boolean wasImporting = AbstractPreferenceFragment.settingImportInProgress;
         AbstractPreferenceFragment.settingImportInProgress = true;
         try {
-            assertTrue(Setting.preferences.preferences.edit().putBoolean(Settings.HIDE_AI_PINS.key, true).commit());
-            assertTrue(Settings.HIDE_AI_PINS.save(true));
+            assertTrue(Setting.preferences.preferences.edit().putBoolean(Settings.STRIP_LINK_TRACKING.key, true).commit());
+            assertTrue(Settings.STRIP_LINK_TRACKING.save(true));
         } finally {
             AbstractPreferenceFragment.settingImportInProgress = wasImporting;
         }
         settle();
-        assertEquals("the explicit-default fixture was normalized", true, store().get(Settings.HIDE_AI_PINS.key));
+        assertEquals("the explicit-default fixture was normalized", true, store().get(Settings.STRIP_LINK_TRACKING.key));
     }
 
     @Test
     public void noopsExcludedEditsAndRestoredTransientChoicesKeepUndo() throws Exception {
         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
         assertTrue(Settings.HIDE_ADS.save(false));
-        Setting.saveAll(Collections.singletonMap(Settings.HIDE_AI_PINS, true));
+        Setting.saveAll(Collections.singletonMap(Settings.STRIP_LINK_TRACKING, true));
         assertTrue(Settings.CHECK_FOR_RELEASES.save(true));
         assertTrue(Settings.CHECK_FOR_RELEASES.save(false));
-        BooleanSetting.privateSetValue(Settings.HIDE_AI_PINS, false);
-        BooleanSetting.privateSetValue(Settings.HIDE_AI_PINS, true);
-        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
-        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "true");
+        BooleanSetting.privateSetValue(Settings.STRIP_LINK_TRACKING, false);
+        BooleanSetting.privateSetValue(Settings.STRIP_LINK_TRACKING, true);
+        Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
+        Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "true");
         assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
         assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
         assertTrue(Settings.HIDE_ADS.savedValue());
@@ -828,7 +829,7 @@ public class SettingsBackupTest {
                     if (batch) {
                         Map<Setting<?>, Object> changed = new LinkedHashMap<>();
                         changed.put(Settings.HIDE_ADS, true);
-                        changed.put(Settings.HIDE_AI_PINS, false);
+                        changed.put(Settings.STRIP_LINK_TRACKING, false);
                         try {
                             Setting.saveAll(changed);
                             fail(mode + " was reported as saved");
@@ -840,7 +841,7 @@ public class SettingsBackupTest {
                     }
                     settle();
                     assertFalse(mode + " changed the imported choice", Settings.HIDE_ADS.savedValue());
-                    assertTrue(mode + " changed another switch", Settings.HIDE_AI_PINS.savedValue());
+                    assertTrue(mode + " changed another switch", Settings.STRIP_LINK_TRACKING.savedValue());
                     assertEquals(mode, imported, store());
                     assertEquals(mode, SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
                     assertTrue(mode + " expired Undo", page.findPreference(UNDO_ROW).isEnabled());
@@ -856,19 +857,19 @@ public class SettingsBackupTest {
         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
         SharedPreferences store = Setting.preferences.preferences;
         try {
-            store.edit().putBoolean(Settings.HIDE_AI_PINS.key, false).commit();
-            assertTrue("the live value should still be unchanged", Settings.HIDE_AI_PINS.savedValue());
+            store.edit().putBoolean(Settings.STRIP_LINK_TRACKING.key, false).commit();
+            assertTrue("the live value should still be unchanged", Settings.STRIP_LINK_TRACKING.savedValue());
             assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
             assertFalse(Settings.HIDE_ADS.savedValue());
         } finally {
-            store.edit().remove(Settings.HIDE_AI_PINS.key).commit();
+            store.edit().remove(Settings.STRIP_LINK_TRACKING.key).commit();
         }
         Settings.HIDE_ADS.save(true);
         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
-        Setting.privateSetValueFromString(Settings.HIDE_AI_PINS, "false");
-        assertFalse("the store should still be unchanged", store.contains(Settings.HIDE_AI_PINS.key));
+        Setting.privateSetValueFromString(Settings.STRIP_LINK_TRACKING, "false");
+        assertFalse("the store should still be unchanged", store.contains(Settings.STRIP_LINK_TRACKING.key));
         assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
-        assertFalse("Undo overwrote the later live choice", Settings.HIDE_AI_PINS.savedValue());
+        assertFalse("Undo overwrote the later live choice", Settings.STRIP_LINK_TRACKING.savedValue());
     }
 
     @Test
@@ -926,11 +927,11 @@ public class SettingsBackupTest {
     @Test
     public void aSecondImportKeepsOnlyItsOwnPriorSnapshotAndANoopDoesNotReplaceIt() throws Exception {
         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
-        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_AI_PINS, false)));
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.STRIP_LINK_TRACKING, false)));
         assertEquals(0, SettingsBackup.apply(SettingsBackup.parse(SettingsBackup.create())));
         assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
         assertFalse("Undo restored more than the last import", Settings.HIDE_ADS.savedValue());
-        assertTrue(Settings.HIDE_AI_PINS.savedValue());
+        assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
         assertEquals(SettingsBackup.UndoResult.NOTHING, SettingsBackup.undo());
     }
 
@@ -940,7 +941,7 @@ public class SettingsBackupTest {
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false,
                 Settings.DOWNLOAD_PINS, true, Settings.EXTERNAL_BROWSER, true));
-        String unavailable = "Saved choice only. This build doesn't include this control.";
+        String unavailable = "Your choice is saved, but this build doesn't include the patch for it.";
         assertEquals("3 switches will change.\n\nHide ads (On to Off)\n\nDownload pins (Off to On)\n"
                 + unavailable + "\n\nOpen links in your browser (Off to On)\n" + unavailable,
                 SettingsBackupPreference.previewMessage(snapshot));
@@ -965,7 +966,8 @@ public class SettingsBackupTest {
             assertFalse(language + " has an English name", message.contains("Hide ads ("));
             assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Hide ads"), on, off)));
             assertTrue(language, message.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Download pins"), off, on)));
-            assertTrue(language, message.contains(L10n.t("Saved choice only. This build doesn't include this control.")));
+            assertTrue(language, message.contains(L10n.t("Your choice is saved, but this build doesn't include the "
+                + "patch for it.")));
         }
     }
 
@@ -1020,12 +1022,12 @@ public class SettingsBackupTest {
         for (FailingStore.Fault rollback : new FailingStore.Fault[]{FailingStore.Fault.NONE, FailingStore.Fault.LOST}) {
             SettingsBackup.discardUndo();
             Settings.HIDE_ADS.resetToDefault();
-            Settings.HIDE_AI_PINS.resetToDefault();
+            Settings.STRIP_LINK_TRACKING.resetToDefault();
             try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE,
                     FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, rollback)) {
                 SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
                 try {
-                    SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_AI_PINS, false)));
+                    SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.STRIP_LINK_TRACKING, false)));
                     fail("the second failed import succeeded");
                 } catch (SettingsBackup.ApplyFailed failed) {
                     assertEquals(rollback == FailingStore.Fault.NONE, failed.rolledBack);
@@ -1033,11 +1035,11 @@ public class SettingsBackupTest {
                 if (rollback == FailingStore.Fault.NONE) {
                     assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
                     assertTrue(Settings.HIDE_ADS.savedValue());
-                    assertTrue(Settings.HIDE_AI_PINS.savedValue());
+                    assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
                 } else {
                     assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
                     assertFalse(Settings.HIDE_ADS.savedValue());
-                    assertFalse(Settings.HIDE_AI_PINS.savedValue());
+                    assertFalse(Settings.STRIP_LINK_TRACKING.savedValue());
                 }
             }
         }
@@ -1113,7 +1115,7 @@ public class SettingsBackupTest {
         for (Object bad : new Object[]{"false", "true", 0, 1, JSONObject.NULL, new JSONObject(), new org.json.JSONArray(),
                 1.5}) {
             JSONObject file = new JSONObject(SettingsBackup.create());
-            file.getJSONObject("settings").put(Settings.HIDE_AI_PINS.key, bad);
+            file.getJSONObject("settings").put(Settings.STRIP_LINK_TRACKING.key, bad);
             assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(file.toString()));
         }
     }
@@ -1169,7 +1171,7 @@ public class SettingsBackupTest {
     public void unknownNamesAreCountedAndLeftAlone() throws Exception {
         JSONObject file = new JSONObject(SettingsBackup.create()).put("exported_by", "a newer build");
         file.getJSONObject("settings")
-                .put(Settings.HIDE_AI_PINS.key, false)
+                .put(Settings.STRIP_LINK_TRACKING.key, false)
                 .put(BaseSettings.PAUSED.key, true)
                 .put(BaseSettings.DEBUG.key, true)
                 .put("hushpinterest_kept_by_a_later_version", "whatever that version keeps here");
@@ -1177,24 +1179,24 @@ public class SettingsBackupTest {
         assertEquals(4, snapshot.unknown);
         assertEquals(1, snapshot.changes().size());
         assertEquals(1, SettingsBackup.apply(snapshot));
-        assertFalse(Settings.HIDE_AI_PINS.savedValue());
+        assertFalse(Settings.STRIP_LINK_TRACKING.savedValue());
         assertFalse("a file paused HushPinterest", BaseSettings.PAUSED.savedValue());
         assertFalse("a file turned on debug logging", BaseSettings.DEBUG.savedValue());
     }
 
     @Test
     public void aFileThatNamesSomeSwitchesLeavesTheRestAlone() throws Exception {
-        Settings.HIDE_AI_PINS.save(false);
+        Settings.STRIP_LINK_TRACKING.save(false);
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false));
         assertEquals(1, snapshot.values.size());
         assertEquals(1, SettingsBackup.apply(snapshot));
         assertFalse(Settings.HIDE_ADS.savedValue());
-        assertFalse("a switch the file didn't name was reset", Settings.HIDE_AI_PINS.savedValue());
+        assertFalse("a switch the file didn't name was reset", Settings.STRIP_LINK_TRACKING.savedValue());
     }
 
     @Test
     public void aWaitingImportSurvivesAsABundle() throws Exception {
-        JSONObject file = new JSONObject(fileWith(Settings.HIDE_ADS, false, Settings.HIDE_AI_PINS, true));
+        JSONObject file = new JSONObject(fileWith(Settings.HIDE_ADS, false, Settings.STRIP_LINK_TRACKING, true));
         file.getJSONObject("settings").put("later_switch", true);
         SettingsBackup.Snapshot read = SettingsBackup.parse(file.toString());
         SettingsBackup.Snapshot back = SettingsBackup.Snapshot.fromBundle(read.toBundle());
@@ -1223,13 +1225,13 @@ public class SettingsBackupTest {
     public void malformedRestoredPreviewsAndFilesDoNotChangeSwitchesOrReplaceUndo() throws Exception {
         SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
         Map<String, ?> before = store();
-        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.HIDE_AI_PINS, false));
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.STRIP_LINK_TRACKING, false));
         Bundle wrongSwitches = snapshot.toBundle();
         wrongSwitches.putString("switches", "false");
         Bundle wrongCount = snapshot.toBundle();
         wrongCount.putBoolean("unknown", false);
         Bundle badKnownValue = snapshot.toBundle();
-        badKnownValue.getBundle("switches").putInt(Settings.HIDE_AI_PINS.key, 0);
+        badKnownValue.getBundle("switches").putInt(Settings.STRIP_LINK_TRACKING.key, 0);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
             ShadowAlertDialog.reset();
@@ -1242,7 +1244,7 @@ public class SettingsBackupTest {
                 assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
             }
         }
-        JSONObject wrongFile = new JSONObject(fileWith(Settings.HIDE_AI_PINS, false));
+        JSONObject wrongFile = new JSONObject(fileWith(Settings.STRIP_LINK_TRACKING, false));
         wrongFile.getJSONObject("settings").put(Settings.HIDE_ADS.key, "true");
         assertEquals(SettingsBackup.Reason.VALUE, reasonFor(wrongFile.toString()));
         assertEquals(before, store());
@@ -1253,7 +1255,7 @@ public class SettingsBackupTest {
     @Test
     public void anUnmarshalFailureRejectsTheWholeRestoredPreview() throws Exception {
         Bundle bundle = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)).toBundle();
-        bundle.getBundle("switches").putParcelable(Settings.HIDE_AI_PINS.key, new UnreadableValue());
+        bundle.getBundle("switches").putParcelable(Settings.STRIP_LINK_TRACKING.key, new UnreadableValue());
         Parcel encoded = Parcel.obtain();
         try {
             encoded.writeBundle(bundle);
@@ -1310,7 +1312,7 @@ public class SettingsBackupTest {
     @Config(sdk = {28, 30, 33, 36})
     public void aFileExportedThroughThePickerImportsBackThroughIt() throws Exception {
         Settings.HIDE_ADS.save(false);
-        Settings.HIDE_AI_PINS.save(false);
+        Settings.STRIP_LINK_TRACKING.save(false);
         Map<BooleanSetting, Boolean> exported = new LinkedHashMap<>();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) exported.put(setting, setting.savedValue());
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -1361,7 +1363,7 @@ public class SettingsBackupTest {
     @Test
     public void importReviewsNamedOldAndNewValuesAndWritesThemOnImport() throws Exception {
         JSONObject file = new JSONObject(fileWith(Settings.HIDE_ADS, false,
-                Settings.HIDE_AI_PINS, false));
+                Settings.STRIP_LINK_TRACKING, false));
         file.getJSONObject("settings").put("later_switch", true);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
@@ -1377,7 +1379,7 @@ public class SettingsBackupTest {
             deliver(activity, started, file.toString());
             AlertDialog preview = shownPreview();
             assertEquals("Import settings", String.valueOf(shadowOf(preview).getTitle()));
-            assertEquals("2 switches will change.\n\nHide ads (On to Off)\n\nHide AI-labeled pins (On to Off)"
+            assertEquals("2 switches will change.\n\nHide ads (On to Off)\n\nStrip link tracking (On to Off)"
                     + "\n\n1 item in that file isn't a setting this version of "
                     + "HushPinterest knows, so it'll be left out.", String.valueOf(shadowOf(preview).getMessage()));
             assertEquals("the preview wrote something", before, store());
@@ -1388,7 +1390,7 @@ public class SettingsBackupTest {
             settle();
             assertEquals("Settings imported. 2 switches changed.", ShadowToast.getTextOfLatestToast());
             assertFalse(Settings.HIDE_ADS.savedValue());
-            assertFalse(Settings.HIDE_AI_PINS.savedValue());
+            assertFalse(Settings.STRIP_LINK_TRACKING.savedValue());
             assertFalse("the page still shows the switch on",
                     ((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
             assertNull(page.pendingImport);
@@ -1415,7 +1417,7 @@ public class SettingsBackupTest {
 
     @Test
     public void cancellingThePreviewChangesNothing() throws Exception {
-        String file = fileWith(Settings.HIDE_AI_PINS, false);
+        String file = fileWith(Settings.STRIP_LINK_TRACKING, false);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
@@ -1433,7 +1435,7 @@ public class SettingsBackupTest {
             assertNull(page.pendingImport);
 
             assertEquals(before, store());
-            assertTrue(Settings.HIDE_AI_PINS.savedValue());
+            assertTrue(Settings.STRIP_LINK_TRACKING.savedValue());
             assertNull("a cancelled import said something", ShadowToast.getTextOfLatestToast());
         }
     }
@@ -1462,7 +1464,7 @@ public class SettingsBackupTest {
     @Test
     @Config(sdk = {28, 30, 33, 36})
     public void thePickersAnswerReachesThePageRebuiltBehindIt() throws Exception {
-        String file = fileWith(Settings.HIDE_AI_PINS, false);
+        String file = fileWith(Settings.STRIP_LINK_TRACKING, false);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment asked = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
             ShadowActivity.IntentForResult started = tap(controller.get(), asked, IMPORT_ROW);
@@ -1475,11 +1477,11 @@ public class SettingsBackupTest {
 
             deliver(rebuilt, started, file);
             AlertDialog preview = shownPreview();
-            assertEquals("1 switch will change.\n\nHide AI-labeled pins (On to Off)",
+            assertEquals("1 switch will change.\n\nStrip link tracking (On to Off)",
                     String.valueOf(shadowOf(preview).getMessage()));
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
-            assertFalse(Settings.HIDE_AI_PINS.savedValue());
+            assertFalse(Settings.STRIP_LINK_TRACKING.savedValue());
             assertEquals("Settings imported. 1 switch changed.", ShadowToast.getTextOfLatestToast());
         }
     }
@@ -1506,13 +1508,13 @@ public class SettingsBackupTest {
      */
     @Test
     public void thePreviewComesBackWhenThePageIsRebuilt() throws Exception {
-        String file = fileWith(Settings.HIDE_ADS, false, Settings.HIDE_AI_PINS, false);
+        String file = fileWith(Settings.HIDE_ADS, false, Settings.STRIP_LINK_TRACKING, false);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
             deliver(controller.get(), tap(controller.get(), page, IMPORT_ROW), file);
             AlertDialog first = shownPreview();
             String message = String.valueOf(shadowOf(first).getMessage());
-            assertEquals("2 switches will change.\n\nHide ads (On to Off)\n\nHide AI-labeled pins (On to Off)", message);
+            assertEquals("2 switches will change.\n\nHide ads (On to Off)\n\nStrip link tracking (On to Off)", message);
 
             controller.recreate();
             ShadowLooper.idleMainLooper();
@@ -1525,7 +1527,7 @@ public class SettingsBackupTest {
             again.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertFalse(Settings.HIDE_ADS.savedValue());
-            assertFalse(Settings.HIDE_AI_PINS.savedValue());
+            assertFalse(Settings.STRIP_LINK_TRACKING.savedValue());
             assertNull(SettingsL10nTest.pageOf(dialogOf(controller.get())).pendingImport);
         }
     }

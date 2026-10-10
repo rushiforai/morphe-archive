@@ -61,32 +61,10 @@ private const val LINKED_VIDEO_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/
 @Suppress("unused")
 val feedFilterPatch = bytecodePatch(
     name = "Feed filter",
-    description = "Hides feed ads, including videos with creator commission disclosures and " +
-        "creator posts TikTok runs as ads, TikTok " +
-        "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, " +
-        "AI-generated videos, location-tagged videos, verified accounts, series, mini dramas, playlists, " +
-        "the playlist bar, the floating event badge, inserted cards and the offline videos TikTok " +
-        "slips back into For You. Videos can also be " +
-        "filtered by your own caption words, creator handles or patterns, sound names, length, " +
-        "the country they were posted from, the language of their original caption and their " +
-        "view, like, comment, favorite and share counts. Caption words can also match the " +
-        "text stickers typed over a video. For You can also drop the fill-in " +
-        "videos TikTok sends without picking them for you, and a batch that's all fill-in " +
-        "stays so the feed never runs dry. The Friends tab can show only mutual friends. " +
-        "A short list of creator exceptions lets " +
-        "chosen accounts through the filters on the kind of post, its labels, age, length and " +
-        "counts, and through the fill-in rule. Ads, blocked creators, words, sounds, countries " +
-        "and caption languages, paid and " +
-        "Shop content, LIVE, seen videos and offline videos still apply to them. " +
-        "Sponsored cards are dropped from the profile video viewer, the search grids " +
-        "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
-        "into a video pager after the list has loaded and the ads a creator's video pager asks " +
-        "for on its own. The share prompt that appears after a like can be hidden too, and so " +
-        "can TikTok Shop's Products block and product cards in search results. The LIVE feed " +
-        "you swipe through has its own rules: gaming, shopping, sponsored and verified LIVEs, " +
-        "categories, and viewer and follower ranges. A small label on the Home feed can count " +
-        "what the filter has taken out. " +
-        "Switch: Hushfeed settings > Feed filter.",
+    description = "Hides ads in the feed, and lets you hide other things you don't want to " +
+        "see, like LIVEs, Shop posts, AI videos or videos with words, creators or sounds you " +
+        "pick. Hiding ads is on by default. Everything else starts off in Hushfeed settings > " +
+        "Feed filter.",
     default = true,
 ) {
     category("Feed")

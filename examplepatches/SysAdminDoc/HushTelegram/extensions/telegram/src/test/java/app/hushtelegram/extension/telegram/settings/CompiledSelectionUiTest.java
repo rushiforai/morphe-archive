@@ -63,7 +63,7 @@ public class CompiledSelectionUiTest {
                     .put("passed", true).put("refused", false).put("settings", true).put("flags", flags));
         }
         JSONArray cases = new JSONArray(new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8));
-        assertEquals("both complete bounded fixture matrices are required", 148, cases.length());
+        assertEquals("both complete bounded fixture matrices are required", 150, cases.length());
         Set<String> identities = new HashSet<>();
         int web = 0, beta = 0;
         for (int i = 0; i < cases.length(); i++) {
@@ -75,8 +75,8 @@ public class CompiledSelectionUiTest {
             else if (target.equals("org.telegram.messenger.beta")) beta++;
             else throw new AssertionError("undeclared compiled target");
         }
-        assertEquals(74, web);
-        assertEquals(74, beta);
+        assertEquals(75, web);
+        assertEquals(75, beta);
         return cases;
     }
 
@@ -150,7 +150,7 @@ public class CompiledSelectionUiTest {
             }
         }
         String evidencePath = System.getenv("HUSHTELEGRAM_SELECTION_FACTS");
-        assertEquals(evidencePath == null || evidencePath.isEmpty() ? 1 : 116, screens);
+        assertEquals(evidencePath == null || evidencePath.isEmpty() ? 1 : 118, screens);
     }
 
     @Test
@@ -172,7 +172,11 @@ public class CompiledSelectionUiTest {
                 String prefix = family.patchName + " coverage: ";
                 String coverage = report.stream().filter(line -> line.startsWith(prefix)).findFirst().orElseThrow(AssertionError::new);
                 for (PatchFamily.Capability capability : installed) assertTrue(coverage.contains(capability.label));
-                assertEquals(installed.size() < family.expectedCapabilities().size(), coverage.contains("; missing: "));
+                // A target only some builds carry is never missing where this build didn't get it.
+                assertEquals(installed.size() < family.shownCapabilities().size(), coverage.contains("; missing: "));
+                for (PatchFamily.Capability capability : family.expectedCapabilities()) {
+                    if (capability.onlyWhereCarried && !installed.contains(capability)) assertFalse(coverage.contains(capability.label));
+                }
             }
         }
     }

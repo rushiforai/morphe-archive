@@ -1,0 +1,3 @@
+# Preload only turns "stop" into "continue"
+
+2026-10-03, `e6622d5`, `1cd2b10`. The preload hook sits after the app's LoadControl decision (and after the official `PlaybackBufferPatch`, which hooks the same method) and only turns "stop loading" into "continue" while below its limits; it never stops loading earlier than the app would. So it combines with the official "Playback buffer size": with both, the user gets the larger of the two (at 1080p the official Maximum alone reaches about 650 s; at 4K preload goes past the official 128 MiB cap). The README recommends setting the official option to Maximum alongside.

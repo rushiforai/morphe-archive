@@ -66,9 +66,14 @@ import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 @SuppressWarnings("deprecation")
 public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String FEATURE_GATE_LAB_KEY = "action_feature_gate_lab";
-    private static final String PAUSE_SUMMARY = "From the next start TikTok runs as if it weren't patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.";
+    private static final String PAUSE_SUMMARY = "Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.";
+    /** A switch from a patch left unticked in the Manager is on no page and in no index, and
+     *  nothing else on the screen says so (#29 looked for Fill without its patch). */
+    private static final String NO_MATCHES_SUMMARY = "Try a different word or clear the search. "
+            + "Switches from patches you didn't tick in Morphe Manager aren't listed.";
     private static final int REQUEST_DOWNLOAD_PATH_FOLDER = 8841;
     private static final String ARG_SECTION = "morphe_settings_section";
+    private static final String ARG_HUB = "morphe_settings_hub";
     private static final String ARG_SEARCH = "morphe_settings_search";
     private static final String ARG_TARGET_KEY = "morphe_settings_target_key";
     /** A checklist row's one box: the setting key of the member search landed on. */
@@ -94,6 +99,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private List<SearchResult> searchIndex;
     private final List<Preference> searchRows = new ArrayList<>();
     private SettingsSearchInputPreference searchInput;
+    private SettingsHeaderPreference masterHeader;
 
     /**
      * Each section carries one sentence, used both as the subtitle on the home row and as the
@@ -120,6 +126,23 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         final String description;
 
         Section(String title, String description) {
+            this.title = title;
+            this.description = description;
+        }
+    }
+
+    /** Navigation groups only. Leaf section names and persisted setting keys stay unchanged. */
+    private enum Hub {
+        FEED_LAYOUT("Feed & layout", "Filters, tabs and on-screen controls"),
+        COMMENTS_INBOX("Comments & inbox", "Filters, translation and inbox controls"),
+        DOWNLOADS_SHARING("Downloads & sharing", "Files, subtitles and share sheet"),
+        APP_ADVANCED("App & advanced", "Region, backups and diagnostics"),
+        ABOUT("About Hushfeed", "Version, changes and licenses");
+
+        final String title;
+        final String description;
+
+        Hub(String title, String description) {
             this.title = title;
             this.description = description;
         }
@@ -469,8 +492,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         setPreferenceScreen(preferenceScreen);
 
         Section section = getRequestedSection();
+        Hub hub = getRequestedHub();
         if (isSearchRequested()) {
             createSearchMenu(context, preferenceScreen);
+        } else if (hub != null) {
+            createHubMenu(context, preferenceScreen, hub);
         } else if (section == null) {
             createMasterMenu(context, preferenceScreen);
         } else {
@@ -571,6 +597,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // taken out and put back so the list rebinds the count.
         if (shown) screen.removePreference(restartPending);
         if (owed) screen.addPreference(restartPending);
+        if (masterHeader != null) masterHeader.refreshStatus();
 
         String generic = L10n.t(context, TogglePreference.RESTART_SENTENCE);
         // The sentence it replaces ends in a full stop and sits inside prose ("... Restart
@@ -612,7 +639,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             list.setCacheColorHint(SettingsUi.background());
             list.setDivider(null);
             list.setDividerHeight(0);
-            list.setPadding(SettingsUi.dp(getActivity(), 16), 0, SettingsUi.dp(getActivity(), 16), SettingsUi.dp(getActivity(), 24));
+            int side = getRequestedSection() == null && getRequestedHub() == null
+                    && !isSearchRequested() ? 24 : 16;
+            list.setPadding(SettingsUi.dp(getActivity(), side), 0,
+                    SettingsUi.dp(getActivity(), side), SettingsUi.dp(getActivity(), 24));
             list.setClipToPadding(false);
             list.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         }
@@ -753,6 +783,17 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         return arguments != null && arguments.getBoolean(ARG_SEARCH, false);
     }
 
+    private Hub getRequestedHub() {
+        Bundle arguments = getArguments();
+        String name = arguments == null ? null : arguments.getString(ARG_HUB);
+        if (name == null) return null;
+        try {
+            return Hub.valueOf(name);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
     private String getTargetKey() {
         Bundle arguments = getArguments();
         if (arguments == null) {
@@ -784,10 +825,18 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
         // Folding happens before the empty check: a query of nothing but accent marks is not
         // empty as typed but folds away to nothing, and every setting contains "".
-        String normalizedQuery = normalizeSearchText(query == null ? "" : query.trim());
+        String typed = query == null ? "" : query.trim();
+        String normalizedQuery = normalizeSearchText(typed);
         if (normalizedQuery.isEmpty()) {
-            if (searchInput != null) searchInput.hideResultCount();
-            addSearchState("Start typing", "Search by name, description or category.");
+            if (typed.isEmpty()) {
+                if (searchInput != null) searchInput.hideResultCount();
+                addSearchState("Start typing", "Search by name, description or category.");
+            } else {
+                // "???" folds to nothing as well. Start typing, under a box with text in it,
+                // read as if the search had ignored it.
+                if (searchInput != null) searchInput.showResultCount(0);
+                addSearchState("No matching settings", NO_MATCHES_SUMMARY);
+            }
             return;
         }
 
@@ -815,10 +864,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         matches.addAll(insideWords);
         if (searchInput != null) searchInput.showResultCount(matches.size());
         if (matches.isEmpty()) {
-            // A switch from a patch left unticked in the Manager is on no page and in no index, and
-            // nothing else on the screen says so (#29 looked for Fill without its patch).
-            addSearchState("No matching settings", "Try a different word or clear the search. Switches "
-                    + "from patches you didn't tick in Morphe Manager aren't listed.");
+            addSearchState("No matching settings", NO_MATCHES_SUMMARY);
             return;
         }
 
@@ -835,6 +881,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     LicensesPreference.show(getActivity());
                 } else if (MorpheTikTokAboutPreference.KEY.equals(result.key)) {
                     Utils.openLink(MorpheTikTokAboutPreference.SOURCE_URL);
+                } else if (BaseSettings.PAUSED.key.equals(result.key)) {
+                    openHub(Hub.APP_ADVANCED, result.key);
+                } else if (BuildDetailsPreference.KEY.equals(result.key)
+                        || ReleaseNotes.KEY.equals(result.key)) {
+                    openHub(Hub.ABOUT, result.key);
                 } else {
                     openSection(result.section, result.key, result.member);
                 }
@@ -952,44 +1003,69 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             indexRows(results, category, section, categoryTitle);
             scratch.removePreference(category);
         }
-        // This row opens its own fragment from the master menu rather than living in one of the
-        // section categories walked above. Without an explicit entry, both its title and its
-        // summary returned zero results on a patched phone even though the row was visible.
+        // The rows below sit on the App & advanced and About Hushfeed pages, outside the section
+        // categories walked above, so each is indexed by hand. Their category line names the
+        // page a reader finds them on; it said "Settings" for all of them, which is no page.
+        String appAdvanced = L10n.t(context, Hub.APP_ADVANCED.title);
+        String about = L10n.t(context, Hub.ABOUT.title);
+        // Without an explicit entry, the Lab's title and summary returned zero results on a
+        // patched phone even though the row was visible.
         if (featureGateLabInstalled) {
             results.add(new SearchResult(
                     null,
                     FEATURE_GATE_LAB_KEY,
                     L10n.t(context, "Feature Gate Lab"),
-                    L10n.t(context, "Search and override gates"),
-                    L10n.t(context, "Settings")
+                    L10n.t(context, "Advanced. Find and force the hidden switches TikTok uses "
+                            + "to test features."),
+                    appAdvanced,
+                    "override gates"
             ));
         }
-        // Pause Hushfeed sits on the master menu too, and it is what a reader asking whether a
-        // problem is Hushfeed's searches for.
+        // Pause Hushfeed is what a reader asking whether a problem is Hushfeed's searches for.
         results.add(new SearchResult(
                 null,
                 BaseSettings.PAUSED.key,
                 L10n.t(context, "Pause Hushfeed"),
                 L10n.t(context, PAUSE_SUMMARY),
-                L10n.t(context, "Settings")
+                appAdvanced
         ));
-        // The About row sits on the master menu beside the Lab, so it is indexed the same way.
         // Its summary carries the bundle version, which is what a reporter searches for.
         results.add(new SearchResult(
                 null,
                 MorpheTikTokAboutPreference.KEY,
                 "Hushfeed",
                 MorpheTikTokAboutPreference.currentSummary(context).toString(),
-                L10n.t(context, "Settings")
+                about
         ));
-        // Somebody looking for "licence" or "notice" is looking for exactly one thing, and it
-        // sits on the master menu beside About rather than inside a section.
+        // Searching "build" or "patches" found nothing, and the empty state then blamed patches
+        // left unticked in Morphe Manager, while the row that lists them sat on About Hushfeed.
+        results.add(new SearchResult(
+                null,
+                BuildDetailsPreference.KEY,
+                L10n.t(context, "Build details"),
+                L10n.t(context, BuildDetailsPreference.SUMMARY),
+                about,
+                "version"
+        ));
+        // What's new is on About Hushfeed only until its notes are read, and so is its result.
+        String releaseVersion = Utils.getPatchesReleaseVersion();
+        if (ReleaseNotes.pending(context, releaseVersion)) {
+            results.add(new SearchResult(
+                    null,
+                    ReleaseNotes.KEY,
+                    L10n.t(context, "What's new"),
+                    L10n.f(context, "Changes in Hushfeed %1$s", ReleaseNotes.rowVersion(context, releaseVersion)),
+                    about,
+                    "release notes changelog"
+            ));
+        }
+        // Somebody looking for "licence" or "notice" is looking for exactly one thing.
         results.add(new SearchResult(
                 null,
                 LicensesPreference.KEY,
                 LicensesPreference.title(context),
                 LicensesPreference.summary(context),
-                L10n.t(context, "Settings")
+                about
         ));
         return results;
     }
@@ -1130,158 +1206,137 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     private void createMasterMenu(Context context, PreferenceScreen screen) {
-        screen.addPreference(SettingsHeaderPreference.master(context, this::closeSettings));
-        boolean diagnosticsAvailable = DebugPreferenceCategory.isAvailable();
-        SettingsStatusPreference status = new SettingsStatusPreference(
-                context,
-                diagnosticsAvailable ? () -> openSection(Section.DIAGNOSTICS) : null);
-        status.setTurnBackOnAction(this::turnHushfeedBackOn);
-        screen.addPreference(status);
-
-        SettingsMenuPreference search = new SettingsMenuPreference(
-                context,
-                "Search settings",
-                "Find a setting by name or description",
-                SettingsMenuPreference.Icon.SEARCH,
-                0,
+        masterHeader = SettingsHeaderPreference.master(context, this::closeSettings,
+                () -> openHub(Hub.APP_ADVANCED));
+        screen.addPreference(masterHeader);
+        SettingsSearchEntryPreference search = new SettingsSearchEntryPreference(context,
                 preference -> {
                     openSearch();
                     return true;
-                }
-        );
+                });
         search.setKey("action_search_settings");
         search.setOrder(-900);
         screen.addPreference(search);
+        screen.addPreference(SectionHeadingPreference.compact(context, "Customize"));
 
-        String releaseVersion = Utils.getPatchesReleaseVersion();
-        if (ReleaseNotes.pending(context, releaseVersion)) {
-            SettingsMenuPreference notes = new SettingsMenuPreference(
-                    context,
-                    L10n.t(context, "What's new"),
-                    L10n.f(context, "Changes in Hushfeed %1$s", ReleaseNotes.rowVersion(context, releaseVersion)),
-                    SettingsMenuPreference.Icon.NEWS,
-                    0,
-                    preference -> {
-                        ReleaseNotes.show(context, releaseVersion,
-                                () -> screen.removePreference(preference));
-                        return true;
-                    });
-            notes.setKey(ReleaseNotes.KEY);
-            notes.setOrder(-850);
-            screen.addPreference(notes);
-        }
-
-        List<SettingsQuickActionsPreference.Action> quickRoutes = new ArrayList<>();
-        if (FeedFilterPreferenceCategory.isAvailable()) {
-            quickRoutes.add(new SettingsQuickActionsPreference.Action(
-                    L10n.t(context, Section.FEED_FILTER.title),
-                    SettingsQuickActionsPreference.FEED_TAG,
-                    SettingsMenuPreference.Icon.FILTER,
-                    () -> openSection(Section.FEED_FILTER)));
-        }
-        if (PrivacyPreferenceCategory.isAvailable()) {
-            quickRoutes.add(new SettingsQuickActionsPreference.Action(
-                    L10n.t(context, Section.PRIVACY.title),
-                    SettingsQuickActionsPreference.PRIVACY_TAG,
-                    SettingsMenuPreference.Icon.PRIVACY,
-                    () -> openSection(Section.PRIVACY)));
-        }
-        if (ScreenTimePreferenceCategory.isAvailable()) {
-            quickRoutes.add(new SettingsQuickActionsPreference.Action(
-                    L10n.t(context, Section.SCREEN_TIME.title),
-                    SettingsQuickActionsPreference.SCREEN_TIME_TAG,
-                    SettingsMenuPreference.Icon.SCREEN_TIME,
-                    () -> openSection(Section.SCREEN_TIME)));
-        }
-        if (!quickRoutes.isEmpty()) {
-            screen.addPreference(new SettingsQuickActionsPreference(context, quickRoutes));
-        }
-
-        // Four groups, each a card of its own under a heading, and a heading only shows when
-        // the bundle gives its group at least one page. Every page answers for itself, from
-        // the page, so a row and its page cannot drift apart.
-        boolean feed = FeedFilterPreferenceCategory.isAvailable()
+        if (FeedFilterPreferenceCategory.isAvailable()
                 || FeedNavigationPreferenceCategory.isAvailable()
-                || InterfacePreferenceCategory.isAvailable();
-        if (feed) addHeading(screen, "Your feed");
-        if (FeedFilterPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.FEED_FILTER, SettingsMenuPreference.Icon.FILTER);
+                || InterfacePreferenceCategory.isAvailable()) {
+            addHub(screen, Hub.FEED_LAYOUT, SettingsMenuPreference.Icon.FEED);
         }
-        if (FeedNavigationPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.FEED_NAVIGATION, SettingsMenuPreference.Icon.TABS);
-        }
-        if (InterfacePreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.INTERFACE, SettingsMenuPreference.Icon.LAYOUT);
-        }
-
-        boolean watching = PlaybackPreferenceCategory.isAvailable()
-                || ScreenTimePreferenceCategory.isAvailable()
-                || CommentsPreferenceCategory.isAvailable()
-                || DownloadsPreferenceCategory.isAvailable()
-                || SharePreferenceCategory.isAvailable()
-                || InboxPreferenceCategory.isAvailable();
-        if (watching) addHeading(screen, "Watching and sharing");
         if (PlaybackPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.PLAYBACK, SettingsMenuPreference.Icon.PLAYBACK);
+            addMenu(screen, Section.PLAYBACK, SettingsMenuPreference.Icon.PLAYBACK, true);
+        }
+        if (PrivacyPreferenceCategory.isAvailable()) {
+            addMenu(screen, Section.PRIVACY, SettingsMenuPreference.Icon.PRIVACY, true);
+        }
+        if (CommentsPreferenceCategory.isAvailable() || InboxPreferenceCategory.isAvailable()) {
+            addHub(screen, Hub.COMMENTS_INBOX, SettingsMenuPreference.Icon.COMMENTS);
+        }
+        if (DownloadsPreferenceCategory.isAvailable() || SharePreferenceCategory.isAvailable()) {
+            addHub(screen, Hub.DOWNLOADS_SHARING, SettingsMenuPreference.Icon.DOWNLOADS);
         }
         if (ScreenTimePreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.SCREEN_TIME, SettingsMenuPreference.Icon.SCREEN_TIME);
+            addMenu(screen, Section.SCREEN_TIME, SettingsMenuPreference.Icon.SCREEN_TIME, true);
         }
-        if (CommentsPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.COMMENTS, SettingsMenuPreference.Icon.COMMENTS);
-        }
-        if (DownloadsPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.DOWNLOADS, SettingsMenuPreference.Icon.DOWNLOADS);
-        }
-        if (SharePreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.SHARE, SettingsMenuPreference.Icon.SHARE);
-        }
-        if (InboxPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.INBOX, SettingsMenuPreference.Icon.INBOX);
-        }
+        addHub(screen, Hub.APP_ADVANCED, SettingsMenuPreference.Icon.APP);
+        addHub(screen, Hub.ABOUT, SettingsMenuPreference.Icon.ABOUT);
+    }
 
-        // Backup and restore needs no patch, so this group and its heading always exist.
-        addHeading(screen, "Privacy and system");
-        if (PrivacyPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.PRIVACY, SettingsMenuPreference.Icon.PRIVACY);
-        }
-        if (SimSpoofPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.REGION, SettingsMenuPreference.Icon.REGION);
-        }
-        if (ExtensionPreferenceCategory.isAvailable()) {
-            addMenu(screen, Section.BEHAVIOR, SettingsMenuPreference.Icon.BEHAVIOR);
-        }
-        screen.addPreference(pauseRow(context));
+    private void addHub(PreferenceScreen screen, Hub hub, SettingsMenuPreference.Icon icon) {
+        String summary = hub == Hub.ABOUT ? "" : hub.description;
+        SettingsMenuPreference row = new SettingsMenuPreference(getActivity(), hub.title,
+                summary, icon, 0, preference -> {
+                    openHub(hub);
+                    return true;
+                });
+        row.setKey("hub_" + hub.name().toLowerCase(java.util.Locale.ROOT));
+        row.setCompact(true);
+        screen.addPreference(row);
+    }
 
-        if (FeatureGateLabRuntime.isInstalled()) {
-            SettingsMenuPreference featureGateLab = new SettingsMenuPreference(
-                    context,
-                    L10n.t(context, "Feature Gate Lab"),
-                    L10n.t(context, "Search and override gates"),
-                    SettingsMenuPreference.Icon.LAB,
-                    0,
-                    preference -> {
-                        FeatureGateLabFragment.open(getActivity());
-                        return true;
-                    }
-            );
-            // Stable key for settings search, UI automation and accessibility inspection.
-            featureGateLab.setKey(FEATURE_GATE_LAB_KEY);
-            screen.addPreference(featureGateLab);
+    private void createHubMenu(Context context, PreferenceScreen screen, Hub hub) {
+        screen.addPreference(SettingsHeaderPreference.section(context, hub.title, this::navigateBack));
+        screen.addPreference(SettingsHeaderPreference.caption(context, hub.description));
+        switch (hub) {
+            case FEED_LAYOUT:
+                if (FeedFilterPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.FEED_FILTER, SettingsMenuPreference.Icon.FILTER);
+                }
+                if (FeedNavigationPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.FEED_NAVIGATION, SettingsMenuPreference.Icon.TABS);
+                }
+                if (InterfacePreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.INTERFACE, SettingsMenuPreference.Icon.LAYOUT);
+                }
+                break;
+            case COMMENTS_INBOX:
+                if (CommentsPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.COMMENTS, SettingsMenuPreference.Icon.COMMENTS);
+                }
+                if (InboxPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.INBOX, SettingsMenuPreference.Icon.INBOX);
+                }
+                break;
+            case DOWNLOADS_SHARING:
+                if (DownloadsPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.DOWNLOADS, SettingsMenuPreference.Icon.DOWNLOADS);
+                }
+                if (SharePreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.SHARE, SettingsMenuPreference.Icon.SHARE);
+                }
+                break;
+            case APP_ADVANCED:
+                // Detailed state and recovery belong beside maintenance controls, while the
+                // home header carries a compact state label that opens this page.
+                SettingsStatusPreference status = new SettingsStatusPreference(context,
+                        DebugPreferenceCategory.isAvailable() ? () -> openSection(Section.DIAGNOSTICS) : null);
+                status.setTurnBackOnAction(this::turnHushfeedBackOn);
+                screen.addPreference(status);
+                if (ExtensionPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.BEHAVIOR, SettingsMenuPreference.Icon.BEHAVIOR);
+                }
+                if (SimSpoofPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.REGION, SettingsMenuPreference.Icon.REGION);
+                }
+                addMenu(screen, Section.BACKUP, SettingsMenuPreference.Icon.BACKUP);
+                if (DebugPreferenceCategory.isAvailable()) {
+                    addMenu(screen, Section.DIAGNOSTICS, SettingsMenuPreference.Icon.DIAGNOSTICS);
+                }
+                if (FeatureGateLabRuntime.isInstalled()) addFeatureGateLab(screen);
+                screen.addPreference(pauseRow(context));
+                break;
+            case ABOUT:
+                screen.addPreference(new BuildDetailsPreference(context));
+                addReleaseNotes(context, screen);
+                screen.addPreference(new MorpheTikTokAboutPreference(context));
+                screen.addPreference(new LicensesPreference(context));
+                break;
         }
+    }
 
-        if (diagnosticsAvailable) {
-            addMenu(screen, Section.DIAGNOSTICS, SettingsMenuPreference.Icon.DIAGNOSTICS);
-        }
-        addMenu(screen, Section.BACKUP, SettingsMenuPreference.Icon.BACKUP);
+    private void addFeatureGateLab(PreferenceScreen screen) {
+        SettingsMenuPreference lab = new SettingsMenuPreference(getActivity(), "Feature Gate Lab",
+                "Advanced. Find and force the hidden switches TikTok uses to test features.",
+                SettingsMenuPreference.Icon.LAB, 0, preference -> {
+                    FeatureGateLabFragment.open(getActivity());
+                    return true;
+                });
+        lab.setKey(FEATURE_GATE_LAB_KEY);
+        screen.addPreference(lab);
+    }
 
-        addHeading(screen, "About");
-        screen.addPreference(new BuildDetailsPreference(context));
-        screen.addPreference(new MorpheTikTokAboutPreference(context));
-        // Under About, because that is where somebody looks for who wrote this. Morphe's
-        // Section 7b asks that its notice reach the person using the software, and a file in the
-        // repository does not reach them.
-        screen.addPreference(new LicensesPreference(context));
+    private void addReleaseNotes(Context context, PreferenceScreen screen) {
+        String releaseVersion = Utils.getPatchesReleaseVersion();
+        if (!ReleaseNotes.pending(context, releaseVersion)) return;
+        SettingsMenuPreference notes = new SettingsMenuPreference(context, "What's new",
+                L10n.f(context, "Changes in Hushfeed %1$s", ReleaseNotes.rowVersion(context, releaseVersion)),
+                SettingsMenuPreference.Icon.NEWS, 0, preference -> {
+                    ReleaseNotes.show(context, releaseVersion, () -> screen.removePreference(preference));
+                    return true;
+                });
+        notes.setKey(ReleaseNotes.KEY);
+        screen.addPreference(notes);
     }
 
     /**
@@ -1347,11 +1402,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private void refreshStatusCard() {
         Preference status = findPreference(SettingsStatusPreference.KEY);
         if (status instanceof SettingsStatusPreference) ((SettingsStatusPreference) status).refresh();
-    }
-
-    /** A group heading on the master menu, which the list adapter treats as a card boundary. */
-    private void addHeading(PreferenceScreen screen, String title) {
-        screen.addPreference(new SectionHeadingPreference(getActivity(), title, true));
+        if (masterHeader != null) masterHeader.refreshStatus();
     }
 
     /** The master menu's rows and the section each one opens, for the badge refresh. */
@@ -1367,7 +1418,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             Section section,
             SettingsMenuPreference.Icon icon
     ) {
-        String description = L10n.t(getActivity(), section.description);
+        addMenu(screen, section, icon, false);
+    }
+
+    private void addMenu(PreferenceScreen screen, Section section,
+            SettingsMenuPreference.Icon icon, boolean compact) {
+        String description = L10n.t(getActivity(), compact && section == Section.SCREEN_TIME
+                ? "Budgets and reminders" : section.description);
         if (description.endsWith(".")) {
             description = description.substring(0, description.length() - 1);
         }
@@ -1376,14 +1433,16 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 section.title,
                 description,
                 icon,
-                countChangedSettings(getActivity(), section),
+                compact ? 0 : countChangedSettings(getActivity(), section),
                 preference -> {
                     openSection(section);
                     return true;
                 }
         );
+        row.setKey("section_" + section.name().toLowerCase(java.util.Locale.ROOT));
+        row.setCompact(compact);
         screen.addPreference(row);
-        menuSections.put(row, section);
+        if (!compact) menuSections.put(row, section);
     }
 
     private void createSectionMenu(Context context, PreferenceScreen screen, Section section) {
@@ -1474,6 +1533,28 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         openSection(section, null, null);
     }
 
+    private void openHub(Hub hub) {
+        openHub(hub, null);
+    }
+
+    private void openHub(Hub hub, String targetKey) {
+        FragmentManager manager = getFragmentManager();
+        if (manager == null || getId() == 0) {
+            Utils.showToastShort(L10n.t("Couldn't open that settings section. Reopen settings and try again."));
+            return;
+        }
+        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(ARG_HUB, hub.name());
+        if (targetKey != null) arguments.putString(ARG_TARGET_KEY, targetKey);
+        fragment.setArguments(arguments);
+        manager.beginTransaction()
+                .setTransition(android.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .replace(getId(), fragment)
+                .addToBackStack("hub_" + hub.name())
+                .commit();
+    }
+
     private void openSection(Section section, String targetKey, String targetMember) {
         FragmentManager manager = getFragmentManager();
         if (manager == null || getId() == 0) {
@@ -1483,8 +1564,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
-        // No section is the master menu, where Pause Hushfeed sits: its search result used to
-        // reach section.name() here and take TikTok down with it.
+        // Null remains the legacy master-menu route. New grouped destinations use ARG_HUB.
         if (section != null) {
             arguments.putString(ARG_SECTION, section.name());
         }
@@ -1536,6 +1616,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         super.onResume();
         activeFragment = this;
         refreshMenuBadges();
+        refreshStatusCard();
         // Back from a section onto the master menu: whatever was changed there is owed here.
         refreshRestartPending();
         // A phone asleep over the day's start pauses this screen, so coming back is when the

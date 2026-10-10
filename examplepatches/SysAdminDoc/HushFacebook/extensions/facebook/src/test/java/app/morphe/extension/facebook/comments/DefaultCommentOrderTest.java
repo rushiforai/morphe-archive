@@ -53,6 +53,8 @@ public class DefaultCommentOrderTest {
         DefaultCommentOrderForTests.inBuild(Boolean.TRUE);
         DefaultCommentOrder.forget();
         DefaultCommentOrder.nowForTests = 1_000L;
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.DEFAULT_COMMENT_ORDER.save(true);
     }
 
     @After
@@ -105,10 +107,10 @@ public class DefaultCommentOrderTest {
         assertNull(CommentOrder.ofToken(null));
     }
 
-    /** Picked in Morphe Manager, the switch is on and the order is Facebook's, so nothing changes. */
+    /** The switch starts off, and turned on with the order still Facebook's, nothing changes. */
     @Test
     public void onItsDefaultsARequestIsFacebooksOwn() {
-        assertTrue("picking the patch is the choice to use it", Settings.DEFAULT_COMMENT_ORDER.get());
+        assertFalse("the switch starts off", Settings.DEFAULT_COMMENT_ORDER.defaultValue);
         assertSame(CommentOrder.FACEBOOK, Settings.COMMENT_ORDER.get());
         assertNull(DefaultCommentOrder.requestedOrder(null, POST, null));
         assertEquals("", DefaultCommentOrder.requestedOrder("", POST, null));

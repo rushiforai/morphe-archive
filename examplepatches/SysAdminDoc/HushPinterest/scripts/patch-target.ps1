@@ -80,12 +80,12 @@ function Get-PatchTarget {
         throw "Expected one compatible package, found $($packages -join ', ')."
     }
     $packageName = $packages[0]
-    # Every version the catalog declares, newest first. Pinterest moves a release a week, so the
-    # bundle declares the build it was last proved on and can keep the one before it; the newest is
-    # the one a device build and the README name. Compared part by part as numbers, every part:
-    # Pinterest's versions have three (14.25.0), but a fork with a longer scheme sorts fine too, and
-    # two builds that only differ past where one of them runs out of parts sort the shorter one
-    # lower, the way 14.25 sorts below 14.25.0.
+    # Every version the catalog declares, newest first. The bundle declares the newest stable build
+    # it was proved on, and a catalog can still name more than one; the newest is the one a device
+    # build and the README name. Compared part by part as numbers, every part: Pinterest's versions
+    # have three (14.38.0), but a fork with a longer scheme sorts fine too, and two builds that only
+    # differ past where one of them runs out of parts sort the shorter one lower, the way 14.38
+    # sorts below 14.38.0.
     $declared = @($targets[$packageName] | Sort-Object -Unique)
     if ($declared.Count -eq 0) {
         throw "No compatible version for $packageName."
@@ -121,8 +121,9 @@ function Test-DeclaredBuild {
         Whether an APK is one of the builds a catalog declares.
     .DESCRIPTION
         Its version name has to be declared, and so does its version code wherever the catalog pins
-        codes to that name. Another build of Pinterest 14.25.0 (a different dex under the same name) shares the declared name and was
-        never proved, so only a declared build is patched without -f, and only a run of one proves
+        codes to that name. Another build of Pinterest 14.38.0 (a different dex under the same name)
+        shares the declared name and was never proved, so only a declared build is patched without
+        -f, and only a run of one proves
         a release. Takes Get-PatchTarget's answer, or anything carrying its PackageVersions and
         PackageVersionCodes.
     #>
@@ -138,7 +139,7 @@ function Test-DeclaredBuild {
 }
 
 function Format-DeclaredBuilds {
-    # The declared builds the way a refusal names them: 14.25.0 (14258020), 14.24.0 (14248020).
+    # The declared builds the way a refusal names them: 14.38.0 (14388010), 14.37.0 (14378010).
     param([Parameter(Mandatory = $true)]$Target)
 
     $named = foreach ($version in @($Target.PackageVersions)) {

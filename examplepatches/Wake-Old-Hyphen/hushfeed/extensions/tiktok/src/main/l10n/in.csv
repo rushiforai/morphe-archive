@@ -89,21 +89,20 @@ A few seconds,Beberapa detik
 A field value couldn't be read. Check the values and try again.,Nilai kolom tidak dapat dibaca. Periksa nilainya lalu coba lagi.
 "A good place to stop, if you want one.","Tempat yang bagus untuk berhenti, kalau kamu mencarinya."
 "A green square in the top corner while TikTok has the camera open, and an orange diamond while it records sound. They go when the access ends.","Kotak hijau di pojok atas saat TikTok membuka kamera, dan belah ketupat oranye saat merekam suara. Keduanya hilang saat akses berakhir."
-"A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.","Host pengganti tiktok.com saat kamu membagikan atau menyalin tautan, misalnya vxtiktok.com. Kosongkan untuk membagikan tautan TikTok sendiri. Hanya tautan TikTok yang diubah, dan hanya bagian host-nya, tidak ada yang dikirim ke mana pun."
+"Type a website name to use instead of tiktok.com in links you share or copy, like vxtiktok.com. Leave empty to share TikTok's own links. Only TikTok links change, and only the website name.","Ketik nama situs untuk dipakai sebagai pengganti tiktok.com di tautan yang kamu bagikan atau salin, misalnya vxtiktok.com. Kosongkan untuk membagikan tautan asli TikTok. Hanya tautan TikTok yang berubah, dan hanya nama situsnya."
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.",Label kecil di feed menunjukkan menit atau video yang tersisa dari anggaran hari ini.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,Mengetuk Beranda atau tab Untuk Kamu saat Untuk Kamu sedang tampil tidak lagi memuat ulang feed. Video yang sedang kamu tonton tetap.
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,Video yang kamu jeda tetap dijeda saat kamu kembali ke aplikasi alih-alih diputar lagi. Video yang kamu tinggalkan saat diputar mulai seperti biasa. Berfungsi mulai Android 10.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,"Alamat web yang ditulis seseorang di komentar bisa diketuk, bukan disalin manual. Mengetuk bagian lain dari komentar tetap seperti sebelumnya."
 AI-generated posts,Kiriman buatan AI
-About,Tentang
 A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes.,"Nilai yang dipaksa berlaku untuk salinan TikTok ini, akun mana pun yang masuk. Nilai itu tidak bisa melewati pemeriksaan yang dilakukan server."
 Add older seen videos to this account,Tambahkan video lama yang dilihat ke akun ini
 Added %1$s older seen videos to this account,%1$s video lama yang dilihat ditambahkan ke akun ini
 Added one older seen video to this account,Satu video lama yang telah dilihat ditambahkan ke akun ini
 Added to this account.,Ditambahkan ke akun ini.
 Caption languages,Bahasa takarir
-"Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages, and seen videos still apply.","Nama akun atau id pengguna yang dipisahkan koma. Video mereka tetap ada bila hanya filter jenis postingan, label, umur, durasi, atau jumlahnya yang akan menyembunyikannya. Iklan, kreator, kata, suara, negara, dan bahasa takarir yang diblokir, serta video yang sudah ditonton tetap berlaku."
-"Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.","Kode bahasa yang dipisahkan koma, seperti en, es. Video yang takarir aslinya dalam bahasa lain disembunyikan. Video tanpa takarir, atau hanya dengan takarir terjemahan, selalu tetap ada."
+"Separate handles or user IDs with commas. Their videos stay when a filter on post type, labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries, caption languages and seen videos still apply.","Pisahkan handle atau ID pengguna dengan koma. Videonya tetap tampil meski filter jenis kiriman, label, usia, durasi, atau jumlah akan menyembunyikannya. Iklan, kreator yang diblokir, kata, suara, negara, bahasa keterangan, dan video yang sudah dilihat tetap berlaku."
+"Separate language codes with commas, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.","Pisahkan kode bahasa dengan koma, misalnya en, es. Video yang keterangan aslinya berbahasa lain disembunyikan. Video tanpa keterangan, atau hanya dengan keterangan terjemahan, selalu tetap tampil."
 "Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Nama dipisahkan koma, persis seperti yang ditampilkan baris di bawah bio profil, seperti TikTok Studio atau Pesananmu. Mulai ulang TikTok agar berlaku."
 Couldn't add the older seen videos. Try again.,Tidak dapat menambahkan video lama yang dilihat. Coba lagi.
 Couldn't copy the report. Use Save report instead.,Laporan tidak bisa disalin. Gunakan Simpan laporan.
@@ -135,7 +134,7 @@ Restart TikTok to apply this,Mulai ulang TikTok agar berlaku
 Save report,Simpan laporan
 Stay on the video in full screen,Tetap di video saat layar penuh
 "Stickers can't be saved to the folder in that file, so your sticker folder was kept","Stiker tidak bisa disimpan ke folder di file itu, jadi folder stikermu tetap dipakai"
-Stop TikTok's benchmark runs,Hentikan uji benchmark TikTok
+Stop TikTok's speed tests,Hentikan tes kecepatan TikTok
 "That creator pattern could stall the feed, so it was skipped: %1$s","Pola kreator itu bisa membuat feed macet, jadi dilewati: %1$s"
 "That creator pattern could stall the feed, so it wasn't added: %1$s","Pola kreator itu bisa membuat feed macet, jadi tidak ditambahkan: %1$s"
 "This key isn't in Hushfeed's list, so its type can't be checked. Reset the override.","Kunci ini tidak ada di daftar Hushfeed, jadi jenisnya tidak bisa diperiksa. Setel ulang penggantian."
@@ -146,7 +145,7 @@ Add,Tambah
 "Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.","Blokir kreator dengan satu ketukan. Setelah TikTok mengonfirmasi, lanjut ke video berikutnya. Tombol Buka blokir kecil muncul di kiri atas selama dua detik. Kamu juga bisa membuka blokir nanti di Privasi > Akun yang diblokir di TikTok."
 No app on this phone opens that file,Tidak ada aplikasi di ponsel ini yang bisa membuka file itu
 Open,Buka
-"TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts.","TikTok kadang menguji kecepatan ponselmu di proses latar belakangnya sendiri, yang bisa memakai banyak memori. Ini mencegah proses itu dimulai. Proses yang sudah berjalan berhenti saat TikTok dimulai ulang."
+TikTok sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when TikTok restarts.,TikTok kadang menguji kecepatan ponselmu di proses latar belakang yang bisa memakai banyak memori. Ini mencegah tes itu mulai. Tes yang sudah berjalan berakhir saat TikTok dimulai ulang.
 Try a different word or clear the search. Switches from patches you didn't tick in Morphe Manager aren't listed.,Coba kata lain atau hapus pencarian. Sakelar dari patch yang tidak kamu centang di Morphe Manager tidak muncul.
 Unblock,Buka blokir
 Add a button beside the block control to send feedback about the current video.,Tambahkan tombol di samping kontrol blokir untuk mengirim masukan tentang video ini.
@@ -174,14 +173,14 @@ Also apply these filters to downloaded videos TikTok uses when the feed can't lo
 Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.,Juga mengubah wilayah yang dilaporkan TikTok secara internal. Bahasa antarmuka tetap. Alamat IP dan aturan akun kamu tetap berlaku.
 Always show publish date,Selalu tampilkan tanggal unggah
 Always show the publish date in video author information. Restart TikTok to apply this.,Selalu tampilkan tanggal publikasi di informasi penulis video. Mulai ulang TikTok agar berlaku.
-"An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.","Nama paket sebuah aplikasi, misalnya com.dv.adm. Tombol simpan mengirim tautan video ke sana, bukan menyimpannya di sini. Kosongkan untuk menyimpan di sini."
+"Type the other app's ID, like com.dv.adm. The save button sends the video's link there instead of saving. Leave empty to save here.","Ketik ID aplikasi lain, misalnya com.dv.adm. Tombol simpan mengirim tautan video ke sana, bukan menyimpannya. Kosongkan untuk menyimpan di sini."
 "An interrupted settings change couldn't be recovered, so its record was set aside. Check your settings or restore a backup.","Perubahan pengaturan yang terputus tidak bisa dipulihkan, jadi catatannya disisihkan. Periksa pengaturan kamu atau pulihkan cadangan."
 "An operator code is five or six digits, like 310260","Kode operator itu lima atau enam angka, misalnya 310260"
-An override changes the value TikTok reads from this gate. It doesn't rewrite TikTok's cached value or prove the named feature changed.,Penggantian mengubah nilai yang dibaca TikTok dari gate ini. Ini tidak menulis ulang nilai cache TikTok dan tidak membuktikan fitur yang disebut berubah.
+An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.,Penimpaan mengubah nilai yang dibaca TikTok dari gate ini. Penimpaan tidak mengubah salinan tersimpan TikTok dan tidak membuktikan fitur yang disebut berubah.
 Animated sticker format,Format stiker animasi
-Answer TikTok's location requests with nothing. The region settings change the locale and timezone. This switch stops the coordinates.,Menjawab permintaan lokasi TikTok dengan kosong. Pengaturan wilayah mengubah lokal dan zona waktu; ini menghentikan koordinatnya.
-Answer TikTok's reads of your contacts with an empty list. Find Friends and People you may know lose access to your contact list.,Menjawab pembacaan kontak oleh TikTok dengan daftar kosong. Temukan Teman dan Orang yang mungkin kamu kenal kehilangan akses ke daftar kontak kamu.
-"Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.","Menjawab pemindaian aplikasi di ponsel ini oleh TikTok dengan daftar kosong. Pemeriksaan satu aplikasi tertentu, yang juga dipakai TikTok untuk membuka aplikasi yang kamu ketuk, dibiarkan."
+TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.,TikTok tidak mendapat lokasi dari ponselmu. Pengaturan Wilayah mengubah negara dan zona waktumu. Sakelar ini menghentikan posisi yang tepat.
+TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,"TikTok melihat daftar kontak kosong, bukan daftar kontakmu. Find Friends dan People you may know tidak bisa lagi memakai kontakmu."
+"TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.","TikTok melihat daftar aplikasi kosong, bukan aplikasi di ponselmu. Pengecekan satu aplikasi tertentu, misalnya saat TikTok membuka aplikasi yang kamu ketuk, tetap berfungsi."
 App,Aplikasi
 App AB,AB aplikasi
 Appearance,Tampilan
@@ -206,9 +205,9 @@ Backup and restore,Cadangkan dan pulihkan
 Black,Hitam
 Block clipboard reads,Blokir pembacaan papan klip
 Hide a VPN connection,Sembunyikan koneksi VPN
-"Keep TikTok from telling you're on a VPN. Only the VPN shows as off to it, and your other connections read as they really are. Leave this off if you need a feature that checks for a VPN.","Mencegah TikTok mengetahui bahwa kamu memakai VPN. Hanya VPN yang terlihat mati baginya, dan koneksi lainnya tetap seperti apa adanya. Biarkan mati jika kamu memerlukan fitur yang memeriksa adanya VPN."
-Block the advertising id,Blokir id iklan
-"Hand TikTok a blank advertising id, the same one Android gives after you reset yours, so this device can't be matched across apps by it.","Memberi TikTok id iklan kosong, sama seperti yang diberikan Android setelah kamu menyetel ulang milikmu, agar perangkat ini tidak bisa dicocokkan antaraplikasi lewat id itu."
+TikTok can't tell you're using a VPN. Your other connections show as they really are. Leave this off if you need a feature that checks for a VPN.,TikTok tidak bisa tahu kamu memakai VPN. Koneksimu yang lain tampak seperti aslinya. Biarkan mati jika kamu butuh fitur yang memeriksa VPN.
+Block the advertising ID,Blokir ID iklan
+"TikTok gets a blank advertising ID, like the one Android gives after you reset yours. Apps can't use it to recognize your phone.","TikTok mendapat ID iklan kosong, seperti yang diberikan Android setelah kamu meresetnya. Aplikasi tidak bisa memakainya untuk mengenali ponselmu."
 Block contact list access,Blokir akses ke daftar kontak
 Block installed app scanning,Blokir pemindaian aplikasi terpasang
 Block location,Blokir lokasi
@@ -250,13 +249,13 @@ Choose a preset to fill the SIM details.,Pilih preset untuk mengisi detail SIM.
 Choose a subfolder under %1$s.,Pilih subfolder di %1$s.
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.,Pilih tindakan yang ingin dihapus dari lembar berbagi. Nama yang kamu ketik sendiri dan belum ditampilkan TikTok tetap ada di daftar di atas.
 Choose what reaches your feed,Pilih apa yang sampai ke feed-mu
-Choose which loaded TikTok bottom navigation tabs should stay visible.,Pilih tab navigasi bawah TikTok mana yang tetap terlihat.
-"Choose which loaded TikTok feed tabs should stay visible. If only For You remains, its redundant header is hidden.","Pilih tab feed TikTok mana yang tetap terlihat. Jika hanya For You yang tersisa, header yang tidak diperlukan akan disembunyikan."
+Choose which bottom tabs stay visible.,Pilih tab bawah mana yang tetap terlihat.
+"Choose which feed tabs stay visible. If only For You is left, its tab name is hidden.","Pilih tab feed mana yang tetap terlihat. Jika hanya For You yang tersisa, nama tabnya disembunyikan."
 Choose which rows and controls appear,Pilih baris dan kontrol yang muncul
 Clear all,Hapus semua
 "Clear all Lab data (overrides, switch, recordings)","Hapus semua data Lab (penggantian, sakelar, rekaman)"
 Clear all suggested accounts,Hapus semua akun yang disarankan
-"Clear the recent events, saved crash reports, a recorded screen layout and the hook status above.","Hapus peristiwa terbaru, laporan crash yang tersimpan, tata letak layar yang direkam, dan status hook di atas."
+"Clears the recent events, saved crash reports, a recorded screen layout and the Hook status results above.","Menghapus peristiwa terbaru, laporan error tersimpan, tata letak layar yang direkam, dan hasil Hook status di atas."
 Record a screen's layout,Rekam tata letak layar
 "Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.","Ketuk, lalu buka layar yang berisi hal yang ingin kamu sembunyikan. Setelah %1$d detik Hushfeed merekam susunan layar itu, tanpa teksnya sama sekali, untuk laporan diagnostik."
 Waiting to record. Go to the screen you want recorded.,Menunggu untuk merekam. Buka layar yang ingin kamu rekam.
@@ -277,16 +276,16 @@ Clearing,Menghapus
 Clearing suggested accounts,Menghapus akun yang disarankan
 "Clearing, %1$d so far","Membersihkan, %1$d sejauh ini"
 Close,Tutup
-"Comma separated account handles or user ids. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.","Nama pengguna atau id pengguna dipisahkan koma. Video dari akun ini selalu disembunyikan. Entri di antara garis miring, seperti /^news_/, adalah pola yang dicocokkan dengan nama pengguna dan nama tampilan."
-"Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.","Kode negara dipisahkan koma, seperti GB, IE. Video dari tempat lain disembunyikan. Kosongkan untuk semua negara."
-"Comma separated country codes. Videos posted from these are hidden, whatever the list above says.","Kode negara dipisahkan koma. Video dari negara ini disembunyikan, apa pun isi daftar di atas."
-"Comma separated list of any other Inbox row titles to hide, matched exactly. Use this for anything not listed above.","Daftar judul baris Kotak Masuk lain yang ingin disembunyikan, dipisahkan koma dan dicocokkan persis. Pakai ini untuk apa pun yang tidak ada di atas."
-"Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.","Nama dipisahkan koma, persis seperti yang ditampilkan menu bagikan: teman di baris Kirim ke, tujuan berbagi seperti Facebook, dan aksi seperti Buat grup atau Bagikan ulang. Kunci tetap seperti copy, save, dan dislike juga berlaku sebelum menunya terbuka."
-Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.,Id suara dipisahkan koma yang direkam tombol suara di pemutar. Hapus salah satu untuk membuka blokirnya.
-Comma separated usernames or display names whose comments are hidden.,Nama pengguna atau nama tampilan dipisahkan koma yang komentarnya disembunyikan.
-"Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second.","Kata atau frasa dipisah koma. Video yang keterangannya cocok disembunyikan. Huruf besar kecil tidak berpengaruh. Dua frasa dalam tanda kutip bisa digabung: ""a"" & ""b"" butuh keduanya, ""a"" !& ""b"" butuh yang pertama tanpa yang kedua."
-"Comma separated words to match against a sound's name, like saxophone. Case doesn't matter.","Kata dipisahkan koma untuk dicocokkan dengan nama suara, misalnya saxophone. Huruf besar kecil tidak berpengaruh."
-"Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second.","Dipisahkan koma. Komentar disembunyikan jika teksnya memuat salah satunya. Huruf besar kecil tidak berpengaruh. Dua frasa dalam tanda kutip bisa digabung: ""a"" & ""b"" butuh keduanya, ""a"" !& ""b"" butuh yang pertama tanpa yang kedua."
+"Separate account handles or user IDs with commas. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a search pattern checked against the handle and display name.","Pisahkan nama akun (handle) atau ID pengguna dengan koma. Video dari akun ini selalu disembunyikan. Entri di antara garis miring, seperti /^news_/, adalah pola pencarian yang dicocokkan dengan handle dan nama tampilan."
+"Separate country codes with commas, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.","Pisahkan kode negara dengan koma, misalnya GB, IE. Video yang diunggah dari tempat lain disembunyikan. Kosongkan untuk semua negara."
+"Separate country codes with commas. Videos posted from these are hidden, whatever the list above says.","Pisahkan kode negara dengan koma. Video yang diunggah dari negara ini disembunyikan, apa pun isi daftar di atas."
+"Separate the titles of any other Inbox rows you want to hide with commas, spelled exactly. Use this for anything not listed above.","Pisahkan dengan koma judul baris Kotak masuk lain yang ingin disembunyikan, ditulis persis. Pakai untuk apa pun yang tidak ada di daftar di atas."
+"Separate names with commas, exactly as the share sheet shows them. These can be friends in the Send to row, apps such as Facebook, or actions such as Create group or Repost. The words copy, save and dislike also work before the sheet has opened.","Pisahkan nama dengan koma, persis seperti yang ditampilkan lembar bagikan. Bisa berupa teman di baris Kirim ke, aplikasi seperti Facebook, atau tindakan seperti Buat grup atau Posting ulang. Kata copy, save, dan dislike juga berfungsi sebelum lembar dibuka."
+"Sound IDs saved by the player's sound button, separated by commas. Remove one to unblock it.","ID suara yang disimpan tombol suara pemutar, dipisahkan koma. Hapus satu untuk membuka blokirnya."
+Separate usernames or display names with commas. Their comments are hidden.,Pisahkan nama pengguna atau nama tampilan dengan koma. Komentar mereka disembunyikan.
+"Separate words or phrases with commas. Videos whose caption matches are hidden. Capital letters don't matter. Write ""a"" & ""b"" to need both phrases, or ""a"" !& ""b"" to need the first without the second.","Pisahkan kata atau frasa dengan koma. Video yang keterangannya cocok akan disembunyikan. Huruf besar atau kecil tidak berpengaruh. Tulis ""a"" & ""b"" agar kedua frasa harus ada, atau ""a"" !& ""b"" agar frasa pertama ada tanpa yang kedua."
+"Separate words with commas, like saxophone, to match against sound names. Capital letters don't matter.","Pisahkan kata dengan koma, misalnya saxophone, untuk dicocokkan dengan nama suara. Huruf besar atau kecil tidak berpengaruh."
+"Separate words with commas. A comment is hidden if it contains any of them. Capital letters don't matter. Write ""a"" & ""b"" to need both phrases, or ""a"" !& ""b"" to need the first without the second.","Pisahkan kata dengan koma. Komentar disembunyikan jika berisi salah satunya. Huruf besar atau kecil tidak berpengaruh. Tulis ""a"" & ""b"" agar kedua frasa harus ada, atau ""a"" !& ""b"" agar frasa pertama ada tanpa yang kedua."
 Comment media filename,Nama berkas media komentar
 Comments,Komentar
 Comments aren't available for this video,Komentar tidak tersedia untuk video ini
@@ -303,6 +302,17 @@ Confirm before liking a story,Konfirmasi sebelum menyukai Story
 Continue supported videos from where you stopped when you scroll back to them.,Lanjutkan video yang didukung dari titik terakhir saat kamu menggulir kembali ke video itu.
 Controls,Kontrol
 Feature gate report copied,Laporan gate disalin
+Capture the feed,Rekam feed
+"Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it.","Ketuk untuk mulai, lalu gulir sampai masalah feed muncul dan kembali ke sini untuk menyimpannya. File ini tidak berisi takarir atau nama, dan video serta kreator hanya muncul sebagai kode pendek. Baca dulu sebelum kamu membagikannya."
+Stop and save the feed capture,Hentikan dan simpan rekaman feed
+Recording what the feed filters keep and hide. Tap to stop and save it in %1$s.,Merekam apa yang dipertahankan dan disembunyikan filter feed. Ketuk untuk berhenti dan menyimpannya di %1$s.
+Save the feed capture,Simpan rekaman feed
+The last feed capture wasn't saved. Tap to try again.,Rekaman feed terakhir tidak tersimpan. Ketuk untuk mencoba lagi.
+"Feed capture started. Scroll until the problem shows up, then come back here to stop.","Rekaman feed dimulai. Gulir sampai masalahnya muncul, lalu kembali ke sini untuk berhenti."
+The feed capture is still being saved,Rekaman feed masih disimpan
+Feed capture saved to %1$s. Read it before you share it.,Rekaman feed disimpan di %1$s. Baca dulu sebelum kamu membagikannya.
+The feed capture couldn't be saved. Tap the row to try again.,Rekaman feed tidak bisa disimpan. Ketuk barisnya untuk mencoba lagi.
+Couldn't start saving the feed capture. Try again in a moment.,Penyimpanan rekaman feed tidak bisa dimulai. Coba lagi sebentar.
 Copy a quick report or save the full report as a file.,Salin laporan ringkas atau simpan laporan lengkap sebagai berkas.
 Copy comments without username,Salin komentar tanpa nama pengguna
 Copy only the comment text when using TikTok's copy comment action.,Salin teks komentarnya saja saat memakai aksi salin komentar milik TikTok.
@@ -380,9 +390,9 @@ Destination updated,Tujuan diperbarui
 Downloads,Unduhan
 "Drag to move, release to place","Seret untuk memindahkan, lepaskan untuk menempatkan"
 Drama and Series,Drama dan Serial
-"Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.","Tampilkan teks TikTok dengan font perangkatmu, bukan TikTok Sans. Ikon, animasi hadiah, serta tanda @ dan # tetap memakai fontnya sendiri. Mulai ulang TikTok agar berlaku."
+Shows TikTok's text in your phone's font instead of TikTok Sans. Icons and gift animations keep their own fonts. Restart TikTok to see the change.,"Menampilkan teks TikTok dengan font ponselmu, bukan TikTok Sans. Ikon dan animasi hadiah tetap memakai font sendiri. Mulai ulang TikTok untuk melihat perubahannya."
 "Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.","Sembunyikan notifikasi yang memberi tahu ada orang baru yang mengikutimu sebelum masuk ke laci notifikasi. Notifikasi lain tidak terpengaruh, dan pengikutnya tetap muncul di Kotak Masuk."
-"Each area, how many of the things it looks for are in this build and how many aren't.","Setiap area, berapa banyak hal yang dicarinya ada di build ini dan berapa yang tidak."
+Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.,Setiap area menunjukkan berapa banyak hal yang dicari Hushfeed yang ditemukan di TikTok ini dan berapa yang hilang.
 Empty,Kosong
 "Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.","Kosongkan menu yang terbuka saat ikon TikTok di layar beranda ditekan dan ditahan. Menonaktifkannya akan meminta TikTok membuatnya kembali. Mengetuk ikon tetap membuka aplikasi, dan pintasan yang kamu sematkan sendiri tetap berada di tempatnya."
 Enable,Hidupkan
@@ -432,7 +442,6 @@ Filter settings,Pengaturan filter
 Filter the list,Saring daftar
 Filter: %1$s,Filter: %1$s
 "Filters, translation and copy options","Filter, terjemahan, dan opsi salin"
-Find a setting by name or description,Temukan setelan berdasarkan nama atau deskripsi
 First caller,Pemanggil pertama
 First rejection:,Penolakan pertama:
 Fit the video to the screen,Sesuaikan video dengan layar
@@ -442,8 +451,8 @@ Focus,Fokus
 Follow probe,Uji ikuti
 Following,Mengikuti
 For You,Untuk Kamu
-For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.,"Hanya untuk com.deniscerri.ytdl. Saat tombol simpan meneruskan tautan, minta YTDLnis mengunduh audio atau video."
-For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.,Hanya untuk com.deniscerri.ytdl. Sembunyikan kartu unduhan dan mulai penerusan di latar belakang.
+Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.,Hanya berfungsi dengan YTDLnis (com.deniscerri.ytdl). Memilih audio atau video saat tombol simpan mengirimkan tautan ke sana.
+Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.,Hanya berfungsi dengan YTDLnis (com.deniscerri.ytdl). Memulai unduhan di latar belakang tanpa menampilkan kartu unduhannya.
 Forced %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.,%1$d dari %2$d gate dipaksakan. Sisanya tidak menerima nilai true atau false. Mulai ulang TikTok agar berlaku.
 Forced %1$d gates. Restart TikTok to apply this.,%1$d gate dipaksakan. Mulai ulang TikTok agar berlaku.
 Forced 1 gate of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.,1 dari %2$d gate dipaksakan. Sisanya tidak menerima nilai true atau false. Mulai ulang TikTok agar berlaku.
@@ -528,6 +537,8 @@ The Activity row of likes and comments on your posts leaves the Inbox. Notificat
 The Archive row leaves the Inbox. Archived chats are kept.,Baris Arsip hilang dari Kotak Masuk. Obrolan yang diarsipkan tetap tersimpan.
 Hide the LIVE button,Sembunyikan tombol LIVE
 Hide the LIVE button in the top left corner of the feed.,Sembunyikan tombol LIVE di pojok kiri atas feed.
+Hide the side menu button,Sembunyikan tombol menu samping
+"Hide the button at the top left of the feed that opens TikTok's side menu, with Your orders, TikTok Minis and more.","Sembunyikan tombol di pojok kiri atas feed yang membuka menu samping TikTok, berisi Pesananmu, TikTok Minis, dan lainnya."
 Hide LIVE videos from the feed.,Sembunyikan video LIVE dari feed.
 The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.,Baris Permintaan pesan hilang dari Kotak Masuk. Permintaan tetap masuk dan menunggu di sana sampai kamu mematikan ini.
 The New followers row leaves the top of the Inbox. The accounts still follow you.,Baris Pengikut baru hilang dari bagian atas Kotak Masuk. Akun-akun itu tetap mengikutimu.
@@ -587,7 +598,7 @@ How far each edge press moves the video.,Seberapa jauh setiap tekanan di tepi me
 Hushfeed can't read the creator pattern %1$s,Hushfeed tidak bisa membaca pola kreator %1$s
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.,Hushfeed menyembunyikan satu CAPTCHA TikTok. Matikan Sembunyikan popup CAPTCHA kalau ada yang berhenti berfungsi.
 Hushfeed is active,Hushfeed aktif
-"Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.","Abaikan pilihan pembuat video supaya entri Duet dan Stitch muncul. Semua pemeriksaan lain di aplikasi tetap berlaku, dan diterima atau tidaknya unggahan adalah keputusan server."
+Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.,Menampilkan opsi Duet dan Stitch meskipun kreator mematikannya. TikTok masih bisa menolak hasilnya.
 Import finished,Impor selesai
 Import loaded values,Impor nilai yang dimuat
 Imported %1$d values,%1$d nilai diimpor
@@ -657,7 +668,6 @@ A long press on Share plays the video at the hold speed instead of opening the q
 Hold speed on Favorites,Kecepatan tahan di Favorit
 A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.,Tekan lama pada Favorit memutar video dengan kecepatan tahan alih-alih menawarkan koleksi baru. Perlu Tekan lama pada bawaan TikTok dan Lompat dari tepi layar mati.
 Lowest,Terendah
-Make TikTok yours.,Jadikan TikTok milikmu.
 Manager,Manajer
 Marked as not interested,Ditandai tidak tertarik
 Match locale and timezone to country,Samakan lokal dan zona waktu dengan negara
@@ -735,7 +745,7 @@ Nothing to undo yet.,Belum ada yang bisa dibatalkan.
 Notices from this project and the ones it's built on,Pemberitahuan dari proyek ini dan proyek yang menjadinya
 OK,OK
 Off,Mati
-"Off forces false, on forces true. Reset hands the choice back to TikTok.","Mati memaksa false, hidup memaksa true. Atur ulang mengembalikan pilihannya ke TikTok."
+"Off forces the value to false, on forces it to true. Reset lets TikTok decide again.","Mati memaksa nilai false, nyala memaksa true. Reset mengembalikan keputusan ke TikTok."
 Offline videos,Video offline
 Offline videos limit,Batas video offline
 On mobile data,Saat memakai data seluler
@@ -785,7 +795,7 @@ Photo destination,Lokasi simpan foto
 Photo filename,Nama berkas foto
 Photos and stickers,Foto dan stiker
 Pick the buttons to take off the column. The rest stay where they are.,Pilih tombol yang mau dihilangkan dari kolom. Sisanya tetap di tempat.
-Play videos TikTok has classified without the overlay asking to be tapped through first.,Putar video yang diklasifikasi TikTok tanpa lapisan yang harus diketuk lebih dulu.
+Plays videos that TikTok covers with a content warning without asking you to tap through first.,Memutar video yang ditutupi TikTok dengan peringatan konten tanpa meminta kamu mengetuk dulu.
 Playback,Pemutaran
 Player,Pemutar
 Playlist posts,Kiriman playlist
@@ -795,14 +805,13 @@ Press and hold a profile picture to save the full size original to your photo de
 "Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.","Tekan dan tahan Story untuk menyimpannya. Story tidak punya tombol simpan sendiri, dan menahannya adalah cara TikTok menjeda, jadi gestur itu diambil alih."
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.,Tekan dan tahan sepertiga kiri atau kanan layar untuk melompat mundur atau maju. Sepertiga bagian tengah tetap memakai aksi Tekan lama.
 Privacy,Privasi
-Privacy and system,Privasi dan sistem
 Profile,Profil
 Profile picture saved to %1$s,Foto profil disimpan ke %1$s
 Profile share actions,Tindakan berbagi profil
 Promotional music,Musik promosi
 Proof,Bukti
 Post age,Usia kiriman
-Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.,Tambahkan kotak pencarian untuk memfilter komentar yang sudah dimuat pada video ini berdasarkan teks atau nama pengguna. Ini tidak mencari di seluruh TikTok atau menghapus banner saran pencarian TikTok.
+"Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok.","Menambahkan kotak pencarian yang menemukan komentar yang sudah dimuat di video ini, berdasarkan kata atau nama pengguna. Tidak mencari di seluruh TikTok."
 Pulling down at the top of For You no longer reloads it.,Menarik ke bawah di bagian atas Untuk Kamu tidak lagi memuat ulang feed.
 Putting the settings back to their defaults,Mengembalikan pengaturan ke bawaan
 Quality,Kualitas
@@ -828,7 +837,7 @@ Remove feed ads,Hapus iklan di feed
 Hide the Share via row.,Sembunyikan baris Bagikan lewat.
 Hide the actions row of the share sheet.,Sembunyikan baris aksi di menu bagikan.
 Hide the row of friends at the top of the share sheet.,Sembunyikan baris teman di bagian atas menu bagikan.
-Remove tracking parameters from shared links.,Hapus parameter pelacakan dari tautan yang dibagikan.
+Cuts the tracking bits out of links you share.,Menghapus bagian pelacak dari tautan yang kamu bagikan.
 Remove watermark,Hapus tanda air
 Removed %1$s,%1$s dihapus
 Replace values when TikTok asks for them,Ganti nilai saat TikTok memintanya
@@ -868,18 +877,18 @@ Right column,Kolom kanan
 Rows,Baris
 SIM country preset,Praset negara SIM
 STEM,STEM
-Sanitize sharing links,Bersihkan tautan berbagi
+Clean up shared links,Bersihkan tautan yang dibagikan
 Save,Simpan
-"Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.","Simpan berkas SRT bersama videonya. Berkas masuk ke Movies di Android 11+, Download di Android 10, dan folder videomu di versi lama. Di Android 11+ dengan Simpan detail aktif, video pindah ke Download atau Documents dan berkas SRT tetap di Movies."
+"Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.","Menyimpan file subtitel (SRT) bersama video. File itu masuk ke Movies di Android 11 ke atas, Download di Android 10, dan folder videomu di versi yang lebih lama. Di Android 11 ke atas dengan Simpan detail menyala, video pindah ke Download atau Documents dan subtitel tetap di Movies."
 Save a profile picture on a long press,Simpan foto profil dengan tekan lama
 Save a story on a long press,Simpan Story dengan tekan lama
 "Save every photo in the post at full size as a JPEG, not as the screen shows it.","Simpan setiap foto dalam unggahan dalam ukuran penuh sebagai JPEG, bukan seperti yang ditampilkan layar."
 Save field values,Simpan nilai bidang
 Save full report,Simpan laporan lengkap
 Save media,Simpan media
-Save Hushfeed settings and Feature Gate Lab rules to a JSON file.,Simpan pengaturan Hushfeed dan aturan Feature Gate Lab ke berkas JSON.
+Saves your Hushfeed settings and Feature Gate Lab rules to a file.,Menyimpan pengaturan Hushfeed dan aturan Feature Gate Lab ke satu file.
 Save subtitles beside videos,Simpan subtitle bersama video
-Save the latest available TikTok crash report for diagnostic export.,Simpan laporan mogok TikTok terbaru yang tersedia untuk diekspor sebagai diagnostik.
+Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.,Menyimpan laporan error TikTok terbaru di ponsel ini agar bisa dimasukkan ke laporan diagnostik.
 Save the original sound,Simpan suara asli
 Save the sound as well,Simpan suaranya juga
 Save videos without sound,Simpan video tanpa suara
@@ -903,7 +912,7 @@ Saving the live photo's clip,Menyimpan klip foto langsung
 Screen time,Waktu layar
 Search,Pencarian
 "Search by name, description or category.","Cari berdasarkan nama, deskripsi, atau kategori."
-Search and override gates,Cari dan timpa gate
+Advanced. Find and force the hidden switches TikTok uses to test features.,Lanjutan. Cari dan paksa sakelar tersembunyi yang dipakai TikTok untuk menguji fitur.
 Search countries or operators,Cari negara atau operator
 Search hidden creators,Cari kreator tersembunyi
 Search settings,Cari setelan
@@ -937,7 +946,7 @@ Settings restored. Restart TikTok to apply all changes.,Pengaturan dipulihkan. M
 Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.,Pengaturan dipulihkan. Aturan Feature Gate Lab dibuat untuk versi TikTok lain dan tidak disertakan. Mulai ulang TikTok untuk menerapkan semua perubahan.
 Share,Bagikan
 Hide share actions,Sembunyikan tindakan berbagi
-Share links through another host,Bagikan tautan lewat host lain
+Swap the website in shared links,Ganti situs di tautan yang dibagikan
 Share sheet,Menu bagikan
 Shop,Toko
 Shop posts,Kiriman Shop
@@ -946,7 +955,7 @@ Show @username beside a video instead of the display name the creator chose.,"Ta
 Show search in LIVE,Tampilkan pencarian di LIVE
 Show TikTok's feed buttons,Tampilkan tombol feed TikTok
 Show TikTok's own progress bar on videos where it's normally hidden.,Tampilkan bilah progres TikTok pada video yang biasanya menyembunyikannya.
-"Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.","Tampilkan lembar pengurutan milik TikTok di setiap publikasi, dengan pilihan populer, terbaru, media dan kreator, bukan baris terpangkas yang didapat akun kamu. Mulai ulang TikTok agar berlaku. Aplikasi membaca gayanya sekali per proses dan mengingatnya."
+"Shows TikTok's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart TikTok to see the change.","Menampilkan menu urutan lengkap TikTok di setiap kiriman, dengan opsi populer, terbaru, media, dan kreator, bukan menu lebih pendek yang diberikan ke akunmu. Mulai ulang TikTok untuk melihat perubahannya."
 "Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.",Tampilkan opsi pencarian di panel LIVE TikTok jika tersedia. Ini tidak menambahkan kotak pencarian ke komentar video.
 Show a video preview thumbnail while dragging the progress bar.,Tampilkan pratinjau video saat menggeser bilah progres.
 Show the block button on videos,Tampilkan tombol blokir di video
@@ -999,16 +1008,16 @@ Still here. Nothing is waiting.,Masih di sini. Tidak ada yang menunggu.
 Still reading the record. Tap again in a moment.,Catatannya masih dibaca. Ketuk lagi sebentar lagi.
 Still saving the last one,Yang sebelumnya masih disimpan
 The last one is still waiting to start,Yang sebelumnya masih menunggu untuk dimulai
-"Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.","Hentikan pengiriman peristiwa AppLog ByteDance, atribusi AppsFlyer, laporan layar Firebase, dan laporan mogok. Diagnostik milik TikTok ikut diam bersamanya."
-"Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.","Hentikan TikTok meminta layar berjalan pada laju bingkai video yang sedang diputar. Di ponsel 90 atau 120 Hz, permintaan itu memperlambat seluruh aplikasi sampai ke laju videonya, termasuk saat menggulir."
-"Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone.","Mencegah TikTok mendengarkan akselerometer, giroskop, magnetometer, dan sensor gerak lain yang dipakainya untuk mengenali ponsel."
+"Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.","Menghentikan TikTok mengirim laporan penggunaan, pelacakan iklan, dan laporan error. Alat diagnostik TikTok sendiri juga ikut diam."
+"Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.","Menghentikan TikTok memperlambat layarmu agar sesuai frame rate tiap video. Di ponsel 90 atau 120 Hz, permintaan itu membuat seluruh aplikasi, termasuk menggulir, berjalan lebih lambat."
+Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.,Menghentikan TikTok membaca sensor gerak dan kompas ponselmu. Aplikasi bisa memakainya untuk mengenali ponselmu.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.,Mencegah TikTok membaca apa yang kamu salin. Menyalin tautan dari TikTok tetap berfungsi.
 Stop a long press on Like from opening TikTok's repost action.,Cegah tekan lama pada Suka membuka aksi posting ulang TikTok.
 Stop a long press on Share from opening TikTok's quick share action.,Cegah tekan lama pada Bagikan membuka aksi bagikan cepat TikTok.
 Stop feature gate recording,Hentikan rekaman feature gate
 Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.,Hentikan animasi merek yang muncul di atas komentar saat ketikan seseorang cocok dengan pemicu pengiklan.
 Stop the bubble that asks you to share a video with friends after you like it.,Menghentikan gelembung yang meminta kamu berbagi video dengan teman setelah menyukainya.
-"Keep websites outside TikTok from using its connection back into the app. TikTok pages such as Activity center, Watch history, shop checkout and CAPTCHA keep working.","Cegah situs web di luar TikTok menggunakan koneksinya kembali ke aplikasi. Halaman TikTok seperti Pusat aktivitas, Riwayat tontonan, pembayaran toko, dan CAPTCHA tetap berfungsi."
+"Stops websites you open from inside TikTok from reaching back into the app. TikTok's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working.","Mencegah situs yang kamu buka dari dalam TikTok mengakses balik ke aplikasi. Halaman TikTok sendiri, seperti Activity center, Riwayat tontonan, pembayaran toko, dan CAPTCHA, tetap berfungsi."
 Stop video looping,Hentikan pengulangan video
 Stop videos at the end instead of replaying them.,"Hentikan video di akhir, bukan memutarnya ulang."
 Stopped after dismissing %1$s suggested accounts,Berhenti setelah menutup %1$s akun yang disarankan
@@ -1063,11 +1072,11 @@ The catalog says this key is %1$s and this override is %2$s. Reset the override 
 The diagnostic report couldn't be saved yet. Try again in a moment.,Laporan diagnostik belum bisa disimpan. Coba lagi sebentar.
 The diagnostic report couldn't be saved. Try again.,Laporan diagnostik tidak bisa disimpan. Coba lagi.
 The downloader app you chose isn't installed. Check Send links to another app under Downloads.,Aplikasi pengunduh yang kamu pilih tidak terpasang. Periksa Kirim tautan ke aplikasi lain di Unduhan.
-"The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at.","Feed meredup selama tiga perempat menit terakhir sebelum jeda, agar kamu tiba di sana, bukan mendarat. Butuh anggaran waktu dan jeda."
+"The feed slowly dims during the last 45 seconds before the hold, so it doesn't come as a sudden stop. Needs a time budget and a hold.","Feed meredup perlahan selama 45 detik terakhir sebelum penahanan, jadi tidak datang sebagai henti mendadak. Perlu anggaran waktu dan penahanan."
 The feed doesn't end. This is a fine time to leave it.,Feed tidak ada habisnya. Ini saat yang baik untuk berhenti.
 The feed is open again,Feed terbuka lagi
 "The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away.","Feed menunggu satu ketukan sebelum mulai memutar lagi saat kamu kembali ke aplikasi. Pesan, profil, dan pencarian tetap satu ketukan."
-"The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.","Jam saat kedua batas disetel ulang, dalam format 24 jam. Pukul empat pagi secara bawaan, karena orang yang masih menggulir pukul satu sebenarnya masih di malam sebelumnya."
+"The hour both budgets reset, on a 24 hour clock. The default is 4 in the morning, so a late night still counts as the same day.","Jam saat kedua anggaran direset, dalam format 24 jam. Bawaannya pukul 4 pagi, jadi malam yang larut masih dihitung sebagai hari yang sama."
 Last change put back. Restart TikTok to apply all changes.,Perubahan terakhir dikembalikan. Mulai ulang TikTok untuk menerapkan semua perubahan.
 Last change put back. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.,Perubahan terakhir dikembalikan. Aturan Feature Gate Lab dibuat untuk versi TikTok lain dan tidak disertakan. Mulai ulang TikTok untuk menerapkan semua perubahan.
 Show only videos with this many comments.,Hanya tampilkan video dengan jumlah komentar sebanyak ini.
@@ -1122,18 +1131,18 @@ TikTok default,Bawaan TikTok
 TikTok didn't block %1$s. Try again in a moment.,TikTok tidak memblokir %1$s. Coba lagi sebentar lagi.
 TikTok didn't unblock %1$s. Try again in a moment.,TikTok tidak membuka blokir %1$s. Coba lagi sebentar lagi.
 TikTok didn't accept the feedback. Try again later.,TikTok tidak menerima masukannya. Coba lagi nanti.
-"TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.","TikTok belum memberi setelan ini objek untuk diubah. Buka bagian aplikasi yang memakainya, lalu kembali ke sini."
+"TikTok hasn't loaded this setting yet. Open the part of the app that uses it, then come back.","TikTok belum memuat pengaturan ini. Buka bagian aplikasi yang memakainya, lalu kembali."
 TikTok read it,TikTok sudah membacanya
 "TikTok read it, but the override couldn't be applied. Reset it and save it again.","TikTok sudah membacanya, tapi penggantian tidak bisa diterapkan. Atur ulang lalu simpan lagi."
 TikTok refused the follow: %1$s,TikTok menolak permintaan mengikuti: %1$s
 "TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","Pengingat waktu layar harian milik TikTok sendiri mengirim aplikasi ke latar belakang, bukan menunggu ditutup. Kalau kamu langsung kembali, pengingatnya tetap di layar, jadi batasnya tetap bisa dijangkau. Perlu batas harian di Pengaturan dan privasi TikTok, di bagian Waktu dan kesehatan."
 TikTok's own value,Nilai milik TikTok
-TikTok's play and pause button and its previous and next buttons appear on the feed. TikTok otherwise shows them only to people who use a screen reader. TikTok's analytics note the row and each press on it.,Tombol putar dan jeda TikTok serta tombol sebelumnya dan berikutnya muncul di feed. Selain itu TikTok hanya menampilkannya kepada pengguna pembaca layar. Analitik TikTok mencatat baris ini dan setiap ketukan di atasnya.
-TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.,Server TikTok bisa memasukkan akun ke eksperimen yang mengosongkan tab Favorit di profil kamu. Pertahankan tab itu beserta video yang tersimpan.
+"Shows TikTok's play, pause, previous and next buttons on the feed. TikTok normally shows them only to people who use a screen reader. TikTok can see when you use them.","Menampilkan tombol putar, jeda, sebelumnya, dan berikutnya milik TikTok di feed. TikTok biasanya menampilkannya hanya untuk pengguna pembaca layar. TikTok bisa melihat saat kamu memakainya."
+TikTok sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.,TikTok kadang menguji perubahan yang mengosongkan tab Favorit di profilmu. Ini menjaga tab itu dan video tersimpanmu.
 TikTok's size,Ukuran TikTok
 Times you can open the feed anyway,Berapa kali kamu bisa tetap membuka feed
 Wait a day to loosen the budget,Tunggu sehari untuk melonggarkan anggaran
-A change that loosens the budget waits until the day starts over and one that tightens it applies at once. A higher budget or no budget loosens it. So do a shorter hold and more times to open the feed anyway. Moving the hour the day starts and turning this off wait too. A restored backup follows the same rule and Start today over is off while this is on.,Perubahan yang melonggarkan anggaran menunggu sampai hari dimulai ulang dan perubahan yang mengetatkannya langsung berlaku. Anggaran yang lebih tinggi atau tanpa anggaran melonggarkannya. Begitu juga penahanan yang lebih singkat dan lebih banyak kesempatan untuk tetap membuka feed. Mengubah jam dimulainya hari dan mematikan ini juga menunggu. Cadangan yang dipulihkan mengikuti aturan yang sama dan Mulai ulang hari ini tidak tersedia selama ini aktif.
+"A change that makes your budget looser waits until the day starts over, and a stricter one applies at once. Looser means a higher or no budget, a shorter hold, more times to open the feed anyway, a new start hour, or turning this off. A restored backup follows the same rule, and Start today over is off while this is on.","Perubahan yang membuat anggaranmu lebih longgar menunggu sampai hari dimulai ulang, sedangkan yang lebih ketat berlaku langsung. Lebih longgar berarti anggaran lebih tinggi atau tanpa anggaran, penahanan lebih pendek, lebih banyak kesempatan membuka feed, jam mulai baru, atau mematikan ini. Cadangan yang dipulihkan mengikuti aturan yang sama, dan Mulai hari ini dari awal nonaktif selama ini menyala."
 Changes to %1$s at %2$s,Berubah menjadi %1$s pukul %2$s
 Turns off at %1$s,Mati pukul %1$s
 That loosens the budget. It waits until %1$s.,Itu melonggarkan anggaran. Menunggu sampai pukul %1$s.
@@ -1151,8 +1160,8 @@ Today: %1$d minute,Hari ini: %1$d menit
 Today: %1$d minutes,Hari ini: %1$d menit
 Today: %1$d video,Hari ini: %1$d video
 Today: %1$d videos,Hari ini: %1$d video
-"Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos. Anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.","Token: {creator}, {date}, {video_id}, {index}. {index} menomori foto dari slideshow yang kamu simpan dengan Unduh foto asli; apa pun yang disimpan lewat tombol TikTok sendiri dinomori oleh foldernya. Ekstensi berkas dipertahankan otomatis."
-"Tokens: {date}, {media_id}. Works for image and video stickers.","Token: {date}, {media_id}. Berlaku untuk stiker gambar dan video."
+"Use {creator}, {date}, {video_id} and {index} to build the name. {index} numbers the photos of a slideshow saved with Download original photos. TikTok's own save button numbers files by folder instead. The file ending is added for you.","Pakai {creator}, {date}, {video_id}, dan {index} untuk menyusun nama. {index} menomori foto slideshow yang disimpan dengan Unduh foto asli. Tombol simpan bawaan TikTok menomori file berdasarkan folder. Ekstensi file ditambahkan otomatis."
+Use {date} and {media_id} to build the name. Works for image and video stickers.,Pakai {date} dan {media_id} untuk menyusun nama. Berlaku untuk stiker gambar dan video.
 Too many media saves are already running. Try again in a moment.,Terlalu banyak penyimpanan media yang sedang berjalan. Coba lagi sebentar.
 Tracking,Pelacakan
 "Tracking, device access and links","Pelacakan, akses perangkat, dan tautan"
@@ -1187,8 +1196,8 @@ Use a default playback speed,Pakai kecepatan pemutaran bawaan
 Use non-personalized search,Pakai pencarian nonpersonal
 Use system font,Gunakan font sistem
 Use the preset for the region TikTok reports for your account and its shop too. May affect search.,Gunakan preset juga untuk wilayah yang dilaporkan TikTok untuk akun kamu dan tokonya. Bisa memengaruhi pencarian.
-"Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Gunakan negara dan nilai operator yang dipilih. Ini hanya mengubah apa yang dilaporkan SIM: alamat IP, riwayat akun, dan bahasa yang kamu baca tetap sama, dan salah satunya saja sudah cukup bagi TikTok untuk mempertahankan wilayah yang sudah dipilihnya. Mulai ulang TikTok agar berlaku."
-"Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Gunakan negara yang dipilih. Ini hanya mengubah apa yang dilaporkan SIM: alamat IP, riwayat akun, dan bahasa yang kamu baca tetap sama, dan salah satunya saja sudah cukup bagi TikTok untuk mempertahankan wilayah yang sudah dipilihnya. Mulai ulang TikTok agar berlaku."
+"Makes TikTok see the country and carrier you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make TikTok keep your current region. Restart TikTok to see the change.","Membuat TikTok melihat negara dan operator yang kamu pilih sebagai SIM-mu. Alamat IP, riwayat akun, dan bahasamu tidak berubah, dan salah satunya saja bisa membuat TikTok mempertahankan wilayahmu saat ini. Mulai ulang TikTok untuk melihat perubahannya."
+"Makes TikTok see the country you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make TikTok keep your current region. Restart TikTok to see the change.","Membuat TikTok melihat negara yang kamu pilih sebagai SIM-mu. Alamat IP, riwayat akun, dan bahasamu tidak berubah, dan salah satunya saja bisa membuat TikTok mempertahankan wilayahmu saat ini. Mulai ulang TikTok untuk melihat perubahannya."
 "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.","Gunakan tata letak terbagi di layar yang lebih lebar. Mulai ulang TikTok agar berlaku. Jika tata letak lama masih muncul, buka lipatan lagi."
 Use value,Gunakan nilai
 Use your own offline videos limit,Gunakan batas video offline kamu sendiri
@@ -1209,7 +1218,6 @@ Video saved,Video disimpan
 "Video saved in %1$s, but only %2$s of %3$s subtitles came with it","Video disimpan di %1$s, tapi cuma %2$s dari %3$s subtitel yang ikut"
 Video saved with %1$s subtitles in %2$s,Video disimpan dengan %1$s subtitel di %2$s
 Wait before hiding the controls.,Tunggu sebelum kontrol disembunyikan.
-Watching and sharing,Menonton dan berbagi
 "WebP, exactly as TikTok sent it","WebP, persis seperti yang dikirim TikTok"
 What TikTok gets,Yang didapat TikTok
 "When TikTok requests this key, return the selected value below","Saat TikTok meminta kunci ini, kembalikan nilai yang dipilih di bawah"
@@ -1221,16 +1229,15 @@ Window width needed to enable the layout. Restart TikTok to apply this.,Lebar je
 YTDLnis background mode,Mode latar belakang YTDLnis
 YTDLnis download type,Jenis unduhan YTDLnis
 Yes,Ya
-Your feed,Feed kamu
 Your filters hid everything TikTok just sent. Most were %1$s.,Filtermu menyembunyikan semua yang baru dikirim TikTok. Sebagian besar %1$s.
 "Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.","Filtermu menyembunyikan semua yang dikirim TikTok, %1$d kali berturut-turut. Sebagian besar %2$s."
 "Your operator's name, like T-Mobile.","Nama operatormu, misalnya T-Mobile."
 "Your operator's numeric code, like 310260.","Kode angka operatormu, misalnya 310260."
-"Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.","Nol membiarkan jalan keluar dari penahanan selalu tersedia, seperti selama ini. Nilai lain adalah berapa kali sehari jalan itu bekerja, dan begitu habis, penahanan tetap berlaku sampai hari berganti. Diabaikan selama batas dikunci, karena itu menghilangkan jalan keluarnya sama sekali."
+"Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out.","Nol berarti jalan keluar dari penahanan selalu tersedia. Angka lain adalah berapa kali sehari jalan keluar itu bisa dipakai. Setelah habis, penahanan tetap sampai hari dimulai ulang. Diabaikan saat anggaran terkunci, karena itu menghilangkan jalan keluar."
 "Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.","Nol berarti tanpa batas. Menghitung video yang dilewati Hushfeed untuk kamu, bukan yang kamu geser sendiri, dan mulai lagi saat feed dibangun ulang atau angka ini diubah."
 "Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.","Nol menampilkan pemberitahuan dan membiarkan feed apa adanya. Nilai lain menutupi feed selama sekian menit begitu batas tercapai. Pesan, profil, dan pencarian tetap berjalan, dan tidak ada isi feed yang dibuang."
 "Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search doesn't count, and nothing is shown while the feed is on hold.","Nol mematikan ini. Pengingat singkat setelah sekian menit menonton, lalu lagi setelah selang yang sama. Waktu di pesan, profil, atau pencarian tidak dihitung, dan tidak ada yang muncul selama feed ditahan."
-"Zero switches this off. Count every video that comes up in the feed, however you got to it, and say so once the count is reached. This is separate from the auto-advance session limit under Playback, which only counts videos Hushfeed itself advanced past.","Nol mematikan ini. Menghitung setiap video yang muncul di feed, bagaimanapun kamu sampai ke sana, dan memberi tahu begitu jumlahnya tercapai. Ini terpisah dari batas sesi maju otomatis di Pemutaran, yang hanya menghitung video yang dilewati Hushfeed sendiri."
+"Zero switches this off. Counts every video that comes up in the feed and tells you when you reach the limit. Separate from the auto-advance session limit under Playback, which counts only videos Hushfeed moved past for you.","Nol mematikan ini. Menghitung setiap video yang muncul di feed dan memberitahumu saat batas tercapai. Terpisah dari batas sesi maju otomatis di Pemutaran, yang hanya menghitung video yang dilewati Hushfeed untukmu."
 "Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.","Nol mematikan ini. Menghitung menit saat pemutar berjalan di feed. Waktu di pesan, profil, atau pencarian tidak dihitung."
 collapsed,Diciutkan
 expanded,Diperluas
@@ -1270,8 +1277,8 @@ Hide effect and template tags,Sembunyikan tag efek dan template
 Filter location-tagged videos,Filter video berlabel lokasi
 "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.","Sembunyikan video feed berlabel lokasi, meskipun bukan iklan berbayar. Untuk tetap menampilkan video dan hanya menyembunyikan labelnya, gunakan Sembunyikan label lokasi di Tampilan feed."
 Location-tagged videos,Video berlabel lokasi
-"Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.","Perluas area sentuh hati ke ruang kosong di sekitarnya. Ikon dan jarak antarbaris tetap sama. Teks, Balas, dan kontrol lain tetap memiliki area sendiri."
-"Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.","Langsung tampilkan komentar. Sembunyikan jumlah komentar, tombol urutkan dan tutup, serta area saran di atasnya. Gunakan Kembali atau geser ke bawah untuk menutup komentar."
+"Makes the heart easier to tap by using the empty space around it. The icon and spacing look the same, and Reply and other buttons keep their own space.","Membuat ikon hati lebih mudah diketuk dengan memakai ruang kosong di sekitarnya. Ikon dan jaraknya tampak sama, dan Balas serta tombol lain tetap punya ruangnya sendiri."
+"Hides the comment count, the sort and close buttons and the suggestions above them. Use Back or swipe down to close comments.","Menyembunyikan jumlah komentar, tombol urutkan dan tutup, serta saran di atasnya. Pakai Kembali atau geser ke bawah untuk menutup komentar."
 "Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.","Sembunyikan banner ""Cari: ..."" TikTok di atas jumlah komentar. Ini tidak menyembunyikan komentar atau kotak pencarian komentar Hushfeed."
 Hide the Report button on videos,Sembunyikan tombol Laporkan di video
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.,Sembunyikan tombol bendera yang ditaruh TikTok di atas foto kreator di beberapa wilayah. Kamu tetap bisa melaporkan video dari menu bagikan.
@@ -1306,12 +1313,12 @@ TikTok refused the follow with code %1$s,TikTok menolak permintaan mengikuti den
 TikTok refused the follow with code %1$s. A hidden CAPTCHA may be the cause.,TikTok menolak permintaan mengikuti dengan kode %1$s. CAPTCHA yang disembunyikan bisa jadi penyebabnya.
 TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.,TikTok menolak permintaan mengikuti: %1$s CAPTCHA yang disembunyikan bisa jadi penyebabnya.
 Hushfeed is paused,Hushfeed dijeda
-TikTok runs as if it weren't patched. Your settings stay as they are.,TikTok berjalan seolah tidak di-patch. Pengaturanmu tetap seperti semula.
+Hushfeed runtime changes are paused. Your settings stay saved. Changes built into the APK remain.,Perubahan Hushfeed yang diterapkan saat aplikasi berjalan sedang dijeda. Pengaturanmu tetap tersimpan. Perubahan yang tertanam dalam APK tetap ada.
 "TikTok closed three times within a minute of starting, so Hushfeed paused itself. Your settings stay as they are.","TikTok tertutup tiga kali dalam satu menit setelah dibuka, jadi Hushfeed menjeda dirinya sendiri. Pengaturanmu tetap seperti semula."
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.,File bernama hushfeed-safe-mode di folder TikTok di dalam Android/data menjeda Hushfeed. Pengaturanmu tetap seperti semula.
 Turn Hushfeed back on,Aktifkan Hushfeed lagi
 Pause Hushfeed,Jeda Hushfeed
-"From the next start TikTok runs as if it weren't patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.","Mulai pembukaan berikutnya, TikTok berjalan seolah tidak di-patch, jadi kamu bisa tahu apakah masalahnya dari Hushfeed. Pengaturanmu tetap seperti semula."
+Pause runtime changes after restarting TikTok. Your settings stay saved. Changes built into the APK remain.,Jeda perubahan yang diterapkan saat aplikasi berjalan setelah TikTok dimulai ulang. Pengaturanmu tetap tersimpan. Perubahan yang tertanam dalam APK tetap ada.
 Hushfeed turns back on when TikTok restarts.,Hushfeed aktif lagi saat TikTok dimulai ulang.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.,File hushfeed-safe-mode tidak bisa dihapus. Hapus dari folder TikTok di dalam Android/data untuk mengaktifkan Hushfeed lagi.
 Hide TikTok Shop in search,Sembunyikan TikTok Shop di pencarian
@@ -1385,9 +1392,9 @@ Preset applied. Restart TikTok to use it.,Preset diterapkan. Mulai ulang TikTok 
 Preset saved. Turn on overrides in the Lab to use it.,Preset disimpan. Aktifkan penggantian di Lab untuk menggunakannya.
 This preset doesn't match the installed gates. Nothing changed.,Preset ini tidak cocok dengan gate yang terpasang. Tidak ada perubahan.
 About overrides,Tentang penggantian
-"Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.","Token: {creator}, {date}, {video_id}. Awali dengan {creator}/ untuk membuat folder per kreator. Ekstensi file tetap disertakan otomatis."
+"Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.","Pakai {creator}, {date}, dan {video_id} untuk menyusun nama. Awali dengan {creator}/ agar setiap kreator masuk ke foldernya sendiri. Ekstensi file ditambahkan otomatis."
 Save details beside the video,Simpan detail di samping video
-"Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.","Simpan keterangan, kreator, tautan, dan tanggal terbit dalam file TXT. Pada Android 10 ke atas, kedua file memakai Download atau Documents dengan nama folder yang sama. Berlaku untuk penyimpanan di sini."
+"Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.","Menyimpan keterangan, kreator, tautan, dan tanggal unggah dalam file teks di samping video. Di Android 10 ke atas, pasangan file itu masuk ke Download atau Documents dengan nama folder yang sama. Berlaku untuk penyimpanan yang dilakukan Hushfeed."
 Check for already-saved videos,Periksa video yang sudah disimpan
 Forget saved videos,Lupakan video tersimpan
 Undo forgetting saved videos,Batalkan melupakan video tersimpan
@@ -1401,7 +1408,7 @@ Couldn't forget the saved videos. Try again.,Video tersimpan tidak dapat dilupak
 Saved videos put back,Video tersimpan dikembalikan
 Couldn't put the saved videos back. Try again.,Video tersimpan tidak dapat dikembalikan. Coba lagi.
 Too late to put the saved videos back,Sudah terlambat untuk mengembalikan video tersimpan
-"Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.","Ingat hingga %1$s video yang disimpan di sini saat opsi ini aktif. Jika file masih ada, tawarkan Buka atau Simpan lagi sebelum mengunduh salinan baru."
+"Remembers up to %1$s videos you saved here. If the file is still there, you get Open or Save again instead of a second copy.","Mengingat hingga %1$s video yang kamu simpan di sini. Jika filenya masih ada, kamu melihat Buka atau Simpan lagi, bukan salinan kedua."
 This video is already saved. Open TikTok to save another copy.,Video ini sudah disimpan. Buka TikTok untuk menyimpan salinan lain.
 This video is already saved,Video ini sudah disimpan
 Save again,Simpan lagi
@@ -1422,8 +1429,8 @@ Couldn't save the change. Try again.,Perubahan tidak dapat disimpan. Coba lagi.
 Off. TikTok can report views and typing.,Nonaktif. TikTok dapat melaporkan tayangan dan aktivitas mengetik.
 Hushfeed is paused. Ghost mode isn't active.,Hushfeed dijeda. Mode hantu tidak aktif.
 Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.,Masalah terdeteksi. Tayangan cerita mungkin masih dilaporkan. Periksa diagnostik mode hantu. Peringatan tetap muncul sampai TikTok dimulai ulang.
-Reporting calls were blocked here. Viewer-list privacy hasn't been verified.,Panggilan pelaporan diblokir di sini. Privasi daftar penonton belum diverifikasi.
-On. No reporting call has been observed in this process.,Aktif. Belum ada panggilan pelaporan yang teramati dalam proses ini.
+Hushfeed blocked TikTok's reports here. It hasn't confirmed that you stay off viewer lists.,Hushfeed memblokir laporan TikTok di sini. Belum ada konfirmasi bahwa kamu tidak muncul di daftar penonton.
+On. Hushfeed hasn't seen TikTok send any reports since it started.,Nyala. Hushfeed belum melihat TikTok mengirim laporan apa pun sejak TikTok dimulai.
 Ghost mode diagnostics,Diagnostik mode hantu
 The partial file couldn't be removed. Delete it from the folder you chose.,File yang belum lengkap tidak dapat dihapus. Hapus dari folder yang kamu pilih.
 The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.,Pencadangan tidak dimulai dan file yang belum lengkap tidak dapat dihapus. Hapus dari folder yang kamu pilih.
@@ -1436,7 +1443,7 @@ Keep playing in the background,Tetap putar di latar belakang
 "Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.","Tetap putar di latar belakang aktif di pengaturan Pemutaran Hushfeed, jadi TikTok mendapat 2 untuk kunci ini dan penggantian di sini tidak berpengaruh sampai tombol itu dimatikan."
 "2, from Keep playing in the background","2, dari Tetap putar di latar belakang"
 Let the last video finish,Biarkan video terakhir selesai
-"When the budget runs out, the video on screen plays to its end before the hold covers the feed, and the feed won't swipe to another video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs a hold to wait for. It waits %1$d minutes at most.","Saat anggaran habis, video di layar diputar sampai selesai sebelum penahanan menutupi feed, dan selama itu feed tidak bisa digeser ke video lain. Anggaran waktu yang sudah diredupkan langsung masuk ke penahanan. Perlu penahanan yang ditunggu. Menunggu paling lama %1$d menit."
+"When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.","Saat anggaran habis, video di layar diputar sampai selesai sebelum penahanan dimulai, dan kamu tidak bisa menggeser ke video lain selama itu. Jika peredupan sudah meredupkan feed, penahanan langsung dimulai. Perlu penahanan. Menunggu paling lama %1$d menit."
 The feed stops when this video ends.,Feed berhenti saat video ini selesai.
 Streak,Rentetan
 Keep a streak going,Pertahankan rentetan
@@ -1459,8 +1466,8 @@ Next message: tomorrow at %1$s.,Pesan berikutnya: besok pukul %1$s.
 TikTok's messages didn't start in time. It tries again at %1$s.,Pesan TikTok tidak mulai tepat waktu. Akan dicoba lagi pukul %1$s.
 The message didn't go through. It tries again at %1$s.,Pesan tidak terkirim. Akan dicoba lagi pukul %1$s.
 Found %1$s in your chats.,%1$s ditemukan di obrolanmu.
-Look like the store app to TikTok's checks,Tampak seperti aplikasi dari toko bagi pemeriksaan TikTok
-"Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.","Menjawab pemeriksaan TikTok sendiri tentang cara ia ditandatangani dan dipasang seperti yang dilakukan aplikasi Play Store. Untuk follow atau suka yang batal sendiri saat disegarkan. TikTok juga bisa memeriksa dari kode native yang tidak dijangkau ini, jadi mungkin tidak membantu."
+Pass TikTok's install checks,Lolos pemeriksaan instalasi TikTok
+"TikTok checks how it was signed and installed. This answers those checks the way the Play Store version would. Try it if follows or likes undo themselves after a refresh. It may not help, since TikTok has other checks.",TikTok memeriksa bagaimana aplikasinya ditandatangani dan dipasang. Ini menjawab pemeriksaan itu seperti versi Play Store. Coba jika ikuti atau suka membatal sendiri setelah dimuat ulang. Mungkin tidak membantu karena TikTok punya pemeriksaan lain.
 Add apps to Share via,Tambahkan aplikasi ke Bagikan via
 "Pick apps to add to the Share via row, before More. Each gets the same link the other apps get.","Pilih aplikasi untuk ditambahkan ke baris Bagikan via, sebelum Lainnya. Masing-masing mendapat tautan yang sama dengan aplikasi lain."
 Search apps,Cari aplikasi
@@ -1470,7 +1477,7 @@ No other app takes shared text,Tidak ada aplikasi lain yang menerima teks yang d
 No apps match this search,Tidak ada aplikasi yang cocok dengan pencarian ini
 LIVE feed,Feed LIVE
 Filter the LIVE feed,Filter feed LIVE
-"Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators and Creators hidden on this phone apply here too, Blocked caption words are matched against each LIVE's title, and Creator exceptions works the way it does for videos. The LIVE button picks the first room itself, so the rules start with the next one. If they hide every room for a while, one gets through so the feed keeps loading.","Sembunyikan LIVE di feed LIVE yang kamu geser, sesuai aturan di bawah. “Kreator yang diblokir” dan “Kreator yang disembunyikan di ponsel ini” juga berlaku di sini, “Kata yang diblokir di keterangan” dicocokkan dengan judul setiap LIVE, dan “Pengecualian kreator” bekerja seperti pada video. Tombol LIVE memilih LIVE pertama sendiri, jadi aturan mulai berlaku dari LIVE berikutnya. Kalau aturan menyembunyikan semua LIVE untuk beberapa saat, satu tetap lolos supaya feed terus memuat."
+"Hides rooms in the LIVE feed you swipe through, using the rules below. Blocked creators, Creators hidden on this phone and Creator exceptions apply here too, and Blocked caption words are checked against each LIVE's title. The first room the LIVE button opens isn't filtered. If every room would be hidden, one gets through so the feed keeps loading.","Menyembunyikan ruang di feed LIVE yang kamu geser, memakai aturan di bawah. Kreator yang diblokir, Kreator yang disembunyikan di ponsel ini, dan Pengecualian kreator berlaku di sini juga, dan “Kata yang diblokir di keterangan” dicocokkan dengan judul tiap LIVE. Ruang pertama yang dibuka tombol LIVE tidak difilter. Jika semua ruang akan disembunyikan, satu dibiarkan lolos agar feed tetap memuat."
 Hide gaming LIVEs,Sembunyikan LIVE game
 Hide LIVEs that TikTok tags with a game or a gaming category.,Sembunyikan LIVE yang ditandai TikTok dengan game atau kategori game.
 Hide shopping LIVEs,Sembunyikan LIVE belanja
@@ -1480,17 +1487,17 @@ Hide LIVEs that TikTok labels as a paid partnership or promotional content.,Semb
 Hide verified creators' LIVEs,Sembunyikan LIVE kreator terverifikasi
 Hide LIVEs hosted by verified accounts.,Sembunyikan LIVE dari akun terverifikasi.
 Hidden LIVE categories,Kategori LIVE yang disembunyikan
-"Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter.","Kata dipisahkan koma, misalnya musik, chat. LIVE disembunyikan kalau kategori, tag topik, atau nama game-nya mengandung salah satunya. Huruf besar kecil tidak berpengaruh."
+"Separate words with commas, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Capital letters don't matter.","Pisahkan kata dengan koma, misalnya music, chat. LIVE disembunyikan jika kategori, tag topik, atau nama gimnya memuat salah satunya. Huruf besar atau kecil tidak berpengaruh."
 LIVE viewers range,Rentang penonton LIVE
 Show only LIVEs with this many people watching.,Hanya tampilkan LIVE dengan jumlah penonton sebanyak ini.
 LIVE followers range,Rentang pengikut LIVE
 Show only LIVEs from creators with this many followers.,Hanya tampilkan LIVE dari kreator dengan jumlah pengikut sebanyak ini.
 Hide the comment bar on opened videos,Sembunyikan bilah komentar di video yang dibuka
 Hide the Clear display controls,Sembunyikan kontrol Tampilan bersih
-"While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.","Saat Tampilan bersih aktif, sembunyikan juga bilah progres, tombol tutup, serta tombol jeda dan kecepatan di bagian bawah. Kamu tetap bisa menggeser di sepanjang tepi bawah untuk berpindah di dalam video. Untuk keluar dari Tampilan bersih, tekan lama video lalu ketuk Pulihkan tampilan."
+"While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.","Saat Tampilan bersih aktif, sembunyikan juga bilah progres, tombol tutup, serta tombol jeda dan kecepatan di bagian bawah. Kamu tetap bisa menggeser di sepanjang tepi bawah untuk berpindah di dalam video. Untuk keluar dari Tampilan bersih, tekan lama video lalu ketuk Pulihkan tampilan, atau cubit layar."
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Sembunyikan bilah untuk menulis komentar di video yang kamu buka dari profil, hashtag, suara, atau pencarian, agar video memenuhi layar sampai ke bawah. Tombol komentar di kanan tetap membuka komentar."
 Build details,Detail build
-Copy or save patch-time choices and build identity.,Salin atau simpan pilihan saat patch diterapkan dan identitas build.
+Copy or save which patches and options this Hushfeed was built with.,Salin atau simpan patch dan opsi apa saja yang dipakai untuk membuat Hushfeed ini.
 Copy build details,Salin detail build
 Save build details,Simpan detail build
 Build details copied to the clipboard,Detail build disalin ke papan klip
@@ -1545,7 +1552,7 @@ Post dates in the feed,Tanggal postingan di feed
 Show exact counts,Tampilkan angka persis
 "Show counts as full numbers, like 1,234,567 instead of 1.2M.","Tampilkan angka secara lengkap, misalnya 1.234.567, bukan 1.2M."
 Play SDR instead of HDR,"Putar SDR, bukan HDR"
-"Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.","Putar versi biasa dari video yang juga tersedia dalam HDR, agar layar tidak melonjak ke kecerahan penuh saat video dimulai. Video yang hanya ditawarkan TikTok dalam HDR tetap diputar."
+"HDR videos light the screen extra bright. This plays the standard (SDR) version instead, so the screen doesn't jump to full brightness. Videos with no standard version still play in HDR.","Video HDR membuat layar ekstra terang. Ini memutar versi standar (SDR) sebagai gantinya, sehingga layar tidak melonjak ke kecerahan penuh. Video tanpa versi standar tetap diputar dalam HDR."
 Remove story rings,Hapus cincin cerita
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Hapus cincin cerita dari foto profil di feed, di komentar, dan di profil. Mengetuk foto akan membuka profil, bukan ceritanya."
 Remove the LIVE ring,Hapus cincin LIVE
@@ -1569,7 +1576,7 @@ Copy username,Salin nama pengguna
 Copy user ID,Salin ID pengguna
 Copy video ID,Salin ID video
 Prefer H.264 video,Utamakan video H.264
-Play the H.264 version of videos TikTok also offers in HEVC or ByteVC2. It's easier on phones that stutter or run hot playing those. Videos without an H.264 version still play.,Putar versi H.264 dari video yang juga ditawarkan TikTok dalam HEVC atau ByteVC2. Lebih ringan bagi ponsel yang tersendat atau panas saat memutarnya. Video tanpa versi H.264 tetap diputar.
+Picks the older H.264 video format when TikTok also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.,Memilih format video H.264 yang lebih lama saat TikTok juga menawarkan yang lebih baru (HEVC atau ByteVC2). Membantu ponsel yang patah-patah atau panas. Video tanpa versi H.264 tetap diputar.
 Show engagement rate,Tampilkan tingkat interaksi
 "Show likes, comments, shares and saves as a percentage of views, next to the creator's name and after the view count on profile grids.","Tampilkan suka, komentar, bagikan, dan simpanan sebagai persentase dari tayangan, di sebelah nama kreator dan setelah jumlah tayangan di kisi profil."
 App lock,Kunci aplikasi
@@ -1586,7 +1593,7 @@ TikTok is locked,TikTok terkunci
 Unlock,Buka kunci
 TikTok isn't locked because this phone has no screen lock,TikTok tidak terkunci karena ponsel ini tidak punya kunci layar
 Save photo posts as a video,Simpan unggahan foto sebagai video
-"Download video on a one-photo post makes the MP4 here, with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks whether you want the photos you picked as full-size originals or as one video.","Unduh video di unggahan berisi satu foto membuat MP4 di sini, dengan suara unggahan dan tanpa logo TikTok atau layar penutup. Di unggahan berisi beberapa foto, Unduh menanyakan apakah kamu ingin foto yang dipilih sebagai foto asli ukuran penuh atau sebagai satu video."
+"On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.","Pada kiriman satu foto, Unduh video membuat MP4 dengan suara kiriman tanpa logo TikTok dan kartu penutup. Pada kiriman dengan beberapa foto, Unduh menanyakan apakah kamu mau foto asli atau satu video."
 Seconds per photo,Detik per foto
 How long each photo stays on screen in a video made from a photo post.,Berapa lama setiap foto tampil di layar dalam video yang dibuat dari unggahan foto.
 Save photos or a video?,Simpan foto atau video?
@@ -1599,7 +1606,7 @@ The video couldn't be made from these photos. Try again.,Video tidak dapat dibua
 Video of photos,Video dari foto
 debug debugging logs logging,debug debugging log catatan
 Export comments,Ekspor komentar
-"Adds Export CSV and Export JSON under the search box, so it needs Search within comments. They save the comments and replies this video has loaded to a file you pick. Open the reply threads you want first, since TikTok only loads them when you do.","Menambahkan Ekspor CSV dan Ekspor JSON di bawah kotak pencarian, jadi perlu Cari dalam komentar. Tombol ini menyimpan komentar dan balasan yang sudah dimuat di video ini ke berkas yang Anda pilih. Buka dulu utas balasan yang Anda inginkan, karena TikTok baru memuatnya saat Anda membukanya."
+"Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.","Menambahkan tombol Export CSV dan Export JSON di bawah kotak pencarian, jadi “Cari dalam komentar” harus menyala. Tombol itu menyimpan komentar dan balasan yang sudah dimuat ke file pilihanmu. Buka dulu utas balasan yang kamu mau."
 Export CSV,Ekspor CSV
 Export JSON,Ekspor JSON
 1 comment or reply loaded,1 komentar atau balasan dimuat
@@ -1622,7 +1629,7 @@ Loop a story,Ulangi story
 Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.,"Memutar ulang story dari awal saat selesai, bukan pindah ke story berikutnya. Ketuk atau geser untuk lanjut."
 Hold a photo story,Tahan story foto
 "Keep a photo story on screen until you tap or swipe, instead of moving on after a few seconds.","Menahan story foto di layar sampai Anda mengetuk atau menggeser, bukan pindah setelah beberapa detik."
-Store TikTok reads as its installer,Toko yang dibaca TikTok sebagai pemasangnya
+Store TikTok thinks it came from,Toko tempat TikTok mengira berasal
 Play Store,Play Store
 Galaxy Store,Galaxy Store
 AppGallery,AppGallery
@@ -1645,7 +1652,7 @@ The sticker suggestion banner stops showing in a chat. Your own stickers are sti
 Hide suggested replies,Sembunyikan balasan yang disarankan
 TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,Balasan yang disarankan TikTok dan banner pengantarnya tidak lagi muncul di obrolan. Pesan yang Anda ketik atau terima tidak diubah.
 Hide online status,Sembunyikan status online
-"Stop sending TikTok's activity reports, so friends don't see a green dot or Active now while you're in the app. It works only while Ghost mode is on. The same report brings back your friends' status, so theirs may stop updating for you while it's on. Your last status can stay visible for a while.","Hentikan pengiriman laporan aktivitas TikTok, agar teman tidak melihat titik hijau atau Aktif sekarang saat Anda di aplikasi. Hanya berfungsi saat Mode siluman aktif. Laporan yang sama juga membawa status teman Anda, jadi status mereka mungkin berhenti diperbarui untuk Anda selama ini aktif. Status terakhir Anda bisa tetap terlihat beberapa saat."
+"Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.","Teman tidak akan melihat titik hijau atau Active now saat kamu ada di TikTok. Mode Ghost harus menyala. Status teman mungkin berhenti diperbarui untukmu, dan status terakhirmu bisa tetap terlihat beberapa saat."
 Stop LIVE previews opening by themselves,Hentikan pratinjau LIVE terbuka sendiri
 A LIVE in the feed can count down and take you into the room on its own. This keeps you in the feed until you tap it.,LIVE di feed bisa menghitung mundur dan membawa Anda masuk ke ruangannya sendiri. Ini membuat Anda tetap di feed sampai Anda mengetuknya.
 Play sounds TikTok pulled,Putar suara yang ditarik TikTok
@@ -1675,15 +1682,15 @@ Subtitles: %1$s,Subtitel: %1$s
 Stickers: %1$s,Stiker: %1$s
 Live photo clips: %1$s,Klip foto live: %1$s
 TikTok's own name,Nama bawaan TikTok
-"Not a token here, kept as typed: %1$s","Bukan token di sini, disimpan apa adanya: %1$s"
-"Not a token for Hushfeed's downloader, kept as typed: %1$s","Bukan token untuk pengunduh Hushfeed, disimpan apa adanya: %1$s"
+"Not a part Hushfeed fills in, so it's kept as typed: %1$s","Bukan bagian yang diisi Hushfeed, jadi tetap seperti yang diketik: %1$s"
+"Hushfeed's downloader doesn't fill this in, so it's kept as typed: %1$s","Pengunduh Hushfeed tidak mengisi bagian ini, jadi tetap seperti yang diketik: %1$s"
 "If that name is taken, Android adds a number to the new file.","Jika nama itu sudah dipakai, Android menambahkan angka pada file baru."
 "If that name is taken, Hushfeed adds a number to the new file.","Jika nama itu sudah dipakai, Hushfeed menambahkan angka pada file baru."
 Don't start the first video,Jangan mulai video pertama
 "When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.","Saat kamu membuka TikTok dari ikonnya, video pertama di feed menunggu satu ketukan sebelum diputar. Tautan, notifikasi, atau pintasan tetap terbuka seperti biasa."
 Network proxy,Proksi jaringan
 Send TikTok through a proxy,Kirim TikTok lewat proksi
-"Sends TikTok's own network stack, which carries the feed, search, comments and the rest of its API, through the proxy below. Videos and LIVE streams load through TikTok's player, which connects on its own, so they stay direct. Other apps aren't affected.","Mengirim tumpukan jaringan TikTok sendiri, yang membawa feed, pencarian, komentar, dan sisa API-nya, lewat proksi di bawah. Video dan siaran LIVE dimuat lewat pemutar TikTok, yang terhubung sendiri, jadi tetap langsung. Aplikasi lain tidak terpengaruh."
+"Sends TikTok's feed, search, comments and other app traffic through the proxy below. Videos and LIVE streams still connect directly. Other apps aren't affected.","Mengirim feed, pencarian, komentar, dan lalu lintas aplikasi TikTok lainnya lewat proxy di bawah. Video dan siaran LIVE tetap terhubung langsung. Aplikasi lain tidak terpengaruh."
 Proxy type,Jenis proksi
 HTTP,HTTP
 SOCKS5,SOCKS5
@@ -1692,12 +1699,12 @@ Proxy host,Host proksi
 Proxy port,Port proksi
 "The port the proxy listens on, like 8080 or 1080.","Port yang didengarkan proksi, seperti 8080 atau 1080."
 Proxy user name,Nama pengguna proksi
-"Optional. TikTok's own network stack can't sign in to a proxy, so only plain Java connections use this. Leave it empty for a proxy without a password.","Opsional. Tumpukan jaringan TikTok sendiri tidak bisa masuk ke proksi, jadi hanya koneksi Java biasa yang memakainya. Biarkan kosong untuk proksi tanpa kata sandi."
+"Optional. Only connections made by Android itself can sign in to a proxy, not TikTok's own. Leave empty for a proxy without a password.","Opsional. Hanya koneksi yang dibuat Android sendiri yang bisa masuk ke proxy, bukan koneksi TikTok. Kosongkan untuk proxy tanpa kata sandi."
 Proxy password,Kata sandi proksi
 "Optional, used with the user name. It isn't shown, logged or put in a backup.","Opsional, dipakai bersama nama pengguna. Tidak ditampilkan, dicatat, atau dimasukkan ke cadangan."
-"Enter a host name or IP address, without a scheme or port","Masukkan nama host atau alamat IP, tanpa skema atau port"
+"Enter a server name or IP address, without http:// or a port number","Masukkan nama server atau alamat IP, tanpa http:// dan tanpa nomor port"
 A port is a whole number from 1 to 65535,Port adalah bilangan bulat dari 1 sampai 65535
-"The proxy at %1$s asks for a password. TikTok's own network stack can't send one, so use a proxy that doesn't need one.","Proksi di %1$s meminta kata sandi. Tumpukan jaringan TikTok sendiri tidak bisa mengirimnya, jadi pakai proksi yang tidak memerlukannya."
+"The proxy at %1$s asks for a password, and TikTok can't send one. Use a proxy that doesn't need one.","Proxy di %1$s meminta kata sandi, dan TikTok tidak bisa mengirimkannya. Pakai proxy yang tidak memerlukannya."
 Couldn't reach the proxy at %1$s. TikTok may not load until it's back or you turn the proxy off.,Tidak bisa menjangkau proksi di %1$s. TikTok mungkin tidak memuat sampai proksi kembali atau kamu mematikannya.
 "Word rules only, not every feed filter:","Hanya aturan kata, bukan semua filter feed:"
 This list is too long to preview here. Saving still follows the usual limit.,"Daftar ini terlalu panjang untuk dipratinjau di sini. Saat disimpan, batas yang biasa tetap berlaku."
@@ -1710,7 +1717,7 @@ Only the first %1$s characters of the sample were checked.,Hanya %1$s karakter p
 Sample caption to test,Keterangan contoh untuk dicoba
 Sample category to test,Kategori contoh untuk dicoba
 Keep videos out of Watch history,Jauhkan video dari Riwayat tontonan
-"Stops the view report TikTok sends for each video you watch, which is how videos get into Activity center > Watch history. Your views stop adding to view counts and For You has less to learn from. Videos already there stay, and TikTok still sees likes, follows, searches and its usage logs.","Menghentikan laporan tontonan yang dikirim TikTok untuk setiap video yang kamu tonton, yaitu cara video masuk ke Pusat aktivitas > Riwayat tontonan. Tontonanmu tidak lagi menambah jumlah tayangan dan For You punya lebih sedikit bahan untuk belajar. Video yang sudah ada tetap di sana, dan TikTok masih melihat suka, ikuti, pencarian, dan log penggunaannya."
+"Stops TikTok from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and For You learns less. Likes, follows and searches are still seen.","Menghentikan TikTok melaporkan video yang kamu tonton, jadi tidak masuk ke Riwayat tontonan di Activity center. Tontonanmu tidak dihitung dan For You belajar lebih sedikit. Suka, ikuti, dan pencarian tetap terlihat."
 Set a sleep timer that closes TikTok,Atur pengatur waktu tidur yang menutup TikTok
 Close TikTok after,Tutup TikTok setelah
 Turn off the timer (TikTok closes at %1$s),Matikan pengatur waktu (TikTok tutup pukul %1$s)
@@ -1771,7 +1778,7 @@ Stop the bubble TikTok floats at the top of the feed to point you to a LIVE.,Hen
 Auto-advance in search results,Maju otomatis di hasil pencarian
 Also turns on TikTok's own auto scroll for videos opened from search. Restart TikTok to apply this.,Juga menyalakan gulir otomatis TikTok sendiri untuk video yang dibuka dari pencarian. Mulai ulang TikTok untuk menerapkannya.
 Use system emoji,Gunakan emoji sistem
-"Draw every emoji with your device's emoji font. TikTok normally draws the newest ones your device doesn't have yet with Google's emoji, and those may show as a box or in pieces with this on.","Tampilkan semua emoji dengan font emoji perangkatmu. Biasanya TikTok menampilkan emoji terbaru yang belum ada di perangkatmu dengan emoji Google, dan saat opsi ini aktif emoji itu bisa tampil sebagai kotak atau terpecah."
+Shows every emoji in your phone's own emoji font. The newest emoji your phone doesn't have yet may show as a box or in pieces.,Menampilkan semua emoji dengan font emoji ponselmu sendiri. Emoji terbaru yang belum ada di ponselmu bisa tampil sebagai kotak atau terpecah.
 Open shared videos alone,Buka video yang dibagikan secara terpisah
 "A link to one video opens just that video, and the feed won't swipe past it. It swipes again once another video plays, like after a refresh or a tap on Following, or when you come back to TikTok after %1$d minutes or more away. Auto-advance doesn't move on from it either.","Tautan ke satu video hanya membuka video itu, dan feed tidak bisa digeser melewatinya. Feed bisa digeser lagi begitu video lain diputar, misalnya setelah memuat ulang atau mengetuk Mengikuti, atau saat kamu kembali ke TikTok setelah pergi %1$d menit atau lebih. Lanjut otomatis juga tidak pindah dari video itu."
 Hide comment surveys,Sembunyikan survei komentar
@@ -1779,11 +1786,11 @@ Hide the question cards TikTok sometimes puts in a comment list to ask what you 
 Hide comment box buttons,Sembunyikan tombol di kotak komentar
 "Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before.","Sembunyikan tombol foto, @ dan hadiah di kotak tempat Anda menulis komentar. Emoji dan pengiriman tetap berfungsi seperti biasa."
 Turn off push notifications,Matikan notifikasi push
-"TikTok's push service stays off and nothing it sends reaches the drawer. It can't keep your phone awake either. You won't hear about new messages until you open TikTok, and a notification hidden while this is on doesn't come back. Ongoing ones like media controls stay.","Layanan push TikTok tetap mati dan tidak ada kiriman TikTok yang masuk ke laci notifikasi. TikTok juga tidak bisa membuat ponselmu tetap terjaga. Kamu baru tahu ada pesan baru setelah membuka TikTok, dan notifikasi yang disembunyikan selama ini aktif tidak akan muncul lagi. Notifikasi yang sedang berjalan seperti kontrol media tetap ada."
+"Turns off TikTok's notification service, so nothing it sends reaches your notification shade and it can't wake your phone. You won't hear about new messages until you open TikTok. Notifications hidden while this is on don't come back. Ongoing ones like media controls stay.","Mematikan layanan notifikasi TikTok, jadi tidak ada kiriman darinya yang sampai ke panel notifikasi dan ia tidak bisa membangunkan ponselmu. Kamu baru tahu ada pesan baru setelah membuka TikTok. Notifikasi yang disembunyikan saat ini menyala tidak akan kembali. Notifikasi yang terus berjalan seperti kontrol media tetap ada."
 Save details as JSON,Simpan detail sebagai JSON
-"Write the details file as JSON instead of plain text, for scripts and archive tools.","Tulis file detail sebagai JSON, bukan teks biasa, untuk skrip dan alat arsip."
+Saves the details file in JSON format instead of plain text. Useful if another tool will read it.,"Menyimpan file detail dalam format JSON, bukan teks biasa. Berguna jika file akan dibaca oleh alat lain."
 Tag saved videos with their details,Beri tag detail pada video yang disimpan
-"Write the caption, creator, publication date and link into the video file itself, where media players and tools like ffprobe can read them. Applies to saves handled here.","Tulis keterangan, kreator, tanggal publikasi, dan tautan ke dalam file video itu sendiri, tempat pemutar media dan alat seperti ffprobe bisa membacanya. Berlaku untuk penyimpanan yang ditangani di sini."
+"Stores the caption, creator, post date and link inside the video file, where media players can read them. Applies to saves made by Hushfeed.","Menyimpan keterangan, kreator, tanggal unggah, dan tautan di dalam file video itu sendiri, tempat pemutar media bisa membacanya. Berlaku untuk penyimpanan yang dilakukan Hushfeed."
 Save the video's cover,Simpan sampul video
 Save the cover as well,Simpan sampulnya juga
 "Save the video's cover picture at the largest size TikTok has, each time you tap Download. It goes to your photo folder, named after the video.","Simpan gambar sampul video dengan ukuran terbesar yang dimiliki TikTok, setiap kali kamu mengetuk Unduh. Gambar masuk ke folder fotomu, dinamai sesuai videonya."
@@ -1803,7 +1810,7 @@ Match text stickers too,Cocokkan stiker teks juga
 Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.,Sembunyikan juga video yang stiker teksnya cocok dengan kata yang diblokir di keterangan. Stiker teks adalah kata-kata yang diketik kreator di atas video di editor TikTok. Teks yang menjadi bagian dari gambarnya sendiri tidak bisa dibaca.
 Text sticker words,Kata di stiker teks
 Show how many were filtered,Tampilkan jumlah yang disaring
-"A small label under TikTok's top tabs counts what the feed filter has taken out since TikTok started. It shows only on the feed, and a tap on it reaches the video under it.","Label kecil di bawah tab atas TikTok menghitung apa saja yang sudah disaring filter feed sejak TikTok dibuka. Label ini hanya muncul di feed, dan ketukan di atasnya tetap sampai ke video di bawahnya."
+"Shows a small count under TikTok's top tabs of what the feed filter has removed since TikTok started. It shows only on the feed, and taps on it go through to the video under it.","Menampilkan hitungan kecil di bawah tab atas TikTok tentang apa yang dihapus filter feed sejak TikTok dimulai. Hanya muncul di feed, dan ketukan padanya diteruskan ke video di bawahnya."
 1 filtered out,1 disaring
 %1$d filtered out,%1$d disaring
 Account facts on profiles,Fakta akun di profil
@@ -1822,11 +1829,11 @@ Liked videos,Video yang disukai
 Public,Publik
 Copy,Salin
 Copy the full link for short links,Salin tautan lengkap untuk tautan pendek
-"When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed opens it once in the background to read the full video link and puts that on your clipboard instead. TikTok sees that open, the same as when anyone taps the link. A link you send to another app goes out as it was.","Saat Salin tautan memberi tautan pendek vt.tiktok.com atau vm.tiktok.com, Hushfeed membukanya sekali di latar belakang untuk membaca tautan video lengkapnya, lalu menaruh tautan itu di papan klip. TikTok melihat pembukaan itu, sama seperti saat siapa pun mengetuk tautannya. Tautan yang kamu kirim ke aplikasi lain tetap seperti aslinya."
+"When Copy link gives a short vt.tiktok.com or vm.tiktok.com link, Hushfeed opens it once in the background to find the full video link and copies that instead. TikTok sees that visit. Links you send to another app go out as they were.","Saat Salin tautan memberi tautan pendek vt.tiktok.com atau vm.tiktok.com, Hushfeed membukanya sekali di latar belakang untuk menemukan tautan video lengkap, lalu menyalin yang itu. TikTok melihat kunjungan itu. Tautan yang kamu kirim ke aplikasi lain tetap seperti semula."
 Full link copied,Tautan lengkap disalin
 Mark saved videos,Tandai video tersimpan
-"Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.","Tambahkan ✓ sebelum jumlah tayangan di kisi profil, dan sebelum waktu di baris kreator video feed, untuk video yang disimpan Hushfeed di sini. Tanda di feed muncul di mana pun Selalu tampilkan tanggal unggah menampilkan waktunya. Ini membaca catatan yang disimpan oleh Periksa video yang sudah disimpan, jadi hanya berfungsi saat sakelar itu aktif. Postingan foto tidak ditandai, dan video yang sudah kamu hapus tetap bertanda sampai kamu memakai Lupakan video tersimpan."
-"Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.","Kirim juga preset sebagai ganti wilayah yang disimpan server TikTok di ponsel ini dan kode negara jaringan, yang ikut terkirim di setiap permintaan. Saat masuk, wilayah asli kamu tetap dikirim. Alamat IP dan aturan akun kamu tetap berlaku."
+"Puts a ✓ by videos you saved with Hushfeed, on profile grids and next to the time in the feed. Works only while Check for already-saved videos is on. Photo posts aren't marked.","Menaruh ✓ pada video yang kamu simpan dengan Hushfeed, di grid profil dan di samping waktu di feed. Hanya berfungsi saat Periksa video yang sudah disimpan menyala. Kiriman foto tidak ditandai."
+Also replaces the saved region and country code TikTok sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.,"Juga mengganti wilayah tersimpan dan kode negara yang dikirim TikTok di setiap permintaan. Saat masuk, wilayah aslimu tetap dikirim. Alamat IP dan aturan akunmu sendiri tetap berlaku."
 Turn off double tap to react,Matikan ketuk dua kali untuk bereaksi
 A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.,Ketuk dua kali pada pesan tidak lagi menambahkan hati ke pesan itu. Ketuk sekali dan tekan lama tetap berfungsi seperti biasa.
 Turn off swipe to reply,Matikan geser untuk membalas
@@ -1840,7 +1847,7 @@ Profile tab name,Nama tab Profil
 Shop tab name,Nama tab Toko
 A name of your own under this tab's icon. Leave it empty to keep TikTok's.,Nama pilihan Anda sendiri di bawah ikon tab ini. Biarkan kosong untuk memakai nama dari TikTok.
 Hide TikTok's wind-down screens,Sembunyikan layar penenang TikTok
-"Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.","Hentikan layar penenang sebelum tidur, latihan pernapasan, dan layar batas harian yang dipasang TikTok di atas feed. Ini hanya berlaku di akun yang diketahui TikTok milik orang dewasa. Akun remaja tetap menampilkannya, begitu juga akun yang ditautkan Pemasangan Keluarga ke orang tua. Saat Keluar saat TikTok bilang waktunya habis aktif, layar batas harian tetap muncul agar sakelar itu bisa bekerja."
+"Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.","Menghentikan jeda sebelum tidur, latihan napas, dan layar batas harian yang ditaruh TikTok di atas feed. Hanya berfungsi di akun yang TikTok tahu milik orang dewasa. Akun remaja, dan akun yang dihubungkan orang tua lewat Family Pairing, tetap memilikinya. Saat “Keluar saat TikTok bilang waktunya habis” menyala, layar batas harian tetap muncul agar sakelar itu bisa bekerja."
 Hide Footnotes,Sembunyikan Footnotes
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.,Sembunyikan banner Footnotes yang TikTok tampilkan pada video yang memiliki catatan. Video dan komentarnya tetap seperti semula.
 Hide Bulletin board,Sembunyikan Bulletin board
@@ -1852,6 +1859,23 @@ Skip TikTok's setup screens,Lewati layar penyiapan TikTok
 Hide unverified content notices,Sembunyikan pemberitahuan konten yang belum diverifikasi
 "Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.","Sembunyikan spanduk Periksa sumber yang dipasang TikTok pada video yang ditandai belum diverifikasi, dan peringatan yang muncul saat kamu membagikannya."
 Keep offline videos until you delete them,Simpan video offline sampai kamu menghapusnya
-"TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.","TikTok membuang video yang disimpannya untuk ditonton offline setelah waktu tertentu, kadang hanya dua hari, sudah ditonton atau belum. Dengan ini aktif, video tetap ada sampai kamu menghapusnya di pengaturan Video offline TikTok. Hapus di sana saat kamu ingin set baru. TikTok masih bisa menghapus video yang sudah kamu tonton saat penyimpanan ponselmu hampir penuh."
+"TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.","TikTok menghapus video yang disimpan untuk ditonton offline setelah waktu tertentu, kadang hanya dua hari, sudah ditonton atau belum. Saat ini menyala, video tetap ada sampai kamu menghapusnya di pengaturan Video offline TikTok. TikTok masih bisa menghapus yang sudah ditonton saat ruang ponselmu menipis."
 Hide Thoughts on profiles,Sembunyikan Thoughts di profil
 "Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.","Sembunyikan gelembung Thoughts yang TikTok tampilkan di atas foto profil, dan ajakan untuk membagikannya di profilmu sendiri. Mulai ulang TikTok agar berlaku."
+Feed & layout,Feed & tata letak
+"Filters, tabs and on-screen controls","Filter, tab, dan kontrol di layar"
+Comments & inbox,Komentar & kotak masuk
+"Filters, translation and inbox controls","Filter, terjemahan, dan kontrol kotak masuk"
+Downloads & sharing,Unduhan & berbagi
+"Files, subtitles and share sheet","Berkas, subtitel, dan menu berbagi"
+App & advanced,Aplikasi & pengaturan lanjutan
+"Region, backups and diagnostics","Wilayah, cadangan, dan diagnostik"
+About Hushfeed,Tentang Hushfeed
+"Version, changes and licenses","Versi, perubahan, dan lisensi"
+Customize,Sesuaikan
+Active,Aktif
+Paused,Dijeda
+Budgets and reminders,Batas dan pengingat
+"%1$s, %2$s","%1$s, %2$s"
+Don't auto translate these languages,Jangan terjemahkan otomatis bahasa ini
+"Separate language codes with commas, like es, de. When TikTok translates for you, captions and comments in these languages stay as they were written. See translation still works when you tap it. TikTok's own Don't translate list stays the way it is.","Pisahkan kode bahasa dengan koma, misalnya es, de. Saat TikTok menerjemahkan untukmu, keterangan dan komentar dalam bahasa ini tetap seperti saat ditulis. Lihat terjemahan tetap berfungsi saat kamu mengetuknya. Daftar Jangan terjemahkan milik TikTok sendiri tetap seperti semula."

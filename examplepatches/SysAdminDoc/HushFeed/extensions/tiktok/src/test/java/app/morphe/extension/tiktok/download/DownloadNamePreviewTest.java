@@ -152,7 +152,7 @@ public class DownloadNamePreviewTest {
         assertEquals("Pictures/Posts/creator_name_{vidoe_id}_1.jpg, creator_name_{vidoe_id}_2.jpg",
                 line(preview, "Hushfeed's downloader: "));
         assertEquals("Pictures/Posts/creator_name_{vidoe_id}.jpg", line(preview, "TikTok's downloader: "));
-        assertEquals("{vidoe_id}", line(preview, "Not a token here, kept as typed: "));
+        assertEquals("{vidoe_id}", line(preview, "Not a part Hushfeed fills in, so it's kept as typed: "));
         Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.save("{creator}_{vidoe_id}");
         assertEquals("creator_name_{vidoe_id}_2.jpg", DownloadFilenameFormatter.formatOriginalPhotoName(post, 2, "jpg"));
     }
@@ -162,17 +162,17 @@ public class DownloadNamePreviewTest {
                 DownloadNamePreview.unknownTokens("{ } {1} {video-id} {video id}{date2} {creator}{album}{album}",
                         DownloadNamePreview.TOKENS));
         assertFalse("braces around spaces aren't a try at a token",
-                DownloadNamePreview.video("{creator} { }", NOW).contains("Not a token"));
+                DownloadNamePreview.video("{creator} { }", NOW).contains("kept as typed"));
         String preview = DownloadNamePreview.video("{creator}_{video-id}", NOW);
-        assertEquals("{video-id}", line(preview, "Not a token here, kept as typed: "));
+        assertEquals("{video-id}", line(preview, "Not a part Hushfeed fills in, so it's kept as typed: "));
         assertEquals("DCIM/Clips/creator_name_{video-id}.mp4", line(preview, "Hushfeed's downloader: "));
     }
 
     @Test public void tokensOnlyTikToksDownloaderFillsAreNamedForHushfeeds() throws Exception {
         String preview = DownloadNamePreview.video("{original}_{media_id}_{vidoe}", NOW);
 
-        assertEquals("{vidoe}", line(preview, "Not a token here, kept as typed: "));
-        assertEquals("{original}, {media_id}", line(preview, "Not a token for Hushfeed's downloader, kept as typed: "));
+        assertEquals("{vidoe}", line(preview, "Not a part Hushfeed fills in, so it's kept as typed: "));
+        assertEquals("{original}, {media_id}", line(preview, "Hushfeed's downloader doesn't fill this in, so it's kept as typed: "));
         Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.save("{original}_{media_id}_{vidoe}");
         assertEquals("what Hushfeed's downloader really saves", "{original}_{media_id}_{vidoe}.mp4",
                 DownloadFilenameFormatter.formatSelectedVideoName(post));
@@ -181,9 +181,9 @@ public class DownloadNamePreviewTest {
 
         SettingsStatus.advancedDownloadsEnabled = false;
         assertFalse("without Hushfeed's downloader there's nothing to say about it",
-                DownloadNamePreview.video("{original}", NOW).contains("Not a token"));
+                DownloadNamePreview.video("{original}", NOW).contains("kept as typed"));
         assertFalse("the comment media saver fills both",
-                DownloadNamePreview.commentMedia("{original}_{media_id}", NOW).contains("Not a token"));
+                DownloadNamePreview.commentMedia("{original}_{media_id}", NOW).contains("kept as typed"));
     }
 
     @Test public void onlyTheDownloadersInTheBundleGetALine() {
@@ -201,6 +201,6 @@ public class DownloadNamePreviewTest {
         // A sticker has no creator, and the saver writes "unknown" for one, as the preview does.
         assertEquals(sticker + "/2023-11-14_7f3a9c21_unknown_{vidoe}.png", line(preview, "Stickers: "));
         assertEquals("Pictures/Posts/2023-11-14_7f3a9c21-live_unknown_{vidoe}.mp4", line(preview, "Live photo clips: "));
-        assertEquals("{vidoe}", line(preview, "Not a token here, kept as typed: "));
+        assertEquals("{vidoe}", line(preview, "Not a part Hushfeed fills in, so it's kept as typed: "));
     }
 }

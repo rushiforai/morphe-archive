@@ -8,18 +8,18 @@ Select each feature independently when patching. Included features appear under 
 
 | Patch | Behavior |
 | --- | --- |
-| Block stream ads | Replaces detected live-stream ads with direct Twitch playback from alternate player contexts. Prefers matching video quality. No external stream proxy. |
-| Hide feed and display ads | Removes sponsored feed cards and display ads using Twitch's no-ad responses. |
-| Hide Turbo promotions | Hides Turbo entries, upsells and purchase buttons. |
-| Hide subscription discount banners | Hides subscription offers and promotional labels, while retaining normal subscription actions. |
-| Auto-claim bonus channel points | Claims available bonus rewards in live playback. |
-| BTTV and 7TV emotes | Renders global and channel emotes in chat with provider previews on tap. |
-| Reload stream | Adds a reload button in live-player controls. Double-tap to reload. |
-| Block client-requested ads | Suppresses native ad requests. Restart Twitch after changing the setting. |
-| Playback diagnostics | Records playlist structure and playback frame counters. Disabled by default. |
-| Inspect Twitch APK | Reports package, version and DEX class count during patching. Does not change the app. |
+| Block stream ads | Replaces detected preroll and midroll ads with direct Twitch playback. |
+| Hide feed and display ads | Hides sponsored feed cards, banners and display ads. |
+| Hide Turbo promotions | Hides Twitch Turbo promotions and purchase prompts. |
+| Hide subscription discount banners | Hides subscription offers, discount banners and promotional labels. |
+| Auto-claim bonus channel points | Automatically claims bonus channel points while watching live streams. |
+| BTTV, FFZ and 7TV emotes | Adds global and channel emotes to chat and the emote picker, with animations, provider settings and tap previews. |
+| Reload stream | Reloads live streams with a double-tap control. |
+| Block client-requested ads | Blocks native player ad requests. Restart Twitch after changing this setting. |
+| Playback diagnostics | Records playlist metadata and playback counters for troubleshooting. |
+| Inspect Twitch APK | Reports the APK package, version and DEX class count without modifying the app. |
 
-Push notification registration is included automatically with feature patches.
+Every patch that modifies Twitch includes Patch settings, push notification registration, app-theme fixes and DJ playback settings support. These shared fixes require no separate patch selection. DJ playback uses Twitch's existing player and available renditions.
 
 All feature patches are selected and enabled by default. Inspection and playback diagnostics are optional. Previously saved settings are retained.
 
@@ -29,10 +29,10 @@ Supported Twitch versions:
 
 | Version | Version code |
 | --- | --- |
+| 31.5.2 | 3105026 |
 | 31.4.2 | 3104026 |
-| 31.3.0 | 3103006 |
 
-Both versions have passed patching and DEX verification. Device testing uses ARM64 on Android 13. Initial checks for 31.4.2 cover settings, stream reloading, emotes and ad blocking; extended testing is ongoing. See [compatibility data](config/compatibility.json) for verification results and remaining checks.
+Twitch 31.5.2 is the primary target; 31.4.2 remains supported by the same hooks. Verification uses ARM64 on Android 13. See [compatibility data](config/compatibility.json) for build results, device checks and remaining validation.
 
 Ad blocking is under evaluation. Google Play billing is unavailable in the re-signed app.
 

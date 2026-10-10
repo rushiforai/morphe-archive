@@ -75,18 +75,17 @@ internal val removeShareTargetsManifestPatch = resourcePatch {
 /**
  * Takes Threads out of the share sheet other apps open.
  *
- * Threads 448 to 450 take shares in one activity, BarcelonaShareHandlerActivity, through two intent
- * filters: text, and photos and videos. They declare no shortcuts file, so there are no direct share
+ * Threads 450 takes shares in one activity, BarcelonaShareHandlerActivity, through two intent
+ * filters: text, and photos and videos. It declares no shortcuts file, so there are no direct share
  * targets to take out today; one a later build names goes too. The activity stays, so anything in
  * Threads that opens it by name still can.
  */
 @Suppress("unused")
 val removeShareTargetsPatch = bytecodePatch(
     name = "Remove share targets",
-    description = "Takes Threads out of the share sheet other apps open, so it isn't offered when you share a " +
-        "link, a photo or a video from somewhere else. It does that by removing the share entries from Threads' " +
-        "manifest, along with any contacts Threads offers there for direct sharing. Sharing from Threads to " +
-        "other apps still works.",
+    description = "Takes Threads out of the share menu in other apps, so it isn't offered when you share a link, " +
+        "photo or video. Sharing from Threads still works. It isn't selected by default. Works as soon as" +
+        " you patch it in, with no switch.",
     default = false,
 ) {
     category("Interface")

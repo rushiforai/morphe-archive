@@ -92,10 +92,12 @@ private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_OBJECT, O
 @Suppress("unused")
 val messageMenuPatch = bytecodePatch(
     name = NAME,
-    description = "Adds switches, off by default, for a message's long-press menu. Repeat sends the message again to the same chat as a new message from you. Copy photo puts a downloaded photo on the clipboard, and Message details shows the message's IDs and times, plus the file's data center and size. Quick forward lists a few recent chats to forward to in one tap.",
+    description = "Adds Repeat, Copy photo, Message details and Quick forward to a message's press-and-hold menu, for " +
+        "resending, copying and forwarding faster. All four start off. Turn them on in HushTelegram settings " +
+        "> Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

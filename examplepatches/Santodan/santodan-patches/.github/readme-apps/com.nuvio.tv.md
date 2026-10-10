@@ -4,6 +4,12 @@ These are the available patches for NuvioTV:
 
 - **Merge tracking progress**: Combines Nuvio Sync and connected tracking-provider progress and watched-show history, with a choice between highest progress and the most recent update. Library and collection Watched labels follow the selected provider for each show. Cached progress and watched history load without waiting for provider refresh; synchronization continues in the background. Incremental Watched badge updates process changed cached metadata and limit progress logging.
 
+    - Enable **Show merged progress provider** to display the winning provider's icon (Trakt, Simkl, MDBList, or Nuvio) at the bottom-right of each Continue Watching poster. The option is disabled by default and displays icons only while merging is enabled.
+
+| Card | Poster |
+| -- | -- |
+| <img src="images/NuvioTVProvidersCard.png" width="400" alt="Collections"> | <img src="images/NuvioTVProvidersPoster.png" width="400" alt="Library"> |
+
 - **Remaining episodes in Continue Watching**: Adds a setting to show the number of aired, unwatched episodes on Continue Watching cards. Counting runs in the background for recently displayed cards and stops when disabled.<br>
 
 ![Remaining](images/NuvioTVRemainingCount.png)
@@ -32,12 +38,6 @@ These are the available patches for NuvioTV:
 
 - **Side-by-side installation**: Lets you choose a different package name and launcher name so the patched app can coexist with the official app.
 
-On NuvioTV **1.1.0-beta.4 and beta.5**, patch settings are under **Layout > Santodan-Patches**, grouped under **Continue Watching**, **UI**, and **Streams** labels. Labels appear only for installed patch groups. Airing-series, finale-date, upcoming-movie-date, and stream-preloading patches support beta.4 and beta.5; merged progress, remaining episodes, and side-by-side installation also support beta.2. Package and launcher names are configured when patching the APK.
-
-The two **Streams** switches are independent and disabled by default. Preloading uses Nuvio's native search cache and installed addons/plugins, with bounded background work. It pauses new preloads while native playback pauses source searches. Source results retain Nuvio's profile/configuration checks and cache expiration; media playback begins when you press Play.
-
-Include `"SantodanMovieRelease:V"` for movie-date diagnostics. Toggle messages identify the library or collections setting; routine settings recompositions stay silent.
-
-Include `"SantodanStreams:V"` in your logcat filters to see preload starts, completion times, source counts, and timeout/cancellation events. Repeated composition hits stay silent, and diagnostics omit stream URLs and redact custom video IDs.
+The patch settings are under **Layout > Santodan-Patches**, grouped under **Continue Watching**, **UI**, and **Streams** labels. Labels appear only for installed patch groups. Airing-series, finale-date, upcoming-movie-date, and stream-preloading patches support beta.4 and beta.5; merged progress, remaining episodes, and side-by-side installation also support beta.2. Package and launcher names are configured when patching the APK.
 
 <img src="images/NuvioTVMenu.png" width="800" alt="Santodan-Patches menu">

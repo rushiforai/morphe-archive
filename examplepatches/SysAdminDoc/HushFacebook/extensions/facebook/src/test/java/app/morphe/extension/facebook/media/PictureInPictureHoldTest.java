@@ -66,6 +66,8 @@ public class PictureInPictureHoldTest {
         HookStatus.clear();
         PictureInPicture.forget();
         screen = Robolectric.buildActivity(Screen.class).setup().get();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.PICTURE_IN_PICTURE.save(true);
     }
 
     @After

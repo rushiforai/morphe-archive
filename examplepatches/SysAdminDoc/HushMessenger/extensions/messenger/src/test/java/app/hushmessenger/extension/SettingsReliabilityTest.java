@@ -124,7 +124,7 @@ public class SettingsReliabilityTest {
                     if ("paused".equals(state)) Settings.preferences.edit().putBoolean("paused", true).commit();
                     screen.resume();
                     String expected = "paused".equals(state) ? "Changes paused" : "failed".equals(state) ? "Stopped with an error just now"
-                        : "used".equals(state) ? "Used just now" : "Nothing to change yet since restart";
+                        : "used".equals(state) ? "Used just now" : "Not used yet since Messenger started";
                     assertSame(choice, root.findViewWithTag("people"));
                     assertSame(label, root.findViewWithTag("active_people"));
                     assertEquals(expected, label.getText().toString());

@@ -20,10 +20,21 @@ import org.junit.Test
  * category, a misspelt one, or a catalog generated before the declarations landed all fail.
  */
 class PatchCategoriesTest {
-    /** One name per group, and no more than fits on a phone screen without scrolling. */
+    /**
+     * One name per group, the Hush family's names where one fits. With every patch in the default
+     * selection the list runs past 80, so no group holds much more than a dozen: Interface once held
+     * 42, and a reader looking for Hide the Reels tab had to read all of them.
+     */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Privacy", "Downloads", "Interface", "Fixes", "Settings",
+        "Ads", "Chats", "Comments", "Downloads", "Feed", "Fixes", "Interface", "Navigation", "Playback",
+        "Privacy", "Reels", "Settings", "Stories", "Theme",
     )
+
+    @Test
+    fun `no group is too long to scan`() {
+        val sizes = shippedPatches().groupingBy { it.get("category").asString }.eachCount()
+        assertEquals("split a group people have to scroll through", emptyMap<String, Int>(), sizes.filterValues { it > 15 })
+    }
 
     private fun shippedPatches() = run {
         val catalog = File("../patches-list.json").takeIf { it.isFile } ?: File("patches-list.json")

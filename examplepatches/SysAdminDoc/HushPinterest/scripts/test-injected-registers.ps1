@@ -430,7 +430,7 @@ try {
 
 # The verifier run end to end, with stand-ins for the tools it starts: a java that answers the
 # version probe and plays DexDiff with the given exit code, an aapt2 that describes Pinterest
-# 14.25.0, and an apksigner that reports a Pinterest signer from patches-list.json. With
+# 14.38.0, and an apksigner that reports a Pinterest signer from patches-list.json. With
 # -JavaGone the apksigner also deletes that java, which leaves it unable to start by the time
 # DexDiff runs, as a JDK replaced mid-run would. A Continue preference around the DexDiff call
 # once turned exactly that into '[registers] success.'.
@@ -467,7 +467,7 @@ exit /b $DexDiffExit
 @echo off
 echo   E: manifest (line=2)
 echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=511908382
-echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="14.25.0" (Raw: "14.25.0")
+echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="14.38.0" (Raw: "14.38.0")
 echo     A: package="$standInPackage" (Raw: "$standInPackage")
 exit /b 0
 "@
@@ -491,24 +491,54 @@ exit /b 0
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output; Text = $output -join "`n" }
 }
 
+# The verifier's two 8 GB checks each wait for a slot in the machine's build queue. Here a stand-in
+# queue takes the real one's place: it lets each job straight through and writes down what took a
+# slot and what gave one back, a java that never started included.
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
 try {
     New-Item -ItemType Directory -Path $standIns | Out-Null
+    $queueLog = Join-Path $standIns 'queue.log'
+    $quotedLog = "'" + $queueLog.Replace("'", "''") + "'"
+    $fakeQueue = Join-Path $standIns 'build-queue.ps1'
+    Set-Content -LiteralPath $fakeQueue -Encoding ASCII -Value @(
+        'param([switch]$Status, [string]$Label, [string]$Priority, [string]$Run)',
+        'function Enter-BuildQueue {',
+        '    param([string]$Label = ''build'', [string]$Priority)',
+        "    Add-Content -LiteralPath $quotedLog -Value ""enter `$Label""",
+        '    return [pscustomobject]@{ slot = 0; label = $Label }',
+        '}',
+        'function Exit-BuildQueue { param($Ticket) ' + "Add-Content -LiteralPath $quotedLog -Value ""exit `$(`$Ticket.label)"" }",
+        'function Get-BuildQueueMask { param([int]$Slot) [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity }')
+    $env:BUILD_QUEUE_SCRIPT = $fakeQueue
+    $env:BUILD_QUEUE_PRIORITY = $null
     # Each run has to reach the DexDiff call, or a stand-in that broke early would pass the checks below.
     $reached = '(?m)^\[registers\] patched '
     $passed = Invoke-VerifierWithStandIns -Name 'passed' -DexDiffExit 0
     Assert-True ($passed.ExitCode -eq 0 -and $passed.Text -match $reached -and
         $passed.Output -contains '[registers] success.') `
         "The verifier did not pass a comparison DexDiff passed.`n$($passed.Text)"
+    $queued = @(Get-Content -LiteralPath $queueLog) -join '|'
+    Assert-True ($queued -ceq ('enter hushpinterest dex diff|exit hushpinterest dex diff|' +
+        'enter hushpinterest host references|exit hushpinterest host references')) `
+        "The verifier did not run each check in a build queue slot of its own: $queued"
+    Remove-Item -LiteralPath $queueLog -Force
     $refused = Invoke-VerifierWithStandIns -Name 'refused' -DexDiffExit 1
     Assert-True ($refused.ExitCode -eq 1 -and $refused.Text -match $reached -and
         $refused.Text -match 'FAIL: the dex comparison exited 1' -and
         $refused.Output -notcontains '[registers] success.') `
         "The verifier did not fail a comparison DexDiff failed.`n$($refused.Text)"
+    Remove-Item -LiteralPath $queueLog -Force -ErrorAction SilentlyContinue
     $gone = Invoke-VerifierWithStandIns -Name 'java-gone' -DexDiffExit 0 -JavaGone
     Assert-True ($gone.ExitCode -ne 0 -and $gone.Text -match $reached -and
         $gone.Output -notcontains '[registers] success.' -and $gone.Text -notmatch '\[registers\] static: ') `
         "The verifier passed a run whose java could not start for DexDiff (exit $($gone.ExitCode)).`n$($gone.Text)"
+    $queued = @(Get-Content -LiteralPath $queueLog) -join '|'
+    Assert-True ($queued -ceq 'enter hushpinterest dex diff|exit hushpinterest dex diff') `
+        "A DexDiff whose java could not start kept its build queue slot: $queued"
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
     Remove-Item -LiteralPath $standIns -Recurse -Force -ErrorAction SilentlyContinue
 }
 
@@ -597,7 +627,7 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',' | Where-Object { $_ }) } })
-    Assert-True ($families.Count -eq 22) 'Every one of the 22 installed families needs a compiled contract.'
+    Assert-True ($families.Count -eq 25) 'Every one of the 25 installed families needs a compiled contract.'
     # A manifest-only family declares no capability and is the only kind that may.
     $manifestOnly = @($families | Where-Object { $_.Caps.Count -eq 0 } | ForEach-Object { $_.Flag })
     Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature') "Only Remove ad tracking permissions and Spoof signature for Google sign-in change no bytecode, not: $($manifestOnly -join ', ')"

@@ -35,10 +35,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/inb
 @Suppress("unused")
 val hideSuggestedAccountsPatch = bytecodePatch(
     name = "Hide suggested accounts",
-    description = "Stops the suggested accounts list from being built on the Activity, New " +
-        "followers and Inbox pages, and collapses every other People you may like card: the " +
-        "profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.",
-    default = false,
+    description = "Hides TikTok's People you may like suggestions in the Inbox, on profiles, " +
+        "on the Friends tab and in the feed. It uses the same switch as Hide inbox items. Starts " +
+        "off. Turn it on in Hushfeed settings > Inbox.",
 ) {
     category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)

@@ -8,6 +8,7 @@ package app.morphe.patches.pinterest.ads
 
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
+import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -26,6 +27,7 @@ import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 /**
  * Hide ads and Hide AI-labeled pins against the Pinterest builds the bundle declares: each list
@@ -33,6 +35,7 @@ import org.junit.Test
  * and nothing is warned about. Reads the real dex, so a renamed class or a moved literal in a new
  * build fails here before it reaches a phone.
  */
+@Category(FixtureTests::class)
 class FeedFixtureTest {
     private val literals = listOf(", _items count:", "PagedResponse(bookmark=", "ModelListWithBookmark(models=")
 

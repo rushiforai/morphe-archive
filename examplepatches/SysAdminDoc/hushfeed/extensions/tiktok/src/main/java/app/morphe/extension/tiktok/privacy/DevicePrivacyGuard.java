@@ -10,6 +10,7 @@ import android.net.NetworkCapabilities;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.EarlySwitch;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.lang.reflect.Method;
@@ -32,15 +33,27 @@ import java.util.Enumeration;
  *
  * <p>Each switch is read at the call, so none needs a restart, and a switch answers off while
  * Hushfeed is paused, so a paused build hands TikTok its real clipboard, VPN state and id.
+ *
+ * <p>TikTok checks its connection and its ad SDKs read the id early in startup. A read before
+ * the settings context exists takes the switch straight from the saved file
+ * ({@link EarlySwitch}), since reading a setting then would load Settings without its
+ * preferences, so a switch that's on covers those reads too.
  */
 @SuppressWarnings("unused")
 public final class DevicePrivacyGuard {
+    /** {@link Settings#BLOCK_CLIPBOARD_READS}'s key, for the read before the settings context. */
+    static final String CLIPBOARD_KEY = "block_clipboard_reads";
+    /** {@link Settings#HIDE_VPN}'s key. */
+    static final String VPN_KEY = "hide_vpn";
+    /** {@link Settings#BLOCK_ADVERTISING_ID}'s key. */
+    static final String ADVERTISING_ID_KEY = "block_advertising_id";
 
     /** What Android hands back for the advertising id once the user has deleted it. */
     private static final String BLANK_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";
 
     private static boolean blocks(String what) {
-        if (Utils.getContext() != null && !Settings.BLOCK_CLIPBOARD_READS.get()) return false;
+        boolean on = Utils.getContext() != null ? Settings.BLOCK_CLIPBOARD_READS.get() : EarlySwitch.isOn(CLIPBOARD_KEY);
+        if (!on) return false;
         Logger.printInfo(() -> "Device privacy guard: " + what);
         return true;
     }
@@ -62,13 +75,9 @@ public final class DevicePrivacyGuard {
 
     // --- VPN ---
 
-    /**
-     * Off-by-default switches answer off until the extension has a context: TikTok checks its
-     * connection early in startup, and reading a setting before then would load Settings without
-     * its preferences.
-     */
     private static boolean hidesVpn(String what) {
-        if (Utils.getContext() == null || !Settings.HIDE_VPN.get()) return false;
+        boolean on = Utils.getContext() != null ? Settings.HIDE_VPN.get() : EarlySwitch.isOn(VPN_KEY);
+        if (!on) return false;
         Logger.printInfo(() -> "Device privacy guard: " + what);
         return true;
     }
@@ -109,13 +118,11 @@ public final class DevicePrivacyGuard {
 
     // --- Advertising id ---
 
-    /**
-     * Whether the advertising id switch is on, read at the call. It answers off until the
-     * extension has a context, since TikTok's ad SDKs read the id early in startup, and off while
-     * Hushfeed is paused.
-     */
+    /** Whether the advertising id switch is on, read at the call, and off while Hushfeed is paused. */
     private static boolean blocksAdvertisingId(String what) {
-        if (!(Utils.getContext() != null && Settings.BLOCK_ADVERTISING_ID.get())) return false;
+        boolean on = Utils.getContext() != null
+                ? Settings.BLOCK_ADVERTISING_ID.get() : EarlySwitch.isOn(ADVERTISING_ID_KEY);
+        if (!on) return false;
         Logger.printInfo(() -> "Device privacy guard: " + what);
         return true;
     }

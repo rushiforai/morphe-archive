@@ -1,0 +1,3 @@
+# Split byte ranges into chunks over the app's own Cronet
+
+2026-10-03, `03ca11f`. googlevideo limits each request, while concurrent requests for different parts of a range add up: the same situation Bilibili-thread-ripper (BTR) solves. So the patch follows BTR's idea: split each `/videoplayback` range into chunks, download them concurrently and deliver them to the player strictly in order. Chunk requests go through the app's own `CronetEngine` (HTTP/3) rather than a separate HTTP client, and the hook still reports the transfer to the app's bandwidth meter, so ABR sees the real speed. Anything the hook does not understand (SABR, live, unknown length, non-googlevideo hosts, a first response that is not 2xx) goes back to the app unchanged. Details: `docs/download.md`.

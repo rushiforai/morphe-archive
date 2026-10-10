@@ -27,7 +27,8 @@
     resource table against the stock one (ResourceTableCheck.java), and its injected code against
     Pinterest's, including every class and member it calls (verify-injected-registers.ps1). A patch
     can apply and still call something one build lacks. 0.0.3's System share sheet did, calling a
-    14.38.0 class on 14.25.0, and the receipt only read the CLI's verdicts. A finding stops the run.
+    class from one Pinterest build on another, and the receipt only read the CLI's verdicts. A
+    finding stops the run.
     Their reports stay in -WorkDir.
 
     The patched APKs are working files and are deleted on the way out, including after a failure.
@@ -305,6 +306,11 @@ if ($unfixed.Count -gt 0) {
         'Nothing was patched.')
 }
 
+# A receipt is made for a release, so its heavy jobs go ahead of everyday builds in the machine's
+# build queue: BUILD_QUEUE_PRIORITY, which the queue reads, for the length of the patch runs.
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
+$env:BUILD_QUEUE_PRIORITY = 'release'
+try {
 foreach ($apk in $Fixture) {
     $label = Split-Path -Leaf $apk
     Write-Host "[receipt] patching $label with $($patchNames.Count) patches"
@@ -340,6 +346,7 @@ foreach ($apk in $Fixture) {
         # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code
         # are what decide.
         $preference = $ErrorActionPreference
+        $queued = Enter-HushPinterestQueue -Job 'receipt patch'
         try {
             $ErrorActionPreference = 'Continue'
             $global:LASTEXITCODE = -1
@@ -347,6 +354,7 @@ foreach ($apk in $Fixture) {
             $cliExitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $preference
+            Exit-HushPinterestQueue $queued
         }
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
@@ -376,6 +384,7 @@ foreach ($apk in $Fixture) {
         # Continue for the call alone, as for the CLI: a JDK note on stderr would otherwise end the
         # run under Windows PowerShell 5.1 before the exit code is read.
         $preference = $ErrorActionPreference
+        $queued = Enter-HushPinterestQueue -Job 'receipt resources'
         try {
             $ErrorActionPreference = 'Continue'
             $global:LASTEXITCODE = -1
@@ -384,6 +393,7 @@ foreach ($apk in $Fixture) {
             $resourceExitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $preference
+            Exit-HushPinterestQueue $queued
         }
         if ($resourceExitCode -ne 0) {
             throw ("${label}: the patched resource table failed its check against the stock one " +
@@ -424,6 +434,9 @@ foreach ($apk in $Fixture) {
             Remove-Item -LiteralPath $runDir -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
+}
+} finally {
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
 }
 
 $receipt = [ordered]@{

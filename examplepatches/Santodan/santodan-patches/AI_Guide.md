@@ -33,6 +33,69 @@ official installation. Device testing is still required for server-side behavior
 
 ## Pillo 0.6.19 and 0.6.20
 
+**Pillo - Local backup and restore** supports 0.6.20, independently of the other
+Pillo patches. Its Settings callback hook offers Local file / Google backup before
+the existing auth gate. A ThreadLocal bypass re-enters the untouched native callback
+only when Google is chosen. A platform Fragment hosts SAF import/export in the
+Settings activity; the native BackupAndRestoreActivity also gets a local button.
+The fresh-install onboarding restore chooser wraps its native BottomSheetController
+to offer local import alongside the existing Medisafe and Pillo account callbacks.
+OnboardingActivity registers the current host through a weak reference; the local
+option attaches the same retained import Fragment without a settings button.
+
+The native unencrypted `PilloDatabaseBackUpHelper.doBackup` snapshots `pillo.db`;
+shared preferences are flushed and archived with files/no_backup/primary external
+files. Restore validates indexed ZIP paths, sizes and SHA-256, SQLite quick_check,
+and native Room identity `acdc24b1947a76c496bdc3ac20b3d60e`. Cache/code and old native
+backup directories are excluded; external content URIs and Android Keystore keys
+are not portable. A pre-restore archive is retained in `app_santodan-local-backup`.
+
+Preparation copies staged data to target-filesystem siblings on a worker. The
+`PilloApp.attachBaseContext` hook runs before its locale/preference reads and commits
+only renames before providers/Room initialize. A persistent preparing/prepared/
+applying/committed journal supports rollback after process death. Old WAL/SHM/journal
+files are removed as part of the same transaction. After native onCreate, Pillo's
+alarm audit is requested; committed cleanup runs on a worker. Google backup APIs
+are not called by the local transport.
+
+Run `:patches:verifyPilloLocalArchive`, `:patches:verifyPilloLocalBackup`, and
+`:patches:verifyPilloLocalBackupBundle` for actual ZIP/filesystem round-trips,
+corruption/path-traversal/duplicate rejection, interrupted transaction recovery,
+native DEX contracts/hooks, and packaged local-only/combined application to the
+original APK. See `docs/PilloLocalBackup.md` for usage and required phone checks.
+
+**Pillo - Import weight history from JSON** supports 0.6.20 and adds a file-picker
+button above Skip in the native weight-entry footer. It uses Skip's
+RoundedSurfaceClickable capsule, height, padding and semantic accent color, with
+the rounded Add icon and SpacedColumn components. The retained Fragment hosts the
+file picker. Open the Weight record screen and select the destination profile
+before importing. The runtime captures that profile when opening the picker,
+defaults to kilograms, and shows a date-range preview before saving. SWT `weights`
+entries use numeric `date` (epoch milliseconds) and `weight`. Conversion preserves
+the instant at second precision and stores pounds, matching `WeightTrackerRecord`.
+No backup data is embedded in the patch bundle.
+
+The extension uses `AppDatabaseManager`'s initialized native event repository,
+reads tracked weights with `FlowKt.first`, and inserts each extra record through
+`insertWithConstraint`, checking its returned ID. The native bulk method discards
+the null-trackerId group and must not be used for these records. Events have
+generated IDs, null tracker/alarm fields,
+the selected profile, WEIGHT type, and recordedAtEpochSec. Exact timestamp/float
+duplicates are skipped within the backup and against that profile's existing records.
+Different values at the same timestamp remain separate records. Parse and storage
+run on workers; native suspend functions are awaited through a Continuation proxy.
+The patch validates native method and model constructor signatures before mutation.
+
+Run `:patches:verifyPilloWeightImport` for real 0.6.20 DEX contracts and round-trip
+checks, `:patches:verifyPilloWeightImportRuntime` for conversion, duplicate handling,
+profile isolation and coroutine completion/failure checks, and
+`:patches:verifyPilloWeightImportBundle` to apply both Pillo patches from the built
+bundle to the original APK and verify the merged importer classes. Optionally pass
+`-PweightBackup=<local SWT JSON path>` to runtime verification for the user's 68-entry
+backup; this file stays outside the repository. Device testing confirmed import
+and the capsule button's final appearance. Remaining device checks cover chart
+dates/units, rotation, reimport and native editing/deletion of imported records.
+
 **Pillo - Hybrid Lock-Screen Notifications** supports both versions. The matcher
 locates the light-reminder foreground decision structurally and fails if the alarm
 dispatcher is missing, changed, ambiguous, or already patched. It replaces only the
@@ -137,6 +200,8 @@ not be labelled as proof of a cache hit. Timeouts stop the preload consumer; nat
 search-session producers retain their own lifecycle.
 
 Merged watched badges must follow the same per-show provider winner as progress.
+Prime each provider's Next Up flow before reading progress, then read Next Up again after watched-history and alias loading completes. Simkl may refresh its projection during the later getters; publishing the initial seed list can discard cached cards using a stale snapshot. `Provider snapshot` logs initial/refreshed seed counts; focused `Show seed` / `Show merge selection` logs diagnose the reported Rage of Bahamut / Virgin Soul entry without dumping the full library. Playback deferral checks also guard the final seed read.
+On beta4/beta5, the optional **Show merged progress provider** setting uses the persisted merge origins to draw a 24dp local provider icon at the bottom-right of Continue Watching posters. Read the card's `x` WatchProgress, or the concrete `y.a` NextUpInfo, by content type and ID; never match titles or infer provenance from the carrier provider. Unknown origins stay unbadged. The icon uses a separate Compose group, native Box alignment, and the existing Coil loader with bundled raw SVGs or the Nuvio launcher artwork. This adds no tracking-provider or artwork network calls. Run `:patches:verifyNuvioProviderBadge` and beta4/beta5 DEX checks, including coexistence with remaining-episode badges.
 The proxy's `g(Continuation)` supplies the coherent bulk watched episode map;
 `d()` supplies watched items. Alternate catalog IDs come from `v(Continuation)`
 on beta2 or `w(Continuation)` on beta4. These must not fall through to the carrier
@@ -147,6 +212,7 @@ projection instead of publishing a partial carrier map. Interface default access
 (such as Trakt's empty `d()`) need inherited-method reflection fallback.
 Run `:patches:verifyNuvioWatchedHistory` for source selection and alternate-ID checks.
 Cache `snapshot_v2_<profileId>` contains progress, seeds, origins, watched items, episode maps, and aliases. Restore it off the UI thread. Every merged getter emits immediately, including on first launch without a cache. Background refresh runs every two minutes and checks for profile changes every second; discard results when the active profile changes. Reflection members are cached, seeds are indexed by show, and badge publication uses one reusable worker.
+On beta4/beta5, observe the native stream repository's Boolean playback pause setter (`v9.i4` / `v9.h4`, writing `k`). Defer merged refreshes, badge retries, and incremental badge publications while native source searches are paused for playback. Recheck between provider reads and before posting a snapshot; a playback revision prevents an older read from publishing after a playback transition. Resume deferred badges and refresh after leaving playback. Already-running native requests are allowed to finish; beta2 retains its existing behavior.
 `SantodanMergedProgress` logs provider-read and total merge times, per-provider totals, and published
 badge totals. Capture live logs before reproducing, rather than using only `logcat -d`.
 

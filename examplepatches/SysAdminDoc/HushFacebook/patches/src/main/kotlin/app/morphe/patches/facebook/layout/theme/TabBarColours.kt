@@ -27,6 +27,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * one down.
  *
  * The tab bar takes its colours from one abstract provider (581 LX/3W1) with two subclasses each.
+ * 582's (LX/5wY) holds one subclass's colours itself, so they're no longer abstract, and the other
+ * subclass (LX/2Ex) overrides them. Every caller still asks the provider.
  * TabBarContainerLayout, a class Redex keeps, is handed the provider with the tab id in a setter
  * (581 FGg(FbUserSession, LX/3W1, J), 577 FAb(LX/3aF, J)), and the first colour it asks the
  * provider for goes straight into the Paint of the line it draws over the selected tab. That's the

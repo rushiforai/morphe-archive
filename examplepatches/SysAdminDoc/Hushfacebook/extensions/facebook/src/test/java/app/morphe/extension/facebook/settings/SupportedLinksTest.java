@@ -71,8 +71,8 @@ public class SupportedLinksTest {
     /** The report's last lines on a phone without Meta App Manager, Messenger or Instagram, as Robolectric's is. */
     private static final List<String> ABSENT = Arrays.asList("meta_app_manager: absent", "messenger: absent", "instagram: absent");
     private static final String APP_MANAGER_KEY = "action_app_manager_links";
-    private static final String APP_MANAGER_SUMMARY = "Meta App Manager can keep Facebook's web addresses for itself, "
-            + "so their links skip this app. Tap and turn off Open supported links there, then check Supported links above.";
+    private static final String APP_MANAGER_SUMMARY = "Meta App Manager can claim Facebook's web addresses for itself, so their links skip this app. Tap, "
+            + "turn off Open supported links there, then recheck Supported links above.";
 
     private ActivityController<Activity> controller;
     /** What the fake service answers, or throws. */
@@ -93,6 +93,7 @@ public class SupportedLinksTest {
         ScreenColors.shown = null;
         Settings.OPEN_LINKS_EXTERNALLY.resetToDefault();
         Settings.SANITIZE_SHARING_LINKS.resetToDefault();
+        Settings.SHARE_POST_OWN_LINK.resetToDefault();
     }
 
     private static Map<String, Integer> hosts(int facebook, int mobile) {
@@ -353,16 +354,18 @@ public class SupportedLinksTest {
     }
 
     /**
-     * The row sits under the two link switches and changes neither: selecting addresses in Android
-     * decides which app gets a link, and the switches decide what Facebook does with one.
+     * The row sits under the three link switches and changes none of them: selecting addresses in
+     * Android decides which app gets a link, and the switches decide what Facebook does with one.
      */
     @Test
     public void theLinkSwitchesStayAsTheyAre() throws Exception {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.EXTERNAL_BROWSER, PatchFamily.SANITIZE_SHARING_LINKS);
         boolean external = !Settings.OPEN_LINKS_EXTERNALLY.defaultValue;
         boolean sanitize = !Settings.SANITIZE_SHARING_LINKS.defaultValue;
+        boolean ownLink = !Settings.SHARE_POST_OWN_LINK.defaultValue;
         Settings.OPEN_LINKS_EXTERNALLY.save(external);
         Settings.SANITIZE_SHARING_LINKS.save(sanitize);
+        Settings.SHARE_POST_OWN_LINK.save(ownLink);
         answer = state(true, hosts(NONE, NONE));
         HushfacebookPreferenceFragment page = show(true);
         Preference row = page.findPreference(KEY);
@@ -370,21 +373,27 @@ public class SupportedLinksTest {
         assertEquals("Links", String.valueOf(links.getTitle()));
         assertEquals(Settings.OPEN_LINKS_EXTERNALLY.key, links.getPreference(0).getKey());
         assertEquals(Settings.SANITIZE_SHARING_LINKS.key, links.getPreference(1).getKey());
-        assertEquals(row, links.getPreference(2));
+        assertEquals(Settings.SHARE_POST_OWN_LINK.key, links.getPreference(2).getKey());
+        assertEquals(row, links.getPreference(3));
         assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
         assertEquals(external, Settings.OPEN_LINKS_EXTERNALLY.get());
         assertEquals(sanitize, Settings.SANITIZE_SHARING_LINKS.get());
+        assertEquals(ownLink, Settings.SHARE_POST_OWN_LINK.get());
     }
 
-    /** The row says that selecting addresses sends links here without making the build verified. */
+    /**
+     * The last row says why Android won't verify a patched build, what selecting the addresses does
+     * instead, and that the other link settings stay (theLinkSwitchesStayAsTheyAre holds it to that).
+     */
     @Test
-    public void theScreenExplainsWhatSelectingDoesntRestore() throws Exception {
+    public void theScreenExplainsWhyAndroidWontVerifyThisBuild() throws Exception {
         answer = state(true, hosts(NONE, NONE));
         PreferenceGroup links = show(true).findPreference(KEY).getParent();
         Preference explanation = links.getPreference(links.getPreferenceCount() - 1);
         assertFalse(explanation.isSelectable());
-        assertTrue(String.valueOf(explanation.getSummary()), String.valueOf(explanation.getSummary())
-                .contains("doesn't restore"));
+        assertEquals("Choose which links open here", String.valueOf(explanation.getTitle()));
+        assertEquals("Android can't verify a patched Facebook for Facebook links. Selecting the addresses yourself "
+                + "sends those links here. Your other link settings stay.", String.valueOf(explanation.getSummary()));
     }
 
     /**
@@ -556,7 +565,7 @@ public class SupportedLinksTest {
         assertEquals("facebook.com links open here now.",
                 String.valueOf(page.findPreference("action_instagram_links").getSummary()));
         assertTrue(String.valueOf(page.findPreference("action_messenger_links").getSummary())
-                .startsWith("Messenger can keep facebook.com and m.me links"));
+                .startsWith("Messenger can claim facebook.com and m.me links"));
         answer = state(true, facebookHosts(SELECTED, SELECTED, SELECTED, SELECTED, SELECTED, NONE));
         controller.pause().resume();
         assertEquals("facebook.com and m.me links open here now.",

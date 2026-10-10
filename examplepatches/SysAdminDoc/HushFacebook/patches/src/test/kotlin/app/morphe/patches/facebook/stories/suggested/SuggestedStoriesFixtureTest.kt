@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 /**
  * The anchors of Hide suggested stories on every declared Facebook build, found the way the patch
@@ -42,15 +43,28 @@ class SuggestedStoriesFixtureTest {
         AppCompatibilities.FACEBOOK_TARGET_VERSION to (7 to 4),
     )
 
-    /** The bucket interface's type accessor and the enum it answers, per build. */
+    /**
+     * The bucket interface's type accessor and the enum it answers, per build and then by the
+     * bundle's ABI. 581's two builds shared their names; 582's armeabi-v7a build has its own.
+     */
     private val expectedType = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("CB0" to "LX/2OQ;"),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to ("CCr" to "LX/2F1;"),
+            "armeabi-v7a" to ("CCr" to "LX/2Fb;"),
+        ),
     )
 
-    /** The query builders that set skip_srtt_item_list, per build (issue #21). */
+    /** The query builders that set skip_srtt_item_list, per build and then by ABI (issue #21). */
     private val expectedSkips = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to setOf("LX/24x;->A03", "LX/24x;->A07"),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to setOf("LX/1tR;->A03", "LX/1tR;->A07"),
+            "armeabi-v7a" to setOf("LX/1tz;->A03", "LX/1tz;->A07"),
+        ),
     )
+
+    private fun <T> Map<String, Map<String, T>>.pin(version: String, bundle: File): T =
+        getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+            ?: throw AssertionError("${bundle.name} has no pin")
 
     private fun reference(instruction: Instruction): String {
         val call = (instruction as ReferenceInstruction).reference as MethodReference
@@ -116,7 +130,7 @@ class SuggestedStoriesFixtureTest {
                 assertEquals("${bundle.name}: the tray data", data, tray.constructor.definingClass)
                 assertEquals("${bundle.name}: the bucket list is the constructor's fourth parameter", 3, tray.list)
                 assertEquals("${bundle.name}: the label enum", label, tray.label)
-                assertEquals("${bundle.name}: the bucket type accessor", expectedType.getValue(version), tray.type to tray.typeEnum)
+                assertEquals("${bundle.name}: the bucket type accessor", expectedType.pin(version, bundle), tray.type to tray.typeEnum)
                 assertTrue("${bundle.name}: ${tray.typeEnum} isn't among the enums naming the cards",
                     tray.typeEnum in typeEnums.map { it.type })
                 assertTrue("${bundle.name}: ${tray.bucket} isn't among the receiver's flags", tray.bucket in interfaces)
@@ -173,7 +187,7 @@ class SuggestedStoriesFixtureTest {
                 val classes = FixtureDex.classesHolding(bundle, SKIP_PROMPT_CARDS)
                 val methods = classes.flatMap { methodsHolding(it, SKIP_PROMPT_CARDS) }
                 fun key(method: Method) = "${method.definingClass}->${method.name}"
-                assertEquals("${bundle.name}: methods holding \"$SKIP_PROMPT_CARDS\"", expectedSkips.getValue(version), methods.map(::key).toSet())
+                assertEquals("${bundle.name}: methods holding \"$SKIP_PROMPT_CARDS\"", expectedSkips.pin(version, bundle), methods.map(::key).toSet())
                 assertEquals("${bundle.name}: one method per name", 2, methods.size)
 
                 val own = methods.associate { key(it) to body(it) }

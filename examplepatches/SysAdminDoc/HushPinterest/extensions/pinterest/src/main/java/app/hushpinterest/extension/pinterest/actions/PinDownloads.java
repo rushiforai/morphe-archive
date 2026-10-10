@@ -151,10 +151,11 @@ public final class PinDownloads {
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 throw new IllegalStateException("Activity unavailable");
             }
-            String text = L10n.t("These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.")
+            String text = L10n.t("These details come from the link and file information Pinterest gave the app. "
+                + "HushPinterest hasn't opened the file to check them.")
                     + "\n\n" + L10n.f("Supplied width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
                     + "\n" + L10n.f("Supplied height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
-                    + "\n" + L10n.f("Supplied URL type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
+                    + "\n" + L10n.f("Link type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
             if (media.source != null && media.size != null) text += "\n" + (PinMedia.standIn(media)
                     ? L10n.f("Supplied size: %s. Downloads look for the original first.", media.size)
                     : L10n.t("Supplied size: the original image"));
@@ -172,11 +173,12 @@ public final class PinDownloads {
 
     private static String refusalMessage(PinMedia.Refusal refusal) {
         switch (refusal) {
-            case ADAPTIVE_VIDEO: return L10n.t("Pinterest supplied an adaptive video stream, but no downloadable MP4.");
-            case MP4_MISSING: return L10n.t("Pinterest hasn't supplied a downloadable MP4 for this pin.");
+            case ADAPTIVE_VIDEO: return L10n.t("Pinterest only offered a streaming video for this pin, not a file "
+                + "that can be downloaded.");
+            case MP4_MISSING: return L10n.t("Pinterest didn't offer a downloadable video file for this pin.");
             case IMAGE_MISSING: return L10n.t("Pinterest hasn't supplied an image to download.");
-            case IMAGE_TYPE: return L10n.t("The supplied image type isn't supported for download.");
-            case PUBLIC_LINK: return L10n.t("The supplied media link isn't a supported public Pinterest link.");
+            case IMAGE_TYPE: return L10n.t("HushPinterest can't download this type of image.");
+            case PUBLIC_LINK: return L10n.t("This media link isn't a public Pinterest link HushPinterest can use.");
             default: throw new IllegalArgumentException("Unknown media refusal");
         }
     }

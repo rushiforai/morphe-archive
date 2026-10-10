@@ -54,11 +54,11 @@ internal const val NO_ANIMATION_STUB = "noAnimation"
 @Suppress("unused")
 val changeLikeAnimationPatch = bytecodePatch(
     name = "Change the like animation",
-    description = "Plays an animation you pick, from the ones Instagram made for Instagram Rings creators, in the " +
-        "heart that pops up when you double tap a post. Its switch, under Reels, starts off.",
+    description = "Lets you pick the animation that plays when you double tap a post to like it. The choices are " +
+        "animations Instagram made for its Rings creators. Starts off. Turn it on in HushGram settings > Reels.",
     default = true,
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 

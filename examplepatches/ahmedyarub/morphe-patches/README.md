@@ -15,9 +15,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.0](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;57 patches total
+> **[v1.13.0](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
 <details open>
-<summary>📦 X&nbsp;&nbsp;•&nbsp;&nbsp;40 patches</summary>
+<summary>📦 X&nbsp;&nbsp;•&nbsp;&nbsp;41 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -45,6 +45,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Enable Undo Posts](#enable-undo-posts) | Holds each post for a few seconds before sending it, so it can be undone. | • Undo period |
 | [Enable debug menu for posts](#enable-debug-menu-for-posts) | Adds "Post data" to the post menu: everything the app knows about the post, as text. |  |
 | [Enable force HD videos](#enable-force-hd-videos) | Always plays videos at the highest quality the device supports, whatever the connection. |  |
+| [Feed filters](#feed-filters) | Adds feed filters to timelines: media only (images, videos, GIFs), hide followed profiles, and include/exclude keyword filtering. Toggle each filter from the Morphe settings. | • Initial include keywords |
 | [Filter posts by keyword](#filter-posts-by-keyword) | Hides posts whose text contains any of your keywords, ignoring case. Edit the keywords from "Filtered keywords" in any post's menu, or in the Morphe settings. | • Initial keywords |
 | [Force enable translate](#force-enable-translate) | Offers to translate every post, not only those the server marks translatable. |  |
 | [Handle custom twitter links](#handle-custom-twitter-links) | Opens links to other X frontends, such as fxtwitter and vxtwitter, in the app. They have to be enabled under "Open by default" in the app's system settings. | • Hosts |

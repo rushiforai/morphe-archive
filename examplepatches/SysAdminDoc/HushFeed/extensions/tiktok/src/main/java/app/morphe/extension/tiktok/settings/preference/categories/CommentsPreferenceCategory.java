@@ -28,6 +28,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
     public static boolean isAvailable() {
         return SettingsStatus.commentToolsEnabled
                 || SettingsStatus.commentTranslationEnabled
+                || SettingsStatus.doNotAutoTranslateEnabled
                 || SettingsStatus.hideCommentQuickReactionsEnabled
                 || SettingsStatus.copyCommentsWithoutUsernameEnabled
                 || SettingsStatus.hideCommentEggsEnabled
@@ -43,6 +44,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
     @Override
     public void addPreferences(Context context) {
         boolean reading = SettingsStatus.commentTranslationEnabled
+                || SettingsStatus.doNotAutoTranslateEnabled
                 || SettingsStatus.commentSortControlsEnabled
                 || SettingsStatus.commentToolsEnabled
                 || SettingsStatus.copyCommentsWithoutUsernameEnabled;
@@ -57,14 +59,25 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.COMMENT_BATCH_TRANSLATION
             ));
         }
+        if (SettingsStatus.doNotAutoTranslateEnabled) {
+            addPreference(new InputTextPreference(
+                    context,
+                    "Don't auto translate these languages",
+                    "Separate language codes with commas, like es, de. When TikTok translates for you, "
+                            + "captions and comments in these languages stay as they were written. "
+                            + "See translation still works when you tap it. TikTok's own Don't translate "
+                            + "list stays the way it is.",
+                    Settings.DONT_AUTO_TRANSLATE_LANGUAGES)
+                    .withCheck(app.morphe.extension.tiktok.translation.DoNotAutoTranslate::languageProblem)
+                    .withNameKeyboard());
+        }
         if (SettingsStatus.commentSortControlsEnabled) {
             addPreference(new TogglePreference(
                     context,
                     "Full comment sort options",
-                    "Show TikTok's own sort sheet on every post, with its hot, newest, media and "
-                            + "creator options, instead of whichever cut-down row your account was "
-                            + "given. Restart TikTok to apply this. It reads the style "
-                            + "once per run and remembers it.",
+                    "Shows TikTok's full sort menu on every post, with hot, newest, media and "
+                            + "creator options, instead of the shorter one your account got. "
+                            + "Restart TikTok to see the change.",
                     Settings.COMMENT_SORT_CONTROLS
             ));
         }
@@ -72,23 +85,25 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Easier comment likes",
-                    "Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. "
-                            + "Text, Reply and other controls keep their own space.",
+                    "Makes the heart easier to tap by using the empty space around it. The icon "
+                            + "and spacing look the same, and Reply and other buttons keep "
+                            + "their own space.",
                     Settings.LARGER_COMMENT_LIKE_TARGET
             ));
             addPreference(new TogglePreference(
                     context,
                     "Search within comments",
-                    "Add a search box that filters comments already loaded on this video by text or username. "
-                            + "It doesn't search all of TikTok or remove TikTok's suggested-search banner.",
+                    "Adds a search box that finds comments already loaded on this video, by "
+                            + "words or username. It doesn't search all of TikTok.",
                     Settings.COMMENT_SEARCH
             ));
             addPreference(new TogglePreference(
                     context,
                     "Export comments",
-                    "Adds Export CSV and Export JSON under the search box, so it needs Search within comments. "
-                            + "They save the comments and replies this video has loaded to a file you pick. "
-                            + "Open the reply threads you want first, since TikTok only loads them when you do.",
+                    "Adds Export CSV and Export JSON buttons under the search box, so Search "
+                            + "within comments must be on. They save the comments and replies "
+                            + "loaded so far to a file you pick. Open the reply threads you "
+                            + "want first.",
                     Settings.COMMENT_EXPORT
             ));
             addPreference(new TogglePreference(
@@ -156,8 +171,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Compact comment header",
-                    "Start with comments. Hide the comment count, sort and close buttons, "
-                            + "plus the suggestion area above them. Use Back or swipe down to close comments.",
+                    "Hides the comment count, the sort and close buttons and the suggestions "
+                            + "above them. Use Back or swipe down to close comments.",
                     Settings.COMPACT_COMMENT_HEADER
             ));
             addPreference(new TogglePreference(
@@ -169,13 +184,16 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new InputTextPreference(
                     context,
                     "Blocked comment words",
-                    "Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
+                    "Separate words with commas. A comment is hidden if it contains any of "
+                            + "them. Capital letters don't matter. Write \"a\" & \"b\" to need "
+                            + "both phrases, or \"a\" !& \"b\" to need the first without the "
+                            + "second.",
                     Settings.COMMENT_BLOCKED_KEYWORDS
             ).withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
             addPreference(new InputTextPreference(
                     context,
                     "Hidden commenters",
-                    "Comma separated usernames or display names whose comments are hidden.",
+                    "Separate usernames or display names with commas. Their comments are hidden.",
                     Settings.COMMENT_BLOCKED_USERS
             ).withNameKeyboard());
             addPreference(new TogglePreference(

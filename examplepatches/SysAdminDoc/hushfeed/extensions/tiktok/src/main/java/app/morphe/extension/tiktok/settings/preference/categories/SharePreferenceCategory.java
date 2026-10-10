@@ -52,9 +52,10 @@ public final class SharePreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new InputTextPreference(
                     context,
                     "Hide people and options by name",
-                    "Comma separated names exactly as the share sheet shows them: friends in the "
-                            + "Send to row, share targets such as Facebook, and actions such as "
-                            + "Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.",
+                    "Separate names with commas, exactly as the share sheet shows them. These "
+                            + "can be friends in the Send to row, apps such as Facebook, or "
+                            + "actions such as Create group or Repost. The words copy, save and "
+                            + "dislike also work before the sheet has opened.",
                     Settings.SHARE_HIDDEN_ITEMS
             ));
         }
@@ -63,9 +64,8 @@ public final class SharePreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Allow Duet and Stitch anyway",
-                    "Ignore the creator's choice so the Duet and Stitch entries appear. "
-                            + "Everything else the app checks still applies, and whether the "
-                            + "upload is accepted is the server's decision.",
+                    "Shows the Duet and Stitch options even when the creator turned them off. "
+                            + "TikTok may still refuse to accept the result.",
                     Settings.ALLOW_DUET_AND_STITCH
             ));
         }

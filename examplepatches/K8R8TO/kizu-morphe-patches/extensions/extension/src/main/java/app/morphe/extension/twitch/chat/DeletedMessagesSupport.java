@@ -27,13 +27,18 @@ public final class DeletedMessagesSupport {
 
     public static SpannedString recoverDeletedMessage(
             SpannedString message,
-            Object[] spans
+            Object[] spans,
+            Class<?> deletedSpanClass
     ) {
-        if (message == null || spans == null || spans.length == 0) return message;
+        if (message == null || spans == null || spans.length == 0 || deletedSpanClass == null) return null;
         try {
-            if (!Settings.CHAT_DELETED_MESSAGES.get()) return message;
+            if (!Settings.CHAT_DELETED_MESSAGES.get()) return null;
 
+            // Twitch may return multiple spans. Never assume index 0 is the deleted-message span.
             for (Object candidate : spans) {
+                // Twitch's formatter returns many span types. Only inspect the exact class
+                // matched by DeletedMessageSpanCtorFingerprint, never usernames or emote spans.
+                if (candidate == null || !deletedSpanClass.isInstance(candidate)) continue;
                 if (!(candidate instanceof ClickableSpan)) continue;
                 ClickableSpan deletedSpan = (ClickableSpan) candidate;
                 int spanStart = message.getSpanStart(deletedSpan);
@@ -45,18 +50,25 @@ public final class DeletedMessagesSupport {
 
                 SpannableStringBuilder builder = new SpannableStringBuilder(message);
                 SpannedString recovered = stripDuplicateChatterHeader(
-                        message, deletedSpan, spanStart, original
+                        message,
+                        deletedSpan,
+                        spanStart,
+                        original
                 );
                 if (recovered.length() == 0) continue;
 
                 builder.replace(spanStart, spanEnd, recovered);
                 builder.removeSpan(deletedSpan);
-                applyStyle(builder, spanStart, spanStart + recovered.length());
+
+                int recoveredEnd = spanStart + recovered.length();
+                applyStyle(builder, spanStart, recoveredEnd);
                 return SpannedString.valueOf(builder);
             }
         } catch (Throwable ignored) {
         }
-        return message;
+        // Null tells the bytecode hook to restore Twitch's Class register and continue the
+        // stock formatter. A non-null result is returned immediately to bypass the placeholder.
+        return null;
     }
 
     private static SpannedString findOriginalMessage(ClickableSpan deletedSpan) {

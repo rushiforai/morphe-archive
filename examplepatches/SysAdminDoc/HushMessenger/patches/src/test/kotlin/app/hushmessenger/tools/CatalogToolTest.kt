@@ -180,7 +180,7 @@ class CatalogToolTest {
         val catalog = CatalogTool.catalog("1", setOf(app.hushmessenger.patches.misc.spoofPackageVersionPatch))
         val option = catalog.getValue("patches").jsonArray.single().jsonObject.getValue("options").jsonArray.single().jsonObject
         assertEquals("versionCode", option.getValue("key").jsonPrimitive.content)
-        assertEquals("Version code", option.getValue("title").jsonPrimitive.content)
+        assertEquals("Version number", option.getValue("title").jsonPrimitive.content)
         assertEquals("kotlin.Int", option.getValue("type").jsonPrimitive.content)
         assertEquals(2147483647, option.getValue("default").jsonPrimitive.int)
         assertTrue(option.getValue("required").jsonPrimitive.boolean)

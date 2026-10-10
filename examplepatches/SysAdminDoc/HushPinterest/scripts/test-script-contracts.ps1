@@ -2055,6 +2055,8 @@ try {
     # The test counts the description quotes, which only the strict path reads: a release, or the
     # push that rewrites the index. The copied tree holds no test results, so each folder gets a
     # suite of exactly as many tests as the copied description names, and one fact moves per case.
+    # The patch count is two folders together, :patches:test's and :patches:fixtureTest's: one
+    # fixture test, and the rest in the quick task.
     $factsDescription = [string](Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw |
         ConvertFrom-Json).description
     $runtimeQuoted = [int]([regex]::Match($factsDescription, '\b(\d+) runtime tests passed\b').Groups[1].Value)
@@ -2077,20 +2079,33 @@ try {
     function Invoke-StrictFacts { & $factsScript -Root $factsRoot -SkipUrlCheck 6> $null }
     $runtimeResults = 'extensions/pinterest/build/test-results/testDebugUnitTest'
     $patchResults = 'patches/build/test-results/test'
+    $fixtureResults = 'patches/build/test-results/fixtureTest'
+    Assert-True ($patchQuoted -gt 2) "The copied description quotes too few patch tests to split between the tasks: $patchQuoted"
     try {
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused test results that match the description.'
 
         # A fixture test that skipped, which Gradle reports as a pass.
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
+        Write-FactsResults $fixtureResults 'FixtureTest' 1 -Skipped 1
         Assert-Throws { Invoke-StrictFacts } '*skipped 1 test*' `
             'A release was checked against patch test results with a skipped fixture test.'
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
+
+        # The quick task's results alone, as a run of :patches:test without :patches:fixtureTest
+        # leaves them. Their count can even match: here the quick folder holds every test.
+        Remove-Item -LiteralPath (Join-Path $factsRoot $fixtureResults) -Recurse -Force
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Assert-Throws { Invoke-StrictFacts } '*No patch test results*fixtureTest*:patches:fixtureTest*' `
+            'A release was checked with no results from the tests that open the vendor APKs.'
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
 
         # A count the run doesn't have, which is how "All 269 patch tests passed" was written.
-        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted + 1)
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
         Assert-Throws { Invoke-StrictFacts } '*patch test count*' `
             'A description quoting a patch test count the run does not have was accepted.'
 
@@ -2099,7 +2114,8 @@ try {
         # were counted as passing. The sources go in first so the results are the newer files.
         $runtimeSource = Join-Path $factsRoot 'extensions/pinterest/src/test/java/fixture/RuntimeTest.java'
         $patchSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/PatchTest.kt'
-        foreach ($source in @($runtimeSource, $patchSource)) {
+        $fixtureSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/FixtureTest.kt'
+        foreach ($source in @($runtimeSource, $patchSource, $fixtureSource)) {
             New-Item -ItemType Directory -Path (Split-Path -Parent $source) -Force | Out-Null
             Set-Content -LiteralPath $source -Value '' -Encoding ASCII
         }
@@ -2108,19 +2124,34 @@ try {
                 "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"1`" " +
                 "skipped=`"0`" failures=`"0`" errors=`"0`"><testcase name=`"t1`" classname=`"fixture.$Suite`"/></testsuite>")
         }
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
         Write-FactsResults $runtimeResults 'RuntimeTest' ($runtimeQuoted - 1)
         Add-OrphanResult $runtimeResults 'GoneTest'
         Assert-Throws { Invoke-StrictFacts } '*runtime test results include 1 test class*GoneTest*' `
             'The runtime results of a deleted test class were counted.'
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
         Add-OrphanResult $patchResults 'GonePatchTest'
         Assert-Throws { Invoke-StrictFacts } '*patch test results include 1 test class*GonePatchTest*' `
             'The patch results of a deleted test class were counted.'
+        # The same orphan left in the fixture task's folder.
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+        Add-OrphanResult $fixtureResults 'GonePatchTest'
+        Assert-Throws { Invoke-StrictFacts } '*patch test results include 1 test class*GonePatchTest*' `
+            'The fixture results of a deleted test class were counted.'
+        # A class with one fixture test among quick ones has results in both folders, and that is
+        # one class with all its tests counted, not an orphan.
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 2)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
+        Add-OrphanResult $fixtureResults 'PatchTest'
+        Invoke-StrictFacts
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'The strict release check refused a test class whose tests ran in both patch test tasks.'
         # The control: the same sources with no orphan pass.
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $fixtureResults 'FixtureTest' 1
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused results that match their sources and the description.'
@@ -2949,6 +2980,9 @@ try {
         $wrapped = Get-Content -LiteralPath $wrapperMarker -Raw
         Assert-True ($wrapped -like "dir=$hookRoot tasks=*:extensions:pinterest:test*:patches:test*") `
             "The build wrapper was not handed the repository and the test tasks: $wrapped"
+        # The tests that open the vendor APKs come last, after the quick tests and the lint.
+        Assert-True ($wrapped.Trim() -like "dir=$hookRoot tasks=*,:patches:test,*:extensions:pinterest:lint,:patches:fixtureTest") `
+            "The build wrapper was not handed :patches:fixtureTest after the quick checks: $wrapped"
 
         # The Gradle file that writes the release bundle. The contract tests hold it to the
         # directory common.ps1 reads the bundle from, and a push that moved only it ran the build
@@ -3612,7 +3646,7 @@ try {
 
     $apkm = Join-Path $commonRoot 'pinterest.apkm'
     $apkmEntries = [ordered]@{
-        'info.json' = '{"versioncode":"14258020"}'
+        'info.json' = '{"versioncode":"14388010"}'
         'base.apk' = 'base'
         'split_config.arm64_v8a.apk' = ('native code ' * 64)
     }
@@ -3730,6 +3764,121 @@ try {
 
 Write-Host '[scripts] shared helper contracts passed'
 
+# --- build queue ---------------------------------------------------------------------------------
+#
+# The heavy desktop jobs (a CLI patch run, a merge, the resource table check, the dex and host
+# reference checks, the fingerprint ranking, the gate's own Gradle run without a wrapper) wait for
+# a slot in the machine's build queue when BUILD_QUEUE_SCRIPT names one, so build-queue.ps1 -Status
+# shows them and they never start beside two Gradle builds. A stand-in queue lets every job straight
+# through and writes down what entered, at which priority, and what left.
+
+function New-FakeBuildQueue {
+    param([string]$Path, [string]$Log)
+    $quotedLog = "'" + $Log.Replace("'", "''") + "'"
+    Set-Content -LiteralPath $Path -Encoding ASCII -Value @(
+        'param([switch]$Status, [string]$Label, [string]$Priority, [string]$Run)',
+        'function Enter-BuildQueue {',
+        '    param([string]$Label = ''build'', [string]$Priority)',
+        '    if (-not $Priority) { $Priority = if ($env:BUILD_QUEUE_PRIORITY -eq ''release'') { ''release'' } else { ''normal'' } }',
+        "    Add-Content -LiteralPath $quotedLog -Value ""enter `$Priority `$Label""",
+        '    return [pscustomobject]@{ slot = 0; label = $Label }',
+        '}',
+        'function Exit-BuildQueue {',
+        '    param($Ticket)',
+        "    Add-Content -LiteralPath $quotedLog -Value ""exit `$(`$Ticket.label)""",
+        '}',
+        'function Get-BuildQueueMask {',
+        '    param([int]$Slot)',
+        '    return [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity',
+        '}')
+}
+
+$queueRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushpinterest-queue-" + [guid]::NewGuid().ToString('N'))
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
+try {
+    New-Item -ItemType Directory -Path $queueRoot | Out-Null
+    $queueLog = Join-Path $queueRoot 'queue.log'
+    $fakeQueue = Join-Path $queueRoot 'build-queue.ps1'
+    New-FakeBuildQueue -Path $fakeQueue -Log $queueLog
+    $env:BUILD_QUEUE_PRIORITY = $null
+
+    # No queue named: nothing to wait for, and nothing to give back.
+    $env:BUILD_QUEUE_SCRIPT = $null
+    $global:LASTEXITCODE = 3
+    $held = Enter-HushPinterestQueue -Job 'fixture job'
+    Exit-HushPinterestQueue $held
+    Assert-True ($null -eq $held -and $LASTEXITCODE -eq 3 -and -not (Test-Path -LiteralPath $queueLog)) `
+        'A job waited for a build queue nobody named, or lost the exit code the caller reads.'
+
+    # A queue named: the job takes a slot under its label, runs below normal priority, and leaves
+    # with the exit code of the job it held the slot for.
+    $env:BUILD_QUEUE_SCRIPT = $fakeQueue
+    $process = [System.Diagnostics.Process]::GetCurrentProcess()
+    $priorityBefore = $process.PriorityClass
+    $held = Enter-HushPinterestQueue -Job 'fixture job'
+    try {
+        $process.Refresh()
+        Assert-True ($process.PriorityClass -eq [System.Diagnostics.ProcessPriorityClass]::BelowNormal) `
+            "A job holding a queue slot ran at $($process.PriorityClass) priority."
+        $global:LASTEXITCODE = 7
+    } finally {
+        Exit-HushPinterestQueue $held
+    }
+    $process.Refresh()
+    Assert-True ($LASTEXITCODE -eq 7 -and $process.PriorityClass -eq $priorityBefore) `
+        "Leaving the queue lost the job's exit code ($LASTEXITCODE) or kept its priority ($($process.PriorityClass))."
+    Assert-True ((@(Get-Content -LiteralPath $queueLog) -join '|') -ceq 'enter normal hushpinterest fixture job|exit hushpinterest fixture job') `
+        "The job did not take and give back one queue slot under its own label: $(@(Get-Content -LiteralPath $queueLog) -join '; ')"
+
+    # A release run's jobs go ahead of everyday ones.
+    Remove-Item -LiteralPath $queueLog -Force
+    $env:BUILD_QUEUE_PRIORITY = 'release'
+    Exit-HushPinterestQueue (Enter-HushPinterestQueue -Job 'fixture release')
+    Assert-True ((@(Get-Content -LiteralPath $queueLog) -join '|') -ceq 'enter release hushpinterest fixture release|exit hushpinterest fixture release') `
+        "A release job did not ask the queue for release priority: $(@(Get-Content -LiteralPath $queueLog) -join '; ')"
+    $env:BUILD_QUEUE_PRIORITY = $null
+
+    # A queue named but not there is a mistake to correct, not a reason to run outside it.
+    $env:BUILD_QUEUE_SCRIPT = Join-Path $queueRoot 'no-such-queue.ps1'
+    Assert-Throws { Enter-HushPinterestQueue -Job 'fixture job' } '*BUILD_QUEUE_SCRIPT names*which is not there*' `
+        'A build queue that is not there was ignored.'
+} finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
+    Remove-Item -LiteralPath $queueRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Every heavy call site enters the queue, under a label of its own.
+$queuedJobs = [ordered]@{
+    'common.ps1'                       = @('merge')
+    'verify-all-patches.ps1'           = @('verify patch', 'verify resources')
+    'build-release-receipt.ps1'        = @('receipt patch', 'receipt resources')
+    'verify-injected-registers.ps1'    = @('dex diff', 'host references')
+    'patch-for-device.ps1'             = @('device patch')
+    'fingerprint-candidates.ps1'       = @('fingerprint candidates')
+    'pre-push.ps1'                     = @('gate gradle')
+    'test-bouncycastle-test-graph.ps1' = @('bouncycastle review')
+}
+foreach ($name in $queuedJobs.Keys) {
+    $text = Get-Content -LiteralPath (Join-Path $PSScriptRoot $name) -Raw
+    foreach ($job in $queuedJobs[$name]) {
+        Assert-True ($text -match "(?m)^[^#\r\n]*\`$queued = Enter-HushPinterestQueue -Job '$job'\r?$") `
+            "$name does not wait in the build queue for its $job job."
+    }
+    Assert-True (([regex]::Matches($text, '(?m)^[^#\r\n]*Exit-HushPinterestQueue \$queued\r?$')).Count -eq $queuedJobs[$name].Count) `
+        "$name does not give back every queue slot it takes."
+}
+$receiptText = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'build-release-receipt.ps1') -Raw
+Assert-True ($receiptText -match "(?m)^\`$env:BUILD_QUEUE_PRIORITY = 'release'\r?$" -and
+    $receiptText -match '(?m)^\s+\$env:BUILD_QUEUE_PRIORITY = \$savedQueuePriority\r?$') `
+    'The receipt builder does not ask the build queue for release priority, or keeps it after the run.'
+$hookText = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'pre-push.ps1') -Raw
+Assert-True ($hookText -match "'HUSHPINTEREST_BUILD_WRAPPER', 'HUSHPINTEREST_DEVICE_SERIAL', 'BUILD_QUEUE_SCRIPT'\)\) \{") `
+    'The hook does not read the build wrapper and the build queue from the user environment.'
+
+Write-Host '[scripts] build queue contracts passed'
+
 # --- split bundle callers ----------------------------------------------------------------------
 #
 # The morphe CLI merges an .apkm's splits into one APK before it patches, and since 1.17.0 deletes
@@ -3818,7 +3967,16 @@ Write-Host '[scripts] relative path contracts passed'
 # against the newest build, and so does the device build, on the same stand-ins.
 
 $releaseRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushpinterest-release-" + [guid]::NewGuid().ToString('N'))
+$savedQueueScript = $env:BUILD_QUEUE_SCRIPT
+$savedQueuePriority = $env:BUILD_QUEUE_PRIORITY
 try {
+    # The stand-in runs below go through a stand-in build queue, never the machine's, and it
+    # writes down which jobs took a slot and at which priority.
+    $releaseQueueLog = Join-Path $releaseRoot 'queue.log'
+    New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
+    New-FakeBuildQueue -Path (Join-Path $releaseRoot 'build-queue.ps1') -Log $releaseQueueLog
+    $env:BUILD_QUEUE_SCRIPT = Join-Path $releaseRoot 'build-queue.ps1'
+    $env:BUILD_QUEUE_PRIORITY = $null
     $releaseRepo = Join-Path $releaseRoot 'repo'
     # The source ledger and the two files its rules hold an adopted source to go in as well: a
     # release is held to the census, and .gitignore has to let the ledger be committed.
@@ -3838,7 +3996,7 @@ try {
     $releaseCatalogCopy = Get-Content -LiteralPath $releaseCatalogPath -Raw | ConvertFrom-Json
     $copiedTarget = Get-PatchTarget -PatchList $releaseCatalogCopy
     if (@($copiedTarget.PackageVersions).Count -lt 2) {
-        $previousBuild = '14.24.0'
+        $previousBuild = '14.37.0'
         foreach ($patch in @($releaseCatalogCopy.patches)) {
             $patch.compatiblePackages.($copiedTarget.PackageName) = @(@($patch.compatiblePackages.($copiedTarget.PackageName)) + $previousBuild)
             foreach ($compatibility in @($patch.compatibility | Where-Object { $_.packageName -eq $copiedTarget.PackageName })) {
@@ -4385,6 +4543,7 @@ try {
         @("component-removed $($applications[0])", "component-added $($applications[1])") | Sort-Object -Unique -CaseSensitive)
     $builtBuilds = @($releaseTarget.PackageVersions) + @($newerBuild)
     $allFixtures = @($builtBuilds | ForEach-Object { $fixturePaths[$_] })
+    Remove-Item -LiteralPath $releaseQueueLog -Force -ErrorAction SilentlyContinue
     try {
         Invoke-ReceiptBuilder -Fixtures $allFixtures
     } catch {
@@ -4424,6 +4583,17 @@ try {
         "patch $($fixturePaths[$_]) merged forced=$(if ($releaseTarget.PackageVersions -contains $_) { 0 } else { 1 })" })
     Assert-True (($patchRuns -join "`n") -eq ($expectedRuns -join "`n")) `
         "The CLI was not run once per fixture, on its merge, with -f for the undeclared build only: $($patchRuns -join '; ')"
+    # A receipt is a release's, so every job it ran took a slot in the build queue at release
+    # priority and gave it back, one CLI patch run per fixture, and the run left
+    # BUILD_QUEUE_PRIORITY the way it found it.
+    $queueLines = @(Get-Content -LiteralPath $releaseQueueLog)
+    $queueEntries = @($queueLines | Where-Object { $_ -like 'enter *' })
+    Assert-True ($queueEntries.Count -gt 0 -and
+        @($queueEntries | Where-Object { $_ -notlike 'enter release hushpinterest *' }).Count -eq 0 -and
+        @($queueLines | Where-Object { $_ -like 'exit *' }).Count -eq $queueEntries.Count -and
+        @($queueEntries | Where-Object { $_ -ceq 'enter release hushpinterest receipt patch' }).Count -eq $builtBuilds.Count -and
+        $null -eq $env:BUILD_QUEUE_PRIORITY) `
+        "The receipt's jobs did not each take and give back a release slot in the build queue: $($queueLines -join '; ')"
     # The SBOM beside the bundle, recorded by name, hash and count, once OSV had been asked about it.
     Assert-True ($built.sbom.file -eq "patches-$releaseVersionHere.cdx.json" -and
         $built.sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom) -and [int]$built.sbom.components -eq 3) `
@@ -4458,7 +4628,7 @@ try {
 
     # A patched fixture whose injected code fails the structural check, or calls a class or member
     # the build lacks, stops the run with no receipt. 0.0.3 shipped a System share sheet call into
-    # a 14.38.0 class on 14.25.0 because the builder read only the CLI's verdicts.
+    # a class from another Pinterest build because the builder read only the CLI's verdicts.
     $builtReceiptBeforeChecks = [System.IO.File]::ReadAllBytes($releaseReceipt)
     foreach ($broken in @(
             @{ Flag = 'dexdiff-fails.txt'; Pattern = '*failed its structural or host reference checks (exit 1)*' },
@@ -4520,7 +4690,14 @@ try {
         return $said
     }
     $newestFixture = $fixturePaths[$releaseTarget.PackageVersion]
+    Remove-Item -LiteralPath $releaseQueueLog -Force -ErrorAction SilentlyContinue
     $said = Invoke-VerifyAll -Apk $newestFixture
+    # An everyday verification: each of its five heavy jobs takes an ordinary slot in turn and
+    # gives it back before the next one starts.
+    $expectedQueue = @('merge', 'verify patch', 'verify resources', 'dex diff', 'host references' |
+        ForEach-Object { "enter normal hushpinterest $_"; "exit hushpinterest $_" })
+    Assert-True ((@(Get-Content -LiteralPath $releaseQueueLog) -join '|') -ceq ($expectedQueue -join '|')) `
+        "verify-all-patches.ps1 did not run each heavy job in its own build queue slot: $(@(Get-Content -LiteralPath $releaseQueueLog) -join '; ')"
     Assert-True ($said -like "*merged $(Split-Path -Leaf $newestFixture) into one APK for the CLI*" -and
         $said -like '*success: every requested patch applied*') "verify-all-patches.ps1 did not merge the bundle and pass: $said"
     Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join "`n") -eq "merge $newestFixture" -and
@@ -5268,16 +5445,20 @@ try {
             Assert-True ($now -eq (@($Builds | Sort-Object) -join ', ')) "The $Case changed patches/build/release: $now"
         }
         Copy-Item -LiteralPath $PSScriptRoot -Destination (Join-Path $releaseRepo 'scripts') -Recurse
+        # The patch count is :patches:test's folder and :patches:fixtureTest's together: one fixture
+        # test, and the rest in the quick task.
         foreach ($results in @(
-                @{ Folder = 'extensions/pinterest/build/test-results/testDebugUnitTest'; Suite = 'RuntimeTest'; Quote = '\b(\d+) runtime tests passed\b' },
-                @{ Folder = 'patches/build/test-results/test'; Suite = 'PatchTest'; Quote = '\b(\d+) patch tests passed\b' })) {
+                @{ Folder = 'extensions/pinterest/build/test-results/testDebugUnitTest'; Suite = 'RuntimeTest'; Quote = '\b(\d+) runtime tests passed\b'; Less = 0 },
+                @{ Folder = 'patches/build/test-results/test'; Suite = 'PatchTest'; Quote = '\b(\d+) patch tests passed\b'; Less = 1 },
+                @{ Folder = 'patches/build/test-results/fixtureTest'; Suite = 'FixtureTest'; Quote = '\b(\d+) patch tests passed\b'; Only = 1 })) {
             $quoted = [regex]::Match($releaseDescription, $results.Quote).Groups[1].Value
-            Assert-True ($quoted -match '^[1-9]\d*$') "The copied description quotes no $($results.Suite) count: $releaseDescription"
+            Assert-True ($quoted -match '^[1-9]\d*$' -and [int]$quoted -gt 1) "The copied description quotes no $($results.Suite) count: $releaseDescription"
+            $resultCount = if ($results.Only) { $results.Only } else { [int]$quoted - $results.Less }
             $directory = Join-Path $releaseRepo $results.Folder
             New-Item -ItemType Directory -Path $directory -Force | Out-Null
-            $cases = (1..[int]$quoted | ForEach-Object { "<testcase name=`"t$_`" classname=`"fixture.$($results.Suite)`"/>" }) -join ''
+            $cases = (1..$resultCount | ForEach-Object { "<testcase name=`"t$_`" classname=`"fixture.$($results.Suite)`"/>" }) -join ''
             Set-Content -LiteralPath (Join-Path $directory "TEST-fixture.$($results.Suite).xml") -Encoding UTF8 -Value (
-                "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$($results.Suite)`" tests=`"$quoted`" " +
+                "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$($results.Suite)`" tests=`"$resultCount`" " +
                 "skipped=`"0`" failures=`"0`" errors=`"0`">$cases</testsuite>")
         }
         New-Item -ItemType Directory -Path $hookTemp, (Split-Path -Parent $parkedBundle) -Force | Out-Null
@@ -5498,6 +5679,8 @@ try {
     Assert-True ($said -like "*tag v$indexVersionHere isn't in this clone, so the Manager floor the index names wasn't checked*") `
         "A lag window without the index version's tag did not say the floor went unchecked: $said"
 } finally {
+    $env:BUILD_QUEUE_SCRIPT = $savedQueueScript
+    $env:BUILD_QUEUE_PRIORITY = $savedQueuePriority
     if ($signerHome -and (Test-Path -LiteralPath $signerHome)) {
         Invoke-ReleaseChecksumGpg 'gpgconf' @('--homedir', $signerHome, '--kill', 'gpg-agent') | Out-Null
     }
@@ -5546,6 +5729,25 @@ Assert-True ($gradleFile -match 'val releaseBundleName = "patches-\$\{project\.v
 Assert-True ($gradleFile -match 'commandLine\("git", "--no-optional-locks", "status", "--porcelain"\)' -and
     $gradleFile -match '(?s)val sourceDateEpoch: Long = run \{.*?if \(uncommittedChanges\?\.isEmpty\(\) != true\) return@run 0L.*?"log", "-1", "--format=%ct"') `
     'patches/build.gradle.kts stamps the bundle with the commit time without asking git whether the tree has uncommitted changes.'
+# :patches:test leaves the vendor APKs to :patches:fixtureTest. Both tasks name the one category,
+# the quick task refuses a fixture read, and every test source that opens a fixture carries it.
+Assert-True ($gradleFile -match 'val fixtureCategory = "app\.morphe\.FixtureTests"' -and
+    $gradleFile -match 'excludeCategories\(fixtureCategory\)' -and
+    $gradleFile -match 'systemProperty\("hushpinterest\.fixtures", "refuse"\)' -and
+    $gradleFile -match '(?s)register<Test>\("fixtureTest"\).*?includeCategories\(fixtureCategory\).*?maxParallelForks = 1') `
+    'patches/build.gradle.kts no longer splits the fixture tests into :patches:fixtureTest.'
+$fixturesSource = [IO.File]::ReadAllText((Join-Path $Root 'patches/src/test/kotlin/app/morphe/Fixtures.kt'))
+Assert-True ($fixturesSource -match '(?m)^interface FixtureTests\b' -and
+    $fixturesSource -match 'const val TASK_PROPERTY = "hushpinterest\.fixtures"') `
+    'Fixtures.kt no longer declares the FixtureTests category or the property :patches:test refuses fixtures by.'
+$uncategorized = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/src/test/kotlin') -Recurse -Filter '*.kt' -File |
+    Where-Object { $_.Name -notin @('Fixtures.kt', 'FixtureDex.kt') } |
+    Where-Object {
+        $text = [IO.File]::ReadAllText($_.FullName)
+        $text -match '\bFixtures\.\w+\s*[({]' -and $text -notmatch '@Category\(FixtureTests::class\)'
+    } | ForEach-Object { $_.Name })
+Assert-True ($uncategorized.Count -eq 0) `
+    "Test sources open the vendor APKs without the FixtureTests category: $($uncategorized -join ', ')"
 
 # Code only: a comment may say where the bundle used to be read from.
 $libsReaders = New-Object System.Collections.Generic.List[string]
@@ -5632,3 +5834,5 @@ Write-Host '[scripts] report, target, Java and guarded replacement contracts pas
 if ($LASTEXITCODE -ne 0) { throw 'The compiled manifest contracts did not pass.' }
 & (Join-Path $PSScriptRoot 'test-release-checksums.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'The offline release signature contracts did not pass.' }
+& (Join-Path $PSScriptRoot 'test-published-index.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'The offline published index contracts did not pass.' }

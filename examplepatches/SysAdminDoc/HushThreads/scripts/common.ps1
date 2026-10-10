@@ -327,6 +327,76 @@ function Get-MergedApk {
     return $Destination
 }
 
+function Invoke-HeavyJob {
+    <#
+    .SYNOPSIS
+        Runs a heavy job, a desktop CLI patch run and the checks on its output, inside a slot of
+        the machine's build queue, or straight away on a machine without one.
+    .DESCRIPTION
+        A machine that shares its cores between several builds names its queue script in
+        BUILD_QUEUE_SCRIPT, which defines Invoke-InBuildQueue: it waits for a free slot, runs the
+        block at low priority on that slot's own cores, and gives the slot back. Gradle reached it
+        through HUSHTHREADS_BUILD_WRAPPER, but the CLI runs started whenever they were asked for,
+        beside two builds, and the queue's status never showed them. With the variable unset the
+        block runs here and now. Inside a slot already (the queue sets BUILD_QUEUE_TICKET for its
+        process and the processes it starts) the block runs at once instead of queueing behind
+        itself. BUILD_QUEUE_PRIORITY=release puts a release's jobs ahead of everyday ones.
+
+        Either way the block's output goes to the host, and what comes back is its exit code, in
+        $LASTEXITCODE, since that's all the queue hands back. A block that has to keep what a tool
+        printed puts it in a hashtable the caller made. The block reads the caller's variables,
+        but Label, Priority and ScriptBlock are the queue's own names while it runs.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][scriptblock]$ScriptBlock
+    )
+
+    $queueScript = $env:BUILD_QUEUE_SCRIPT
+    if ($queueScript -and -not (Test-Path -LiteralPath $queueScript -PathType Leaf)) {
+        Write-Warning "BUILD_QUEUE_SCRIPT names $queueScript, which is not there, so $Label runs outside the queue."
+        $queueScript = $null
+    }
+    $global:LASTEXITCODE = 0
+    if (-not $queueScript) {
+        & $ScriptBlock | Out-Host
+        return
+    }
+    $queueLabel = "hushthreads $Label"
+    $job = $ScriptBlock
+    # Dot-sourced in this function's scope, so the script's own parameters (Label, Priority, Run,
+    # Status) land here and not on the caller's variables of those names.
+    . $queueScript
+    $code = Invoke-InBuildQueue -Label $queueLabel -ScriptBlock $job
+    $global:LASTEXITCODE = [int]$code
+}
+
+function Set-GitHubPackagesCredential {
+    <#
+    .SYNOPSIS
+        Fills GITHUB_ACTOR and GITHUB_TOKEN from the gh CLI when either is missing, or throws.
+    .DESCRIPTION
+        The Morphe settings plugin resolves from GitHub Packages, which needs a reader token. A
+        hook runs with git's environment, not the shell's, and a release script can start from a
+        shell that never set them, so they're usually absent and the build fails while applying
+        the plugin, long before a test runs. The pre-push gate, its advisory comparator step and
+        the release preflight all ask here, so all three say the same thing when neither the
+        variables nor a signed-in gh are there.
+    #>
+    if ($env:GITHUB_ACTOR -and $env:GITHUB_TOKEN) { return }
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+        throw ('Set GITHUB_ACTOR and GITHUB_TOKEN, or install the gh CLI: the patches ' +
+            'plugin resolves from GitHub Packages and cannot be applied without them.')
+    }
+    $login = (& gh api user --jq .login 2>$null)
+    $token = (& gh auth token 2>$null)
+    if ([string]::IsNullOrWhiteSpace($login) -or [string]::IsNullOrWhiteSpace($token)) {
+        throw 'gh is not signed in, so the patches plugin cannot be resolved. Run gh auth login.'
+    }
+    $env:GITHUB_ACTOR = $login
+    $env:GITHUB_TOKEN = $token
+}
+
 function Assert-UrlReachable {
     <#
     .SYNOPSIS

@@ -26,9 +26,9 @@ internal object ApiCallChainFingerprint : Fingerprint(
 @Suppress("unused")
 val networkRequestReportPatch = bytecodePatch(
     name = "Network request report",
-    description = "Counts the requests TikTok's own API client sends, by domain and kind, and adds " +
-        "them to the diagnostic export. Video and image downloads and other companies' SDKs keep " +
-        "their own connections and aren't counted. Nothing about the requests is changed.",
+    description = "Counts the requests TikTok sends to its servers and adds the totals to the " +
+        "diagnostic report. It changes nothing in TikTok, but it has no switch and most people " +
+        "don't need it.",
     default = false,
 ) {
     category("Privacy")

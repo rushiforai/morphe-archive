@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
     if (global.__twitchPatchRuntime) return;
-    var policies = [false, false, false, false, false, false, false, false];
+    var policies = Array(11).fill(false);
     var listeners = new Set();
     var targets = Object.create(null);
     var define;
@@ -29,9 +29,10 @@
         return;
     }
     global.RN$registerCallableModule('TwitchPatchPolicy', function () {
-        return {set: function (claim, turbo, banners, foreground, display, emotes, streamAds, reload) {
+        return {set: function (claim, turbo, banners, foreground, display, emotes, streamAds, reload, bttv, sevenTV, ffz, lightTheme) {
             policies = [claim === true, turbo === true, banners === true, foreground === true, display === true,
-                emotes === true, streamAds === true, reload === true];
+                emotes === true, streamAds === true, reload === true, bttv === true, sevenTV === true, ffz === true,
+                typeof lightTheme === 'boolean' ? lightTheme : undefined];
             listeners.forEach(function (listener) { listener(); });
         }};
     });

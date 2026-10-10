@@ -115,13 +115,15 @@ public final class ReleaseNotes {
 
     /**
      * The changelog's markdown as the dialog shows it. Every rule works line by line, so a
-     * section formats the same alone as inside the whole text.
+     * section formats the same alone as inside the whole text. The backticks around setting
+     * names render as code on GitHub and only as stray marks in the dialog.
      */
     private static String format(String section) {
         return section
                 .replaceAll("(?m)^## ", "Hushfeed ")
                 .replaceAll("(?m)^\\* (\\*\\*TikTok:\\*\\* )?", "• ")
-                .replace("**", "");
+                .replace("**", "")
+                .replace("`", "");
     }
 
     /** The sections one after another, each run of one language marked with its LocaleSpan. */

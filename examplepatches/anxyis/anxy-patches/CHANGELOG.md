@@ -1,3 +1,10 @@
+## [2.11.2](https://github.com/anxyis/anxy-patches/compare/v2.11.1...v2.11.2) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deprotect:** only mark matching classes mutable in license call strip ([fa8def5](https://github.com/anxyis/anxy-patches/commit/fa8def5a549564c8ca3669d1870836d8e889c440))
+
 ## [2.11.1](https://github.com/anxyis/anxy-patches/compare/v2.11.0...v2.11.1) (2026-09-30)
 
 

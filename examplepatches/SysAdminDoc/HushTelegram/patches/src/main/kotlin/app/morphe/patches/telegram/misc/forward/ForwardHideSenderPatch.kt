@@ -44,10 +44,12 @@ internal const val NAME_HIDE = "Lorg/telegram/messenger/R\$raw;->name_hide:I"
 @Suppress("unused")
 val forwardHideSenderPatch = bytecodePatch(
     name = "Hide sender names when forwarding",
-    description = "Adds a switch, off by default, that starts Telegram's Hide sender's name option on each time you forward. You can still turn it off before sending.",
+    description = "Turns on Telegram's Hide sender's name option each time you forward, so copies arrive without the " +
+        "original author. You can turn it off before sending. Starts off. Turn it on in HushTelegram settings" +
+        " > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

@@ -390,12 +390,12 @@ public class InputCheckTest {
             String shown = previewIn(root);
             assertNotNull("no preview under the field", shown);
             assertTrue(shown, shown.contains("/creator_name_{vidoe_id}.mp4"));
-            assertTrue(shown, shown.contains("Not a token here, kept as typed: {vidoe_id}"));
+            assertTrue(shown, shown.contains("Not a part Hushfeed fills in, so it's kept as typed: {vidoe_id}"));
 
             field.getEditText().setText("{video_id}");
             shown = previewIn(root);
             assertTrue("the preview follows the typing: " + shown, shown.contains("/7312345678901234567.mp4"));
-            assertFalse(shown, shown.contains("Not a token"));
+            assertFalse(shown, shown.contains("kept as typed"));
             assertEquals("looking saves nothing", saved, Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get());
             dialog.dismiss();
             // The dismissal reaches the row as a posted message, and run after the second opening

@@ -74,7 +74,9 @@ internal object ProfileRewardsIconBinderFingerprint : Fingerprint(
 @Suppress("unused")
 val hideFloatingPromotionsPatch = bytecodePatch(
     name = "Hide floating promotions",
-    description = "Removes floating promotional badges from the feed and can hide the rewards shortcut on Profile. Switches: Hushfeed settings > Feed screen and App.",
+    description = "Hides the floating promotion badges, coins and timers on the feed, and can " +
+        "hide the rewards button on your profile. Starts off. Turn it on in Hushfeed settings > " +
+        "Feed screen, and App for the rewards button.",
     default = true,
 ) {
     category("Feed")

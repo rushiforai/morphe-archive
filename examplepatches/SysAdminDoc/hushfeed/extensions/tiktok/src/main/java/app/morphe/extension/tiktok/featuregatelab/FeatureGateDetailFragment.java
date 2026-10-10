@@ -218,7 +218,9 @@ public final class FeatureGateDetailFragment extends Fragment {
         effectiveValue = addInfo(currentState, L10n.t(context, "What TikTok gets"), effectiveValueText());
         TextView cacheNote = FeatureGateLabUi.label(
                 context,
-                L10n.t(context, "An override changes the value TikTok reads from this gate. It doesn't rewrite TikTok's cached value or prove the named feature changed.")
+                L10n.t(context, "An override changes the value TikTok reads from this gate. It "
+                        + "doesn't change TikTok's saved copy or prove the named feature "
+                        + "changed.")
         );
         LinearLayout.LayoutParams cacheNoteParams = FeatureGateLabUi.matchWrap();
         cacheNoteParams.setMargins(0, FeatureGateLabUi.dp(context, 8), 0, 0);
@@ -340,7 +342,8 @@ public final class FeatureGateDetailFragment extends Fragment {
             LinearLayout valueRow = FeatureGateLabUi.switchRow(
                     context,
                     L10n.t(context, "Forced result"),
-                    L10n.t(context, "Off forces false, on forces true. Reset hands the choice back to TikTok."),
+                    L10n.t(context, "Off forces the value to false, on forces it to true. Reset "
+                            + "lets TikTok decide again."),
                     booleanValue
             );
             valueRow.setBackground(SettingsUi.groupedRow(context, false, true));

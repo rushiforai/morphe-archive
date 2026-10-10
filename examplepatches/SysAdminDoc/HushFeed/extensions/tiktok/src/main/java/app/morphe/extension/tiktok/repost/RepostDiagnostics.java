@@ -47,7 +47,7 @@ public final class RepostDiagnostics {
         if (!loggingEnabled()) return;
         if (!"publish".equals(pathKind(request)) || !reserveEvent()) return;
         int id = System.identityHashCode(request);
-        String code = value(response, "LIZ");
+        String code = rawHttpCode(response);
         Logger.printDebug(() -> TAG + "network response id=" + id + " http=" + code);
     }
 
@@ -63,7 +63,7 @@ public final class RepostDiagnostics {
         if (!loggingEnabled()) return;
         if (!"publish".equals(pathKind(request)) || !reserveEvent()) return;
         int id = System.identityHashCode(request);
-        String status = value(error, "getErrorCode");
+        String status = errorStatus(error);
         Logger.printDebug(() -> TAG + stage + " error id=" + id + " class="
                 + (error == null ? "null" : error.getClass().getName())
                 + " status_code=" + status);
@@ -96,6 +96,23 @@ public final class RepostDiagnostics {
                     + " http=" + http + " status_code=" + code + " items=" + finalCount
                     + " target=" + target);
         }
+    }
+
+    /**
+     * The HTTP code of the raw response the request stage sees. On 47.1.4 that class keeps it in
+     * the int field LIZIZ and has no LIZ() to call, unlike the parsed response, whose LIZ()
+     * answers it; both are tried so a build that adds the call is read too.
+     */
+    static String rawHttpCode(Object response) {
+        Object code = field(response, "LIZIZ");
+        if (code instanceof Number) return String.valueOf(code);
+        return value(response, "LIZ");
+    }
+
+    /** A server refusal names getErrorCode, an HTTP failure getStatusCode. */
+    static String errorStatus(Object error) {
+        String code = value(error, "getErrorCode");
+        return "unknown".equals(code) ? value(error, "getStatusCode") : code;
     }
 
     static String outcome(String http, String success, String statusCode, String errorCode) {

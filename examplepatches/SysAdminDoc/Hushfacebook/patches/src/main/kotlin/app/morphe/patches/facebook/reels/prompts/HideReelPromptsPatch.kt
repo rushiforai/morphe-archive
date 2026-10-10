@@ -24,6 +24,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val PATCH = "Hide reel interest prompts"
 
@@ -38,10 +40,11 @@ internal const val KEEP = "$REEL_PROMPTS->keep(I)Z"
 
 /**
  * The "Are you interested in this reel?" prompt goes. The things Facebook can lay over a reel (a
- * banner, a place, a poll, this prompt) are one enum (580 `LX/7fq;`, 577 `LX/7ZW;`), which names
- * its constants in its static initializer. One predicate (580 `LX/8O4;->A0N`, 577 `LX/8qp;->A0O`)
- * reads the prompt's constant, takes the reel and answers Z: whether the reel gets the prompt, from
- * the reel's own flag and two server settings. The reel overlay asks it before building the prompt
+ * banner, a place, a poll, this prompt) are one enum (582 `LX/8KS;`, 580 `LX/7fq;`, 577 `LX/7ZW;`),
+ * which names its constants in its static initializer. One predicate (582 `LX/90Q;->A0N`, 580
+ * `LX/8O4;->A0N`, 577 `LX/8qp;->A0O`) reads the prompt's constant, takes the reel first and answers
+ * Z: whether the reel gets the prompt, from the reel's own flag and two server settings, and on 582
+ * the reel's position too. The reel overlay asks it before building the prompt
  * and before keeping a place for it, so a no leaves the reel as one without a prompt. Each of its
  * answers goes through the extension, which turns a yes into a no while the switch is on.
  */
@@ -49,9 +52,10 @@ internal const val KEEP = "$REEL_PROMPTS->keep(I)Z"
 val hideReelPromptsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hide reel interest prompts",
-    description = "Removes the \"Are you interested in this reel?\" prompt from reels. The reel plays as usual.",
+    description = "Removes the \"Are you interested in this reel?\" prompt, so reels play without the " +
+        "interruption. On by default. Turn it off in Hushfacebook settings > Reels and Watch.",
 ) {
-    category("Interface")
+    category("Reels")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
@@ -69,12 +73,27 @@ internal fun isOverlayEnum(classDef: ClassDef): Boolean = classDef.superclass ==
     it.name == "<clinit>" && holdsString(it, INTEREST_PROMPT) && holdsString(it, TUNE_YOUR_ALGORITHM)
 }
 
-/** Whether [method] is the prompt predicate: one argument, answering Z, loading [prompt] (a field reference). */
-internal fun isPromptCheck(method: Method, prompt: String): Boolean =
-    method.returnType == "Z" && method.parameterTypes.size == 1 &&
-        method.implementation?.instructions?.any {
-            it.opcode == Opcode.SGET_OBJECT && (it as ReferenceInstruction).reference.toString() == prompt
-        } == true
+/**
+ * Whether [method] is the prompt predicate: answering Z, loading [prompt] (a field reference) and
+ * handing it straight on, with a value of its first parameter's type (the reel), to a boolean check
+ * taking the two. 581 took the reel alone. 582 (`LX/90Q;->A0N`) also takes the player's context and
+ * the reel's position after it, for a gate on how far into the feed the prompt may show.
+ */
+internal fun isPromptCheck(method: Method, prompt: String): Boolean {
+    if (method.returnType != "Z" || method.parameterTypes.isEmpty()) return false
+    val reel = method.parameterTypes.first().toString()
+    val code = method.implementation?.instructions?.toList() ?: return false
+    return code.indices.any { index ->
+        val load = code[index]
+        if (load.opcode != Opcode.SGET_OBJECT) return@any false
+        val constant = (load as ReferenceInstruction).reference as? FieldReference ?: return@any false
+        if (constant.toString() != prompt) return@any false
+        val next = code.getOrNull(index + 1) ?: return@any false
+        val call = (next as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+        next.opcode.name.startsWith("invoke") && call.returnType == "Z" &&
+            call.parameterTypes.map(CharSequence::toString) == listOf(constant.type, reel)
+    }
+}
 
 /** The reel overlay enum. Hide affiliate product links reads its product card constant too. Changes nothing. */
 internal fun BytecodePatchContext.findOverlayEnum(): ClassDef {

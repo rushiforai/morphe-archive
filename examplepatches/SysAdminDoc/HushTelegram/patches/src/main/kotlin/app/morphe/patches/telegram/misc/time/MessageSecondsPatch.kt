@@ -36,10 +36,11 @@ internal const val EDITED_MESSAGE = "Lorg/telegram/messenger/R\$string;->EditedM
 @Suppress("unused")
 val messageSecondsPatch = bytecodePatch(
     name = "Message times with seconds",
-    description = "Adds a switch, off by default, that shows seconds in the time on each message, like 9:41:27 PM.",
+    description = "Shows seconds in each message's time, like 9:41:27 PM, so messages sent close together are easy to " +
+        "tell apart. Starts off. Turn it on in HushTelegram settings > Chats.",
     default = true,
 ) {
-    category("Chats")
+    category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

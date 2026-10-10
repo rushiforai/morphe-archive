@@ -49,8 +49,7 @@ internal object PackageSignersFingerprint : Fingerprint(
 @Suppress("unused")
 val restoreTrustPatch = bytecodePatch(
     name = "Restore screens on re-signed builds",
-    description = "Answers Messenger's own signer lookup, and a Facebook signed with your key calling Messenger, " +
-        "with the original Meta certificate. Always on.",
+    description = "Patching and signing Messenger yourself can break some of its screens. This makes Messenger's signature check pass again, including for a Facebook you patched with the same key. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Fixes")

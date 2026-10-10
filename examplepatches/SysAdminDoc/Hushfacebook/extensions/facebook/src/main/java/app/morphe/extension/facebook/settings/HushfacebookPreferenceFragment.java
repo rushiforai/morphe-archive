@@ -55,6 +55,7 @@ import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.navigation.HiddenTabs;
@@ -126,6 +127,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static final String MISSING_RESTORE_TRUST = "action_missing_restore_trust";
     /** The key of the row naming the default patches this build lacks. It stores nothing either. */
     static final String MISSING_DEFAULTS = "action_missing_default_patches";
+    /** How many of the missing patches that row names before it counts the rest. */
+    static final int MISSING_NAMES_SHOWN = 8;
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -296,11 +299,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         setPreferenceScreen(screen);
 
         screen.addPreference(statusCard(context));
-        screen.addPreference(jumpRow(context));
         // The export row below reads these; registering twice keeps one.
         PatchFamily.registerDiagnostics();
         LogBufferManager.registerReportSection(ReleaseCheck.REPORT);
         Set<PatchFamily> build = PatchFamily.inThisBuild();
+        // Right under the card, once, for someone a default change turned switches off for.
+        Preference startsOff = StartsOffNote.row(context, build);
+        if (startsOff != null) screen.addPreference(startsOff);
+        screen.addPreference(jumpRow(context));
 
         // The sections in the order they come on the page, each in its category page's class.
         FeedPages.opening(this, screen, context, build);
@@ -483,8 +489,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     /**
      * Under the card when this build lacks a patch Morphe Manager selects by default, or null when
      * it has them all. A patch left out is the usual answer to "ads still show" (#29, #35). A tap
-     * opens and closes the list of names, which runs to thirty for a build patched with one
-     * patch picked.
+     * opens and closes the list of names, which would run past eighty for a build patched with one
+     * patch picked, so it names {@link #MISSING_NAMES_SHOWN} and counts the rest.
      */
     @Nullable
     private static Preference missingDefaultsRow(Context context, Set<PatchFamily> build) {
@@ -493,6 +499,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (missing.isEmpty()) return null;
         List<String> names = new ArrayList<>();
         for (String name : missing) names.add(L10n.isolate(name));
+        // A build patched with a selection saved before 32 patches joined the default one lacks all
+        // of them, and the names ran on for a screen. Past a few the rest are a count: Manager's
+        // default selection brings them all, and the diagnostic report names every one.
+        if (names.size() > MISSING_NAMES_SHOWN + 1) {
+            int more = names.size() - MISSING_NAMES_SHOWN;
+            names = new ArrayList<>(names.subList(0, MISSING_NAMES_SHOWN));
+            names.add(L10n.f("%1$d more", more));
+        }
         String closed = L10n.t("Tap to see which.");
         String open = L10n.quantity(missing.size(),
                 "Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to "
@@ -525,8 +539,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (build.contains(PatchFamily.RESTORE_TRUST)) return null;
         if (FamilySignatureTrust.thisBuildCarriesMetaKey(context)) return null;
         Preference row = info(context, L10n.t("Profiles, photos and posts won't open"),
-                L10n.f("Patch again with %1$s selected. Re-signed builds need it to open profiles, photos, posts "
-                        + "and some Facebook Settings pages.", L10n.isolate(FamilyNames.RESTORE_TRUST)));
+                L10n.f("Patch again with %1$s selected. A patched Facebook needs it to open profiles, photos, posts and "
+                        + "some of Facebook's Settings pages.", L10n.isolate(FamilyNames.RESTORE_TRUST)));
         row.setKey(MISSING_RESTORE_TRUST);
         return row;
     }
@@ -728,6 +742,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         super.updateUIToSettingValues();
         showMarketplaceSettings();
         showSaveFolder();
+        showShareItemsSummary();
+    }
+
+    /** No setting is behind the share sheet row's key, so its summary is redone here after an import. */
+    private void showShareItemsSummary() {
+        if (getPreferenceScreen() == null) return;
+        Preference row = findPreference(AppPages.SHARE_ITEMS_ROW);
+        if (row != null) row.setSummary(AppPages.shareItemsSummary(ShareSheetItems.hidden()));
     }
 
     /**
@@ -788,10 +810,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     /** The AMOLED row under Patched: black, or the Background colour the patch was given (issue #34). */
     static String amoledSummary(int background) {
         if (background == Color.BLACK) {
-            return L10n.t("Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.");
+            return L10n.t("Dark mode uses black instead of dark gray. Turn on dark mode in Facebook to see it.");
         }
         String colour = String.format(Locale.ROOT, "#%06X", background & 0xFFFFFF);
-        return L10n.f("Dark mode draws %1$s instead of dark grey. Turn on dark mode in Facebook to see it.",
+        return L10n.f("Dark mode uses %1$s instead of dark gray. Turn on dark mode in Facebook to see it.",
                 L10n.isolate(colour));
     }
 
@@ -996,8 +1018,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * What a start does with [tab], for the row's summary. Facebook opens Home for a tab the
      * account's tab bar hasn't got, so the summary says so rather than promise the tab. A Reels tab
      * Hide the Reels tab keeps off the bar is asked for as Home, and the summary says that instead.
+     * Feeds is the exception: off the bar, for either reason, its own page opens over Home
+     * (StartTabRoute's openFeedsPage).
      */
     static String startTabSummary(StartTab tab) {
+        if (tab == StartTab.FEEDS) {
+            return L10n.t("Facebook opens on Feeds. If your tab bar doesn't have it, the Feeds page opens over Home.");
+        }
         if (tab == StartTab.VIDEO && Settings.HIDE_REELS_TAB.savedValue() && PatchFamily.REELS_TAB.inBuild()) {
             return L10n.t("Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. "
                     + "Your choice stays saved.");
@@ -1084,7 +1111,21 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setEntries(entries);
         row.setEntryValues(values);
         row.setValue(Settings.COMMENT_ORDER.savedValue().name());
+        pickTurnsOn(row, Settings.COMMENT_ORDER, Settings.DEFAULT_COMMENT_ORDER);
         return row;
+    }
+
+    /**
+     * A pick in [row] other than [list]'s default turns on [toggle], the switch the list works
+     * under. The switch starts off, so a pick on its own used to change nothing until the switch
+     * was found too. The switch's own row shows it on through the page's usual sync. Turning the
+     * switch off afterwards keeps the pick, and a pick while it's on changes only the list.
+     */
+    static void pickTurnsOn(ListPreference row, EnumSetting<?> list, BooleanSetting toggle) {
+        row.setOnPreferenceChangeListener((preference, value) -> {
+            if (!toggle.savedValue() && !list.defaultValue.name().equals(String.valueOf(value))) toggle.save(true);
+            return true;
+        });
     }
 
     /** What the list and its summary call [order]: the name Facebook's own sort menu gives it. */
@@ -1237,8 +1278,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (scale == TextSize.Scale.P100) {
             return L10n.t("Facebook's text is the size your phone's font size setting gives it.");
         }
-        return L10n.f("Facebook's text is %1$s of the size your phone's font size setting gives it. "
-                + "Restart Facebook after changing it.", scale.label());
+        return L10n.f("Facebook's text is %1$s of the size your phone's font size setting gives it. Restart Facebook to "
+                + "see the change.", scale.label());
     }
 
     /**
@@ -1336,8 +1377,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (accent == AccentColor.Preset.FACEBOOK) {
             return L10n.t("Links, buttons, switches and the selected tab keep Facebook's blue.");
         }
-        return L10n.f("Links, buttons, switches and the selected tab are %1$s where Facebook uses its blue. "
-                + "Restart Facebook after changing it. The Material You theme, when it's in, takes over.",
+        return L10n.f("Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook "
+                + "to see the change. If the Material You theme is added, it takes over.",
                 accentLabel(accent));
     }
 
@@ -1362,6 +1403,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setEntries(entries);
         row.setEntryValues(values);
         row.setValue(Settings.PLAYBACK_QUALITY.savedValue().name());
+        pickTurnsOn(row, Settings.PLAYBACK_QUALITY, Settings.DEFAULT_PLAYBACK_QUALITY);
         return row;
     }
 
@@ -1389,6 +1431,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setEntries(entries);
         row.setEntryValues(values);
         row.setValue(setting.savedValue().name());
+        pickTurnsOn(row, setting, Settings.DEFAULT_PLAYBACK_QUALITY);
         return row;
     }
 
@@ -1724,20 +1767,20 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setKey(Settings.SEND_TO_APP.key);
         row.setTitle(L10n.t("App to send to"));
         row.setDialogTitle(L10n.t("App to send to"));
-        row.setDialogMessage(L10n.f("The package name of the app that gets the links, such as %1$s for YTDLnis or "
-                + "%2$s for Seal. Leave it blank to pick an app each time.",
+        row.setDialogMessage(L10n.f("The ID of the app that gets the links, such as %1$s for YTDLnis or %2$s for Seal. Leave it blank to "
+                + "pick an app each time.",
                 L10n.isolate(SendLink.YTDLNIS), L10n.isolate(SendLink.SEAL)));
         row.setPositiveButtonText(L10n.t("Save"));
         row.setNegativeButtonText(L10n.t("Cancel"));
         EditText field = row.getEditText();
         field.setSingleLine(true);
-        field.setHint(L10n.t("Package name"));
+        field.setHint(L10n.t("App ID"));
         row.setText(Settings.SEND_TO_APP.savedValue());
         row.setOnPreferenceChangeListener((preference, typed) -> {
             String raw = typed == null ? "" : typed.toString();
             String clean = raw.trim();
             if (!clean.isEmpty() && SendLink.targetPackage(clean) == null) {
-                Utils.showToastShort(L10n.f("%1$s isn't a package name, so the app stays as it was.",
+                Utils.showToastShort(L10n.f("%1$s isn't a valid app ID, so the app stays as it was.",
                         L10n.isolate(clean)));
                 return false;
             }
@@ -1787,13 +1830,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setTitle(title);
         row.setDialogTitle(title);
         row.setDialogMessage((hides
-                ? L10n.f("One word or phrase per line, up to %1$d, each %2$d to %3$d characters long, or just "
-                        + "one for an emoji, a Chinese character, a kana or a Hangul syllable. Capital letters "
-                        + "don't matter, and a phrase matches anywhere in a post's text, inside longer words too.",
+                ? L10n.f("One word or phrase per line, up to %1$d lines, each %2$d to %3$d characters long. A single emoji or "
+                        + "Chinese, Japanese or Korean character is enough on its own. Capital letters don't matter, and a "
+                        + "phrase matches anywhere in a post's text, even inside longer words.",
                         PostWords.MAX_PHRASES, PostWords.MIN_LENGTH, PostWords.MAX_LENGTH)
-                : L10n.f("A post with any of these stays, even when it also has a word to hide. One per line, up "
-                        + "to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese "
-                        + "character, a kana or a Hangul syllable.", PostWords.MAX_PHRASES, PostWords.MIN_LENGTH,
+                : L10n.f("A post with any of these stays, even when it also has a word to hide. One per line, up to %1$d "
+                        + "lines, each %2$d to %3$d characters long. A single emoji or Chinese, Japanese or Korean character "
+                        + "is enough on its own.", PostWords.MAX_PHRASES, PostWords.MIN_LENGTH,
                         PostWords.MAX_LENGTH)) + " " + patternHelp());
         row.setPositiveButtonText(L10n.t("Save"));
         // Android's own Cancel follows the activity's language, as the folder row's did.
@@ -1836,11 +1879,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 // reasons run past that, most of all at a large text size.
                 // Too many phrases never get here: Save refuses those with the dialog still open.
                 String why = L10n.quantity(leftOut,
-                        "%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, "
-                                + "a Chinese character, a kana or a Hangul syllable. One given twice counts once.",
-                        "%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an "
-                                + "emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
-                                + "once.",
+                        "%1$d line was left out. A phrase needs %2$d to %3$d characters, but a single emoji or Chinese, "
+                                + "Japanese or Korean character is enough. One given twice counts once.",
+                        "%1$d lines were left out. A phrase needs %2$d to %3$d characters, but a single emoji or Chinese, "
+                                + "Japanese or Korean character is enough. One given twice counts once.",
                         leftOut, PostWords.MIN_LENGTH, PostWords.MAX_LENGTH);
                 show(new AlertDialog.Builder(preference.getContext())
                         .setTitle(title)
@@ -1864,9 +1906,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         String title = L10n.t("People, Pages and sites to hide");
         row.setTitle(title);
         row.setDialogTitle(title);
-        row.setDialogMessage(L10n.f("One per line, up to %1$d: a name as Facebook shows it, a profile or Page id, "
-                + "or a site like example.com, which takes its subdomains too. Capital letters don't matter. "
-                + "A Facebook link works when it has the id in it.",
+        row.setDialogMessage(L10n.f("One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like "
+                + "example.com, which also covers addresses like m.example.com. Capital letters don't matter. A "
+                + "Facebook link works when it has the ID in it.",
                 PostSources.MAX_RULES));
         row.setPositiveButtonText(L10n.t("Save"));
         row.setNegativeButtonText(L10n.t("Cancel"));
@@ -1986,8 +2028,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * holds. Both dialogs end with it.
      */
     static String patternHelp() {
-        return L10n.f("A line between slashes, like /colou?r/, is a pattern (a regular expression). A list holds up "
-                + "to %1$d, each up to %2$d characters.", PostWords.MAX_PATTERNS, PostWords.MAX_PATTERN_LENGTH);
+        return L10n.f("A line between slashes, like /gr[ae]y/, is a pattern that can match several spellings (a regular "
+                + "expression). A list holds up to %1$d, each up to %2$d characters.", PostWords.MAX_PATTERNS, PostWords.MAX_PATTERN_LENGTH);
     }
 
     /** Why a typed list can't be saved, the same in its dialog and when Save is tapped, or null when it can be. */

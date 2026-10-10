@@ -168,7 +168,9 @@ public class SettingsActionFlowTest {
     }
 
     @Test public void theAboutRowOpensTheProjectsSourceAndReleases() {
-        TikTokPreferenceFragment fragment = attach(new Bundle());
+        Bundle arguments = new Bundle();
+        arguments.putString("morphe_settings_hub", "ABOUT");
+        TikTokPreferenceFragment fragment = attach(arguments);
         clickRow(fragment, MorpheTikTokAboutPreference.class);
         Intent opened = Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
         assertNotNull("clicking the about row launched nothing", opened);

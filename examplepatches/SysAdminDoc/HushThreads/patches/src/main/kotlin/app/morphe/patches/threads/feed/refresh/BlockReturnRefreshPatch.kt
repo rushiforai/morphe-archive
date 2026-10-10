@@ -81,9 +81,9 @@ internal const val BADGE_DECISION = "badge_decision"
 @Suppress("unused")
 val blockReturnRefreshPatch = bytecodePatch(
     name = PATCH,
-    description = "Keeps your place in the feed when you come back to Threads within ten minutes, or after any " +
-        "time away with No time limit on. Pull to refresh and a fresh launch still load new posts.",
-    default = false,
+    description = "Keeps your place in your feed when you leave Threads and come back within ten minutes. Pulling " +
+        "down to refresh still loads new posts. Good if you hate losing the post you were reading. Starts" +
+        " off. Turn it on in HushThreads settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)
@@ -139,39 +139,21 @@ internal fun Method.warmStartSite(): WarmStartSite {
 internal data class WarmStartAnswer(val compare: Int, val register: Int, val storeFrom: Int)
 
 /**
- * 448 and 449 set the answer to 1, branch over a 0 that falls into the [TOO_SHORT] log, and store
- * it after the log. 450 sets it to 0 early on, branches to the log when the time away is short and
- * sets the 1 otherwise, and the log jumps back to where the two sides meet before the store.
+ * 450 sets the answer to 0 early on, branches to the [TOO_SHORT] log when the time away is short
+ * and sets the 1 otherwise, and the log jumps back to where the two sides meet before the store.
  */
 internal fun Method.warmStartAnswer(): WarmStartAnswer {
     val body = implementation!!.instructions.toList()
     val logged = body.indices.filter { body[it].getReference<StringReference>()?.string == TOO_SHORT }
         .singleOrPatchException("$PATCH: the warm-start check's \"$TOO_SHORT\" log")
-    return body.fallingFalse(logged) ?: jumpingFalse(body, logged)
+    return jumpingFalse(body, logged)
         ?: throw PatchException("$PATCH: no comparison with the server threshold right above the warm-start check's false")
 }
 
-/** 448 and 449: cmp-long, the true, an if-gez over the false, and the false falling into the log. */
-private fun List<Instruction>.fallingFalse(logged: Int): WarmStartAnswer? {
-    val zero = (logged - 1 downTo 0).firstOrNull { literal(it, 0) } ?: return null
-    val compare = zero - 3
-    if (compare < 0 || this[compare].opcode != Opcode.CMP_LONG || this[zero - 1].opcode != Opcode.IF_GEZ ||
-        (this[zero - 1] as OneRegisterInstruction).registerA != (this[compare] as ThreeRegisterInstruction).registerA
-    ) return null
-    val register = (this[zero] as OneRegisterInstruction).registerA
-    if ((zero + 1 until logged).any { this[it].writes(register) }) {
-        throw PatchException("$PATCH: the warm-start answer v$register is overwritten before \"$TOO_SHORT\" is logged")
-    }
-    if (!literal(zero - 2, 1) || (this[zero - 2] as OneRegisterInstruction).registerA != register) {
-        throw PatchException("$PATCH: no true answer in v$register before the warm-start check's false")
-    }
-    return WarmStartAnswer(compare, register, logged + 1)
-}
-
 /**
- * 450: cmp-long, an if-ltz on it to a block that runs straight into the log and then jumps back to
- * just past the true, which sits right after the if-ltz. The answer has to be false on every path
- * to the comparison, since the short side never sets it.
+ * cmp-long, an if-ltz on it to a block that runs straight into the log and then jumps back to just
+ * past the true, which sits right after the if-ltz. The answer has to be false on every path to the
+ * comparison, since the short side never sets it.
  */
 private fun Method.jumpingFalse(body: List<Instruction>, logged: Int): WarmStartAnswer? {
     val address = IntArray(body.size + 1)
@@ -227,8 +209,8 @@ internal data class CachedPostsSite(val method: Method, val register: Int, val j
 }
 
 /**
- * A server threshold: the MobileConfig getter asked for a long, and the keys it is asked for. 448 and
- * 449 ask one key; 450 asks a second one first when an experiment is on, and falls back to the first.
+ * A server threshold: the MobileConfig getter asked for a long, and the keys it is asked for. 450
+ * asks a second key first when an experiment is on, and falls back to the first.
  */
 internal data class Threshold(val getter: String, val keys: Set<Long>) {
     override fun toString() = "$getter for ${keys.sorted().joinToString { "0x${it.toString(16)}" }}"
@@ -236,8 +218,9 @@ internal data class Threshold(val getter: String, val keys: Set<Long>) {
 
 /**
  * The threshold the warm-start check compares the time away with: the long its getter answered,
- * held second by the comparison that decides the answer. 448 and 449 load the key well above the
- * call, on the far side of two branches. 450 loads each of its two keys next to its own call.
+ * held second by the comparison that decides the answer. 450 loads each of its two keys next to its
+ * own call. Each key is still traced over every path to its call, since 449 and 448 loaded theirs
+ * well above it, on the far side of two branches.
  */
 internal fun Method.warmStartThreshold(): Threshold =
     thresholdAt(implementation!!.instructions.toList(), warmStartAnswer().compare)

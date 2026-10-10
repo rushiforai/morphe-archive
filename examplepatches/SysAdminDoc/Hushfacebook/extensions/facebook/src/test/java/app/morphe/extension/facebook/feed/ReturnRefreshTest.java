@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import android.os.SystemClock;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,12 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 @Config(sdk = 30)
 public class ReturnRefreshTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.BLOCK_RETURN_REFRESH.save(true);
+    }
 
     @After public void restore() {
         PauseForTests.resume();

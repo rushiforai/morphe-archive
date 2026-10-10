@@ -1,0 +1,539 @@
+/*
+ * Copyright 2026 TADa.
+ * https://github.com/TADaApp/tada-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to TADa contributions.
+ */
+
+package app.morphe.extension.youtube.patches.components;
+
+import static app.morphe.extension.shared.StringRef.str;
+import static app.morphe.extension.shared.patches.TextComponentPatch.newSpanUsingStylingOfAnotherSpan;
+
+import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
+
+import java.util.List;
+import java.util.Map;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
+import app.morphe.extension.shared.patches.components.ContextInterface;
+import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.shared.ui.Dim;
+import app.morphe.extension.youtube.innertube.NextResponseOuterClass.NewElement;
+import app.morphe.extension.youtube.patches.VersionCheckPatch;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.EngagementPanel;
+import app.morphe.extension.youtube.shared.PlayerType;
+
+@SuppressWarnings("unused")
+public class CommentsFilter extends Filter {
+
+    private static final String ELEMENTS_SENDER_VIEW =
+            "com.google.android.libraries.youtube.rendering.elements.sender_view";
+
+    private static final String CHIP_BAR_PATH_PREFIX = "chip_bar.e";
+    private static final String COMMENT_COMPOSER_PATH = "comment_composer.e";
+    private static final String COMMENT_PATH = "|comment.e";
+    /**
+     * The button text is localized, and the component also holds other tri-state buttons.
+     */
+    private static final String TRANSLATE_BUTTON_ACCESSIBILITY_ID = "id.ui.comments.translate.button";
+    private static final String VIDEO_LOCKUP_WITH_ATTACHMENT_PATH = "video_lockup_with_attachment.e";
+    private static final String VIDEO_METADATA_CAROUSEL_PATH = "video_metadata_carousel.e";
+    private static final int ID_LIVE_CHAT_ACTION_PANEL =
+            ResourceUtils.getIdentifierOrThrow(ResourceType.ID, "live_chat_action_panel");
+
+    private static final List<String> commentsCarouselFilterStrings =
+            Utils.getFilterStrings(Settings.HIDE_COMMENTS_CAROUSEL_FILTER_STRINGS);
+
+    private final StringFilterGroup commentComposer;
+    private final StringFilterGroup commentComposerButtons;
+    private final ByteArrayFilterGroupList commentComposerButtonsGroupList = new ByteArrayFilterGroupList();
+    private final StringFilterGroup comments;
+    private final StringFilterGroup commentsFilterBar;
+    private final StringFilterGroup dislikeButton;
+    private final StringFilterGroup emojiButton;
+    private final StringFilterGroup commentCardsIndicator;
+    private final StringFilterGroup menuButton;
+    private final StringFilterGroup translateButton;
+
+    private static final CharSequence hiddenPreviewCommentCharSequence =
+            str("tada_hide_comments_preview_comment_hidden");
+
+    public CommentsFilter() {
+        var channelGuidelines = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_CHANNEL_GUIDELINES,
+                "channel_guidelines_entry_banner",
+                "viewer_engagement_message"
+        );
+
+        var chatSummary = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_AI_CHAT_SUMMARY,
+                "live_chat_summary_banner.e"
+        );
+
+        commentComposer = new StringFilterGroup(
+                null,
+                COMMENT_COMPOSER_PATH
+        );
+
+        commentComposerButtons = new StringFilterGroup(
+                null,
+                "|ContainerType|ContainerType|ContainerType|ContainerType|",
+                "composer_main_action_button.e"
+        );
+
+        commentComposerButtonsGroupList.addAll(
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_COMMENTS_CREATE_A_SHORT_BUTTON,
+                        "composer_short_creation_button.e"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_COMMENTS_THANKS_BUTTON,
+                        "super_thanks_button.e"
+                )
+        );
+
+        comments = new StringFilterGroup(
+                null,
+                "video_metadata_carousel",
+                "_comments",
+                "teaser_carousel_with_controller"
+        );
+
+        var commentsByMembers = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_BY_MEMBERS_HEADER,
+                "sponsorships_comments_header.e",
+                "sponsorships_comments_footer.e"
+        );
+
+        var commentsContexts = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_CONTEXTS,
+                "comment_filter_context.e",
+                "timed_comments_welcome.e",
+                "timed_comments_end.e"
+        );
+
+        commentsFilterBar = new StringFilterGroup(
+                Settings.HIDE_FILTER_BAR_IN_COMMENTS,
+                CHIP_BAR_PATH_PREFIX
+        );
+
+        var communityGuidelines = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_COMMUNITY_GUIDELINES,
+                "community_guidelines",
+                "viewer_engagement_message"
+        );
+
+        var createAShortButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_CREATE_A_SHORT_BUTTON,
+                "composer_short_creation_button.e"
+        );
+
+        emojiButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_EMOJI_BUTTON,
+                "id.comment.quick_emoji.button"
+        );
+
+        // Overflow buttons are also used outside of comments.
+        menuButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_MENU_BUTTON,
+                "overflow_button.e"
+        );
+
+        var giftAnimationAndCards = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_GIFT_ANIMATION_AND_CARDS,
+                "gift_overlay.e",
+                "gift_attribution_card_classic_live.e"
+        );
+
+        var previewComment = new StringFilterGroup(
+                Settings.MINIMAL_COMMENTS_BUTTON,
+                "|carousel_item.e"
+        );
+
+        commentCardsIndicator = new StringFilterGroup(
+                Settings.MINIMAL_COMMENTS_BUTTON,
+                VIDEO_METADATA_CAROUSEL_PATH
+        );
+
+
+        var thanksButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_THANKS_BUTTON,
+                "super_thanks_button.e"
+        );
+
+        var timestampButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_TIMESTAMP_BUTTON,
+                "composer_timestamp_button.e"
+        );
+
+        var topFansButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_TOP_FANS_BUTTON,
+                "live_viewer_leaderboard_chat_entry_point.e"
+        );
+
+        dislikeButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_DISLIKE_BUTTON,
+                "engagement_dislike_button.e"
+        );
+
+        translateButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_TRANSLATE_BUTTON,
+                "tri_state_button.e"
+        );
+
+        addPathCallbacks(
+                channelGuidelines,
+                chatSummary,
+                commentComposer,
+                commentComposerButtons,
+                comments,
+                commentsByMembers,
+                commentsContexts,
+                commentsFilterBar,
+                communityGuidelines,
+                createAShortButton,
+                dislikeButton,
+                emojiButton,
+                giftAnimationAndCards,
+                previewComment,
+                commentCardsIndicator,
+                menuButton,
+                thanksButton,
+                timestampButton,
+                topFansButton,
+                translateButton
+        );
+    }
+
+    @Override
+    public boolean isFiltered(ContextInterface contextInterface,
+                              String identifier,
+                              String accessibility,
+                              CharSequence path,
+                              byte[] buffer,
+                              BufferAsciiStrings asciiStrings,
+                              StringFilterGroup matchedGroup,
+                              FilterContentType contentType,
+                              int contentIndex) {
+        if (matchedGroup == comments) {
+            if (Utils.startsWith(path, VIDEO_LOCKUP_WITH_ATTACHMENT_PATH)) {
+                return Settings.HIDE_COMMENTS_SECTION_IN_HOME_FEED.get();
+            }
+            return Settings.HIDE_COMMENTS_SECTION.get();
+        }
+
+        if (matchedGroup == commentComposer) {
+            return emojiButton.check(accessibility).isFiltered();
+        }
+
+        if (matchedGroup == commentComposerButtons) {
+            if (!VersionCheckPatch.IS_20_31_OR_GREATER) {
+                return false;
+            }
+            return commentComposerButtonsGroupList.check(buffer).isFiltered();
+        }
+
+        if (matchedGroup == menuButton) {
+            return Utils.contains(path, COMMENT_PATH);
+        }
+
+        if (matchedGroup == dislikeButton) {
+            // Only the buttons of comments and replies.
+            return Utils.contains(path, COMMENT_PATH);
+        }
+
+        if (matchedGroup == translateButton) {
+            return accessibility.startsWith(TRANSLATE_BUTTON_ACCESSIBILITY_ID)
+                    && Utils.contains(path, COMMENT_PATH);
+        }
+
+        if (matchedGroup == commentsFilterBar) {
+            return Settings.HIDE_FILTER_BAR_IN_COMMENTS.get() && PlayerType.getCurrent().isMaximizedOrFullscreen();
+        }
+
+        if (matchedGroup == commentCardsIndicator) {
+            return Utils.contains(path, "carousel_header") &&
+                    Utils.endsWith(path, "|ContainerType|ContainerType|ContainerType|");
+        }
+
+        return true;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideCommentsFilterBarOptions(CharSequence path, List<Object> treeNodeResultList) {
+        try {
+            if (Settings.HIDE_COMMENTS_FILTER_BAR_OPTIONS.get()
+                    && Utils.startsWith(path, CHIP_BAR_PATH_PREFIX)
+                    // Playlist sort button uses same components and must only filter if the player is opened.
+                    && PlayerType.getCurrent().isMaximizedOrFullscreen()
+            ) {
+                int treeNodeResultListSize = treeNodeResultList.size();
+                if (treeNodeResultListSize > 2) {
+                    treeNodeResultList.subList(1, treeNodeResultListSize - 1).clear();
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "Failed to hide comment filter bar options", ex);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideCommentsInfoButton(View view) {
+        if (Settings.HIDE_COMMENTS_INFO_BUTTON.get()) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, 0);
+            view.setLayoutParams(lp);
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideInComments(View view) {
+        if (view == null || !Settings.HIDE_FILTER_BAR_IN_COMMENTS.get()) {
+            return;
+        }
+
+        if (PlayerType.getCurrent().isMaximizedOrFullscreen()) {
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null) {
+                lp.height = 0;
+                view.setLayoutParams(lp);
+            }
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideLiveChatDonatorsBar(View view) {
+        if (view == null || !Settings.HIDE_COMMENTS_LIVE_CHAT_DONATORS_BAR.get()) {
+            return;
+        }
+
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                if (view.getParent() instanceof RecyclerView shelfContainerRecycleView) {
+                    shelfContainerRecycleView.setVisibility(RecyclerView.GONE);
+                }
+            }
+        });
+    }
+
+    /**
+     * Injection point.
+     */
+    public static View hideLiveChatTooltip(View anchor) {
+        if (anchor == null || !Settings.HIDE_COMMENTS_LIVE_CHAT_TOOLTIPS.get()) {
+            return anchor;
+        }
+
+        for (ViewParent parent = anchor.getParent(); parent instanceof View view; parent = view.getParent()) {
+            if (view.getId() == ID_LIVE_CHAT_ACTION_PANEL) {
+                return null;
+            }
+        }
+
+        return anchor;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideLiveChatEmojiButton(View view) {
+        if (Settings.HIDE_COMMENTS_EMOJI_BUTTON.get() && view != null) {
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null) {
+                lp.width = 0;
+                view.setLayoutParams(lp);
+            }
+
+            view.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideLiveChatGiftButton(View view) {
+        if (Settings.HIDE_COMMENTS_GIFT_BUTTON.get() && view != null) {
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null) {
+                lp.width = 0;
+                lp.height = 0;
+
+                if (lp instanceof ViewGroup.MarginLayoutParams marginLp) {
+                    marginLp.setMargins(0, 0, 0, 0);
+                    marginLp.setMarginStart(0);
+                    marginLp.setMarginEnd(0);
+                }
+
+                view.setLayoutParams(lp);
+            }
+
+            view.setPadding(0, 0, 0, 0);
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideLiveChatThanksButton(View view) {
+        if (Settings.HIDE_COMMENTS_THANKS_BUTTON.get() && view != null) {
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null) {
+                lp.width = 0;
+                lp.height = 0;
+                view.setLayoutParams(lp);
+            }
+
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static byte[] onCommentsLoaded(byte[] bytes) {
+        try {
+            if (Settings.HIDE_COMMENTS_CAROUSEL.get() && !commentsCarouselFilterStrings.isEmpty()) {
+                var newElement = NewElement.parseFrom(bytes).toBuilder();
+                var identifier = newElement.getProperties().getIdentifierProperties().getIdentifier();
+                if (identifier != null && identifier.contains(VIDEO_METADATA_CAROUSEL_PATH)) {
+                    var type = newElement.getType().toBuilder();
+                    var componentType = type.getComponentType().toBuilder();
+                    var model = componentType.getModel().toBuilder();
+                    var videoMetadataCarouselModel = model.getVideoMetadataCarouselModel().toBuilder();
+                    var data = videoMetadataCarouselModel.getData().toBuilder();
+                    var carouselTitleDatasList = data.getCarouselTitleDatasList();
+
+                    if (!carouselTitleDatasList.isEmpty()) {
+                        boolean modified = false;
+
+                        for (int i = carouselTitleDatasList.size() - 1; i > -1; i--) {
+                            var carouselTitleData = carouselTitleDatasList.get(i);
+
+                            String title = carouselTitleData.getTitle();
+                            Logger.printDebug(() -> "comments title: " + title);
+
+                            if (title != null) {
+                                for (String filter : commentsCarouselFilterStrings) {
+                                    if (title.contains(filter)) {
+                                        data.removeCarouselItemDatas(i);
+                                        data.removeCarouselTitleDatas(i);
+                                        modified = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (modified) {
+                            var newBuild = data.build();
+                            videoMetadataCarouselModel.clearData();
+                            videoMetadataCarouselModel.setData(newBuild);
+
+                            var newVideoMetadataCarouselModel = videoMetadataCarouselModel.build();
+                            model.clearVideoMetadataCarouselModel();
+                            model.setVideoMetadataCarouselModel(newVideoMetadataCarouselModel);
+
+                            var newModel = model.build();
+                            componentType.clearModel();
+                            componentType.setModel(newModel);
+
+                            var newComponentType = componentType.build();
+                            type.clearComponentType();
+                            type.setComponentType(newComponentType);
+
+                            var newType = type.build();
+                            newElement.clearType();
+                            newElement.setType(newType);
+
+                            return newElement.build().toByteArray();
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "onCommentsLoaded failure", ex);
+        }
+
+        return bytes;
+    }
+
+    /**
+     * Called when a litho text component is created, and also when a Span is later reused
+     * (such as scrolling off and back on screen). Usually called off the main thread, and
+     * can be called several times for the same element.
+     *
+     * @param original Original char sequence created or reused by Litho.
+     * @return The original char sequence, or a replacement that contains the dislikes.
+     */
+    public static CharSequence onLithoTextLoaded(ContextInterface contextInterface,
+                                                 CharSequence original) {
+        try {
+            if (!Settings.HIDE_COMMENTS_PREVIEW_COMMENT.get()) {
+                return original;
+            }
+            StringBuilder pathBuilder = contextInterface.patch_getPathBuilder();
+            if (pathBuilder.indexOf("comments_entry_point_teaser.e") == -1
+                    && pathBuilder.indexOf("comments_entry_point_simplebox.e") == -1) {
+                return original;
+            }
+            Spanned originalSpanned = original instanceof Spanned spanned
+                    ? spanned
+                    : new SpannableString(original);
+
+            return newSpanUsingStylingOfAnotherSpan(originalSpanned, hiddenPreviewCommentCharSequence);
+        } catch (Exception ex) {
+            Logger.printException(() -> "onLithoTextLoaded failure", ex);
+        }
+        return original;
+    }
+
+    /**
+     * Injection point.
+     * Disable clickable timestamps for preview comments.
+     */
+    public static boolean onVideoIntentLoaded(Map<Object, Object> playbackStartDescriptorMap, String videoId) {
+        if (!Settings.HIDE_COMMENTS_PREVIEW_COMMENT.get()) {
+            return false;
+        }
+        if (!(playbackStartDescriptorMap.get(ELEMENTS_SENDER_VIEW) instanceof ViewGroup senderView)) {
+            return false;
+        }
+        final int height = senderView.getHeight();
+        boolean isTimestamp = height >= Dim.dp(40) && height <= Dim.dp(60);
+        return PlayerType.getCurrent().isMaximizedOrFullscreen() &&
+                EngagementPanel.getCurrentOpenedPanels().isEmpty() &&
+                isTimestamp;
+    }
+}

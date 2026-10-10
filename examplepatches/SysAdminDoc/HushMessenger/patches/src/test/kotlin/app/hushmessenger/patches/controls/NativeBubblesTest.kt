@@ -322,6 +322,21 @@ class NativeBubblesTest {
             from = "const/4 v1, 1", to = "const/4 v1, 0"), gate))
     }
 
+    @Test fun the582ShortcutIdMayComeFromAStaticThreadKeyHelperThatNamesIt() {
+        val gate = BASE_PROFILE.hooks.getValue("bubble_mode").single()
+        val inline = "const-string v0, \"thread_shortcut_\""
+        val key = "Lfixture/Key;->id($thread)Ljava/lang/String;"
+        fun helperRoutes(helper: String = key, call: String = "invoke-static {p3}, $helper", body: String = "$inline\nreturn-object v0") =
+            routes(changed = create, from = inline, to = call) + fixtureClass(helper.substringBefore("->"),
+                listOf(fixtureMethod(helper, body, 2, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)))
+        assertEquals(findNativeBubbleRoutes(routes(), gate), findNativeBubbleRoutes(helperRoutes(), gate))
+        assertNull(findNativeBubbleRoutes(helperRoutes(body = "const-string v0, \"other_\"\nreturn-object v0"), gate))
+        assertNull(findNativeBubbleRoutes(helperRoutes(call = "invoke-virtual {p3}, $key"), gate))
+        assertNull(findNativeBubbleRoutes(helperRoutes(helper = "Lfixture/Key;->id(Ljava/lang/Object;)Ljava/lang/String;"), gate))
+        // The helper has to be in the app; a call alone names nothing.
+        assertNull(findNativeBubbleRoutes(routes(changed = create, from = inline, to = "invoke-static {p3}, $key"), gate))
+    }
+
     @Test fun aStaticGateHelperCountsOnlyWhenItReturnsTheGateForThePassedSession() {
         val gate = BASE_PROFILE.hooks.getValue("bubble_mode").single()
         val helper = "Lfixture/Gate;->read(${BUBBLE_SESSION}Lfixture/Lazy;)Z"

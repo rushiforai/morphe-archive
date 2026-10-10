@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- app.tada.patches.music.interaction.jam -->
+  <string name="tada_music_jam_update_host_controls">Actualiza el parche de Jam del host para usar pausa y reanudación</string>
+  <string name="tada_music_jam_probe_title">Uso compartido de la cola de Jam</string>
+  <string name="tada_music_jam_probe_summary">Inicia o únete a un Jam cercano y edita su cola mediante Jam Layer</string>
+  <string name="tada_music_jam_enabled_title">Activar uso compartido de la cola de Jam</string>
+  <string name="tada_music_jam_enabled_summary">Activa la integración de Jam tras reiniciar YouTube Music</string>
+  <string name="tada_music_jam_download_title">Descargar Jam Layer para que funcione</string>
+  <string name="tada_music_jam_download_summary">Abre la última versión de Jam Layer en tu navegador</string>
+  <string name="tada_music_jam_controls_title">Controles de Jam</string>
+  <string name="tada_music_jam_controls_summary">Inicia o únete a un Jam cercano y gestiona la sesión</string>
+  <string name="tada_music_jam_companion_package_title">Paquete de Jam Layer</string>
+  <string name="tada_music_jam_companion_package_summary">Elige la aplicación complementaria instalada que se usa para compartir la cola entre dispositivos cercanos</string>
+  <string name="tada_music_jam_package_message">Usa un paquete complementario instalado. El emparejamiento requiere tu aprobación y un token de capacidad local</string>
+  <string name="tada_music_jam_wifi_title">¿Activar Wi-Fi?</string>
+  <string name="tada_music_jam_wifi_message">Activa Wi-Fi y vuelve a intentar iniciar o unirte al Jam</string>
+  <string name="tada_music_jam_wifi_settings">Abrir ajustes de Wi-Fi</string>
+  <string name="tada_music_jam_cancel">Cancelar</string>
+  <string name="tada_music_jam_use_package">Usar paquete</string>
+  <string name="tada_music_jam_invalid_package">Introduce un nombre de paquete de Android válido</string>
+  <string name="tada_music_jam_package_saved">Paquete guardado. Configura Jam Layer para conectarte</string>
+  <string name="tada_music_jam_disconnected">Jam desconectado</string>
+  <string name="tada_music_jam_enable_layer_first">Activa Jam Layer primero</string>
+  <string name="tada_music_jam_enable_patch_first">Activa el uso compartido de la cola de Jam en los ajustes y reinicia YouTube Music</string>
+  <string name="tada_music_jam_install_layer_first">Instala primero el paquete de Jam Layer seleccionado</string>
+  <string name="tada_music_jam_join_hint">Introduce el código que aparece en el host. Wi-Fi Aware puede conectar dispositivos cercanos incluso cuando sus redes LAN son distintas</string>
+  <string name="tada_music_jam_join_with_code">Unirse con un código</string>
+  <string name="tada_music_jam_join">Unirse</string>
+  <string name="tada_music_jam_scan_qr">Escanear QR</string>
+  <string name="tada_music_jam_invalid_invite">Introduce el código de ocho caracteres o pega una invitación</string>
+  <string name="tada_music_jam_join_your_jam">Unirse a tu Jam</string>
+  <string name="tada_music_jam_copy_code">Copiar código</string>
+  <string name="tada_music_jam_code_clip">Código de Jam</string>
+  <string name="tada_music_jam_show_qr">Mostrar QR</string>
+  <string name="tada_music_jam_done">Listo</string>
+  <string name="tada_music_jam_invite_title">Invitar a tu Jam</string>
+  <string name="tada_music_jam_invite_message">Escanea para unirte y editar esta cola. Finalizar Jam revoca la invitación.</string>
+  <string name="tada_music_jam_copy_link">Copiar enlace</string>
+  <string name="tada_music_jam_invitation_clip">Invitación de Jam</string>
+  <string name="tada_music_jam_reconnecting_toast">Jam se está reconectando; inténtalo de nuevo en breve</string>
+  <string name="tada_music_jam_added_to_jam">Añadido a Jam</string>
+  <string name="tada_music_jam_unavailable_toast">Jam no está disponible; la pista no se añadió</string>
+  <string name="tada_music_jam_your_jam">Tu Jam</string>
+  <string name="tada_music_jam_listening_together">Escuchando juntos</string>
+  <string name="tada_music_jam_joining_jam">Uniéndose a la Jam</string>
+  <string name="tada_music_jam_listen_together">Escuchar juntos</string>
+  <string name="tada_music_jam_updating">Actualizando Jam…</string>
+  <string name="tada_music_jam_finding_host">Buscando tu host en Wi-Fi…</string>
+  <string name="tada_music_jam_waiting_people">Esperando a que se una gente</string>
+  <string name="tada_music_jam_one_connected">%d persona conectada</string>
+  <string name="tada_music_jam_many_connected">%d personas conectadas</string>
+  <string name="tada_music_jam_code_expires">Introduce este código en un dispositivo cercano. Wi-Fi Aware funciona entre redes LAN distintas cuando es compatible. Caduca en %d minutos.</string>
+  <string name="tada_music_jam_seek_to">¿Saltar a %s?</string>
+  <string name="tada_music_jam_edits_open">Edición abierta</string>
+  <string name="tada_music_jam_edits_locked">Edición bloqueada</string>
+  <string name="tada_music_jam_connected_aware">Conectado mediante Wi-Fi Aware</string>
+  <string name="tada_music_jam_connected_wifi">Conectado mediante Wi-Fi</string>
+  <string name="tada_music_jam_connected_bluetooth">Conectado mediante Bluetooth</string>
+  <string name="tada_music_jam_unsupported">No compatible durante Jam</string>
+  <string name="tada_music_jam_cancelled">Unión cancelada</string>
+  <string name="tada_music_jam_reconnecting_host">Reconectando con tu host…</string>
+  <string name="tada_music_jam_share_prompt">Comparte una cola. Deja que todos añadan canciones.</string>
+  <string name="tada_music_jam_invite_people">Invitar a personas</string>
+  <string name="tada_music_jam_guest_edits">Los invitados pueden editar la cola</string>
+  <string name="tada_music_jam_end_jam">Finalizar Jam</string>
+  <string name="tada_music_jam_participant_help">El host reproduce la música. Añade, mueve o elimina canciones directamente en la cola de YouTube Music.</string>
+  <string name="tada_music_jam_joining_help">Mantén ambos dispositivos cerca. Puedes cancelar mientras buscamos al host.</string>
+  <string name="tada_music_jam_cancel_joining">Cancelar unión</string>
+  <string name="tada_music_jam_leave_jam">Salir de Jam</string>
+  <string name="tada_music_jam_start_jam">Iniciar Jam</string>
+  <string name="tada_music_jam_setup_layer">Configurar Jam Layer</string>
+  <string name="tada_music_jam_manage">Gestionar</string>
+  <string name="tada_music_jam_details">Detalles</string>
+  <string name="tada_music_jam_open">Abrir</string>
+  <string name="tada_music_jam_loading_song_options">Cargando opciones de canción…</string>
+  <string name="tada_music_jam_song_options_unavailable">Opciones de canción no disponibles; inténtalo de nuevo</string>
+  <string name="tada_music_jam_song_options_failed">No se pudieron abrir las opciones de canción</string>
+  <string name="tada_music_jam_no_browser">No hay ningún navegador disponible para descargar Jam Layer</string>
+  <string name="tada_music_jam_waiting_host_queue">Esperando la cola del host</string>
+  <string name="tada_music_jam_open_song_first">Abre una canción en YouTube Music primero</string>
+  <string name="tada_music_jam_play_on_host">Reproducir en el host</string>
+  <string name="tada_music_jam_quit_and_play">Salir de Jam y reproducir localmente</string>
+  <string name="tada_music_jam_play_next">Reproducir a continuación en Jam</string>
+  <string name="tada_music_jam_add_to_queue">Añadir a la cola de Jam</string>
+  <string name="tada_music_jam_play_track">Reproducir esta pista de Jam</string>
+  <string name="tada_music_jam_choose_playback">Elegir dónde reproducir</string>
+  <string name="tada_music_jam_move_host_here">Mover el host aquí</string>
+  <string name="tada_music_jam_seek_not_ready">La canción no llegó a estar lista para saltar</string>
+  <string name="tada_music_jam_queue_changed_gesture">La cola ha cambiado; vuelve a intentar el gesto</string>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="tada_header_logo_title">Logo del encabezado</string>
+  <string name="tada_header_logo_entry_1">Predeterminado</string>
+  <string name="tada_header_logo_entry_3">Personalizado</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="tada_music_play_album_songs_title">Reproducir pistas de audio del álbum</string>
+  <!-- 'Spoof video streams' should match the language used in 'tada_spoof_video_streams_screen_title' -->
+  <string name="tada_music_play_album_songs_summary">Reproduce la versión solo audio de las canciones del álbum, en lugar del videoclip. Requiere \'Falsificar transmisiones de vídeo\'</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="tada_external_downloader_screen_summary">Descarga vídeos musicales, podcasts o canciones con aplicaciones de descarga de terceros</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="tada_external_downloader_action_button_title">Reemplazar botón Descargar</string>
+  <string name="tada_external_downloader_action_button_summary">Utiliza el descargador externo seleccionado en lugar del botón de acción de descarga original</string>
+  <string name="tada_external_downloader_flyout_menu_title">Reemplazar menú Descargar</string>
+  <string name="tada_external_downloader_flyout_menu_summary">Utiliza el descargador externo seleccionado en lugar del menú flotante de descarga original</string>
+  <string name="tada_music_in_app_downloads_title">Descargar en la aplicación</string>
+  <string name="tada_music_in_app_downloads_summary">Descarga el audio dentro de YouTube Music en lugar de abrir la aplicación de descarga externa</string>
+  <string name="tada_music_in_app_downloads_user_dialog_message">"Las canciones se guardan en el almacenamiento privado de la aplicación y se eliminan si se desinstala YouTube Music.
+
+Mientras esta opción esté activada, la pestaña Descargas muestra estas canciones en lugar de la biblioteca sin conexión de Music Premium. Al desactivarla, la pestaña vuelve a aparecer y las descargas Premium nunca se ven afectadas."</string>
+  <string name="tada_music_downloads_screen_title">Descargas</string>
+  <string name="tada_music_downloads_empty">"No hay descargas
+Las pistas descargadas aparecen aquí"</string>
+  <string name="tada_music_downloads_track_subtitle">%1$s • %2$s • %3$s MB</string>
+  <string name="tada_music_downloads_summary">%1$s pistas • %2$s MB</string>
+  <string name="tada_music_downloads_search_hint">Buscar descargas</string>
+  <string name="tada_music_downloads_sort">Ordenar</string>
+  <string name="tada_music_downloads_sort_artist">Ordenar por artista</string>
+  <string name="tada_music_downloads_sort_title">Ordenar por título</string>
+  <string name="tada_music_downloads_sort_size">Ordenar por tamaño</string>
+  <string name="tada_music_downloads_delete_all">Eliminar todas las descargas</string>
+  <string name="tada_music_downloads_delete_all_title">¿Eliminar todas las descargas?</string>
+  <string name="tada_music_downloads_delete_all_message">Todas las pistas descargadas se eliminarán de este dispositivo</string>
+  <string name="tada_music_downloads_all_deleted">Descargas eliminadas</string>
+  <string name="tada_music_downloads_nothing_found">No se encontró nada</string>
+  <string name="tada_music_downloads_actions_for">Acciones para %s</string>
+  <string name="tada_music_downloads_play">Reproducir</string>
+  <string name="tada_music_downloads_play_pause">Reproducir o pausar</string>
+  <string name="tada_music_downloads_previous">Anterior</string>
+  <string name="tada_music_downloads_next">Siguiente</string>
+  <string name="tada_music_downloads_pause">Pausar</string>
+  <string name="tada_music_downloads_close">Cerrar</string>
+  <string name="tada_music_downloads_delete">Eliminar</string>
+  <string name="tada_music_downloads_delete_track">Eliminar descarga</string>
+  <string name="tada_music_downloads_delete_track_title">¿Eliminar descarga?</string>
+  <string name="tada_music_downloads_delete_track_message">%s se eliminará de este dispositivo</string>
+  <string name="tada_music_downloads_track_deleted">Descarga eliminada</string>
+  <string name="tada_music_downloads_track_delete_failed">No se pudo eliminar la descarga</string>
+  <string name="tada_music_downloads_play_failed">No se pudo reproducir la descarga</string>
+  <string name="tada_music_downloads_notification_channel">Descargas de audio</string>
+  <string name="tada_music_downloads_playback_channel">Reproducción sin conexión</string>
+  <string name="tada_music_downloads_unknown_track">No se pudo identificar la pista que descargar</string>
+  <string name="tada_music_downloads_already_running">Ya hay una descarga en curso</string>
+  <string name="tada_music_downloads_already_saved">Ya descargada</string>
+  <string name="tada_music_downloads_started">Descarga iniciada</string>
+  <string name="tada_music_downloads_starting">Iniciando descarga…</string>
+  <string name="tada_music_downloads_progress">Descargando %s%%</string>
+  <string name="tada_music_downloads_complete">Descarga completada</string>
+  <string name="tada_music_downloads_failed">Descarga fallida</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About TADa" (i.e., About this app). -->
+  <string name="tada_settings_music_screen_0_about_title">Acerca de</string>
+  <string name="tada_settings_music_screen_1_ads_title">Anuncios</string>
+  <string name="tada_settings_music_screen_2_feed_title">Feed</string>
+  <string name="tada_settings_music_screen_3_general_title">General</string>
+  <string name="tada_settings_music_screen_4_player_title">Reproductor</string>
+  <string name="tada_settings_music_screen_5_lyrics_title">Letras</string>
+  <string name="tada_settings_music_screen_9_misc_title">Otros</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="tada_music_hide_get_premium_label_title">Ocultar etiqueta \'Obtener Music Premium\'</string>
+  <string name="tada_music_hide_music_premium_promotions_title">Ocultar promociones de Music Premium</string>
+  <string name="tada_music_hide_video_ads_title">Ocultar anuncios de vídeo</string>
+  <!-- layout.hide.general.hideLayoutComponentsPatch -->
+  <string name="tada_music_hide_audio_video_toggle_title">Ocultar selector Audio / Vídeo</string>
+  <string name="tada_music_hide_explore_shelf_title">Ocultar estantería Explorar</string>
+  <string name="tada_music_hide_grid_shelves_title">Ocultar estanterías en cuadrícula</string>
+  <string name="tada_music_hide_horizontal_shelves_title">Ocultar estanterías horizontales</string>
+  <string name="tada_music_hide_list_shelves_title">Ocultar estanterías en lista</string>
+  <string name="tada_music_hide_lyrics_panel_category_title">Panel de letras</string>
+  <string name="tada_music_hide_lyrics_share_button_title">Ocultar botón Compartir</string>
+  <string name="tada_music_hide_lyrics_translate_button_title">Ocultar botón Traducir</string>
+  <string name="tada_music_hide_new_from_shelf_title">Ocultar estantería \'Novedades de\'</string>
+  <string name="tada_music_hide_playlist_shelves_title">Ocultar estanterías de listas de reproducción</string>
+  <string name="tada_music_hide_podcast_episode_download_button_title">Ocultar botón Descargar de episodios de podcast</string>
+  <string name="tada_music_hide_repeat_button_title">Ocultar botón Repetir</string>
+  <string name="tada_music_hide_shuffle_button_title">Ocultar botón Aleatorio</string>
+  <string name="tada_music_hide_speed_dial_shelf_title">Ocultar estantería \'Acceso rápido\'</string>
+  <string name="tada_music_comments_screen_title">Comentarios</string>
+  <string name="tada_music_comments_screen_summary">Elige qué componentes aparecen en la sección de comentarios</string>
+  <string name="tada_music_hide_comments_community_guidelines_title">Ocultar normas de la comunidad</string>
+  <string name="tada_music_hide_comments_context_title">Ocultar mensaje de contexto</string>
+  <string name="tada_music_hide_comments_emoji_button_title">Ocultar botón Emoji</string>
+  <string name="tada_music_hide_comments_info_button_title">Ocultar botón Información</string>
+  <string name="tada_music_hide_comments_timestamp_button_title">Ocultar botón de marca de tiempo</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="tada_music_crossfade_screen_title">Fundido entre canciones</string>
+  <string name="tada_music_crossfade_screen_summary">Realiza una transición suave entre canciones</string>
+  <string name="tada_music_crossfade_enabled_title">Activar fundido entre canciones</string>
+  <string name="tada_music_crossfade_curve_title">Curva de fundido</string>
+  <string name="tada_music_crossfade_curve_entry_equal_power">Potencia constante</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_cubic">Retención sutil</string>
+  <string name="tada_music_crossfade_curve_entry_ease_out_quad">Transición suave</string>
+  <string name="tada_music_crossfade_curve_entry_smoothstep">Curva en S suave</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="tada_music_crossfade_curve_preview_outgoing">Saliente</string>
+  <string name="tada_music_crossfade_curve_preview_incoming">Entrante</string>
+  <string name="tada_music_crossfade_duration_title">Duración del fundido entre canciones</string>
+  <string name="tada_crossfade_duration_250ms">250 milisegundos</string>
+  <string name="tada_crossfade_duration_500ms">500 milisegundos</string>
+  <string name="tada_crossfade_duration_750ms">750 milisegundos</string>
+  <string name="tada_crossfade_duration_1000ms">1 segundo</string>
+  <string name="tada_crossfade_duration_2000ms">2 segundos</string>
+  <string name="tada_crossfade_duration_3000ms">3 segundos</string>
+  <string name="tada_crossfade_duration_4000ms">4 segundos</string>
+  <string name="tada_crossfade_duration_5000ms">5 segundos</string>
+  <string name="tada_crossfade_duration_6000ms">6 segundos</string>
+  <string name="tada_crossfade_duration_7000ms">7 segundos</string>
+  <string name="tada_crossfade_duration_8000ms">8 segundos</string>
+  <string name="tada_crossfade_duration_9000ms">9 segundos</string>
+  <string name="tada_crossfade_duration_10000ms">10 segundos</string>
+  <string name="tada_crossfade_duration_11000ms">11 segundos</string>
+  <string name="tada_crossfade_duration_12000ms">12 segundos</string>
+  <string name="tada_music_crossfade_on_skip_title">Fundido en cambio manual</string>
+  <string name="tada_music_crossfade_on_skip_summary">Aplica el fundido al cambiar manualmente a la siguiente pista</string>
+  <string name="tada_music_crossfade_on_auto_advance_title">Fundido en avance automático</string>
+  <string name="tada_music_crossfade_on_auto_advance_summary">Aplica el fundido al finalizar una pista de forma natural</string>
+  <string name="tada_music_crossfade_session_control_title">Control de sesión</string>
+  <string name="tada_music_crossfade_session_control_summary">Mantén pulsado el botón de reproducción aleatoria para pausar o reanudar el fundido entre canciones</string>
+  <string name="tada_music_crossfade_paused_toast">Fundido entre canciones pausado para esta sesión</string>
+  <string name="tada_music_crossfade_resumed_toast">Fundido entre canciones reanudado</string>
+  <string name="tada_music_crossfade_video_mode_disabled_toast">El modo de vídeo no está disponible mientras el fundido entre canciones está activado</string>
+  <string name="tada_music_crossfade_cast_unstable_toast">El fundido entre canciones se pausa mientras se transmite o duplica el audio. El fundido entre canciones durante la transmisión o duplicación de audio es inestable y es posible que nunca pueda corregirse</string>
+  <string name="tada_music_crossfade_about_title">Acerca de</string>
+  <string name="tada_music_crossfade_about_summary">Cómo funciona el fundido entre canciones, y cuándo no</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="tada_music_crossfade_about_how_title">Cómo funciona</string>
+  <string name="tada_music_crossfade_about_how_summary">"El fundido entre canciones superpone el final de una canción con el comienzo de la siguiente, reduciendo el volumen de una mientras aumenta el volumen de la otra durante la duración y la curva que hayas elegido.
+
+Funciona con el avance automático (cuando una canción termina por sí sola) y con los cambios manuales, cada uno tiene su propio botón de activación. Con el avance automático, la mezcla comienza unos segundos antes de que termine la canción.
+
+Requiere YouTube Music 9.x o posterior."</string>
+  <string name="tada_music_crossfade_about_best_title">Funciona mejor con</string>
+  <string name="tada_music_crossfade_about_best_summary">La reproducción normal de canción a canción y el avance automático, la repetición de una canción (la canción se funde consigo misma) y el audio local (altavoz del teléfono, auriculares con cable, Bluetooth o USB).</string>
+  <string name="tada_music_crossfade_about_quirks_title">No funciona del todo bien</string>
+  <string name="tada_music_crossfade_about_quirks_summary">"Los vídeos musicales se reproducen solo con audio cuando el fundido entre canciones está activado (mantén pulsado el botón de reproducción aleatoria para pausarlo si quieres ver el vídeo)
+
+Las canciones más cortas que la duración del fundido pueden omitir el efecto
+
+La pantalla de bloqueo o la notificación pueden mostrar brevemente un estado desactualizado durante la transición"</string>
+  <string name="tada_music_crossfade_about_known_title">Problemas conocidos</string>
+  <string name="tada_music_crossfade_about_known_summary">"Un vídeo musical establecido como primera canción, o iniciado fuera de la cola actual, puede mostrarse brevemente como vídeo antes de cambiar al modo solo audio
+
+Pausar el fundido para ver un vídeo musical puede dejar algunos vídeos en negro (los que usan el audio del propio vídeo). Pausa el fundido antes de elegir la canción para evitarlo"</string>
+  <string name="tada_music_crossfade_about_unsupported_title">No funciona en absoluto</string>
+  <string name="tada_music_crossfade_about_unsupported_summary">"Transmisión o duplicación de audio (Chromecast, duplicación de pantalla o de audio): el fundido entre canciones se pausa porque es inestable en estos casos y puede que nunca pueda corregirse.
+
+YouTube Music 8.x: el fundido entre canciones solo funciona en la versión 9.x y posteriores"</string>
+  <string name="tada_music_crossfade_about_credit_title">Créditos</string>
+  <string name="tada_music_crossfade_about_credit_summary">Característica de fundido entre canciones por VazerOG</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="tada_music_remember_repeat_state_title">Recordar estado de repetición</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="tada_music_remember_shuffle_state_title">Recordar estado de reproducción aleatoria</string>
+  <!-- video.speed.playbackSpeedPatch -->
+  <string name="tada_music_playback_speed_title">Velocidad de reproducción</string>
+  <string name="tada_music_playback_speed_summary">Velocidad usada para todas las pistas. Al 100% se usa la velocidad de la aplicación, como la velocidad de reproducción de pódcast</string>
+  <string name="tada_music_playback_speed_change_pitch_title">Cambiar el tono con la velocidad</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="tada_music_disable_dislike_redirection_title">Desactivar redirección de \'No me gusta\'</string>
+  <string name="tada_music_disable_dislike_redirection_summary">Evita saltar a la siguiente pista cuando se pulsa el botón \'No me gusta\'</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="tada_music_hide_cast_button_title">Ocultar botón Transmitir</string>
+  <string name="tada_music_hide_history_button_title">Ocultar botón Historial</string>
+  <string name="tada_music_hide_notification_button_title">Ocultar botón Notificaciones</string>
+  <string name="tada_music_hide_search_button_title">Ocultar botón de búsqueda</string>
+  <string name="tada_music_hide_voice_search_button_title">Ocultar botón de búsqueda por voz</string>
+  <string name="tada_music_hide_sound_search_button_title">Ocultar botón de búsqueda por sonido</string>
+  <string name="tada_music_hide_library_new_button_title">Ocultar botón Nueva</string>
+  <string name="tada_music_hide_library_new_button_summary">Oculta el botón Nueva en la pestaña Biblioteca</string>
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <string name="tada_music_action_buttons_screen_title">Botones de acción</string>
+  <string name="tada_music_action_buttons_screen_summary">Elige qué botones de acción aparecen debajo del reproductor</string>
+  <string name="tada_music_hide_action_bar_title">Ocultar barra de acción</string>
+  <string name="tada_music_hide_like_dislike_button_title">Ocultar botón \'Me gusta\' y \'No me gusta\'</string>
+  <string name="tada_music_hide_comments_button_title">Ocultar botón Comentarios</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_live_chat_replay_button_title">Ocultar botón \'Repetición del chat en directo\'</string>
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_lyrics_button_title">Ocultar botón Letra</string>
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_share_button_title">Ocultar botón Compartir</string>
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_save_button_title">Ocultar botón Guardar</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_download_button_title">Ocultar botón Descargar</string>
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="tada_music_hide_radio_button_title">Ocultar botón \'Iniciar mix\'</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="tada_music_hide_flyout_menu_components_screen_title">Menú flotante</string>
+  <string name="tada_music_hide_flyout_menu_components_screen_summary">Elige qué componentes aparecen en los menús flotantes del reproductor y la cola</string>
+  <string name="tada_music_hide_flyout_menu_3_column_component_title">Ocultar componente de 3 columnas</string>
+  <string name="tada_music_hide_flyout_menu_like_dislike_title">Ocultar botones \'Me gusta\' y \'No me gusta\'</string>
+  <string name="tada_music_hide_flyout_menu_taste_match_title">Ocultar menú \'Match musical\'</string>
+  <string name="tada_music_hide_flyout_menu_add_to_listen_later_title">Ocultar menú \'Añadir a la lista de reproducción \"Escuchar más tarde\"\'</string>
+  <string name="tada_music_hide_flyout_menu_add_to_queue_title">Ocultar menú \'Añadir a la cola\'</string>
+  <string name="tada_music_hide_flyout_menu_captions_title">Ocultar menú Subtítulos</string>
+  <string name="tada_music_hide_flyout_menu_delete_playlist_title">Ocultar menú \'Eliminar lista de reproducción\'</string>
+  <string name="tada_music_hide_flyout_menu_dismiss_queue_title">Ocultar menú \'Cerrar cola\'</string>
+  <string name="tada_music_hide_flyout_menu_dont_recommend_artist_title">Ocultar menú \'No recomendar este artista\'</string>
+  <string name="tada_music_hide_flyout_menu_download_title">Ocultar menú Descargar</string>
+  <string name="tada_music_hide_flyout_menu_edit_playlist_title">Ocultar menú \'Editar lista\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_album_title">Ocultar menú \'Ir al álbum\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_artist_title">Ocultar menú \'Ir al artista\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_episode_title">Ocultar menú \'Ir al episodio\'</string>
+  <string name="tada_music_hide_flyout_menu_go_to_podcast_title">Ocultar menú \'Ir al podcast\'</string>
+  <string name="tada_music_hide_flyout_menu_help_title">Ocultar menú \'Ayuda y comentarios\'</string>
+  <string name="tada_music_hide_flyout_menu_mark_episode_as_played_title">Ocultar menú \'Marcar episodio como reproducido\'</string>
+  <string name="tada_music_hide_flyout_menu_not_interested_title">Ocultar menú \'No me interesa\'</string>
+  <string name="tada_music_hide_flyout_menu_pin_to_speed_dial_title">Ocultar menú \'Fijar en Acceso rápido\'</string>
+  <string name="tada_music_hide_flyout_menu_play_next_title">Ocultar menú \'Reproducir a continuación\'</string>
+  <string name="tada_music_hide_flyout_menu_quality_title">Ocultar menú Calidad</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_library_title">Ocultar menú \'Eliminar de la biblioteca\'</string>
+  <string name="tada_music_hide_flyout_menu_remove_from_playlist_title">Ocultar menú \'Quitar de la lista de reproducción\'</string>
+  <string name="tada_music_hide_flyout_menu_report_title">Ocultar menú Denunciar</string>
+  <string name="tada_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">Ocultar menú \'Guardar episodio para más tarde\' / \'Guardar en la biblioteca\'</string>
+  <string name="tada_music_hide_flyout_menu_save_to_playlist_title">Ocultar menú \'Añadir a lista de reproducción\'</string>
+  <string name="tada_music_hide_flyout_menu_share_title">Ocultar menú Compartir</string>
+  <string name="tada_music_hide_flyout_menu_shuffle_play_title">Ocultar menú Aleatorio</string>
+  <string name="tada_music_hide_flyout_menu_sleep_timer_title">Ocultar menú \'Temporizador de suspensión\'</string>
+  <string name="tada_music_hide_flyout_menu_start_radio_title">Ocultar menú \'Iniciar Mix\'</string>
+  <string name="tada_music_hide_flyout_menu_stats_for_nerds_title">Ocultar menú \'Estadísticas avanzadas\'</string>
+  <string name="tada_music_hide_flyout_menu_subscribe_title">Ocultar menú Suscribirse</string>
+  <string name="tada_music_hide_flyout_menu_unpin_from_speed_dial_title">Ocultar menú \'Desfijar del acceso rápido\'</string>
+  <string name="tada_music_hide_flyout_menu_view_song_credit_title">Ocultar menú \'Ver créditos de la canción\'</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="tada_change_start_page_title">Página de inicio</string>
+  <string name="tada_change_start_page_entry_default">Predeterminado</string>
+  <string name="tada_change_start_page_entry_charts">Listas de éxitos</string>
+  <string name="tada_change_start_page_entry_episodes_for_later">Episodios para más tarde</string>
+  <string name="tada_change_start_page_entry_explore">Explorar</string>
+  <string name="tada_change_start_page_entry_history">Historial</string>
+  <string name="tada_change_start_page_entry_library">Biblioteca</string>
+  <string name="tada_change_start_page_entry_liked_music">Música que me gusta</string>
+  <string name="tada_change_start_page_entry_playlists">Listas de reproducción</string>
+  <string name="tada_change_start_page_entry_search">Búsqueda</string>
+  <string name="tada_change_start_page_entry_subscriptions">Suscripciones</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="tada_music_hide_filter_bar_title">Ocultar barra de filtro</string>
+  <!-- layout.orientation.forcePortraitOrientationPatch -->
+  <string name="tada_music_force_portrait_orientation_title">Forzar orientación vertical</string>
+  <string name="tada_music_force_portrait_orientation_summary">Mantiene la aplicación en orientación vertical cuando se gira el dispositivo</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="tada_music_change_miniplayer_color_title">Cambiar color del reproductor en miniatura</string>
+  <string name="tada_music_change_miniplayer_color_summary">Adapta el color del reproductor en miniatura al reproductor de pantalla completa</string>
+  <string name="tada_music_change_navigation_bar_color_title">Cambiar color de la barra de navegación</string>
+  <string name="tada_music_change_navigation_bar_color_summary">Adapta el color de la barra de navegación al reproductor de pantalla completa</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="tada_music_miniplayer_next_button_title">Mostrar botón Siguiente en reproductor en miniatura</string>
+  <string name="tada_music_miniplayer_previous_button_title">Mostrar botón Anterior en reproductor en miniatura</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="tada_music_enable_forced_miniplayer_title">Activar reproductor en miniatura forzado</string>
+  <string name="tada_music_enable_forced_miniplayer_summary">Evita que el reproductor se expanda automáticamente a pantalla completa cuando comienza una nueva pista</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_title">Activar deslizar para cerrar el reproductor en miniatura</string>
+  <string name="tada_music_enable_swipe_to_dismiss_miniplayer_summary">Permite cerrar el reproductor en miniatura deslizando hacia abajo sobre él</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="tada_music_navigation_bar_screen_title">Barra de navegación</string>
+  <string name="tada_music_navigation_bar_screen_summary">Elige qué botones aparecen en la barra de navegación inferior</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_home_button_title">Ocultar botón Inicio</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_samples_button_title">Ocultar botón Samples</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_explore_button_title">Ocultar botón Explorar</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_library_button_title">Ocultar botón \'Mi biblioteca\'</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="tada_music_hide_navigation_bar_upgrade_button_title">Ocultar botón Actualizar</string>
+  <string name="tada_music_hide_navigation_bar_title">Ocultar barra de navegación</string>
+  <string name="tada_music_hide_navigation_bar_labels_title">Ocultar etiquetas de botones de navegación</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="tada_music_scrobbling_summary">Configura la integración de Last.fm y ListenBrainz</string>
+  <string name="tada_music_scrobbling_summary_logged_out">No has iniciado sesión. Pulsa para configurar</string>
+  <string name="tada_music_scrobbling_log_out">Cerrar sesión</string>
+  <string name="tada_music_scrobbling_logged_out_toast">Sesión cerrada</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_enabled_title">Activar Scrobbling</string>
+  <string name="tada_music_scrobbling_now_playing_title">Enviar estado \'Reproduciendo ahora\'</string>
+  <string name="tada_music_scrobbling_min_song_duration_title">Duración mínima de la canción</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="tada_music_scrobbling_min_song_duration_summary">No se hará scrobble para canciones con duración menor que este valor</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_title">Retraso de scrobble en porcentaje</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_percent_summary">Activa scrobble después de escuchar este porcentaje de la canción</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_title">Retraso de scrobble en segundos</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="tada_music_scrobbling_delay_seconds_summary">Activa scrobble después de escuchar durante este número de segundos</string>
+  <string name="tada_music_listenbrainz_token_title">Cuenta de ListenBrainz</string>
+  <string name="tada_music_listenbrainz_token_summary_logged_in">Has iniciado sesión. Pulsa para administrar la cuenta</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_listenbrainz_token_dialog_instruction">Introduce tu token de usuario de ListenBrainz para habilitar el scrobbling</string>
+  <string name="tada_music_listenbrainz_token_dialog_hint">Token</string>
+  <string name="tada_music_listenbrainz_token_dialog_get_token">Obtener token</string>
+  <string name="tada_music_listenbrainz_token_dialog_verify">Verificar</string>
+  <string name="tada_music_listenbrainz_token_status_empty">Por favor, introduce un token</string>
+  <string name="tada_music_listenbrainz_token_status_validating">Validando…</string>
+  <string name="tada_music_listenbrainz_token_status_valid">¡Token válido! Usuario: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid">Token no válido: %s</string>
+  <string name="tada_music_listenbrainz_token_status_invalid_unknown">desconocido</string>
+  <string name="tada_music_listenbrainz_token_status_failed">Error al verificar: %s</string>
+  <string name="tada_music_listenbrainz_token_toast_cleared">Token borrado</string>
+  <string name="tada_music_listenbrainz_token_toast_saved">Token guardado</string>
+  <string name="tada_music_listenbrainz_token_toast_invalid_warning">Advertencia: ¡El token guardado no es válido!</string>
+  <string name="tada_music_lastfm_love_on_like_title">Marcar como \'Me encanta\' las pistas que te gustan</string>
+  <string name="tada_music_lastfm_love_on_like_summary">Marca automáticamente las pistas como \'Me encanta\' en Last.fm cuando les des \'Me gusta\' en YouTube Music (y elimina esa marca al quitar el \'Me gusta\' o dar \'No me gusta\')</string>
+  <string name="tada_music_lastfm_token_title">Cuenta de Last.fm</string>
+  <string name="tada_music_lastfm_token_summary_logged_in">Has iniciado sesión como %s. Pulsa para administrar la cuenta</string>
+  <string name="tada_music_lastfm_token_dialog_instruction">Introduce tus credenciales de Last.fm para iniciar sesión</string>
+  <string name="tada_music_lastfm_token_dialog_username_hint">Nombre de usuario</string>
+  <string name="tada_music_lastfm_token_dialog_password_hint">Contraseña</string>
+  <string name="tada_music_lastfm_token_dialog_login">Iniciar sesión</string>
+  <string name="tada_music_lastfm_token_status_empty">Por favor, introduce el nombre de usuario y la contraseña</string>
+  <string name="tada_music_lastfm_token_status_logging_in">Iniciando sesión…</string>
+  <string name="tada_music_lastfm_token_status_success">¡Inicio de sesión exitoso!</string>
+  <string name="tada_music_lastfm_token_status_no_session">Error al obtener la sesión de Last.fm</string>
+  <string name="tada_music_lastfm_token_status_failed">Error al iniciar sesión: %s</string>
+  <string name="tada_music_lastfm_token_toast_saved">¡Credenciales de Last.fm guardadas!</string>
+  <string name="tada_settings_music_scrobbling_metadata_title">Limpieza de metadatos</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_title">Limpiar metadatos</string>
+  <string name="tada_music_scrobbling_metadata_cleanup_summary">Limpia automáticamente términos comunes (como \"Vídeo oficial\", \"Remasterizado\", \"En directo\") de los títulos, artistas y álbumes antes de hacer scrobble</string>
+  <string name="tada_music_scrobbling_custom_regex_title">Limpieza de regex personalizada</string>
+  <string name="tada_music_scrobbling_custom_regex_summary">Introduce una expresión regular personalizada para eliminar texto adicional de los títulos de canciones, artistas o álbumes. Ejemplo: (?i)\\s*\\((clean|explicit)\\)</string>
+  <string name="tada_music_scrobbling_parse_title_title">Analizar artista y pista a partir del título</string>
+  <string name="tada_music_scrobbling_parse_title_summary">Extrae el nombre del artista y de la pista a partir del título del vídeo utilizando el separador \" - \". Útil para contenido re-subido donde el nombre del canal puede usarse como artista.</string>
+  <string name="tada_music_scrobbling_guess_album_title">Rellenar álbum faltante</string>
+  <string name="tada_music_scrobbling_guess_album_summary">Cuando la música no incluye un álbum, lo busca en Last.fm para que tu scrobble esté completo</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_title">Acerca del scrobbling</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="tada_music_scrobbling_about_summary">"El scrobbling sincroniza tu uso de YouTube Music con tu perfil de Last.fm o ListenBrainz.
+
+Para garantizar que la sincronización se realice durante la reproducción en segundo plano, asegúrate de que el uso de la batería de la aplicación YouTube Music esté configurado como \"Sin restricciones\""</string>
+  <!-- layout.lyrics.lyricsPatch -->
+  <string name="tada_music_lyrics_enabled_title">Usar letras de terceros</string>
+  <string name="tada_music_lyrics_enabled_summary">Muestra letras de un servicio de terceros, recurriendo a las letras integradas cuando no se encuentran</string>
+  <string name="tada_music_lyrics_keep_screen_on_title">Mantener pantalla encendida mientras se ven las letras</string>
+  <string name="tada_music_lyrics_keep_screen_on_summary">Evita que la pantalla se apague mientras el panel de letras está abierto</string>
+  <string name="tada_music_lyrics_section_service_title">Servicio de letras</string>
+  <string name="tada_music_lyrics_section_overlay_title">Superposición</string>
+  <string name="tada_music_lyrics_section_sync_title">Sincronización</string>
+  <string name="tada_music_lyrics_section_about_title">Acerca de</string>
+  <string name="tada_music_lyrics_source_all_disabled">Todos los proveedores desactivados: letras integradas y letras incrustadas</string>
+  <string name="tada_music_lyrics_source_reset_title">¿Restablecer orden de proveedores?</string>
+  <string name="tada_music_lyrics_source_reset_message">Restaura los proveedores al orden de prioridad predeterminado</string>
+  <string name="tada_music_token_dialog_get_token">Obtener token</string>
+  <string name="tada_music_apple_music_token_title">Media-user-token de Apple Music</string>
+  <string name="tada_music_apple_music_token_dialog_instruction">"Pega la cookie media-user-token de music.apple.com
+
+Pasos:
+1. Inicia sesión en music.apple.com como usuario miembro
+2. Abre DevTools → Aplicación → Cookies → music.apple.com
+3. Copia el valor de \"media-user-token\""</string>
+  <string name="tada_music_apple_music_token_toast_saved">Apple Music: media-user-token guardado</string>
+  <string name="tada_music_apple_music_token_toast_cleared">Apple Music: media-user-token borrado</string>
+  <string name="tada_music_apple_music_token_toast_invalid">Apple Music: media-user-token no válido. Compruébalo e inténtalo de nuevo</string>
+  <string name="tada_music_spotify_token_title">SpDc de Spotify</string>
+  <string name="tada_music_spotify_token_dialog_instruction">"Pega la cookie sp_dc de Spotify.
+
+Pasos:
+1. Inicia sesión en open.spotify.com
+2. Abre DevTools → Aplicación → Cookies → open.spotify.com
+3. Copia el valor de \"sp_dc\""</string>
+  <string name="tada_music_spotify_token_toast_saved">Spotify: sp_dc guardado</string>
+  <string name="tada_music_spotify_token_toast_cleared">Spotify: sp_dc borrado</string>
+  <string name="tada_music_spotify_token_toast_invalid">Spotify: sp_dc no válido. Compruébalo e inténtalo de nuevo</string>
+  <string name="tada_music_apple_token_optional_hint">El token de Apple Music es opcional. Sin él, se usará Lyrically como alternativa</string>
+  <string name="tada_music_deezer_arl_title">ARL de Deezer</string>
+  <string name="tada_music_deezer_arl_dialog_instruction">"Pega la cookie arl de Deezer.
+
+Pasos:
+1. Inicia sesión en deezer.com
+2. Abre DevTools → Aplicación → Cookies → deezer.com
+3. Copia el valor de \"arl\""</string>
+  <string name="tada_music_deezer_arl_toast_saved">Deezer: arl guardado</string>
+  <string name="tada_music_deezer_arl_toast_cleared">Deezer: arl borrado</string>
+  <string name="tada_music_deezer_arl_toast_invalid">Deezer: arl no válido. Compruébalo e inténtalo de nuevo</string>
+  <string name="tada_music_musixmatch_token_title">Token de Musixmatch</string>
+  <string name="tada_music_musixmatch_token_dialog_instruction">Añade un token solo para usar tu propia cuenta. Tiene que provenir de la aplicación de Musixmatch para Android: los tokens copiados de musixmatch.com pertenecen al cliente de escritorio que ya no está disponible y la API los rechaza</string>
+  <string name="tada_music_musixmatch_token_optional_hint">Musixmatch funciona sin token, así que este campo puede quedarse vacío</string>
+  <string name="tada_music_musixmatch_token_dialog_hint">token de usuario</string>
+  <string name="tada_music_musixmatch_token_toast_saved">Musixmatch: token de usuario guardado</string>
+  <string name="tada_music_musixmatch_token_toast_cleared">Musixmatch: token de usuario borrado</string>
+  <string name="tada_music_musixmatch_token_toast_invalid">Musixmatch: token de usuario no válido. Compruébalo e inténtalo de nuevo</string>
+  <string name="tada_music_youtube_cookies_title">Cookies de YouTube</string>
+  <string name="tada_music_youtube_cookies_dialog_instruction">"Pega tus cookies de YouTube para consultar subtítulos y texto sincronizado de YouTube.
+
+Pasos:
+1. Abre youtube.com en un navegador e inicia sesión
+2. Abre DevTools (F12) → Aplicación → Cookies → youtube.com
+3. Copia la cadena completa de cookies (pares clave=valor separados por punto y coma)
+
+Cookies requeridas: SID, HSID, SSID, SAPISID, __Secure-3PAPISID, __Secure-1PAPISID, LOGIN_INFO"</string>
+  <string name="tada_music_youtube_cookies_toast_saved">YouTube: cookies guardadas</string>
+  <string name="tada_music_youtube_cookies_toast_cleared">YouTube: cookies borradas</string>
+  <string name="tada_music_youtube_cookies_toast_invalid">YouTube: cookies no válidas. Compruébalas e inténtalo de nuevo</string>
+  <string name="tada_music_lyrics_tap_to_seek_title">Pulsar una línea para saltar</string>
+  <string name="tada_music_lyrics_tap_to_seek_summary">Pulsar una línea salta a ese momento de la canción</string>
+  <string name="tada_music_lyrics_show_copy_button_title">Mostrar botón Copiar</string>
+  <string name="tada_music_lyrics_show_copy_button_summary">Pulsa para copiar las letras originales como texto sin formato; mantén pulsado para guardar el archivo de letras sin procesar en Descargas</string>
+  <string name="tada_music_lyrics_show_translate_button_title">Mostrar botón Traducir</string>
+  <string name="tada_music_lyrics_show_translate_button_summary">Pulsa para activar o desactivar la traducción; mantén pulsado para solo traducción. Usa las traducciones del proveedor, Google Translate o una API compatible con OpenAI</string>
+  <string name="tada_music_lyrics_show_romanize_button_title">Mostrar botón Romanizar</string>
+  <string name="tada_music_lyrics_show_romanize_button_summary">Pulsa para activar o desactivar la romanización; mantén pulsado para solo romanización. Usa la romanización del proveedor, Google Translate o una API compatible con OpenAI</string>
+  <string name="tada_music_lyrics_show_refresh_button_title">Mostrar botón Actualizar</string>
+  <string name="tada_music_lyrics_show_refresh_button_summary">Pulsa para cambiar a la siguiente letra candidata; mantén pulsado para buscar letras por título de la canción y artista</string>
+  <string name="tada_music_lyrics_search_dialog_title">Buscar letras</string>
+  <string name="tada_music_lyrics_search_title_hint">Título de la canción</string>
+  <string name="tada_music_lyrics_search_artist_hint">Artista</string>
+  <string name="tada_music_lyrics_search_empty">Introduce un título de canción y un artista</string>
+  <string name="tada_music_lyrics_search_no_providers">Ninguno de los proveedores activados puede buscar otras canciones</string>
+  <string name="tada_music_lyrics_saved">Guardado</string>
+  <string name="tada_music_lyrics_word_sync_title">Resaltar palabras o sílabas sincronizadas</string>
+  <string name="tada_music_lyrics_word_sync_summary">Prioriza las letras palabra por palabra cuando estén disponibles. Cuando las letras incluyen tiempos por palabra, resalta cada palabra o sílaba al ritmo de la música</string>
+  <string name="tada_music_lyrics_hide_played_title">Ocultar letras ya reproducidas</string>
+  <string name="tada_music_lyrics_hide_played_summary">Oculta las líneas de letra por encima de la línea que se está reproduciendo</string>
+  <string name="tada_music_lyrics_hide_unplayed_title">Ocultar letras no reproducidas</string>
+  <string name="tada_music_lyrics_hide_unplayed_summary">Oculta las líneas de letra por debajo de la línea que se está reproduciendo</string>
+  <string name="tada_music_lyrics_mediasession_title">Mostrar letras de MediaSession en la pantalla de bloqueo</string>
+  <string name="tada_music_lyrics_miniplayer_title">Mostrar letras en el reproductor en miniatura</string>
+  <string name="tada_music_lyrics_display_artist_first_title">Orden de visualización de artista y título</string>
+  <string name="tada_music_lyrics_display_artist_first_summary">Alterna el orden de visualización de artista y título en el reproductor en miniatura y MediaSession. Activado: \"Artista - Título\"; desactivado: \"Título - Artista\". No afecta a la búsqueda de letras</string>
+  <string name="tada_settings_music_lyrics_metadata_title">Filtros</string>
+  <string name="tada_music_lyrics_custom_regex_title">Regex de metadatos</string>
+  <string name="tada_music_lyrics_custom_regex_summary">Expresión regular aplicada a títulos, artistas y álbumes antes de buscar las letras y al puntuar si dos títulos coinciden. Déjala vacía para desactivar ambas. La predeterminada elimina términos comunes como \"Vídeo oficial\", \"Remaster\", \"【插曲】\" y \"- Topic\"</string>
+  <string name="tada_music_lyrics_text_filter_title">Regex de filtro de letras</string>
+  <string name="tada_music_lyrics_text_filter_summary">Expresión regular aplicada solo al texto original de las letras (no a traducciones ni romanizaciones). Déjala vacía para desactivarla</string>
+  <string name="tada_music_lyrics_credit_line_regex_title">Marcadores de línea de información</string>
+  <string name="tada_music_lyrics_credit_line_regex_summary">Si las letras se filtran incorrectamente al final, ajusta o borra esto. Marcadores separados por comas: las líneas que contienen un marcador seguido de dos puntos se muestran como información de créditos al final. Déjalo vacío para desactivarlo</string>
+  <string name="tada_music_lyrics_text_size_title">Tamaño del texto</string>
+  <string name="tada_music_lyrics_text_size_summary">Tamaño del texto de las letras</string>
+  <string name="tada_music_lyrics_offset_ms_title">Desfase de tiempo</string>
+  <string name="tada_music_lyrics_offset_ms_summary">Las letras sincronizadas siguen la reproducción. Si se desvían, ajusta el desfase de tiempo. Desplaza las letras sincronizadas hacia adelante o hacia atrás. Usa un valor positivo si las letras van por delante de la canción</string>
+  <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
+  <string name="tada_music_lyrics_source_label">Fuente: %s</string>
+  <string name="tada_music_lyrics_translated_by_google">Traducido por Google</string>
+  <string name="tada_music_lyrics_romanized_by_google">Romanizado por Google</string>
+  <string name="tada_music_lyrics_translated_by_ai">Traducido por %s</string>
+  <string name="tada_music_lyrics_romanized_by_ai">Romanizado por %s</string>
+  <!-- Tappable label under the lyrics that turns the translation on. -->
+  <string name="tada_music_lyrics_translate_hide">Traducido</string>
+  <string name="tada_music_lyrics_translation_language_title">Idioma de traducción</string>
+  <string name="tada_music_lyrics_translating">Traduciendo…</string>
+  <string name="tada_music_lyrics_translate_failed">No se pudieron traducir las letras</string>
+  <string name="tada_music_lyrics_romanize_hide">Romanizado</string>
+  <string name="tada_music_lyrics_romanizing">Romanizando…</string>
+  <string name="tada_music_lyrics_romanize_failed">No se pudieron romanizar las letras</string>
+  <string name="tada_music_lyrics_translate_only">Solo traducción</string>
+  <string name="tada_music_lyrics_romanize_only">Solo romanización</string>
+  <string name="tada_music_lyrics_copied">Copiado al portapapeles</string>
+  <string name="tada_music_lyrics_refreshing">Actualizando</string>
+  <string name="tada_music_lyrics_refreshed">Actualizado</string>
+  <string name="tada_music_lyrics_about_summary">"Las letras se buscan por título y artista; unos metadatos inusuales pueden no encontrar nada o encontrar la versión incorrecta. Usa Actualizar para cambiar de versión. Los proveedores marcados con * requieren un token. No siempre se consultan todos los proveedores activados en el orden que establezcas, sino que responden según su velocidad"</string>
+  <string name="tada_music_lyrics_hide_info_title">Ocultar línea de créditos</string>
+  <string name="tada_music_lyrics_hide_info_summary">Oculta la línea de créditos que se muestra debajo de las letras</string>
+  <string name="tada_music_lyrics_swap_trans_roma_title">Intercambiar traducción y romanización</string>
+  <string name="tada_music_lyrics_swap_trans_roma_summary">Activado coloca la romanización debajo de las letras y la traducción arriba; desactivado mantiene la romanización arriba y la traducción abajo</string>
+  <string name="tada_music_lyrics_use_ai_translation_title">Traducción compatible con OpenAI</string>
+  <string name="tada_music_lyrics_use_ai_translation_summary">Utiliza una API personalizada compatible con OpenAI para la traducción y romanización en lugar de Google Translate</string>
+  <string name="tada_music_lyrics_ai_config_dialog_title">Ajustes de traducción con IA</string>
+  <string name="tada_music_lyrics_ai_config_dialog_instruction">Configura el punto de conexión de la API compatible con OpenAI para la traducción y romanización de letras con IA.</string>
+  <string name="tada_music_lyrics_ai_config_base_url_hint">URL del punto de conexión de la API (p. ej., https://text.pollinations.ai/openai)</string>
+  <string name="tada_music_lyrics_ai_config_api_token_hint">Clave API (dejar en blanco para acceso anónimo)</string>
+  <string name="tada_music_lyrics_ai_config_model_hint">Nombre del modelo (p. ej., openai-fast, gpt-4o-mini)</string>
+  <string name="tada_music_lyrics_ai_config_prompt_hint">Plantilla de prompt (variables: {language}, {task}, {title}, {artist}, {count}, {lines})</string>
+  <string name="tada_music_lyrics_ai_config_toast_saved">Ajustes de traducción con IA guardados</string>
+  <string name="tada_music_lyrics_ai_config_toast_invalid">No se pudo conectar con el punto de conexión de la IA. Comprueba tus ajustes.</string>
+  <string name="tada_music_lyrics_ai_config_toast_reset">Ajustes de traducción con IA restablecidos</string>
+  <string name="tada_music_lyrics_ai_config_status_configured">Configurado</string>
+  <string name="tada_music_lyrics_ai_config_status_not_configured">Pulsa para configurar</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_url">La URL base no puede estar vacía</string>
+  <string name="tada_music_lyrics_ai_config_status_invalid_url">La URL base debe empezar por http:// o https://</string>
+  <string name="tada_music_lyrics_ai_config_status_empty_model">El nombre del modelo no puede estar vacío</string>
+  <string name="tada_music_lyrics_ai_config_status_validating">Validando la conexión…</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="tada_music_spoof_app_version_target_entry_8_23_51">8.23.51 - Desactivar iconos en negrita</string>
+  <string name="tada_music_spoof_app_version_target_entry_9_13_51">9.13.51 - Restaurar pestañas del reproductor \'A continuación\', Letra y Relacionado</string>
+</resources>

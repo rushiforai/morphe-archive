@@ -9,7 +9,6 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.holdsString
-import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.media.taptoplay.FRAGMENT_ACTIVITY
 import app.morphe.patches.facebook.media.taptoplay.touchDispatches
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
@@ -178,17 +177,29 @@ class MessengerIconFixtureTest {
                 assertTrue("$name: the long-click listener is built without a flag ahead of it ($guard)",
                     guard.opcode == Opcode.IF_EQZ && (guard as OneRegisterInstruction).registerA >= locals(builders.single()))
 
-                // The tap calls one button handler, and hands it its own long-press parameter.
+                // The tap calls one button handler (582 through a wrapper on the handler's singleton),
+                // and hands it its own long-press parameter.
                 val handlerCalls = buttonHandlerCalls(tap).distinctBy(::key)
                 assertEquals("$name: button handlers the tap calls", 1, handlerCalls.size)
                 val owner = FixtureDex.classes(bundle, setOf(handlerCalls.single().definingClass)).values.single()
-                val handler = resolveStatic(owner, handlerCalls.single())
-                    ?: throw AssertionError("$name: ${key(handlerCalls.single())} isn't in its class")
+                val handler = buttonHandler(owner, handlerCalls.single())
+                    ?: throw AssertionError("$name: ${key(handlerCalls.single())} doesn't reach a button handler in its class")
                 assertTrue("$name: ${key(handler)} isn't the button handler", isButtonHandler(handler))
                 assertTrue("$name: the button handler has fewer than two locals", locals(handler) >= 2)
                 val tapCode = tap.implementation!!.instructions.toList()
-                val at = tapCode.indexOfFirst { it.call?.let(::key) == key(handler) }
-                val handed = lastWrite(tapCode, at, argument(tapCode[at], BUTTON_LONG_PRESS))
+                val at = tapCode.indexOfFirst { it.call?.let(::key) == key(handlerCalls.single()) }
+                val receiver = if (tapCode[at].opcode.name.startsWith("invoke-static")) 0 else 1
+                // Back through plain moves to where the flag came in. Redex reuses parameter registers
+                // as locals (582's tap moves v23 into v15 first), so a move's source is followed to
+                // wherever it was last written, and the walk stops at a register nothing wrote.
+                var before = at
+                var handed = lastWrite(tapCode, before, argument(tapCode[at], BUTTON_LONG_PRESS + receiver))
+                while (handed is TwoRegisterInstruction && handed.opcode.name.startsWith("move")) {
+                    val move: Instruction = handed
+                    val source = handed.registerB
+                    before = tapCode.subList(0, before).indexOfLast { it === move }
+                    handed = lastWrite(tapCode, before, source) ?: break
+                }
                 val tapFlag = locals(tap) + TAP_LONG_PRESS
                 assertTrue("$name: the tap hands the handler $handed, not its long press v$tapFlag",
                     handed is TwoRegisterInstruction && handed.opcode.name.startsWith("move") && handed.registerB == tapFlag)

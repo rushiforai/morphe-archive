@@ -292,6 +292,23 @@ try {
             Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = & { Invoke-DexDiff }' } }
         @{ Name = 'the DexDiff function run through ForEach-Object'; Check = $runsDexDiff; Expect = $true
             Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | ForEach-Object { Invoke-DexDiff }' } }
+        # common.ps1's Invoke-HeavyJob runs its -ScriptBlock once, in a slot of the build queue or
+        # straight away, and nothing else it's handed: a block given to another command, or to
+        # Invoke-HeavyJob under another parameter, is still a value.
+        @{ Name = 'the DexDiff function run through Invoke-HeavyJob -ScriptBlock'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "Invoke-HeavyJob -Label 'diff' -ScriptBlock { $Text }" } }
+        @{ Name = 'the DexDiff function in a block handed to another command'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text)
+                "Register-HeavyJob -Label 'diff' -ScriptBlock { $Text }`n`$diff = [pscustomobject]@{ ExitCode = 0; Output = @() }" } }
+        @{ Name = 'the DexDiff function in a block handed to Invoke-HeavyJob as its -Label'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text)
+                "Invoke-HeavyJob -Label { $Text } -ScriptBlock { }`n`$diff = [pscustomobject]@{ ExitCode = 0; Output = @() }" } }
+        @{ Name = 'the contracts helper dot-sourced inside Invoke-HeavyJob -ScriptBlock { }'; Check = $dotSourcesContracts
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "Invoke-HeavyJob -Label 'load' -ScriptBlock { $Text }" } }
+        @{ Name = 'the verify run handed to another command than Invoke-HeavyJob'; Check = $verifiesPatched
+            Text = Edit-ScriptNode $allPatchesText { param($Node)
+                $Node -is [System.Management.Automation.Language.CommandAst] -and $Node.GetCommandName() -eq 'Invoke-HeavyJob'
+            } { param($Text) $Text.Replace('Invoke-HeavyJob', 'Register-HeavyJob') } }
         @{ Name = 'the DexDiff call after a function that ends in one that exits'; Check = $runsDexDiff
             Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text)
                 "function Stop-Early { Stop-Now }`nfunction Stop-Now { exit 0 }`n`$stopped = Stop-Early`n$Text" } }
@@ -433,7 +450,7 @@ try {
 
 # The verifier run end to end, with stand-ins for the tools it starts: a java that answers the
 # version probe and plays DexDiff with the given exit code, an aapt2 that describes Threads
-# 449.0.0.54.82, and an apksigner that reports a Threads signer from patches-list.json. With
+# 450.0.0.51.78, and an apksigner that reports a Threads signer from patches-list.json. With
 # -JavaGone the apksigner also deletes that java, which leaves it unable to start by the time
 # DexDiff runs, as a JDK replaced mid-run would. A Continue preference around the DexDiff call
 # once turned exactly that into '[registers] success.'.
@@ -486,8 +503,8 @@ exit /b $DexDiffExit
     Write-StandIn (Join-Path $case 'aapt2.cmd') @"
 @echo off
 echo   E: manifest (line=2)
-echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=511908382
-echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="449.0.0.54.82" (Raw: "449.0.0.54.82")
+echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=512008342
+echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="450.0.0.51.78" (Raw: "450.0.0.51.78")
 echo     A: package="$standInPackage" (Raw: "$standInPackage")
 exit /b 0
 "@

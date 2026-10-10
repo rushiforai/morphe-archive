@@ -56,6 +56,8 @@ public class HdrBrightnessTest {
     public void start() {
         HookStatus.clear();
         activity = Robolectric.buildActivity(Activity.class).create().get();
+        // The patch is in Morphe Manager's default selection with its switch off; these tests run with it on.
+        Settings.TURN_OFF_HDR_BRIGHTNESS.save(true);
     }
 
     @After

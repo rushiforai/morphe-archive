@@ -155,8 +155,7 @@ public class FontFilePreference extends Preference implements ImmediateAction {
      */
     static String chosenSummary(String source, boolean copyExists) {
         if (source.isEmpty()) {
-            return L10n.f("None chosen, so your phone's font is used. Choose a TrueType or OpenType file of up "
-                    + "to %1$d MB.", FontFile.MAX_MEGABYTES);
+            return L10n.f("None chosen, so your phone's font is used. Choose a .ttf or .otf font file of up to %1$d MB.", FontFile.MAX_MEGABYTES);
         }
         if (!copyExists) {
             return L10n.f("Hushfacebook's copy of %1$s is gone, so your phone's font is used. Choose the file again.",
@@ -246,11 +245,11 @@ public class FontFilePreference extends Preference implements ImmediateAction {
     static String refusal(FontFile.Refusal reason) {
         switch (reason) {
             case NOT_A_FONT:
-                return L10n.t("That isn't a TrueType or OpenType font file. Your font didn't change.");
+                return L10n.t("That isn't a .ttf or .otf font file. Your font didn't change.");
             case TOO_LARGE:
                 return L10n.f("That font file is over %1$d MB. Your font didn't change.", FontFile.MAX_MEGABYTES);
             case WONT_LOAD:
-                return L10n.t("Android couldn't draw with that font file. Your font didn't change.");
+                return L10n.t("Android couldn't use that font file. Your font didn't change.");
             case NOT_SAVED:
                 return L10n.t("Couldn't save a copy of that font. Check that the phone has room, then try again.");
             default:

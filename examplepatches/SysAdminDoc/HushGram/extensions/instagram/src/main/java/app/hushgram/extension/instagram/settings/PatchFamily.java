@@ -55,7 +55,7 @@ public enum PatchFamily {
     POST_TIME(FamilyNames.POST_TIME, "postTime", null, Settings.SHOW_POST_TIME),
     STORY_LOOP(FamilyNames.STORY_LOOP, "storyLoop", null, Settings.LOOP_STORIES),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null, Settings.VIEW_STORIES_ANONYMOUSLY,
-            Settings.MARK_STORIES_SEEN),
+            Settings.MARK_STORIES_SEEN, Settings.GRAY_OUT_WATCHED_STORIES),
     LIVE_SEEN(FamilyNames.LIVE_SEEN, "liveSeen", null, Settings.VIEW_LIVE_ANONYMOUSLY),
     DM_MEDIA_SEEN(FamilyNames.DM_MEDIA_SEEN, "visualSeen", null, Settings.VIEW_DM_MEDIA_ANONYMOUSLY),
     SPOOF_LOCATION(FamilyNames.SPOOF_LOCATION, "spoofLocation", null, Settings.SPOOF_LOCATION),
@@ -89,6 +89,7 @@ public enum PatchFamily {
     EXPLORE_GRID(FamilyNames.EXPLORE_GRID, "exploreGrid", null, Settings.HIDE_EXPLORE_GRID),
     RECENT_SEARCHES(FamilyNames.RECENT_SEARCHES, "recentSearches", null, Settings.DONT_SAVE_RECENT_SEARCHES),
     NOTES_ROW(FamilyNames.NOTES_ROW, "notesRow", null, Settings.HIDE_NOTES_ROW),
+    INBOX_SUGGESTIONS(FamilyNames.INBOX_SUGGESTIONS, "inboxSuggestions", null, Settings.HIDE_INBOX_SUGGESTIONS),
     INSTANTS(FamilyNames.INSTANTS, "instants", null, Settings.HIDE_INSTANTS),
     SHARE_SHEET(FamilyNames.SHARE_SHEET, "shareSheet", null, Settings.HIDE_SHARE_SHEET_GROUP),
     REPOST_BUTTON(FamilyNames.REPOST_BUTTON, "repostButton", null, Settings.HIDE_REPOST_BUTTON),
@@ -193,6 +194,22 @@ public enum PatchFamily {
         return FRIENDSHIP_STATUS.inBuild() && SettingsStatus.followingListMark();
     }
 
+    /** Whether a test says this build copies a commenter's username, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean commentAuthorForTests;
+
+    /**
+     * Whether this build copies a commenter's username. Copy comment goes in without it when the
+     * comment menu's label or the comment's author have moved, so its second switch isn't offered then.
+     */
+    public static boolean commentAuthorInBuild() {
+        Boolean forced = commentAuthorForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(COMMENT_COPY);
+        return COMMENT_COPY.inBuild() && SettingsStatus.commentAuthor();
+    }
+
     /** Whether a test says this build filters Home by a post's type, instead of asking {@link SettingsStatus}. */
     @Nullable
     static volatile Boolean feedTypesForTests;
@@ -293,6 +310,9 @@ public enum PatchFamily {
                 if (family == FEED_SUGGESTIONS && !feedTypesInBuild()) {
                     lines.add("  Hide videos, Hide photos and Hide carousels: not in this build (Home's feed or a post's type didn't match)");
                 }
+                if (family == COMMENT_COPY && !commentAuthorInBuild()) {
+                    lines.add("  Copy the commenter's username: not in this build (the comment menu's label or the comment's author didn't match)");
+                }
                 if (family == FRIENDSHIP_STATUS && !followingListMarkInBuild()) {
                     lines.add("  Mark who doesn't follow you back: not in this build (Instagram's follow list didn't match)");
                 }
@@ -320,14 +340,25 @@ public enum PatchFamily {
         return lines;
     }
 
-    /** The same fixed-label metadata the fixture tools read from this APK's DEX. */
-    static String coverageLine(String encoded) {
-        if (encoded == null || encoded.isEmpty() || encoded.length() > 32768) {
-            return "patch target coverage unavailable";
+    /** Coverage metadata that read back whole: how many targets the patch found, and which it didn't. */
+    static final class Coverage {
+        final int matched;
+        final int expected;
+        final List<String> missing;
+
+        private Coverage(int matched, int expected, List<String> missing) {
+            this.matched = matched;
+            this.expected = expected;
+            this.missing = missing;
         }
+    }
+
+    /** The same fixed-label metadata the fixture tools read from this APK's DEX, or null if it's malformed. */
+    static Coverage coverage(String encoded) {
+        if (encoded == null || encoded.isEmpty() || encoded.length() > 32768) return null;
         try {
             String[] parts = encoded.split("\\|", -1);
-            if (parts.length != 5 || !parts[0].equals("1")) throw new IllegalArgumentException();
+            if (parts.length != 5 || !parts[0].equals("1")) return null;
             int matched = Integer.parseInt(parts[1]);
             int expected = Integer.parseInt(parts[2]);
             List<String> targets = Arrays.asList(parts[3].split(",", -1));
@@ -335,17 +366,35 @@ public enum PatchFamily {
             if (matched < 1 || expected < matched || expected > 256 || targets.size() != expected
                     || missing.size() != expected - matched || new HashSet<>(targets).size() != expected
                     || new HashSet<>(missing).size() != missing.size() || !targets.containsAll(missing)) {
-                throw new IllegalArgumentException();
+                return null;
             }
             for (String label : targets) {
-                if (!label.matches("[a-z][a-z0-9 -]{0,63}")) throw new IllegalArgumentException();
+                if (!label.matches("[a-z][a-z0-9 -]{0,63}")) return null;
             }
-            return "patch targets matched " + matched + "/" + expected
-                    + (missing.isEmpty() ? " (complete)" : " (partial); missing: " + String.join(", ", missing))
-                    + ". Patch-time matches do not prove live endpoint suppression.";
+            return new Coverage(matched, expected, missing);
         } catch (IllegalArgumentException failure) {
-            return "patch target coverage unavailable";
+            return null;
         }
+    }
+
+    static String coverageLine(String encoded) {
+        Coverage found = coverage(encoded);
+        if (found == null) return "patch target coverage unavailable";
+        return "patch targets matched " + found.matched + "/" + found.expected
+                + (found.missing.isEmpty() ? " (complete)" : " (partial); missing: " + String.join(", ", found.missing))
+                + ". Patch-time matches do not prove live endpoint suppression.";
+    }
+
+    /**
+     * The sentence a privacy switch's row adds when this build has only part of what the patch works
+     * on, so an on switch can't read as full protection (audit A03). Empty when it has all of it or
+     * the metadata can't be read.
+     */
+    static String partialCoverageNote(String encoded) {
+        Coverage found = coverage(encoded);
+        if (found == null || found.missing.isEmpty()) return "";
+        return L10n.f("On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.",
+                found.matched, found.expected);
     }
 
     /** "on", "disabled by its switch" or "disabled while paused", then the saved switches. */

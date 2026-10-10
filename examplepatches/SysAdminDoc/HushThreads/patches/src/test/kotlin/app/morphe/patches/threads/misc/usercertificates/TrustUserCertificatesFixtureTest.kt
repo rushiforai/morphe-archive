@@ -11,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import javax.xml.parsers.DocumentBuilderFactory
+import app.morphe.patches.shared.compat.AppCompatibilities
 
 /**
  * Trust user-added certificates on every declared build: the manifest already names Threads' own
@@ -41,7 +42,8 @@ class TrustUserCertificatesFixtureTest {
             assertEquals("${build.name}: a second run adds nothing", 1, trustUserCertificates(config))
             assertEquals(patched, FixtureResources.elements(config))
         }
-        assertEquals("one build of each declared version", 3, builds.size)
+        val declaredVersions = AppCompatibilities.threads().single().targets.mapNotNull { it.version }.distinct().size
+        assertEquals("one build of each declared version", declaredVersions, builds.size)
 
         val other = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse("<shortcuts/>".byteInputStream())
         val refused = runCatching { trustUserCertificates(other) }.exceptionOrNull()

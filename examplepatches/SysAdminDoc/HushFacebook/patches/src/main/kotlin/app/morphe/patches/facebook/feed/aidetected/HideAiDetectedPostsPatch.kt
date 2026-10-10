@@ -25,6 +25,7 @@ import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /** The extension class that reads the feed's flag, and its accessor this patch fills in. */
 internal const val GEN_AI_LABEL = "$EXTENSION_PACKAGE/feed/GenAiLabel;"
@@ -82,11 +83,9 @@ private const val PATCH = "Hide AI-detected posts"
 @Suppress("unused")
 val hideAiDetectedPostsPatch = bytecodePatch(
     name = "Hide AI-detected posts",
-    description = "Removes feed posts that Facebook's own detection marked as made with AI, and the reels " +
-        "and Watch videos it flagged the same way. A third switch also removes posts their creator " +
-        "labelled as AI, a fourth takes out the Meta AI cards Facebook adds between posts, and a fifth " +
-        "removes posts featuring Meta's AI characters. The Meta AI cards switch starts on. The others start " +
-        "off, so turn them on in Hushfacebook's settings.",
+    description = "Removes posts and reels Facebook marked as made with AI, posts creators labeled as AI, posts " +
+        "with Meta's AI characters and Meta AI cards in the feed. Only the Meta AI cards switch starts on. " +
+        "Change them in Hushfacebook settings > News feed and Reels and Watch.",
     default = true,
 ) {
     category("Feed")
@@ -182,8 +181,18 @@ private fun BytecodePatchContext.hideAiCharacterPosts(story: ClassDef) {
 /** The Reels and Watch side: the finder stub, and the page filters at both levels a page enters. */
 private fun BytecodePatchContext.hideReels() {
     val holders = classDefByStrings(TRANSPARENCY_ATTRIBUTION, StringComparisonType.EQUALS)
-        .flatMap { methodsHolding(it, TRANSPARENCY_ATTRIBUTION) }
-    val found = attributionFinder(holders)
+        .flatMap { methodsHolding(it, TRANSPARENCY_ATTRIBUTION) }.toMutableList()
+    // A string table holding the literal can hand it to the finder instead (582's armeabi-v7a
+    // build does), so the methods asking one for it are holders too.
+    val entries = tableEntries(holders.filter(::isStringTable), TRANSPARENCY_ATTRIBUTION)
+    val resolve = { call: MethodReference -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
+    if (entries.isNotEmpty()) {
+        classDefForEach { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+            classDef.methods.filterTo(holders) { asksTableFor(it, entries) }
+        }
+    }
+    val found = attributionFinder(holders, resolve = resolve)
     val finder = found.call ?: throw PatchException("$PATCH: ${found.problem}")
     val finderMethod = classDefByOrNull(finder.definingClass)?.let { resolveStatic(it, finder) }
         ?: throw PatchException("$PATCH: ${finder.definingClass} declares no static ${finder.name} the literal is handed to")

@@ -30,7 +30,7 @@ import com.ss.android.ugc.aweme.feed.model.Aweme;
  */
 public final class CaptionLanguageFilter implements IFilter {
     /** How many entries of a list and how many caption tracks of a video are looked at. */
-    static final int MAX_ENTRIES = 32;
+    public static final int MAX_ENTRIES = 32;
 
     private static final String SEPARATOR = "\\s*[,\\n]\\s*";
     /** A BCP 47 primary language subtag: two or three letters. */
@@ -91,7 +91,9 @@ public final class CaptionLanguageFilter implements IFilter {
         String trimmed = value.trim();
         if (trimmed.isEmpty()) return null;
         for (String entry : trimmed.split(SEPARATOR)) {
-            if (primary(entry) != null) continue;
+            // "en,,es" left a blank entry, which the filter skips, and the check refused the list
+            // with an empty name in its message. The country check skips blanks the same way.
+            if (entry.isEmpty() || primary(entry) != null) continue;
             return L10n.f(
                     "%1$s isn't a language code, so no video would ever match it. Use two letters, like en, es or de.",
                     entry.trim());
@@ -100,7 +102,7 @@ public final class CaptionLanguageFilter implements IFilter {
     }
 
     /** The primary subtag of a tag like "en", "en-US" or "pt_BR", lower case, or null. */
-    static String primary(String tag) {
+    public static String primary(String tag) {
         if (tag == null) return null;
         String value = tag.trim().toLowerCase(Locale.ROOT).replace('_', '-');
         int dash = value.indexOf('-');

@@ -46,8 +46,9 @@ private const val PATCH = SPONSORED_REELS_PATCH
 @Suppress("unused")
 val hideSponsoredReelsPatch = bytecodePatch(
     name = "Hide sponsored reels",
-    description = "Removes ads from Reels and Watch, including product banners over a reel and " +
-        "ads inside a video.",
+    description = "Removes ads from Reels and Watch, including product banners over reels and ads in the middle " +
+        "of videos, so you can watch without interruptions. On by default. Turn it off in Hushfacebook settings " +
+        "> Reels and Watch.",
     default = true,
 ) {
     category("Ads")

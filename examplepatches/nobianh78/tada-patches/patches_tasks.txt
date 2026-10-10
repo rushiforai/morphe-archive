@@ -1,0 +1,110 @@
+
+> Task :patches:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':patches'
+------------------------------------------------------------
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+stub:assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+stub:build - Assembles and tests this project.
+buildAndroid - Builds the project for Android by compiling to DEX and adding it to the patches file.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+stub:buildDependents - Assembles and tests this project and all projects that depend on it.
+buildKotlinToolingMetadata - Build metadata json file containing information about the used Kotlin tooling
+buildNeeded - Assembles and tests this project and all projects it depends on.
+stub:buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles main classes.
+stub:classes - Assembles main classes.
+clean - Deletes the build directory.
+stub:clean - Deletes the build directory.
+jar - Assembles a jar archive containing the classes of the 'main' feature.
+stub:jar - Assembles a jar archive containing the classes of the 'main' feature.
+javadocJar - Assembles a jar archive containing the main javadoc.
+kotlinSourcesJar - Assembles a jar archive containing the sources of target 'kotlin'.
+sourcesJar - Assembles a jar archive containing the main sources.
+testClasses - Assembles test classes.
+stub:testClasses - Assembles test classes.
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the 'main' feature.
+stub:javadoc - Generates Javadoc API documentation for the 'main' feature.
+
+Help tasks
+----------
+artifactTransforms - Displays the Artifact Transforms that can be executed in project ':patches'.
+stub:artifactTransforms - Displays the Artifact Transforms that can be executed in project ':patches:stub'.
+buildEnvironment - Displays all buildscript dependencies declared in project ':patches'.
+stub:buildEnvironment - Displays all buildscript dependencies declared in project ':patches:stub'.
+dependencies - Displays all dependencies declared in project ':patches'.
+stub:dependencies - Displays all dependencies declared in project ':patches:stub'.
+dependencyInsight - Displays the insight into a specific dependency in project ':patches'.
+stub:dependencyInsight - Displays the insight into a specific dependency in project ':patches:stub'.
+help - Displays a help message.
+stub:help - Displays a help message.
+javaToolchains - Displays the detected java toolchains.
+stub:javaToolchains - Displays the detected java toolchains.
+kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+stub:kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions.
+outgoingVariants - Displays the outgoing variants of project ':patches'.
+stub:outgoingVariants - Displays the outgoing variants of project ':patches:stub'.
+projects - Displays the sub-projects of project ':patches'.
+stub:projects - Displays the sub-projects of project ':patches:stub'.
+properties - Displays the properties of project ':patches'.
+stub:properties - Displays the properties of project ':patches:stub'.
+resolvableConfigurations - Displays the configurations that can be resolved in project ':patches'.
+stub:resolvableConfigurations - Displays the configurations that can be resolved in project ':patches:stub'.
+tasks - Displays the tasks runnable from project ':patches' (some of the displayed tasks may belong to subprojects).
+stub:tasks - Displays the tasks runnable from project ':patches:stub'.
+
+Publishing tasks
+----------------
+publish - Publishes all publications produced by this project.
+publishAllPublicationsToDummyMavenLocalRepository - Publishes all Maven publications produced by this project to the DummyMavenLocal repository.
+publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+
+Verification tasks
+------------------
+check - Runs all checks.
+stub:check - Runs all checks.
+checkKotlinGradlePluginConfigurationErrors - Checks that Kotlin Gradle Plugin hasn't reported project configuration errors, failing otherwise. This task always runs before compileKotlin* or similar tasks.
+test - Runs the test suite.
+stub:test - Runs the test suite.
+validateJam - Patches a supplied YouTube Music APK for Jam validation and optional device testing
+
+Other tasks
+-----------
+checkStringResources - Checks resource strings for invalid formatting
+compileJava - Compiles main Java source.
+stub:compileJava - Compiles main Java source.
+compileKotlin - Compiles the compilation 'main' in target ''.
+compileTestJava - Compiles test Java source.
+stub:compileTestJava - Compiles test Java source.
+compileTestKotlin - Compiles the compilation 'test' in target ''.
+generatePatchesList - Build patch with patch list
+mainClasses
+processResources - Processes main resources.
+stub:processResources - Processes main resources.
+processTestResources - Processes test resources.
+stub:processTestResources - Processes test resources.
+
+Rules
+-----
+Pattern: clean<TaskName>: Cleans the output files of a task.
+Pattern: build<ConfigurationName>: Assembles the artifacts of a configuration.
+
+[Incubating] Problems report is available at: file:///home/tuananh/Code/TADaManager/tada-patches/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.0/userguide/configuration_cache_enabling.html

@@ -120,12 +120,12 @@ public class SetupGuidancePreferenceTest {
         show();
         AlertDialog guide = open();
         String copy = copy(guide);
-        assertTrue(copy.contains("Changing switches doesn't add or remove patches."));
-        assertTrue(copy.contains("changes made while patching remain in the app"));
-        assertTrue(copy.contains("email linked to your existing Pinterest account and a Pinterest password"));
-        assertTrue(copy.contains("Google sign-in isn't supported with this build's changed signing key"));
+        assertTrue(copy.contains("Changing a switch doesn't add or remove a patch."));
+        assertTrue(copy.contains("anything set while patching stays in the app"));
+        assertTrue(copy.contains("email on your Pinterest account and a Pinterest password"));
+        assertTrue(copy.contains("Google sign-in isn't supported, because this patched app is signed with a different key"));
         assertTrue(copy.contains("Pinterest no longer offers Facebook login"));
-        assertTrue(copy.contains("Push notifications haven't been verified"));
+        assertTrue(copy.contains("Push notifications haven't been tested"));
         assertTrue(copy.contains("choose Forgot your password on Pinterest's login page"));
         assertTrue(copy.contains("email already linked to that account"));
         assertTrue(copy.contains("reset link sent to your email to set a Pinterest password"));
@@ -133,8 +133,8 @@ public class SetupGuidancePreferenceTest {
         assertTrue(copy.contains("You don't need to unlink Google."));
         assertTrue(copy.contains("doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key"));
         assertTrue(copy.contains("same key keeps the app's data"));
-        assertTrue(copy.contains("different key isn't a compatible update"));
-        assertTrue(copy.contains("Android may refuse a downgrade"));
+        assertTrue(copy.contains("different key can't update this one"));
+        assertTrue(copy.contains("Android may refuse to install an older version"));
         assertTrue(copy.contains("Pinterest's data export is separate from Export settings"));
         assertFalse(copy.contains("clear data"));
         assertFalse(copy.contains("new account"));

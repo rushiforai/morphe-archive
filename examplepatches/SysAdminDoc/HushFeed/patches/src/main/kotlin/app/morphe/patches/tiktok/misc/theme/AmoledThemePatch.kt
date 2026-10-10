@@ -21,17 +21,21 @@ import org.w3c.dom.Element
 @Suppress("unused")
 val amoledThemePatch = resourcePatch(
     name = "AMOLED dark theme",
-    description = "Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It rewrites TikTok's resources, so patching with it on is slower when the manager's memory limit is low. Give the manager 768 MB or more. At 640 MB it still finishes, just more slowly.",
+    description = "Makes TikTok's dark mode backgrounds pure black, or a dark color you pick " +
+        "in this patch's options. Black lets OLED screens switch those pixels off. Light mode " +
+        "doesn't change. It's built in while patching, so only patching again without it undoes " +
+        "it.",
     default = false,
 ) {
-    category("Performance")
+    category("Interface")
     compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(buildChoicePatch(BuildChoice.AMOLED))
     val background by colorOption(
         key = "backgroundColor",
         default = "#000000",
         title = "Dark background color",
-        description = "An opaque hex color. Black turns off OLED pixels on the main dark surfaces.",
+        description = "Pick a color, or type a solid color code like #000000. Black lets " +
+            "OLED screens turn those pixels off completely.",
         values = mapOf("Black" to "#000000", "Mocha" to "#181825", "Dark gray" to "#121212"),
     )
     execute {

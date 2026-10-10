@@ -180,7 +180,7 @@ android {
     namespace = "app.morphe.extension.hushthreads"
 
     defaultConfig {
-        // Threads 449 declares minSdk 28, so nothing below it can run this code.
+        // Threads 450 declares minSdk 28, so nothing below it can run this code.
         minSdk = 28
     }
 

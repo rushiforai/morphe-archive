@@ -288,7 +288,7 @@ public class ReleaseCheckTest {
         ReleaseCheck.run(NOW + DAY);
         assertEquals("UNREADABLE", Stored.RESULT.get());
         assertEquals("what the last good answer found stays", "0.2.0", Stored.NEWEST.get());
-        assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals("GitHub sent back something HushPinterest couldn't read. Try again later.", ReleaseCheck.checkNowSummary());
         assertEquals(NEWER, ReleaseCheck.statusLine());
     }
 
@@ -350,7 +350,7 @@ public class ReleaseCheckTest {
         github.then(Reply.release("v0.2.0", null).announcing(ReleaseCheck.MAX_BODY_BYTES + 1L));
         ReleaseCheck.run(NOW);
         assertEquals("TOO_LARGE", Stored.RESULT.get());
-        assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals("GitHub sent back something HushPinterest couldn't read. Try again later.", ReleaseCheck.checkNowSummary());
     }
 
     /** Before the first release, Check now says so instead of asking for another try. */

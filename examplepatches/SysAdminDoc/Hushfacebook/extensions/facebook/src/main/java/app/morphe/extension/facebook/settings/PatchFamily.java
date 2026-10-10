@@ -60,7 +60,7 @@ public enum PatchFamily {
             Settings.HIDE_PHOTO_POSTS, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_LINK_POSTS,
             Settings.HIDE_BACKGROUND_POSTS),
     POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
-            Settings.HIDE_POST_PROMPTS),
+            Settings.HIDE_POST_PROMPTS, Settings.HIDE_POST_FOLLOW_LINK),
     SEEN_POSTS(FamilyNames.SEEN_POSTS, "seenPosts", null,
             Settings.HIDE_SEEN_POSTS),
     META_AI_QUESTIONS(FamilyNames.META_AI_QUESTIONS, "metaAiQuestions", null,
@@ -80,7 +80,7 @@ public enum PatchFamily {
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null,
             Settings.VIEW_STORIES_ANONYMOUSLY, Settings.MARK_STORIES_SEEN),
     SPONSORED_REELS(FamilyNames.SPONSORED_REELS, "sponsoredReels",
-            "the part of the Reels ad block patched into the app",
+            "the part of the Reels ad blocking built in when you patched",
             Settings.HIDE_SPONSORED_REELS),
     SPONSORED_SEARCH(FamilyNames.SPONSORED_SEARCH, "sponsoredSearch", null,
             Settings.HIDE_SPONSORED_SEARCH_RESULTS),
@@ -94,7 +94,7 @@ public enum PatchFamily {
             Settings.HIDE_AFFILIATE_LINKS),
     REEL_DECLUTTER(FamilyNames.REEL_DECLUTTER, "reelDeclutter", null,
             Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_REEL_SOCIAL_FOOTER,
-            Settings.HIDE_REEL_THREADS_CARDS, Settings.REEL_CLEAN_MODE),
+            Settings.HIDE_REEL_THREADS_CARDS, Settings.REEL_CLEAN_MODE, Settings.PLAY_REELS_ONCE),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
             Settings.HIDE_REEL_PROMPTS),
     REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
@@ -137,7 +137,7 @@ public enum PatchFamily {
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null,
             Settings.OPEN_LINKS_EXTERNALLY),
     SANITIZE_SHARING_LINKS(FamilyNames.SANITIZE_SHARING_LINKS, "sanitizeSharingLinks", null,
-            Settings.SANITIZE_SHARING_LINKS),
+            Settings.SANITIZE_SHARING_LINKS, Settings.SHARE_POST_OWN_LINK),
     UPDATE_PROMPTS(FamilyNames.UPDATE_PROMPTS, "updatePrompts", null,
             Settings.STOP_UPDATE_PROMPTS),
     STORY_DOWNLOAD(FamilyNames.STORY_DOWNLOAD, "storyDownload", null,
@@ -185,6 +185,8 @@ public enum PatchFamily {
             Settings.HIDE_EDITS_UPSELLS, Settings.HIDE_THREADS_CROSS_POSTING, Settings.HIDE_THREADS_SHARE_BUTTON,
             Settings.HIDE_META_VERIFIED_UPSELLS, Settings.HIDE_AVATAR_UPSELLS, Settings.HIDE_META_AI_IMAGINE,
             Settings.HIDE_META_AI_POST_BUTTONS),
+    SHARE_SHEET_ITEMS(FamilyNames.SHARE_SHEET_ITEMS, "shareSheetItems", Settings.HIDDEN_SHARE_ITEMS,
+            new BooleanSetting[]{Settings.HIDE_SHARE_GROUP_BUTTONS}),
     META_AI_SEARCH(FamilyNames.META_AI_SEARCH, "metaAiSearch", null,
             Settings.HIDE_META_AI_IN_SEARCH),
     ANALYTICS_UPLOADS(FamilyNames.ANALYTICS_UPLOADS, "analyticsUploads", null,
@@ -219,7 +221,7 @@ public enum PatchFamily {
     // A manifest can't be switched at run time: the permissions are renamed in the APK, and Facebook's
     // code has to keep using the names this install holds whether or not Hushfacebook is paused.
     INSTALL_BESIDE_META_APPS(FamilyNames.INSTALL_BESIDE_META_APPS, "installBesideMetaApps",
-            "the rename of the shared permissions"),
+            "the new names for shared permissions"),
     // The version code is in the manifest, and Facebook's reads of it have to keep answering the
     // real one whether or not Hushfacebook is paused.
     PLAY_STORE_UPDATES(FamilyNames.PLAY_STORE_UPDATES, "playStoreUpdates", "the version number Google Play sees"),
@@ -276,20 +278,21 @@ public enum PatchFamily {
             EnumSet.of(STORY_DOWNLOAD, REEL_DOWNLOAD, VIDEO_DOWNLOAD, PHOTO_DOWNLOAD));
 
     /**
+     * The patches Morphe Manager leaves out of its default selection. Each one goes in when you
+     * patch with no switch to leave Facebook as it ships: the two themes rewrite dark mode's colours,
+     * and Disable Play Store updates raises the version number, which a Root Mount install can't
+     * take and every later build has to keep. Everything else is in the default selection, with any
+     * switch a patch brought in from this list starting off.
+     */
+    private static final EnumSet<PatchFamily> OPT_IN = EnumSet.of(AMOLED_THEME, MATERIAL_YOU_THEME, PLAY_STORE_UPDATES);
+
+    /**
      * The patches Morphe Manager selects by default. One of them left out is the usual answer to a
      * report of ads or suggestions that still show (#29, #35), so the overview and the report name
      * the ones a build lacks. PatchFamilyTest holds this to the "use" flags in patches-list.json, so
-     * a new default patch fails it until it's listed here.
+     * a new patch fails it until patches-list.json and {@link #OPT_IN} agree on it.
      */
-    static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.of(
-            SPONSORED_POSTS, SUGGESTED_POSTS, AI_DETECTED_POSTS, POST_WORDS, POST_PROMPTS, META_AI_QUESTIONS,
-            POST_DATES, AUTO_TRANSLATION, FEEDS_HEADER, SPONSORED_STORIES, SUGGESTED_STORIES, REEL_PROMPTS,
-            SPONSORED_REELS, SPONSORED_SEARCH, SPONSORED_PROFILE_POSTS, SPONSORED_MARKETPLACE, GAME_ADS, AFFILIATE_LINKS,
-            KEEP_REEL_SPEED, META_AI_SUMMARIES,
-            RESUME_LONG_VIDEOS, PROGRESS_BAR, EXTERNAL_BROWSER, SANITIZE_SHARING_LINKS, UPDATE_PROMPTS, STORY_DOWNLOAD,
-            REEL_DOWNLOAD, PHOTO_DOWNLOAD, FOLLOWING_HOME, MARKETPLACE_ONLY, SELLER_VIEW_PROFILE, REELS_TAB_DOT, TAB_BADGES, HIDDEN_TABS, BOTTOM_TAB_BAR, FORCE_DARK_MODE, MESSENGER_CARD, CHAT_LIST, MESSENGER_ICON, ORIGINAL_CHAT_MEDIA, MENU_PROMOTIONS,
-            META_AI_SEARCH, PROMO_NOTIFICATIONS, AD_PREFETCH, AD_TELEMETRY, AUDIENCE_NETWORK, RESTORE_TRUST,
-            TRANSLATED_START, INSTALL_BESIDE_META_APPS, MENU_SETTINGS_ROW));
+    static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.complementOf(OPT_IN));
 
     /** The families a test says this build carries, instead of asking {@link SettingsStatus}. */
     @Nullable
@@ -305,10 +308,18 @@ public enum PatchFamily {
     }
 
     PatchFamily(String patchName, String statusMethod, Setting<?> choice) {
+        this(patchName, statusMethod, choice, new BooleanSetting[0]);
+    }
+
+    /**
+     * A family set by its list that also has switches. The switches come as an array, not varargs,
+     * so a call passing null as its third argument still picks the constructor for switches alone.
+     */
+    PatchFamily(String patchName, String statusMethod, Setting<?> choice, BooleanSetting[] switches) {
         this.patchName = patchName;
         this.statusMethod = statusMethod;
         this.staysWhilePaused = null;
-        this.switches = Collections.emptyList();
+        this.switches = Collections.unmodifiableList(Arrays.asList(switches.clone()));
         this.choice = choice;
     }
 
@@ -406,12 +417,16 @@ public enum PatchFamily {
 
     /**
      * "on", "disabled by its switch" or "disabled while paused", then the saved switches. A
-     * family with independent switches is on while either is. Options need their main switch.
+     * family with independent switches is on while either is. Options need their main switch. A
+     * family set by its list says so, with its switches saved beside the list.
      */
     private String reportLine(boolean paused) {
         StringBuilder line = new StringBuilder(patchName).append(": ");
         if (choice != null) {
-            String saved = choice.key + "=" + choice.savedValue();
+            StringBuilder saved = new StringBuilder(choice.key).append('=').append(choice.savedValue());
+            for (BooleanSetting setting : switches) {
+                saved.append(", ").append(setting.key).append(setting.savedValue() ? "=on" : "=off");
+            }
             return line.append(paused ? "disabled while paused (saved " + saved + ")" : "set by its list (" + saved + ")")
                     .toString();
         }

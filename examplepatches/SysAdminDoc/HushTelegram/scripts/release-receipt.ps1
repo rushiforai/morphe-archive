@@ -1422,3 +1422,87 @@ function Test-ReleaseReceipt {
 
     return [pscustomobject]@{ Valid = $true; Reason = $null }
 }
+
+function Get-VerifiedApplyStamp {
+    <#
+    .SYNOPSIS
+        What a desktop CLI run of the whole catalog on one fixture depends on: the commit, the
+        fixture, the bundle, the patch list and the CLI by hash, and whether it ran under -f.
+    .DESCRIPTION
+        verify-all-patches.ps1 -KeepIn writes it beside the patched APK and the CLI's report it
+        keeps, and build-release-receipt.ps1 -AppliedDir reads that run instead of patching the
+        fixture again only when every field here matches its own.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string]$Apk,
+        [Parameter(Mandatory = $true)][string]$Bundle,
+        [Parameter(Mandatory = $true)][string]$PatchList,
+        [Parameter(Mandatory = $true)][string]$DesktopJar,
+        [Parameter(Mandatory = $true)][bool]$Forced
+    )
+    $commit = ([string](& git -C $Root rev-parse HEAD | Select-Object -Last 1)).Trim()
+    if ($commit -notmatch '^[0-9a-f]{40}$') { throw "git did not answer with a commit for ${Root}: $commit" }
+    return [ordered]@{
+        commit           = $commit
+        apkSha256        = (Get-Sha256Hex -Path $Apk).ToLowerInvariant()
+        bundleSha256     = (Get-Sha256Hex -Path $Bundle).ToLowerInvariant()
+        patchListSha256  = (Get-Sha256Hex -Path $PatchList).ToLowerInvariant()
+        desktopJarSha256 = (Get-Sha256Hex -Path $DesktopJar).ToLowerInvariant()
+        forced           = $Forced
+    }
+}
+
+function Save-VerifiedApply {
+    <#
+    .SYNOPSIS
+        Keeps a verified run's patched APK and CLI report under -KeepIn, in a folder named for the
+        fixture's hash, with its stamp written last, and returns the folder.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$KeepIn,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stamp,
+        [Parameter(Mandatory = $true)][string]$PatchedApk,
+        [Parameter(Mandatory = $true)][string]$ResultPath
+    )
+    New-Item -ItemType Directory -Force -Path $KeepIn | Out-Null
+    $keepRoot = (Resolve-Path -LiteralPath $KeepIn).Path
+    $directory = Resolve-WithinRoot -Path (Join-Path $keepRoot $Stamp.apkSha256) -Root $keepRoot
+    if (Test-Path -LiteralPath $directory) { Remove-Item -LiteralPath $directory -Recurse -Force }
+    New-Item -ItemType Directory -Path $directory | Out-Null
+    Copy-Item -LiteralPath $PatchedApk -Destination (Join-Path $directory 'patched.apk')
+    Copy-Item -LiteralPath $ResultPath -Destination (Join-Path $directory 'result.json')
+    $written = [ordered]@{}
+    foreach ($key in $Stamp.Keys) { $written[$key] = $Stamp[$key] }
+    $written['patchedSha256'] = (Get-Sha256Hex -Path (Join-Path $directory 'patched.apk')).ToLowerInvariant()
+    # Last, so a copy cut short leaves no stamp and is never read.
+    [IO.File]::WriteAllText((Join-Path $directory 'stamp.json'), ($written | ConvertTo-Json) + "`n",
+        [Text.UTF8Encoding]::new($false))
+    return $directory
+}
+
+function Find-VerifiedApply {
+    <#
+    .SYNOPSIS
+        The run kept under -AppliedDir for exactly this stamp, as its patched APK and report, or
+        $null: no folder, another commit, bundle, patch list, CLI or -f, or a patched APK that no
+        longer hashes to what was kept.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$AppliedDir,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stamp
+    )
+    $directory = Join-Path $AppliedDir $Stamp.apkSha256
+    $stampPath = Join-Path $directory 'stamp.json'
+    $patched = Join-Path $directory 'patched.apk'
+    $result = Join-Path $directory 'result.json'
+    foreach ($path in @($stampPath, $patched, $result)) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $null }
+    }
+    try { $kept = Get-Content -LiteralPath $stampPath -Raw | ConvertFrom-Json } catch { return $null }
+    foreach ($key in $Stamp.Keys) {
+        if ([string]$kept.$key -cne [string]$Stamp[$key]) { return $null }
+    }
+    if ((Get-Sha256Hex -Path $patched).ToLowerInvariant() -cne [string]$kept.patchedSha256) { return $null }
+    return [pscustomobject]@{ Directory = $directory; PatchedApk = $patched; ResultPath = $result }
+}

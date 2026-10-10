@@ -74,9 +74,9 @@ internal fun requirePlayerGearSetter(method: Method) {
 @Suppress("unused")
 val h264PlaybackPatch = bytecodePatch(
     name = "Prefer H.264 playback",
-    description = "Plays the H.264 version of a video when TikTok offers one beside its HEVC and " +
-        "ByteVC2 versions, for phones that stutter or run hot playing those. A video with no " +
-        "H.264 version plays as before. Off by default. Switch: Hushfeed settings > Playback.",
+    description = "Plays videos in an older format your phone decodes more easily, which can " +
+        "help older phones play smoothly and run cooler. Videos without it play as before. Starts " +
+        "off. Turn it on in Hushfeed settings > Playback.",
     default = true,
 ) {
     category("Playback")

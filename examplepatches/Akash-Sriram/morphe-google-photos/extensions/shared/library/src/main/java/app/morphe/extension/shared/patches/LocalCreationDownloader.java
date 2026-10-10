@@ -498,7 +498,7 @@ public class LocalCreationDownloader {
             sCardMediaMap.put(cardId, mediaItem);
             Object wsf = null;
             try {
-                for (String cls : new String[]{"wsg", "wss", "wuw"}) {
+                for (String cls : new String[]{"wtz", "wsh", "wsg", "wss", "wuw"}) {
                     try {
                         Class<?> wsgClass = Class.forName(cls);
                         for (Method m : wsgClass.getMethods()) {
@@ -508,6 +508,16 @@ public class LocalCreationDownloader {
                                 Modifier.isStatic(m.getModifiers())) {
                                 wsf = m.invoke(null, mediaItem);
                                 if (wsf != null) break;
+                            }
+                        }
+                        if (wsf == null) {
+                            for (java.lang.reflect.Constructor<?> c : wsgClass.getConstructors()) {
+                                if (c.getParameterTypes().length == 2 &&
+                                    c.getParameterTypes()[0].isInstance(mediaItem) &&
+                                    c.getParameterTypes()[1] == boolean.class) {
+                                    wsf = c.newInstance(mediaItem, false);
+                                    if (wsf != null) break;
+                                }
                             }
                         }
                     } catch (Throwable ignored) {}
@@ -1335,10 +1345,65 @@ public class LocalCreationDownloader {
         }
     }
 
+    private static Uri tryResolveViaProvider(Object provider, Object mediaItem, String[] qualityClasses) {
+        if (provider == null || mediaItem == null) return null;
+        // Unwrap lazy/provider wrapper if present (e.g. Component / ahtz / Provider)
+        try {
+            Method unwrapMethod = provider.getClass().getMethod("a");
+            if (unwrapMethod.getParameterTypes().length == 0) {
+                Object unwrapped = unwrapMethod.invoke(provider);
+                if (unwrapped != null && unwrapped != provider) {
+                    provider = unwrapped;
+                }
+            }
+        } catch (Throwable ignored) {}
+
+        // 1. Try provider.a(mediaItem) or any 1-arg method taking mediaItem returning Uri
+        try {
+            for (Method pm : provider.getClass().getMethods()) {
+                if (pm.getParameterTypes().length == 1 &&
+                    pm.getParameterTypes()[0].isInstance(mediaItem) &&
+                    Uri.class.isAssignableFrom(pm.getReturnType())) {
+                    Uri uri = (Uri) pm.invoke(provider, mediaItem);
+                    if (uri != null) return uri;
+                }
+            }
+        } catch (Throwable ignored) {}
+
+        // 2. Try 3-arg method taking (mediaItem, qualityEnum, int)
+        for (String qClassName : qualityClasses) {
+            try {
+                Class<?> qClass = Class.forName(qClassName);
+                Object origVal = null;
+                try {
+                    origVal = qClass.getField("d").get(null);
+                } catch (Throwable ignored) {
+                    try {
+                        origVal = qClass.getField("c").get(null);
+                    } catch (Throwable ignored2) {}
+                }
+                if (origVal != null) {
+                    for (Method pm : provider.getClass().getMethods()) {
+                        if (pm.getParameterTypes().length == 3 &&
+                            pm.getParameterTypes()[0].isInstance(mediaItem) &&
+                            Uri.class.isAssignableFrom(pm.getReturnType())) {
+                            try {
+                                Uri uri = (Uri) pm.invoke(provider, mediaItem, origVal, 0);
+                                if (uri != null) return uri;
+                            } catch (Throwable ignored) {}
+                        }
+                    }
+                }
+            } catch (ClassNotFoundException ignored) {}
+        }
+        return null;
+    }
+
     private static Uri resolveMediaUri(Context context, Object mediaItem) {
-        // Attempt 1: Photos DI Binder (bzoq / bzeq / ahug) with MediaUriProvider (wma / wiy)
-        String[] binderClasses = {"bzoq", "bzeq", "ahug"};
-        String[] providerClasses = {"wma", "wiy"};
+        // Attempt 1: Photos DI Binder (cbar / bzoq / bzeq / ahug) with MediaUriProvider (woq / wor / wma / wmb / wiy / wiz)
+        String[] binderClasses = {"cbar", "bzoq", "bzeq", "ahug"};
+        String[] providerClasses = {"woq", "wor", "wma", "wmb", "wiy", "wiz"};
+        String[] qualityClasses = {"wop", "wlz", "wiw"};
 
         for (String binderName : binderClasses) {
             try {
@@ -1371,57 +1436,39 @@ public class LocalCreationDownloader {
                         }
 
                         if (provider != null) {
-                            // If provider is a wrapper (e.g. Component / ahtz), unwrap via a() or get()
-                            try {
-                                Method unwrapMethod = provider.getClass().getMethod("a");
-                                Object unwrapped = unwrapMethod.invoke(provider);
-                                if (unwrapped != null) {
-                                    provider = unwrapped;
-                                }
-                            } catch (Throwable ignored) {}
-
-                            // Call provider.a(mediaItem)
-                            try {
-                                for (Method pm : provider.getClass().getMethods()) {
-                                    if (pm.getParameterTypes().length == 1 &&
-                                        pm.getParameterTypes()[0].isInstance(mediaItem) &&
-                                        Uri.class.isAssignableFrom(pm.getReturnType())) {
-                                        Uri uri = (Uri) pm.invoke(provider, mediaItem);
-                                        if (uri != null) return uri;
-                                    }
-                                }
-                            } catch (Throwable ignored) {}
-
-                            // Try quality enum: wlz.d or wiw.d (ORIGINAL), wlz.c or wiw.c (LARGE)
-                            String[] qualityClasses = {"wlz", "wiw"};
-                            for (String qClassName : qualityClasses) {
-                                try {
-                                    Class<?> qClass = Class.forName(qClassName);
-                                    Object origVal = null;
-                                    try {
-                                        origVal = qClass.getField("d").get(null);
-                                    } catch (Throwable ignored) {
-                                        try {
-                                            origVal = qClass.getField("c").get(null);
-                                        } catch (Throwable ignored2) {}
-                                    }
-                                    if (origVal != null) {
-                                        for (Method pm : provider.getClass().getMethods()) {
-                                            if (pm.getParameterTypes().length == 3 &&
-                                                pm.getParameterTypes()[0].isInstance(mediaItem) &&
-                                                Uri.class.isAssignableFrom(pm.getReturnType())) {
-                                                try {
-                                                    Uri uri = (Uri) pm.invoke(provider, mediaItem, origVal, 0);
-                                                    if (uri != null) return uri;
-                                                } catch (Throwable ignored) {}
-                                            }
-                                        }
-                                    }
-                                } catch (ClassNotFoundException ignored) {}
-                            }
+                            Uri uri = tryResolveViaProvider(provider, mediaItem, qualityClasses);
+                            if (uri != null) return uri;
                         }
                     } catch (ClassNotFoundException ignored) {}
                 }
+
+                // Dynamic DI Binder Registry Fallback:
+                // If known provider class names weren't present, inspect binder instance's internal bindings map
+                try {
+                    Method aMethod = binderCls.getMethod("a", Context.class);
+                    Object binderInstance = aMethod.invoke(null, context);
+                    if (binderInstance != null) {
+                        for (Field bf : binderInstance.getClass().getDeclaredFields()) {
+                            if (Map.class.isAssignableFrom(bf.getType())) {
+                                bf.setAccessible(true);
+                                Map<?, ?> map = (Map<?, ?>) bf.get(binderInstance);
+                                if (map != null) {
+                                    for (Object val : map.values()) {
+                                        if (val instanceof Map) {
+                                            for (Object innerVal : ((Map<?, ?>) val).values()) {
+                                                Uri u = tryResolveViaProvider(innerVal, mediaItem, qualityClasses);
+                                                if (u != null) return u;
+                                            }
+                                        } else if (val != null) {
+                                            Uri u = tryResolveViaProvider(val, mediaItem, qualityClasses);
+                                            if (u != null) return u;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {}
             } catch (ClassNotFoundException ignored) {}
         }
 

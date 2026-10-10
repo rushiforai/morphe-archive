@@ -40,7 +40,7 @@ public final class DevicePrivacyGuard {
     private static final String BLANK_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";
 
     private static boolean blocks(String what) {
-        if (Utils.getContext() != null && !Settings.BLOCK_CLIPBOARD_READS.get()) return false;
+        if (Utils.getContext() == null || !Settings.BLOCK_CLIPBOARD_READS.get()) return false;
         Logger.printInfo(() -> "Device privacy guard: " + what);
         return true;
     }

@@ -380,6 +380,6 @@ class SharedPermissionsFixtureTest {
         const val APP_MANAGER = "com.facebook.appmanager"
 
         /** Loads of an own authority per build, counted off the fixtures with a separate dex scan. */
-        val AUTHORITY_LOADS = mapOf("581.0.0.45.58" to 13)
+        val AUTHORITY_LOADS = mapOf("582.0.0.50.54" to 13)
     }
 }

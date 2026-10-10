@@ -86,6 +86,7 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.SCREENSHOT_DETECTION, "Hide screenshots from Threads");
         ROW_TITLES.put(PatchFamily.SAVE_MEDIA, "Save photos and videos");
         ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
+        ROW_TITLES.put(PatchFamily.HIDE_INSTAGRAM_BUTTON, "Hide the Instagram button");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_ID, "Advertising ID removed");
         ROW_TITLES.put(PatchFamily.RESTORE_TRUST, "Re-signed build fix");
         ROW_TITLES.put(PatchFamily.VERSION_CODE, "Version code raised");
@@ -148,8 +149,9 @@ public class HushThreadsPreferenceFragmentTest {
                 assertTrue(key + " is drawn below the Pause row", indexOfKey(rows, key) < pause);
             }
             assertTrue("Debug logging is drawn above the Pause row", indexOfKey(rows, BaseSettings.DEBUG.key) > pause);
-            assertTrue(String.valueOf(rows.get(pause).getSummary()),
-                    String.valueOf(rows.get(pause).getSummary()).contains("every switch but Debug logging acts as if it were off. Changes made when you patched stay in"));
+            String pauseSummary = String.valueOf(rows.get(pause).getSummary());
+            assertTrue(pauseSummary, pauseSummary.contains("Turns off every HushThreads switch except Debug logging"));
+            assertTrue(pauseSummary, pauseSummary.contains("What you chose when you patched stays"));
         }
     }
 
@@ -199,7 +201,9 @@ public class HushThreadsPreferenceFragmentTest {
                     expected.add("Privacy");
                 }
                 if (build.contains(PatchFamily.SAVE_MEDIA)) expected.add("Downloads");
-                if (build.contains(PatchFamily.PURE_BLACK)) expected.add("Appearance");
+                if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)) {
+                    expected.add("Appearance");
+                }
                 expected.addAll(EVERY_BUILD.subList(0, 2));
                 if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
                         || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
@@ -223,7 +227,7 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("Hide suggested users", String.valueOf(page.findPreference(Settings.HIDE_SUGGESTED_USERS.key).getTitle()));
-            assertEquals("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
+            assertEquals("Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.",
                     String.valueOf(page.findPreference(Settings.HIDE_SUGGESTED_USERS.key).getSummary()));
             assertEquals("Keep feed position on return", String.valueOf(page.findPreference(Settings.BLOCK_RETURN_REFRESH.key).getTitle()));
             assertEquals("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
@@ -240,23 +244,34 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share "
                     + "link becomes the post's own link.", String.valueOf(page.findPreference(Settings.SANITIZE_SHARING_LINKS.key).getSummary()));
             assertEquals("Open links in your browser", String.valueOf(page.findPreference(Settings.OPEN_LINKS_EXTERNALLY.key).getTitle()));
-            assertEquals("Web links you tap open in your default browser, or the app for that site, without Threads' click "
-                    + "tracker. Threads, Instagram and other Meta pages still open in Threads.",
+            assertEquals("Links you tap open in your browser or the site's app, skipping Threads' link tracking. "
+                + "Threads and Instagram pages still open in Threads.",
                     String.valueOf(page.findPreference(Settings.OPEN_LINKS_EXTERNALLY.key).getSummary()));
-            assertEquals("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. "
-                    + "Turn this off to use the original addresses.",
+            assertEquals("Stops most usage reports from reaching Meta. Some may still get through. Turn this off to "
+                + "send them as before.",
                     String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
             assertEquals("Hide screenshots from Threads", String.valueOf(page.findPreference(Settings.DISABLE_SCREENSHOT_DETECTION.key).getTitle()));
             assertEquals("Threads isn't told when you take a screenshot, so it can't log it or react to it.",
                     String.valueOf(page.findPreference(Settings.DISABLE_SCREENSHOT_DETECTION.key).getSummary()));
             assertEquals("Pure black dark mode", String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getTitle()));
-            assertEquals("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+            assertEquals("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. "
+                + "Restart Threads to see the change.",
                     String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getSummary()));
-            // Every selected feed, privacy and appearance switch ships on.
-            for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.BLOCK_RETURN_REFRESH,
-                    Settings.DISABLE_VIDEO_AUTOPLAY, Settings.MAX_IMAGE_QUALITY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS,
-                    Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK)) {
+            assertEquals("Hide the Instagram button", String.valueOf(page.findPreference(Settings.HIDE_INSTAGRAM_BUTTON.key).getTitle()));
+            assertEquals("Takes the Instagram button off the top of profiles, yours and other people's. "
+                + "Restart Threads to see the change.",
+                    String.valueOf(page.findPreference(Settings.HIDE_INSTAGRAM_BUTTON.key).getSummary()));
+            // The patches that were always in Manager's default selection ship their switches on.
+            for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS,
+                    Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
+            }
+            // The ones that joined it later start off, so a default build looks like Threads, and so
+            // does Hide the Instagram button, which came after.
+            for (BooleanSetting setting : Arrays.asList(Settings.BLOCK_RETURN_REFRESH, Settings.DISABLE_VIDEO_AUTOPLAY,
+                    Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK,
+                    Settings.HIDE_INSTAGRAM_BUTTON)) {
+                assertFalse(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The time limit holds until someone lifts it.
             assertFalse(((SwitchPreference) page.findPreference(Settings.RETURN_REFRESH_NO_LIMIT.key)).isChecked());
@@ -300,13 +315,13 @@ public class HushThreadsPreferenceFragmentTest {
 
     /**
      * A version is a value set into a sentence, so both rows that show one isolate it: in a
-     * right-to-left sentence "449.0.0.54.82" then keeps the order it was written in.
+     * right-to-left sentence "450.0.0.51.78" then keeps the order it was written in.
      */
     @Test
     public void theVersionRowsIsolateTheVersions() {
         android.content.Context context = RuntimeEnvironment.getApplication();
         Shadows.shadowOf(context.getPackageManager())
-                .getInternalMutablePackageInfo(context.getPackageName()).versionName = "449.0.0.54.82";
+                .getInternalMutablePackageInfo(context.getPackageName()).versionName = "450.0.0.51.78";
         String threads = app.morphe.extension.shared.Utils.getAppVersionName();
         assertTrue("no Threads version to look for", threads != null && !threads.isEmpty());
 

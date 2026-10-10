@@ -11,6 +11,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,6 +72,12 @@ public class ReelWatchHistoryTest {
         }
     }
 
+    /** The patch is in Morphe Manager's default selection with its switch off; these tests turn it on. */
+    @Before
+    public void turnTheSwitchOn() {
+        Settings.DONT_SEND_REEL_WATCH_HISTORY.save(true);
+    }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -100,8 +107,8 @@ public class ReelWatchHistoryTest {
     }
 
     @Test
-    public void theSwitchStartsOnAndHoldsTheSendBack() {
-        assertTrue("the switch starts off", Settings.DONT_SEND_REEL_WATCH_HISTORY.get());
+    public void theSwitchStartsOffAndOnHoldsTheSendBack() {
+        assertFalse("the switch starts off", Settings.DONT_SEND_REEL_WATCH_HISTORY.defaultValue);
         Recorder executor = new Recorder();
         ReelWatchHistory.send(executor, new SeenStateSendForTests());
         assertTrue("the batch reached the executor", executor.handed.isEmpty());

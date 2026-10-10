@@ -109,11 +109,9 @@ internal val settingsManifestPatch = resourcePatch {
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "HushThreads settings",
-    description = "Adds HushThreads settings to Threads. Tap HushThreads above More settings in Threads' " +
-        "own settings, long-press Threads' launcher icon, or open Additional settings in the app on " +
-        "Threads' App info page, to turn features on or off, pause " +
-        "HushThreads, save your switches to a file or load them, and export diagnostics. The licenses " +
-        "are there too.",
+    description = "Adds a HushThreads page to Threads where you turn features on or off, pause HushThreads, back up" +
+        " your settings and read the licenses. Open it from Threads' own settings. Works as soon as you " +
+        "patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")

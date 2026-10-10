@@ -5,9 +5,10 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '../../patches/src/main/resources/reactnative');
 const jobs = [], events = [], targets = new Map(), subscriptions = new Set();
 let enabled = true, foreground = true, effects = [], policy;
+const selection = [true, true, true];
 const runtime = {
     target(id, name, adapter, memo) { targets.set(name, {adapter, memo}); },
-    enabled(index) { return index === 5 ? enabled : foreground; },
+    enabled(index) { return index >= 8 ? selection[index - 8] : index === 5 ? enabled : foreground; },
     policyHook() { return enabled; },
     subscribe(fn) { subscriptions.add(fn); return () => subscriptions.delete(fn); },
     log(value) { events.push(value); }
@@ -40,7 +41,13 @@ assert.equal(providers.parse('7tv', {emotes: [missingGif]}, false).get('MissingG
     'https://cdn.7tv.app/emote/static/2x_static.webp', 'unsupported animation formats keep a supported static image');
 assert.equal(providers.parse('7tv', {emotes: [seven('unsafe', '../bad?token=secret')]}, false).size, 0);
 assert.equal(providers.parse('bttv', {sharedEmotes: [{id: 'a', code: 'Shared'}], channelEmotes: [{id: 'b', code: 'Shared'}]}, true)
-    .get('Shared').url, 'https://cdn.betterttv.net/emote/b/2x');
+    .get('Shared').url, 'https://cdn.betterttv.net/emote/b/2x.webp');
+assert.equal(providers.parse('bttv', [{id: 'animated', code: 'Animated', animated: true}], false)
+    .get('Animated').url, 'https://cdn.betterttv.net/emote/animated/2x.gif');
+const singleScale = seven('SingleScale', 'single', 1, true);
+singleScale.data.host.files[1].name = '1x.gif';
+assert.equal(providers.parse('7tv', {emotes: [singleScale]}, false).get('SingleScale').url,
+    'https://cdn.7tv.app/emote/single/1x.gif');
 const native = [{id: 'native', start: 2, end: 7}];
 const ranges = providers.augment('\u{1f600} Wankge Peepoclap', native, catalog, new Set());
 assert.equal(ranges.length, 2, 'native ranges retain precedence over third-party names');
@@ -70,21 +77,40 @@ const props = {channelID: '123', message: {body: 'Wankge', emotes: [], sourceRoo
 assert.equal(row(props).type, original, 'keeps the original memoized component');
 effects.shift()();
 const release = effects.shift()();
-assert.equal(jobs.length, 4, 'deduplicated global and source-channel provider requests');
+assert.equal(jobs.length, 6, 'deduplicated global and source-channel provider requests');
 const sameRelease = runtime.emotes.retain('456');
-assert.equal(jobs.length, 4, 'new rows share pending requests');
+assert.equal(jobs.length, 6, 'new rows share pending requests');
 async function flush() { for (let count = 0; count < 10; count++) await Promise.resolve(); }
 async function main() {
     jobs[0].resolve([{id: 'global', code: 'Wankge'}]);
     jobs[1].resolve({channelEmotes: []});
     jobs[2].resolve({emotes: []});
     jobs[3].resolve({emote_set: {emotes: [seven('Wankge')]}, ignoredPadding: 'x'.repeat(2500000)});
+    jobs[4].resolve({}); jobs[5].resolve({room: {set: 1}, sets: {'1': {emoticons: [
+        {name: 'Wankge', urls: {'2': 'https://cdn.frankerfacez.com/emote/1/2'}},
+        {name: 'FFZChannel', urls: {'2': 'https://cdn.frankerfacez.com/emote/2/2'}}]}}});
     await flush();
     const rendered = row(props);
     assert.equal(rendered.props.message.emotes.length, 1);
     assert.match(decodeURIComponent(rendered.props.message.emotes[0].id), /cdn.7tv.app/,
         'channel emotes override a global name collision');
     assert.equal(props.message.emotes.length, 0);
+    assert.equal(runtime.emotes.snapshot('456').get('FFZChannel').provider, 'ffz');
+    const picker = runtime.emotes.pickerSnapshot('456');
+    assert(picker.some(group => group.provider === 'bttv' && !group.channel && group.emotes.some(emote => emote.name === 'Wankge')));
+    assert(picker.some(group => group.provider === '7tv' && group.channel && group.emotes.some(emote => emote.name === 'Wankge')),
+        'picker retains provider and scope catalogs across duplicate names');
+    selection[1] = false; subscriptions.forEach(fn => fn());
+    assert(runtime.emotes.pickerSnapshot('456').every(group => group.provider !== '7tv'));
+    assert.equal(runtime.emotes.snapshot('456').get('Wankge').provider, 'ffz', 'disabling 7TV exposes the enabled channel provider');
+    selection[2] = false; subscriptions.forEach(fn => fn());
+    assert.equal(runtime.emotes.snapshot('456').get('Wankge').provider, 'bttv');
+    selection[0] = false; subscriptions.forEach(fn => fn());
+    assert.equal(runtime.emotes.snapshot('456').size, 0, 'all providers disabled remove cached emotes');
+    assert.equal(runtime.emotes.pickerSnapshot('456').length, 0);
+    selection.fill(true); subscriptions.forEach(fn => fn());
+    assert.equal(jobs.length, 6, 'reenabling fresh cached providers requires no requests');
+    assert.equal(runtime.emotes.snapshot('456').get('Wankge').provider, '7tv');
     enabled = false;
     assert.equal(row(props).props, props, 'disabling restores untouched message props');
     enabled = true;
@@ -104,17 +130,29 @@ async function main() {
     assert.equal(calls, 1);
     release(); sameRelease();
     const cancel = runtime.emotes.retain('789');
-    const late = jobs.slice(4); cancel();
+    const late = jobs.slice(6); cancel();
     assert(late.every(job => job.options.signal.aborted), 'unmount cancels channel requests');
     late.forEach(job => job.resolve({emote_set: {emotes: [seven('Late')]}})); await flush();
     assert.equal(runtime.emotes.snapshot('789').has('Late'), false, 'late responses do not publish into a departed channel');
     const releaseOversize = runtime.emotes.retain('888');
-    jobs[jobs.length - 2].resolve({channelEmotes: [{id: 'oversize', code: 'Oversize'}], ignoredPadding: 'x'.repeat(9000000)});
-    jobs[jobs.length - 1].resolve({emote_set: {emotes: [seven('OtherProvider')]}});
+    jobs[jobs.length - 3].resolve({channelEmotes: [{id: 'oversize', code: 'Oversize'}], ignoredPadding: 'x'.repeat(9000000)});
+    jobs[jobs.length - 2].resolve({emote_set: {emotes: [seven('OtherProvider')]}});
+    jobs[jobs.length - 1].resolve({});
     await flush();
     assert.equal(runtime.emotes.snapshot('888').has('Oversize'), false, 'catalogs exceeding the upper bound are rejected');
     assert.equal(runtime.emotes.snapshot('888').has('OtherProvider'), true, 'one oversized provider does not erase another provider');
     releaseOversize();
+    const releaseSelective = runtime.emotes.retain('999');
+    const selective = jobs.slice(-3);
+    selection[0] = false; subscriptions.forEach(fn => fn());
+    assert.equal(selective[0].options.signal.aborted, true, 'disabled provider requests cancel');
+    assert.equal(selective[1].options.signal.aborted, false, 'other providers remain active');
+    selective[0].resolve({channelEmotes: [{id: 'late', code: 'DisabledLate'}]});
+    selective[1].resolve({emote_set: {emotes: [seven('StillEnabled')]}}); selective[2].resolve({});
+    await flush();
+    assert.equal(runtime.emotes.snapshot('999').has('DisabledLate'), false);
+    assert.equal(runtime.emotes.snapshot('999').has('StillEnabled'), true);
+    releaseSelective(); selection.fill(true);
     const boot = vm.createContext({console: {info() {}}, RN$registerCallableModule(name, factory) { policy = factory(); }});
     vm.runInContext(fs.readFileSync(path.join(root, 'bootstrap.js'), 'utf8').replace('__TWITCH_REACT_MODULE__', '7'), boot);
     let factory;
@@ -124,8 +162,11 @@ async function main() {
     const module = {exports: {}};
     factory(boot, () => React, null, null, module);
     assert.equal(module.exports.Row, original, 'bootstrap accepts only an explicitly declared memo export');
-    policy.set(false, false, false, true, false, true);
+    policy.set(false, false, false, true, false, true, false, false, true, false, true);
     assert.equal(boot.__twitchPatchRuntime.enabled(5), true);
+    assert.equal(boot.__twitchPatchRuntime.enabled(8), true);
+    assert.equal(boot.__twitchPatchRuntime.enabled(9), false);
+    assert.equal(boot.__twitchPatchRuntime.enabled(10), true);
     foreground = false; subscriptions.forEach(fn => fn());
     console.log('React Native emotes: provider parsing, Unicode ranges, memo export, channel ownership, rendering, failures and cancellation passed.');
 }

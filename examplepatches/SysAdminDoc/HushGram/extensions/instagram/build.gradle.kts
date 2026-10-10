@@ -253,6 +253,17 @@ tasks.register("verifyAndroidBoundaries") {
                 "missingPatchHasNoNotesRowSwitch[28]", "missingPatchHasNoNotesRowSwitch[37]",
                 "notesRowSwitchStartsOffUnderMessagesPersistsAndHonorsPause[28]",
                 "notesRowSwitchStartsOffUnderMessagesPersistsAndHonorsPause[37]"),
+            "app.hushgram.extension.instagram.direct.InboxSuggestionsTest" to listOf(
+                "withTheSwitchOnAccountsToFollowAreLeftOut[28]", "withTheSwitchOnAccountsToFollowAreLeftOut[37]",
+                "offToStartAndOffKeepTheSection[28]", "offToStartAndOffKeepTheSection[37]",
+                "offPausedAndUnreadyKeepTheSection[28]", "offPausedAndUnreadyKeepTheSection[37]",
+                "aListLedByAnotherUnitGoesThroughAsItCame[28]", "aListLedByAnotherUnitGoesThroughAsItCame[37]",
+                "aThrowingSwitchKeepsTheSectionAndIsReported[28]", "aThrowingSwitchKeepsTheSectionAndIsReported[37]",
+                "aNameThatThrowsKeepsTheSectionAndIsReported[28]", "aNameThatThrowsKeepsTheSectionAndIsReported[37]"),
+            "app.hushgram.extension.instagram.settings.InboxSuggestionsSettingsTest" to listOf(
+                "missingPatchHasNoInboxSuggestionsSwitch[28]", "missingPatchHasNoInboxSuggestionsSwitch[37]",
+                "inboxSuggestionsSwitchStartsOffUnderMessagesPersistsAndHonorsPause[28]",
+                "inboxSuggestionsSwitchStartsOffUnderMessagesPersistsAndHonorsPause[37]"),
             "app.hushgram.extension.instagram.direct.InstantsTest" to listOf(
                 "withTheSwitchOnTheCheckAnswersNo[28]", "withTheSwitchOnTheCheckAnswersNo[37]",
                 "offToStartAndOffLeaveItToInstagram[28]", "offToStartAndOffLeaveItToInstagram[37]",
@@ -454,7 +465,9 @@ tasks.register("verifyAndroidBoundaries") {
                 "adsAndOtherScreensGetNoLabel[28]", "adsAndOtherScreensGetNoLabel[37]"),
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch[37]",
-                "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause[37]"),
+                "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause[37]",
+                "aBuildWithoutCopyUsernameKeepsCopyWithoutTheSecondSwitch[28]", "aBuildWithoutCopyUsernameKeepsCopyWithoutTheSecondSwitch[37]",
+                "aBuildCopyingUsernamesReportsNothingMissing[28]", "aBuildCopyingUsernamesReportsNothingMissing[37]"),
             "app.hushgram.extension.instagram.settings.CommentPhotoSettingsTest" to listOf(
                 "missingPatchHasNoCommentPhotoSwitch[28]", "missingPatchHasNoCommentPhotoSwitch[37]",
                 "commentPhotoSwitchStartsOffPersistsAndHonorsPause[28]", "commentPhotoSwitchStartsOffPersistsAndHonorsPause[37]",
@@ -474,7 +487,7 @@ tasks.register("verifyAndroidBoundaries") {
                 "aThrowingSwitchOrMemoryKeepsInstagramsAnswerAndIsReported[28]", "aThrowingSwitchOrMemoryKeepsInstagramsAnswerAndIsReported[37]"),
             "app.hushgram.extension.instagram.settings.ReelAutoScrollSettingsTest" to listOf(
                 "missingPatchHasNoAutoScrollSwitch[28]", "missingPatchHasNoAutoScrollSwitch[37]",
-                "autoScrollSwitchStartsOnPersistsAndHonorsPause[28]", "autoScrollSwitchStartsOnPersistsAndHonorsPause[37]"),
+                "autoScrollSwitchStartsOffPersistsAndHonorsPause[28]", "autoScrollSwitchStartsOffPersistsAndHonorsPause[37]"),
             "app.hushgram.extension.instagram.media.TapToPlayTest" to listOf(
                 "autoScrollStartsTheReelItMovesToAndArmsIt[28]", "autoScrollStartsTheReelItMovesToAndArmsIt[37]",
                 "aMoveStartsOnePlayerOnly[28]", "aMoveStartsOnePlayerOnly[37]",
@@ -503,7 +516,7 @@ tasks.register("verifyAndroidBoundaries") {
                 "everyModeKeepsInstagramsLabelOffPausedAndUnready[28]", "everyModeKeepsInstagramsLabelOffPausedAndUnready[37]"),
             "app.hushgram.extension.instagram.settings.StoryTimeSettingsTest" to listOf(
                 "missingPatchHasNoStoryTimeSwitch[28]", "missingPatchHasNoStoryTimeSwitch[37]",
-                "storyTimeSwitchStartsOnUnderStoriesPersistsAndHonorsPause[28]", "storyTimeSwitchStartsOnUnderStoriesPersistsAndHonorsPause[37]",
+                "storyTimeSwitchStartsOffUnderStoriesPersistsAndHonorsPause[28]", "storyTimeSwitchStartsOffUnderStoriesPersistsAndHonorsPause[37]",
                 "theChoiceSitsBelowTheSwitchStartsAtTheDateAndTimeAndSaysWhatItShows[28]",
                 "theChoiceSitsBelowTheSwitchStartsAtTheDateAndTimeAndSaysWhatItShows[37]"),
             "app.hushgram.extension.instagram.stories.StoryLoopTest" to listOf(
@@ -517,7 +530,7 @@ tasks.register("verifyAndroidBoundaries") {
                 "withoutTheLoopPatchStopHoldsAsBefore[28]", "withoutTheLoopPatchStopHoldsAsBefore[37]"),
             "app.hushgram.extension.instagram.settings.StoryLoopSettingsTest" to listOf(
                 "missingPatchHasNoStoryLoopSwitch[28]", "missingPatchHasNoStoryLoopSwitch[37]",
-                "storyLoopSwitchStartsOnUnderStoriesPersistsAndHonorsPause[28]", "storyLoopSwitchStartsOnUnderStoriesPersistsAndHonorsPause[37]"),
+                "storyLoopSwitchStartsOffUnderStoriesPersistsAndHonorsPause[28]", "storyLoopSwitchStartsOffUnderStoriesPersistsAndHonorsPause[37]"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction[37]",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[37]",
@@ -568,6 +581,10 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.SettingsEntryOpenTest" to listOf(
                 "movesToAScreenInstagramOpensOverIt[28]", "movesToAScreenInstagramOpensOverIt[37]",
                 "staysClosedOnceThePersonClosedIt[28]", "staysClosedOnceThePersonClosedIt[37]"),
+            "app.hushgram.extension.instagram.settings.SettingsThemeWaitTest" to listOf(
+                "waitsForAThemeThatCanDrawText[28]", "waitsForAThemeThatCanDrawText[37]",
+                "aScreenPutBackOverAnUnthemedHostClosesAndComesBack[28]", "aScreenPutBackOverAnUnthemedHostClosesAndComesBack[37]",
+                "aFailedScreenPutBackOverAnUnthemedHostClosesAndComesBack[28]", "aFailedScreenPutBackOverAnUnthemedHostClosesAndComesBack[37]"),
             "app.hushgram.extension.instagram.settings.SettingsScreenRowLayoutTest" to listOf(
                 "theTitleWrapsAtTwiceTheTextSize[28]", "theTitleWrapsAtTwiceTheTextSize[37]",
                 "rightToLeftPutsTheMarkOnTheRight[28]", "rightToLeftPutsTheMarkOnTheRight[37]"),

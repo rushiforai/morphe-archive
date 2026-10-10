@@ -21,6 +21,12 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = {23, 35})
@@ -34,8 +40,9 @@ public class BuildDetailsExportTest {
         HushfeedPause.resetForTests();
         // A failed preference commit rolls the filter back to "all" and logs an error the clear
         // below removes, and every later assertion then reads unrelated categories. Say so here.
-        assertTrue("the downloads-only log filter was not saved",
-                BaseSettings.DEBUG_LOG_FILTERS.save("downloads"));
+        boolean interruptedBefore = Thread.currentThread().isInterrupted();
+        boolean saved = BaseSettings.DEBUG_LOG_FILTERS.save("downloads");
+        assertTrue(saved ? "" : failedFilterSaveDetails(interruptedBefore), saved);
         LogBufferManager.clearLogBuffer();
         HookStatus.clear();
     }
@@ -120,6 +127,59 @@ public class BuildDetailsExportTest {
             assertEquals("", Utils.getBuildMetadata());
             assertFalse(BuildDetails.report().contains("SIZE_SENTINEL"));
         }
+    }
+
+    private static String failedFilterSaveDetails(boolean interruptedBefore) {
+        StringWriter text = new StringWriter();
+        PrintWriter out = new PrintWriter(text);
+        out.println("the downloads-only log filter was not saved");
+        out.println("thread=" + Thread.currentThread().getName()
+                + " interruptedBefore=" + interruptedBefore
+                + " interruptedAfter=" + Thread.currentThread().isInterrupted());
+        for (ShadowLog.LogItem item : ShadowLog.getLogs()) {
+            out.println(item.type + " " + item.tag + ": " + item.msg);
+            if (item.throwable != null) item.throwable.printStackTrace(out);
+        }
+        try {
+            Context context = Utils.getContext();
+            out.println("mainProcess=" + Utils.isMainProcess()
+                    + " context=" + (context == null ? "null" : context.getClass().getName()));
+            var store = Setting.preferences.preferences;
+            out.println("store=" + store.getClass().getName()
+                    + " applicationStore=" + (store == RuntimeEnvironment.getApplication()
+                            .getSharedPreferences(Setting.PREFERENCES_NAME, Context.MODE_PRIVATE)));
+            if (context != null) {
+                out.println("package=" + context.getPackageName()
+                        + " declaredProcess=" + context.getApplicationInfo().processName
+                        + " currentStore=" + (store == context.getSharedPreferences(
+                                Setting.PREFERENCES_NAME, Context.MODE_PRIVATE)));
+                File expected = new File(context.getApplicationInfo().dataDir,
+                        "shared_prefs/" + Setting.PREFERENCES_NAME + ".xml");
+                fileState(out, "expectedParent", expected.getParentFile());
+                fileState(out, "expectedFile", expected);
+            }
+            Field field = store.getClass().getDeclaredField("mFile");
+            field.setAccessible(true);
+            File actual = (File) field.get(store);
+            fileState(out, "storeParent", actual.getParentFile());
+            fileState(out, "storeFile", actual);
+            fileState(out, "storeBackup", new File(actual.getPath() + ".bak"));
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            out.println("Could not collect all preference state:");
+            failure.printStackTrace(out);
+        }
+        out.flush();
+        return text.toString();
+    }
+
+    private static void fileState(PrintWriter out, String label, File file) {
+        if (file == null) {
+            out.println(label + "=null");
+            return;
+        }
+        out.println(label + "=" + file + " exists=" + file.exists()
+                + " directory=" + file.isDirectory() + " writable=" + file.canWrite()
+                + " bytes=" + file.length());
     }
 
     private BuildDetailsFixture asset(String metadata) throws Exception {
