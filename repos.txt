@@ -1,5 +1,6 @@
 0-BlackSpectrum-0/channel-blacklist-patch
 0x0day-0wl/morphe-patches
+0xtalos/365score-patches
 2eno/2eno-patches
 6ixfalls/revanced-patches
 ARHCOS/arhcos-patches
@@ -54,6 +55,7 @@ HvQ/eksi-morphe
 IMXEren/mix-patches
 Ikuradachi/ikura-patches
 ImEnigma2x0/morphe-maloja-patch
+ImNoammm/Noams-Morphe-Patches
 ImNoammm/morphe-spotify-patches
 ImmortalZeus/ImmortalZeus-Morphe-Patches
 Insane96/Pinterest-patch
@@ -140,6 +142,7 @@ Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
 V4n1X/morphe-patches
+VenusIsJaded/Venus-Patches
 VipinVIP/railone-patches
 WZSE/aapam-patches
 WZSE/morphe-patches
@@ -315,6 +318,7 @@ mxkrgt/dbtcoach-morphe-patches
 na-x-ril/onlynazril-patches
 newuser7171/telegram-morphe-patches-
 nickcomua/airofit-pro2-morphe-patches
+nobianh78/tada-patches
 non7043/365score-patches
 nosini/disable-shorts-repeat
 ns1207/morphe-patches-template
@@ -332,6 +336,7 @@ pseudofractal/morphe-patches
 quantavil/edge-morphe-patches
 rafag00/morphe-patches
 rahaaatul/morphe-patches
+rahul9999xda/morphe-patches
 rahul9999xda/telegram-morphe-patches
 raphaelbahat/zotero-self-hosted-sync
 rhubarbshoelaces/morphe-patches

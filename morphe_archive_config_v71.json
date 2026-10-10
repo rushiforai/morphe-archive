@@ -1667,14 +1667,6 @@
                 "updatedAt": 1789183046161
             },
             {
-                "name": "morphe-patches-tiktok-lite-only",
-                "source": "https://raw.githubusercontent.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 224,
-                "createdAt": 1789183046907,
-                "updatedAt": 1789183046907
-            },
-            {
                 "name": "santodan-patches",
                 "source": "https://raw.githubusercontent.com/Santodan/santodan-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2307,14 +2299,6 @@
                 "updatedAt": 1790567709268
             },
             {
-                "name": "den-patch",
-                "source": "https://raw.githubusercontent.com/tkiethuynh/den-patch/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 311,
-                "createdAt": 1790567709936,
-                "updatedAt": 1790567709936
-            },
-            {
                 "name": "Jam-Patches",
                 "source": "https://raw.githubusercontent.com/JamQueueSharing/Jam-Patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2617,6 +2601,46 @@
                 "sortOrder": 351,
                 "createdAt": 1791434763369,
                 "updatedAt": 1791434763369
+            },
+            {
+                "name": "365score-patches",
+                "source": "https://raw.githubusercontent.com/0xtalos/365score-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 352,
+                "createdAt": 1791609462662,
+                "updatedAt": 1791609462662
+            },
+            {
+                "name": "Noams-Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/ImNoammm/Noams-Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 353,
+                "createdAt": 1791609463622,
+                "updatedAt": 1791609463622
+            },
+            {
+                "name": "Venus-Patches",
+                "source": "https://raw.githubusercontent.com/VenusIsJaded/Venus-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 354,
+                "createdAt": 1791609465663,
+                "updatedAt": 1791609465663
+            },
+            {
+                "name": "tada-patches",
+                "source": "https://raw.githubusercontent.com/nobianh78/tada-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 355,
+                "createdAt": 1791609471549,
+                "updatedAt": 1791609471549
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/rahul9999xda/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 356,
+                "createdAt": 1791609472046,
+                "updatedAt": 1791609472046
             }
         ]
     }
