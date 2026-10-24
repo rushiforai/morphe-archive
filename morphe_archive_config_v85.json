@@ -3249,6 +3249,14 @@
                 "sortOrder": 448,
                 "createdAt": 1792731279166,
                 "updatedAt": 1792731279166
+            },
+            {
+                "name": "morphe-patches-custom",
+                "source": "https://raw.githubusercontent.com/madushas/morphe-patches-custom/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 449,
+                "createdAt": 1792813972580,
+                "updatedAt": 1792813972580
             }
         ]
     }
