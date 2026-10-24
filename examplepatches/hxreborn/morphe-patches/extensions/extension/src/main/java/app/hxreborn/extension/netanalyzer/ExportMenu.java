@@ -11,14 +11,15 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.Build;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+import app.hxreborn.extension.shared.Dimensions;
+
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class ExportMenu {
 
@@ -115,9 +116,8 @@ public final class ExportMenu {
             anchor.setTag(ANCHOR_TAG);
             final FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(activity, ICON_BUTTON_DP),
                     dp(activity, ICON_BUTTON_DP), Gravity.TOP | Gravity.END);
-            final WindowInsets insets = content.getRootWindowInsets();
-            final int statusBar = (insets != null) ? insets.getInsets(WindowInsets.Type.statusBars()).top : 0;
-            params.topMargin = statusBar + (dp(activity, TOOLBAR_HEIGHT_DP) - dp(activity, ICON_BUTTON_DP)) / 2;
+            params.topMargin = statusBarHeight(content)
+                    + (dp(activity, TOOLBAR_HEIGHT_DP) - dp(activity, ICON_BUTTON_DP)) / 2;
             params.setMarginEnd(dp(activity, ICON_BUTTON_END_DP));
             content.addView(anchor, params);
         }
@@ -125,9 +125,19 @@ public final class ExportMenu {
         placedAnchor.post(() -> show(activity, placedAnchor, source));
     }
 
+    private static int statusBarHeight(View content) {
+        final WindowInsets insets = content.getRootWindowInsets();
+        if (insets == null) {
+            return 0;
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return insets.getSystemWindowInsetTop();
+        }
+        return insets.getInsets(WindowInsets.Type.statusBars()).top;
+    }
+
     private static int dp(Activity activity, int value) {
-        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
-                activity.getResources().getDisplayMetrics()));
+        return Dimensions.dp(activity, value);
     }
 
 }

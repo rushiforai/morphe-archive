@@ -62,6 +62,11 @@ public final class ConfigurationBackup {
     public static final class Result {
         public final int applied;
         public final int skipped;
+        /**
+         * Lock switches the file (or Undo) would have changed but {@link #heldByLock} kept as they
+         * are. They're known settings, so they aren't counted with the skipped ones.
+         */
+        public final int held;
         public final boolean restart;
         /**
          * Each setting this changed, with the value it held before, so the page can offer Restart
@@ -69,9 +74,10 @@ public final class ConfigurationBackup {
          */
         public final Map<Setting<?>, Object> before;
 
-        Result(int applied, int skipped, boolean restart, Map<Setting<?>, Object> before) {
+        Result(int applied, int skipped, int held, boolean restart, Map<Setting<?>, Object> before) {
             this.applied = applied;
             this.skipped = skipped;
+            this.held = held;
             this.restart = restart;
             this.before = Collections.unmodifiableMap(before);
         }
@@ -107,6 +113,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS.key, Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS);
         }
         if (PatchFamily.REEL_TAP_AND_VOLUME.inBuild()) settings.put(Settings.REEL_TAP_CHOICE.key, Settings.REEL_TAP_CHOICE);
+        if (PatchFamily.REEL_SCROLLING.inBuild()) settings.put(Settings.SCROLL_BREAK.key, Settings.SCROLL_BREAK);
         if (PatchFamily.REEL_DECLUTTER.inBuild()) {
             settings.put(Settings.BURN_IN_GUARD.key, Settings.BURN_IN_GUARD);
             settings.put(Settings.BURN_IN_WAIT.key, Settings.BURN_IN_WAIT);
@@ -117,7 +124,10 @@ public final class ConfigurationBackup {
             settings.put(Settings.GHOST_TAB_TARGET.key, Settings.GHOST_TAB_TARGET);
         }
         if (PatchFamily.MESSAGE_BOX.inBuild()) settings.put(Settings.HIDDEN_MESSAGE_BOX_BUTTONS.key, Settings.HIDDEN_MESSAGE_BOX_BUTTONS);
-        if (PatchFamily.PROFILE_TABS.inBuild()) settings.put(Settings.HIDDEN_PROFILE_TABS.key, Settings.HIDDEN_PROFILE_TABS);
+        if (PatchFamily.PROFILE_TABS.inBuild()) {
+            settings.put(Settings.HIDDEN_OWN_PROFILE_TABS.key, Settings.HIDDEN_OWN_PROFILE_TABS);
+            settings.put(Settings.HIDDEN_PROFILE_TABS.key, Settings.HIDDEN_PROFILE_TABS);
+        }
         if (PatchFamily.STORY_TIME.inBuild()) settings.put(Settings.STORY_TIME_MODE.key, Settings.STORY_TIME_MODE);
         if (PatchFamily.FRIENDSHIP_STATUS.inBuild()) settings.put(Settings.FOLLOW_LABEL_PLACE.key, Settings.FOLLOW_LABEL_PLACE);
         if (PatchFamily.FULL_SCREEN_BARS.inBuild()) settings.put(Settings.FULL_SCREEN_HIDES.key, Settings.FULL_SCREEN_HIDES);
@@ -127,6 +137,7 @@ public final class ConfigurationBackup {
         }
         if (PatchFamily.GLASS_TAB_BAR.inBuild()) {
             settings.put(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE);
+            settings.put(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key, Settings.GLASS_TAB_BAR_BLUR_STRENGTH);
             settings.put(Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_OPACITY);
             settings.put(Settings.GLASS_TAB_BAR_HEIGHT.key, Settings.GLASS_TAB_BAR_HEIGHT);
             settings.put(Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_CORNERS);
@@ -138,6 +149,7 @@ public final class ConfigurationBackup {
         }
         if (PatchFamily.ACCENT_COLOR.inBuild()) settings.put(Settings.ACCENT_HUE.key, Settings.ACCENT_HUE);
         if (PatchFamily.FONT.inBuild()) settings.put(Settings.FONT.key, Settings.FONT);
+        if (PatchFamily.APP_ICON.inBuild()) settings.put(Settings.APP_ICON.key, Settings.APP_ICON);
         if (PatchFamily.REEL_DOWNLOAD.inBuild()) {
             settings.put(Settings.DOWNLOAD_REEL_COVER.key, Settings.DOWNLOAD_REEL_COVER);
             settings.put(Settings.DOWNLOAD_REEL_AUDIO.key, Settings.DOWNLOAD_REEL_AUDIO);
@@ -231,6 +243,7 @@ public final class ConfigurationBackup {
         final Map<Setting<?>, Object> updates = new LinkedHashMap<>();
         final Map<String, Setting<?>> allowed = eligible();
         int skipped = 0;
+        int held = 0;
         try {
             JSONObject root = SettingsJson.parseObject(bytes, LIMITS);
             if (root.length() != 3 || !"HushGram".equals(root.get("project"))
@@ -245,8 +258,13 @@ public final class ConfigurationBackup {
                 if (entry.length() != 2 || !(entry.get("type") instanceof String) || !entry.has("value")) throw invalid();
                 Setting<?> setting = allowed.get(key);
                 Object value = setting == null ? null : accepted(setting, entry.getString("type"), entry.get("value"));
-                if (value == null || !setting.includeWithImportExport || heldByLock(setting)) {
+                if (value == null || !setting.includeWithImportExport) {
                     skipped++;
+                    continue;
+                }
+                if (heldByLock(setting)) {
+                    // Counted only when the file asked for a change: one matching what's saved changed nothing.
+                    if (!value.equals(setting.savedValue())) held++;
                     continue;
                 }
                 updates.put(setting, value);
@@ -275,7 +293,7 @@ public final class ConfigurationBackup {
                     throw failure;
                 }
             }
-            return new Result(updates.size(), skipped, restart, before);
+            return new Result(updates.size(), skipped, held, restart, before);
         }
     }
 
@@ -330,6 +348,10 @@ public final class ConfigurationBackup {
         if (setting == Settings.HIDDEN_MESSAGE_BOX_BUTTONS) return text.equals(MessageBox.join(MessageBox.parse(text)));
         // The profile tabs left off, as Instagram's keys with commas between, in the order the dialog lists them.
         if (setting == Settings.HIDDEN_PROFILE_TABS) return text.equals(ProfileTabs.join(ProfileTabs.parse(text)));
+        // The same for your own profile, or the mark that it still follows other profiles.
+        if (setting == Settings.HIDDEN_OWN_PROFILE_TABS) {
+            return text.equals(ProfileTabs.SAME_AS_OTHERS) || text.equals(ProfileTabs.join(ProfileTabs.parse(text)));
+        }
         // The words Hide reels by caption words looks for: any text without control characters but line breaks.
         if (setting == Settings.REELS_BLOCKED_WORDS) return blockedWordsAllowed(text);
         // An enum constant name of Instagram's; a name this Instagram lacks keeps its heart.
@@ -381,10 +403,14 @@ public final class ConfigurationBackup {
             Map<Setting<?>, Object> before = new LinkedHashMap<>();
             boolean restart = false;
             int skipped = 0;
+            int held = 0;
             for (var entries = values.entrySet().iterator(); entries.hasNext();) {
                 var entry = entries.next();
                 Setting<?> setting = entry.getKey();
-                if (heldByLock(setting) || revisions.get(setting) != setting.savedRevision()
+                if (heldByLock(setting)) {
+                    entries.remove();
+                    if (!entry.getValue().equals(setting.savedValue())) held++;
+                } else if (revisions.get(setting) != setting.savedRevision()
                         || !expected.get(setting).equals(setting.savedValue())) {
                     entries.remove();
                     skipped++;
@@ -395,7 +421,7 @@ public final class ConfigurationBackup {
             }
             for (var changed : before.entrySet()) AbstractPreferenceFragment.noteRunningValue(changed.getKey(), changed.getValue());
             Setting.saveAll(values);
-            return new Result(values.size(), skipped, restart, before);
+            return new Result(values.size(), skipped, held, restart, before);
         }
     }
 

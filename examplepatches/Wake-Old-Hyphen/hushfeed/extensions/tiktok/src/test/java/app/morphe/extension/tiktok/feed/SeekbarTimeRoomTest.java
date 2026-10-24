@@ -86,6 +86,9 @@ public class SeekbarTimeRoomTest {
 
     /** TikTok's pager in short: the cells stacked a page apart and scrolled to the current one. */
     private static final class StackedPager extends FrameLayout {
+        /** A height the cells keep whatever the pager's own, as TikTok's do until a later layout; 0 follows the pager. */
+        int cellHeight;
+
         StackedPager(Context context) {
             super(context);
         }
@@ -93,8 +96,9 @@ public class SeekbarTimeRoomTest {
         @Override
         protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
             int page = bottom - top;
+            int cell = cellHeight > 0 ? cellHeight : page;
             for (int i = 0; i < getChildCount(); i++) {
-                getChildAt(i).layout(0, i * page, right - left, (i + 1) * page);
+                getChildAt(i).layout(0, i * page, right - left, i * page + cell);
             }
         }
     }
@@ -398,6 +402,72 @@ public class SeekbarTimeRoomTest {
             feed.tick("2");
             assertEquals("the see-through lift stays", -138f, feed.layers[0].getTranslationY(), 0f);
             assertEquals(View.GONE, strip.getVisibility());
+        }
+    }
+
+    /**
+     * TikTok shows the strip again as each new video settles (#232). The pass measured the lift
+     * while the strip still showed, took the layer down, then hid the strip and gave the pager its
+     * room back, so the caption, the buttons and the search bar sat a strip's height low over the
+     * tabs until some later layout (Login2, 2026-10-23: about half a second on every swipe).
+     */
+    @Test
+    public void aStripTikTokShowsAgainOnASwipeLeavesTheLayerLiftedAfterOnePass() {
+        VideoOverlayHider.resolveForTests("47.5.3:cmy", STRIP_ID);
+        VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
+        VideoOverlayHider.resolveForTests("47.5.3:op9", TABS_ID);
+        Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            LinearLayout column = new LinearLayout(activity);
+            column.setId(COLUMN_ID);
+            column.setOrientation(LinearLayout.VERTICAL);
+            View strip = new View(activity);
+            strip.setId(STRIP_ID);
+            column.addView(strip, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 138));
+            Feed feed = new Feed(activity, column, 0, 0);
+            View tabs = new FrameLayout(activity);
+            tabs.setId(TABS_ID);
+            tabs.setBackgroundColor(Color.BLACK);
+            feed.root.addView(tabs, 1, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, 138, Gravity.BOTTOM));
+            feed.layOut();
+            VideoOverlayHider.applyTo(activity);
+            feed.layOut();
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(-138f, feed.layers[0].getTranslationY(), 0f);
+            assertEquals(-138f, feed.layers[1].getTranslationY(), 0f);
+
+            for (int swipe = 0; swipe < 3; swipe++) {
+                strip.setVisibility(View.VISIBLE);
+                feed.layOut();
+                assertEquals(HEIGHT - 138, feed.pager.getHeight());
+                VideoOverlayHider.applyTo(activity);
+                assertEquals(View.GONE, strip.getVisibility());
+                assertEquals("swipe " + swipe + ": the pager didn't get the room back", HEIGHT, feed.pager.getHeight());
+                for (FrameLayout layer : feed.layers) {
+                    assertEquals("swipe " + swipe + ": the caption sat a strip's height low until the next layout",
+                            -138f, layer.getTranslationY(), 0f);
+                }
+            }
+
+            // TikTok shows the strip again from its own layout of the column, the pass's included,
+            // and the cells keep their full height until a later layout (Login2, 2026-10-23).
+            feed.pager.cellHeight = HEIGHT;
+            View.OnLayoutChangeListener showAgain = (view, l, t, r, b, oldL, oldT, oldR, oldB) ->
+                    strip.setVisibility(View.VISIBLE);
+            column.addOnLayoutChangeListener(showAgain);
+            strip.setVisibility(View.VISIBLE);
+            feed.layOut();
+            assertEquals(HEIGHT - 138, feed.pager.getHeight());
+            assertEquals(HEIGHT, feed.pager.getChildAt(0).getHeight());
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("TikTok's layout didn't show the strip again", View.VISIBLE, strip.getVisibility());
+            for (FrameLayout layer : feed.layers) {
+                assertEquals("the lift followed the strip while the cells still reached over its place",
+                        -138f, layer.getTranslationY(), 0f);
+            }
         }
     }
 }

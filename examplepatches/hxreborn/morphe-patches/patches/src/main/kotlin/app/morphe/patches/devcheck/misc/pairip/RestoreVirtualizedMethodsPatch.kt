@@ -5,19 +5,16 @@
 package app.morphe.patches.devcheck.misc.pairip
 
 import app.morphe.patcher.Match
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
-import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.shared.misc.generated.addDefaultConstructor
-import app.morphe.patches.shared.misc.generated.assembleDex
-import app.morphe.patches.shared.misc.generated.descriptor
 import app.morphe.patches.shared.misc.pairip.removePairipVirtualizationPatch
+import app.morphe.patches.shared.misc.pairip.replaceVirtualizedBody
+import app.morphe.patches.shared.misc.smali.addDefaultConstructor
+import app.morphe.patches.shared.misc.smali.assembleDex
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.inputStreamFromBundledResource
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -40,8 +37,7 @@ private val RESTORED_SOURCES = listOf(
 private fun stub(name: String) = "Lstub/$name;"
 
 private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<MutableMethod, String>> {
-    val members = mutableMapOf<String, String>()
-    val classes = mutableMapOf<String, String>()
+    val stubs = mutableMapOf<String, String>()
 
     fun Match.reference(index: Int) =
         instructionMatches[index].getInstruction<ReferenceInstruction>().reference
@@ -51,7 +47,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     fun Match.type(index: Int) = (reference(index) as TypeReference).type
 
     fun member(owner: String, name: String, real: String) {
-        members["${stub(owner)}->$name"] = real
+        stubs["${stub(owner)}->$name"] = real
     }
 
     fun field(owner: String, name: String, type: String, real: FieldReference) {
@@ -63,14 +59,14 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
         field(owner, name, type, classDef.fields.single { it.type == type })
 
     val postExecute = SystemInfoTaskPostExecuteFingerprint.matchSingle()
-    classes[stub("CpuTimeSensorTask")] = postExecute.classDef.type
+    stubs[stub("CpuTimeSensorTask")] = postExecute.classDef.type
     field("CpuTimeSensorTask", "owner", "Ljava/lang/Object;", postExecute.field(0))
 
-    classes[stub("CpuTimeActivity")] = CPU_TIME_ACTIVITY
+    stubs[stub("CpuTimeActivity")] = CPU_TIME_ACTIVITY
     field("CpuTimeActivity", "states", "Ljava/util/ArrayList;", classDefBy(CPU_TIME_ACTIVITY))
     field("CpuTimeActivity", "timeInStatePath", "Ljava/lang/String;", TimeInStatePathFingerprint.matchSingle().field(1))
 
-    classes[stub("SensorActivity")] = SENSOR_ACTIVITY
+    stubs[stub("SensorActivity")] = SENSOR_ACTIVITY
     field("SensorActivity", "sensor", "Landroid/hardware/Sensor;", classDefBy(SENSOR_ACTIVITY))
     field("SensorActivity", "steps", "I", SensorStepsFingerprint.matchSingle().field(1))
     member(
@@ -100,7 +96,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     )
 
     val timeInState = TimeInStateConstructorFingerprint.matchSingle()
-    classes[stub("TimeInState")] = timeInState.classDef.type
+    stubs[stub("TimeInState")] = timeInState.classDef.type
     field("TimeInState", "name", "Ljava/lang/String;", timeInState.field(0))
     field("TimeInState", "duration", "Ljava/lang/String;", timeInState.field(2))
     field("TimeInState", "percent", "Ljava/lang/String;", timeInState.field(3))
@@ -110,7 +106,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
         .matchSingle()
     val rowFields = listOf(0, 2, 4, 6).map(rowBinding::field)
     val listRow = mutableClassDefBy(rowFields.map { it.definingClass }.distinct().single())
-    classes[stub("TimeInStateRow")] = listRow.type
+    stubs[stub("TimeInStateRow")] = listRow.type
     field("TimeInStateRow", "type", "B", listRow)
     field("TimeInStateRow", "title", "Ljava/lang/String;", rowFields[0])
     field("TimeInStateRow", "duration", "Ljava/lang/String;", rowFields[1])
@@ -124,7 +120,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
             it.name == "<init>" && it.parameterTypes == listOf("I", "Ljava/lang/String;", "Ljava/lang/String;")
         },
     ) { "$infoRow has no (int, String, String) constructor" }
-    classes[stub("InfoRow")] = infoRow
+    stubs[stub("InfoRow")] = infoRow
     val signalRow = signalRowConstructorFingerprint(infoRow).matchSingle()
     field("InfoRow", "address", "Ljava/lang/String;", signalRow.field(2))
     field("InfoRow", "type", "I", signalRow.field(5))
@@ -132,8 +128,8 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     val activityResult = HardwareActivityResultFingerprint.matchSingle()
     val hardwareFragment = activityResult.classDef.type
     val viewModel = activityResult.field(2)
-    classes[stub("HardwareFragment")] = hardwareFragment
-    classes[stub("HardwareViewModel")] = viewModel.type
+    stubs[stub("HardwareFragment")] = hardwareFragment
+    stubs[stub("HardwareViewModel")] = viewModel.type
     member("HardwareFragment", "viewModel:${stub("HardwareViewModel")}", descriptor(viewModel))
     member(
         "HardwareFragment",
@@ -155,12 +151,12 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
 
     val nearbyAdapter = nearbyAdapterFingerprint(hardwareFragment).matchSingle().field(1)
     val adapterBase = classDefBy(nearbyAdapter.type).superclass!!
-    classes[stub("RowAdapter")] = nearbyAdapter.type
+    stubs[stub("RowAdapter")] = nearbyAdapter.type
     member("HardwareFragment", "nearbyAdapter:${stub("RowAdapter")}", descriptor(nearbyAdapter))
     member("RowAdapter", "notifyDataSetChanged()V", descriptor(notifyDataSetChangedFingerprint(adapterBase).matchSingle().method))
 
     val hardwareReceiver = hardwareReceiverConstructorFingerprint(hardwareFragment).matchSingle()
-    classes[stub("HardwareReceiver")] = hardwareReceiver.classDef.type
+    stubs[stub("HardwareReceiver")] = hardwareReceiver.classDef.type
     field("HardwareReceiver", "mode", "B", hardwareReceiver.field(0))
     member("HardwareReceiver", "fragment:${stub("HardwareFragment")}", descriptor(hardwareReceiver.field(1)))
     member(
@@ -173,16 +169,16 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     )
 
     val batteryTask = BatteryTaskPostExecuteFingerprint.matchSingle()
-    classes[stub("BatteryActivityTask")] = batteryTask.classDef.type
-    classes[stub("BatteryActivity")] = BATTERY_ACTIVITY
-    classes[stub("BatteryMonitorService")] = BATTERY_MONITOR_SERVICE
+    stubs[stub("BatteryActivityTask")] = batteryTask.classDef.type
+    stubs[stub("BatteryActivity")] = BATTERY_ACTIVITY
+    stubs[stub("BatteryMonitorService")] = BATTERY_MONITOR_SERVICE
     field("BatteryActivityTask", "mode", "B", batteryTask.field(0))
     member("BatteryActivityTask", "activity:${stub("BatteryActivity")}", descriptor(batteryTask.field(1)))
     field("BatteryActivity", "entries", "Ljava/util/ArrayList;", classDefBy(BATTERY_ACTIVITY))
 
     val bluetoothTask = BluetoothTaskPostExecuteFingerprint.matchSingle()
-    classes[stub("BluetoothTask")] = bluetoothTask.classDef.type
-    classes[stub("BluetoothActivity")] = BLUETOOTH_ACTIVITY
+    stubs[stub("BluetoothTask")] = bluetoothTask.classDef.type
+    stubs[stub("BluetoothActivity")] = BLUETOOTH_ACTIVITY
     member("BluetoothTask", "activity:${stub("BluetoothActivity")}", descriptor(bluetoothTask.field(0)))
     field("BluetoothTask", "delay", "I", bluetoothTask.classDef)
     field("BluetoothActivity", "emptyView", "Landroid/view/View;", bluetoothTask.field(1))
@@ -190,15 +186,15 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     field("BluetoothActivity", "adapter", "Landroid/bluetooth/BluetoothAdapter;", classDefBy(BLUETOOTH_ACTIVITY))
 
     val publicIpTask = PublicIpTaskPreExecuteFingerprint.matchSingle()
-    classes[stub("PublicIpTask")] = publicIpTask.classDef.type
+    stubs[stub("PublicIpTask")] = publicIpTask.classDef.type
     field("PublicIpTask", "resultText", "Landroid/widget/TextView;", publicIpTask.field(1))
 
     val networkTask = NetworkTaskPostExecuteFingerprint.matchSingle()
-    classes[stub("NetworkDialogTask")] = networkTask.classDef.type
+    stubs[stub("NetworkDialogTask")] = networkTask.classDef.type
     field("NetworkDialogTask", "mobileConnected", "Z", networkTask.classDef)
     member("NetworkDialogTask", "list:Landroid/view/View;", descriptor(networkTask.field(1)))
     val networkTypeReader = NetworkTypeReaderFingerprint.matchSingle()
-    classes[stub("NetworkTypeReader")] = networkTypeReader.classDef.type
+    stubs[stub("NetworkTypeReader")] = networkTypeReader.classDef.type
     member("NetworkTypeReader", "read()Ljava/lang/String;", descriptor(networkTypeReader.method))
     val networkFragment = classDefBy(networkTask.field(0).type)
     member(
@@ -225,11 +221,11 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
         descriptor(simStateFingerprint(deviceInfoClass).matchSingle().method),
     )
 
-    classes[stub("BootReceiver")] = BOOT_RECEIVER
-    classes[stub("MonitorReceiver")] = MONITOR_RECEIVER
-    classes[stub("UpdateReceiver")] = UPDATE_RECEIVER
-    classes[stub("PauseResumeReceiver")] = PAUSE_RESUME_RECEIVER
-    classes[stub("MonitorActivity")] = MONITOR_ACTIVITY
+    stubs[stub("BootReceiver")] = BOOT_RECEIVER
+    stubs[stub("MonitorReceiver")] = MONITOR_RECEIVER
+    stubs[stub("UpdateReceiver")] = UPDATE_RECEIVER
+    stubs[stub("PauseResumeReceiver")] = PAUSE_RESUME_RECEIVER
+    stubs[stub("MonitorActivity")] = MONITOR_ACTIVITY
     member(
         "BootReceiver",
         "startBatteryMonitor(Landroid/content/Context;)V",
@@ -243,8 +239,8 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
 
     val tempStart = TempMonitorStartFingerprint.matchSingle()
     val tempReceiver = classDefBy(tempStart.field(2).type)
-    classes[stub("TempMonitorWindow")] = TEMP_MONITOR_WINDOW
-    classes[stub("TempMonitorReceiver")] = tempReceiver.type
+    stubs[stub("TempMonitorWindow")] = TEMP_MONITOR_WINDOW
+    stubs[stub("TempMonitorReceiver")] = tempReceiver.type
     field("TempMonitorReceiver", "mode", "B", tempReceiver)
     member(
         "TempMonitorReceiver",
@@ -259,7 +255,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     val showTemperature = TempMonitorShowTemperatureFingerprint.matchSingle()
     member("TempMonitorWindow", "showTemperature(I)V", descriptor(showTemperature.method))
     val appPrefs = showTemperature.field(1)
-    classes[stub("ProviderPrefs")] = appPrefs.type
+    stubs[stub("ProviderPrefs")] = appPrefs.type
     member("ProviderPrefs", "instance:${stub("ProviderPrefs")}", descriptor(appPrefs))
     member(
         "ProviderPrefs",
@@ -271,8 +267,8 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     val batteryStart = BatteryMonitorStartFingerprint.matchSingle()
     val batteryReceiver = classDefBy(batteryStart.field(1).type)
     val batteryViews = BatteryMonitorViewsFingerprint.matchSingle()
-    classes[stub("BatteryMonitorWindow")] = BATTERY_MONITOR_WINDOW
-    classes[stub("BatteryMonitorReceiver")] = batteryReceiver.type
+    stubs[stub("BatteryMonitorWindow")] = BATTERY_MONITOR_WINDOW
+    stubs[stub("BatteryMonitorReceiver")] = batteryReceiver.type
     field("BatteryMonitorReceiver", "mode", "B", batteryReceiver)
     member(
         "BatteryMonitorReceiver",
@@ -285,8 +281,8 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     field("BatteryMonitorWindow", "view", "Landroid/view/View;", classDefBy(BATTERY_MONITOR_WINDOW))
 
     val shizukuReceiver = ShizukuBinderReceiverFingerprint.matchSingle().type(0)
-    classes[stub("ShizukuReceiver")] = shizukuReceiver
-    classes[stub("BinderContainer")] = BINDER_CONTAINER
+    stubs[stub("ShizukuReceiver")] = shizukuReceiver
+    stubs[stub("BinderContainer")] = BINDER_CONTAINER
     field("BinderContainer", "binder", "Landroid/os/IBinder;", classDefBy(BINDER_CONTAINER))
     val binderReceived = ShizukuBinderReceivedFingerprint.matchAll()
         .map { descriptor(it.reference(0) as MethodReference) }
@@ -295,7 +291,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
 
     val bind = RootServiceBindFingerprint.matchSingle()
     val rootServiceManager = bind.classDef
-    classes[stub("RootServiceManager")] = rootServiceManager.type
+    stubs[stub("RootServiceManager")] = rootServiceManager.type
     member(
         "RootServiceManager",
         "bind(Landroid/content/Intent;Ljava/util/concurrent/Executor;Landroid/content/ServiceConnection;)Ljava/lang/Object;",
@@ -310,13 +306,13 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     val rootManagerProxy = connect.classDef
     val rootManager = rootManagerProxy.interfaces.single()
     rootManagerProxy.addDefaultConstructor()
-    classes[stub("IRootServiceManagerProxy")] = rootManagerProxy.type
-    classes[stub("IRootServiceManager")] = rootManager
+    stubs[stub("IRootServiceManagerProxy")] = rootManagerProxy.type
+    stubs[stub("IRootServiceManager")] = rootManager
     member("IRootServiceManager", "connect(Landroid/os/IBinder;)V", "$rootManager->${connect.method.name}(Landroid/os/IBinder;)V")
     field("IRootServiceManagerProxy", "remote", "Landroid/os/IBinder;", rootManagerProxy)
 
     val remoteProcess = constructorFingerprint(rootServiceManager.type, rootManager).matchSingle()
-    classes[stub("RemoteProcess")] = remoteProcess.classDef.type
+    stubs[stub("RemoteProcess")] = remoteProcess.classDef.type
     member(
         "RemoteProcess",
         "<init>(${stub("RootServiceManager")}${stub("IRootServiceManager")})V",
@@ -329,7 +325,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
         "Ljava/util/concurrent/Executor;",
         "Landroid/content/ServiceConnection;",
     ).matchSingle().classDef
-    classes[stub("BindTask")] = pendingBind.type
+    stubs[stub("BindTask")] = pendingBind.type
     listOf(
         "intent" to "Landroid/content/Intent;",
         "executor" to "Ljava/util/concurrent/Executor;",
@@ -337,7 +333,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
     ).forEach { (name, type) -> field("BindTask", name, type, pendingBind) }
 
     val rootServiceReceiver = rootServiceReceiverConstructorFingerprint(rootServiceManager.type).matchSingle()
-    classes[stub("RootServiceReceiver")] = rootServiceReceiver.classDef.type
+    stubs[stub("RootServiceReceiver")] = rootServiceReceiver.classDef.type
     field("RootServiceReceiver", "mode", "B", rootServiceReceiver.field(0))
     field("RootServiceReceiver", "owner", "Ljava/lang/Object;", rootServiceReceiver.field(1))
     field("RootServiceReceiver", "messenger", "Ljava/lang/Object;", rootServiceReceiver.field(3))
@@ -361,7 +357,7 @@ private fun BytecodePatchContext.resolveStubs(): Pair<Map<String, String>, Map<M
         receiver(rootServiceReceiver.classDef.type) to "rootServiceReceive",
         receiver(hardwareReceiver.classDef.type) to "hardwareReceive",
     )
-    return (members + classes) to virtualizedMethods
+    return stubs to virtualizedMethods
 }
 
 private val stringResourceRead = Regex("""sget ([vp]\d+), Lstub/StringRes;->(\w+):I""")
@@ -373,11 +369,12 @@ private lateinit var virtualizedMethods: Map<MutableMethod, String>
 private val resolveRestoredMethodsPatch = bytecodePatch {
     execute {
         val (stubs, methods) = resolveStubs()
+        val replacements = stubs.entries.sortedByDescending { it.key.length }
         restoredSmali = RESTORED_SOURCES.map { name ->
             val template = inputStreamFromBundledResource("devcheck/restored", name)!!.use {
                 it.readBytes().decodeToString()
             }
-            val smali = stubs.entries.sortedByDescending { it.key.length }
+            val smali = replacements
                 .fold(template) { smali, (stub, real) -> smali.replace(stub, real) }
                 .replace(stringResourceRead) { read ->
                     "const ${read.groupValues[1]}, ${resourceId(ResourceType.STRING, read.groupValues[2])}"
@@ -400,8 +397,7 @@ internal val restoreVirtualizedMethodsPatch = bytecodePatch {
             val call = "invoke-static/range {p0 .. p${method.parameterTypes.size}}, " +
                 "$RESTORED_CLASS->$restoredName($parameters)${method.returnType}"
             val returnSmali = if (method.returnType == "V") "return-void" else "move-result-object v0\nreturn-object v0"
-            method.removeInstructions(0, method.instructions.size)
-            method.addInstructions(0, "$call\n$returnSmali")
+            method.replaceVirtualizedBody("$call\n$returnSmali")
         }
     }
 }

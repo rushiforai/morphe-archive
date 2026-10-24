@@ -6,6 +6,6 @@ package com.facebook.stories.viewer.activity;
 
 import android.app.Activity;
 
-/** Stands in for Facebook's story viewer activity: the Mark as seen button goes by its class name. */
+/** Stands in for Facebook's story viewer activity: the Mark as seen button and the pinch zoom go by its class name. */
 public class StoryViewerActivity extends Activity {
 }

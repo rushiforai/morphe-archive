@@ -4,7 +4,6 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static app.morphe.extension.shared.settings.Setting.migrateOldSettingToNew;
 import static app.morphe.extension.shared.settings.Setting.parent;
-import static app.morphe.extension.shared.settings.Setting.parentsAny;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.BaseAppRefreshRatePatch.AppRefreshType;
@@ -12,9 +11,12 @@ import app.morphe.extension.shared.patches.BaseAppRefreshRatePatch.RefreshRateTy
 import app.morphe.extension.shared.patches.CustomBrandingPatch;
 import app.morphe.extension.shared.patches.CustomBrandingPatch.BrandingTheme;
 import app.morphe.extension.shared.patches.CustomBrandingPatch.NotificationIconTheme;
+import app.morphe.extension.shared.patches.CustomFontPatch.FontType;
+import app.morphe.extension.shared.patches.DownloadMode;
 import app.morphe.extension.shared.patches.PoTokenProviderPatch.PoTokenProviderAvailability;
 import app.morphe.extension.shared.patches.SkipSilencePatch.MinimumPause;
 import app.morphe.extension.shared.patches.SplashAnimationPatch.SplashScreenAnimationStyle;
+import app.morphe.extension.shared.settings.preference.ExternalDownloaderPreference.ExternalDownloaderAvailability;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch.JavaScriptClientAvailability;
 import app.morphe.extension.shared.spoof.js.JavaScriptVariant;
 import app.morphe.extension.shared.theme.ThemeColorPatch.ThemeColorChangeForegroundAvailability;
@@ -96,15 +98,20 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final LongSetting SPOOF_VIDEO_STREAMS_PLAYER_JS_SAVED_MILLISECONDS = new LongSetting("morphe_spoof_video_streams_player_js_saved_milliseconds", -1L, false, false);
     public static final StringSetting OAUTH2_REFRESH_TOKEN = new StringSetting("morphe_oauth2_refresh_token", "", false, false);
     public static final StringSetting SPOOF_VIDEO_STREAMS_CLIENT_IDS = new StringSetting("morphe_spoof_video_streams_clent_id", "", false, false);
+    public static final BooleanSetting SPOOF_VIDEO_STREAMS_CLIENT_FAILING_DIALOG = new BooleanSetting("morphe_spoof_video_streams_client_failing_dialog", FALSE, false, false);
+    public static final LongSetting SPOOF_VIDEO_STREAMS_CLIENT_FAILING_DIALOG_LAST_SHOWN = new LongSetting("morphe_spoof_video_streams_client_failing_dialog_last_shown", 0L, false, false);
 
     // PoToken provider
     public static final BooleanSetting EXTERNAL_POTOKEN_PROVIDER = new BooleanSetting("morphe_external_potoken_provider", FALSE, true, "morphe_external_potoken_provider_user_dialog_message", new PoTokenProviderAvailability());
+    public static final LongSetting EXTERNAL_POTOKEN_PROVIDER_EXPIRED_DIALOG_LAST_SHOWN = new LongSetting("morphe_external_potoken_provider_expired_dialog_last_shown", 0L, false, false);
 
-    // External downloads
-    public static final BooleanSetting EXTERNAL_DOWNLOADER = new BooleanSetting("morphe_external_downloader", FALSE);
-    public static final BooleanSetting EXTERNAL_DOWNLOADER_ACTION_BUTTON = new BooleanSetting("morphe_external_downloader_action_button", FALSE);
-    public static final BooleanSetting EXTERNAL_DOWNLOADER_FLYOUT_MENU = new BooleanSetting("morphe_external_downloader_flyout_menu", FALSE, parent(EXTERNAL_DOWNLOADER_ACTION_BUTTON));
-    public static final StringSetting EXTERNAL_DOWNLOADER_PACKAGE_NAME = new StringSetting("morphe_external_downloader_name", "com.deniscerri.ytdl" /* YTDLnis */, parentsAny(EXTERNAL_DOWNLOADER, EXTERNAL_DOWNLOADER_ACTION_BUTTON));
+    // Downloads
+    public static final EnumSetting<DownloadMode> DOWNLOAD_MODE = new EnumSetting<>("morphe_download_mode", DownloadMode.DEFAULT);
+    // YouTube only.
+    public static final BooleanSetting EXTERNAL_DOWNLOADER_OVERLAY_BUTTON = new BooleanSetting("morphe_external_downloader_overlay_button", FALSE, true);
+    // YouTube Music only.
+    public static final BooleanSetting EXTERNAL_DOWNLOADER_MENU = new BooleanSetting("morphe_external_downloader_menu", FALSE, DOWNLOAD_MODE.availability(DownloadMode.DEFAULT, DownloadMode.IN_APP));
+    public static final StringSetting EXTERNAL_DOWNLOADER_PACKAGE_NAME = new StringSetting("morphe_external_downloader_name", "com.deniscerri.ytdl" /* YTDLnis */, new ExternalDownloaderAvailability());
 
     // Spoof app version
     public static final BooleanSetting SPOOF_APP_VERSION = new BooleanSetting("morphe_spoof_app_version", FALSE, true, "morphe_spoof_app_version_user_dialog_message");
@@ -112,6 +119,10 @@ public class SharedYouTubeSettings extends BaseSettings {
 
     public static final StringSetting APP_REFRESH_RATE = new StringSetting("morphe_app_refresh_rate", "DEFAULT", true);
     public static final EnumSetting<AppRefreshType> APP_REFRESH_RATE_TYPE = new EnumSetting<>("morphe_app_refresh_rate_type", AppRefreshType.ALWAYS, true, new RefreshRateType());
+
+    // Custom font
+    public static final EnumSetting<FontType> CUSTOM_FONT_TYPE = new EnumSetting<>("morphe_custom_font_type", FontType.DEFAULT, true);
+    public static final StringSetting CUSTOM_FONT_FILE = new StringSetting("morphe_custom_font_file", "", CUSTOM_FONT_TYPE.availability(FontType.CUSTOM));
 
     // Return YouTube Dislike
     public static final BooleanSetting RYD_ENABLED = new BooleanSetting("morphe_ryd_enabled", TRUE, true);
@@ -123,12 +134,10 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final StringSetting GMS_CORE_IGNORED_CONFLICTS = new StringSetting("morphe_gms_core_conflict_dialog_ignored", "", false, false);
 
     // Migration
-    private static final BooleanSetting DEPRECATED_EXTERNAL_DOWNLOADER_FLYOUT_BUTTON = new BooleanSetting("morphe_external_downloader_flyout_button", FALSE);
     private static final BooleanSetting DEPRECATED_SANITIZE_URL_QUERY = new BooleanSetting("morphe_sanitize_url_query", TRUE);
 
     static {
         // TODO: Eventually remove these migrations
-        migrateOldSettingToNew(DEPRECATED_EXTERNAL_DOWNLOADER_FLYOUT_BUTTON, EXTERNAL_DOWNLOADER_FLYOUT_MENU);
         migrateOldSettingToNew(DEPRECATED_SANITIZE_URL_QUERY, SANITIZE_SHARING_LINKS);
     }
 

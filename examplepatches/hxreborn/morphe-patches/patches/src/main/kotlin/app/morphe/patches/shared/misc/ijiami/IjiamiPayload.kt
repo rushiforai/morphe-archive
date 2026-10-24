@@ -5,6 +5,10 @@
 package app.morphe.patches.shared.misc.ijiami
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.readInt
+import app.morphe.patches.shared.readShort
+import app.morphe.patches.shared.writeInt
+import app.morphe.patches.shared.writeShort
 import kotlin.math.abs
 
 private const val REGISTERS_SIZE_OFFSET = 0

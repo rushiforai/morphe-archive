@@ -7,10 +7,10 @@ package app.morphe.patches.storywise.misc.update
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
-
-private const val DART_AOT_LIBRARY = "lib/arm64-v8a/libapp.so"
 
 private val BUILD_COMPARISON = "4a010054a0835ef880002037".hexToByteArray()
 private val BUILD_COMPARISON_MASK = "1f0000ffffffffff1f00f8ff".hexToByteArray()
@@ -25,8 +25,7 @@ val removeForcedUpdatePatch = resourcePatch(
     availability(requireArm64)
 
     execute {
-        val library = get(DART_AOT_LIBRARY)
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY")
+        val library = dartAotLibrary()
 
         if (!library.replaceMasked(BUILD_COMPARISON, BUILD_COMPARISON_MASK, mapOf(0 to BRANCH_TO_UP_TO_DATE))) {
             throw PatchException("Could not find the build comparison in $DART_AOT_LIBRARY")

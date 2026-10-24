@@ -8,6 +8,8 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from versions import targets
+
 REPO = os.environ.get("GITHUB_REPOSITORY", "hxreborn/morphe-patches")
 CLOSED_MARKER = "<!-- closed-issue-bot -->"
 PING_MARKER = "<!-- status-ping-bot -->"
@@ -57,15 +59,6 @@ GREETINGS = {(), ("hello",), ("hi",), ("hey",)}
 
 def normalize(text):
     return re.sub(r"[^a-z0-9]", "", text.lower())
-
-
-def targets(patches_list):
-    apps = {}
-    for patch in patches_list["patches"]:
-        for package in patch.get("compatiblePackages") or []:
-            versions = apps.setdefault(package["name"], set())
-            versions.update(t["version"] for t in package.get("targets") or [] if t.get("version"))
-    return apps
 
 
 def targeted_app(text, apps):

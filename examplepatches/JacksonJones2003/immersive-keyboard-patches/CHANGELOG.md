@@ -1,3 +1,15 @@
+## [1.13.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.13.0...v1.13.1) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* Leave the bottom strip empty when a hardware keyboard hides the on-screen keyboard ([f7d45ac](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/f7d45aca28a2d3aa108ff00aa363e4f361efcaf6))
+
+## [1.13.1-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.13.0...v1.13.1-dev.1) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* Leave the bottom strip empty when a hardware keyboard hides the on-screen keyboard ([f7d45ac](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/f7d45aca28a2d3aa108ff00aa363e4f361efcaf6))
+
 ## [1.13.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.12.1...v1.13.0) (2026-10-21)
 
 ### ✨ New Features

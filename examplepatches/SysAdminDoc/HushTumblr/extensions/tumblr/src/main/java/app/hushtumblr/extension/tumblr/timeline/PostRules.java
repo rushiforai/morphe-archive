@@ -28,8 +28,8 @@ import app.hushtumblr.extension.tumblr.settings.TextSettings;
 
 /**
  * The post switches of the timeline filter: Hide reblogs, Hide video posts, Hide photo posts, Hide
- * text posts and Hide posts with these words. {@link TimelineFilter} asks {@link #now} once a page
- * and hands each item's payload to {@link #removes}.
+ * text posts, Hide posts with these words and Hide filtered posts. {@link TimelineFilter} asks
+ * {@link #now} once a page and hands each item's payload to {@link #removes}.
  *
  * <p>A post is read through {@link HushPost}, which the post bridge patch adds to Tumblr's post
  * model. Anything else is kept, a campaign in your own Blaze dashboard included: it carries your
@@ -38,6 +38,9 @@ import app.hushtumblr.extension.tumblr.settings.TextSettings;
  * <p>A post's kind comes from all of its blocks, the ones in its reblog trail and its own: any
  * video block makes it a video post, any image block without a video makes it a photo post, and
  * everything else is a text post. A post with no blocks at all has no kind and stays.
+ *
+ * <p>A filtered post is one Tumblr would cover with "This post contains filtered content": its
+ * {@link HushFilteredPost} note names a tag or word from your own Tumblr filters.
  */
 public final class PostRules {
     static final String VIDEO_BLOCK = "com.tumblr.rumblr.model.post.blocks.VideoBlock";
@@ -46,7 +49,7 @@ public final class PostRules {
     /** The families whose switches are here. A heading never goes with one of their posts. */
     static final Set<String> FAMILIES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             FamilyNames.HIDE_REBLOGS, FamilyNames.HIDE_VIDEO_POSTS, FamilyNames.HIDE_PHOTO_POSTS,
-            FamilyNames.HIDE_TEXT_POSTS, FamilyNames.HIDE_POSTS_WITH_WORDS)));
+            FamilyNames.HIDE_TEXT_POSTS, FamilyNames.HIDE_POSTS_WITH_WORDS, FamilyNames.HIDE_FILTERED_POSTS)));
 
     enum Kind { VIDEO, PHOTO, TEXT }
 
@@ -63,10 +66,11 @@ public final class PostRules {
     final boolean wordsReblogTrail;
     final boolean wordsTags;
     final boolean wordsSummary;
+    final boolean filtered;
 
     PostRules(boolean reblogs, boolean keepTaggedReblogs, boolean keepReblogsWithContent, boolean video,
               boolean photo, boolean text, List<String> words, List<String> allowedWords, boolean wordsCurrentText,
-              boolean wordsReblogTrail, boolean wordsTags, boolean wordsSummary) {
+              boolean wordsReblogTrail, boolean wordsTags, boolean wordsSummary, boolean filtered) {
         this.reblogs = reblogs;
         this.keepTaggedReblogs = keepTaggedReblogs;
         this.keepReblogsWithContent = keepReblogsWithContent;
@@ -79,6 +83,7 @@ public final class PostRules {
         this.wordsReblogTrail = wordsReblogTrail;
         this.wordsTags = wordsTags;
         this.wordsSummary = wordsSummary;
+        this.filtered = filtered;
     }
 
     /** Which kind each block class is, null for neither, so a class is looked up once. */
@@ -103,11 +108,13 @@ public final class PostRules {
                 Settings.HIDE_POSTS_WITH_WORDS);
         List<String> words = wordFilter && (current || trail || tags || summary)
                 ? wordList(TextSettings.HIDDEN_WORDS.get()) : Collections.emptyList();
-        if (!reblogs && !video && !photo && !text && words.isEmpty()) return null;
+        boolean filtered = on(PatchFamily.Capability.FILTERED_POSTS, FamilyNames.HIDE_FILTERED_POSTS,
+                Settings.HIDE_FILTERED_POSTS);
+        if (!reblogs && !video && !photo && !text && words.isEmpty() && !filtered) return null;
         List<String> allowed = words.isEmpty() ? Collections.emptyList() : cachedWordList(TextSettings.ALLOWED_WORDS.get(), true);
         return new PostRules(reblogs, reblogs && Settings.KEEP_TAGGED_REBLOGS.get(),
                 reblogs && Settings.KEEP_REBLOGS_WITH_CONTENT.get(), video, photo, text,
-                words, allowed, current, trail, tags, summary);
+                words, allowed, current, trail, tags, summary, filtered);
     }
 
     /** Whether [capability]'s hook is in and [family]'s switch is on. */
@@ -123,7 +130,8 @@ public final class PostRules {
         if (video) return FamilyNames.HIDE_VIDEO_POSTS;
         if (photo) return FamilyNames.HIDE_PHOTO_POSTS;
         if (text) return FamilyNames.HIDE_TEXT_POSTS;
-        return FamilyNames.HIDE_POSTS_WITH_WORDS;
+        if (!words.isEmpty()) return FamilyNames.HIDE_POSTS_WITH_WORDS;
+        return FamilyNames.HIDE_FILTERED_POSTS;
     }
 
     /**
@@ -132,6 +140,7 @@ public final class PostRules {
      */
     @Nullable
     String removes(@Nullable Object payload) {
+        if (filtered && isFiltered(payload)) return FamilyNames.HIDE_FILTERED_POSTS;
         HushPost post = postOf(payload);
         if (post == null) return null;
         List<?> trail = reblogs || video || photo || text || !words.isEmpty() && wordsReblogTrail ? post.hushTrail() : null;
@@ -146,6 +155,21 @@ public final class PostRules {
         if (!words.isEmpty() && hasWord(post, trail, words) && !hasWord(post, trail, allowedWords))
             return FamilyNames.HIDE_POSTS_WITH_WORDS;
         return null;
+    }
+
+    /** Whether Tumblr would cover [payload] for a tag or word in your filters. */
+    static boolean isFiltered(@Nullable Object payload) {
+        Object note = payload instanceof HushFilteredPost ? ((HushFilteredPost) payload).hushFiltered() : null;
+        if (!(note instanceof HushFiltered)) return false;
+        HushFiltered filtered = (HushFiltered) note;
+        return hasAny(filtered.hushFilteredTags()) || hasAny(filtered.hushFilteredContent());
+    }
+
+    private static boolean hasAny(@Nullable List<?> list) {
+        if (list != null) for (Object entry : list) {
+            if (entry != null) return true;
+        }
+        return false;
     }
 
     /** The post [payload] is, or null when it isn't one. */

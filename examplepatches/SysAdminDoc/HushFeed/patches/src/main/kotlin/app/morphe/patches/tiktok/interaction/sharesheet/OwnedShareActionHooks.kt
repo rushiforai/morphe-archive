@@ -34,6 +34,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 internal const val OWNED_SHARE_ACTIONS = "Lapp/morphe/extension/tiktok/share/OwnedShareActions;"
 internal const val SHARE_BLOCK_AUTHOR = "Lapp/morphe/extension/tiktok/share/ShareBlockAuthor;"
 internal const val SHARE_SAVE_COVER = "Lapp/morphe/extension/tiktok/share/ShareSaveCover;"
+internal const val SHARE_LIVE_QUALITY = "Lapp/morphe/extension/tiktok/share/ShareLiveQuality;"
 private const val BLOCK = "Owned share actions"
 private const val AWEME = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
 private const val BASE_PACKAGE = "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;"

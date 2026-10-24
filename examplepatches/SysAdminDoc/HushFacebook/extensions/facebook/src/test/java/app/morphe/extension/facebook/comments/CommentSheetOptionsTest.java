@@ -68,6 +68,7 @@ public class CommentSheetOptionsTest {
         Settings.HIDE_VIDEO_COMMENT_COMPOSER.resetToDefault();
         Settings.OPEN_REPLY_THREADS.resetToDefault();
         Settings.LOAD_WHOLE_REPLY_THREADS.resetToDefault();
+        Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES.resetToDefault();
         Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.resetToDefault();
         HookStatus.clear();
     }
@@ -146,6 +147,41 @@ public class CommentSheetOptionsTest {
         Settings.OPEN_REPLY_THREADS.save(false);
         assertFalse("Load whole reply threads alone opened a thread", CommentSheetOptions.openReplyThreads(false));
         assertTrue("alone, a tapped thread's replies kept View more replies", CommentSheetOptions.loadWholeReplyThreads(false));
+    }
+
+    @Test
+    public void onAViewMoreRepliesRowTakesATapAnywhereAndIsCounted() {
+        Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES.save(true);
+        assertFalse("a row Facebook gave words-only taps kept them", CommentSheetOptions.viewMoreRepliesTextOnly(true));
+        assertFalse("a row Facebook already lets the whole row take was changed",
+                CommentSheetOptions.viewMoreRepliesTextOnly(false));
+        assertFalse("tapping anywhere on the row loaded whole threads", CommentSheetOptions.loadWholeReplyThreads(false));
+        assertEquals(FamilyNames.COMMENT_SHEET_OPTIONS + ": invoked 3, 2 found, 0 missing. Counted: "
+                + CommentSheetOptions.WHOLE_ROW_TAPS + " 1", statusLine());
+    }
+
+    @Test
+    public void offPausedOrColdAViewMoreRepliesRowKeepsFacebooksAnswer() {
+        assertFalse("Tap anywhere on View more replies doesn't start off", Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES.get());
+        assertTrue("off, a row's words-only taps were changed", CommentSheetOptions.viewMoreRepliesTextOnly(true));
+        Settings.LOAD_WHOLE_REPLY_THREADS.save(true);
+        assertTrue("Load whole reply threads changed a row's taps", CommentSheetOptions.viewMoreRepliesTextOnly(true));
+
+        Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,
+                HushfacebookPause.Reason.MARKER_FILE}) {
+            PauseForTests.pause(reason);
+            assertTrue("a Hushfacebook paused by " + reason + " changed a row's taps",
+                    CommentSheetOptions.viewMoreRepliesTextOnly(true));
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertTrue(
+                "a row's taps changed before the settings were ready", CommentSheetOptions.viewMoreRepliesTextOnly(true)));
+
+        String line = statusLine();
+        assertFalse("a row left to Facebook was counted: " + line, line != null && line.contains("Counted"));
+        assertFalse("on again after the pause, a row kept words-only taps", CommentSheetOptions.viewMoreRepliesTextOnly(true));
     }
 
     @Test
@@ -302,7 +338,8 @@ public class CommentSheetOptionsTest {
         for (app.morphe.extension.shared.settings.BooleanSetting setting : new app.morphe.extension.shared.settings.BooleanSetting[] {
                 Settings.LIKE_ONLY, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS, Settings.OPEN_REPLY_THREADS,
                 Settings.LOAD_WHOLE_REPLY_THREADS, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS, Settings.HIDE_SHOP_LINK_COMMENTS,
-                Settings.HIDE_COMMENTS_WITH_WORDS, Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL}) {
+                Settings.HIDE_COMMENTS_WITH_WORDS, Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL,
+                Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES}) {
             assertFalse(setting.key + " asks for a restart, but each hook reads it again", setting.rebootApp);
             assertNull(setting.key + " asks before it changes", setting.userDialogMessage);
             assertTrue("Pause and the report don't know " + setting.key,

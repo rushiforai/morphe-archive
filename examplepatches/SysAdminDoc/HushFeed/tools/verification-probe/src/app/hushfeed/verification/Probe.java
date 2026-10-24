@@ -897,6 +897,89 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok addrs " + out);
                         break;
                     }
+                    case "covers": {
+                        // Every cover the current video's model holds, read from its fields so a
+                        // getter that swaps in another cover can't hide one: url count and frame
+                        // size only, which says whether Save cover could fetch a bigger image.
+                        Object aweme = loader.loadClass(
+                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                                .getMethod("getAweme").invoke(null);
+                        if (aweme == null) throw new IllegalStateException("no current video");
+                        Object video = optional(aweme, "getVideo");
+                        if (video == null) throw new IllegalStateException("no video model");
+                        StringBuilder out = new StringBuilder("video=")
+                                .append(optional(video, "getWidth")).append('x').append(optional(video, "getHeight"));
+                        for (String name : new String[]{"originCoverValue", "cover", "lowResCover", "dynamicCover",
+                                "animatedCover", "aiCover", "aiDynamicCover", "aiDynamicCoverBak", "cachedOuterCoverUrl"}) {
+                            Object model;
+                            try {
+                                Field field = video.getClass().getDeclaredField(name);
+                                field.setAccessible(true);
+                                model = field.get(video);
+                            } catch (NoSuchFieldException missing) {
+                                out.append(' ').append(name).append("=nofield");
+                                continue;
+                            }
+                            Object urls = optional(model, "getUrlList");
+                            out.append(' ').append(name).append('=').append(model == null ? "null"
+                                    : (urls instanceof List ? ((List<?>) urls).size() : -1) + "urls," + frame(model));
+                            // The image template the CDN renders, the part of the last path
+                            // segment after its '~': it names the size actually served.
+                            if (urls instanceof List && !((List<?>) urls).isEmpty()) {
+                                String segment = android.net.Uri.parse(String.valueOf(((List<?>) urls).get(0)))
+                                        .getLastPathSegment();
+                                int tilde = segment == null ? -1 : segment.indexOf('~');
+                                out.append(',').append(tilde < 0 ? "notemplate" : segment.substring(tilde + 1));
+                            }
+                        }
+                        Log.i(TAG, "ok covers " + out);
+                        break;
+                    }
+                    case "coversizes": {
+                        // Fetches each cover the current video's model holds and reads the size
+                        // the image server actually sent, off the main thread. Sizes only.
+                        Object aweme = loader.loadClass(
+                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                                .getMethod("getAweme").invoke(null);
+                        if (aweme == null) throw new IllegalStateException("no current video");
+                        final Object video = optional(aweme, "getVideo");
+                        if (video == null) throw new IllegalStateException("no video model");
+                        new Thread(() -> {
+                            StringBuilder out = new StringBuilder();
+                            for (String name : new String[]{"originCoverValue", "cover", "dynamicCover"}) {
+                                try {
+                                    Field field = video.getClass().getDeclaredField(name);
+                                    field.setAccessible(true);
+                                    Object urls = optional(field.get(video), "getUrlList");
+                                    if (!(urls instanceof List) || ((List<?>) urls).isEmpty()) {
+                                        out.append(' ').append(name).append("=nourls");
+                                        continue;
+                                    }
+                                    java.net.HttpURLConnection connection = (java.net.HttpURLConnection)
+                                            new java.net.URL(String.valueOf(((List<?>) urls).get(0))).openConnection();
+                                    connection.setConnectTimeout(10000);
+                                    connection.setReadTimeout(15000);
+                                    byte[] body;
+                                    try (java.io.InputStream in = connection.getInputStream()) {
+                                        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+                                        byte[] chunk = new byte[16384];
+                                        for (int read; (read = in.read(chunk)) > 0; ) bytes.write(chunk, 0, read);
+                                        body = bytes.toByteArray();
+                                    }
+                                    android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
+                                    bounds.inJustDecodeBounds = true;
+                                    android.graphics.BitmapFactory.decodeByteArray(body, 0, body.length, bounds);
+                                    out.append(' ').append(name).append('=').append(connection.getResponseCode())
+                                            .append(',').append(bounds.outWidth).append('x').append(bounds.outHeight)
+                                            .append(',').append(bounds.outMimeType).append(',').append(body.length).append('B');
+                                } catch (Throwable failure) {
+                                    out.append(' ').append(name).append("=failed:").append(failure.getClass().getSimpleName());
+                                }
+                            }
+                            Log.i(TAG, "ok coversizes" + out);
+                        }).start();
+                        break;
+                    }
                     case "collect": {
                         // Adds or removes one favourite through TikTok's own AwemeCollectionAgent,
                         // found by its parameter shape since the method's name changes by build,
@@ -1282,6 +1365,67 @@ public final class Probe extends Instrumentation {
                                         + hold + "ms on " + activity.getClass().getSimpleName());
                             }, hold);
                         }, gap);
+                        break;
+                    }
+                    case "tapwatch": {
+                        // Taps on TikTok's window and when, counted from the first lift, the video
+                        // went between playing and paused, for #239: TikTok holds a tap for its
+                        // double-tap window before pausing, unless a double tap does nothing.
+                        // -e taps 2 -e gap 150 sends two taps 150 ms apart (lift to next touch).
+                        // Polls the player every 5 ms on the main thread until 1.5 s after the
+                        // last lift and logs every change, e.g. flips=[paused@11ms, playing@190ms].
+                        float x = Float.parseFloat(required(intent, "x"));
+                        float y = Float.parseFloat(required(intent, "y"));
+                        String holdText = intent.getStringExtra("hold");
+                        long hold = holdText == null ? 30L : Long.parseLong(holdText);
+                        String tapsText = intent.getStringExtra("taps");
+                        int taps = tapsText == null ? 1 : Integer.parseInt(tapsText);
+                        String gapText = intent.getStringExtra("gap");
+                        long gap = gapText == null ? 150L : Long.parseLong(gapText);
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        android.view.View decor = activity.getWindow().getDecorView();
+                        Method playing = loader.loadClass("app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold")
+                                .getMethod("currentPlaying");
+                        Object before = playing.invoke(null);
+                        android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+                        long start = android.os.SystemClock.uptimeMillis();
+                        long firstUp = start + hold;
+                        long lastUp = start + (taps - 1) * (hold + gap) + hold;
+                        for (int i = 0; i < taps; i++) {
+                            long down = start + i * (hold + gap);
+                            main.postAtTime(() -> touch(decor, down, android.os.SystemClock.uptimeMillis(),
+                                    android.view.MotionEvent.ACTION_DOWN, x, y), down);
+                            main.postAtTime(() -> touch(decor, down, android.os.SystemClock.uptimeMillis(),
+                                    android.view.MotionEvent.ACTION_UP, x, y), down + hold);
+                        }
+                        StringBuilder flips = new StringBuilder();
+                        Object[] last = {before};
+                        Runnable[] poll = new Runnable[1];
+                        poll[0] = () -> {
+                            long now = android.os.SystemClock.uptimeMillis();
+                            Object state;
+                            try {
+                                state = playing.invoke(null);
+                            } catch (Exception e) {
+                                Log.i(TAG, "failed tapwatch " + e);
+                                return;
+                            }
+                            if (state != null && !state.equals(last[0])) {
+                                if (flips.length() > 0) flips.append(", ");
+                                flips.append(Boolean.TRUE.equals(state) ? "playing@" : "paused@")
+                                        .append(now - firstUp).append("ms");
+                                last[0] = state;
+                            }
+                            if (now - lastUp >= 1500L) {
+                                Log.i(TAG, "ok tapwatch taps=" + taps + " gap=" + gap + "ms hold=" + hold
+                                        + "ms before=" + before + " flips=[" + flips + "] after=" + state);
+                            } else {
+                                main.postDelayed(poll[0], 5L);
+                            }
+                        };
+                        main.post(poll[0]);
                         break;
                     }
                     case "report": {
@@ -2121,6 +2265,48 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok call " + target.getName() + " -> " + shown);
                         break;
                     }
+                    case "seed-commenter-region": {
+                        // TikTok 47.5.3 sends comment accounts with no country, so a commenter's
+                        // country can only come from the feed's cache of creators it has shown.
+                        // This files -e region XX under every commenter Hushfeed has bound, as if
+                        // each one's own video had played in the feed, then has the open sheet
+                        // bind its rows again so they take that path. Reopening the sheet would
+                        // not do it: TikTok shows a video's cached rows without binding them.
+                        // -e region clear forgets the cache again. The handles stay in TikTok's
+                        // process, only their count is logged.
+                        String region = required(intent, "region");
+                        Class<?> regions = loader.loadClass("app.morphe.extension.tiktok.feed.AuthorRegion");
+                        if ("clear".equals(region)) {
+                            regions.getMethod("forgetSeenRegions").invoke(null);
+                            Log.i(TAG, "ok seed-commenter-region cleared");
+                            break;
+                        }
+                        Field bound = loader.loadClass("app.morphe.extension.tiktok.comment.CommenterDetails")
+                                .getDeclaredField("HANDLE_BY_UID");
+                        bound.setAccessible(true);
+                        Map<?, ?> byUid = (Map<?, ?>) bound.get(null);
+                        List<String> handles = new ArrayList<>();
+                        synchronized (byUid) {
+                            for (Object handle : byUid.values()) handles.add((String) handle);
+                        }
+                        if (handles.isEmpty()) {
+                            throw new IllegalStateException("no commenter bound yet, open a comment sheet first");
+                        }
+                        Method remember = regions.getMethod("rememberSeen", String.class, String.class);
+                        for (String handle : handles) remember.invoke(null, handle, region);
+                        java.util.Set<String> shown = new java.util.HashSet<>();
+                        for (String handle : handles) shown.add("@" + handle);
+                        int rebound = 0;
+                        for (android.view.View root : windowRoots()) rebound += rebindCommentList(root, shown);
+                        if (rebound == 0) {
+                            // A failed step skips the check's clear, so don't leave the seed behind.
+                            regions.getMethod("forgetSeenRegions").invoke(null);
+                            throw new IllegalStateException("no comment list on screen shows a bound commenter");
+                        }
+                        Log.i(TAG, "ok seed-commenter-region " + region + " for " + handles.size()
+                                + " commenters, rebound " + rebound + " list");
+                        break;
+                    }
                     case "idreset": {
                         // The device-ID reset experiment (ROADMAP "Reset the device identifiers
                         // TikTok registers"), for a throwaway emulator install. Reads the ids TikTok
@@ -2864,6 +3050,77 @@ public final class Probe extends Instrumentation {
                                 + " size " + clickable.getWidth() + 'x' + clickable.getHeight() + " handled=" + handled);
                         break;
                     }
+                    case "themeattrs": {
+                        // Which of TikTok's color attributes a window's theme still answers light
+                        // where TikTok's dark app style, applied last with force, answers dark, and
+                        // the styles that set each one (#159: Share over a LIVE room opened white).
+                        // The activity in front and every window root, colors and style names only.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        Method darkStyle = loader.loadClass("app.morphe.extension.tiktok.live.LivePanelTheme")
+                                .getDeclaredMethod("darkAppTheme");
+                        darkStyle.setAccessible(true);
+                        int dark = (Integer) darkStyle.invoke(null);
+                        android.content.res.Resources res = activity.getResources();
+                        StringBuilder out = new StringBuilder("dark style ").append(styleName(res, dark))
+                                .append(" night=").append(res.getConfiguration().uiMode
+                                        & android.content.res.Configuration.UI_MODE_NIGHT_MASK).append('\n');
+                        java.util.List<Context> contexts = new java.util.ArrayList<>();
+                        contexts.add(activity);
+                        for (android.view.View root : windowRoots()) {
+                            contexts.add(root.getContext());
+                            // The activity under a dialog, a LIVE room under its Share sheet.
+                            for (Context under = root.getContext(); under instanceof android.content.ContextWrapper;
+                                 under = ((android.content.ContextWrapper) under).getBaseContext()) {
+                                if (under instanceof android.app.Activity && !contexts.contains(under)) contexts.add(under);
+                            }
+                        }
+                        int limit = Integer.parseInt(intent.getStringExtra("limit") == null ? "25" : intent.getStringExtra("limit"));
+                        for (Context themed : contexts) {
+                            out.append("theme of ").append(contextChain(themed)).append(" night=")
+                                    .append(themed.getResources().getConfiguration().uiMode
+                                            & android.content.res.Configuration.UI_MODE_NIGHT_MASK).append('\n');
+                            if (dark == 0) continue;
+                            android.content.res.Resources.Theme theme = themed.getTheme();
+                            android.content.res.Resources.Theme darkened = res.newTheme();
+                            darkened.setTo(theme);
+                            darkened.applyStyle(dark, true);
+                            int base = attrBase(res);
+                            int light = 0, shown = 0, misses = 0;
+                            for (int entry = 0; misses < 64 && entry < 0x10000; entry++) {
+                                int attr = base | entry;
+                                String name;
+                                try {
+                                    name = res.getResourceEntryName(attr);
+                                    misses = 0;
+                                } catch (android.content.res.Resources.NotFoundException gap) {
+                                    misses++;
+                                    continue;
+                                }
+                                Integer now = themeColor(theme, res, attr);
+                                Integer wanted = themeColor(darkened, res, attr);
+                                if (now == null || wanted == null || now.equals(wanted)) continue;
+                                if (luminance(now) < 0.6 || luminance(wanted) > 0.4 || (now >>> 24) < 0x80) continue;
+                                light++;
+                                if (shown++ >= limit) continue;
+                                android.util.TypedValue source = new android.util.TypedValue();
+                                theme.resolveAttribute(attr, source, false);
+                                out.append("  ").append(name).append(' ').append(Integer.toHexString(now))
+                                        .append(" dark=").append(Integer.toHexString(wanted)).append(" from ")
+                                        .append(Build.VERSION.SDK_INT >= 29 ? styleName(res, source.sourceResourceId) : "?")
+                                        .append('\n');
+                            }
+                            out.append("  ").append(light).append(" attributes light where the dark style is dark\n");
+                        }
+                        String text = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "themeattrs[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok themeattrs " + contexts.size() + " themes in " + pieces + " pieces");
+                        break;
+                    }
                     case "windowviews": {
                         // Dialogs and bottom sheets can live in a separate WindowManager root.
                         // TikTok 47.0.3's comment sheet leaves MainActivity's own content view
@@ -3140,6 +3397,63 @@ public final class Probe extends Instrumentation {
             return view.getClass().getSimpleName() + " id=" + (resources == null ? view.getId() : idName(view, resources))
                     + " at=" + at[0] + "," + at[1] + " h=" + view.getHeight() + " padTop=" + view.getPaddingTop()
                     + " attached=" + view.isAttachedToWindow();
+        }
+
+        /** A style's id and entry name for the themeattrs action. */
+        private static String styleName(android.content.res.Resources resources, int style) {
+            if (style == 0) return "0";
+            try {
+                return "0x" + Integer.toHexString(style) + "/" + resources.getResourceEntryName(style);
+            } catch (android.content.res.Resources.NotFoundException missing) {
+                return "0x" + Integer.toHexString(style);
+            }
+        }
+
+        /** The context classes from a view's context down to the base. */
+        private static String contextChain(Context context) {
+            StringBuilder out = new StringBuilder();
+            for (int depth = 0; context != null && depth < 6; depth++) {
+                if (depth > 0) out.append(" > ");
+                out.append(context.getClass().getName());
+                context = context instanceof android.content.ContextWrapper ? ((android.content.ContextWrapper) context).getBaseContext() : null;
+            }
+            return out.toString();
+        }
+
+        /** The package part and type of TikTok's attribute ids, found from a type named attr. */
+        private static int attrBase(android.content.res.Resources resources) {
+            for (int type = 1; type < 0x40; type++) {
+                int base = 0x7f000000 | (type << 16);
+                try {
+                    if ("attr".equals(resources.getResourceTypeName(base))) return base;
+                } catch (android.content.res.Resources.NotFoundException missing) {
+                    // Not this type, or its first entry is gone.
+                }
+            }
+            throw new IllegalStateException("no attr type");
+        }
+
+        /** The color a theme gives an attribute, through a color state list's default, or null. */
+        private static Integer themeColor(android.content.res.Resources.Theme theme,
+                                          android.content.res.Resources resources, int attr) {
+            android.util.TypedValue value = new android.util.TypedValue();
+            if (!theme.resolveAttribute(attr, value, true)) return null;
+            if (value.type >= android.util.TypedValue.TYPE_FIRST_COLOR_INT
+                    && value.type <= android.util.TypedValue.TYPE_LAST_COLOR_INT) {
+                return value.data;
+            }
+            if (value.resourceId == 0) return null;
+            try {
+                if (!"color".equals(resources.getResourceTypeName(value.resourceId))) return null;
+                return resources.getColorStateList(value.resourceId, theme).getDefaultColor();
+            } catch (RuntimeException notColor) {
+                return null;
+            }
+        }
+
+        /** Relative luminance of a color, 0 for black to 1 for white, ignoring alpha. */
+        private static double luminance(int color) {
+            return (0.2126 * ((color >> 16) & 0xff) + 0.7152 * ((color >> 8) & 0xff) + 0.0722 * (color & 0xff)) / 255.0;
         }
 
         /** The resource entry name of a view's id, the raw number for an id without one. */
@@ -3464,6 +3778,47 @@ public final class Probe extends Instrumentation {
                 return (java.util.List<android.view.View>) value;
             }
             throw new IllegalStateException("WindowManagerGlobal returned no root list");
+        }
+
+        /**
+         * Has the innermost shown list holding one of these '@handle' names bind its rows again,
+         * and answers how many lists it asked. Innermost, because the feed's pager is a list too
+         * and must not be the one picked.
+         */
+        private static int rebindCommentList(android.view.View view, java.util.Set<String> shown) throws Exception {
+            if (!view.isShown()) return 0;
+            int rebound = 0;
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    rebound += rebindCommentList(group.getChildAt(i), shown);
+                }
+            }
+            if (rebound > 0 || !isRecyclerView(view.getClass()) || !showsAny(view, shown)) return rebound;
+            Object adapter = view.getClass().getMethod("getAdapter").invoke(view);
+            if (adapter == null) return 0;
+            adapter.getClass().getMethod("notifyDataSetChanged").invoke(adapter);
+            return 1;
+        }
+
+        private static boolean isRecyclerView(Class<?> type) {
+            for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+                if ("androidx.recyclerview.widget.RecyclerView".equals(c.getName())) return true;
+            }
+            return false;
+        }
+
+        private static boolean showsAny(android.view.View view, java.util.Set<String> texts) {
+            if (view instanceof android.widget.TextView) {
+                CharSequence text = ((android.widget.TextView) view).getText();
+                return text != null && texts.contains(withoutFormatMarks(text.toString()).trim());
+            }
+            if (!(view instanceof android.view.ViewGroup)) return false;
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (showsAny(group.getChildAt(i), texts)) return true;
+            }
+            return false;
         }
 
         /** Opens the settings screen the same way the row inside TikTok's own settings does. */

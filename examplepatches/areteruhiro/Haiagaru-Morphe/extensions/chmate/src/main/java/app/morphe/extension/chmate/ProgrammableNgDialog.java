@@ -144,6 +144,9 @@ final class ProgrammableNgDialog {
                 + "options: boardUrl, threadId, resCount, speed, posterId, responseNumber, responseId\n"
                 + "レス本文は {match: 条件, samePoster: true, chainReplies: true} で投稿者・返信もNGにできます。");
         content.addView(scriptHelp, matchWrap());
+        TextView scriptLabel = new TextView(activity);
+        scriptLabel.setText("判定式");
+        content.addView(scriptLabel, matchWrap());
         EditText script = field(activity, content,
                 "function (text, options) { ... }", original.script, true);
         script.setMinLines(9);

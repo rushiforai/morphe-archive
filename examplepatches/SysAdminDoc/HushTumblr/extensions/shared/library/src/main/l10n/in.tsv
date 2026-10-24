@@ -260,6 +260,8 @@ Hide suggested blogs	Sembunyikan blog yang disarankan
 Takes the blogs Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Menghapus blog yang disarankan Tumblr untuk kamu ikuti, beserta judulnya, dari dasbor dan feed lainnya.
 Hide suggested communities	Sembunyikan komunitas yang disarankan
 Takes the communities Tumblr suggests you join, and their headings, out of your dashboard and other feeds.	Menghapus komunitas yang disarankan Tumblr untuk kamu ikuti, beserta judulnya, dari dasbor dan feed lainnya.
+Hide suggested tags	Sembunyikan tag yang disarankan
+Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Menghapus tag yang disarankan Tumblr untuk kamu ikuti, beserta judulnya, dari dasbor dan feed lainnya.
 Hide Watch it rows	Sembunyikan baris Watch it
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Menghapus baris Watch it dan kartu video hub dari Tumblr TV, beserta judulnya, dari dasbor dan feed lainnya.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
@@ -305,6 +307,8 @@ Hide text posts	Sembunyikan postingan teks
 Takes posts with no pictures or video, the reblogged part included, out of your dashboard and other feeds.	Menghapus postingan tanpa gambar atau video, termasuk bagian yang di-reblog, dari dasbor dan feed lainnya.
 Hide posts with these words	Sembunyikan postingan dengan kata ini
 Takes posts out of your feeds when a hidden word matches one of the selected fields below.	Menghapus postingan dari feed jika kata tersembunyi cocok dengan salah satu bidang yang dipilih di bawah.
+Hide filtered posts	Sembunyikan postingan yang difilter
+Takes the posts Tumblr covers for your filtered tags and words out of your feeds.	Menghapus postingan yang ditutupi Tumblr karena tag dan kata yang kamu filter dari feed-mu.
 Words to hide	Kata yang disembunyikan
 One word or phrase a line	Satu kata atau frasa per baris
 Changes are saved only when you tap Save.	Perubahan hanya disimpan setelah Anda mengetuk Simpan.

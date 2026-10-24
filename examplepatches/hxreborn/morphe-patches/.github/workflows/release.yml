@@ -47,18 +47,24 @@ jobs:
       - name: Check regexes for Android
         run: python3 .github/scripts/check_android_regex.py
 
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
       - name: Check Java style
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :extensions:extension:checkstyle --no-daemon
+        run: ./gradlew :extensions:extension:checkstyle :extensions:extension:lintRelease --no-daemon
 
       - name: Run tests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:test :extensions:extension:test --no-daemon
 
+      - name: Remove test build outputs
+        run: rm -rf patches/build/libs
+
       - name: Release
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@v8
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,6 +89,28 @@ jobs:
             [ "$(gh issue view "$n" --repo "$REPO" --json state --jq .state)" = OPEN ] || continue
             gh issue edit "$n" --repo "$REPO" --add-label "in pre-release"
             echo "labelled #$n"
+          done
+
+      - name: Comment on app requests shipped in the pre-release
+        if: steps.release.outputs.new_release_published == 'true' && github.ref_name == 'dev'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.release.outputs.new_release_git_tag }}
+          LAST: ${{ steps.release.outputs.last_release_git_tag }}
+        run: |
+          set -o pipefail
+          discussion=.github/actions/triage/discussion.sh
+          git show "$LAST:patches-list.json" > "$RUNNER_TEMP/previous.json"
+          git show "$TAG:patches-list.json" > "$RUNNER_TEMP/current.json"
+          bash -eo pipefail "$discussion" list app-requests > "$RUNNER_TEMP/requests.json"
+          python3 .github/scripts/shipped_requests.py "$RUNNER_TEMP/previous.json" "$RUNNER_TEMP/current.json" "$RUNNER_TEMP/requests.json" "$TAG" "$REPO" |
+          while read -r row; do
+            n=$(jq -r .number <<< "$row")
+            app=$(jq -r .app <<< "$row")
+            jq -r .comment <<< "$row" > "$RUNNER_TEMP/comment.md"
+            bash -eo pipefail "$discussion" comment "$n" "$RUNNER_TEMP/comment.md" >/dev/null
+            echo "commented on #$n ($app) for $TAG"
           done
 
       - name: Remove the pre-release label from shipped issues

@@ -56,8 +56,8 @@ val hideProfileShortcutsPatch = bytecodePatch(
     name = "Hide profile shortcuts",
     description = "Hides the shortcuts you pick from the row under a profile's bio, like " +
         "TikTok Studio or Your orders, and can hide the Thoughts bubble, and Balance and the " +
-        "TikTok Minis icons in your profile's menu. Starts off. Turn it on " +
-        "in Hushfeed settings > App, then restart TikTok.",
+        "TikTok Minis icons in your profile's menu. It can also turn Thoughts on for accounts " +
+        "TikTok left out. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
     default = true,
 ) {
     category("Feed")
@@ -91,6 +91,15 @@ val hideProfileShortcutsPatch = bytecodePatch(
             println("[$PATCH_NAME] Left out Hide Balance in the profile menu on ${packageMetadata.versionName}: ${problem.message}")
             null
         }
+        // Turn on Thoughts (#186), the other way round from hiding them: TikTok's two Thoughts
+        // gates answer yes behind a switch that starts off. Held by SwitchedReturnFixturesTest.
+        val thoughtsGates = try {
+            resolveThoughtsGates()
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Turn on Thoughts on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
         OwnProfileConversionFingerprint.method.filterProfileUserParameter(0)
         ProfileConversionFingerprint.method.filterProfileUserParameter(1)
 
@@ -108,6 +117,13 @@ val hideProfileShortcutsPatch = bytecodePatch(
             SettingsStatusLoadFingerprint.method.addInstruction(
                 0,
                 "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableProfileMenuCells()V",
+            )
+        }
+        if (thoughtsGates != null) {
+            thoughtsGates.installThoughtsSwitch()
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableThoughtsSwitch()V",
             )
         }
     }

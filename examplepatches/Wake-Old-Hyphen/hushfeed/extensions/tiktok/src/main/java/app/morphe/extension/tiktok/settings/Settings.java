@@ -705,10 +705,12 @@ public class Settings extends BaseSettings {
     /**
      * Takes TikTok's own Auto scroll action out of the video panel (upstream #116). The patch
      * surfaces that action for accounts outside its rollout; a reader who only wants advance on
-     * end has no use for it, and it read as a second, unexplained switch.
+     * end has no use for it, and it read as a second, unexplained switch. It also takes the Auto
+     * scroll switch tablets and unfolded foldables show beside the video, and it works with
+     * Auto-advance off (#234).
      */
     public static final BooleanSetting AUTO_ADVANCE_HIDE_PANEL_ACTION = new BooleanSetting(
-            "auto_advance_hide_panel_action", FALSE, false, Setting.parent(AUTO_ADVANCE));
+            "auto_advance_hide_panel_action", FALSE, true);
     /**
      * Answers yes to TikTok's search_auto_scroll flag. Search results get auto scroll from that
      * flag rather than the For You one, and their feed runs the same component Auto-advance starts.
@@ -1124,6 +1126,8 @@ public class Settings extends BaseSettings {
     // Remove avatar rings: the story ring and the LIVE ring, each on its own switch.
     public static final BooleanSetting HIDE_STORY_RINGS = new BooleanSetting("hide_story_rings", FALSE);
     public static final BooleanSetting HIDE_LIVE_RING = new BooleanSetting("hide_live_ring", FALSE);
+    // A creator's profile picture opens their Story before their LIVE, the next tap the LIVE (#233).
+    public static final BooleanSetting OPEN_STORY_OVER_LIVE = new BooleanSetting("open_story_over_live", FALSE);
     // Lift text length limits: comments, repost notes and the bio.
     public static final BooleanSetting LIFT_LENGTH_LIMITS = new BooleanSetting("lift_length_limits", FALSE);
     // Enable voice comments, in the default selection with this off. A restart, since TikTok may

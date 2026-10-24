@@ -9,8 +9,8 @@ package app.morphe.patches.youtube.misc.loadvideo
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
-import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.parametersMatch
@@ -29,6 +29,7 @@ internal object MiniAppOpenYtContentCommandEndpointFingerprint : Fingerprint(
             )
         )
     ),
+    isStatic = false,
     returnType = "V",
     filters = listOf(
         opcode(Opcode.CHECK_CAST),
@@ -41,11 +42,10 @@ internal object MiniAppOpenYtContentCommandEndpointFingerprint : Fingerprint(
     ),
     strings = listOf("no error message"),
     custom = { method, _ ->
-        !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                parametersMatch(
-                    method.parameters,
-                    listOf("L")
-                ) || parametersMatch(
+        parametersMatch(
+            method.parameters,
+            listOf("L")
+        ) || parametersMatch(
             method.parameters,
             listOf("L", "Ljava/util/Map;") // 21.30+
         )
@@ -64,20 +64,58 @@ internal object OpenNewVideoIntentParcelableFingerprint : Fingerprint(
     )
 )
 
-internal object BackButtonFinishActivityOnNewVideoIntentFingerprint : Fingerprint(
+internal object AppWatchDescriptorToStringFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    strings = listOf("AppWatchDescriptor{watchDescriptor=")
+)
+
+internal class BackButtonFinishActivityOnNewVideoIntentFingerprint(appWatchDescriptorType: String) : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf("L"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.IGET,
-        Opcode.IF_EQZ,
-        Opcode.RETURN_VOID,
-        Opcode.IGET_OBJECT,
-        Opcode.CHECK_CAST,
-        Opcode.IGET_OBJECT,
-        Opcode.INVOKE_INTERFACE,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.CHECK_CAST,
-        Opcode.IGET_OBJECT,
-    ),
+    parameters = listOf(appWatchDescriptorType),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = appWatchDescriptorType
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf(),
+            returnType = "Z",
+            location = MatchAfterImmediately()
+        )
+    )
+)
+
+private const val ACCESSIBILITY_STATE_CHANGE_LISTENER =
+    $$"Landroid/view/accessibility/AccessibilityManager$AccessibilityStateChangeListener;"
+
+/**
+ * Adds a reason that blocks playback in feeds.
+ */
+internal object BlockInlinePlaybackFingerprint : Fingerprint(
+    interfaces = listOf(ACCESSIBILITY_STATE_CHANGE_LISTENER),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(
+        methodCall(smali = "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"),
+        methodCall(smali = "Ljava/util/Set;->add(Ljava/lang/Object;)Z")
+    )
+)
+
+/**
+ * Removes a reason that blocks playback in feeds.
+ */
+internal object UnblockInlinePlaybackFingerprint : Fingerprint(
+    interfaces = listOf(ACCESSIBILITY_STATE_CHANGE_LISTENER),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(
+        methodCall(smali = "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"),
+        methodCall(smali = "Ljava/util/Set;->remove(Ljava/lang/Object;)Z")
+    )
 )

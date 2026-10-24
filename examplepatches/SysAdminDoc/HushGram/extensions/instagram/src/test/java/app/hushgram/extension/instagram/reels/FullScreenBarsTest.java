@@ -46,7 +46,8 @@ import app.hushgram.extension.shared.SettingsContextRule;
 public class FullScreenBarsTest {
     @Rule public final SettingsContextRule settings = new SettingsContextRule();
 
-    private static final int VIEWER = 7101, BAR = 7102, REELS_TAB = 7103, HOME_TAB = 7104, OTHER_TAB = 7105;
+    private static final int VIEWER = 7101, BAR = 7102, REELS_TAB = 7103, HOME_TAB = 7104, OTHER_TAB = 7105,
+            INBOX = 7106, CHAT = 7107;
 
     /** The window's own size: a view is only on screen as far as the window goes. */
     private int W, H;
@@ -61,9 +62,12 @@ public class FullScreenBarsTest {
         FullScreenBars.resetHeightsForTests(null);
         Settings.FULL_SCREEN_REELS.resetToDefault();
         Settings.FULL_SCREEN_HOME.resetToDefault();
+        Settings.FULL_SCREEN_MESSAGES.resetToDefault();
         Settings.FULL_SCREEN_HIDES.resetToDefault();
         Settings.GLASS_TAB_BAR.resetToDefault();
         Settings.GLASS_TAB_BAR_FLOAT.resetToDefault();
+        FullScreenBars.idForTests(FullScreenBars.INBOX, INBOX);
+        FullScreenBars.idForTests(FullScreenBars.CHAT, CHAT);
         FullScreenBars.idForTests(FullScreenBars.VIEWER, VIEWER);
         FullScreenBars.idForTests(FullScreenBars.TAB_BAR, BAR);
         FullScreenBars.idForTests(FullScreenBars.REELS_TAB, REELS_TAB);
@@ -89,6 +93,7 @@ public class FullScreenBarsTest {
         controller.close();
         Settings.FULL_SCREEN_REELS.resetToDefault();
         Settings.FULL_SCREEN_HOME.resetToDefault();
+        Settings.FULL_SCREEN_MESSAGES.resetToDefault();
         Settings.FULL_SCREEN_HIDES.resetToDefault();
         Settings.GLASS_TAB_BAR.resetToDefault();
         Settings.GLASS_TAB_BAR_FLOAT.resetToDefault();
@@ -177,6 +182,10 @@ public class FullScreenBarsTest {
         assertEquals("the navigation bar's space stayed", 0, FullScreenBars.navBarHeight(63));
         assertEquals("an unset height changed", -1, FullScreenBars.barHeight(-1));
         assertEquals("an unset navigation bar height changed", -1, FullScreenBars.navBarHeight(-1));
+        // #285: a floating glass pill keeps the hidden bar's room, the height offered or the last one.
+        assertEquals(63, FullScreenBars.hiddenNavHeight(63));
+        assertEquals("Instagram's 0 offered back", 63, FullScreenBars.hiddenNavHeight(0));
+        assertEquals(0, FullScreenBars.hiddenNavHeight(-1));
 
         root.removeView(viewer);
         viewer = null;
@@ -187,6 +196,7 @@ public class FullScreenBarsTest {
         assertEquals(63, FullScreenBars.barHeight(63));
         assertEquals("without a glass pill the navigation bar's height goes through", 63, FullScreenBars.navBarHeight(63));
         assertEquals(63, GlassTabBar.navBarHeight(63));
+        assertEquals("a bar that shows isn't kept room for", 0, FullScreenBars.hiddenNavHeight(63));
     }
 
     /**
@@ -210,6 +220,54 @@ public class FullScreenBarsTest {
 
         up[0] = false;
         assertEquals("the keyboard closed and the strip came back", 0, FullScreenBars.navBarHeight(63));
+    }
+
+    /**
+     * #288: in a chat that opened with the bars hidden, Instagram offers back the 0 it kept as the
+     * keyboard comes up, or isn't asked at all, so its message box sat a navigation bar's height
+     * behind the keys. The height last offered goes through for a 0 offer while the keyboard shows,
+     * and a keyboard seen at a frame gives it back to the kept screens itself. When the keyboard goes,
+     * the hidden bar takes it again.
+     */
+    @Test public void theKeyboardInAChatOpenedHiddenGetsTheHeightBack() {
+        List<String> told = new ArrayList<>();
+        FullScreenBars.resetHeightsForTests((listener, status, nav) -> told.add(listener + " " + status + " " + nav));
+        FullScreenBars.registeredForTests(true);
+        boolean[] up = {false};
+        FullScreenBars.keyboardForTests(() -> up[0]);
+        try {
+            Settings.FULL_SCREEN_REELS.save(true);
+            showViewer(W, H);
+            FullScreenBars.Session session = watch();
+            assertTrue(session.isHidden());
+            FullScreenBars.nowResumed(activity);
+            FullScreenBars.heightsAsked(activity, "chat");
+            heights(128, 63);
+            assertEquals(Collections.singletonList("chat 0 0"), told);
+
+            up[0] = true;
+            session.watchKeyboard();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("a frame with the keyboard up gives the height back", "chat 0 63", told.get(told.size() - 1));
+            up[0] = false;
+            session.watchKeyboard();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("the keyboard went and the hidden bar took it again", "chat 0 0", told.get(told.size() - 1));
+            assertArrayEquals(new int[] {128, 63}, FullScreenBars.heightsToGiveBack());
+            heights(128, 63);
+
+            up[0] = true;
+            assertEquals(0, FullScreenBars.barHeight(0));
+            assertEquals("a 0 offered back with the keyboard up", 63, FullScreenBars.navBarHeight(0));
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("chat 0 63", told.get(told.size() - 1));
+            up[0] = false;
+            assertEquals(0, FullScreenBars.navBarHeight(63));
+            assertEquals("still hidden, a 0 stays 0", 0, FullScreenBars.navBarHeight(0));
+        } finally {
+            FullScreenBars.registeredForTests(false);
+            FullScreenBars.resetHeightsForTests(null);
+        }
     }
 
     /**
@@ -444,6 +502,77 @@ public class FullScreenBarsTest {
         Settings.FULL_SCREEN_HOME.save(true);
         session.evaluate();
         assertTrue(session.isHidden());
+    }
+
+    private View messagesView(int id, int width, int height) {
+        View view = new FrameLayout(activity);
+        view.setId(id);
+        root.addView(view, new FrameLayout.LayoutParams(width, height));
+        layout();
+        return view;
+    }
+
+    /** #288: your messages and a chat hide the bars with their own switch, Home selected under them or not. */
+    @Test public void messagesHideTheBarsOnlyWithTheirOwnSwitch() {
+        select(homeTab);
+        View inbox = messagesView(INBOX, W, H * 3 / 4);
+        assertEquals("your messages over Home aren't Home", FullScreenBars.Screen.MESSAGES, screen());
+        Settings.FULL_SCREEN_HOME.save(true);
+        Settings.FULL_SCREEN_REELS.save(true);
+        FullScreenBars.Session session = watch();
+        assertFalse("Home's and Reels' switches aren't Messages'", session.isHidden());
+        Settings.FULL_SCREEN_MESSAGES.save(true);
+        session.evaluate();
+        assertTrue(session.isHidden());
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) assertTrue(barsGone());
+
+        root.removeView(inbox);
+        layout();
+        Settings.FULL_SCREEN_HOME.save(false);
+        session.evaluate();
+        assertFalse("back on Home with its switch off", session.isHidden());
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) assertFalse(barsGone());
+    }
+
+    /** #288: the keyboard takes about half the window and the chat still counts; a sliver of one doesn't. */
+    @Test public void aChatCountsWithTheKeyboardUpButNotAsASliver() {
+        View chat = messagesView(CHAT, W, H / 2);
+        assertEquals(FullScreenBars.Screen.MESSAGES, screen());
+        root.removeView(chat);
+        messagesView(CHAT, W, H / 4);
+        assertEquals(FullScreenBars.Screen.OTHER, screen());
+    }
+
+    /** #288: a list left behind out of sight doesn't hide the one showing, and one off to the side doesn't count. */
+    @Test public void onlyAMessagesListOnScreenCounts() {
+        FrameLayout gone = new FrameLayout(activity);
+        gone.setVisibility(View.GONE);
+        View left = new View(activity);
+        left.setId(INBOX);
+        gone.addView(left, new FrameLayout.LayoutParams(W, H));
+        root.addView(gone, 0, new FrameLayout.LayoutParams(W, H));
+        layout();
+        assertEquals(FullScreenBars.Screen.OTHER, screen());
+
+        FrameLayout.LayoutParams aside = new FrameLayout.LayoutParams(W, H);
+        aside.leftMargin = W;
+        View swipedAway = new View(activity);
+        swipedAway.setId(INBOX);
+        root.addView(swipedAway, aside);
+        layout();
+        assertEquals("swiped away to the side", FullScreenBars.Screen.OTHER, screen());
+
+        messagesView(INBOX, W, H);
+        assertEquals(FullScreenBars.Screen.MESSAGES, screen());
+    }
+
+    /** #288: a reel opened from a chat is Reels, and the Messages switch leaves it alone. */
+    @Test public void aReelOverAChatIsReels() {
+        Settings.FULL_SCREEN_MESSAGES.save(true);
+        messagesView(CHAT, W, H);
+        showViewer(W, H);
+        assertEquals(FullScreenBars.Screen.REELS, screen());
+        assertFalse(watch().isHidden());
     }
 
     @Test public void homesSwitchDoesNotHideReels() {

@@ -22,6 +22,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_SPONSORED_POSTS) return L10n.t("Hide sponsored posts");
         if (setting == Settings.HIDE_PROMOTED_POSTS) return L10n.t("Hide promoted posts");
         if (setting == Settings.HIDE_SPONSORED_PROFILE_POSTS) return L10n.t("Hide sponsored profile posts");
+        if (setting == Settings.HIDE_PROFILE_NOTES) return L10n.t("Hide profile notes");
         if (setting == Settings.HIDE_AFFILIATE_LINKS) return L10n.t("Hide affiliate product links");
         if (setting == Settings.HIDE_SUGGESTED_POSTS) return L10n.t("Hide page suggestions and Facebook's own promos");
         if (setting == Settings.HIDE_SUGGESTED_FOR_YOU) return L10n.t("Hide \"Suggested for you\" posts");
@@ -73,6 +74,10 @@ final class SwitchLabels {
         if (setting == Settings.VIEW_STORIES_ANONYMOUSLY) return L10n.t("View stories anonymously");
         if (setting == Settings.MARK_STORIES_SEEN) return L10n.t("Mark as seen button");
         if (setting == Settings.UPLOAD_STORIES_IN_HD) return L10n.t("Upload Stories in HD");
+        if (setting == Settings.LONGER_STORY_MUSIC) return L10n.t("Longer music on photo stories");
+        if (setting == Settings.PINCH_TO_ZOOM) return L10n.t("Pinch to zoom");
+        if (setting == Settings.PINCH_TO_ZOOM_KEEP) return L10n.t("Stay zoomed");
+        if (setting == Settings.PINCH_TO_ZOOM_DOUBLE_TAP) return L10n.t("Double tap to zoom");
         if (setting == Settings.DOWNLOAD_STORIES) return L10n.t("Save any story");
         if (setting == Settings.SAVE_STORY_PHOTOS) return L10n.t("Save photo on more stories");
         if (setting == Settings.DEFAULT_COMMENT_ORDER) return L10n.t("Default comment order");
@@ -82,6 +87,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_VIDEO_COMMENT_COMPOSER) return L10n.t("Hide the video comment box");
         if (setting == Settings.OPEN_REPLY_THREADS) return L10n.t("Open every reply thread");
         if (setting == Settings.LOAD_WHOLE_REPLY_THREADS) return L10n.t("Load whole reply threads");
+        if (setting == Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES) return L10n.t("Tap anywhere on View more replies");
         if (setting == Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS) return L10n.t("Hide related groups");
         if (setting == Settings.HIDE_SHOP_LINK_COMMENTS) return L10n.t("Hide comments with shop links");
         if (setting == Settings.HIDE_COMMENTS_WITH_WORDS) return L10n.t("Hide comments with your words");
@@ -127,8 +133,10 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_SAVE_BUTTON) return L10n.t("Hide Save on reels");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
+        if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
         if (setting == Settings.FEED_VIDEOS_ALONE) return L10n.t("Open feed videos on their own");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
+        if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Newest reels first");
         if (setting == Settings.HOLD_ANALYTICS_UPLOADS) return L10n.t("Hold back analytics uploads");
         if (setting == Settings.HOLD_CAMERA_ROLL_PROCESSING) return L10n.t("Hold back camera roll processing");
         if (setting == Settings.ALLOW_SCREENSHOTS) return L10n.t("Allow screenshots");

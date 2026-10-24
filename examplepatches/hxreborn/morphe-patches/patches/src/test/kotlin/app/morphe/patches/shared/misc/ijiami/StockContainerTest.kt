@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.shared.misc.ijiami
 
+import app.morphe.patches.shared.readInt
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import java.io.File
 import java.security.MessageDigest

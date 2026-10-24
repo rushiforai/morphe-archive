@@ -50,12 +50,15 @@ public final class ReactColours {
     /**
      * {@link #background(int)} with the themes in the build given. A colour AMOLED decides is its
      * own, so Material You only gives it the rule text gets: with a Background colour of #212121,
-     * AMOLED's card is #333334, a grey Material You would otherwise tint on an untinted page.
+     * AMOLED's card is #333334, a grey Material You would otherwise tint on an untinted page. A
+     * light mode white the Light background color row moved is AMOLED's too (issue #214).
      */
     static int background(int color, boolean amoled, boolean materialYou) {
         if (amoled) {
             int themed = AmoledTheme.react(color);
-            if (AmoledTheme.ownsWithoutToken(color)) return materialYou ? MaterialYouTheme.react(themed) : themed;
+            if (AmoledTheme.ownsWithoutToken(color) || themed != color) {
+                return materialYou ? MaterialYouTheme.react(themed) : themed;
+            }
         }
         return materialYou ? MaterialYouTheme.reactBackground(color) : color;
     }

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Tap an on-screen element by its text (exact or prefix) or resource-id.
+#   pdbtap text "Sign in"
+#   pdbtap id   pdb.app:id/etEmailInput
+# Exits non-zero if the element is not found.
+set -uo pipefail
+export PATH="$HOME/tools/android-sdk/platform-tools:$PATH"
+
+mode="${1:-text}"; want="${2:?usage: pdbtap <text|id> <value>}"
+x="$(adb shell uiautomator dump /sdcard/pdbtap.xml >/dev/null 2>&1; adb shell cat /sdcard/pdbtap.xml 2>/dev/null)"
+[[ -z "$x" ]] && { echo "pdbtap: empty ui dump" >&2; exit 2; }
+
+coords="$(printf '%s' "$x" | python3 -c '
+import sys,re
+mode, want = sys.argv[1], sys.argv[2]
+x = sys.stdin.read()
+attr = "text" if mode == "text" else "resource-id"
+for m in re.finditer(r"<node[^>]*>", x):
+    s = m.group(0)
+    t = re.search(attr + r"=\"([^\"]*)\"", s)
+    if not t:
+        continue
+    v = t.group(1)
+    if (v == want or v.startswith(want)) if mode == "text" else (v == want):
+        b = re.search(r"bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"", s)
+        if b:
+            x1, y1, x2, y2 = map(int, b.groups())
+            if x2 > x1 and y2 > y1:
+                print((x1 + x2) // 2, (y1 + y2) // 2)
+                break
+' "$mode" "$want")"
+
+[[ -z "$coords" ]] && { echo "pdbtap: '$want' not found" >&2; exit 1; }
+echo "tap $mode '$want' -> $coords"
+adb shell input tap $coords

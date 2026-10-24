@@ -54,6 +54,9 @@ import app.morphe.extension.shared.settings.BaseSettings;
  *       {@link #showsSoundButton} is handed that answer before they branch on it. Otherwise the
  *       footer builds it, and {@link #soundButton} is handed what was built before the footer's
  *       null check. Either way the button stays out while the switch is on (#190).
+ *   <li>A video that keeps buffering has Facebook post a runnable that shows "This is taking a
+ *       while. Try checking your network connection." {@link #hideSlowConnectionMessage} is asked
+ *       first thing in it, and true makes it return before the message is built (#222).
  * </ul>
  *
  * <p>Every hook fails open: until the settings are ready, while Hushfacebook is paused, with a
@@ -100,6 +103,10 @@ public final class ReelDeclutter {
     /** Counted under its own name each time the Reels tab's audio line isn't drawn. */
     static final String AUDIO_ROUTE = "Reel audio line";
     static final String AUDIO_LINE = "audio line";
+
+    /** Counted under its own name each time a video's slow connection message isn't shown. */
+    static final String SLOW_ROUTE = "Slow connection message";
+    static final String SLOW_MESSAGE = "slow connection message";
 
     /** Counted under its own name each time a sidebar button's number is taken away. */
     static final String COUNTS_ROUTE = "Reel counts";
@@ -281,6 +288,30 @@ public final class ReelDeclutter {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REEL_DECLUTTER, AUDIO_LINE, failure);
             Logger.printException(() -> "Reel audio line: could not read its switch", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Injection point, first thing in the runnable Facebook posts when a video has been loading for
+     * a while, which shows "This is taking a while. Try checking your network connection." (#222).
+     * True makes it return before the message is built, as it does on its own when the video started
+     * playing in the meantime. The video keeps loading either way. Never throws: false shows it.
+     */
+    public static boolean hideSlowConnectionMessage() {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            FeedFilterCounters.sawList(SLOW_ROUTE, 1);
+            FeedFilterCounters.sawKind(SLOW_ROUTE, SLOW_MESSAGE);
+            boolean hide = Utils.settingsReady() && Settings.HIDE_SLOW_CONNECTION_MESSAGE.get();
+            if (hide) {
+                FeedFilterCounters.removed(SLOW_ROUTE, 1, SLOW_MESSAGE);
+                logOnce(SLOW_MESSAGE, () -> "Slow connection message: not shown");
+            }
+            return hide;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, SLOW_MESSAGE, failure);
+            Logger.printException(() -> "Slow connection message: could not read its switch", failure);
             return false;
         }
     }

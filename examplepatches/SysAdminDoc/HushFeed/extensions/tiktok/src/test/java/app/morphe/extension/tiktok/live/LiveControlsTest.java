@@ -253,6 +253,20 @@ public class LiveControlsTest {
         assertFalse("read at the call, so the next room follows", LiveControls.offerQualityEverywhere());
     }
 
+    /** #37: gaming and football rooms keep TikTok's block unless Offer LIVE quality is on. */
+    @Test public void sheetBlocksLiftOnlyWithTheQualitySwitch() {
+        assertEquals(1, LiveControls.qualityEntryBlocked(1));
+        assertEquals(0, LiveControls.qualityEntryBlocked(0));
+        Settings.OFFER_LIVE_QUALITY.save(true);
+        assertEquals(0, LiveControls.qualityEntryBlocked(1));
+        assertEquals(0, LiveControls.qualityEntryBlocked(0));
+        setPaused(true);
+        assertEquals("paused leaves TikTok's answer", 1, LiveControls.qualityEntryBlocked(1));
+        setPaused(false);
+        SettingsStatus.liveControlsEnabled = false;
+        assertEquals("a build without the patch leaves it", 1, LiveControls.qualityEntryBlocked(1));
+    }
+
     @Test public void pausedQualityLeavesTikToksSetting() {
         Settings.OFFER_LIVE_QUALITY.save(true);
         setPaused(true);

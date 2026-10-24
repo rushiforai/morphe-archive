@@ -116,6 +116,7 @@ public final class HiddenIdNg {
 
     /** 242 DAT-result constructor provides the exact list + thread URL, never a last-opened-board guess. */
     public static void bind242(Object result) {
+        HiddenNgUnread.bind242(result);
         try {
             List<?> rows = base(field(result, "a"));
             if (rows.isEmpty()) return;
@@ -129,19 +130,19 @@ public final class HiddenIdNg {
     /** Return an overlay, never persist our bits in ChMate's original/shared NG map. */
     public static Map modernFlags(Map flags) {
         Object pending = PENDING.get(); PENDING.remove();
-        if (!enabled || flags == null) return flags;
+        if (!enabled || flags == null) return HiddenNgUnread.modern(pending,flags);
         try {
             List<?> original = base(pending);
             if (original.isEmpty()) return flags;
             Set<Integer> matches = matches(original, ORIGINS.get(original.get(0)));
-            if (matches.isEmpty()) return flags;
+            if (matches.isEmpty()) return HiddenNgUnread.modern(pending,flags);
             Map<Object, Object> copy = new LinkedHashMap<>(flags);
             for (Integer number : matches) {
                 Object previous = copy.get(number);
                 int value = previous instanceof Number ? ((Number) previous).intValue() : 0;
                 copy.put(number, value | HiddenIdRules.HIDDEN_ID_FLAGS);
             }
-            return copy;
+            return HiddenNgUnread.modern(pending,copy);
         } catch (ReflectiveOperationException | RuntimeException error) { report(error); return flags; }
     }
     private static void report(Exception error) {

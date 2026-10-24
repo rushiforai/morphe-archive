@@ -19,8 +19,12 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -79,7 +83,7 @@ class GridSortAnchorsTest {
 
                     val ask = setAfter.first().getReference<MethodReference>()!!
                     assertEquals(
-                        "Lapp/morphe/extension/tiktok/feed/GridSort;->data(Ljava/util/List;)Ljava/util/List;",
+                        "Lapp/morphe/extension/tiktok/feed/GridSort;->data(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;",
                         "${ask.definingClass}->${ask.name}(${ask.parameterTypes.joinToString("")})${ask.returnType}",
                     )
                     assertEquals(
@@ -109,6 +113,102 @@ class GridSortAnchorsTest {
             assertTrue("$version: the probe never ran", checked)
         }
     }
+
+    @Test
+    fun `each declared build has one grid cell click and hands it the fragment first`() {
+        Fixtures.forEachDeclared { apk ->
+            val version = Fixtures.versionOf(apk)
+            val found = mutableListOf<Method>()
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            for (entry in container.dexEntryNames) {
+                for (classDef in container.getEntry(entry)!!.dexFile.classes) {
+                    for (method in classDef.methods) {
+                        if (GridCellOpenFingerprint.takes(method, classDef)) found += method
+                    }
+                }
+            }
+            assertEquals("$version: ${found.map { "${it.definingClass}->${it.name}" }}", 1, found.size)
+
+            var checked = false
+            val probe = bytecodePatch(name = "grid open probe") {
+                execute {
+                    fun ops(m: Method) = m.implementation!!.instructions.filter { it.opcode != Opcode.NOP }.toList()
+                    val before = ops(GridCellOpenFingerprint.method).map { it.opcode }
+                    GridCellOpenFingerprint.clearMatch()
+                    assertTrue("$version: the hook went in", hookGridOpen(version))
+                    GridCellOpenFingerprint.clearMatch()
+                    val after = ops(GridCellOpenFingerprint.method)
+                    val call = after.first().getReference<MethodReference>()!!
+                    assertEquals(
+                        "Lapp/morphe/extension/tiktok/feed/GridSort;->beforeOpen(Ljava/lang/Object;)V",
+                        "${call.definingClass}->${call.name}(${call.parameterTypes.joinToString("")})${call.returnType}",
+                    )
+                    assertEquals(listOf(Opcode.INVOKE_STATIC_RANGE) + before, after.map { it.opcode })
+                    checked = true
+                }
+            }
+            GridCellOpenFingerprint.clearMatch()
+            Patcher(PatcherConfig(apk, temporary.newFolder())).use { patcher ->
+                patcher += setOf(probe)
+                runBlocking { patcher().collect { result -> result.exception?.let { throw it } } }
+            }
+            GridCellOpenFingerprint.clearMatch()
+            assertTrue("$version: the probe never ran", checked)
+        }
+    }
+
+    @Test
+    fun `each declared build has one grid page loader with its load-more message`() {
+        Fixtures.forEachDeclared { apk ->
+            val version = Fixtures.versionOf(apk)
+            val found = mutableListOf<Method>()
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            for (entry in container.dexEntryNames) {
+                for (classDef in container.getEntry(entry)!!.dexFile.classes) {
+                    for (method in classDef.methods) {
+                        if (GridLoadAfterRefreshFingerprint.takes(method, classDef)) found += method
+                    }
+                }
+            }
+            assertEquals("$version: ${found.map { it.definingClass }}", 1, found.size)
+            val loader = gridPageLoaderIn(found.single())
+            assertTrue("$version: no page loader call with a literal message", loader != null)
+            assertEquals("$version: loader shape", listOf("I", "I", "Ljava/lang/String;"), loader!!.method.parameterTypes.map { it.toString() })
+            assertEquals("$version: the grid fragment's own class", found.single().definingClass, loader.method.definingClass)
+        }
+    }
+
+    @Test
+    fun `only the loader call with a literal message loaded just before it is taken`() {
+        val loader = ImmutableMethodReference("LX/0Frag;", "MY", listOf("I", "I", "Ljava/lang/String;"), "V")
+        val own = ImmutableMethodReference("LX/0Frag;", "gZ", listOf("I", "I", "Ljava/lang/String;"), "V")
+        val found = gridPageLoaderIn(
+            caller(
+                ImmutableInstruction11n(Opcode.CONST_4, 0, 4),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 1, ImmutableStringReference("load_more_after_refresh")),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 4, 2, 0, 3, 1, 0, own),
+                ImmutableInstruction31i(Opcode.CONST, 0, 0x52c63c8e),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 4, 2, 0, 3, 1, 0, loader),
+            ),
+        )
+        assertEquals("MY", found!!.method.name)
+        assertEquals(0x52c63c8e, found.message)
+        assertEquals("LX/0Frag;->MY(IILjava/lang/String;)V", found.smali)
+
+        val literalInAnotherRegister = gridPageLoaderIn(
+            caller(
+                ImmutableInstruction31i(Opcode.CONST, 3, 0x52c63c8e),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 4, 2, 0, 3, 1, 0, loader),
+            ),
+        )
+        assertEquals(null, literalInAnotherRegister)
+    }
+
+    private fun caller(vararg code: com.android.tools.smali.dexlib2.iface.instruction.Instruction): Method =
+        ImmutableMethod(
+            "LX/0Frag;", "afterRefresh", listOf(), "V", AccessFlags.PUBLIC.value, null, null,
+            ImmutableMethodImplementation(5, code.toList() + ImmutableInstruction10x(Opcode.RETURN_VOID), null, null),
+        )
 
     @Test
     fun `only a list method of the class that logs the grid adapter tag is taken`() {

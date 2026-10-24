@@ -1,78 +1,45 @@
 package app.morphe.patches.score365.ads
 
 import app.morphe.patches.score365.utils.COMPATIBILITY_365SCORE
-import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.iface.ClassDef
 
-private object BaseActionBarShowAdsFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/Design/Activities/BaseActionBarActivity;",
-    name = "showAdsForContext",
-    returnType = "Z",
-)
-
-private object SingleEntityDashboardShowAdsFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/dashboard/singleEntity/SingleEntityDashboardActivity;",
-    name = "showAdsForContext",
-    returnType = "Z",
-)
-
-private object GameCenterBaseShowAdsFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/gameCenter/GameCenterBaseActivity;",
-    name = "showAdsForContext",
-    returnType = "Z",
-)
-
-private object WebViewShowAdsFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/ui/WebViewActivity;",
-    name = "showAdsForContext",
-    returnType = "Z",
-)
-
-private object BaseActionBarIsBannerNeededFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/Design/Activities/BaseActionBarActivity;",
-    name = "isBannerNeedToBeShown",
-    returnType = "Z",
-)
-
-private object BottomNavigationIsBannerNeededFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/Design/Activities/BottomNavigationActivity;",
-    name = "isBannerNeedToBeShown",
-    returnType = "Z",
-)
+private val APP_AD_GATES = setOf("showAdsForContext", "isBannerNeedToBeShown")
+private const val BASE_ACTION_BAR_ACTIVITY = "Lcom/scores365/Design/Activities/BaseActionBarActivity;"
 
 /**
- * Disables ads across all 365Score activities by forcing showAdsForContext()
- * and isBannerNeedToBeShown() to return false.
+ * Disables Google Mobile Ads (AdMob) initialization and the app's own ad placements,
+ * removing banner, interstitial, rewarded, native and mediated ads.
  */
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes banner and interstitial advertisements from 365Score.",
+    description = "Disables Google Mobile Ads (AdMob) initialization and the app's own ad " +
+        "placements, removing banner, interstitial, rewarded, native and mediated ads.",
 ) {
     compatibleWith(*COMPATIBILITY_365SCORE)
 
     execute {
-        val targets = listOf(
-            BaseActionBarShowAdsFingerprint,
-            SingleEntityDashboardShowAdsFingerprint,
-            GameCenterBaseShowAdsFingerprint,
-            WebViewShowAdsFingerprint,
-            BaseActionBarIsBannerNeededFingerprint,
-            BottomNavigationIsBannerNeededFingerprint,
-        )
+        // Google Mobile Ads (AdMob) is the primary ad network, loaded through the Blaze GAM SDK wrapper;
+        // without MobileAds.initialize no GAM-mediated format loads and AdMob never initializes or prompts for updates.
+        neutraliseMobileAdsStatics("initialize")
 
-        for (target in targets) {
-            val method = target.methodOrNull ?: continue
-            if (method.implementation != null) {
-                method.addInstructions(
-                    0,
-                    """
-                    const/4 v0, 0x0
-                    return v0
-                    """.trimIndent(),
-                )
-            }
+        // The app-side gates return false, so no banner slot or interstitial is ever requested
+        // and the layout keeps no empty ad space.
+        val owners = mutableListOf<ClassDef>()
+        classDefForEach { classDef ->
+            if (classDef.methods.any { it.isAppAdGate() }) owners += classDef
+        }
+        if (owners.none { it.type == BASE_ACTION_BAR_ACTIVITY }) {
+            throw PatchException("$BASE_ACTION_BAR_ACTIVITY no longer implements the app ad gates")
+        }
+        for (owner in owners) {
+            mutableClassDefBy(owner).methods.filter { it.isAppAdGate() }.forEach { it.returnEarly(false) }
         }
     }
 }
+
+private fun com.android.tools.smali.dexlib2.iface.Method.isAppAdGate() =
+    name in APP_AD_GATES && returnType == "Z" && parameterTypes.isEmpty() && implementation != null

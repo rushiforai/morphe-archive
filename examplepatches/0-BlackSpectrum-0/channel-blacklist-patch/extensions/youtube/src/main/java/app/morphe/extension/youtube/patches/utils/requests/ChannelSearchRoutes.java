@@ -10,6 +10,7 @@ package app.morphe.extension.youtube.patches.utils.requests;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,10 +18,12 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
 
@@ -35,6 +38,11 @@ public final class ChannelSearchRoutes {
     private static final String YT_API_URL = "https://youtubei.googleapis.com/youtubei/v1/";
 
     private static final String CLIENT_NAME = "MWEB";
+    /**
+     * Lists the uploads of a channel as a list of 100 uploads per page. The mobile web client lists
+     * 20 per page, and lists only the 20 newest uploads if the newest one is a Short.
+     */
+    private static final String UPLOADS_CLIENT_NAME = "WEB";
     private static final String CLIENT_VERSION = "2.20250101.00.00";
     private static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
@@ -62,7 +70,133 @@ public final class ChannelSearchRoutes {
                     "&fields=microformat.microformatDataRenderer.channelProfileMicroformatDetails.profilePage.description"
     ).compile();
 
+    /**
+     * The title of a video in the language of the request, if the uploader added a translation
+     * of the title. Titles that are not translated by the uploader are the original title.
+     */
+    public static final Route.CompiledRoute GET_LOCALIZED_VIDEO_TITLE = new Route(
+            Route.Method.POST,
+            "next" +
+                    "?prettyPrint=false" +
+                    "&fields=playerOverlays.playerOverlayRenderer.videoDetails.playerOverlayVideoDetailsRenderer.title"
+    ).compile();
+
+    /**
+     * The exact publish date and view count of a video, for search results that are not in
+     * the listed uploads of the channel. The search only shows these rounded, such as
+     * "3 years ago" or "1.2M views", which is not enough to sort by them. The length is shown
+     * for every video but live streams and premieres.
+     * The description and tags tell whether a video matches a search by more than its title.
+     */
+    public static final Route.CompiledRoute GET_VIDEO_DETAILS = new Route(
+            Route.Method.POST,
+            "player" +
+                    "?prettyPrint=false" +
+                    "&fields=microformat.playerMicroformatRenderer.publishDate" +
+                    ",videoDetails.viewCount,videoDetails.lengthSeconds" +
+                    ",videoDetails.shortDescription,videoDetails.keywords"
+    ).compile();
+
+    /**
+     * If the video is live now or upcoming, for the body of {@link #createWebVideoBody(String, Locale)}.
+     * The unauthenticated player response usually asks to sign in instead of telling it.
+     * The response leaves out isLive if it is false, and has the video id if the server answered.
+     */
+    public static final Route.CompiledRoute GET_LIVE_STATUS = new Route(
+            Route.Method.POST,
+            "next" +
+                    "?prettyPrint=false" +
+                    "&fields=currentVideoEndpoint.watchEndpoint.videoId" +
+                    ",contents.twoColumnWatchNextResults.results.results.contents" +
+                    ".videoPrimaryInfoRenderer.viewCount.videoViewCountRenderer.isLive"
+    ).compile();
+
+    private static final String SEARCH_RESULT_VIDEO_FIELD =
+            "contents.sectionListRenderer.contents.itemSectionRenderer.contents.videoWithContextRenderer";
+
+    /**
+     * The search results of a video id or of a title, which include the video with its title as shown
+     * in the lists in the language of the request, or in the language of the searched title.
+     * Titles that are not translated by the uploader can be auto-translated in the lists,
+     * but not in the title of {@link #GET_LOCALIZED_VIDEO_TITLE}.
+     */
+    public static final Route.CompiledRoute GET_LIST_VIDEO_TITLE = new Route(
+            Route.Method.POST,
+            "search" +
+                    "?prettyPrint=false" +
+                    "&fields=" + SEARCH_RESULT_VIDEO_FIELD + ".videoId" +
+                    "," + SEARCH_RESULT_VIDEO_FIELD + ".headline.runs"
+    ).compile();
+
     private ChannelSearchRoutes() {
+    }
+
+    /**
+     * The language of the request includes the country, as titles can be translated
+     * to a regional variant of the language, such as zh-CN and zh-TW.
+     * The country of the request is the default country, as the server rejects some countries.
+     */
+    public static byte[] createVideoBody(String videoId, Locale locale) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("context", createVideoContext(locale));
+            body.put("videoId", videoId);
+
+            return body.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (JSONException ex) {
+            Logger.printException(() -> "createVideoBody failed", ex);
+        }
+        return new byte[0];
+    }
+
+    /**
+     * Same as {@link #createVideoBody(String, Locale)}, for the search of a video id or of a title.
+     */
+    public static byte[] createVideoSearchBody(String query, Locale locale) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("context", createVideoContext(locale));
+            body.put("query", query);
+
+            return body.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (JSONException ex) {
+            Logger.printException(() -> "createVideoSearchBody failed", ex);
+        }
+        return new byte[0];
+    }
+
+    /**
+     * Like {@link #createVideoBody(String, Locale)}, but as the web client, whose watch page response
+     * has the layout of {@link #GET_LIVE_STATUS}, with the language without the country, and with
+     * the country of the locale instead of the default country.
+     */
+    public static byte[] createWebVideoBody(String videoId, Locale locale) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("context", createContext(UPLOADS_CLIENT_NAME, locale));
+            body.put("videoId", videoId);
+
+            return body.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (JSONException ex) {
+            Logger.printException(() -> "createWebVideoBody failed", ex);
+        }
+        return new byte[0];
+    }
+
+    private static JSONObject createVideoContext(Locale locale) throws JSONException {
+        String language = orDefault(locale.getLanguage(), DEFAULT_LANGUAGE);
+        if (!locale.getCountry().isEmpty()) {
+            language += "-" + locale.getCountry();
+        }
+        JSONObject client = new JSONObject();
+        client.put("clientName", CLIENT_NAME);
+        client.put("clientVersion", CLIENT_VERSION);
+        client.put("hl", language);
+        client.put("gl", DEFAULT_COUNTRY);
+
+        JSONObject context = new JSONObject();
+        context.put("client", client);
+        return context;
     }
 
     public static byte[] createChannelBody(String channelId, Locale locale) {
@@ -74,6 +208,36 @@ public final class ChannelSearchRoutes {
             return body.toString().getBytes(StandardCharsets.UTF_8);
         } catch (JSONException ex) {
             Logger.printException(() -> "createChannelBody failed", ex);
+        }
+        return new byte[0];
+    }
+
+    /**
+     * The uploads playlist of a channel is its id with the "UC" prefix replaced,
+     * and is browsed like a channel.
+     */
+    public static byte[] createUploadsBody(String channelId, Locale locale) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("context", createContext(UPLOADS_CLIENT_NAME, locale));
+            body.put("browseId", "VLUU" + channelId.substring(2));
+
+            return body.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (JSONException ex) {
+            Logger.printException(() -> "createUploadsBody failed", ex);
+        }
+        return new byte[0];
+    }
+
+    public static byte[] createUploadsContinuationBody(String continuationToken, Locale locale) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("context", createContext(UPLOADS_CLIENT_NAME, locale));
+            body.put("continuation", continuationToken);
+
+            return body.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (JSONException ex) {
+            Logger.printException(() -> "createUploadsContinuationBody failed", ex);
         }
         return new byte[0];
     }
@@ -107,8 +271,12 @@ public final class ChannelSearchRoutes {
     }
 
     private static JSONObject createContext(Locale locale) throws JSONException {
+        return createContext(CLIENT_NAME, locale);
+    }
+
+    private static JSONObject createContext(String clientName, Locale locale) throws JSONException {
         JSONObject client = new JSONObject();
-        client.put("clientName", CLIENT_NAME);
+        client.put("clientName", clientName);
         client.put("clientVersion", CLIENT_VERSION);
         client.put("hl", orDefault(locale.getLanguage(), DEFAULT_LANGUAGE));
         client.put("gl", orDefault(locale.getCountry(), DEFAULT_COUNTRY));
@@ -161,6 +329,37 @@ public final class ChannelSearchRoutes {
             value >>>= 7;
         }
         out.write(value);
+    }
+
+    /**
+     * @return The response, or null if the request failed.
+     */
+    @Nullable
+    public static JSONObject fetch(Route.CompiledRoute route, byte[] requestBody) {
+        Utils.verifyOffMainThread();
+
+        try {
+            HttpURLConnection connection = getConnection(route);
+            connection.setFixedLengthStreamingMode(requestBody.length);
+            connection.getOutputStream().write(requestBody);
+
+            final int responseCode = connection.getResponseCode();
+            if (responseCode != Requester.HTTP_STATUS_CODE_SUCCESS) {
+                String error = Requester.parseErrorStringAndDisconnect(connection);
+                Logger.printDebug(() -> route.getCompiledRoute() + " failed with code: "
+                        + responseCode + " error: " + error);
+                return null;
+            }
+
+            return Requester.parseJSONObject(connection);
+        } catch (SocketTimeoutException ex) {
+            Logger.printInfo(() -> "Connection timeout", ex);
+        } catch (IOException ex) {
+            Logger.printInfo(() -> "Network error", ex);
+        } catch (Exception ex) {
+            Logger.printException(() -> "fetch failure", ex);
+        }
+        return null;
     }
 
     public static HttpURLConnection getConnection(Route.CompiledRoute route) throws IOException {

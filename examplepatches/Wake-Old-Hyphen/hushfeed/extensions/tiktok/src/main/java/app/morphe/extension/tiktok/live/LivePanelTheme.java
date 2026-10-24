@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /** The theme LIVE panels inflate with while Dark LIVE panels is on in dark mode (#159). */
 @SuppressWarnings("unused")
@@ -158,6 +159,9 @@ public final class LivePanelTheme {
      * reaches them (#159). While Dark LIVE panels is on and TikTok itself is in dark mode,
      * TikTok's dark app theme goes on over them with force, as TikTok themes its other screens
      * in dark mode. The room's color scheme styles still apply after it.
+     * Also called after the room's onConfigurationChanged: the room handles a dark mode flip
+     * itself, and AppCompat re-applies the room's last light style with force after its setTheme,
+     * so Share opened white in a room left open while the system theme flipped (S22, 2026-10-23).
      */
     public static void darkLiveRoom(Activity room) {
         darkLiveRoom(room, darkAppTheme());
@@ -581,38 +585,80 @@ public final class LivePanelTheme {
     }
 
     /**
-     * Called by TikTok's Spark theme lookups, the light or dark answer and the page color Spark's
-     * web pages and popups take, with the context they read TikTok's theme name from. Over a room
-     * the room hook darkened, that name is TikTok's dark theme's, so a shop room's Top customers
-     * popup drew dark while its tab titles kept the light page's dark text (S22, 2026-10-20).
-     * While Dark LIVE panels is on in dark mode, a context over a darkened room gets one over the
-     * room's light theme as it was before, so the room's Spark popups stay stock. Every other
-     * context, the feed's and a room the hook never darkened included, comes back untouched.
+     * Called first by Spark's light or dark decision for one page (SparkContext.LJIIZILJ on
+     * 47.5.3) with the page's SparkContext and the context it was asked with; true answers light
+     * before Spark decides. Spark's pages read dark over a room the room hook darkened, which
+     * suits them, except a shop room's viewer ranking with its Top customers tab, whose native tab
+     * titles kept their light colors on the dark sheet (S22, 2026-10-20). That page asks for the
+     * buyers ranking in its schema (can_show_top_buyers_rank=1; the plain viewer ranking, same
+     * Lynx bundle, sends 0, emulator 2026-10-23), and only it stays light, only over a darkened
+     * room while Dark LIVE panels is on in dark mode.
      */
-    public static Context sparkContext(Context context) {
+    public static boolean sparkKeepsStock(Object page, Context context) {
         try {
-            Resources.Theme light = lightRoom(context);
-            if (light == null || !LiveControls.darkLivePanels(context)) {
-                return context;
+            if (page == null || !buyersRanking(page)) {
+                return false;
             }
-            Resources.Theme theme = context.getResources().newTheme();
-            theme.setTo(light);
-            return new StockContext(context, theme);
+            Activity room = sparkRoom(context);
+            return room != null && LiveControls.darkLivePanels(room);
         } catch (Throwable failure) {
             if (!sparkFailureLogged) {
                 sparkFailureLogged = true;
                 Logger.printException(() -> "Could not keep a LIVE room's Spark page stock", failure);
             }
-            return context;
+            return false;
         }
+    }
+
+    private static final Pattern BUYERS_RANKING = Pattern.compile("[?&]can_show_top_buyers_rank=1(?:&|$)");
+
+    /** Whether a Spark page's schema asks for the shop ranking's Top customers tab. */
+    static boolean buyersRanking(Object page) {
+        Object bundle = Reflect.readField(page, "schemaBundle");
+        Object queries = Reflect.invoke(bundle, "getAllQueries");
+        if (queries instanceof Map && ((Map<?, ?>) queries).containsKey("can_show_top_buyers_rank")) {
+            return "1".equals(String.valueOf(((Map<?, ?>) queries).get("can_show_top_buyers_rank")));
+        }
+        for (Object url : new Object[] {Reflect.readField(page, "fullUrl"), Reflect.invoke(bundle, "getUrl")}) {
+            if (url instanceof String && BUYERS_RANKING.matcher((String) url).find()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The darkened room a Spark page opens over: the one under its context, or with no activity
+     * under it (Spark asks with none for the theme name its Lynx page reads), a live one the
+     * room hook darkened. Null otherwise, a room the hook never darkened included.
+     */
+    static Activity sparkRoom(Context context) {
+        Activity room = roomOf(context);
+        if (room != null) {
+            return LIGHT_ROOMS.containsKey(room) ? room : null;
+        }
+        synchronized (LIGHT_ROOMS) {
+            for (Activity kept : LIGHT_ROOMS.keySet()) {
+                if (kept != null && !kept.isFinishing() && !kept.isDestroyed()) {
+                    return kept;
+                }
+            }
+        }
+        return null;
     }
 
     /** The light theme kept for the room activity under the context, or null. */
     static Resources.Theme lightRoom(Context context) {
+        Activity room = roomOf(context);
+        return room == null ? null : LIGHT_ROOMS.get(room);
+    }
+
+    /** The activity under the context, or null. */
+    static Activity roomOf(Context context) {
         Context current = context;
         while (current != null) {
             if (current instanceof Activity) {
-                return LIGHT_ROOMS.get(current);
+                return (Activity) current;
             }
             if (!(current instanceof ContextWrapper)) {
                 return null;

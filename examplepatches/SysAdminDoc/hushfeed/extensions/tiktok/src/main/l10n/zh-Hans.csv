@@ -201,6 +201,7 @@ All available languages,所有可用语言
 All events,所有活动
 All loaded tabs,所有加载的选项卡
 Allow Duet and Stitch anyway,无论如何都允许 Duet 和 Stitch
+Allow Add to Story anyway,无论如何都允许添加到故事
 Allow screenshots and Circle to Search,允许截图和圈选即搜
 Allow storage for TikTok in Android settings to record LIVEs,允许在 Android 设置中存储 TikTok 以录制 LIVE
 Allow storage for TikTok in Android settings to save covers,允许在 Android 设置中存储 TikTok 以保存封面
@@ -778,6 +779,8 @@ Hide the Share via row.,隐藏共享通过行.
 Hide the Tako bubble,隐藏 Tako 气泡
 Hide the Tako chat,隐藏 Tako 聊天记录
 "Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.",隐藏个人资料图片上方显示的想法气泡 TikTok，以及在您自己的个人资料上分享一张的提示。重新启动 TikTok 以应用此操作.
+Turn on Thoughts,开启想法
+"Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.",为 TikTok 尚未开启想法的账号，在个人资料和收件箱中显示想法，以及分享想法的提示。TikTok 的服务器仍可能拒绝发布。重新启动 TikTok 以应用此操作.
 Hide the actions row of the share sheet.,隐藏共享表的操作行.
 Hide the add people icon,隐藏添加人员图标
 Hide the bottom tab names,隐藏底部选项卡名称
@@ -1159,7 +1162,7 @@ On mobile data,关于移动数据
 On or off,打开或关闭
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.",在“好友”选项卡上，隐藏非相互关注帐户（包括建议帐户）的帖子、转发和直播。您自己的帖子会保留.
 Latest first on Following,“正在关注”最新优先
-"Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.",“正在关注”每次加载的一批内容按发布时间从新到旧播放。每批包含哪些内容仍由 TikTok 决定，广告和直播保持原位.
+"Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.",“正在关注”按发布时间从新到旧播放。稍后加载的较新内容会排到你正在看的视频之后，你已经划过的内容不会变动。广告和直播保持原位.
 On. Hushfeed hasn't seen TikTok send any reports since it started.,上。自启动以来，Hushfeed 尚未看到 TikTok 发送任何报告.
 On. Restore puts back the feed setup you had before.,上。恢复会恢复您之前的信息流设置.
 "Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.",一旦今天的预算用完，保留将继续存在且无法撤销。预算设置将被锁定，直到新的一天开始。在预算用完之前随时关闭此功能.
@@ -1206,6 +1209,7 @@ Operator name,操作员名称
 "Opus (.ogg), a smaller file",Opus (.ogg)，较小的文件
 Opus didn't work on this phone. Saving the sound as TikTok sent it instead.,Opus 无法在这款手机上运行。将声音保存为 TikTok 来发送.
 "Opus needs Android 10 or later, so sounds save as TikTok sent them.",Opus 需要 Android 10 或更高版本，因此声音保存为 TikTok 发送.
+Original,原画
 Original language,原语言
 Original message,原始消息
 Original photos,原始照片
@@ -1424,9 +1428,9 @@ Save cover,保存封面
 Save cover button in the share sheet,在共享表中保存封面按钮
 Save details as JSON,将详细信息保存为 JSON
 Save details beside the video,在视频旁边保存详细信息
-"Save every photo in the post at full size as a JPEG, not as the screen shows it.",将帖子中的每张照片以全尺寸保存为 JPEG，而不是屏幕显示的那样.
+"Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on.",将帖子中的每张照片以全尺寸保存，而不是屏幕显示的那样。除非开启了“照片保持 TikTok 发送时的格式”，否则每张都保存为 JPEG.
 Keep photos as TikTok sent them,照片保持 TikTok 发送时的格式
-"Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those.",保存的照片、封面和故事照片保持 HEIF 或 WebP 格式，不转换为 JPEG。部分图库和电脑无法打开这些格式.
+"Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.",保存的照片、封面、故事照片和静态贴纸就是 TikTok 发送的原始文件，而不是新的 JPEG 或 PNG。部分图库和电脑无法打开 HEIF 或 WebP.
 Save field values,保存字段值
 Save full report,保存完整报告
 Save in which quality?,以哪种质量保存?
@@ -1653,6 +1657,7 @@ Shows TikTok's text in your phone's font instead of TikTok Sans. Icons and gift 
 "Shows a small count under TikTok's top tabs of what the feed filter has removed since TikTok started. It shows only on the feed, and taps on it go through to the video under it.",在 TikTok 的顶部选项卡下显示自 TikTok 启动以来信息流过滤器已删除的内容的少量计数。它仅显示在信息流上，点击它即可查看其下方的视频.
 Shows every emoji in your phone's own emoji font. The newest emoji your phone doesn't have yet may show as a box or in pieces.,以手机自带的表情符号字体显示每个表情符号。您的手机尚未安装的最新表情符号可能会显示为盒子或碎片.
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.,即使创建者关闭了 Duet 和 Stitch 选项，也会显示它们。 TikTok 仍可能拒绝接受结果.
+Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.,在创建者关闭了内容再利用的故事上显示“添加到故事”。 TikTok 仍可能拒绝发布.
 "Shows the country's flag in place of its two letters, by the creator's name and by a commenter's time.",在两个字母的位置显示该国的国旗，并按创建者的姓名和评论者的时间.
 Sign in to TikTok before importing watch history.,导入观看历史记录之前，请登录 TikTok.
 Sign in to TikTok before saving or restoring seen history.,在保存或恢复查看的历史记录之前，请登录 TikTok.
@@ -1742,7 +1747,7 @@ Stops TikTok from reading your phone's motion and compass sensors. Apps can use 
 "Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.",阻止 TikTok 发送使用报告、广告跟踪和崩溃报告。 TikTok 自己的诊断工具也变得安静.
 "Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.",阻止 TikTok 减慢屏幕速度以匹配每个视频的帧速率。在 90 或 120 Hz 手机上，该请求会使整个应用程序（包括滚动）运行速度变慢.
 Keep the screen's brightness in the camera,在相机中保持屏幕亮度
-"Stops TikTok from turning your screen brighter while you film, edit or post a video.",阻止 TikTok 在你拍摄、编辑或发布视频时调亮屏幕.
+"Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.",阻止 TikTok 在你拍摄、编辑或发布视频时调亮屏幕。前置闪光灯仍会让屏幕变白，但使用你自己的亮度.
 "Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.",停止就寝时间放松、呼吸练习和每日限制屏幕 TikTok 关闭信息流。仅适用于 TikTok 知道属于成人的帐户。青少年帐户以及家长与 Family Pairing 关联的帐户请保留。当 TikTok 说时间到时离开时，每日限制屏幕仍然显示，以便开关可以工作.
 "Stops websites you open from inside TikTok from reaching back into the app. TikTok's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working.",阻止您从 TikTok 内部打开的网站返回应用程序。 TikTok自己的页面，如活动中心、观看历史、商店结账和验证码继续运行.
 Store TikTok thinks it came from,商店 TikTok 认为它来自
@@ -1765,6 +1770,8 @@ System,系统
 Tag saved videos with their details,为保存的视频添加详细信息标签
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.",将添加评论栏从您从个人资料、主题标签、声音或搜索中打开的视频中删除，以便视频填满屏幕直至底部。右侧的评论按钮仍然可以打开评论.
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,把脉动的LIVE铃声放在信息流和评论中的个人资料图片上。点击实时创作者的图片会打开他们的个人资料，而不是 LIVE.
+Open the Story when a creator is LIVE,创作者在 LIVE 时打开故事
+"When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.",如果正在 LIVE 的创作者也有故事，在其个人资料中点按头像会打开故事。再次点按头像即可进入 LIVE.
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.",将故事圈从信息流、评论和个人资料中的个人资料照片中删除。点击图片会打开个人资料而不是故事.
 Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,从视频面板中移除 TikTok 自己的自动滚动操作，并移除平板和展开的折叠屏上视频旁的自动滚动开关。关闭自动前进时也有效.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,在 %1$d 秒内点击视频下方栏上的重新发布两次。带注释的转发将被保留.
@@ -2226,7 +2233,7 @@ Two at once,同时两个
 Three at once,同时三个
 LIVE recording quality,LIVE 录制画质
 Same as the room,与直播间相同
-"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.",“与直播间相同”会录制您正在观看的画质。“最高”会录制直播间最好的流，即使您以较低画质观看.
+"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.",“与直播间相同”会录制您正在观看的画质。“最高”会录制直播间最好的流，即使您以较低画质观看.数字表示录制该画质，直播间没有时录制最接近的一档.
 Long-press Profile for Watch history,长按“个人主页”打开观看历史
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.",按住“个人主页”选项卡可打开观看历史。点击“个人主页”仍像以前一样工作。如果按住“个人主页”会为您切换账号，此选项会接管该操作，个人主页顶部的名称仍可切换账号.
 Open the comments at full height,以全高打开评论
@@ -2242,5 +2249,19 @@ Oldest first,最早的在前
 Longest first,最长的在前
 Shortest first,最短的在前
 Most viewed first,播放最多的在前
+Least viewed first,播放最少的在前
 Most liked first,点赞最多的在前
-"Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.",对个人资料或喜欢网格目前已加载的视频排序，置顶视频仍排在最前。向下滚动时，排序会涵盖更多视频。下次打开网格时按此顺序显示.
+Least liked first,点赞最少的在前
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",对个人资料或喜欢网格排序，置顶视频仍排在最前。选择排序后，网格会自动继续加载，最多 300 个视频，让排序覆盖的不只是第一屏。网格顶部角落的按钮可直接更改排序.
+Sort this grid,排序此网格
+Blur the video behind the bar,模糊栏后面的视频
+"Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.",在主信息流上，模糊玻璃条后面的那部分视频，让它看起来像磨砂玻璃。需要液态玻璃外观和 Android 12 及以上版本.
+LIVE recording source,LIVE 录制来源
+Stream only,仅直播流
+Screen,屏幕
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.",仅直播流会像以前一样保存直播间自己的视频。屏幕会录下手机观看时显示的内容，TikTok 有麦克风权限时还会带上应用播放的声音。安卓每次都会请你允许录屏，录制时也会显示它自己的提示.
+Recording this LIVE's screen,正在录制此直播的屏幕
+Open the room and tap Stop to save it.,打开直播间并点按停止即可保存.
+Screen recording wasn't allowed,未允许录屏
+Recording this LIVE's screen from now,现在开始录制此直播的屏幕
+"Recording this LIVE's screen from now, without sound",现在开始录制此直播的屏幕，不带声音

@@ -38,6 +38,19 @@ public final class LiveRoomStream {
     /** A {@code preferred} that asks for the smallest stream the room has rather than one quality. */
     static final String LOWEST = "lowest";
 
+    /** A {@code preferred} for one of the room's own presets: "~hd" takes hd, else the nearest one below, else the nearest above. */
+    private static final String NEAREST = "~";
+
+    /** The room's own preset keys a recording can ask for, best first. */
+    static final String[] PRESETS = {"origin", "uhd", "hd", "sd", "ld"};
+
+    static boolean isPreset(String choice) {
+        for (String preset : PRESETS) {
+            if (preset.equals(choice)) return true;
+        }
+        return false;
+    }
+
     private static int rank(String quality) {
         for (int i = 0; i < QUALITY_ORDER.length; i++) {
             if (QUALITY_ORDER[i].equals(quality)) return i;
@@ -48,10 +61,12 @@ public final class LiveRoomStream {
     /**
      * The {@code preferred} a recording passes for the LIVE recording quality choice (#203):
      * "highest" asks for the best there is, "lowest" for the smallest, and anything else for the
-     * quality being watched, {@code watching}, which can be null.
+     * quality being watched, {@code watching}, which can be null. One of the room's own preset
+     * keys (origin, uhd, hd, sd, ld) asks for that stream, or the nearest one when the room lacks it.
      */
     public static String forRecording(String choice, String watching) {
         if ("highest".equals(choice)) return null;
+        if (isPreset(choice)) return NEAREST + choice;
         if (LOWEST.equals(choice)) return LOWEST;
         return watching;
     }
@@ -127,7 +142,19 @@ public final class LiveRoomStream {
         }
     }
 
+    /** How far a stream is from the asked preset: 0 is it, then the ones below nearest first, then the ones above. */
+    private static int distance(String quality, String preset) {
+        int asked = rank(preset);
+        int rank = rank(quality);
+        if (rank == QUALITY_ORDER.length) return 1000;
+        return rank >= asked ? rank - asked : 100 + (asked - rank);
+    }
+
     private static boolean better(String candidate, String current, String preferred) {
+        if (preferred != null && preferred.startsWith(NEAREST)) {
+            String preset = preferred.substring(NEAREST.length());
+            return distance(candidate, preset) < distance(current, preset);
+        }
         if (LOWEST.equals(preferred)) {
             // A key not in the order counts as the best, so a known small stream wins over it.
             return lowness(candidate) > lowness(current);
@@ -143,6 +170,20 @@ public final class LiveRoomStream {
     private static int lowness(String quality) {
         int rank = rank(quality);
         return rank == QUALITY_ORDER.length ? -1 : rank;
+    }
+
+    /** What to record when the screen is the source (#37): the room's creator and id, no stream address. */
+    public static Pick screenTarget(Object room) {
+        if (room == null) return new Pick(null, "No room");
+        try {
+            Object owner = Reflect.readField(room, "owner");
+            String creator = owner == null ? null : Reflect.string(owner, "getUsername", "username");
+            Object id = Reflect.readField(room, "idStr");
+            return new Pick(new LiveRecorder.Target(null, LiveRecorder.Transport.SCREEN, creator,
+                    id instanceof String ? (String) id : null, "screen"), null);
+        } catch (Throwable failure) {
+            return new Pick(null, "Unreadable room");
+        }
     }
 
     /** Reads the room off TikTok's room object. Never throws. */

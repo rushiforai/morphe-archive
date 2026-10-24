@@ -12,12 +12,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 @SuppressWarnings("unused")
 public final class HighlightColorPicker {
@@ -196,8 +197,7 @@ public final class HighlightColorPicker {
     }
 
     private static int dp(Context context, float value) {
-        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
-                context.getResources().getDisplayMetrics()));
+        return Dimensions.dp(context, value);
     }
 
     @SuppressLint("ViewConstructor")

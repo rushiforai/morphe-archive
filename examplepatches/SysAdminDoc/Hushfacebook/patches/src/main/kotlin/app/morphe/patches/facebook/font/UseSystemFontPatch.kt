@@ -33,6 +33,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import java.util.WeakHashMap
 
 private const val PATCH = "Use the system font"
 internal const val OWN_FONT = "$EXTENSION_PACKAGE/font/OwnFont;"
@@ -87,6 +88,43 @@ val useSystemFontPatch = bytecodePatch(
     }
 }
 
+/** The classes outside the extension holding what each of four hooks below looks for. */
+internal class FontSites(
+    val defaults: Set<String>,
+    val layouts: Set<String>,
+    val lineHeights: Set<String>,
+    val textViews: Set<String>,
+)
+
+private val fontSiteScans = WeakHashMap<BytecodePatchContext, FontSites>()
+
+/**
+ * The classes [hookDefaultTypefaces], [hookTextLayouts], [hookLineHeights] and [hookTextViews] go
+ * through, found in one pass over every instruction of the app instead of one pass each (#216: the
+ * four passes were 11% of a whole patch). None of the four writes what another looks for, so a pass
+ * made as the first of them starts finds what each would have found on its own. Once per patch run.
+ */
+internal fun BytecodePatchContext.fontSites(): FontSites = fontSiteScans.getOrPut(this) {
+    val defaults = mutableSetOf<String>()
+    val layouts = mutableSetOf<String>()
+    val lineHeights = mutableSetOf<String>()
+    val textViews = mutableSetOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        for (method in classDef.methods) {
+            val code = method.implementation?.instructions ?: continue
+            val chooseHeight = isChooseHeight(method)
+            for (instruction in code) {
+                if (defaultRead(instruction) != null) defaults += classDef.type
+                if (layoutCall(instruction) != null) layouts += classDef.type
+                if (chooseHeight && lineEdgeWrite(instruction) != null) lineHeights += classDef.type
+                if (builtTextView(instruction) != null || makesView(instruction)) textViews += classDef.type
+            }
+        }
+    }
+    FontSites(defaults, layouts, lineHeights, textViews)
+}
+
 /**
  * Facebook's own reads of Android's default typefaces: Typeface.DEFAULT, DEFAULT_BOLD and
  * SANS_SERIF, defaultFromStyle, and Typeface.create by family name, or from a typeface at a style
@@ -103,13 +141,7 @@ val useSystemFontPatch = bytecodePatch(
  * Answers how many reads it sent.
  */
 internal fun BytecodePatchContext.hookDefaultTypefaces(): Int {
-    val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
-        if (classDef.methods.any { method -> method.implementation?.instructions?.any { defaultRead(it) != null } == true }) {
-            owners += classDef.type
-        }
-    }
+    val owners = fontSites().defaults
     val isEquality = equalityChecks()
     val sent = owners.sumOf { type -> mutableClassDefByOrNull(type)?.methods?.sumOf { it.sendDefaultReads(isEquality) } ?: 0 }
     if (sent == 0) throw PatchException("$PATCH: found no read of Android's default typefaces outside the extension")
@@ -175,13 +207,7 @@ private fun MutableMethod.staticArguments(instruction: Instruction, what: String
  * they're left alone. Answers the calls it sent, one entry a call.
  */
 internal fun BytecodePatchContext.hookTextLayouts(): List<String> {
-    val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
-        if (classDef.methods.any { method -> method.implementation?.instructions?.any { layoutCall(it) != null } == true }) {
-            owners += classDef.type
-        }
-    }
+    val owners = fontSites().layouts
     val sent = owners.flatMap { type -> mutableClassDefByOrNull(type)?.methods?.flatMap { it.sendTextLayouts() }.orEmpty() }
     for (call in listOf(OBTAIN_LAYOUT, SET_INCLUDE_PAD, BUILD_LAYOUT)) {
         if (call !in sent) throw PatchException("$PATCH: found no call of $call outside the extension")
@@ -210,16 +236,7 @@ internal fun MutableMethod.sendTextLayouts(): List<String> {
  * place of one, so jumps and try blocks stay where they were. Answers how many writes it sent.
  */
 internal fun BytecodePatchContext.hookLineHeights(): Int {
-    val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
-        if (classDef.methods.any { method ->
-                isChooseHeight(method) && method.implementation?.instructions?.any { lineEdgeWrite(it) != null } == true
-            }
-        ) {
-            owners += classDef.type
-        }
-    }
+    val owners = fontSites().lineHeights
     val sent = owners.sumOf { type ->
         mutableClassDefByOrNull(type)?.methods?.filter(::isChooseHeight)?.sumOf { it.sendLineEdges() } ?: 0
     }
@@ -249,16 +266,7 @@ internal fun MutableMethod.sendLineEdges(): Int {
  * one register by range, so any register fits. Answers how many it hooked.
  */
 internal fun BytecodePatchContext.hookTextViews(): Int {
-    val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
-        if (classDef.methods.any { method ->
-                method.implementation?.instructions?.any { builtTextView(it) != null || makesView(it) } == true
-            }
-        ) {
-            owners += classDef.type
-        }
-    }
+    val owners = fontSites().textViews
     val hooked = owners.sumOf { type -> mutableClassDefByOrNull(type)?.methods?.sumOf { it.sendTextViews() } ?: 0 }
     if (hooked == 0) throw PatchException("$PATCH: found no text view Facebook builds")
     return hooked

@@ -1,3 +1,196 @@
+## [0.30.3](https://github.com/Forsigh/waze-patches/compare/v0.23.0...v0.30.3) (2026-10-23)
+
+### Themes
+
+* Waze: four brighter AMOLED themes - Lilac, Mint, Ice and Peach - so roads stay readable on a black map
+
+### Changes
+
+* Waze: the audio partner row is Morphe YouTube Music only again, the shape that works end to end
+* Waze: the Picture-in-picture row now says its two known issues in the description - no touch on the floating window, and the UI does not scale down
+* Waze: alert distance options state which value is standard, next to the number
+
+
+## [0.29.1](https://github.com/Forsigh/waze-patches/compare/v0.29.0...v0.29.1) (2026-10-23)
+
+### 📝 Documentation
+
+* Waze: the Picture-in-picture row now states its two known issues in the description - no touch on the floating window, and the UI does not scale down
+
+## [0.29.0](https://github.com/Forsigh/waze-patches/compare/v0.28.9...v0.29.0) (2026-10-23)
+
+### ✨ Features
+
+* Waze: the audio-partner row is renamed "Additional players as audio partners", since it now covers BitChord and Smart AudioBook Player as well as Morphe Music
+
+## [0.28.9](https://github.com/Forsigh/waze-patches/compare/v0.28.8...v0.28.9) (2026-10-23)
+
+### ✨ Features
+
+* Waze: the audio-partner row also wires BitChord and Smart AudioBook Player, each behind its own gear, and opens Waze's availability check so installed players are not rejected
+
+## [0.28.8](https://github.com/Forsigh/waze-patches/compare/v0.28.7...v0.28.8) (2026-10-23)
+
+### 🐛 Fixes
+
+* Waze: the lock-screen hooks are gone again. "Screen locked" on a floating Waze window is the phone's own lock screen, not Waze, so the toggle now only floats the map and routes its touches
+
+## [0.28.7](https://github.com/Forsigh/waze-patches/compare/v0.28.6...v0.28.7) (2026-10-22)
+
+### 🐛 Fixes
+
+* Waze: the navigation lock is now switched off in all three places Waze stores it, not just one - the PiP window should stop reporting "Screen is locked"
+
+## [0.28.6](https://github.com/Forsigh/waze-patches/compare/v0.28.5...v0.28.6) (2026-10-22)
+
+### ⚠️ Experimental
+
+* Waze: Picture-in-picture now switches the navigation lock screen off, so the floating map answers pan and zoom instead of sitting behind the "Screen is locked" state
+
+## [0.28.5](https://github.com/Forsigh/waze-patches/compare/v0.28.4...v0.28.5) (2026-10-22)
+
+### 📝 Documentation
+
+* Waze: every alert-distance field now states the distance it leaves in place, so 0 is not a mystery number
+
+## [0.28.4](https://github.com/Forsigh/waze-patches/compare/v0.28.3...v0.28.4) (2026-10-22)
+
+### ⚠️ Experimental
+
+* Waze: while floating, touch events are routed straight to the map view instead of the HUD - test build, the map should answer pan and zoom in the PiP window
+
+## [0.28.3](https://github.com/Forsigh/waze-patches/compare/v0.28.2...v0.28.3) (2026-10-22)
+
+### ♻️ Refactors
+
+* Waze: Picture-in-picture always floats now and carries no options - the route-gated mode never fired on the phone
+
+## [0.28.2](https://github.com/Forsigh/waze-patches/compare/v0.28.1...v0.28.2) (2026-10-22)
+
+### ✨ New Features
+
+* Waze: brought back Picture-in-picture as an Experimental row, marked with the known issue that Waze's UI does not scale down inside the floating window
+
+## [0.28.1](https://github.com/Forsigh/waze-patches/compare/v0.28.0...v0.28.1) (2026-10-22)
+
+### 🐛 Fixes
+
+* Waze: Speedometer & limit sign now writes its config on its own, and both size menus open on 1.0x instead of an unlisted value
+
+## [0.28.0](https://github.com/Forsigh/waze-patches/compare/v0.24.6...v0.28.0) (2026-10-22)
+
+### ✨ New Features
+
+* Waze: added Live drive sharing, extra map info (compass and toll prices), crosswalk hazards and a speed-bump switch in Alert distances
+
+### ♻️ Refactors
+
+* Waze: merged the speed limit, speedometer, camera and cluster rows into single rows with gear switches, 35 rows down to 28
+
+## [0.24.6](https://github.com/Forsigh/waze-patches/compare/v0.24.5...v0.24.6) (2026-10-22)
+
+### 🗑️ Removals
+
+* Waze: dropped the floating window (picture-in-picture) row; Waze's UI cannot be scaled inside the PiP window
+
+## [0.24.5](https://github.com/Forsigh/waze-patches/compare/v0.24.4...v0.24.5) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: "Scaled down UI" rescales DisplayMetrics itself and pushes the change into the view tree, which Compose honours
+
+## [0.24.4](https://github.com/Forsigh/waze-patches/compare/v0.24.3...v0.24.4) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: removed the density scaling that crashed Waze on startup (AppCompat declares attachBaseContext final)
+
+## [0.24.3](https://github.com/Forsigh/waze-patches/compare/v0.24.2...v0.24.3) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: "Scaled down UI" now rebuilds the screen with a smaller density context, which actually reaches Compose
+
+## [0.24.2](https://github.com/Forsigh/waze-patches/compare/v0.24.1...v0.24.2) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: "Scaled down UI" halves the display density while floating, so Waze's panels fit the small window
+
+## [0.24.1](https://github.com/Forsigh/waze-patches/compare/v0.24.0...v0.24.1) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: "Just the map" now covers the panels with a black layer under the map instead of hiding views
+
+## [0.24.0](https://github.com/Forsigh/waze-patches/compare/v0.23.9...v0.24.0) (2026-10-21)
+
+### 🧹 Chores
+
+* Waze: floating window is portrait only again, the wide option is gone
+
+## [0.23.9](https://github.com/Forsigh/waze-patches/compare/v0.23.8...v0.23.9) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: "Just the map" option hides everything around the map view while the window is floating
+
+## [0.23.8](https://github.com/Forsigh/waze-patches/compare/v0.23.7...v0.23.8) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: removed the location read that broke GPS when entering the floating window
+
+## [0.23.7](https://github.com/Forsigh/waze-patches/compare/v0.23.6...v0.23.7) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: floating window shape - Wide uses Waze's landscape driving layout, which is mostly map
+
+## [0.23.6](https://github.com/Forsigh/waze-patches/compare/v0.23.5...v0.23.6) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: "only while driving" now also floats when the phone is moving, so a route no longer needs Waze's native flag to read true
+
+## [0.23.5](https://github.com/Forsigh/waze-patches/compare/v0.23.4...v0.23.5) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: floating window no longer blanks the app. The UI-hiding experiment is out until it can be done safely
+
+## [0.23.4](https://github.com/Forsigh/waze-patches/compare/v0.23.3...v0.23.4) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: custom alert distances are their own row, so the numbers only appear when you pick it
+
+### 🐛 Bug Fixes
+
+* Waze: picture-in-picture primes from three activities, covering phones where the map screen differs
+
+## [0.23.3](https://github.com/Forsigh/waze-patches/compare/v0.23.2...v0.23.3) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: picture-in-picture now primes from the map activity, so it floats while navigating
+
+## [0.23.2](https://github.com/Forsigh/waze-patches/compare/v0.23.1...v0.23.2) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* Waze: car screen row no longer produces a broken method on the car display
+* Waze: new alert icons resolves its config id at runtime instead of a baked number
+
+## [0.23.1](https://github.com/Forsigh/waze-patches/compare/v0.23.0...v0.23.1) (2026-10-21)
+
+### ✨ New Features
+
+* Waze: picture-in-picture while navigating, portrait window, route or always
+* Waze: every camera type, including phone and lane cameras
+* Waze: car trip text and large cluster view
+* Waze: car screen fits its window, car map zoom, new alert icons
+
 ## [0.23.0](https://github.com/Forsigh/waze-patches/compare/v0.22.9...v0.23.0) (2026-10-20)
 
 ### ✨ New Features

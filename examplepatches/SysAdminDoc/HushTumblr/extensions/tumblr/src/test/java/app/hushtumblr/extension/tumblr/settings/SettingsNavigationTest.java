@@ -639,7 +639,7 @@ public class SettingsNavigationTest {
         assertTrue(String.valueOf(cards.getItem(1)).startsWith("Privacy\n"));
         assertTrue(String.valueOf(cards.getItem(2)).startsWith("Back to defaults\n"));
         try {
-            // Hide ads starts on, so Quiet turns on the other thirteen.
+            // Hide ads starts on, so Quiet turns on the other fourteen.
             choices.getListView().performItemClick(null, 0, 0);
             ShadowLooper.idleMainLooper();
             for (BooleanSetting setting : QuickSetupKeys.QUIET) {
@@ -647,7 +647,7 @@ public class SettingsNavigationTest {
                 assertTrue(setting.key + " was saved but its row still shows off",
                         ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
-            assertEquals("Changed 13 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed 14 settings", ShadowToast.getTextOfLatestToast());
             // Turning off screenshot sharing waits for a restart, so the row is up under the status card.
             assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
 
@@ -656,7 +656,7 @@ public class SettingsNavigationTest {
             assertEquals("Changed 0 settings", ShadowToast.getTextOfLatestToast());
             page.applyQuickSetup(QuickSetupKeys.defaults());
             ShadowLooper.idleMainLooper();
-            assertEquals("Changed 13 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed 14 settings", ShadowToast.getTextOfLatestToast());
             for (BooleanSetting setting : QuickSetupKeys.DEFAULTS) {
                 assertEquals(setting.key, setting.defaultValue, setting.savedValue());
             }

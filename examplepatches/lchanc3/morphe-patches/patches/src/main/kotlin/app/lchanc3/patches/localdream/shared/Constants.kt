@@ -20,7 +20,7 @@ internal object Constants {
             // Unlike JPTT the app is obfuscated by R8, which renames and merges
             // classes differently in every build, so nothing is claimed for
             // versions that have not been verified.
-            AppTarget(version = "3.0.0-alpha.3"),
+            AppTarget(version = "3.0.0-alpha.6"),
         ),
     )
 }

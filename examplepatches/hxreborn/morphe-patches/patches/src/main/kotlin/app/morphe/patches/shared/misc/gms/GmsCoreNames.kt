@@ -350,17 +350,22 @@ internal val gmsCoreManifestPatch = resourcePatch {
     }
 }
 
-internal fun gmsCoreSupportPatchFor(compatibility: Compatibility, vararg dependencies: Patch<*>) = bytecodePatch(
+internal fun gmsCoreSupportPatchFor(
+    compatibility: Compatibility,
+    vararg dependencies: Patch<*>,
+    default: Boolean = false,
+) = bytecodePatch(
     name = "GmsCore support",
     description = "Signs in through GmsCore instead of Google Play Services. " +
         "Requires GmsCore to be installed.",
-    default = false,
+    default = default,
 ) {
     compatibleWith(compatibility)
 
     availability { installer, _ ->
-        when (installer) {
-            InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
+        when {
+            installer == InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
+            default -> PatchAvailability.ENABLED
             else -> PatchAvailability.DISABLED
         }
     }

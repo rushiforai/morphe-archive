@@ -29,21 +29,30 @@ internal const val POST = "Lcom/tumblr/rumblr/model/post/Post;"
 internal const val REBLOG_TRAIL = "Lcom/tumblr/rumblr/model/post/ReblogTrail;"
 internal const val TEXT_BLOCK = "Lcom/tumblr/rumblr/model/post/blocks/TextBlock;"
 internal const val POST_HEADER_CONTEXT = "Lcom/tumblr/rumblr/model/post/PostHeaderContext;"
+/** What of your own filters a post matched, the note behind "This post contains filtered content". */
+internal const val FILTERED = "Lcom/tumblr/rumblr/model/post/asset/Filtered;"
 
 /** The extension's interfaces the bridge makes them implement. */
 internal const val HUSH_POST = "$EXTENSION_PACKAGE/timeline/HushPost;"
 internal const val HUSH_TRAIL = "$EXTENSION_PACKAGE/timeline/HushTrail;"
 internal const val HUSH_TEXT = "$EXTENSION_PACKAGE/timeline/HushText;"
 internal const val HUSH_PAID_POST = "$EXTENSION_PACKAGE/timeline/HushPaidPost;"
+internal const val HUSH_FILTERED_POST = "$EXTENSION_PACKAGE/timeline/HushFilteredPost;"
+internal const val HUSH_FILTERED = "$EXTENSION_PACKAGE/timeline/HushFiltered;"
 
 private const val LIST = "Ljava/util/List;"
 private const val STRING = "Ljava/lang/String;"
+private const val OBJECT = "Ljava/lang/Object;"
 
 /** Methods every class has. A getter that turns out to be one of them is a wrong match. */
 private val OBJECT_METHODS = setOf("hashCode", "equals", "toString", "getClass")
 
-/** One interface method: its name, the JSON key its getter is written under, and what it returns. */
-internal class BridgeGetter(val name: String, val key: String, val returnType: String)
+/**
+ * One interface method: its name, the JSON key its getter is written under, and what it returns.
+ * The getter itself returns [nativeType], which is [returnType] unless the interface hands back
+ * one of Tumblr's own models as an object.
+ */
+internal class BridgeGetter(val name: String, val key: String, val returnType: String, val nativeType: String = returnType)
 
 /** A model class and the extension interface the bridge adds to it. */
 internal class ModelBridge(val model: String, val bridge: String, val getters: List<BridgeGetter>) {
@@ -73,6 +82,15 @@ internal val PAID_POST_BRIDGE = ModelBridge(
         BridgeGetter("hushFollowed", "followed", "Z"),
         BridgeGetter("hushCanEdit", "can_edit", "Z"),
         BridgeGetter("hushPaidContextKnown", "", "Z"),
+    ),
+)
+
+/** Post's note on what of your filters it matched, and that note's two lists. */
+internal val FILTERED_POST_BRIDGES = listOf(
+    ModelBridge(POST, HUSH_FILTERED_POST, listOf(BridgeGetter("hushFiltered", "filtered", OBJECT, FILTERED))),
+    ModelBridge(
+        FILTERED, HUSH_FILTERED,
+        listOf(BridgeGetter("hushFilteredTags", "tags", LIST), BridgeGetter("hushFilteredContent", "content", LIST)),
     ),
 )
 
@@ -147,8 +165,25 @@ internal val paidPostBridgePatch = bytecodePatch {
     }
 }
 
+/**
+ * Makes Tumblr's `Post` implement the extension's `HushFilteredPost` and its `Filtered` note
+ * `HushFiltered`, so Hide filtered posts can tell which posts Tumblr would cover for your
+ * filtered tags and words. Found by reading Tumblr 46.8.1.100 (2026-10-23): Post's filtered is
+ * `c0()`, and Filtered's tags are `b()` and its content `a()`.
+ */
+internal val filteredPostBridgePatch = bytecodePatch {
+    dependsOn(tumblrExtensionPatch)
+
+    execute {
+        resolveBridges(FILTERED_POST_BRIDGES).forEach { addBridge(it) }
+    }
+}
+
 /** Each of [POST_BRIDGES] resolved, throwing for the first model, adapter or getter this build lacks. */
-internal fun BytecodePatchContext.resolvePostBridges(): List<ResolvedBridge> = POST_BRIDGES.map { bridge ->
+internal fun BytecodePatchContext.resolvePostBridges(): List<ResolvedBridge> = resolveBridges(POST_BRIDGES)
+
+/** Each of [bridges] resolved before any class changes, throwing for the first piece this build lacks. */
+internal fun BytecodePatchContext.resolveBridges(bridges: List<ModelBridge>): List<ResolvedBridge> = bridges.map { bridge ->
     requireBridgeInterface(bridge)
     ResolvedBridge(bridge, bridge.getters.associateWith { resolveGetter(bridge.model, it) })
 }
@@ -170,13 +205,13 @@ private fun BytecodePatchContext.resolveGetter(type: String, getter: BridgeGette
         instruction.methodRef()?.takeIf { instruction.opcode == Opcode.INVOKE_VIRTUAL && it.definingClass == type }
     } ?: throw PatchException("$PATCH: no call on $type follows \"${getter.key}\"")
     val declared = model.methods.any {
-        it.name == call.name && it.parameterTypes.isEmpty() && it.returnType == getter.returnType && !it.isStatic() &&
+        it.name == call.name && it.parameterTypes.isEmpty() && it.returnType == getter.nativeType && !it.isStatic() &&
             AccessFlags.PUBLIC.isSet(it.accessFlags)
     }
-    if (call.name in OBJECT_METHODS || call.parameterTypes.isNotEmpty() || call.returnType != getter.returnType || !declared) {
-        throw PatchException("$PATCH: $type->${call.name} isn't a public getter of ${getter.returnType}")
+    if (call.name in OBJECT_METHODS || call.parameterTypes.isNotEmpty() || call.returnType != getter.nativeType || !declared) {
+        throw PatchException("$PATCH: $type->${call.name} isn't a public getter of ${getter.nativeType}")
     }
-    return "$type->${call.name}()${getter.returnType}"
+    return "$type->${call.name}()${getter.nativeType}"
 }
 
 /** Throws unless the extension has [bridge]'s interface declaring exactly its getters. */

@@ -69,10 +69,17 @@ Second \"item\" text"</string>
   <!-- interaction.channelsearch.channelSearchPatch -->
   <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
   <!-- interaction.copytext.copyTextPatch -->
+  <!-- interaction.feedactions.feedVideoActionsPatch -->
+  <!-- interaction.ask.askFlyoutMenuPatch -->
+  <!-- 'Ask' should be translated using the same localized wording YouTube displays for the Ask button under a video. -->
+  <!-- 'Summarize the video' should be translated using the same localized wording YouTube displays for the suggestion of the Ask panel. -->
+  <!-- 'Ask' should be translated using the same localized wording YouTube displays for the Ask button under a video. -->
+  <!-- 'Ask' should be translated using the same localized wording YouTube displays for the Ask button under a video. -->
+  <!-- layout.feedviews.feedViewCountPatch -->
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
   <!-- layout.hide.signintotv.disableSignInToTVPopupPatch -->
   <!-- interaction.doubletap.disableDoubleTapActionsPatch -->
   <!-- interaction.downloads.downloadsPatch -->
-  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_openrouter_model_custom">ផ្ទាល់ខ្លួន</string>
   <!-- %s is dollar cost, e.g., $0.10 per 100 hours -->
@@ -83,6 +90,7 @@ Second \"item\" text"</string>
   <!-- interaction.playall.playAllButtonPatch -->
   <!-- interaction.reload.reloadVideoPatch -->
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
+  <string name="morphe_local_queue_remove">ដកចេញ</string>
   <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
   <!-- interaction.livering.openChannelOfLiveAvatarPatch -->
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
@@ -118,6 +126,7 @@ Second \"item\" text"</string>
   <!-- layout.captions.autoCaptionsPatch -->
   <!-- layout.captions.preferredCaptionLanguagePatch -->
   <string name="morphe_preferred_caption_language_entry_off">បិទ</string>
+  <!-- layout.captions.autoTranslateCaptionsPatch -->
   <!-- layout.captions.captionCookiesPatch -->
   <!-- layout.captions.transcriptPatch -->
   <!-- layout.buttons.navigation.navigationButtonsPatch -->
@@ -191,9 +200,10 @@ Second \"item\" text"</string>
   <string name="morphe_playback_in_feeds_entry_off">បិទ</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
+  <!-- layout.feedcards.feedCardLayoutPatch -->
   <!-- layout.miniplayer.miniplayerPatch -->
   <!-- misc.fix.fixBackToExitGesturePatch -->
-  <!-- layout.font.forceSystemFontPatch -->
+  <!-- layout.animations.forceAnimationsPatch -->
   <!-- layout.statusbar.hideStatusBarPatch -->
   <!-- layout.theme.themePatch -->
   <!-- layout.branding.customBrandingPatch -->
@@ -215,6 +225,7 @@ Second \"item\" text"</string>
   <!-- misc.links.bypassLinkRedirectsPatch -->
   <!-- misc.links.openLinksExternallyPatch -->
   <!-- video.buffer.playbackBufferPatch -->
+  <!-- video.delay.videoDelayPatch -->
   <!-- video.quality.rememberVideoQualityPatch -->
   <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
   <!-- video.speed.button.playbackSpeedButtonPatch -->
@@ -234,4 +245,9 @@ Second \"item\" text"</string>
   <!-- layout.player.icons.playerIconStylePatch -->
   <string name="morphe_player_icon_style_entry_auto">ស្វ័យប្រវត្តិ</string>
   <string name="morphe_player_icon_style_entry_custom">ផ្ទាល់ខ្លួន</string>
+  <!-- video.series.seriesTrackerPatch -->
+  <string name="morphe_series_tracker_ui_cancel">បោះបង់</string>
+  <string name="morphe_series_tracker_ui_save">រក្សាទុក</string>
+  <string name="morphe_series_tracker_ui_rename">ប្ដូរឈ្មោះ</string>
+  <string name="morphe_series_tracker_undo">អាន់ឌូ</string>
 </resources>

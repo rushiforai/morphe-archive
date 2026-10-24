@@ -25,6 +25,7 @@ import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -50,6 +51,7 @@ internal const val CLEAR_MODE_PAGED = "$CLEAR_MODE->paged()V"
 internal const val CLEAR_MODE_BUILT = "$CLEAR_MODE->built(Ljava/lang/Object;)V"
 internal const val CLEAR_MODE_SCRUBBER = "$CLEAR_MODE->scrubber(II)Z"
 internal const val CLEAR_MODE_CHROME_ALPHA = "$CLEAR_MODE->chrome(FF)F"
+internal const val CLEAR_MODE_SETTLED = "$CLEAR_MODE->settled(Ljava/lang/Object;Ljava/lang/Object;)V"
 internal const val CLEAR_MODE_ENTER_STUB = "enter"
 internal const val CLEAR_MODE_ID_STUB = "reelId"
 
@@ -61,7 +63,9 @@ internal const val CLEAR_MODE_ID_STUB = "reelId"
  * component of its own, and the pager's listener reports each page it lands on. The seek bar row
  * under a reel draws Instagram's scrubber on long reels, clear mode or not (#277). Every reel page
  * writes the one alpha its buttons, author row and top bar share through its holder's setter,
- * which clear mode's fade animates and Instagram resets to shown when it binds a page (#233).
+ * which clear mode's fade animates and Instagram resets to shown when it binds a page (#233). The
+ * pager's listener also handles each change of the pager's scroll state, and reads the pager on its
+ * way to rest, which is where a swipe that snapped back shows (#233).
  */
 internal const val CLEAR_MODE_ENABLE = "FullscreenViewActionHandler_handleFullscreenViewEnable"
 internal const val CLEAR_MODE_DISMISS = "FullscreenViewActionHandler_handleFullscreenViewDismiss"
@@ -70,14 +74,21 @@ internal const val CLEAR_MODE_BUTTON = "ClipsFullscreenViewComponent_render"
 internal const val REEL_PAGE_SELECTED = "ClipsViewerViewPagerListener_onPageSelected"
 internal const val CLEAR_MODE_SCRUBBER_ROW = "ClipsScrubberRowComponent_render"
 internal const val CLEAR_MODE_CHROME = "LithoClipsItemDefinition_Holder_updateChromeAlpha"
+internal const val REEL_SCROLL_STATE = "ClipsViewerViewPagerListener_onScrollStateChanged"
 
 internal val CLEAR_MODE_MARKERS = listOf(
     CLEAR_MODE_ENABLE, CLEAR_MODE_DISMISS, CLEAR_MODE_ENABLED, CLEAR_MODE_BUTTON, REEL_PAGE_SELECTED, CLEAR_MODE_SCRUBBER_ROW,
-    CLEAR_MODE_CHROME,
+    CLEAR_MODE_CHROME, REEL_SCROLL_STATE,
 )
 
 /** The reason Instagram turns clear mode off with when a reel leaves the screen, which its enum has to name. */
 internal const val CLEAR_MODE_SWIPED_AWAY = "REELS_VIEWER_SWIPE_OR_EXIT"
+
+/** What the pager's scroll state calls the pager at rest, which its enum has to name for the extension to tell. */
+internal const val REEL_AT_REST = "IDLE"
+
+/** The pager the scroll state change reads. */
+internal const val VIEW_PAGER = "Landroidx/viewpager2/widget/ViewPager2;"
 
 /** What the reel's state names its clear mode flag with in its toString, right before appending it. */
 internal const val CLEAR_MODE_FLAG_NAME = ", isFullscreenViewActive="
@@ -98,8 +109,9 @@ private const val STRING = "Ljava/lang/String;"
  * extension at its test of whether to draw the scrubber, with the answer and the reel state's clear
  * mode flag, and tests what comes back. The reel holder's chrome alpha setter passes the alpha it
  * was asked for through the extension, with the one it holds, right after reading that one, and
- * stores what comes back. The extension's two stubs are filled with the handler's turn-on and the
- * reel's getId.
+ * stores what comes back. The pager listener's scroll state change hands the extension the pager
+ * and the state right after reading the pager. The extension's two stubs are filled with the
+ * handler's turn-on and the reel's getId.
  *
  * Everything is found by Instagram's own markers and checked before anything changes, so a build
  * that differs stops the patch saying what it couldn't find, and nothing is half done.
@@ -160,7 +172,15 @@ internal class ClearModeHooks(
     val chrome: Method,
     val hold: Int,
     val alpha: Int,
-    /** How many instructions the turn-on, the turn-off, the viewer's turn-on, the row and the chrome setter had when their places were found. */
+    /** The pager listener's scroll state change, the index after it read the pager, and the registers of the pager and the state. */
+    val scrolled: Method,
+    val settle: Int,
+    val pager: Int,
+    val scrollState: Int,
+    /**
+     * How many instructions the turn-on, the turn-off, the viewer's turn-on, the row, the chrome
+     * setter and the scroll state change had when their places were found.
+     */
     val lengths: List<Int>,
 )
 
@@ -193,10 +213,7 @@ internal fun BytecodePatchContext.findClearMode(): ClearModeHooks {
     if (reasonClass.superclass != "Ljava/lang/Enum;" || !AccessFlags.PUBLIC.isSet(reasonClass.accessFlags)) {
         stop("the reason $reason isn't a public enum, so the extension can't tell a swipe from your own way out")
     }
-    val named = reasonClass.methods.filter { it.name == "<clinit>" }.flatMap { initializer ->
-        initializer.body().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
-    }
-    if (CLEAR_MODE_SWIPED_AWAY !in named) stop("the reason $reason doesn't name $CLEAR_MODE_SWIPED_AWAY")
+    if (CLEAR_MODE_SWIPED_AWAY !in reasonClass.namedConstants()) stop("the reason $reason doesn't name $CLEAR_MODE_SWIPED_AWAY")
     val entered = enable.afterAction(listOf(0))
 
     // The handler's turn-off: the same class, taking the reel and the reason, which runs one action with both.
@@ -342,7 +359,35 @@ internal fun BytecodePatchContext.findClearMode(): ClearModeHooks {
     }
     if (!stored) stop("${chrome.describe()} doesn't store the alpha it was asked for")
 
-    val every = listOf(enable, dismiss, enabled, paged, button, row, chrome).map { it.describe() }
+    // The pager listener's scroll state change: an instance method taking the state, an enum naming
+    // the pager at rest, which reads the pager once. On 452 that read sits on the way to rest only.
+    // The hook goes right after it, where the pager and the state are both in hand.
+    val scrolled = single(REEL_SCROLL_STATE)
+    if (scrolled.isStatic() || scrolled.returnType != "V" || scrolled.parameterTypes.size != 1 || scrolled.implementation == null) {
+        stop("${scrolled.describe()}, marked $REEL_SCROLL_STATE, isn't an instance method taking the scroll state")
+    }
+    val state = scrolled.parameterTypes.single().toString()
+    val stateClass = classDefByOrNull(state) ?: stop("the scroll state $state isn't in the app")
+    if (stateClass.superclass != "Ljava/lang/Enum;") stop("the scroll state $state isn't an enum")
+    if (REEL_AT_REST !in stateClass.namedConstants()) stop("the scroll state $state doesn't name $REEL_AT_REST")
+    val scrolledCode = scrolled.body()
+    val pagerReads = scrolledCode.indices.filter { at ->
+        scrolledCode[at].opcode == Opcode.IGET_OBJECT &&
+            ((scrolledCode[at] as ReferenceInstruction).reference as FieldReference).type == VIEW_PAGER
+    }
+    val pagerRead = pagerReads.singleOrNull()
+        ?: stop("${scrolled.describe()} reads the pager ${pagerReads.size} times, expected once")
+    val settle = pagerRead + 1
+    if (settle >= scrolledCode.size) stop("${scrolled.describe()} ends at reading the pager")
+    if (settle in scrolled.jumpTargets()) stop("${scrolled.describe()} jumps past its read of the pager, so the hook would be skipped")
+    val pager = (scrolledCode[pagerRead] as TwoRegisterInstruction).registerA
+    val scrollState = scrolled.parameterRegisterNumber(0)
+    if (pager > 15 || scrollState > 15) {
+        stop("${scrolled.describe()} keeps the pager and the state in v$pager and v$scrollState, which the hook's call can't name")
+    }
+    scrolled.requireParameterIntact(KEEP, 0, listOf(settle))
+
+    val every = listOf(enable, dismiss, enabled, paged, button, row, chrome, scrolled).map { it.describe() }
     if (every.toSet().size != every.size) stop("two hooks would go in one method: $every")
 
     return ClearModeHooks(
@@ -350,8 +395,14 @@ internal fun BytecodePatchContext.findClearMode(): ClearModeHooks {
         buttonReel.describe(), handler, reason, item,
         row, scrubber, shown, borrowed, rowState.describe(), reelState.describe(), flag.describe(),
         chrome, hold, alpha,
-        listOf(enable, dismiss, enabled, row, chrome).map { it.body().size },
+        scrolled, settle, pager, scrollState,
+        listOf(enable, dismiss, enabled, row, chrome, scrolled).map { it.body().size },
     )
+}
+
+/** The names an enum's initializer gives its constants, as the strings it loads. */
+private fun ClassDef.namedConstants(): List<String> = methods.filter { it.name == "<clinit>" }.flatMap { initializer ->
+    initializer.body().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
 }
 
 /**
@@ -469,9 +520,10 @@ private val THROWS = setOf(Opcode.THROW)
  * Each hook reads registers the find phase checked and borrows none but the exit button's, which
  * goes in first where no local holds anything yet, and the seek bar row's, a local nothing reads
  * past its test. The two handler hooks and the viewer's go in with a plain insert on purpose: the
- * handler's own branch around a missing action keeps landing past the hook. Those three, the row's
- * and the chrome setter's go in by the index the find phase read, which holds only while each
- * method is as long as it was, so one that changed in between stops the patch before any hook is in.
+ * handler's own branch around a missing action keeps landing past the hook. Those three, the row's,
+ * the chrome setter's and the scroll state change's go in by the index the find phase read, which
+ * holds only while each method is as long as it was, so one that changed in between stops the patch
+ * before any hook is in.
  */
 internal fun BytecodePatchContext.applyClearMode(found: ClearModeHooks) {
     val enable = changing(found.enable)
@@ -479,7 +531,8 @@ internal fun BytecodePatchContext.applyClearMode(found: ClearModeHooks) {
     val enabled = changing(found.enabled)
     val row = changing(found.row)
     val chrome = changing(found.chrome)
-    listOf(enable, dismiss, enabled, row, chrome).forEachIndexed { at, method ->
+    val scrolled = changing(found.scrolled)
+    listOf(enable, dismiss, enabled, row, chrome, scrolled).forEachIndexed { at, method ->
         if (method.body().size != found.lengths[at]) stop("${method.describe()} changed after its hook's place was found")
     }
     enable.addInstructions(found.entered, "invoke-static/range { p0 .. p1 }, $CLEAR_MODE_ENTERED")
@@ -531,6 +584,8 @@ internal fun BytecodePatchContext.applyClearMode(found: ClearModeHooks) {
             move-result p1
         """,
     )
+    // The pager just read and the state go in, and nothing comes back.
+    scrolled.addInstructions(found.settle, "invoke-static { v${found.pager}, v${found.scrollState} }, $CLEAR_MODE_SETTLED")
 }
 
 /** The extension's stubs, found before anything changes, and the step that fills them. */

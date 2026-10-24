@@ -15,8 +15,11 @@ import app.morphe.patcher.InstructionLocation.MatchFirst
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
+import app.morphe.patches.shared.misc.litho.relayout.COMPONENT_HOST_CLASS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+
+internal const val YOGA_NATIVE_CLASS = "Lcom/facebook/yoga/YogaNative;"
 
 internal object EndpointServiceNameFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
@@ -33,6 +36,7 @@ internal object EndpointServiceNameFingerprint : Fingerprint(
 )
 
 internal object DislikeFingerprint : Fingerprint(
+    name = "<init>", // Public or protected constructor depending on the app version.
     returnType = "V",
     filters = listOf(
         string("like/dislike")
@@ -78,7 +82,7 @@ internal fun likeEndpointParserFingerprint(definingClass: String) = object : Fin
 ) {}
 
 internal object ComponentHostSetContentDescriptionFingerprint : Fingerprint(
-    definingClass = "Lcom/facebook/litho/ComponentHost;",
+    definingClass = COMPONENT_HOST_CLASS,
     name = "setContentDescription",
     returnType = "V",
     parameters = listOf("Ljava/lang/CharSequence;")
@@ -95,7 +99,7 @@ internal object YogaSetWidthFingerprint : Fingerprint(
             type = "J"
         ),
         methodCall(
-            definingClass = "Lcom/facebook/yoga/YogaNative;",
+            definingClass = YOGA_NATIVE_CLASS,
             name = "jni_YGNodeStyleSetWidthJNI",
         )
     )

@@ -15,10 +15,12 @@ import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.AnnotationVisibility
 import com.android.tools.smali.dexlib2.MethodHandleType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedMethod
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -28,10 +30,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodHandleReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableAnnotation
+import com.android.tools.smali.dexlib2.immutable.ImmutableAnnotationElement
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
@@ -43,6 +49,7 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodHandle
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodProtoReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableArrayEncodedValue
+import com.android.tools.smali.dexlib2.immutable.value.ImmutableMethodEncodedValue
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableMethodHandleEncodedValue
 import com.android.tools.smali.dexlib2.writer.io.MemoryDataStore
 import com.android.tools.smali.dexlib2.writer.pool.DexPool
@@ -206,6 +213,14 @@ class StoryRetryQueueTest {
 
     @Test fun encodedStaticHandlesCannotBypassAnyBridgeOnNativeOnEachOtherBuildToo() {
         forOtherInputs(::encodedStaticHandlesCannotBypassAnyBridgeOnNativeCheck)
+    }
+
+    @Test fun encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNative() {
+        for (classes in proofInputs()) encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeCheck(classes)
+    }
+
+    @Test fun encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeCheck)
     }
 
     /**
@@ -519,6 +534,29 @@ class StoryRetryQueueTest {
                     ImmutableMethodReference("Ljava/lang/invoke/MethodHandle;", "invokeExact", listOf("[Ljava/lang/Object;"), "Ljava/lang/Object;"),
                     ImmutableMethodProtoReference(listOf(owner, "Ljava/lang/Object;"), bridge.returnType)))
             refused(code, "encoded story builder reference")
+        }
+    }
+
+    /**
+     * The declaration walk reads a method from the app's dex for its parameters' annotations alone,
+     * without decoding each parameter's type and name (#173). The mark sits on the second of two
+     * parameters, so a pairing off by one finds nothing.
+     */
+    private fun encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val bridge = classes.single { it.type == found.store }.methods.single { it.name == found.retry!!.name }
+        for (owner in listOf(found.store, found.queue!!.owner, "Ljava/lang/Object;")) {
+            val type = "Lfixture/AnnotatedQueueCaller;"
+            val mark = ImmutableAnnotation(AnnotationVisibility.RUNTIME, "Lfixture/QueueMark;", setOf(ImmutableAnnotationElement("value",
+                ImmutableMethodEncodedValue(ImmutableMethodReference(owner, bridge.name, bridge.parameterTypes, bridge.returnType)))))
+            val method = ImmutableMethod(type, "mark", listOf(ImmutableMethodParameter("I", null, null),
+                ImmutableMethodParameter("Ljava/lang/Object;", setOf(mark), null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                ImmutableMethodImplementation(2, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null))
+            val extra = dexBacked(listOf(ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(method)))).single()
+            assertTrue(extra.methods.single() is DexBackedMethod)
+            refused(classes + extra, "encoded story builder reference")
         }
     }
 

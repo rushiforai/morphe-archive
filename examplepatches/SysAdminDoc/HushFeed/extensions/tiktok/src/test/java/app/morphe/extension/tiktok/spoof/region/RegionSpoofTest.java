@@ -37,8 +37,29 @@ public class RegionSpoofTest {
     /** The default zone as the test found it, put back after it. */
     private TimeZone startZone;
 
+    /** TZ as native code would read it, kept here instead of in the test JVM's environment. */
+    private static final class FakeNativeZone extends RegionSpoof.NativeZone {
+        String value;
+        int writes;
+
+        @Override String get() {
+            return value;
+        }
+
+        @Override void set(String id) {
+            value = id;
+            writes++;
+        }
+    }
+
+    private RegionSpoof.NativeZone realNativeZone;
+    private FakeNativeZone tz;
+
     @Before public void setup() {
         if (startZone == null) startZone = TimeZone.getDefault();
+        if (realNativeZone == null) realNativeZone = RegionSpoof.nativeZone;
+        tz = new FakeNativeZone();
+        RegionSpoof.nativeZone = tz;
         RegionSpoof.forgetProcessZone();
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.SIM_SPOOF.save(true);
@@ -57,6 +78,7 @@ public class RegionSpoofTest {
         PausedProcess.set(false);
         RegionSpoof.forgetProcessZone();
         TimeZone.setDefault(startZone);
+        RegionSpoof.nativeZone = realNativeZone;
     }
 
     @Test public void onlyPassportPathsAreSignIns() {
@@ -548,6 +570,74 @@ public class RegionSpoofTest {
         kept.setRawOffset(0);
         assertEquals("a caller changed the kept phone zone", -6 * 3_600_000,
                 RegionSpoof.phoneTimeZone().getRawOffset());
+    }
+
+    @Test public void tikToksNativeDateFormatterGetsThePresetsZoneAndThePhonesBackWhenOffOrPaused() {
+        for (Runnable off : new Runnable[]{
+                () -> Settings.REGION_SPOOF.save(false),
+                () -> Settings.SIM_SPOOF.save(false),
+                () -> PausedProcess.set(true)}) {
+            try {
+                setup();
+                serbiaAtStartUp();
+                // BDDateFormat (the chat's date headers) formats with localtime_r, which reads TZ.
+                assertEquals("Europe/Belgrade", tz.value);
+                off.run();
+                RegionSpoof.timeZone(TimeZone.getDefault());
+                assertNull("TZ is unset again, so localtime_r reads the phone's zone", tz.value);
+                RegionSpoof.applyProcessZone();
+                assertNull("nothing is set again while it stays off", tz.value);
+            } finally {
+                PausedProcess.set(false);
+                TimeZone.setDefault(startZone);
+            }
+        }
+    }
+
+    @Test public void aTzTheProcessStartedWithIsKeptAcrossPresetsAndSystemResetsAndComesBack() {
+        tz.value = "Asia/Kolkata";
+        serbiaAtStartUp();
+        assertEquals("Europe/Belgrade", tz.value);
+        Settings.SIM_SPOOF_ISO.save("jp");
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        assertEquals("Asia/Tokyo", tz.value);
+        // The system puts the phone's new zone back as the default; TZ is still ours.
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Denver"));
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        assertEquals("Asia/Tokyo", tz.value);
+        Settings.REGION_SPOOF.save(false);
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        assertEquals("Asia/Kolkata", tz.value);
+    }
+
+    @Test public void offAtStartUpOrTheSamePresetAgainNeverWritesTz() {
+        Settings.REGION_SPOOF.save(false);
+        serbiaAtStartUp();
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        assertEquals(0, tz.writes);
+        Settings.REGION_SPOOF.save(true);
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        RegionSpoof.applyProcessZone();
+        assertEquals("one write for Serbia, none for each answer after it", 1, tz.writes);
+    }
+
+    @Test public void aTzThatCantBeSetLeavesTheAppsJavaZoneOnThePreset() {
+        RegionSpoof.nativeZone = new RegionSpoof.NativeZone() {
+            @Override String get() {
+                return null;
+            }
+
+            @Override void set(String id) throws android.system.ErrnoException {
+                throw new android.system.ErrnoException("setenv", 22);
+            }
+        };
+        serbiaAtStartUp();
+        assertEquals("Europe/Belgrade", TimeZone.getDefault().getID());
+        assertEquals(PHONE_ZONE, RegionSpoof.phoneTimeZone().getID());
+        Settings.REGION_SPOOF.save(false);
+        RegionSpoof.timeZone(TimeZone.getDefault());
+        assertEquals(PHONE_ZONE, TimeZone.getDefault().getID());
     }
 
     @Test public void aSignInAndThePhonesClockGetThePhonesZoneWhileSerbiasIsTheDefault() {

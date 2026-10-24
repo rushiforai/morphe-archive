@@ -4,11 +4,11 @@
  */
 package app.morphe.patches.rateglance.misc.premium
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.util.matchSingle
+import app.morphe.util.returnEarly
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
@@ -19,12 +19,6 @@ val unlockPremiumPatch = bytecodePatch(
     compatibleWith(AppCompatibilities.RATEGLANCE)
 
     execute {
-        PremiumAccessFingerprint.matchSingle().method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
+        PremiumAccessFingerprint.matchSingle().method.returnEarly(true)
     }
 }

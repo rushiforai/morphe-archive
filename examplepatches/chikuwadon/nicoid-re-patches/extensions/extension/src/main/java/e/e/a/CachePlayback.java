@@ -29,8 +29,9 @@ public final class CachePlayback {
     }
     private static void serve(Socket socket) {
         try(Socket s=socket){s.setSoTimeout(15000);BufferedReader reader=new BufferedReader(new InputStreamReader(s.getInputStream(),StandardCharsets.US_ASCII));
-            String first=reader.readLine();if(first==null||first.length()>4096)return;String[] req=first.split(" ");if(req.length!=3)return;boolean head=req[0].equals("HEAD");if(!head&&!req[0].equals("GET")){reply(s,405,0,0,0,"text/plain",false);return;}
-            String range=null,line;int lines=0;while((line=reader.readLine())!=null&&!line.isEmpty()){if(++lines>64||line.length()>4096)return;if(line.toLowerCase(Locale.ROOT).startsWith("range:"))range=line.substring(6).trim();}
+            String first=line(reader);if(first==null)return;String[] req=first.split(" ");if(req.length!=3)return;boolean head=req[0].equals("HEAD");if(!head&&!req[0].equals("GET")){reply(s,405,0,0,0,"text/plain",false);return;}
+            String range=null,line;int lines=0;while((line=line(reader))!=null&&!line.isEmpty()){if(++lines>64)return;if(line.toLowerCase(Locale.ROOT).startsWith("range:"))range=line.substring(6).trim();}
+            if(line==null)return;
             String[] parts=req[1].split("/",-1);String name=parts.length==4?Uri.decode(parts[3].split("\\?",2)[0]):"";
             String root=parts.length==4&&parts[1].equals(TOKEN)?roots.get(parts[2]):null;
             if(root==null||name.isEmpty()||name.contains("/")||name.contains("\\")||name.equals("..")){reply(s,404,0,0,0,"text/plain",false);return;}
@@ -40,6 +41,16 @@ public final class CachePlayback {
             long count=Math.max(0,end-start+1);reply(s,status,start,count,size,CacheFolders.mime(name),status==206);
             if(head)return;try(InputStream in=new CacheInputStream(file)){long skip=start;while(skip>0){long n=in.skip(skip);if(n<=0){if(in.read()==-1)throw new EOFException();n=1;}skip-=n;}byte[] b=new byte[65536];OutputStream out=s.getOutputStream();while(count>0){int n=in.read(b,0,(int)Math.min(count,b.length));if(n<0)throw new EOFException();out.write(b,0,n);count-=n;}out.flush();}
         }catch(IOException|RuntimeException e){android.util.Log.w("nicoid-cache","Cached playback request failed");}
+    }
+    // Bound input while reading, before BufferedReader can retain an arbitrary line.
+    private static String line(BufferedReader reader)throws IOException {
+        StringBuilder value=new StringBuilder();int count=0;
+        for(int c;(c=reader.read())!=-1;){
+            if(c=='\n')return value.toString();
+            if(++count>4096)throw new IOException("Oversized cache request header");
+            if(c!='\r')value.append((char)c);
+        }
+        return null;
     }
     private static void reply(Socket socket,int status,long start,long count,long size,String mime,boolean range)throws IOException {
         String reason=status==200?"OK":status==206?"Partial Content":status==416?"Range Not Satisfiable":status==405?"Method Not Allowed":"Not Found";

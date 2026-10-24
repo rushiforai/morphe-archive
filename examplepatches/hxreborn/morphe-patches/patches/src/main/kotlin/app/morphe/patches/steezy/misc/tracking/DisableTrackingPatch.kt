@@ -6,20 +6,11 @@ package app.morphe.patches.steezy.misc.tracking
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.analytics.disableCrashlyticsCollectionPatch
-import app.morphe.patches.shared.misc.analytics.putApplicationMetaData
+import app.morphe.patches.shared.misc.analytics.disableFirebaseSessionsPatch
 import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
-
-private val disableFirebaseSessionsPatch = resourcePatch {
-    execute {
-        document("AndroidManifest.xml").use { document ->
-            document.putApplicationMetaData("firebase_sessions_enabled", "false")
-        }
-    }
-}
 
 @Suppress("unused")
 val disableTrackingPatch = bytecodePatch(

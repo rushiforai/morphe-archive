@@ -14,7 +14,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -35,9 +34,8 @@ import app.morphe.patches.shared.misc.gms.Constants.PERMISSIONS
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.IntentPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
-import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstStringInstructionOrThrow
 import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
@@ -155,14 +153,8 @@ fun gmsCoreSupportPatch(
 
         fun transformPrimeMethod(packageName: String) {
             primeMethodFingerprint!!.method.apply {
-                var register = 2
-
-                val index = instructions.indexOfFirst {
-                    if (it.getReference<StringReference>()?.string != fromPackageName) return@indexOfFirst false
-
-                    register = (it as OneRegisterInstruction).registerA
-                    return@indexOfFirst true
-                }
+                val index = indexOfFirstStringInstructionOrThrow(fromPackageName)
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
 
                 replaceInstruction(index, "const-string v$register, \"$packageName\"")
             }
@@ -219,7 +211,7 @@ fun gmsCoreSupportPatch(
         )
 
         // GNP expects the original Google package even when the installed app is renamed.
-        GnpRegistrationTargetFingerprint.matchSingle().let { match ->
+        GnpRegistrationTargetFingerprint.let { match ->
             val result = match.instructionMatches[1]
             match.method.replaceInstruction(
                 result.index,
@@ -582,7 +574,8 @@ fun gmsCoreSupportResourcePatch(
                 "com.google.android.libraries.photos.api.mars" to "$GMS_CORE_VENDOR_GROUP_ID.android.apps.photos.api.mars",
                 // Allow the app to request uninstall of conflicting MicroG / GMS variants on Android 14+.
                 // The variants are made visible to the package manager by gmsCorePackageQueriesPatch.
-                "</queries>" to "</queries><uses-permission android:name=\"android.permission.REQUEST_DELETE_PACKAGES\"/>",
+                // Also add the external PoToken provider app to the queries.
+                "</queries>" to "<package android:name=\"app.morphe.pot.helper\"/></queries><uses-permission android:name=\"android.permission.REQUEST_DELETE_PACKAGES\"/>",
             )
 
             val manifest = get("AndroidManifest.xml")

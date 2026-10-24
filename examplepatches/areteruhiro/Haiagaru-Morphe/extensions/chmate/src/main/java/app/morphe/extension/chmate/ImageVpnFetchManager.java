@@ -33,9 +33,16 @@ public final class ImageVpnFetchManager implements Closeable {
     public String status() { return status; }
 
     public Image fetch(String url) throws IOException {
+        return fetch(url, false);
+    }
+
+    Image fetchPreview(String url) throws IOException { return fetch(url, true); }
+
+    private Image fetch(String url, boolean preview) throws IOException {
         if (Looper.myLooper() == Looper.getMainLooper()) throw new IOException("IMAGE_VPN_WORKER_REQUIRED");
         // Validate before even downloading the server catalogue.
-        if (!ImageVpnRequestPolicy.isProtectedUrl(url)) throw new IOException("IMAGE_VPN_INVALID_IMAGE_URL");
+        if (preview ? SiteCardMetadata.safeUrl(url) == null : !ImageVpnRequestPolicy.isProtectedUrl(url))
+            throw new IOException("IMAGE_VPN_INVALID_IMAGE_URL");
         boolean acquired = false;
         try {
             acquired = worker.tryAcquire(5, TimeUnit.SECONDS);
@@ -45,7 +52,7 @@ public final class ImageVpnFetchManager implements Closeable {
             NativeImagePacketStack activePackets = packets;
             SstpImageSession activeTunnel = tunnel;
             if (activePackets == null || activeTunnel == null) throw new IOException("IMAGE_VPN_DISCONNECTED");
-            Image result = activePackets.fetch(url);
+            Image result = preview ? activePackets.fetchPreview(url) : activePackets.fetch(url);
             if (closed || !activeTunnel.isConnected()) throw new IOException("IMAGE_VPN_DISCONNECTED");
             status = "IMAGE_VPN_CONNECTED";
             return result;

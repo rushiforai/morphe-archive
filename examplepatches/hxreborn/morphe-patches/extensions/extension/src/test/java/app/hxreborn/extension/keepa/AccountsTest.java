@@ -252,15 +252,21 @@ public final class AccountsTest {
     }
 
     @Test
-    public void upsertAddsNewAccountWithFreshIdAndMakesItPrimary() throws JSONException {
+    public void upsertAddsNewAccountWithFreshId() throws JSONException {
         final Accounts accounts = accounts("a", "auto", account("a", "ok", 0, 200, 0));
         accounts.upsertByUsername("token", "new", "", NOW);
         assertEquals(2, accounts.all().size());
         final Account added = accounts.all().get(1);
         assertNotEquals("a", added.id);
         assertFalse(added.id.isEmpty());
-        assertEquals(added.id, accounts.primaryId());
         assertEquals(NOW, added.addedAt);
+    }
+
+    @Test
+    public void upsertMakesNewAccountPrimary() throws JSONException {
+        final Accounts accounts = accounts("a", "auto", account("a", "ok", 0, 200, 0));
+        accounts.upsertByUsername("token", "new", "", NOW);
+        assertEquals(accounts.all().get(1).id, accounts.primaryId());
     }
 
     @Test
@@ -275,11 +281,16 @@ public final class AccountsTest {
     }
 
     @Test
-    public void updateTokenDoesNotInsertUnknownAccountAndClearsThrottle() throws JSONException {
+    public void updateTokenIgnoresUnknownAccount() throws JSONException {
         final Accounts accounts = accounts("a", "auto", account("a", "throttled", 5, 200, NOW + 1000));
         accounts.updateToken("b", "replacement");
         assertEquals(1, accounts.all().size());
         assertEquals("atoken", accounts.find("a").token);
+    }
+
+    @Test
+    public void updateTokenClearsThrottle() throws JSONException {
+        final Accounts accounts = accounts("a", "auto", account("a", "throttled", 5, 200, NOW + 1000));
         accounts.updateToken("a", "replacement");
         assertEquals("replacement", accounts.find("a").token);
         assertEquals(AccountState.OK, accounts.find("a").state);
@@ -371,9 +382,14 @@ public final class AccountsTest {
     }
 
     @Test
-    public void unknownStateLoadsAsInvalidAndIsNeverAllocated() throws JSONException {
+    public void unknownStateLoadsAsInvalid() throws JSONException {
         final Accounts accounts = accounts("a", "auto", account("a", "suspended", 0, 200, 0));
         assertEquals(AccountState.INVALID, accounts.find("a").state);
+    }
+
+    @Test
+    public void unknownStateIsNeverAllocated() throws JSONException {
+        final Accounts accounts = accounts("a", "auto", account("a", "suspended", 0, 200, 0));
         assertEquals("", accounts.allocate("X", NOW));
     }
 

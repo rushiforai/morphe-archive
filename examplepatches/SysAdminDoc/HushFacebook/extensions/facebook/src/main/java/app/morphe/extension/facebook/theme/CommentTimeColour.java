@@ -17,8 +17,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * account we test with is served that row, so the colour's source isn't proven. The patch hands the
  * colour here before the span is made, and in dark mode, with AMOLED or Material You in the build, a
  * colour too close to the page to read comes back as Facebook's dark secondary text, themed the way
- * every other secondary text is. Light mode, a build with neither theme, and any colour that already
- * reads come back as they were.
+ * every other secondary text is. In light mode, with AMOLED's Light background color row set, the
+ * time is held the way light mode's other secondary text is ({@link AmoledTheme#lightNamed}), since
+ * the sheet under it takes the row's colour (#214). Light mode otherwise, a build with neither
+ * theme, and any colour that already reads come back as they were.
  */
 public final class CommentTimeColour {
 
@@ -53,7 +55,8 @@ public final class CommentTimeColour {
 
     /** {@link #commentTime(int)} with the themes in the build and Facebook's dark answer given. */
     static int commentTime(int color, boolean amoled, boolean materialYou, boolean dark) {
-        if (!dark || (!amoled && !materialYou)) return color;
+        if (!amoled && !materialYou) return color;
+        if (!dark) return amoled ? AmoledTheme.lightNamed(color, TOKEN) : color;
         int page = page(amoled);
         if (contrast(AmoledTheme.over(page, color), page) >= MIN_CONTRAST) return color;
         int lifted = DARK_SECONDARY_TEXT;

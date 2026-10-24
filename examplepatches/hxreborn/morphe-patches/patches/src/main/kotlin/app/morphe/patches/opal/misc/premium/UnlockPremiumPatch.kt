@@ -9,12 +9,10 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
-import app.morphe.patches.shared.misc.revenuecat.BuildCustomerInfoFingerprint
-import app.morphe.patches.shared.misc.revenuecat.customerInfoJsonParameter
-import app.morphe.util.getFreeRegisterProvider
+import app.morphe.patches.shared.misc.revenuecat.grantRevenueCatLifetimeEntitlement
+import app.morphe.patches.shared.misc.smali.parameterRegister
 import app.morphe.util.matchSingle
 
-private const val EXTENSION_CLASS = "Lapp/hxreborn/extension/shared/RevenueCatUnlock;"
 private const val ENTITLEMENT = "premium_tier_1"
 private const val PRODUCT = "premium_tier_1_lifetime"
 
@@ -28,28 +26,12 @@ val unlockPremiumPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        BuildCustomerInfoFingerprint.matchSingle().method.apply {
-            val registers = getFreeRegisterProvider(0, 3)
-            val jsonRegister = registers.getFreeRegister4Bit()
-            val entitlementRegister = registers.getFreeRegister4Bit()
-            val productRegister = registers.getFreeRegister4Bit()
-
-            addInstructions(
-                0,
-                """
-                    move-object/from16 v$jsonRegister, ${customerInfoJsonParameter()}
-                    const-string v$entitlementRegister, "$ENTITLEMENT"
-                    const-string v$productRegister, "$PRODUCT"
-                    invoke-static { v$jsonRegister, v$entitlementRegister, v$productRegister }, $EXTENSION_CLASS->grantLifetimeEntitlement(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
-                """,
-            )
-        }
+        grantRevenueCatLifetimeEntitlement(ENTITLEMENT, PRODUCT)
 
         BlockScreenCategoryConstructorFingerprint.matchSingle().method.apply {
             val isProParameterIndex = parameterTypes.indexOfFirst { it == "Z" }
             if (isProParameterIndex < 0) throw PatchException("BlockScreenCategoryUiModel has no boolean parameter")
-            val isProRegister = isProParameterIndex + 1
-            addInstructions(0, "const/4 p$isProRegister, 0x0")
+            addInstructions(0, "const/4 ${parameterRegister(isProParameterIndex)}, 0x0")
         }
     }
 }

@@ -79,9 +79,9 @@
 | Twitch | `tv.twitch.android.app` | 30.7.2, 31.5.2, 31.6.0, 31.7.0（Block ads は 31.5.2・31.6.0・31.7.0） |
 | Reddit | `com.reddit.frontpage` | 2026.28.0, 2026.30.0, 2026.35.0, 2026.37.0〜2026.42.0 |
 | SmartNews | `jp.gocro.smartnews.android` | 26.6.50, 26.7.10, 26.8.50, 26.9.11, 26.9.20, 26.10.10, 26.10.20, 26.10.30（26.10.10・26.10.20・26.10.30 は Google Play 版の APKM も可） |
-| Pinterest | `com.pinterest` | 14.11.0, 14.38.0, 14.39.0, 14.40.0 |
-| pixiv | `jp.pxv.android` | 6.199.0, 6.200.0 |
-| Google News | `com.google.android.apps.magazines` | 5.163.0.947799485, 5.168.0.982359681 |
+| Pinterest | `com.pinterest` | 14.11.0, 14.38.0, 14.39.0, 14.40.0, 14.41.0 |
+| pixiv | `jp.pxv.android` | 6.199.0, 6.200.0, 6.201.0 |
+| Google News | `com.google.android.apps.magazines` | 5.163.0.947799485, 5.168.0.982359681, 5.170.0.999208975 |
 | Sankaku | `com.sankakucomplex.channel.black` | 4.26, 4.27, 4.28 |
 
 新しいバージョンには、確認が済んだものから順に対応していきます。表にないバージョンでは動かないことがあります。

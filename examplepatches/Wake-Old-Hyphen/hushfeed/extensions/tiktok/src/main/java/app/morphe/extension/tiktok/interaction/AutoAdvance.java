@@ -51,12 +51,20 @@ public final class AutoAdvance {
      * whatever the flag or the feed gate says; advance on end runs from the component's own
      * start, not from that entry, so the switch takes nothing else with it. The same flag feeds
      * one other reader, the tablet bottom bar's Auto scroll control, which goes with it. The
-     * hide switch is a child of Auto-advance: with that off its row is greyed out, and it hides
-     * nothing, so an account in TikTok's rollout keeps TikTok's own action.
+     * hide switch stands on its own, so it works with Auto-advance off too (#234).
      */
     public static boolean panelAvailable(boolean nativeValue) {
-        if (Settings.AUTO_ADVANCE.get() && Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get()) return false;
+        if (Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get()) return false;
         return available(nativeValue);
+    }
+
+    /**
+     * The feed gate as the video's right-hand column reads it before adding TikTok's Auto scroll
+     * switch or button above or below the avatar, which tablets and unfolded foldables get. The
+     * hide switch takes that control away; the feed gate's other readers keep their answer.
+     */
+    public static boolean railAvailable(boolean gate) {
+        return gate && !Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get();
     }
 
     /**

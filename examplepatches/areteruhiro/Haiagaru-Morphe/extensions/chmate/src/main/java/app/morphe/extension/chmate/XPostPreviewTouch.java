@@ -98,6 +98,7 @@ public final class XPostPreviewTouch {
     public static boolean onTouch(Object object, MotionEvent event) {
         if (!(object instanceof TextView)) return false;
         TextView view=(TextView)object;
+        XPostPreviewPosition.onTouch(view,event);
         int action=event.getActionMasked();
         if (action==MotionEvent.ACTION_DOWN) {
             PRESSES.remove(view);

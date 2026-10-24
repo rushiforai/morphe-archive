@@ -15,7 +15,7 @@ private const val APPLICATION_CLASS = "Lcom/pairip/application/Application;"
 
 val spoofSignaturePatch = bytecodePatch(
     name = "Spoof signature",
-    description = "Fixes Firebase Installations rejecting the re-signed app.",
+    description = "Enables push notifications.",
 ) {
     compatibleWith(AppCompatibilities.POE)
 

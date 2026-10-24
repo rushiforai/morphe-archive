@@ -6,11 +6,8 @@ package app.hxreborn.extension.netanalyzer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +168,7 @@ public final class InformationExport implements ExportSource {
         try {
             final ExportOutline outline = new ExportOutline();
             final Object connections = invoke(getters[GETTER_CONNECTIONS]);
-            final List<Field> slots = instanceFields(connections);
+            final List<Field> slots = FieldLayout.instanceFieldsByName(connections);
             outline.title("Active Connection");
             final Object active = slots.get(ACTIVE_CONNECTION_FIELD).get(connections);
             outline.line("Connection Type", string(active, CONNECTION_FIELDS, "name"));
@@ -326,7 +323,7 @@ public final class InformationExport implements ExportSource {
         if (state == null) {
             return false;
         }
-        for (Field field : instanceFields(state)) {
+        for (Field field : FieldLayout.instanceFieldsByName(state)) {
             final Class<?> type = field.getType();
             if (!type.isPrimitive() && type != InetAddress.class && type != String.class && field.get(state) != null) {
                 return true;
@@ -345,18 +342,6 @@ public final class InformationExport implements ExportSource {
         final Method method = netState.getDeclaredMethod(name, boolean.class);
         method.setAccessible(true);
         return method.invoke(null, true);
-    }
-
-    private static List<Field> instanceFields(Object object) {
-        final List<Field> fields = new ArrayList<>();
-        for (Field field : object.getClass().getDeclaredFields()) {
-            if (!Modifier.isStatic(field.getModifiers())) {
-                field.setAccessible(true);
-                fields.add(field);
-            }
-        }
-        Collections.sort(fields, (left, right) -> left.getName().compareTo(right.getName()));
-        return fields;
     }
 
     private static Object value(Object owner, Map<String, String> names, String property)

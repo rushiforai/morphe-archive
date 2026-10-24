@@ -97,6 +97,7 @@ import app.morphe.extension.facebook.media.HdrBrightnessForTests;
 import app.morphe.extension.facebook.media.PictureInPictureForTests;
 import app.morphe.extension.facebook.media.FeedSound;
 import app.morphe.extension.facebook.media.FrameStepForTests;
+import app.morphe.extension.facebook.media.PinchZoomForTests;
 import app.morphe.extension.facebook.media.ProgressBar;
 import app.morphe.extension.facebook.media.QualityChoiceForTests;
 import app.morphe.extension.facebook.media.SkipSilence;
@@ -132,6 +133,7 @@ import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.TabBadgesForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
+import app.morphe.extension.facebook.profile.ProfileNotesForTests;
 import app.morphe.extension.facebook.reels.DoubleTapLike;
 import app.morphe.extension.facebook.reels.OriginalAudio;
 import app.morphe.extension.facebook.reels.ReelGesturesForTests;
@@ -142,6 +144,7 @@ import app.morphe.extension.facebook.reels.FeedVideoAloneForTests;
 import app.morphe.extension.facebook.reels.ReelCleanMode;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
 import app.morphe.extension.facebook.reels.ReelLoopForTests;
+import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.ReelPrompts;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
@@ -150,6 +153,7 @@ import app.morphe.extension.facebook.search.PreSearchSectionsForTests;
 import app.morphe.extension.facebook.search.SearchHistory;
 import app.morphe.extension.facebook.stories.StoryAdvance;
 import app.morphe.extension.facebook.stories.StorySeenForTests;
+import app.morphe.extension.facebook.stories.StoryMusic;
 import app.morphe.extension.facebook.stories.StoryUpload;
 import app.morphe.extension.facebook.stories.SuggestedStoriesForTests;
 import app.morphe.extension.facebook.theme.AmoledTheme;
@@ -488,7 +492,10 @@ public class PausedHooksTest {
                 StorySeenForTests::sendsOnlyTheMarked,
                 StorySeenForTests::pointsTheButton));
         // A Story video's upload asks for high quality.
+        probes.put(PatchFamily.PINCH_TO_ZOOM, Collections.singletonList(PinchZoomForTests::zoomsAPhoto));
         probes.put(PatchFamily.STORY_UPLOAD_HD, Collections.singletonList(() -> "high".equals(StoryUpload.quality("standard"))));
+        // A photo's song gets the longer clip.
+        probes.put(PatchFamily.STORY_MUSIC_LENGTH, Collections.singletonList(() -> StoryMusic.clipLength(15000) == 30000));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
                 () -> {
                     VideoAd ad = new VideoAd();
@@ -509,6 +516,8 @@ public class PausedHooksTest {
         // A timeline story with sponsored data isn't drawn on a profile.
         probes.put(PatchFamily.SPONSORED_PROFILE_POSTS,
                 Collections.singletonList(ProfileAdFilterForTests::hidesASponsoredStory));
+        // The note bubble over a profile picture is left out of its Bloks children.
+        probes.put(PatchFamily.PROFILE_NOTES, Collections.singletonList(ProfileNotesForTests::hidesANote));
         // Marketplace's feed query asks to skip its ads, an ads-only query isn't sent, and a search
         // answer loses its ad.
         probes.put(PatchFamily.SPONSORED_MARKETPLACE, Arrays.asList(
@@ -533,6 +542,8 @@ public class PausedHooksTest {
                 () -> ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsSoundtrackTitle"))) != null,
                 // So does the Reels tab's own audio line row.
                 ReelDeclutter::hideAudioLine,
+                // A stalled video's slow connection message.
+                ReelDeclutter::hideSlowConnectionMessage,
                 ReelDeclutter::hideFollowButton,
                 ReelDeclutter::hideFollowingButton,
                 ReelDeclutter::skipHotComment,
@@ -572,6 +583,8 @@ public class PausedHooksTest {
         probes.put(PatchFamily.REEL_PROMPTS, Collections.singletonList(() -> !ReelPrompts.keep(true)));
         // The Reels batcher's send of the reels you watched never reaches its executor.
         probes.put(PatchFamily.REEL_WATCH_HISTORY, Collections.singletonList(SeenStateSendForTests::heldBack));
+        // A Reels rerank that put an older reel first hands the newer one the first slot.
+        probes.put(PatchFamily.NEWEST_REELS_FIRST, Collections.singletonList(NewestReelsForTests::putsTheNewestFirst));
         // A double tap on a reel finds no handler and no heart, the reel like helper finds no key and
         // sends no like from a double tap, and a feed attachment leaves its double tap unhandled.
         probes.put(PatchFamily.DOUBLE_TAP_LIKE, Arrays.asList(
@@ -751,7 +764,8 @@ public class PausedHooksTest {
                 () -> MetaAiSummaries.holds(MetaAiSummaries.POST_SUMMARY)));
         // The comment box's check answers no for its GIF and sticker buttons, a long press on Like
         // returns before the reaction picker opens, a comment starts with its replies open, an open
-        // thread's replies page on as they're scrolled, and the
+        // thread's replies page on as they're scrolled, a View more replies row takes a tap anywhere
+        // on it, and the
         // check under a post's comments answers no for Related groups. A comment linking to a shop,
         // and one holding a phrase from the hide list, are left out of the comment section.
         probes.put(PatchFamily.COMMENT_SHEET_OPTIONS, Arrays.asList(
@@ -760,6 +774,7 @@ public class PausedHooksTest {
                 CommentSheetOptions::skipReactionPicker,
                 () -> CommentSheetOptions.openReplyThreads(false),
                 () -> CommentSheetOptions.loadWholeReplyThreads(false),
+                () -> !CommentSheetOptions.viewMoreRepliesTextOnly(true),
                 () -> CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("Big SPOILER inside")),

@@ -23,6 +23,8 @@ body:
         - "1Weather 12.9.3"
         - "1Weather 13.1.0"
         - "1Weather (another version, type it below)"
+        - "3way 3.1.0"
+        - "3way (another version, type it below)"
         - "aCalendar 2.9.5"
         - "aCalendar 2.9.6"
         - "aCalendar (another version, type it below)"
@@ -67,13 +69,14 @@ body:
         - "botim (another version, type it below)"
         - "CalcNote 2.25.111"
         - "CalcNote (another version, type it below)"
+        - "Cast Plug-in for Musicolet 1.9"
+        - "Cast Plug-in for Musicolet (another version, type it below)"
         - "Castle 2.1.1"
         - "Castle 2.1.3"
         - "Castle (another version, type it below)"
         - "Castle for TV 1.1.5"
         - "Castle for TV (another version, type it below)"
         - "Catzy 1.61.0"
-        - "Catzy 1.62.0"
         - "Catzy (another version, type it below)"
         - "Cubasis LE 3 3.8.6"
         - "Cubasis LE 3 (another version, type it below)"
@@ -123,6 +126,8 @@ body:
         - "imo 2026.08.1041"
         - "imo 2026.09.1051"
         - "imo (another version, type it below)"
+        - "Internet Speed Meter Lite 1.7.0-lite"
+        - "Internet Speed Meter Lite (another version, type it below)"
         - "Joyn 6.9.0-AOS-609012264"
         - "Joyn (another version, type it below)"
         - "Joyn Austria 6.9.0-AOS-JOYN_AT-2212264"
@@ -223,7 +228,7 @@ body:
         - "Proton Authenticator 1.3.10"
         - "Proton Authenticator (another version, type it below)"
         - "Proton Lumo 2.1.4-gms"
-        - "Proton Lumo 2.1.4-nogms"
+        - "Proton Lumo 2.1.5-nogms"
         - "Proton Lumo (another version, type it below)"
         - "Proton Mail 7.10.4"
         - "Proton Mail 7.11.10"
@@ -327,6 +332,8 @@ body:
         - "Trainline (another version, type it below)"
         - "U Dictionary 6.7.5"
         - "U Dictionary (another version, type it below)"
+        - "Viber 29.1.1.0"
+        - "Viber (another version, type it below)"
         - "Video Editor 1.621.196"
         - "Video Editor (another version, type it below)"
         - "VLLO 13.9.0"
@@ -350,6 +357,8 @@ body:
         - "Yanosik (another version, type it below)"
         - "Yi iot 5.1.7_20260914"
         - "Yi iot (another version, type it below)"
+        - "Yuka 5.7"
+        - "Yuka (another version, type it below)"
         # /generated
     validations:
       required: true
@@ -366,12 +375,12 @@ body:
       description: Newest first.
       options:
         # generated:versions
-        - "1.58.0"
-        - "1.57.0"
-        - "1.56.0"
-        - "1.55.0"
-        - "1.54.0"
-        - "1.53.0"
+        - "1.59.0"
+        - "1.59.0-dev.10"
+        - "1.59.0-dev.9"
+        - "1.59.0-dev.8"
+        - "1.59.0-dev.7"
+        - "1.59.0-dev.6"
         - "Older than these"
         # /generated
     validations:
@@ -425,6 +434,7 @@ body:
         - "1Weather \u00b7 Hide Shorts"
         - "1Weather \u00b7 Hide Skyla"
         - "1Weather \u00b7 Unlock premium"
+        - "3way \u00b7 Unlock premium"
         - "aCalendar \u00b7 Unlock aCalendar+"
         - "Albo \u00b7 Enable guest sign-in"
         - "Albo \u00b7 GmsCore support"
@@ -454,8 +464,10 @@ body:
         - "BlurWall \u00b7 AMOLED dark theme"
         - "BlurWall \u00b7 Disable tracking"
         - "BlurWall \u00b7 Unlock premium"
+        - "botim \u00b7 Disable tracking"
         - "botim \u00b7 Unlock VIP"
         - "CalcNote \u00b7 Unlock pro"
+        - "Cast Plug-in for Musicolet \u00b7 Remove app protection"
         - "Castle for TV \u00b7 Remove ads"
         - "Castle for TV \u00b7 Unlock premium"
         - "Castle \u00b7 Disable update prompt"
@@ -463,7 +475,6 @@ body:
         - "Castle \u00b7 Spoof signature"
         - "Castle \u00b7 Unlock premium"
         - "Catzy \u00b7 Max intimacy level"
-        - "Catzy \u00b7 Remove app protection"
         - "Catzy \u00b7 Remove usage limits"
         - "Catzy \u00b7 Unlimited cat coins"
         - "Catzy \u00b7 Unlock premium"
@@ -516,6 +527,9 @@ body:
         - "imo \u00b7 Show full profile photos"
         - "imo \u00b7 Spoof signature"
         - "imo \u00b7 Unlock premium"
+        - "Internet Speed Meter Lite \u00b7 Disable tracking"
+        - "Internet Speed Meter Lite \u00b7 Remove ads"
+        - "Internet Speed Meter Lite \u00b7 Unlock premium"
         - "Joyn Austria \u00b7 Hide ads"
         - "Joyn \u00b7 Hide ads"
         - "Jujo \u00b7 GmsCore support"
@@ -525,7 +539,6 @@ body:
         - "Jvdroid \u00b7 Unlock premium"
         - "Keepa \u00b7 Disable tracking"
         - "Keepa \u00b7 Multiple accounts"
-        - "Keepa \u00b7 Remove app protection"
         - "Keepa \u00b7 Show offer counts"
         - "Keepa \u00b7 Unlock price increase tracking"
         - "Kick \u00b7 AMOLED dark theme"
@@ -605,7 +618,6 @@ body:
         - "Prayer Times and Qibla \u00b7 Unlock premium"
         - "Privacy Notes \u00b7 Unlock premium"
         - "Projectivy Launcher \u00b7 Disable tracking"
-        - "Projectivy Launcher \u00b7 Unlock premium"
         - "Proton Authenticator \u00b7 AMOLED dark theme"
         - "Proton Authenticator \u00b7 Custom accent color"
         - "Proton Authenticator \u00b7 Hide layout components"
@@ -711,6 +723,9 @@ body:
         - "TeraBox \u00b7 Unlock Premium Plus"
         - "Trainline \u00b7 Hide ads"
         - "U Dictionary \u00b7 Unlock premium"
+        - "Viber \u00b7 Hide ads"
+        - "Viber \u00b7 Hide More screen items"
+        - "Viber \u00b7 Hide navigation buttons"
         - "Video Editor \u00b7 Unlock premium"
         - "VLLO \u00b7 Disable tracking"
         - "VLLO \u00b7 Unlock premium"
@@ -725,6 +740,7 @@ body:
         - "Wattpad \u00b7 Unlock premium"
         - "Yanosik \u00b7 Unlock premium"
         - "Yi iot \u00b7 Hide ads"
+        - "Yuka \u00b7 Unlock premium (root)"
         - "Not narrowed down yet"
         # /generated
   - type: input
@@ -766,7 +782,6 @@ body:
       options:
         - Morphe Manager
         - morphe-cli
-        - A Morphe-AutoBuilds APK
         - A pre-patched APK from somewhere else
     validations:
       required: true
@@ -805,7 +820,7 @@ body:
     attributes:
       label: Error logs
       description: |
-        Required when the app won't open or crashes. Run `adb logcat -d > log.txt` right after it fails and paste the file here.
+        Required when the app won't open or crashes. Run `adb logcat -d > log.txt` right after it fails and paste the file here. Without a PC, record it with [LogFox](https://github.com/F0x1d/LogFox) and attach the export.
       render: shell
   - type: checkboxes
     id: acknowledgements

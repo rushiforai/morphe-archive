@@ -428,10 +428,10 @@ public class PatchFamilyTest {
                         + "Block background-return feed refresh, Hide AI-detected posts, Hide posts by words, Hide "
                         + "post prompts, Hide seen posts, Hide Meta AI questions under posts, Keep post dates, Turn "
                         + "off auto-translation, Hide the Feeds header, Hide sponsored stories, Hide suggested "
-                        + "stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Hide sponsored search results, "
-                        + "Hide sponsored profile posts, Hide sponsored Marketplace listings, Block Instant Games "
+                        + "stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Longer music on photo stories, Pinch to zoom, Hide sponsored search results, "
+                        + "Hide sponsored profile posts, Hide profile notes, Hide sponsored Marketplace listings, Block Instant Games "
                         + "ads, Hide affiliate product links, Clean up Reels, Hide reel interest prompts, Don't send "
-                        + "reel watch history, Turn off double tap to like, Open comments with a gesture, Keep the reel speed, Hold a reel for 2x, "
+                        + "reel watch history, Newest reels first, Turn off double tap to like, Open comments with a gesture, Keep the reel speed, Hold a reel for 2x, "
                         + "Default comment order, Hide Meta AI comment summaries, Comment sheet options, Open comments "
                         + "at full height, Tag suggestions only after @, Tap to play, Resume long videos, Frame step, Default playback quality, "
                         + "Picture-in-picture, Turn off HDR brightness, Skip silent parts, Keep feed videos muted, Keep the progress bar, Use the system font, "
@@ -451,10 +451,10 @@ public class PatchFamilyTest {
                         + "Reels in the feed, Block background-return feed refresh, Hide AI-detected posts, Hide "
                         + "posts by words, Hide post prompts, Hide seen posts, Hide Meta AI questions under posts, "
                         + "Keep post dates, Turn off auto-translation, Hide the Feeds header, Hide sponsored stories, "
-                        + "Hide suggested stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Hide sponsored "
-                        + "search results, Hide sponsored profile posts, Hide sponsored Marketplace listings, Block "
+                        + "Hide suggested stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Longer music on photo stories, Pinch to zoom, Hide sponsored "
+                        + "search results, Hide sponsored profile posts, Hide profile notes, Hide sponsored Marketplace listings, Block "
                         + "Instant Games ads, Hide affiliate product links, Clean up Reels, Hide reel interest "
-                        + "prompts, Don't send reel watch history, Turn off double tap to like, Open comments with a gesture, Keep the reel speed, "
+                        + "prompts, Don't send reel watch history, Newest reels first, Turn off double tap to like, Open comments with a gesture, Keep the reel speed, "
                         + "Hold a reel for 2x, Default comment order, Hide Meta AI comment summaries, Comment sheet "
                         + "options, Open comments at full height, Tag suggestions only after @, Tap to play, Resume long videos, Frame step, Default playback "
                         + "quality, Picture-in-picture, Turn off HDR brightness, Skip silent parts, Keep feed videos muted, Keep the progress bar, Use the "
@@ -471,7 +471,7 @@ public class PatchFamilyTest {
                         + "color, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's "
                         + "apps, Hushfacebook in the Menu"),
                 running);
-        // Clean up Reels has thirteen switches, all off to start, and the report names each one.
+        // Clean up Reels has fourteen switches, all off to start, and the report names each one.
         Settings.HIDE_REEL_FOLLOW_BUTTON.save(true);
         assertEquals("Clean up Reels: on (hushfacebook_hide_reel_chips=off, hushfacebook_hide_reel_follow_button=on, "
                         + "hushfacebook_hide_reel_social_footer=off, hushfacebook_hide_reel_threads_cards=off, "
@@ -479,7 +479,7 @@ public class PatchFamilyTest {
                         + "hushfacebook_original_audio=off, hushfacebook_hide_reel_search_pill=off, "
                         + "hushfacebook_hide_reel_counts=off, hushfacebook_hide_reel_save_button=off, "
                         + "hushfacebook_hide_reel_sound_button=off, hushfacebook_hide_reel_audio_line=off, "
-                        + "hushfacebook_feed_videos_alone=off)",
+                        + "hushfacebook_hide_slow_connection_message=off, hushfacebook_feed_videos_alone=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DECLUTTER), false).get(0));
         // Share sheet items is set by its list, and its group switch is saved beside it.
         Settings.HIDE_SHARE_GROUP_BUTTONS.save(true);

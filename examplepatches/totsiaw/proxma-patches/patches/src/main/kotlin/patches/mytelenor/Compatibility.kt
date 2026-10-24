@@ -13,7 +13,7 @@ internal val COMPATIBILITY_MYTELENOR = Compatibility(
     signatures = emptySet(),
     targets = listOf(
         AppTarget(
-            version = "4.2.62",
+            version = "4.2.63",
             minSdk = 24,
         ),
     ),

@@ -7,7 +7,6 @@ package app.hxreborn.extension.protonmail.accountswipe;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -24,8 +23,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.OvershootInterpolator;
 import android.widget.PopupWindow;
+import androidx.annotation.RequiresApi;
 
-@TargetApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.O)
 final class AvatarSwitchAnimation {
 
     private static final long FADE_MS = 140L;
@@ -82,10 +82,6 @@ final class AvatarSwitchAnimation {
         this.style = style;
         this.haptics = haptics;
         this.onFinished = onFinished;
-    }
-
-    static boolean isSupported() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
     static void animateToAccount(Activity activity, Rect avatar, int direction, AvatarSwitchStyle style,

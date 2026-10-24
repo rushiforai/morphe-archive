@@ -140,6 +140,40 @@ class DarkBackgroundFixtureTest {
         }
     }
 
+    /**
+     * The footer under a post hands the color it paints itself with to the extension right after
+     * reading it, before the background modifier takes it, and the answer goes back where the color
+     * was. Nothing else in the footer moves.
+     */
+    @Test
+    fun `each declared build hands the post footer's color to the extension`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val footers = FixtureDex.classesWhere(build, { true }) { method ->
+                method.strings().any { it.startsWith(POST_FOOTER_NOTE) }
+            }
+            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + designClasses(build) + footers).distinctBy { it.type })
+            val (footer, read) = context.resolvePostFooterColor()
+                ?: throw AssertionError("${build.name}: the post footer's color wasn't found")
+            val before = footer.instructionList()
+
+            val warnings = PatchLogCapture.warnings { darkBackgroundPatch.execute(context) }
+
+            assertEquals(build.name, emptyList<String>(), warnings)
+            val after = context.mutableClassDefBy(footer.definingClass).methods
+                .single { it.name == footer.name && it.parameterTypes == footer.parameterTypes }
+                .instructionList()
+            val at = read.index
+            assertEquals("${footer.name}: a call and its answer", before.size + 2, after.size)
+            assertEquals("${footer.name} $at: after the color is kept", Opcode.MOVE_RESULT_WIDE, after[at - 1].opcode)
+            assertEquals("${footer.name} $at", DESIGN_FOOTER_HOOK, after[at].descriptor())
+            assertEquals("${footer.name} $at: on the long just kept", listOf(read.register, read.register + 1), after[at].namedRegisters())
+            assertEquals("${footer.name} $at: goes back where the color was", read.register, (after[at + 1] as OneRegisterInstruction).registerA)
+            assertEquals("${footer.name}: the background takes the answer", before[at].methodRef(), after[at + 2].methodRef())
+            assertEquals("${footer.name}: Tumblr's own code around it", before.map { it.opcode },
+                after.filterIndexed { index, _ -> index != at && index != at + 1 }.map { it.opcode })
+        }
+    }
+
     /** Every hook here fails open: without the design system where it was, the themes still get the style. */
     @Test
     fun `a build without the design system's colors gets a warning and the rest of the patch`() {

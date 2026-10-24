@@ -4,20 +4,16 @@
  */
 package app.morphe.patches.shared.misc.proton
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.formatter.DexFormatter
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal const val COMPOSER_TYPE = "Landroidx/compose/runtime/Composer;"
 private const val SETTINGS_ROW_METHOD = "patchesSettingsRow"
@@ -36,17 +32,17 @@ internal fun MutableClass.addSettingsRowMethod(
     val templateRow = templateCall.getReference<MethodReference>()!!
     val parameterTypes = templateRow.parameterTypes.map(CharSequence::toString)
     if (parameterTypes.any { it == "J" || it == "D" }) {
-        throw PatchException("Wide parameters are unsupported in ${DexFormatter.INSTANCE.getMethodDescriptor(templateRow)}")
+        throw PatchException("Wide parameters are unsupported in ${descriptor(templateRow)}")
     }
     if (parameterTypes[titleParameter] != "Ljava/lang/String;") {
         throw PatchException(
-            "Expected String title at parameter $titleParameter in ${DexFormatter.INSTANCE.getMethodDescriptor(templateRow)}",
+            "Expected String title at parameter $titleParameter in ${descriptor(templateRow)}",
         )
     }
     val onClickType = parameterTypes[onClickParameter]
     val composerParameter = composerParameter ?: parameterTypes.indexOf(COMPOSER_TYPE)
     if (composerParameter < 0) {
-        throw PatchException("No Composer parameter in ${DexFormatter.INSTANCE.getMethodDescriptor(templateRow)}")
+        throw PatchException("No Composer parameter in ${descriptor(templateRow)}")
     }
     val composerType = parameterTypes[composerParameter]
 
@@ -63,34 +59,26 @@ internal fun MutableClass.addSettingsRowMethod(
         icon?.parameter,
     )
 
-    val method = ImmutableMethod(
-        type,
+    val method = addMethod(
         SETTINGS_ROW_METHOD,
-        listOf(ImmutableMethodParameter(composerType, null, null)),
+        listOf(composerType),
         "V",
         AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-        null,
-        null,
-        MutableMethodImplementation(parameterTypes.size + 1),
-    ).toMutable().apply {
-        addInstructions(
-            0,
-            """
-                ${(parameterTypes.indices - assignedParameters).joinToString("\n") { "const v$it, 0x0" }}
-                ${icon?.let { "const v${it.parameter}, ${it.resourceId}" } ?: ""}
-                const-string v$titleParameter, "$SETTINGS_ROW_TITLE"
-                const-class v$onClickParameter, $onClickType
-                invoke-static/range { v$onClickParameter .. v$onClickParameter }, $PATCHES_MENU_CLASS->settingsRowOnClick(Ljava/lang/Class;)Ljava/lang/Object;
-                move-result-object v$onClickParameter
-                check-cast v$onClickParameter, $onClickType
-                move-object/from16 v$composerParameter, p0
-                const v$defaultArgumentsParameter, $defaultArgumentsMask
-                invoke-static/range { v0 .. v$defaultArgumentsParameter }, ${DexFormatter.INSTANCE.getMethodDescriptor(templateRow)}
-                return-void
-            """,
-        )
-    }
-    methods.add(method)
+        parameterTypes.size + 1,
+        """
+            ${(parameterTypes.indices - assignedParameters).joinToString("\n") { "const v$it, 0x0" }}
+            ${icon?.let { "const v${it.parameter}, ${it.resourceId}" } ?: ""}
+            const-string v$titleParameter, "$SETTINGS_ROW_TITLE"
+            const-class v$onClickParameter, $onClickType
+            invoke-static/range { v$onClickParameter .. v$onClickParameter }, $PATCHES_MENU_CLASS->settingsRowOnClick(Ljava/lang/Class;)Ljava/lang/Object;
+            move-result-object v$onClickParameter
+            check-cast v$onClickParameter, $onClickType
+            move-object/from16 v$composerParameter, p0
+            const v$defaultArgumentsParameter, $defaultArgumentsMask
+            invoke-static/range { v0 .. v$defaultArgumentsParameter }, ${descriptor(templateRow)}
+            return-void
+        """,
+    )
 
-    return DexFormatter.INSTANCE.getMethodDescriptor(method)
+    return descriptor(method)
 }

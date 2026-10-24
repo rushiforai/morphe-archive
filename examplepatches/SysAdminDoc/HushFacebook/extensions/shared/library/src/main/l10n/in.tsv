@@ -354,6 +354,10 @@ Hide read receipts	Sembunyikan tanda dibaca
 People you chat with in Facebook's own chats can't see that you've read their messages. The chat can stay unread on this phone.	Orang yang chat denganmu di chat Facebook sendiri tidak bisa melihat bahwa kamu sudah membaca pesan mereka. Chat bisa tetap belum dibaca di ponsel ini.
 Facebook can't tell when you take a screenshot or record your screen, so it can't react.	Facebook tidak tahu saat kamu mengambil tangkapan layar atau merekam layar, jadi tidak bisa bereaksi.
 Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels you've watched may come back.	Berhenti mengirim daftar reel yang sudah kamu tonton ke Facebook. Facebook memakainya untuk menyusun feed kamu, jadi reel yang sudah ditonton bisa muncul lagi.
+# context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
+Newest reels first	Reel terbaru dulu
+# context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
+The Reels tab plays the newest posted of the reels Facebook has loaded for you first, instead of its own pick. It can't fetch newer ones, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	Tab Reels memutar reel yang paling baru diposting dari reel yang sudah dimuat Facebook untukmu lebih dulu, bukan pilihan Facebook sendiri. Tab ini tidak bisa mengambil reel yang lebih baru, dan reel yang sudah diantrekan tetap di tempatnya. Mati secara default, karena belum dicoba di akun sungguhan.
 # context: what stays in while Hushfacebook is paused, shown before the patch's name in brackets; the patch raises the app's version number so Google Play never offers an update
 Meta's apps can install beside this one	Aplikasi Meta bisa dipasang berdampingan
 Messenger, Facebook Lite, Business Suite and Workplace can install next to this Facebook. Their shared permissions no longer clash.	Messenger, Facebook Lite, Business Suite, dan Workplace bisa dipasang berdampingan dengan Facebook ini. Izin yang mereka bagi tidak lagi bentrok.
@@ -480,6 +484,10 @@ Comments show their replies right away, so there's no View replies to tap.	Komen
 Load whole reply threads	Muat utas balasan lengkap
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	Utas balasan yang terbuka terus dimuat saat kamu menggulir, tanpa perlu mengetuk untuk melihat balasan lainnya.
+# context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
+Tap anywhere on View more replies	Ketuk di mana saja pada Lihat balasan lainnya
+# context: summary of that switch
+The whole View more replies row opens the replies, not just its words.	Seluruh baris Lihat balasan lainnya membuka balasan, bukan hanya teksnya.
 Hide related groups	Sembunyikan grup terkait
 A group post's comments end without the Related groups list and its Join buttons.	Komentar postingan grup berakhir tanpa daftar Grup terkait dan tombol Gabung-nya.
 # context: row title under Comments that opens Facebook's own settings; reaction counts are the numbers next to the reactions on a post
@@ -514,6 +522,10 @@ Hides ads between your search results. The results you searched for stay.	Menyem
 Hide sponsored profile posts	Sembunyikan postingan bersponsor di profil
 # context: summary of that switch; Page is Facebook's name for a business or public figure's page
 Hides ads between posts on someone's profile or a Page. Their own posts stay.	Menyembunyikan iklan di antara postingan pada profil seseorang atau sebuah Halaman. Postingan mereka sendiri tetap ada.
+# context: switch title under News feed; a note is the short text bubble (or a 'Drop a thought' prompt) Facebook shows over a person's profile picture
+Hide profile notes	Sembunyikan catatan profil
+# context: summary of that switch
+Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Menyembunyikan gelembung catatan di atas foto profil. Berlaku saat kamu membuka profil berikutnya.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Pengaturan Hushfacebook tidak bisa dibuka di sini. Tekan lama logo Facebook sebagai gantinya.
@@ -1599,6 +1611,22 @@ Shows a small button at the left edge of a reel or video that has the window rea
 Upload Stories in HD	Unggah cerita dalam HD
 # context: summary of that switch; standard is the normal upload quality, high the better one
 Videos you post to your Story ask Facebook for its high upload quality instead of standard. Applies to the next Story you post.	Video yang Anda posting ke cerita Anda meminta kualitas unggahan tinggi dari Facebook, bukan standar. Berlaku untuk cerita berikutnya yang Anda posting.
+# context: switch title under Stories; a photo story is a still picture posted to your own Story, and a song added to it plays while the picture shows
+Longer music on photo stories	Musik lebih panjang di cerita foto
+# context: summary of that switch; 15 seconds is how long Facebook lets the song on a photo play, and the song's length can be shorter than 30
+A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	Lagu yang Anda tambahkan ke foto untuk cerita Anda diputar hingga 30 detik, bukan 15. Berlaku untuk lagu berikutnya yang Anda pilih.
+# context: switch title under Stories; two fingers spread apart on a story or a profile photo make it bigger
+Pinch to zoom	Cubit untuk zoom
+# context: summary of that switch; "let go" means lifting your fingers off the screen
+Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.	Cubit cerita atau foto di profil seseorang untuk memperbesarnya. Kembali seperti semula saat kamu melepaskan jari.
+# context: switch title under Stories, right below Pinch to zoom; the zoomed picture stays zoomed after the fingers lift
+Stay zoomed	Tetap diperbesar
+# context: summary of that switch; "Pinch to zoom" is the label of the switch above it, so use its translation; "Back" is the phone's Back button
+With Pinch to zoom on, the photo or story stays zoomed when you let go, and a story stays paused. Drag with one finger or pinch again. Tap or press Back when you're done.	Saat Cubit untuk zoom aktif, foto atau cerita tetap diperbesar saat kamu melepaskan jari, dan cerita tetap dijeda. Geser dengan satu jari atau cubit lagi. Ketuk atau tekan Kembali kalau sudah selesai.
+# context: switch title under Stories, right below Stay zoomed; two quick taps on a photo zoom it in where you tapped
+Double tap to zoom	Ketuk dua kali untuk zoom
+# context: summary of that switch; "Pinch to zoom" is the label of the switch two rows above it, so use its translation; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, and double tap again to put it back. A single tap still opens the photo, a moment later.	Saat Cubit untuk zoom aktif, ketuk dua kali foto di profil untuk memperbesar di tempat yang kamu ketuk, lalu ketuk dua kali lagi untuk mengembalikannya. Ketuk sekali tetap membuka foto, hanya sesaat lebih lambat.
 No ads downloaded in advance	Tanpa iklan yang diunduh lebih dulu
 No ad tracking	Tanpa pelacakan iklan
 No Facebook ads in other apps	Tanpa iklan Facebook di aplikasi lain
@@ -1678,6 +1706,8 @@ Birthdays	Ulang tahun
 Fundraisers	Penggalangan dana
 # context: a Menu tile's name in the list of tiles to hide; Facebook's own name for it; job listings
 Jobs	Lowongan kerja
+# context: a Menu tile's name in the list of tiles to hide; Facebook's own name for it; the Finds shopping tab, a product name Facebook keeps in English
+Finds	Finds
 # context: a Menu tile's name in the list of tiles to hide; Facebook's own name for it; Facebook's dating feature
 Dating	Kencan
 # context: import preview and toast, no Menu tile will be in that list after the import
@@ -1774,8 +1804,48 @@ Hides the People you may know row Facebook shows when you open search. Your rece
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	Jangan simpan riwayat pencarian
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
-What you search for isn't added to your Facebook search history. Searches already there stay until you delete them.	Apa yang kamu cari tidak ditambahkan ke riwayat pencarian Facebook kamu. Pencarian yang sudah ada tetap di sana sampai kamu menghapusnya.
+What you search for, and the pages and profiles you open from a search, aren't added to your Facebook search history. Searches already there stay until you delete them.	Apa yang kamu cari, serta halaman dan profil yang kamu buka dari pencarian, tidak ditambahkan ke riwayat pencarian Facebook kamu. Pencarian yang sudah ada tetap di sana sampai kamu menghapusnya.
 # context: switch title under Reels and Watch; the audio line is the scrolling line at the bottom of a reel naming its sound, like "Name · Original audio" or a song title
 Hide the audio line on reels	Sembunyikan baris audio di reel
 # context: summary of that switch; "Original audio" is Facebook's own label, so use the wording Facebook shows in this language
 Takes the line with the reel's sound, "Original audio" or a song, off the bottom of reels. Other info stays. A change shows from the next reel.	Menghapus baris berisi suara reel, "Audio asli" atau lagu, dari bagian bawah reel. Info lain tetap ada. Perubahan terlihat mulai reel berikutnya.
+# context: switch title under Reels and Watch; the message is Facebook's own "This is taking a while. Try checking your network connection." that pops up while a video or GIF loads slowly
+Hide the slow connection message	Sembunyikan pesan koneksi lambat
+# context: summary of that switch; "This is taking a while" is Facebook's own message, so use the wording Facebook shows in this language
+Stops the "This is taking a while" message about your network connection when a video or GIF is slow to load. It keeps loading as before.	Menghentikan pesan "Ini memerlukan waktu agak lama" tentang koneksi jaringan Anda saat video atau GIF lambat dimuat. Video tetap dimuat seperti biasa.
+# context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for dark mode's backgrounds; also its dialog's title
+Background color	Warna latar
+# context: text in that row's dialog above the field; %1$s is the lightest gray code it takes, %2$s the color code the patch wrote, both like #0D1117; keep #RRGGBB and #0D1117 as they are
+A color code (#RRGGBB) for dark mode's backgrounds, like #0D1117. Grays up to about %1$s work. Leave it blank for %2$s, the color Hushfacebook was patched with.	Kode warna (#RRGGBB) untuk latar mode gelap, misalnya #0D1117. Abu-abu hingga sekitar %1$s bisa dipakai. Biarkan kosong untuk %2$s, warna yang dipilih saat Hushfacebook ditambal.
+# context: summary of that row while it's blank; %1$s is the color code the patch wrote, like #0D1117
+Uses %1$s, the color Hushfacebook was patched with. Type a color code to change it.	Memakai %1$s, warna yang dipilih saat Hushfacebook ditambal. Ketik kode warna untuk mengubahnya.
+# context: summary of that row with a color saved; %1$s is that color code, like #0D1117
+Dark mode's backgrounds use %1$s. Restart Facebook to see the change.	Latar mode gelap memakai %1$s. Mulai ulang Facebook untuk melihat perubahannya.
+# context: shown when Save is tapped on that row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #0D1117 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #0D1117, or leave it blank for the color Hushfacebook was patched with.	“%1$s” bukan warna. Ketik kode warna enam digit (#RRGGBB), misalnya #0D1117, atau biarkan kosong untuk warna yang dipilih saat Hushfacebook ditambal.
+# context: shown when Save is tapped on that row with an eight-digit code that isn't fully opaque; %1$s is what was typed; keep #RRGGBB and #0D1117 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #0D1117.	%1$s tembus pandang. Ketik kode warna enam digit yang solid (#RRGGBB), misalnya #0D1117.
+# context: shown when Save is tapped on that row with a color too light for Facebook's white text; %1$s is what was typed, %2$s the lightest gray code it takes
+%1$s is too light for Facebook's text to stay readable. Pick a darker color. Grays up to about %2$s work.	%1$s terlalu terang sehingga teks Facebook sulit dibaca. Pilih warna yang lebih gelap. Abu-abu hingga sekitar %2$s bisa dipakai.
+# context: import preview sentence: the file sets AMOLED's Background color row back to blank; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be the color it was patched with.	Jika Facebook yang kamu patch menyertakan Tema hitam AMOLED, latar mode gelap akan memakai warna yang dipilih saat ditambal.
+# context: import preview sentence: the file sets AMOLED's Background color row; %1$s is a color code like #0D1117; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be %1$s.	Jika Facebook yang kamu patch menyertakan Tema hitam AMOLED, latar mode gelap akan menjadi %1$s.
+# context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for light mode's backgrounds in place of white; also its dialog's title
+Light background color	Warna latar terang
+# context: message in that row's dialog; %1$s is a gray color code like #A6A6A6; keep #RRGGBB and #FFF8E7 as they are
+A color code (#RRGGBB) for light mode's backgrounds in place of white, like #FFF8E7. Grays down to about %1$s work, and text gets darker where it needs to. Leave it blank for Facebook's own white.	Kode warna (#RRGGBB) untuk latar mode terang sebagai pengganti putih, misalnya #FFF8E7. Abu-abu hingga sekitar %1$s bisa dipakai, dan teks dibuat lebih gelap jika perlu. Biarkan kosong untuk putih bawaan Facebook.
+# context: summary of that row while it's blank, so Facebook's light mode keeps its own white backgrounds
+Uses Facebook's own white. Type a color code to change it.	Memakai putih bawaan Facebook. Ketik kode warna untuk mengubahnya.
+# context: summary of that row once a color is saved; %1$s is the color code
+Light mode's backgrounds use %1$s. Restart Facebook to see the change.	Latar mode terang memakai %1$s. Mulai ulang Facebook untuk melihat perubahannya.
+# context: shown when Save is tapped on that row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #FFF8E7 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #FFF8E7, or leave it blank for Facebook's own white.	“%1$s” bukan warna. Ketik kode warna enam digit (#RRGGBB), misalnya #FFF8E7, atau biarkan kosong untuk putih bawaan Facebook.
+# context: shown when Save is tapped on that row with an eight-digit code that isn't fully opaque; %1$s is what was typed; keep #RRGGBB and #FFF8E7 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #FFF8E7.	%1$s tembus pandang. Ketik kode warna enam digit yang solid (#RRGGBB), misalnya #FFF8E7.
+# context: shown when Save is tapped on that row with a color too dark for light mode's dark text; %1$s is what was typed, %2$s a gray color code like #A6A6A6
+%1$s is too dark for Facebook's light mode text to stay readable. Pick a lighter color. Grays down to about %2$s work.	%1$s terlalu gelap sehingga teks mode terang Facebook sulit dibaca. Pilih warna yang lebih terang. Abu-abu hingga sekitar %2$s bisa dipakai.
+# context: import preview sentence: the file sets AMOLED's Light background color row back to blank; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be Facebook's own white.	Jika Facebook yang kamu patch menyertakan Tema hitam AMOLED, latar mode terang akan memakai putih bawaan Facebook.
+# context: import preview sentence: the file sets AMOLED's Light background color row; %1$s is a color code like #FFF8E7; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be %1$s.	Jika Facebook yang kamu patch menyertakan Tema hitam AMOLED, latar mode terang akan menjadi %1$s.

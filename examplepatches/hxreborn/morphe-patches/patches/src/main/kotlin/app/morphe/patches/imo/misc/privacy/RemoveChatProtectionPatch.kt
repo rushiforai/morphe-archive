@@ -22,7 +22,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 @Suppress("unused")
 val removeChatProtectionPatch = bytecodePatch(
     name = "Remove chat protection",
-    description = "Allows copying, sharing, forwarding and downloading messages protected by the sender's chat privacy settings or Time Machine.",
+    description = "Allows copying, sharing, forwarding and downloading messages in chats with chat privacy or Time Machine turned on.",
 ) {
     compatibleWith(AppCompatibilities.IMO)
 

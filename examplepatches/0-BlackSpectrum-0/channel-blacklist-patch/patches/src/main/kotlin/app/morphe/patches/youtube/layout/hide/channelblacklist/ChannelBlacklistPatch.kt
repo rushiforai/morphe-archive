@@ -8,7 +8,6 @@
 package app.morphe.patches.youtube.layout.hide.channelblacklist
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
 import app.morphe.patches.shared.misc.settings.preference.InputType
@@ -18,16 +17,21 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference.Sorting
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
-import app.morphe.patches.youtube.layout.flyout.addToQueuePatch
+import app.morphe.patches.shared.misc.settings.preference.screenInfoPreferenceCategory
+import app.morphe.patches.youtube.layout.flyout.flyoutPatch
 import app.morphe.patches.youtube.misc.litho.filter.lithoFilterPatch
 import app.morphe.patches.youtube.misc.navigation.navigationBarHookPatch
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.util.setExtensionIsPatchIncluded
 
 private const val CHANNEL_BLACKLIST_FILTER =
     "Lapp/morphe/extension/youtube/patches/components/ChannelBlacklistFilter;"
+
+private const val CHANNEL_BLACKLIST_FLYOUT_BUTTON =
+    "Lapp/morphe/extension/youtube/patches/components/ChannelBlacklistFlyoutButton;"
 
 val channelBlacklistPatch = bytecodePatch(
     name = "Channel blacklist",
@@ -38,9 +42,8 @@ val channelBlacklistPatch = bytecodePatch(
         settingsPatch,
         navigationBarHookPatch,
         versionCheckPatch,
-        resourceMappingPatch,
         fixProtoLibraryPatch,
-        addToQueuePatch
+        flyoutPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -64,14 +67,12 @@ val channelBlacklistPatch = bytecodePatch(
                         preferences = emptySet(),
                         tag = "app.morphe.extension.youtube.settings.preference.ChannelBlacklistStatsPreferenceCategory"
                     ),
-                    PreferenceCategory(
+                    screenInfoPreferenceCategory(
                         key = "morphe_hide_channel_blacklist_about_category",
-                        titleKey = "morphe_hide_about_category_title",
-                        sorting = Sorting.UNSORTED,
                         preferences = setOf(
                             NonInteractivePreference(
                                 key = "morphe_hide_channel_blacklist_about",
-                                titleKey = "morphe_hide_channel_blacklist_screen_title",
+                                titleKey = null,
                                 tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
                             )
                         )
@@ -81,5 +82,7 @@ val channelBlacklistPatch = bytecodePatch(
         )
 
         addLithoFilter(CHANNEL_BLACKLIST_FILTER)
+
+        setExtensionIsPatchIncluded(CHANNEL_BLACKLIST_FLYOUT_BUTTON)
     }
 }

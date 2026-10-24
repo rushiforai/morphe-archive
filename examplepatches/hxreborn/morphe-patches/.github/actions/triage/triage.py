@@ -30,7 +30,6 @@ REPACKAGERS = ("softonic", "happymod", "apkmod", "apkmody", "modyolo", "moddroid
                "apkdone", "liteapks", "apkmb", "apk4free", "androeed", "apkrabi")
 
 MARKER = "<!-- triage-bot -->"
-NO_RESPONSE = "_no response_"
 
 REPORT = re.compile(
     r"Exception|Error|INSTALL_FAILED|Failed to match|Manager:|manager=|\(API \d+\)|^[ \t]+at \S"

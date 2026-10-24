@@ -8,6 +8,10 @@ import java.util.regex.Pattern;
 /** No credentials or draft content are stored by this policy. */
 public final class BoardAuthRules {
     private BoardAuthRules() {}
+    /** ex0ch signs countsession with securitykey; never import only half of this identity. */
+    public static boolean identityCookie(String name) {
+        return "countsession".equalsIgnoreCase(name) || "securitykey".equalsIgnoreCase(name);
+    }
     public static String origin(String value) {
         try {
             URI uri = new URI(value.trim());
@@ -34,7 +38,9 @@ public final class BoardAuthRules {
                 || lower.contains("認証を行") || lower.contains("認証されていません")
                 || lower.contains("認証して") || lower.contains("認証が切")
                 || lower.contains("認証に失敗") || lower.contains("認証を済")
-                || lower.contains("認証コード") || lower.contains("未認証");
+                || lower.contains("認証コード") || lower.contains("未認証")
+                || lower.contains("captcha") || lower.contains("画像認証")
+                || lower.contains("ロボットではない") || lower.contains("人間であることを確認");
     }
     public static String suggested(String board, String message) {
         String origin = origin(board);

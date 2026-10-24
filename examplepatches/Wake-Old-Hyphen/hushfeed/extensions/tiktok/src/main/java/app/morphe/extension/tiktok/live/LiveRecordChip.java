@@ -70,7 +70,7 @@ public final class LiveRecordChip {
     private static boolean callbacksRegistered;
 
     /** True while the switch is on and Hushfeed isn't paused. */
-    static boolean enabled() {
+    public static boolean enabled() {
         return SettingsStatus.liveControlsEnabled && Settings.RECORD_LIVE.get() && !Setting.isPaused();
     }
 

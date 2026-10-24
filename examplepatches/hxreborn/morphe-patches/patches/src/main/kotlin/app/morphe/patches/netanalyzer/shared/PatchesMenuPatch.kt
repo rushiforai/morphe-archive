@@ -11,14 +11,12 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.w3c.dom.Element
 
 internal const val FEATURES_CLASS = "Lapp/hxreborn/extension/netanalyzer/Features;"
@@ -123,53 +121,45 @@ internal val patchesMenuPatch = bytecodePatch {
         val onClickType = row.parameterTypes[rowParameters.indexOf(ROW_ON_CLICK)].toString()
 
         val callRegisters = rowParameters.size + SYNTHETIC_COMPOSE_PARAMETERS
-        val rowsMethod = ImmutableMethod(
-            aboutSection.classDef.type,
+        val rowsMethod = aboutSection.classDef.addMethod(
             PATCHES_SECTION_METHOD,
-            listOf(ImmutableMethodParameter(composerType, null, null)),
+            listOf(composerType),
             "V",
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(callRegisters + 1),
-        ).toMutable().apply {
-            addInstructions(
-                0,
-                buildString {
-                    append(
-                        composableCall(header, headerParameters, emptyMap(), "p0") { parameter ->
-                            if (parameter == HEADER_TITLE) "const-string v%d, \"$PATCHES_SECTION_HEADER\"" else null
-                        },
-                    )
-                    val encodedEntries = menuEntries.sortedWith(compareBy({ it.section.ordinal }, { it.title }))
-                        .joinToString(MENU_ENTRY_SEPARATOR) { entry ->
-                            listOf(entry.section.title, entry.title, entry.activity).joinToString(MENU_FIELD_SEPARATOR)
+            callRegisters + 1,
+            buildString {
+                append(
+                    composableCall(header, headerParameters, emptyMap(), "p0") { parameter ->
+                        if (parameter == HEADER_TITLE) "const-string v%d, \"$PATCHES_SECTION_HEADER\"" else null
+                    },
+                )
+                val encodedEntries = menuEntries.sortedWith(compareBy({ it.section.ordinal }, { it.title }))
+                    .joinToString(MENU_ENTRY_SEPARATOR) { entry ->
+                        listOf(entry.section.title, entry.title, entry.activity).joinToString(MENU_FIELD_SEPARATOR)
+                    }
+                append(
+                    composableCall(row, rowParameters, mapOf(ROW_VALUE to true), "p0") { parameter ->
+                        when (parameter) {
+                            ROW_TITLE -> "const-string v%d, \"$PATCHES_MENU_TITLE\""
+                            ROW_DIVIDER -> "const/4 v%d, $NO_DIVIDER"
+                            ROW_ON_CLICK -> """
+                                const-class v%1${'$'}d, $onClickType
+                                const-string v${callRegisters - 1}, "$encodedEntries"
+                                invoke-static { v%1${'$'}d, v${callRegisters - 1} }, $FEATURES_CLASS->onMenuClick(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Object;
+                                move-result-object v%1${'$'}d
+                                check-cast v%1${'$'}d, $onClickType
+                            """.trimIndent()
+                            else -> null
                         }
-                    append(
-                        composableCall(row, rowParameters, mapOf(ROW_VALUE to true), "p0") { parameter ->
-                            when (parameter) {
-                                ROW_TITLE -> "const-string v%d, \"$PATCHES_MENU_TITLE\""
-                                ROW_DIVIDER -> "const/4 v%d, $NO_DIVIDER"
-                                ROW_ON_CLICK -> """
-                                    const-class v%1${'$'}d, $onClickType
-                                    const-string v${callRegisters - 1}, "$encodedEntries"
-                                    invoke-static { v%1${'$'}d, v${callRegisters - 1} }, $FEATURES_CLASS->onMenuClick(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Object;
-                                    move-result-object v%1${'$'}d
-                                    check-cast v%1${'$'}d, $onClickType
-                                """.trimIndent()
-                                else -> null
-                            }
-                        },
-                    )
-                    appendLine("return-void")
-                },
-            )
-        }
-        aboutSection.classDef.methods.add(rowsMethod)
+                    },
+                )
+                appendLine("return-void")
+            },
+        )
 
         aboutSection.method.insertBeforeStringLoad(
             sectionLabelIndex,
-            "invoke-static/range { v$composerRegister .. v$composerRegister }, ${rowsMethod.descriptor()}",
+            "invoke-static/range { v$composerRegister .. v$composerRegister }, ${descriptor(rowsMethod)}",
         )
     }
 }
@@ -201,5 +191,5 @@ private fun composableCall(
         appendLine("const/16 v${composerRegister + 2}, $mask")
     }
     val lastRegister = composerRegister + if (hasDefaults) 2 else 1
-    appendLine("invoke-static/range { v0 .. v$lastRegister }, ${composable.descriptor()}")
+    appendLine("invoke-static/range { v0 .. v$lastRegister }, ${descriptor(composable)}")
 }

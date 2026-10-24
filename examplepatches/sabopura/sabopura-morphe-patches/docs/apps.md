@@ -294,7 +294,10 @@ patches fail to apply. The rewrites use stable anchors instead:
 14.11.0, 14.38.0, 14.39.0 and 14.40.0 were patched, installed and launched to the
 sign-in screen on the API 36 emulator without crashes; for 14.11.0, 14.38.0 and 14.40.0
 the patched methods were also checked by decompiling the output (in 14.40.0 the
-`is_promoted` getter returns `false`). Feed behaviour after login was not verified.
+`is_promoted` getter returns `false`). 14.41.0 applied without changes; it launched to the
+sign-in screen without crashes, and the output DEX has the `is_promoted` getter returning
+`false`, Bugsnag's release stage check returning `true` and the 14 startup task tags
+skipped. Feed behaviour after login was not verified.
 
 ## pixiv
 
@@ -316,7 +319,10 @@ and launched on the API 36 emulator without crashes. The unpatched app logs
 AppLovin, Mintegral, Pangle and Google ads activity at launch; the patched app
 logged none. 6.200.0 applied without changes; the unpatched app again logged AppLovin
 and Pangle at launch on the API 36 emulator and the patched app logged none, with no
-fatal errors. Ad slots after login were not verified.
+fatal errors. 6.201.0 also applied without changes: the four modified methods were
+checked in the output, and on the API 36 emulator the unpatched app logged AppLovin and
+Pangle at launch while the patched app logged none, with no fatal errors. Ad slots after
+login were not verified.
 
 ## Google News
 
@@ -351,7 +357,7 @@ The upstream CustomTabs patch addresses 5.163's obfuscated names and fails on
   request posts "Account <name> / requested by Google News", one per account.
   The device-account provider (found through its "missing permission
   GET_ACCOUNTS" log and `getAccountsByType`; one method in 5.163, blocking and
-  suspend variants in 5.168) now returns an empty list, as when GET_ACCOUNTS is
+  suspend variants since 5.168) now returns an empty list, as when GET_ACCOUNTS is
   missing. Account-bound push notifications are no longer registered; the app's
   own sign-in (AuthHelper) is not affected.
 
@@ -360,6 +366,15 @@ were checked in the output. On API 36, 5.168 patched with `Enable CustomTabs` an
 `Disable device account notification sync` launched to its home screen. The Android
 emulator process itself then exits while the feed loads; this also happens with the
 stock app and with every GPU mode, so article opening and MicroG sign-in are unverified.
+
+5.170 removed `NSContentProvider` from the app (class and manifest entry). `GmsCore
+support` still renames the remaining GNP file provider authority and the
+`content_authority` string, and the stock and patched apps still install side by side.
+All three patches applied without changes and the modified methods (both browser pickers,
+both device-account methods, the GMS identifiers) and the manifest were checked in the
+output. On API 36 the patched app (with and without `GmsCore support`) launched without
+fatal errors in airplane mode; online the build without `GmsCore support` reached its home
+screen and the emulator then exited as with 5.168, also with the stock 5.170 and with 5.168.
 
 ## Sankaku App
 

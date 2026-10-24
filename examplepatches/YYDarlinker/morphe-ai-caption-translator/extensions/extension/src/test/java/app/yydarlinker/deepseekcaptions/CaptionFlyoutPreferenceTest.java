@@ -24,11 +24,11 @@ public class CaptionFlyoutPreferenceTest {
     @Before public void setup(){a=Robolectric.buildActivity(Activity.class).setup().get();CaptionAddonSupport.initialize(a);added=containers=0;shorts=false;top=true;}
     @After public void finish(){a.finish();}
     @Test public void visibleByDefaultAndPreferencePersistsWithoutChangingEngineOrLanguage(){
-        assertTrue(DeepSeekConfig.flyoutMenuEnabled(a));DeepSeekConfig.saveEnabled(a,true);CaptionChoice.select("fr",true);
+        assertTrue(DeepSeekConfig.flyoutMenuEnabled(a));DeepSeekConfig.saveEnabled(a,true);CaptionSessionIntent.userSelected(a,"fr",true);
         CaptionFlyoutPreference p=new CaptionFlyoutPreference(a);assertTrue(p.isChecked());
         p.getOnPreferenceChangeListener().onPreferenceChange(p,false);
         assertFalse(p.isChecked());assertFalse(new CaptionFlyoutPreference(a).isChecked());
-        assertTrue(DeepSeekConfig.enabled(a));assertEquals("fr",CaptionChoice.language());
+        assertTrue(DeepSeekConfig.enabled(a));assertEquals("fr",CaptionSessionIntent.load(a).targetLanguage);
         p.getOnPreferenceChangeListener().onPreferenceChange(p,true);assertTrue(new CaptionFlyoutPreference(a).isChecked());
     }
     @Test public void hiddenEntryLeavesOfficialIndexAndContainerUntouched(){

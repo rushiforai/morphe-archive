@@ -35,6 +35,7 @@ final class QuickSetupKeys {
             Settings.HIDE_AD_FREE_BANNER,
             Settings.HIDE_SUGGESTED_BLOGS,
             Settings.HIDE_SUGGESTED_COMMUNITIES,
+            Settings.HIDE_SUGGESTED_TAGS,
             Settings.HIDE_WATCH_IT_ROWS,
             Settings.HIDE_BLAZE_PROMPTS,
             Settings.HIDE_TUMBLRMART,

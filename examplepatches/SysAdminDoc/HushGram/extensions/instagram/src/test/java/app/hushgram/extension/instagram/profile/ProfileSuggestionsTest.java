@@ -438,6 +438,59 @@ public class ProfileSuggestionsTest {
     }
 
     /**
+     * #302: the follow list switch also takes the Suggested tab off someone else's follow lists and
+     * the Suggested for you section under their mutual followers. Off, paused or unready, both stay.
+     */
+    @Test
+    public void theSuggestedTabAndTheMutualSectionGoWithTheFollowListSwitch() {
+        List<Object> accounts = Arrays.asList(new Object(), new Object());
+        assertEquals("the profile switch alone", 1, ProfileSuggestions.suggestedTab(1));
+        assertSame("the profile switch alone", accounts, ProfileSuggestions.mutualSuggestions(accounts));
+
+        Settings.HIDE_FOLLOW_LIST_SUGGESTIONS.save(true);
+        assertEquals(0, ProfileSuggestions.suggestedTab(1));
+        assertEquals("no tab stays no tab", 0, ProfileSuggestions.suggestedTab(0));
+        assertTrue(ProfileSuggestions.mutualSuggestions(accounts).isEmpty());
+        assertEquals("the list keeps its accounts", 2, accounts.size());
+        List<Object> none = Collections.emptyList();
+        assertSame("nothing to hide", none, ProfileSuggestions.mutualSuggestions(none));
+        assertNull(ProfileSuggestions.mutualSuggestions(null));
+        String report = FeedFilterCounters.report().toString();
+        assertTrue(report, report.contains(ProfileSuggestions.SUGGESTED_TAB));
+        assertTrue(report, report.contains(ProfileSuggestions.MUTUAL_SUGGESTIONS));
+        assertTrue(report, report.contains("2 removed"));
+        Settings.HIDE_PROFILE_SUGGESTIONS.save(false);
+        assertEquals("with the profile switch off", 0, ProfileSuggestions.suggestedTab(1));
+        assertTrue("with the profile switch off", ProfileSuggestions.mutualSuggestions(accounts).isEmpty());
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals("paused", 1, ProfileSuggestions.suggestedTab(1));
+        assertSame("paused", accounts, ProfileSuggestions.mutualSuggestions(accounts));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertEquals("unready", 1, ProfileSuggestions.suggestedTab(1));
+            assertSame("unready", accounts, ProfileSuggestions.mutualSuggestions(accounts));
+        });
+
+        Settings.HIDE_FOLLOW_LIST_SUGGESTIONS.save(false);
+        assertEquals("off", 1, ProfileSuggestions.suggestedTab(1));
+        assertSame("off", accounts, ProfileSuggestions.mutualSuggestions(accounts));
+    }
+
+    /** A follow list switch that throws keeps the tab and the section, and says which hook threw. */
+    @Test
+    public void aThrowingSwitchKeepsTheSuggestedTabAndTheMutualSection() {
+        List<Object> accounts = Collections.singletonList(new Object());
+        assertEquals(1, ProfileSuggestions.suggestedTab(1, THROWS));
+        assertSame(accounts, ProfileSuggestions.mutualSuggestions(accounts, THROWS));
+        String missing = HookStatus.missing(FamilyNames.PROFILE_SUGGESTIONS).toString();
+        assertTrue(missing, missing.contains("'" + ProfileSuggestions.SUGGESTED_TAB + "'"));
+        assertTrue(missing, missing.contains("'" + ProfileSuggestions.MUTUAL_SUGGESTIONS + "'"));
+    }
+
+    /**
      * #159: the Complete your profile cards go only with their own switch. A hidden set is counted,
      * with the profile switch on or off; off, paused or unready, Instagram's own check stands.
      */

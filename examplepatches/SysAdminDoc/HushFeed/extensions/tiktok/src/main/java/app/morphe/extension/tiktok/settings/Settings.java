@@ -301,8 +301,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting UNCAP_REFRESH_RATE =
             new BooleanSetting("uncap_refresh_rate", FALSE);
     /**
-     * Skips TikTok's brightness boost in the camera, editor and post screens (issue #200). The
-     * patch is in the default selection, so the switch starts off.
+     * Skips TikTok's brightness boost in the camera, editor and post screens, and the full
+     * brightness the cameras' front flash and fill light store (issue #200). The patch is in the
+     * default selection, so the switch starts off.
      */
     public static final BooleanSetting KEEP_CAMERA_BRIGHTNESS =
             new BooleanSetting("keep_camera_brightness", FALSE);
@@ -344,6 +345,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("launcher_shortcuts_removed", FALSE, false, false);
     public static final BooleanSetting ALLOW_DUET_AND_STITCH =
             new BooleanSetting("allow_duet_and_stitch", FALSE);
+    public static final BooleanSetting ALLOW_ADD_TO_STORY =
+            new BooleanSetting("allow_add_to_story", FALSE);
     public static final BooleanSetting HIDE_FOLLOWER_NOTIFICATIONS =
             new BooleanSetting("hide_follower_notifications", FALSE);
     /**
@@ -658,6 +661,11 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting LIVE_RECORD_QUALITY = new StringSetting("live_record_quality", "room");
     /**
+     * What a LIVE recording is made from (#37): "stream" saves the room's own video, "screen" records
+     * the phone's screen. Read as each recording starts, so no restart.
+     */
+    public static final StringSetting LIVE_RECORD_SOURCE = new StringSetting("live_record_source", "stream");
+    /**
      * Plays the audio TikTok mutes on a post whose sound was pulled; the Keep pulled sounds
      * patch. Read as each video starts, so no restart.
      */
@@ -913,6 +921,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting GLASS_TAB_LENS = new BooleanSetting(
             "glass_tab_lens", FALSE, false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
     /**
+     * With Liquid glass look on Android 12 and newer, blurs the strip of video behind the glass
+     * pill instead of drawing a frost over it (#231). The strip is read back from the player's
+     * surface a few times a second while the pill is on screen. Without a surface to read, the
+     * plain glass stays. Read on each layout.
+     */
+    public static final BooleanSetting GLASS_VIDEO_BLUR = new BooleanSetting(
+            "glass_video_blur", FALSE, false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
+    /**
      * Lets the main feed's video draw up under the status bar, with the clock over it (#145).
      * VideoOverlayHider collapses the spacer TikTok keeps above each video for the bar and
      * SeeThroughStatusBar clears the bar's color while the feed is in front; both go back when
@@ -1126,6 +1142,8 @@ public class Settings extends BaseSettings {
     // Remove avatar rings: the story ring and the LIVE ring, each on its own switch.
     public static final BooleanSetting HIDE_STORY_RINGS = new BooleanSetting("hide_story_rings", FALSE);
     public static final BooleanSetting HIDE_LIVE_RING = new BooleanSetting("hide_live_ring", FALSE);
+    // A creator's profile picture opens their Story before their LIVE, the next tap the LIVE (#233).
+    public static final BooleanSetting OPEN_STORY_OVER_LIVE = new BooleanSetting("open_story_over_live", FALSE);
     // Lift text length limits: comments, repost notes and the bio.
     public static final BooleanSetting LIFT_LENGTH_LIMITS = new BooleanSetting("lift_length_limits", FALSE);
     // Enable voice comments, in the default selection with this off. A restart, since TikTok may
@@ -1247,6 +1265,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting PROFILE_SHORTCUT_CATALOG = new StringSetting("profile_shortcut_catalog", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
+    /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */
+    public static final BooleanSetting ENABLE_THOUGHTS = new BooleanSetting("enable_thoughts", FALSE, true);
     // Popup labels (TikTok's own popup layer): the labels ticked in the checklist, and the ones
     // TikTok has tried to show on this phone, which the checklist offers.
     public static final StringSetting POPUP_LABEL_PICKS = new StringSetting("popup_label_picks", "");

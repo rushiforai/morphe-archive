@@ -23,7 +23,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class ChannelUsageActivity extends HostScreenActivity {
 
@@ -112,12 +112,16 @@ public final class ChannelUsageActivity extends HostScreenActivity {
     private void switchBand() {
         final ChannelUsage.Band[] bands = ChannelUsage.Band.values();
         ChannelUsage.Band next = bands[(this.band.ordinal() + 1) % bands.length];
-        if (next == ChannelUsage.Band.GHZ_6 && !this.wifi.is6GHzBandSupported()) {
+        if (next == ChannelUsage.Band.GHZ_6 && !supports6GHzBand()) {
             next = bands[0];
         }
         this.band = next;
         this.preferences.edit().putInt(BAND_KEY, next.ordinal()).apply();
         refresh();
+    }
+
+    private boolean supports6GHzBand() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && this.wifi.is6GHzBandSupported();
     }
 
     @SuppressLint("MissingPermission")

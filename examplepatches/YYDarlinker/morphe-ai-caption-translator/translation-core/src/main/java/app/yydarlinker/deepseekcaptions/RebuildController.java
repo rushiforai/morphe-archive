@@ -628,9 +628,13 @@ final class RebuildController {
         if (TranslationRuntime.settings(c).enabled) activate(c, url, original, show);
     }
 
+    /**
+     * Starts the source fetch without waiting for any native CC observation. The only authority is
+     * the user's intent: no caption-known/CC state is consulted, so a session that already has a
+     * target is warmed as soon as its signed source url is available.
+     */
     static void prewarm(Context c, String url) {
         if (c == null
-                || !TranslationRuntime.selectionOn()
                 || !TranslationRuntime.translates()
                 || !TranslationRuntime.settings(c).ready()
                 || active != null) return;

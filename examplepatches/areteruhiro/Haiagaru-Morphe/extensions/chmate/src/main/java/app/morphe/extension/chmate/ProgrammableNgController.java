@@ -49,6 +49,8 @@ public final class ProgrammableNgController {
     private static volatile ProgrammableNgRuleSet rules = new ProgrammableNgRuleSet(Collections.emptyList());
     private static volatile List<ProgrammableNgScript.Input> lastTitles = Collections.emptyList();
     private static volatile List<ProgrammableNgScript.Input> lastBodies = Collections.emptyList();
+    private static volatile java.lang.ref.WeakReference<Object> previewSource=new java.lang.ref.WeakReference<>(null);
+    private static volatile String previewBoard=UNKNOWN_BOARD;
     private static volatile String runtimeError = "";
     private static volatile String lastBoardUrl;
 
@@ -228,9 +230,11 @@ public final class ProgrammableNgController {
 
     /** Index body-rule matches once per 191 adapter rebuild. */
     public static void prepareLegacyResponses(Object adapter) {
+        HiddenNgUnread.begin(adapter);
         HiddenIdNg.prepare(adapter);
+        try{previewSource=new java.lang.ref.WeakReference<>(field(adapter,"K"));previewBoard=boardUrl(field(field(adapter,"M"),"f"));}catch(Exception ignored){}
         LEGACY_RESPONSE_MATCHES.put(adapter, Collections.emptySet());
-        if (context == null) return;
+        if (context == null || !bodyRulesEnabled()) return;
         try {
             Object state = field(adapter, "M");
             String board = boardUrl(field(state, "f"));
@@ -271,17 +275,17 @@ public final class ProgrammableNgController {
     /** Adds the standard NGWord bit while preserving every flag ChMate already produced. */
     public static int mergeLegacyResponseFlags(Object adapter, Object response, int original) {
         original = HiddenIdNg.merge(adapter, response, original);
-        if (!enabled) return original;
+        if (!enabled) return HiddenNgUnread.observe(adapter,response,original);
         try {
             if (!LEGACY_RESPONSE_MATCHES.containsKey(adapter)) prepareLegacyResponses(adapter);
             Set<Integer> matches = LEGACY_RESPONSE_MATCHES.get(adapter);
             if (matches != null && matches.contains(((Number) field(response, "o")).intValue())) {
-                return original | 0x10;
+                return HiddenNgUnread.observe(adapter,response,original | 0x10);
             }
         } catch (Exception error) {
             report("191レスフラグ", error);
         }
-        return original;
+        return HiddenNgUnread.observe(adapter,response,original);
     }
 
     /** Keeps the response list in a range-encodable register for modern renderers. */
@@ -308,6 +312,7 @@ public final class ProgrammableNgController {
             if (responses.isEmpty()) return;
             RESPONSE_BOARDS.remove(responses.get(0));
             String board = boardUrl(field(result, "d"));
+            previewSource=new java.lang.ref.WeakReference<>(field(result,"a"));previewBoard=board;
             if (board != null) RESPONSE_BOARDS.put(responses.get(0), board);
         } catch (ReflectiveOperationException | RuntimeException error) { report("レスの板情報", error); }
     }
@@ -318,7 +323,7 @@ public final class ProgrammableNgController {
         Object pending = PENDING_RESPONSE_LIST.get();
         PENDING_RESPONSE_LIST.remove();
         Map originalMap = flags instanceof Map ? (Map) flags : null;
-        if (!(pending instanceof List) || originalMap == null || context == null) return originalMap;
+        if (!(pending instanceof List) || originalMap == null || context == null || !bodyRulesEnabled()) return originalMap;
         try {
             List<?> responses = originalResponses(pending);
             String board = responses.isEmpty() ? null : RESPONSE_BOARDS.get(responses.get(0));
@@ -352,9 +357,11 @@ public final class ProgrammableNgController {
 
     /** 226 needs the whole source list to expand authors/replies and to refresh cached decisions. */
     public static void prepareModernResponses(Object owner) {
+        HiddenNgUnread.begin(owner);
         HiddenIdNg.prepare(owner);
+        try{previewSource=new java.lang.ref.WeakReference<>(field(owner,"J"));previewBoard=boardUrl(field(field(owner,"E"),"j"));}catch(Exception ignored){}
         MODERN_RESPONSE_MATCHES.put(owner, Collections.emptySet());
-        if (context == null) return;
+        if (context == null || !bodyRulesEnabled()) return;
         try {
             String board = boardUrl(field(field(owner, "E"), "j"));
             if (board == null) return;
@@ -380,11 +387,11 @@ public final class ProgrammableNgController {
     /** Adds the same NGWord bit at the per-response boundary used by 226 dev. */
     public static int mergeModernResponseFlags(Object owner, Object response, int original) {
         original = HiddenIdNg.merge(owner, response, original);
-        if (!enabled || context == null || response == null) return original;
+        if (!enabled || context == null || response == null) return HiddenNgUnread.observe(owner,response,original);
         try {
             if (!MODERN_RESPONSE_MATCHES.containsKey(owner)) prepareModernResponses(owner);
             Set<Integer> matches = MODERN_RESPONSE_MATCHES.get(owner);
-            return matches != null && matches.contains(responseData(response).number) ? original | 0x10 : original;
+            return HiddenNgUnread.observe(owner,response,matches != null && matches.contains(responseData(response).number) ? original | 0x10 : original);
         } catch (Exception error) {
             report("226レスフラグ", error);
             return original;
@@ -583,6 +590,7 @@ public final class ProgrammableNgController {
     }
 
     @SuppressWarnings("deprecation")
+    private static boolean bodyRulesEnabled(){if(!enabled)return false;for(ProgrammableNgRuleSet.Rule rule:rules.rules)if(rule.enabled&&"body".equals(rule.target))return true;return false;}
     private static String plain(String html) {
         return html == null ? "" : Html.fromHtml(html).toString();
     }
@@ -607,6 +615,18 @@ public final class ProgrammableNgController {
 
 
     static String preview(ProgrammableNgRuleSet.Rule rule) {
+        if("body".equals(rule.target)&&!bodyRulesEnabled()){
+            try{
+                List<?> responses=originalResponses(previewSource.get());List<ProgrammableNgScript.Input> inputs=new ArrayList<>();
+                for(Object response:responses){
+                    if(response.getClass().getName().equals("o.processAdDisplayErrorPostbackForUserError")){
+                        Map<String,Object> values=baseValues("body",previewBoard==null?UNKNOWN_BOARD:previewBoard);
+                        values.put("responseNumber",field(response,"o"));values.put("responseId",field(response,"h"));values.put("name",plain(stringField(response,"n")));values.put("mail",field(response,"j"));values.put("dateText",field(response,"q"));
+                        inputs.add(new ProgrammableNgScript.Input(plain(stringField(response,"c")),values));
+                    }else inputs.add(responseData(response).input(previewBoard==null?UNKNOWN_BOARD:previewBoard,""));
+                }lastBodies=inputs;
+            }catch(Exception error){report("プレビュー準備",error);}
+        }
         List<ProgrammableNgScript.Input> inputs = "body".equals(rule.target) ? lastBodies : lastTitles;
         if (inputs.isEmpty()) return "判定対象がまだありません。先にスレ一覧またはスレを開いてください。";
         ProgrammableNgRuleSet preview = new ProgrammableNgRuleSet(Collections.singletonList(rule));

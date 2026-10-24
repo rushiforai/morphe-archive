@@ -21,7 +21,7 @@ private const val APP_RESOURCE_PACKAGE = 0x7f
 
 private var resourceIdsByField: Map<String, Long> = emptyMap()
 
-private fun FieldReference.descriptor() = "$definingClass->$name"
+private fun FieldReference.fieldKey() = "$definingClass->$name"
 
 internal val resourceFieldsPatch = bytecodePatch {
     execute {
@@ -29,7 +29,7 @@ internal val resourceFieldsPatch = bytecodePatch {
         classDefForEach { classDef ->
             classDef.staticFields.forEach { field ->
                 val value = (field.initialValue as? IntEncodedValue)?.value ?: return@forEach
-                if (value ushr 24 == APP_RESOURCE_PACKAGE) resourceIds[field.descriptor()] = value.toLong()
+                if (value ushr 24 == APP_RESOURCE_PACKAGE) resourceIds[field.fieldKey()] = value.toLong()
             }
         }
         resourceIdsByField = resourceIds
@@ -48,7 +48,7 @@ internal class ResourceFieldFilter(
         if (instruction is WideLiteralInstruction) return instruction.wideLiteral == resolvedId
         if (instruction.opcode != Opcode.SGET) return false
         val field = (instruction as ReferenceInstruction).reference as FieldReference
-        return resourceIdsByField[field.descriptor()] == resolvedId
+        return resourceIdsByField[field.fieldKey()] == resolvedId
     }
 }
 

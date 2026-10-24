@@ -7,9 +7,12 @@ package app.hushtumblr.extension.tumblr.timeline;
 
 import com.tumblr.rumblr.model.BlazedPost;
 import com.tumblr.rumblr.model.Display;
+import com.tumblr.rumblr.model.GenericButton;
 import com.tumblr.rumblr.model.RelatedBlogsJsonAdapter;
 import com.tumblr.rumblr.model.SponsoredState;
 import com.tumblr.rumblr.model.TimelineObject;
+import com.tumblr.rumblr.model.link.ActionLink;
+import com.tumblr.rumblr.model.link.WebLink;
 import com.tumblr.rumblr.model.TimelineObjectType;
 import com.tumblr.rumblr.model.Timelineable;
 import com.tumblr.rumblr.model.post.DisplayType;
@@ -53,6 +56,16 @@ public final class TimelineItems {
                 sponsored == null ? null : new Display(sponsored), type);
     }
 
+    /** The "Follow <blog>" button between a blog's posts, whose tap follows the blog. */
+    public static TimelineObject followButton() {
+        return new TimelineObject(new GenericButton(new ActionLink()), false);
+    }
+
+    /** A button the server sends that opens a page. */
+    public static TimelineObject webButton() {
+        return new TimelineObject(new GenericButton(new WebLink()), false);
+    }
+
     /** An item whose payload throws when its kind is read. */
     public static TimelineObject unreadable() {
         return new TimelineObject(new Item(null) {
@@ -85,6 +98,11 @@ public final class TimelineItems {
     /** PausedHooksTest's probe for Hide suggested communities. */
     public static boolean aPageLosesItsCommunityCard() {
         return aPageLoses(TimelineObjectType.COMMUNITY_CARD);
+    }
+
+    /** PausedHooksTest's probe for Hide suggested tags. */
+    public static boolean aPageLosesItsTagCarousel() {
+        return aPageLoses(carousel(TimelineObjectType.CAROUSEL, of(TimelineObjectType.TAG_CAROUSEL_CARD)));
     }
 
     /** PausedHooksTest's probe for Hide Watch it rows. */
@@ -155,6 +173,20 @@ public final class TimelineItems {
         return new TimelineObject(new Post(Collections.emptyList(), null, Arrays.asList(tags), summary, null), false);
     }
 
+    /**
+     * A post Tumblr would cover with "This post contains filtered content", its filtered note
+     * naming [tags] and [content] words, with [blocks] as its own content.
+     */
+    public static TimelineObject filteredPost(List<?> tags, List<?> content, Object... blocks) {
+        HushFiltered note = new HushFiltered() {
+            @Override public List<?> hushFilteredTags() { return tags; }
+            @Override public List<?> hushFilteredContent() { return content; }
+        };
+        return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
+            @Override public Object hushFiltered() { return note; }
+        }, false);
+    }
+
     /** A plain post whose server header context names [icon], without any timeline Sponsored flag. */
     public static TimelineObject postWithHeader(String icon, boolean followed, boolean editable) {
         return postWithHeader(icon, followed, editable, true);
@@ -209,8 +241,13 @@ public final class TimelineItems {
         return aPageLoses(postWith(new TextBlock("Big Spoilers ahead")));
     }
 
-    /** A post Tumblr's model would carry, as the post bridge patch makes it. */
-    static class Post extends Item implements HushPost, HushPaidPost {
+    /** PausedHooksTest's probe for Hide filtered posts. */
+    public static boolean aPageLosesItsFilteredPost() {
+        return aPageLoses(filteredPost(Collections.singletonList("spoilers"), null, new TextBlock("covered")));
+    }
+
+    /** A post Tumblr's model would carry, as the post bridge patches make it. */
+    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost {
         private final List<?> content;
         private final List<?> trail;
         private final List<?> tags;
@@ -235,6 +272,7 @@ public final class TimelineItems {
         @Override public boolean hushFollowed() { return false; }
         @Override public boolean hushCanEdit() { return false; }
         @Override public boolean hushPaidContextKnown() { return true; }
+        @Override public Object hushFiltered() { return null; }
     }
 
     private static final class Carousel extends Item {

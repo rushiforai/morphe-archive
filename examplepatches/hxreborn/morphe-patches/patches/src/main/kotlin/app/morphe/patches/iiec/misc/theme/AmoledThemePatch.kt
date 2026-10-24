@@ -14,9 +14,10 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.Document
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.iiec.misc.fix.signature.bypassSignatureCheckPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.adoptChild
 import app.morphe.util.childElementsSequence
 import app.morphe.util.cloneParameters
@@ -29,15 +30,12 @@ import app.morphe.util.indexOfFirstStringInstructionOrThrow
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.formatter.DexFormatter
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS = "Lapp/hxreborn/extension/iiec/AmoledTheme;"
@@ -184,7 +182,7 @@ private fun Method.injectAmoledSchemeSelection(darkSchemeType: String, applyMeth
             val field = method.getInstruction<Instruction>(index).getReference<FieldReference>()!!
             val objectRegister = method.getInstruction<TwoRegisterInstruction>(index).registerB
 
-            "iput-object v$schemeRegister, v$objectRegister, ${DexFormatter.INSTANCE.getFieldDescriptor(field)}"
+            "iput-object v$schemeRegister, v$objectRegister, ${descriptor(field)}"
         } ?: ""
 
     method.addInstructionsWithLabels(
@@ -224,27 +222,18 @@ val amoledThemePatch = bytecodePatch(
         val setterMethod = constructorMatch.instructionMatches.last()
             .getInstruction<Instruction>().getReference<MethodReference>()!!
 
-        mutableClassDefBy(constructorMatch.classDef).methods.add(
-            ImmutableMethod(
-                darkSchemeType,
-                APPLY_AMOLED_METHOD,
-                emptyList(),
-                "V",
-                AccessFlags.PUBLIC.value,
-                null,
-                null,
-                MutableMethodImplementation(3),
-            ).toMutable().apply {
-                addInstructions(
-                    0,
-                    """
-                        sget-object v0, ${DexFormatter.INSTANCE.getFieldDescriptor(backgroundField)}
-                        const v1, $BLACK_ARGB_SMALI
-                        invoke-virtual { p0, v0, v1 }, ${DexFormatter.INSTANCE.getMethodDescriptor(setterMethod)}
-                        return-void
-                    """,
-                )
-            },
+        mutableClassDefBy(constructorMatch.classDef).addMethod(
+            APPLY_AMOLED_METHOD,
+            emptyList(),
+            "V",
+            AccessFlags.PUBLIC.value,
+            3,
+            """
+                sget-object v0, ${descriptor(backgroundField)}
+                const v1, $BLACK_ARGB_SMALI
+                invoke-virtual { p0, v0, v1 }, ${descriptor(setterMethod)}
+                return-void
+            """,
         )
 
         EditorThemeSelectionFingerprint.matchAll(2..2).forEach { match ->

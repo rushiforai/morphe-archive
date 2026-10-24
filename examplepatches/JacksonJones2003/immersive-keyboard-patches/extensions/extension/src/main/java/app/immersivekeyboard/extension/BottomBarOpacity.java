@@ -44,6 +44,8 @@ public final class BottomBarOpacity {
     private static final String DUMP_TAG = "ImmersiveKBDump";
     private static final long REFRESH_INTERVAL_MS = 150;
     private static final long RECHECK_DELAY_MS = 220;
+    /** A keyboard panel shorter than this is a collapsed one, not a keyboard. */
+    private static final float MIN_KEYBOARD_HEIGHT_DP = 24;
 
     // Settings written by the Frosted Glass patch from jasonwu1994/Gboard-patches.
     private static final String FROSTED_GLASS_PREFERENCES = "gboard_patches_settings";
@@ -81,6 +83,12 @@ public final class BottomBarOpacity {
             state.drawnBlurSquared = state.blurSquared;
             state.drawnSystemGlass = state.systemGlass;
             state.drawnGlassTopCorner = state.glassTopCorner;
+            state.drawnKeyboardHidden = state.keyboardHidden;
+            if (state.keyboardHidden) {
+                // A hardware keyboard is in use and Gboard shows no keyboard: leave the strip
+                // empty instead of painting a lone bar of glass at the bottom of the screen.
+                return Color.TRANSPARENT;
+            }
             if (Color.alpha(keyboardColor) >= OPAQUE) {
                 return color;
             }
@@ -104,7 +112,7 @@ public final class BottomBarOpacity {
     public static void afterKeyboardDrawn(View inputView, Canvas canvas) {
         try {
             State state = STATES.get(inputView);
-            if (state != null) {
+            if (state != null && !state.keyboardHidden) {
                 state.repaintBottomCorners(inputView, canvas);
                 state.repaintTopCorners(inputView, canvas);
                 state.drawGlassOnTop(inputView, canvas);
@@ -142,6 +150,10 @@ public final class BottomBarOpacity {
         State state = STATES.get(inputView);
         if (state == null || state.keyboardTop == NO_TOP) {
             return false;
+        }
+        if (state.keyboardHidden) {
+            out.rewind();
+            return true;
         }
         float top = state.topInInputView(inputView);
         float topRadius = state.systemGlass && state.glassTopCorner > 0 ? state.glassTopCorner : 0;
@@ -285,6 +297,12 @@ public final class BottomBarOpacity {
         private int glassTopCorner = -1;
         private int drawnGlassTopCorner = -1;
         private boolean blurUnavailable;
+        /**
+         * Whether Gboard is showing no keyboard, as when a hardware keyboard is connected
+         * and only an empty or collapsed panel is left at the bottom.
+         */
+        boolean keyboardHidden;
+        private boolean drawnKeyboardHidden;
 
         /**
          * Color and opacity of the keyboard as it appears on screen, or the given color
@@ -300,6 +318,7 @@ public final class BottomBarOpacity {
             settings = FrostedGlass.read(inputView.getContext());
             squareKeyboardBlur(inputView);
             keyboardTop = findKeyboardTop(inputView);
+            keyboardHidden = isKeyboardHidden(inputView);
             topColor = keyboardTop == NO_TOP ? 0 : sampleTop(inputView);
             int sampled = sampleKeyboard(inputView);
             boolean transparentTheme = panelFound && Color.alpha(sampled) == 0;
@@ -360,7 +379,8 @@ public final class BottomBarOpacity {
                 if (!systemGlass) {
                     return;
                 }
-                int padding = inputView.getPaddingBottom();
+                // With no keyboard showing, the glass must not reach down over the strip either.
+                int padding = keyboardHidden ? 0 : inputView.getPaddingBottom();
                 if (blurOwner != null && blurOwnerIndex < blurOwner.getNumberOfLayers()
                         && blurOwner.getDrawable(blurOwnerIndex) == keyboardBlur) {
                     // The panel's background re-sizes its layers every time it is laid out.
@@ -944,6 +964,13 @@ public final class BottomBarOpacity {
          * The keyboard window itself can be as tall as the screen, so its own top edge says
          * nothing about where the keyboard starts.
          */
+        private boolean isKeyboardHidden(View inputView) {
+            View base = find(inputView, BASE_AREA_TAG);
+            float minimum = MIN_KEYBOARD_HEIGHT_DP
+                    * inputView.getResources().getDisplayMetrics().density;
+            return base == null || !base.isShown() || base.getHeight() < minimum;
+        }
+
         private int findKeyboardTop(View inputView) {
             int[] top = {NO_TOP};
             // A panel that fills most of the window is a container, not the keyboard.
@@ -1097,7 +1124,8 @@ public final class BottomBarOpacity {
                 if (view != null && (keyboardColor(view, cachedFallback) != drawnColor
                         || keyboardTop != drawnKeyboardTop || blurSquared != drawnBlurSquared
                         || systemGlass != drawnSystemGlass
-                        || glassTopCorner != drawnGlassTopCorner)) {
+                        || glassTopCorner != drawnGlassTopCorner
+                        || keyboardHidden != drawnKeyboardHidden)) {
                     view.invalidate();
                 }
                 if (view != null) {
@@ -1129,6 +1157,7 @@ public final class BottomBarOpacity {
                     if (color != drawnColor || keyboardTop != drawnKeyboardTop
                             || blurSquared != drawnBlurSquared || systemGlass != drawnSystemGlass
                             || glassTopCorner != drawnGlassTopCorner
+                        || keyboardHidden != drawnKeyboardHidden
                             || glassBlur.get() != before) {
                         view.invalidate();
                     }

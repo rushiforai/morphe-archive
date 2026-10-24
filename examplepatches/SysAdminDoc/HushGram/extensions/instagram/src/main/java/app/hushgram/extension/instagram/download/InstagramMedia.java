@@ -337,8 +337,9 @@ public final class InstagramMedia {
     }
 
     /**
-     * A new option of the feed menu named [name], drawn and handled like Download: Download's icon
-     * and ordinal, made by the option's own constructor. Null as built.
+     * A new option of the feed menu named [name], drawn and handled like Download: Download's
+     * ordinal, and the icon {@link ReelDownload#rowIcon} answers for the name and Download's icon,
+     * made by the option's own constructor. Null as built.
      */
     public static Object feedOption(String name) {
         return null;

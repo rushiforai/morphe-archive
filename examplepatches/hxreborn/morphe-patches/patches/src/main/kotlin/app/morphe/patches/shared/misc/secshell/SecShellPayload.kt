@@ -37,6 +37,8 @@ internal class SecShellPayload(private val container: SecShellContainer) {
 
     fun method(classType: String, name: String) = editor(dexContaining(classType)).method(classType, name)
 
+    fun methods(classType: String) = editor(dexContaining(classType)).methods(classType)
+
     fun methods(classType: String, name: String) = editor(dexContaining(classType)).methods(classType, name)
 
     fun prependToMethodUsingString(string: String, firstParameter: String, smali: String): String {

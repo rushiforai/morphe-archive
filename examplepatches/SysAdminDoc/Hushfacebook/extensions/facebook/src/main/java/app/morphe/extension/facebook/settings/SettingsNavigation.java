@@ -704,7 +704,7 @@ final class SettingsNavigation extends BaseAdapter {
         return sections;
     }
 
-    private static ScreenColors palette() { return ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown; }
+    private static ScreenColors palette() { return ScreenColors.current(); }
 
     private static final class Section {
         final String id;

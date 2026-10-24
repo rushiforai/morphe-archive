@@ -193,6 +193,7 @@ All available languages	Kullanılabilir tüm diller
 All events	Tüm olaylar
 All loaded tabs	Yüklenen tüm sekmeler
 Allow Duet and Stitch anyway	Yine de Düet ve Stitch'e izin ver
+Allow Add to Story anyway	Yine de Hikâyeye Ekle'ye izin ver
 Allow screenshots and Circle to Search	Ekran görüntüsüne ve Circle to Search'e izin ver
 Allow storage for TikTok in Android settings to save profile pictures	Profil fotoğraflarını kaydetmek için Android ayarlarında TikTok'a depolama izni ver
 Allow storage for TikTok in Android settings to save sounds	Sesleri kaydetmek için Android ayarlarında TikTok'a depolama izni ver
@@ -684,6 +685,7 @@ Hushfeed can't read the creator pattern %1$s	Hushfeed, %1$s içerik üreticisi k
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed bir TikTok CAPTCHA'sını gizledi. Bir şey çalışmazsa CAPTCHA pencerelerini gizle ayarını kapat.
 Hushfeed is active	Hushfeed etkin
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.	İçerik üreticisi kapatmış olsa bile Düet ve Stitch seçeneklerini gösterir. TikTok sonucu yine de kabul etmeyebilir.
+Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.	İçerik üreticisi içeriğin yeniden kullanılmasını kapatmış olsa bile hikâyede Hikâyeye Ekle seçeneğini gösterir. TikTok paylaşımı yine de reddedebilir.
 Import finished	İçe aktarma tamamlandı
 Import loaded values	Yüklenen değerleri içe aktar
 Imported %1$d values	%1$d değer içe aktarıldı
@@ -870,6 +872,7 @@ Open TikTok on	TikTok'u şu sayfada aç
 Opens github.com in your browser	github.com adresini tarayıcında açar
 Operator code	Operatör kodu
 Operator name	Operatör adı
+Original	Orijinal
 Original language	Orijinal dil
 Other	Diğer
 Other feed filters	Diğer akış filtreleri
@@ -983,9 +986,9 @@ Save	Kaydet
 Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.	Altyazı (SRT) dosyalarını videoyla birlikte kaydeder. Android 11 ve üzerinde Movies, Android 10'da Download, daha eski sürümlerde video klasörüne gider. Android 11 ve üzerinde Ayrıntıları kaydet açıkken video Download veya Documents içine taşınır, altyazılar Movies'te kalır.
 Save a profile picture on a long press	Uzun basınca profil fotoğrafını kaydet
 Save a story on a long press	Uzun basınca hikayeyi kaydet
-Save every photo in the post at full size as a JPEG, not as the screen shows it.	Gönderideki her fotoğrafı ekranın gösterdiği gibi değil, tam boyutta JPEG olarak kaydet.
+Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on.	Gönderideki her fotoğrafı ekranın gösterdiği gibi değil, tam boyutta kaydet. Fotoğrafları TikTok'un gönderdiği gibi tut açık değilse her biri JPEG olur.
 Keep photos as TikTok sent them	Fotoğrafları TikTok'un gönderdiği gibi tut
-Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those.	Kaydedilen fotoğraflar, kapaklar ve hikaye fotoğrafları JPEG'e dönüştürülmez, HEIF veya WebP olarak kalır. Bazı galeriler ve bilgisayarlar bunları açamaz.
+Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.	Kaydedilen fotoğraflar, kapaklar, hikaye fotoğrafları ve hareketsiz çıkartmalar yeni bir JPEG veya PNG değil, TikTok'un gönderdiği dosyaların ta kendisidir. Bazı galeriler ve bilgisayarlar HEIF veya WebP açamaz.
 Save field values	Alan değerlerini kaydet
 Save full report	Raporun tamamını kaydet
 Save media	Medyayı kaydet
@@ -1133,7 +1136,7 @@ The last one is still waiting to start	Bir önceki hâlâ başlamayı bekliyor
 Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	TikTok'un kullanım raporları, reklam takibi ve çökme raporları göndermesini engeller. TikTok'un kendi tanılama araçları da sessizleşir.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	TikTok'un ekranını her videonun kare hızına göre yavaşlatmasını engeller. 90 veya 120 Hz'lik bir telefonda bu istek tüm uygulamayı, kaydırma dahil, yavaşlatır.
 Keep the screen's brightness in the camera	Kamerada ekran parlaklığını koru
-Stops TikTok from turning your screen brighter while you film, edit or post a video.	TikTok'un video çekerken, düzenlerken veya paylaşırken ekranını parlatmasını engeller.
+Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	TikTok'un video çekerken, düzenlerken veya paylaşırken ekranını parlatmasını engeller. Ön flaş ekranı yine beyaz yapar, ama senin kendi parlaklığında.
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	TikTok'un telefonunun hareket ve pusula sensörlerini okumasını engeller. Uygulamalar bunlarla telefonunu tanıyabilir.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	TikTok'un kopyaladıklarını okumasını durdur. TikTok'tan bağlantı kopyalamak yine çalışır.
 Stop a long press on Like from opening TikTok's repost action.	Beğen'e uzun basmanın TikTok'un yeniden yayınlama işlemini açmasını durdur.
@@ -1652,13 +1655,15 @@ Remove story rings	Hikâye halkalarını kaldır
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Akışta, yorumlarda ve profillerde profil fotoğraflarındaki hikâye halkasını kaldır. Fotoğrafa dokunmak hikâye yerine profili açar.
 Remove the LIVE ring	LIVE halkasını kaldır
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Akışta ve yorumlarda profil fotoğraflarındaki yanıp sönen LIVE halkasını kaldır. Canlı yayındaki bir üreticinin fotoğrafına dokunmak LIVE yerine profilini açar.
+Open the Story when a creator is LIVE	Üretici LIVE'dayken hikâyeyi aç
+When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	LIVE'daki bir üreticinin hikâyesi de varsa, profilindeki fotoğrafına dokunmak hikâyeyi açar. LIVE'a katılmak için fotoğrafa tekrar dokun.
 Writing	Yazma
 Lift text length limits	Metin uzunluğu sınırlarını kaldır
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Yorumlar, repost notları ve biyografin TikTok uygulamasının durduğu uzunluğu geçebilsin. TikTok sunucuları uzun bir metni yine de reddedebilir.
 Show only mutual friends on the Friends tab	Arkadaşlar sekmesinde yalnızca karşılıklı arkadaşları göster
 On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Arkadaşlar sekmesinde, önerilen hesaplar dahil karşılıklı takipleşmediğin hesapların gönderilerini, yeniden paylaşımlarını ve LIVE'larını gizle. Kendi gönderilerin kalır.
 Latest first on Following	Takip Edilenler'de en yeniler önce
-Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.	Takip Edilenler akışının yüklediği her grubu en yeni gönderiden başlayarak oynat. Her grupta ne geleceğini yine TikTok seçer, reklamlar ve LIVE'lar yerinde kalır.
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	Takip Edilenler akışını en yeni gönderiden başlayarak oynat. Sonradan yüklenen daha yeni bir gönderi izlediğin videonun hemen arkasına geçer, geçtiğin hiçbir şeyin yeri değişmez. Reklamlar ve LIVE'lar yerinde kalır.
 Show follow status	Takip durumunu göster
 Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Bir profilde @kullanıcı adının altında seni takip edip etmediğini ya da geri takip etmediğini göster. Takipçi ve takip edilen listeleri, takip ettiğin ama seni geri takip etmeyen hesapları işaretler.
 Follows you	Seni takip ediyor
@@ -1980,6 +1985,8 @@ Keep offline videos until you delete them	Çevrimdışı videoları sen silene k
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok, çevrimdışı izlemek için kaydedilen videoları belirli bir süre sonra, bazen yalnızca iki gün sonra, izlenmiş olsun olmasın kaldırır. Bu açıkken videolar, TikTok'un Çevrimdışı videolar ayarlarında sen silene kadar kalır. Telefonunda yer azaldığında TikTok izlenmiş olanları yine de temizleyebilir.
 Hide Thoughts on profiles	Profillerde Thoughts'u gizle
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	TikTok'un bir profil fotoğrafının üstünde gösterdiği Thoughts balonunu ve kendi profilinde bir tane paylaşma önerisini gizle. Bunu uygulamak için TikTok'u yeniden başlat.
+Turn on Thoughts	Thoughts'u aç
+Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.	TikTok'un Thoughts'u açmadığı hesaplarda Thoughts'u profillerde ve Gelen Kutusu'nda, bir tane paylaşma önerisiyle birlikte göster. TikTok'un sunucuları yine de paylaşımı reddedebilir. Bunu uygulamak için TikTok'u yeniden başlat.
 
 About Hushfeed	Hushfeed hakkında
 Version, changes and licenses	Sürüm, değişiklikler ve lisanslar
@@ -2250,7 +2257,7 @@ Two at once	Aynı anda iki
 Three at once	Aynı anda üç
 LIVE recording quality	LIVE kayıt kalitesi
 Same as the room	Odadakiyle aynı
-Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.	"Odadakiyle aynı", izlediğin kaliteyi kaydeder. "En yüksek", sen daha düşük kalitede izlerken bile odanın en iyi yayınını kaydeder.
+Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.	"Odadakiyle aynı", izlediğin kaliteyi kaydeder. "En yüksek", sen daha düşük kalitede izlerken bile odanın en iyi yayınını kaydeder. Bir sayı o kaliteyi kaydeder. Odada yoksa en yakın olanı kaydeder.
 Long-press Profile for Watch history	İzleme geçmişi için Profil'e basılı tut
 Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.	İzleme geçmişini açmak için Profil sekmesine basılı tut. Profil'e dokunmak eskisi gibi çalışır. Profil'e basılı tutmak sende hesap değiştiriyorsa, bu seçenek o hareketi alır ve profilinin üstündeki ad yine hesap değiştirir.
 Open the comments at full height	Yorumları tam yükseklikte aç
@@ -2266,5 +2273,19 @@ Oldest first	Önce en eski
 Longest first	Önce en uzun
 Shortest first	Önce en kısa
 Most viewed first	Önce en çok izlenen
+Least viewed first	Önce en az izlenen
 Most liked first	Önce en çok beğenilen
-Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.	Bir profil veya Beğenilenler ızgarasının şimdiye kadar yüklediği videoları sıralar, sabitlenenler başta kalır. Kaydırdıkça sıra daha fazla videoyu kapsar. Izgara bir sonraki açılışında bunu izler.
+Least liked first	Önce en az beğenilen
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Bir profil veya Beğenilenler ızgarasını sıralar, sabitlenen videolar başta kalır. Bir sıra seçiliyken ızgara 300 videoya kadar kendiliğinden yüklemeye devam eder, böylece sıra ilk ekrandan fazlasını kapsar. Izgaranın üst köşesindeki düğme sırayı orada değiştirir.
+Sort this grid	Bu ızgarayı sırala
+Blur the video behind the bar	Çubuğun arkasındaki videoyu bulanıklaştır
+Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Ana akışta cam hapın arkasında kalan video bölümünü bulanıklaştırır, böylece buzlu cam gibi görünür. Sıvı cam görünümü ve Android 12 veya üstü gerekir.
+LIVE recording source	LIVE kayıt kaynağı
+Stream only	Yalnızca yayın
+Screen	Ekran
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	Yalnızca yayın, odanın videosunu eskisi gibi kaydeder. Ekran, izlerken telefonunuzun gösterdiği her şeyi kaydeder. TikTok'un mikrofon izni varsa uygulamanın sesi de eklenir. Android her seferinde ekran kaydına izin vermenizi ister ve kayıt sırasında kendi bildirimini gösterir.
+Recording this LIVE's screen	Bu LIVE'ın ekranı kaydediliyor
+Open the room and tap Stop to save it.	Odayı açın ve kaydetmek için Durdur'a dokunun.
+Screen recording wasn't allowed	Ekran kaydına izin verilmedi
+Recording this LIVE's screen from now	Bu LIVE'ın ekranı şimdi kaydediliyor
+Recording this LIVE's screen from now, without sound	Bu LIVE'ın ekranı şimdi sessiz kaydediliyor

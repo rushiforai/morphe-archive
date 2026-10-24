@@ -2249,5 +2249,65 @@
     "patches": "https://github.com/aic0d3r/oxbow",
     "integrations": false,
     "disabled": false
+  },
+  "baconreader-reseam": {
+    "patches": "https://github.com/JoanComasFdz/baconreader-reseam-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "baconreader-morphe": {
+    "patches": "https://github.com/JoanComasFdz/baconreader-morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "ytmusic-lyrics": {
+    "patches": "https://github.com/BDCrusher/ytmusic-lyrics",
+    "integrations": false,
+    "disabled": false
+  },
+  "jagjordi-morphe": {
+    "patches": "https://github.com/jagjordi/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "neil-morphe": {
+    "patches": "https://github.com/nm-nvan/Neil-Morphe-Patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "sabp-eppy": {
+    "patches": "https://github.com/epabafree/sabp-eppy-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "taobaolingo": {
+    "patches": "https://github.com/GoodLight999/TaobaoLingo",
+    "integrations": false,
+    "disabled": false
+  },
+  "facebook-lite-morphe": {
+    "patches": "https://github.com/BlazeFTL/FaceBook-Lite-Morphe",
+    "integrations": false,
+    "disabled": false
+  },
+  "f1tv-4k-morphe": {
+    "patches": "https://github.com/ythemelis/f1tv-4k-morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "raid-judu": {
+    "patches": "https://github.com/Vakarux12/raid-judu-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "gboard-clipboard-history": {
+    "patches": "https://github.com/ShubhamJ010/gboard-clipboard-history",
+    "integrations": false,
+    "disabled": false
+  },
+  "hris-apn": {
+    "patches": "https://github.com/cosm1c-matcha/hris-apn",
+    "integrations": false,
+    "disabled": false
   }
 }

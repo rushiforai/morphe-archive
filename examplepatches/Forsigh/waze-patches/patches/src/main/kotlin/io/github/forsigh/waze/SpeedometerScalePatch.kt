@@ -2,6 +2,7 @@ package io.github.forsigh.waze
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
@@ -85,14 +86,24 @@ private fun scaleBlock(dial: Float, sign: Float) = buildString {
 
 @Suppress("unused")
 val speedometerScalePatch = bytecodePatch(
-    name = "Bigger speedometer & limit sign",
-    description = "Scales the speedometer and the speed-limit sign.",
+    name = "Speedometer & limit sign",
+    description = "Size of the speedometer and limit sign, and keeps them on screen.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
 
+    // Without the emitter patch the keys recorded below are never written, so ticking this row on
+    // its own would produce a build with no override at all.
+    dependsOn(configOverridesPatch)
+
+    val always by booleanOption(
+        "always", true,
+        title = "Always show speedometer",
+        description = "Keeps the speedometer on screen from the first drive. Stock: appears after a few sessions.",
+    )
+
     val dial by stringOption(
-        "dial", "1.0",
+        "dial", "1.0x",
         mapOf(
             "1.0 (stock)" to "1.0x",
             "1.15x" to "1.15x",
@@ -105,7 +116,7 @@ val speedometerScalePatch = bytecodePatch(
     )
 
     val sign by stringOption(
-        "sign", "1.0",
+        "sign", "1.0x",
         mapOf(
             "1.0 (stock)" to "1.0x",
             "1.15x" to "1.15x",
@@ -118,10 +129,15 @@ val speedometerScalePatch = bytecodePatch(
     )
 
     execute {
+        if (always == true) {
+            recordBoolean("spd", true, "CONFIG_VALUE_MAP_SHOW_SPEEDOMETER")
+            recordLong("spd", "CONFIG_VALUE_MAP_SPEEDOMETER_MIN_SPEED_KPH" to 0L)
+            recordLong("spd", "CONFIG_VALUE_MAP_SHOW_SPEEDOMETER_AFTER_NUM_SESSIONS" to 2_147_483_647L)
+        }
         val dialScale = (dial ?: "1.0x").removeSuffix("x").toFloat()
         val signScale = (sign ?: "1.0x").removeSuffix("x").toFloat()
         if (dialScale == 1f && signScale == 1f) {
-            println("speedometerScalePatch: both at stock size, nothing to do")
+            println("speedometerScalePatch: both at stock size, always-on = ${if (always == true) "on" else "off"}")
             return@execute
         }
         val method = SpeedometerUpdateFingerprint.method

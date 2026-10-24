@@ -6,6 +6,7 @@ import (
     "encoding/binary"
     "io"
     "net/http"
+    "strings"
     "sync"
     "testing"
 
@@ -103,6 +104,7 @@ func TestPrivateImageAndRedirectPipeline(t *testing.T) {
         case "/private": http.Redirect(w, request, "http://127.0.0.1/image", 302)
         case "/loop": http.Redirect(w, request, "/loop", 302)
         case "/text": io.WriteString(w, "not an image")
+        case "/html": w.Header().Set("Content-Type", "text/html"); io.WriteString(w, "<!doctype html><title>Offline preview</title>")
         default: w.Header().Set("Content-Type", "image/png"); w.Write(png)
         }
     })}
@@ -111,6 +113,15 @@ func TestPrivateImageAndRedirectPipeline(t *testing.T) {
     image, err := session.Fetch("http://tools.yajuvideo.st/redirect", 1024, 5000)
     if err != nil { t.Fatal(err) }
     if string(image.Body) != string(png) || image.ContentType != "image/png" { t.Fatal("Image bytes changed") }
+    for _, host := range []string{"www.activetk.jp", "loggerip.web.app", "custom-image.example"} {
+        // These names resolve only inside the fake peer. No access to the real sites.
+        result, err := session.Fetch("http://"+host+"/image", 1024, 5000)
+        if err != nil || string(result.Body) != string(png) { t.Fatal("Registered image", host, err) }
+    }
+    preview, err := session.FetchPreview("http://offline-preview.example/html",1024,5000)
+    if err != nil || !strings.HasPrefix(preview.ContentType,"text/html") || preview.URL!="http://offline-preview.example/html" {
+        t.Fatal("Private HTML preview",err)
+    }
     namesMu.Lock()
     seen := map[string]bool{}
     for _, name := range names { seen[name] = true }

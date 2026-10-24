@@ -43,6 +43,7 @@ public class AdvancedDownloadsTest {
         // renamed the frames FrameSaverTest saves later.
         Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.resetToDefault();
         Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.resetToDefault();
+        Settings.KEEP_PHOTOS_AS_SENT.resetToDefault();
     }
     public static final class Address extends UrlModel {
         private final String url;
@@ -333,6 +334,96 @@ public class AdvancedDownloadsTest {
         String listing = OriginalPhotos.listing(1, List.of(heic, webp));
         assertEquals("Original photo 1 is listed as heic, webp", listing);
         assertEquals(listing, app.morphe.extension.shared.diagnostics.DiagnosticRedactor.redact(listing));
+    }
+
+    /**
+     * #229: with Keep photos as TikTok sent them on nothing is converted, so a JPEG copy gets no
+     * head start and each photo's list stays in TikTok's own order, HEIF first where TikTok leads
+     * with it. Off, the #105 order is back.
+     */
+    @Test public void keepingPhotosAsSentTriesThemInTikToksOwnOrder() {
+        String heic = "https://p16-sign.example.com/obj/abc~tplv-photomode-image.heic?x-expires=1";
+        String webp = "https://p16-sign.example.com/obj/abc~tplv-photomode-image.webp?x-expires=1";
+        String jpeg = "https://p16-sign.example.com/obj/abc~tplv-photomode-image.jpeg?x-expires=1";
+        Post post = new Post(List.of(
+                new Photo(new Address(null, 100).encodings(heic, webp, jpeg)),
+                new Photo(new Address(null, 100).encodings(webp, heic))));
+        Settings.KEEP_PHOTOS_AS_SENT.save(true);
+        assertEquals(List.of(List.of(heic, webp, jpeg), List.of(webp, heic)), OriginalPhotos.sources(post));
+        Settings.KEEP_PHOTOS_AS_SENT.save(false);
+        assertEquals(List.of(List.of(jpeg, webp, heic), List.of(webp, heic)), OriginalPhotos.sources(post));
+    }
+
+    /**
+     * #229: with Keep photos as TikTok sent them on, a sticker that doesn't move is saved as the
+     * file TikTok sent, byte for byte and under its own extension. Off, it's decoded and written
+     * again as a PNG, which is what every save did before.
+     */
+    @Test public void keepingPhotosAsSentSavesAStillStickerByteForByte() throws Exception {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        android.graphics.Bitmap pixels = android.graphics.Bitmap.createBitmap(
+                24, 16, android.graphics.Bitmap.Config.ARGB_8888);
+        pixels.eraseColor(0xFF3366CC);
+        File jpeg = temporary.newFile("sent.jpg");
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(jpeg)) {
+            assertTrue(pixels.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, out));
+        }
+        byte[] sent = Files.readAllBytes(jpeg.toPath());
+
+        File converted = savedSticker(jpeg, "image/jpeg");
+        assertNotNull("off, the JPEG sticker wasn't saved", converted);
+        assertTrue("off, a still sticker is a PNG: " + converted, converted.getName().endsWith(".png"));
+        byte[] png = Files.readAllBytes(converted.toPath());
+        assertTrue("off, the file holds a PNG", (png[0] & 0xff) == 0x89 && png[1] == 'P');
+
+        Settings.KEEP_PHOTOS_AS_SENT.save(true);
+        File kept = savedSticker(jpeg, "image/jpeg");
+        assertNotNull("on, the JPEG sticker wasn't saved", kept);
+        assertTrue("on, the JPEG keeps its own extension: " + kept, kept.getName().endsWith(".jpg"));
+        assertArrayEquals("on, the JPEG is TikTok's bytes", sent, Files.readAllBytes(kept.toPath()));
+
+        // A still WebP is never decoded on the way, and its header outranks what the server calls it.
+        byte[] webp = stillWebp();
+        File webpFile = temporary.newFile("sent.webp");
+        Files.write(webpFile.toPath(), webp);
+        File keptWebp = savedSticker(webpFile, "image/png");
+        assertNotNull("on, the WebP sticker wasn't saved", keptWebp);
+        assertTrue("on, the WebP keeps its own extension: " + keptWebp, keptWebp.getName().endsWith(".webp"));
+        assertArrayEquals("on, the WebP is TikTok's bytes", webp, Files.readAllBytes(keptWebp.toPath()));
+
+        // Bytes no header names still go through the decoder, which refuses these, rather than
+        // being saved under whatever name the server gave them.
+        File unknown = temporary.newFile("sent.bin");
+        Files.write(unknown.toPath(), "not an image at all, only bytes".getBytes(StandardCharsets.US_ASCII));
+        assertNull(savedSticker(unknown, "image/heic"));
+    }
+
+    /** One downloaded sticker through the saver's Android 9 direct write: the file, or null on a refusal. */
+    private static File savedSticker(File source, String contentType) throws Exception {
+        StickerGallerySaver.StickerAsset asset =
+                new StickerGallerySaver.StickerAsset("https://example.invalid/sticker", false);
+        java.lang.reflect.Method save = StickerGallerySaver.class.getDeclaredMethod("saveDownloadedSticker",
+                android.content.Context.class, StickerGallerySaver.StickerAsset.class,
+                String.class, File.class, String.class);
+        save.setAccessible(true);
+        Object result = save.invoke(null, RuntimeEnvironment.getApplication(), asset, asset.url, source, contentType);
+        java.lang.reflect.Field success = result.getClass().getDeclaredField("success");
+        success.setAccessible(true);
+        if (!success.getBoolean(result)) return null;
+        java.lang.reflect.Field path = result.getClass().getDeclaredField("path");
+        path.setAccessible(true);
+        String reported = (String) path.get(result);
+        return new File(reported.substring(0, reported.indexOf(" (")));
+    }
+
+    /** A still WebP's header (RIFF, WEBP and a plain VP8 chunk) over a body nothing here decodes. */
+    private static byte[] stillWebp() {
+        byte[] bytes = new byte[64];
+        System.arraycopy("RIFF".getBytes(StandardCharsets.US_ASCII), 0, bytes, 0, 4);
+        bytes[4] = 56;
+        System.arraycopy("WEBPVP8 ".getBytes(StandardCharsets.US_ASCII), 0, bytes, 8, 8);
+        for (int i = 16; i < bytes.length; i++) bytes[i] = (byte) i;
+        return bytes;
     }
 
     /**
@@ -1057,6 +1148,11 @@ public class AdvancedDownloadsTest {
             assertNotNull(screen.findPreference("download_video_quality"));
             assertNotNull(screen.findPreference("download_original_photos"));
             assertNotNull(screen.findPreference("keep_photos_as_sent"));
+            // #229: Keep covers stickers too, and Download original photos says JPEG is the default.
+            String keep = String.valueOf(screen.findPreference("keep_photos_as_sent").getSummary());
+            assertTrue(keep, keep.contains("stickers that don't move") && keep.contains("exact files TikTok sent"));
+            String originals = String.valueOf(screen.findPreference("download_original_photos").getSummary());
+            assertTrue(originals, originals.contains("JPEG unless Keep photos as TikTok sent them is on"));
             assertNotNull(screen.findPreference("download_audio_track"));
             assertNull(screen.findPreference("down_watermark"));
             assertEquals(Settings.DOWNLOAD_PHOTO_PATH.get(), screen.findPreference("download_photo_path").getSummary());

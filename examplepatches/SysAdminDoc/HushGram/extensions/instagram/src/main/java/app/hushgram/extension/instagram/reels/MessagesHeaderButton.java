@@ -98,7 +98,8 @@ public final class MessagesHeaderButton {
             boolean ready = Utils.settingsReady() && !HushgramPause.isPaused();
             boolean hide = ready && Settings.HIDE_HOME_MESSAGES_BUTTON.get();
             hideOwn(header, hide);
-            boolean wanted = ready && !hide && Settings.MESSAGES_BUTTON_ON_HOME.get();
+            // Hide the Messages tab keeps a way in on Home's header, unless Instagram's own button is there (#298).
+            boolean wanted = ready && !hide && (Settings.MESSAGES_BUTTON_ON_HOME.get() || Settings.HIDE_MESSAGES_TAB.get());
             LinearLayout end = HomeHeader.endRowOf(header);
             if (end == null) {
                 if (wanted && !instagramsOwnShows(header)) HookStatus.counted(ROUTE, NO_ROW);

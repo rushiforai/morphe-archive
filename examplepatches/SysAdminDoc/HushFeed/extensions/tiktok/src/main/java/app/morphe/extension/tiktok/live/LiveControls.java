@@ -46,6 +46,17 @@ public final class LiveControls {
     }
 
     /**
+     * What a LIVE room's Share sheet is told about the two rooms that leave the Video quality entry
+     * out: LIVE Studio rooms (most gaming rooms) and rooms that support low latency (football). The
+     * sheet's provider asks with its own answer, non-zero for "leave it out"; while Offer LIVE
+     * quality is on the answer is zero so the entry shows, and otherwise TikTok's answer stands (#37).
+     * An int, not a boolean, since the host types that register as an int on some paths.
+     */
+    public static int qualityEntryBlocked(int blocked) {
+        return offerQualityEverywhere() ? 0 : blocked;
+    }
+
+    /**
      * True while every portrait LIVE room's menu should offer clear screen, which hides the room's
      * chat, gifts and buttons and leaves the stream on its own (#57). TikTok offers the entry only
      * when its server turns it on. Paused, the switch answers off and TikTok's setting decides.

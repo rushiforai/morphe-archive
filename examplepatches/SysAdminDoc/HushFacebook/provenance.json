@@ -152,6 +152,15 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/StoryOverlayVideo.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 584 (#207): reads the reel a story reshares from the story tree's overlays, so Save on that still card takes the reel's video."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/StoryCardShape.java"
       ],
       "origin": "original",
@@ -229,6 +238,7 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/ReactColours.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/ReactionRing.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/TonePalette.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/BloksSheetColours.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/CommentTimeColours.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/LinkBoxFallbacks.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/MaterialYouThemePatch.kt",
@@ -240,7 +250,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the Material You theme. Dark-mode colours move to the wallpaper palette (Android 12 and newer) or to a fixed tonal palette of Facebook's blue (Android 11) at the same lightness, through the four colour routes the AMOLED patch uses and after it, and through night copies of Facebook's dark FDS styles for the views it inflates from its own layouts. React Native screens such as Marketplace home, whose colours come from their JavaScript, go through React's own background, border and image tint setters and its text colour span, which both themes hook. The colour tokens and dark surfaces it recolours were read off Facebook's own light and dark themes in the 577 and 580 builds, not taken from another patch source. For issue #65, the colour the tab bar asks for its selected tab, which draws the line over that tab and tints its icon, takes the wallpaper accent at tone 80 in dark mode; it's found through TabBarContainerLayout's colour setter and its Paint, and has exactly two readers on each build. For issue #138, the time on Facebook's older comment row, which TimestampPlugin (a class Redex keeps) colours from one theme attribute read, goes through a check both themes share: in dark mode a colour too close to the page to read becomes Facebook's dark secondary text, themed like the rest. For issue #37, a link box whose MobileConfig colour comes back empty takes its dark colour from a prop, from a second config's grey enum or from FDS's light or dark chooser. The first two, found by the register the config's parse answers into, and the chooser's dark answer go through the same dark-branch rule as the colours Facebook writes after its own dark check. For issue #141, once Facebook says its light mode is on, the grays, blues and pale tints its light FDS style gives those same tokens, read from both 582 inputs, take the palette at the same lightness too, as do the shared and server blues and the selected tab. For issue #147, the ring between a post's overlapping reaction icons goes through a check both themes share: FDSInlineReactions, found by its own component name, resolves the ring from its style's clipColor (a field name Redex keeps) through FDSColors, and in dark mode an opaque answer becomes a clear one, which makes Facebook's own facepile cut the ring out so the page shows through."
+      "changes": "Written for Hushfacebook: the Material You theme. Dark-mode colours move to the wallpaper palette (Android 12 and newer) or to a fixed tonal palette of Facebook's blue (Android 11) at the same lightness, through the four colour routes the AMOLED patch uses and after it, and through night copies of Facebook's dark FDS styles for the views it inflates from its own layouts. React Native screens such as Marketplace home, whose colours come from their JavaScript, go through React's own background, border and image tint setters and its text colour span, which both themes hook. The colour tokens and dark surfaces it recolours were read off Facebook's own light and dark themes in the 577 and 580 builds, not taken from another patch source. For issue #65, the colour the tab bar asks for its selected tab, which draws the line over that tab and tints its icon, takes the wallpaper accent at tone 80 in dark mode; it's found through TabBarContainerLayout's colour setter and its Paint, and has exactly two readers on each build. For issue #138, the time on Facebook's older comment row, which TimestampPlugin (a class Redex keeps) colours from one theme attribute read, goes through a check both themes share: in dark mode a colour too close to the page to read becomes Facebook's dark secondary text, themed like the rest. For issue #37, a link box whose MobileConfig colour comes back empty takes its dark colour from a prop, from a second config's grey enum or from FDS's light or dark chooser. The first two, found by the register the config's parse answers into, and the chooser's dark answer go through the same dark-branch rule as the colours Facebook writes after its own dark check. For issue #141, once Facebook says its light mode is on, the grays, blues and pale tints its light FDS style gives those same tokens, read from both 582 inputs, take the palette at the same lightness too, as do the shared and server blues and the selected tab. For issue #147, the ring between a post's overlapping reaction icons goes through a check both themes share: FDSInlineReactions, found by its own component name, resolves the ring from its style's clipColor (a field name Redex keeps) through FDSColors, and in dark mode an opaque answer becomes a clear one, which makes Facebook's own facepile cut the ring out so the page shows through. For issue #37 again, a Bloks bottom sheet such as the account switcher paints its rounded background and its corner view from the dark half of a light and dark colour pair the screen sends; its container is found as the one FrameLayout built from two of Facebook's ColorData and a float array of radii, read from a heap dump of the open sheet on 584, and a dark grey there takes the palette's neutral at the same lightness."
     },
     {
       "paths": [
@@ -594,6 +604,16 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/profile/ProfileNotes.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/profile/HideProfileNotesPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the note bubble on profile pictures. Facebook 584 lays the top of a profile out with Bloks, and its two Bloks node classes are the only concrete classes keeping their attributes in an instance SparseArray that implement getBoolean, getId, getInt, getLong, getString and put under those names. Their child getters are their instance methods taking an int and answering a List, and the main node's layout getter wraps a lone child in Collections.singletonList. The patch hands every list they return to the extension, which leaves out a node whose own string attributes name com.bloks.www.bloks.profile.note. (the bubble's tap action) or com.bloks.www.bloks.profile.async.fetch.note_bubble (the action that loads its content)."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/ProfileSuggestionAnchors.kt"
       ],
       "origin": "original",
@@ -831,6 +851,16 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PinchZoom.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/pinch/PinchToZoomPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Pinch to zoom, for issue #220, from Facebook 584. The patch puts a call first in FbFragmentActivity.dispatchTouchEvent, the override every Facebook screen shares and the one Tap to play already finds, and first in the kept-name ProfileFragment.onViewCreated(View, Bundle), which hands the extension each profile's root view. The extension zooms only in the story viewer, known by its kept class name, and under a registered profile root, since the news feed has its own pinch in the same activity. When a second finger lands on the topmost ImageView with a picture, TextureView, SurfaceView or Litho host that mounts no text and no child views, it copies that view with PixelCopy (a SurfaceView from its own surface) or draws it, lays the copy over a dim scrim in the window's decor view, follows the fingers' span and midpoint up to four times, and turns the rest of the gesture into a cancel for Facebook. Once fewer than two fingers are down the copy eases back over 200 ms to where the photo sits and goes. Inside a profile or the story viewer the search looks past views that hold no media, like the story viewer's clear tap layer. Above a profile's root it looks past only views that draw nothing at the fingers (Facebook keeps an empty layer over every screen) and stops at anything that does. A Litho host found first gives way to a picture right under it that spans all of it, like the band a profile's cover draws over its photo. Pages opened from a link run in an activity whose dispatchTouchEvent goes through a delegate, and that delegate calls back into FbFragmentActivity's, so the one call covers them too."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/SkipSilence.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/silence/SkipSilentPartsPatch.kt"
       ],
@@ -858,6 +888,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Upload Stories in HD, for issue #123, from Facebook 582. The publisher's kept Kotlin internal name getUploadOperationForCreate builds a new post's UploadOperation, and for a post bound only for a Story it puts each video's upload quality into a Bundle under video_upload_quality. Facebook's video uploader passes only high on to the upload server as its encoding hint. The patch finds that one putString, asks the extension for the value into the value's own register right before it, and leaves the rest of the method alone. The extension answers high while its switch is on and keeps Facebook's raw."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryMusic.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/music/LongerStoryMusicPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Longer music on photo stories, for issue #156, from Facebook 584. The Story composer's music clip length is the one static method taking FbUserSession and the composer state, answering an int, that asks the composer configuration for its FeedAttachmentConfig and holds 30000 and 15000. For a photo it returns a MobileConfig double turned into an int when that is above zero, else 15000. The patch asks the extension right before both of those returns, into the returned register, and leaves the rest of the method alone. The extension answers at least 30000 while its switch is on."
     },
     {
       "paths": [
@@ -953,6 +993,26 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the gray line between feed posts on the AMOLED theme. A hook first in Litho's ComponentHost.dispatchDraw paints the strip Facebook leaves under each row of android:id/list a step above the black page, behind a switch that starts off. The hook itself sits in AmoledThemePatch.kt under that file's rule."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/AmoledBackground.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/AmoledResources.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook, for issue #214: the AMOLED theme's Background color row, which changes the dark background after patching. AmoledBackground is the patch's Background colour option rule in Java, so the row takes the colours the option takes and gives each the same surfaces. AmoledResources gives each activity's resources a colour table for the colour resources the patch wrote its background over, listed by the patch, through a ResourcesLoader on the Resources Accent color's route five keeps for the same assets, so views inflated from layout XML take the row's colour too."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/AmoledLightBackground.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/FdsTokens.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook, for issue #214: the AMOLED theme's Light background color row, which swaps light mode's white for a light colour after patching. AmoledLightBackground takes a colour only when Facebook's light secondary text can be darkened to 4.5:1 on it and still stay apart from the primary text, and moves Facebook's light greys down from it by as much as they sit below white. FdsTokens parses the FDS colour tables MaterialYouTheme declares, so the AMOLED theme can read them without loading Material You's class."
     },
     {
       "paths": [
@@ -1232,6 +1292,17 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the floating ad button on a feed ad's comments. Hide sponsored posts puts its own question in front of the comment pill's check that AdPills.kt hooks for Hide sponsored reels, and this answers no for the permalink and flyout ad plugins while the sponsored posts switch is on. Each patch finds the check whether or not the other asked first."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/NewestReels.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/order/NewestReelsFirstPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/order/ReelOrder.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Newest reels first, for issue #134, from Facebook 584. The Reels ranker that logs as FbShortsUDDCSRRanker reranks the loaded pool in place each time it places the next reel, and its callers take the head of the list. The patch finds that rerank by the tag, its (object, List, int) shape and its one static (List, Comparator) sort, checks that the sort's list register holds the List parameter at every return, and hands the list to the extension before each return, branches into a return included. Every kept-name createSignalForModel, which makes a pool item's ranking signal, gets a hook before each return: it casts the parameter to the model class the method casts to, reads that class's one FeedType field and, when the extension says the feed is one of the fb_shorts feeds, the parameter interface's one no-argument Object getter, the reel's GraphQL edge. The extension reads the edge's node creation_time, keeps it by the signal (whose equals follows its key) in a weak map, and at the rerank's return puts the timed signals in their own slots newest first with a stable sort, leaving untimed items where they are."
     }
   ]
 }

@@ -266,8 +266,9 @@ internal fun MutableMethod.dropChatFirst() {
  * First thing in FbFragmentActivity.dispatchTouchEvent, every touch on a Facebook screen goes to
  * MessengerIcon.touch before Facebook sees it. Where Facebook builds the icon without its
  * long-click listener, a press held on the icon reaches the tap as a plain tap when the finger
- * lifts, and the touch is what tells the extension it was held. Tap to play reads the same
- * dispatch for its own clock. Each hook only reads the event, and the range form passes it
+ * lifts, and the touch is what tells the extension it was held. Other hooks share the dispatch:
+ * Tap to play reads it for its own clock, and the feed's long press and Pinch to zoom turn the rest
+ * of a gesture they take into a cancel. This one only reads the event, and the range form passes it
  * without borrowing a register.
  */
 internal fun MutableMethod.handTouchesToIcon() {

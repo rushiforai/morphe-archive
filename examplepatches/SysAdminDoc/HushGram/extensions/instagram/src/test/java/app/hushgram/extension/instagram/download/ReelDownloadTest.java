@@ -59,6 +59,7 @@ public class ReelDownloadTest {
         Settings.DOWNLOAD_REELS.save(true);
         Settings.DOWNLOAD_REEL_COVER.resetToDefault();
         Settings.DOWNLOAD_REEL_AUDIO.resetToDefault();
+        Settings.POST_DETAILS.resetToDefault();
     }
 
     /** With the switch on, every reel gets the row, whatever Instagram and its flag say. */
@@ -207,7 +208,8 @@ public class ReelDownloadTest {
 
     /** The two options a photo with music gets, by the names the extension gives them. */
     private enum Ours {
-        HUSHGRAM_DOWNLOAD_AS_VIDEO, HUSHGRAM_DOWNLOAD_AS_PHOTO, HUSHGRAM_DOWNLOAD_REEL, HUSHGRAM_DOWNLOAD_COVER, HUSHGRAM_DOWNLOAD_AUDIO
+        HUSHGRAM_DOWNLOAD_AS_VIDEO, HUSHGRAM_DOWNLOAD_AS_PHOTO, HUSHGRAM_DOWNLOAD_REEL, HUSHGRAM_DOWNLOAD_COVER, HUSHGRAM_DOWNLOAD_AUDIO,
+        HUSHGRAM_REEL_DETAILS
     }
 
     /** A photo the Reels viewer shows with music that has a track to fetch. */
@@ -260,6 +262,38 @@ public class ReelDownloadTest {
         assertFalse("no picture", ReelDownload.rows(null, new Object(), null, null, null));
         assertFalse("no media", ReelDownload.rows(null, null, null, null, null));
         assertTrue("a row went in", Item.rows.isEmpty());
+    }
+
+    /**
+     * With Details in a post's menu on, a photo the Reels viewer shows gets Details after Download,
+     * as a video does: without music, or with music that has no track, Download and Details take
+     * Download's place, and with music Details follows the two rows. Off, the photo keeps the one row.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aPhotoGetsDetailsLikeAVideo() {
+        Settings.POST_DETAILS.save(true);
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1350, 0));
+        assertTrue("a photo without music", ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_DETAILS=Details"), Item.rows);
+
+        Item.rows.clear();
+        photoWithMusic();
+        Item.trackUrl = null;
+        assertTrue("music with no track", ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_DETAILS=Details"), Item.rows);
+
+        Item.rows.clear();
+        photoWithMusic();
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_AS_VIDEO=Download as video", "HUSHGRAM_DOWNLOAD_AS_PHOTO=Download as photo",
+                "HUSHGRAM_REEL_DETAILS=Details"), Item.rows);
+
+        Item.rows.clear();
+        Item.music = false;
+        Settings.POST_DETAILS.save(false);
+        assertFalse("Details off", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
     }
 
     /** The handler knows the two rows by name, and nothing else as ours. */
@@ -525,6 +559,11 @@ public class ReelDownloadTest {
                 context, "no_such_icon", "ic_menu_info_details", "ic_menu_delete"));
         assertEquals(download, ReelDownload.rowIcon(ReelDownload.VIDEO_OPTION, download, context, "ic_menu_info_details"));
         assertEquals(download, ReelDownload.rowIcon(ReelDownload.PLAYER_OPTION, download, context, "ic_menu_info_details"));
+        assertEquals("the feed menu's Details row too", android.R.drawable.ic_menu_info_details,
+                ReelDownload.rowIcon(PostInfo.OPTION, download, context, "ic_menu_info_details"));
+        for (String feedRow : new String[]{ReelDownload.COVER_OPTION, ExternalPlayer.OPTION, VideoDownload.CHOOSE_OPTION}) {
+            assertEquals(feedRow + " keeps the arrow", download, ReelDownload.rowIcon(feedRow, download, context, "ic_menu_info_details"));
+        }
         assertEquals("the names Instagram ships", Arrays.asList("instagram_info_outline_24", "instagram_info_pano_outline_24"),
                 Arrays.asList(ReelDownload.DETAILS_ICONS));
     }

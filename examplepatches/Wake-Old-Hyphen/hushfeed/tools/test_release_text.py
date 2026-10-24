@@ -415,6 +415,17 @@ class ReleaseTextTest(unittest.TestCase):
     def test_fold_moves_the_install_steps_onto_the_next_release(self):
         self.assertEqual(FOLDED, release_text.fold_next_release(INSTALL, ["1.1.0"]))
 
+    def test_fold_moves_the_release_page_step_1_links_for_the_bundle(self):
+        old_apk = OLD_APK + "tiktok-1-0-0-2-android-apk-download/"
+        new_apk = NEW_APK + "tiktok-1-1-0-android-apk-download/"
+        step = "1. Get the TikTok {0} APK from APKMirror: [{0}]({1}). The bundle is on [its page]({2})."
+        install = INSTALL.replace(OLD_APK, old_apk).replace(NEW_APK, new_apk).replace(
+            f"1. Get the TikTok 1.0.0 APK from APKMirror: [1.0.0]({old_apk}).", step.format("1.0.0", old_apk, OLD_APK))
+        folded = FOLDED.replace(NEW_APK, new_apk).replace(
+            f"1. Get the TikTok 1.1.0 APK from APKMirror: [1.1.0]({new_apk}).", step.format("1.1.0", new_apk, NEW_APK))
+        self.assertIn(f"[its page]({OLD_APK})", install)
+        self.assertEqual(folded, release_text.fold_next_release(install, ["1.1.0"]))
+
     def test_fold_leaves_a_readme_that_already_installs_the_targets(self):
         self.assertEqual(FOLDED, release_text.fold_next_release(FOLDED, ["1.1.0"]))
 

@@ -74,16 +74,17 @@ val accentColorPatch = bytecodePatch(
 }
 
 /**
- * Route six: the fill of each Bloks box goes through [ACCENT_BLOKS_FILL] as the box's drawable is
- * built, in the class of [BoxDecorationBorderFingerprint].
+ * Route six: the fill of each Bloks box goes through [target] as the box's drawable is built, in
+ * the class of [BoxDecorationBorderFingerprint]. AMOLED hooks the same builder for its light mode
+ * surfaces ([AMOLED_BLOKS_FILL]).
  */
-internal fun BytecodePatchContext.hookBloksFills() {
+internal fun BytecodePatchContext.hookBloksFills(target: String = ACCENT_BLOKS_FILL) {
     val border = BoxDecorationBorderFingerprint.method
     val builders = mutableClassDefBy(border.definingClass).methods.filter { isBoxBuilder(it, border) }
     val builder = builders.singleOrNull() ?: throw PatchException(
         "Bloks' BoxDecoration class ${border.definingClass} has ${builders.size} box builders, expected one",
     )
-    builder.hookBloksFill(ACCENT_BLOKS_FILL)
+    builder.hookBloksFill(target)
 }
 
 /**

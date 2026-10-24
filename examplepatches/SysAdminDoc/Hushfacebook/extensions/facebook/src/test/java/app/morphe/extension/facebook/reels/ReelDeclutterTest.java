@@ -70,6 +70,7 @@ public class ReelDeclutterTest {
         Settings.HIDE_REEL_SAVE_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SOUND_BUTTON.resetToDefault();
         Settings.HIDE_REEL_AUDIO_LINE.resetToDefault();
+        Settings.HIDE_SLOW_CONNECTION_MESSAGE.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         FeedFilterCounters.clear();
         HookStatus.clear();
@@ -212,6 +213,41 @@ public class ReelDeclutterTest {
         }
         assertTrue(HookStatus.missing(FamilyNames.REEL_DECLUTTER).toString(), HookStatus.missing(FamilyNames.REEL_DECLUTTER)
                 .contains("a working '" + ReelDeclutter.AUDIO_LINE + "' hook (it threw " + NullPointerException.class.getName() + ")"));
+    }
+
+    /**
+     * A stalled video's slow connection message (#222) shows until its switch is on, then not, and it
+     * comes back paused, before the settings are ready and once the switch is off again.
+     */
+    @Test
+    public void theSlowConnectionMessageShowsUntilItsSwitchIsOn() {
+        assertFalse(Settings.HIDE_SLOW_CONNECTION_MESSAGE.defaultValue);
+        assertFalse("the other Reels switches took the message", ReelDeclutter.hideSlowConnectionMessage());
+        Settings.HIDE_SLOW_CONNECTION_MESSAGE.save(true);
+        assertTrue(ReelDeclutter.hideSlowConnectionMessage());
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("the message went while paused", ReelDeclutter.hideSlowConnectionMessage());
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertFalse("the message went before the settings were ready",
+                ReelDeclutter.hideSlowConnectionMessage()));
+        Settings.HIDE_SLOW_CONNECTION_MESSAGE.save(false);
+        assertFalse("turning the switch off didn't bring the message back", ReelDeclutter.hideSlowConnectionMessage());
+        assertEquals(ReelDeclutter.SLOW_ROUTE + ": 5 lists, 5 items, 1 removed. Last reason: " + ReelDeclutter.SLOW_MESSAGE
+                + ". Removed: " + ReelDeclutter.SLOW_MESSAGE + " 1. Kinds: " + ReelDeclutter.SLOW_MESSAGE + " 5",
+                line(ReelDeclutter.SLOW_ROUTE));
+    }
+
+    /** A slow connection message switch that can't be read shows the message, and the report names the hook. */
+    @Test
+    public void aSlowConnectionSwitchThatCantBeReadShowsTheMessage() {
+        SettingReadsForTests.breakReads(Settings.HIDE_SLOW_CONNECTION_MESSAGE);
+        try {
+            assertFalse(ReelDeclutter.hideSlowConnectionMessage());
+        } finally {
+            SettingReadsForTests.mend(Settings.HIDE_SLOW_CONNECTION_MESSAGE);
+        }
+        assertTrue(HookStatus.missing(FamilyNames.REEL_DECLUTTER).toString(), HookStatus.missing(FamilyNames.REEL_DECLUTTER)
+                .contains("a working '" + ReelDeclutter.SLOW_MESSAGE + "' hook (it threw " + NullPointerException.class.getName() + ")"));
     }
 
     /** An audio line switch that can't be read keeps Facebook's list, and the report names the hook. */

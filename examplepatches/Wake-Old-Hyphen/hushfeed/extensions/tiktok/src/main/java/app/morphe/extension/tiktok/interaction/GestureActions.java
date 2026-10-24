@@ -191,6 +191,26 @@ public final class GestureActions {
     }
 
     /**
+     * The double tap window the feed's tap timer works with (#239). TikTok holds each tap on a
+     * video back for this long before it pauses or plays, in case a second tap follows, and takes
+     * a touch inside it as that second tap. With every double tap set to do nothing there is
+     * nothing to wait for, so the window is zero: a tap acts as the finger lifts, and quick taps
+     * each count as taps.
+     */
+    public static int feedDoubleTapTimeout(int timeout) {
+        return doubleTapDoesNothing() ? 0 : timeout;
+    }
+
+    /** Whether a double tap anywhere on the video does nothing, with or without Double tap by corner. */
+    static boolean doubleTapDoesNothing() {
+        if (!Settings.DOUBLE_TAP_SPLIT_ZONES.get()) return "nothing".equals(Settings.DOUBLE_TAP_ACTION.get());
+        return "nothing".equals(Settings.DOUBLE_TAP_TOP_LEFT_ACTION.get())
+                && "nothing".equals(Settings.DOUBLE_TAP_TOP_RIGHT_ACTION.get())
+                && "nothing".equals(Settings.DOUBLE_TAP_BOTTOM_LEFT_ACTION.get())
+                && "nothing".equals(Settings.DOUBLE_TAP_BOTTOM_RIGHT_ACTION.get());
+    }
+
+    /**
      * Opens the comments of the video on screen, for a gesture made on it, or says there are none.
      *
      * <p>Not by the playing video's id. That follows the player's progress, which names the new

@@ -5,7 +5,6 @@
 package app.morphe.patches.readera.misc.notes
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -17,11 +16,9 @@ import app.morphe.patches.readera.shared.disableSignatureChecksPatch
 import app.morphe.patches.readera.shared.showDrawerItem
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.replaceMethod
 import app.morphe.util.asSequence
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -125,41 +122,26 @@ val quotesAndNotesPatch = bytecodePatch(
         val bookmark = notePosition(BookmarkJumpFingerprint)
         val postPosition = QuoteJumpFingerprint.instructionMatches[1].instruction.getReference<MethodReference>()!!
 
-        val notesActivity = mutableClassDefBy(NOTES_ACTIVITY_TYPE)
-        val stub = notesActivity.methods.single { it.name == "postNotePosition" }
-        notesActivity.methods.remove(stub)
-        notesActivity.methods.add(
-            ImmutableMethod(
-                stub.definingClass,
-                stub.name,
-                stub.parameters,
-                stub.returnType,
-                stub.accessFlags,
-                null,
-                null,
-                MutableMethodImplementation(POSITION_BRIDGE_REGISTERS),
-            ).toMutable().apply {
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        const/4 v0, $QUOTE_TYPE
-                        if-ne p1, v0, :bookmark
-                        new-instance v0, ${quote.model}
-                        invoke-direct { v0, p0 }, ${quote.model}-><init>($CURSOR_TYPE)V
-                        new-instance v1, ${quote.position}
-                        invoke-direct { v1, v0 }, ${quote.position}-><init>(${quote.model})V
-                        goto :post
-                        :bookmark
-                        new-instance v0, ${bookmark.model}
-                        invoke-direct { v0, p0 }, ${bookmark.model}-><init>($CURSOR_TYPE)V
-                        new-instance v1, ${bookmark.position}
-                        invoke-direct { v1, v0 }, ${bookmark.position}-><init>(${bookmark.model})V
-                        :post
-                        invoke-static { v1, p2, p3 }, $postPosition
-                        return-void
-                    """,
-                )
-            },
+        mutableClassDefBy(NOTES_ACTIVITY_TYPE).replaceMethod(
+            "postNotePosition",
+            POSITION_BRIDGE_REGISTERS,
+            """
+                const/4 v0, $QUOTE_TYPE
+                if-ne p1, v0, :bookmark
+                new-instance v0, ${quote.model}
+                invoke-direct { v0, p0 }, ${quote.model}-><init>($CURSOR_TYPE)V
+                new-instance v1, ${quote.position}
+                invoke-direct { v1, v0 }, ${quote.position}-><init>(${quote.model})V
+                goto :post
+                :bookmark
+                new-instance v0, ${bookmark.model}
+                invoke-direct { v0, p0 }, ${bookmark.model}-><init>($CURSOR_TYPE)V
+                new-instance v1, ${bookmark.position}
+                invoke-direct { v1, v0 }, ${bookmark.position}-><init>(${bookmark.model})V
+                :post
+                invoke-static { v1, p2, p3 }, $postPosition
+                return-void
+            """,
         )
     }
 }

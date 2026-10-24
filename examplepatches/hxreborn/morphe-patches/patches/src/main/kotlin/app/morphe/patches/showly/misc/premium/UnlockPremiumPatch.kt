@@ -19,15 +19,18 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.showly.misc.fix.signature.spoofSignaturePatch
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock premium",
-    description = "Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets. The News feed is not included.",
+    description = "Unlocks ad removal, light theme, custom images, list view types, quick ratings, transparent widgets, and the News feed.",
 ) {
     compatibleWith(AppCompatibilities.SHOWLY)
+
+    dependsOn(spoofSignaturePatch)
 
     execute {
         PremiumRepoConstructorFingerprint.classDef.methods

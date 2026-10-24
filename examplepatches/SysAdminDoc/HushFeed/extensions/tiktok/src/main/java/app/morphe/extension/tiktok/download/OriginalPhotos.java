@@ -402,8 +402,13 @@ public final class OriginalPhotos {
      * it is. Next comes the WebP copy TikTok lists beside the HEIF, which {@link PhotoToJpeg} turns
      * into a JPEG on any phone. It couldn't do that with the HEIF on a Samsung, whose decoder turns
      * TikTok's HEIF down, so the HEIF only stays behind the others in case they fail.
+     *
+     * <p>With Keep photos as TikTok sent them on (#229) nothing gets converted, so a JPEG copy has
+     * no reason to jump the queue: the list stays in TikTok's own order, which leads with the copy
+     * TikTok itself shows.
      */
     static List<String> saveOrder(List<String> urls) {
+        if (Settings.KEEP_PHOTOS_AS_SENT.get()) return new ArrayList<>(urls);
         List<String> ordered = new ArrayList<>(urls.size());
         for (String url : urls) if (isJpeg(url)) ordered.add(url);
         for (String url : urls) if (!isJpeg(url) && !isHeifOrAvif(url)) ordered.add(url);

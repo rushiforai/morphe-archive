@@ -336,6 +336,78 @@ class SharedPermissionsFixtureTest {
     }
 
     /**
+     * The rest of Facebook's own authorities are put together from BuildConstants' name and a
+     * suffix, and the cache one closed a clone (#16). The routing finds exactly the suffixes in
+     * [BUILT_AUTHORITIES] put after that name, leaves the ones in [OTHER_PREFIX_AUTHORITIES] (put
+     * after something else), and each built name then goes straight through the extension.
+     */
+    @Test
+    fun eachDeclaredBuildsBuiltAuthoritiesAreTheOnesTheRoutingReaches() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val authorities = documentOf(manifestOf(bundle)).ownAuthorities(FACEBOOK)
+                val suffixes = authorities.filter { it.startsWith("$FACEBOOK.") }.map { it.removePrefix(FACEBOOK) }
+                val routed = sortedSetOf<String>()
+                val left = sortedSetOf<String>()
+                val callers = mutableListOf<ClassDef>()
+                var results = 0
+                FixtureDex.forEach(bundle) { dex ->
+                    if (dex.stringSection.none { text -> suffixes.any { text.endsWith(it) } }) return@forEach
+                    for (classDef in dex.classes) {
+                        var builds = false
+                        for (method in classDef.methods) {
+                            val code = method.instructions()
+                            val loads = code.indices.filter { code[it].loadedString()?.buildsOwnAuthority(FACEBOOK, authorities) == true }
+                            if (loads.isEmpty()) continue
+                            val built = method.builtAuthorityResults(FACEBOOK, authorities)
+                            results += built.size
+                            builds = builds || built.isNotEmpty()
+                            for (load in loads) {
+                                val readers = method.readsAfter(load, (code[load] as OneRegisterInstruction).registerA)
+                                val into = if (built.any { it - 1 in readers }) routed else left
+                                into += code[load].loadedString()!!
+                            }
+                        }
+                        if (builds) callers += ImmutableClassDef.of(classDef)
+                    }
+                }
+
+                assertTrue("${bundle.name}: the cache authority that closed a clone", ".provider.CacheProvider" in routed)
+                assertEquals("${bundle.name}: suffixes put after BuildConstants' name", BUILT_AUTHORITIES.getValue(version), routed)
+                assertEquals("${bundle.name}: suffixes put after anything else", OTHER_PREFIX_AUTHORITIES.getValue(version), left)
+                val context = PatchContexts.of(callers)
+                assertEquals("${bundle.name}: built names routed", results, context.routeBuiltAuthorities(FACEBOOK, authorities))
+                for (before in callers) {
+                    val after = context.mutableClassDefBy(before.type).methods
+                    for (original in before.methods) {
+                        val built = original.builtAuthorityResults(FACEBOOK, authorities)
+                        if (built.isEmpty()) continue
+                        val where = "${bundle.name}: ${original.definingClass}->${original.name}"
+                        val was = original.instructions()
+                        val now = after.single { it.sameSignatureAs(original) }.instructions()
+                        assertEquals("$where: two instructions per built name", was.size + 2 * built.size, now.size)
+                        built.forEachIndexed { done, at ->
+                            val index = at + 2 * done
+                            val register = (now[index] as OneRegisterInstruction).registerA
+                            val call = now[index + 1]
+                            assertEquals("$where at $index", AUTHORITY_CALL, (call as ReferenceInstruction).reference.toString())
+                            assertEquals("$where at $index: the call's register", register to 1,
+                                (call as RegisterRangeInstruction).startRegister to call.registerCount)
+                            assertEquals("$where at $index: the answer's register", register,
+                                (now[index + 2] as OneRegisterInstruction).registerA)
+                            assertEquals("$where at $index: nothing put after the answer", was[at + 1].opcode, now[index + 3].opcode)
+                        }
+                    }
+                }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
      * The rows under Supported links for Meta App Manager (issue #30), Messenger and Instagram (#78)
      * read each app's package without QUERY_ALL_PACKAGES. Android 11 and later only answer for a
      * package `<queries>` covers, so a build that drops it would hide the row on every phone,
@@ -597,6 +669,38 @@ class SharedPermissionsFixtureTest {
 
         /** Loads of an own authority per build, counted off the fixtures with a separate dex scan. */
         val AUTHORITY_LOADS = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 13)
+
+        /**
+         * Own authority suffixes Facebook puts after BuildConstants' name, per build, from a dex probe
+         * of arm64 584 (2026-10-23): the cache, the user values (lite and full, first-party and
+         * not), contacts connections, the two deferred deep link providers' own matchers, and
+         * the attribution id pattern.
+         */
+        val BUILT_AUTHORITIES = mapOf(
+            AppCompatibilities.FACEBOOK_TARGET_VERSION to sortedSetOf(
+                ".liteprovider.FirstPartyUserValuesLiteProvider", ".provider.CacheProvider",
+                ".provider.ContactsConnectionsProvider", ".provider.DeferredDeeplinkProvider",
+                ".provider.FirstPartyUserValuesProvider", ".provider.ThreadsTixuDeferredDeeplinkProvider",
+                ".provider.UserValuesProvider", "content://%s.provider.AttributionIdProvider",
+            ),
+        )
+
+        /**
+         * Own authority suffixes put after something else, per build (arm64 584, 2026-10-23). No
+         * method loading one calls BuildConstants.A04(), the only reader of its Facebook name: the
+         * phone id request to each Meta app's package and the access library request to the package
+         * it's handed, which mean that app, the platform and photos providers, whose package comes
+         * from Facebook's injector, and the short suffixes (the secure file provider, threads
+         * properties, contacts, messages and the rest), each in a method that never asks
+         * BuildConstants.
+         */
+        val OTHER_PREFIX_AUTHORITIES = mapOf(
+            AppCompatibilities.FACEBOOK_TARGET_VERSION to sortedSetOf(
+                ".contacts", ".experiments", ".hatch.chat.files", ".hatch.files", ".identity.feo2.api", ".messages",
+                ".provider.AccessLibraryContentProvider", ".provider.PhotosProvider", ".provider.PlatformProvider",
+                ".provider.phoneid", ".securefileprovider", ".tam-attachment", ".threads_properties",
+            ),
+        )
 
         /**
          * Loads of Facebook's package that only build RemoteViews, per build. 582 had 14 notification

@@ -31,6 +31,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.namedRegisters
 import app.morphe.util.readsAfter
+import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -100,6 +101,15 @@ internal const val EXPANDED_REPLIES = "ExpandedReplySection"
 /** The name the list of a post's comments, or of a thread's replies, gives itself in its constructor. */
 internal const val COMMENT_LIST = "CommentListSection"
 
+/** The name the View more replies row gives its render, a string in it. */
+internal const val VIEW_MORE_REPLIES = "ViewMoreRepliesComponent.render"
+
+/**
+ * The name the View more replies row under a feed post's inline comments gives itself, in its
+ * constructor, its render and one other method.
+ */
+internal const val FEED_VIEW_MORE_REPLIES = "FeedViewMoreRepliesComponent"
+
 private const val VIEW = "Landroid/view/View;"
 
 private const val OBJECTS = "[Ljava/lang/Object;"
@@ -113,6 +123,7 @@ internal const val SKIP_PICKER = "$COMMENT_SHEET_OPTIONS->skipReactionPicker()Z"
 internal const val OPEN_REPLY_THREADS = "$COMMENT_SHEET_OPTIONS->openReplyThreads(Z)Z"
 internal const val HIDES_COMMENT = "$COMMENT_SHEET_OPTIONS->hidesComment(Ljava/lang/Object;)Z"
 internal const val LOAD_WHOLE_REPLY_THREADS = "$COMMENT_SHEET_OPTIONS->loadWholeReplyThreads(Z)Z"
+internal const val VIEW_MORE_REPLIES_TEXT_ONLY = "$COMMENT_SHEET_OPTIONS->viewMoreRepliesTextOnly(Z)Z"
 
 /** Facebook's comment model, a kept class the comment section casts its comment to. */
 internal const val GRAPHQL_COMMENT = "Lcom/facebook/graphql/model/GraphQLComment;"
@@ -175,6 +186,21 @@ internal const val GRAPHQL_COMMENT = "Lcom/facebook/graphql/model/GraphQLComment
  * as it's scrolled with no further taps. It loads a page at a time, as far as the reader scrolls,
  * so a thread with thousands of replies can't hold the sheet up.
  *
+ * Tap anywhere on View more replies (#219): the row's render names [VIEW_MORE_REPLIES] (584
+ * `LX/BbN;->render`). It reads one server-set boolean (584 `LX/4EB;->A09` into v16) and builds its
+ * tap target with one static call on either side of a check of it (584 `LX/2C8;->A01`). True, the
+ * call wraps only the row's icon and words, which then sit in a plain row, so a tap past the words
+ * does nothing. False, the plain row is built first and the call wraps all of it, and the tap
+ * target puts its click straight on that row's own node (584 `LX/2C9;->A1e`). Both sides hand the
+ * same load-more handler (584 `LX/CiR`) the tap. The same boolean also picks a few paddings and the row's height. Right after Facebook
+ * reads it, the extension is handed it, and while the switch is on the answer is false, so the
+ * row is built the way Facebook builds it for everyone the flag is off for.
+ * The row under a feed post's inline comments names [FEED_VIEW_MORE_REPLIES] (584 `LX/5yr;->A0l`)
+ * and reads the same boolean (into v21). True, it wraps the icon and words in the tap target and
+ * finishes the outer row bare; false, it finishes the row and wraps all of it. The call on either
+ * side of that check is the row's finishing call (584 `LX/4B4;->A0K`), the words' side again first,
+ * so the same search finds it and the same hook goes in.
+ *
  * Hide comments with shop links and Hide comments with your words (#118): the same comment section
  * draws its one comment, with its replies, in the one method of it besides the constructor that
  * names [COMMENT_SECTION] (582 `LX/5mz;->A2F`). Its comment sits in a props holder kept in one field
@@ -193,7 +219,7 @@ val commentSheetOptionsPatch = bytecodePatch(
     name = "Comment sheet options",
     description = "Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and " +
         "sticker buttons, show every reply without tapping View replies, load a whole reply thread as you " +
-        "scroll, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in " +
+        "scroll, open more replies with a tap anywhere on their row, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in " +
         "Hushfacebook settings > Comments.",
 ) {
     category("Comments")
@@ -221,6 +247,8 @@ val commentSheetOptionsPatch = bytecodePatch(
         ) { types -> types.mapNotNull { classDefByOrNull(it) }.associateBy { it.type } }
         val drawn = commentDraw(holders(COMMENT_SECTION))
         val replyList = replyList(holders(EXPANDED_REPLIES), holders(COMMENT_LIST))
+        val replyRow = replyRowTap(holders(VIEW_MORE_REPLIES))
+        val feedReplyRow = replyRowTap(holders(FEED_VIEW_MORE_REPLIES), FEED_VIEW_MORE_REPLIES)
         val viewer = viewerButtons(holders(VIEWER_GIF))
         val videoBar = videoCommentBar(holders(VIDEO_COMMENT_BAR), viewer.render)
 
@@ -237,6 +265,11 @@ val commentSheetOptionsPatch = bytecodePatch(
             .hideComments(drawn)
         mutableClassDefBy(replyList.build.definingClass).methods.single { it.descriptor() == replyList.build.descriptor() }
             .loadWholeReplyThreads(replyList)
+        mutableClassDefBy(replyRow.render.definingClass).methods.single { it.descriptor() == replyRow.render.descriptor() }
+            .tapWholeReplyRow(replyRow)
+        mutableClassDefBy(feedReplyRow.render.definingClass).methods
+            .single { it.descriptor() == feedReplyRow.render.descriptor() }
+            .tapWholeReplyRow(feedReplyRow)
         mutableClassDefBy(viewer.render.definingClass).methods.single { it.descriptor() == viewer.render.descriptor() }
             .holdViewerButtons(viewer)
         mutableClassDefBy(videoBar.definingClass).methods.single { it.descriptor() == videoBar.descriptor() }
@@ -680,6 +713,93 @@ internal fun MutableMethod.loadWholeReplyThreads(list: ReplyList) {
         """
             invoke-static/range { v$value .. v$value }, $LOAD_WHOLE_REPLY_THREADS
             move-result v$value
+        """,
+    )
+}
+
+/**
+ * Where the View more replies row picks which part of itself takes a tap: its [render], the
+ * `move-result` that keeps Facebook's answer, [kept], and the answer's register, [flag].
+ */
+internal class ReplyRowTap(val render: Method, val kept: Int, val flag: Int)
+
+/**
+ * A View more replies row, from [holders], the classes loading [name] ([VIEW_MORE_REPLIES] or
+ * [FEED_VIEW_MORE_REPLIES]). Its render is the one method naming it that answers an object, the
+ * constructor and the feed row's other method answering nothing. It finishes the row with one
+ * static call made in two places, one on each side of checks of the same boolean: an `if-eqz`
+ * that falls through to the call (the boolean true, where only the words take a tap) and an
+ * `if-eqz` that jumps to it (the boolean false, where the whole row is wrapped as the tap
+ * target), the fall-through's call coming first in the method. That boolean reaches both checks
+ * from one write only, the `move-result` of a call answering it, and the hook goes right after
+ * that write, so the write must run straight into the next instruction and nothing may jump
+ * there. Refuses unless each holds.
+ */
+internal fun replyRowTap(holders: List<ClassDef>, name: String = VIEW_MORE_REPLIES): ReplyRowTap {
+    val renders = holders.flatMap { methodsHolding(it, name) }.filter { it.returnType.startsWith("L") }
+        .distinctBy { it.descriptor() }
+    val render = renders.singleOrNull()
+        ?: refuse("expected one method naming \"$name\" that answers an object, found ${renders.size}")
+    val where = render.descriptor()
+    val code = render.implementation!!.instructions.toList()
+    val flow = ControlFlow.of(render)
+
+    /** The static call at [index] that answers an object, or null. */
+    fun builderAt(index: Int) = code.getOrNull(index)?.takeIf { it.opcode == Opcode.INVOKE_STATIC }?.methodCall()
+        ?.takeIf { it.returnType.startsWith("L") }?.toString()
+
+    val falls = mutableSetOf<Pair<Int, String>>()
+    val jumps = mutableSetOf<Pair<Int, String>>()
+    val checksOf = mutableMapOf<Int, MutableList<Int>>()
+    for ((index, instruction) in code.withIndex()) {
+        if (instruction.opcode != Opcode.IF_EQZ) continue
+        val register = (instruction as OneRegisterInstruction).registerA
+        checksOf.getOrPut(register) { mutableListOf() } += index
+        builderAt(index + 1)?.let { falls += register to it }
+        builderAt(flow.normal[index].first())?.let { jumps += register to it }
+    }
+    val sides = falls.intersect(jumps)
+    val (flag, builder) = sides.singleOrNull()
+        ?: refuse("$where builds a tap target on both sides of ${sides.size} checks, not one")
+    val made = code.count { it.opcode == Opcode.INVOKE_STATIC && it.methodCall()?.toString() == builder }
+    if (made != 2) refuse("$where builds its tap target $made times, not twice")
+    // The words are wrapped before the row holding them is built, so the call a check falls into
+    // comes first and the one a check jumps to wraps the finished row. A build that swapped the two
+    // would turn the switch into words-only taps for everyone.
+    val wordsAt = checksOf.getValue(flag).map { it + 1 }.filter { builderAt(it) == builder }.distinct()
+    val rowAt = checksOf.getValue(flag).map { flow.normal[it].first() }.filter { builderAt(it) == builder }.distinct()
+    if (wordsAt.size != 1 || rowAt.size != 1 || wordsAt[0] >= rowAt[0]) {
+        refuse("$where doesn't wrap the words before the whole row")
+    }
+
+    val checks = checksOf.getValue(flag).filter { builderAt(it + 1) == builder || builderAt(flow.normal[it].first()) == builder }
+    val writers = checks.flatMap { render.writersReaching(it, flag) }.distinct()
+    val kept = writers.singleOrNull() ?: refuse("$where sets v$flag ${writers.size} ways before its checks, not one")
+    if (kept < 1 || code[kept].opcode != Opcode.MOVE_RESULT || code[kept - 1].methodCall()?.returnType != "Z") {
+        refuse("$where doesn't take v$flag from a call answering a boolean")
+    }
+    if (flag > 255) refuse("$where keeps its flag in v$flag, out of a move-result's reach")
+    val at = kept + 1
+    if (flow.normal[kept] != listOf(at)) refuse("$where doesn't run straight on from v$flag's write")
+    for (index in code.indices) {
+        for (next in flow.normal[index] + flow.exceptional[index]) {
+            if (next == at && index != kept) refuse("$where has a jump to instruction $at, where the hook goes")
+        }
+    }
+    return ReplyRowTap(render, kept, flag)
+}
+
+/**
+ * Right after the View more replies row reads which part of itself takes a tap, hand the
+ * extension Facebook's answer and keep its own instead. The call takes the register as a range,
+ * which reaches past v15.
+ */
+internal fun MutableMethod.tapWholeReplyRow(tap: ReplyRowTap) {
+    addInstructions(
+        tap.kept + 1,
+        """
+            invoke-static/range { v${tap.flag} .. v${tap.flag} }, $VIEW_MORE_REPLIES_TEXT_ONLY
+            move-result v${tap.flag}
         """,
     )
 }

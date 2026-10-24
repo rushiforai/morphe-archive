@@ -8,6 +8,7 @@ import app.morphe.patcher.Match
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.musicolet.misc.fix.cast.castPluginAccessPatch
 import app.morphe.patches.musicolet.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.musicolet.misc.pairip.restoreVirtualizedMethodsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -34,6 +35,7 @@ val unlockPremiumPatch = bytecodePatch(
         removePairipProtectionPatch,
         restoreVirtualizedMethodsPatch,
         spoofSignaturePatch,
+        castPluginAccessPatch,
     )
 
     execute {

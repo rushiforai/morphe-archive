@@ -65,6 +65,7 @@ import app.morphe.extension.facebook.notifications.PushDiagnostics;
 import app.morphe.extension.facebook.reels.FeedVideoAlone;
 import app.morphe.extension.facebook.stories.StorySeenButton;
 import app.morphe.extension.facebook.theme.AccentResources;
+import app.morphe.extension.facebook.theme.AmoledResources;
 import app.morphe.extension.facebook.theme.MaterialYouTheme;
 
 /**
@@ -162,6 +163,8 @@ public final class SettingsEntry {
             if (SettingsStatus.materialYouTheme()) MaterialYouTheme.watchWindows(context);
             // Accent color's route five, for the colours views inflated from XML read themselves.
             if (SettingsStatus.accentColor()) AccentResources.watchActivities(context);
+            // AMOLED's Background color row, for the colours views inflated from XML read themselves (#214).
+            if (SettingsStatus.amoledTheme()) AmoledResources.watchActivities(context);
             // See-through bars, a switch of the tab bar patch: each main screen as it resumes.
             if (SettingsStatus.bottomTabBar()) {
                 TranslucentBars.watch(context);

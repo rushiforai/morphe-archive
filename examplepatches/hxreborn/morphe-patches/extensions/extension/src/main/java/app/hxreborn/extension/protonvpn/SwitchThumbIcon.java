@@ -4,7 +4,6 @@
  */
 package app.hxreborn.extension.protonvpn;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -14,6 +13,7 @@ import app.morphe.extension.shared.Utils;
 
 import app.hxreborn.extension.proton.MaterialSwitches;
 import app.hxreborn.extension.proton.PatchesTheme;
+import app.hxreborn.extension.shared.ProxyHandler;
 
 @SuppressWarnings("unused")
 public final class SwitchThumbIcon {
@@ -86,7 +86,7 @@ public final class SwitchThumbIcon {
                 new ThumbContentHandler(checked));
     }
 
-    private static final class ThumbContentHandler implements InvocationHandler {
+    private static final class ThumbContentHandler extends ProxyHandler {
 
         private final boolean checked;
 
@@ -95,18 +95,12 @@ public final class SwitchThumbIcon {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
-            final String name = method.getName();
-            if ("toString".equals(name)) {
-                return (this.checked) ? "SwitchThumbIcon(checked)" : "SwitchThumbIcon(unchecked)";
-            }
-            if ("hashCode".equals(name)) {
-                return System.identityHashCode(proxy);
-            }
-            if ("equals".equals(name)) {
-                return proxy == args[0];
-            }
+        protected String describe() {
+            return (this.checked) ? "SwitchThumbIcon(checked)" : "SwitchThumbIcon(unchecked)";
+        }
 
+        @Override
+        protected Object handle(Method method, Object[] args) {
             drawIcon(args[0], this.checked, 0L, TINT_FROM_CONTENT_COLOR);
             return null;
         }

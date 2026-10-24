@@ -103,22 +103,25 @@ public final class XMediaAttachments {
         JSONArray media = post.optJSONArray("mediaDetails");
         if (media == null || media.length() == 0) media = post.optJSONArray("photos");
         LinkedHashSet<String> urls = new LinkedHashSet<>();
-        if (media == null) return new String[0];
+        if (media == null || media.length()==0){
+            media=new JSONArray();JSONObject video=post.optJSONObject("video");if(video!=null)media.put(video);
+        }
         for (int i = 0; i < media.length() && i < 16; i++) {
             JSONObject item = media.optJSONObject(i);
             if (item == null) continue;
             String thumbnail = item.optString("media_url_https");
             if (thumbnail.isEmpty()) thumbnail = item.optString("url");
+            if (!validMedia(thumbnail,false)) thumbnail=item.optString("poster",thumbnail);
             String normalizedThumbnail = TwimgImageUrls.canonical(thumbnail);
             if (normalizedThumbnail != null) thumbnail = normalizedThumbnail;
             JSONObject info = item.optJSONObject("video_info");
-            JSONArray variants = info == null ? null : info.optJSONArray("variants");
+            JSONArray variants = info == null ? item.optJSONArray("variants") : info.optJSONArray("variants");
             String best = null;
             long bitrate = -1;
             if (variants != null) for (int j = 0; j < variants.length(); j++) {
                 JSONObject variant = variants.optJSONObject(j);
-                if (variant == null || !"video/mp4".equals(variant.optString("content_type"))) continue;
-                String url = variant.optString("url");
+                if (variant == null || !"video/mp4".equals(variant.optString("content_type",variant.optString("type")))) continue;
+                String url = variant.optString("url",variant.optString("src"));
                 long rate = variant.optLong("bitrate", 0);
                 if (validMedia(url, true) && rate > bitrate) { best = url; bitrate = rate; }
             }

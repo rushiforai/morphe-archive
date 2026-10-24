@@ -34,6 +34,23 @@ final class CaptionPageExecutor {
                         return thread;
                     });
 
+    /**
+     * Speculative planning has its own thread and never shares the main queue: a plan the caller is
+     * already holding a caption for must not wait behind work nobody has asked for yet.
+     */
+    private final ThreadPoolExecutor prefetcher =
+            new ThreadPoolExecutor(
+                    1,
+                    1,
+                    0,
+                    TimeUnit.MILLISECONDS,
+                    new ArrayBlockingQueue<>(QUEUED_JOBS),
+                    task -> {
+                        Thread thread = new Thread(task, "CaptionPrefetch");
+                        thread.setDaemon(true);
+                        return thread;
+                    });
+
     /** Least recently used plans. An empty plan marks a layout that could not be planned. */
     private final Map<String, List<CaptionPageLayout.Page>> cache =
             new LinkedHashMap<String, List<CaptionPageLayout.Page>>(CACHED_PLANS, .75f, true) {
@@ -46,12 +63,54 @@ final class CaptionPageExecutor {
 
     private final Set<String> running = new HashSet<>();
 
+    private final Set<String> prefetching = new HashSet<>();
+
     synchronized List<CaptionPageLayout.Page> get(String key) {
         return cache.get(key);
     }
 
     synchronized void remove(String key) {
         cache.remove(key);
+    }
+
+    /**
+     * Plans [key] ahead of the caller that will need it, so the commit that needs this geometry
+     * finds a ready plan instead of holding the previous one for the whole planning latency. The
+     * result only fills the cache: a prefetch is speculative, so it never publishes a plan, never
+     * waits for one the caller needs, and never caches an empty result that would make a real
+     * request think this geometry cannot be planned.
+     */
+    synchronized void prefetch(String key, Supplier<List<CaptionDisplayPage>> plan) {
+        if (cache.containsKey(key) || running.contains(key) || !prefetching.add(key)) return;
+        try {
+            prefetcher.execute(new Prefetch(key, plan));
+        } catch (RejectedExecutionException full) {
+            prefetching.remove(key);
+        }
+    }
+
+    private final class Prefetch implements Runnable {
+        final String key;
+        final Supplier<List<CaptionDisplayPage>> plan;
+
+        Prefetch(String key, Supplier<List<CaptionDisplayPage>> plan) {
+            this.key = key;
+            this.plan = plan;
+        }
+
+        @Override
+        public void run() {
+            List<CaptionPageLayout.Page> pages = Collections.emptyList();
+            try {
+                pages = CaptionPageLayout.adapt(plan.get());
+            } catch (RuntimeException failed) {
+                // Not cached: the request that really needs this geometry plans it again.
+            }
+            synchronized (CaptionPageExecutor.this) {
+                prefetching.remove(key);
+                if (!pages.isEmpty() && !cache.containsKey(key)) cache.put(key, pages);
+            }
+        }
     }
 
     private final class Job implements Runnable {

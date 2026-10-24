@@ -6,24 +6,19 @@ package app.morphe.patches.catzy.misc.protection
 
 import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.catzy.misc.pairip.restoreVirtualizedMethodsPatch
 import app.morphe.patches.catzy.misc.params.inlineNativeParametersPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.arm64Availability
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.pairip.removePairipVirtualizationPatch
 
-val removeAppProtectionPatch = bytecodePatch(
-    name = "Remove app protection",
-    description = "Lets a patched build start.",
-) {
+val removeAppProtectionPatch = bytecodePatch {
     compatibleWith(AppCompatibilities.CATZY)
 
     availability(arm64Availability(PatchAvailability.REQUIRED))
 
     dependsOn(
         removePairipVirtualizationPatch,
-        restoreVirtualizedMethodsPatch,
         removePairipProtectionPatch,
         inlineNativeParametersPatch,
     )

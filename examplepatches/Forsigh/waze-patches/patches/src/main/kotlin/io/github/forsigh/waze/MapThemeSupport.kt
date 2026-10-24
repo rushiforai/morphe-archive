@@ -133,6 +133,41 @@ internal val THEMES = linkedMapOf(
         "highways" to "9A7030",
         "street" to "9A7030",
     ),
+    // The Bright family: same true-black canvas as the AMOLED rows, but the road ramp sits high
+    // enough in luminance that streets stay legible without squinting - the answer to "the AMOLED
+    // colours are too dark". Freeways are near-white tints of the hue, secondary still clearly lit.
+    "AMOLED Lilac" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "F0D9FF",
+        "primary" to "D3B0FF",
+        "secondary" to "A683E8",
+        "highways" to "A683E8",
+        "street" to "A683E8",
+    ),
+    "AMOLED Mint" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "C8FFE0",
+        "primary" to "9AF0C0",
+        "secondary" to "6FC79A",
+        "highways" to "6FC79A",
+        "street" to "6FC79A",
+    ),
+    "AMOLED Ice" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "D6ECFF",
+        "primary" to "A9CDFF",
+        "secondary" to "7FA8E0",
+        "highways" to "7FA8E0",
+        "street" to "7FA8E0",
+    ),
+    "AMOLED Peach" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "FFD9C2",
+        "primary" to "FFB894",
+        "secondary" to "D98F6B",
+        "highways" to "D98F6B",
+        "street" to "D98F6B",
+    ),
     "Dark Purple" to mapOf(
         "map_background" to "272E3A",
         "freeways" to "B18CFF",

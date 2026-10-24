@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# Install the patched Pdb APK on the running emulator/device and smoke-test it.
+#
+# Pdb is an ARM-only app: it extracts `assets/libmmkv_64.so` (aarch64) and
+# System.load()s it, so on an x86_64 emulator it only runs when Android assigns the
+# app `primaryCpuAbi=arm64-v8a` (ARM64 translation / native bridge). Declaring
+# `lib/arm64-v8a/libmmkv.so` in the APK makes that happen. This script injects it,
+# re-aligns and re-signs before installing. Real ARM devices don't need any of this.
+#
+# Usage: pdbdevice [patched.apk] [--no-armabi]
+set -uo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APK="${1:-$ROOT/pdb_patched.apk}"
+ARMABI=1
+[[ "${2:-}" == "--no-armabi" ]] && ARMABI=0
+
+OUT="${PDB_WORK:-$ROOT/work}/device"
+PKG=pdb.app
+export PATH="$HOME/tools/android-sdk/platform-tools:$HOME/tools/android-sdk/build-tools/35.0.0:$PATH"
+mkdir -p "$OUT"
+
+[[ -f "$APK" ]] || { echo "missing $APK" >&2; exit 1; }
+
+# Every adb call gets its own timeout so a hung `uiautomator dump` can't wedge the run.
+A() { timeout 90 adb "$@"; }
+
+A devices -l | head -3
+
+echo "==> adb root (best-effort)"
+if A root 2>&1 | grep -qi "cannot run as root"; then
+  echo "  not root-capable (shared_prefs will be unreadable)"
+else
+  A wait-for-device; sleep 2
+fi
+
+if [[ "$ARMABI" == "1" ]]; then
+  echo "==> Building ARM-translation installable APK (+lib/arm64-v8a)"
+  TMP="$(mktemp -d /tmp/opencode/pdbdev.XXXXXX)"
+  unzip -o -q "$APK" assets/libmmkv_64.so -d "$TMP"
+  mkdir -p "$TMP/lib/arm64-v8a"
+  cp "$TMP/assets/libmmkv_64.so" "$TMP/lib/arm64-v8a/libmmkv.so"
+  cp "$APK" "$TMP/base.apk"
+  ( cd "$TMP" && zip -X -0 -q base.apk lib/arm64-v8a/libmmkv.so )
+  zipalign -f -p 4 "$TMP/base.apk" "$TMP/aligned.apk"
+  KS="$HOME/.morphe-data/pdb-test.keystore"
+  if [[ ! -f "$KS" ]]; then
+    keytool -genkeypair -keystore "$KS" -alias pdb -keyalg RSA -keysize 2048 \
+      -validity 10000 -storepass android -keypass android -dname "CN=pdb-test" >/dev/null 2>&1
+  fi
+  apksigner sign --ks "$KS" --ks-pass pass:android --key-pass pass:android \
+    --ks-key-alias pdb --out "$OUT/install.apk" "$TMP/aligned.apk" </dev/null
+  rm -rf "$TMP"
+  INSTALL="$OUT/install.apk"
+else
+  INSTALL="$APK"
+fi
+echo "  install APK: $INSTALL ($(du -h "$INSTALL" | cut -f1))"
+
+# Upgrade in place: uninstalling deletes the signed-in account and all local data,
+# which makes every test build start at the login screen. Only fall back to an
+# uninstall when the package manager refuses the upgrade (different signing key).
+# --no-incremental: an incremental install streams file content from the host, and
+# if the adb session is interrupted the package is left unreadable ("activity does
+# not exist", monkey finds nothing). Force a full write instead.
+echo "==> Install (upgrade in place, keep app data)"
+INSTALL_OUT="$(A install --no-incremental -r -d "$INSTALL" 2>&1)"
+echo "$INSTALL_OUT" | tail -3
+if echo "$INSTALL_OUT" | grep -qiE "INSTALL_FAILED_UPDATE_INCOMPATIBLE|signatures do not match|INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES"; then
+  echo "==> Signature mismatch: uninstalling once (app data will be lost)"
+  A uninstall "$PKG" 2>&1 | tail -1 || true
+  A install --no-incremental -r -d "$INSTALL" 2>&1 | tail -3
+fi
+
+# Wait until the package manager has fully registered the package.
+for _ in $(seq 1 12); do
+  A shell pm path "$PKG" >/dev/null 2>&1 && A shell "pm path $PKG" 2>/dev/null | grep -q base.apk && break
+  sleep 3
+done
+echo "  pm path: $(A shell pm path "$PKG" 2>/dev/null | tr -d '\r' | head -1)"
+
+A logcat -c 2>/dev/null || true
+
+echo "==> Launch ${PKG}.LauncherActivity"
+for attempt in 1 2 3; do
+  out="$(A shell am start -n "$PKG/${PKG}.LauncherActivity" 2>&1 | tail -1)"
+  echo "  attempt $attempt: $out"
+  [[ "$out" != *"does not exist"* ]] && break
+  sleep 5
+done
+sleep 30
+
+echo "==> Process alive?"
+A shell pidof "$PKG" || echo "  (NOT RUNNING)"
+echo "==> primaryCpuAbi"
+A shell "dumpsys package $PKG | grep -i primaryCpuAbi" 2>/dev/null | head -1
+
+echo "==> Extension / crash logs"
+A logcat -d -v brief 2>/dev/null \
+  | grep -iE "PdbExtras|FATAL|AndroidRuntime|UnsatisfiedLink|pairip" | head -20 || true
+
+echo "==> Screenshot"
+A exec-out screencap -p > "$OUT/screen-launch.png" 2>/dev/null && echo "  $OUT/screen-launch.png"
+
+echo "==> shared_prefs"
+A shell "cat /data/data/$PKG/shared_prefs/${PKG}_preferences.xml" 2>/dev/null > "$OUT/prefs.xml" || true
+if [[ -s "$OUT/prefs.xml" ]]; then
+  grep -oE 'name="(mockIsProUser|isADLibDisabled|disableIRLMarkRead|ignoreIRLMore|autoConsumePDBCoin|forceEnglish|useNewPostComponent|fileLogLevel|morphe_[a-z_]+)"[^/]*' "$OUT/prefs.xml" | head -40
+else
+  echo "  (unreadable — needs root)"
+fi
+
+echo "==> UI dump"
+A shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1 \
+  && A shell cat /sdcard/u.xml 2>/dev/null | grep -oE 'text="[^"]+"' | grep -v 'text=""' | head -25
+
+echo "==> Done."

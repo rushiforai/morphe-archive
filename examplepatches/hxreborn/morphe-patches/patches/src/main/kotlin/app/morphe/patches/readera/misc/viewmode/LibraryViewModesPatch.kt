@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.readera.shared.disableSignatureChecksPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.getFreeRegisterProvider
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -52,10 +53,8 @@ val libraryViewModesPatch = bytecodePatch(
             val filterIndex = LibraryOptionsMenuFingerprint.instructionMatches.first().index
             val filterItemId = getInstruction<WideLiteralInstruction>(filterIndex).wideLiteral
 
-            implementation!!.instructions.withIndex()
-                .filter { (index, instruction) -> index > filterIndex && instruction.opcode == Opcode.RETURN_VOID }
-                .map { it.index }
-                .reversed()
+            findInstructionIndicesReversed(Opcode.RETURN_VOID)
+                .filter { it > filterIndex }
                 .forEach { returnIndex ->
                     val registers = getFreeRegisterProvider(returnIndex, 3)
                     val menuRegister = registers.getFreeRegister4Bit()

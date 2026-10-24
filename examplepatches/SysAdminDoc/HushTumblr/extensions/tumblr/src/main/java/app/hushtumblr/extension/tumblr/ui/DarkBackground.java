@@ -37,7 +37,8 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * fixed grays, so the Dark palette's set calls in here for its two surface grays:
  * {@link #designPage} for the gray behind a screen and {@link #designPanel} for the lighter one of
  * a bar, a row or a dialog. They answer the style's color and a step up from it. Only the Dark
- * palette's set asks, which is the one the System palette uses at night too.
+ * palette's set asks, which is the one the System palette uses at night too. The footer under a
+ * post paints itself with that lighter gray, so {@link #designFooter} hands it the card's color.
  *
  * <p>A theme a screen already drew with keeps its colors, and the design system's set is built once
  * for as long as Tumblr runs, so the summary says a restart shows it.
@@ -152,6 +153,20 @@ public final class DarkBackground {
      */
     public static long designPanel(long tumblrs) {
         return designColor(tumblrs, 1);
+    }
+
+    /**
+     * Placed where the footer under a post has read the color it paints itself with, the design
+     * system's panel gray. The footer is the bottom of the post card, which the style gives the
+     * picked color itself, so while that gray is the step up {@link #designPanel} answered, this
+     * answers the card's color. Any other color, another palette's included, comes back as it was,
+     * and so does every color before the Dark palette's set is built or while the switch reads off.
+     * Never throws.
+     */
+    public static long designFooter(long tumblrs) {
+        long[] decided = designColors;
+        return decided != null && decided.length == 2 && tumblrs == decided[1] && Settings.DARK_BACKGROUND.get()
+                ? decided[0] : tumblrs;
     }
 
     private static long designColor(long tumblrs, int which) {

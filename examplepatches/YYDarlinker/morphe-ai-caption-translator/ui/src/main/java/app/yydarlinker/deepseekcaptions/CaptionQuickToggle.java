@@ -3,8 +3,6 @@ package app.yydarlinker.deepseekcaptions;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +18,9 @@ import java.nio.charset.StandardCharsets;
  */
 public final class CaptionQuickToggle {
     private static final long SHORTS_MENU_WINDOW_MS = 1500;
-    private static final long[] ACTIVATION_RETRY_MS = {120, 450, 1200};
-    private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     private static long shortsMenuAt;
     private static String shortsVideo = "";
-    private static int activationRetry;
-    private static Runnable activationRetryTask;
 
     private CaptionQuickToggle() {}
 
@@ -114,120 +108,44 @@ public final class CaptionQuickToggle {
     }
 
     /**
-     * Turns the engine on or off. The mode is saved first, independently of any native player or
-     * track reference: OFF must never be rolled back to ON by a stale Shorts manager.
+     * Turns the engine on or off. The switch is a user act: it is written to the session intent
+     * first, independently of any native player or track reference, and the reconciler applies it.
+     * OFF must never be rolled back to ON by a stale Shorts manager, and ON keeps the target the
+     * native caption menu already had.
      */
     static boolean setEngine(Context context, boolean enabled) {
         if (enabled && !DeepSeekConfig.load(context).hasCredential) {
             toast(context, "configure_api");
             return false;
         }
-        DeepSeekConfig.saveEnabled(context, enabled);
-        // Turning the engine on is a user decision: it clears a previous caption/CC Off latch so
-        // the current native selection can start again. It still creates no language choice; the
-        // language remains whatever the native player selected. Turning it off preserves the
-        // selection so the next enable can adopt it without waiting for another native event.
-        if (enabled) CaptionChoice.toggle(true);
-        // Turning the engine back on never creates a language choice. The current native
-        // selection, if any, is adopted by refreshNativeTrack/onCaptionsShown.
-        CaptionActions.refreshConfiguration(context);
-        NativeCaptionBridge.Refresh refreshed = NativeCaptionBridge.Refresh.DEFERRED;
-        try {
-            refreshed = NativeCaptionBridge.refreshNativeTrack();
-            if (enabled && refreshed == NativeCaptionBridge.Refresh.DEFERRED)
-                refreshed = NativeCaptionBridge.refreshFromCatalog();
-        } catch (Exception failed) {
-            CaptionDiagnostics.mark(
-                    context, "ENGINE_NATIVE_REFRESH_DEFERRED", failed.getClass().getSimpleName());
+        if (!CaptionSessionReconciler.onUserSwitched(context, enabled)) return false;
+        CaptionSessionIntent intent = CaptionSessionIntent.load(context);
+        // A switch-on without a target cannot start anything: the target only ever comes from
+        // YouTube's own caption menu. Roll the whole act back so an unusable switch cannot suppress
+        // the native captions either; the caller sees a switch-on that did not take effect.
+        if (enabled && !intent.hasTarget()) {
+            CaptionSessionIntent.userToggled(context, false);
+            DeepSeekConfig.saveEnabled(context, false);
+            toast(context, "choose_translation");
+            return false;
         }
+        CaptionActions.refreshConfiguration(context);
         CaptionMusicSuppressor.forceNativeRendererScan();
         CaptionMusicSuppressor.kick();
-        if (enabled
-                && refreshed == NativeCaptionBridge.Refresh.DEFERRED
-                && !CaptionChoice.isOn()
-                && CaptionButtonController.captionsKnownOn()) {
-            try {
-                NativeCaptionBridge.onCaptionsShown();
-            } catch (Exception failed) {
-                CaptionDiagnostics.mark(
-                        context,
-                        "ENGINE_CAPTIONS_SHOWN_DEFERRED",
-                        failed.getClass().getSimpleName());
-            }
-        }
-        if (enabled && refreshed == NativeCaptionBridge.Refresh.DEFERRED)
-            scheduleActivationRetry();
-        else cancelActivationRetry();
         CaptionDiagnostics.mark(
                 context,
                 "ENGINE_MODE_SAVED",
                 "enabled="
                         + enabled
-                        + ";native="
-                        + refreshed.name()
+                        + ";target="
+                        + (intent.hasTarget() ? intent.targetLanguage : "none")
+                        + ";translate="
+                        + intent.translateTarget
+                        + ";revision="
+                        + intent.revision
                         + ";session="
-                        + CaptionActions.isVisibleActive()
-                        + ";choice_known="
-                        + CaptionChoice.known());
+                        + CaptionActions.isVisibleActive());
         return true;
-    }
-
-    /**
-     * The native track list can arrive just after the menu click; a deferred activation is retried
-     * a few times instead of waiting for the next video or another manual toggle. The retries stop
-     * as soon as the engine starts, and are cancelled when the engine is turned off.
-     */
-    private static void scheduleActivationRetry() {
-        cancelActivationRetry();
-        activationRetry = 0;
-        postActivationRetry(ACTIVATION_RETRY_MS[0]);
-    }
-
-    private static void postActivationRetry(long delayMs) {
-        Runnable task =
-                () -> {
-                    activationRetryTask = null;
-                    Activity a = CaptionAddonSupport.activity();
-                    if (a == null || !DeepSeekConfig.enabled(a)) {
-                        activationRetry = 0;
-                        return;
-                    }
-                    NativeCaptionBridge.Refresh refreshed = NativeCaptionBridge.Refresh.DEFERRED;
-                    try {
-                        refreshed = NativeCaptionBridge.refreshNativeTrack();
-                        if (refreshed == NativeCaptionBridge.Refresh.DEFERRED)
-                            refreshed = NativeCaptionBridge.refreshFromCatalog();
-                    } catch (Exception failed) {
-                        CaptionDiagnostics.mark(
-                                a,
-                                "ENGINE_ACTIVATION_RETRY_FAILED",
-                                failed.getClass().getSimpleName());
-                    }
-                    CaptionDiagnostics.mark(
-                            a,
-                            "ENGINE_ACTIVATION_RETRY",
-                            "attempt="
-                                    + (activationRetry + 1)
-                                    + ";result="
-                                    + refreshed.name()
-                                    + ";active="
-                                    + CaptionActions.isVisibleActive());
-                    if (refreshed != NativeCaptionBridge.Refresh.DEFERRED) {
-                        activationRetry = 0;
-                        return;
-                    }
-                    activationRetry++;
-                    if (activationRetry < ACTIVATION_RETRY_MS.length)
-                        postActivationRetry(ACTIVATION_RETRY_MS[activationRetry]);
-                };
-        activationRetryTask = task;
-        MAIN.postDelayed(task, Math.max(0L, delayMs));
-    }
-
-    static void cancelActivationRetry() {
-        if (activationRetryTask != null) MAIN.removeCallbacks(activationRetryTask);
-        activationRetryTask = null;
-        activationRetry = 0;
     }
 
     private static void toast(Context context, String key) {

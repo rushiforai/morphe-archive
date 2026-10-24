@@ -9,4 +9,4 @@ import app.morphe.patches.shared.misc.gms.gmsCoreSupportPatchFor
 import app.morphe.patches.steezy.misc.fix.signature.spoofSignaturePatch
 
 @Suppress("unused")
-val gmsCoreSupportPatch = gmsCoreSupportPatchFor(AppCompatibilities.STEEZY, spoofSignaturePatch)
+val gmsCoreSupportPatch = gmsCoreSupportPatchFor(AppCompatibilities.STEEZY, spoofSignaturePatch, default = true)

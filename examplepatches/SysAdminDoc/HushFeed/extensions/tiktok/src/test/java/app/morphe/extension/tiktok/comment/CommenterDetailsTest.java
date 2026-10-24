@@ -554,4 +554,72 @@ public class CommenterDetailsTest {
         assertEquals(null, AuthorRegion.seenRegion("creator0"));
         assertEquals("US", AuthorRegion.seenRegion("creator299"));
     }
+
+    /** #201: the country is remembered by account id too, bounded like the handle cache. */
+    @Test
+    public void theUidCacheKeepsOnlyTheLast256AccountsAndTheMostRecentlyUsedSurvive() {
+        AuthorRegion.rememberSeen("keeper-uid", null, "FR");
+        for (int i = 0; i < 300; i++) {
+            AuthorRegion.rememberSeen("uid" + i, null, "US");
+            if (i % 50 == 0) assertEquals("FR", AuthorRegion.seenRegionByUid("keeper-uid"));
+        }
+        assertEquals("FR", AuthorRegion.seenRegionByUid("keeper-uid"));
+        assertNull(AuthorRegion.seenRegionByUid("uid0"));
+        assertEquals("US", AuthorRegion.seenRegionByUid("uid299"));
+        assertNull("nothing under a missing or blank id", AuthorRegion.seenRegionByUid(" "));
+    }
+
+    @Test
+    public void aCommenterWithNoRegionGetsTheCountryRememberedForTheirUidEvenAfterARename() {
+        Settings.SHOW_COMMENTER_REGION.save(true);
+        AuthorRegion.rememberSeen("42", "old.handle", "ca");
+        TimeView time = timeSaying("2d ago");
+
+        CommenterDetails.onCommentTime(by("42", "new.handle", null), time);
+
+        assertEquals("2d ago · CA", time.getText().toString());
+    }
+
+    @Test
+    public void aCountryTheAccountCarriesIsRememberedForTheSamePersonsNextComment() {
+        Settings.SHOW_COMMENTER_REGION.save(true);
+        TimeView time = timeSaying("2d ago");
+        CommenterDetails.onCommentTime(by("7", "river.otter", "NL"), time);
+        assertEquals("2d ago · NL", time.getText().toString());
+
+        // Their reply arrives with the country left off, in a recycled cell.
+        time.tikTokWrites("1h ago");
+        CommenterDetails.onCommentTime(by("7", "river.otter", null), time);
+        assertEquals("1h ago · NL", time.getText().toString());
+        // Same uid with the handle also gone.
+        time.tikTokWrites("2h ago");
+        CommenterDetails.onCommentTime(by("7", null, null), time);
+        assertEquals("2h ago · NL", time.getText().toString());
+        // A different person is never given it.
+        time.tikTokWrites("3h ago");
+        CommenterDetails.onCommentTime(by("8", "other.person", null), time);
+        assertEquals("3h ago", time.getText().toString());
+    }
+
+    @Test
+    public void sourcesAnswerInOrderAccountThenUidThenHandle() {
+        AuthorRegion.rememberSeen("5", "same.handle", "DE");
+        AuthorRegion.rememberSeen(null, "same.handle", "FR");
+        // The handle cache now says FR, the uid cache DE: the uid wins.
+        assertEquals("DE", CommenterDetails.regionOf(by("5", "same.handle", null)));
+        // With no uid on the account the handle answers.
+        assertEquals("FR", CommenterDetails.regionOf(by(null, "same.handle", null)));
+        // The account's own region beats both, then accountRegion, then the ISO code.
+        assertEquals("GB", CommenterDetails.regionOf(by("5", "same.handle", "gb")));
+        Remark second = by("5", "same.handle", null);
+        second.user.accountRegion = "it";
+        second.user.isoCountryCode = "jp";
+        assertEquals("IT", CommenterDetails.regionOf(second));
+        Remark iso = by("6", "iso.person", null);
+        iso.user.isoCountryCode = "jp";
+        assertEquals("JP", CommenterDetails.regionOf(iso));
+        Remark junk = by("9", "junk.person", null);
+        junk.user.isoCountryCode = "Japan";
+        assertNull("a country name is not a code", CommenterDetails.regionOf(junk));
+    }
 }

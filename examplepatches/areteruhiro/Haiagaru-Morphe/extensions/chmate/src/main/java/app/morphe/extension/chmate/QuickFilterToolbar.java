@@ -167,6 +167,7 @@ public final class QuickFilterToolbar {
         if (callbackName == null) return;
         dialog.getListView().setOnItemLongClickListener((parent, view, position, id) -> {
             if (position != 2) return false;
+            dialog.dismissForNavigation(() -> {
             try {
                 Class<?> callbackType = Class.forName(callbackName, false, model.getClass().getClassLoader());
                 java.lang.reflect.Constructor<?> constructor = callbackType.getDeclaredConstructor(Object.class);
@@ -175,11 +176,11 @@ public final class QuickFilterToolbar {
                 Method invoke = callbackType.getDeclaredMethod("invoke", Object.class);
                 invoke.setAccessible(true);
                 invoke.invoke(callback, imageFilter);
-                dialog.dismiss();
             } catch (Exception error) {
                 Log.e("Haiagaru", "Unable to open image list: " + version, error);
                 Toast.makeText(activity, "画像一覧を開けませんでした", Toast.LENGTH_LONG).show();
             }
+            });
             return true;
         });
     }
@@ -305,6 +306,7 @@ public final class QuickFilterToolbar {
     private static void attachLegacyImageLongPress(HaiagaruDialog dialog, Object fragment, Activity activity) {
         dialog.getListView().setOnItemLongClickListener((parent, view, position, id) -> {
             if (position != 2) return false;
+            dialog.dismissForNavigation(() -> {
             try {
                 java.lang.reflect.Field adapterField = fragment.getClass().getDeclaredField("c");
                 adapterField.setAccessible(true);
@@ -323,11 +325,11 @@ public final class QuickFilterToolbar {
                 boolean handled = Boolean.TRUE.equals(callbackType.getMethod("b", android.view.View.class)
                         .invoke(callback, imageAction));
                 if (!handled) throw new IllegalStateException("Image-list action was not handled");
-                dialog.dismiss();
             } catch (Exception error) {
                 Log.e("Haiagaru", "Unable to open legacy image list", error);
                 Toast.makeText(activity, "画像一覧を開けませんでした", Toast.LENGTH_LONG).show();
             }
+            });
             return true;
         });
     }

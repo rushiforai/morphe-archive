@@ -16,6 +16,7 @@ public final class PositionTest {
     public static String result = "pending";
     static final Handler MAIN = new Handler(Looper.getMainLooper());
     public static void start(Activity activity) {
+        checks=0;result="pending";
         Dialog dialog = new Dialog(activity);
         ListView list = new ListView(activity);
         String[] rows = new String[40];
@@ -54,9 +55,18 @@ public final class PositionTest {
                                         try {
                                             check(list.getFirstVisiblePosition()==position,"middle anchor position retained");
                                             check(list.getChildAt(0).getTop()==top,"middle anchor pixel offset retained");
-                                            result="PASS "+checks+" actual ListView resize checks";
+                                            XPostPreviewPosition.beforeChange(target);
+                                            android.view.MotionEvent down=android.view.MotionEvent.obtain(0,0,android.view.MotionEvent.ACTION_DOWN,1,1,0);
+                                            XPostPreviewPosition.onTouch(target,down);down.recycle();
+                                            list.setSelectionFromTop(10,-4);
+                                            MAIN.postDelayed(()->{
+                                                try{check(list.getFirstVisiblePosition()==10,"user/native navigation supersedes a pending preview anchor");
+                                                    check(list.getChildAt(0).getTop()==-4,"user/native pixel offset is not corrected backwards");
+                                                    result="PASS "+checks+" actual ListView resize checks";
+                                                }catch(Throwable error){result="FAIL "+error;}finally{dialog.dismiss();}
+                                            },250);
                                         }catch(Throwable error){result="FAIL "+error;}
-                                        finally{dialog.dismiss();}
+                                        finally{if(result.startsWith("FAIL"))dialog.dismiss();}
                                     },250);
                                 }catch(Throwable error){result="FAIL "+error;dialog.dismiss();}
                             },250);

@@ -13,12 +13,14 @@
                  tests, lint, the notes generator's own tests and the facts check. Then push with
                  BUILD_QUEUE_PRIORITY=release so the full pre-push gate runs.
       build      From the pushed, clean release commit: the bundle (timestamp pinned, classes.dex
-                 present), the receipt over every declared fixture and SHA256SUMS.txt, into
-                 build/release-assets/<version>.
+                 present), the receipt over every declared fixture and the device audit, and
+                 SHA256SUMS.txt, into build/release-assets/<version>. Refuses when a declared
+                 TikTok version has no audit/results file or a check changed since its run.
       publish    Refuses unless -Walk names the walk-receipt.json of a full, passing whole-app
-                 walk of this exact bundle on a release phone or an emulator. Then notes from the
-                 whole CHANGELOG section and a lightweight tag. Download and compare all three
-                 assets from a draft before publishing it.
+                 walk of this exact bundle on a release phone or an emulator, and unless the
+                 device audit still matches the catalog. Then notes from the whole CHANGELOG
+                 section and a lightweight tag. Download and compare all three assets from a
+                 draft before publishing it.
       index      patches-bundle.json, the README intro and counts, the bug form and the repository
                  description. Then commit "chore(release): point Manager to the verified X.Y.Z
                  bundle" and push (pre-push compares the hosted bundle byte for byte).
@@ -57,6 +59,7 @@ $receiptName = "release-receipt-$Version.json"
 . (Join-Path $root 'scripts/patch-target.ps1')
 . (Join-Path $root 'scripts/release-attestation.ps1')
 . (Join-Path $root 'scripts/walk-receipt.ps1')
+. (Join-Path $root 'scripts/audit-results.ps1')
 if ($RequireImmutableRelease -and $Stage -notin @('publish', 'index')) {
     throw '-RequireImmutableRelease applies to publish or index.'
 }
@@ -585,6 +588,20 @@ switch ($Stage) {
                 'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
         }
         Step "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
+        # Nor while the device audit of a declared TikTok version is missing or older than the
+        # catalog, and the receipt has to name the results this commit carries.
+        $target = Get-PatchTarget -PatchList (Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json)
+        $audited = Test-AuditResults -Root $root -PackageName $target.PackageName -PackageVersions @($target.PackageVersions) -Head $head
+        if (-not $audited.Valid) { throw "The device audit doesn't back this release, so nothing was published: $($audited.Reason)" }
+        foreach ($fact in $audited.Facts) {
+            $recorded = @(@($receipt.audit) | Where-Object { $null -ne $_ -and $_.appVersion -ceq $fact.appVersion })
+            if ($recorded.Count -ne 1 -or $recorded[0].sha256 -cne $fact.sha256) {
+                throw "$receiptName doesn't name this commit's $($fact.results). Run -Stage build again."
+            }
+            $s = $fact.summary
+            Step ("audited TikTok $($fact.appVersion): $($s.pass) pass, $($s.fail) fail, $($s.review) review, " +
+                "$($s.inconclusive) inconclusive, $($fact.commitsSince) commits before this release")
+        }
         $notes = Join-Path $assets 'notes.md'
         Invoke-Native 'release notes' { py -3.13 (Join-Path $root 'tools/release_text.py') github-notes --version $Version --intro $Intro --checked $Checked --out $notes }
         Invoke-ReleasePublication -Root $root -Repository $Repository -Version $Version -ExpectedCommit $head `

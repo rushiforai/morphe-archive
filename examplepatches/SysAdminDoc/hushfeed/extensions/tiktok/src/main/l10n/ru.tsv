@@ -243,6 +243,7 @@ All available languages	Все доступные языки
 All events	Все события
 All loaded tabs	Все загруженные вкладки
 Allow Duet and Stitch anyway	Всё равно разрешить Дуэт и Stitch
+Allow Add to Story anyway	Всё равно разрешить «Добавить в историю»
 Allow screenshots and Circle to Search	Разрешить скриншоты и Circle to Search
 Allow storage for TikTok in Android settings to save profile pictures	Разрешите TikTok доступ к хранилищу в настройках Android, чтобы сохранять фото профиля
 Allow storage for TikTok in Android settings to save sounds	Разрешите TikTok доступ к хранилищу в настройках Android, чтобы сохранять звуки
@@ -716,6 +717,7 @@ Hushfeed can't read the creator pattern %1$s	Hushfeed не может прочи
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed скрыл CAPTCHA TikTok. Выключите «Скрывать всплывающие окна CAPTCHA», если что-то перестало работать.
 Hushfeed is active	Hushfeed активен
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.	Показывает варианты «Дуэт» и Stitch, даже если автор их отключил. TikTok всё равно может не принять результат.
+Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.	Показывает «Добавить в историю» у истории, автор которой отключил повторное использование контента. TikTok всё равно может отказаться её опубликовать.
 Import finished	Импорт завершён
 Import loaded values	Импортировать загруженные значения
 Imported %1$d values	Импортировано значений: %1$d
@@ -901,6 +903,7 @@ Open TikTok on	Открыть TikTok на
 Opens github.com in your browser	Открывает github.com в вашем браузере
 Operator code	Код оператора
 Operator name	Название оператора
+Original	Оригинал
 Original language	Язык оригинала
 Other	Другое
 Other feed filters	Другие фильтры ленты
@@ -1019,9 +1022,9 @@ Save	Сохранить
 Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.	Сохраняет файлы субтитров (SRT) вместе с видео. Они попадают в Movies на Android 11 и новее, в Download на Android 10 и в вашу папку видео на более старых версиях. На Android 11 и новее при включённом «Сохранять подробности» видео переходит в Download или Documents, а субтитры остаются в Movies.
 Save a profile picture on a long press	Сохранять фото профиля долгим нажатием
 Save a story on a long press	Сохранять историю долгим нажатием
-Save every photo in the post at full size as a JPEG, not as the screen shows it.	Сохранять каждое фото публикации в полном размере в формате JPEG, а не как оно показано на экране.
+Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on.	Сохранять каждое фото публикации в полном размере, а не как оно показано на экране. Каждое сохраняется в JPEG, если не включено «Сохранять фото в формате TikTok».
 Keep photos as TikTok sent them	Сохранять фото в формате TikTok
-Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those.	Сохранённые фото, обложки и фото из историй остаются в HEIF или WebP и не превращаются в JPEG. Некоторые галереи и компьютеры не открывают такие файлы.
+Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.	Сохранённые фото, обложки, фото из историй и неподвижные стикеры остаются ровно теми файлами, которые прислал TikTok, а не новыми JPEG или PNG. Некоторые галереи и компьютеры не открывают HEIF или WebP.
 Save field values	Сохранить значения полей
 Save full report	Сохранить полный отчёт
 Save media	Сохранение медиафайлов
@@ -1172,7 +1175,7 @@ The last one is still waiting to start	Последнее всё ещё ожид
 Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	TikTok перестаёт отправлять отчёты об использовании, данные для рекламы и отчёты о сбоях. Собственные средства диагностики TikTok тоже затихают.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	Не даёт TikTok замедлять экран до частоты кадров каждого видео. На телефоне с 90 или 120 Гц из-за этого весь экран приложения, включая прокрутку, работает медленнее.
 Keep the screen's brightness in the camera	Сохранять яркость экрана в камере
-Stops TikTok from turning your screen brighter while you film, edit or post a video.	Не даёт TikTok делать экран ярче, пока вы снимаете, редактируете или публикуете видео.
+Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	Не даёт TikTok делать экран ярче, пока вы снимаете, редактируете или публикуете видео. Фронтальная вспышка по-прежнему делает экран белым, но с вашей яркостью.
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	TikTok перестаёт считывать датчики движения и компас вашего телефона. По ним приложения могут узнавать телефон.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	Не позволять TikTok читать то, что вы скопировали. Копирование ссылки из TikTok по-прежнему работает.
 Stop a long press on Like from opening TikTok's repost action.	Не позволять долгому нажатию на «Нравится» открывать репост TikTok.
@@ -1790,13 +1793,15 @@ Remove story rings	Убрать кольца историй
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Убирать кольцо истории с фото профиля в ленте, в комментариях и в профилях. Нажатие на фото открывает профиль, а не историю.
 Remove the LIVE ring	Убрать кольцо LIVE
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Убирать пульсирующее кольцо LIVE с фото профиля в ленте и в комментариях. Нажатие на фото автора в эфире открывает его профиль, а не LIVE.
+Open the Story when a creator is LIVE	Открывать историю, когда автор в LIVE
+When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	Если у автора в LIVE есть и история, нажатие на его фото в профиле открывает историю. Нажмите на фото ещё раз, чтобы перейти в LIVE.
 Writing	Написание
 Lift text length limits	Снять ограничения длины текста
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Комментарии, заметки к репостам и описание профиля могут быть длиннее, чем позволяет приложение TikTok. Серверы TikTok всё равно могут отклонить длинный текст.
 Show only mutual friends on the Friends tab	Показывать во вкладке «Друзья» только взаимных друзей
 On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Во вкладке «Друзья» скрывать публикации, репосты и LIVE аккаунтов без взаимной подписки, в том числе рекомендованных. Ваши собственные публикации остаются.
 Latest first on Following	Сначала новые в «Подписках»
-Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.	Воспроизводить каждую партию, которую загружает лента «Подписки», начиная с самой новой публикации. Что попадёт в партию, по-прежнему решает TikTok, а реклама и LIVE остаются на своих местах.
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	Воспроизводить ленту «Подписки», начиная с самой новой публикации. Более новая публикация, загруженная позже, встаёт сразу за видео, которое вы смотрите, а то, что вы уже пролистали, не сдвигается. Реклама и LIVE остаются на своих местах.
 Show follow status	Показывать статус подписки
 Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Под @именем пользователя в профиле показывать, подписан ли он на вас или не подписан в ответ. В списках подписчиков и подписок отмечаются аккаунты, на которые вы подписаны, но которые не подписаны на вас.
 Follows you	Подписан на вас
@@ -2148,6 +2153,8 @@ Keep offline videos until you delete them	Хранить офлайн-видео
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok удаляет видео, сохранённые для просмотра офлайн, через определённое время, иногда всего через два дня, просмотрены они или нет. Когда это включено, они остаются, пока вы сами не удалите их в настройках офлайн-видео TikTok. TikTok всё же может удалить просмотренные, если на телефоне мало места.
 Hide Thoughts on profiles	Скрывать Thoughts в профилях
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Скрывать облачко Thoughts, которое TikTok показывает над фото профиля, а в вашем профиле и предложение поделиться им. Перезапустите TikTok, чтобы это применить.
+Turn on Thoughts	Включить Thoughts
+Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.	Показывать Thoughts в профилях и во Входящих, а также предложение поделиться им, для аккаунтов, где TikTok их не включил. Серверы TikTok всё равно могут не принять публикацию. Перезапустите TikTok, чтобы это применить.
 
 About Hushfeed	О Hushfeed
 Version, changes and licenses	Версия, изменения и лицензии
@@ -2430,7 +2437,7 @@ Two at once	Два одновременно
 Three at once	Три одновременно
 LIVE recording quality	Качество записи LIVE
 Same as the room	Как в трансляции
-Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.	«Как в трансляции» записывает качество, которое вы смотрите. «Самое высокое» записывает лучший поток трансляции, даже если вы смотрите её в более низком качестве.
+Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.	«Как в трансляции» записывает качество, которое вы смотрите. «Самое высокое» записывает лучший поток трансляции, даже если вы смотрите её в более низком качестве. Число записывает именно это качество, а если трансляция его не предлагает, ближайшее из доступных.
 Long-press Profile for Watch history	Долгое нажатие на Профиль открывает историю просмотров
 Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.	Нажмите и удерживайте вкладку Профиль, чтобы открыть историю просмотров. Обычное нажатие на Профиль работает как раньше. Если удержание Профиля у вас переключает аккаунты, эта настройка занимает это нажатие, а имя вверху профиля по-прежнему переключает аккаунты.
 Open the comments at full height	Открывать комментарии на всю высоту
@@ -2446,5 +2453,19 @@ Oldest first	Сначала старые
 Longest first	Сначала длинные
 Shortest first	Сначала короткие
 Most viewed first	Сначала самые просматриваемые
+Least viewed first	Сначала наименее просматриваемые
 Most liked first	Сначала с наибольшим числом лайков
-Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.	Сортирует видео, которые сетка профиля или раздела «Понравившиеся» уже загрузила, закреплённые остаются первыми. По мере прокрутки порядок охватывает больше видео. В следующий раз сетка откроется уже в этом порядке.
+Least liked first	Сначала с наименьшим числом лайков
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Сортирует сетку профиля или раздела «Понравившиеся», закреплённые видео остаются первыми. Пока выбран порядок, сетка сама подгружает до 300 видео, чтобы порядок охватывал больше первого экрана. Кнопка в верхнем углу сетки меняет порядок прямо там.
+Sort this grid	Сортировка этой сетки
+Blur the video behind the bar	Размывать видео за панелью
+Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Размывает в основной ленте часть видео за стеклянной панелью, чтобы она выглядела как матовое стекло. Нужен «Эффект жидкого стекла» и Android 12 или новее.
+LIVE recording source	Источник записи LIVE
+Stream only	Только поток
+Screen	Экран
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	Только поток сохраняет видео комнаты, как раньше. Экран записывает то, что показывает телефон, со звуком приложения, если у TikTok есть доступ к микрофону. Android каждый раз спрашивает разрешение на запись экрана и показывает своё уведомление во время записи.
+Recording this LIVE's screen	Идёт запись экрана этого LIVE
+Open the room and tap Stop to save it.	Откройте комнату и нажмите «Стоп», чтобы сохранить запись.
+Screen recording wasn't allowed	Запись экрана не разрешена
+Recording this LIVE's screen from now	Запись экрана этого LIVE началась
+Recording this LIVE's screen from now, without sound	Запись экрана этого LIVE началась, без звука

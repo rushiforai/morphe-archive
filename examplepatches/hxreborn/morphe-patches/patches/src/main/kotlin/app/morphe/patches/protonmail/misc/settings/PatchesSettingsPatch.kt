@@ -20,11 +20,11 @@ import app.morphe.patches.shared.misc.proton.injectAppCompatDefaultNightMode
 import app.morphe.patches.shared.misc.proton.injectBundleVersion
 import app.morphe.patches.shared.misc.proton.literalWrittenTo
 import app.morphe.patches.shared.misc.proton.patchesSettingsActivityPatch
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.formatter.DexFormatter
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -110,8 +110,8 @@ internal val patchesSettingsPatch = bytecodePatch {
                     ${if (hasBadge) "const v${register(SETTINGS_ITEM_BADGE_PARAMETER)}, 0x0" else ""}
                     const v${last - 1}, 0x0
                     const v$last, $defaultArgumentsMask
-                    invoke-static/range { v$first .. v$last }, ${DexFormatter.INSTANCE.getMethodDescriptor(reference)}
-                    invoke-static { v${dividerCall.registerC}, v${dividerCall.registerD} }, ${DexFormatter.INSTANCE.getMethodDescriptor(dividerReference)}
+                    invoke-static/range { v$first .. v$last }, ${descriptor(reference)}
+                    invoke-static { v${dividerCall.registerC}, v${dividerCall.registerD} }, ${descriptor(dividerReference)}
                 """,
             )
         }

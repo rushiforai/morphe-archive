@@ -34,6 +34,7 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * answered as one it doesn't, and counted. A search Facebook already keeps out stays out and isn't
  * counted. Off, paused, or before the settings are ready, Facebook's own answer comes back. The
  * same goes for the Recent list: on, a search doesn't go to its top; otherwise Facebook's put runs.
+ * And for profile visits (#221): on, the visit event isn't logged and every other event is.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -128,6 +129,34 @@ public class SearchHistoryTest {
     public void aMapThatRefusesThePutStillRefusesIt() {
         Map<Object, Object> refuses = Collections.unmodifiableMap(new HashMap<>());
         assertThrows(UnsupportedOperationException.class, () -> SearchHistory.keepRecent(refuses, "filter", "list"));
+    }
+
+    @Test
+    public void onAProfileVisitIsKeptOutAndCounted() {
+        Settings.DONT_SAVE_SEARCH_HISTORY.save(true);
+        assertTrue("a profile visit was logged", SearchHistory.keepVisitOut(SearchHistory.PROFILE_VISIT));
+        assertTrue(String.valueOf(statusLine()).contains(SearchHistory.KEPT_VISIT_OUT + " 1"));
+    }
+
+    @Test
+    public void onEveryOtherEventIsLogged() {
+        Settings.DONT_SAVE_SEARCH_HISTORY.save(true);
+        assertFalse(SearchHistory.keepVisitOut("profile_engagement_events"));
+        assertFalse(SearchHistory.keepVisitOut("merlin_unified_protocol_event"));
+        assertFalse(SearchHistory.keepVisitOut(null));
+        assertNull("another event was reported", statusLine());
+    }
+
+    @Test
+    public void offPausedOrBeforeTheSettingsAreReadyAProfileVisitIsLogged() {
+        assertFalse("off", SearchHistory.keepVisitOut(SearchHistory.PROFILE_VISIT));
+        Settings.DONT_SAVE_SEARCH_HISTORY.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("paused", SearchHistory.keepVisitOut(SearchHistory.PROFILE_VISIT));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertFalse("before the settings were ready", SearchHistory.keepVisitOut(SearchHistory.PROFILE_VISIT)));
+        assertFalse(String.valueOf(statusLine()).contains(SearchHistory.KEPT_VISIT_OUT));
     }
 
     @Test

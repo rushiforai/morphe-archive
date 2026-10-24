@@ -10,6 +10,7 @@
 
 package app.morphe.patches.youtube.layout.hide.general
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -33,6 +34,7 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.settings.preference.noTitleUnsortedPreferenceCategory
+import app.morphe.patches.shared.misc.settings.preference.screenInfoPreferenceCategory
 import app.morphe.patches.shared.misc.spans.addSpanFilter
 import app.morphe.patches.shared.misc.spans.inclusiveSpanPatch
 import app.morphe.patches.shared.misc.textcomponent.hookLithoSpannableString
@@ -51,7 +53,9 @@ import app.morphe.patches.youtube.misc.playservice.is_21_07_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_11_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_20_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_25_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_26_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_36_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_42_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.proto.elementProtoParserHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -59,11 +63,11 @@ import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.shared.ModernRelateVideoOverlayFingerprint
 import app.morphe.patches.youtube.shared.RelateVideoOverlayLayoutParamFingerprint
-import app.morphe.patches.youtube.shared.hookVideoIntent
-import app.morphe.patches.youtube.shared.openVideoIntentPatch
+import app.morphe.patches.youtube.video.speed.custom.TapAndHoldSpeedFingerprint
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.fiveRegisters
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -93,8 +97,6 @@ private const val CUSTOM_FILTER =
     "Lapp/morphe/extension/youtube/patches/components/CustomFilter;"
 private const val KEYWORD_FILTER =
     "Lapp/morphe/extension/youtube/patches/components/KeywordContentFilter;"
-private const val AISLIST_FILTER =
-    "Lapp/morphe/extension/youtube/patches/components/AiSListFilter;"
 private const val SANITIZE_VIDEO_SUBTITLE_FILTER =
     "Lapp/morphe/extension/youtube/patches/spans/SanitizeVideoSubtitleFilter;"
 private const val SEARCH_LINKS_FILTER =
@@ -103,7 +105,6 @@ private const val SEARCH_LINKS_FILTER =
 val hideLayoutComponentsPatch = bytecodePatch(
     name = "Hide layout components",
     description = "Adds options to hide general layout components."
-
 ) {
     dependsOn(
         lithoFilterPatch,
@@ -118,8 +119,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
         treeNodeElementHookPatch,
         inclusiveSpanPatch,
         textComponentPatch,
-        lithoSpannableStringPatch,
-        openVideoIntentPatch
+        lithoSpannableStringPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -184,9 +184,11 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     SwitchPreference("morphe_hide_comments_gift_button"),
                     SwitchPreference("morphe_hide_comments_info_button"),
                     SwitchPreference("morphe_hide_comments_live_chat_donators_bar"),
+                    SwitchPreference("morphe_hide_comments_live_chat_scroll_to_bottom_button"),
                     SwitchPreference("morphe_hide_comments_live_chat_tooltips", summary = true),
                     SwitchPreference("morphe_hide_comments_menu_button", summary = true),
                     SwitchPreference("morphe_hide_comments_preview_comment", summary = true),
+                    SwitchPreference("morphe_hide_comments_zero_state"),
                     SwitchPreference("morphe_minimal_comments_button", summary = true),
                     SwitchPreference("morphe_hide_comments_thanks_button"),
                     SwitchPreference("morphe_hide_comments_timestamp_button"),
@@ -196,6 +198,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 ),
                 sorting = Sorting.UNSORTED
             ),
+            SwitchPreference("morphe_hide_ask_gemini_button", summary = true),
             SwitchPreference("morphe_hide_channel_bar"),
             SwitchPreference("morphe_hide_channel_watermark"),
             SwitchPreference("morphe_hide_chapters_timeline_button"),
@@ -209,6 +212,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
             SwitchPreference("morphe_hide_snackbar"),
             SwitchPreference("morphe_hide_subscribers_community_guidelines"),
             SwitchPreference("morphe_hide_sync_button"),
+            SwitchPreference("morphe_hide_tap_and_hold_gradient", summary = true),
             SwitchPreference("morphe_hide_timed_reactions", summary = true),
             SwitchPreference("morphe_hide_video_title", summary = true),
             SwitchPreference("morphe_sanitize_video_subtitle", summary = true)
@@ -264,89 +268,17 @@ val hideLayoutComponentsPatch = bytecodePatch(
                         preferences = emptySet(),
                         tag = "app.morphe.extension.youtube.settings.preference.KeywordContentStatsPreferenceCategory"
                     ),
-                    PreferenceCategory(
+                    screenInfoPreferenceCategory(
                         key = "morphe_hide_keyword_content_about_category",
-                        titleKey = "morphe_hide_about_category_title",
-                        sorting = Sorting.UNSORTED,
                         preferences = setOf(
                             NonInteractivePreference(
                                 key = "morphe_hide_keyword_content_about",
-                                titleKey = "morphe_hide_keyword_content_screen_title",
+                                titleKey = null,
                                 tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
                             ),
                             NonInteractivePreference(
                                 key = "morphe_hide_keyword_content_about_whole_words",
                                 tag = "app.morphe.extension.youtube.settings.preference.HTMLPreference"
-                            )
-                        )
-                    )
-                )
-            ),
-            PreferenceScreenPreference(
-                key = "morphe_hide_aislist_screen",
-                sorting = Sorting.UNSORTED,
-                preferences = setOf(
-                    PreferenceCategory(
-                        key = "morphe_hide_aislist_blocklist_category",
-                        sorting = Sorting.UNSORTED,
-                        preferences = setOf(
-                            SwitchPreference(
-                                key = "morphe_hide_aislist_blocklist_home",
-                                titleKey = "morphe_hide_aislist_hide_home_title"
-                            ),
-                            SwitchPreference(
-                                key = "morphe_hide_aislist_blocklist_search",
-                                titleKey = "morphe_hide_aislist_hide_search_title"
-                            )
-
-                        )
-                    ),
-                    PreferenceCategory(
-                        key = "morphe_hide_aislist_warnlist_category",
-                        sorting = Sorting.UNSORTED,
-                        preferences = setOf(
-                            SwitchPreference(
-                                key = "morphe_hide_aislist_warnlist_home",
-                                titleKey = "morphe_hide_aislist_hide_home_title"
-                            ),
-                            SwitchPreference(
-                                key = "morphe_hide_aislist_warnlist_search",
-                                titleKey = "morphe_hide_aislist_hide_search_title"
-                            )
-                        )
-                    ),
-                    PreferenceCategory(
-                        key = "morphe_aislist_submit_category",
-                        sorting = Sorting.UNSORTED,
-                        preferences = setOf(
-                            SwitchPreference("morphe_aislist_submit_flyout_menu", summary = true),
-                            TextPreference(
-                                key = "morphe_aislist_submit_username",
-                                inputType = InputType.TEXT
-                            )
-                        )
-                    ),
-                    PreferenceCategory(
-                        key = "morphe_hide_aislist_stats_category",
-                        titleKey = "morphe_hide_stats_category_title",
-                        sorting = Sorting.UNSORTED,
-                        preferences = emptySet(),
-                        tag = "app.morphe.extension.youtube.settings.preference.AiSListStatsPreferenceCategory"
-                    ),
-                    PreferenceCategory(
-                        key = "morphe_hide_aislist_about_category",
-                        titleKey = "morphe_hide_about_category_title",
-                        sorting = Sorting.UNSORTED,
-                        preferences = setOf(
-                            NonInteractivePreference(
-                                key = "morphe_hide_aislist_about",
-                                titleKey = "morphe_hide_aislist_screen_title",
-                                tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
-                            ),
-                            NonInteractivePreference(
-                                key = "morphe_hide_aislist_attribution",
-                                tag = "app.morphe.extension.shared.settings.preference.AiSListAttributionPreference",
-                                selectable = true
                             )
                         )
                     )
@@ -385,7 +317,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
             ),
             SwitchPreference("morphe_hide_album_cards", summary = true),
             SwitchPreference("morphe_hide_artist_cards", summary = true),
-            SwitchPreference("morphe_hide_auto_dubbed_label"),
+            SwitchPreference("morphe_hide_channel_buttons", summary = true),
             SwitchPreference("morphe_hide_community_posts"),
             SwitchPreference("morphe_hide_compact_banner", summary = true),
             if (is_20_26_or_greater) {
@@ -413,10 +345,10 @@ val hideLayoutComponentsPatch = bytecodePatch(
             ),
             SwitchPreference("morphe_hide_floating_microphone_button", summary = true),
             SwitchPreference("morphe_hide_get_premium_button"),
-            SwitchPreference("morphe_hide_history_shelf", summary = true),
+            SwitchPreference("morphe_hide_history_shelf"),
             SwitchPreference("morphe_hide_horizontal_shelves", summary = true),
-            SwitchPreference("morphe_hide_hyped_label"),
             SwitchPreference("morphe_hide_image_shelf", summary = true),
+            SwitchPreference("morphe_hide_handle", summary = true),
             SwitchPreference("morphe_hide_help_feedback_menu", summary = true),
             SwitchPreference("morphe_hide_invite_to_message_card", summary = true),
             SwitchPreference("morphe_hide_latest_videos_button", summary = true),
@@ -429,7 +361,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
             SwitchPreference("morphe_hide_search_term_thumbnails", summary = true),
             SwitchPreference("morphe_hide_show_more_button", summary = true),
             SwitchPreference("morphe_hide_subscribed_channels_bar"),
-            SwitchPreference("morphe_hide_subscribed_channels_bar_names"),
+            SwitchPreference("morphe_hide_subscribed_channels_bar_names", summary = true),
             SwitchPreference("morphe_hide_surveys", summary = true),
             SwitchPreference("morphe_hide_ticket_shelf"),
             SwitchPreference(
@@ -438,14 +370,13 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 tag = "app.morphe.extension.shared.settings.preference.BulletPointSwitchPreference"
             ),
             SwitchPreference("morphe_hide_video_thumbnail"),
-            SwitchPreference("morphe_hide_video_recommendation_labels", summary = true),
+            SwitchPreference("morphe_hide_video_labels", summary = true),
             SwitchPreference(
                 "morphe_hide_view_count",
                 summary = true,
                 tag = "app.morphe.extension.shared.settings.preference.BulletPointSwitchPreference"
             ),
             SwitchPreference("morphe_hide_web_search_results", summary = true),
-            SwitchPreference("morphe_hide_you_tab_channel_handle", summary = true),
             SwitchPreference("morphe_hide_youtube_doodles", summary = true)
         )
 
@@ -459,7 +390,11 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 sorting = Sorting.UNSORTED,
                 preferences = setOf(
                     SwitchPreference("morphe_custom_filter"),
-                    TextPreference("morphe_custom_filter_strings", inputType = InputType.TEXT_MULTI_LINE)
+                    TextPreference(
+                        "morphe_custom_filter_strings",
+                        titleKey = "morphe_custom_filter_screen_title",
+                        inputType = InputType.TEXT_MULTI_LINE
+                    )
                 )
             )
         )
@@ -471,7 +406,6 @@ val hideLayoutComponentsPatch = bytecodePatch(
         }
         addLithoFilter(COMMENTS_FILTER)
         addLithoFilter(KEYWORD_FILTER)
-        addLithoFilter(AISLIST_FILTER)
         addLithoFilter(CUSTOM_FILTER)
         addSpanFilter(SANITIZE_VIDEO_SUBTITLE_FILTER)
         addSpanFilter(SEARCH_LINKS_FILTER)
@@ -509,17 +443,20 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // region hide watermark (legacy code for old versions of YouTube)
 
-        ShowWatermarkFingerprint.method.apply {
-            val index = implementation!!.instructions.size - 5
+        ShowWatermarkFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.first().index
+                val register = getInstruction<TwoRegisterInstruction>(index).registerA
 
-            removeInstruction(index)
-            addInstructions(
-                index,
-                """
-                    invoke-static {}, $LAYOUT_COMPONENTS_FILTER->showWatermark()Z
-                    move-result p2
-                """
-            )
+                removeInstruction(index)
+                addInstructions(
+                    index,
+                    """
+                        invoke-static {}, $LAYOUT_COMPONENTS_FILTER->showWatermark()Z
+                        move-result v$register
+                    """
+                )
+            }
         }
 
         // endregion
@@ -626,7 +563,6 @@ val hideLayoutComponentsPatch = bytecodePatch(
         // region hide comment preview
 
         hookLithoSpannableString(COMMENTS_FILTER)
-        hookVideoIntent(COMMENTS_FILTER, detectVideo = true, detectShorts = false)
 
         // endregion
 
@@ -685,11 +621,15 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // region hide floating microphone
 
-        val showFloatingMicrophoneButtonFingerprintMatch = if (is_21_11_or_greater)
-            ShowFloatingMicrophoneButtonFingerprint
-        else ShowFloatingMicrophoneButtonLegacyFingerprint
+        val showFloatingMicrophoneButtonFingerprints = mutableListOf(
+            if (is_21_11_or_greater) ShowFloatingMicrophoneButtonFingerprint
+            else ShowFloatingMicrophoneButtonLegacyFingerprint
+        )
+        if (is_21_25_or_greater) {
+            showFloatingMicrophoneButtonFingerprints += ShowFloatingMicrophoneButtonStubFingerprint
+        }
 
-        showFloatingMicrophoneButtonFingerprintMatch.let {
+        showFloatingMicrophoneButtonFingerprints.forEach {
             it.method.apply {
                 val index = it.instructionMatches.last().index
                 val register = getInstruction<TwoRegisterInstruction>(index).registerA
@@ -744,32 +684,29 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // region hide view count
 
-        HideViewCountFingerprint.method.apply {
-            val startIndex = HideViewCountFingerprint.instructionMatches.first().index
-            var returnStringRegister = getInstruction<OneRegisterInstruction>(startIndex).registerA
+        HideViewCountFingerprint.let {
+            it.method.apply {
+                // The string passed to the span method is the returned string.
+                // 21.42+ jumps to a shared return, so the register of a return instruction can't be used.
+                val returnStringRegister = it.instructionMatches.last()
+                    .getInstruction<FiveRegisterInstruction>().registerC
 
-            // Find the instruction where the text dimension is retrieved.
-            val applyDimensionIndex = indexOfFirstInstructionReversedOrThrow {
-                val reference = getReference<MethodReference>()
-                opcode == Opcode.INVOKE_STATIC &&
-                        reference?.definingClass == "Landroid/util/TypedValue;" &&
-                        reference.returnType == "F" &&
-                        reference.name == "applyDimension" &&
-                        reference.parameterTypes == listOf("I", "F", "Landroid/util/DisplayMetrics;")
+                // The instruction where the text dimension is retrieved.
+                val applyDimensionIndex = it.instructionMatches[2].index
+
+                // A float value is passed which is used to determine subtitle text size.
+                val floatDimensionRegister = getInstruction<OneRegisterInstruction>(
+                    applyDimensionIndex + 1
+                ).registerA
+
+                addInstructions(
+                    applyDimensionIndex,
+                    """
+                        invoke-static { v$returnStringRegister, v$floatDimensionRegister }, $LAYOUT_COMPONENTS_FILTER->modifyFeedSubtitleSpan(Landroid/text/SpannableString;F)Landroid/text/SpannableString;
+                        move-result-object v$returnStringRegister
+                    """
+                )
             }
-
-            // A float value is passed which is used to determine subtitle text size.
-            val floatDimensionRegister = getInstruction<OneRegisterInstruction>(
-                applyDimensionIndex + 1
-            ).registerA
-
-            addInstructions(
-                applyDimensionIndex - 1,
-                """
-                    invoke-static { v$returnStringRegister, v$floatDimensionRegister }, $LAYOUT_COMPONENTS_FILTER->modifyFeedSubtitleSpan(Landroid/text/SpannableString;F)Landroid/text/SpannableString;
-                    move-result-object v$returnStringRegister
-                """
-            )
         }
 
         // endregion
@@ -777,11 +714,15 @@ val hideLayoutComponentsPatch = bytecodePatch(
         // region hide filter bar
 
         arrayOf(
-            FilterBarHeightFingerprint to "hideInFeed",
+            if (is_20_31_or_greater) {
+                FilterBarHeightFingerprint
+            } else {
+                FilterBarHeightLegacyFingerprint
+            } to "hideInFeed",
             SearchResultsChipBarFingerprint to "hideInSearch"
         ).forEach { (fingerprint, methodName) ->
             fingerprint.method.apply {
-                val moveIndex = fingerprint.instructionMatches.last().index
+                val moveIndex = fingerprint.instructionMatches[fingerprint.instructionMatches.lastIndex - 1].index
                 val sizeRegister = getInstruction<OneRegisterInstruction>(moveIndex).registerA
 
                 addInstructions(
@@ -1043,7 +984,11 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     protoObjectIndex
                 ).reference as FieldReference
 
-                val insertIndex = if (is_21_36_or_greater) {
+                // 21.36 - 21.41 reads the tab proto from a typed field.
+                // Other versions read an Object field and cast it.
+                val isTypedProtoField = is_21_36_or_greater && !is_21_42_or_greater
+
+                val insertIndex = if (isTypedProtoField) {
                     protoObjectIndex + 1
                 } else {
                     indexOfFirstInstructionOrThrow(protoObjectIndex) {
@@ -1051,7 +996,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     } + 1
                 }
 
-                val checkCastInstruction = if (is_21_36_or_greater) {
+                val checkCastInstruction = if (isTypedProtoField) {
                     ""
                 } else {
                     val checkCastIndex = insertIndex - 1
@@ -1107,11 +1052,9 @@ val hideLayoutComponentsPatch = bytecodePatch(
             val addAllIndex = indexOfFirstInstructionOrThrow(
                 methodCall(smali = "Ljava/util/List;->addAll(Ljava/util/Collection;)Z")
             )
-            val addAllInstruction = getInstruction<FiveRegisterInstruction>(addAllIndex)
-
             addInstruction(
                 addAllIndex,
-                "invoke-static { v${addAllInstruction.registerC}, v${addAllInstruction.registerD} }, " +
+                "invoke-static { ${fiveRegisters(addAllIndex)} }, " +
                         "$LAYOUT_COMPONENTS_FILTER->setChannelTabs(Ljava/util/List;Ljava/util/List;)V"
             )
         }
@@ -1182,6 +1125,35 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 COMMENTS_FILTER,
                 "hideLiveChatThanksButton"
             )
+        }
+
+        // endregion
+
+        // region hide live chat scroll to bottom button
+
+        MoreCommentsIconFingerprint.matchAll().forEach {
+            it.method.injectHideViewCall(
+                it.instructionMatches.last().index,
+                COMMENTS_FILTER,
+                "hideLiveChatScrollToBottomButton"
+            )
+        }
+
+        // endregion
+
+        // region fix live chat text field behind the navigation bar
+
+        // https://github.com/MorpheApp/morphe-patches/issues/3453
+        // The flag is read by different layouts, and each must use the same value,
+        // otherwise other panels such as the comments show the bottom padding twice.
+        // Flag was removed in 21.26+.
+        if (is_21_11_or_greater && !is_21_26_or_greater) {
+            EngagementPanelEdgeToEdgeFeatureFlagFingerprint.matchAll().forEach {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    false
+                )
+            }
         }
 
         // endregion
@@ -1288,6 +1260,50 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // endregion
 
+        // region hide tap and hold gradient
+
+        // Track when tap and hold starts. Other patches change this method too,
+        // so match it again before and after changing it.
+        TapAndHoldSpeedFingerprint.let {
+            it.clearMatch()
+            // The class that overrides the speed, and restores it when tap and hold ends.
+            var speedControllerType = it.instructionMatches[6].getFieldAccessed().type
+
+            // Right after the "already speeding up" check.
+            it.method.addInstructionsAtControlFlowLabel(
+                it.instructionMatches[5].index + 1,
+                "invoke-static { }, $LAYOUT_COMPONENTS_FILTER->onTapAndHoldStart()V"
+            )
+
+            // Track when tap and hold ends.
+            Fingerprint(
+                definingClass = speedControllerType,
+                accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+                returnType = "V",
+                parameters = listOf()
+            ).method.addInstruction(
+                0,
+                "invoke-static { }, $LAYOUT_COMPONENTS_FILTER->onTapAndHoldEnd()V"
+            )
+        }
+
+        // Sliding up in fullscreen drags the "More videos" panel, which also shows the
+        // player controls. While holding, the controls stay hidden but their top and
+        // bottom gradients still fade in.
+        ShowControlsOnRelatedPanelDragFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { }, $LAYOUT_COMPONENTS_FILTER->hideTapAndHoldGradient()Z
+                move-result v0
+                if-eqz v0, :show
+                return-void
+                :show
+                nop
+            """
+        )
+
+        // endregion
+
         // region hide live chat gift button
 
         JewelsButtonContainerFingerprint.matchAll().forEach { match ->
@@ -1329,7 +1345,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // endregion
 
-        // region hide help & feedback in menus
+        // region hide help & feedback menu
 
         ListMenuItemViewOnMeasureFingerprint.method.addInstructions(
             0,

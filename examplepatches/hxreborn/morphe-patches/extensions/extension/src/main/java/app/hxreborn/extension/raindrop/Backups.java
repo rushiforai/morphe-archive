@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,6 +21,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import androidx.annotation.RequiresApi;
 
 final class Backups {
 
@@ -70,7 +70,7 @@ final class Backups {
         }, "RaindropBackup").start();
     }
 
-    @TargetApi(Build.VERSION_CODES.Q)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private static void save(ContentResolver resolver, byte[] export) throws IOException {
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date());
         ContentValues values = new ContentValues();

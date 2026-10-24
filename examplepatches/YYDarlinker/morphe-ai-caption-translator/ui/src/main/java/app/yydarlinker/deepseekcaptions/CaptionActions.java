@@ -99,12 +99,22 @@ final class CaptionActions {
         command(Action.CLEAR_CACHE, "");
     }
 
-    static void deactivateFromCaptionButton() {
-        command(Action.DEACTIVATE, "caption_button");
+    /**
+     * Stops the display because the user turned captions off. The session intent is written by the
+     * reconciler before this command; the command itself only ends the visible session.
+     */
+    static void deactivateByUser() {
+        command(Action.DEACTIVATE, "user_off");
     }
 
-    static void deactivateFromNativeCaptionState() {
-        command(Action.DEACTIVATE, "native_selection");
+    /** Stops a session because the native caption model reset on its own; the intent survives. */
+    static void deactivateAfterNativeReset() {
+        command(Action.DEACTIVATE, "native_reset");
+    }
+
+    /** Stops the display with the session; the intent is never written by a teardown. */
+    static void deactivateForTeardown() {
+        command(Action.DEACTIVATE, "teardown");
     }
 
     static void activate(Context c, String u) {

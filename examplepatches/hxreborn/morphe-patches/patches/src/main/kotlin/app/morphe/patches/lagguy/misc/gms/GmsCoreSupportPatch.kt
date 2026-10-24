@@ -9,4 +9,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.gms.gmsCoreSupportPatchFor
 
 @Suppress("unused")
-val gmsCoreSupportPatch = gmsCoreSupportPatchFor(AppCompatibilities.LAGGUY_WALLPAPERS, spoofSignaturePatch)
+val gmsCoreSupportPatch = gmsCoreSupportPatchFor(
+    AppCompatibilities.LAGGUY_WALLPAPERS,
+    spoofSignaturePatch,
+    default = true,
+)

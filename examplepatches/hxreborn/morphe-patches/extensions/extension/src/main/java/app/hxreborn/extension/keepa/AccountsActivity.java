@@ -12,7 +12,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ClipDrawable;
@@ -34,6 +33,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import app.hxreborn.extension.shared.NightMode;
 
 @SuppressLint("SetTextI18n")
 @SuppressWarnings("unused")
@@ -156,8 +157,7 @@ public final class AccountsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.dark = (getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        this.dark = NightMode.isActive(this);
         this.backgroundColor = (this.dark) ? DARK_BACKGROUND : LIGHT_BACKGROUND;
         this.cardColor = (this.dark) ? DARK_CARD : LIGHT_CARD;
         this.textColor = (this.dark) ? DARK_TEXT : LIGHT_TEXT;

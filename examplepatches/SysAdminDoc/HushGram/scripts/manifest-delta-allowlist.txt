@@ -31,3 +31,10 @@ permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION
 # answer the real one. scripts/verify-injected-registers.ps1 also reads this line: a patched build
 # with this code still counts as the same build as Meta's.
 version-code 2147483647
+#
+# Pick the app icon adds three launcher icons, each an alias that opens Instagram the way its own
+# launcher alias does and is exported as that one is. They start off, and the extension turns on the
+# one picked in settings.
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_hushgram
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_dark
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_plum

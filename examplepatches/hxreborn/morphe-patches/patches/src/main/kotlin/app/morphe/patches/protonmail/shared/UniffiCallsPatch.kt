@@ -4,19 +4,11 @@
  */
 package app.morphe.patches.protonmail.shared
 
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private const val UNIFFI_CALLS_CLASS = "Lapp/hxreborn/extension/protonmail/UniffiCalls;"
-
-internal object IoDispatcherFingerprint : Fingerprint(
-    name = "toString",
-    returnType = "Ljava/lang/String;",
-    parameters = emptyList(),
-    strings = listOf("Dispatchers.IO"),
-)
 
 internal val uniffiCallsPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")

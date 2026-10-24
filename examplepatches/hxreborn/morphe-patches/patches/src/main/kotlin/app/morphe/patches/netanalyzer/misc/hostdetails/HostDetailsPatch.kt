@@ -9,14 +9,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.netanalyzer.shared.ClickableModifierFingerprint
 import app.morphe.patches.netanalyzer.shared.FEATURES_CLASS
 import app.morphe.patches.netanalyzer.shared.PING_RESULT_ROW
 import app.morphe.patches.netanalyzer.shared.PING_RESULT_ROW_PROBE
 import app.morphe.patches.netanalyzer.shared.addFeatureActivity
 import app.morphe.patches.netanalyzer.shared.composableParameters
-import app.morphe.patches.netanalyzer.shared.descriptor
 import app.morphe.patches.netanalyzer.shared.patchesMenuPatch
 import app.morphe.patches.netanalyzer.shared.rowChevronMethod
 import app.morphe.patches.netanalyzer.shared.toolbarActionsPatch
@@ -24,16 +22,15 @@ import app.morphe.patches.netanalyzer.shared.probeFieldNames
 import app.morphe.patches.netanalyzer.shared.propertyFields
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.util.MethodUtil
 
 private const val ROW_ON_CLICK = "onClick"
@@ -63,7 +60,7 @@ val hostDetailsPatch = bytecodePatch(
         val composerRegister = spacerCall.getInstruction<FiveRegisterInstruction>().registerC
         spacer.method.replaceInstruction(
             spacerCall.index,
-            "invoke-static { v$composerRegister }, ${rowChevronMethod(spacer.classDef).descriptor()}",
+            "invoke-static { v$composerRegister }, ${descriptor(rowChevronMethod(spacer.classDef))}",
         )
 
         val row = PingResultRowBackgroundFingerprint.matchSingle()
@@ -90,35 +87,27 @@ val hostDetailsPatch = bytecodePatch(
 
         val fieldNames = probeFieldNames(classDefBy(probeType).propertyFields(), probeType)
 
-        val clickableRow = ImmutableMethod(
-            row.classDef.type,
+        val clickableRow = row.classDef.addMethod(
             CLICKABLE_ROW_METHOD,
-            listOf(ImmutableMethodParameter(modifierType, null, null), ImmutableMethodParameter(probeType, null, null)),
+            listOf(modifierType, probeType),
             modifierType,
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(CLICKABLE_ROW_LOCALS + 2),
-        ).toMutable().apply {
-            addInstructions(
-                0,
-                """
-                    const-class v0, $onClickType
-                    const-string v1, "$fieldNames"
-                    invoke-static { v0, p1, v1 }, $FEATURES_CLASS->onProbeClick(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-                    move-result-object v3
-                    check-cast v3, $onClickType
-                    move-object v0, p0
-                    const/4 v1, $CLICKABLE_ENABLED
-                    const/4 v2, $CLICKABLE_NO_LABEL
-                    const/4 v4, $CLICKABLE_NO_DEFAULTS
-                    invoke-static/range { v0 .. v4 }, ${clickable.descriptor()}
-                    move-result-object v0
-                    return-object v0
-                """,
-            )
-        }
-        row.classDef.methods.add(clickableRow)
+            CLICKABLE_ROW_LOCALS + 2,
+            """
+                const-class v0, $onClickType
+                const-string v1, "$fieldNames"
+                invoke-static { v0, p1, v1 }, $FEATURES_CLASS->onProbeClick(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+                move-result-object v3
+                check-cast v3, $onClickType
+                move-object v0, p0
+                const/4 v1, $CLICKABLE_ENABLED
+                const/4 v2, $CLICKABLE_NO_LABEL
+                const/4 v4, $CLICKABLE_NO_DEFAULTS
+                invoke-static/range { v0 .. v4 }, ${descriptor(clickable)}
+                move-result-object v0
+                return-object v0
+            """,
+        )
 
         val resultIndex = row.instructionMatches.last().index
         val modifierRegister = row.method.getInstruction<OneRegisterInstruction>(resultIndex).registerA
@@ -131,7 +120,7 @@ val hostDetailsPatch = bytecodePatch(
             """
                 move-object/from16 v$modifierCopy, v$modifierRegister
                 move-object/from16 v$probeCopy, v$probeRegister
-                invoke-static { v$modifierCopy, v$probeCopy }, ${clickableRow.descriptor()}
+                invoke-static { v$modifierCopy, v$probeCopy }, ${descriptor(clickableRow)}
                 move-result-object v$modifierCopy
                 move-object/from16 v$modifierRegister, v$modifierCopy
             """,

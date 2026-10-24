@@ -522,6 +522,11 @@ public final class AiTrace {
         return (query < 0) ? path : path.substring(0, query);
     }
 
+    private static long elapsedMs(long startedAtMs, long endedAtMs) {
+        long ended = (endedAtMs != 0) ? endedAtMs : System.currentTimeMillis();
+        return Math.max(0, ended - startedAtMs);
+    }
+
     static final class LiveRow {
 
         final String method;
@@ -583,8 +588,7 @@ public final class AiTrace {
         }
 
         public long durationMs() {
-            long ended = (this.endedAtMs != 0) ? this.endedAtMs : System.currentTimeMillis();
-            return Math.max(0, ended - this.startedAtMs);
+            return elapsedMs(this.startedAtMs, this.endedAtMs);
         }
 
         public int statusCode() {
@@ -734,8 +738,7 @@ public final class AiTrace {
         }
 
         public long durationMs() {
-            long ended = (this.endedAtMs != 0) ? this.endedAtMs : System.currentTimeMillis();
-            return Math.max(0, ended - this.startedAtMs);
+            return elapsedMs(this.startedAtMs, this.endedAtMs);
         }
 
         public int requestCount() {

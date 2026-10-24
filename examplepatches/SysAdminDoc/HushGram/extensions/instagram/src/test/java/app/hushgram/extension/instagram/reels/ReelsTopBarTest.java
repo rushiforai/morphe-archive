@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -77,6 +78,7 @@ public class ReelsTopBarTest {
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();
+        Settings.HIDE_REELS_FRIENDS_TAB.resetToDefault();
         HookStatus.clear();
         ReelsTopBar.idForTests(ReelsTopBar.BAR_ID, BAR_ID);
         controller = Robolectric.buildActivity(Activity.class).setup();
@@ -104,6 +106,7 @@ public class ReelsTopBarTest {
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();
+        Settings.HIDE_REELS_FRIENDS_TAB.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -676,7 +679,120 @@ public class ReelsTopBarTest {
     @Test public void theButtonSwitchesStartOffAndAreInTheCleanUpReelsFamily() {
         assertFalse(Settings.HIDE_REELS_CREATE_BUTTON.defaultValue);
         assertFalse(Settings.HIDE_REELS_YOUR_ALGORITHM.defaultValue);
+        assertFalse(Settings.HIDE_REELS_FRIENDS_TAB.defaultValue);
         assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.HIDE_REELS_CREATE_BUTTON));
         assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.HIDE_REELS_YOUR_ALGORITHM));
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.HIDE_REELS_FRIENDS_TAB));
+    }
+
+    /** The Reels and Friends tabs, each a view in a row inside a scroller, as Material's tab strip holds them. */
+    private static final class Tabs {
+        final ViewGroup strip;
+        final View reels, friends;
+
+        Tabs(ViewGroup strip, View reels, View friends) {
+            this.strip = strip;
+            this.reels = reels;
+            this.friends = friends;
+        }
+    }
+
+    private Tabs tabs(ViewGroup parent, boolean marked) {
+        HorizontalScrollView scroller = new HorizontalScrollView(activity);
+        LinearLayout strip = new LinearLayout(activity);
+        View reels = new LinearLayout(activity);
+        View friends = new LinearLayout(activity);
+        strip.addView(reels, new LinearLayout.LayoutParams(CAMERA_SIZE * 2, CAMERA_SIZE));
+        strip.addView(friends, new LinearLayout.LayoutParams(CAMERA_SIZE * 2, CAMERA_SIZE));
+        scroller.addView(strip);
+        parent.addView(scroller, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, CAMERA_SIZE));
+        // As the patch does when Instagram builds the Friends tab and gives it its facepile icon.
+        if (marked) ReelsTopBar.friendsTab(friends);
+        layout();
+        return new Tabs(strip, reels, friends);
+    }
+
+    @Test public void theFriendsTabGoesAndReelsHasTheStripToItself() {
+        Row tab = showRow(ClipsViewerSource.CLIPS_TAB);
+        Tabs tabs = tabs(tab.bar, true);
+        assertEquals("both tabs to start", CAMERA_SIZE * 4, tabs.strip.getWidth());
+        Settings.HIDE_REELS_FRIENDS_TAB.save(true);
+        ReelsTopBar.Session session = track();
+        layout();
+        assertEquals("gone, not just invisible", View.GONE, tabs.friends.getVisibility());
+        assertTrue("Reels stays", tabs.reels.isShown());
+        assertEquals("no space where Friends was", CAMERA_SIZE * 2, tabs.strip.getWidth());
+        assertTrue("the buttons stay", tab.create.isShown());
+        assertTrue(tab.algorithm.isShown());
+        assertEquals(View.VISIBLE, tab.bar.getVisibility());
+        assertEquals(1, session.hiddenCount());
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_FRIENDS_SEEN, 1));
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_FRIENDS_HID, 1));
+    }
+
+    @Test public void theFriendsTabComesBackWhenItsSwitchGoesOffAndOnPause() {
+        Row tab = showRow(ClipsViewerSource.CLIPS_TAB);
+        Tabs tabs = tabs(tab.bar, true);
+        Settings.HIDE_REELS_FRIENDS_TAB.save(true);
+        ReelsTopBar.Session session = track();
+        assertEquals(View.GONE, tabs.friends.getVisibility());
+
+        Settings.HIDE_REELS_FRIENDS_TAB.save(false);
+        focusBack();
+        assertEquals("off, Friends is back", View.VISIBLE, tabs.friends.getVisibility());
+        assertFalse("and nothing else is on, so nothing watches", session.isWatching());
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_BUTTON_PUT_BACK, 1));
+
+        Settings.HIDE_REELS_FRIENDS_TAB.save(true);
+        focusBack();
+        assertEquals("on again, gone again", View.GONE, tabs.friends.getVisibility());
+
+        ReelsTopBar.release(activity);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        ReelsTopBar.track(activity);
+        assertEquals("paused, Friends is back", View.VISIBLE, tabs.friends.getVisibility());
+        assertWatching("paused", false);
+    }
+
+    @Test public void aTabThePatchDidNotHandOverStays() {
+        Row tab = showRow(ClipsViewerSource.CLIPS_TAB);
+        Tabs tabs = tabs(tab.bar, false);
+        Settings.HIDE_REELS_FRIENDS_TAB.save(true);
+        ReelsTopBar.Session session = track();
+        assertTrue(tabs.reels.isShown());
+        assertTrue(tabs.friends.isShown());
+        assertEquals(0, session.hiddenCount());
+        assertFalse(ReelsTopBar.isFriendsTab(tabs.friends));
+    }
+
+    @Test public void aFriendsTabOutsideTheBarGoesTooAndInstagramShowingItAgainHidesItAgain() {
+        Tabs tabs = tabs(root, true);
+        Settings.HIDE_REELS_FRIENDS_TAB.save(true);
+        track();
+        assertEquals(View.GONE, tabs.friends.getVisibility());
+        tabs.friends.setVisibility(View.VISIBLE);
+        frame();
+        assertEquals(View.GONE, tabs.friends.getVisibility());
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_BUTTON_HID_AGAIN, 1));
+    }
+
+    @Test public void withTheWholeBarOnTheTabsBarKeepsItsTabsAsTheyWere() {
+        Row tab = showRow(ClipsViewerSource.CLIPS_TAB);
+        Tabs tabs = tabs(tab.bar, true);
+        Settings.HIDE_REELS_TOP_BAR.save(true);
+        Settings.HIDE_REELS_FRIENDS_TAB.save(true);
+        track();
+        assertEquals(View.INVISIBLE, tab.bar.getVisibility());
+        assertEquals("the hidden bar's row stays as it was", View.VISIBLE, tabs.friends.getVisibility());
+
+        Settings.HIDE_REELS_TOP_BAR.save(false);
+        focusBack();
+        frame();
+        idle(ReelsTopBar.LOOK_MS * 2);
+        frame();
+        assertEquals("the bar is back", View.VISIBLE, tab.bar.getVisibility());
+        assertEquals("without Friends", View.GONE, tabs.friends.getVisibility());
+        assertTrue(tabs.reels.isShown());
     }
 }

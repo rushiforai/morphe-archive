@@ -95,7 +95,8 @@ final class TabPicker {
             case REELS:
                 return !Settings.HIDE_REELS_TAB.savedValue() && (instagramHas(REELS) || Settings.SHOW_REELS_TAB.savedValue());
             case MESSAGES:
-                return Settings.SHOW_MESSAGES_TAB.savedValue() || instagramHas(MESSAGES);
+                return (Settings.SHOW_MESSAGES_TAB.savedValue() || instagramHas(MESSAGES))
+                        && !Settings.HIDE_MESSAGES_TAB.savedValue();
             case ACTIVITY:
                 return Settings.SHOW_ACTIVITY_TAB.savedValue();
             default:
@@ -104,12 +105,10 @@ final class TabPicker {
     }
 
     /**
-     * Whether [tab]'s box can't change: Messages on a bar Instagram put it on itself, or a tab with
-     * only a hide switch that Instagram left off the bar (Create on most accounts on 451), which
-     * nothing can add.
+     * Whether [tab]'s box can't change: a tab with only a hide switch that Instagram left off the bar
+     * (Create on most accounts on 451), which nothing can add.
      */
     static boolean fixed(String tab) {
-        if (MESSAGES.equals(tab)) return !Settings.SHOW_MESSAGES_TAB.savedValue() && instagramHas(MESSAGES);
         return hideOnly(tab) != null && !instagramHas(tab);
     }
 
@@ -140,7 +139,16 @@ final class TabPicker {
                 if (add) Settings.SHOW_REELS_TAB.save(true);
                 break;
             case MESSAGES:
-                if (!fixed(tab)) Settings.SHOW_MESSAGES_TAB.save(on);
+                // Show the Messages tab adds it where Instagram's bar has none, and Hide the Messages
+                // tab takes Instagram's own off (#298). Taken off, the tab HushGram added goes first.
+                if (on) {
+                    Settings.HIDE_MESSAGES_TAB.save(false);
+                    if (!instagramHas(MESSAGES)) Settings.SHOW_MESSAGES_TAB.save(true);
+                } else if (Settings.SHOW_MESSAGES_TAB.savedValue()) {
+                    Settings.SHOW_MESSAGES_TAB.save(false);
+                } else {
+                    Settings.HIDE_MESSAGES_TAB.save(true);
+                }
                 break;
             case ACTIVITY:
                 Settings.SHOW_ACTIVITY_TAB.save(on);

@@ -29,6 +29,10 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private VideoViewerGestures gestures;
     private VideoTouchControls touchControls;
     private android.media.MediaPlayer mediaPlayer;
+    private androidx.media3.exoplayer.ExoPlayer gifFallback;
+    private android.view.TextureView gifFallbackView;
+    private boolean gifFallbackAttempted;
+    private float gifAspect;
     private Runnable unregisterBack;
     private Button speedButton;
     private float playbackSpeed = 1f;
@@ -122,6 +126,10 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         HaiagaruUi.showPlayer(this, root); root.requestApplyInsets();
         controls = new HaiagaruMediaController(this) {
             private Runnable unregisterControllerBack;
+            @Override public void setMediaPlayer(MediaController.MediaPlayerControl ignored) {
+                // VideoView reattaches itself on preparation. Always retain the active-player bridge.
+                super.setMediaPlayer(activePlayerControl());
+            }
             @Override public void show(int timeout) {
                 // VideoView and MediaController also request timed shows after touch/seek/play.
                 // Ignore every timeout so none of these paths schedule automatic dismissal.
@@ -151,6 +159,9 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         video.setOnPreparedListener(player -> {
             prepared = true;
             mediaPlayer = player;
+            // X's GIFs are silent MP4s. Preserve their repeating animation behavior.
+            Uri source=Uri.parse(url);
+            if("video.twimg.com".equalsIgnoreCase(source.getHost())&&source.getPath()!=null&&source.getPath().startsWith("/tweet_video/"))player.setLooping(true);
             applyPlaybackSpeed(player, playbackSpeed);
             if (position > 0) video.seekTo(position);
             setStatus("");
@@ -163,6 +174,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         });
         video.setOnErrorListener((player, what, extra) -> {
             prepared = false; mediaPlayer = null; playWhenReady = false;
+            if (startGifFallback()) return true;
             setStatus("動画を再生できません（エラー " + what + "/" + extra
                     + "）。︙から再読み込み、または外部アプリで開いてください");
             return true;
@@ -174,6 +186,22 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             return false;
         });
         load();
+    }
+
+    private MediaController.MediaPlayerControl activePlayerControl() {
+        return new MediaController.MediaPlayerControl() {
+            public void start() { if(gifFallback!=null)gifFallback.play();else video.start(); }
+            public void pause() { if(gifFallback!=null)gifFallback.pause();else video.pause(); }
+            public int getDuration() { return gifFallback!=null?(int)Math.max(0,gifFallback.getDuration()):video.getDuration(); }
+            public int getCurrentPosition() { return gifFallback!=null?(int)gifFallback.getCurrentPosition():video.getCurrentPosition(); }
+            public void seekTo(int value) { if(gifFallback!=null)gifFallback.seekTo(value);else video.seekTo(value); }
+            public boolean isPlaying() { return gifFallback!=null?gifFallback.isPlaying():video.isPlaying(); }
+            public int getBufferPercentage() { return gifFallback!=null?gifFallback.getBufferedPercentage():video.getBufferPercentage(); }
+            public boolean canPause() { return gifFallback!=null||video.canPause(); }
+            public boolean canSeekBackward() { return gifFallback!=null||video.canSeekBackward(); }
+            public boolean canSeekForward() { return gifFallback!=null||video.canSeekForward(); }
+            public int getAudioSessionId() { return gifFallback!=null?gifFallback.getAudioSessionId():video.getAudioSessionId(); }
+        };
     }
 
     private Button overlayButton(String label) {
@@ -192,7 +220,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
 
     private void cyclePlaybackSpeed() {
-        if (!prepared) {
+        if (!prepared && gifFallback==null) {
             Toast.makeText(this, "動画の読み込み後に変更できます", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -211,6 +239,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
 
     private void applyPlaybackSpeed(float speed) {
+        if(gifFallback!=null){gifFallback.setPlaybackSpeed(speed);playbackSpeed=speed;speedButton.setText(speedLabel(speed));return;}
         if (!prepared || mediaPlayer == null || android.os.Build.VERSION.SDK_INT < 23) return;
         applyPlaybackSpeed(mediaPlayer, speed);
     }
@@ -243,10 +272,60 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
 
     private void load() {
+        closeGifFallback();
+        gifFallbackAttempted=false;
+        video.setVisibility(View.VISIBLE);
         prepared = false;
         mediaPlayer = null;
         setStatus("動画を読み込み中…（通信が発生します）");
         video.setVideoURI(Uri.parse(url));
+    }
+
+    /** One independent-extractor retry, limited to X's silent GIF MP4 format. */
+    private boolean startGifFallback() {
+        Uri source=Uri.parse(url);
+        if(gifFallbackAttempted||gifFallback!=null||!"video.twimg.com".equalsIgnoreCase(source.getHost())
+                ||source.getPath()==null||!source.getPath().startsWith("/tweet_video/")
+                ||!(video.getParent() instanceof FrameLayout))return false;
+        try{
+            gifFallbackAttempted=true;
+            video.stopPlayback();controls.hide();video.setVisibility(View.GONE);
+            gifFallback=new androidx.media3.exoplayer.ExoPlayer.Builder(this).build();
+            // Native surface avoids depending on Media3's separately packaged XML/theme resources.
+            gifFallbackView=new android.view.TextureView(this);
+            gifFallbackView.setOpaque(false);
+            gifFallbackView.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->fitGifSurface());
+            gifFallback.setVideoTextureView(gifFallbackView);
+            gifFallbackView.setOnClickListener(v->{if(gifFallback!=null)gifFallback.setPlayWhenReady(!gifFallback.getPlayWhenReady());});
+            ((FrameLayout)video.getParent()).addView(gifFallbackView,new FrameLayout.LayoutParams(-1,-1));
+            toolbar.bringToFront();
+            gifFallback.setRepeatMode(androidx.media3.common.Player.REPEAT_MODE_ONE);
+            gifFallback.addListener(new androidx.media3.common.Player.Listener(){
+                @Override public void onVideoSizeChanged(androidx.media3.common.VideoSize size){
+                    if(size.width>0&&size.height>0){gifAspect=size.width*size.pixelWidthHeightRatio/size.height;fitGifSurface();}
+                }
+                @Override public void onPlaybackStateChanged(int state){if(state==androidx.media3.common.Player.STATE_READY)setStatus("");}
+                @Override public void onPlayerError(androidx.media3.common.PlaybackException error){
+                    setStatus("GIF動画を再生できません。︙から外部アプリで開けます");
+                    android.util.Log.w("Haiagaru","X GIF fallback failed",error);
+                }
+            });
+            gifFallback.setMediaItem(androidx.media3.common.MediaItem.fromUri(source));
+            gifFallback.seekTo(position);gifFallback.prepare();gifFallback.setPlayWhenReady(foreground);
+            toolbar.setVisibility(View.VISIBLE);setStatus("GIF動画を読み込み中…");return true;
+        }catch(RuntimeException failure){android.util.Log.w("Haiagaru","Cannot initialize X GIF fallback",failure);closeGifFallback();return false;}
+    }
+    private void closeGifFallback(){
+        if(gifFallback!=null)gifFallback.clearVideoTextureView(gifFallbackView);
+        if(gifFallbackView!=null){if(gifFallbackView.getParent() instanceof android.view.ViewGroup)((android.view.ViewGroup)gifFallbackView.getParent()).removeView(gifFallbackView);gifFallbackView=null;}
+        if(gifFallback!=null){gifFallback.release();gifFallback=null;}
+        gifAspect=0;
+    }
+    private void fitGifSurface(){
+        if(gifFallbackView==null||gifAspect<=0)return;
+        float width=gifFallbackView.getWidth(),height=gifFallbackView.getHeight();if(width<=0||height<=0)return;
+        float sx=1,sy=1;if(width/height>gifAspect)sx=height*gifAspect/width;else sy=width/gifAspect/height;
+        android.graphics.Matrix matrix=new android.graphics.Matrix();matrix.setScale(sx,sy,width/2,height/2);gifFallbackView.setTransform(matrix);
     }
 
     @Override public boolean dispatchTouchEvent(MotionEvent event) {
@@ -277,6 +356,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
     void gestureStatus(String message) { setStatus(message); }
     void seekRelative(int seconds) {
+        if(gifFallback!=null){gifFallback.seekTo(VideoPlaybackMath.seekTarget((int)gifFallback.getCurrentPosition(),(int)Math.max(0,gifFallback.getDuration()),seconds));return;}
         if (!prepared || video.getDuration() <= 0) return;
         video.seekTo(VideoPlaybackMath.seekTarget(video.getCurrentPosition(), video.getDuration(), seconds));
         setStatus(Math.abs(seconds) + (seconds < 0 ? "秒巻き戻し" : "秒早送り"));
@@ -288,6 +368,11 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         return x >= p[0] && x < p[0] + toolbar.getWidth() && y >= p[1] && y < p[1] + toolbar.getHeight();
     }
     void performVideoGesture(String key) {
+        if(gifFallback!=null){
+            if("gestureTop".equals(key)){gifFallback.seekTo(0);return;}
+            if("gestureBottom".equals(key)){gifFallback.seekTo(Math.max(0,gifFallback.getDuration()-1));return;}
+            if("gestureFullScreen".equals(key)){toggleControls();return;}
+        }
         switch (key) {
             case "gestureBack": case "gestureCloseTab": finish(); break;
             case "gestureTop": if (prepared) video.seekTo(0); break;
@@ -367,6 +452,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         else VideoDownloads.message(this, "動画を保存するには保存先へのアクセス許可が必要です");
     }
     private void pausePlayback() {
+        if(gifFallback!=null){position=(int)gifFallback.getCurrentPosition();gifFallback.pause();}
         if (prepared) {
             position = video.getCurrentPosition();
             playWhenReady = video.isPlaying();
@@ -389,12 +475,14 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putInt("position", prepared ? video.getCurrentPosition() : position);
+        if(gifFallback!=null)state.putInt("position",(int)gifFallback.getCurrentPosition());
         state.putBoolean("playing", prepared ? video.isPlaying() : playWhenReady);
         state.putBoolean("savePermissionPending", savePermissionPending);
         state.putFloat("playbackSpeed", playbackSpeed);
         state.putBoolean("rotated", rotated); super.onSaveInstanceState(state);
     }
     @Override protected void onDestroy() {
+        closeGifFallback();
         if (unregisterBack != null) { unregisterBack.run(); unregisterBack = null; }
         if (touchControls != null) touchControls.cancel();
         if (gestures != null) gestures.close();

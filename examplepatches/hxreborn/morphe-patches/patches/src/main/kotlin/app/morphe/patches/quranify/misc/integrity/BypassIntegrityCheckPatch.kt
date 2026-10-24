@@ -10,9 +10,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val ANDROID_API_HOST = "api-android.quranify.pro"
@@ -40,7 +40,7 @@ val bypassIntegrityCheckPatch = bytecodePatch {
         val method = ApiEndpointsFingerprint.matchSingle().method
 
         val redirected = method.instructions.toList().count { instruction ->
-            val encoded = ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string
+            val encoded = instruction.getReference<StringReference>()?.string
             if (encoded == null || !HEX_LITERAL.matches(encoded)) return@count false
 
             val endpoint = runCatching { encoded.deobfuscate() }.getOrNull()

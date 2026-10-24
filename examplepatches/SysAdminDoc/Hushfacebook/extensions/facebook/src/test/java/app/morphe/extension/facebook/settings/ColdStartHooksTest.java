@@ -71,6 +71,7 @@ import app.morphe.extension.facebook.media.PictureInPictureForTests;
 import app.morphe.extension.facebook.media.ProgressBar;
 import app.morphe.extension.facebook.media.FeedSound;
 import app.morphe.extension.facebook.media.FrameStepForTests;
+import app.morphe.extension.facebook.media.PinchZoomForTests;
 import app.morphe.extension.facebook.media.QualityChoiceForTests;
 import app.morphe.extension.facebook.media.SkipSilence;
 import app.morphe.extension.facebook.media.ReelSpeedForTests;
@@ -99,17 +100,20 @@ import app.morphe.extension.facebook.navigation.HiddenTabsForTests;
 import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
+import app.morphe.extension.facebook.profile.ProfileNotesForTests;
 import app.morphe.extension.facebook.reels.DoubleTapLike;
 import app.morphe.extension.facebook.reels.ReelHold;
 import app.morphe.extension.facebook.reels.ReelHoldForTests;
 import app.morphe.extension.facebook.reels.ReelCleanMode;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
+import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.search.SearchHistory;
 import app.morphe.extension.facebook.stories.StoryAdvance;
 import app.morphe.extension.facebook.stories.StorySeenForTests;
+import app.morphe.extension.facebook.stories.StoryMusic;
 import app.morphe.extension.facebook.stories.StoryUpload;
 import app.morphe.extension.facebook.stories.SuggestedStoriesForTests;
 import app.morphe.extension.shared.Utils;
@@ -226,6 +230,7 @@ public class ColdStartHooksTest {
         assertTrue(section.items.contains(sectionAd));
         assertFalse("a search page built before the context lost its ad", SearchAdFilterForTests.dropsAnAd());
         assertFalse("a profile row drawn before the context was left out", ProfileAdFilterForTests.hidesASponsoredStory());
+        assertFalse("a note bubble laid out before the context was left out", ProfileNotesForTests.hidesANote());
         assertFalse("a Marketplace feed query sent before the context skipped its ads",
                 MarketplaceAdFilterForTests.asksTheFeedToSkipAds());
         assertFalse("a Marketplace ads query sent before the context was held back",
@@ -241,6 +246,8 @@ public class ColdStartHooksTest {
         assertFalse(ReelDownload.showsButton());
         assertNull(ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))));
         assertFalse("a Reels tab audio line drawn before the context came off", ReelDeclutter.hideAudioLine());
+        assertFalse("a slow connection message posted before the context was held back",
+                ReelDeclutter.hideSlowConnectionMessage());
         Object searchBar = new Object();
         assertSame("a reel's search bar built before the context came off", searchBar,
                 ReelDeclutter.searchBarPart(searchBar));
@@ -251,6 +258,7 @@ public class ColdStartHooksTest {
         assertFalse("a Threads card read before the context came off", ReelMidCardsForTests.dropsAThreadsCard());
         assertFalse("a reel made before the context started in Clean mode", ReelCleanMode.startClean(false));
         assertFalse("a batch of watched reels sent before the context was held back", SeenStateSendForTests.heldBack());
+        assertFalse("a Reels rerank before the context put the newest first", NewestReelsForTests.putsTheNewestFirst());
         assertFalse("an analytics upload before the context was held back", AnalyticsUploads.holdXAnalyticsUpload());
         assertNull("a game's ad before the context was answered with no ad",
                 GameAds.heldPromise("{\"type\":\"loadadasync\",\"content\":{\"promiseID\":\"1\"}}"));
@@ -309,6 +317,7 @@ public class ColdStartHooksTest {
         assertFalse("a story viewed before the context got the Mark as seen button", StorySeenForTests.pointsTheButton());
         assertEquals("a Story upload asked for high quality before the context said yes",
                 "standard", StoryUpload.quality("standard"));
+        assertEquals("a photo's song picked before the context got the longer clip", 15000, StoryMusic.clipLength(15000));
         assertFalse("a story that finished before the context played again", StoryAdvance.loop());
         assertFalse(PlayerSourcesForTests.recordsAPlayer());
         assertFalse("a post menu built before the context got the video item", VideoMenuItemForTests.addsAnItem());
@@ -337,6 +346,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.openReplyThreads(false));
         assertFalse("a reply thread opened before the context paged on by itself",
                 CommentSheetOptions.loadWholeReplyThreads(false));
+        assertTrue("a View more replies row drawn before the context took a tap anywhere",
+                CommentSheetOptions.viewMoreRepliesTextOnly(true));
         assertFalse("a post's comments drawn before the context lost Related groups",
                 CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
         assertFalse("a comment with a shop link drawn before the context was left out",
@@ -414,6 +425,7 @@ public class ColdStartHooksTest {
         assertFalse("a reel built before the context was given its play button", TapToPlay.showReelPlayButton(false));
         assertFalse("a long video started before the context was moved", ResumePlaybackForTests.resumesALongVideo());
         assertFalse("a tap on a paused video before the context stepped it", FrameStepForTests.stepsAPausedVideo());
+        assertFalse("a pinch on a profile photo before the context zoomed it", PinchZoomForTests.zoomsAPhoto());
         assertFalse("a reel started before the context got a picked speed", ReelSpeedForTests.keepsAPickedSpeed());
         assertFalse("a speed menu built before the context offered slower speeds", ReelSpeedForTests.offersSlowerSpeeds());
         assertFalse("a gear speed sheet built before the context offered slower speeds",

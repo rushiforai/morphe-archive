@@ -36,9 +36,50 @@ public final class ExternalBoardAuth {
     private static final Map<MenuItem,WeakReference<Activity>> menus = new WeakHashMap<>();
     private static final Map<Activity,String> prompted = new WeakHashMap<>();
     private static final int MENU = 0x48690061;
+    private static volatile WeakReference<Object> nativeJar = new WeakReference<>(null);
     private ExternalBoardAuth() {}
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences("haiagaru.external-board-auth",0); }
     public static void initialize(Context c) { context=c.getApplicationContext(); }
+    public static void rememberJar(Object jar) { nativeJar=new WeakReference<>(jar); }
+    public static Object parseUrl(String address) { return null; } // Bound at patch time.
+
+    /** Seed the existing native identity before the first authentication request, not afterwards. */
+    static void prepareWebSession(Activity activity,String board,String auth,Runnable ready) {
+        final Object jar=nativeJar.get();
+        new Thread(()->{
+            ArrayList<String[]> seed=new ArrayList<>();
+            try {
+                if(jar==null)throw new IllegalStateException("Native cookie jar not initialized");
+                for(String address:new String[]{board,auth}) {
+                    // Only seed this board's origin, never an unrelated authentication provider.
+                    if(!BoardAuthRules.origin(board).equals(BoardAuthRules.origin(address)))continue;
+                    Object url=parseUrl(address);if(url==null)continue;
+                    java.lang.reflect.Method read=jar.getClass().getDeclaredMethod("haiagaruNativeAuthCookies",url.getClass());
+                    read.setAccessible(true);
+                    for(Object cookie:(List<?>)read.invoke(jar,url))seed.add(new String[]{address,cookie.toString()});
+                }
+            }catch(Exception error){
+                activity.runOnUiThread(()->{
+                    if(activity.isFinishing())return;
+                    new HaiagaruDialog.Builder(activity).setTitle("認証を開始できません")
+                        .setMessage("既存のCookieを引き継げなかったため、別のSessionIDで認証を始めないよう停止しました。書き込み画面へ戻ってから再度お試しください。")
+                        .setPositiveButton("閉じる",null).show();
+                });return;
+            }
+            activity.runOnUiThread(()->seedNext(activity,seed,0,ready));
+        },"Haiagaru-auth-session").start();
+    }
+    private static void seedNext(Activity a,List<String[]> seed,int index,Runnable ready) {
+        if(a.isFinishing()||a.isDestroyed())return;
+        if(index==seed.size()){ready.run();return;}
+        String[] entry=seed.get(index);
+        CookieManager.getInstance().setCookie(entry[0],entry[1],accepted->{
+            if(Boolean.TRUE.equals(accepted))seedNext(a,seed,index+1,ready);
+            else new HaiagaruDialog.Builder(a).setTitle("認証を開始できません")
+                    .setMessage("Cookieを引き継げませんでした。既存のSessionIDを保護するため認証を停止しました。")
+                    .setPositiveButton("閉じる",null).show();
+        });
+    }
     public static void resumed(Activity a) {
         if(resumed.get() instanceof ExternalBoardAuthActivity) prompted.remove(a);
         resumed=new WeakReference<>(a);
@@ -80,6 +121,9 @@ public final class ExternalBoardAuth {
     public static void addSettingsButton(LinearLayout layout, Activity a) {
         Button button=new Button(a);button.setAllCaps(false);button.setText("外部板の認証ページを設定・開く");
         layout.addView(button);button.setOnClickListener(v->showBoards(a));
+        TextView help=new TextView(a);
+        help.setText("書き込みで認証・CAPTCHAが要求された場合、エラーから認証ページを開けます。認証先を確認してサイト上で操作し、「認証を反映して戻る」で書き込みへ戻ってください。投稿は自動再送信しません。CAPTCHA側がWebViewに対応しない場合や、フォーム内のトークンを要求する方式はCookie連携だけでは完了できません。認証画面で必要な場合だけサードパーティCookieを許可できます。");
+        layout.addView(help);
     }
     private static void showBoards(Activity a) {
         new Thread(()->{
@@ -194,7 +238,10 @@ public final class ExternalBoardAuth {
             String header=CookieManager.getInstance().getCookie(address);
             if(header==null || header.isEmpty()) return nativeCookies;
             LinkedHashMap<String,Object> web=new LinkedHashMap<>();
+            boolean hasNativeIdentity=false;
+            for(Object cookie:nativeCookies)if(BoardAuthRules.identityCookie(cookie.toString().split("=",2)[0]))hasNativeIdentity=true;
             for(String pair:header.split(";")) {
+                if(hasNativeIdentity&&BoardAuthRules.identityCookie(pair.trim().split("=",2)[0]))continue;
                 Object parsed=parseCookie(url,pair.trim());
                 if(parsed!=null) web.put(pair.trim().split("=",2)[0],parsed);
             }

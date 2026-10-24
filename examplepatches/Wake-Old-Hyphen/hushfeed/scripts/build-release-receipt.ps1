@@ -54,6 +54,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+. (Join-Path $PSScriptRoot 'audit-results.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
 
 $Java = Resolve-Java -Explicit $Java
@@ -91,6 +92,12 @@ $commit = "$commit".Trim()
 if ($commit -notmatch '^[0-9a-f]{40}$') { throw "git did not answer with a commit: $commit" }
 $commitTimestamp = [long]((Invoke-RepoGit -Root $Root -Arguments @('log', '-1', '--format=%ct') |
     Select-Object -First 1))
+
+# The device audit of each declared version, held to today's catalog. A bundle whose audit never
+# ran or went stale after a catalog edit stops here, before any fixture is patched.
+$audit = Test-AuditResults -Root $Root -PackageName $expectedTarget.PackageName `
+    -PackageVersions @($expectedTarget.PackageVersions) -Head $commit
+if (-not $audit.Valid) { throw "The device audit doesn't back this bundle: $($audit.Reason)" }
 
 # The bundle is read once, here, before any fixture is patched. Measuring it at the end instead
 # would describe whatever the release path holds when the run finishes, which is not necessarily
@@ -347,6 +354,7 @@ $receipt = [ordered]@{
     source        = $bundleManifest.source
     extension     = [ordered]@{ dexPayloads = $extensionPayloads }
     targets       = $targets.ToArray()
+    audit         = @($audit.Facts)
 }
 
 # The receipt is checked before it is written. A file that fails the gate it exists to pass is

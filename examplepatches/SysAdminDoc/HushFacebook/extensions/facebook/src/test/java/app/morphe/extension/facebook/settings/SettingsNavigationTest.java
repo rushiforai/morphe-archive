@@ -1918,6 +1918,46 @@ public class SettingsNavigationTest {
         root.layout(0, 0, 780, height);
     }
 
+    /**
+     * Issue #214: with AMOLED and no Material You, Appearance has the Light background color row
+     * next to Background color. Save turns down a color too dark for light mode's text with the
+     * dialog still open, and keeps a light one in capitals. With Material You neither row shows.
+     */
+    @Test
+    public void appearanceHasTheLightBackgroundRowWithoutMaterialYou() {
+        try {
+            page.navigation.navigate("Appearance");
+            assertNotNull("the dark row", page.findPreference(Settings.AMOLED_BACKGROUND.key));
+            ValueRows.BackgroundRow light = (ValueRows.BackgroundRow) page.findPreference(Settings.AMOLED_LIGHT_BACKGROUND.key);
+            assertNotNull(light);
+            assertEquals("Light background color", light.getTitle().toString());
+            assertEquals("Uses Facebook's own white. Type a color code to change it.", light.getSummary().toString());
+
+            light.showDialog(null);
+            AlertDialog editor = (AlertDialog) light.getDialog();
+            light.getEditText().setText("#2D88FF");
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertTrue("a refused color keeps the dialog open", editor.isShowing());
+            assertEquals("", Settings.AMOLED_LIGHT_BACKGROUND.savedValue());
+
+            light.getEditText().setText("fff8e7");
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertFalse(editor.isShowing());
+            assertEquals("#FFF8E7", Settings.AMOLED_LIGHT_BACKGROUND.savedValue());
+            assertTrue(light.getSummary().toString(), light.getSummary().toString().contains("#FFF8E7"));
+
+            PatchFamily.inBuildForTests.add(PatchFamily.MATERIAL_YOU_THEME);
+            recreate();
+            page.navigation.navigate("Appearance");
+            assertNull(page.findPreference(Settings.AMOLED_LIGHT_BACKGROUND.key));
+            assertNull(page.findPreference(Settings.AMOLED_BACKGROUND.key));
+        } finally {
+            Settings.AMOLED_LIGHT_BACKGROUND.resetToDefault();
+        }
+    }
+
     private void recreate() {
         controller.recreate();
         ShadowLooper.idleMainLooper();

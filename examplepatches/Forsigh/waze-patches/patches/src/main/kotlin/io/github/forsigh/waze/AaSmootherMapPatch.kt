@@ -16,7 +16,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
  *  - `CAR_LIB_LISTEN_TO_CAR_COMPASS` makes the car map take heading from the car's compass
  *    (read in `com.waze.car_lib.h.c`).
  *  - 5.25.90.900 renamed the update-rate switch to `GPS_ALIGN_AAP_AND_DEVICE_UPDATE_RATE`
- *    (read in `com.waze.location.af`) and 5.26.0.0 keeps the new name; both are recorded, and the
+ *    (read in `com.waze.location.af`) and 5.26.0.0 dropped it, so the emitter skips that one; both are recorded, and the
  *    emitter skips whichever the build does not declare.
  *
  * All of them are server-controlled; which side of each switch a given device gets is why one
@@ -26,7 +26,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val aaSmootherMapPatch = bytecodePatch(
     name = "Smoother Android Auto map",
-    description = "Smoothes the car map's movement and heading on Android Auto.",
+    description = "Smooths map movement on Android Auto.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

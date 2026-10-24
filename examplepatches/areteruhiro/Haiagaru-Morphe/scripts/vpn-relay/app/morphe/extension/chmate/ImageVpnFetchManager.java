@@ -16,5 +16,6 @@ public final class ImageVpnFetchManager {
         if (fail || closed) throw new IOException("IMAGE_VPN_DISCONNECTED");
         return new Image();
     }
+    public Image fetchPreview(String url) throws IOException { return fetch(url); }
     public void close() { closed = true; }
 }

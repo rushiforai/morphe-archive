@@ -1,3 +1,65 @@
+## [3.61.0](https://github.com/crimera/piko-newx/compare/v3.60.0...v3.61.0) (2026-10-23)
+
+### ✨ New Features
+* **Twitter - newx:** support 12.36.1-prod.01 ([370eac8](https://github.com/crimera/piko/commit/370eac89f810e6f0293c08af512591fe08431980))
+
+### 🔧 Improvements
+* **Twitter:** clean up Kotlin warnings and deprecated resource helpers ([c7256d5](https://github.com/crimera/piko/commit/c7256d5d3a34abf3cbd3e4965c9da7e257dfafec))
+
+## [3.60.0](https://github.com/crimera/piko-newx/compare/v3.59.0...v3.60.0) (2026-10-23)
+
+### 🐛 Bug Fixes
+* **Twitter - build:** size Gradle memory for clean Android release builds ([9943d06](https://github.com/crimera/piko/commit/9943d0675e85faeee93a0e73b06ccb6a7f75279e))
+* **Twitter - newx:** restore 12.36 timeline and Compose settings hooks ([cde8a76](https://github.com/crimera/piko/commit/cde8a76d0ffd9ebe9ebef9875516210c151b6535))
+* **Twitter - newx:** declare unsupported mount installation modes ([a7e26fe](https://github.com/crimera/piko/commit/a7e26fed8e7e7b105aab21143bcd0edc69837d63))
+* **Twitter - ci:** Normalize Gradle Windows wrapper line endings ([571b62c](https://github.com/crimera/piko/commit/571b62c209a97d50ca181341e87040b42dffcac7))
+* **Twitter - NewX:** resolve 12.36 divider and reply sorting bytecode drift ([c841d0b](https://github.com/crimera/piko/commit/c841d0b243e78204dded2c0e53eddc2b6b044d36))
+* **Twitter - Instagram:** Add `obrf`, `vrfl`, `rpxt` to link sanitization list (#2118) ([e76e726](https://github.com/crimera/piko/commit/e76e726af81bb8a52172a7b3ac3b0012257cd041))
+* **Twitter - Instagram:** Sanitize `cplk` tracking parameter (#2117) ([404ad37](https://github.com/crimera/piko/commit/404ad3748f5ee899bca89a2eec587fc9e73ca61d))
+* **Twitter - Instagram:** Sanitize `mdxt` tracking parameter (#2113) ([537d5bf](https://github.com/crimera/piko/commit/537d5bf988a6253abe2a735a3f946567ccda04a0))
+* **Twitter - Instagram:** Remove recommended flags unavailable in 447 ([46e9074](https://github.com/crimera/piko/commit/46e90748db5825c916c9ac8cefb8d4ba50936d6c))
+* **Twitter - Instagram:** Skip the remind me notification action when the link has no x (#2101) ([c4a6479](https://github.com/crimera/piko/commit/c4a64794d5d0f8a30327a38986ff84f5b8b4cdf4))
+* **Twitter - Instagram:** Preserve friendship status when metadata is missing ([6eeb0f0](https://github.com/crimera/piko/commit/6eeb0f08db63e99cfb102e1ddb653945a10e1780))
+* **Twitter - Instagram:** Sanitize shared links before changing domains ([b1d0eb4](https://github.com/crimera/piko/commit/b1d0eb481e748a33110a5f5fd51ade221fe1ecef))
+* **Twitter - Instagram:** Use an adaptive settings shortcut icon ([454f283](https://github.com/crimera/piko/commit/454f283baf3f7d444cb7d8b13eb3728e6a081a36))
+* **Twitter - Instagram:** Fix deleted message handling ([4254162](https://github.com/crimera/piko/commit/425416276c0ae2df7a6cf53fab9b37708735f8be))
+* **Twitter - Instagram:** Correct patch status mappings ([bf4a28c](https://github.com/crimera/piko/commit/bf4a28ca5387efd2c51453ef368d686cbf643f8b))
+* **Twitter - Instagram:** Isolate story filters and refresh highlight visibility ([2946e7e](https://github.com/crimera/piko/commit/2946e7ecabedd5da21075e56e9f10824cd1c94d3))
+* **Twitter - Instagram:** Correct the names of the HDR and auto-scroll recommended flags (#2078) ([8917d71](https://github.com/crimera/piko/commit/8917d71e36356ed56e68154b7cf272cfa4dcf0c5))
+* **Twitter - Instagram:** Move the story seen button to the bottom action row ([0d7fba0](https://github.com/crimera/piko/commit/0d7fba0feeb17c430af4292176be47036593bda3))
+* **Twitter - Instagram:** Preserve ephemeral media after refreshing chats ([d9ab7c7](https://github.com/crimera/piko/commit/d9ab7c7d3327481ea07e8a63f302590158c9fae5))
+* **Twitter - Instagram:** Allow screenshots in protected DM windows ([45fee55](https://github.com/crimera/piko/commit/45fee5532102b27aa8a4e95ff5c00ac3cb75fd75))
+* **Twitter - Instagram:** Refresh profile friendship status and hide unknown states ([2418d65](https://github.com/crimera/piko/commit/2418d657c7cfb1db752980c2cc10b74bd3af4641))
+* **Twitter - Instagram:** Hide ads in the Following feed ([7914a26](https://github.com/crimera/piko/commit/7914a2634e39738dd11318ea71491a5bf11493f4))
+* **Twitter - Instagram:** Hide the reshare button in the home feed ([ae38467](https://github.com/crimera/piko/commit/ae38467035fbbeeba8e03824535f927cc635adea))
+* **Twitter - Instagram:** Stop Open links externally from crashing on 447 (#2047) ([4c15083](https://github.com/crimera/piko/commit/4c15083cf3a1b65f874c0bc59f68b51055bdaff2))
+* **Twitter - Instagram:** Find the expire field of ephemeral media by its own key (#2046) ([ff2c809](https://github.com/crimera/piko/commit/ff2c809f1a89a5b9be8713a6fd987299d9397c63))
+* **Twitter - Instagram:** Hide non-follower badges for unknown friendship status ([f385660](https://github.com/crimera/piko/commit/f3856607144c2b2b825aec46f7cd3a5ee0490a8f))
+* **Twitter:** Apply dynamic color to Dim and Lights out themes (#2027) ([5842cb7](https://github.com/crimera/piko/commit/5842cb7b3589bba0669cc78a34cb3c27f1749a2d))
+* **Twitter - Instagram:** Align Instants settings and saved viewer styling (#2017) ([a0a3360](https://github.com/crimera/piko/commit/a0a33601aa0c6cc99e990ea0f7f8dfd31c43640d))
+* **Twitter - Instagram:** Fill menu highlights above dialog buttons (#2016) ([a326e42](https://github.com/crimera/piko/commit/a326e42fd87be1540aad23f7c8aab0e96dbb263d))
+* **Twitter - Instagram:** Restore the activity context for like animation previews (#2014) ([1f08d91](https://github.com/crimera/piko/commit/1f08d91edf63d2a31ce49d52a5af3acf6ed04c98))
+
+### ✨ New Features
+* **Twitter:** migrate patches to Morphe Patcher 2.0 ([05515cf](https://github.com/crimera/piko/commit/05515cf24dd357814d9121ed50e623bf06ae4122))
+* **Twitter - Instagram:** Add search Piko settings ([e0d9935](https://github.com/crimera/piko/commit/e0d9935263b78443de83c28617b39d829bf1bb45))
+* **Twitter - Instagram:** Download photo stories with music at upload size (#2159) ([15696ae](https://github.com/crimera/piko/commit/15696ae3995e3a3af0ccd001ad01dd006eaff454))
+* **Twitter - Instagram:** Add better quality video downloads (#2133) ([eb10d6a](https://github.com/crimera/piko/commit/eb10d6ac0df35106dcac40f2e04e889799fc5da4))
+* **Twitter - Instagram:** Disable background daemons, sync services, and telemetry (#2145) ([0f44c77](https://github.com/crimera/piko/commit/0f44c7795fd0a0333ada8355b95e6043a8416be7))
+* **Twitter - Instagram:** Hide chats in a private inbox (#2108) ([39155fd](https://github.com/crimera/piko/commit/39155fd4950ae2cf48c6f1412f4a9413c89cce77))
+* **Twitter - Instagram:** Show how ephemeral media was received (#2100) ([460267b](https://github.com/crimera/piko/commit/460267bd58fd0624e5f78e0ec57cbd0bc090d3e1))
+* **Twitter - Instagram:** Add a setting to hide the hidden requests button (#2126) ([e624f25](https://github.com/crimera/piko/commit/e624f25879ab2f3590a75a34160f944c1731a70f))
+* **Twitter - Instagram:** Add Hide share button patch ([15b8856](https://github.com/crimera/piko/commit/15b88567abb2433ca930da264709f5c2b37f7037))
+* **Twitter - Instagram:** Add Hide save buttons patch ([ac89a04](https://github.com/crimera/piko/commit/ac89a04d6f75dbc5e5c80dc95a80bec539e8f167))
+* **Twitter - Instagram:** Add Story category (#1948) ([ec55052](https://github.com/crimera/piko/commit/ec55052596689de7996ed8fb78ea907977158269))
+* **Twitter - Instagram:** Add recommended flags for the Reels seekbar ([e558f88](https://github.com/crimera/piko/commit/e558f8848f983802a9063c45996b3275ccdb0b0a))
+* **Twitter - Instagram:** Add Inbox lock to ask for your biometrics before messages (#2020) ([d2c5f0a](https://github.com/crimera/piko/commit/d2c5f0a6b843a4aabf08bf7aeb2c25b51e62e9e7))
+* **Twitter - Instagram:** Add an option to enable inline download button on feed and profile posts (#1997) ([a074bb9](https://github.com/crimera/piko/commit/a074bb97485f79dcd239675be44403e8b3dbbf80))
+
+### 🚀 Updated App Support
+* **Twitter - Instagram:** Add support for 452.1.0.53.64 ([761d795](https://github.com/crimera/piko/commit/761d79599d3114c06bf489a7e4368a43f3f608fb))
+* **Twitter - Instagram:** Add support for 447.0.0.55.81 ([3e15b92](https://github.com/crimera/piko/commit/3e15b928c85449e21b3e6a34a2ac419d272885bb))
+
 ## [3.59.0](https://github.com/crimera/piko-newx/compare/v3.58.0...v3.59.0) (2026-10-18)
 
 ### 🐛 Bug Fixes

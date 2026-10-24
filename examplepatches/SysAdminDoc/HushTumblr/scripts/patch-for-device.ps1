@@ -9,7 +9,9 @@
     signers. Existing accounts, permissions and keys are preserved. Stock installs are refused.
 
     The signing password comes from HUSHTUMBLR_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
-    local test keystore's documented password, sideload, is used. The Morphe arguments travel
+    local test keystore's documented password, sideload, is used. A key whose own password differs
+    from the store's takes it from HUSHTUMBLR_SIDELOAD_KEY_PASSWORD, and -NoStorePassword signs
+    with a store that has none, like the morphe.keystore Morphe makes. The Morphe arguments travel
     through a temporary Java argument file so the password value is not in the child process
     command line. The file is deleted when patching exits.
 
@@ -23,7 +25,8 @@
     When the release push gate has already patched this exact bundle onto this APK with the same
     patch selection, tools and verifier files, and kept the run (verify-all-patches.ps1 -KeepIn),
     that run's patched APK is signed with apksigner beside aapt2 and handed back instead of patching
-    again. The report and manifest checks below still run on it. The store is -AppliedDir, else
+    again. A BKS keystore, which apksigner.bat can't read, is signed through lib/apksigner.jar with
+    the desktop CLI's BouncyCastle as its provider. The report and manifest checks below still run on it. The store is -AppliedDir, else
     HUSHTUMBLR_APPLY_RECORDS, else the default one in the temp folder; -NoReuse always patches.
     Nothing this script makes is kept there: it skips the resource table check.
 
@@ -72,6 +75,9 @@ param(
     [string]$ApiVersions,
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
     [string]$KeyAlias = 'sideload',
+    # The keystore has no store password. Its key's password then comes from
+    # HUSHTUMBLR_SIDELOAD_KEY_PASSWORD.
+    [switch]$NoStorePassword,
     [string]$OutDir = (Join-Path $env:TEMP 'hushtumblr-device'),
     # An explicit final destination is reserved atomically and never overwritten.
     [string]$OutputApk,
@@ -170,12 +176,20 @@ if (-not (Test-DeclaredBuild -Target $target -VersionName ([string]$stock.versio
         'Build for a phone from a declared build; scripts/verify-all-patches.ps1 -Force shows what still applies on another one.')
 }
 $passwordVariable = 'HUSHTUMBLR_SIDELOAD_KEYSTORE_PASSWORD'
-$keystorePassword = [Environment]::GetEnvironmentVariable(
-    $passwordVariable, [EnvironmentVariableTarget]::Process)
-if ([string]::IsNullOrEmpty($keystorePassword)) {
-    $keystorePassword = 'sideload'
-    Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
+$keyPasswordVariable = 'HUSHTUMBLR_SIDELOAD_KEY_PASSWORD'
+if ($NoStorePassword) {
+    $keystorePassword = ''
+} else {
+    $keystorePassword = [Environment]::GetEnvironmentVariable(
+        $passwordVariable, [EnvironmentVariableTarget]::Process)
+    if ([string]::IsNullOrEmpty($keystorePassword)) {
+        $keystorePassword = 'sideload'
+        Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
+    }
 }
+# The key's own password, the store's unless the key has one of its own.
+$keyPassword = [Environment]::GetEnvironmentVariable($keyPasswordVariable, [EnvironmentVariableTarget]::Process)
+if ([string]::IsNullOrEmpty($keyPassword)) { $keyPassword = $keystorePassword }
 # The alias's certificate, off the keystore held from then to the end of the run, so the key that
 # signs the APK and the certificate the check below holds it to come from the same bytes. Read
 # here, before anything signs, or at the check when the CLI made the keystore on its first run.
@@ -278,22 +292,47 @@ if ($recorded) {
     if (-not (Test-Path -LiteralPath $apksigner -PathType Leaf)) {
         throw "No apksigner beside aapt2 at $apksigner to sign the kept APK. Pass -NoReuse to patch and sign with the CLI."
     }
+    # apksigner.bat can't read the BKS store the desktop CLI makes (morphe.keystore): it stops at
+    # "toDerInputStream rejects tag type 0". When it fails, the same signer runs from its jar with the
+    # CLI's BouncyCastle as the keystore provider, as Get-KeystoreCertificate reads that store.
+    $apksignerJar = Join-Path (Join-Path (Split-Path -Parent $Aapt2) 'lib') 'apksigner.jar'
     # zipalign can't put an APK right once it's signed, so the kept one is held to the 16 KB layout
     # before the signature goes on. The signed APK is held to it again below.
     Assert-PageAlignment -Apk $recorded.PatchedApk -Stock $patchInput -Aapt2 $Aapt2 | Out-Null
     $savedPassword = [Environment]::GetEnvironmentVariable($passwordVariable, [EnvironmentVariableTarget]::Process)
+    $savedKeyPassword = [Environment]::GetEnvironmentVariable($keyPasswordVariable, [EnvironmentVariableTarget]::Process)
+    # An empty password can't go through the environment, which drops a variable set to nothing.
+    $storePass = if ($keystorePassword) { "env:$passwordVariable" } else { 'pass:' }
+    $keyPass = if ($keyPassword) { "env:$keyPasswordVariable" } else { 'pass:' }
     $preference = $ErrorActionPreference
     try {
         [Environment]::SetEnvironmentVariable($passwordVariable, $keystorePassword, [EnvironmentVariableTarget]::Process)
+        [Environment]::SetEnvironmentVariable($keyPasswordVariable, $keyPassword, [EnvironmentVariableTarget]::Process)
         $ErrorActionPreference = 'Continue'
         $global:LASTEXITCODE = -1
-        $signOutput = @(& $apksigner sign --ks $Keystore --ks-key-alias $KeyAlias --ks-pass "env:$passwordVariable" `
-            --key-pass "env:$passwordVariable" --out $out $recorded.PatchedApk 2>&1 | ForEach-Object { "$_" })
+        $signOutput = @(& $apksigner sign --ks $Keystore --ks-key-alias $KeyAlias --ks-pass $storePass `
+            --key-pass $keyPass --out $out $recorded.PatchedApk 2>&1 | ForEach-Object { "$_" })
         $signExitCode = $LASTEXITCODE
+        if ($signExitCode -ne 0 -and (Test-Path -LiteralPath $apksignerJar -PathType Leaf)) {
+            if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Force }
+            $global:LASTEXITCODE = -1
+            $bksOutput = @(& $Java -cp ($apksignerJar + [IO.Path]::PathSeparator + $DesktopJar) com.android.apksigner.ApkSignerTool sign `
+                --provider-class org.bouncycastle.jce.provider.BouncyCastleProvider --ks-type BKS --ks-provider-name BC `
+                --ks $Keystore --ks-key-alias $KeyAlias --ks-pass $storePass --key-pass $keyPass --out $out `
+                $recorded.PatchedApk 2>&1 | ForEach-Object { "$_" })
+            $bksExitCode = $LASTEXITCODE
+            if ($bksExitCode -eq 0) {
+                $signExitCode = 0
+            } else {
+                $signOutput += @("then as a BKS keystore (exit $bksExitCode):") + $bksOutput
+            }
+        }
     } finally {
         $ErrorActionPreference = $preference
         # Unset again when it was: PowerShell hands $null over as '', which PowerShell 7 keeps.
         [Environment]::SetEnvironmentVariable($passwordVariable, $(if ($null -eq $savedPassword) { [NullString]::Value } else { $savedPassword }),
+            [EnvironmentVariableTarget]::Process)
+        [Environment]::SetEnvironmentVariable($keyPasswordVariable, $(if ($null -eq $savedKeyPassword) { [NullString]::Value } else { $savedKeyPassword }),
             [EnvironmentVariableTarget]::Process)
     }
     if ($signExitCode -ne 0 -or -not (Test-Path -LiteralPath $out -PathType Leaf)) {
@@ -311,8 +350,8 @@ foreach ($name in $names) {
     if ($patchOptions.ContainsKey($name)) { foreach ($pair in $patchOptions[$name]) { $enable += '-O'; $enable += $pair } }
 }
 $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
-    '--keystore', $Keystore, '--keystore-password', $keystorePassword,
-    '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($patchInput)
+    '--keystore', $Keystore, "--keystore-password=$keystorePassword",
+    '--keystore-entry-alias', $KeyAlias, "--keystore-entry-password=$keyPassword") + $enable + @($patchInput)
 $argumentFile = Join-Path $OutDir 'morphe-patch.args'
 $argumentFileLines = @($arguments | ForEach-Object {
     $value = [string]$_

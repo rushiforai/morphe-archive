@@ -7,11 +7,12 @@ package app.morphe.patches.albo.misc.guest
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
 
-private const val DART_AOT_LIBRARY = "lib/arm64-v8a/libapp.so"
 private const val BRANCH_OFFSET = 24
 
 private val NOP = "1f2003d5".hexToByteArray()
@@ -59,8 +60,7 @@ val enableGuestSignInPatch = resourcePatch(
     dependsOn(removePairipProtectionPatch)
 
     execute {
-        val library = get(DART_AOT_LIBRARY)
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY")
+        val library = dartAotLibrary()
 
         GUEST_SIGN_IN_SITES.forEach { site ->
             if (!library.replaceMasked(site.pattern, site.mask, mapOf(BRANCH_OFFSET to site.replacement))) {

@@ -20,9 +20,10 @@ annotation = "1.10.0"
 gson = "2.14.0"
 # Every com.google.guava:guava request in this build is rewritten to this, on the settings
 # classpath (settings.gradle.kts spells it out) and in every project graph (build.gradle.kts).
-# GHSA-xxph-c9ww-hj94 (CVE-2026-102554) covers 4.0 to 33.7.1: CompactHashMap, CompactHashSet
-# and MapMaker deserialization sized its arrays from the stream, so 72 bytes could ask for
-# gigabytes. 33.7.2 (2026-09-29) is the fix. The graphs asked for 32.0.1, 33.3.1, 33.5.0,
+# CVE-2026-102554 (google/guava's repository advisory GHSA-xxph-c9ww-hj94, which GitHub's
+# global advisory database didn't carry as of 2026-10-23) covers 4.0 to 33.7.1:
+# CompactHashMap, CompactHashSet and MapMaker deserialization sized its arrays from the
+# stream, so 72 bytes could ask for gigabytes. 33.7.2 (2026-09-29) is the fix. The graphs asked for 32.0.1, 33.3.1, 33.5.0,
 # 33.6.0 and this pin's old 33.7.1. Build and patching classpath only: no Guava reaches TikTok.
 guava = "33.7.2-jre"
 # Every org.bouncycastle request in this build is rewritten to this, in :extensions:tiktok's

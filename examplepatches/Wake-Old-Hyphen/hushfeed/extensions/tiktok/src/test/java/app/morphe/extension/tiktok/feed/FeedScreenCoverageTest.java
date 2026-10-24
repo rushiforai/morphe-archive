@@ -139,6 +139,8 @@ public class FeedScreenCoverageTest {
         put("show_exact_counts", YES, YES, UNCHECKED);
         put("hide_story_rings", YES, YES, UNCHECKED);
         put("hide_live_ring", YES, YES, UNCHECKED);
+        // The picture at the top of a creator's profile, which none of the three windows draws (#233).
+        put("open_story_over_live", NONE, NONE, NONE);
 
         // Buttons on videos: Hushfeed's own overlay, attached to whichever feed window is in
         // front, main or detail. It isn't drawn in a LIVE room.

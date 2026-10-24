@@ -9,9 +9,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 final class MaterialSlider extends View {
 
@@ -102,7 +103,7 @@ final class MaterialSlider extends View {
     }
 
     private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+        return Dimensions.dpExact(getContext(), value);
     }
 
     interface PositionListener {

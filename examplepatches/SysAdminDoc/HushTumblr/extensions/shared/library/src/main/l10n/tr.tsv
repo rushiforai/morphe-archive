@@ -260,6 +260,8 @@ Hide suggested blogs	Önerilen blogları gizle
 Takes the blogs Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Tumblr'ın takip etmeni önerdiği blogları ve başlıklarını panondan ve diğer akışlardan kaldırır.
 Hide suggested communities	Önerilen toplulukları gizle
 Takes the communities Tumblr suggests you join, and their headings, out of your dashboard and other feeds.	Tumblr'ın katılmanı önerdiği toplulukları ve başlıklarını panondan ve diğer akışlardan kaldırır.
+Hide suggested tags	Önerilen etiketleri gizle
+Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Tumblr'ın takip etmeni önerdiği etiketleri ve başlıklarını panondan ve diğer akışlardan kaldırır.
 Hide Watch it rows	Watch it satırlarını gizle
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Tumblr TV'nin Watch it satırlarını ve video kartlarını, başlıklarıyla birlikte panondan ve diğer akışlardan kaldırır.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
@@ -305,6 +307,8 @@ Hide text posts	Metin gönderilerini gizle
 Takes posts with no pictures or video, the reblogged part included, out of your dashboard and other feeds.	Yeniden bloglanan kısım dahil, resim ya da video olmayan gönderileri panondan ve diğer akışlardan kaldırır.
 Hide posts with these words	Bu kelimeleri içeren gönderileri gizle
 Takes posts out of your feeds when a hidden word matches one of the selected fields below.	Gizlenen bir sözcük aşağıdaki seçili alanlardan biriyle eşleştiğinde gönderileri akışlarınızdan kaldırır.
+Hide filtered posts	Filtrelenen gönderileri gizle
+Takes the posts Tumblr covers for your filtered tags and words out of your feeds.	Tumblr'ın filtrelediğiniz etiketler ve sözcükler yüzünden örttüğü gönderileri akışlarınızdan kaldırır.
 Words to hide	Gizlenecek kelimeler
 One word or phrase a line	Her satıra bir kelime ya da ifade
 Changes are saved only when you tap Save.	Değişiklikler yalnızca Kaydet düğmesine dokunduğunda kaydedilir.

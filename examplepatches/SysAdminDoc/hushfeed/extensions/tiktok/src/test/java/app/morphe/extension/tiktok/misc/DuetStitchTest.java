@@ -82,8 +82,23 @@ public class DuetStitchTest {
             PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
             new SharePreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("allow_duet_and_stitch"));
+            assertNotNull(screen.findPreference("allow_add_to_story"));
         } finally {
             SettingsStatus.duetStitchEnabled = false;
+        }
+    }
+
+    @Test public void addToStoryIsAnsweredOnlyWhenTheSwitchIsOn() {
+        try {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
+            assertEquals(0, DuetStitch.storyShareable(0));
+            assertEquals(1, DuetStitch.storyShareable(1));
+
+            Settings.ALLOW_ADD_TO_STORY.save(true);
+            assertEquals(1, DuetStitch.storyShareable(0));
+            assertEquals(1, DuetStitch.storyShareable(1));
+        } finally {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
         }
     }
 }

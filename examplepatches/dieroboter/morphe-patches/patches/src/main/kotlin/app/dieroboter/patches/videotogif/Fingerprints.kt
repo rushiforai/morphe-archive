@@ -133,3 +133,22 @@ object RateUsPreferenceConstructorFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;")
 )
+
+/**
+ * HomeFactory.a() — builds the home screen bottom bar tool list
+ * [HOME_TOOL_RATE, HOME_TOOL_SETTING, HOME_TOOL_FEEDBACK/PREMIUM] as a
+ * filled-new-array of L4/j$b. L4/j has this single method; the
+ * Aa/I.b([Ljava/lang/Object;) call that wraps the array anchors it.
+ */
+object HomeToolsFingerprint : Fingerprint(
+    definingClass = "LL4/j;",
+    name = "a",
+    returnType = "Ljava/util/ArrayList;",
+    parameters = listOf(),
+    filters = listOf(
+        methodCall(
+            definingClass = "LAa/I;",
+            name = "b"
+        )
+    )
+)

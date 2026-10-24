@@ -7,12 +7,11 @@ package app.morphe.patches.jujo.misc.premium
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
-
-private const val DART_AOT_LIBRARY = "libapp.so"
-private const val ARM64 = "arm64-v8a"
 
 internal val SUBSCRIPTION_FACTORY =
     ("fd79bfa9fd030faaef6100d1a3031ff8500340f9ff0110eb090000545f00166b" +
@@ -56,8 +55,7 @@ val unlockPremiumPatch = resourcePatch(
     availability(requireArm64)
 
     execute {
-        val library = get("lib/$ARM64/$DART_AOT_LIBRARY")
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY for $ARM64")
+        val library = dartAotLibrary()
 
         if (!library.replaceMasked(
                 SUBSCRIPTION_FACTORY,

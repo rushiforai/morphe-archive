@@ -7,187 +7,185 @@
 [![Ko-fi badge](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/hxreborn)
 
 <a href="https://morphe.software/add-source?github=hxreborn/morphe-patches" title="Add this source to Morphe">
-  <img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20this%20source-00A8FF?style=for-the-badge" height="38"/>
+  <img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20this%20source-00A8FF?style=for-the-badge" height="32"/>
 </a>
+
+AMOLED themes, ad and tracking removal and settings tweaks for 100+ Android apps.
 
 </div>
 
-Patches for [Morphe](https://morphe.software): AMOLED themes, ad removal, tracking removal and premium
-unlocks for Proton Mail, Pass and VPN, Perplexity, MovieBox, Showly, Projectivy Launcher, Network
-Analyzer, Cx File Explorer and the rest of the list below. Add the source in Morphe Manager, pick the
-app, and patch the APK on your phone.
-
-New patches and fixes go out as pre-releases first. To get them, open Sources in Morphe Manager, pick
-this bundle and turn on **Pre-release patches**; the
-[pre-release changelog](https://github.com/hxreborn/morphe-patches/blob/dev/CHANGELOG.md) lists what
-each one changes.
-
-## 🩹 Patches list
+## <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/aqua/icons/patches.png" height="48" align="absmiddle" alt="Patches"> Patches list
 
 <!-- PATCHES_START -->
-> **[v1.58.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.58.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;296 patches total
+> **[v1.59.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.59.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;303 patches total
 
 <table>
 <tr>
 <td align="center" width="25%"><a href="#1weather"><img src=".github/assets/icons/oneweather.png" width="40"><br>1Weather</a><br><sub>4 patches</sub></td>
+<td align="center" width="25%"><a href="#3way"><img src=".github/assets/icons/3way.png" width="40"><br>3way</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#acalendar"><img src=".github/assets/icons/acalendar.png" width="40"><br>aCalendar</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#albo"><img src=".github/assets/icons/albo.png" width="40"><br>Albo</a><br><sub>3 patches</sub></td>
-<td align="center" width="25%"><a href="#all-video-player-app"><img src=".github/assets/icons/allvideoplayer.png" width="40"><br>All Video Player App</a><br><sub>6 patches</sub></td>
 </tr>
 <tr>
+<td align="center" width="25%"><a href="#all-video-player-app"><img src=".github/assets/icons/allvideoplayer.png" width="40"><br>All Video Player App</a><br><sub>6 patches</sub></td>
 <td align="center" width="25%"><a href="#all-in-one-calculator"><img src=".github/assets/icons/allinonecalculator.png" width="40"><br>All-In-One Calculator</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#aloa"><img src=".github/assets/icons/aloa.png" width="40"><br>Aloa</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#alpinequest"><img src=".github/assets/icons/alpinequest.png" width="40"><br>AlpineQuest</a><br><sub>1 patch</sub></td>
-<td align="center" width="25%"><a href="#anytracker"><img src=".github/assets/icons/anytracker.png" width="40"><br>AnyTracker</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
+<td align="center" width="25%"><a href="#anytracker"><img src=".github/assets/icons/anytracker.png" width="40"><br>AnyTracker</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#atlomaps"><img src=".github/assets/icons/atlomaps.png" width="40"><br>AtloMaps</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#atvtools"><img src=".github/assets/icons/atvtools.png" width="40"><br>atvTools</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#audible"><img src=".github/assets/icons/audible.png" width="40"><br>Audible</a><br><sub>2 patches</sub></td>
-<td align="center" width="25%"><a href="#audiolab"><img src=".github/assets/icons/audiolab.png" width="40"><br>AudioLab</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
+<td align="center" width="25%"><a href="#audiolab"><img src=".github/assets/icons/audiolab.png" width="40"><br>AudioLab</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#bangla-calendar"><img src=".github/assets/icons/banglacalendar.png" width="40"><br>Bangla Calendar</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#bettersleep"><img src=".github/assets/icons/bettersleep.png" width="40"><br>BetterSleep</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#biobird-flashcards"><img src=".github/assets/icons/biobird.png" width="40"><br>Biobird Flashcards</a><br><sub>2 patches</sub></td>
-<td align="center" width="25%"><a href="#blurwall"><img src=".github/assets/icons/blurwall.png" width="40"><br>BlurWall</a><br><sub>3 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#botim"><img src=".github/assets/icons/botim.png" width="40"><br>botim</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#blurwall"><img src=".github/assets/icons/blurwall.png" width="40"><br>BlurWall</a><br><sub>3 patches</sub></td>
+<td align="center" width="25%"><a href="#botim"><img src=".github/assets/icons/botim.png" width="40"><br>botim</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#calcnote"><img src=".github/assets/icons/calcnote.png" width="40"><br>CalcNote</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#cast-plug-in-for-musicolet"><img src=".github/assets/icons/musicoletcastplugin.png" width="40"><br>Cast Plug-in for Musicolet</a><br><sub>1 patch</sub></td>
+</tr>
+<tr>
 <td align="center" width="25%"><a href="#castle"><img src=".github/assets/icons/castle.png" width="40"><br>Castle</a><br><sub>4 patches</sub></td>
 <td align="center" width="25%"><a href="#castle-for-tv"><img src=".github/assets/icons/castlefortv.png" width="40"><br>Castle for TV</a><br><sub>2 patches</sub></td>
+<td align="center" width="25%"><a href="#catzy"><img src=".github/assets/icons/catzy.png" width="40"><br>Catzy</a><br><sub>4 patches</sub></td>
+<td align="center" width="25%"><a href="#cubasis-le-3"><img src=".github/assets/icons/cubasisle3.png" width="40"><br>Cubasis LE 3</a><br><sub>2 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#catzy"><img src=".github/assets/icons/catzy.png" width="40"><br>Catzy</a><br><sub>5 patches</sub></td>
-<td align="center" width="25%"><a href="#cubasis-le-3"><img src=".github/assets/icons/cubasisle3.png" width="40"><br>Cubasis LE 3</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#cx-file-explorer"><img src=".github/assets/icons/cx.png" width="40"><br>Cx File Explorer</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#cxxdroid"><img src=".github/assets/icons/cxxdroid.png" width="40"><br>Cxxdroid</a><br><sub>3 patches</sub></td>
-</tr>
-<tr>
 <td align="center" width="25%"><a href="#depthpix"><img src=".github/assets/icons/depthpix.png" width="40"><br>DepthPix</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#devcheck"><img src=".github/assets/icons/devcheck.png" width="40"><br>DevCheck</a><br><sub>2 patches</sub></td>
+</tr>
+<tr>
 <td align="center" width="25%"><a href="#dwg-fastview"><img src=".github/assets/icons/dwgfastview.png" width="40"><br>DWG FastView</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#echo-equalizer"><img src=".github/assets/icons/echoequalizer.png" width="40"><br>Echo Equalizer</a><br><sub>1 patch</sub></td>
-</tr>
-<tr>
 <td align="center" width="25%"><a href="#echogram"><img src=".github/assets/icons/echogram.png" width="40"><br>Echogram</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#etsy"><img src=".github/assets/icons/etsy.png" width="40"><br>Etsy</a><br><sub>1 patch</sub></td>
+</tr>
+<tr>
 <td align="center" width="25%"><a href="#fast-stl-viewer"><img src=".github/assets/icons/faststlviewer.png" width="40"><br>Fast STL Viewer</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#fddb"><img src=".github/assets/icons/fddb.png" width="40"><br>Fddb</a><br><sub>1 patch</sub></td>
-</tr>
-<tr>
 <td align="center" width="25%"><a href="#focusnow"><img src=".github/assets/icons/focusnow.png" width="40"><br>FocusNow</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#forusapp"><img src=".github/assets/icons/forus.png" width="40"><br>ForusApp</a><br><sub>1 patch</sub></td>
+</tr>
+<tr>
 <td align="center" width="25%"><a href="#glass-widgets"><img src=".github/assets/icons/glasswidgets.png" width="40"><br>Glass Widgets</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#graph-messenger"><img src=".github/assets/icons/graphmessenger.png" width="40"><br>Graph Messenger</a><br><sub>4 patches</sub></td>
-</tr>
-<tr>
 <td align="center" width="25%"><a href="#hindu-calendar"><img src=".github/assets/icons/hinducalendar.png" width="40"><br>Hindu Calendar</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#imo"><img src=".github/assets/icons/imo.png" width="40"><br>imo</a><br><sub>17 patches</sub></td>
+</tr>
+<tr>
+<td align="center" width="25%"><a href="#internet-speed-meter-lite"><img src=".github/assets/icons/internetspeedmeterlite.png" width="40"><br>Internet Speed Meter Lite</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#joyn"><img src=".github/assets/icons/joyn.png" width="40"><br>Joyn</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#joyn-austria"><img src=".github/assets/icons/joyn-austria.png" width="40"><br>Joyn Austria</a><br><sub>1 patch</sub></td>
-</tr>
-<tr>
 <td align="center" width="25%"><a href="#jujo"><img src=".github/assets/icons/com.dev2a.junk_journal.png" width="40"><br>Jujo</a><br><sub>2 patches</sub></td>
-<td align="center" width="25%"><a href="#jvdroid"><img src=".github/assets/icons/jvdroid.png" width="40"><br>Jvdroid</a><br><sub>3 patches</sub></td>
-<td align="center" width="25%"><a href="#keepa"><img src=".github/assets/icons/keepa.png" width="40"><br>Keepa</a><br><sub>5 patches</sub></td>
-<td align="center" width="25%"><a href="#kick"><img src=".github/assets/icons/kick.png" width="40"><br>Kick</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
+<td align="center" width="25%"><a href="#jvdroid"><img src=".github/assets/icons/jvdroid.png" width="40"><br>Jvdroid</a><br><sub>3 patches</sub></td>
+<td align="center" width="25%"><a href="#keepa"><img src=".github/assets/icons/keepa.png" width="40"><br>Keepa</a><br><sub>4 patches</sub></td>
+<td align="center" width="25%"><a href="#kick"><img src=".github/assets/icons/kick.png" width="40"><br>Kick</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#klassik-radio"><img src=".github/assets/icons/klassikradio.png" width="40"><br>Klassik Radio+</a><br><sub>1 patch</sub></td>
+</tr>
+<tr>
 <td align="center" width="25%"><a href="#lagguy-wallpapers"><img src=".github/assets/icons/lagguy.png" width="40"><br>Lagguy Wallpapers</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#led-blinker"><img src=".github/assets/icons/ledblinker.png" width="40"><br>LED Blinker</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#lingodeer"><img src=".github/assets/icons/lingodeer.png" width="40"><br>LingoDeer</a><br><sub>2 patches</sub></td>
+<td align="center" width="25%"><a href="#magic-earth"><img src=".github/assets/icons/magicearth.png" width="40"><br>Magic Earth</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#magic-earth"><img src=".github/assets/icons/magicearth.png" width="40"><br>Magic Earth</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#may-beautiful-bullet-journal"><img src=".github/assets/icons/com.azeravn.bulletjournal.png" width="40"><br>May: Beautiful Bullet Journal</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#medicneet"><img src=".github/assets/icons/medicneet.png" width="40"><br>MedicNEET</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#memoneet"><img src=".github/assets/icons/memoneet.png" width="40"><br>MemoNeet</a><br><sub>2 patches</sub></td>
+<td align="center" width="25%"><a href="#minishare"><img src=".github/assets/icons/minishare.png" width="40"><br>MiniShare</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#minishare"><img src=".github/assets/icons/minishare.png" width="40"><br>MiniShare</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#moon-reader"><img src=".github/assets/icons/moonreader.png" width="40"><br>Moon+ Reader</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#moviebox"><img src=".github/assets/icons/moviebox.png" width="40"><br>MovieBox</a><br><sub>4 patches</sub></td>
 <td align="center" width="25%"><a href="#moviebox-tv"><img src=".github/assets/icons/movieboxtv.png" width="40"><br>MovieBox TV</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#musicolet"><img src=".github/assets/icons/musicolet.png" width="40"><br>Musicolet</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#musicolet"><img src=".github/assets/icons/musicolet.png" width="40"><br>Musicolet</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#musixmatch"><img src=".github/assets/icons/musixmatch.png" width="40"><br>Musixmatch</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#my-apk"><img src=".github/assets/icons/com.andatsoft.myapk.fwa.png" width="40"><br>My APK</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#mymoveset"><img src=".github/assets/icons/mymoveset.png" width="40"><br>MyMoveset</a><br><sub>2 patches</sub></td>
+<td align="center" width="25%"><a href="#myscript-math"><img src=".github/assets/icons/myscriptmath.png" width="40"><br>MyScript Math</a><br><sub>2 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#myscript-math"><img src=".github/assets/icons/myscriptmath.png" width="40"><br>MyScript Math</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#myscript-notes"><img src=".github/assets/icons/myscriptnotes.png" width="40"><br>MyScript Notes</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#nara-baby"><img src=".github/assets/icons/narababy.png" width="40"><br>Nara Baby</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#network-analyzer"><img src=".github/assets/icons/netanalyzer.png" width="40"><br>Network Analyzer</a><br><sub>18 patches</sub></td>
+<td align="center" width="25%"><a href="#notein"><img src=".github/assets/icons/notein.png" width="40"><br>Notein</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#notein"><img src=".github/assets/icons/notein.png" width="40"><br>Notein</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#notesnook"><img src=".github/assets/icons/notesnook.png" width="40"><br>Notesnook</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#one4home-launcher"><img src=".github/assets/icons/one4home.png" width="40"><br>One4Home Launcher</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#opal"><img src=".github/assets/icons/opal.png" width="40"><br>Opal</a><br><sub>2 patches</sub></td>
+<td align="center" width="25%"><a href="#period-tracker-and-calendar"><img src=".github/assets/icons/periodcalendar.png" width="40"><br>Period Tracker and Calendar</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#period-tracker-and-calendar"><img src=".github/assets/icons/periodcalendar.png" width="40"><br>Period Tracker and Calendar</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#perplexity"><img src=".github/assets/icons/perplexity.png" width="40"><br>Perplexity</a><br><sub>4 patches</sub></td>
 <td align="center" width="25%"><a href="#photo-editor-pro"><img src=".github/assets/icons/photoeditorpro.png" width="40"><br>Photo Editor Pro</a><br><sub>6 patches</sub></td>
 <td align="center" width="25%"><a href="#photone"><img src=".github/assets/icons/photone.png" width="40"><br>Photone</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#pocket-whip"><img src=".github/assets/icons/pocketwhip.png" width="40"><br>Pocket Whip</a><br><sub>2 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#pocket-whip"><img src=".github/assets/icons/pocketwhip.png" width="40"><br>Pocket Whip</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#poe"><img src=".github/assets/icons/poe.png" width="40"><br>Poe</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#prayer-times-and-qibla"><img src=".github/assets/icons/prayertimes.png" width="40"><br>Prayer Times and Qibla</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#privacy-notes"><img src=".github/assets/icons/privacynotes.png" width="40"><br>Privacy Notes</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#projectivy-launcher"><img src=".github/assets/icons/projectivy.png" width="40"><br>Projectivy Launcher</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#projectivy-launcher"><img src=".github/assets/icons/projectivy.png" width="40"><br>Projectivy Launcher</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#proton-authenticator"><img src=".github/assets/icons/protonauthenticator.png" width="40"><br>Proton Authenticator</a><br><sub>4 patches</sub></td>
 <td align="center" width="25%"><a href="#proton-lumo"><img src=".github/assets/icons/lumo.png" width="40"><br>Proton Lumo</a><br><sub>4 patches</sub></td>
 <td align="center" width="25%"><a href="#proton-mail"><img src=".github/assets/icons/protonmail.png" width="40"><br>Proton Mail</a><br><sub>10 patches</sub></td>
+<td align="center" width="25%"><a href="#proton-pass"><img src=".github/assets/icons/protonpass.png" width="40"><br>Proton Pass</a><br><sub>6 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#proton-pass"><img src=".github/assets/icons/protonpass.png" width="40"><br>Proton Pass</a><br><sub>6 patches</sub></td>
 <td align="center" width="25%"><a href="#proton-vpn"><img src=".github/assets/icons/protonvpn.png" width="40"><br>Proton VPN</a><br><sub>13 patches</sub></td>
 <td align="center" width="25%"><a href="#psiphon"><img src=".github/assets/icons/psiphon.png" width="40"><br>Psiphon</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#public"><img src=".github/assets/icons/publicvideos.png" width="40"><br>Public</a><br><sub>3 patches</sub></td>
+<td align="center" width="25%"><a href="#pydroid-3"><img src=".github/assets/icons/pydroid.png" width="40"><br>Pydroid 3</a><br><sub>3 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#pydroid-3"><img src=".github/assets/icons/pydroid.png" width="40"><br>Pydroid 3</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#qr-barcode-scanner"><img src=".github/assets/icons/qrscanner.png" width="40"><br>QR & Barcode Scanner</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#quick-cursor"><img src=".github/assets/icons/quickcursor.png" width="40"><br>Quick Cursor</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#quranify"><img src=".github/assets/icons/quranify.png" width="40"><br>Quranify</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#radio-javan"><img src=".github/assets/icons/radiojavan.png" width="40"><br>Radio Javan</a><br><sub>3 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#radio-javan"><img src=".github/assets/icons/radiojavan.png" width="40"><br>Radio Javan</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#raindrop-io"><img src=".github/assets/icons/raindrop.png" width="40"><br>Raindrop.io</a><br><sub>6 patches</sub></td>
 <td align="center" width="25%"><a href="#rateglance"><img src=".github/assets/icons/rateglance.png" width="40"><br>RateGlance</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#readera"><img src=".github/assets/icons/readera.png" width="40"><br>ReadEra</a><br><sub>13 patches</sub></td>
+<td align="center" width="25%"><a href="#realme-link"><img src=".github/assets/icons/realmelink.png" width="40"><br>Realme Link</a><br><sub>2 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#realme-link"><img src=".github/assets/icons/realmelink.png" width="40"><br>Realme Link</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#ringtone-maker"><img src=".github/assets/icons/ringtonemaker.png" width="40"><br>Ringtone Maker</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#rise-sleep-tracker"><img src=".github/assets/icons/risesleep.png" width="40"><br>RISE Sleep Tracker</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#rubber-bands"><img src=".github/assets/icons/rubberbands.png" width="40"><br>Rubber Bands</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#serializd"><img src=".github/assets/icons/serializd.png" width="40"><br>Serializd</a><br><sub>3 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#serializd"><img src=".github/assets/icons/serializd.png" width="40"><br>Serializd</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#sheytoon"><img src=".github/assets/icons/sheytoon.png" width="40"><br>Sheytoon</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#showly"><img src=".github/assets/icons/showly.png" width="40"><br>Showly</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#sqcom"><img src=".github/assets/icons/sqcom.png" width="40"><br>SQCOM</a><br><sub>2 patches</sub></td>
+<td align="center" width="25%"><a href="#steezy"><img src=".github/assets/icons/steezy.png" width="40"><br>STEEZY</a><br><sub>4 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#steezy"><img src=".github/assets/icons/steezy.png" width="40"><br>STEEZY</a><br><sub>4 patches</sub></td>
 <td align="center" width="25%"><a href="#storywise"><img src=".github/assets/icons/storywise.png" width="40"><br>Storywise</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#sygic"><img src=".github/assets/icons/sygic.png" width="40"><br>Sygic</a><br><sub>2 patches</sub></td>
 <td align="center" width="25%"><a href="#symfonium"><img src=".github/assets/icons/symfonium.png" width="40"><br>Symfonium</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#terabox"><img src=".github/assets/icons/terabox.png" width="40"><br>TeraBox</a><br><sub>7 patches</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#terabox"><img src=".github/assets/icons/terabox.png" width="40"><br>TeraBox</a><br><sub>7 patches</sub></td>
 <td align="center" width="25%"><a href="#trainline"><img src=".github/assets/icons/trainline.png" width="40"><br>Trainline</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#u-dictionary"><img src=".github/assets/icons/udictionary.png" width="40"><br>U Dictionary</a><br><sub>1 patch</sub></td>
+<td align="center" width="25%"><a href="#viber"><img src=".github/assets/icons/viber.png" width="40"><br>Viber</a><br><sub>3 patches</sub></td>
 <td align="center" width="25%"><a href="#video-editor"><img src=".github/assets/icons/videoeditor.png" width="40"><br>Video Editor</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
@@ -203,12 +201,12 @@ each one changes.
 <td align="center" width="25%"><a href="#yi-iot"><img src=".github/assets/icons/yiiot.png" width="40"><br>Yi iot</a><br><sub>1 patch</sub></td>
 </tr>
 <tr>
-<td align="center" width="25%"><a href="#tiktok"><img src=".github/assets/icons/tiktok.png" width="40"><br>TikTok</a><br><sub>separate bundle</sub></td>
+<td align="center" width="25%"><a href="#yuka"><img src=".github/assets/icons/yuka.png" width="40"><br>Yuka</a><br><sub>1 patch</sub></td>
 <td align="center" width="25%"><a href="#universal">🌐<br>Universal</a><br><sub>1 patch</sub></td>
 </tr>
 </table>
 
-## 📋 Full list
+## <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/aqua/icons/full-list.png" height="48" align="absmiddle" alt="Full list"> Full list
 
 <a id="1weather"></a>
 <details>
@@ -226,6 +224,22 @@ each one changes.
 | <a id="1weather-hide-shorts"></a>[Hide Shorts](patches/src/main/kotlin/app/morphe/patches/oneweather/misc/shorts/HideShortsPatch.kt) | Hides the 1Weather Shorts card from the Today screen. |
 | <a id="1weather-hide-skyla"></a>[Hide Skyla](patches/src/main/kotlin/app/morphe/patches/oneweather/misc/skyla/HideSkylaPatch.kt) | Hides the Skyla AI assistant, its prompts and the Summarize buttons. |
 | <a id="1weather-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/oneweather/misc/premium/UnlockPremiumPatch.kt) | Unlocks premium and removes ads. |
+
+</details>
+
+<a id="3way"></a>
+<details>
+<summary><img src=".github/assets/icons/3way.png" width="18" align="top">&nbsp;&nbsp;3way&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.1.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="3way-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/threeway/misc/premium/UnlockPremiumPatch.kt) | Unlocks Gold: unblurred photos of the people who liked or visited you, the Gold crown, and the advanced search filters. |
 
 </details>
 
@@ -297,7 +311,7 @@ each one changes.
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="all-in-one-calculator-gmscore-support"></a>[GmsCore support](patches/src/main/kotlin/app/morphe/patches/allinonecalculator/misc/gms/GmsCoreSupportPatch.kt) | Signs in through GmsCore instead of Google Play Services. Requires GmsCore to be installed. |
-| <a id="all-in-one-calculator-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/allinonecalculator/misc/premium/UnlockPremiumPatch.kt) | Grants the pro entitlement, which removes the ads and the paywalled tools. |
+| <a id="all-in-one-calculator-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/allinonecalculator/misc/premium/UnlockPremiumPatch.kt) | Unlocks the Pro tools and removes ads. |
 
 </details>
 
@@ -330,7 +344,7 @@ each one changes.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| <a id="alpinequest-unlock-full-version"></a>[Unlock full version](patches/src/main/kotlin/app/morphe/patches/alpinequest/misc/activation/UnlockFullVersionPatch.kt) | Unlocks the Off-Road Explorer features gated behind activation. |
+| <a id="alpinequest-unlock-full-version"></a>[Unlock full version](patches/src/main/kotlin/app/morphe/patches/alpinequest/misc/activation/UnlockFullVersionPatch.kt) | Unlocks the Off-Road Explorer features. |
 
 </details>
 
@@ -485,7 +499,7 @@ each one changes.
 
 <a id="botim"></a>
 <details>
-<summary><img src=".github/assets/icons/botim.png" width="18" align="top">&nbsp;&nbsp;botim&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src=".github/assets/icons/botim.png" width="18" align="top">&nbsp;&nbsp;botim&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -495,6 +509,7 @@ each one changes.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
+| <a id="botim-disable-tracking"></a>[Disable tracking](patches/src/main/kotlin/app/morphe/patches/botim/misc/tracking/DisableTrackingPatch.kt) | Stops Firebase Analytics, Crashlytics, Adjust and MoEngage from collecting usage data. |
 | <a id="botim-unlock-vip"></a>[Unlock VIP](patches/src/main/kotlin/app/morphe/patches/botim/misc/premium/UnlockVipPatch.kt) | Removes ads and upgrade prompts. Shows the VIP badge in the header. |
 
 </details>
@@ -515,6 +530,22 @@ each one changes.
 
 </details>
 
+<a id="cast-plug-in-for-musicolet"></a>
+<details>
+<summary><img src=".github/assets/icons/musicoletcastplugin.png" width="18" align="top">&nbsp;&nbsp;Cast Plug-in for Musicolet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.9 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="cast-plug-in-for-musicolet-remove-app-protection"></a>[Remove app protection](patches/src/main/kotlin/app/morphe/patches/musicoletcastplugin/misc/protection/RemoveAppProtectionPatch.kt) | Lets a patched build start. Cast in Musicolet requires both apps patched with the same signing key. |
+
+</details>
+
 <a id="castle"></a>
 <details>
 <summary><img src=".github/assets/icons/castle.png" width="18" align="top">&nbsp;&nbsp;Castle&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
@@ -530,7 +561,7 @@ each one changes.
 | <a id="castle-disable-update-prompt"></a>[Disable update prompt](patches/src/main/kotlin/app/morphe/patches/castle/misc/update/DisableUpdatePromptPatch.kt) | Disables the new version dialog and the required update. |
 | <a id="castle-remove-ads"></a>[Remove ads](patches/src/main/kotlin/app/morphe/patches/castle/ads/RemoveAdsPatch.kt) | Removes banner, video, interstitial and rewarded ads. Actions that waited on a rewarded ad run immediately. |
 | <a id="castle-spoof-signature"></a>[Spoof signature](patches/src/main/kotlin/app/morphe/patches/castle/misc/fix/signature/SpoofSignaturePatch.kt) | Removes the modified app warning that stops video playback. |
-| <a id="castle-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/castle/misc/premium/UnlockPremiumPatch.kt) | Unlocks member-only titles and shows the account as Premium. Requires a signed-in account. |
+| <a id="castle-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/castle/misc/premium/UnlockPremiumPatch.kt) | Unlocks member-only titles, shows the account as Premium and removes the premium bundle offer. Requires a signed-in account. |
 
 </details>
 
@@ -553,18 +584,17 @@ each one changes.
 
 <a id="catzy"></a>
 <details>
-<summary><img src=".github/assets/icons/catzy.png" width="18" align="top">&nbsp;&nbsp;Catzy&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary><img src=".github/assets/icons/catzy.png" width="18" align="top">&nbsp;&nbsp;Catzy&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.61.0 | 1.62.0 |
-| :---: | :---: |
+| 1.61.0 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="catzy-max-intimacy-level"></a>Max intimacy level | Raises pet intimacy to the highest level. |
-| <a id="catzy-remove-app-protection"></a>[Remove app protection](patches/src/main/kotlin/app/morphe/patches/catzy/misc/protection/RemoveAppProtectionPatch.kt) | Lets a patched build start. |
 | <a id="catzy-remove-usage-limits"></a>Remove usage limits | Removes daily caps on store refreshes, blind boxes, feeding, petting and the Book of Answers. Opens the Item Recycling Center every day and shortens pet exploration to three minutes. |
 | <a id="catzy-unlimited-cat-coins"></a>Unlimited cat coins | Buys every store item without running out of cat coins. |
 | <a id="catzy-unlock-premium"></a>Unlock premium | Unlocks premium goals, journeys, breathing exercises, focus timers, sounds and themes. |
@@ -864,7 +894,7 @@ each one changes.
 | <a id="imo-hide-invite-prompts"></a>[Hide invite prompts](patches/src/main/kotlin/app/morphe/patches/imo/misc/invite/HideInvitePromptsPatch.kt) | Hides the invite friends dialog, the invite entry in the chat list and the call sharing banner. |
 | <a id="imo-prevent-screenshot-detection"></a>[Prevent screenshot detection](patches/src/main/kotlin/app/morphe/patches/imo/misc/screenshot/PreventScreenshotDetectionPatch.kt) | Stops chats and calls from reporting screenshots and screen recordings to the other person. |
 | <a id="imo-raise-media-sending-limit"></a>[Raise media sending limit](patches/src/main/kotlin/app/morphe/patches/imo/misc/limits/RaiseMediaSendingLimitPatch.kt) | Raises the limit on photos, videos and files sent at once to 100. |
-| <a id="imo-remove-chat-protection"></a>[Remove chat protection](patches/src/main/kotlin/app/morphe/patches/imo/misc/privacy/RemoveChatProtectionPatch.kt) | Allows copying, sharing, forwarding and downloading messages protected by the sender's chat privacy settings or Time Machine. |
+| <a id="imo-remove-chat-protection"></a>[Remove chat protection](patches/src/main/kotlin/app/morphe/patches/imo/misc/privacy/RemoveChatProtectionPatch.kt) | Allows copying, sharing, forwarding and downloading messages in chats with chat privacy or Time Machine turned on. |
 | <a id="imo-remove-contact-selection-limit"></a>[Remove contact selection limit](patches/src/main/kotlin/app/morphe/patches/imo/misc/limits/RemoveContactSelectionLimitPatch.kt) | Raises the limit on contacts selected for iBubble close friends and Family Guard invites to 999. Experimental. |
 | <a id="imo-remove-forwarding-restrictions"></a>[Remove forwarding restrictions](patches/src/main/kotlin/app/morphe/patches/imo/misc/forwarding/RemoveForwardingRestrictionsPatch.kt) | Allows forwarding disappearing and view-once text messages. |
 | <a id="imo-remove-screenshot-restriction"></a>[Remove screenshot restriction](patches/src/main/kotlin/app/morphe/patches/imo/misc/screenshot/RemoveScreenshotRestrictionPatch.kt) | Allows screenshots and screen recording in chats, calls, media and profiles. |
@@ -872,6 +902,24 @@ each one changes.
 | <a id="imo-show-full-profile-photos"></a>[Show full profile photos](patches/src/main/kotlin/app/morphe/patches/imo/misc/privacy/ShowFullProfilePhotosPatch.kt) | Opens profile photos in full size when their owner restricts it. |
 | <a id="imo-spoof-signature"></a>[Spoof signature](patches/src/main/kotlin/app/morphe/patches/imo/misc/signin/SpoofSignaturePatch.kt) | Restores phone verification by call when signing in. |
 | <a id="imo-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/imo/misc/premium/UnlockPremiumPatch.kt) | Unlocks imo Premium. |
+
+</details>
+
+<a id="internet-speed-meter-lite"></a>
+<details>
+<summary><img src=".github/assets/icons/internetspeedmeterlite.png" width="18" align="top">&nbsp;&nbsp;Internet Speed Meter Lite&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.7.0-lite |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="internet-speed-meter-lite-disable-tracking"></a>[Disable tracking](patches/src/main/kotlin/app/morphe/patches/internetspeedmeter/tracking/DisableTrackingPatch.kt) | Stops Firebase Analytics, Crashlytics and Sessions from collecting usage data. |
+| <a id="internet-speed-meter-lite-remove-ads"></a>[Remove ads](patches/src/main/kotlin/app/morphe/patches/internetspeedmeter/ads/RemoveAdsPatch.kt) | Removes ads and the prompts to allow them. |
+| <a id="internet-speed-meter-lite-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/internetspeedmeter/premium/UnlockPremiumPatch.kt) | Unlocks the notification dialog, smart notifications, themes, notification accent and the starting hour of the day. |
 
 </details>
 
@@ -944,7 +992,7 @@ each one changes.
 
 <a id="keepa"></a>
 <details>
-<summary><img src=".github/assets/icons/keepa.png" width="18" align="top">&nbsp;&nbsp;Keepa&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary><img src=".github/assets/icons/keepa.png" width="18" align="top">&nbsp;&nbsp;Keepa&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -956,7 +1004,6 @@ each one changes.
 |----------|----------------|
 | <a id="keepa-disable-tracking"></a>[Disable tracking](patches/src/main/kotlin/app/morphe/patches/keepa/misc/tracking/DisableTrackingPatch.kt) | Stops Firebase Analytics and Crashlytics from collecting usage data. |
 | <a id="keepa-multiple-accounts"></a>[Multiple accounts](patches/src/main/kotlin/app/morphe/patches/keepa/misc/accounts/MultipleAccountsPatch.kt) | Signs in to several Keepa accounts at once and lists their price watches together. Accounts are added and removed in Settings > Accounts. |
-| <a id="keepa-remove-app-protection"></a>[Remove app protection](patches/src/main/kotlin/app/morphe/patches/keepa/misc/protection/RemoveAppProtectionPatch.kt) | Lets a patched build start. |
 | <a id="keepa-show-offer-counts"></a>[Show offer counts](patches/src/main/kotlin/app/morphe/patches/keepa/misc/offercount/ShowOfferCountsPatch.kt) | Shows the new and used offer counts in the product overview. |
 | <a id="keepa-unlock-price-increase-tracking"></a>[Unlock price increase tracking](patches/src/main/kotlin/app/morphe/patches/keepa/misc/priceincrease/UnlockPriceIncreaseTrackingPatch.kt) | Adds the rise option when creating or editing a price watch. |
 
@@ -1156,7 +1203,7 @@ each one changes.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| <a id="moviebox-all-in-one"></a>[All-In-One](patches/src/main/kotlin/app/morphe/patches/moviebox/misc/allinone/AllInOnePatch.kt) | Enables video playback and downloads, removes ads and upsell prompts, bypasses the region block, and unlocks the hidden Laboratory menu. Requires Android 10 or later. |
+| <a id="moviebox-all-in-one"></a>[All-In-One](patches/src/main/kotlin/app/morphe/patches/moviebox/misc/allinone/AllInOnePatch.kt) | Enables video playback and downloads, removes ads and upsell prompts, and unlocks the Laboratory menu. Requires Android 10 or later. |
 | <a id="moviebox-hide-buzzbox"></a>[Hide BuzzBox](patches/src/main/kotlin/app/morphe/patches/moviebox/misc/buzzbox/HideBuzzBoxPatch.kt) | Removes the BuzzBox tabs from the bottom navigation bar and the home screen. |
 | <a id="moviebox-hide-midnight-tab"></a>[Hide Midnight tab](patches/src/main/kotlin/app/morphe/patches/moviebox/misc/midnight/HideMidnightTabPatch.kt) | Removes the Midnight 18+ tab from the home screen. Requires All-In-One. |
 | <a id="moviebox-hide-permanent-notification"></a>[Hide permanent notification](patches/src/main/kotlin/app/morphe/patches/moviebox/misc/permanentnotification/HidePermanentNotificationPatch.kt) | Hides the permanent notification. Requires All-In-One. |
@@ -1175,7 +1222,7 @@ each one changes.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| <a id="moviebox-tv-all-in-one"></a>[All-In-One](patches/src/main/kotlin/app/morphe/patches/movieboxtv/misc/allinone/AllInOnePatch.kt) | Unlocks premium playback and removes ads, the region block and forced updates. Requires Android 10 or later. |
+| <a id="moviebox-tv-all-in-one"></a>[All-In-One](patches/src/main/kotlin/app/morphe/patches/movieboxtv/misc/allinone/AllInOnePatch.kt) | Unlocks video playback and removes ads and forced updates. Requires Android 10 or later. |
 
 </details>
 
@@ -1444,8 +1491,8 @@ each one changes.
 |----------|----------------|
 | <a id="photo-editor-pro-hide-ads"></a>[Hide ads](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/ads/HideAdsPatch.kt) | Adds an option to hide banner, interstitial, app-open and rewarded ads. |
 | <a id="photo-editor-pro-hide-share-options"></a>[Hide share options](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/layout/HideShareOptionsPatch.kt) | Adds an option to hide the share buttons on the save screen and center the saved photo. |
-| <a id="photo-editor-pro-inspect-ai-requests"></a>[Inspect AI requests](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/diagnostics/TraceAiRequestsPatch.kt) | Shows the network calls an AI tool makes, such as HTTP requests and Firebase uploads, and keeps a log, so you can watch your photo fly to China or the US. |
-| <a id="photo-editor-pro-show-ai-progress"></a>[Show AI progress](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/aitools/ShowAiProgressPatch.kt) | Reads the current stage off the real network activity instead of the fake progress bar InShot ships. |
+| <a id="photo-editor-pro-inspect-ai-requests"></a>[Inspect AI requests](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/diagnostics/TraceAiRequestsPatch.kt) | Shows the network calls an AI tool makes, such as HTTP requests and Firebase uploads, and keeps a log. |
+| <a id="photo-editor-pro-show-ai-progress"></a>[Show AI progress](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/aitools/ShowAiProgressPatch.kt) | Shows the current stage of AI Remove and Enhance on their loading screens. |
 | <a id="photo-editor-pro-speed-up-ai-tools"></a>[Speed up AI tools](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/aitools/SpeedUpAiToolsPatch.kt) | Shortens the AI tool wait by polling for the result more often and uploading the photo in larger chunks. |
 | <a id="photo-editor-pro-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/photoeditorpro/misc/premium/UnlockPremiumPatch.kt) | Adds an option to unlock the pro tools, remove the export watermark and hide the upgrade prompts. |
 
@@ -1497,7 +1544,7 @@ each one changes.
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="poe-disable-tracking"></a>[Disable tracking](patches/src/main/kotlin/app/morphe/patches/poe/misc/tracking/DisableTrackingPatch.kt) | Stops Firebase Analytics, Crashlytics, Sessions and Performance Monitoring from collecting usage data. |
-| <a id="poe-spoof-signature"></a>[Spoof signature](patches/src/main/kotlin/app/morphe/patches/poe/misc/fix/signature/SpoofSignaturePatch.kt) | Fixes Firebase Installations rejecting the re-signed app. |
+| <a id="poe-spoof-signature"></a>[Spoof signature](patches/src/main/kotlin/app/morphe/patches/poe/misc/fix/signature/SpoofSignaturePatch.kt) | Enables push notifications. |
 
 </details>
 
@@ -1535,7 +1582,7 @@ each one changes.
 
 <a id="projectivy-launcher"></a>
 <details>
-<summary><img src=".github/assets/icons/projectivy.png" width="18" align="top">&nbsp;&nbsp;Projectivy Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary><img src=".github/assets/icons/projectivy.png" width="18" align="top">&nbsp;&nbsp;Projectivy Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -1546,7 +1593,6 @@ each one changes.
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="projectivy-launcher-disable-tracking"></a>[Disable tracking](patches/src/main/kotlin/app/morphe/patches/projectivy/misc/tracking/DisableTrackingPatch.kt) | Disables analytics and crash reporting. |
-| <a id="projectivy-launcher-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/projectivy/misc/premium/UnlockPremiumPatch.kt) | Unlocks all premium features. |
 
 </details>
 
@@ -1576,7 +1622,7 @@ each one changes.
 
 **🎯 Supported versions:**
 
-| 2.1.4-gms | 2.1.4-nogms |
+| 2.1.4-gms | 2.1.5-nogms |
 | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -1606,7 +1652,7 @@ each one changes.
 | <a id="proton-mail-hide-upgrade-promotions"></a>[Hide upgrade promotions](patches/src/main/kotlin/app/morphe/patches/protonmail/misc/upselling/HideUpgradePromotionsPatch.kt) | Hides the top-bar upgrade button, promotional sidebar rows and the auto-delete upgrade banner in Trash and Spam. Keeps the Empty trash and Empty spam buttons. |
 | <a id="proton-mail-material-3-switches"></a>[Material 3 switches](patches/src/main/kotlin/app/morphe/patches/protonmail/misc/materialswitch/MaterialSwitchesPatch.kt) | Shows switches in the Material 3 style with check and close icons. |
 | <a id="proton-mail-remove-sent-from-signature"></a>[Remove 'Sent from' signature](patches/src/main/kotlin/app/morphe/patches/protonmail/signature/RemoveSentFromSignaturePatch.kt) | Removes the 'Sent from Proton Mail' signature and unlocks the mobile signature setting. |
-| <a id="proton-mail-remove-free-accounts-limit"></a>[Remove free accounts limit](patches/src/main/kotlin/app/morphe/patches/protonmail/account/RemoveFreeAccountsLimitPatch.kt) | Removes the limit for maximum free accounts logged in. |
+| <a id="proton-mail-remove-free-accounts-limit"></a>[Remove free accounts limit](patches/src/main/kotlin/app/morphe/patches/protonmail/account/RemoveFreeAccountsLimitPatch.kt) | Removes the limit on signed-in free accounts. |
 | <a id="proton-mail-scheduled-trash-and-spam-deletion"></a>[Scheduled Trash and Spam deletion](patches/src/main/kotlin/app/morphe/patches/protonmail/misc/scheduleddeletion/ScheduledDeletionPatch.kt) | Deletes all messages in Trash and Spam on separate configurable schedules. Deleted messages cannot be recovered. |
 | <a id="proton-mail-swipe-to-switch-accounts"></a>[Swipe to switch accounts](patches/src/main/kotlin/app/morphe/patches/protonmail/misc/accountswipe/SwipeToSwitchAccountsPatch.kt) | Switches between signed-in accounts by swiping up or down on the account avatar. |
 | <a id="proton-mail-unlock-custom-time-picker"></a>[Unlock custom time picker](patches/src/main/kotlin/app/morphe/patches/protonmail/misc/scheduling/UnlockCustomTimePickerPatch.kt) | Enables picking a custom date and time when snoozing conversations and scheduling messages. |
@@ -1858,7 +1904,7 @@ each one changes.
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="realme-link-amoled-dark-theme"></a>[AMOLED dark theme](patches/src/main/kotlin/app/morphe/patches/realmelink/theme/AmoledThemePatch.kt) | Replaces the light theme with a pure black dark theme. Requires Android 13 or later. |
-| <a id="realme-link-bypass-session-expiry"></a>[Bypass session expiry](patches/src/main/kotlin/app/morphe/patches/realmelink/session/BypassSessionExpiryPatch.kt) | Renews the session in the background instead of asking to sign in again. The sign-in prompt appears only when renewal fails. |
+| <a id="realme-link-bypass-session-expiry"></a>[Bypass session expiry](patches/src/main/kotlin/app/morphe/patches/realmelink/session/BypassSessionExpiryPatch.kt) | Keeps the account signed in after the session expires. Asks to sign in again only if renewal fails. |
 
 </details>
 
@@ -1909,7 +1955,7 @@ each one changes.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| <a id="rubber-bands-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/rubberbands/misc/premium/UnlockPremiumPatch.kt) | Unlocks running and logging workouts, progress tracking and personal records (AI workout generation is not included). |
+| <a id="rubber-bands-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/rubberbands/misc/premium/UnlockPremiumPatch.kt) | Unlocks running and logging workouts, progress tracking and personal records. AI workout generation is not included. |
 
 </details>
 
@@ -1960,7 +2006,7 @@ each one changes.
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="showly-amoled-dark-theme"></a>[AMOLED dark theme](patches/src/main/kotlin/app/morphe/patches/showly/misc/theme/AmoledThemePatch.kt) | Replaces the dark theme background with pure black. |
-| <a id="showly-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/showly/misc/premium/UnlockPremiumPatch.kt) | Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets. The News feed is not included. |
+| <a id="showly-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/showly/misc/premium/UnlockPremiumPatch.kt) | Unlocks ad removal, light theme, custom images, list view types, quick ratings, transparent widgets, and the News feed. |
 
 </details>
 
@@ -2102,6 +2148,24 @@ each one changes.
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="u-dictionary-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/udictionary/misc/premium/UnlockPremiumPatch.kt) | Unlocks Pro features and removes ads. |
+
+</details>
+
+<a id="viber"></a>
+<details>
+<summary><img src=".github/assets/icons/viber.png" width="18" align="top">&nbsp;&nbsp;Viber&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 29.1.1.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="viber-hide-more-screen-items"></a>[Hide More screen items](patches/src/main/kotlin/app/morphe/patches/viber/layout/more/HideMoreItemsPatch.kt) | Hides Viber Dating, Your News, promotional banners and upsell entries from the More screen. | • Hide Business Account<br>• Hide Viber Dating<br>• Hide eSIM<br>• Hide Get free stickers<br>• Hide promotional banners<br>• Hide Rakuten account<br>• Hide Viber Out<br>• Hide Viber Plus<br>• Hide Your News |
+| <a id="viber-hide-ads"></a>[Hide ads](patches/src/main/kotlin/app/morphe/patches/viber/ads/HideAdsPatch.kt) | Hides ads in the chat list, the More screen, Explore, search and after calls. |  |
+| <a id="viber-hide-navigation-buttons"></a>[Hide navigation buttons](patches/src/main/kotlin/app/morphe/patches/viber/layout/navigation/HideNavigationButtonsPatch.kt) | Hides the selected tabs from the bottom navigation bar. | • Hide Calls<br>• Hide ChatGPT<br>• Hide Explore<br>• Hide Marketplace<br>• Hide Pay<br>• Hide Shortica |
 
 </details>
 
@@ -2254,19 +2318,19 @@ each one changes.
 
 </details>
 
-<a id="tiktok"></a>
+<a id="yuka"></a>
 <details>
-<summary><img src=".github/assets/icons/tiktok.png" width="18" align="top">&nbsp;&nbsp;TikTok&nbsp;&nbsp;•&nbsp;&nbsp;separate bundle</summary>
+<summary><img src=".github/assets/icons/yuka.png" width="18" align="top">&nbsp;&nbsp;Yuka&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 46.2.3 |
+| 5.7 |
 | :---: |
 
-| 📦&nbsp;Bundle | 📜&nbsp;Description |
+| 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| [hxreborn-tiktok-patches](https://github.com/hxreborn/hxreborn-tiktok-patches) | Not part of this bundle, so it has to be added to Morphe as its own patch source. Forked from [icysymmetra/tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe). [Add to Morphe](https://morphe.software/add-source?github=hxreborn/hxreborn-tiktok-patches) |
+| <a id="yuka-unlock-premium-root"></a>[Unlock premium (root)](patches/src/main/kotlin/app/morphe/patches/yuka/misc/premium/UnlockPremiumPatch.kt) | Unlocks food preferences, diet alerts and the full history. Search and offline downloads need a paid subscription. Requires a root mount install. |
 
 </details>
 
@@ -2277,7 +2341,7 @@ each one changes.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| <a id="universal-override-certificate-pinning"></a>[Override certificate pinning](patches/src/main/kotlin/app/morphe/patches/all/misc/network/OverrideCertificatePinningPatch.kt) | Overrides certificate pinning, allowing to inspect traffic via a proxy. |
+| <a id="universal-override-certificate-pinning"></a>[Override certificate pinning](patches/src/main/kotlin/app/morphe/patches/all/misc/network/OverrideCertificatePinningPatch.kt) | Lets a proxy inspect the app's network traffic. Requires the proxy's certificate installed on the device. |
 
 </details>
 
@@ -2287,20 +2351,21 @@ each one changes.
 
 <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/request.png" width="96" align="left" alt="">
 
-**Want to request an app?**<br>Check the [open requests](https://github.com/hxreborn/morphe-patches/discussions/categories/app-requests?discussions_q=is%3Aopen+category%3A%22App+Requests%22+sort%3Atop) first and upvote yours if it is there. If it isn't, open an [app request](https://github.com/hxreborn/morphe-patches/discussions/new?category=app-requests) with its Play Store link and package name, and pick the features you want.<br>Requests with many upvotes get looked at first, but what ships is whatever I can verify on a device, in no fixed order. Skipped: features the server enforces, region locks, and apps another bundle already patches.
+**Want an app patched?**<br>Upvote it in the [open requests](https://github.com/hxreborn/morphe-patches/discussions/categories/app-requests?discussions_q=is%3Aopen+category%3A%22App+Requests%22+sort%3Atop), or open an [app request](https://github.com/hxreborn/morphe-patches/discussions/new?category=app-requests) with the Play Store link, the package name and the features you want.<br>Upvotes set the order, a device check sets what ships. Not taken: features the server enforces, region locks, and apps another bundle already patches.
 
 <br clear="left">
 
 &nbsp;
-## 📲 Installing
+## <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/aqua/icons/installing.png" height="48" align="absmiddle" alt="Installing"> Installing
 
 [Add this source](https://morphe.software/add-source?github=hxreborn/morphe-patches) to Morphe
 Manager, then patch any app listed above.
 
 &nbsp;
-## 🛠️ Building
+## <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/aqua/icons/building.png" height="48" align="absmiddle" alt="Building"> Building
 
-You need Java 21 and a GitHub token with `read:packages`:
+You need Java 21, the Android SDK (`ANDROID_HOME` or `sdk.dir` in `local.properties`) and a GitHub
+token with `read:packages`:
 
 ```bash
 ./gradlew buildAndroid
@@ -2310,7 +2375,31 @@ The build writes the bundle to `patches/build/libs/`. See the
 [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for setup instructions.
 
 &nbsp;
-## 📜 License
+## <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/aqua/icons/disclaimer.png" height="48" align="absmiddle" alt="Disclaimer"> Disclaimer
+
+These patches are provided as is, without warranty of any kind, for **educational and personal
+use only**.
+
+- **Use them only on apps you legally own.** They are for studying, accessibility tweaks and
+  personal customization of software you already own or that is free. They are not a piracy
+  tool: do not use them to obtain paid apps, subscriptions or content you have not licensed, and
+  do not redistribute patched copies of anyone's apps
+- **No apps are distributed here.** This repository holds patch source code and the scripts that
+  build it. It hosts no APKs
+- **Non-commercial project.** There are no paid tiers, no ads and nothing for sale. Do not sell
+  these patches or patched apps, and be wary of anyone who does
+- **Use at your own risk.** Modifying apps can violate their terms of service and may lead to
+  account restrictions, bans, data loss or apps that no longer work. The authors accept no
+  liability for any consequence of using these patches and give no guarantee that they work on
+  any particular app or version
+- **No affiliation.** This project is not affiliated with, endorsed by or connected to Google,
+  Morphe, ReVanced or any app developer. All trademarks belong to their respective owners
+- **Takedown requests.** If you are a rights holder and believe something here infringes your
+  rights, open an issue naming the exact file or patch and describing the concern. It will be
+  reviewed promptly and in good faith
+
+&nbsp;
+## <img src="https://raw.githubusercontent.com/hxreborn/morphe-patches/assets/aqua/icons/license.png" height="48" align="absmiddle" alt="License"> License
 
 hxreborn’s patches are licensed under the [GNU General Public License v3.0](LICENSE), with
 additional conditions under GPLv3 Section 7 inherited from Morphe:

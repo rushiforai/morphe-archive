@@ -11,17 +11,16 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
+import app.morphe.patches.shared.misc.smali.toJavaClassName
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val THEME = "MyApplicationTheme"
 private const val HOST_PALETTE_CLASS = "Lapp/hxreborn/extension/netanalyzer/HostPalette;"
@@ -59,38 +58,30 @@ internal val hostPalettePatch = bytecodePatch {
             throw PatchException("$THEME reads ${paletteInstances.size} $paletteType instances, expected $THEME_PALETTES")
         }
         val paletteRegistration = listOf(
-            paletteInstances.first().definingClass.toJavaName(),
+            paletteInstances.first().definingClass.toJavaClassName(),
             paletteInstances.joinToString(LIST_SEPARATOR) { it.name },
             classDefBy(paletteType).propertyFields().toRegistration(),
         ).joinToString(REGISTRATION_SEPARATOR)
         val schemeFields = classDefBy(schemeType).propertyFields().toRegistration()
 
-        val captureMethod = ImmutableMethod(
-            theme.classDef.type,
+        val captureMethod = theme.classDef.addMethod(
             CAPTURE_METHOD,
-            listOf(ImmutableMethodParameter(schemeType, null, null)),
+            listOf(schemeType),
             "V",
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(CAPTURE_REGISTERS),
-        ).toMutable().apply {
-            addInstructions(
-                0,
-                """
-                    const-string v0, "$paletteRegistration"
-                    invoke-static { v0 }, $HOST_PALETTE_CLASS->registerCustomColors(Ljava/lang/String;)V
-                    const-string v0, "$schemeFields"
-                    invoke-static { p0, v0 }, $HOST_PALETTE_CLASS->capture(Ljava/lang/Object;Ljava/lang/String;)V
-                    return-void
-                """,
-            )
-        }
-        theme.classDef.methods.add(captureMethod)
+            CAPTURE_REGISTERS,
+            """
+                const-string v0, "$paletteRegistration"
+                invoke-static { v0 }, $HOST_PALETTE_CLASS->registerCustomColors(Ljava/lang/String;)V
+                const-string v0, "$schemeFields"
+                invoke-static { p0, v0 }, $HOST_PALETTE_CLASS->capture(Ljava/lang/Object;Ljava/lang/String;)V
+                return-void
+            """,
+        )
 
         theme.method.addInstructions(
             constructorCallIndex + 1,
-            "invoke-static/range { v${constructorCall.startRegister} .. v${constructorCall.startRegister} }, ${captureMethod.descriptor()}",
+            "invoke-static/range { v${constructorCall.startRegister} .. v${constructorCall.startRegister} }, ${descriptor(captureMethod)}",
         )
     }
 }

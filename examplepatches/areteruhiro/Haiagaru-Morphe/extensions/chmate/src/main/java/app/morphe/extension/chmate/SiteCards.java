@@ -64,12 +64,19 @@ final class SiteCards {
         TextView view=(TextView)object;CharSequence text=view.getText();
         if(!(text instanceof Spanned)||text instanceof Editable||text.length()>100000)return;
         if(!Haiagaru.siteCardsEnabled()) {if(strip(text)!=text)write(view,strip(text));return;}
+        Marker[] markers=((Spanned)text).getSpans(0,text.length(),Marker.class);
+        // Native binding calls us before the first row measurement, even while not shown.
+        // Apply memory-cached cards now rather than changing short-thread gravity after restore.
+        if(markers.length==0){
+            CharSequence warm=decorate(text,view);
+            if(warm!=text){write(view,warm);text=view.getText();}
+        }
         if(!view.isShown())return;
         CharSequence raw=strip(text);
         List<String> urls=urls(raw);if(urls.isEmpty()){if(raw!=text)write(view,raw);return;}
         VIEWS.put(view,true);
         for(String url:urls)lookup(url,view);
-        Marker[] markers=((Spanned)text).getSpans(0,text.length(),Marker.class);
+        markers=((Spanned)text).getSpans(0,text.length(),Marker.class);
         if(markers.length>0&&markers[0].current(view))return;
         CharSequence rendered=decorate(raw,view);
         if(rendered!=text&&(!rendered.toString().equals(text.toString())||markers.length>0))write(view,rendered);
@@ -128,7 +135,8 @@ final class SiteCards {
                         if(data!=null)synchronized(DISK){if(token==generation)SiteCardMetadata.store(data);}
                     }
                 }
-                if(data!=null&&image&&Haiagaru.siteCardsEnabled()&&Haiagaru.siteCardImages()&&!data.image.isEmpty())bitmap=SiteCardMetadata.image(data.image);
+                if(data!=null&&image&&Haiagaru.siteCardsEnabled()&&Haiagaru.siteCardImages()&&!data.image.isEmpty())
+                    bitmap=SiteCardMetadata.image(data.image,data.tunnel||ImageVpnController.protectedPreview(url));
             }catch(Exception|OutOfMemoryError ignored){}
             SiteCardMetadata.Data resolved=data;Bitmap thumbnail=bitmap;
             MAIN.post(()->{

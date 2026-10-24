@@ -64,6 +64,12 @@ public final class FilteredCountPill {
     });
     private static WeakReference<TextView> pillReference = new WeakReference<>(null);
     private static final ViewTreeObserver.OnGlobalLayoutListener SYNC = FilteredCountPill::sync;
+    /**
+     * Asks again after the Home tab showed with no feed under it. That's Shop or Nearby, or a
+     * feed page that came up while FeedVisibility was holding its next look, and no layout pass
+     * has to follow to ask about it.
+     */
+    private static final Runnable RECHECK = FilteredCountPill::sync;
     /** The count the label says now, or -1 before it has said one. Main thread only. */
     private static long shown = -1;
 
@@ -121,15 +127,18 @@ public final class FilteredCountPill {
             long count = FeedFilterCounters.sessionRemoved();
             // The Home tab shown and selected with no comment sheet over it; a cleared screen
             // puts the tab bar away, so the label goes with it.
-            boolean visible = wanted() && count > 0
-                    && !SessionBudget.isLocked()
-                    && FeedVisibility.onRecommendationFeed(activity);
+            boolean ready = wanted() && count > 0 && !SessionBudget.isLocked();
+            boolean visible = ready && FeedVisibility.onRecommendationFeed(activity);
             if (visible && count != shown) {
                 shown = count;
                 pill.setText(text(activity, count));
             }
             int visibility = visible ? View.VISIBLE : View.GONE;
             if (pill.getVisibility() != visibility) pill.setVisibility(visibility);
+            pill.removeCallbacks(RECHECK);
+            if (ready && !visible && FeedVisibility.onFeedTab(activity)) {
+                pill.postDelayed(RECHECK, FeedVisibility.FEED_PAGER_SEARCH_GAP_MS);
+            }
         } catch (Throwable error) {
             // A layout pass is TikTok's own frame: the label goes rather than the app.
             pill.setVisibility(View.GONE);
@@ -143,6 +152,7 @@ public final class FilteredCountPill {
 
     private static void detach() {
         TextView pill = pillReference.get();
+        if (pill != null) pill.removeCallbacks(RECHECK);
         if (pill != null && pill.getParent() instanceof ViewGroup) {
             ViewGroup root = (ViewGroup) pill.getParent();
             ViewTreeObserver observer = root.getViewTreeObserver();

@@ -200,8 +200,6 @@ public final class ScheduledDeletionTest {
     @Test
     public void emptiesTrashThenSpamUsingTheMailSystemLabelNames() {
         assertArrayEquals(new String[] { "TRASH", "SPAM" }, ScheduledDeletion.EMPTIED_LABELS);
-        assertEquals("TRASH", ScheduledDeletion.TRASH);
-        assertEquals("SPAM", ScheduledDeletion.SPAM);
     }
 
     @Test

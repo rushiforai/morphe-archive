@@ -34,6 +34,11 @@ import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
  * logging. With every switch off, paused, or before HushTumblr has its settings, the list goes
  * through untouched.
  *
+ * <p>A blog's posts, likes and blog search are subclasses that keep their own copy of the list they
+ * hand {@code TimelineResponse}, and read that copy back. Each of their constructors passes its list
+ * through {@link #filterKept} first, so the copy is the filtered one, and the base constructor it
+ * goes on to hands that same list back untouched.
+ *
  * <p>The rumblr model keeps its names, so the item's kind, its Sponsored label and how Tumblr is told
  * to show it are read by name. A carousel's own items are the one renamed getter, read through
  * {@link #carouselItems}. Anything that can't be read is kept: a filter that guesses could take a
@@ -43,9 +48,10 @@ import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
  * blogs"). A heading goes with the item right after it, and one that ends a page goes too while a
  * card switch is on, since its card may be the first item of the next page.
  *
- * <p>A blog or community card is a suggestion only in a feed. A search lists the same kinds of card
- * as its results, through the same two constructors, so those two switches act only on a page
- * {@link PageSource} knows for a feed and leave a page of search results, cards and headings, alone.
+ * <p>A blog, community or tag card is a suggestion only in a feed or between a search's posts. A
+ * search lists the same kinds of card as its results, through the same two constructors, so those
+ * switches act only on a page {@link PageSource} knows for a feed, or on the Posts tab of a search,
+ * and leave its other tabs, cards and headings, alone.
  *
  * <p>The post switches (reblogs, video, photo and text posts, and the word list) are
  * {@link PostRules}'. A heading never goes with a post they take out.
@@ -61,6 +67,15 @@ public final class TimelineFilter {
 
     /** The kind of a heading item, whose text the server sends. */
     static final String TITLE = "TITLE";
+
+    /** The kind of a post. Of a search's tabs, only Posts has any. */
+    static final String POST = "POST";
+
+    /** The kind of a lone button the server puts between items, Tumblr's {@code GenericButton}. */
+    static final String BUTTON = "BUTTON";
+
+    /** A link that does something where it's tapped, where a {@code WebLink} opens a page. */
+    static final String ACTION_LINK = "com.tumblr.rumblr.model.link.ActionLink";
 
     /**
      * The constant name Tumblr's {@code SponsoredState} and {@code DisplayType} both give a paid
@@ -78,9 +93,16 @@ public final class TimelineFilter {
             "GEMINI_AD", "FACEBOOK_BIDDAABLE", "NIMBUS_AD", "DISPLAY_IO_INTERSCROLLER_S2S_ADS", "VUNGLE_AD",
             "CLIENT_SIDE_AD", "CLIENT_SIDE_MEDIATION", "DISPLAY_IO_INTERSCROLLER_AD", "GOOGLE_NATIVE")));
 
-    /** Blogs Tumblr suggests you follow, as cards, rows and the small cards of a carousel. */
+    /**
+     * Blogs Tumblr suggests you follow, as cards, rows and the small cards of a carousel, and the
+     * prompts to follow the blog you're reading. Between a blog's own posts that's a "Like this?
+     * Follow to see more" heading over a "Follow <blog>" button, a {@link #BUTTON} that only counts
+     * here when it follows a blog, see {@link #followsABlog}. Tumblr's {@code BlogSubscriptionCta}
+     * is the same prompt in one item, {@code BLOG_FOLLOW_CTA} or {@code BLOG_SUBSCRIPTION_CTA}.
+     */
     static final Set<String> BLOG_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "BLOG_CARD", "COMPACT_BLOG_CARD", "BLOG_ROW", "TINY_BLOG_CAROUSEL_CARD")));
+            "BLOG_CARD", "COMPACT_BLOG_CARD", "BLOG_ROW", "TINY_BLOG_CAROUSEL_CARD", BUTTON,
+            "BLOG_FOLLOW_CTA", "BLOG_SUBSCRIPTION_CTA")));
 
     /**
      * Communities Tumblr suggests you join: the card a feed shows, alone or in a carousel. A
@@ -91,6 +113,21 @@ public final class TimelineFilter {
      * community's page.
      */
     static final Set<String> COMMUNITY_TYPES = Collections.singleton("COMMUNITY_CARD");
+
+    /**
+     * Tags Tumblr suggests you follow: the cards of a carousel ("Check out these tags", "Related
+     * tags", "Explore more #tag"). They count only as a carousel's first item, since a page of them
+     * alone is the carousel loading more of its own. A {@code FOLLOWED_TAG_CAROUSEL_CARD} isn't one,
+     * it's a tag you follow, and the cards of a search's Tags tab are its results.
+     */
+    static final Set<String> TAG_TYPES = Collections.singleton("TAG_CAROUSEL_CARD");
+
+    /**
+     * The kind of a prompt Tumblr puts in a page, its {@code Signpost}. Between a tag's posts it asks
+     * you to share the tag, so it counts as a suggested tag only on a page that holds a post. The
+     * same kind is the "Follow tags to get updates here" message of an empty Your tags tab.
+     */
+    static final String SIGNPOST = "SIGNPOST";
 
     /** Tumblr TV's "Watch it" rows and the video hub cards in them. */
     static final Set<String> WATCH_IT_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -120,15 +157,38 @@ public final class TimelineFilter {
     static volatile Function<Object, List<?>> carouselItemsForTests;
 
     /**
+     * What {@link #filterKept} just answered on this thread, for the base constructor its subclass
+     * calls next. Cleared by that call.
+     */
+    private static final ThreadLocal<List<?>> passedOn = new ThreadLocal<>();
+
+    /**
+     * Injected at the start of each constructor of a {@code TimelineResponse} subclass that keeps
+     * the list it hands the base constructor, on that list. Filters it as {@link #filter} does, and
+     * the base constructor's own call, right after, hands it back without reading it again.
+     */
+    public static List<?> filterKept(List<?> items) {
+        List<?> kept = filter(items);
+        passedOn.set(kept);
+        return kept;
+    }
+
+    /**
      * Injected at the start of both list constructors, on their list parameter. Returns the same list
      * when nothing goes, or a new one without the items that do, in the same order. Null stays
      * null. Never throws.
      */
     public static List<?> filter(List<?> items) {
+        List<?> filtered = passedOn.get();
+        if (filtered != null) {
+            passedOn.remove();
+            if (filtered == items) return items;
+        }
         // Tumblr can load a page while it starts, before HushTumblr may read a switch.
         if (!Utils.settingsReady()) return items;
         Rules rules = Rules.now();
         if (rules == null || items == null || items.isEmpty()) return items;
+        rules.page = items;
         try {
             int size = items.size();
             String[] removedBy = new String[size];
@@ -181,6 +241,7 @@ public final class TimelineFilter {
         final boolean ads;
         final boolean blogs;
         final boolean communities;
+        final boolean tags;
         final boolean watchIt;
         final boolean mutes;
         /** The post switches, or null when none is on. */
@@ -189,12 +250,19 @@ public final class TimelineFilter {
         /** What this page was parsed for, a {@link PageSource} constant, or null until it's asked. */
         @Nullable
         private Integer source;
+        /** The page being filtered. */
+        @Nullable
+        private List<?> page;
+        /** Whether {@link #page} holds a post, or null until it's asked. */
+        @Nullable
+        private Boolean amongPosts;
 
-        private Rules(boolean ads, boolean blogs, boolean communities, boolean watchIt, boolean mutes,
-                      @Nullable PostRules posts) {
+        private Rules(boolean ads, boolean blogs, boolean communities, boolean tags, boolean watchIt,
+                      boolean mutes, @Nullable PostRules posts) {
             this.ads = ads;
             this.blogs = blogs;
             this.communities = communities;
+            this.tags = tags;
             this.watchIt = watchIt;
             this.mutes = mutes;
             this.posts = posts;
@@ -212,14 +280,16 @@ public final class TimelineFilter {
                 reading = FamilyNames.HIDE_SUGGESTED_COMMUNITIES;
                 boolean communities = on(PatchFamily.Capability.SUGGESTED_COMMUNITY_CARDS, reading,
                         Settings.HIDE_SUGGESTED_COMMUNITIES);
+                reading = FamilyNames.HIDE_SUGGESTED_TAGS;
+                boolean tags = on(PatchFamily.Capability.SUGGESTED_TAG_CARDS, reading, Settings.HIDE_SUGGESTED_TAGS);
                 reading = FamilyNames.HIDE_WATCH_IT_ROWS;
                 boolean watchIt = on(PatchFamily.Capability.WATCH_IT_ROWS, reading, Settings.HIDE_WATCH_IT_ROWS);
                 reading = FamilyNames.HIDE_REBLOGS;
                 PostRules posts = PostRules.now();
                 reading = FamilyNames.MUTE_ROOT_POSTS;
                 boolean mutes = RootPostMutes.active();
-                return ads || blogs || communities || watchIt || mutes || posts != null
-                        ? new Rules(ads, blogs, communities, watchIt, mutes, posts) : null;
+                return ads || blogs || communities || tags || watchIt || mutes || posts != null
+                        ? new Rules(ads, blogs, communities, tags, watchIt, mutes, posts) : null;
             } catch (Throwable failure) {
                 HookStatus.threw(reading, "switch read", failure);
                 return null;
@@ -246,19 +316,21 @@ public final class TimelineFilter {
         String cardOwner() {
             if (blogs) return FamilyNames.HIDE_SUGGESTED_BLOGS;
             if (communities) return FamilyNames.HIDE_SUGGESTED_COMMUNITIES;
+            if (tags) return FamilyNames.HIDE_SUGGESTED_TAGS;
             if (watchIt) return FamilyNames.HIDE_WATCH_IT_ROWS;
             return null;
         }
 
         /**
          * The card switch a heading that ends this page goes with, or null to keep it. Its card may
-         * start the next page, which holds for a blog or community card only in a feed.
+         * start the next page, which holds for a blog, community or tag card only where it's a
+         * suggestion, see {@link #suggests}.
          */
         @Nullable
         String pageEndOwner() {
-            if ((blogs || communities) && source() == PageSource.FEED) {
-                return blogs ? FamilyNames.HIDE_SUGGESTED_BLOGS : FamilyNames.HIDE_SUGGESTED_COMMUNITIES;
-            }
+            String card = blogs ? FamilyNames.HIDE_SUGGESTED_BLOGS
+                    : communities ? FamilyNames.HIDE_SUGGESTED_COMMUNITIES : FamilyNames.HIDE_SUGGESTED_TAGS;
+            if ((blogs || communities || tags) && suggests(card)) return card;
             return watchIt ? FamilyNames.HIDE_WATCH_IT_ROWS : null;
         }
 
@@ -270,16 +342,43 @@ public final class TimelineFilter {
         }
 
         /**
-         * [family] when this page is a feed, where its cards are suggestions. On a page of search
-         * results the cards are the results, and on a page {@link PageSource} doesn't know they
-         * might be, so there the card stays and the report says which it was.
+         * [family] when a card on this page is a suggestion, see {@link #suggests}. Otherwise the
+         * card stays and the report says why.
          */
         @Nullable
         private String suggestion(String family) {
-            int from = source();
-            if (from == PageSource.FEED) return family;
-            HookStatus.counted(family, from == PageSource.RESULTS ? KEPT_RESULT : KEPT_UNKNOWN);
+            if (suggests(family)) return family;
+            HookStatus.counted(family, source() == PageSource.RESULTS ? KEPT_RESULT : KEPT_UNKNOWN);
             return null;
+        }
+
+        /**
+         * Whether a blog or community card on this page is a suggestion: in a feed, and in a page of
+         * search results that holds posts, which is the Posts tab, where a carousel of a tag's top
+         * blogs or related communities sits between the posts found. The Blogs and Communities tabs
+         * hold no posts, and there the cards are the results. On a page {@link PageSource} doesn't
+         * know, they might be results too. A read that fails goes to [owner].
+         */
+        private boolean suggests(String owner) {
+            int from = source();
+            return from == PageSource.FEED || from == PageSource.RESULTS && amongPosts(owner);
+        }
+
+        /** Whether this page holds a post, read once a page. */
+        private boolean amongPosts(String owner) {
+            Boolean known = amongPosts;
+            if (known == null) {
+                known = false;
+                List<?> items = page;
+                if (items != null) for (Object item : items) {
+                    if (isKind(item, POST, owner)) {
+                        known = true;
+                        break;
+                    }
+                }
+                amongPosts = known;
+            }
+            return known;
         }
 
         /** The patch name of the first switch that takes [item] out, or null to keep it. */
@@ -300,6 +399,10 @@ public final class TimelineFilter {
             if (blogs && BLOG_TYPES.contains(kind)) return suggestion(FamilyNames.HIDE_SUGGESTED_BLOGS);
             if (communities && COMMUNITY_TYPES.contains(kind)) {
                 return suggestion(FamilyNames.HIDE_SUGGESTED_COMMUNITIES);
+            }
+            if (tags && TAG_TYPES.contains(kind)) return suggestion(FamilyNames.HIDE_SUGGESTED_TAGS);
+            if (tags && SIGNPOST.equals(kind)) {
+                return amongPosts(FamilyNames.HIDE_SUGGESTED_TAGS) ? suggestion(FamilyNames.HIDE_SUGGESTED_TAGS) : null;
             }
             if (watchIt && WATCH_IT_TYPES.contains(kind)) return FamilyNames.HIDE_WATCH_IT_ROWS;
             return null;
@@ -366,12 +469,32 @@ public final class TimelineFilter {
                 Object first = children.get(0);
                 if (modelFor(first, owner) == null) return null;
                 kind = found.typeOf(first);
+            } else if (TAG_TYPES.contains(kind)) {
+                return null;
             }
+            if (BUTTON.equals(kind) && !followsABlog(payload)) return null;
             return rules.family(kind);
         } catch (Throwable failure) {
             HookStatus.threw(owner, "timeline item", failure);
             return null;
         }
+    }
+
+    /**
+     * Whether a button's [payload] follows a blog when tapped: its tap is an {@link #ACTION_LINK}.
+     * The one action Tumblr's button binder carries out is {@code follow_generic_button}, and a
+     * button that opens a page has a {@code WebLink}. The getters are kept by name.
+     */
+    static boolean followsABlog(Object payload) throws ReflectiveOperationException {
+        Object button = read(payload, "getButton");
+        Object links = button == null ? null : read(button, "getLinks");
+        Object tap = links == null ? null : read(links, "getTap");
+        return tap != null && ACTION_LINK.equals(tap.getClass().getName());
+    }
+
+    @Nullable
+    private static Object read(Object target, String getter) throws ReflectiveOperationException {
+        return target.getClass().getMethod(getter).invoke(target);
     }
 
     /**
@@ -393,10 +516,15 @@ public final class TimelineFilter {
 
     /** True when [item] is a heading. One that can't be read isn't, and the failure goes to [owner]. */
     static boolean isTitle(Object item, String owner) {
+        return isKind(item, TITLE, owner);
+    }
+
+    /** True when [item] is of [kind]. One that can't be read isn't, and the failure goes to [owner]. */
+    private static boolean isKind(Object item, String kind, String owner) {
         Model found = modelFor(item, owner);
         if (found == null) return false;
         try {
-            return TITLE.equals(found.typeOf(item));
+            return kind.equals(found.typeOf(item));
         } catch (Throwable failure) {
             HookStatus.threw(owner, "timeline item", failure);
             return false;

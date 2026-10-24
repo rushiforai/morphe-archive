@@ -13,11 +13,10 @@ import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
-import app.morphe.patcher.string
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -58,24 +57,8 @@ internal object FeedFlyoutBufferObjectFingerprint : Fingerprint(
     )
 )
 
-internal object OnClickLithoButtonBufferObjectFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("L"),
-    filters = listOf(
-        opcode(opcode = Opcode.NEW_INSTANCE),
-        opcode(opcode = Opcode.INVOKE_DIRECT, location = MatchAfterImmediately()),
-        newInstance(type = "Ljava/util/HashMap;", location = MatchAfterWithin(5)),
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            smali = "Ljava/util/HashMap;-><init>(Ljava/util/Map;)V",
-            location = MatchAfterWithin(5)
-        ),
-        string("command_status_callback", location = MatchAfterImmediately())
-    )
-)
-
 internal object FullHistoryFlyoutBufferObjectFingerprint : Fingerprint(
+    name = "onClick",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Landroid/view/View;"),
@@ -84,10 +67,7 @@ internal object FullHistoryFlyoutBufferObjectFingerprint : Fingerprint(
         resourceLiteral(ResourceType.ID, "innertube_menu_anchor_tag"),
         opcode(Opcode.MOVE_RESULT_OBJECT),
         resourceLiteral(ResourceType.ID, "innertube_menu_anchor_interaction_logger"),
-    ),
-    custom = { method, _ ->
-        method.name == "onClick"
-    }
+    )
 )
 
 internal object FeedFlyoutButtonsInitializerFingerprint : Fingerprint(

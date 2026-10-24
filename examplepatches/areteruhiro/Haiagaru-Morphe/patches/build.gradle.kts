@@ -59,4 +59,19 @@ val optionalImageVpn = tasks.register<Zip>("optionalImageVpn") {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }
-tasks.named("buildAndroid") { dependsOn(optionalImageNg, optionalImageVpn) }
+// Versioned package. Keep the legacy filename above for patches already published.
+val optionalImageVpnV2 = tasks.register<Zip>("optionalImageVpnV2") {
+    from(zipTree(rootProject.file("vpn/image-stack/prebuilt/image-stack.aar"))) {
+        include("jni/*/libgojni.so")
+    }
+    from(rootProject.file("third-party/image-stack")) {
+        include("**/LICENSE", "NOTICE.md")
+        into("licenses/image-stack")
+    }
+    from(rootProject.file("vpn/image-stack/VERSION.txt"))
+    archiveFileName.set("haiagaru-image-vpn-v2.zip")
+    destinationDirectory.set(rootProject.layout.buildDirectory.dir("optional-assets"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+tasks.named("buildAndroid") { dependsOn(optionalImageNg, optionalImageVpn, optionalImageVpnV2) }

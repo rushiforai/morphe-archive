@@ -31,8 +31,10 @@ import app.morphe.extension.shared.L10n;
  * <p>A tile is named by where it goes, never by the label it wears, so a translated Menu still
  * matches: its key is the first word of the bookmark's deep link, {@code marketplace} for
  * {@code fb://marketplace_tab} and for {@code https://www.facebook.com/marketplace/}. A link to a
- * route that opens many screens keys by the screen it names instead. A key the list doesn't know
- * is carried like any other, so a newer Facebook's tile survives a settings file.
+ * route that opens many screens keys by the screen it names instead, and a tile with no link,
+ * whose server sends the route, by Facebook's id for what it bookmarks, {@code app_204127677323356}
+ * for 584's Finds ({@link #appKey}). A key the list doesn't know is carried like any other, so a
+ * newer Facebook's tile survives a settings file.
  *
  * <p>The rows of the Help and support and the Settings and privacy groups ride on the same list
  * ({@link MenuRows}). They have no deep link to key on, so each is keyed by its group and the id
@@ -49,6 +51,21 @@ public final class MenuTiles {
 
     /** The bookmark's GraphQL link field, keyed the way the tree keys its fields. */
     static final int URL = "url".hashCode();
+
+    /** The bookmark's GraphQL node field: the app, group or Page it opens, keyed the same way. */
+    static final int BOOKMARKED_NODE = "bookmarked_node".hashCode();
+
+    /** A node's GraphQL id field, keyed the same way. */
+    static final int ID = "id".hashCode();
+
+    /**
+     * The key of 584's Finds tile, which has no link: Facebook's id for the Finds app, as its
+     * bookmark named it on 2026-10-23 ({@link #appKey}).
+     */
+    static final String FINDS = "app_204127677323356";
+
+    /** Facebook's id for an app, group or Page: digits, never a leading zero, short enough for a long. */
+    private static final Pattern APP_ID = Pattern.compile("[1-9][0-9]{0,18}");
 
     /**
      * The longest the saved list gets, in chars, room for every tile in the catalog and every
@@ -119,6 +136,7 @@ public final class MenuTiles {
             case "pages": return L10n.t("Pages");
             case "fundraisers": return L10n.t("Fundraisers");
             case "jobs": return L10n.t("Jobs");
+            case FINDS: return L10n.t("Finds");
             default:
                 String words = key.replace('_', ' ');
                 return Character.toUpperCase(words.charAt(0)) + words.substring(1);
@@ -151,6 +169,18 @@ public final class MenuTiles {
         if (param == null) return route;
         String screen = queryValue(rest, param);
         return screen == null ? null : screenKey(screen);
+    }
+
+    /**
+     * The key of a tile whose bookmark has no link and opens what it bookmarks by a route its
+     * server sends, by Facebook's id [id] for that app, group or Page: 584's Finds is one
+     * ({@link #FINDS}). Null for no id or one that isn't Facebook's.
+     */
+    @Nullable
+    public static String appKey(@Nullable String id) {
+        if (id == null) return null;
+        String digits = id.trim();
+        return APP_ID.matcher(digits).matches() ? "app_" + digits : null;
     }
 
     /** [path]'s first word, lowercase, without a trailing {@code _tab}, or null when it isn't a key. */

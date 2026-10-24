@@ -4,17 +4,48 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+### Features
+
+* **Instagram - Pick the app icon:** new patch. `App icon` under Layout swaps the home screen icon for HushGram's, or Instagram's glyph on black or plum. It changes once you leave Instagram. Starts on Instagram's own. Asked for in #284.
+* **Instagram - Full screen Reels and Home:** New `Full screen Messages` switch under Messages. Your messages and open chats hide the bars picked in `Bars to hide`, and a swipe in from the edge brings them back for a moment. Typing and Back work as usual. Asked for in #288.
+* **Instagram - Save profile picture:** New `Profile extras button` switch, off to start. It puts a small button next to the three dots on a profile that opens the profile actions you turned on. The three-dot menu keeps its rows. Asked for in #234.
+* **Instagram - Change the like animation:** The `Like animation` list now shows a heart under it and plays each one as you tap it. OK saves the one you like, and Cancel keeps the old one. Asked for in #299.
+* **Instagram - Stop Reels scrolling:** New `Take a scroll break` list under Reels, off to start. After 10 to 60 minutes on Home, Reels and Explore, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work. Asked for in #297.
+* **Instagram - HushGram settings:** New `Lock these settings` row under Pause HushGram. Pick a 1, 6 or 24 hour wait and every row that changes something greys out, Pause included. `Ask to unlock` starts the wait, then the page opens for 10 minutes. Asked for in #301.
+* **Instagram - HushGram settings:** A small dot now marks settings added since you last looked, and the category row that holds them. It clears once you've been through that page. A fresh install shows none. Asked for in #274.
+* **Instagram - Clean up Reels:** New `Hide the Friends tab on Reels` switch under Reels, off to start. It takes the Friends tab off the top of the Reels tab, and Reels moves over to fill the space. No restart needed. Asked for in #300.
+* **Instagram - Hide the Reels tab:** New `Hide the Messages tab` switch under Tab bar takes the Messages button off the tab bar, no restart needed. If Home's header has no Messages button, HushGram adds one so your chats stay a tap away. Asked for in #298 and #307.
+* **Instagram - Hide suggested posts:** New `Hide the caught up card` switch under Feed, off to start. It folds the "You've seen the latest posts" card, so Home runs straight on into the rest of the feed. With no new posts, the card stays. Reported in #307.
+* **Instagram - Download any video:** Details has a Copy caption without hashtags row for captions that have them. It drops a closing block of tags and the dots above it, and a tag inside a sentence keeps its word. Reported in #282.
+* **Instagram - Swipe left to open the profile:** new patch, off to start. Turned on under Reels, a left swipe on a reel slides in the creator's profile, like Instagram used to. A right swipe or Back on that profile returns to the reel. Takes a restart. Asked for in #245 and #283.
+* **Instagram - Full resolution photos:** New `Full size covers` switch under Feed. Reel covers and grid pictures load at full size, so Download cover saves 1080 pixels wide, not 240 to 480. It uses a lot more data, so it starts off. Takes a restart. Asked for in #214.
+* **Instagram - Glass tab bar:** With `Liquid glass look` on, the active tab sits in a raised glass bubble that swells while it moves and bends what's behind it on Android 13 and up. New `Blur strength` row sets how much the pill blurs. Asked for in #289.
+* **Instagram - Hide profile tabs:** `Tabs on profiles` is now two rows, `Tabs on your profile` and `Tabs on other profiles`, so Reels can go from yours and stay on everyone else's. Your old pick covers both until you change one. Asked for in #296.
+
 ### Bug Fixes
 
+* **Instagram - Glass tab bar:** With `Full screen Reels` on, the floating pill dropped by the navigation bar's height every time you switched to Reels, then jumped back up on the other tabs. It stays at one height on every tab now. Reported in #285.
+* **Instagram - Glass tab bar:** A video playing under the glass pill no longer turns the pill black. Some videos play on a layer the blur couldn't see, so it blurs a small copy of the video's picture now. Reported in #144.
+* **Instagram - Change the like animation:** The animation you picked plays on Instagram 452's feed and Reels hearts again, for a double tap and for the heart button. Before, 452 showed its usual heart there. Reported in #299.
 * **Instagram - View stories anonymously:** With `Gray out stories you've watched` on, stories you've watched now move behind the new ones in the story row at the top of Home too. Before, only the stories inside the feed were reordered. (#241)
 * **Instagram - Read messages without the seen receipt:** With `Keep chats unread here` off, a chat you opened could still flip back to unread after a refresh. Now it stays read until a new message comes in. (#186)
 * **Instagram - Download any reel:** The Details row in a reel's menu shows Instagram's info icon now. It used to wear Download's arrow. (#282)
+* **Instagram - Download any reel:** A photo post opened on the Reels tab or from a hashtag page gets Details in its menu too, under Download. Before, only videos and photos with music had it. (#282)
 * **Instagram - Start Home on Following:** With `Only accounts you follow` on, Back to home at the end of your Following feed takes you back up to the newest post. Before, the link did nothing.
 * **Instagram - HushGram settings:** Opening an Instagram link or a notification while HushGram settings are up closes them, so you land where it leads. A link that arrives while they're still opening wins too. Before, the tab changed behind the settings.
+* **Instagram - Clean up Reels:** With `Keep clear mode on`, starting a swipe back and letting the reel snap back into place could end clear mode on that reel and bring its buttons back. It stays in clear mode now. Reported in #233.
+* **Instagram - HushGram settings:** With a HushGram PIN set, importing a settings file no longer calls `Lock your messages` and `Lock all of Instagram` unknown settings. Those switches stay as they are until you change them on the settings page.
+* **Instagram - Download any video:** The Details row in a feed post's menu shows Instagram's info icon now, not Download's arrow.
+* **Instagram - Hide suggested people on profiles:** `Hide Suggested for you on follow lists` now also takes the Suggested tab off other people's follow lists, and the Suggested for you block under their mutual followers. Before, it only reached the bottom of the followers and following lists. Reported in #302.
+* **Instagram - Blur the bars around Reels:** The band behind the clock and the gesture bar's strip stayed black on Reels. Both show the reel blurred now, a little darker behind the clock under white icons so the time stays easy to read. Reported in #258.
+* **Instagram - Sanitize sharing links:** Share and Copy link in Instagram's in-app browser move an Instagram page's link to your Sharing domain now, as the share sheet and Copy link on a post already did. Before, those two still said instagram.com. Thanks to @Aholicknight for the fix in #304.
 
 ### Improvements
 
+* **Instagram:** With `Send downloads to another app` on, the first download after each start shows a short note saying this switch opened the share sheet and where to turn it off. It looked just like Instagram's own Share. Reported in #305.
+* **Instagram - Upload stories at full quality:** The switch's description now says what you actually get. Video stories still go up at 1080p, but Instagram shrinks every story video to 720p on its servers, so viewers see only a small difference. (#37)
 * **Tooling:** HushGram builds on Gradle 9.8.2 now, with androidx.annotation 1.11.0 and commons-lang3 3.21.0. Each new download was checked against its publisher's checksums before it went on the verification list. The patches themselves don't change.
+* **Tooling:** The HushGram settings code is split into one file per category, so a row is easier to find. Every category lists the same rows in the same order, and search finds the same ones.
 
 ## 0.0.15 (2026-10-22)
 
@@ -48,6 +79,8 @@ Every HushGram release, newest first.
 * **Instagram - View stories anonymously:** Patching with every patch on takes about 3% less time and 5% less processor work. Its checks for other callers now read only the classes that can hold one. The patched app doesn't change. Refs #173.
 * **Instagram:** HushGram launch screen and Emoji style now ask the patcher's index where their code is, instead of reading every method. With every patch on, that's about 3% less processor work. Same patched app as before. Refs #173.
 * **Instagram:** Patches that find their code by a piece of text, or by Instagram's internal labels, now look it up directly instead of checking every string. Patching is about 2% quicker. The patched app is the same. Refs #173.
+* **Instagram:** Copy comment and Save comment photo now find the comment menu from the patcher's index, where they used to read every method. Patching with every patch on takes about 4% less time, and the patched app doesn't change. Refs #173.
+* **Instagram - View stories anonymously:** The patch does about 40% less work while patching, since its check for other callers asks the patcher's index a narrower question. Total patching time barely moves. The patched app is the same. Refs #173.
 * **Tooling:** `scripts/native-runner.ps1` runs checks inside the installed patched Instagram on an offline emulator, as a throwaway signed-out Android user. Each verdict names the exact APK it ran on. Two controls (build identity, a missing hook) must hold before feature checks count.
 * **Tooling:** The native runner's first feature checks cover Hide your active status. They build Instagram's own presence requests without sending them, and only Active may turn Idle, only while the switch is on and HushGram isn't paused.
 * **Tooling:** The native runner checks View DM photos and videos anonymously on Instagram's receipt handler. Switched on, the handler finishes a stand-in receipt on the phone without building its request. Voice receipts, a paused HushGram and the switch off stay Instagram's.

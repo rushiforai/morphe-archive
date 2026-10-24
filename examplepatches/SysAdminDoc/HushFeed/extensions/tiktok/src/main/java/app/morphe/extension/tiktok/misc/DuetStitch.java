@@ -46,4 +46,14 @@ public final class DuetStitch {
     public static int authorSetting(int original) {
         return Settings.ALLOW_DUET_AND_STITCH.get() ? ANYONE : original;
     }
+
+    /**
+     * Whether a story may be added to your own story (#88). TikTok answers it from one number the
+     * server sends with each post, and the story feed's Add to Story button reads that answer and
+     * nothing else, so the switch answers yes there. The post's own owner and privacy checks are
+     * left as they are, and the editor or the server can still refuse the post.
+     */
+    public static int storyShareable(int original) {
+        return Settings.ALLOW_ADD_TO_STORY.get() ? 1 : original;
+    }
 }

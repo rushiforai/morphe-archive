@@ -9,6 +9,7 @@
 package app.morphe.extension.music.patches.lyrics.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.SystemClock;
@@ -23,6 +24,7 @@ import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 import app.morphe.extension.music.patches.lyrics.LyricsManager;
+import app.morphe.extension.music.patches.lyrics.model.LyricsFilterDefaults;
 import app.morphe.extension.music.patches.lyrics.session.MiniplayerLyrics;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -45,7 +47,6 @@ public final class LyricsPanelInstaller {
     /** Panel heading, which tells the lyrics panel from the other engagement panels. */
     private static final String PANEL_TITLE_ID = "modern_title";
 
-    /** Resource name of the app string used for the lyrics panel heading. */
     private static final String LYRICS_TITLE_RESOURCE = "lyrics_tab_title";
 
     /** Time given to the panel to attach its views after the component is built. */
@@ -59,9 +60,6 @@ public final class LyricsPanelInstaller {
 
     /** Collapses the many component callbacks of one panel opening into one attempt. */
     private static boolean installPending;
-
-    @Nullable
-    private static String lyricsTitle;
 
     private static WeakReference<LyricsPanelView> panelReference = new WeakReference<>(null);
 
@@ -108,9 +106,10 @@ public final class LyricsPanelInstaller {
                 return;
             }
             if (Settings.LYRICS_SOURCE.key.equals(key)
-                    || Settings.LYRICS_CUSTOM_REGEX.key.equals(key)
-                    || Settings.LYRICS_TEXT_FILTER.key.equals(key)
-                    || Settings.LYRICS_CREDIT_LINE_REGEX.key.equals(key)) {
+                    || Settings.LYRICS_SPLIT_BACKGROUND.key.equals(key)
+                    || LyricsFilterDefaults.LYRICS_CUSTOM_REGEX.key.equals(key)
+                    || LyricsFilterDefaults.LYRICS_TEXT_FILTER.key.equals(key)
+                    || LyricsFilterDefaults.LYRICS_CREDIT_LINE_REGEX.key.equals(key)) {
                 LyricsManager.getInstance().reloadAfterSettingsChange();
                 return;
             }
@@ -134,8 +133,16 @@ public final class LyricsPanelInstaller {
                 panelView.applyToolbarButtonSettings();
             } else if (Settings.LYRICS_TEXT_SIZE.key.equals(key)) {
                 panelView.applyTextSize();
+            } else if (Settings.LYRICS_SWAP_TRANS_ROMA.key.equals(key)
+                    || Settings.LYRICS_TAP_TO_SEEK.key.equals(key)) {
+                // Both are read while the line is laid out, so the lines need rebuilding.
+                panelView.applyLyricLayoutSettings();
+            } else if (Settings.LYRICS_WORD_SYNC.key.equals(key)) {
+                panelView.applyWordSyncSetting();
             } else if (Settings.LYRICS_HIDE_INFO.key.equals(key)) {
                 panelView.applyHideInfo();
+            } else if (Settings.LYRICS_SHOW_SECTION.key.equals(key)) {
+                panelView.applyShowSection();
             } else if (Settings.LYRICS_HIDE_PLAYED.key.equals(key)
                     || Settings.LYRICS_HIDE_UNPLAYED.key.equals(key)) {
                 panelView.applyLineOverlaySettings();
@@ -222,8 +229,8 @@ public final class LyricsPanelInstaller {
     }
 
     private static void detectLyricsPanel() {
-        // Whichever panel holds the container while the lyrics component is built is the
-        // lyrics panel, which keeps this working without knowing what the app calls it.
+        // Whichever panel holds the container during the lyrics build is the lyrics panel,
+        // which keeps this working without knowing what the app calls it.
         Object panel = currentPanelReference.get();
         if (panel != null) {
             lyricsPanelReference = new WeakReference<>(panel);
@@ -240,9 +247,8 @@ public final class LyricsPanelInstaller {
         }
 
         installPending = true;
-        // With lyrics already loaded the panel can be covered on the next frame, which
-        // is what keeps the built-in lyrics from being visible first. Otherwise, the app
-        // is given time to attach its views, since there is nothing to show yet anyway.
+        // With lyrics loaded the panel can cover the next frame, which keeps the built-in
+        // lyrics from showing first; otherwise the app is given time to attach its views.
         final long delay = LyricsManager.getInstance().hasLyrics()
                 ? 0
                 : INSTALL_DELAY_MILLISECONDS;
@@ -315,8 +321,8 @@ public final class LyricsPanelInstaller {
         }
 
         if (existing != null && existing.getParent() == panel) {
-            // Reopening the panel makes the app restore its own content, so the
-            // overlay state has to be reapplied rather than assumed still correct.
+            // Reopening makes the app restore its own content, so the overlay state is
+            // reapplied rather than assumed still correct.
             existing.setKeepScreenOn(Settings.LYRICS_KEEP_SCREEN_ON.get());
             existing.syncOverlay();
             return true;
@@ -344,15 +350,17 @@ public final class LyricsPanelInstaller {
      * @return Whether the engagement panel currently on screen is the lyrics panel.
      */
     public static boolean isLyricsPanelOpen() {
+        // Asked first because it is answered by identity, which does not move with the language;
+        // the heading is read only when there is no panel to go by.
+        if (isCurrentPanelLyrics()) {
+            return true;
+        }
         Activity activity = Utils.getActivity();
         if (activity == null) {
             return false;
         }
         TextView title = findForegroundTitle(activity.getWindow().getDecorView());
-        if (title != null) {
-            return isLyricsTitle(title);
-        }
-        return isCurrentPanelLyrics();
+        return title != null && isLyricsTitle(title);
     }
 
     public static boolean isOtherPanelForeground() {
@@ -375,23 +383,21 @@ public final class LyricsPanelInstaller {
     @Nullable
     private static ViewGroup findLyricsPanelContent(View root) {
         TextView title = findVisibleTitle(root);
-        if (title != null) {
-            // The heading and the content live in the same panel, so the container is
-            // looked up from the panel the heading belongs to rather than globally.
-            return isLyricsTitle(title) ? findPanelContent(title) : null;
+        if (title != null && isLyricsTitle(title)) {
+            // Heading and content share a panel, so the container comes from the heading's
+            // own panel rather than a global lookup.
+            return findPanelContent(title);
         }
 
-        // Without a heading there is nothing to look the panel up from, so the container
-        // on screen is taken as is, once the app agrees the lyrics panel is the one in it.
+        // A heading that did not match says nothing about which panel this is, so it must not end
+        // the search: the app's own bookkeeping still says which panel it put in the container,
+        // and that answer is by identity rather than by text, so it holds in any language.
         if (!isCurrentPanelLyrics()) {
             return null;
         }
         return findForegroundPanelContent(root);
     }
 
-    /**
-     * @return The content container of the engagement panel currently on screen, if any.
-     */
     @Nullable
     private static ViewGroup findForegroundPanelContent(View root) {
         final int panelContentId = ResourceUtils.getIdentifier(ResourceType.ID, PANEL_CONTENT_ID);
@@ -405,7 +411,7 @@ public final class LyricsPanelInstaller {
         if (title == null) {
             return false;
         }
-        String expectedTitle = lyricsTitle();
+        String expectedTitle = lyricsTitle(title.getContext());
         return expectedTitle != null
                 && expectedTitle.equalsIgnoreCase(String.valueOf(title.getText()));
     }
@@ -430,9 +436,6 @@ public final class LyricsPanelInstaller {
         return null;
     }
 
-    /**
-     * @return The heading of the engagement panel currently on screen, if any.
-     */
     @Nullable
     private static TextView findVisibleTitle(View root) {
         final int titleId = ResourceUtils.getIdentifier(ResourceType.ID, PANEL_TITLE_ID);
@@ -498,16 +501,30 @@ public final class LyricsPanelInstaller {
         return result;
     }
 
+    /**
+     * The heading the app gives the lyrics panel, in the language on screen.
+     *
+     * <p>Read through the resources that drew it rather than through {@link ResourceUtils}: the app
+     * can be set to a language of its own, and a string then comes back in whichever language its
+     * context was configured with, which is not always the one being drawn in. Not cached across
+     * calls either, since a language change would leave a stale answer behind.
+     */
     @Nullable
-    private static String lyricsTitle() {
-        if (lyricsTitle == null) {
-            if (ResourceUtils.getStringIdentifier(LYRICS_TITLE_RESOURCE) == 0) {
-                Logger.printException(() -> "App is missing: " + LYRICS_TITLE_RESOURCE);
-                return null;
-            }
-            lyricsTitle = ResourceUtils.getString(LYRICS_TITLE_RESOURCE);
+    private static String lyricsTitle(@Nullable Context context) {
+        final int id = ResourceUtils.getStringIdentifier(LYRICS_TITLE_RESOURCE);
+        if (id == 0) {
+            Logger.printException(() -> "App is missing: " + LYRICS_TITLE_RESOURCE);
+            return null;
         }
-        return lyricsTitle;
+        if (context == null) {
+            return ResourceUtils.getString(LYRICS_TITLE_RESOURCE);
+        }
+        try {
+            return context.getResources().getString(id);
+        } catch (Exception ex) {
+            Logger.printException(() -> "Could not read " + LYRICS_TITLE_RESOURCE, ex);
+            return null;
+        }
     }
 
     private static final long[] ENABLE_BUTTON_DELAYS_MS = {0, 150, 500, 1000, 2000};
@@ -538,7 +555,7 @@ public final class LyricsPanelInstaller {
         if (activity == null) {
             return;
         }
-        String title = lyricsTitle();
+        String title = lyricsTitle(activity);
         if (title == null) {
             return;
         }

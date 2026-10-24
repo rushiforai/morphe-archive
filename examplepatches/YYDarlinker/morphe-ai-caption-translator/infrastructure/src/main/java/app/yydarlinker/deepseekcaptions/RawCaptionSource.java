@@ -12,6 +12,11 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,7 +27,10 @@ final class RawCaptionSource {
     private static final int MAX_SOURCE_BYTES = 16 * 1024 * 1024;
     private static final int MAX_REFERENCE_ATTEMPTS = 3;
     private static final int REFERENCE_DEADLINE_MS = 1500;
-    private static final long LOAD_DEADLINE_SECONDS = 12;
+    private static final long LOAD_DEADLINE_SECONDS = 30;
+    /** A successful track load worth watching when the budget is chosen (bytes and milliseconds). */
+    private static final long SLOW_TRACK_MS = 2_000;
+    private static final int MAX_FALLBACK_TRACKS = 3;
     private static final String SOURCE = "SOURCE", REFERENCE = "ASR_REFERENCE";
 
     private RawCaptionSource() {}
@@ -80,7 +88,10 @@ final class RawCaptionSource {
 
     /**
      * The caption track of [url]. For a translation the JSON3 form is asked for first, and the
-     * track as it was is the fallback of a format the server does not serve.
+     * track as it was is the fallback of a format the server does not serve. A track that cannot be
+     * read at all (a manual track that times out, for example) falls back, in this same call, to
+     * the next same-language automatic track of the video, which is smaller and always machine
+     * generated; there is no timer between the attempts.
      */
     static Source load(Context context, String url, boolean translate, CaptionSourceControl control)
             throws Exception {
@@ -89,20 +100,172 @@ final class RawCaptionSource {
         String original = CaptionUrls.sourceCaptionUrl(url);
         String preferred = translate ? SourceFormatPolicy.json3(original) : original;
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(LOAD_DEADLINE_SECONDS);
+        long trackBegan = now();
         LoadedTrack track;
         try {
-            track = loadTrack(context, preferred, SOURCE, true, remaining(deadline), control);
+            track = loadFormats(context, preferred, original, deadline, began, control);
+        } catch (Exception failure) {
+            // A cancellation ends the chain; it never turns into another network attempt.
+            if (cancelled(control)) throw failure;
+            List<String> fallbacks = fallbackTracks(original);
+            if (fallbacks.isEmpty()) {
+                stage(context, "load_failed", began, "error=" + failure.getClass().getSimpleName());
+                throw failure;
+            }
+            // The fallback phase gets its own budget: the preferred track may have spent all of
+            // the first one, and the point of the fallback is that it is a different track.
+            trackBegan = now();
+            track = loadFallback(context, preferred, original, fallbacks, failure, began, control);
+        }
+        long elapsed = Math.max(0, now() - trackBegan);
+        if (elapsed >= SLOW_TRACK_MS)
+            CaptionDiagnostics.mark(
+                    context,
+                    "SOURCE_SLOW_TRACK",
+                    "bytes=" + track.body.length + ";ms=" + elapsed);
+        stage(context, "load_end", began, "bytes=" + track.body.length);
+        return new Source(track, "", 0, null);
+    }
+
+    /**
+     * One track in the requested format, with the existing whole-track format fallback. The
+     * deadline is shared by both attempts, so a format retry can never double the budget.
+     */
+    private static LoadedTrack loadFormats(
+            Context context,
+            String preferred,
+            String original,
+            long deadline,
+            long began,
+            CaptionSourceControl control)
+            throws Exception {
+        try {
+            return loadTrack(context, preferred, SOURCE, true, remaining(deadline), control);
         } catch (Exception error) {
             String name = "error=" + error.getClass().getSimpleName();
             if (preferred.equals(original) || !SourceRecoveryPolicy.formatFallback(error)) {
-                stage(context, "load_failed", began, name);
                 throw error;
             }
             stage(context, "format_retry", began, name);
-            track = loadTrack(context, original, SOURCE, true, remaining(deadline), control);
+            return loadTrack(context, original, SOURCE, true, remaining(deadline), control);
         }
-        stage(context, "load_end", began, "bytes=" + track.body.length);
-        return new Source(track, "", 0, null);
+    }
+
+    /**
+     * The urls of the video's automatic tracks in the source track's language, from the signed
+     * descriptors the native player reported. The catalogue is the complete list; the bounded
+     * per-language memory is the fallback for a track list that has not been registered yet. Only
+     * descriptors this process already holds are used: this path never synthesizes a signed url.
+     */
+    private static List<String> fallbackTracks(String original) {
+        String language = query(original, "lang");
+        String video = CaptionUrls.videoId(original);
+        if (language.isEmpty() || video.isEmpty()) return Collections.emptyList();
+        LinkedHashSet<String> out = new LinkedHashSet<>();
+        SourceCatalog.Snapshot catalog = SourceCatalog.snapshot(video);
+        if (catalog.complete)
+            for (SourceSelection track : catalog.tracks)
+                if (track.kind == SourceSelection.Kind.ASR
+                        && CaptionSourceIdentity.sameLanguage(language, track.language))
+                    addFallback(out, original, track.url);
+        for (String candidate : NativeAsrTrackReference.candidates(video, language))
+            addFallback(out, original, candidate);
+        return new ArrayList<>(out);
+    }
+
+    private static void addFallback(
+            LinkedHashSet<String> out, String original, String candidate) {
+        if (candidate == null || candidate.equals(original)) return;
+        if (!CaptionSourceIdentity.sameLanguage(query(original, "lang"), query(candidate, "lang")))
+            return;
+        out.add(candidate);
+    }
+
+    /**
+     * Tries the fallback tracks one after another in this same call. A success is mirrored into the
+     * requested track's cache entry, so the next entry into this video reads the working track
+     * instead of downloading the failed one again.
+     */
+    private static LoadedTrack loadFallback(
+            Context context,
+            String preferred,
+            String original,
+            List<String> candidates,
+            Exception primary,
+            long began,
+            CaptionSourceControl control)
+            throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(LOAD_DEADLINE_SECONDS);
+        String preferredLanguage = query(original, "lang"), preferredKind = kind(original);
+        Exception last = primary;
+        int attempts = 0;
+        for (String candidate : candidates) {
+            if (attempts >= MAX_FALLBACK_TRACKS || System.nanoTime() >= deadline) break;
+            checkActive(control);
+            attempts++;
+            try {
+                String candidateOriginal = CaptionUrls.sourceCaptionUrl(candidate);
+                String candidatePreferred = SourceFormatPolicy.json3(candidateOriginal);
+                LoadedTrack track =
+                        loadFormats(
+                                context,
+                                candidatePreferred,
+                                candidateOriginal,
+                                deadline,
+                                began,
+                                control);
+                String detail =
+                        "preferred="
+                                + preferredLanguage
+                                + "/"
+                                + preferredKind
+                                + ";fallback="
+                                + query(candidateOriginal, "lang")
+                                + "/"
+                                + kind(candidateOriginal)
+                                + ";reason="
+                                + CaptionDiagnostics.errorDetail(primary);
+                CaptionDiagnostics.mark(context, "SOURCE_FALLBACK_TRACK", detail);
+                SourceCaptionCache.put(
+                        context, cacheKey(preferred, true), track.body, track.contentType);
+                if (!preferred.equals(original))
+                    SourceCaptionCache.put(
+                            context, cacheKey(original, true), track.body, track.contentType);
+                stage(context, "fallback_end", began, detail);
+                return track;
+            } catch (Exception failure) {
+                if (cancelled(control)) throw failure;
+                last = failure;
+                CaptionDiagnostics.mark(
+                        context,
+                        "SOURCE_FALLBACK_FAILED",
+                        "fallback="
+                                + query(candidate, "lang")
+                                + "/"
+                                + kind(candidate)
+                                + ";reason="
+                                + CaptionDiagnostics.errorDetail(failure));
+            }
+        }
+        stage(
+                context,
+                "load_failed",
+                began,
+                "error=" + last.getClass().getSimpleName() + ";fallback_exhausted=true");
+        throw last;
+    }
+
+    /** The diagnostic name of a track kind: the signed kind when present, else manual/ASR. */
+    private static String kind(String url) {
+        String declared = query(url, "kind");
+        if ("asr".equalsIgnoreCase(declared)) return "asr";
+        if (!declared.isEmpty()) return declared.toLowerCase(Locale.ROOT);
+        return query(url, "vss").startsWith("a.") ? "asr" : "manual";
+    }
+
+    /** True while the whole chain must stop: a stop is never a reason to try another track. */
+    private static boolean cancelled(CaptionSourceControl control) {
+        return Thread.currentThread().isInterrupted() || (control != null && control.isCancelled());
     }
 
     /**
@@ -194,6 +357,24 @@ final class RawCaptionSource {
         }
     }
 
+    /** The network read of one track; tests replace it with a deterministic fake. */
+    interface TrackFetcher {
+        Fetch fetch(Context context, String url, long deadline, CaptionSourceControl control)
+                throws Exception;
+    }
+
+    private static volatile TrackFetcher fetcher = RawCaptionSource::fetchTrack;
+
+    static void installFetcherForTests(TrackFetcher value) {
+        fetcher = value == null ? RawCaptionSource::fetchTrack : value;
+    }
+
+    private static Fetch fetchTrack(
+            Context context, String url, long deadline, CaptionSourceControl control)
+            throws Exception {
+        return fetch(context, url, false, deadline, control);
+    }
+
     /** One load of a track for all that ask for it at once; the others join the one in flight. */
     private static LoadedTrack loadTrack(
             Context context,
@@ -277,10 +458,9 @@ final class RawCaptionSource {
         began = now();
         stage(context, "fetch_begin", began, "kind=" + kind);
         Fetch fetched =
-                fetch(
+                fetcher.fetch(
                         context,
                         url,
-                        false,
                         System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(budgetMs),
                         control);
         stage(context, "fetch_end", began, "kind=" + kind + ";bytes=" + fetched.body.length);
@@ -328,7 +508,7 @@ final class RawCaptionSource {
         return (int) Math.min(Integer.MAX_VALUE, left);
     }
 
-    private static final class Fetch {
+    static final class Fetch {
         final byte[] body;
         final String contentType;
 

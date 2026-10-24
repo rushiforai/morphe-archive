@@ -70,7 +70,7 @@ public final class LiveRecordChip {
     private static boolean callbacksRegistered;
 
     /** True while the switch is on and Hushfeed isn't paused. */
-    static boolean enabled() {
+    public static boolean enabled() {
         return SettingsStatus.liveControlsEnabled && Settings.RECORD_LIVE.get() && !Setting.isPaused();
     }
 
@@ -319,6 +319,10 @@ public final class LiveRecordChip {
             return;
         }
         Object room = roomOf(fragment);
+        if (LiveRecordSource.screen()) {
+            startScreen(activity, fragment, room);
+            return;
+        }
         LiveRoomStream.Pick pick = LiveRoomStream.fromRoom(room,
                 LiveRoomStream.forRecording(Settings.LIVE_RECORD_QUALITY.get(), LiveControls.lastQualityPick()));
         if (pick.target == null) {
@@ -336,6 +340,49 @@ public final class LiveRecordChip {
         Utils.showToastShort(L10n.t("Recording this LIVE from now"));
         refresh();
         scheduleTick();
+    }
+
+    /**
+     * Records the screen (#37): Android's consent is asked for every recording, and the recorder
+     * starts once the service holding the projection is up. The app's sound comes with it only
+     * when TikTok already holds the microphone permission, which playback capture requires.
+     */
+    private static void startScreen(Activity activity, Object fragment, Object room) throws Exception {
+        LiveRoomStream.Pick pick = LiveRoomStream.screenTarget(room);
+        if (pick.target == null) {
+            Utils.showToastShort(L10n.t("Couldn't find this LIVE's stream to record. Leave the room and open it again."));
+            return;
+        }
+        boolean audio = LiveRecordSource.audioAllowed(Build.VERSION.SDK_INT,
+                activity.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                        == PackageManager.PERMISSION_GRANTED);
+        saving = true;
+        refresh();
+        ScreenCapture.request(activity, granted -> {
+            saving = false;
+            try {
+                if (!granted || page.get() != fragment || !enabled()) {
+                    ScreenCapture.discardUnused();
+                    if (!granted) Utils.showToastShort(L10n.t("Screen recording wasn't allowed"));
+                    refresh();
+                    return;
+                }
+                LiveRecorder started = LiveRecordingSaver.createScreen(activity, pick.target, audio, result ->
+                        Utils.runOnMainThread(() -> onFinished(result)));
+                recorder = started;
+                started.start();
+                Utils.showToastShort(audio
+                        ? L10n.t("Recording this LIVE's screen from now")
+                        : L10n.t("Recording this LIVE's screen from now, without sound"));
+                refresh();
+                scheduleTick();
+            } catch (Throwable failure) {
+                Logger.printException(() -> "Could not start the screen recording", failure);
+                ScreenCapture.discardUnused();
+                Utils.showToastShort(L10n.t("The recording couldn't be saved. Try again."));
+                refresh();
+            }
+        });
     }
 
     private static void onFinished(LiveRecorder.Result result) {

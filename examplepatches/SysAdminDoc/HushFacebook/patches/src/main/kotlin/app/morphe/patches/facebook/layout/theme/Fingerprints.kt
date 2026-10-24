@@ -35,6 +35,7 @@ import java.util.WeakHashMap
  */
 
 internal const val DARK_COLOR_SCHEME = "Lcom/facebook/mig/scheme/schemes/DarkColorScheme;"
+internal const val LIGHT_COLOR_SCHEME = "Lcom/facebook/mig/scheme/schemes/LightColorScheme;"
 internal const val FDS_COLOR_SCHEME = "Lcom/facebook/mig/scheme/schemes/fds/FdsColorScheme;"
 internal const val STATUS_BAR_UTIL = "Lcom/facebook/navigation/statusbar/StatusBarUtil;"
 internal const val SET_STATUS_BAR_COLOR = "Landroid/view/Window;->setStatusBarColor(I)V"
@@ -108,6 +109,18 @@ internal object BoxDecorationBorderFingerprint : Fingerprint(
     strings = listOf(BOX_DECORATION_BORDER_ERROR),
 )
 
+internal const val NATIVE_TEMPLATE_BOX = "NTBox3Builder#build"
+
+/**
+ * Native Templates' component builder (584 `LX/4Kb;->D9f(LX/3tD;LX/5en;LX/4Km;)LX/3T3;`): the
+ * method that builds each node of a native template by its kind, such as the Menu's profile card,
+ * and traces a box as [NATIVE_TEMPLATE_BOX]. It and its child builder set a box's server colour
+ * with Litho's backgroundColor ([hookNativeTemplateBackgrounds]).
+ */
+internal object NativeTemplateBuilderFingerprint : Fingerprint(
+    strings = listOf(NATIVE_TEMPLATE_BOX),
+)
+
 /**
  * The Data mode banner of Facebook Flex, issue #86: the one method that logs both of its own steps,
  * as it starts and when the banner's wrapper isn't there. It paints the wrapper with a card's token.
@@ -156,6 +169,29 @@ internal object DarkSchemeResolveFingerprint : Fingerprint(
         opcode(Opcode.MOVE_RESULT),
         opcode(Opcode.RETURN),
     ),
+)
+
+/**
+ * The Mig light scheme's resolver, for the Light background color row (#214): the dark one's shape
+ * on the light scheme's class. Its sibling that takes an Integer has the same shape and asks the
+ * scheme through the interface, so the call has to be on the token's own type.
+ */
+internal object LightSchemeResolveFingerprint : Fingerprint(
+    definingClass = LIGHT_COLOR_SCHEME,
+    returnType = "I",
+    parameters = listOf("L"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_INTERFACE, returnType = "I"),
+        opcode(Opcode.MOVE_RESULT),
+        opcode(Opcode.RETURN),
+    ),
+    custom = { method, _ ->
+        val token = method.parameterTypes.singleOrNull()?.toString()
+        method.implementation?.instructions?.any { instruction ->
+            instruction.opcode == Opcode.INVOKE_INTERFACE &&
+                ((instruction as ReferenceInstruction).reference as MethodReference).definingClass == token
+        } == true
+    },
 )
 
 /**

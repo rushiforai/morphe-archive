@@ -9,6 +9,7 @@ package app.morphe.extension.tiktok.download;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.base.model.UrlModel;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +32,55 @@ public final class QualitySelector {
         if (raw == null) raw = Reflect.readField(video, "bitRateList");
         if (raw == null) raw = Reflect.readField(video, "bitRate");
         return raw;
+    }
+
+    /**
+     * A gear list that tops out below this height is short of a good file, so the video's own
+     * play addresses are looked at too (#240).
+     */
+    static final int TALL_ENOUGH = 720;
+
+    /**
+     * One of the video's own play addresses, shaped like a gear so the save path takes it as a
+     * pick: it has a name, a play address and a codec code, and nothing else.
+     */
+    public static final class SourceGear {
+        private final String name;
+        private final Object address;
+        private final int codec;
+
+        SourceGear(String name, Object address, int codec) {
+            this.name = name;
+            this.address = address;
+            this.codec = codec;
+        }
+
+        public String getGearName() { return name; }
+        public Object getPlayAddr() { return address; }
+        public int isBytevc1() { return codec; }
+    }
+
+    /** Name, getter, field and codec code of each play address the Video model carries besides its gears. */
+    private static final String[][] SOURCES = {
+            {"play_addr_h264", "getPlayAddrH264", "playAddrValue", "0"},
+            {"h264_play_addr", "getH264PlayAddr", "h264PlayAddrValue", "0"},
+            {"play_addr_bytevc1", "getPlayAddrBytevc1", "playAddrBytevc1Value", "1"},
+    };
+
+    /**
+     * The video's own H.264 and HEVC play addresses (H.264 and HEVC only), each
+     * wrapped as a gear. A source the video lacks has a null address, so a report can say so. The
+     * field is read before the getter: the getters tidy the model's codec fields as they answer.
+     */
+    static List<SourceGear> sources(Object video) {
+        List<SourceGear> found = new ArrayList<>();
+        if (video == null) return found;
+        for (String[] source : SOURCES) {
+            Object address = Reflect.readField(video, source[2]);
+            if (address == null) address = Reflect.invoke(video, source[1]);
+            found.add(new SourceGear(source[0], address, Integer.parseInt(source[3])));
+        }
+        return found;
     }
 
     public static UrlModel download(Object video) {

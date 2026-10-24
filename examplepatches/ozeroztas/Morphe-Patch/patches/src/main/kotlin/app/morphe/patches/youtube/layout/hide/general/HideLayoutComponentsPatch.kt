@@ -55,6 +55,7 @@ import app.morphe.patches.youtube.misc.playservice.is_21_20_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_25_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_26_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_36_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_42_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.proto.elementProtoParserHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -62,12 +63,11 @@ import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.shared.ModernRelateVideoOverlayFingerprint
 import app.morphe.patches.youtube.shared.RelateVideoOverlayLayoutParamFingerprint
-import app.morphe.patches.youtube.shared.hookVideoIntent
-import app.morphe.patches.youtube.shared.openVideoIntentPatch
 import app.morphe.patches.youtube.video.speed.custom.TapAndHoldSpeedFingerprint
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.fiveRegisters
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -81,7 +81,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
@@ -119,8 +118,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
         treeNodeElementHookPatch,
         inclusiveSpanPatch,
         textComponentPatch,
-        lithoSpannableStringPatch,
-        openVideoIntentPatch
+        lithoSpannableStringPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -185,9 +183,11 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     SwitchPreference("morphe_hide_comments_gift_button"),
                     SwitchPreference("morphe_hide_comments_info_button"),
                     SwitchPreference("morphe_hide_comments_live_chat_donators_bar"),
+                    SwitchPreference("morphe_hide_comments_live_chat_scroll_to_bottom_button"),
                     SwitchPreference("morphe_hide_comments_live_chat_tooltips", summary = true),
                     SwitchPreference("morphe_hide_comments_menu_button", summary = true),
                     SwitchPreference("morphe_hide_comments_preview_comment", summary = true),
+                    SwitchPreference("morphe_hide_comments_zero_state"),
                     SwitchPreference("morphe_minimal_comments_button", summary = true),
                     SwitchPreference("morphe_hide_comments_thanks_button"),
                     SwitchPreference("morphe_hide_comments_timestamp_button"),
@@ -442,17 +442,20 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // region hide watermark (legacy code for old versions of YouTube)
 
-        ShowWatermarkFingerprint.method.apply {
-            val index = implementation!!.instructions.size - 5
+        ShowWatermarkFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.first().index
+                val register = getInstruction<TwoRegisterInstruction>(index).registerA
 
-            removeInstruction(index)
-            addInstructions(
-                index,
-                """
-                    invoke-static {}, $LAYOUT_COMPONENTS_FILTER->showWatermark()Z
-                    move-result p2
-                """
-            )
+                removeInstruction(index)
+                addInstructions(
+                    index,
+                    """
+                        invoke-static {}, $LAYOUT_COMPONENTS_FILTER->showWatermark()Z
+                        move-result v$register
+                    """
+                )
+            }
         }
 
         // endregion
@@ -559,7 +562,6 @@ val hideLayoutComponentsPatch = bytecodePatch(
         // region hide comment preview
 
         hookLithoSpannableString(COMMENTS_FILTER)
-        hookVideoIntent(COMMENTS_FILTER, detectVideo = true, detectShorts = false)
 
         // endregion
 
@@ -681,32 +683,29 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // region hide view count
 
-        HideViewCountFingerprint.method.apply {
-            val startIndex = HideViewCountFingerprint.instructionMatches.first().index
-            var returnStringRegister = getInstruction<OneRegisterInstruction>(startIndex).registerA
+        HideViewCountFingerprint.let {
+            it.method.apply {
+                // The string passed to the span method is the returned string.
+                // 21.42+ jumps to a shared return, so the register of a return instruction can't be used.
+                val returnStringRegister = it.instructionMatches.last()
+                    .getInstruction<FiveRegisterInstruction>().registerC
 
-            // Find the instruction where the text dimension is retrieved.
-            val applyDimensionIndex = indexOfFirstInstructionReversedOrThrow {
-                val reference = getReference<MethodReference>()
-                opcode == Opcode.INVOKE_STATIC &&
-                        reference?.definingClass == "Landroid/util/TypedValue;" &&
-                        reference.returnType == "F" &&
-                        reference.name == "applyDimension" &&
-                        reference.parameterTypes == listOf("I", "F", "Landroid/util/DisplayMetrics;")
+                // The instruction where the text dimension is retrieved.
+                val applyDimensionIndex = it.instructionMatches[2].index
+
+                // A float value is passed which is used to determine subtitle text size.
+                val floatDimensionRegister = getInstruction<OneRegisterInstruction>(
+                    applyDimensionIndex + 1
+                ).registerA
+
+                addInstructions(
+                    applyDimensionIndex,
+                    """
+                        invoke-static { v$returnStringRegister, v$floatDimensionRegister }, $LAYOUT_COMPONENTS_FILTER->modifyFeedSubtitleSpan(Landroid/text/SpannableString;F)Landroid/text/SpannableString;
+                        move-result-object v$returnStringRegister
+                    """
+                )
             }
-
-            // A float value is passed which is used to determine subtitle text size.
-            val floatDimensionRegister = getInstruction<OneRegisterInstruction>(
-                applyDimensionIndex + 1
-            ).registerA
-
-            addInstructions(
-                applyDimensionIndex,
-                """
-                    invoke-static { v$returnStringRegister, v$floatDimensionRegister }, $LAYOUT_COMPONENTS_FILTER->modifyFeedSubtitleSpan(Landroid/text/SpannableString;F)Landroid/text/SpannableString;
-                    move-result-object v$returnStringRegister
-                """
-            )
         }
 
         // endregion
@@ -714,11 +713,15 @@ val hideLayoutComponentsPatch = bytecodePatch(
         // region hide filter bar
 
         arrayOf(
-            FilterBarHeightFingerprint to "hideInFeed",
+            if (is_20_31_or_greater) {
+                FilterBarHeightFingerprint
+            } else {
+                FilterBarHeightLegacyFingerprint
+            } to "hideInFeed",
             SearchResultsChipBarFingerprint to "hideInSearch"
         ).forEach { (fingerprint, methodName) ->
             fingerprint.method.apply {
-                val moveIndex = fingerprint.instructionMatches.last().index
+                val moveIndex = fingerprint.instructionMatches[fingerprint.instructionMatches.lastIndex - 1].index
                 val sizeRegister = getInstruction<OneRegisterInstruction>(moveIndex).registerA
 
                 addInstructions(
@@ -766,16 +769,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         PanelSubheaderFingerprint.let {
             it.method.apply {
-                val removeAllViewsIndex = indexOfFirstInstructionReversedOrThrow {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.name == "removeAllViews"
-                }
-
-                val setVisibilityIndex = indexOfFirstInstructionOrThrow(removeAllViewsIndex) {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.name == "setVisibility"
-                }
-
+                val setVisibilityIndex = it.instructionMatches.last().index
                 val subheaderRegister = getInstruction<FiveRegisterInstruction>(setVisibilityIndex).registerC
 
                 addInstruction(
@@ -980,7 +974,11 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     protoObjectIndex
                 ).reference as FieldReference
 
-                val insertIndex = if (is_21_36_or_greater) {
+                // 21.36 - 21.41 reads the tab proto from a typed field.
+                // Other versions read an Object field and cast it.
+                val isTypedProtoField = is_21_36_or_greater && !is_21_42_or_greater
+
+                val insertIndex = if (isTypedProtoField) {
                     protoObjectIndex + 1
                 } else {
                     indexOfFirstInstructionOrThrow(protoObjectIndex) {
@@ -988,7 +986,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     } + 1
                 }
 
-                val checkCastInstruction = if (is_21_36_or_greater) {
+                val checkCastInstruction = if (isTypedProtoField) {
                     ""
                 } else {
                     val checkCastIndex = insertIndex - 1
@@ -1044,11 +1042,9 @@ val hideLayoutComponentsPatch = bytecodePatch(
             val addAllIndex = indexOfFirstInstructionOrThrow(
                 methodCall(smali = "Ljava/util/List;->addAll(Ljava/util/Collection;)Z")
             )
-            val addAllInstruction = getInstruction<FiveRegisterInstruction>(addAllIndex)
-
             addInstruction(
                 addAllIndex,
-                "invoke-static { v${addAllInstruction.registerC}, v${addAllInstruction.registerD} }, " +
+                "invoke-static { ${fiveRegisters(addAllIndex)} }, " +
                         "$LAYOUT_COMPONENTS_FILTER->setChannelTabs(Ljava/util/List;Ljava/util/List;)V"
             )
         }
@@ -1118,6 +1114,18 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 it.instructionMatches.last().index,
                 COMMENTS_FILTER,
                 "hideLiveChatThanksButton"
+            )
+        }
+
+        // endregion
+
+        // region hide live chat scroll to bottom button
+
+        MoreCommentsIconFingerprint.matchAll().forEach {
+            it.method.injectHideViewCall(
+                it.instructionMatches.last().index,
+                COMMENTS_FILTER,
+                "hideLiveChatScrollToBottomButton"
             )
         }
 

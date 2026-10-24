@@ -6,7 +6,8 @@ package app.hxreborn.extension.cx;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
+
+import app.hxreborn.extension.shared.NightMode;
 
 @SuppressWarnings("unused")
 public final class AmoledTheme {
@@ -45,16 +46,10 @@ public final class AmoledTheme {
         }
 
         try {
-            return preferences.getBoolean(AMOLED_PREFERENCE_KEY, false) && isNight(activity);
+            return preferences.getBoolean(AMOLED_PREFERENCE_KEY, false) && NightMode.isActive(activity);
         } catch (RuntimeException ex) {
             return false;
         }
-    }
-
-    private static boolean isNight(Activity activity) {
-        int uiMode = activity.getResources().getConfiguration().uiMode;
-
-        return (uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
 }

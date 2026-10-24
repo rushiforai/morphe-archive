@@ -41,7 +41,33 @@ public class CommentTimeColourTest {
     public void asBefore() {
         DarkMode.answer(true);
         AmoledTheme.useBackground(BLACK);
+        AmoledTheme.useLight(0);
         MaterialYouTheme.use(TonePalette.fallback(), false);
+    }
+
+    /**
+     * Issue #214's reviewer gap: in light mode with the Light background color row set, the comment
+     * sheet under the time takes the row's colour, so the time's grey is held to 4.5:1 on the moved
+     * grey as light mode's other secondary text is. The Video tab's dark grey, Material You alone and
+     * a blank row keep theirs.
+     */
+    @Test
+    public void lightModeHoldsTheTimeOnTheLightBackgroundColour() {
+        int cream = 0xFFFFF8E7;
+        AmoledTheme.useLight(cream);
+        int held = CommentTimeColour.commentTime(LIGHT_SECONDARY, true, false, false);
+        assertEquals(0xFF5F6266, held);
+        int button = AmoledLightBackground.fill(cream, AmoledLightBackground.TEXT_SURFACE_GREY);
+        assertTrue(CommentTimeColour.contrast(held, button) >= CommentTimeColour.MIN_CONTRAST);
+        assertTrue("it wasn't before", CommentTimeColour.contrast(LIGHT_SECONDARY, button) < CommentTimeColour.MIN_CONTRAST);
+
+        assertEquals("the Video tab's dark grey", CommentTimeColour.DARK_SECONDARY_TEXT,
+                CommentTimeColour.commentTime(CommentTimeColour.DARK_SECONDARY_TEXT, true, false, false));
+        assertEquals("Material You alone", LIGHT_SECONDARY, CommentTimeColour.commentTime(LIGHT_SECONDARY, false, true, false));
+        assertEquals("a clear colour", 0x00000000, CommentTimeColour.commentTime(0x00000000, true, false, false));
+
+        AmoledTheme.useLight(0);
+        assertEquals("a blank row", LIGHT_SECONDARY, CommentTimeColour.commentTime(LIGHT_SECONDARY, true, false, false));
     }
 
     @Test

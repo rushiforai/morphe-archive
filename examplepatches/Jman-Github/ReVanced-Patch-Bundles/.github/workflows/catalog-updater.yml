@@ -35,7 +35,6 @@ jobs:
   refresh:
     if: vars.CATALOG_DATA_ENABLED != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
     env:
       CATALOG_HISTORICAL_BATCH_SIZE: ${{ inputs.historical_batch_size || vars.CATALOG_HISTORICAL_BATCH_SIZE || '1000' }}
       CATALOG_HISTORICAL_MAX_SECONDS: ${{ inputs.historical_max_seconds || vars.CATALOG_HISTORICAL_MAX_SECONDS || '900' }}
@@ -85,7 +84,6 @@ jobs:
         continue-on-error: true
         run: python scripts/notify_catalog_update.py capture --baseline "$RUNNER_TEMP/catalog-before.json"
       - name: Refresh and publish catalog progress
-        timeout-minutes: 60
         id: refresh
         env:
           GITHUB_ACTOR: ${{ github.repository_owner }}
@@ -96,7 +94,6 @@ jobs:
           GITHUB_PACKAGES_TOKEN: ${{ secrets.GH_PAT }}
         run: python scripts/run_catalog_refresh.py --publish
       - name: Build and validate catalog
-        timeout-minutes: 20
         run: |
           python -m pytest
           python -m ruff check .
@@ -149,7 +146,6 @@ jobs:
   cloudflare:
     if: vars.CATALOG_DATA_ENABLED == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
     environment: catalog-data
     permissions:
       contents: read
@@ -220,7 +216,6 @@ jobs:
         continue-on-error: true
         run: python scripts/notify_catalog_update.py capture --baseline "$RUNNER_TEMP/catalog-before.json"
       - name: Verify sources and reconcile full history
-        timeout-minutes: 65
         id: refresh
         env:
           GITHUB_ACTOR: ${{ github.repository_owner }}
@@ -231,7 +226,6 @@ jobs:
           GITHUB_PACKAGES_TOKEN: ${{ secrets.GH_PAT }}
         run: python -m scripts.run_catalog_refresh --cloudflare
       - name: Validate before atomic publication
-        timeout-minutes: 40
         run: |
           python scripts/validate_database.py
           python -m scripts.cloudflare_catalog publish

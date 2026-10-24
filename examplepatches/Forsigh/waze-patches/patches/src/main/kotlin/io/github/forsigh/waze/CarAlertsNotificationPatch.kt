@@ -14,7 +14,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val carAlertsNotificationPatch = bytecodePatch(
     name = "Car alerts as notifications",
-    description = "Delivers police and hazard alerts as car notifications.",
+    description = "Shows car alerts as notifications.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

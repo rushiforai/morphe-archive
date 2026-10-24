@@ -75,6 +75,12 @@ public final class WacchoiSuffixNg {
         return "(?<![A-Za-z0-9])[A-Za-z0-9]{4}-(?-i:" + Pattern.quote(suffix)
                 + ")(?=$|[\\s()（）<>])";
     }
+    public static String prefix(String query) {
+        if(query==null)return null;
+        Matcher match=Pattern.compile("(?<![A-Za-z0-9])([A-Za-z0-9]{4})-[^\\s()（）<>]{4}(?=$|[\\s()（）<>])").matcher(query);
+        return match.find()?match.group(1):null;
+    }
+    public static void confirmPrefix(Context context,String query,String board){confirmPart(context,query,board,true);}
 
     public static String clipboardValue(String query) {
         String value = suffix(query);
@@ -86,7 +92,11 @@ public final class WacchoiSuffixNg {
     }
 
     public static void confirm(Context context, String query, String currentBoard) {
-        String suffix = suffix(query);
+        confirmPart(context,query,currentBoard,false);
+    }
+    private static void confirmPart(Context context,String query,String currentBoard,boolean upper) {
+        String suffix = upper?prefix(query):suffix(query);
+        String token=upper?suffix+"-":"-"+suffix;
         android.app.Activity activity = Haiagaru.toolbarActivity(context);
         if (suffix == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         try {
@@ -101,11 +111,14 @@ public final class WacchoiSuffixNg {
             RadioButton literal = new RadioButton(activity); literal.setId(View.generateViewId()); literal.setText("文字列");
             RadioButton regex = new RadioButton(activity); regex.setId(View.generateViewId()); regex.setText("正規表現");
             mode.addView(literal); mode.addView(regex); mode.check(literal.getId()); content.addView(mode);
-            EditText text = new EditText(activity); text.setSingleLine(true); text.setText("-" + suffix); content.addView(text);
+            EditText text = new EditText(activity); text.setSingleLine(true); text.setText(token); content.addView(text);
             CheckBox chain = new CheckBox(activity); chain.setText("連鎖"); content.addView(chain);
             CheckBox hidden = new CheckBox(activity); hidden.setText("非表示（あぼーん扱いにしない）"); content.addView(hidden);
             NgBoardScopePicker scope = new NgBoardScopePicker(activity, currentBoard, currentBoard);
             content.addView(scope);
+            // Board scope is essential to registration, not optional help below the fold.
+            content.removeView(scope);
+            content.addView(scope, 0);
             TextView baseLabel = new TextView(activity); baseLabel.setText("追加先（同じ板・有効／連鎖／非表示設定の正規表現NG）"); content.addView(baseLabel);
             Spinner base = new Spinner(activity); content.addView(base);
             List<NativeNgStore.Entry> choices = new ArrayList<>();
@@ -129,8 +142,8 @@ public final class WacchoiSuffixNg {
             };
             mode.setOnCheckedChangeListener((group, id) -> {
                 String value = text.getText().toString();
-                if (regex.isChecked() && value.equals("-" + suffix)) text.setText(regexFragment(value));
-                if (literal.isChecked() && value.equals(regexFragment("-" + suffix))) text.setText("-" + suffix);
+                if (regex.isChecked() && value.equals(token)) text.setText(regexFragment(value));
+                if (literal.isChecked() && value.equals(regexFragment(token))) text.setText(token);
                 refresh.run();
             });
             enabled.setOnCheckedChangeListener((button, checked) -> refresh.run());
@@ -139,6 +152,7 @@ public final class WacchoiSuffixNg {
             scope.onChanged(refresh);
             TextView help = new TextView(activity);
             help.setText("NGNameを文字列で登録する人は\n-aabb\nNGのたびに新規登録\n―――――――――――――――――――\nNGNameを正規表現で登録する人は\n-aabb|\nベースとなるNGのところに追加登録\n\n正規表現では追加先を選択できます。末尾の | は追記用の区切りです。空の条件は保存しません。\nこのNG項目を長押しすると、下4桁をコピーして従来のNG編集画面を開きます。");
+            if(upper)help.setText("上4桁は「aabb-」の形で登録します。\n文字列はNGごとに新規登録、正規表現は既存NGへの追加も選べます。対象板・有効／連鎖／非表示も指定できます。\n上4桁は複数の投稿者で共通することがあります。対象板と登録内容を確認してください。");
             content.addView(help);
             ScrollView scroll = new ScrollView(activity); scroll.addView(content);
             HaiagaruDialog dialog = new HaiagaruDialog.Builder(activity).setTitle("NGName追加")

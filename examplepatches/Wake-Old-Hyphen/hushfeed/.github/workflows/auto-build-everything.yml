@@ -122,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['47.4.3']
+        version: ['47.5.3']
     steps:
       - uses: actions/checkout@v4
 

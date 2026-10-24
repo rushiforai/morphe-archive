@@ -25,7 +25,7 @@ private const val TEEN_MODE_KEY = "mmkv_key_teen_mode"
 @Suppress("unused")
 val allInOnePatch = resourcePatch(
     name = "All-In-One",
-    description = "Unlocks premium playback and removes ads, the region block and forced updates. " +
+    description = "Unlocks video playback and removes ads and forced updates. " +
         "Requires Android 10 or later.",
 ) {
     compatibleWith(AppCompatibilities.MOVIEBOX_TV)

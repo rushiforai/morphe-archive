@@ -5,14 +5,13 @@
 package app.morphe.patches.readera.misc.highlightcolors
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.addMethod
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -25,7 +24,6 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal const val PICKER_CLASS = "Lapp/hxreborn/extension/readera/HighlightColorPicker;"
 internal const val READ_ACTIVITY_CLASS = "Lorg/readera/read/ReadActivity;"
@@ -161,99 +159,101 @@ internal fun BytecodePatchContext.fillHighlightColorStub(
         },
     )
 
-    stub.addOverride(hideMethod, registers = 3) {
-        addInstructionsWithLabels(
-            0,
-            """
-                iget-object v0, p0, $pickerField
-                invoke-virtual { v0, p1 }, $PICKER_CLASS->hide(Z)V
-                if-eqz p1, :keep
-                const/4 v0, 0x0
-                iput-object v0, p0, $targetField
-                iput-object v0, p0, $selectionField
-                :keep
-                return-void
-            """,
-        )
-    }
-    stub.addOverride(showMethod, registers = 2) {
-        addInstructions(
-            0,
-            """
-                iget-object v0, p0, $pickerField
-                invoke-virtual { v0 }, $PICKER_CLASS->show()V
-                return-void
-            """,
-        )
-    }
-    stub.addOverride(colorModeMethod, registers = 4) {
-        addInstructions(
-            0,
-            """
-                iget-boolean v0, p1, $nightField
-                iget-object v1, p0, $pickerField
-                invoke-virtual { v1, v0 }, $PICKER_CLASS->setNight(Z)V
-                return-void
-            """,
-        )
-    }
-    stub.addOverride(bindMethod, registers = 3) {
-        addInstructions(
-            0,
-            """
-                iget-object v0, p1, $stateSelectionField
-                iput-object v0, p0, $selectionField
-                iget-object v0, p1, $stateTargetField
-                iput-object v0, p0, $targetField
-                iget-object v0, p0, $pickerField
-                invoke-virtual { v0 }, $PICKER_CLASS->refresh()V
-                return-void
-            """,
-        )
-    }
-    stub.addPublicMethod("getHighlightColor", listOf(), "I", registers = 2) {
-        addInstructionsWithLabels(
-            0,
-            """
-                iget-object v0, p0, $targetField
-                if-eqz v0, :fallback
-                $readTargetColor
-                return v0
-                :fallback
-                invoke-static { }, ${prefs.accessor}
-                move-result-object v0
-                iget v0, v0, $defaultColorField
-                return v0
-            """,
-        )
-    }
-    stub.addPublicMethod("getHighlightColorFilter", listOf("I"), "Landroid/graphics/ColorFilter;", registers = 2) {
-        addInstructions(
-            0,
-            """
-                invoke-static { p1 }, ${prefs.paletteFilter}
-                move-result-object v0
-                return-object v0
-            """,
-        )
-    }
+    stub.addOverride(
+        hideMethod,
+        registers = 3,
+        """
+            iget-object v0, p0, $pickerField
+            invoke-virtual { v0, p1 }, $PICKER_CLASS->hide(Z)V
+            if-eqz p1, :keep
+            const/4 v0, 0x0
+            iput-object v0, p0, $targetField
+            iput-object v0, p0, $selectionField
+            :keep
+            return-void
+        """,
+    )
+    stub.addOverride(
+        showMethod,
+        registers = 2,
+        """
+            iget-object v0, p0, $pickerField
+            invoke-virtual { v0 }, $PICKER_CLASS->show()V
+            return-void
+        """,
+    )
+    stub.addOverride(
+        colorModeMethod,
+        registers = 4,
+        """
+            iget-boolean v0, p1, $nightField
+            iget-object v1, p0, $pickerField
+            invoke-virtual { v1, v0 }, $PICKER_CLASS->setNight(Z)V
+            return-void
+        """,
+    )
+    stub.addOverride(
+        bindMethod,
+        registers = 3,
+        """
+            iget-object v0, p1, $stateSelectionField
+            iput-object v0, p0, $selectionField
+            iget-object v0, p1, $stateTargetField
+            iput-object v0, p0, $targetField
+            iget-object v0, p0, $pickerField
+            invoke-virtual { v0 }, $PICKER_CLASS->refresh()V
+            return-void
+        """,
+    )
+    stub.addMethod(
+        "getHighlightColor",
+        listOf(),
+        "I",
+        AccessFlags.PUBLIC.value,
+        registers = 2,
+        """
+            iget-object v0, p0, $targetField
+            if-eqz v0, :fallback
+            $readTargetColor
+            return v0
+            :fallback
+            invoke-static { }, ${prefs.accessor}
+            move-result-object v0
+            iget v0, v0, $defaultColorField
+            return v0
+        """,
+    )
+    stub.addMethod(
+        "getHighlightColorFilter",
+        listOf("I"),
+        "Landroid/graphics/ColorFilter;",
+        AccessFlags.PUBLIC.value,
+        registers = 2,
+        """
+            invoke-static { p1 }, ${prefs.paletteFilter}
+            move-result-object v0
+            return-object v0
+        """,
+    )
 
     return HighlightColorStub(stub, activityField, targetField, selectionField)
 }
 
 internal fun HighlightColorStub.addColorSetter(prefs: HighlightColorPrefs, key: String, registers: Int, body: String) =
-    type.addPublicMethod("setHighlightColor", listOf("I"), "V", registers) {
-        addInstructionsWithLabels(
-            0,
-            """
-                invoke-static { }, ${prefs.store}
-                move-result-object v0
-                const-string v1, "$key"
-                invoke-static { v0, v1, p1 }, $PICKER_CLASS->saveDefaultColor(Landroid/content/SharedPreferences;Ljava/lang/String;I)V
-                invoke-static { }, ${prefs.reload}
-            """ + body,
-        )
-    }
+    type.addMethod(
+        "setHighlightColor",
+        listOf("I"),
+        "V",
+        AccessFlags.PUBLIC.value,
+        registers,
+        """
+            invoke-static { }, ${prefs.store}
+            move-result-object v0
+            const-string v1, "$key"
+            invoke-static { v0, v1, p1 }, $PICKER_CLASS->saveDefaultColor(Landroid/content/SharedPreferences;Ljava/lang/String;I)V
+            invoke-static { }, ${prefs.reload}
+        """ + body,
+    )
 
 internal fun Method.copy(registers: Int) = ImmutableMethod(
     definingClass,
@@ -273,26 +273,5 @@ private fun MutableClass.addField(name: String, type: String): String {
     return "${this.type}->$name:$type"
 }
 
-private fun MutableClass.addOverride(base: Method, registers: Int, body: MutableMethod.() -> Unit) =
-    addPublicMethod(base.name, base.parameterTypes.map { it.toString() }, base.returnType, registers, body)
-
-private fun MutableClass.addPublicMethod(
-    name: String,
-    parameters: List<String>,
-    returnType: String,
-    registers: Int,
-    body: MutableMethod.() -> Unit,
-) {
-    methods.add(
-        ImmutableMethod(
-            type,
-            name,
-            parameters.map { ImmutableMethodParameter(it, null, null) },
-            returnType,
-            AccessFlags.PUBLIC.value,
-            null,
-            null,
-            MutableMethodImplementation(registers),
-        ).toMutable().apply(body),
-    )
-}
+private fun MutableClass.addOverride(base: Method, registers: Int, smali: String) =
+    addMethod(base.name, base.parameterTypes.map { it.toString() }, base.returnType, AccessFlags.PUBLIC.value, registers, smali)

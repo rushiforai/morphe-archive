@@ -46,7 +46,9 @@ import java.io.File
  * call, just before the initial state returns. The section's draw method asks about its comment
  * first, read off its props, and returns no children on a yes (#118). An open reply thread's section
  * is found by its name, and the one paging flag of the comment list it builds goes through the
- * extension just before it's written (#140). The video viewer's comment bar is found by the names
+ * extension just before it's written (#140). The View more replies row is found by its render's
+ * name, and the boolean that picks whether its words alone or the whole row take a tap goes
+ * through the extension right after Facebook reads it (#219). The video viewer's comment bar is found by the names
  * of its sticker and GIF buttons, and once both are built the extension is asked and a yes clears
  * them. The whole bar around them is the class naming its layout transition that builds that row,
  * and its render asks first and returns nothing on a yes (#213). Reads the fixture bundles from
@@ -316,6 +318,39 @@ class CommentSheetOptionsFixtureTest {
         assertEquals("$where: the code before the hook runs into it", listOf(write), ControlFlow.of(method).normal[write - 1])
     }
 
+    private fun replyRow(bundle: File, name: String): ReplyRowTap {
+        val found = replyRowTap(holders(bundle, name), name)
+        val render = found.render
+        val where = "${bundle.name}: ${render.descriptor()}"
+        val row = FixtureDex.classes(bundle, setOf(render.definingClass)).values.single()
+        val context = PatchContexts.of(listOf(row))
+        val method = context.mutableClassDefBy(row.type).methods.single { it.descriptor() == render.descriptor() }
+        val original = method.implementation!!.instructions.toList()
+        val kept = found.kept
+        assertEquals("$where: Facebook's answer is kept", Opcode.MOVE_RESULT, original[kept].opcode)
+        assertEquals("$where: in the flag's register", found.flag, (original[kept] as OneRegisterInstruction).registerA)
+        val checks = original.indices.filter {
+            original[it].opcode == Opcode.IF_EQZ && (original[it] as OneRegisterInstruction).registerA == found.flag
+        }
+        assertTrue("$where: the flag is checked on both sides of the tap target", checks.size >= 2)
+
+        method.tapWholeReplyRow(found)
+        val patched = method.implementation!!.instructions.toList()
+        assertEquals("$where gains two instructions", original.size + 2, patched.size)
+        assertEquals("$where: Facebook's code up to its answer stays", original.take(kept + 1).opcodes(),
+            patched.take(kept + 1).opcodes())
+        assertEquals("$where: the extension is asked with a range call", Opcode.INVOKE_STATIC_RANGE, patched[kept + 1].opcode)
+        assertEquals("$where: the extension is asked", VIEW_MORE_REPLIES_TEXT_ONLY, patched[kept + 1].reference())
+        val range = patched[kept + 1] as RegisterRangeInstruction
+        assertEquals("$where: with Facebook's answer", listOf(found.flag, 1), listOf(range.startRegister, range.registerCount))
+        assertEquals("$where: its answer replaces Facebook's", Opcode.MOVE_RESULT, patched[kept + 2].opcode)
+        assertEquals("$where: its answer replaces Facebook's", found.flag, (patched[kept + 2] as OneRegisterInstruction).registerA)
+        assertEquals("$where: Facebook's code after its answer stays", original.drop(kept + 1).opcodes(),
+            patched.drop(kept + 3).opcodes())
+        assertEquals("$where: Facebook's answer runs into the hook", listOf(kept + 1), ControlFlow.of(method).normal[kept])
+        return found
+    }
+
     private fun viewer(bundle: File) {
         val name = bundle.name
         val found = viewerButtons(holders(bundle, VIEWER_GIF))
@@ -386,6 +421,22 @@ class CommentSheetOptionsFixtureTest {
     fun `each declared build keeps the GIF and sticker buttons out of the video viewer's comment bar`() = bundles { bundle ->
         viewer(bundle)
     }
+
+    @Test
+    fun `each declared build asks before View more replies picks which part of it takes a tap`() = bundles { bundle ->
+        replyRow(bundle, VIEW_MORE_REPLIES)
+    }
+
+    @Test
+    fun `each declared build asks before the View more replies row under a feed post picks which part of it takes a tap`() =
+        bundles { bundle ->
+            val row = replyRow(bundle, FEED_VIEW_MORE_REPLIES)
+            val sheet = replyRowTap(holders(bundle, VIEW_MORE_REPLIES))
+            assertTrue("${bundle.name}: the feed row isn't the comment sheet's", row.render.definingClass != sheet.render.definingClass)
+            val sheetAsks = sheet.render.implementation!!.instructions.toList()[sheet.kept - 1].reference()
+            val feedAsks = row.render.implementation!!.instructions.toList()[row.kept - 1].reference()
+            assertEquals("${bundle.name}: both rows read the same server answer", sheetAsks, feedAsks)
+        }
 
     @Test
     fun `each declared build asks before an open reply thread's list decides whether it pages on by itself`() = bundles { bundle ->

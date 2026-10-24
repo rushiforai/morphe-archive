@@ -1,11 +1,8 @@
 .class final LDevCheckRestored$HardwareReload;
 .super Ljava/lang/Object;
 
-# interfaces
 .implements Ljava/lang/Runnable;
 
-
-# annotations
 .annotation system Ldalvik/annotation/EnclosingClass;
     value = LDevCheckRestored;
 .end annotation
@@ -15,12 +12,8 @@
     name = "HardwareReload"
 .end annotation
 
-
-# instance fields
 .field private final fragment:Lstub/HardwareFragment;
 
-
-# direct methods
 .method constructor <init>(Lstub/HardwareFragment;)V
     .registers 2
 
@@ -31,8 +24,6 @@
     return-void
 .end method
 
-
-# virtual methods
 .method public run()V
     .registers 2
 

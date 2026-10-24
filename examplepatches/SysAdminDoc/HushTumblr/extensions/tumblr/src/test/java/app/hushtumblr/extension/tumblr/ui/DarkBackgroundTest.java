@@ -124,6 +124,43 @@ public class DarkBackgroundTest {
         assertTrue(report, report.contains("design colors painted 1"));
     }
 
+    /**
+     * The footer under a post paints itself with the panel gray, so it sat a step lighter than the
+     * card above it. It takes the card's color once the set is painted, and nothing else moves.
+     */
+    @Test
+    public void thePostFooterTakesTheCardsColorNotTheRaisedPanel() {
+        Settings.DARK_BACKGROUND.save(true);
+        int color = standInStyle();
+        long raised = DarkBackground.packed(DarkBackground.raised(color));
+        assertEquals("before the set is built it's Tumblr's", raised, DarkBackground.designFooter(raised));
+
+        assertEquals(raised, DarkBackground.designPanel(PANEL_GRAY));
+        assertEquals(DarkBackground.packed(color), DarkBackground.designFooter(raised));
+        assertEquals("another palette's panel", PANEL_GRAY, DarkBackground.designFooter(PANEL_GRAY));
+        long blue = DarkBackground.packed(0xFF1F3A5F);
+        assertEquals(blue, DarkBackground.designFooter(blue));
+    }
+
+    /** The footer reads its own switch, so a set built while it was on doesn't outlast it. */
+    @Test
+    public void thePostFooterAnswersToTheSwitchItself() {
+        Settings.DARK_BACKGROUND.save(true);
+        long raised = DarkBackground.packed(DarkBackground.raised(standInStyle()));
+        assertEquals(raised, DarkBackground.designPanel(PANEL_GRAY));
+        Settings.DARK_BACKGROUND.save(false);
+
+        assertEquals(raised, DarkBackground.designFooter(raised));
+    }
+
+    @Test
+    public void withTheSwitchOffThePostFooterStaysTumblrs() {
+        standInStyle();
+        assertEquals(PANEL_GRAY, DarkBackground.designPanel(PANEL_GRAY));
+
+        assertEquals(PANEL_GRAY, DarkBackground.designFooter(PANEL_GRAY));
+    }
+
     @Test
     public void theSwitchStartsOffSoTheDesignColorsStayTumblrs() {
         standInStyle();

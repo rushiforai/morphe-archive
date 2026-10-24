@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.shared.Logger;
@@ -41,6 +42,8 @@ import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.FilterGroup.FilterGroupResult;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.patches.ChangeHeaderPatch;
+import app.morphe.extension.youtube.patches.FeedViewCountPatch;
+import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar;
@@ -76,9 +79,11 @@ public final class LayoutComponentsFilter extends Filter {
     private final ByteArrayFilterGroup channelProfileSubscribeButtonBuffer;
     private final ByteArrayFilterGroup buttonComponentBuffer;
     private final StringFilterGroup channelFilterBar;
+    private final StringFilterGroup channelHandle;
     private final StringFilterGroup channelMembersOnlyChipId;
     private final StringFilterGroup chipBar;
     private final StringFilterGroup communityPosts;
+    private final StringFilterGroup compactChannel;
     private final StringFilterGroup compactChannelBarInner;
     private final StringFilterGroup compactChannelBarInnerButton;
     private final ByteArrayFilterGroup joinMembershipButton;
@@ -98,9 +103,8 @@ public final class LayoutComponentsFilter extends Filter {
     private static final AtomicInteger singleItemInformationPanelIndex = new AtomicInteger(-1);
     private final StringFilterGroup surveys;
     private final StringFilterGroup videoLabels;
-    private final ByteArrayFilterGroupList videoLabelsGroupList = new ByteArrayFilterGroupList();
+    private final ByteArrayFilterGroup videoLabelsBuffer;
     private final StringFilterGroup videoRecommendationLabels;
-    private final StringFilterGroup youTabChannelHandle;
 
     public enum ExpandableCardStyle {
         SHOW_ALL,
@@ -233,6 +237,11 @@ public final class LayoutComponentsFilter extends Filter {
                 "button.e"
         );
 
+        channelHandle = new StringFilterGroup(
+                Settings.HIDE_HANDLE,
+                "content_metadata.e"
+        );
+
         final var channelWatermark = new StringFilterGroup(
                 Settings.HIDE_CHANNEL_WATERMARK,
                 "featured_channel_watermark_overlay"
@@ -248,14 +257,14 @@ public final class LayoutComponentsFilter extends Filter {
                 "compact_banner"
         );
 
+        compactChannel = new StringFilterGroup(
+                Settings.HIDE_CHANNEL_BUTTONS,
+                "compact_channel.e"
+        );
+
         final var compactChannelBar = new StringFilterGroup(
                 Settings.HIDE_CHANNEL_BAR,
                 "compact_channel_bar"
-        );
-
-        final var compactChannelCommunityButton = new StringFilterGroup(
-                Settings.HIDE_COMMUNITY_BUTTON,
-                "compact_channel$FEcommunity"
         );
 
         compactChannelBarInner = new StringFilterGroup(
@@ -414,20 +423,13 @@ public final class LayoutComponentsFilter extends Filter {
         );
 
         videoLabels = new StringFilterGroup(
+                Settings.HIDE_VIDEO_LABELS,
+                "|ContainerType|ContainerType|ContainerType|ContainerType|"
+        );
+
+        videoLabelsBuffer = new ByteArrayFilterGroup(
                 null,
                 "badge.e"
-        );
-        videoLabelsGroupList.addAll(
-                new ByteArrayFilterGroup(
-                        Settings.HIDE_AUTO_DUBBED_LABEL,
-                        "yt_outline_person_radar",
-                        "yt_outline_experimental_person_waves"
-                ),
-                new ByteArrayFilterGroup(
-                        Settings.HIDE_HYPED_LABEL,
-                        "yt_fill_star_shooting",
-                        "yt_fill_experimental_hype"
-                )
         );
 
         final var videoTitle = new StringFilterGroup(
@@ -436,14 +438,8 @@ public final class LayoutComponentsFilter extends Filter {
         );
 
         videoRecommendationLabels = new StringFilterGroup(
-                Settings.HIDE_VIDEO_RECOMMENDATION_LABELS,
+                Settings.HIDE_VIDEO_LABELS,
                 "endorsement_header_footer.e"
-        );
-
-        // The @handle under the account name in the header of the You tab.
-        youTabChannelHandle = new StringFilterGroup(
-                Settings.HIDE_YOU_TAB_CHANNEL_HANDLE,
-                "content_metadata.e"
         );
 
         final var webLinkPanel = new StringFilterGroup(
@@ -456,6 +452,7 @@ public final class LayoutComponentsFilter extends Filter {
                 artistCard,
                 audioTrackButton,
                 channelFilterBar,
+                channelHandle,
                 channelLinksPreview,
                 channelMembersShelf,
                 channelProfileSubscribeButton,
@@ -463,7 +460,7 @@ public final class LayoutComponentsFilter extends Filter {
                 chipBar,
                 compactBanner,
                 compactChannelBar,
-                compactChannelCommunityButton,
+                compactChannel,
                 compactChannelBarInner,
                 communityPosts,
                 crowdfundingBox,
@@ -489,8 +486,7 @@ public final class LayoutComponentsFilter extends Filter {
                 videoLabels,
                 videoTitle,
                 videoRecommendationLabels,
-                webLinkPanel,
-                youTabChannelHandle
+                webLinkPanel
         );
     }
 
@@ -548,7 +544,7 @@ public final class LayoutComponentsFilter extends Filter {
                               FilterContentType contentType,
                               int contentIndex) {
         if (matchedGroup == exploreTopicsShelf) {
-            return NavigationButton.getSelectedNavigationButton() != NavigationButton.LIBRARY;
+            return NavigationButton.getSelectedNavigationButton(contextInterface) != NavigationButton.LIBRARY;
         }
 
         // The groups are excluded from the filter due to the exceptions list below.
@@ -574,17 +570,26 @@ public final class LayoutComponentsFilter extends Filter {
             return false;
         }
 
+        if (matchedGroup == channelHandle) {
+            return Utils.startsWith(path, "page_header.e")
+                    && NavigationButton.getSelectedNavigationButton(contextInterface) == NavigationButton.LIBRARY;
+        }
+
         if (matchedGroup == channelProfileSubscribeButton) {
             return isChannelProfileSubscribeButtonHidden(path, buffer, asciiStrings);
         }
 
         if (matchedGroup == chipBar) {
             return contentIndex == 0 &&
-                    NavigationButton.getSelectedNavigationButton() == NavigationBar.NavigationButton.LIBRARY;
+                    NavigationButton.getSelectedNavigationButton(contextInterface) == NavigationBar.NavigationButton.LIBRARY;
         }
 
         if (matchedGroup == communityPosts) {
             return contextInterface.isHomeFeedOrRelatedVideo() || contextInterface.isSubscriptionOrLibrary();
+        }
+
+        if (matchedGroup == compactChannel) {
+            return Utils.contains(path, "button.e");
         }
 
         if (matchedGroup == compactChannelBarInner) {
@@ -634,9 +639,9 @@ public final class LayoutComponentsFilter extends Filter {
                     && notificationsMenuHeaderBuffer.check(buffer).isFiltered();
         }
 
-        // This identifier is used not only in players but also in search results:
-        // Until 2024, medical information panels such as Covid-19 also used this identifier and were shown in the search results.
-        // From 2025, the medical information panel is no longer shown in the search results.
+        // This identifier is used not only in players but also in search results: Until 2024, medical
+        // information panels such as Covid-19 also used this identifier and were shown in the search
+        // results. From 2025, the medical information panel is no longer shown in the search results.
         // Therefore, this identifier does not filter when the search bar is activated.
         if (matchedGroup == searchFriction) {
             singleItemInformationPanelIndex.set(0);
@@ -645,12 +650,6 @@ public final class LayoutComponentsFilter extends Filter {
 
         if (matchedGroup == subscribedChannelsBarName) {
             return Utils.endsWith(path, "|TextType|");
-        }
-
-        if (matchedGroup == youTabChannelHandle) {
-            // The identifier is also used by the metadata of videos, so only the header
-            // of the You tab is filtered, not the one of a channel page.
-            return Utils.startsWith(path, "page_header.e") && NavigationButton.getSelectedNavigationButton() == NavigationButton.LIBRARY;
         }
 
         if (matchedGroup == singleItemInformationPanel) {
@@ -669,7 +668,7 @@ public final class LayoutComponentsFilter extends Filter {
         }
 
         if (matchedGroup == videoLabels) {
-            return videoLabelsGroupList.check(buffer).isFiltered();
+            return VersionCheckPatch.IS_20_31_OR_GREATER && videoLabelsBuffer.check(buffer).isFiltered();
         }
 
         if (matchedGroup == videoRecommendationLabels) {
@@ -801,13 +800,15 @@ public final class LayoutComponentsFilter extends Filter {
                         // The header keeps the space of the subscribe button if it's removed,
                         // so it's hidden by the Litho filter.
                         hasHiddenSubscribeButton = Settings.HIDE_SUBSCRIBE_BUTTON_IN_CHANNEL_PAGE.get();
-                    } else if (ProtoNode.field(fields, BUTTON_VIEW_MODEL_FIELD) == null) {
-                        continue;
-                    } else if (isPageHeaderButtonHidden(fields)) {
-                        button.remove();
-                        modified = true;
                     } else {
-                        visibleButtons++;
+                        if (ProtoNode.field(fields, BUTTON_VIEW_MODEL_FIELD) != null) {
+                            if (isPageHeaderButtonHidden(fields)) {
+                                button.remove();
+                                modified = true;
+                            } else {
+                                visibleButtons++;
+                            }
+                        }
                     }
                 }
 
@@ -1060,7 +1061,9 @@ public final class LayoutComponentsFilter extends Filter {
     /**
      * Injection point.
      */
-    public static SpannableString modifyFeedSubtitleSpan(SpannableString original, float truncationDimension) {
+    public static SpannableString modifyFeedSubtitleSpan(SpannableString subtitle, float truncationDimension) {
+        // Before the view count is hidden, so the Feed view count patch can still find it.
+        SpannableString original = FeedViewCountPatch.onFeedSubtitleCreated(subtitle);
         try {
             final boolean hideViewCount = Settings.HIDE_VIEW_COUNT.get();
             final boolean hideUploadTime = Settings.HIDE_UPLOAD_TIME.get();
@@ -1322,9 +1325,9 @@ public final class LayoutComponentsFilter extends Filter {
             String menuTitleString = menuTitleCharSequence.toString();
 
             boolean matches = false;
-            String menuTitleLower = menuTitleString.toLowerCase();
+            String menuTitleLower = menuTitleString.toLowerCase(Locale.ROOT);
             for (String filter : accountMenuFilterStrings) {
-                if (menuTitleLower.contains(filter.toLowerCase())) {
+                if (menuTitleLower.contains(filter.toLowerCase(Locale.ROOT))) {
                     matches = true;
                     break;
                 }
@@ -1440,5 +1443,33 @@ public final class LayoutComponentsFilter extends Filter {
      */
     public static void hideSyncButton(View view) {
         Utils.hideViewBy0dpUnderCondition(Settings.HIDE_SYNC_BUTTON, view);
+    }
+
+    /**
+     * Touch and playback speed callbacks all run on the main thread.
+     */
+    private static boolean tapAndHoldActive;
+
+    /**
+     * Injection point.
+     */
+    public static void onTapAndHoldStart() {
+        tapAndHoldActive = true;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void onTapAndHoldEnd() {
+        tapAndHoldActive = false;
+    }
+
+    /**
+     * Injection point.
+     *
+     * @return If the player controls should not be shown by a vertical drag.
+     */
+    public static boolean hideTapAndHoldGradient() {
+        return tapAndHoldActive && Settings.HIDE_TAP_AND_HOLD_GRADIENT.get();
     }
 }

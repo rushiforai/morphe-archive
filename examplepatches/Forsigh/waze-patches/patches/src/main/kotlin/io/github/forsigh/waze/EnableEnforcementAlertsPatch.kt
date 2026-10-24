@@ -11,7 +11,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val enableEnforcementAlertsPatch = bytecodePatch(
     name = "Enable police & enforcement alerts",
-    description = "Turns on police and enforcement alerts.",
+    description = "Turns police and enforcement alerts on.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

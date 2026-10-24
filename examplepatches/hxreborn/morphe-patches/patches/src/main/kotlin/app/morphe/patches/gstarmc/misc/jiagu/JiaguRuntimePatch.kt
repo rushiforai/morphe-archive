@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patches.shared.misc.jiagu.asJiaguDex
+import app.morphe.patches.shared.misc.jiagu.withLoader
 import app.morphe.patches.shared.misc.signature.stockSigningCertificate
 import app.morphe.util.inputStreamFromBundledResource
 
@@ -29,10 +30,8 @@ internal fun bundledResource(name: String) =
 
 val jiaguRuntimePatch = rawResourcePatch {
     execute {
-        val dex = get("classes.dex").let { it to it.readBytes().asJiaguDex() }
-        val profile = JiaguProfiles.forConfig(dex.second.config)
-
-        dex.first.writeBytes(dex.second.withStub(bundledResource(profile.stubResource)))
+        val classes = get("classes.dex")
+        classes.writeBytes(classes.readBytes().asJiaguDex().withLoader(bootLoaderSmali))
 
         get("assets/h", copy = false).writeBytes(bundledResource("boot.dex"))
         get("assets/hc", copy = false).writeBytes(packageMetadata.stockSigningCertificate().encoded)

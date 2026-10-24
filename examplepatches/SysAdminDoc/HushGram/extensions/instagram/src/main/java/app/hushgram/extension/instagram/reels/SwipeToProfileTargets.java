@@ -35,8 +35,13 @@ public final class SwipeToProfileTargets {
         return null;
     }
 
-    /** The container's profile panel, or null. */
+    /** The container's profile panel, its right one, or null. */
     public static Object panel(Object container) {
+        return null;
+    }
+
+    /** The view the right panel is built on, from the controller, or null when the layout has none. */
+    public static Object rightView(Object controller) {
         return null;
     }
 
@@ -49,7 +54,7 @@ public final class SwipeToProfileTargets {
     public static void turn(Object container, Object panel, boolean on) {
     }
 
-    /** Instagram's own walk: whether a view under the point, or the view itself, can scroll sideways against dx. */
+    /** Instagram's own walk: whether a view under the point, or the view itself, can scroll sideways against dx (negative for a swipe left). */
     public static boolean childScrolls(View view, int dx, int x, int y, boolean checkView, boolean skipOff) {
         return false;
     }

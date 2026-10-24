@@ -160,60 +160,150 @@ class LiveDarkPanelsAnchorsTest {
     }
 
     @Test
-    fun `each declared build keeps the Spark theme lookups the spark hook redirects`() {
+    fun `each declared build keeps the room's configuration change and AppCompat's theme rework the second room hook follows`() {
         Fixtures.forEachDeclared { apk ->
             val classes = classes(apk)
-            val found = classes.values.flatMap { owner -> owner.methods.filter { SparkThemeNameFingerprint.takes(it, owner) } }
-            assertEquals("${apk.name}: the Spark theme lookup", 1, found.size)
-            val owner = classes.getValue(found.single().definingClass)
-            if ("47.4.3" in apk.name) assertEquals("${apk.name}: the Spark theme lookup's class", "LX/0GrQ;", owner.type)
-            val color = sparkThemeColor(owner.methods)
-            assertNotNull("${apk.name}: the Spark page color lookup", color)
+            val room = classes[LIVE_PLAY_ACTIVITY] ?: throw AssertionError("${apk.name}: $LIVE_PLAY_ACTIVITY is gone")
+            val found = room.methods.filter { LivePlayActivityConfigurationFingerprint.takes(it, room) }
+            assertEquals("${apk.name}: the room's onConfigurationChanged", 1, found.size)
 
-            // The hook as the patch writes it: the context goes to the extension before anything
-            // reads it, and the lookup goes on with the extension's answer in its place.
-            for (lookup in listOf(found.single(), color!!)) {
-                val hooked = MutableMethod(lookup)
-                hookSparkTheme(hooked)
-                val code = hooked.implementation!!.instructions.toList()
-                val context = lookup.implementation!!.registerCount - 1
-                assertEquals("${apk.name}: ${lookup.name}'s hook", Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
-                assertEquals("sparkContext", ((code[0] as ReferenceInstruction).reference as MethodReference).name)
-                assertEquals("${apk.name}: ${lookup.name} hands over its context", context, (code[0] as RegisterRangeInstruction).startRegister)
-                assertEquals(Opcode.MOVE_RESULT_OBJECT, code[1].opcode)
-                assertEquals("${apk.name}: ${lookup.name} reads the answer", context, (code[1] as OneRegisterInstruction).registerA)
-                assertEquals("${apk.name}: ${lookup.name}", emptyList<BridgeTypeFlow.Problem>(), BridgeTypeFlow.check(hooked))
+            // The hook as the patch writes it: right after the super call, in the range form,
+            // handing over the room itself.
+            val hooked = MutableMethod(found.single())
+            hookRoomConfiguration(hooked)
+            val code = hooked.implementation!!.instructions.toList()
+            val hook = code.indexOfFirst {
+                ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "darkLiveRoom"
             }
+            assertTrue("${apk.name}: no hook in the room's onConfigurationChanged", hook > 0)
+            val call = code[hook]
+            assertEquals("${apk.name}: the hook's call", Opcode.INVOKE_STATIC_RANGE, call.opcode)
+            assertEquals("${apk.name}: the hook hands over the room", found.single().implementation!!.registerCount - 2,
+                (call as RegisterRangeInstruction).startRegister)
+            val before = code[hook - 1]
+            assertEquals(Opcode.INVOKE_SUPER, before.opcode)
+            assertEquals("${apk.name}: the hook follows the super call", "onConfigurationChanged",
+                ((before as ReferenceInstruction).reference as MethodReference).name)
+            assertEquals("${apk.name}", emptyList<BridgeTypeFlow.Problem>(), BridgeTypeFlow.check(hooked))
+
+            // What the hook answers: AppCompat's night mode update calls setTheme with the
+            // activity's theme and then applies that theme again with force.
+            val rework = classes["Landroidx/appcompat/app/AppCompatDelegateImpl;"]?.methods?.toList().orEmpty().filter { method ->
+                val names = method.implementation?.instructions?.mapNotNull {
+                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref -> "${ref.definingClass}->${ref.name}" }
+                }.orEmpty()
+                val update = names.indexOf("Landroid/content/res/Resources;->updateConfiguration")
+                val setTheme = names.indexOf("Landroid/content/Context;->setTheme")
+                val apply = names.indexOf("Landroid/content/res/Resources\$Theme;->applyStyle")
+                update >= 0 && setTheme > update && apply > setTheme
+            }
+            assertEquals("${apk.name}: AppCompat's theme rework", 1, rework.size)
         }
     }
 
     @Test
-    fun `LIVE controls hands both Spark theme lookups to the spark hook`() {
+    fun `the configuration hook refuses a room whose onConfigurationChanged skips its super`() {
+        val method = MutableMethod(ImmutableMethod(LIVE_PLAY_ACTIVITY, "onConfigurationChanged",
+            listOf(ImmutableMethodParameter("Landroid/content/res/Configuration;", null, null)), "V",
+            AccessFlags.PUBLIC.value, null, null, ImmutableMethodImplementation(2, emptyList(), null, null))).apply {
+            addInstructionsWithLabels(0, "return-void")
+        }
+        assertThrows(PatchException::class.java) { hookRoomConfiguration(method) }
+    }
+
+    @Test
+    fun `each declared build keeps Spark's page theme decision the spark hook answers first`() {
+        Fixtures.forEachDeclared { apk ->
+            val classes = classes(apk)
+            val spark = classes[SPARK_CONTEXT] ?: throw AssertionError("${apk.name}: $SPARK_CONTEXT is gone")
+            val found = spark.methods.filter { SparkPageThemeFingerprint.takes(it, spark) }
+            assertEquals("${apk.name}: Spark's page theme decision", 1, found.size)
+            val decision = found.single()
+            val theme = classes[decision.returnType] ?: throw AssertionError("${apk.name}: ${decision.returnType} is gone")
+            assertTrue("${apk.name}: the decision answers an enum", AccessFlags.ENUM.isSet(theme.accessFlags))
+            for (constant in listOf("DARK", "LIGHT")) {
+                assertTrue("${apk.name}: $constant", theme.fields.any { it.name == constant && it.type == theme.type })
+            }
+            // Its answer reaches the page color and the theme name the page's Lynx view reads,
+            // called through SparkContext's superclass (X.08Bv on 47.5.3), which declares it too.
+            val holders = setOf(SPARK_CONTEXT, spark.superclass)
+            val readers = spark.methods.filter { method ->
+                method.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
+                        ref.definingClass in holders && ref.name == decision.name && ref.returnType == decision.returnType
+                    } == true
+                } == true
+            }
+            assertTrue("${apk.name}: the page color reads it", readers.any { it.returnType == "Ljava/lang/Integer;" })
+            assertTrue("${apk.name}: the theme name reads it", readers.any { it.returnType == "Ljava/lang/String;" })
+
+            // The hook as the patch writes it: the page and its context go to the extension
+            // first, and a yes answers LIGHT before Spark's own decision runs.
+            val hooked = MutableMethod(decision)
+            hookSparkPage(hooked, theme)
+            val code = hooked.implementation!!.instructions.toList()
+            val page = decision.implementation!!.registerCount - 2
+            assertEquals(Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
+            val ask = (code[0] as ReferenceInstruction).reference as MethodReference
+            assertEquals("sparkKeepsStock", ask.name)
+            assertEquals(listOf("Ljava/lang/Object;", "Landroid/content/Context;"), ask.parameterTypes.map(CharSequence::toString))
+            assertEquals("${apk.name}: the page and its context", page, (code[0] as RegisterRangeInstruction).startRegister)
+            assertEquals(2, (code[0] as RegisterRangeInstruction).registerCount)
+            assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+            assertEquals(Opcode.IF_EQZ, code[2].opcode)
+            assertEquals("${apk.name}: a no runs Spark's own decision", 5, ((code[2] as BuilderOffsetInstruction).target.location.index))
+            assertEquals(Opcode.SGET_OBJECT, code[3].opcode)
+            val light = (code[3] as ReferenceInstruction).reference as FieldReference
+            assertEquals("LIGHT", light.name)
+            assertEquals(theme.type, light.definingClass)
+            assertEquals(Opcode.RETURN_OBJECT, code[4].opcode)
+            assertEquals((code[3] as OneRegisterInstruction).registerA, (code[4] as OneRegisterInstruction).registerA)
+            assertEquals("${apk.name}: Spark's own decision follows", decision.implementation!!.instructions.first().opcode, code[5].opcode)
+            assertEquals("${apk.name}", emptyList<BridgeTypeFlow.Problem>(), BridgeTypeFlow.check(hooked))
+        }
+    }
+
+    @Test
+    fun `LIVE controls hands Spark's page theme decision to the spark hook`() {
         val root = java.io.File("src/main/kotlin").takeIf { it.isDirectory } ?: java.io.File("patches/src/main/kotlin")
         val source = java.io.File(root, "app/morphe/patches/tiktok/interaction/live/LiveControlsPatch.kt").readText()
         val execute = source.substring(source.indexOf("    execute {"))
-        assertTrue("the theme name lookup isn't found", execute.contains("val sparkTheme = SparkThemeNameFingerprint.method\n"))
-        assertTrue("the theme name lookup isn't hooked", execute.contains("hookSparkTheme(sparkTheme)\n"))
-        assertTrue("the page color lookup isn't hooked", Regex(
-            """hookSparkTheme\(\s*sparkThemeColor\(mutableClassDefBy\(sparkTheme\.definingClass\)\.methods\)""",
-        ).containsMatchIn(execute))
+        assertTrue("the decision isn't found", execute.contains("val sparkPage = SparkPageThemeFingerprint.method\n"))
+        assertTrue("the decision isn't hooked", execute.contains("hookSparkPage(sparkPage, classDefBy(sparkPage.returnType))\n"))
+        assertTrue("a blanket Spark theme swap is back", "sparkContext" !in source)
     }
 
-    private fun lookup(parameter: String, flags: Int = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value) =
-        MutableMethod(ImmutableMethod("Lapp/morphe/Spark;", "LIZIZ", listOf(ImmutableMethodParameter(parameter, null, null)),
-            "Ljava/lang/Integer;", flags, null, null, ImmutableMethodImplementation(3, emptyList(), null, null))).apply {
-            addInstructionsWithLabels(0, "const/4 v0, 0x0\nreturn-object v0")
-        }
+    private val sparkTheme = "Lapp/morphe/SparkTheme;"
+
+    private fun decision(
+        parameter: String = "Landroid/content/Context;",
+        flags: Int = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+        owner: String = SPARK_CONTEXT,
+        registers: Int = 3,
+    ) = MutableMethod(ImmutableMethod(owner, "LJIIZILJ", listOf(ImmutableMethodParameter(parameter, null, null)),
+        sparkTheme, flags, null, null, ImmutableMethodImplementation(registers, emptyList(), null, null))).apply {
+        addInstructionsWithLabels(0, "const/4 v0, 0x0\nreturn-object v0")
+    }
+
+    private fun theme(type: String = sparkTheme, constant: String = "LIGHT") = com.android.tools.smali.dexlib2.immutable.ImmutableClassDef(
+        type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or AccessFlags.ENUM.value, "Ljava/lang/Enum;", null, null, null,
+        listOf(com.android.tools.smali.dexlib2.immutable.ImmutableField(
+            type, constant, type, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value or AccessFlags.ENUM.value,
+            null, null, null,
+        )),
+        null,
+    )
 
     @Test
-    fun `the spark hook takes only an instance lookup of a context`() {
-        assertNotNull(sparkThemeColor(listOf(lookup("Landroid/content/Context;"))))
-        assertNull("a String", sparkThemeColor(listOf(lookup("Ljava/lang/String;"))))
-        assertNull("two lookups", sparkThemeColor(listOf(lookup("Landroid/content/Context;"), lookup("Landroid/content/Context;"))))
+    fun `the spark hook takes only Spark's instance decision of a context with a LIGHT answer`() {
+        hookSparkPage(decision(), theme())
+        assertThrows("a String", PatchException::class.java) { hookSparkPage(decision("Ljava/lang/String;"), theme()) }
         val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
-        assertNull("a static one", sparkThemeColor(listOf(lookup("Landroid/content/Context;", static))))
-        assertThrows(PatchException::class.java) { hookSparkTheme(lookup("Ljava/lang/String;")) }
-        assertThrows(PatchException::class.java) { hookSparkTheme(lookup("Landroid/content/Context;", static)) }
+        assertThrows("a static one", PatchException::class.java) { hookSparkPage(decision(flags = static), theme()) }
+        assertThrows("another class", PatchException::class.java) { hookSparkPage(decision(owner = "Lapp/morphe/Other;"), theme()) }
+        assertThrows("no local register", PatchException::class.java) { hookSparkPage(decision(registers = 2), theme()) }
+        assertThrows("another answer type", PatchException::class.java) { hookSparkPage(decision(), theme("Lapp/morphe/Other;")) }
+        assertThrows("no LIGHT", PatchException::class.java) { hookSparkPage(decision(), theme(constant = "DARK")) }
     }
 
     @Test

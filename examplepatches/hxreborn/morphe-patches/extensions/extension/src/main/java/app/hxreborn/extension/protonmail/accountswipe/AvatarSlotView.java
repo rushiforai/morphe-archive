@@ -14,9 +14,10 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.PathInterpolator;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 @SuppressLint("ViewConstructor")
 final class AvatarSlotView extends View {
@@ -121,16 +122,14 @@ final class AvatarSlotView extends View {
 
         final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         fill.setColor(fillColor);
-        final float radius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CORNER_RADIUS_DP,
-                context.getResources().getDisplayMetrics());
+        final float radius = Dimensions.dpExact(context, CORNER_RADIUS_DP);
         canvas.drawRoundRect(new RectF(inset, inset, width - inset, height - inset), radius, radius, fill);
 
         if (initials != null && !initials.isEmpty()) {
             final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
             text.setColor(textColor);
             text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            text.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, INITIALS_TEXT_SP,
-                    context.getResources().getDisplayMetrics()));
+            text.setTextSize(Dimensions.spExact(context, INITIALS_TEXT_SP));
             text.setTextAlign(Paint.Align.CENTER);
             final Paint.FontMetrics metrics = text.getFontMetrics();
             canvas.drawText(initials, width / 2f, height / 2f - (metrics.ascent + metrics.descent) / 2f, text);

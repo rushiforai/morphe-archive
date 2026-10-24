@@ -3,6 +3,7 @@ package app.morphe.extension.tiktok.feedfilter;
 import static org.junit.Assert.assertEquals;
 
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
 import app.morphe.extension.tiktok.feedfilter.CreatorExceptionsTest.Item;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -20,11 +21,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 /**
  * Latest first on Following (#226), through the same getItems hook TikTok's Following list runs:
- * each batch plays newest first, what an earlier read saw never moves, and ads, LIVEs and cards
- * that aren't posts hold their slots.
+ * everything below the video on screen plays newest first, earlier reads' posts included, the
+ * video on screen and everything above it never move, and ads, LIVEs and cards that aren't posts
+ * hold their slots.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
@@ -33,6 +36,15 @@ public class FollowingLatestFirstTest {
 
     private static final long NOW_SECONDS = System.currentTimeMillis() / 1000;
     private static final long HOUR = 3600;
+
+    /** Stands in for VideoItemParams, the way the feed binds a video. */
+    public static final class Params {
+        public final Object aweme;
+
+        Params(Object aweme) {
+            this.aweme = aweme;
+        }
+    }
 
     @Before
     public void setUp() {
@@ -44,10 +56,11 @@ public class FollowingLatestFirstTest {
         Settings.FOLLOWING_LATEST_FIRST.resetToDefault();
         Settings.REMOVE_ADS.resetToDefault();
         FollowingLatestFirst.resetForTests();
+        ReflectionHelpers.callStaticMethod(CurrentVideoAuthor.class, "resetForTests");
     }
 
     @Test
-    public void eachBatchPlaysNewestFirstAndWhatWasReadStays() {
+    public void withNothingOnScreenYetEveryReadSortsTheWholeList() {
         Settings.FOLLOWING_LATEST_FIRST.save(true);
         FollowFeedList list = emptyList();
 
@@ -55,9 +68,93 @@ public class FollowingLatestFirstTest {
                 read(list, post("a", 3 * HOUR), post("b", HOUR), post("c", 2 * HOUR)));
         // A read with nothing new leaves it alone.
         assertEquals(List.of("b", "c", "a"), read(list));
-        // The next page is sorted on its own: d is the newest of all and still comes after a.
-        assertEquals(List.of("b", "c", "a", "d", "f", "e"),
+        // The next page sorts in with the first: d and f are newer than everything before them.
+        assertEquals(List.of("d", "f", "b", "c", "a", "e"),
                 read(list, post("d", 600), post("e", 5 * HOUR), post("f", 1800)));
+    }
+
+    @Test
+    public void aNewerPostFromALaterReadMovesUpToJustBelowTheVideoOnScreen() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        FollowFeedList list = emptyList();
+
+        assertEquals(List.of("old", "older"),
+                read(list, post("old", 2 * HOUR), post("older", 3 * HOUR)));
+        FollowingLatestFirst.onCurrentVideo("old");
+        // Slot 0 is on screen and stays. The newer post goes ahead of the earlier read's older.
+        assertEquals(List.of("old", "newer", "older"), read(list, post("newer", 600)));
+    }
+
+    @Test
+    public void theVideoOnScreenNeverMovesEvenWhenItIsTheOldest() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        FollowFeedList list = emptyList();
+
+        assertEquals(List.of("a", "b", "c"),
+                read(list, post("a", HOUR), post("b", 2 * HOUR), post("c", 3 * HOUR)));
+        FollowingLatestFirst.onCurrentVideo("c");
+        // Everything above the reader stays as it was read too.
+        assertEquals(List.of("a", "b", "c", "e", "d"),
+                read(list, post("d", 4 * HOUR), post("e", 600)));
+    }
+
+    @Test
+    public void aSecondListForTheSameFeedKeepsTheHeadTheReaderPassed() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        Item a = post("a", 2 * HOUR);
+        Item b = post("b", 3 * HOUR);
+
+        assertEquals(List.of("a", "b"), read(emptyList(), a, b));
+        FollowingLatestFirst.onCurrentVideo("a");
+        // TikTok builds a new FollowFeedList for the same feed: a stays on top though c is newer.
+        FollowFeedList second = emptyList();
+        Item c = post("c", HOUR);
+        assertEquals(List.of("a", "c", "b"), read(second, a, b, c));
+        // The reader moves on to c, and the next page sorts in below it.
+        FollowingLatestFirst.onCurrentVideo("c");
+        assertEquals(List.of("a", "c", "d", "b"), read(second, post("d", 1800)));
+    }
+
+    @Test
+    public void aVideoTheListDoesntHoldFreezesNothing() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        // A For You video is on screen, then the Following list loads.
+        FollowingLatestFirst.onCurrentVideo("for_you");
+
+        assertEquals(List.of("b", "a"), read(emptyList(), post("a", 3 * HOUR), post("b", HOUR)));
+    }
+
+    @Test
+    public void theVideoThePlayerReportsIsWhereTheSortStops() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        FollowFeedList list = emptyList();
+        Item old = post("old", 2 * HOUR);
+        Item newer = post("newer", 600);
+
+        assertEquals(List.of("old", "older"), read(list, old, post("older", 3 * HOUR)));
+        // The first bind of a fresh feed is what's on screen.
+        bind(old);
+        assertEquals(List.of("old", "newer", "older"), read(list, newer));
+        // The feed binds the next video before the reader gets there. That isn't reaching it,
+        // so a newer post can still go ahead of it.
+        bind(newer);
+        Item newest = post("newest", 300);
+        assertEquals(List.of("old", "newest", "newer", "older"), read(list, newest));
+        // The reader swipes on and the player reports the video now in slot 1.
+        bind(newest);
+        playing("newest");
+        assertEquals(List.of("old", "newest", "latest", "newer", "older"),
+                read(list, post("latest", 60)));
+    }
+
+    private static void bind(Item item) {
+        ReflectionHelpers.callStaticMethod(CurrentVideoAuthor.class, "update",
+                ReflectionHelpers.ClassParameter.from(Object.class, new Params(item)));
+    }
+
+    private static void playing(String aid) {
+        ReflectionHelpers.callStaticMethod(CurrentVideoAuthor.class, "onPlaying",
+                ReflectionHelpers.ClassParameter.from(String.class, aid));
     }
 
     @Test
@@ -114,9 +211,10 @@ public class FollowingLatestFirstTest {
         // The presenter's post-process reads the list the getItems hook already sorted.
         FeedItemsFilter.filterLateFinal(list);
         assertEquals(List.of("b", "a"), aids(list));
-        assertEquals(List.of("b", "a", "d", "c"), read(list, post("c", 3 * HOUR), post("d", 600)));
+        FollowingLatestFirst.onCurrentVideo("b");
+        assertEquals(List.of("b", "d", "a", "c"), read(list, post("c", 3 * HOUR), post("d", 600)));
         FeedItemsFilter.filterLateFinal(list);
-        assertEquals(List.of("b", "a", "d", "c"), aids(list));
+        assertEquals(List.of("b", "d", "a", "c"), aids(list));
     }
 
     @Test

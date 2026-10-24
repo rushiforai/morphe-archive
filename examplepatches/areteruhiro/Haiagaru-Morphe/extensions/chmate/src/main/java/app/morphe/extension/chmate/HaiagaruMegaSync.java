@@ -21,6 +21,7 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ProgressBar;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -275,9 +276,11 @@ final class HaiagaruMegaSync {
             content.addView(saveInterval);
 
             Button credentials = new Button(activity);
-            credentials.setText(HaiagaruMegaSession.hasSession(activity)
-                    ? "MEGAの接続を管理" : "MEGAにログイン");
-            credentials.setOnClickListener(view -> showLoginDialog(activity));
+            TextView loginState = new TextView(activity);
+            updateLoginState(activity, credentials, loginState);
+            content.addView(loginState);
+            credentials.setOnClickListener(view -> showLoginDialog(activity,
+                    () -> updateLoginState(activity, credentials, loginState)));
             content.addView(credentials);
 
             Button backup = new Button(activity);
@@ -535,19 +538,27 @@ final class HaiagaruMegaSync {
         }, preview ? "Haiagaru-MEGA-preview" : "Haiagaru-MEGA-operation").start();
     }
 
-    private static void showLoginDialog(Activity activity) {
+    private static void showLoginDialog(Activity activity, Runnable onSessionChanged) {
         if (!enabled(activity)) return;
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
         int margin = (int) (20 * activity.getResources().getDisplayMetrics().density);
         layout.setPadding(margin, margin, margin, margin);
         TextView warning = new TextView(activity);
-        warning.setText("MEGAアカウントでログインします。パスワードと2段階認証コードは保存しません。"
-                + "ログイン後のセッションはAndroid Keystoreで暗号化してこの端末に保存します。");
+        warning.setText("メールアドレスとパスワードでMEGAに接続します。パスワードと2段階認証コードは保存しません。"
+                + "接続後のセッションのみAndroid Keystoreで暗号化してこの端末に保存します。");
         layout.addView(warning);
-        EditText email = field(activity, layout, "メールアドレス", false);
-        EditText password = field(activity, layout, "パスワード", true);
-        EditText mfa = field(activity, layout, "2段階認証コード（設定している場合）", false);
+        EditText email = field(activity, layout, "メールアドレス", "メールアドレスを入力", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        EditText password = field(activity, layout, "パスワード", "パスワードを入力", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText mfa = field(activity, layout, "2段階認証コード（設定している場合）", "未設定なら空欄", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        TextView progressLabel = new TextView(activity);
+        progressLabel.setText("ログイン情報を入力してください");
+        layout.addView(progressLabel);
+        ProgressBar progress = new ProgressBar(activity);
+        progress.setIndeterminate(true);
+        progress.setVisibility(View.GONE);
+        layout.addView(progress, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         HaiagaruDialog dialog = new HaiagaruDialog.Builder(activity)
                 .setTitle("MEGAにログイン")
                 .setView(layout)
@@ -559,6 +570,7 @@ final class HaiagaruMegaSync {
                                 .setPositiveButton("削除", (confirmation, selected) -> {
                                     HaiagaruMegaSession.removeSession(activity);
                                     options(activity).edit().putBoolean(AUTO, false).apply();
+                                    onSessionChanged.run();
                                     message(activity, "この端末の接続を解除しました");
                                 }).show())
                 .setPositiveButton("ログイン", null).create();
@@ -567,31 +579,73 @@ final class HaiagaruMegaSync {
                     String address = email.getText().toString().trim();
                     String secret = password.getText().toString();
                     String code = mfa.getText().toString().trim();
-                    password.setText("");
                     if (address.isEmpty() || secret.isEmpty()) {
-                        message(activity, "メールアドレスとパスワードを入力してください");
+                        progressLabel.setText("メールアドレスとパスワードを入力してください");
                         return;
                     }
-                    dialog.dismiss();
-                    run(activity, "MEGAに接続中", () -> {
-                        HaiagaruMegaClient.login(activity.getApplicationContext(),
-                                address, secret, code);
-                        return "MEGAに接続しました";
-                    });
+                    if (!RUNNING.compareAndSet(false, true)) {
+                        progressLabel.setText("別のバックアップ／同期処理が進行中です");
+                        return;
+                    }
+                    Button login = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                    login.setEnabled(false);
+                    email.setEnabled(false); password.setEnabled(false); mfa.setEnabled(false);
+                    progress.setVisibility(View.VISIBLE);
+                    progressLabel.setText("MEGAへログイン中です。接続が完了するまでお待ちください…");
+                    BackupProgress notification = new BackupProgress(activity, "MEGAログイン");
+                    notification.update("MEGAへログイン中です", false);
+                    new Thread(() -> {
+                        try {
+                            HaiagaruMegaClient.login(activity.getApplicationContext(), address, secret, code);
+                            notification.update("MEGAにログインしました", true);
+                            activity.runOnUiThread(() -> {
+                                RUNNING.set(false);
+                                if (activity.isFinishing() || activity.isDestroyed()) return;
+                                password.setText("");
+                                dialog.dismiss();
+                                onSessionChanged.run();
+                                message(activity, "MEGAにログインしました（この端末に接続情報を保存済み）");
+                            });
+                        } catch (Exception error) {
+                            notification.update("MEGAログインに失敗しました", true);
+                            activity.runOnUiThread(() -> {
+                                RUNNING.set(false);
+                                if (activity.isFinishing() || activity.isDestroyed()) return;
+                                password.setText("");
+                                email.setEnabled(true); password.setEnabled(true); mfa.setEnabled(true);
+                                login.setEnabled(true);
+                                progress.setVisibility(View.GONE);
+                                progressLabel.setText("ログインできませんでした。入力内容・通信状態を確認して再試行してください");
+                                showError(activity, error);
+                            });
+                        }
+                    }, "Haiagaru-MEGA-login").start();
                 }));
         dialog.show();
     }
 
     private static EditText field(Activity activity, LinearLayout layout,
-                                  String hint, boolean secret) {
+                                  String labelText, String hint, int inputType) {
+        TextView label = new TextView(activity);
+        label.setText(labelText);
+        label.setTextSize(14);
+        layout.addView(label);
         EditText field = new EditText(activity);
         field.setHint(hint);
         field.setSingleLine(true);
-        if (secret) field.setInputType(InputType.TYPE_CLASS_TEXT
-                | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        field.setInputType(inputType);
         layout.addView(field, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return field;
+    }
+
+    private static void updateLoginState(Activity activity, Button button, TextView status) {
+        boolean connected = HaiagaruMegaSession.hasSession(activity);
+        status.setText(connected ? "接続状態: ログイン済み（この端末にセッションを保存しています）"
+                : "接続状態: 未ログイン");
+        status.setTextColor(connected ? android.graphics.Color.rgb(35, 125, 70)
+                : android.graphics.Color.rgb(110, 110, 110));
+        button.setText(connected ? "MEGAの接続を管理" : "MEGAにログイン");
     }
 
     private static void confirmRestore(Activity activity, HaiagaruMegaClient.MegaFile file,

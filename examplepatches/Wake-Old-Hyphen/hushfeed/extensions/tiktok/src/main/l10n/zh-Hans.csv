@@ -1159,7 +1159,7 @@ On mobile data,关于移动数据
 On or off,打开或关闭
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.",在“好友”选项卡上，隐藏非相互关注帐户（包括建议帐户）的帖子、转发和直播。您自己的帖子会保留.
 Latest first on Following,“正在关注”最新优先
-"Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.",“正在关注”每次加载的一批内容按发布时间从新到旧播放。每批包含哪些内容仍由 TikTok 决定，广告和直播保持原位.
+"Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.",“正在关注”按发布时间从新到旧播放。稍后加载的较新内容会排到你正在看的视频之后，你已经划过的内容不会变动。广告和直播保持原位.
 On. Hushfeed hasn't seen TikTok send any reports since it started.,上。自启动以来，Hushfeed 尚未看到 TikTok 发送任何报告.
 On. Restore puts back the feed setup you had before.,上。恢复会恢复您之前的信息流设置.
 "Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.",一旦今天的预算用完，保留将继续存在且无法撤销。预算设置将被锁定，直到新的一天开始。在预算用完之前随时关闭此功能.
@@ -1206,6 +1206,7 @@ Operator name,操作员名称
 "Opus (.ogg), a smaller file",Opus (.ogg)，较小的文件
 Opus didn't work on this phone. Saving the sound as TikTok sent it instead.,Opus 无法在这款手机上运行。将声音保存为 TikTok 来发送.
 "Opus needs Android 10 or later, so sounds save as TikTok sent them.",Opus 需要 Android 10 或更高版本，因此声音保存为 TikTok 发送.
+Original,原画
 Original language,原语言
 Original message,原始消息
 Original photos,原始照片
@@ -1765,8 +1766,10 @@ System,系统
 Tag saved videos with their details,为保存的视频添加详细信息标签
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.",将添加评论栏从您从个人资料、主题标签、声音或搜索中打开的视频中删除，以便视频填满屏幕直至底部。右侧的评论按钮仍然可以打开评论.
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,把脉动的LIVE铃声放在信息流和评论中的个人资料图片上。点击实时创作者的图片会打开他们的个人资料，而不是 LIVE.
+Open the Story when a creator is LIVE,创作者在 LIVE 时打开故事
+"When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.",如果正在 LIVE 的创作者也有故事，在其个人资料中点按头像会打开故事。再次点按头像即可进入 LIVE.
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.",将故事圈从信息流、评论和个人资料中的个人资料照片中删除。点击图片会打开个人资料而不是故事.
-Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,从视频面板中取出 TikTok 自己的自动滚动操作。自动前进继续工作.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,从视频面板中移除 TikTok 自己的自动滚动操作，并移除平板和展开的折叠屏上视频旁的自动滚动开关。关闭自动前进时也有效.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,在 %1$d 秒内点击视频下方栏上的重新发布两次。带注释的转发将被保留.
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,在 %1$d 秒内点击评论的心两次。双击评论还需要第二次。立即删除点赞.
 Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.,在 %1$d 秒内点击故事的核心两次。立即删除点赞.
@@ -2226,7 +2229,7 @@ Two at once,同时两个
 Three at once,同时三个
 LIVE recording quality,LIVE 录制画质
 Same as the room,与直播间相同
-"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.",“与直播间相同”会录制您正在观看的画质。“最高”会录制直播间最好的流，即使您以较低画质观看.
+"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.",“与直播间相同”会录制您正在观看的画质。“最高”会录制直播间最好的流，即使您以较低画质观看.数字表示录制该画质，直播间没有时录制最接近的一档.
 Long-press Profile for Watch history,长按“个人主页”打开观看历史
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.",按住“个人主页”选项卡可打开观看历史。点击“个人主页”仍像以前一样工作。如果按住“个人主页”会为您切换账号，此选项会接管该操作，个人主页顶部的名称仍可切换账号.
 Open the comments at full height,以全高打开评论
@@ -2242,5 +2245,8 @@ Oldest first,最早的在前
 Longest first,最长的在前
 Shortest first,最短的在前
 Most viewed first,播放最多的在前
+Least viewed first,播放最少的在前
 Most liked first,点赞最多的在前
-"Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.",对个人资料或喜欢网格目前已加载的视频排序，置顶视频仍排在最前。向下滚动时，排序会涵盖更多视频。下次打开网格时按此顺序显示.
+Least liked first,点赞最少的在前
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",对个人资料或喜欢网格排序，置顶视频仍排在最前。选择排序后，网格会自动继续加载，最多 300 个视频，让排序覆盖的不只是第一屏。网格顶部角落的按钮可直接更改排序.
+Sort this grid,排序此网格

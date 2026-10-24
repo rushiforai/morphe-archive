@@ -59,3 +59,15 @@ internal object ClearModeLogStateFingerprint : Fingerprint(
         "I",
     ),
 )
+
+/**
+ * TikTok's video pager telling its listeners a new video is picked (`LJIJJLI` on 47.5.3), which it
+ * does as a swipe lets go and the pager starts settling. The boolean says whether it tells them at
+ * all. Its own log line names it.
+ */
+internal object FeedPagerPageSelectedFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/common/widget/VerticalViewPager;",
+    returnType = "V",
+    parameters = listOf("I", "Z"),
+    strings = listOf("VerticalViewPagercheckMultiInvokePageSelected>>>pos:"),
+)

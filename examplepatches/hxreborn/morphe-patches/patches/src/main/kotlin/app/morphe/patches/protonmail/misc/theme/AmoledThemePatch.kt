@@ -18,6 +18,7 @@ import app.morphe.patches.shared.misc.proton.markFeaturePatched
 import app.morphe.patches.shared.misc.proton.AMOLED_THEME_CLASS
 import app.morphe.patches.shared.misc.proton.transformCoreDarkBackgrounds
 import app.morphe.patches.shared.misc.proton.injectColorTransformCall
+import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
@@ -55,7 +56,7 @@ private val CONTACTS_COLOR_TRANSFORMS = listOf(
 
 private fun Instruction.constructsProtonColors(): Boolean {
     if (opcode != Opcode.INVOKE_DIRECT_RANGE) return false
-    val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    val reference = getReference<MethodReference>() ?: return false
 
     return reference.name == "<init>" &&
         reference.parameterTypes.map(CharSequence::toString) == PROTON_COLORS_PARAMETERS

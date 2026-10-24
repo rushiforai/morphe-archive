@@ -81,7 +81,7 @@ final class RecentlyWatchedScreen {
     /** The list, through the page, so it closes with the page's view and takes the screen's colours. */
     @Nullable
     static AlertDialog show(HushfacebookPreferenceFragment page, Context context) {
-        ScreenColors palette = ScreenColors.shown != null ? ScreenColors.shown : ScreenColors.DEFAULT;
+        ScreenColors palette = ScreenColors.current();
         Listing listing = new Listing(context, palette, RecentlyWatched.entries());
 
         LinearLayout content = new LinearLayout(context);

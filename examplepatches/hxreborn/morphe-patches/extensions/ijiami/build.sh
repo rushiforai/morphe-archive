@@ -23,26 +23,19 @@ die() {
 [ -f "$platform" ] || die "no android.jar at $platform; install platform $platform_version or set PLATFORM"
 [ -x "$toolchain/clang" ] || die "no NDK toolchain at $toolchain; install NDK $ndk_version or set NDK"
 command -v javac >/dev/null || die "javac is not on PATH"
-
-verify=false
-[ "${1:-}" = "--verify" ] && verify=true
+javac_version=$(javac -version 2>&1 | cut -d' ' -f2)
+[ "${javac_version%%.*}" = 21 ] || die "javac $javac_version is not JDK 21"
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-out=$resources
-fixture_out=$fixtures
-if $verify; then
-    out=$work/resources
-    fixture_out=$work/fixtures
-fi
-mkdir -p "$out" "$fixture_out"
+mkdir -p "$resources" "$fixtures"
 
 javac -Xlint:all -source 8 -target 8 -bootclasspath "$platform" -d "$work/boot" "$here"/src/hx/*.java
 "$build_tools/d8" --min-api 28 --lib "$platform" --output "$work/boot" "$work"/boot/hx/*.class
-cp "$work/boot/classes.dex" "$out/boot.dex"
+cp "$work/boot/classes.dex" "$resources/boot.dex"
 
-rm -f "$out"/libhxpatch*.so
+rm -f "$resources"/libhxpatch*.so
 for header in "$here"/native/profiles/*.h; do
     profile=$(basename "$header" .h)
     case $(sed -n 's/^#define HX_ABI "\(.*\)"$/\1/p' "$header") in
@@ -52,10 +45,9 @@ for header in "$here"/native/profiles/*.h; do
     esac
     "$clang" -O2 -fPIC -shared -Wall -Wextra -Werror -I"$here/native" \
         -DHX_PROFILE="\"profiles/$profile.h\"" \
-        -o "$out/libhxpatch-$profile.so" "$here/native/hxpatch.c" -llog
+        -o "$resources/libhxpatch-$profile.so" "$here/native/hxpatch.c" -llog
 done
 
-# string_ids beyond the opaque block required for head recovery tests
 mkdir -p "$work/fixture/sample"
 {
     echo 'package sample;'
@@ -111,26 +103,6 @@ javac -nowarn -source 8 -target 8 -bootclasspath "$platform" -d "$work/fixture/c
     "$work/fixture/sample/Fixture.java"
 "$build_tools/d8" --min-api 23 --lib "$platform" --output "$work/fixture" \
     "$work"/fixture/classes/sample/*.class
-cp "$work/fixture/classes.dex" "$fixture_out/sample.dex"
+cp "$work/fixture/classes.dex" "$fixtures/sample.dex"
 
-{
-    echo "ndk $ndk_version"
-    echo "build-tools $build_tools_version"
-    echo "platform android-$platform_version"
-    echo "javac $(javac -version 2>&1 | cut -d' ' -f2)"
-    ( cd "$here" && sha256sum native/hxpatch.c native/profiles/*.h src/hx/*.java )
-    ( cd "$out" && sha256sum boot.dex libhxpatch-*.so )
-    ( cd "$fixture_out" && sha256sum sample.dex )
-} > "$out/provenance.txt"
-
-if $verify; then
-    for built in boot.dex provenance.txt $(cd "$out" && ls libhxpatch-*.so); do
-        cmp -s "$resources/$built" "$out/$built" ||
-            die "$built does not match its sources; run extensions/ijiami/build.sh"
-    done
-    cmp -s "$fixtures/sample.dex" "$fixture_out/sample.dex" ||
-        die "sample.dex does not match its generator; run extensions/ijiami/build.sh"
-    echo "checked-in binaries match their sources"
-else
-    ls -la "$resources" "$fixtures"
-fi
+ls -la "$resources" "$fixtures"

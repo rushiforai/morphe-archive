@@ -150,6 +150,30 @@ public class MenuShortcutsTest {
         assertSame("a tile with the label but another link went", sameLabelOtherLink, MenuShortcuts.kept(sameLabelOtherLink));
     }
 
+    /**
+     * #224: 584's Finds bookmark has no link, its server sends the route, so it goes by the id of
+     * the app it bookmarks, and a folder with neither is passed over.
+     */
+    @Test
+    public void aTileWithNoLinkGoesByWhatItBookmarks() {
+        Settings.HIDE_MENU_META_AI.save(false);
+        TreeJNI finds = new TreeJNI().with("name", "Finds")
+                .with("bookmarked_node", new TreeJNI("Application").with("id", "204127677323356"));
+        TreeJNI folder = new TreeJNI("FolderBookmark").with("name", "Featured");
+        List<Object> menu = new ArrayList<>(Arrays.asList(tile("Feeds", "fb://feeds"), finds, folder,
+                tile("Saved", "fb://saved/?section_name=ALL")));
+        assertSame("nothing ticked, the list isn't Facebook's", menu, MenuShortcuts.kept(menu));
+        assertEquals("feeds=Feeds\napp_204127677323356=Finds\nsaved=Saved", Settings.SEEN_MENU_TILES.savedValue());
+        assertEquals("Finds", MenuTiles.label(MenuTiles.FINDS));
+        MenuTiles.hide(Collections.singletonList(MenuTiles.FINDS));
+        assertEquals(Arrays.asList("Feeds", "Featured", "Saved"), names(MenuShortcuts.kept(menu)));
+        TreeJNI released = new TreeJNI().with("name", "Finds")
+                .with("bookmarked_node", new TreeJNI("Application").with("id", "204127677323356")).releasedTree();
+        List<Object> gone = new ArrayList<>(Arrays.asList(released, tile("Feeds", "fb://feeds")));
+        assertSame("a released bookmark isn't read", gone, MenuShortcuts.kept(gone));
+        assertFalse(released.readAfterRelease);
+    }
+
     /** Unticking brings the tile back, and a list with none of the picked tiles comes back as it is. */
     @Test
     public void untickedTheTileIsBackAndNoMatchLeavesTheListAlone() {

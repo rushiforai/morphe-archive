@@ -128,10 +128,27 @@ internal val LAYOUT_CALLS = mapOf(
         "$OWN_FONT->make${BORING_MAKE}Landroid/text/TextUtils\$TruncateAt;I)$BORING_LAYOUT",
 )
 
+private val LAYOUT_OWNERS = LAYOUT_CALLS.keys.map { it.substringBefore("->") }.toSet()
+
+/**
+ * [instruction]'s whole reference as text when the class it names is one of [owners], else null.
+ * The class is one string to read where the whole reference is several, and the font scans ask
+ * this of every call and field access in the app (#216).
+ */
+private fun referenceOn(instruction: Instruction, owners: Set<String>): String? {
+    val reference = (instruction as ReferenceInstruction).reference
+    val owner = when (reference) {
+        is MethodReference -> reference.definingClass
+        is FieldReference -> reference.definingClass
+        else -> return null
+    }
+    return if (owner in owners) reference.toString() else null
+}
+
 /** The one of [LAYOUT_CALLS] [instruction] makes, as its static or virtual call, or null. */
 internal fun layoutCall(instruction: Instruction): String? = when (instruction.opcode) {
     Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE, Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE ->
-        (instruction as ReferenceInstruction).reference.toString().takeIf { it in LAYOUT_CALLS }
+        referenceOn(instruction, LAYOUT_OWNERS)?.takeIf { it in LAYOUT_CALLS }
     else -> null
 }
 
@@ -166,8 +183,10 @@ internal fun lineEdgeWrite(instruction: Instruction): String? =
     if (instruction.opcode != Opcode.IPUT) {
         null
     } else {
-        ((instruction as ReferenceInstruction).reference as? FieldReference)?.toString()?.takeIf { it in LINE_EDGES }
+        referenceOn(instruction, FONT_METRICS_OWNER)?.takeIf { it in LINE_EDGES }
     }
+
+private val FONT_METRICS_OWNER = setOf(FONT_METRICS_INT)
 
 /**
  * Whether every use of the typeface the field read at [index] loads is a comparison with another
@@ -245,11 +264,12 @@ internal fun isEqualityCheck(method: Method): Boolean {
 
 /** The field or call [instruction] reads one of Android's default typefaces through, or null when it reads none. */
 internal fun defaultRead(instruction: Instruction): String? = when (instruction.opcode) {
-    Opcode.SGET_OBJECT -> (instruction as ReferenceInstruction).reference.toString().takeIf { it in DEFAULT_TYPEFACES }
-    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE ->
-        (instruction as ReferenceInstruction).reference.toString().takeIf { it in DEFAULT_CALLS }
+    Opcode.SGET_OBJECT -> referenceOn(instruction, TYPEFACE_OWNER)?.takeIf { it in DEFAULT_TYPEFACES }
+    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> referenceOn(instruction, TYPEFACE_OWNER)?.takeIf { it in DEFAULT_CALLS }
     else -> null
 }
+
+private val TYPEFACE_OWNER = setOf(TYPEFACE)
 
 /**
  * Android's text views, the ones Facebook builds with `new` or extends. Each one's constructor
@@ -285,7 +305,9 @@ internal fun builtTextView(instruction: Instruction): Int? {
 /** Whether [instruction] is a layout inflater's call of [CREATE_VIEW]. */
 internal fun makesView(instruction: Instruction): Boolean =
     (instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
-        (instruction as ReferenceInstruction).reference.toString() == CREATE_VIEW
+        referenceOn(instruction, INFLATER_OWNER) == CREATE_VIEW
+
+private val INFLATER_OWNER = setOf(CREATE_VIEW.substringBefore("->"))
 
 /**
  * The family constants the extension swaps: Meta's interface families, by the names the enum

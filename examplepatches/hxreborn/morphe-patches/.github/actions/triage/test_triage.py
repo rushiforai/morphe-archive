@@ -851,16 +851,25 @@ def app_verdict(number, requests):
 
 
 failures = 0
+checks = 0
+
+
+def record(ok):
+    global failures, checks
+    checks += 1
+    failures += not ok
+
+
 for name, (number, requests, expected, duplicate_of) in APP_CASES.items():
     result = app_verdict(number, requests)
     actual = (result["verdict"], result["duplicate_of"])
     ok = actual == (expected, duplicate_of)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} {name}: expected {(expected, duplicate_of)}, got {actual}")
 
 no_package = app_verdict(5, [request(5, "Moviebox.ph", "idk")])
 ok = no_package["package"] == "" and no_package["comment"] == ""
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a website domain is not read as a package name and nothing is posted")
 
 registry_hit = app_verdict(9, [request(9, "Proton VPN", "ch.protonvpn.android")])
@@ -868,7 +877,7 @@ ok = (registry_hit["matches"] == ["someone/patches"] and registry_hit["verdict"]
       and registry_hit["labels"] == ["needs info", "other bundle"]
       and "[Someone's patches](https://github.com/someone/patches) already patches `ch.protonvpn.android`. "
           "Which of the requested features does it not cover?" in registry_hit["comment"])
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} app another bundle already patches asks which features it lacks, not closed")
 
 
@@ -884,12 +893,12 @@ def cross_posted(app, package, elsewhere, registry=REGISTRY, previous=""):
 musicolet = cross_posted("Musicolet", "", [posted("someone/patches", 1099, "feat: new app [Musicolet]")])
 ok = (musicolet["verdict"], musicolet["labels"], musicolet["cross_posts"]) == ("flag", ["other bundle"], ["someone/patches#1099"]) \
     and "This app was also requested at [someone/patches#1099](https://github.com/someone/patches/issues/1099)." in musicolet["comment"]
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} the requester's issue in a listed bundle naming the app is linked and labelled")
 
 by_package = cross_posted("Some Reader", "com.some.reader", [posted("someone/patches", 5, "Request", "Package: com.some.reader")])
 ok = by_package["cross_posts"] == ["someone/patches#5"]
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a cross-post naming the package in its body is found")
 
 typos = [cross_posted("Fawesome", "", [posted("someone/patches", 6, "[Request] Fawesom TV")]),
@@ -899,7 +908,7 @@ linked["title"] = "[App Request]: Fawesom Free Movies and TV"
 typos.append(decide(9, linked["body"], [linked], SUPPORTED, REGISTRY, linked["title"], NOW,
                     [posted("someone/patches", 6, "[App Request] Fawesome Movies and TV")]))
 ok = [t["cross_posts"] for t in typos] == [["someone/patches#6"]] * 3
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a brand one letter short on either side matches, read from the title when the App field is a link")
 
 misses = [
@@ -910,7 +919,7 @@ misses = [
     cross_posted("Musicolet", "", [posted("someone/patches", 11, "[Musicolet]")], registry=None),
 ]
 ok = [m["cross_posts"] for m in misses] == [[]] * len(misses) and [m["verdict"] for m in misses] == ["pass"] * len(misses)
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a word deeper in the title, a generic word, a longer package, an unlisted repo "
       f"and a missing registry match nothing")
 
@@ -922,7 +931,7 @@ lookalikes = [
     cross_posted("The Weather Channel", "", [posted("someone/patches", 17, "Disney Channel")]),
 ]
 ok = [m["cross_posts"] for m in lookalikes] == [[]] * len(lookalikes)
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} apps sharing a vendor or a common first word, and a plural, are not cross-posts")
 
 reports = [
@@ -931,7 +940,7 @@ reports = [
                  [{**posted("someone/patches", 19, "Musicolet", "in.krosbits.musicolet"), "labels": ["Bug"]}]),
 ]
 ok = [m["cross_posts"] for m in reports] == [[], []]
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a bug report about the app in another bundle is not a request")
 
 earlier = "<!-- app-request-bot -->\nThis app was also requested at " \
@@ -940,14 +949,14 @@ earlier = "<!-- app-request-bot -->\nThis app was also requested at " \
 kept = cross_posted("Musicolet", "", [], previous=earlier)
 ok = kept["cross_posts"] == ["someone/patches#1099"] and kept["comment"].endswith(
     "[someone/patches#1099](https://github.com/someone/patches/issues/1099).")
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a cross-post found earlier is kept after it leaves the event feed, unlisted repos dropped")
 
 app_request.REPO = "someone/morphe-patches"
 own = cross_posted("Musicolet", "", [posted("someone/patches", 12, "[Musicolet]")])
 app_request.REPO = ""
 ok = own["cross_posts"] == []
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} another repo of this bundle's owner is not a cross-post")
 
 for given, expected in {"privacy notes": "privacy notes",
@@ -956,7 +965,7 @@ for given, expected in {"privacy notes": "privacy notes",
                         "[App Request]: ": "Gboard"}.items():
     actual = app_verdict(9, [{**request(9, "Gboard", ""), "title": given}])["title"]
     ok = actual == expected
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} title {given!r} becomes {expected!r}, got {actual!r}")
 
 untargeted = triage(f"""### App and version
@@ -972,7 +981,7 @@ Proton Mail (another version, type it below)
 {LONG}
 """)["comment"]
 ok = "value `7.5.6 (388)` does not match" in untargeted
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} untargeted version quotes only the typed version")
 
 hostile = triage(f"""### App name
@@ -988,7 +997,7 @@ Zzz` @octocat [Install the fix](https://example.com/fix.apk)
 {LONG}
 """)["comment"]
 ok = "`Zzz' @octocat [Install the fix](https://example.com/fix.apk) 1.0`" in hostile
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a reported app name stays inside one code span")
 
 eg_requests = [{**request(n, app, ""), "body": request(n, app, "")["body"] + "\n### Additional info\n\nRemove ads, e.g. banners\n"}
@@ -1002,7 +1011,7 @@ no_app_field = {**request(8, "x", ""), "body": "### Details\n\nhttps://play.goog
 ok = [app_verdict(101, eg_requests)["verdict"], app_verdict(5, [prose_package])["verdict"],
       app_verdict(6, [linked_package])["verdict"], app_verdict(7, [foreign_link])["verdict"],
       app_verdict(8, [no_app_field])["verdict"]] == ["pass"] * 5
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} only a store link in the App field is read as its package")
 
 for app, expected in {"Duolingo, https://play.google.com/store/apps/details?id=com.duolingo": "Duolingo",
@@ -1011,13 +1020,13 @@ for app, expected in {"Duolingo, https://play.google.com/store/apps/details?id=c
                           "Magic Earth"}.items():
     actual = app_verdict(9, [{**request(9, app, ""), "title": "[App Request]:"}])["title"]
     ok = actual == expected
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} empty title takes {expected!r} from the App field, got {actual!r}")
 
 actual = [app_verdict(9, [{**request(9, "Rubber Bands", ""), "title": title}])["title"]
           for title in ("App Request: Rubber Bands", "[Feature]: Rubber Bands", "[App Request]\uff1aRubber Bands")]
 ok = actual == ["Rubber Bands"] * 3
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} other prefix spellings and another form's tag are replaced, got {actual!r}")
 
 hostile_registry = {"bundles": [{"repo": "evil/patches", "name": "x](https://example.com) @octocat [y",
@@ -1028,14 +1037,14 @@ this = request(9, "Proton VPN", "ch.protonvpn.android")
 listed = decide(9, this["body"], [this], SUPPORTED, hostile_registry, this["title"], NOW)
 app_request.REPO = ""
 ok = listed["matches"] == ["evil/patches"] and "](https://example.com)" not in listed["comment"] and "@" not in listed["comment"]
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} registry names are stripped of markup and this bundle is not listed")
 
 started = datetime.now(timezone.utc)
 slow_inputs = [verdict_for("### App and version\n\n" + "1" * 65000),
                verdict_for("### App and version\n\nProton Mail" + " " * 65000 + "x\n\n### Bug description\n\nx\n")]
 ok = (datetime.now(timezone.utc) - started).total_seconds() < 5
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} long runs of digits and spaces in the app field are read in linear time")
 
 declared_domain = app_verdict(9, [request(9, "Moviebox", "moviebox.ph")])
@@ -1044,20 +1053,19 @@ SUPPORTED["patches"][0]["compatiblePackages"].append({"name": "Quranify", "packa
 mixed_case = app_verdict(9, [request(9, "Quranify", "com.MCHUTOV.quranify")])
 SUPPORTED["patches"][0]["compatiblePackages"].pop()
 ok = (mixed_case["verdict"], declared_domain["package"], len(long_title)) == ("close", "", 256)
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} package case is ignored, a declared website is not a package, titles stop at 256")
 
 bad_repo = {"bundles": [{"repo": "evil/patches) [x](https://example.com", "name": "x", "targetApps": ["ch.protonvpn.android"]}]}
 this = request(9, "Proton VPN", "ch.protonvpn.android")
 ok = decide(9, this["body"], [this], SUPPORTED, bad_repo, this["title"], NOW)["matches"] == []
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a registry entry whose repo is not owner/name is ignored")
 
 fullwidth = app_verdict(9, [request(9, "\uff21\uff54\uff4c\uff4f\uff2d\uff41\uff50\uff53", "")])
 ok = fullwidth["verdict"] == "flag" and fullwidth["labels"] == ["duplicate"]
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a fullwidth name still matches the supported app it imitates")
-
 
 
 def by(login, number, app, state="OPEN", labels=()):
@@ -1078,21 +1086,20 @@ ok = ((limit_closed["verdict"], limit_closed["reason"], limit_closed["labels"]) 
       and "[#2](https://redirect.github.com//discussions/2) `[App Request]: Bar 'Notes'`" in limit_closed["comment"]
       and "#4" not in limit_closed["comment"] and "#5" not in limit_closed["comment"]
       and limit_closed["comment"].count("\n- ") == 3)
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a fourth open request closes as not planned and lists the three open ones, needs info included")
 
 under = [limited_verdict(6, [r for r in busy if r["number"] != 3]), limited_verdict(6, busy, enforce_limit=False),
          limited_verdict(5, busy)]
 ok = [u["verdict"] for u in under] == ["pass"] * 3
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} two other open requests, an exempt author and another person's request are not limited")
 
 for name, (expected, body) in CASES.items():
     actual = verdict_for(*body) if isinstance(body, tuple) else verdict_for(body)
     ok = actual == expected
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} {name}: expected {expected}, got {actual}")
 
-total = len(CASES) + len(APP_CASES) + 28
-print(f"\n{total - failures}/{total} passed")
+print(f"\n{checks - failures}/{checks} passed")
 sys.exit(1 if failures else 0)

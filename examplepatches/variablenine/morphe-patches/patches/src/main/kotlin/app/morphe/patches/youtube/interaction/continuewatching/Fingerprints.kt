@@ -65,7 +65,6 @@ internal object AutoplayConfirmDialogEnabledFingerprint : Fingerprint(
         literal(45381478L),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
-            parameters = listOf("J", "Z"),
             returnType = "Z",
             location = MatchAfterWithin(2)
         ),
@@ -77,7 +76,7 @@ internal object AutoplayConfirmDialogEnabledFingerprint : Fingerprint(
         ),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
-            definingClass = "Lj\$/util/Optional;",
+            definingClass = $$"Lj$/util/Optional;",
             name = "isPresent",
             location = MatchAfterWithin(6)
         )
@@ -106,7 +105,7 @@ internal object AutoplayConfirmDialogEnabledLegacyFingerprint : Fingerprint(
         ),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
-            definingClass = "Lj\$/util/Optional;",
+            definingClass = $$"Lj$/util/Optional;",
             name = "isPresent",
             location = MatchAfterWithin(6)
         )

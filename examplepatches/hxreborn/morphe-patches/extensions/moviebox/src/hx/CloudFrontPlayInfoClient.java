@@ -43,7 +43,6 @@ final class CloudFrontPlayInfoClient {
             "api6.aoneroom.com", "api4sg.aoneroom.com", "api5.aoneroom.com", "api4.aoneroom.com", "api3.aoneroom.com"};
     private static final String WITHHELD_CLIENT_ADDRESS = "unknown";
     private static final String SIGNING_KEY_META_DATA = "gateway_secret_online";
-    private static final String FALLBACK_SIGNING_KEY = "76iRl07s0xSN9jqmEWAt79EBJZulIQIsV64FZr2O";
     private static final String VISITOR_LOGIN = "/wefeed-mobile-bff/user-api/visitor-login";
     private static final String JSON_TYPE = "application/json";
     private static final int REQUEST_TIMEOUT_MS = 5000;
@@ -51,7 +50,6 @@ final class CloudFrontPlayInfoClient {
     private static final long RETRY_COOLDOWN_MS = 10 * 60 * 1000L;
 
     private final String clientInfo;
-    private volatile byte[] signingKey;
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     private final Map<String, Long> hostRetryAtMs = new ConcurrentHashMap<>();
 
@@ -67,6 +65,7 @@ final class CloudFrontPlayInfoClient {
     }
 
     String fetchPlayInfo(String pathAndQuery, Predicate<String> accepted) {
+        if (SigningKey.VALUE == null) return null;
         long startedMs = SystemClock.elapsedRealtime();
         List<String> hosts = new ArrayList<>();
         for (String host : API_HOSTS) {
@@ -159,7 +158,7 @@ final class CloudFrontPlayInfoClient {
         connection.setRequestProperty("Content-Type", JSON_TYPE);
         connection.setRequestProperty("x-client-token", timestamp + "," + md5Hex(
                 new StringBuilder(String.valueOf(timestamp)).reverse().toString().getBytes(StandardCharsets.UTF_8)));
-        connection.setRequestProperty("x-tr-signature", createSignature(signingKey(), method, pathAndQuery, body, timestamp));
+        connection.setRequestProperty("x-tr-signature", createSignature(SigningKey.VALUE, method, pathAndQuery, body, timestamp));
         connection.setRequestProperty("x-client-info", clientInfo);
         connection.setRequestProperty("x-forwarded-for", WITHHELD_CLIENT_ADDRESS);
         if (token != null) connection.setRequestProperty("Authorization", "Bearer " + token);
@@ -183,24 +182,23 @@ final class CloudFrontPlayInfoClient {
         }
     }
 
-    private byte[] signingKey() {
-        byte[] key = signingKey;
-        if (key != null) return key;
-        String encoded = FALLBACK_SIGNING_KEY;
-        try {
-            Context context = (Context) Class.forName("android.app.ActivityThread")
-                    .getMethod("currentApplication").invoke(null);
-            Bundle metaData = context.getPackageManager()
-                    .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA).metaData;
-            String declared = metaData == null ? null : metaData.getString(SIGNING_KEY_META_DATA);
-            if (declared != null) encoded = declared;
-            else Log.w(TAG, SIGNING_KEY_META_DATA + " missing from the manifest, using the built-in key");
-        } catch (Exception e) {
-            Log.w(TAG, SIGNING_KEY_META_DATA + " unreadable, using the built-in key", e);
+    private static final class SigningKey {
+        static final byte[] VALUE = read();
+
+        private static byte[] read() {
+            try {
+                Context context = (Context) Class.forName("android.app.ActivityThread")
+                        .getMethod("currentApplication").invoke(null);
+                Bundle metaData = context.getPackageManager()
+                        .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA).metaData;
+                String declared = metaData == null ? null : metaData.getString(SIGNING_KEY_META_DATA);
+                if (declared != null) return Base64.decode(declared, Base64.DEFAULT);
+                Log.w(TAG, SIGNING_KEY_META_DATA + " missing from the manifest, staying on Edge-Cache");
+            } catch (Exception e) {
+                Log.w(TAG, SIGNING_KEY_META_DATA + " unreadable, staying on Edge-Cache", e);
+            }
+            return null;
         }
-        key = Base64.decode(encoded, Base64.DEFAULT);
-        signingKey = key;
-        return key;
     }
 
     private static String createSignature(byte[] signingKey, String method, String pathAndQuery, String body,

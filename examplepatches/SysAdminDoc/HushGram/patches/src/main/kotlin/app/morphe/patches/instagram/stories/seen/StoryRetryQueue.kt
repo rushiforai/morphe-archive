@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedClassDef
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedMethod
 import com.android.tools.smali.dexlib2.iface.Annotation as DexAnnotation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -97,7 +98,10 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
     // the builder names its class and name, which the patcher's index keeps, but a call site or method
     // handle isn't indexed. So code is read only in the classes the index names, the extension, classes
     // a patch replaced and any dex holding call sites or method handles. Declarations are read in all.
-    val calling = listOf(store.type, base.type, OBJECT).flatMapTo(HashSet()) { owner -> classesCalling(owner, bridge.name).map { it.type } }
+    // An Object owner only counts with the bridge's parameters and return type, which the index also
+    // keeps; asked for Object and the name alone, it named most of the app.
+    val calling = listOf(store.type, base.type).flatMapTo(HashSet()) { owner -> classesCalling(owner, bridge.name).map { it.type } }
+    classesCalling(OBJECT, bridge.name, retry.parameters, bridge.returnType).mapTo(calling) { it.type }
     val indirect = IdentityHashMap<DexBackedDexFile, Boolean>()
     fun readsCode(type: ClassDef) = type.type in calling || type.type.startsWith(EXTENSION_ROOT) ||
         (type as? DexBackedClassDef)?.dexFile?.let { dex ->
@@ -110,7 +114,7 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
             }) refuseQueue("encoded story builder reference bypasses the protected queue")
         val reads = readsCode(type)
         for (method in type.methods) {
-            if (method.annotations.callsQueue(bridge, build) || method.parameters.any { it.annotations.callsQueue(bridge, build) }) {
+            if (method.annotations.callsQueue(bridge, build) || method.parameterAnnotations().any { it.callsQueue(bridge, build) }) {
                 refuseQueue("encoded story builder reference bypasses the protected queue")
             }
             if (!reads) {
@@ -795,6 +799,13 @@ internal fun Instruction.indirectlyCalls(bridge: MethodReference, build: MethodR
         reference.extraArguments.any { it.callsQueue(bridge, build) }
     else -> false
 }
+/**
+ * Each parameter's annotations, as [Method.getParameters] pairs them. A method read from the app's
+ * dex gives its sets directly, since getParameters also decodes every parameter's type and debug
+ * name, which the declaration walk paid for on every method (#173).
+ */
+private fun Method.parameterAnnotations(): List<Set<DexAnnotation>> =
+    (this as? DexBackedMethod)?.let { it.parameterAnnotations.take(it.parameterTypes.size) } ?: parameters.map { it.annotations }
 private fun Iterable<DexAnnotation>.callsQueue(bridge: MethodReference, build: MethodReference): Boolean =
     any { annotation -> annotation.elements.any { it.value.callsQueue(bridge, build) } }
 

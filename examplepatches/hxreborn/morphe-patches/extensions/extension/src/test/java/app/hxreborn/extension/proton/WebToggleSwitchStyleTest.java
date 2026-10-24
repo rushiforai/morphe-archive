@@ -79,8 +79,12 @@ public final class WebToggleSwitchStyleTest {
     }
 
     @Test
-    public void dropsTheOnOffLabelsAndTheSplitTrack() {
+    public void dropsTheOnOffLabels() {
         assertFalse(this.control.getShowText());
+    }
+
+    @Test
+    public void dropsTheSplitTrack() {
         assertFalse(this.control.getSplitTrack());
     }
 

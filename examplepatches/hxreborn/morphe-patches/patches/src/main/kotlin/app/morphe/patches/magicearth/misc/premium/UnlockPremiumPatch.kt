@@ -7,11 +7,10 @@ package app.morphe.patches.magicearth.misc.premium
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
-
-private const val DART_AOT_LIBRARY = "libapp.so"
-private const val ARM64 = "arm64-v8a"
 
 internal val STORE_SUBSCRIPTION_COPY_WITH =
     ("fd79bfa9fd030faaefe100d1bf00166ba1000054207040b800801c8be40300aa" +
@@ -39,8 +38,7 @@ val unlockPremiumPatch = resourcePatch(
     availability(requireArm64)
 
     execute {
-        val library = get("lib/$ARM64/$DART_AOT_LIBRARY")
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY for $ARM64")
+        val library = dartAotLibrary()
 
         if (!library.replaceMasked(
                 STORE_SUBSCRIPTION_COPY_WITH,

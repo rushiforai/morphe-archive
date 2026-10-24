@@ -145,7 +145,7 @@ final class ShortImages {
         BitmapFactory.Options options = new BitmapFactory.Options(); options.inJustDecodeBounds = true;
         BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
         if (options.outWidth <= 0 || options.outHeight <= 0) return null;
-        int sample = 1; while ((options.outWidth / sample > 900 || options.outHeight / sample > 1600) && sample < 64) sample *= 2;
+        int sample = 1; while ((options.outWidth / sample > 900 || options.outHeight / sample > 1600)) sample *= 2;
         options.inJustDecodeBounds = false; options.inSampleSize = sample;
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
         if (bitmap != null && bitmap.getByteCount() > 8 * 1024 * 1024) { bitmap.recycle(); return null; }

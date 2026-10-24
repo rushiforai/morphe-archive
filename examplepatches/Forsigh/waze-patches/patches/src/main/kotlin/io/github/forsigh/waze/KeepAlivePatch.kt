@@ -28,7 +28,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val keepAlivePatch = bytecodePatch(
     name = "Keep Waze alive",
-    description = "Stops Waze shutting down after you leave it.",
+    description = "Stops Waze closing when you leave it.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

@@ -137,14 +137,14 @@ val changeChMatePackageNamePatch = resourcePatch(
         if (appName != null || iconResource != null || versionCode != null) {
             document("AndroidManifest.xml").use { document ->
                 versionCode?.let {
-                    document.documentElement.setAttribute("android:versionCode", it)
+                    document.documentElement.setAndroidAttribute("versionCode", it)
                 }
                 val application = document.getElementsByTagName("application").item(0) as Element
-                appName?.let { application.setAttribute("android:label", it) }
+                appName?.let { application.setAndroidAttribute("label", it) }
                 iconResource?.let {
-                    application.setAttribute("android:icon", it)
+                    application.setAndroidAttribute("icon", it)
                     if (application.hasAttribute("android:roundIcon")) {
-                        application.setAttribute("android:roundIcon", it)
+                        application.setAndroidAttribute("roundIcon", it)
                     }
                 }
 
@@ -157,8 +157,8 @@ val changeChMatePackageNamePatch = resourcePatch(
                     }
                     .filter(Element::isLauncherElement)
                     .forEach { launcher ->
-                        appName?.let { launcher.setAttribute("android:label", it) }
-                        iconResource?.let { launcher.setAttribute("android:icon", it) }
+                        appName?.let { launcher.setAndroidAttribute("label", it) }
+                        iconResource?.let { launcher.setAndroidAttribute("icon", it) }
                     }
             }
         }

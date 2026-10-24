@@ -4,13 +4,13 @@
  */
 package app.hxreborn.extension.proton;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AppComponentFactory;
 import android.content.Intent;
 import android.os.Build;
+import androidx.annotation.RequiresApi;
 
-@TargetApi(Build.VERSION_CODES.P)
+@RequiresApi(Build.VERSION_CODES.P)
 @SuppressWarnings("unused")
 public class PatchesComponentFactory extends AppComponentFactory {
 

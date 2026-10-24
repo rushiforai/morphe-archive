@@ -31,6 +31,7 @@ import java.util.Map;
  * @param formatType File extension for the raw format (e.g. {@code "lrc"}, {@code "qrc"}, {@code "ttml"}).
  * @param sourceUrl Optional URL to the song page on the provider's platform, opened when the
  *                  source label is clicked.
+ * @param about Song description, shown under the credits on the info line.
  */
 public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced,
                      @Nullable List<LyricsLine> romanization,
@@ -39,7 +40,21 @@ public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced
                      @Nullable List<String> songwriters,
                      @Nullable String rawFormat,
                      @Nullable String formatType,
-                     @Nullable String sourceUrl) {
+                     @Nullable String sourceUrl,
+                     @Nullable String about) {
+
+    /** Every provider but Genius ships no description, so most call sites keep the shorter form. */
+    public Lyrics(List<LyricsLine> lines, String providerName, boolean synced,
+                  @Nullable List<LyricsLine> romanization,
+                  @Nullable Map<String, List<LyricsLine>> translations,
+                  @Nullable Map<String, List<LyricsLine>> romanizations,
+                  @Nullable List<String> songwriters,
+                  @Nullable String rawFormat,
+                  @Nullable String formatType,
+                  @Nullable String sourceUrl) {
+        this(lines, providerName, synced, romanization, translations, romanizations,
+                songwriters, rawFormat, formatType, sourceUrl, null);
+    }
 
     public record ScoredLyrics(int score, Lyrics lyrics) {
     }
@@ -146,11 +161,15 @@ public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced
 
             long prevEnd = lineStart != LyricsLine.NO_TIME ? lineStart : 0;
             boolean changed = false;
+            boolean unsalvageable = false;
             Word[] fixed = new Word[count];
 
             for (int j = 0; j < count; j++) {
                 Word w = words.get(j);
-                final boolean anomalous = (w.startMs() == 0 && lineStart > 0)
+                // A negative time is not a small time, it is the absence of one.
+                final boolean untimed = w.startMs() < 0 || w.endMs() < 0;
+                final boolean anomalous = untimed
+                        || (w.startMs() == 0 && lineStart > 0)
                         || (w.endMs() == 0 && w.startMs() > 0)
                         || (w.startMs() > 0 && w.startMs() == w.endMs())
                         || (w.startMs() > 0 && w.startMs() < lineStart - 500);
@@ -159,6 +178,13 @@ public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced
                     prevEnd = Math.max(w.endMs(), w.startMs());
                     fixed[j] = w;
                     continue;
+                }
+
+                // Repairing off a line that is not timed either would build the timings out of
+                // numbers that were never times, so the words go and the line is sung in one go.
+                if (untimed && lineStart <= 0) {
+                    unsalvageable = true;
+                    break;
                 }
 
                 long nextStart = Long.MAX_VALUE;
@@ -190,7 +216,11 @@ public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced
                 changed = true;
             }
 
-            if (changed) {
+            if (unsalvageable) {
+                out.set(i, new LyricsLine(line.startTimeMs(), line.endTimeMs(),
+                        line.text(), List.of(), line.agentId(), line.isDuet(),
+                        line.isBG(), line.songPart()));
+            } else if (changed) {
                 out.set(i, new LyricsLine(line.startTimeMs(), line.endTimeMs(),
                         line.text(), List.of(fixed), line.agentId(), line.isDuet(),
                         line.isBG(), line.songPart()));
@@ -211,11 +241,16 @@ public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced
             Word lastWord = words.get(lastIdx);
             long effectiveEnd = lastWord.endMs();
             long nextStart = LyricsLine.NO_TIME;
-            if (i + 1 < size) {
-                nextStart = out.get(i + 1).startTimeMs();
-                if (nextStart != LyricsLine.NO_TIME) {
-                    effectiveEnd = Math.min(effectiveEnd, nextStart);
+            for (int j = i + 1; j < size; j++) {
+                final LyricsLine candidate = out.get(j);
+                if (candidate.isBG()) {
+                    continue;
                 }
+                nextStart = candidate.startTimeMs();
+                break;
+            }
+            if (nextStart != LyricsLine.NO_TIME) {
+                effectiveEnd = Math.min(effectiveEnd, nextStart);
             }
             // Also respect the line's own endTimeMs if set.
             if (line.endTimeMs() != LyricsLine.NO_TIME) {
@@ -224,7 +259,7 @@ public record Lyrics(List<LyricsLine> lines, String providerName, boolean synced
             // The floor keeps the last word on screen, but it must not reach into the next
             // line: ranges crossing a line boundary chain the karaoke highlight over several
             // lines at once, and the single slot the panel keeps for one retiring highlight
-            // then loses an unfinished line that nothing clears afterwards.
+            // then loses an unfinished line that nothing clears afterward.
             long floor = lastWord.startMs() + 200;
             if (nextStart != LyricsLine.NO_TIME && nextStart > lastWord.startMs()) {
                 floor = Math.min(floor, nextStart);

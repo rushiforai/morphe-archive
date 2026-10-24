@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Rect;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -20,6 +21,8 @@ import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -370,9 +373,19 @@ public final class FeedVisibility {
      * a button the reader has to press, where losing it is worse than seeing it somewhere odd.
      * It is the wrong one for anything that just sits there: a label the reader cannot dismiss
      * should be on the feed or absent, so this asks for the Home tab to exist, be on screen and
-     * be selected, and for nothing to be covering it.
+     * be selected, for nothing to be covering it, and for a video feed's pager to be on screen.
+     *
+     * <p>That last one because the Home tab stays selected on every top tab. On 47.5.3 Shop and
+     * the Nearby tab (named after the reader's town) are pages of the same sideways pager as For
+     * You and Following, a grid and a store with search boxes where the feeds have a {@link
+     * #FEED_PAGER}, and the filtered count sat over Shop's search box (S22, 2026-10-23).
      */
     public static boolean onRecommendationFeed(Activity activity) {
+        return homeTabUncovered(activity) && feedPagerOnScreen(activity);
+    }
+
+    /** The Home tab exists, has pixels on screen, is selected, and no comment sheet covers it. */
+    private static boolean homeTabUncovered(Activity activity) {
         View homeTab = homeTab(activity);
         if (homeTab == null || !homeTab.isShown() || isScrolledAway(homeTab)
                 || !homeTab.isSelected()) {
@@ -381,15 +394,98 @@ public final class FeedVisibility {
         return !isCommentSheetVisible(activity);
     }
 
+    /** The pager every video feed scrolls in, For You's and Following's alike. */
+    static final String FEED_PAGER = "com.ss.android.ugc.aweme.common.widget.VerticalViewPager";
+
+    /**
+     * With a feed pager already known and none of them on screen, as on Shop or Nearby, the window
+     * is searched at most this often. The labels ask on every layout pass, Shop lays out often,
+     * and a search walks what's on screen. A feed page built after the first one was found can
+     * wait this long for its label.
+     */
+    public static final long FEED_PAGER_SEARCH_GAP_MS = 500L;
+
+    /** Feed pagers found so far, one per top tab that plays videos. Main thread only. */
+    private static final List<WeakReference<View>> FEED_PAGERS = new ArrayList<>();
+    private static WeakReference<Activity> feedPagerSearchedIn = new WeakReference<>(null);
+    private static long feedPagerSearchedAt;
+
+    /**
+     * Whether a video feed's pager has pixels on screen. The pagers already found answer first,
+     * which is the whole cost on a feed. With none of them on screen the window is searched
+     * again, since a top tab's feed page can be built after the first one was found: every time
+     * until this activity has one, so a label waiting on a feed that's still being built can't
+     * miss the pass that brings it, then at most once per {@link #FEED_PAGER_SEARCH_GAP_MS}.
+     */
+    private static boolean feedPagerOnScreen(Activity activity) {
+        boolean known = false;
+        for (int i = FEED_PAGERS.size() - 1; i >= 0; i--) {
+            View pager = FEED_PAGERS.get(i).get();
+            if (pager == null || !belongsTo(pager, activity)) {
+                FEED_PAGERS.remove(i);
+                continue;
+            }
+            if (pager.isShown() && !isScrolledAway(pager)) return true;
+            known = true;
+        }
+        long now = SystemClock.uptimeMillis();
+        if (known && feedPagerSearchedIn.get() == activity && now >= feedPagerSearchedAt
+                && now - feedPagerSearchedAt < FEED_PAGER_SEARCH_GAP_MS) {
+            return false;
+        }
+        feedPagerSearchedIn = new WeakReference<>(activity);
+        feedPagerSearchedAt = now;
+        View content = activity.findViewById(android.R.id.content);
+        View found = content == null ? null : feedPagerIn(content);
+        if (found == null) return false;
+        FEED_PAGERS.add(new WeakReference<>(found));
+        return true;
+    }
+
+    /**
+     * The first feed pager on screen under this view. A child a laid-out, clipping group keeps
+     * entirely out of its box is skipped, so the other top tab pages scrolled aside cost one
+     * look each. What it finds is checked the way the tabs are before it counts.
+     */
+    private static View feedPagerIn(View view) {
+        if (view.getVisibility() != View.VISIBLE) return null;
+        if (FEED_PAGER.equals(view.getClass().getName())) {
+            return view.isShown() && !isScrolledAway(view) ? view : null;
+        }
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (outsideOf(group, child)) continue;
+            View found = feedPagerIn(child);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /** One step of {@link #isScrolledAway}: this child has no pixel inside its group's box. */
+    private static boolean outsideOf(ViewGroup group, View child) {
+        if (!group.getClipChildren() || !group.isLaidOut()
+                || child.getWidth() == 0 || child.getHeight() == 0) {
+            return false;
+        }
+        int left = child.getLeft() + Math.round(child.getTranslationX()) - group.getScrollX();
+        int top = child.getTop() + Math.round(child.getTranslationY()) - group.getScrollY();
+        return left >= group.getWidth() || top >= group.getHeight()
+                || left + child.getWidth() <= 0 || top + child.getHeight() <= 0;
+    }
+
     /**
      * Whether one of the feeds the feed lock covers is certainly on screen: the For You and
      * Following pages under the Home tab, the bottom Friends tab's feed, and the Home feed with
      * TikTok's clear display putting its tab bar away. A cleared screen hides the Home tab, so
-     * {@link #onRecommendationFeed} alone calls it "not the feed" there, which is the answer that
-     * would let the lock's panel and its swipe block go the moment the controls are cleared.
+     * the uncovered Home tab alone calls it "not the feed" there, which is the answer that would
+     * let the lock's panel and its swipe block go the moment the controls are cleared. The lock
+     * asks for the tab and not for a feed's pager: its panel covers the top tabs, and a pager
+     * missed for a moment would lift it.
      */
     public static boolean onFeedTab(Activity activity) {
-        if (onRecommendationFeed(activity)) return true;
+        if (homeTabUncovered(activity)) return true;
         if (isCommentSheetVisible(activity)) return false;
         View homeTab = homeTab(activity);
         if (homeTab != null && cleared(activity, homeTab)) return true;

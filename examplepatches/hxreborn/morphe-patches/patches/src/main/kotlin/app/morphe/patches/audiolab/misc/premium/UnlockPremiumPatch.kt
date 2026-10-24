@@ -12,13 +12,13 @@ import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.pairip.removePairipVirtualizationPatch
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.misc.signature.stockSigningCertificate
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.util.ReferenceUtil
 import java.security.MessageDigest
 
 @Suppress("unused")
@@ -58,7 +58,7 @@ val unlockPremiumPatch = bytecodePatch(
             returnIndex,
             """
                 const/4 v$register, 0x1
-                sput-boolean v$register, ${ReferenceUtil.getFieldDescriptor(freeProductFlag)}
+                sput-boolean v$register, ${descriptor(freeProductFlag)}
             """,
         )
     }

@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,6 +36,31 @@ public class Requester {
      * Response code of a successful API call.
      */
     public static final int HTTP_STATUS_CODE_SUCCESS = 200;
+
+    /**
+     * Response code when the request is malformed or has invalid parameters.
+     */
+    public static final int HTTP_STATUS_CODE_BAD_REQUEST = 400;
+
+    /**
+     * Response code when the server understood the request but refuses to fulfill it.
+     */
+    public static final int HTTP_STATUS_CODE_FORBIDDEN = 403;
+
+    /**
+     * Response code when the requested resource does not exist.
+     */
+    public static final int HTTP_STATUS_CODE_NOT_FOUND = 404;
+
+    /**
+     * Response code when the request conflicts with the current state of the resource.
+     */
+    public static final int HTTP_STATUS_CODE_CONFLICT = 409;
+
+    /**
+     * Response code when the client is rate limited.
+     */
+    public static final int HTTP_STATUS_CODE_TOO_MANY_REQUESTS = 429;
 
     public interface ConnectionProvider {
         HttpURLConnection openConnection(URL url) throws IOException;
@@ -136,6 +162,22 @@ public class Requester {
         String result = parseString(connection);
         connection.disconnect();
         return result;
+    }
+
+    /**
+     * Parse the {@link HttpURLConnection} response as bytes, such as a protobuf response.
+     * This does not close the url connection.
+     */
+    public static byte[] parseBytes(HttpURLConnection connection) throws IOException {
+        try (InputStream inputStream = connection.getInputStream()) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = inputStream.read(buffer)) > 0) {
+                bytes.write(buffer, 0, read);
+            }
+            return bytes.toByteArray();
+        }
     }
 
     /**

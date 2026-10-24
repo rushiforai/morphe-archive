@@ -5,9 +5,9 @@
 package app.morphe.patches.shared.misc.jiagu
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.DEX_HEADER_SIZE
 import app.morphe.patches.shared.misc.jiagu.zstd.Zstd
 
-private const val DEX_HEADER_SIZE = 0x70
 private const val DEX_MAGIC_FIRST = 'd'.code
 
 private const val FRAME_HEADER_DESCRIPTOR = 0xA0

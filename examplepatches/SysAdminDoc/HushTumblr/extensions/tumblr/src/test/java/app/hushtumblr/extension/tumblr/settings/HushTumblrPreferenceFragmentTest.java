@@ -104,6 +104,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_PROMPTS, "Disable update prompts");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_BLOGS, "Hide suggested blogs");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_COMMUNITIES, "Hide suggested communities");
+        ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_TAGS, "Hide suggested tags");
         ROW_TITLES.put(PatchFamily.HIDE_WATCH_IT_ROWS, "Hide Watch it rows");
         ROW_TITLES.put(PatchFamily.HIDE_HASHTAGS, "Hide hashtags");
         ROW_TITLES.put(PatchFamily.HIDE_FOLLOW_BUTTON, "Hide the Follow button");
@@ -121,6 +122,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_PHOTO_POSTS, "Hide photo posts");
         ROW_TITLES.put(PatchFamily.HIDE_TEXT_POSTS, "Hide text posts");
         ROW_TITLES.put(PatchFamily.HIDE_POSTS_WITH_WORDS, "Hide posts with these words");
+        ROW_TITLES.put(PatchFamily.HIDE_FILTERED_POSTS, "Hide filtered posts");
         ROW_TITLES.put(PatchFamily.DARK_BACKGROUND, "Dark background color");
         ROW_TITLES.put(PatchFamily.HIDE_EXPLORE_TAB, "Hide the Explore tab");
         ROW_TITLES.put(PatchFamily.HIDE_NOTIFICATIONS_TAB, "Hide the Notifications tab");

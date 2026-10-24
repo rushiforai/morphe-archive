@@ -382,6 +382,12 @@ def guide(args) -> None:
     print(f"[release] {GUIDE} reads source {version} with {count} patch entries")
 
 
+def release_page(url: str) -> str:
+    """The APKMirror page for the whole release an APK link points into, or the link itself."""
+    page = re.match(r".*?-release/", url)
+    return page.group(0) if page else url
+
+
 def fold_next_release(text: str, targets: list[str]) -> str:
     """The README with its install steps moved onto the build the release being indexed patches.
 
@@ -424,13 +430,16 @@ def fold_next_release(text: str, targets: list[str]) -> str:
     old = re.compile(rf"(?<![\d.]){re.escape(current['version'])}(?!\.?\d)")
     # APKMirror writes the version into its links with dashes, so a link the swap above missed shows as that.
     old_link = re.compile(rf"tiktok-{re.escape(current['version'].replace('.', '-'))}(?![\d])")
+    # Step 1 also links the release's own page, where APKMirror lists the bundle beside the APK.
+    pages = release_page(current["url"]), release_page(upcoming["url"])
     lines, seen = [], set()
     for line in folded.split("\n"):
         claim = next((c for c in INSTALL_CLAIMS
                       if (c in line if c == INSTALL_CLAIMS[0] else line.startswith(c))), None)
         if claim:
             seen.add(claim)
-            line = old.sub(lambda _: upcoming["version"], line.replace(current["url"], upcoming["url"]))
+            line = line.replace(current["url"], upcoming["url"]).replace(*pages)
+            line = old.sub(lambda _: upcoming["version"], line)
             if old_link.search(line):
                 fail(f"README.md links TikTok {current['version']} somewhere other than its Supported target link: "
                      f"{line[:80]}")

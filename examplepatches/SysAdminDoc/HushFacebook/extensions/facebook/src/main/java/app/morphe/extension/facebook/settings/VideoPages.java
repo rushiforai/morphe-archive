@@ -142,6 +142,10 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_AUDIO_LINE,
                     L10n.t("Takes the line with the reel's sound, \"Original audio\" or a song, off the bottom of "
                             + "reels. Other info stays. A change shows from the next reel.")));
+            // Asked each time a video stalls long enough for the message, so a change shows right away.
+            reels.addPreference(toggle(context, Settings.HIDE_SLOW_CONNECTION_MESSAGE,
+                    L10n.t("Stops the \"This is taking a while\" message about your network connection when a video "
+                            + "or GIF is slow to load. It keeps loading as before.")));
             // Asked as a feed video's player asks for more, so a change shows from the next feed video.
             reels.addPreference(toggle(context, Settings.FEED_VIDEOS_ALONE,
                     L10n.t("A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. "
@@ -152,6 +156,12 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
                     L10n.t("Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels "
                             + "you've watched may come back.")));
+        }
+        if (build.contains(PatchFamily.NEWEST_REELS_FIRST)) {
+            reels.addPreference(toggle(context, Settings.NEWEST_REELS_FIRST,
+                    L10n.t("The Reels tab plays the newest posted of the reels Facebook has loaded for you first, instead "
+                            + "of its own pick. It can't fetch newer ones, and reels already placed stay put. Off by "
+                            + "default, since it hasn't been tried on a real account yet.")));
         }
         if (build.contains(PatchFamily.DOUBLE_TAP_LIKE)) {
             reels.addPreference(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE,

@@ -5,10 +5,14 @@
 package app.morphe.patches.shared.misc.jiagu
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.DEX_CHECKSUM_OFFSET
+import app.morphe.patches.shared.DEX_FILE_SIZE_OFFSET
+import app.morphe.patches.shared.readInt
+import app.morphe.patches.shared.readShort
+import app.morphe.patches.shared.writeInt
+import app.morphe.patches.shared.writeShort
 import java.util.zip.Adler32
 
-private const val CHECKSUM_OFFSET = 8
-private const val FILE_SIZE_OFFSET = 32
 private const val STRING_IDS_OFFSET = 56
 private const val TYPE_IDS_OFFSET = 64
 private const val PROTO_IDS_OFFSET = 72
@@ -97,9 +101,9 @@ internal class PayloadDexEditor(dex: ByteArray) {
         replace(descriptor, name, intArrayOf(RETURN_VOID), setOf("V"))
 
     fun buildDex(): ByteArray {
-        bytes.writeInt(FILE_SIZE_OFFSET, bytes.size)
+        bytes.writeInt(DEX_FILE_SIZE_OFFSET, bytes.size)
         bytes.writeInt(
-            CHECKSUM_OFFSET,
+            DEX_CHECKSUM_OFFSET,
             Adler32().apply { update(bytes, 12, bytes.size - 12) }.value.toInt(),
         )
         return bytes
@@ -233,23 +237,6 @@ internal class PayloadDexEditor(dex: ByteArray) {
             throw PatchException("$descriptor.$name has no ${allowedReturns.joinToString("/")} overload")
         }
     }
-}
-
-private fun ByteArray.readInt(offset: Int) =
-    (this[offset].toInt() and 0xFF) or
-        ((this[offset + 1].toInt() and 0xFF) shl 8) or
-        ((this[offset + 2].toInt() and 0xFF) shl 16) or
-        ((this[offset + 3].toInt() and 0xFF) shl 24)
-
-private fun ByteArray.readShort(offset: Int) =
-    (this[offset].toInt() and 0xFF) or ((this[offset + 1].toInt() and 0xFF) shl 8)
-
-private fun ByteArray.writeInt(offset: Int, value: Int) {
-    repeat(4) { this[offset + it] = (value ushr (it * 8)).toByte() }
-}
-
-private fun ByteArray.writeShort(offset: Int, value: Int) {
-    repeat(2) { this[offset + it] = (value ushr (it * 8)).toByte() }
 }
 
 private data class Method(val name: String, val flags: Int, val code: Int, val returns: String)

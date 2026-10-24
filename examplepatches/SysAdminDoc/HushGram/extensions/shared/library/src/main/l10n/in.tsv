@@ -30,6 +30,22 @@ Empties the activity log that a diagnostic report would include.	Mengosongkan lo
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Lock these settings	Kunci pengaturan ini
+Pick a wait of 1, 6 or 24 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Pilih waktu tunggu 1, 6, atau 24 jam. Saat terkunci, tidak ada yang berubah di sini sampai kamu meminta buka kunci dan waktu tunggunya selesai.
+Ask to unlock	Minta buka kunci
+These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	Pengaturan ini terkunci. Ketuk untuk memulai waktu tunggu %1$s, lalu pengaturan terbuka selama 10 menit.
+Unlock asked	Buka kunci diminta
+These settings open at %1$s, for 10 minutes.	Pengaturan ini terbuka pukul %1$s, selama 10 menit.
+Settings are open	Pengaturan terbuka
+They lock again at %1$s. Tap to lock them now or turn the lock off.	Pengaturan terkunci lagi pukul %1$s. Ketuk untuk menguncinya sekarang atau mematikan kunci.
+# context: the wait of a settings lock when it is exactly one hour; %1$d is the number
+%1$d hour	%1$d jam
+# context: the same wait for any other number of hours; %1$d is how many
+%1$d hours	%1$d jam
+Turn the lock off	Matikan kunci
+Settings locked	Pengaturan dikunci
+Lock turned off	Kunci dimatikan
+These settings are locked. Ask to unlock first.	Pengaturan ini terkunci. Minta buka kunci dulu.
 Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
 Gray out stories you've watched	Abu-abukan cerita yang sudah ditonton
@@ -161,7 +177,7 @@ Download as photo	Unduh sebagai foto
 Download on stories	Unduh di cerita
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu cerita siapa pun, foto atau video, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.
 Upload stories at full quality	Unggah cerita dengan kualitas penuh
-Video stories you post are sent up to 1080 pixels wide instead of 720, as they are with Instagram's own Upload at highest quality setting on. Photo stories stay as they are.	Cerita video yang Anda posting dikirim dengan lebar hingga 1080 piksel, bukan 720, seperti saat setelan Unggah dengan kualitas tertinggi milik Instagram aktif. Cerita foto tetap seperti semula.
+Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	Cerita video yang Anda posting dikirim dalam 1080p dengan bitrate lebih tinggi, seperti saat setelan Unggah dengan kualitas tertinggi milik Instagram aktif. Instagram tetap mengecilkan video cerita menjadi 720p di servernya, jadi perbedaan yang terlihat kecil. Cerita foto sudah diunggah lebih besar daripada yang disimpan Instagram.
 Download feed videos	Unduh video feed
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu postingan berisi video di feed kamu. Memakai kualitas di bawah. Saat nonaktif atau dijeda, menu Instagram sendiri kembali.
 Playback	Pemutaran
@@ -205,6 +221,8 @@ Show the Reels tab	Tampilkan tab Reels
 Puts Reels back on the tab bar if Instagram left it off yours. Hide the Reels tab wins if both are on. Restart Instagram to see the change.	Mengembalikan Reels ke bilah tab jika Instagram tidak menampilkannya di akun Anda. Sembunyikan tab Reels lebih diutamakan jika keduanya aktif. Mulai ulang Instagram untuk melihat perubahannya.
 Show the Messages tab	Tampilkan tab Pesan
 Puts Messages on the tab bar, before Profile, if Instagram left it off yours. Tab order can move it. Restart Instagram to see the change.	Menambahkan Pesan ke bilah tab, sebelum Profil, jika Instagram tidak menampilkannya di akun Anda. Urutan tab bisa memindahkannya. Mulai ulang Instagram untuk melihat perubahannya.
+Hide the Messages tab	Sembunyikan tab Pesan
+Takes the Messages button off the tab bar. A Messages button on Home's header still opens your chats, and so do notifications.	Menghapus tombol Pesan dari bilah tab. Tombol Pesan di header Beranda tetap membuka chat kamu, begitu juga notifikasi.
 Show the Activity tab	Tampilkan tab Aktivitas
 Puts Activity, the screen the heart opens, on the tab bar before Profile. Tab order can move it, and Hide notifications on Home's header takes the heart away. Restart Instagram to see the change.	Menambahkan Aktivitas, layar yang dibuka ikon hati, ke bilah tab sebelum Profil. Urutan tab bisa memindahkannya, dan Sembunyikan notifikasi di header Beranda menghilangkan ikon hati. Mulai ulang Instagram untuk melihat perubahannya.
 Keep the reel speed	Pertahankan kecepatan reel
@@ -329,7 +347,7 @@ Doesn't follow you	Tidak mengikuti kamu
 Hide suggested people	Sembunyikan orang yang disarankan
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Menghapus Disarankan untuk kamu dan tombol Temukan orang dari profil, termasuk profilmu. Bio, jumlah, postingan, dan daftar pengikut tetap ada.
 Hide Suggested for you on follow lists	Sembunyikan Disarankan untuk kamu di daftar ikuti
-Leaves the Suggested for you section off the bottom of the followers and following lists. Every account in the list stays.	Menghapus bagian Disarankan untuk kamu dari bawah daftar pengikut dan yang diikuti. Semua akun di daftar tetap ada.
+Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	Menghapus bagian Disarankan untuk kamu dari daftar pengikut, yang diikuti, dan bersama, serta tab Disarankan dari daftar orang lain. Semua akun di daftar tetap ada.
 Hide Complete your profile	Sembunyikan Lengkapi profil
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	Menghapus kartu Lengkapi profil, seperti Tambahkan bio dan Temukan orang untuk diikuti, dari profilmu sendiri. Bio, jumlah, dan postinganmu tetap ada.
 Hide People you don't follow back	Sembunyikan Orang yang tidak Anda ikuti balik
@@ -372,6 +390,8 @@ HushGram settings exported.	Pengaturan HushGram diekspor.
 Couldn't export HushGram settings. Try another file.	Pengaturan HushGram tidak dapat diekspor. Coba file lain.
 Settings restored.	Pengaturan dipulihkan.
 Imported %1$d settings. Skipped %2$d that this version doesn't know.	%1$d pengaturan diimpor. %2$d dilewati karena tidak dikenal versi ini.
+Imported %1$d settings.	%1$d pengaturan diimpor.
+Lock switches stay as they are until you change them here.	Sakelar kunci tetap seperti sekarang sampai kamu mengubahnya di sini.
 Restart Instagram to apply these choices.	Mulai ulang Instagram untuk menerapkan pilihan ini.
 Couldn't save the settings. The previous values were restored.	Pengaturan tidak dapat disimpan. Nilai sebelumnya dipulihkan.
 Undo couldn't fully restore the settings. Check the shown values. Undo has been used up.	Urungkan tidak bisa memulihkan pengaturan sepenuhnya. Periksa nilai yang ditampilkan. Urungkan sudah terpakai.
@@ -428,7 +448,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	Bilah geser seperti video di pesan
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	Memberi Reel bilah geser seperti video di obrolan, garis abu-abu tipis yang berubah putih saat diputar, dengan pegangan putih bulat yang besar. Waktu tampil di atasnya. Seret untuk mencari posisi. Jika bilah geser lebih besar juga aktif, gaya ini yang dipakai. Bilah juga tetap tampil di Reel pendek.
 Blur the bars around a reel	Buramkan bilah di sekitar reel
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar shows the reel blurred too. Open Reels again after a change.	Reel yang tidak memenuhi layar menampilkan salinan buramnya di atas dan di bawahnya, bukan bilah hitam, dan strip di bawah bilah tab juga menampilkan reel itu secara buram. Buka Reel lagi setelah ada perubahan.
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	Reel yang tidak memenuhi layar menampilkan salinan buramnya di atas dan di bawahnya, bukan bilah hitam, dan strip di bawah bilah tab serta area di belakang jam juga menampilkan reel itu secara buram. Buka Reel lagi setelah ada perubahan.
 # Chosen navigation long-press settings entry. Account tab availability varies.
 Settings entry	Akses pengaturan
 Open settings with a tab long press	Buka pengaturan dengan menekan lama tab
@@ -450,6 +470,8 @@ Ask for larger photos	Minta foto yang lebih besar
 Empties Home on purpose, so you see the stories row and nothing under it. Profiles, Explore and Reels still show posts. Pull down on Home to refresh after changing it.	Sengaja mengosongkan Beranda, jadi kamu melihat baris cerita dan tidak ada apa pun di bawahnya. Profil, Jelajahi, dan Reels tetap menampilkan postingan. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.
 Hide the home feed	Sembunyikan feed Beranda
 On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider screen. This uses more data. Restart Instagram to see the change.	Di ponsel dengan lebar kurang dari 1440 piksel, meminta Instagram mengirim foto berukuran layar yang lebih lebar. Ini memakai lebih banyak data. Mulai ulang Instagram untuk melihat perubahannya.
+Full size covers	Sampul ukuran penuh
+Reel covers and grid pictures come at full size, so Download cover saves a picked cover at full size too. Grids use a lot more data. Restart Instagram to see the change.	Sampul reel dan gambar grid datang dalam ukuran penuh, jadi Unduh sampul juga menyimpan sampul pilihan dalam ukuran penuh. Grid memakai jauh lebih banyak data. Mulai ulang Instagram untuk melihat perubahannya.
 Stop swiping between tabs	Hentikan geser antar tab
 %d notifications	%d notifikasi
 1 hour	1 jam
@@ -466,6 +488,8 @@ Group by type	Kelompokkan menurut jenis
 Group notifications	Kelompokkan notifikasi
 Hide shopping	Sembunyikan belanja
 Hide surveys	Sembunyikan survei
+Hide the caught up card	Sembunyikan kartu sudah melihat semua
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	Menyembunyikan kartu setelah postingan dari akun yang kamu ikuti yang bilang kamu sudah melihat yang terbaru, beserta tautan Postingan lama. Kalau Beranda sama sekali tidak punya postingan baru, kartunya tetap ada. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.
 Instagram is locked	Instagram terkunci
 Instagram locks as soon as you leave it or the screen turns off.	Instagram terkunci begitu Anda meninggalkannya atau layar mati.
 Instagram locks once you've been away from it for %1$s.	Instagram terkunci setelah Anda meninggalkannya selama %1$s.
@@ -529,8 +553,18 @@ Loads smaller photos and starts videos, reels and stories at the lowest quality.
 Place	Tempat
 Send downloads to another app	Kirim unduhan ke aplikasi lain
 Send to	Kirim ke
+Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	Dikirim ke aplikasi lain. Untuk menyimpan di sini, nonaktifkan Kirim unduhan ke aplikasi lain di Unduhan.
 Spoof location	Palsukan lokasi
 Stop after 20 reels	Berhenti setelah 20 reel
+Take a scroll break	Istirahat dari scroll
+# context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
+After %1$d minutes	Setelah %1$d menit
+Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	Mati. Fitur ini bisa menutup tab Beranda, Reels, dan Jelajahi selama 5 menit setelah kamu cukup lama di sana.
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	Setelah %1$d menit di tab Beranda, Reels, dan Jelajahi, layar istirahat menutupnya selama 5 menit. Pesan, profilmu, dan bilah tab tetap berfungsi.
+Time for a break	Waktunya istirahat
+Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	Beranda, Reels, dan Jelajahi terbuka lagi saat hitung mundur selesai. Pesan dan profilmu tetap berfungsi.
+# context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
+Time for a break. Home, Reels and Explore open again in %1$s.	Waktunya istirahat. Beranda, Reels, dan Jelajahi terbuka lagi dalam %1$s.
 Storage	Penyimpanan
 That isn't a place. Type a latitude and a longitude with a comma between them.	Itu bukan tempat. Ketik lintang dan bujur dengan koma di antaranya.
 That's %1$d reels. Swiping in Reels is off until Instagram has been in the background for %2$d minutes.	Sudah %1$d reel. Menggeser di Reels nonaktif sampai Instagram berada di latar belakang selama %2$d menit.
@@ -633,6 +667,7 @@ Adds Details to a feed post's or reel's menu. It shows when it went up, who post
 Caption	Keterangan
 Caption copied	Keterangan disalin
 Copy caption	Salin keterangan
+Copy caption without hashtags	Salin keterangan tanpa tagar
 Copy username	Salin nama pengguna
 Couldn't copy the caption	Tidak dapat menyalin keterangan
 Couldn't copy the username	Tidak dapat menyalin nama pengguna
@@ -662,6 +697,10 @@ Bio	Bio
 Bio copied	Bio disalin
 Copy bio	Salin bio
 Copy username and bio	Salin nama pengguna dan bio
+Profile extras button	Tombol tambahan profil
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	Menaruh tombol di samping tiga titik pada profil yang membuka tindakan profil HushGram. Baris di menu tiga titik tetap ada.
+HushGram profile actions	Tindakan profil HushGram
+Nothing to do for this profile	Tidak ada aksi untuk profil ini
 Couldn't copy the bio	Tidak dapat menyalin bio
 Couldn't open the picture	Tidak dapat membuka foto
 Profile picture	Foto profil
@@ -849,6 +888,10 @@ Clearest	Paling bening
 Clear	Bening
 Frosted	Buram
 Standard	Standar
+Blur strength	Kekuatan blur
+# context: a blur strength step of the tab bar
+Light	Ringan
+Strong	Kuat
 Compact	Ringkas
 Tall	Tinggi
 Tab bar corners	Sudut bilah tab
@@ -882,6 +925,8 @@ Full screen Reels	Reels layar penuh
 Hides the status bar and the navigation bar while Reels shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Menyembunyikan bilah status dan bilah navigasi saat Reels ditampilkan. Geser dari tepi untuk menampilkannya kembali sebentar. Tombol Kembali dan keyboard tetap berfungsi seperti biasa.
 Full screen Home	Beranda layar penuh
 Hides the status bar and the navigation bar while Home shows. Swipe in from the edge to bring them back for a moment.	Menyembunyikan bilah status dan bilah navigasi saat Beranda ditampilkan. Geser dari tepi untuk menampilkannya kembali sebentar.
+Full screen Messages	Pesan layar penuh
+Hides the status bar and the navigation bar while your messages or a chat shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Menyembunyikan bilah status dan bilah navigasi saat pesanmu atau sebuah chat ditampilkan. Geser dari tepi untuk menampilkannya kembali sebentar. Tombol Kembali dan keyboard tetap berfungsi seperti biasa.
 Hide Notes on profile pictures	Sembunyikan Catatan di foto profil
 Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay as they are.	Menghapus gelembung Catatan dari foto profil, termasuk milik Anda. Catatan di Pesan tetap seperti semula.
 # context: the line that opens a category's page in HushGram settings, under the page title
@@ -915,6 +960,8 @@ Hide the Create button on reels	Sembunyikan tombol Buat di reel
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	Menghapus tombol plus yang membuka kamera dari bagian atas reel, di tab Reels dan di mana pun, lalu menutup celahnya. Bagian bilah lainnya tetap ada.
 Hide Your algorithm on reels	Sembunyikan Algoritma Anda di reel
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	Menghapus tombol Algoritma Anda dari bagian atas tab Reels lalu menutup celahnya. Bagian bilah lainnya tetap ada.
+Hide the Friends tab on Reels	Sembunyikan tab Teman di Reels
+Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	Menghapus tab Teman, berisi reel yang dibagikan orang yang kamu ikuti, dari bagian atas tab Reels. Reels tetap di tempatnya.
 Hide the Save button on reels	Sembunyikan tombol Simpan di reel
 Burn-in guard	Pelindung burn-in
 Dim when idle	Redupkan saat diam
@@ -1069,7 +1116,7 @@ The navigation bar only	Hanya bilah navigasi
 Full screen Reels and Home hide the status bar and the navigation bar.	Reels layar penuh dan Beranda layar penuh menyembunyikan bilah status dan bilah navigasi.
 Full screen Reels and Home hide only the status bar at the top. The navigation bar stays.	Reels layar penuh dan Beranda layar penuh hanya menyembunyikan bilah status di atas. Bilah navigasi tetap ada.
 Full screen Reels and Home hide only the navigation bar at the bottom. The status bar stays.	Reels layar penuh dan Beranda layar penuh hanya menyembunyikan bilah navigasi di bawah. Bilah status tetap ada.
-Turn on Full screen Reels or Full screen Home to use this choice.	Aktifkan Reels layar penuh atau Beranda layar penuh untuk menggunakan pilihan ini.
+Turn on Full screen Reels, Full screen Home or Full screen Messages to use this choice.	Aktifkan Reels layar penuh, Beranda layar penuh, atau Pesan layar penuh untuk menggunakan pilihan ini.
 Choose carousel pages	Pilih halaman carousel
 Adds Choose pages to a carousel's menu, after Save all, and to the download icon. Tick the pages you want and only those save, in order.	Menambahkan Pilih halaman ke menu carousel, setelah Simpan semua, dan ke ikon unduh. Centang halaman yang kamu mau dan hanya itu yang disimpan, sesuai urutan.
 Choose pages	Pilih halaman
@@ -1128,10 +1175,13 @@ LINE	LINE
 KakaoTalk	KakaoTalk
 Discord	Discord
 Band	Band
-# context: Tabs on profiles row under Profiles; Reposts and Tagged are the names of Instagram's own profile tabs
-Tabs on profiles	Tab di profil
-Every tab shows on profiles. Untick the ones you don't want. The grid of posts always stays.	Semua tab tampil di profil. Hapus centang pada tab yang tidak Anda inginkan. Kisi postingan selalu tetap ada.
-Left off profiles: %1$s. The grid of posts stays.	Disembunyikan dari profil: %1$s. Kisi postingan tetap ada.
+# context: Tabs on your profile and Tabs on other profiles rows under Profiles, one for the signed-in account's own profile and one for everyone else's; Reposts and Tagged are the names of Instagram's own profile tabs
+Tabs on your profile	Tab di profil Anda
+Tabs on other profiles	Tab di profil lain
+Every tab shows on your profile. Untick the ones you don't want. The grid of posts always stays.	Semua tab tampil di profil Anda. Hapus centang pada tab yang tidak Anda inginkan. Kisi postingan selalu tetap ada.
+Every tab shows on other people's profiles. Untick the ones you don't want. The grid of posts always stays.	Semua tab tampil di profil orang lain. Hapus centang pada tab yang tidak Anda inginkan. Kisi postingan selalu tetap ada.
+Left off your profile: %1$s. The grid of posts stays.	Disembunyikan dari profil Anda: %1$s. Kisi postingan tetap ada.
+Left off other profiles: %1$s. The grid of posts stays.	Disembunyikan dari profil lain: %1$s. Kisi postingan tetap ada.
 Reposts	Postingan ulang
 Tagged	Ditandai
 # context: Show all recent searches switch under Explore; See all is Instagram's own row under the recent searches
@@ -1163,3 +1213,12 @@ Puts a music icon beside a reel. Tap it and the Reels tab skips other reels usin
 Hidden sounds	Suara tersembunyi
 The sounds you hid with the music icon. Uncheck one to see its reels again.	Suara yang kamu sembunyikan dengan ikon musik. Hapus centang salah satunya untuk melihat reel-nya lagi.
 No sounds are hidden yet. Turn on Hide reels by sound, then tap the music icon beside a reel.	Belum ada suara yang disembunyikan. Aktifkan Sembunyikan reel menurut suara, lalu ketuk ikon musik di samping reel.
+# context: read aloud after a settings row's name when a dot marks it as added since the settings were last opened
+New	Baru
+App icon	Ikon aplikasi
+Instagram on black	Instagram di atas hitam
+Instagram on plum	Instagram di atas ungu plum
+Instagram's own	Bawaan Instagram
+Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Bawaan Instagram. Pilih yang lain untuk mengganti ikon di layar utama dan laci aplikasi.
+%1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Ikon muncul setelah kamu keluar dari Instagram. Jika ikon hilang dari layar utama, tambahkan lagi dari laci aplikasi.
+the home screen icon you picked	ikon layar utama yang kamu pilih

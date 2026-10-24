@@ -151,7 +151,7 @@ final class SettingsRows {
             cancel.setContentDescription(video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo"));
             cancel.setAllCaps(false);
             cancel.setTextSize(14);
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            ScreenColors colors = ScreenColors.current();
             cancel.setTextColor(colors.heading);
             ScreenColors.pressFeedback(cancel, colors.heading, false);
             int touch = Math.round(48 * view.getResources().getDisplayMetrics().density);
@@ -229,7 +229,7 @@ final class SettingsRows {
         /** The two choices as cards, each saying what it does under its name. */
         @Override
         protected ListAdapter choices(Context dialogContext) {
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            ScreenColors colors = ScreenColors.current();
             return new ChoiceCards(colors,
                     new CharSequence[]{L10n.t(getContext(), "Copy quick report"),
                             L10n.t(getContext(), "Save full report")},

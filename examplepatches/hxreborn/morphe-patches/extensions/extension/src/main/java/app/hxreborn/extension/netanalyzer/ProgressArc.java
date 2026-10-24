@@ -9,9 +9,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 final class ProgressArc extends View {
 
@@ -40,8 +41,7 @@ final class ProgressArc extends View {
         this.paint.setColor(color);
         this.paint.setStyle(Paint.Style.STROKE);
         this.paint.setStrokeCap(Paint.Cap.BUTT);
-        this.paint.setStrokeWidth(
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, STROKE_DP, getResources().getDisplayMetrics()));
+        this.paint.setStrokeWidth(Dimensions.dpExact(context, STROKE_DP));
         this.spinner.setDuration(ROTATION_MS);
         this.spinner.setRepeatCount(ValueAnimator.INFINITE);
         this.spinner.setInterpolator(new LinearInterpolator());

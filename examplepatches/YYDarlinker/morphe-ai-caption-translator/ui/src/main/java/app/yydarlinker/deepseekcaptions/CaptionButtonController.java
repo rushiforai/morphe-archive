@@ -65,13 +65,10 @@ final class CaptionButtonController {
     private static volatile boolean buttonTouchDown;
     private static volatile boolean longPressGesture;
     private static volatile boolean nativeMenuSelectionArmed;
-    private static volatile boolean captionsShownScheduled;
     private static volatile long buttonDownAtMs;
-    private static volatile int intentBeforeTouch = CaptionIntentPolicy.UNKNOWN;
     private static volatile int nativeStateAtTouchDown = CaptionIntentPolicy.UNKNOWN;
     private static volatile int nativeMenuOpeningState = CaptionIntentPolicy.UNKNOWN;
     private static volatile int lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
-    private static volatile int captionIntent = CaptionIntentPolicy.UNKNOWN;
     private static volatile String currentVideoId = "";
     private static volatile List<String> localizedLabels = Collections.emptyList();
 
@@ -124,10 +121,7 @@ final class CaptionButtonController {
         activityRef = new WeakReference<>(activity);
         localizedLabels = captionLabels(activity);
         if (decor(activity) == null) return;
-        if (CaptionActions.isVisibleActive()) {
-            captionIntent = CaptionIntentPolicy.ON;
-            ignoreFor(1_200L);
-        }
+        if (CaptionActions.isVisibleActive()) ignoreFor(1_200L);
         scheduleScan(80L);
         scheduleMaintenance();
     }
@@ -142,18 +136,11 @@ final class CaptionButtonController {
                 longPressGesture = false;
                 endNativeMenu();
                 lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
-                // A new video starts with no known caption intent. Keeping the previous video's
-                // ON (or OFF) was what made the AI overlay outlive the official CC setting.
-                captionIntent = CaptionIntentPolicy.UNKNOWN;
             }
-            // Do not carry the previous video's target/language into a video whose native
-            // selection has not been observed yet.
-            CaptionChoice.reset();
             MAIN.removeCallbacks(LONG_PRESS_ARM);
             MAIN.removeCallbacks(NATIVE_MENU_MONITOR);
         }
         scheduleScan(220L);
-        if (captionIntent == CaptionIntentPolicy.ON) NativeCaptionBridge.onCaptionsShown();
     }
 
     /**
@@ -177,7 +164,6 @@ final class CaptionButtonController {
         ignoreUiStateUntilMs = SystemClock.uptimeMillis() + 700L;
         synchronized (NATIVE_STATE_LOCK) {
             endNativeMenu();
-            captionIntent = CaptionIntentPolicy.ON;
         }
         MAIN.removeCallbacks(NATIVE_MENU_MONITOR);
     }
@@ -185,6 +171,9 @@ final class CaptionButtonController {
     /**
      * Arms a quiet window around any player-shape transition. A transient CC accessibility OFF
      * state during rotation/fullscreen is not a user command and must not deactivate the AI track.
+     *
+     * <p>The window suppresses projection writes only. The session intent is applied by
+     * {@link CaptionSessionReconciler} on its own player tick; no transition may gate that.
      */
     static void onPlayerTransition(String rawType) {
         long now = SystemClock.uptimeMillis();
@@ -194,59 +183,14 @@ final class CaptionButtonController {
             clearNativeMenuEvidence();
             lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
         }
-        if (CaptionActions.isVisibleActive()) {
-            captionIntent = CaptionIntentPolicy.ON;
-            ignoreFor(PLAYER_TRANSITION_QUIET_MS);
-        }
+        if (CaptionActions.isVisibleActive()) ignoreFor(PLAYER_TRANSITION_QUIET_MS);
     }
 
     /** Called only after the read-only player-geometry probe has observed a stable player. */
     static void onPlayerStable() {
         transitionQuietUntilMs = SystemClock.uptimeMillis();
-        if (CaptionActions.isVisibleActive()) {
-            captionIntent = CaptionIntentPolicy.ON;
-            ignoreFor(900L);
-        }
+        if (CaptionActions.isVisibleActive()) ignoreFor(900L);
         scheduleScan(120L);
-    }
-
-    /** True only when the user wants the AI/default caption path, not a selected native track. */
-    static boolean mayActivateAiTarget() {
-        long now = SystemClock.uptimeMillis();
-        return now > nativeMenuUntilMs
-                && CaptionIntentPolicy.mayActivate(captionIntent, now, 0L);
-    }
-
-    /** An explicit CC-off is authoritative even before the next accessibility scan. */
-    static boolean captionsKnownOff() {
-        return captionIntent == CaptionIntentPolicy.OFF;
-    }
-
-    /** CC was observed on for this video; a translated request is a real selection, not prefetch. */
-    static boolean captionsKnownOn() {
-        return captionIntent == CaptionIntentPolicy.ON;
-    }
-
-    /**
-     * Runs the memory trigger after the current native callback (for example the track-list
-     * builder) returns, so a re-selection cannot re-enter that callback.
-     */
-    static void scheduleCaptionsShown() {
-        if (captionsShownScheduled) return;
-        captionsShownScheduled = true;
-        MAIN.post(
-                () -> {
-                    captionsShownScheduled = false;
-                    NativeCaptionBridge.onCaptionsShown();
-                });
-    }
-
-    /** A request issued while the user is choosing in the native CC menu is a real selection. */
-    static boolean nativeMenuRecentlyOpened() {
-        // The pre-menu observation arms the window but does not necessarily set the exact-selection
-        // timestamp. Using the window alone keeps the user's first Auto-translate request from
-        // being stripped as an "automatic" request on a cold start.
-        return nativeMenuUntilMs > 0 && SystemClock.uptimeMillis() <= nativeMenuUntilMs;
     }
 
     // ---- The exact controller: YouTube's own report of the CC state ----
@@ -554,11 +498,12 @@ final class CaptionButtonController {
         MAIN.removeCallbacks(NATIVE_MENU_MONITOR);
         MAIN.postDelayed(LONG_PRESS_ARM, longPress);
 
-        intentBeforeTouch = captionIntent;
         nativeStateAtTouchDown = nativeCaptionState(view);
         turnCaptionsOffOnTouchUp =
                 CaptionIntentPolicy.shouldTurnOff(
-                        CaptionActions.isVisibleActive(), nativeStateAtTouchDown, captionIntent);
+                        CaptionActions.isVisibleActive(),
+                        nativeStateAtTouchDown,
+                        CaptionNativeProjection.ccState());
         ignoreUiStateUntilMs = Math.max(ignoreUiStateUntilMs, now + longPress + 250L);
     }
 
@@ -567,10 +512,9 @@ final class CaptionButtonController {
         buttonTouchDown = false;
         MAIN.removeCallbacks(LONG_PRESS_ARM);
         if (longPressGesture || now - buttonDownAtMs >= ViewConfiguration.getLongPressTimeout()) {
-            // The long press belongs to YouTube's menu: restore what the user had before it.
+            // The long press belongs to YouTube's menu: it owns the selection that follows.
             beginNativeMenuOwnership(true);
             turnCaptionsOffOnTouchUp = false;
-            captionIntent = intentBeforeTouch;
             ignoreUiStateUntilMs = now + 250L;
             return;
         }
@@ -578,14 +522,13 @@ final class CaptionButtonController {
         endNativeMenu();
         if (turnCaptionsOffOnTouchUp) {
             turnCaptionsOffOnTouchUp = false;
-            captionIntent = CaptionIntentPolicy.OFF;
-            CaptionChoice.toggle(false);
-            CaptionActions.deactivateFromCaptionButton();
+            // A tap on the CC control is a user act: it is the one place where turning the control
+            // off also writes the session intent off.
+            CaptionActions.deactivateByUser();
             return;
         }
-        captionIntent = CaptionIntentPolicy.ON;
-        CaptionChoice.toggle(true);
-        NativeCaptionBridge.onCaptionsShown();
+        // Tapping the control on asks for the captions the user already intended, if any.
+        CaptionSessionReconciler.onUserActivated(activityRef.get());
     }
 
     private static void onButtonCancel() {
@@ -593,7 +536,6 @@ final class CaptionButtonController {
         buttonTouchDown = false;
         MAIN.removeCallbacks(LONG_PRESS_ARM);
         turnCaptionsOffOnTouchUp = false;
-        captionIntent = intentBeforeTouch;
         if (wasLongPress) {
             beginNativeMenuOwnership(true);
             ignoreUiStateUntilMs = SystemClock.uptimeMillis() + 250L;
@@ -640,23 +582,27 @@ final class CaptionButtonController {
                             + " reenable the native track");
             return;
         }
-        boolean becameOn;
-        synchronized (NATIVE_STATE_LOCK) {
-            becameOn = captionIntent != CaptionIntentPolicy.ON;
-            captionIntent = state;
-        }
-        if (!becameOn) return;
-        NativeCaptionBridge.onCaptionsShown();
+        boolean becameOn = CaptionNativeProjection.ccState() != CaptionIntentPolicy.ON;
+        CaptionNativeProjection.ccState(CaptionIntentPolicy.ON);
+        // The control being on is an observation: it lets a deferred session intent be applied,
+        // but it never writes one.
+        if (becameOn)
+            CaptionSessionReconciler.onObservation(
+                    activityRef.get(), "cc_on", CaptionPlayerAuthority.ownerEpoch());
     }
 
+    /**
+     * The CC control reads Off. That is a projection of the native control, never a user command:
+     * it writes no session intent and does not stop the AI overlay by itself. The real command is a
+     * selection made inside the caption menu, which reaches the reconciler as an explicit native
+     * selection.
+     */
     private static void commitNativeCaptionOff(boolean fromNativeMenu, String detail) {
         synchronized (NATIVE_STATE_LOCK) {
-            captionIntent = CaptionIntentPolicy.OFF;
+            CaptionNativeProjection.ccState(CaptionIntentPolicy.OFF);
             endNativeMenu();
         }
         MAIN.removeCallbacks(NATIVE_MENU_MONITOR);
-        CaptionChoice.toggle(false);
-        CaptionActions.deactivateFromNativeCaptionState();
         Activity activity = activityRef.get();
         if (fromNativeMenu && activity != null)
             CaptionDiagnostics.mark(activity, "NATIVE_CAPTION_OFF", detail);

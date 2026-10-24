@@ -14,7 +14,7 @@ import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.view.View;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 final class StarButton extends View {
 
     private static final int POINTS = 5;

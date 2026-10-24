@@ -1,5 +1,5 @@
 group = "0xtalos"
-version = "1.3.2"
+version = "1.3.3"
 
 patches {
     about {
@@ -22,6 +22,11 @@ dependencies {
 
     // Required due to smali, or build fails. Can be removed once smali is bumped.
     implementation(libs.guava)
+
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    testImplementation(libs.morphe.patcher)
+    testImplementation("com.github.REAndroid:ARSCLib:a28c6fb2a7")
 }
 
 tasks {
@@ -33,6 +38,11 @@ tasks {
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("app.morphe.util.PatchListGeneratorKt")
         args(project.version.toString())
+    }
+
+    test {
+        useJUnitPlatform()
+        maxHeapSize = "4g"
     }
 }
 

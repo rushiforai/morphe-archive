@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 group = "app.morphe"
 
 patches {
@@ -16,6 +18,20 @@ patches {
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
     // Required due to smali, or build fails. Can be removed once smali is bumped.
     implementation(libs.guava)
@@ -28,12 +44,15 @@ dependencies {
     compileOnly(project(":patches:stub"))
 
     testImplementation(kotlin("test"))
+    testImplementation(libs.kotlinx.coroutines.core)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks {
     test {
         useJUnitPlatform()
     }
+
     register<JavaExec>("checkStringResources") {
         description = "Checks resource strings for invalid formatting"
 
@@ -51,6 +70,7 @@ tasks {
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("app.morphe.util.PatchListGeneratorKt")
     }
+
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")

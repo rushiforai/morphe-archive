@@ -39,7 +39,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * {@link #openReplyThreads} that flag as the state is first set up and writes back the answer.
  * Once an open thread's replies are fetched, it builds a list over them that either pages on by
  * itself or draws View more replies; the patch asks {@link #loadWholeReplyThreads} which, just
- * before Facebook sets it. Each comment is drawn by a section that the patch asks {@link #hidesComment} first, with the
+ * before Facebook sets it. A View more replies row reads a flag that makes only its words take a
+ * tap, and the patch hands {@link #viewMoreRepliesTextOnly} that flag right after. Each comment is drawn by a section that the patch asks {@link #hidesComment} first, with the
  * comment it draws; a yes draws nothing for it.
  *
  * <p>Off, paused, before the settings are ready, or when anything here fails, the answers are
@@ -72,6 +73,9 @@ public final class CommentSheetOptions {
 
     /** Counted each time an open reply thread's list is set to load the rest of its replies as it's scrolled. */
     static final String THREAD_LOADS_IN_FULL = "Reply thread loads in full";
+
+    /** Counted each time a View more replies row is built to take a tap anywhere on it. */
+    static final String WHOLE_ROW_TAPS = "View more replies row takes a tap anywhere";
 
     /** Counted each time a comment is left out for a link to a shop. */
     static final String SHOP_LINK_HIDDEN = "Comment with a shop link left out";
@@ -114,6 +118,9 @@ public final class CommentSheetOptions {
 
     /** The member the report names once an open reply thread has built the list of its replies. */
     static final String REPLY_LISTS = "reply lists";
+
+    /** The member the report names once a View more replies row has been drawn through the hook. */
+    static final String REPLY_ROWS = "View more replies rows";
 
     /**
      * Facebook's own settings, a route its links table carries on 577, 580 and 581. Reaction
@@ -312,6 +319,26 @@ public final class CommentSheetOptions {
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "reply list", failure);
             return pagesOnScroll;
+        }
+    }
+
+    /**
+     * The hook, as a View more replies row is drawn, handed Facebook's answer to whether only the
+     * row's icon and words take a tap (#219). That's a server flag: true for some accounts, which
+     * then get a row where a tap past the words does nothing. False, Facebook builds the row with
+     * all of it taking the tap. While Tap anywhere on View more replies is on, the answer is false;
+     * otherwise, and for a throw, Facebook's own answer comes back.
+     */
+    public static boolean viewMoreRepliesTextOnly(boolean textOnly) {
+        try {
+            HookStatus.invoked(FAMILY);
+            HookStatus.bound(FAMILY, REPLY_ROWS);
+            if (!textOnly || !Utils.settingsReady() || !Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES.get()) return textOnly;
+            HookStatus.counted(FAMILY, WHOLE_ROW_TAPS);
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "View more replies row", failure);
+            return textOnly;
         }
     }
 

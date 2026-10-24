@@ -12,7 +12,7 @@ Java.perform(function(){
    const rows=[];
    for(let i=0;i<menu.size();i++){const item=menu.getItem(i);rows.push({id:item.getItemId(),title:String(item.getTitle())});}
    console.log('MODEL '+JSON.stringify(rows));
-   const expected=['過去レスを見る','このレスをアーカイブに保存'];
+   const expected=['保存済みレスを見る','このレスをアーカイブに保存'];
    expected.forEach(label=>{if(!rows.some(row=>row.title===label))throw Error('Missing label '+label);});
    const adapter=Java.use('o.m6f').$new(app,2131558525,menu);
    const Text=Java.use('android.widget.TextView'),Group=Java.use('android.view.ViewGroup');
@@ -27,7 +27,7 @@ Java.perform(function(){
     function checkLayout(v){
      if(Text.class.isInstance(v)){
       const t=Java.cast(v,Text),layout=t.getLayout();
-      if(layout!==null && /レスを保存|投稿者を強調|過去レスを見る/.test(String(t.getText()))){
+      if(layout!==null && /レスを保存|投稿者を強調|保存済みレスを見る/.test(String(t.getText()))){
        for(let line=0;line<layout.getLineCount();line++)if(layout.getEllipsisCount(line)>0)throw Error('Ellipsized label');
        if(layout.getLineEnd(layout.getLineCount()-1)<t.getText().length())throw Error('Clipped label');
        console.log('PASS full label at 191px grid width');

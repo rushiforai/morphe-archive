@@ -10,9 +10,9 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
@@ -47,7 +47,7 @@ internal object VoiceRoomFullAvatarFingerprint : Fingerprint(
             }
         }
         flagField != null && method.implementation?.instructions?.any { instruction ->
-            ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.name == flagField.name
+            instruction.getReference<FieldReference>()?.name == flagField.name
         } == true
     },
 )

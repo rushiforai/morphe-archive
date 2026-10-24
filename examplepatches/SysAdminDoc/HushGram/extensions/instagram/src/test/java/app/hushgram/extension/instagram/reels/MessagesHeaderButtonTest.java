@@ -100,6 +100,7 @@ public class MessagesHeaderButtonTest {
         Settings.MESSAGES_BUTTON_ON_HOME.resetToDefault();
         Settings.HIDE_HOME_MESSAGES_BUTTON.resetToDefault();
         Settings.SHOW_MESSAGES_TAB.resetToDefault();
+        Settings.HIDE_MESSAGES_TAB.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         screen.close();
@@ -123,6 +124,22 @@ public class MessagesHeaderButtonTest {
         MessagesHeaderButton.place(header);
         assertNull(MessagesHeaderButton.in(end));
         assertEquals(1, end.getChildCount());
+    }
+
+    /** #298: Hide the Messages tab puts the button in without its own switch, and Hide Messages on Home's header still wins. */
+    @Test public void hidingTheMessagesTabKeepsAWayInOnTheHeader() {
+        Settings.HIDE_MESSAGES_TAB.save(true);
+        MessagesHeaderButton.place(header);
+        assertNotNull(MessagesHeaderButton.in(end));
+
+        Settings.HIDE_HOME_MESSAGES_BUTTON.save(true);
+        MessagesHeaderButton.place(header);
+        assertNull(MessagesHeaderButton.in(end));
+
+        Settings.HIDE_HOME_MESSAGES_BUTTON.save(false);
+        Settings.HIDE_MESSAGES_TAB.save(false);
+        MessagesHeaderButton.place(header);
+        assertNull(MessagesHeaderButton.in(end));
     }
 
     @Test public void withTheSwitchOnAndNoMessagesOnTheHeaderTheButtonGoesLastInTheEndRowOnce() {

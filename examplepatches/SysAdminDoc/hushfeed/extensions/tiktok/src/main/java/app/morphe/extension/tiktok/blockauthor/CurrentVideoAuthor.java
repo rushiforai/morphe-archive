@@ -203,6 +203,8 @@ public final class CurrentVideoAuthor {
             app.morphe.extension.tiktok.interaction.TapConfirmation.onVideoChanged();
             app.morphe.extension.tiktok.captions.CaptionTools.onVideoChanged(newId);
             app.morphe.extension.tiktok.feed.AuthorRegion.onVideoChanged();
+            // Latest first on Following sorts only below the video the reader has reached.
+            app.morphe.extension.tiktok.feedfilter.FollowingLatestFirst.onCurrentVideo(newId);
 
             if (item != null && item.aweme != null) {
                 CurrentVideoSound.update(item.aweme);

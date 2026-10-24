@@ -4,11 +4,12 @@
  */
 package app.hxreborn.extension.netanalyzer;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import android.util.Log;
+
+import app.hxreborn.extension.shared.ProxyHandler;
 
 final class HostCallbacks {
 
@@ -40,7 +41,7 @@ final class HostCallbacks {
         return Proxy.newProxyInstance(HostCallbacks.class.getClassLoader(), interfaces, new ClickHandler(action));
     }
 
-    private static final class ClickHandler implements InvocationHandler {
+    private static final class ClickHandler extends ProxyHandler {
 
         private final Runnable action;
 
@@ -49,17 +50,12 @@ final class HostCallbacks {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
-            final String name = method.getName();
-            if ("toString".equals(name)) {
-                return "hxNetAnalyzerClick";
-            }
-            if ("hashCode".equals(name)) {
-                return System.identityHashCode(proxy);
-            }
-            if ("equals".equals(name)) {
-                return proxy == args[0];
-            }
+        protected String describe() {
+            return "hxNetAnalyzerClick";
+        }
+
+        @Override
+        protected Object handle(Method method, Object[] args) {
             this.action.run();
             return null;
         }

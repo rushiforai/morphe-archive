@@ -7,12 +7,11 @@ package app.morphe.patches.medicneet.misc.premium
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
-
-private const val DART_AOT_LIBRARY = "libapp.so"
-private const val ARM64 = "arm64-v8a"
 
 internal class DartCheck(
     val name: String,
@@ -70,8 +69,7 @@ val unlockPremiumPatch = resourcePatch(
     dependsOn(removePairipProtectionPatch, openQuestionTiersPatch)
 
     execute {
-        val library = get("lib/$ARM64/$DART_AOT_LIBRARY")
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY for $ARM64")
+        val library = dartAotLibrary()
 
         DART_CHECKS.forEach { check ->
             if (!library.replaceMasked(check.pattern, check.mask, mapOf(check.replacementOffset to check.replacement))) {

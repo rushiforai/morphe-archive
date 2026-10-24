@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
-import android.os.SystemClock;
 import android.util.Log;
 
 import app.yydarlinker.caption.contracts.CaptionContracts.*;
@@ -45,39 +44,44 @@ final class CaptionApplication extends TranslationRuntime.Host
         if (c == null) return;
         switch (action) {
             case ACTIVATE:
-                remember(value, false);
                 RebuildController.activate(c, value, false, true);
                 break;
             case PREWARM:
                 RebuildController.activate(c, value, false, false);
                 break;
             case DEACTIVATE:
-                // Only a reset YouTube made on its own may come back; every other off is the
-                // user's and must also close the caption choice, or a late tlang request could
-                // revive the overlay while CC shows off.
-                boolean automatic =
-                        "native_selection".equals(value) && EngineResume.takeAutomatic();
-                if (!automatic) {
-                    EngineResume.declined();
-                    CaptionChoice.toggle(false);
-                }
+                // Only the display changes here. The three meanings are kept apart: a user off is
+                // the one kind that writes the session intent; a native reset keeps it and retires
+                // the application so the next tick can bring the session back; a teardown writes
+                // nothing at all.
+                String offReason = value == null || value.isEmpty() ? "teardown" : value;
+                if ("user_off".equals(offReason))
+                    CaptionSessionReconciler.onUserOff(c, offReason);
+                else if ("native_reset".equals(offReason))
+                    CaptionSessionReconciler.retireApplication();
+                CaptionDiagnostics.mark(c, "INTENT_DEACTIVATE", "reason=" + offReason);
                 RebuildController.stop();
                 break;
             case VIDEO:
-                video = value == null ? "" : value.trim();
+                String announced = value == null ? "" : value.trim();
+                boolean sameVideo = !announced.isEmpty() && announced.equals(video);
+                video = announced;
                 if (video.isEmpty()) {
-                    EngineResume.departed();
-                    RebuildController.stop();
+                    // A teardown clears the session and only ends the display: it never writes the
+                    // session intent, so re-entering the video applies the same intent again.
+                    CaptionSessionReconciler.onTeardown(c);
                 } else {
-                    EngineResume.video(video);
+                    // The second visit to the same video may reuse the player and never announce a
+                    // new player type. A COMPACT state learned while leaving must not survive that
+                    // re-entry, so re-read the official current type at this known resume point.
+                    if (sameVideo) CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled();
                     RebuildController.video(video);
-                    resume(c, "video");
+                    CaptionSessionReconciler.onVideo(c, video);
                 }
                 break;
             case SOURCE:
                 // The hook already gave YouTube an empty track for this selection, so the chosen
                 // original or auto-generated captions are shown by the AI overlay, untranslated.
-                remember(value, true);
                 RebuildController.activate(c, value, true, true);
                 break;
             case PLAYER_TYPE:
@@ -121,52 +125,24 @@ final class CaptionApplication extends TranslationRuntime.Host
 
     @Override
     public String restoreTarget(String url) {
-        return CaptionLifecycleRestore.restoreAfterLifecycle(RebuildController.restore(url));
+        return CaptionSessionReconciler.restoreTarget(context, RebuildController.restore(url));
     }
 
     @Override
     public void playback(long at) {
-        if (EngineResume.reappeared(SystemClock.elapsedRealtime())) {
-            Context c = context;
-            // The player ticks again after a silence: the video was shown anew. Bring back the
-            // session lost with the departure, else lay the box out on the new surface.
-            if (c != null && !resume(c, "playback")) CaptionOverlay.refreshSurface();
+        // A tick is also the resume point after the player was minimized or the same video was
+        // opened again. Re-read the official type while display is unsettled: the type callback is
+        // not guaranteed to repeat on a reused player, and without this the COMPACT state learned
+        // on the way out would suppress every later frame of the new visit.
+        Context c = context;
+        if (c != null) {
+            CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled();
+            // A tick is a reconciliation pass, not a command: unless the session intent is
+            // unrealised for this session (a deferred target, or a native reset that retired it)
+            // it does nothing.
+            CaptionSessionReconciler.onPlayerRegular(c);
         }
         RebuildController.time(at);
-    }
-
-    private static void remember(String url, boolean original) {
-        if (CaptionUrls.isTimedText(url))
-            EngineResume.started(CaptionUrls.videoId(url), url, original);
-    }
-
-    /**
-     * A Short that was left and entered again is not announced to the caption track selector, so
-     * the session that stopped with the departure is restarted from what it was showing.
-     */
-    private static boolean resume(Context c, String via) {
-        if (!DeepSeekConfig.enabled(c) || !RebuildController.activeUrl().isEmpty()) return false;
-        // A user-off choice, an explicit CC-off or the AI switch beats a remembered session; an
-        // automatic YouTube reset is recoverable.
-        if (CaptionChoice.userOff()) return false;
-        EngineResume.Session again = EngineResume.take(video);
-        if (again == null) return false;
-        if (video.isEmpty()) {
-            video = again.video;
-            RebuildController.video(video);
-        }
-        CaptionChoice.toggle(true);
-        CaptionDiagnostics.mark(
-                c,
-                "ENGINE_REENTRY_RESUMED",
-                "video="
-                        + video
-                        + ";source_only="
-                        + (again.sourceOnly ? "1" : "0")
-                        + ";via="
-                        + via);
-        RebuildController.activate(c, again.url, again.sourceOnly, true);
-        return true;
     }
 
     @Override
@@ -210,17 +186,18 @@ final class CaptionApplication extends TranslationRuntime.Host
 
     @Override
     boolean selectionOn() {
-        return CaptionChoice.isOn();
+        CaptionSessionIntent intent = CaptionSessionIntent.load(context);
+        return intent.aiEnabled && intent.hasTarget();
     }
 
     @Override
     boolean translates() {
-        return CaptionChoice.translates();
+        return CaptionSessionIntent.load(context).translates();
     }
 
     @Override
     String target() {
-        return CaptionChoice.language();
+        return CaptionSessionIntent.load(context).target();
     }
 
     @Override

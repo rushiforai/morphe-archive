@@ -12,6 +12,7 @@ package app.morphe.patches.music.layout.buttons
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
@@ -23,7 +24,6 @@ import app.morphe.patches.music.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.util.findFreeRegister
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
 import app.morphe.util.p0Register
 import com.android.tools.smali.dexlib2.Opcode
@@ -74,19 +74,19 @@ val hideButtonsPatch = bytecodePatch(
             }
         }
 
-        HistoryMenuItemOfflineTabFingerprint.method.apply {
-            val index = indexOfFirstInstructionReversedOrThrow(
-                HistoryMenuItemOfflineTabFingerprint.filters!!.last()
-            )
-            val register = getInstruction<FiveRegisterInstruction>(index).registerD
+        HistoryMenuItemOfflineTabFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.last().index
+                val register = getInstruction<FiveRegisterInstruction>(index).registerD
 
-            addInstructions(
-                index,
-                """
-                    invoke-static { v$register }, $EXTENSION_CLASS->hideHistoryButton(Z)Z
-                    move-result v$register
-                """
-            )
+                addInstructions(
+                    index,
+                    """
+                        invoke-static { v$register }, $EXTENSION_CLASS->hideHistoryButton(Z)Z
+                        move-result v$register
+                    """
+                )
+            }
         }
 
         // Region for hide cast and search buttons in the top bar.
@@ -123,11 +123,17 @@ val hideButtonsPatch = bytecodePatch(
                 val insertIndex = targetIndex + 1
                 val freeRegister = findFreeRegister(insertIndex, targetRegister, p0Register)
 
-                addInstructions(
+                addInstructionsWithLabels(
                     insertIndex,
                     """
                         iget-object v$freeRegister, p0, $optionalField
-                        invoke-static { v$targetRegister, v$freeRegister }, $EXTENSION_CLASS->hideNotificationButton(Landroid/view/View;Ljava/lang/Object;)V
+                        if-eqz v$freeRegister, :not_notification_button
+                        invoke-virtual { v$freeRegister }, ${optionalField.type}->isPresent()Z
+                        move-result v$freeRegister
+                        if-eqz v$freeRegister, :not_notification_button
+                        invoke-static { v$targetRegister }, $EXTENSION_CLASS->hideNotificationButton(Landroid/view/View;)V
+                        :not_notification_button
+                        nop
                     """
                 )
             }

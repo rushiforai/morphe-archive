@@ -101,10 +101,30 @@ public class Mp4TagsTest {
         assertSamplesIntact(out, false);
     }
 
-    @Test public void aKeyListMetaIsLeftAloneAndTheFileGoesUntagged() throws Exception {
-        byte[] existing = box("udta", meta("mdta", item(Mp4Tags.TITLE, "keyed")));
+    @Test public void tikToksKeyListComesOverAsFreeformItemsBesideTheTags() throws Exception {
+        // The udta TikTok's files came with on 47.5.3, a QuickTime key list written by ffmpeg.
+        byte[] existing = box("udta", keyedMeta(keys("aigc_info", "comment", "vid_md5", "encoder"),
+                indexed(1, "{\"aigc_label_type\":0}"), indexed(2, "vid:v15044gf0000dbcpl4fog65n44rcjopg"),
+                indexed(3, "c46486bb5f30dc8c0db047e48cb37baf"), indexed(4, "Lavf58.76.100")));
         write(streaming(false, existing));
-        assertFalse(Mp4Tags.write(source, target, tags()));
+        assertTrue(Mp4Tags.write(source, target, tags()));
+        byte[] out = Files.readAllBytes(target.toPath());
+        Map<String, String> expected = new LinkedHashMap<>(tags());
+        expected.put("----aigc_info", "{\"aigc_label_type\":0}");
+        expected.put("----vid_md5", "c46486bb5f30dc8c0db047e48cb37baf");
+        expected.put("----encoder", "Lavf58.76.100");
+        assertEquals("TikTok's comment gives way to the link, and its other keys keep their names",
+                expected, readTags(out));
+        assertSamplesIntact(out, false);
+    }
+
+    @Test public void aKeyListThatDoesntAddUpLeavesTheFileUntagged() throws Exception {
+        write(streaming(false, box("udta", keyedMeta(keys("encoder"), indexed(2, "Lavf")))));
+        assertFalse("an item past the key list", Mp4Tags.write(source, target, tags()));
+        write(streaming(false, box("udta", meta("mdta", item(Mp4Tags.TITLE, "keyed")))));
+        assertFalse("no key list", Mp4Tags.write(source, target, tags()));
+        write(streaming(false, box("udta", meta("ID32", item(Mp4Tags.TITLE, "other")))));
+        assertFalse("another kind of meta", Mp4Tags.write(source, target, tags()));
     }
 
     @Test public void aFileWithoutOneReadableMoovIsLeftAlone() throws Exception {
@@ -194,12 +214,38 @@ public class Mp4TagsTest {
     }
 
     private static byte[] meta(String handler, byte[]... items) {
+        return box("meta", concat(new byte[4], hdlr(handler), box("ilst", concat(items))));
+    }
+
+    /** A QuickTime key list meta: names in a keys box, values in ilst items typed by key index. */
+    private static byte[] keyedMeta(byte[] keys, byte[]... items) {
+        return box("meta", concat(new byte[4], hdlr("mdta"), keys, box("ilst", concat(items))));
+    }
+
+    private static byte[] hdlr(String handler) {
         ByteArrayOutputStream hdlr = new ByteArrayOutputStream();
         putInt(hdlr, 0);
         putInt(hdlr, 0);
         hdlr.write(handler.getBytes(StandardCharsets.ISO_8859_1), 0, 4);
         hdlr.write(new byte[13], 0, 13);
-        return box("meta", concat(new byte[4], box("hdlr", hdlr.toByteArray()), box("ilst", concat(items))));
+        return box("hdlr", hdlr.toByteArray());
+    }
+
+    private static byte[] keys(String... names) {
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        putInt(body, 0);
+        putInt(body, names.length);
+        for (String name : names) {
+            byte[] text = name.getBytes(StandardCharsets.UTF_8);
+            putInt(body, 8 + text.length);
+            body.write(name4("mdta"), 0, 4);
+            body.write(text, 0, text.length);
+        }
+        return box("keys", body.toByteArray());
+    }
+
+    private static byte[] indexed(int index, String value) {
+        return item(new byte[]{(byte) (index >>> 24), (byte) (index >>> 16), (byte) (index >>> 8), (byte) index}, value);
     }
 
     private static byte[] item(byte[] type, String value) {
@@ -246,7 +292,7 @@ public class Mp4TagsTest {
         }
     }
 
-    /** moov/udta/meta/ilst read back as type to text. */
+    /** moov/udta/meta/ilst read back as type to text, a freeform item as "----" and its name. */
     private static Map<String, String> readTags(byte[] data) {
         int moov = find(data, 0, data.length, "moov");
         assertTrue("no moov", moov >= 0);
@@ -266,6 +312,15 @@ public class Mp4TagsTest {
             int size = (int) unsigned(data, position);
             String type = new String(data, position + 4, 4, StandardCharsets.ISO_8859_1);
             int box = position + 8;
+            if (type.equals("----")) {
+                assertEquals("mean", new String(data, box + 4, 4, StandardCharsets.ISO_8859_1));
+                assertEquals("com.apple.iTunes",
+                        new String(data, box + 12, (int) unsigned(data, box) - 12, StandardCharsets.ISO_8859_1));
+                int label = box + (int) unsigned(data, box);
+                assertEquals("name", new String(data, label + 4, 4, StandardCharsets.ISO_8859_1));
+                type += new String(data, label + 12, (int) unsigned(data, label) - 12, StandardCharsets.UTF_8);
+                box = label + (int) unsigned(data, label);
+            }
             assertEquals("data", new String(data, box + 4, 4, StandardCharsets.ISO_8859_1));
             assertEquals("not UTF-8 text", 1, unsigned(data, box + 8));
             int dataSize = (int) unsigned(data, box);

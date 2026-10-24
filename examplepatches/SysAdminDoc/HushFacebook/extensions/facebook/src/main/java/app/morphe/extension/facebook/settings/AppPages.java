@@ -227,8 +227,8 @@ final class AppPages {
             }
             if (build.contains(PatchFamily.SEARCH_HISTORY)) {
                 search.addPreference(toggle(context, Settings.DONT_SAVE_SEARCH_HISTORY,
-                        L10n.t("What you search for isn't added to your Facebook search history. Searches already there "
-                                + "stay until you delete them.")));
+                        L10n.t("What you search for, and the pages and profiles you open from a search, aren't added to "
+                                + "your Facebook search history. Searches already there stay until you delete them.")));
             }
         }
     }

@@ -6,6 +6,7 @@ package app.morphe.patches.shared.misc
 
 import app.morphe.patcher.patch.ApkArchitecture
 import app.morphe.patcher.patch.AvailabilityResolver
+import app.morphe.patcher.patch.InstallerType
 import app.morphe.patcher.patch.PatchAvailability
 
 internal fun arm64Availability(selection: PatchAvailability) =
@@ -17,3 +18,9 @@ internal fun arm64Availability(selection: PatchAvailability) =
     }
 
 internal val requireArm64 = arm64Availability(PatchAvailability.ENABLED)
+
+private val arm64Required = arm64Availability(PatchAvailability.REQUIRED)
+
+internal val requireArm64RootMount = AvailabilityResolver { installer, architecture ->
+    if (installer == InstallerType.MOUNT) arm64Required.resolve(installer, architecture) else PatchAvailability.UNAVAILABLE
+}

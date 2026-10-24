@@ -1,6 +1,6 @@
 package app.lchanc3.patches.jptt.connection
 
-import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT_LATEST
+import app.lchanc3.patches.jptt.shared.Constants.COMPATIBILITY_JPTT
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_BOT_BLOCK_CLASS
 import app.lchanc3.patches.jptt.shared.Constants.JSOCKET_CLASS
 import app.lchanc3.patches.jptt.shared.Constants.JSOCKET_CLASS_PREFIX
@@ -41,7 +41,7 @@ val stopOnBotDetectionPatch = bytecodePatch(
         "it every few seconds.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_JPTT_LATEST)
+    compatibleWith(COMPATIBILITY_JPTT)
 
     dependsOn(extensionHookPatch)
 

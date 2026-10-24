@@ -11,9 +11,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.protonmail.misc.settings.patchesSettingsPatch
 import app.morphe.patches.protonmail.shared.uniffiCallsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patches.shared.misc.generated.descriptor
-import app.morphe.patches.shared.misc.generated.replaceStub
 import app.morphe.patches.shared.misc.proton.markPatchApplied
+import app.morphe.patches.shared.misc.smali.descriptor
+import app.morphe.patches.shared.misc.smali.replaceStub
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow

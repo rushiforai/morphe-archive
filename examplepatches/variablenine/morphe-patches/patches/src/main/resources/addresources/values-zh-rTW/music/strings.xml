@@ -16,6 +16,14 @@ Second \"item\" text"</string>
 
 -->
 <resources>
+  <!-- misc.androidauto.androidAutoPatch -->
+  <string name="morphe_music_android_auto_last_played">上次播放</string>
+  <string name="morphe_music_android_auto_subscriptions">訂閱內容</string>
+  <string name="morphe_music_android_auto_videos">影片</string>
+  <string name="morphe_music_android_auto_other_results">其他結果</string>
+  <string name="morphe_music_android_auto_uploaded_songs">上傳的歌曲</string>
+  <string name="morphe_music_android_auto_uploaded_albums">上傳的專輯</string>
+  <string name="morphe_music_android_auto_uploaded_artists">上傳的藝術家</string>
   <!-- app.morphe.patches.music.interaction.jam -->
   <string name="morphe_music_jam_update_host_controls">更新主機的 Jam 修補程式以使用暫停與繼續</string>
   <string name="morphe_music_jam_probe_title">Jam 佇列分享</string>
@@ -51,7 +59,7 @@ Second \"item\" text"</string>
   <string name="morphe_music_jam_show_qr">顯示 QR Code</string>
   <string name="morphe_music_jam_done">完成</string>
   <string name="morphe_music_jam_invite_title">邀請加入你的 Jam</string>
-  <string name="morphe_music_jam_invite_message">掃描以加入並編輯此佇列。結束 Jam 會撤銷邀請。</string>
+  <string name="morphe_music_jam_invite_message">掃描以加入並編輯此隊列。結束 Jam 將撤銷邀請</string>
   <string name="morphe_music_jam_copy_link">複製連結</string>
   <string name="morphe_music_jam_invitation_clip">Jam 邀請</string>
   <string name="morphe_music_jam_reconnecting_toast">Jam 正在重新連線；請稍後再試</string>
@@ -64,9 +72,9 @@ Second \"item\" text"</string>
   <string name="morphe_music_jam_updating">正在更新 Jam…</string>
   <string name="morphe_music_jam_finding_host">正在透過 Wi-Fi 尋找你的主控端…</string>
   <string name="morphe_music_jam_waiting_people">正在等待其他人加入</string>
-  <string name="morphe_music_jam_one_connected">%d 人已連線</string>
-  <string name="morphe_music_jam_many_connected">%d 人已連線</string>
-  <string name="morphe_music_jam_code_expires">在附近裝置上輸入此代碼。若支援，Wi-Fi Aware 可跨越不同的區域網路運作。此代碼將在 %d 分鐘後到期。</string>
+  <string name="morphe_music_jam_one_connected">%s 人連線中</string>
+  <string name="morphe_music_jam_many_connected">%s 人連線中</string>
+  <string name="morphe_music_jam_code_expires">在附近的裝置上輸入此程式碼。Wi-Fi Aware 在有支援的情況下可跨獨立 LAN 運作。%s 分鐘後過期</string>
   <string name="morphe_music_jam_seek_to">要跳轉到 %s 嗎？</string>
   <string name="morphe_music_jam_edits_open">編輯已開啟</string>
   <string name="morphe_music_jam_edits_locked">編輯已鎖定</string>
@@ -76,12 +84,12 @@ Second \"item\" text"</string>
   <string name="morphe_music_jam_unsupported">Jam 期間不支援</string>
   <string name="morphe_music_jam_cancelled">已取消加入</string>
   <string name="morphe_music_jam_reconnecting_host">正在重新連線到你的主控端…</string>
-  <string name="morphe_music_jam_share_prompt">分享佇列，讓每個人都能新增歌曲。</string>
+  <string name="morphe_music_jam_share_prompt">分享隊列。讓所有人新增歌曲</string>
   <string name="morphe_music_jam_invite_people">邀請其他人</string>
   <string name="morphe_music_jam_guest_edits">訪客可以編輯佇列</string>
   <string name="morphe_music_jam_end_jam">結束 Jam</string>
-  <string name="morphe_music_jam_participant_help">主控端負責播放音樂。你可以直接在 YouTube Music 佇列中新增、移動或移除歌曲。</string>
-  <string name="morphe_music_jam_joining_help">請讓兩台裝置保持靠近。在我們尋找主控端的期間，你可以取消。</string>
+  <string name="morphe_music_jam_participant_help">主機播放音樂。直接在 YouTube Music 隊列中新增、移動或移除歌曲</string>
+  <string name="morphe_music_jam_joining_help">請將兩部裝置保持在附近。當我們尋找主機時，您可以取消操作</string>
   <string name="morphe_music_jam_cancel_joining">取消加入</string>
   <string name="morphe_music_jam_leave_jam">離開 Jam</string>
   <string name="morphe_music_jam_start_jam">開始 Jam</string>
@@ -118,16 +126,9 @@ Second \"item\" text"</string>
   <string name="morphe_music_enable_audio_video_switch_summary">嘗試切換音訊軌道版本與官方音樂錄影帶</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_summary">使用第三方下載應用程式下載音樂影片、播客或歌曲</string>
-  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
-  <string name="morphe_external_downloader_action_button_title">覆蓋「下載」動作按鈕</string>
-  <string name="morphe_external_downloader_action_button_summary">使用您選擇的外部下載器取代內建的下載動作按鈕</string>
-  <string name="morphe_external_downloader_flyout_menu_title">覆蓋下載選單</string>
-  <string name="morphe_external_downloader_flyout_menu_summary">使用您選擇的外部下載器取代內建的下載飛出選單</string>
-  <string name="morphe_music_in_app_downloads_title">在應用程式內下載</string>
-  <string name="morphe_music_in_app_downloads_summary">不開啟外部下載器應用程式，改在 YouTube Music 中下載音訊。</string>
-  <string name="morphe_music_in_app_downloads_user_dialog_message">"歌曲會儲存到應用程式的專用儲存區域中，如果解除安裝 YouTube Music，歌曲也會被刪除。
-
-啟用此功能後，「下載」頁籤會列出這些歌曲，而非 Music Premium 離線庫。關閉此功能將會恢復該頁籤，而且Premium下載永遠不會受到影響。"</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the menu. -->
+  <string name="morphe_external_downloader_menu_title">在「下載」選單中使用外部下載器</string>
+  <string name="morphe_external_downloader_menu_summary">選單的下載選項會改為開啟你的外部下載器</string>
   <string name="morphe_music_downloads_screen_title">已下載的音樂</string>
   <string name="morphe_music_downloads_empty">"沒有已下載的音樂
 下載的歌曲會顯示在這裡"</string>
@@ -458,11 +459,17 @@ SABR 播放（影片串流模擬已關閉）"</string>
   <string name="morphe_music_lyrics_keep_screen_on_title">檢視歌詞時保持螢幕開啟</string>
   <string name="morphe_music_lyrics_keep_screen_on_summary">防止在歌詞面板開啟時螢幕關閉</string>
   <string name="morphe_music_lyrics_section_service_title">歌詞服務</string>
-  <string name="morphe_music_lyrics_section_overlay_title">疊加層</string>
+  <string name="morphe_music_lyrics_section_display_title">顯示</string>
   <string name="morphe_music_lyrics_section_sync_title">同步</string>
-  <string name="morphe_music_lyrics_source_all_disabled">所有提供者均已停用 — 內建歌詞與嵌入歌詞</string>
+  <string name="morphe_music_lyrics_section_panel_title">面板</string>
+  <string name="morphe_music_lyrics_section_languages_title">語言</string>
+  <string name="morphe_music_lyrics_section_ai_endpoint_title">AI端點</string>
+  <string name="morphe_music_lyrics_source_all_disabled">所有提供程序已停用 - 內建歌詞和嵌入式歌詞</string>
   <string name="morphe_music_lyrics_source_reset_title">重設提供者順序？</string>
   <string name="morphe_music_lyrics_source_reset_message">將提供者還原為預設優先順序</string>
+  <string name="morphe_music_lyrics_clear_cache_title">清除儲存的歌詞</string>
+  <string name="morphe_music_lyrics_clear_cache_summary">刪除本機裝置上保留的歌詞</string>
+  <string name="morphe_music_lyrics_clear_cache_done">已清除 %1$s MB</string>
   <string name="morphe_music_token_dialog_get_token">取得權杖</string>
   <string name="morphe_music_apple_music_token_title">Apple Music Media-user-token</string>
   <string name="morphe_music_apple_music_token_dialog_instruction">"貼上來自 music.apple.com 的 media-user-token Cookie
@@ -473,7 +480,7 @@ SABR 播放（影片串流模擬已關閉）"</string>
 3. 複製「media-user-token」的值"</string>
   <string name="morphe_music_apple_music_token_toast_saved">Apple Music：media-user-token 已儲存</string>
   <string name="morphe_music_apple_music_token_toast_cleared">Apple Music：媒體使用者權杖已清除</string>
-  <string name="morphe_music_apple_music_token_toast_invalid">Apple Music：媒體使用者權杖無效。請檢查後再試一次。</string>
+  <string name="morphe_music_apple_music_token_toast_invalid">Apple Music：無效的媒體使用者權杖 — 請檢查並重試</string>
   <string name="morphe_music_spotify_token_title">Spotify SpDc</string>
   <string name="morphe_music_spotify_token_dialog_instruction">"貼上來自 Spotify 的 sp_dc cookie。
 
@@ -483,7 +490,7 @@ SABR 播放（影片串流模擬已關閉）"</string>
 3. 複製「sp_dc」的值"</string>
   <string name="morphe_music_spotify_token_toast_saved">Spotify：sp_dc 為選填。未提供時，將使用 Lyrically 作為替代。</string>
   <string name="morphe_music_spotify_token_toast_cleared">Spotify：sp_dc 已清除</string>
-  <string name="morphe_music_spotify_token_toast_invalid">Spotify：無效的 sp_dc — 請檢查後重試</string>
+  <string name="morphe_music_spotify_token_toast_invalid">Spotify：sp_dc 無效 — 請檢查並重試</string>
   <string name="morphe_music_apple_token_optional_hint">Apple Music Token是可選的。若沒有Token，將會用Lyrically作為備用方案。</string>
   <string name="morphe_music_deezer_arl_title">Deezer ARL</string>
   <string name="morphe_music_deezer_arl_dialog_instruction">"貼上來自 Deezer 的 arl cookie。
@@ -494,7 +501,7 @@ SABR 播放（影片串流模擬已關閉）"</string>
 3. 複製「arl」的值"</string>
   <string name="morphe_music_deezer_arl_toast_saved">Deezer：arl 已儲存</string>
   <string name="morphe_music_deezer_arl_toast_cleared">Could not romanize the lyrics</string>
-  <string name="morphe_music_deezer_arl_toast_invalid">Deezer：arl 無效。請檢查後再試一次。</string>
+  <string name="morphe_music_deezer_arl_toast_invalid">Deezer：arl 無效 — 請檢查並重試</string>
   <string name="morphe_music_musixmatch_token_title">Musixmatch：[…] 複製「token」的值</string>
   <string name="morphe_music_musixmatch_token_dialog_instruction">僅在要使用您自己的帳戶時才新增權杖。此權杖必須來自 Musixmatch Android 應用程式：從 musixmatch.com 複製的權杖屬於已停用的桌面用戶端，API 會拒絕這些權杖。</string>
   <string name="morphe_music_musixmatch_token_optional_hint">Musixmatch 不需要權杖也能運作，因此此欄位可以留空。</string>
@@ -514,16 +521,23 @@ SABR 播放（影片串流模擬已關閉）"</string>
   <string name="morphe_music_youtube_cookies_toast_saved">YouTube：已儲存Cookie</string>
   <string name="morphe_music_youtube_cookies_toast_cleared">YouTube：已清除Cookie</string>
   <string name="morphe_music_youtube_cookies_toast_invalid">YouTube：無效Cookie — 請檢查並重試</string>
-  <string name="morphe_music_lyrics_tap_to_seek_title">點擊行以尋找</string>
-  <string name="morphe_music_lyrics_tap_to_seek_summary">點擊一行會跳到歌曲的那個時間點</string>
+  <string name="morphe_music_lyrics_tap_to_seek_title">輕觸並按住一行</string>
+  <string name="morphe_music_lyrics_tap_to_seek_summary">點擊行可跳轉至歌曲中的該時刻，長按该行可複製指標下方的單字，若未位於單字上則複製整行。關閉功能將禁用這兩種手勢操作</string>
+  <string name="morphe_music_lyrics_show_section_title">顯示段落標籤</string>
+  <string name="morphe_music_lyrics_show_section_summary">用小型標籤標示歌詞的每個新段落，例如主歌或副歌</string>
   <string name="morphe_music_lyrics_show_copy_button_title">顯示複製按鈕</string>
-  <string name="morphe_music_lyrics_show_copy_button_summary">點擊可複製純文字歌詞；長按可將原始歌詞來源儲存到下載的歌曲</string>
+  <string name="morphe_music_lyrics_show_copy_button_summary">點擊可複製純文字原始歌詞；長按可將原始歌詞來源檔案儲存至下載資料夾</string>
   <string name="morphe_music_lyrics_show_translate_button_title">顯示翻譯按鈕</string>
-  <string name="morphe_music_lyrics_show_translate_button_summary">輕觸以切換翻譯；長按則僅顯示翻譯。使用提供者提供的翻譯、Google 翻譯或 OpenAI 相容的 API。</string>
+  <string name="morphe_music_lyrics_show_translate_button_summary">點擊切換翻譯；長按僅進行翻譯。使用提供者的翻譯、Google 翻譯或 OpenAI 相容 API</string>
   <string name="morphe_music_lyrics_show_romanize_button_title">顯示羅馬拼音按鈕</string>
-  <string name="morphe_music_lyrics_show_romanize_button_summary">輕觸以切換羅馬拼音；長按則僅顯示羅馬拼音。使用提供者提供的羅馬拼音、Google 翻譯或 OpenAI 相容的 API。</string>
+  <string name="morphe_music_lyrics_show_romanize_button_summary">點擊切換羅馬拼音標示；長按僅進行羅馬拼音標示。使用提供者的羅馬拼音、Google 翻譯或 OpenAI 相容 API</string>
+  <string name="morphe_music_lyrics_local_romanization_title">本機羅馬拼音與對齊</string>
+  <string name="morphe_music_lyrics_local_romanization_summary">當提供者、自訂模型和 Google 翻譯失敗時，在裝置上進行羅馬拼音轉譯。讀音會對應時間軸歌詞的每個單字；必須啟用單字同步功能。支援中文、粵語、日文、韓文、希臘文、俄文、喬治亞文、亞美尼亞文；約需 120 MB</string>
+  <string name="morphe_music_lyrics_local_romanization_dict_building">正在建立讀音 %1$s：%2$d%%</string>
+  <string name="morphe_music_lyrics_local_romanization_dict_ready">讀音就緒 (%1$d 個條目)</string>
+  <string name="morphe_music_lyrics_local_romanization_dict_failed">下載失敗 - 關閉並重新開啟此選項以重試</string>
   <string name="morphe_music_lyrics_show_refresh_button_title">顯示重新整理按鈕</string>
-  <string name="morphe_music_lyrics_show_refresh_button_summary">輕觸後切換至下一則歌詞候選；長按後依歌曲標題及藝人搜尋歌詞</string>
+  <string name="morphe_music_lyrics_show_refresh_button_summary">輕觸切換至下一個歌詞候選項目；長按依歌曲標題及藝人搜尋歌詞</string>
   <string name="morphe_music_lyrics_search_dialog_title">搜尋歌詞</string>
   <string name="morphe_music_lyrics_search_title_hint">歌曲標題</string>
   <string name="morphe_music_lyrics_search_artist_hint">藝人</string>
@@ -532,12 +546,16 @@ SABR 播放（影片串流模擬已關閉）"</string>
   <string name="morphe_music_lyrics_saved">已儲存</string>
   <string name="morphe_music_lyrics_word_sync_title">強調已同步的歌詞</string>
   <string name="morphe_music_lyrics_word_sync_summary">優先使用已同步歌詞而非未同步歌詞</string>
+  <string name="morphe_music_lyrics_split_background_title">單獨顯示背景和聲</string>
+  <string name="morphe_music_lyrics_split_background_summary">將寫在括號中的背景人聲（如「(Oh) I want you」）從主唱行分離出來，變成獨立的較弱音量行</string>
   <string name="morphe_music_lyrics_hide_played_title">隱藏已播放行</string>
   <string name="morphe_music_lyrics_hide_played_summary">隱藏目前播放中那一行上方的歌詞行</string>
   <string name="morphe_music_lyrics_hide_unplayed_title">隱藏未播放的歌詞</string>
   <string name="morphe_music_lyrics_hide_unplayed_summary">隱藏目前播放中畫面下方的歌詞行</string>
   <string name="morphe_music_lyrics_mediasession_title">在鎖定畫面上顯示 MediaSession 歌詞</string>
+  <string name="morphe_music_lyrics_mediasession_summary">在鎖定螢幕、Android Auto 和藍牙上顯示當前行。需要 Android 11 或更新版本</string>
   <string name="morphe_music_lyrics_miniplayer_title">顯示迷你播放器的歌詞</string>
+  <string name="morphe_music_lyrics_miniplayer_summary">在小播放器中顯示當前行，並將歌曲移動至字幕位置</string>
   <string name="morphe_music_lyrics_display_artist_first_title">藝人和標題的顯示順序</string>
   <string name="morphe_music_lyrics_display_artist_first_summary">切換迷你播放器和媒體工作階段中藝人和標題的顯示順序。 ON「藝人 - 標題」和 OFF「標題 - 藝人」不影響歌詞搜索</string>
   <string name="morphe_settings_music_lyrics_metadata_title">篩選器</string>
@@ -556,42 +574,76 @@ SABR 播放（影片串流模擬已關閉）"</string>
   <string name="morphe_music_lyrics_sb_no_video">此曲目沒有可提交的影片ID</string>
   <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
   <string name="morphe_music_lyrics_source_label">來源：%s</string>
+  <string name="morphe_music_lyrics_contribute_credit">長按複製按鈕以儲存此 LRC；如果您能微調時間軸並與社群提供者分享，我們將不勝感激</string>
   <string name="morphe_music_lyrics_translated_by_google">由 Google 翻譯</string>
   <string name="morphe_music_lyrics_romanized_by_google">由 Google 轉寫</string>
   <string name="morphe_music_lyrics_translated_by_ai">由 %s 進行翻譯</string>
   <string name="morphe_music_lyrics_romanized_by_ai">由 %s 進行羅馬拼音翻譯</string>
+  <string name="morphe_music_lyrics_romanized_by_local">由 %s 進行羅馬拼音翻譯</string>
   <!-- Tappable label under the lyrics that turns the translation on. -->
   <string name="morphe_music_lyrics_translate_hide">已翻譯</string>
   <string name="morphe_music_lyrics_translation_language_title">翻譯語言</string>
+  <string name="morphe_music_lyrics_romanize_language_title">羅馬拼音語言</string>
   <string name="morphe_music_lyrics_translating">正在翻譯…</string>
   <string name="morphe_music_lyrics_translate_failed">無法翻譯歌詞</string>
   <string name="morphe_music_lyrics_romanize_hide">已翻譯成羅馬拼音</string>
+  <string name="morphe_romanize_language_DEFAULT">自動</string>
   <string name="morphe_music_lyrics_romanizing">正在翻譯成羅馬拼音…</string>
   <string name="morphe_music_lyrics_romanize_failed">無法將歌詞翻譯成羅馬拼音</string>
   <string name="morphe_music_lyrics_translate_only">僅顯示翻譯</string>
   <string name="morphe_music_lyrics_romanize_only">僅羅馬拼音</string>
+  <string name="morphe_music_lyrics_dual_only">雙模式</string>
   <string name="morphe_music_lyrics_copied">已複製到剪貼簿</string>
   <string name="morphe_music_lyrics_refreshing">正在重新整理</string>
   <string name="morphe_music_lyrics_refreshed">已重新整理</string>
-  <string name="morphe_music_lyrics_about_summary">"歌詞會以標題和藝人進行比對，非標準的中繼資料可能找不到任何結果或找到錯誤的版本。使用重新整理來切換版本。標示 * 的提供者需要權杖。所有已啟用的提供者不一定是按照您的順序被要求，而是根據其速度回應。"</string>
-  <string name="morphe_music_lyrics_source_advice_summary">只啟用您使用的提供者，或保留預設值——持續的請求可能會壓垮小型社群歌詞網站</string>
+  <string name="morphe_music_lyrics_transcribe_key_title">QuickLRC API 金鑰</string>
+  <string name="morphe_music_lyrics_transcribe_key_summary">QuickLRC 會為目前曲目轉錄或對齊歌詞。這是一個獨立的服務，與上述 OpenAI 相容端點無關</string>
+  <string name="morphe_music_lyrics_transcribe_key_set_summary">已儲存 QuickLRC 金鑰。在歌詞搜尋對話方塊中使用對齊按鈕，或在曲目無歌詞時使用面板提示</string>
+  <string name="morphe_music_lyrics_transcribe_key_saved">QuickLRC API 金鑰已儲存</string>
+  <string name="morphe_music_lyrics_transcribe_key_rejected">QuickLRC 不接受該金鑰</string>
+  <string name="morphe_music_lyrics_transcribe_key_cleared">QuickLRC API 金鑰已清除</string>
+  <string name="morphe_music_lyrics_transcribe_key_dialog_instruction">QuickLRC 會為無歌詞的曲目產生時間軸，或從曲目進行轉錄，這會消耗信用點數。設定金鑰後，無歌詞的曲目將提供轉錄功能，搜尋對話方塊也會增加對齊按鈕</string>
+  <string name="morphe_music_lyrics_transcribe_align">請求 QuickLRC 對齊</string>
+  <string name="morphe_music_lyrics_transcribe_aligning">正在對齊</string>
+  <string name="morphe_music_lyrics_transcribe_apply_align">套用對齊</string>
+  <string name="morphe_music_lyrics_transcribe_prompt">請求 QuickLRC 轉錄</string>
+  <string name="morphe_music_lyrics_transcribe_working">正在轉錄</string>
+  <string name="morphe_music_lyrics_transcribe_cancelled">轉錄已取消</string>
+  <string name="morphe_music_lyrics_transcribe_local_unsupported">僅可從 YouTube 播放的曲目才能進行轉錄</string>
+  <string name="morphe_music_lyrics_transcribe_no_text">無歌詞可對齊 - 改為進行轉錄</string>
+  <string name="morphe_music_lyrics_transcribe_failed">QuickLRC 無法處理此曲目</string>
+  <string name="morphe_music_lyrics_transcribe_out_of_credits">此曲目的 QuickLRC 積分已用完</string>
+  <string name="morphe_music_lyrics_about_summary">"歌詞是根據標題和藝人進行配對，不尋常的中繼資料可能導致找不到內容或找到錯誤的版本。請使用重新整理按鈕來切換版本。標記 * 的服務提供者需要權杖。並非所有啟用的服務提供者都會按照您的設定順序請求回應，而是根據其速度回應。
+
+歌詞來自第三方服務，這些服務與 Morphe 無關，也未獲得 Morphe 贊助或認可。各項服務皆按其原始狀態使用：歌詞內容、可用性及其授權權利仍歸屬於該服務及其授權方，使用這些服務可能受其服務條款約束。傳送至已啟用服務的資訊只有你查詢所需的數據——即標題、藝人名稱，以及該服務需要時所包含的影片 ID。可選的人工智慧端點和 QuickLRC 轉錄功能僅在你設定後才會執行，且僅接收歌詞文字或歌曲的影片 URL。"</string>
+  <string name="morphe_music_lyrics_source_advice_summary">僅啟您使用的供應商，或保持預設值 - 不斷請求可能會使小型社群歌詞網站不堪負荷</string>
   <string name="morphe_music_lyrics_hide_info_title">隱藏來源標示</string>
   <string name="morphe_music_lyrics_hide_info_summary">在歌詞畫面中隱藏來源標示</string>
   <string name="morphe_music_lyrics_swap_trans_roma_title">交換翻譯和羅馬拼音</string>
   <string name="morphe_music_lyrics_swap_trans_roma_summary">開啟時將羅馬拼音放在歌詞下面，翻譯放在上面； 關閉時維持羅馬拼音放在上面，翻譯放在下面</string>
-  <string name="morphe_music_lyrics_use_ai_translation_title">OpenAI 相容翻譯</string>
-  <string name="morphe_music_lyrics_use_ai_translation_summary">使用自訂的 OpenAI 相容 API 進行翻譯和羅馬拼音，取代 Google 翻譯</string>
-  <string name="morphe_music_lyrics_ai_config_dialog_title">AI 翻譯設定</string>
-  <string name="morphe_music_lyrics_ai_config_dialog_instruction">設定用於 AI 歌詞翻譯和羅馬拼音的 OpenAI 相容 API 端點。</string>
+  <string name="morphe_music_lyrics_use_ai_title">OpenAI 相容 API</string>
+  <string name="morphe_music_lyrics_use_ai_translation_title">AI 翻譯</string>
+  <string name="morphe_music_lyrics_use_ai_translation_summary">優先使用提供者隨附的翻譯，接著使用你的 OpenAI 相容模型，最後使用 Google 翻譯</string>
+  <string name="morphe_music_lyrics_use_ai_romanization_title">AI 羅馬拼音</string>
+  <string name="morphe_music_lyrics_use_ai_romanization_summary">優先使用供應商提供的羅馬拼音方案，其次是你的 OpenAI 相容模型，最後才是 Google 翻譯</string>
+  <string name="morphe_music_lyrics_use_ai_section_title">AI 段落</string>
+  <string name="morphe_music_lyrics_use_ai_section_summary">僅在供應商未提供如副歌或主歌等段落標記，而由你的 OpenAI 相容模型偵測時使用</string>
+  <string name="morphe_music_lyrics_ai_config_dialog_title">AI 設定</string>
+  <string name="morphe_music_lyrics_ai_config_dialog_instruction">配置 OpenAI 相容 API 端點，用於 AI 驅動的歌詞翻譯、羅馬拼音和段落標記</string>
   <string name="morphe_music_lyrics_ai_config_base_url_hint">API 端點 URL（例如 https://text.pollinations.ai/openai）</string>
   <string name="morphe_music_lyrics_ai_config_api_token_hint">API 金鑰（留空以匿名存取）</string>
   <string name="morphe_music_lyrics_ai_config_model_hint">模型名稱（例如 openai-fast、gpt-4o-mini）</string>
-  <string name="morphe_music_lyrics_ai_config_prompt_hint">提示詞範本 (變數：{language}, {task}, {title}, {artist}, {count}, {lines}）</string>
-  <string name="morphe_music_lyrics_ai_config_toast_saved">AI 翻譯設定已儲存</string>
-  <string name="morphe_music_lyrics_ai_config_toast_invalid">無法連線到 AI 端點。請檢查您的設定。</string>
-  <string name="morphe_music_lyrics_ai_config_toast_reset">AI 翻譯設定已重設</string>
-  <string name="morphe_music_lyrics_ai_config_status_configured">已設定</string>
-  <string name="morphe_music_lyrics_ai_config_status_not_configured">點擊以設定</string>
+  <string name="morphe_music_lyrics_ai_prompt_dialog_title">提示詞範本</string>
+  <string name="morphe_music_lyrics_ai_prompt_dialog_hint">佔位符：{language}, {task}, {title}, {artist}, {count}, {lines}</string>
+  <string name="morphe_music_lyrics_ai_prompt_toast_saved">已儲存提示詞</string>
+  <string name="morphe_music_lyrics_ai_prompt_toast_endpoint_invalid">已儲存提示，但 AI 端點尚無法使用。請先在「AI 設定」中進行配置</string>
+  <string name="morphe_music_lyrics_ai_prompt_toast_reset">已重設提示詞</string>
+  <string name="morphe_music_lyrics_ai_extra_body_hint">額外的請求主體 (JSON，合併至每個 AI 請求中)</string>
+  <string name="morphe_music_lyrics_ai_extra_body_invalid">無效的 JSON。請修正或清空欄位後再儲存</string>
+  <string name="morphe_music_lyrics_ai_config_toast_saved">已儲存 AI 設定</string>
+  <string name="morphe_music_lyrics_ai_config_toast_invalid">無法連線至 AI 端點。請檢查您的設定</string>
+  <string name="morphe_music_lyrics_ai_config_toast_reset">已重設 AI 設定</string>
+  <string name="morphe_music_lyrics_ai_config_summary_configured">已設定 %1$s 模型</string>
   <string name="morphe_music_lyrics_ai_config_status_empty_url">Base URL 不能為空</string>
   <string name="morphe_music_lyrics_ai_config_status_invalid_url">Base URL 必須以 http:// 或 https:// 開頭</string>
   <string name="morphe_music_lyrics_ai_config_status_empty_model">模型名稱不能為空</string>

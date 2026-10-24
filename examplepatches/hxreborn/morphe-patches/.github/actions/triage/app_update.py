@@ -10,22 +10,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parents[2] / "scripts"))
 from fields import field, normalize, parse_fields
-from versions import build_tags, compare, same_variant, tracked_version, version_key
+from versions import (APP_UPDATE_TITLE_PREFIX, build_tags, compare, same_variant, targets, tracked_version,
+                      version_key)
 
 MARKER = "<!-- app-update-bot -->"
-TITLE_PREFIX = "[App Update]: "
 VERSION_CODE = re.compile(r"\s*\(([\w.+-]*)\)\s*$")
 VERSION = re.compile(r"[A-Za-z0-9._+-]+(?: [A-Za-z0-9._+-]+)?")
 MAX_VERSION = 64
-
-
-def targets(patches_list):
-    apps = {}
-    for patch in patches_list["patches"]:
-        for package in patch.get("compatiblePackages") or []:
-            versions = apps.setdefault(package["name"], set())
-            versions.update(t["version"] for t in package.get("targets") or [] if t.get("version"))
-    return apps
 
 
 def is_version(text):
@@ -78,12 +69,12 @@ def decide(number, body, issues, patches_list):
         elif tracker:
             verdict, reason, duplicate_of = "close", "duplicate", tracker["number"]
             if compare(version, tracked) > 0:
-                retitle = {"number": tracker["number"], "title": f"{TITLE_PREFIX}{app} {version}"}
+                retitle = {"number": tracker["number"], "title": f"{APP_UPDATE_TITLE_PREFIX}{app} {version}"}
                 lines.append(f"Issue #{tracker['number']} now tracks {app} {version}.")
             else:
                 lines.append(f"Issue #{tracker['number']} already tracks {app} {tracked}.")
         else:
-            title = f"{TITLE_PREFIX}{app} {version}"
+            title = f"{APP_UPDATE_TITLE_PREFIX}{app} {version}"
 
     return {
         "verdict": verdict,

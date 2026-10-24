@@ -286,10 +286,13 @@ public final class AccentResources {
 
     /**
      * Resources of this class's own on {@code resources}' assets, one for each set of assets, so a
-     * loader's callbacks hold one Resources for them however many activities share them.
+     * loader's callbacks hold one Resources for them however many activities share them. AMOLED's
+     * Background color adds its table to the same one ({@link AmoledResources}): Resources Android
+     * doesn't manage hand the assets their own list of loaders, so a second one would drop this
+     * one's.
      */
     @SuppressWarnings("deprecation") // The constructor is the public way to Resources Android doesn't manage.
-    private static synchronized Resources onAssets(Resources resources) {
+    static synchronized Resources onAssets(Resources resources) {
         AssetManager assets = resources.getAssets();
         Resources known = ON_ASSETS.get(assets);
         if (known != null) return known;
@@ -306,7 +309,15 @@ public final class AccentResources {
         Answer answer = answer(preset);
         if (answer.ids.length == 0) return null;
         byte[] table = ColourTable.write(packageName, answer.ids, answer.colours, answer.nights, answer.hasNight);
-        FileDescriptor memory = Os.memfd_create("hushfacebook-accent.arsc", 0);
+        ResourcesLoader loader = loaderFor("hushfacebook-accent.arsc", table);
+        LOADERS.put(preset, loader);
+        Logger.printDebug(() -> "Accent color: " + answer.ids.length + " colour resources take " + preset.fileValue);
+        return loader;
+    }
+
+    /** A loader for the resource {@code table}, read from memory named {@code name}. AMOLED's Background color makes its own the same way. */
+    static ResourcesLoader loaderFor(String name, byte[] table) throws Exception {
+        FileDescriptor memory = Os.memfd_create(name, 0);
         try {
             // A stream on a descriptor it didn't open leaves the descriptor open when it closes.
             try (FileOutputStream out = new FileOutputStream(memory)) {
@@ -315,8 +326,6 @@ public final class AccentResources {
             try (ParcelFileDescriptor copy = ParcelFileDescriptor.dup(memory)) {
                 ResourcesLoader loader = new ResourcesLoader();
                 loader.addProvider(ResourcesProvider.loadFromTable(copy, null));
-                LOADERS.put(preset, loader);
-                Logger.printDebug(() -> "Accent color: " + answer.ids.length + " colour resources take " + preset.fileValue);
                 return loader;
             }
         } finally {

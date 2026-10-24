@@ -33,14 +33,12 @@ public final class VideoViewerSettings {
         Switch brightness = toggle(body, activity, "左半分の上下スワイプで明るさ調整", prefs.getBoolean("videoSwipeBrightness", false));
         Switch volume = toggle(body, activity, "右半分の上下スワイプで音量調整", prefs.getBoolean("videoSwipeVolume", false));
         Switch doubleTap = toggle(body, activity, "左ダブルタップで巻き戻し／右ダブルタップで早送り", prefs.getBoolean("videoDoubleTapSeek", false));
-        TextView label = new TextView(activity); label.setText("ダブルタップで移動する秒数"); body.addView(label);
+        TextView label = new TextView(activity); label.setText("戻る／進む・ダブルタップで移動する秒数"); body.addView(label);
         Spinner seconds = new Spinner(activity);
         String[] labels = {"5秒", "10秒", "15秒", "30秒", "60秒"};
         int[] values = {5, 10, 15, 30, 60};
         seconds.setAdapter(new ArrayAdapter<>(activity, android.R.layout.simple_spinner_dropdown_item, labels));
         for (int i = 0; i < values.length; i++) if (values[i] == skipSeconds(activity)) seconds.setSelection(i);
-        seconds.setEnabled(doubleTap.isChecked());
-        doubleTap.setOnCheckedChangeListener((button, checked) -> seconds.setEnabled(checked));
         body.addView(seconds);
         Switch youtube = toggle(body, activity, "YouTubeをアプリ内の公式プレーヤーで開く", youtubeEnabled(activity));
         TextView note = new TextView(activity);

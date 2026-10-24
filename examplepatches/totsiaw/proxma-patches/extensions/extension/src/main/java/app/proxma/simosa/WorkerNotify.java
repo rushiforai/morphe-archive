@@ -69,7 +69,8 @@ public final class WorkerNotify {
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new Notification.BigTextStyle().bigText(body))
-                .setAutoCancel(true);
+                .setAutoCancel(true)
+                .setOnlyAlertOnce(true);
 
             if (Build.VERSION.SDK_INT >= 26) {
                 builder.setTimeoutAfter(72 * 60 * 60 * 1000L);

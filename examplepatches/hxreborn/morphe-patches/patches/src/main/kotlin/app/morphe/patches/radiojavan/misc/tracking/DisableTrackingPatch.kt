@@ -8,7 +8,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.analytics.disableAnalyticsCollectionPatch
 import app.morphe.patches.shared.misc.analytics.disableCrashlyticsCollectionPatch
-import app.morphe.patches.shared.misc.analytics.putApplicationMetaData
+import app.morphe.patches.shared.misc.analytics.disableFirebaseSessionsPatch
 
 @Suppress("unused")
 val disableTrackingPatch = resourcePatch(
@@ -17,11 +17,5 @@ val disableTrackingPatch = resourcePatch(
 ) {
     compatibleWith(AppCompatibilities.RADIO_JAVAN)
 
-    dependsOn(disableAnalyticsCollectionPatch, disableCrashlyticsCollectionPatch)
-
-    execute {
-        document("AndroidManifest.xml").use { document ->
-            document.putApplicationMetaData("firebase_sessions_enabled", "false")
-        }
-    }
+    dependsOn(disableAnalyticsCollectionPatch, disableCrashlyticsCollectionPatch, disableFirebaseSessionsPatch)
 }

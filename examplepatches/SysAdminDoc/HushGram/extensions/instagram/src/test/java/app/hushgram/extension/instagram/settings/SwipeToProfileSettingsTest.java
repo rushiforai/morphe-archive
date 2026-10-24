@@ -24,7 +24,7 @@ import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
-/** Swipe left to open the profile's switch: under Reels, off to start, off while paused, applied with no restart. */
+/** Swipe left to open the profile's switch: under Reels, off to start, off while paused, applied on a restart. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 37})
 @SuppressWarnings("deprecation")
@@ -75,7 +75,7 @@ public class SwipeToProfileSettingsTest {
         assertEquals("Reels", row.getParent().getTitle().toString());
         assertFalse(row.isChecked());
         assertFalse(Settings.REEL_SWIPE_TO_PROFILE.get());
-        assertFalse("read at each swipe, so no restart", Settings.REEL_SWIPE_TO_PROFILE.rebootApp);
+        assertTrue("the swipe setup reads it once to build the panel, so a restart", Settings.REEL_SWIPE_TO_PROFILE.rebootApp);
         assertEquals(java.util.Collections.singletonList(Settings.REEL_SWIPE_TO_PROFILE), PatchFamily.SWIPE_TO_PROFILE.switches);
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.REEL_SWIPE_TO_PROFILE.key));
 

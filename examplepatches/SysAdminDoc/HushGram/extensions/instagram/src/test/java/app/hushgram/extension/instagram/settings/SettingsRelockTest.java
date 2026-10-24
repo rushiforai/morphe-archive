@@ -369,7 +369,8 @@ public class SettingsRelockTest {
         assertTrue(Settings.LOCK_MESSAGES.savedValue());
         assertTrue(Settings.LOCK_APP.savedValue());
         assertFalse("the rest of the file still applies", Settings.HIDE_ADS.savedValue());
-        assertEquals(2, result.skipped);
+        assertEquals("the locks are held, not unknown", 0, result.skipped);
+        assertEquals(2, result.held);
     }
 
     /** Picks a settings file turning the lock off; the picker's screen is a leave that locks again. */

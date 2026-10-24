@@ -18,6 +18,7 @@ body:
       options:
         # generated:apps
         - "1Weather"
+        - "3way"
         - "aCalendar"
         - "Albo"
         - "All Video Player App"
@@ -35,6 +36,7 @@ body:
         - "BlurWall"
         - "botim"
         - "CalcNote"
+        - "Cast Plug-in for Musicolet"
         - "Castle"
         - "Castle for TV"
         - "Catzy"
@@ -55,6 +57,7 @@ body:
         - "Graph Messenger"
         - "Hindu Calendar"
         - "imo"
+        - "Internet Speed Meter Lite"
         - "Joyn"
         - "Joyn Austria"
         - "Jujo"
@@ -124,6 +127,7 @@ body:
         - "TeraBox"
         - "Trainline"
         - "U Dictionary"
+        - "Viber"
         - "Video Editor"
         - "VLLO"
         - "VPN Super Unlimited Proxy"
@@ -133,6 +137,7 @@ body:
         - "Wattpad"
         - "Yanosik"
         - "Yi iot"
+        - "Yuka"
         # /generated
     validations:
       required: true

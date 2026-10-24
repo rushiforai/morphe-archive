@@ -76,8 +76,8 @@
   },
   "CachePlayback": {
     "owner": "snapshot",
-    "java_sha256": "9ffe298214a302e68215663383330c16bcb220feb64063635759b31807ef7a6b",
-    "smali_sha256": "e94174d54e411c97178ac7b8a63f6742600bd0c21029fa608beef99731e1b832"
+    "java_sha256": "ac73203b71b8ae4d859498f964be392b20846b2bcd8ff6713b0e9ace00a7aeba",
+    "smali_sha256": "e9fa88178f095389fe154c2e53e1887d1d8393a0e13459a69448ccd95065b2b4"
   },
   "CachePlaybackPolicy": {
     "owner": "snapshot",
@@ -116,8 +116,8 @@
   },
   "CachedMediaArtwork": {
     "owner": "snapshot",
-    "java_sha256": "27f6a5a3502a4f13635f72ff17a55eaad3f0c94454788f2dc130497ad1a5ef5e",
-    "smali_sha256": "42e4b2b354688d00ee6bbf2d5d4a1245617454af8f25233ef7eec585d1055dfd"
+    "java_sha256": "f7554ffb605fa1670a07e9debbdb5a111dbd8ab3f556d6aa253957195ea93127",
+    "smali_sha256": "92857e8bb8a2ac2657a3905fe921e7bd5db29d7001dab2bdc04f2005dd62ea76"
   },
   "CachedPlayback": {
     "owner": "snapshot",
@@ -202,7 +202,7 @@
   "CommentUi": {
     "owner": "snapshot",
     "java_sha256": "cce13210d55645ad4e6e6251abbb2f079421b4687e0646d1c1da81d4cd2b0e6f",
-    "smali_sha256": "9ed9be81b19ec0d8195842e742a053edc1e53f62e06efb29f4a72db51ad3b513"
+    "smali_sha256": "a162e74c19d94c6730d8c85bc4e1b2c89bc16a7e7caa87cc0d027a0c35b97cae"
   },
   "CommentViewport190": {
     "owner": "snapshot",
@@ -322,7 +322,7 @@
   "FullscreenControls": {
     "owner": "snapshot",
     "java_sha256": "1bb7bb6715aff06b47bfc06452521127f24be6dc77339227e6ed56f5af5b88c7",
-    "smali_sha256": "dbf9bb1afc8757b736952465f069921eeb8ed9c2e1f9e065d78f5d39db6a8a2e"
+    "smali_sha256": "cf2b7edafb5c9a4d6e86d443e2dbb9d2126dcb6d7615fc283aceebd55fca2f52"
   },
   "FullscreenViewport204": {
     "owner": "snapshot",
@@ -489,6 +489,11 @@
     "java_sha256": "f35c01f4c0978288ba7a2ef57014ac7250b966d053cf69f699f3a1336a15c671",
     "smali_sha256": "fab877e14202ce91b8802fe16ce3189e82081bac53c822b3c1e221d9af0e49e3"
   },
+  "PlaybackRequest217": {
+    "owner": "snapshot",
+    "java_sha256": "82fa0bb8cbbaad11f273da85240973e81eb4097af76c6d42cb7fb45b65606aa5",
+    "smali_sha256": "97910f8c4d3dc6488658d7bb7209f9132df79054d1570a2394ac62a751ff301f"
+  },
   "PlaybackReturn": {
     "owner": "snapshot",
     "java_sha256": "597f7fc3fb7563ca416dc7d314a7222a3acdcb516ed81abd29a4ca961360448c",
@@ -548,6 +553,11 @@
     "owner": "snapshot",
     "java_sha256": "a128a971be9b4f09e3702b0f40a3e29442fc5735fd47e5de94c5d2989f437a40",
     "smali_sha256": "aa34e16b43dabd2a6cc7ab630bbaec5e8f32570cf17ada11fa619672dc55f8ca"
+  },
+  "PopupBackground217": {
+    "owner": "snapshot",
+    "java_sha256": "5862b7651a70d635861ad50d714ae956e2ae969d9c01b824c320c16002f05052",
+    "smali_sha256": "d7121df22e9b6258b6dd6394f7e4dfb62275b6713c82b9f21bed9814ad5ce83b"
   },
   "PopupDrag195": {
     "owner": "snapshot",
@@ -682,7 +692,7 @@
   "SettingsIntegrity": {
     "owner": "snapshot",
     "java_sha256": "81e303b2278c3d654603257218c58e8dd2fc8648456cd1714bac829cd1eebb7f",
-    "smali_sha256": "e57c1f7d83eee610ba4d39ccd113e2ac80e061589b9b68a575a8fe7c110ee349"
+    "smali_sha256": "f029ea348edc226e5ae56c126729c401dddc069680b716bccbeba76b8f3eb203"
   },
   "SettingsTools": {
     "owner": "snapshot",
@@ -691,8 +701,8 @@
   },
   "ShortImages": {
     "owner": "snapshot",
-    "java_sha256": "1d7db2acec9afbe0b7042a9902a8e0e24da25860d37b919410e97cfdad3facbb",
-    "smali_sha256": "57400635379bc971e2abcf842ead469e46e9866bf03d4eb37812eadb518fd701"
+    "java_sha256": "36fa13c094c798e5c02bb4d7de3e24476d881093cc6123f526bcd84f5e88be55",
+    "smali_sha256": "1f6cebebb274b4de2349ca825d62454d39b46f909b70186a463b3fa28badc0b0"
   },
   "ShortsRules": {
     "owner": "snapshot",

@@ -85,6 +85,7 @@ final class WacchoiBackgroundJob {
     private volatile Runnable changed;
     private final ExecutorService executor=Executors.newSingleThreadExecutor();
     private volatile Future<?> job;
+    private volatile Thread worker;
     private volatile boolean cancelled;
     private volatile long lastRequestAt;
     private volatile HttpURLConnection activeConnection;
@@ -94,6 +95,7 @@ final class WacchoiBackgroundJob {
     private int edgeMatchMode;
     private String edgeNextBoard, edgeResumeUrl, edgeResumeTitle = "";
     private WacchoiSearch.RequestBudget requestBudget = new WacchoiSearch.RequestBudget(0);
+    private int manualStartAt;
     private final Set<String> edgeVisitedBoards = new LinkedHashSet<>();
     volatile boolean running;
     volatile String status="開始しています";
@@ -114,6 +116,9 @@ final class WacchoiBackgroundJob {
         if(!FeatureSwitches.enabled("wacchoiSearchEnabled",true))return;
         if(running)return;
         rememberArguments(args);
+        try { manualStartAt=Integer.parseInt(args.getStringExtra("startAt")); }
+        catch(RuntimeException ignored){manualStartAt=0;}
+        manualStartAt=Math.max(0,Math.min(9999,manualStartAt));
         requestBudget = new WacchoiSearch.RequestBudget(args.getIntExtra("requestLimit",0));
         history=WacchoiHistory.begin(context,args);
         running=true;cancelled=false;
@@ -124,6 +129,27 @@ final class WacchoiBackgroundJob {
         boolean upper=args.getBooleanExtra("upper",false);
         int limit=Math.max(1,Math.min(MAX_LIST_PAGES,args.getIntExtra("limit",100)));
         job=executor.submit(()->{
+            worker=Thread.currentThread();
+            String resumeId=args.getStringExtra("resumeHistory");
+            if(resumeId!=null){
+                try{
+                    org.json.JSONObject saved=WacchoiHistory.readOne(context,resumeId);
+                    org.json.JSONObject checkpoint=saved.getJSONObject("checkpoint");
+                    SearchCursor cursor=SearchCursor.decode(checkpoint);
+                    edgeNextBoard=SearchCursor.nullable(checkpoint,"next");edgeResumeUrl=SearchCursor.nullable(checkpoint,"url");
+                    edgeResumeTitle=checkpoint.optString("title");
+                    List<String> visited=SearchCursor.strings(checkpoint.optJSONArray("visited"));
+                    if(visited!=null)edgeVisitedBoards.addAll(visited);
+                    org.json.JSONArray results=saved.optJSONArray("results");
+                    if(results!=null)for(int i=0;i<results.length();i++){
+                        org.json.JSONObject r=results.optJSONObject(i);if(r!=null)add(new Record(r.optInt("kind"),r.optString("a"),r.optString("b"),r.optString("c"),r.optString("d")));
+                    }
+                    resumeCursor=cursor;
+                    if(cursor.edgeIds!=null)runEdgeSearch(cursor.four,cursor.firstHalf,cursor.limit,cursor);
+                    else runSearch(cursor.boardChoice,cursor.date,cursor.to,cursor.four,cursor.firstHalf,cursor.limit,cursor);
+                }catch(Exception e){publishStatus("履歴から再開できません: "+e.getMessage());finish();}
+                return;
+            }
             if(args.getBooleanExtra("edge",false))runEdgeSearch(four,upper,limit,null);
             else runSearch(args.getStringExtra("boards"),args.getStringExtra("from"),args.getStringExtra("to"),four,upper,limit,null);
         });
@@ -134,21 +160,29 @@ final class WacchoiBackgroundJob {
         requestBudget.reset();
         running=true;cancelled=false;
         job=executor.submit(()->{
+            worker=Thread.currentThread();
             if(cursor.edgeIds!=null)runEdgeSearch(cursor.four,cursor.firstHalf,cursor.limit,cursor);
             else runSearch(cursor.boardChoice,cursor.date,cursor.to,cursor.four,cursor.firstHalf,cursor.limit,cursor);
         });
     }
     void cancel(){
+        if(!running)return;
+        status="停止しています";if(history!=null)history.status(status);
         cancelled=true;
         HttpURLConnection connection=activeConnection;
         if(connection!=null)new Thread(connection::disconnect,"wacchoi-bg-close").start();
-        Future<?> task=job;if(task!=null)task.cancel(true);
-        running=false;status="停止しました";if(history!=null)history.status(status);changed.run();
+        Thread task=worker;if(task!=null)task.interrupt();
+        // Remain running until the old worker exits: an immediate resume must not
+        // clear cancellation while it is still publishing results or its cursor.
+        changed.run();
     }
     void release(){if(running)cancel();executor.shutdownNow();}
-    private void finish(){running=false;if(history!=null)history.status(status);changed.run();}
-    private void publishStatus(String text){status=text;if(history!=null)history.status(text);changed.run();}
+    private void saveProgress(){if(history!=null)history.progress(resumeCursor,edgeNextBoard,edgeResumeUrl,edgeResumeTitle,edgeVisitedBoards);}
+    private void finish(){saveProgress();worker=null;running=false;if(history!=null)history.status(status);changed.run();}
+    private void publishStatus(String text){status=text;saveProgress();if(history!=null)history.status(text);changed.run();}
+    private final Set<String> resultKeys=new LinkedHashSet<>();
     private synchronized void add(Record record){
+        if(!resultKeys.add(record.kind+"\n"+record.a))return;
         if(history!=null)history.add(record.kind,record.a,record.b,record.c,record.d);
         if(records.size()<2000)records.add(record);
         else status="結果表示は2000件までです。条件を絞って検索してください。";
@@ -183,7 +217,7 @@ final class WacchoiBackgroundJob {
                     if (resume != null && date.equals(resume.date)
                             && boards.indexOf(board) < boards.indexOf(resume.board)) continue;
                     int page = resume != null && date.equals(resume.date) && board.equals(resume.board)
-                            ? resume.page : 0;
+                            ? resume.page : date.equals(from)&&board.equals(boards.get(0)) ? manualStartAt : 0;
                     resumeCursor = new SearchCursor(boards, boardChoice, date, to, board, page,
                             four, firstHalf, pageLimit, null, 0);
                     if (cancelled || scanned >= pageLimit) { exhausted = false; break outer; }
@@ -259,7 +293,7 @@ final class WacchoiBackgroundJob {
             if (ids.isEmpty()) {
                 throw new IllegalStateException("Kyodemoのスレ一覧からスレIDを読み取れませんでした");
             }
-            int index = resume == null ? 0 : resume.edgeIndex;
+            int index = resume == null ? manualStartAt : resume.edgeIndex;
             for (; index < ids.size() || edgeNextBoard != null; index++) {
                 if (cancelled || (threadLimit > 0 && scanned >= threadLimit)) break;
                 if (index >= ids.size()) {
@@ -359,9 +393,9 @@ final class WacchoiBackgroundJob {
     }
 
     private String fetchEdge(String address) throws Exception {
+        if(!FeatureSwitches.enabled("wacchoiSearchEnabled",true))throw new InterruptedException("検索は設定でオフになっています");
         requestBudget.check();
-        long wait = MIN_INTERVAL_MS - (SystemClock.elapsedRealtime() - lastRequestAt);
-        if (lastRequestAt != 0 && wait > 0) Thread.sleep(wait);
+        SearchRequestPacing.await(address);
         if (cancelled || Thread.currentThread().isInterrupted())
             throw new InterruptedException("停止しました");
         HttpURLConnection connection = (HttpURLConnection) new URL(address).openConnection();
@@ -416,12 +450,10 @@ final class WacchoiBackgroundJob {
     private String fetch(String address) throws Exception {
         if(!FeatureSwitches.enabled("wacchoiSearchEnabled",true))throw new InterruptedException("検索は設定でオフになっています");
         File cache = cacheFile(address);
-        if (WacchoiStorageLimits.fresh(context,cache)) {
-            try (InputStream in = new FileInputStream(cache)) { return readText(in); }
-        }
+        byte[] cached=WacchoiPageCache.read(context,cache);
+        if(cached!=null)return new String(cached,Charset.forName("Shift_JIS"));
         requestBudget.check();
-        long wait = MIN_INTERVAL_MS - (SystemClock.elapsedRealtime() - lastRequestAt);
-        if (lastRequestAt != 0 && wait > 0) Thread.sleep(wait);
+        SearchRequestPacing.await(address);
         if (cancelled || Thread.currentThread().isInterrupted()) throw new InterruptedException("停止しました");
         HttpURLConnection connection = (HttpURLConnection) new URL(address).openConnection();
         activeConnection = connection;
@@ -438,9 +470,7 @@ final class WacchoiBackgroundJob {
             byte[] bytes;
             try (InputStream in = connection.getInputStream()) { bytes = readBytes(in); }
             String text = new String(bytes, Charset.forName("Shift_JIS"));
-            cache.setLastModified(System.currentTimeMillis());
-            try (FileOutputStream out = new FileOutputStream(cache)) { out.write(bytes); }
-            trimCache(cache.getParentFile());
+            WacchoiPageCache.write(context,cache,bytes);
             return text;
         } finally { connection.disconnect(); activeConnection = null; }
     }
@@ -474,19 +504,6 @@ final class WacchoiBackgroundJob {
         if (size <= limit) return;
         java.util.Arrays.sort(files, Comparator.comparingLong(File::lastModified));
         for (File file : files) { if (size <= limit) break; size -= file.length(); file.delete(); }
-    }
-    private static final class SearchCursor {
-        final List<String> boards, edgeIds;
-        final String boardChoice, date, to, board, four;
-        final int page, limit, edgeIndex;
-        final boolean firstHalf;
-
-        SearchCursor(List<String> boards, String boardChoice, String date, String to, String board,
-                int page, String four, boolean firstHalf, int limit, List<String> edgeIds, int edgeIndex) {
-            this.boards = boards; this.boardChoice = boardChoice; this.date = date; this.to = to;
-            this.board = board; this.page = page; this.four = four; this.firstHalf = firstHalf;
-            this.limit = limit; this.edgeIds = edgeIds; this.edgeIndex = edgeIndex;
-        }
     }
 
 }

@@ -54,6 +54,10 @@ public final class ThemeImportActivity extends HaiagaruComposeActivity {
         layout.addView(help);
         button(layout, "テーマファイルを選択（複数可）", FILES);
         button(layout, "画像素材付きのフォルダを選択", FOLDER);
+        Button themes = new Button(this);
+        themes.setText("取り込み済みテーマ一覧・削除");
+        themes.setOnClickListener(v -> showImportedThemes());
+        layout.addView(themes);
         status = new TextView(this);
         layout.addView(status);
         Button close = new Button(this);
@@ -64,6 +68,72 @@ public final class ThemeImportActivity extends HaiagaruComposeActivity {
         scroll.setFitsSystemWindows(true);
         scroll.addView(layout);
         HaiagaruUi.showModel(this, "カスタムテーマの取り込み", scroll);
+        if (state == null && getIntent().getBooleanExtra("haiagaru.themes.list", false))
+            getWindow().getDecorView().post(this::showImportedThemes);
+    }
+
+    private File themeRoot() throws IOException { return new File(HaiagaruSyncSnapshot.externalRoot(this), "theme"); }
+
+    private void showImportedThemes() {
+        if (busy) return;
+        busy=true;
+        status.setText("取り込み済みテーマを確認しています…");
+        new Thread(() -> {
+            try {
+                List<ImportedThemes.Entry> entries;
+                synchronized (IMPORT_LOCK) { entries=ImportedThemes.list(themeRoot()); }
+                runOnUiThread(() -> {
+                    busy=false;
+                    if (isFinishing() || isDestroyed()) return;
+                    status.setText("取り込み済みテーマ: "+entries.size()+"件");
+                    if (entries.isEmpty()) {
+                        new HaiagaruDialog.Builder(this).setTitle("取り込み済みテーマ")
+                                .setMessage("取り込み済みの自作テーマはありません。標準テーマはこの一覧には含まれません。")
+                                .setPositiveButton("閉じる",null).show();
+                        return;
+                    }
+                    String[] labels=new String[entries.size()];
+                    for (int i=0;i<labels.length;i++) labels[i]=entries.get(i).relativePath;
+                    new HaiagaruDialog.Builder(this).setTitle("取り込み済みテーマ（"+entries.size()+"件）")
+                            .setItems(labels,(dialog,index)->confirmDeleteTheme(entries.get(index)))
+                            .setNegativeButton("閉じる",null).show();
+                });
+            } catch (Exception error) { showManagementFailure(error); }
+        },"Haiagaru-theme-list").start();
+    }
+
+    private void confirmDeleteTheme(ImportedThemes.Entry entry) {
+        new HaiagaruDialog.Builder(this).setTitle("このテーマを削除しますか？")
+                .setMessage(entry.relativePath+"\n\n使用中の場合は、先に別のテーマへ切り替えてください。"
+                        +"\nテーマファイルだけを削除し、画像素材と取り込み元のファイルは残します。"
+                        +"\nこの削除は取り消せません。元ファイルがあれば再度取り込めます。"
+                        +"\n削除後はChMateの「テーマの選択」を開き直してください。")
+                .setNegativeButton("キャンセル",(dialog,which)->showImportedThemes())
+                .setPositiveButton("削除",(dialog,which)->deleteTheme(entry)).show();
+    }
+
+    private void deleteTheme(ImportedThemes.Entry entry) {
+        if (busy) return;
+        busy=true;
+        status.setText("テーマを削除しています…");
+        new Thread(() -> {
+            try {
+                synchronized (IMPORT_LOCK) { ImportedThemes.delete(themeRoot(),entry); }
+                runOnUiThread(() -> {
+                    busy=false;
+                    if (isFinishing() || isDestroyed()) return;
+                    android.widget.Toast.makeText(this,"テーマを削除しました。画像素材は残しています。",android.widget.Toast.LENGTH_LONG).show();
+                    showImportedThemes();
+                });
+            } catch (Exception error) { showManagementFailure(error); }
+        },"Haiagaru-theme-delete").start();
+    }
+
+    private void showManagementFailure(Exception error) {
+        runOnUiThread(() -> {
+            busy=false;
+            if (!isFinishing() && !isDestroyed()) status.setText("テーマの管理に失敗しました: "+error.getMessage());
+        });
     }
 
     private void button(LinearLayout layout, String label, int request) {

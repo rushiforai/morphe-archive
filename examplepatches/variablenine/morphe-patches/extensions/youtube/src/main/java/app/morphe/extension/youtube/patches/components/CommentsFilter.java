@@ -23,7 +23,6 @@ import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 
 import java.util.List;
-import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
@@ -35,18 +34,13 @@ import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
 import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
-import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.NewElement;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.settings.Settings;
-import app.morphe.extension.youtube.shared.EngagementPanel;
 import app.morphe.extension.youtube.shared.PlayerType;
 
 @SuppressWarnings("unused")
 public class CommentsFilter extends Filter {
-
-    private static final String ELEMENTS_SENDER_VIEW =
-            "com.google.android.libraries.youtube.rendering.elements.sender_view";
 
     private static final String CHIP_BAR_PATH_PREFIX = "chip_bar.e";
     private static final String COMMENT_COMPOSER_PATH = "comment_composer.e";
@@ -136,6 +130,11 @@ public class CommentsFilter extends Filter {
                 CHIP_BAR_PATH_PREFIX
         );
 
+        var commentsZeroState = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_ZERO_STATE,
+                "comment_zero_state"
+        );
+
         var communityGuidelines = new StringFilterGroup(
                 Settings.HIDE_COMMENTS_COMMUNITY_GUIDELINES,
                 "community_guidelines",
@@ -209,6 +208,7 @@ public class CommentsFilter extends Filter {
                 commentsByMembers,
                 commentsContexts,
                 commentsFilterBar,
+                commentsZeroState,
                 communityGuidelines,
                 createAShortButton,
                 dislikeButton,
@@ -272,7 +272,10 @@ public class CommentsFilter extends Filter {
 
         if (matchedGroup == commentCardsIndicator) {
             return Utils.contains(path, "carousel_header") &&
-                    Utils.endsWith(path, "|ContainerType|ContainerType|ContainerType|");
+                            // Old action buttons layout.
+                            (Utils.endsWith(path, "|ContainerType|ContainerType|ContainerType|")
+                            // New action buttons layout.
+                            || Utils.contains(path, "|dot_indicator.e"));
         }
 
         return true;
@@ -422,6 +425,22 @@ public class CommentsFilter extends Filter {
     /**
      * Injection point.
      */
+    public static void hideLiveChatScrollToBottomButton(View view) {
+        if (Settings.HIDE_COMMENTS_LIVE_CHAT_SCROLL_TO_BOTTOM_BUTTON.get() && view != null) {
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null) {
+                lp.width = 0;
+                lp.height = 0;
+                view.setLayoutParams(lp);
+            }
+
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
     public static byte[] onCommentsLoaded(byte[] bytes) {
         try {
             if (Settings.HIDE_COMMENTS_CAROUSEL.get() && !commentsCarouselFilterStrings.isEmpty()) {
@@ -512,28 +531,12 @@ public class CommentsFilter extends Filter {
                     ? spanned
                     : new SpannableString(original);
 
-            return newSpanUsingStylingOfAnotherSpan(originalSpanned, hiddenPreviewCommentCharSequence);
+            // Only the style of the entire comment is used, otherwise a timestamp of the comment
+            // is applied to the entire hidden text and tapping it seeks instead of opening the comments.
+            return newSpanUsingStylingOfAnotherSpan(originalSpanned, hiddenPreviewCommentCharSequence, true);
         } catch (Exception ex) {
             Logger.printException(() -> "onLithoTextLoaded failure", ex);
         }
         return original;
-    }
-
-    /**
-     * Injection point.
-     * Disable clickable timestamps for preview comments.
-     */
-    public static boolean onVideoIntentLoaded(Map<Object, Object> playbackStartDescriptorMap, String videoId) {
-        if (!Settings.HIDE_COMMENTS_PREVIEW_COMMENT.get()) {
-            return false;
-        }
-        if (!(playbackStartDescriptorMap.get(ELEMENTS_SENDER_VIEW) instanceof ViewGroup senderView)) {
-            return false;
-        }
-        final int height = senderView.getHeight();
-        boolean isTimestamp = height >= Dim.dp(40) && height <= Dim.dp(60);
-        return PlayerType.getCurrent().isMaximizedOrFullscreen() &&
-                EngagementPanel.getCurrentOpenedPanels().isEmpty() &&
-                isTimestamp;
     }
 }

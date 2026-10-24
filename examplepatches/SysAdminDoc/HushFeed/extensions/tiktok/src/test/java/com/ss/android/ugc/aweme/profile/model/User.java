@@ -11,6 +11,7 @@ public class User {
     public long registerTime;
     public String region;
     public String accountRegion;
+    public String isoCountryCode;
     public String language;
     public long uniqueIdModifyTime;
     public int nickNameModifyTs;

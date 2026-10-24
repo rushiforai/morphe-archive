@@ -58,6 +58,8 @@ public final class RememberClearDisplayPatch {
     private static WeakReference<Object> currentModel = new WeakReference<>(null);
     private static Condition activeCondition;
     private static String activeId;
+    /** The video a clear by hand was made on. Focus coming back to it doesn't end that clear (#232). */
+    private static String clearedByHandOn;
     private static final AtomicBoolean progressQueued = new AtomicBoolean();
     /** Players that have reported a first frame, or stood one in from progress. */
     private static final Map<Object, Boolean> FRAMED = Collections.synchronizedMap(new WeakHashMap<>());
@@ -109,6 +111,12 @@ public final class RememberClearDisplayPatch {
     static final long PAGE_LIMIT_MS = 3000;
     /** The video page whose opening started the window, until it goes; see {@link #onPageOpened}. */
     private static WeakReference<Object> openedPage = new WeakReference<>(null);
+    /**
+     * The video page in front inside the main window, from its view being made until it pauses,
+     * and the page the current video's state was taken on. See {@link #firstFrame}.
+     */
+    private static WeakReference<Object> frontPage = new WeakReference<>(null);
+    private static WeakReference<Object> stateOn = new WeakReference<>(null);
     private static final Runnable END_START = () -> {
         if (!starting) return;
         starting = false;
@@ -263,19 +271,31 @@ public final class RememberClearDisplayPatch {
             // hidden until TikTok's own clear display bar was used (S22, 2026-09-23). The same
             // goes for a clear made by hand with Keep Clear display across videos off (#232).
             // Paused, that switch reads off like every other, and TikTok's own clear is left alone.
+            // Focus coming back to the video it was made on, as TikTok's long press panel
+            // closes, is not a new video: ended there, its own Clear display undid itself (#232).
             else if (automaticHidden || (clearNow && !Setting.isPaused()
-                    && !Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.get())) {
+                    && !Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.get() && !id.equals(clearedByHandOn))) {
                 emit(event, false);
             }
+            if (!id.equals(clearedByHandOn)) clearedByHandOn = null;
             // A remembered clear lands on every video as it starts, the way the automatic path
             // with no delay does, so it carries the same way: a video opened from Favorites
             // showed its controls for about a second until its clear landed (#84).
             setCarrying(remembered);
             return;
         }
+        // A video page opened inside the main window (search on 47.5.3) is a new viewer, the way a
+        // new window is: backed out of a result whose controls were brought back by hand, the same
+        // result opened again stayed uncleared (#84, S22 2026-10-23).
+        Object front = frontPage.get();
+        if (front != null && id.equals(currentId) && stateOn.get() != front) {
+            Logger.printDebug(() -> "Clear display: same video on a newly opened page");
+            currentId = null;
+        }
         if (!id.equals(currentId)) {
             cancel();
             currentId = id;
+            stateOn = new WeakReference<>(front);
             applied = false;
             manuallyChanged = false;
             emit(event, false);
@@ -341,6 +361,8 @@ public final class RememberClearDisplayPatch {
         startLimitArmed = false;
         MAIN.removeCallbacks(END_START);
         openedPage.clear();
+        frontPage.clear();
+        stateOn.clear();
         View old = window.get();
         if (old != null) {
             if (old.getViewTreeObserver().isAlive()) old.getViewTreeObserver().removeOnWindowFocusChangeListener(FOCUS);
@@ -356,6 +378,7 @@ public final class RememberClearDisplayPatch {
         FRAMED.clear();
         activeCondition = null;
         activeId = null;
+        clearedByHandOn = null;
         nativeEvent = null;
         nativeCell = null;
         nativeController = null;
@@ -400,9 +423,12 @@ public final class RememberClearDisplayPatch {
      * frame, so that clear waits for the first progress report, and after the controls had been
      * brought back by hand on the feed (which a search starts with, since Clear display hides the
      * search button) they showed for about half a second (#84). The page is that activity, or
-     * on 47.1.4 the video page fragment search opens inside the main activity.
+     * on 47.1.4 the video page fragment search opens inside the main activity. Such a fragment
+     * is also a new viewer for the automatic clear, which a new activity already is through its
+     * window.
      */
     public static void onPageOpened(Object page) {
+        if (page != null && !(page instanceof Activity)) frontPage = new WeakReference<>(page);
         if (carrying) return;
         Logger.printDebug(() -> "Clear display: video page opened, "
                 + (page instanceof Activity ? "its own window" : "in the main window"));
@@ -420,6 +446,8 @@ public final class RememberClearDisplayPatch {
      * would have hidden the controls of the video behind it, which had them brought back by hand.
      */
     public static void onPageLeft(Object page) {
+        // Back on it without a new view (a profile opened over it), it is the same viewer.
+        if (page != null && frontPage.get() == page) frontPage.clear();
         if (page == null || openedPage.get() != page) return;
         openedPage.clear();
         END_START.run();
@@ -498,6 +526,7 @@ public final class RememberClearDisplayPatch {
         // press kept a video replayed from search from clearing again (#84).
         int kind = (Integer) type;
         if (kind == BACK_BUTTON || kind == OTHER_EXIT || kind == SCREEN_RECORD || kind == SWITCH_AD) return;
+        clearedByHandOn = (Boolean) clear ? activeId : null;
         long observed = generation;
         Runnable changed = () -> {
             if (observed != generation) return;
@@ -511,6 +540,27 @@ public final class RememberClearDisplayPatch {
         // Not kept for the next video: nothing is remembered, so turning the switch back on
         // later doesn't bring back a Clear display from before (#232).
         Settings.CLEAR_DISPLAY.save((Boolean) clear && Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.get());
+    }
+
+    /**
+     * TikTok's video pager picked a new video, as a swipe lets go and the pager starts settling on
+     * it. With Keep Clear display across videos off, a clear by hand ends here: TikTok carries its
+     * Clear display over the swipe, and ended at the next video's first frame, the tabs, the
+     * caption and the bottom bar came back after that video had settled, and it jumped (#232).
+     * Posted, so TikTok's own listeners have the new video before the exit reaches it. Kept,
+     * Automatic or paused, the first frame decides as before.
+     */
+    public static void onFeedPageSelected(Object pager, int position, boolean dispatch) {
+        if (!dispatch) return;
+        MAIN.post(RememberClearDisplayPatch::endClearForNewPage);
+    }
+
+    static void endClearForNewPage() {
+        if (!clearNow || Setting.isPaused() || Settings.AUTOMATIC_CLEAR_DISPLAY.get()
+                || Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.get()) return;
+        Logger.printDebug(() -> "Clear display: a new video was picked, ending a clear that isn't kept");
+        clearedByHandOn = null;
+        emit(RememberClearDisplayPatch::postClear, false);
     }
 
     /** Whether the next video starts cleared because the last one was cleared by hand. */

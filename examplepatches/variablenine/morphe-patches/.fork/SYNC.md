@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.47.0` (commit `e5464395441e`)
-- **Last synced upstream release:** v1.47.0 (2026-10-11)
+- **Upstream baseline:** stable tag `v1.48.0` (commit `f3acc10e2691`)
+- **Last synced upstream release:** v1.48.0 (2026-10-22)
 
 ## What is fork-local
 
@@ -36,7 +36,7 @@ patch no longer applies cleanly):
 |---|---|
 | `extensions/youtube/.../patches/catlock/AlternatingTapUnlock.java` | **New file.** Pure unlock-gesture recognizer (alternating L/R fast taps). |
 | `extensions/youtube/.../patches/catlock/CatLockOverlay.java` | **New file.** Full-window transparent overlay on the Activity decor view; consumes touches; unlock via `AlternatingTapUnlock`; keep-screen-on + fading hint. |
-| `extensions/youtube/.../videoplayer/CatLockButton.java` | **New file.** Top player-control button (mirrors `ExternalDownloadButton` — keep it mirroring whatever that file currently does); constructs `LegacyPlayerControlButton` passing `Settings.CAT_LOCK_BUTTON` itself (not `::get`), `onClick` calls `CatLockOverlay.engage(view)`. Holds no button reference and exposes no visibility injection points. |
+| `extensions/youtube/.../videoplayer/CatLockButton.java` | **New file.** Top player-control button (mirrors `ExternalDownloadButton` — keep it mirroring whatever that file currently does); constructs `LegacyPlayerControlButton` passing `Settings.CAT_LOCK_BUTTON` itself (not `::get`), `onClick` calls `CatLockOverlay.engage(view)`. v1.48.0 moved `ExternalDownloadButton` onto the new `LegacyPlayerControlButton.PlayerControlButtonStatus` supplier (returning a `ButtonVisibility`) because its own button gained a third, forced state; the plain `BooleanSetting` constructor overload is still there and still means `ENABLED`/`DISABLED`, so the fork deliberately keeps passing the setting. Only follow `ExternalDownloadButton` onto the supplier if that overload is removed, or if the cat lock button ever needs `FORCE_SHOW`. Holds no button reference and exposes no visibility injection points. |
 | `extensions/youtube/src/test/.../catlock/AlternatingTapUnlockSelfTest.java` | **New file.** Plain-javac self-test; must print `11 passed, 0 failed`. |
 | `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl(CatLockButton)`. Only the initialize hook — the button derives its own visibility from the setting (upstream removed `injectVisibilityCheckCall` in v1.36.0). Keep the plain `copyResources` call: v1.45.0 moved upstream's own button patches to `copyPlayerButtonIcons(dir, baseName)`, which also registers the base name with the player-icon-style patch so it looks for `_fluent`/`_phosphor`/… variants — the fork ships only the plain and `_bold` cat icons, and `PlayerIcons.resolve` falls back to `_bold` for every style anyway. |
 | `extensions/youtube/.../settings/Settings.java` | Add `CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true)` among the overlay buttons. (Same file as brainrot above.) |

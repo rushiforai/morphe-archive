@@ -414,6 +414,14 @@ val materialYouThemePatch = bytecodePatch(
         // a light and a dark hex string, and the screen's model parses the one Bloks' theme picks.
         check(hookBloksColourPairs() > 0) { "No parse of a Bloks colour pair found, so the Menu's profile card would stay grey" }
 
+        // Bloks bottom sheets such as the account switcher (issue #37): the sheet's dark colour comes
+        // with the screen as half of a light and dark pair, a grey no FDS token gives.
+        try {
+            hookBloksSheetBackground()
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The theme goes on without Bloks sheets' backgrounds.")
+        }
+
         // The colour resource behind a token, which FDS's token lookup answers and the code then reads
         // with getColor or as a drawable, like the Menu's Log out row (issue #37). Route two's reads
         // above go by the token once the extension knows it.

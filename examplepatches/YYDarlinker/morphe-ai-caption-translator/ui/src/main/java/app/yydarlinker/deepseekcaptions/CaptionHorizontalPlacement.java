@@ -69,6 +69,18 @@ final class CaptionHorizontalPlacement {
         if (outer.getTranslationY() != y) outer.setTranslationY(y);
     }
 
+    /**
+     * Translation-only placement. Used by the pre-draw path, where a LayoutParams change would
+     * request a layout that cannot be applied until the next traversal.
+     */
+    static void translate(FrameLayout host, FrameLayout outer, int left, int top) {
+        if (host == null || outer == null) return;
+        float x = left - host.getPaddingLeft() + host.getScrollX();
+        float y = top - host.getPaddingTop() + host.getScrollY();
+        if (outer.getTranslationX() != x) outer.setTranslationX(x);
+        if (outer.getTranslationY() != y) outer.setTranslationY(y);
+    }
+
     void observe(
             Activity a,
             Rect bounds,

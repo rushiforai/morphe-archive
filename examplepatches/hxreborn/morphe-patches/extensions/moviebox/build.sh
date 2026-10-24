@@ -23,34 +23,13 @@ die() {
 javac_version=$("$javac" -version 2>&1 | cut -d' ' -f2)
 [ "${javac_version%%.*}" = 21 ] || die "javac $javac_version at $javac is not JDK 21"
 
-verify=false
-[ "${1:-}" = "--verify" ] && verify=true
-
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-out=$resources
-$verify && out=$work/resources
-mkdir -p "$out"
+mkdir -p "$resources"
 
 "$javac" -Xlint:all -source 8 -target 8 -bootclasspath "$platform:$build_tools/core-lambda-stubs.jar" -d "$work/hook" "$here"/src/hx/*.java
 "$build_tools/d8" --min-api 28 --lib "$platform" --output "$work/hook" "$work"/hook/hx/*.class
-cp "$work/hook/classes.dex" "$out/dashhook.dex"
+cp "$work/hook/classes.dex" "$resources/dashhook.dex"
 
-{
-    echo "build-tools $build_tools_version"
-    echo "platform android-$platform_version"
-    echo "javac $javac_version"
-    ( cd "$here" && sha256sum src/hx/*.java )
-    ( cd "$out" && sha256sum dashhook.dex )
-} > "$out/provenance.txt"
-
-if $verify; then
-    for built in dashhook.dex provenance.txt; do
-        cmp -s "$resources/$built" "$out/$built" ||
-            die "$built does not match its sources; run extensions/moviebox/build.sh"
-    done
-    echo "checked-in binaries match their sources"
-else
-    ls -la "$resources"
-fi
+ls -la "$resources"

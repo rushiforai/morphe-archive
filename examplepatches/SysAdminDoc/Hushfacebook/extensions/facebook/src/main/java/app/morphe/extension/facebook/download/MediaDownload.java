@@ -188,9 +188,23 @@ public final class MediaDownload {
             }
             if (manifest != null) return beginDash(context, "the story video", manifest, urls, details);
 
-            // A story with no video of its own may still be one: a shared video's story is a still
-            // card, and its video sits somewhere else in the card (#207). Debug logging shows where.
-            if (RenditionPicker.bestVideo(metaOnly(urls), DownloadQuality.BEST) == null) StoryCardShape.log(host, media);
+            // A still card can carry a video all the same: a story that reshares a reel shows the
+            // reel as a sticker over a photo, and the reel's video, manifest and all, sits in that
+            // overlay (#207). The save takes it: the person tapped Save on a playing reel. A card
+            // with no video anywhere is logged, so the next shape can be read where it keeps one.
+            if (RenditionPicker.bestVideo(metaOnly(urls), DownloadQuality.BEST) == null) {
+                StoryOverlayVideo reel = StoryOverlayVideo.in(host);
+                if (reel != null) {
+                    info(() -> "the story shows a reshared reel over a still, so the save takes the reel's video"
+                        + (reel.manifest != null ? " from its manifest" : " from its one file"));
+                    PostDetails named = details.hasVideoId() || reel.videoId == null
+                        ? details : PostDetails.ofCard(reel.videoId, host);
+                    addIfUsable(urls, reel.url);
+                    if (reel.manifest != null) return beginDash(context, "the story video", reel.manifest, urls, named);
+                    return begin(context, urls, false, named);
+                }
+                StoryCardShape.log(host, media);
+            }
             return begin(context, urls, true, details);
         } catch (Throwable t) {
             // Throwable and not Exception. A renamed field surfaces as NoSuchFieldError, and a

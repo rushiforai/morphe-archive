@@ -3,7 +3,7 @@ Java.perform(function () {
   Java.scheduleOnMainThread(function () {
     const app = Java.use('android.app.ActivityThread').currentApplication();
     const pkg = String(app.getPackageName());
-    if (!/^jp\.co\.airfront\.android\.a2chMate\.haiagaru\.(full191|resumefix226|resumefix242)$/.test(pkg))
+    if (!/^jp\.co\.airfront\.android\.a2chMate\.haiagaru\.(full191|settingsfix191|resumefix226|resumefix242)$/.test(pkg))
         throw Error('Isolated resume regression package required');
     let checks = 0;
     function check(value, message) { if (!value) throw Error(message); checks++; console.log('PASS ' + message); }

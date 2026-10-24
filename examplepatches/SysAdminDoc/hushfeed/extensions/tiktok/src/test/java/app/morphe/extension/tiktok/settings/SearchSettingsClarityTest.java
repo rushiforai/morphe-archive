@@ -108,6 +108,39 @@ public class SearchSettingsClarityTest {
         });
     }
 
+    /**
+     * #233. The Story first row says where it works and how the LIVE is still reached. It needs
+     * its own hook on the profile picture's tap, which a build can leave out while the rings
+     * apply, so the rings rows stay without it.
+     */
+    @Test public void storyFirstRowSaysWhereAndHowToReachTheLive() {
+        assertRow("INTERFACE", "open_story_over_live", "Open the Story when a creator is LIVE", "on their profile");
+        assertRow("INTERFACE", "open_story_over_live", "Open the Story when a creator is LIVE", "Tap the picture again to join the LIVE");
+
+        SettingsStatus.storyOverLiveEnabled = false;
+        onPage("INTERFACE", page -> {
+            assertNull("the Story first row outlived its hook", page.findPreference("open_story_over_live"));
+            assertNotNull("the rings rows follow their own flag", page.findPreference("hide_live_ring"));
+        });
+    }
+
+    /**
+     * #186. The Turn on Thoughts row says where Thoughts show up and that posting one is still
+     * TikTok's call. It needs both Thoughts gates, which a build can leave out while the bubble
+     * hider applies, so the hider's row stays without it.
+     */
+    @Test public void thoughtsRowSaysWhereAndThatPostingIsStillTikToksCall() {
+        assertRow("BEHAVIOR", "enable_thoughts", "Turn on Thoughts", "in your inbox");
+        assertRow("BEHAVIOR", "enable_thoughts", "Turn on Thoughts", "may still refuse to post one");
+        assertRow("BEHAVIOR", "enable_thoughts", "Turn on Thoughts", "Restart TikTok");
+
+        SettingsStatus.thoughtsSwitchEnabled = false;
+        onPage("BEHAVIOR", page -> {
+            assertNull("the Thoughts row outlived its gates", page.findPreference("enable_thoughts"));
+            assertNotNull("the bubble hider follows its own flag", page.findPreference("hide_profile_thoughts"));
+        });
+    }
+
     @Test public void sideMenuButtonRowNamesTheMenuAndNeedsTheToolbarCheck() {
         assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "TikTok Minis");
         assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "Restart TikTok");

@@ -49,8 +49,10 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * seven 450 builds: {@code clips_viewer_container} (the reels viewer, in the Reels tab and in the
  * full screen viewer a reel opens from anywhere), and the {@code clips_tab} and {@code feed_tab}
  * children of {@code tab_bar}. The viewer counts as showing when most of the window is its own, which
- * keeps a viewer sitting off screen in a pager from counting. Without a viewer, the tab bar's
- * selected tab answers.
+ * keeps a viewer sitting off screen in a pager from counting. Your messages ({@code
+ * inbox_refreshable_thread_list_recyclerview}) and a chat ({@code thread_view_root}) count from a
+ * smaller share, so the keyboard doesn't end them (#288). Without either, the tab bar's selected tab
+ * answers.
  *
  * <p>The bars are hidden through the window's insets controller (Android 11 and newer) with the
  * "show transient bars by swipe" behaviour, and on Android 9 and 10 through the immersive sticky
@@ -69,10 +71,16 @@ public final class FullScreenBars {
     static final String TAB_BAR = "tab_bar";
     static final String REELS_TAB = "clips_tab";
     static final String HOME_TAB = "feed_tab";
+    static final String SEARCH_TAB = "search_tab";
     static final String VIEWER = "clips_viewer_container";
+    /** Your messages' list of chats, and a chat's whole screen, as Instagram names them (#288). */
+    static final String INBOX = "inbox_refreshable_thread_list_recyclerview";
+    static final String CHAT = "thread_view_root";
 
     /** The viewer counts as showing when this share of the window is its own. */
     static final float FILL_SHARE = 0.8f;
+    /** Your messages or a chat count as showing from this share, so the keyboard taking half doesn't end it. */
+    static final float MESSAGES_SHARE = 0.4f;
     /** The most often the screen is looked at for a change. */
     static final long CHECK_MS = 100;
     static final String COUNT_HID = "hid the bars";
@@ -127,7 +135,7 @@ public final class FullScreenBars {
     }
 
     /** What the screen is showing, as far as the bars are concerned. */
-    enum Screen { REELS, HOME, OTHER }
+    enum Screen { REELS, HOME, MESSAGES, OTHER }
 
     static int id(Context context, String name) {
         synchronized (IDS) {
@@ -146,13 +154,45 @@ public final class FullScreenBars {
         return id == 0 ? null : root.findViewById(id);
     }
 
-    /** Whether a view [share] of the window is on screen: its visible rectangle against the window's. */
+    /** Whether a view [FILL_SHARE] of the window is on screen: its visible rectangle against the window's. */
     static boolean fills(View view, View decor) {
+        return covers(view, decor, FILL_SHARE);
+    }
+
+    private static boolean covers(View view, View decor, float share) {
         if (!view.isShown()) return false;
         Rect seen = new Rect();
         if (!view.getGlobalVisibleRect(seen)) return false;
         long window = (long) decor.getWidth() * decor.getHeight();
-        return window > 0 && (long) seen.width() * seen.height() >= window * FILL_SHARE;
+        return window > 0 && (long) seen.width() * seen.height() >= window * share;
+    }
+
+    /**
+     * Whether your messages or a chat take [MESSAGES_SHARE] of the window (#288): in the Messages tab,
+     * swiped to from Home, or a chat in its own activity, the keyboard up or not.
+     */
+    static boolean messagesShowing(View decor) {
+        return anyCovers(decor, CHAT) || anyCovers(decor, INBOX);
+    }
+
+    /** Whether a view named [name] covers [MESSAGES_SHARE] of [decor]; a hidden one left behind doesn't hide another. */
+    private static boolean anyCovers(View decor, String name) {
+        int id = id(decor.getContext(), name);
+        if (id == 0) return false;
+        View first = decor.findViewById(id);
+        if (first == null) return false;
+        return covers(first, decor, MESSAGES_SHARE) || anyCovers(decor, id, decor);
+    }
+
+    private static boolean anyCovers(View view, int id, View decor) {
+        if (view.getVisibility() != View.VISIBLE) return false;
+        if (view.getId() == id) return covers(view, decor, MESSAGES_SHARE);
+        if (!(view instanceof ViewGroup)) return false;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            if (anyCovers(group.getChildAt(i), id, decor)) return true;
+        }
+        return false;
     }
 
     /**
@@ -178,33 +218,61 @@ public final class FullScreenBars {
             if (tab.getVisibility() != View.VISIBLE || !tab.isSelected()) continue;
             if (tab.getId() != View.NO_ID && tab.getId() == id(decor.getContext(), REELS_TAB)) return REELS_TAB;
             if (tab.getId() != View.NO_ID && tab.getId() == id(decor.getContext(), HOME_TAB)) return HOME_TAB;
+            if (tab.getId() != View.NO_ID && tab.getId() == id(decor.getContext(), SEARCH_TAB)) return SEARCH_TAB;
             return null;
         }
         return null;
     }
 
-    /** What [decor]'s screen is: the reels viewer filling the window, or the Reels or Home tab selected. */
+    /** Whether [decor] has Explore's tab selected with no reel filling the window over it (#297). */
+    static boolean exploreSelected(View decor) {
+        View viewer = find(decor, VIEWER);
+        if (viewer != null && fills(viewer, decor)) return false;
+        return SEARCH_TAB.equals(selectedTab(decor));
+    }
+
+    /**
+     * Where the tab bar sits in [decor] at rest, so a slide away on scroll doesn't move it, or null
+     * while there's no tab bar on screen (#297).
+     */
+    @Nullable
+    static Rect tabBarRest(View decor) {
+        View bar = find(decor, TAB_BAR);
+        if (bar == null || !bar.isShown() || sidewaysOff(bar, decor)) return null;
+        int[] at = new int[2], origin = new int[2];
+        bar.getLocationOnScreen(at);
+        decor.getLocationOnScreen(origin);
+        int left = at[0] - origin[0];
+        int top = at[1] - origin[1] - Math.round(bar.getTranslationY());
+        if (top <= 0 || top >= decor.getHeight()) return null;
+        return new Rect(left, top, left + bar.getWidth(), Math.min(decor.getHeight(), top + bar.getHeight()));
+    }
+
+    /**
+     * What [decor]'s screen is: the reels viewer filling the window, your messages or a chat, or the
+     * Reels or Home tab selected.
+     */
     static Screen screenOf(View decor) {
         View viewer = find(decor, VIEWER);
-        if (viewer != null) {
-            if (fills(viewer, decor)) return Screen.REELS;
-            // The viewer is there but not showing: Home, or a screen over Reels, whatever tab is selected.
-            return HOME_TAB.equals(selectedTab(decor)) ? Screen.HOME : Screen.OTHER;
-        }
+        if (viewer != null && fills(viewer, decor)) return Screen.REELS;
+        if (messagesShowing(decor)) return Screen.MESSAGES;
         String tab = selectedTab(decor);
-        if (REELS_TAB.equals(tab)) return Screen.REELS;
+        // A viewer there but not showing: Home, or a screen over Reels, whatever tab is selected.
+        if (viewer == null && REELS_TAB.equals(tab)) return Screen.REELS;
         return HOME_TAB.equals(tab) ? Screen.HOME : Screen.OTHER;
     }
 
-    /** Whether the bars should be hidden on [screen], by the two switches. */
+    /** Whether the bars should be hidden on [screen], by the three switches. */
     static boolean wanted(Screen screen) {
         if (screen == Screen.REELS) return Settings.FULL_SCREEN_REELS.get();
+        if (screen == Screen.MESSAGES) return Settings.FULL_SCREEN_MESSAGES.get();
         return screen == Screen.HOME && Settings.FULL_SCREEN_HOME.get();
     }
 
-    /** Whether either switch is on, so some screen may want the bars hidden. */
+    /** Whether any of the three switches is on, so some screen may want the bars hidden. */
     static boolean eitherOn() {
-        return Settings.FULL_SCREEN_REELS.get() || Settings.FULL_SCREEN_HOME.get();
+        return Settings.FULL_SCREEN_REELS.get() || Settings.FULL_SCREEN_HOME.get()
+                || Settings.FULL_SCREEN_MESSAGES.get();
     }
 
     /**
@@ -303,18 +371,38 @@ public final class FullScreenBars {
      * ({@link GlassTabBar#navBarHeight}). If anything throws, the height goes through as it came.
      */
     public static int navBarHeight(int height) {
-        int kept = height;
-        boolean keys = height > 0 && keyboardUp();
-        if (!keys) kept = hiddenBarHeight(height, false);
+        // While the bar is hidden Instagram offers back the 0 it kept, so the keyboard coming up in a
+        // chat that opened with the bars hidden had no height to let through (#288): the height
+        // Instagram last offered stands in for it.
+        int offered = height == 0 && navOffered > 0 ? navOffered : height;
+        boolean keys = offered > 0 && keyboardUp();
+        if (!keys) offered = height;
+        int kept = keys ? offered : hiddenBarHeight(height, false);
         try {
-            kept = keys ? GlassTabBar.navBarHeightOverTheKeyboard(kept) : GlassTabBar.navBarHeight(kept);
+            kept = keys ? GlassTabBar.navBarHeightOverTheKeyboard(kept) : GlassTabBar.navBarHeight(kept, hiddenNavHeight(height));
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.GLASS_TAB_BAR, "navigation bar height", failure);
         }
         if (height > 0) navOffered = height;
-        navTaken = taken(height, kept, navTaken);
+        navTaken = taken(offered, kept, navTaken);
         heightsKept(statusAnswer, kept);
         return kept;
+    }
+
+    /**
+     * The height of the navigation bar while HushGram hides it: the one Instagram offers, or for the 0 it
+     * offers back while the bar is hidden, the one it last offered. 0 while the bar shows or for an unset
+     * [height]. A floating glass pill keeps that much room under itself ({@link GlassTabBar#navBarHeight(int, int)}),
+     * so it stays at the height it has where the bar shows rather than dropping on Reels (#285).
+     */
+    static int hiddenNavHeight(int height) {
+        try {
+            int bar = height > 0 ? height : height == 0 ? navOffered : 0;
+            return bar > 0 && anyHidden(false) ? bar : 0;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "hidden navigation bar height", failure);
+            return 0;
+        }
     }
 
     /**
@@ -509,6 +597,33 @@ public final class FullScreenBars {
     }
 
     /**
+     * Called when the keyboard comes up ([shows]) or goes in a window with the navigation bar hidden
+     * ([bars]). Instagram lifts a chat's message box above the keyboard by the keyboard's height less
+     * the navigation bar's, and in a chat that opened with the bars hidden nothing told its screens
+     * the bar's height again as the keyboard came up, so the box sat a bar's height behind the keys
+     * (#288). While the keyboard shows, Instagram's copy gets the height back, unless a sheet over the
+     * glass pill makes that room itself ({@link GlassTabBar#navBarHeightOverTheKeyboard}), and the kept
+     * screens hear it. When the keyboard goes, the hidden bar takes it again.
+     */
+    static void keyboardMoved(boolean shows, HiddenBars bars) {
+        try {
+            if (!shows) {
+                takeHiddenHeights(bars);
+                return;
+            }
+            if (!navTaken || navOffered <= 0) return;
+            int answer = GlassTabBar.navBarHeightOverTheKeyboard(navOffered);
+            if (answer <= 0) return;
+            keepNavBarHeight(answer);
+            navTaken = false;
+            HookStatus.counted(FamilyNames.FULL_SCREEN_BARS, COUNT_KEYBOARD);
+            heightsKept(statusTaken ? 0 : statusOffered, answer);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "keyboard heights", failure);
+        }
+    }
+
+    /**
      * Called as an activity with a floating glass pill showing resumes, before its screens do. The
      * window it came back from (a chat) stored the navigation bar's real height, and a screen resuming
      * under the pill (the inbox) read that before the pill's insets came round again, so it kept a
@@ -640,6 +755,8 @@ public final class FullScreenBars {
         private int savedBehavior;
         private boolean saved;
         private boolean stopped;
+        /** Whether the keyboard showed at the last frame with the navigation bar hidden (#288). */
+        private boolean keys;
 
         Session(Activity activity) {
             this.activity = new WeakReference<>(activity);
@@ -685,7 +802,9 @@ public final class FullScreenBars {
         }
 
         @Override public boolean onPreDraw() {
-            if (stopped || queued) return true;
+            if (stopped) return true;
+            watchKeyboard();
+            if (queued) return true;
             // Both switches off and nothing hidden: nothing to look for, and no look left waiting
             // after the frame. A switch turned on is seen at the next frame.
             if (!hidden && !eitherOn()) return true;
@@ -698,6 +817,19 @@ public final class FullScreenBars {
                 handler.postDelayed(check, CHECK_MS - since);
             }
             return true;
+        }
+
+        /** Each frame: the keyboard coming or going while this window has the navigation bar hidden. */
+        void watchKeyboard() {
+            boolean shows = false;
+            try {
+                shows = hidden && bars.navigation() && keyboard.shown();
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "keyboard", failure);
+            }
+            if (shows == keys) return;
+            keys = shows;
+            if (hidden) keyboardMoved(shows, bars);
         }
 
         @Override public void onWindowFocusChanged(boolean hasFocus) {
@@ -749,6 +881,8 @@ public final class FullScreenBars {
             saved = true;
             hidden = true;
             takeHiddenHeights(chosen);
+            // A keyboard already up gets the height back again at the next frame.
+            keys = false;
             HookStatus.invoked(FamilyNames.FULL_SCREEN_BARS);
             HookStatus.counted(FamilyNames.FULL_SCREEN_BARS, COUNT_HID);
         }

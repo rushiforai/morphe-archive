@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabFragment;
+import app.morphe.extension.tiktok.settings.preference.ReleaseNotesData;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -325,7 +326,11 @@ public class SettingsSearchQueryTest {
     @Test public void whatsNewIsFoundWhileItsNotesAreUnread() throws Exception {
         // A release with its own bundled notes. With nothing dismissed yet, only the installed
         // release's section counts as unread, so a version with no section would find nothing.
-        TikTokPreferenceFragment.setReleaseVersionForTests("0.70.0");
+        // Only the newest releases are bundled, so take the newest rather than a fixed one.
+        java.util.regex.Matcher newest = java.util.regex.Pattern.compile("^## (\\d+\\.\\d+\\.\\d+) ")
+                .matcher(ReleaseNotesData.TEXT);
+        assertTrue("the bundled notes have no release", newest.find());
+        TikTokPreferenceFragment.setReleaseVersionForTests(newest.group(1));
         try {
             TikTokPreferenceFragment search = attachSearch();
             assertTrue("What's new is not indexed while pending",

@@ -74,7 +74,7 @@ public final class DeepSeekCaptionHook {
 
     /**
      * Decides what YouTube gets for a timed-text request: the url itself, a closed sink (a
-     * translation the user did not ask for), or the loopback url of the caption server.
+     * translation the session intent does not own), or the loopback url of the caption server.
      */
     static String rewriteUrl(Object cronetEngine, String originalUrl) {
         if (cronetEngine != null) youtubeCronetEngine = cronetEngine;
@@ -104,18 +104,16 @@ public final class DeepSeekCaptionHook {
         // A background prefetch is not the visible selection.
         if (foreground.isEmpty()) return originalUrl;
 
-        // A late translated request must not revive an explicit Off or a background prefetch.
-        if (CaptionButtonController.captionsKnownOff()) return CLOSED_TRANSLATION_SINK;
-        if (CaptionChoice.explicitOff()) return CLOSED_TRANSLATION_SINK;
-        if (!selectionEvidence()) return originalUrl;
+        // The session intent is the only evidence that this request belongs to a session the user
+        // asked for. It is written by user acts only, so a request can neither revive a session the
+        // user turned off nor create one, and YouTube's own idea of a target cannot replace it.
+        CaptionSessionIntent intent = CaptionSessionIntent.load(context);
+        if (!selectionEvidence(intent)) return originalUrl;
+        if (!ownsRequest(intent, target)) return CLOSED_TRANSLATION_SINK;
 
-        // This is a real, foreground translated selection. Keep the session state a projection of
-        // the native request instead of a separately remembered target.
-        CaptionChoice.select(target.code, true);
-
+        // restoreTargetAfterMiniplayer already restores the intent's target for a lifecycle
+        // re-request; the request is then translated from the source track it names.
         String selected = CaptionActions.restoreTargetAfterMiniplayer(originalUrl);
-        selected = CaptionLifecycleRestore.restoreAfterLifecycle(selected);
-        // The URL YouTube names is its own source pick; translate that track.
         selected = SourceTrackPolicy.apply(context, selected);
 
         try {
@@ -126,7 +124,6 @@ public final class DeepSeekCaptionHook {
                 CaptionActions.activateSource(context, own.url);
                 return LoopbackCaptionServer.get(context).urlFor(own.url);
             }
-            CaptionLifecycleRestore.noteAiTarget(selected);
             String rewritten = LoopbackCaptionServer.get(context).urlFor(selected);
             CaptionActions.activate(context, selected);
             return rewritten;
@@ -134,7 +131,6 @@ public final class DeepSeekCaptionHook {
             CaptionDiagnostics.mark(context, "HOOK_ERROR", CaptionDiagnostics.errorDetail(failure));
             try {
                 CaptionButtonController.noteAiTrackSelected();
-                CaptionLifecycleRestore.noteAiTarget(selected);
                 CaptionActions.activate(context, selected);
             } catch (Throwable ignored) {
                 // The request is closed below either way.
@@ -144,16 +140,21 @@ public final class DeepSeekCaptionHook {
     }
 
     /**
-     * Evidence that a translated timed-text request is a foreground selection rather than a
-     * background prefetch: the session is already visible, CC is known on, or the request arrived
-     * inside an explicit tap/menu transaction.
+     * The user asked for AI captions in a target language, and that target is still the one the
+     * session stands for. No UI observation is consulted: an observed CC state can never become the
+     * reason a translation runs.
      */
-    private static boolean selectionEvidence() {
-        return CaptionActions.isVisibleActive()
-                || CaptionChoice.isOn()
-                || CaptionButtonController.mayActivateAiTarget()
-                || CaptionButtonController.nativeMenuRecentlyOpened()
-                || CaptionButtonController.captionsKnownOn();
+    private static boolean selectionEvidence(CaptionSessionIntent intent) {
+        return intent.aiEnabled && intent.hasTarget();
+    }
+
+    /** A translated request for another language belongs to no session of this app. */
+    private static boolean ownsRequest(CaptionSessionIntent intent, TargetLanguage target) {
+        TargetLanguage wanted = TargetLanguage.fromCode(intent.targetLanguage);
+        return intent.translateTarget
+                && wanted != null
+                && target != null
+                && wanted.code.equalsIgnoreCase(target.code);
     }
 
     /** Opens [url] with the connection factory of YouTube's own network stack, or null. */

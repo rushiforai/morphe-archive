@@ -424,6 +424,8 @@ public final class VideoOverlayHider {
     private static boolean glassBarNow;
     /** Whether that glass pill carries the lens behind the selected tab this pass (#231). */
     private static boolean lensBarNow;
+    /** Whether that glass pill blurs the video behind it this pass (#231). */
+    private static boolean blurBarNow;
 
     /**
      * Whether the current pass is in Clear display with the fade between 0 and 100 (#84). The
@@ -650,6 +652,7 @@ public final class VideoOverlayHider {
             floatingBarNow = seeThroughBar && Settings.FLOATING_BOTTOM_BAR.get();
             glassBarNow = floatingBarNow && Settings.LIQUID_GLASS_BOTTOM_BAR.get();
             lensBarNow = glassBarNow && Settings.GLASS_TAB_LENS.get();
+            blurBarNow = glassBarNow && Settings.GLASS_VIDEO_BLUR.get();
             // On the S22 the main feed's room for the bar is the pager column's strip, the one an
             // opened post keeps under its comment bar; the spacer in each cell is already 0 there.
             boolean stripForBar = seeThroughBar && SeeThroughBottomBar.collapseAllowed();
@@ -768,17 +771,24 @@ public final class VideoOverlayHider {
                     selectCurrentTargets(found, TRAVERSAL.selected);
                     pairDetailCommentBar(hidden, found, TRAVERSAL.selected, ids, detailPager, stripForBar);
                     List<View> strips = selectedViews(found, TRAVERSAL.selected, DETAIL_COMMENT_STRIP_TARGET);
+                    int layerId = seeThroughBar ? identifier(activity, activity.getPackageName(), WIDGET_LAYER_ID) : 0;
+                    List<View> roomLayers = selectedViews(found, TRAVERSAL.selected, WIDGET_LAYER_TARGET);
                     // Before the guard, so it measures the caption where this pass leaves it.
-                    liftWidgetLayers(strips, seeThroughBar, seeThroughBar
-                            ? identifier(activity, activity.getPackageName(), WIDGET_LAYER_ID) : 0, cellId,
-                            selectedViews(found, TRAVERSAL.selected, WIDGET_LAYER_TARGET), roomAbove);
+                    liftWidgetLayers(strips, seeThroughBar, layerId, cellId, roomLayers, roomAbove);
                     guardBottomSpacer(hidden, found, TRAVERSAL.selected, seeThroughBar, cellId);
                     gateClearControls(hidden, found, TRAVERSAL.selected, carry);
                     applySelectedTargets(ids, hidden, found, TRAVERSAL.selected,
                             touchScale != 1f, detailPager);
                     // After every target, so the like count is already gone when its row is weighed.
                     collapseRailWrappers(activity, found, TRAVERSAL.selected, hidden);
-                    settleStripColumns(strips);
+                    // TikTok shows the strip again as each new video settles, and once it has laid
+                    // the cells out short beside it the lift above finds no room and takes the
+                    // layers down. With the room given back here, they go up again before this
+                    // frame is drawn, or the caption, the buttons and the search bar sat a strip's
+                    // height low over the tabs until a later layout (#232).
+                    if (settleStripColumns(strips) && seeThroughBar) {
+                        liftWidgetLayers(strips, true, layerId, cellId, roomLayers, roomAbove);
+                    }
                     if (detailPager && detailCommentBar) noteColumnChildren(strips);
                     alignBarRows(found, TRAVERSAL.selected, hidden, cellId);
                     fadeFullscreenEntries();
@@ -1077,8 +1087,11 @@ public final class VideoOverlayHider {
      * drawn. On photo posts TikTok shows the strip again about twice a second (S22, 2026-10-14),
      * and a relayout posted at most once every half second left the band up most of the time. Only
      * a column that didn't settle waits half a second before it's tried again.
+     *
+     * <p>True when a column was laid out again here, in this pass.
      */
-    static void settleStripColumns(List<View> strips) {
+    static boolean settleStripColumns(List<View> strips) {
+        boolean laidOut = false;
         for (View strip : strips) {
             if (strip.getVisibility() != View.GONE || !HIDDEN_HERE.containsKey(strip)) continue;
             android.view.ViewParent parent = strip.getParent();
@@ -1091,8 +1104,10 @@ public final class VideoOverlayHider {
                 column.post(() -> relayoutColumn(column));
             } else {
                 relayoutColumn(column);
+                laidOut = true;
             }
         }
+        return laidOut;
     }
 
     /** The last arrangement {@link #noteColumnChildren} logged, so only a new one is logged. */
@@ -1460,9 +1475,10 @@ public final class VideoOverlayHider {
      * Keeps the caption and the buttons where TikTok had them once See-through bottom bar gives
      * the main feed's pager the strip's room (#145). The cells grow by the strip's height and
      * everything in them laid out against the bottom would go down behind the tabs, so each
-     * cell's widget layer goes up by the same amount while the picture fills the room. Nothing
-     * moves until the column has actually been laid out without the strip, and a layer TikTok
-     * offsets itself is left to TikTok.
+     * cell's widget layer goes up by the same amount while the picture fills the room. Each layer
+     * goes up by as much as its own cell reaches into the strip's place (see {@link #roomReached}),
+     * so nothing moves before the cells have been laid out over it and nothing comes down while
+     * they still are. A layer TikTok offsets itself is left to TikTok.
      *
      * <p>The time over the bar's right end asks for room there too (#173), and then every cell's
      * layer goes up by [room] the same way, so the next video arrives already lifted. The time
@@ -1474,11 +1490,14 @@ public final class VideoOverlayHider {
         Map<View, Float> lifts = new HashMap<>();
         if (seeThroughBar && layerId != 0 && cellId != 0) {
             for (View strip : strips) {
-                float gained = roomGained(strip);
-                if (gained <= 0f) continue;
+                if (!HIDDEN_HERE.containsKey(strip) || !(strip.getParent() instanceof View)) continue;
                 List<View> layers = new ArrayList<>();
                 collectWidgetLayers((View) strip.getParent(), layerId, cellId, 0, layers);
-                for (View layer : layers) lifts.put(layer, gained);
+                for (View layer : layers) {
+                    if (!(layer.getParent() instanceof View)) continue;
+                    float gained = roomReached(strip, (View) layer.getParent());
+                    if (gained > 0f) lifts.put(layer, gained);
+                }
             }
         }
         if (room > 0) {
@@ -1530,6 +1549,45 @@ public final class VideoOverlayHider {
         ViewGroup.LayoutParams params = strip.getLayoutParams();
         if (column.getHeight() <= 0 || leavesRoom(column) || params == null) return 0f;
         return Math.max(0, params.height);
+    }
+
+    /**
+     * How far {@code cell} reaches into the place of a strip this class hid: up to the strip's
+     * height, by the cell's own height against what the column leaves its pager with the strip
+     * in. Asked of the cell, not the strip: TikTok shows the strip again as each new video
+     * settles and lays the column out with it, and the cells keep their full height until a
+     * later layout, so a lift that followed the strip came down while they still reached over its
+     * place and the caption, the buttons and the search bar sat a strip's height low over the
+     * tabs (Login2, 2026-10-23, #232: about a third of a second on every swipe).
+     */
+    static float roomReached(View strip, View cell) {
+        if (!HIDDEN_HERE.containsKey(strip) || !(strip.getParent() instanceof android.widget.LinearLayout)) {
+            return 0f;
+        }
+        android.widget.LinearLayout column = (android.widget.LinearLayout) strip.getParent();
+        ViewGroup.LayoutParams params = strip.getLayoutParams();
+        if (column.getHeight() <= 0 || params == null || params.height <= 0 || cell.getHeight() <= 0) return 0f;
+        View branch = cell;
+        while (branch.getParent() != column) {
+            if (!(branch.getParent() instanceof View)) return 0f;
+            branch = (View) branch.getParent();
+        }
+        int slot = column.getHeight() - column.getPaddingTop() - column.getPaddingBottom() - params.height;
+        if (params instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) params;
+            slot -= margins.topMargin + margins.bottomMargin;
+        }
+        for (int i = 0; i < column.getChildCount(); i++) {
+            View child = column.getChildAt(i);
+            if (child == strip || child == branch || child.getVisibility() == View.GONE) continue;
+            slot -= child.getHeight();
+            ViewGroup.LayoutParams childParams = child.getLayoutParams();
+            if (childParams instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) childParams;
+                slot -= margins.topMargin + margins.bottomMargin;
+            }
+        }
+        return Math.max(0, Math.min(params.height, cell.getHeight() - slot));
     }
 
     /** Each cell's widget layer under {@code view}: column, wrapper, pager, cell at the most. */
@@ -2067,7 +2125,8 @@ public final class VideoOverlayHider {
                         boolean clearBar = seeThroughBarNow && !wanted;
                         // Floating bottom bar draws a rounded pill there instead (#124).
                         if (target == BOTTOM_TABS_TARGET) {
-                            SeeThroughBottomBar.setBackgroundClear(view, clearBar, floatingBarNow, glassBarNow, lensBarNow);
+                            SeeThroughBottomBar.setBackgroundClear(view, clearBar, floatingBarNow, glassBarNow, lensBarNow,
+                                    blurBarNow);
                         }
                         if (target == BOTTOM_TABS_DIVIDER_TARGET && clearBar) {
                             setFaded(view, 100);

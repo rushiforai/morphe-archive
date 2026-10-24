@@ -569,3 +569,65 @@ environment only (fail-fast in --publish). The file stays local + gitignored.
 
 **Broken releases left on GitHub:** v0.4.0, v0.4.1, v0.4.2 assets are dex-less; Manager
 never reads them once patches-bundle.json on main points at v0.4.3. Kept for history.
+
+## 2026-10-24 · v0.5.0 — Morphe v2 format, multi-app bundle, repo renamed
+
+**Morphe v2 upgrade.** Morphe released v2 on 2026-10-22 (patcher 2.0.0, plugin
+`app.morphe.patches` 2.0.0, Gradle 9.8.1, Manager 2.1.0). Migration for this repo:
+- `settings.gradle.kts`: plugin 2.0.0; `libs.versions.toml`: morhe-patcher 2.0.0
+  AND **smali = 4220ae75f7** (the old pin `d92701d947` breaks buildAndroid with
+  R8 "Classpath type already present: com.android.tools.smali.dexlib2.iface.ClassDef").
+- Gradle wrapper 9.8.1 — copy the wrapper properties from the v2 template; the old
+  `distributionSha256Sum` pins the OLD distribution and fails verification.
+- `PatchListGenerator` package `app.morphe.util` → `util` (mainClass updated).
+- Fingerprint old-style constructor (definingClass/name/returnType/parameters)
+  still valid in 2.0.0; raw `strings` lists now match EXACTLY (we don't use them).
+  Resources decode on request (only the manifest up front — our resource patches
+  only touch the manifest, fine).
+- `returnEarly`/`returnLate` now live in the patcher
+  (`app.morphe.patcher.util.BytecodeUtils`); our shared fork still compiles, so
+  not switched yet. `clearBody`/`ensureRegisters` remain template-side helpers.
+- Morphe Desktop CLI needed for v2 bundles: **v1.19.0** (v1.18.1 cannot load
+  `Patcher-Version: 2.0.0` bundles — PatchLoader throws). Now at ~/tools/opt/.
+
+**Multi-app merge.** MyDialog patch tree moved into this repo
+(`patches/.../patches/mydialog/{MyDialogFingerprints,security/{DisableSecurityChecks,DisableSslPinning,MockSim},trackers/{DisableTrackers,DisableAppsFlyer,DisableCleverTap,DisableFirebasePerf}}.kt`);
+`Constants` now carries `PDB_COMPATIBILITY` + `MYDIALOG_COMPATIBILITY`. Bundle
+renamed "Pdb & MyDialog Patches" — 25 patches (11 pdb-tagged + 7 mydialog-tagged
++ 7 universal), verified in patches-list.json.
+
+**Rename collision.** `morphe-patches` was taken (user's own template fork,
+madushas/morphe-patches, fork of MorpheApp/morphe-patches-template with
+semantic-release history). First `gh repo edit --rename` silently failed; pushing
+then hit the FORK's main (behind 710). Renamed to **madushas/morphe-patches-custom**
+(via `gh repo rename --yes`; `gh repo edit --rename` is not a valid flag in this gh
+version). If the cleaner name is wanted: delete the template fork, then
+`gh repo rename morphe-patches` + URL sweep + re-release.
+
+**Release v0.5.0** (morphe-patches-custom): dexed asset verified on GitHub
+(1,085,517 B, classes.dex present), raw main patches-bundle.json → 0.5.0 →
+correct download_url, patches-list.json 0.5.0/25. Manager E2E on the emulator:
+added source `github.com/madushas/morphe-patches-custom` → sheet shows
+0.5.0 · Patches 25 · Apps 2 (screenshot work/eval/morphe-manager-multisource-050.png).
+Manager app picker now lists BOTH MyDialog v18.6.5 and Pdb v2.134.6.
+
+**MyDialog v2 smoke test**: patched with the merged bundle (7 patches incl. mock SIM),
+installed on emulator-5554, first-launch flow identical to v1 (notification prompt →
+language screen → server-side NO IMSI gate). A false "regression" (activity closing
+instantly) turned out to be timing: dumps taken before the permission dialog opened;
+`pm clear` + patient dumps show the same working flow. The app survives launch with
+all security checks neutered.
+
+**tools/mydbuild** now lives here: consumes the newest .mpp (built by pdbbuild),
+patches ../mydialog_patch/mydialog-18-6-5.apk (MYD_APK_DIR overrides), supports
+MYD_MOCK_SIM=1, --install to $MYD_SERIAL (default emulator-5554).
+
+**Shady/invasive scan of MyDialog 18.6.5** (full detail in chat + RECON doc):
+device fingerprint posted to getDeviceStatusOnboarding (persistent composite id),
+AppsFlyer (incl. logLocation capability, OneLink attribution), CleverTap full
+profiling (ct_* UI event tracking, profile push, device-network-info reporting),
+Facebook AppEvents (auto-log), Firebase Analytics/AdID ON, NIC passed as URL param,
+ad-tech names (ironsource/applovin_max/appodeal) present in the bundle with no ad
+unit IDs (dormant), GMA SDK bundled with AD_MANAGER_APP=true. NOT found: no security
+stack exfiltration (checks are local-only), no contact/SMS upload paths, no clipboard
+snooping, no accessibility/device-admin abuse. sqlcipher bundled (encrypted store).

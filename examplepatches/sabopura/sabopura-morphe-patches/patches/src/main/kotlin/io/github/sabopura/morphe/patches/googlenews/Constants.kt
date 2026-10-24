@@ -18,9 +18,14 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
+                version = "5.170.0.999208975",
+                minSdk = 24,
+                description = "Patched with all three patches and the modified methods and manifest checked in the output; launched to its home screen on API 36 (the emulator then exits while the feed loads, also with the stock app). This version no longer has NSContentProvider.",
+            ),
+            AppTarget(
                 version = "5.168.0.982359681",
                 minSdk = 24,
-                description = "Latest; patched, installed and launched on API 36.",
+                description = "Patched, installed and launched on API 36.",
             ),
             AppTarget(
                 version = "5.163.0.947799485",

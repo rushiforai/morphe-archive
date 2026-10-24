@@ -262,6 +262,18 @@
         <item>AUTOMOTIVE</item>
     </string-array>
 
+    <!-- layout.animations.forceAnimationsPatch -->
+    <string-array name="morphe_force_animations_entries">
+        <item>@string/morphe_force_animations_entry_default</item>
+        <item>@string/morphe_force_animations_entry_always_on</item>
+        <item>@string/morphe_force_animations_entry_always_off</item>
+    </string-array>
+    <string-array name="morphe_force_animations_entry_values">
+        <item>DEFAULT</item>
+        <item>ALWAYS_ON</item>
+        <item>ALWAYS_OFF</item>
+    </string-array>
+
     <!-- layout.theme.themePatch -->
     <string-array name="morphe_theme_color_light_entries">
         <item>@string/morphe_theme_color_entry_1</item>
@@ -316,6 +328,18 @@
     <string-array name="morphe_hide_expandable_card_legacy_entry_values">
         <item>SHOW_ALL</item>
         <item>HIDE_ALL</item>
+    </string-array>
+
+    <!-- layout.feedcards.feedCardLayoutPatch -->
+    <string-array name="morphe_feed_card_layout_entries">
+        <item>@string/morphe_feed_card_layout_entry_1</item>
+        <item>@string/morphe_feed_card_layout_entry_2</item>
+        <item>@string/morphe_feed_card_layout_entry_3</item>
+    </string-array>
+    <string-array name="morphe_feed_card_layout_entry_values">
+        <item>CLASSIC</item>
+        <item>CARDS</item>
+        <item>CARDS_WITH_ACTION_BUTTONS</item>
     </string-array>
 
     <!-- layout.captions.autoCaptionsPatch -->
@@ -761,6 +785,18 @@
         <item>LOW</item>
         <item>MEDIUM</item>
         <item>MAXIMUM</item>
+    </string-array>
+
+    <!-- video.codecs.disableVideoCodecsPatch -->
+    <string-array name="morphe_video_codec_entries">
+        <item>@string/morphe_video_codec_entry_default</item>
+        <item>@string/morphe_video_codec_entry_vp9</item>
+        <item>@string/morphe_video_codec_entry_avc</item>
+    </string-array>
+    <string-array name="morphe_video_codec_entry_values">
+        <item>DEFAULT</item>
+        <item>VP9</item>
+        <item>AVC</item>
     </string-array>
 
     <!-- video.quality.rememberVideoQualityPatch -->

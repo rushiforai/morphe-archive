@@ -16,7 +16,8 @@ import app.morphe.patches.tumblr.misc.settings.settingsPatch
 /**
  * Turns on the extension's suggested blogs rule. The timeline hook takes each blog card, blog row
  * and carousel of them out of a page before Tumblr shows it, with the heading in front of it
- * ("Check out these blogs" is the server's text, not Tumblr's). The kinds are in `TimelineFilter`.
+ * ("Check out these blogs" is the server's text, not Tumblr's), and the "Like this? Follow to see
+ * more" prompt between a blog's posts. The kinds are in `TimelineFilter`.
  */
 @Suppress("unused")
 val hideSuggestedBlogsPatch = bytecodePatch(

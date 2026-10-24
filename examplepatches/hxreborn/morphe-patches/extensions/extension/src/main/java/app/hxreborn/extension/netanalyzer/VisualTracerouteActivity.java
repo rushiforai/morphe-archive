@@ -21,7 +21,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.TextView;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class VisualTracerouteActivity extends HostScreenActivity {
 

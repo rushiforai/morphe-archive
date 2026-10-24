@@ -37,18 +37,42 @@ public class AdsFilter implements IFilter {
     /** The CardInsertInfo card type of the Lemon8 install promo card TikTok slots into For You. */
     static final int LEMON8_CARD_TYPE = 9;
 
+    /** The awemeType of every card TikTok inserts between videos. */
+    static final int INSERT_CARD_AWEME_TYPE = 105;
+
+    /** CardInsertInfo's impl type for a card drawn by a Lynx template. */
+    static final int LYNX_CARD_IMPL_TYPE = 2;
+
     /**
-     * The full-screen "Find fresh ideas on Lemon8" card. It is an inserted card, not a video, and
-     * none of TikTok's ad flags are set on it. Its handler asks for card type 9 and the server's
-     * answer carries the same number, so the card is the item whose CardInsertInfo says 9.
+     * The card types of the Lynx Lemon8 card ("Your daily dose of inspiration", an embedded
+     * Lemon8 post with Not interested and Open Lemon8). TikTok's own filter_lemon8_lynx_card
+     * list step (47.5.3) drops a Lynx insert of 40 or 114 from a cached response and of 105 from
+     * a live one. A type 40 card reached For You on the S22 on 2026-10-23.
+     */
+    static final java.util.Set<Integer> LEMON8_LYNX_CARD_TYPES =
+            java.util.Collections.unmodifiableSet(new java.util.HashSet<>(java.util.Arrays.asList(40, 105, 114)));
+
+    /**
+     * The Lemon8 cards. Neither is a video and none of TikTok's ad flags are set on them. The
+     * full-screen "Find fresh ideas on Lemon8" card's handler asks for card type 9 and the
+     * server's answer carries the same number. The Lynx card is a type 105 insert drawn by a Lynx
+     * template whose card type is one TikTok's own Lemon8 Lynx filter names.
      */
     static boolean isLemon8PromoCard(Aweme item) {
         Object insert = Reflect.property(item, "getCardInsertInfo", "cardInsertInfo");
         if (insert == null) return false;
         Object type = Reflect.property(insert, "getCardType", "cardType");
-        boolean lemon = type instanceof Number && ((Number) type).intValue() == LEMON8_CARD_TYPE;
+        if (!(type instanceof Number)) return false;
+        int cardType = ((Number) type).intValue();
+        boolean lemon = cardType == LEMON8_CARD_TYPE || isLemon8LynxCard(item, insert, cardType);
         if (lemon) FeedFilterCounters.sawKind(AD_SIGNALS_SOURCE, "lemon8 promo card");
         return lemon;
+    }
+
+    private static boolean isLemon8LynxCard(Aweme item, Object insert, int cardType) {
+        if (!LEMON8_LYNX_CARD_TYPES.contains(cardType) || item.getAwemeType() != INSERT_CARD_AWEME_TYPE) return false;
+        Object impl = Reflect.property(insert, "getCardImplType", "cardImplType");
+        return impl instanceof Number && ((Number) impl).intValue() == LYNX_CARD_IMPL_TYPE;
     }
 
     /**

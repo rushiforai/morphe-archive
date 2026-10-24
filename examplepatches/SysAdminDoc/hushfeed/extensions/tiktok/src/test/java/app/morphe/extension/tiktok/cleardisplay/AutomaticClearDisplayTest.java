@@ -212,6 +212,49 @@ public class AutomaticClearDisplayTest {
         }
     }
 
+    /** #232: with Keep off, the bars come back as the swipe starts, and a panel closing over the video leaves its clear. */
+    @Test public void withKeepOffTheSwipeEndsAClearByHand() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.save(false);
+        try {
+            RememberClearDisplayPatch.readerPost = clear ->
+                    RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(clear, 0));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("cleared", () -> true, events::add);
+            assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+
+            // Focus back on the same video, as TikTok's long press panel closes, keeps it.
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("cleared", () -> true, events::add);
+            assertEquals("closing the panel undid its own Clear display", List.of(), events);
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+            // The pager settling on a video without telling its listeners isn't a new one.
+            RememberClearDisplayPatch.onFeedPageSelected(null, 1, false);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+            // The pager picking the next video as the swipe lets go.
+            RememberClearDisplayPatch.onFeedPageSelected(null, 1, true);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse("the bars waited for the next video's first frame", RememberClearDisplayPatch.isClearDisplayNow());
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            assertEquals("the next video was told to leave a clear it never had", List.of(), events);
+
+            // Kept, the clear carries over the swipe as before.
+            Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.save(true);
+            assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+            RememberClearDisplayPatch.onFeedPageSelected(null, 2, true);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("a kept clear ended with the swipe", RememberClearDisplayPatch.isClearDisplayNow());
+            assertTrue("the swipe's exit overwrote the kept choice", Settings.CLEAR_DISPLAY.get());
+        } finally {
+            Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.resetToDefault();
+            Settings.CLEAR_DISPLAY.resetToDefault();
+        }
+    }
+
     /** #136: like every other clear, a gesture doesn't take the tabs the daily hold needs. */
     @Test public void aGestureDoesNotClearUnderTheDailyHold() {
         org.robolectric.util.ReflectionHelpers.callStaticMethod(app.morphe.extension.tiktok.wellbeing.SessionBudget.class, "awaitWritesForTests");
@@ -492,6 +535,58 @@ public class AutomaticClearDisplayTest {
             assertTrue("another page pausing ended this one's window", RememberClearDisplayPatch.isCarryingClear());
             app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailPause(page);
             assertFalse("the feed's restored controls stayed hidden", RememberClearDisplayPatch.isCarryingClear());
+        }
+    }
+
+    /**
+     * On 47.5.3 search opens its video inside the main activity, so the window never changes:
+     * with the controls brought back by hand on a result, backing out and opening the same result
+     * again left it uncleared (S22 2026-10-23, #84). A newly opened page is a new viewer.
+     */
+    @Test public void theSameResultOpenedAgainInTheMainActivityClearsAgain() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        try (var main = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            Object first = new Object();
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailView(first, new android.view.View(main.get()));
+            RememberClearDisplayPatch.firstFrame("result", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailPause(first);
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailDestroyed(first);
+
+            Object second = new Object();
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailView(second, new android.view.View(main.get()));
+            RememberClearDisplayPatch.firstFrame("result", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("the reopened result stayed uncleared", RememberClearDisplayPatch.isClearDisplayNow());
+        }
+    }
+
+    /** The same page coming back, its view made again or not, keeps the controls brought back. */
+    @Test public void theSamePageComingBackKeepsItsRestoredControls() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        try (var main = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            Object page = new Object();
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailView(page, new android.view.View(main.get()));
+            RememberClearDisplayPatch.firstFrame("result", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailPause(page);
+            RememberClearDisplayPatch.firstFrame("result", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse("back without a new view, the restore was undone", RememberClearDisplayPatch.isClearDisplayNow());
+
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailView(page, new android.view.View(main.get()));
+            RememberClearDisplayPatch.firstFrame("result", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse("back with its view made again, the restore was undone", RememberClearDisplayPatch.isClearDisplayNow());
         }
     }
 

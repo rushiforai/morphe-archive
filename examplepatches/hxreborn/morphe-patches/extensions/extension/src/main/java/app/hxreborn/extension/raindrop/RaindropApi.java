@@ -4,7 +4,6 @@
  */
 package app.hxreborn.extension.raindrop;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -14,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import android.webkit.CookieManager;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import app.hxreborn.extension.shared.Streams;
 
 final class RaindropApi {
 
@@ -42,21 +43,11 @@ final class RaindropApi {
                 throw new IOException("GET " + path + " returned HTTP " + code);
             }
             try (InputStream input = connection.getInputStream()) {
-                return readAll(input);
+                return Streams.readAll(input);
             }
         } finally {
             connection.disconnect();
         }
-    }
-
-    private static byte[] readAll(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[16384];
-        int read;
-        while ((read = input.read(buffer)) != -1) {
-            output.write(buffer, 0, read);
-        }
-        return output.toByteArray();
     }
 
 }

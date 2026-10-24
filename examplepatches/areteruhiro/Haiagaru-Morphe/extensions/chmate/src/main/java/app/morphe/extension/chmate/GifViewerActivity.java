@@ -68,29 +68,37 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
             v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                     insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom()); return insets;
         });
+        // Compact bottom controller proposed by contributor: ﾜｯﾁｮｲ 3f3c-gNc7.
+        // Keep these actual Views attached: popup anchors and dp sizing must not
+        // be lost when converting a model toolbar into Compose controls.
         LinearLayout toolbar = new LinearLayout(this); toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        Button back = button("戻る"); back.setOnClickListener(v -> finish()); toolbar.addView(back);
+        toolbar.setPadding(dp(8), 0, dp(8), 0);
         TextView title = new TextView(this); title.setText("GIF"); title.setTextColor(Color.WHITE);
+        title.setTextSize(16); title.setGravity(Gravity.CENTER_VERTICAL); title.setPadding(dp(8), 0, dp(12), 0);
         toolbar.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
         play = button(playing ? "一時停止" : "再生"); play.setEnabled(false);
         play.setOnClickListener(v -> {
             playing = !playing; image.setPlaying(playing && foreground); play.setText(playing ? "一時停止" : "再生");
-        }); toolbar.addView(play);
+        }); toolbar.addView(play, new LinearLayout.LayoutParams(-2, -2));
         Button more = button("︙"); more.setContentDescription("GIFメニュー");
-        more.setOnClickListener(this::showMenu); toolbar.addView(more); root.addView(HaiagaruUi.controls(this, toolbar));
+        more.setOnClickListener(this::showMenu); toolbar.addView(more, new LinearLayout.LayoutParams(dp(48), -2));
         image = new GifCanvas(); root.addView(image, new LinearLayout.LayoutParams(-1, 0, 1));
-        status = new TextView(this); status.setTextColor(Color.WHITE); status.setPadding(16, 8, 16, 16); root.addView(HaiagaruUi.controls(this, status));
+        status = new TextView(this); status.setTextColor(Color.WHITE); status.setPadding(dp(16), dp(8), dp(16), dp(8)); root.addView(status);
+        root.addView(toolbar);
         HaiagaruUi.showPlayer(this, root); root.requestApplyInsets(); load();
     }
 
     private Button button(String label) {
-        Button b = new Button(this); b.setText(label); b.setTextColor(Color.WHITE); b.setBackgroundColor(Color.TRANSPARENT); return b;
+        Button b = new Button(this); b.setText(label); b.setTextColor(Color.WHITE); b.setAllCaps(false); b.setTextSize(14);
+        b.setMinWidth(0); b.setMinimumWidth(0); b.setMinHeight(dp(48)); b.setMinimumHeight(dp(48));
+        b.setPadding(dp(8), 0, dp(8), 0); b.setBackgroundColor(Color.TRANSPARENT); return b;
     }
+    private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
     private void load() {
         final int request = ++generation;
         HttpURLConnection old = connection; if (old != null) old.disconnect();
-        image.setMovie(null); play.setEnabled(false); status.setText("GIFを読み込み中…");
+        image.setMovie(null); play.setEnabled(false); status.setVisibility(View.VISIBLE); status.setText("GIFを読み込み中…");
         worker.execute(() -> {
             HttpURLConnection current = null;
             try {
@@ -116,7 +124,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
                 runOnUiThread(() -> {
                     if (closed || request != generation) return;
                     image.setMovie(movie); image.setPlaying(playing && foreground);
-                    play.setEnabled(true); status.setText("");
+                    play.setEnabled(true); status.setText(""); status.setVisibility(View.GONE);
                 });
             } catch (Exception | OutOfMemoryError failure) {
                 runOnUiThread(() -> { if (!closed && request == generation)

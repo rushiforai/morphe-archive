@@ -398,6 +398,16 @@ function New-FixtureZip([string]$Path, [string]$EntryName, [string]$Content) {
             Assert-Audit (($crossResult | ConvertFrom-Json).currentPass -eq 1) 'Cross-shell validation lost its current pass.'
         } finally { $env:PSModulePath = $modulePathBefore }
     }
+    # -Validate holds every TikTok version a pattern spells out to the declared target, so a check
+    # still asking for the old version after a retarget fails here instead of on every device run.
+    & $shell -NoProfile -File $runner -Validate 2>&1 | Out-Null
+    Assert-Audit ($LASTEXITCODE -eq 0) 'The shipped catalog failed -Validate.'
+    $stale = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'catalog.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $stale[0].checks[0].steps += [pscustomobject]@{ probe = 'report'; expect = 'tiktok_version: 12\.3\.4' }
+    $staleCatalog = Join-Path $fixture 'stale-catalog.json'
+    Write-FixtureJson $staleCatalog $stale
+    $staleOutput = & $shell -NoProfile -File $runner -Validate -Catalog $staleCatalog 2>&1 | Out-String
+    Assert-Audit ($LASTEXITCODE -eq 1 -and $staleOutput -match 'names TikTok 12\.3\.4, not the declared') 'A pattern naming an undeclared TikTok version passed -Validate.'
     # Carry an unchanged historical result while running a different patch, then change its definition.
     $second = Copy-Json $staticEntry
     $second.name = 'Second'

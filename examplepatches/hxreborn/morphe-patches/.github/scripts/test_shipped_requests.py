@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from shipped_requests import shipped
+from shipped_requests import prerelease_comment, shipped
 
 
 def patches_list(*apps):
@@ -31,10 +31,12 @@ REQUESTS = [
 ]
 
 failures = 0
+checks = 0
 
 
 def check(ok, name):
-    global failures
+    global failures, checks
+    checks += 1
     failures += not ok
     print(f"{'ok  ' if ok else 'FAIL'} {name}")
 
@@ -49,5 +51,18 @@ check(not rows[5]["close"], "a request for something else is left open")
 check(not rows[7]["close"], "a request with no feature field is left open")
 check(shipped(CURRENT, CURRENT, REQUESTS) == [], "a release that adds no package lists nothing")
 
-print(f"\n{7 - failures}/7 passed")
+single = prerelease_comment(rows[1], "v1.2.0-dev.3", "owner/repo")
+check(single == "<!-- prerelease-bot -->\nA pre-release with patches for New App is out: "
+      "[v1.2.0-dev.3](https://github.com/owner/repo/releases/tag/v1.2.0-dev.3). In Morphe Manager open Sources, "
+      "this bundle, and turn on Pre-release patches, then update the bundle and patch New App. "
+      "Reply here whether it works. The request closes when the change is merged into main.\n",
+      "a one-feature request gets the pre-release line and the close notice")
+several = prerelease_comment(rows[2], "v1.2.0-dev.3", "owner/repo")
+check(several == "<!-- prerelease-bot -->\nA pre-release with patches for New App is out: "
+      "[v1.2.0-dev.3](https://github.com/owner/repo/releases/tag/v1.2.0-dev.3). In Morphe Manager open Sources, "
+      "this bundle, and turn on Pre-release patches, then update the bundle and patch New App. "
+      "Reply here whether it works.\n",
+      "a several-feature request gets the pre-release line without the close notice")
+
+print(f"\n{checks - failures}/{checks} passed")
 sys.exit(1 if failures else 0)

@@ -7,7 +7,7 @@ import android.content.Context;
 final class SettingsEffects {
     static boolean needsRestart(String key){
         // Existing native views/catalogs and process-start hooks retain these values.
-        return "hideAd".equals(key)||"replaceUserAgent".equals(key)||"removeMonaKey".equals(key)
+        return "hideAd".equals(key)||"removeMonaKey".equals(key)
                 ||"chtoio".equals(key)||"topAlignShortThreads".equals(key)
                 ||"compactQuickFilters".equals(key)||"threadCommandsEnabled".equals(key)
                 ||"imageViewerRotationButton".equals(key)
@@ -16,9 +16,10 @@ final class SettingsEffects {
                 ||"copipeNg2".equals(key)||"arashiNg".equals(key)||"abbrevSingleId".equals(key);
     }
     static void changed(Context context,String key,boolean on){
+        if(HiddenNgUnread.KEY.equals(key)){HiddenNgUnread.clear();Haiagaru.refreshBoardListAfterReadSortChange();}
         if("forceHttps".equals(key))HttpsTransport.setEnabled(on);
         if(!on&&("wacchoiSearchEnabled".equals(key)||"wacchoiBackgroundSearch".equals(key))){
-            WacchoiBackgroundJob job=WacchoiSearchService.current;if(job!=null&&job.running)job.cancel();
+            for(WacchoiBackgroundJob job:WacchoiSearchService.jobs().values())if(job.running)job.cancel();
         }
         if("readThreadsFirst".equals(key)||HiddenDroppedThreads.KEY.equals(key)||HiddenDroppedThreads.DRAFTS.equals(key)
                 ||HiddenDroppedThreads.SENT.equals(key)||"groupBrowsingHistoryByBoard".equals(key)

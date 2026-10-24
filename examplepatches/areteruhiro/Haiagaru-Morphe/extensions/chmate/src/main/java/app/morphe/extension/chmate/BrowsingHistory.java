@@ -108,7 +108,9 @@ public final class BrowsingHistory {
             Object[] replacements = new Object[fields.length];
             for (int i = 0; i < fields.length; i++) {
                 Object original = field(adapter, fields[i]).get(adapter);
-                if (!(original instanceof List)) return;
+                // Native lazy/search adapters may not have populated every cache yet.
+                // An absent source cache must not bypass filtering of the visible list.
+                if (!(original instanceof List)) {replacements[i]=original;continue;}
                 List<?> source=HiddenDroppedThreads.source(original,(List<?>)original);
                 // Notification must preserve the native search result/order. The full sort
                 // path restores from its source; the final boundary only removes dropped rows.

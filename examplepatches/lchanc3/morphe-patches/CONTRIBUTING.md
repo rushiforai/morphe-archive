@@ -58,13 +58,13 @@
 
 ### 支援哪些版本
 
-新功能只對最新版的 JPTT 開發，用 `COMPATIBILITY_JPTT_LATEST`。已經寫好的 patch 用
-`COMPATIBILITY_JPTT`，保留它們驗證過的每個舊版。兩者都定義在 `jptt/shared/Constants.kt`。
+每個 app 都只支援最新版。舊版不會再有新功能和修正，列著只會讓使用者回頭去找舊的 patch release，
+所以 app 一出新版、patch 都驗證過，就直接換過去，舊版從清單拿掉。
 
-- **改了 patch：** 對 `COMPATIBILITY_JPTT` 列的每個版本都跑一次。只支援最新版的 patch
-  在舊版上會印 `skip`，跟 Manager 一樣不套用。
-- **JPTT 出新版：** 先對新版跑過。全部 ok 的話，把 `LATEST_TARGET` 換成新版，舊的最新版
-  移進 `COMPATIBILITY_JPTT` 的清單，這樣舊 patch 在那一版還是可以用，新 patch 則跟著換到新版。
+- **JPTT：** 版本寫在 `jptt/shared/Constants.kt` 的 `LATEST_TARGET`，所有 patch 共用
+  `COMPATIBILITY_JPTT`。出新版時先對新版跑 `verifyAgainstApk`，全部 ok 就把 `LATEST_TARGET`
+  換成新版。
+- **Local Dream：** 有混淆，每版都要重新驗證，版本寫在 `localdream/shared/Constants.kt`。
 
 ## 取得 APK
 
@@ -75,7 +75,8 @@ adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package:/
 ```
 
 只需要 `base.apk`，其他 split 只有 native library、圖片資源和語系，patch 用不到。
-手機上的 JPTT 一更新，舊版就撈不回來了，想留著的版本請另外收好，用 `JPTT_APK` 指過去。
+手機上的 JPTT 一更新，舊版就撈不回來了。要換到新版之前，舊版最好先留著，新版有問題時才能比對；
+換過去之後就可以刪了。
 
 ## 目錄
 

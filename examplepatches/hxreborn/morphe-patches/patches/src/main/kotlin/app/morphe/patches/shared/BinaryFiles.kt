@@ -8,6 +8,35 @@ import app.morphe.patcher.patch.PatchException
 import java.io.File
 import java.io.RandomAccessFile
 
+internal val DEX_MAGIC = byteArrayOf(0x64, 0x65, 0x78, 0x0a)
+internal const val DEX_CHECKSUM_OFFSET = 8
+internal const val DEX_SIGNATURE_OFFSET = 12
+internal const val DEX_FILE_SIZE_OFFSET = 32
+internal const val DEX_MAP_OFF_OFFSET = 52
+internal const val DEX_HEADER_SIZE = 0x70
+internal const val DEX_MAP_ITEM_SIZE = 12
+
+internal fun ByteArray.readInt(offset: Int) =
+    (this[offset].toInt() and 0xFF) or
+        ((this[offset + 1].toInt() and 0xFF) shl 8) or
+        ((this[offset + 2].toInt() and 0xFF) shl 16) or
+        ((this[offset + 3].toInt() and 0xFF) shl 24)
+
+internal fun ByteArray.writeInt(offset: Int, value: Int) {
+    this[offset] = value.toByte()
+    this[offset + 1] = (value ushr 8).toByte()
+    this[offset + 2] = (value ushr 16).toByte()
+    this[offset + 3] = (value ushr 24).toByte()
+}
+
+internal fun ByteArray.writeShort(offset: Int, value: Int) {
+    this[offset] = value.toByte()
+    this[offset + 1] = (value ushr 8).toByte()
+}
+
+internal fun ByteArray.readShort(offset: Int) =
+    (this[offset].toInt() and 0xFF) or ((this[offset + 1].toInt() and 0xFF) shl 8)
+
 internal fun File.replaceAsciiInPlace(old: String, new: String): Boolean {
     require(old.length == new.length) { "Replacement must keep the byte length" }
 

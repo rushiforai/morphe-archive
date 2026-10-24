@@ -15,7 +15,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class HostPalette {
 

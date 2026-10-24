@@ -96,7 +96,7 @@ internal val MoodCatalogueV2Fingerprint = Fingerprint(
 @Suppress("unused")
 val unlockMoodsPatch = bytecodePatch(
     name = "Unlock driver moods",
-    description = "Unlocks all moods already on the device.",
+    description = "Unlocks all moods on the device.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

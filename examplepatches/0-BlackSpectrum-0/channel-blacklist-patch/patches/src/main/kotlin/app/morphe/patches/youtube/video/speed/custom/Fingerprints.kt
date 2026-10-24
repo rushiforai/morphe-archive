@@ -17,9 +17,9 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
-import app.morphe.patcher.string
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.string
 import app.morphe.patches.youtube.shared.InitializePlaybackSpeedValuesFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -125,6 +125,42 @@ internal object TapAndHoldSpeedFingerprint : Fingerprint(
             type = "Z"
         ),
         opcode(Opcode.IF_NEZ),
+        opcode(Opcode.IGET_OBJECT),
         literal(2.0f)
+    )
+)
+
+/**
+ * Checks if the audio offload supports changing the playback speed.
+ */
+internal object AudioOffloadVariableRateSupportedFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(
+        string("offloadVariableRateSupported")
+    )
+)
+
+/**
+ * Checks if the audio offload is enabled.
+ */
+internal object AudioOffloadEnabledFingerprint : Fingerprint(
+    classFingerprint = AudioOffloadVariableRateSupportedFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf(),
+    filters = OpcodesFilter.opcodesToFilters(
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.IGET_BOOLEAN,
+        Opcode.CONST_4,
+        Opcode.IF_NEZ,
+        Opcode.IGET_BOOLEAN,
+        Opcode.CONST_4,
+        Opcode.IF_NEZ,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.IGET_BOOLEAN
     )
 )

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Apply the Pdb Morphe patch bundle to pdb_original.apk and (optionally) install.
+#
+# Usage:
+#   pdbbuild              # build the .mpp, patch the APK
+#   pdbbuild --install    # ... and install to the connected device / emulator
+set -euo pipefail
+
+# Repo root = parent of this script's directory. Override with PDB_* if your APK
+# and work dir live elsewhere.
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="${PDB_WORK:-$REPO/work}"
+IN="${PDB_INPUT:-$REPO/pdb_original.apk}"
+OUT="${PDB_OUTPUT:-$REPO/pdb_patched.apk}"
+
+export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+export GITHUB_ACTOR="${GITHUB_ACTOR:-madushas}"
+# The Morphe Gradle plugin resolves from GitHub Packages, so a token is required.
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+  for f in "$REPO/gh_token.txt" "$HOME/.morphe-data/gh_token.txt"; do
+    if [[ -f "$f" ]]; then export GITHUB_TOKEN="$(tr -d '\r\n' < "$f")"; break; fi
+  done
+fi
+export MORPHE_DATA_DIR="${MORPHE_DATA_DIR:-$HOME/.morphe-data}"
+mkdir -p "$WORK"
+
+if [[ ! -f "$IN" ]]; then
+  echo "input APK not found: $IN" >&2
+  echo "put the Pdb base APK there, or set PDB_INPUT=/path/to/pdb_original.apk" >&2
+  exit 1
+fi
+
+echo "==> Building patch bundle"
+( cd "$REPO" && ./gradlew :patches:build --no-daemon -q )
+
+MPP="$(ls -t "$REPO"/patches/build/libs/patches-*.mpp 2>/dev/null | grep -vE 'sources|javadoc' | head -1)"
+if [[ -z "$MPP" ]]; then
+  echo "No .mpp produced" >&2
+  exit 1
+fi
+echo "==> Bundle: $MPP"
+
+echo "==> Patching $IN"
+java -jar "$HOME/tools/opt/morphe-desktop.jar" patch \
+  --patches="$MPP" \
+  --bytecode-mode FULL \
+  -o "$OUT" \
+  -r "$WORK/patch-result.json" \
+  -f \
+  "$IN"
+
+echo "==> Output: $OUT"
+
+if [[ "${1:-}" == "--install" ]]; then
+  echo "==> Installing"
+  adb install -r "$OUT"
+  echo "==> Launching"
+  adb shell monkey -p pdb.app -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+fi

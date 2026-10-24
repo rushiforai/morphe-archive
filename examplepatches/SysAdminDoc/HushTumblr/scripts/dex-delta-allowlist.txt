@@ -54,7 +54,14 @@ method Lcom/tumblr/rumblr/model/post/Post;->hushTrail()Ljava/util/List; 139eea4a
 method Lcom/tumblr/rumblr/model/post/ReblogTrail;->hushContent()Ljava/util/List; f761d433ef31c4ad01990439b7814dd4d249c1dbe2b5889d8cd72f090a247282
 method Lcom/tumblr/rumblr/model/post/blocks/TextBlock;->hushText()Ljava/lang/String; 40b34f8f10880a38fa206d6b06e145f1dc8f77ed863d9150441c9899e3a3b8a6
 
-[Hide suggested blogs | Hide suggested communities | Hide Watch it rows]
+[Hide filtered posts]
+implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushFilteredPost;
+implements Lcom/tumblr/rumblr/model/post/asset/Filtered; Lapp/hushtumblr/extension/tumblr/timeline/HushFiltered;
+method Lcom/tumblr/rumblr/model/post/Post;->hushFiltered()Ljava/lang/Object; 074041f984c1f8c9071acce7ea2c6eb3dfb04a91ea5d8dfaf4840417e842473b
+method Lcom/tumblr/rumblr/model/post/asset/Filtered;->hushFilteredContent()Ljava/util/List; ed795cdfaa71d86145ae42a48258012ca9a3cf7960a1d1ad514674573b6390fa
+method Lcom/tumblr/rumblr/model/post/asset/Filtered;->hushFilteredTags()Ljava/util/List; 675a397245038dedffc47bb2f60e3d55640602d13bfcbfb4757d9a2ff8723fb8
+
+[Hide suggested blogs | Hide suggested communities | Hide suggested tags | Hide Watch it rows]
 method Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->carouselItems(Ljava/lang/Object;)Ljava/util/List; 2dc1b723104c35f6e3838b1abf38b7a3b90fed8a1f8a66d9c763620f651fffee
 
 [Filter activity notifications]

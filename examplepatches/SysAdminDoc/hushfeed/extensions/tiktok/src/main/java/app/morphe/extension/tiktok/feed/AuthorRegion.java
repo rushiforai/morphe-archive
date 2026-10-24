@@ -451,7 +451,8 @@ public final class AuthorRegion {
 
         regionValue = regionCode(Reflect.string(aweme, "getRegion", "region"));
         regionAweme = new WeakReference<>(aweme);
-        rememberSeen(handle(aweme), regionValue);
+        Object author = Reflect.property(aweme, "getAuthor", "author");
+        rememberSeen(Reflect.string(author, "getUid", "uid"), handle(aweme), regionValue);
         return regionValue;
     }
 
@@ -487,14 +488,71 @@ public final class AuthorRegion {
         return key.isEmpty() ? null : key.toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * The same countries by account id (#201). A uid never changes spelling or owner, so it
+     * answers for a commenter whose handle is missing or was changed since the video was bound.
+     * Bounded and access ordered like the handle cache, under its own lock.
+     */
+    private static final Map<String, String> SEEN_BY_UID = new LinkedHashMap<String, String>(64, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+            return size() > MAX_SEEN;
+        }
+    };
+
     public static void rememberSeen(String handle, String region) {
-        String key = handleKey(handle);
+        rememberSeen(null, handle, region);
+    }
+
+    /** Remembers a country under the account's id and its handle, whichever of the two is known. */
+    public static void rememberSeen(String uid, String handle, String region) {
         String code = regionCode(region);
-        if (key == null || code == null) {
+        if (code == null) {
             return;
         }
-        synchronized (SEEN_AT_BIND) {
-            SEEN_AT_BIND.put(key, code);
+        String key = handleKey(handle);
+        if (key != null) {
+            synchronized (SEEN_AT_BIND) {
+                SEEN_AT_BIND.put(key, code);
+            }
+        }
+        String id = uid == null ? null : uid.trim();
+        if (id != null && !id.isEmpty()) {
+            synchronized (SEEN_BY_UID) {
+                SEEN_BY_UID.put(id, code);
+            }
+        }
+    }
+
+    /**
+     * What a comment's own account carried, kept for the same person's later comments: the uid
+     * always, the handle only when the feed hasn't already remembered one, so a country the
+     * feed bound is never replaced by a comment's.
+     */
+    public static void learnFromComment(String uid, String handle, String region) {
+        String code = regionCode(region);
+        if (code == null) {
+            return;
+        }
+        String key = handleKey(handle);
+        if (key != null) {
+            synchronized (SEEN_AT_BIND) {
+                if (!SEEN_AT_BIND.containsKey(key)) {
+                    SEEN_AT_BIND.put(key, code);
+                }
+            }
+        }
+        rememberSeen(uid, null, code);
+    }
+
+    /** The country last remembered for this account id, or null. */
+    public static String seenRegionByUid(String uid) {
+        String id = uid == null ? null : uid.trim();
+        if (id == null || id.isEmpty()) {
+            return null;
+        }
+        synchronized (SEEN_BY_UID) {
+            return SEEN_BY_UID.get(id);
         }
     }
 
@@ -516,6 +574,9 @@ public final class AuthorRegion {
     public static void forgetSeenRegions() {
         synchronized (SEEN_AT_BIND) {
             SEEN_AT_BIND.clear();
+        }
+        synchronized (SEEN_BY_UID) {
+            SEEN_BY_UID.clear();
         }
         regionAweme = new WeakReference<>(null);
         regionValue = null;

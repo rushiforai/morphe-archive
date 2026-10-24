@@ -124,16 +124,27 @@ func publicIPv4(ip net.IP) bool {
     return true
 }
 
-type Image struct { Body []byte; ContentType string }
+type Image struct { Body []byte; ContentType string; URL string }
 
-// Fetch is deliberately not an arbitrary public forwarding proxy.
+// Fetch is reached only through Java's registered-domain policy and local capability relay.
 func (s *Session) Fetch(rawURL string, maxBytes, timeoutMillis int64) (*Image, error) {
     u, err := url.Parse(rawURL)
-    if err != nil || !strings.EqualFold(u.Hostname(), "tools.yajuvideo.st") || u.User != nil ||
+    if err != nil || u.Hostname() == "" || u.User != nil ||
         (u.Scheme != "http" && u.Scheme != "https") || (u.Port() != "" && u.Port() != "80" && u.Port() != "443") {
         return nil, errors.New("IMAGE_VPN_INVALID_IMAGE_URL")
     }
     return s.fetch(rawURL, maxBytes, timeoutMillis, true)
+}
+
+// FetchPreview is internal to the app's registered-domain preview pipeline.
+// DNS, redirects and TLS use the same private transport; no browser state or fallback.
+func (s *Session) FetchPreview(rawURL string, maxBytes, timeoutMillis int64) (*Image, error) {
+    u, err := url.Parse(rawURL)
+    if err != nil || u.Hostname() == "" || u.User != nil ||
+        (u.Scheme != "http" && u.Scheme != "https") || (u.Port() != "" && u.Port() != "80" && u.Port() != "443") {
+        return nil, errors.New("IMAGE_VPN_INVALID_PREVIEW_URL")
+    }
+    return s.fetch(rawURL, maxBytes, timeoutMillis, false)
 }
 
 // ProbeExitAddress is a fixed diagnostic endpoint, never an arbitrary forwarding URL.
@@ -157,7 +168,9 @@ func (s *Session) fetch(rawURL string, maxBytes, timeoutMillis int64, expectImag
         DisableKeepAlives: true, MaxResponseHeaderBytes: 64*1024}
     defer transport.CloseIdleConnections()
     client := &http.Client{Transport: transport, CheckRedirect: func(req *http.Request, via []*http.Request) error {
-        if !expectImage || len(via) > 5 || req.URL.User != nil || (req.URL.Scheme != "http" && req.URL.Scheme != "https") {
+        if len(via) > 5 || req.URL.User != nil || (req.URL.Scheme != "http" && req.URL.Scheme != "https") ||
+            (req.URL.Port() != "" && req.URL.Port() != "80" && req.URL.Port() != "443") ||
+            (via[len(via)-1].URL.Scheme == "https" && req.URL.Scheme != "https") {
             return errors.New("IMAGE_VPN_INVALID_REDIRECT")
         }
         // Redirects stay on this transport and resolver, including across hosts.
@@ -165,7 +178,9 @@ func (s *Session) fetch(rawURL string, maxBytes, timeoutMillis int64, expectImag
     }}
     request, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
     if err != nil { return nil, err }
-    request.Header.Set("Accept", "image/*")
+    if expectImage { request.Header.Set("Accept", "image/*") } else {
+        request.Header.Set("Accept", "text/html,application/xhtml+xml,image/*")
+    }
     // No ChMate cookies, account tokens or posting headers are forwarded.
     response, err := client.Do(request)
     if err != nil { return nil, err }
@@ -177,7 +192,7 @@ func (s *Session) fetch(rawURL string, maxBytes, timeoutMillis int64, expectImag
     if int64(len(data)) > maxBytes { return nil, errors.New("IMAGE_VPN_IMAGE_TOO_LARGE") }
     contentType := http.DetectContentType(data)
     if expectImage && !strings.HasPrefix(contentType, "image/") { return nil, errors.New("IMAGE_VPN_NOT_AN_IMAGE") }
-    return &Image{Body: data, ContentType: contentType}, nil
+    return &Image{Body: data, ContentType: contentType, URL: response.Request.URL.String()}, nil
 }
 
 func (s *Session) Close() {

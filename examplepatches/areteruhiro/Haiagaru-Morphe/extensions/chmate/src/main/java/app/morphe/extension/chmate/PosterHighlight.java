@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.text.Html;
-import android.text.SpannableStringBuilder;
+import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.Spannable;
 import android.text.style.BackgroundColorSpan;
@@ -80,7 +80,16 @@ public final class PosterHighlight {
         } catch(Exception error){throw new IllegalStateException("強調ルールを保存できませんでした",error);}
     }
     private static void refresh(){EmojiFontFallback.refreshVisibleRows();}
-    private static String plain(Object value){return value==null?"":Html.fromHtml(String.valueOf(value)).toString();}
+    private static final android.util.LruCache<String,String> PLAIN_CACHE=new android.util.LruCache<>(512);
+    private static String plain(Object value){
+        if(value==null)return "";
+        String html=String.valueOf(value);
+        if(html.indexOf('<')<0&&html.indexOf('&')<0)return html;
+        String cached=PLAIN_CACHE.get(html);if(cached!=null)return cached;
+        String result=Html.fromHtml(html).toString();
+        if(html.length()<=4096)PLAIN_CACHE.put(html,result);
+        return result;
+    }
     static PosterHighlightRules.Poster poster(Object response) throws Exception {
         String id,name,date;
         switch(response.getClass().getName()) {
@@ -158,10 +167,19 @@ public final class PosterHighlight {
     }
     static Spanned decorateResponse(Spanned source,Object response,Object board,PosterHighlightRules.Poster first) throws Exception {
         Identity identity=new Identity(response,board,first);
-        SpannableStringBuilder copy=new SpannableStringBuilder(source);
+        // The body text is never edited here. SpannableString copies dense native
+        // anchor spans without rebuilding SpannableStringBuilder's editable tree.
+        SpannableString copy=copyStyles(source);
         for(Identity previous:copy.getSpans(0,copy.length(),Identity.class))copy.removeSpan(previous);
         copy.setSpan(identity,0,copy.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return styled(copy,identity);
+    }
+    private static SpannableString copyStyles(Spanned source){
+        SpannableString copy=new SpannableString(source);
+        // Match the old editable builder's semantics: native selection/watchers
+        // marked NoCopySpan belong to their original View, not another bound row.
+        for(android.text.NoCopySpan span:copy.getSpans(0,copy.length(),android.text.NoCopySpan.class))copy.removeSpan(span);
+        return copy;
     }
     private static PosterHighlightRules.Rule matchingRule(Identity identity) {
         if(!enabled)return null;
@@ -210,7 +228,7 @@ public final class PosterHighlight {
         // Never reset the list's scroll anchor for a highlight refresh. In particular,
         // registering a second person must not snap an active fling to an older offset.
         if(text instanceof Spannable)styled((Spannable)text,identities[0]);
-        else view.setText(styled(new SpannableStringBuilder(text),identities[0]),TextView.BufferType.SPANNABLE);
+        else view.setText(styled(copyStyles(text),identities[0]),TextView.BufferType.SPANNABLE);
     }
     public static void append(Object menuObject,Object response,Object nativeBoard) {
         if(context==null || !(menuObject instanceof Menu) || response==null || nativeBoard==null)return;

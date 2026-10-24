@@ -18,7 +18,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class LanScanResultsActivity extends HostScreenActivity {
 
@@ -29,8 +29,6 @@ public final class LanScanResultsActivity extends HostScreenActivity {
     private static final int ROW_VERTICAL_DP = 7;
 
     private static final int ROW_END_DP = 8;
-
-    private static final int LINE_TOP_DP = 2;
 
     private static final int RIGHT_GAP_DP = 8;
 
@@ -126,12 +124,6 @@ public final class LanScanResultsActivity extends HostScreenActivity {
         row.addView(details, new LinearLayout.LayoutParams(dp(CHEVRON_DP), dp(CHEVRON_DP)));
         row.setOnClickListener((view) -> LanDeviceActivity.show(device, saved, false, null));
         return row;
-    }
-
-    private LinearLayout.LayoutParams lineParams() {
-        final LinearLayout.LayoutParams params = matchWidth();
-        params.topMargin = dp(LINE_TOP_DP);
-        return params;
     }
 
     private CharSequence address(String ip) {

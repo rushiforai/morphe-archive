@@ -26,6 +26,10 @@ SOURCES = [
 ]
 SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/fastmail/CatppuccinFastmailPatch.kt')
 
+SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/pocketcasts/PocketCastsPatches.kt')
+if os.environ.get('CATPPUCCIN_POCKETCASTS_TEST') == '1':
+    SOURCES.append(ROOT / 'test/pocketcasts/TestIdentityPatch.kt')
+
 if os.environ.get('CATPPUCCIN_INCLUDE_INSTAGRAM') == '1':
     SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/instagram/InstagramPatches.kt')
 
@@ -49,7 +53,7 @@ if os.environ.get('CATPPUCCIN_ANKI_TEST') == '1':
 
 MORPHE_VERSION = '1.18.0'
 KOTLIN_VERSION = '2.3.21'
-BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.6.1')
+BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.7.0')
 
 
 def fetch(name, url):
@@ -151,6 +155,19 @@ def main():
     fastmail_dex = BUILD / 'fastmail-extension.zip'
     run(java, '-cp', d8, 'com.android.tools.r8.D8', '--release', '--min-api', '26',
         '--lib', android_jar, '--output', fastmail_dex, fastmail_jar)
+    pocket_classes = BUILD / 'pocketcasts-extension'
+    if pocket_classes.exists():
+        shutil.rmtree(pocket_classes)
+    pocket_classes.mkdir()
+    run(java_home / 'bin/javac', '--release', '8', '-classpath', android_jar,
+        '-d', pocket_classes, *sorted((ROOT / 'tools/pocketcasts/src').rglob('*.java')))
+    pocket_jar = BUILD / 'pocketcasts-extension.jar'
+    with zipfile.ZipFile(pocket_jar, 'w') as archive:
+        for path in pocket_classes.rglob('*.class'):
+            archive.write(path, path.relative_to(pocket_classes))
+    pocket_dex = BUILD / 'pocketcasts-extension.zip'
+    run(java, '-cp', d8, 'com.android.tools.r8.D8', '--release', '--min-api', '32',
+        '--lib', android_jar, '--output', pocket_dex, pocket_jar)
     instagram_dex = None
     if os.environ.get('CATPPUCCIN_INCLUDE_INSTAGRAM') == '1':
         instagram_classes = BUILD / 'instagram-extension'
@@ -182,11 +199,16 @@ def main():
         run(java, '-cp', d8, 'com.android.tools.r8.D8', '--release', '--min-api', '32',
             '--lib', android_jar, '--output', nyt_dex, nyt_jar)
     manifest = ('Manifest-Version: 1.0\nName: Morphe - Catppuccin\n'
-        f'Description: Catppuccin themes for Boost, Gboard, AnkiDroid, Todoist, and Fastmail\nVersion: {BUNDLE_VERSION}\n'
+        f'Description: Catppuccin themes for Boost, Gboard, AnkiDroid, Todoist, Fastmail, and Pocket Casts\nVersion: {BUNDLE_VERSION}\n'
         'Author: titandrive\nSource: https://github.com/titandrive/morphe-catppuccin\n'
         'License: GPL-3.0 with upstream NOTICE conditions\n\n')
     with zipfile.ZipFile(bundle, 'w', zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('META-INF/MANIFEST.MF', manifest)
+        if pocket_dex:
+            with zipfile.ZipFile(pocket_dex) as extension:
+                archive.writestr('catppuccin/pocketcasts.dex', extension.read('classes.dex'))
+            for path in sorted((ROOT / 'patches/src/main/resources/catppuccin/pocketcasts').glob('*.xml')):
+                archive.write(path, 'catppuccin/pocketcasts/' + path.name)
         if instagram_dex:
             with zipfile.ZipFile(instagram_dex) as extension:
                 archive.writestr('catppuccin/instagram.dex', extension.read('classes.dex'))

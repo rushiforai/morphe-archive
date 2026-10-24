@@ -134,7 +134,10 @@ if ($Validate) {
     # every step is one the runner knows, and every probe action and setting key still exists.
     $problems = New-Object System.Collections.Generic.List[string]
     $entries = $allCatalogEntries
-    $declared = @((Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json).patches | ForEach-Object { [string]$_.name })
+    $patchList = Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json
+    $declared = @($patchList.patches | ForEach-Object { [string]$_.name })
+    . (Join-Path $root 'scripts/patch-target.ps1')
+    $targetVersions = @((Get-PatchTarget -PatchList $patchList).PackageVersions)
     $named = @($entries | ForEach-Object { [string]$_.name })
     foreach ($name in $declared) { if ($named -notcontains $name) { $problems.Add("no entry for the patch '$name'") } }
     foreach ($name in $named) { if ($declared -notcontains $name) { $problems.Add("'$name' is not a patch in patches-list.json") } }
@@ -194,6 +197,13 @@ if ($Validate) {
                     $pattern = [string]$step.$field
                     if ($pattern -and $step.apk -ne 'dex-string') {
                         try { [void][regex]::new($pattern) } catch { & $bad "$field is not a valid regex: $pattern" }
+                    }
+                    # A TikTok version a pattern spells out has to be a declared target. After a
+                    # retarget, a check still asking for the old one fails on every run: 47.5.3's
+                    # first audit had two still expecting 47.1.4 in the report.
+                    foreach ($spelled in [regex]::Matches($pattern, '(?<![\d.])(\d{2})\\?\.(\d{1,2})\\?\.(\d{1,3})(?!\d)')) {
+                        $version = '{0}.{1}.{2}' -f $spelled.Groups[1].Value, $spelled.Groups[2].Value, $spelled.Groups[3].Value
+                        if ($targetVersions -notcontains $version) { & $bad "$field names TikTok $version, not the declared $($targetVersions -join ', ')" }
                     }
                 }
             }

@@ -1,10 +1,15 @@
-"""Embed curated release summaries from 0.60.0 onward in the Android extension.
+"""Embed the newest curated release summaries in the Android extension.
 
 Translated sections live in extensions/tiktok/src/main/l10n/notes/<table>.txt, one file per
 settings table, with en.txt holding the English summaries. Each CHANGELOG bullet has one
 summary in the same order under its original release heading. A release
 is translated for every table or for none (#91), so What's new never shows one language a
 release in its own words and the next language the English.
+
+Every release from 0.60.0 on is checked, but only the newest ones that fit BUDGET are
+embedded, counting each release's English and all of its translations. Every release's
+notes and nine tables went in once, and the class reached 798 KB, about 14% of the bundle's
+extension. What's new links the full CHANGELOG for anything older.
 """
 
 import re
@@ -16,6 +21,9 @@ OUTPUT = ROOT / "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/set
 NOTES = ROOT / "extensions/tiktok/src/main/l10n/notes"
 LANGUAGES = ("az", "de", "es", "in", "it", "pt-rBR", "ru", "tr")
 START = (0, 60, 0)
+# Class-file bytes of notes text across TEXT and every table, which keeps the compiled
+# ReleaseNotesData under 150 KB. The newest release goes in even when it alone is larger.
+BUDGET = 140_000
 HEADING = re.compile(r"^## (\d+)\.(\d+)\.(\d+) \(", re.MULTILINE)
 
 
@@ -134,20 +142,47 @@ def translations(english: str) -> dict:
             for language, sections in found.items()}
 
 
+def width(character: str) -> int:
+    """A character's bytes in a class file's CONSTANT_Utf8, which counts NUL twice and
+    supplementary characters as two surrogates."""
+    code = ord(character)
+    return 1 if 0 < code < 128 else 2 if code < 2048 else 3 if code <= 65535 else 6
+
+
+def size(text: str) -> int:
+    return sum(width(character) for character in text)
+
+
+def recent(english: str, translated: dict) -> tuple:
+    """English and each table cut to the newest releases whose notes fit BUDGET together."""
+    shipped = releases(english)
+    tables = {language: releases(notes) for language, notes in translated.items()}
+    kept = []
+    total = 0
+    for version in shipped:
+        cost = size(shipped[version]) + sum(size(table[version]) for table in tables.values()
+                                            if version in table)
+        if kept and total + cost > BUDGET:
+            break
+        kept.append(version)
+        total += cost
+    cut = {language: [table[version] for version in kept if version in table]
+           for language, table in tables.items()}
+    return ("\n\n".join(shipped[version] for version in kept) + "\n",
+            {language: "\n\n".join(sections) + "\n" for language, sections in cut.items() if sections})
+
+
 def builder(notes: str) -> list:
     """The text as StringBuilder appends of at most 30,000 class-file bytes each."""
-    # CONSTANT_Utf8 counts NUL twice and supplementary characters as two surrogates.
     parts = []
     start = 0
-    size = 0
+    used = 0
     for index, character in enumerate(notes):
-        code = ord(character)
-        width = 1 if 0 < code < 128 else 2 if code < 2048 else 3 if code <= 65535 else 6
-        if size + width > 30_000:
+        if used + width(character) > 30_000:
             parts.append(notes[start:index])
             start = index
-            size = 0
-        size += width
+            used = 0
+        used += width(character)
     parts.append(notes[start:])
     lines = []
     for part in parts:
@@ -166,7 +201,7 @@ def constant(language: str) -> str:
 
 def main() -> None:
     notes = summaries(published(CHANGELOG.read_text(encoding="utf-8")))
-    translated = translations(notes)
+    notes, translated = recent(notes, translations(notes))
     lines = [
         "/*",
         " * Copyright 2026 Hushfeed contributors",
@@ -176,7 +211,7 @@ def main() -> None:
         " */",
         "package app.morphe.extension.tiktok.settings.preference;",
         "",
-        "/** Curated published summaries carried inside the app. Run tools/gen-release-notes.py after release edits. */",
+        "/** The newest curated release summaries carried inside the app. Run tools/gen-release-notes.py after release edits. */",
         "public final class ReleaseNotesData {",
         "    private ReleaseNotesData() {}",
         "    public static final String TEXT = new StringBuilder()",
@@ -203,7 +238,7 @@ def main() -> None:
         lines.append("            .toString();")
     lines.append("}")
     OUTPUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"embedded {bullets(notes)} published summaries and "
+    print(f"embedded {bullets(notes)} published summaries from {len(releases(notes))} releases and "
           f"{len(translated)} translations")
 
 

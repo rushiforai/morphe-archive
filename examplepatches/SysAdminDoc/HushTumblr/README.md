@@ -1,10 +1,10 @@
 ![HushTumblr. Tumblr, on your terms.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.8-92BFFF" alt="Version 0.0.8">
+  <img src="https://img.shields.io/badge/version-0.0.9-92BFFF" alt="Version 0.0.9">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%208%2B-3DDC84" alt="Platform Android 8+">
-  <img src="https://img.shields.io/badge/Tumblr-46.5.0.109-001935" alt="Tumblr 46.5.0.109">
+  <img src="https://img.shields.io/badge/Tumblr-46.8.1.100-001935" alt="Tumblr 46.8.1.100">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.0.0%2B-8A2BE2" alt="For Morphe Manager 2.0.0 or newer">
 </p>
 
@@ -18,7 +18,7 @@
 
 [Morphe](https://morphe.software) patches for Tumblr on Android. Patch the Tumblr bundle in Morphe Manager and you get a quieter Tumblr with its own HushTumblr settings page. It can drop ads and paid Blaze posts, hide suggestions, filter posts by type or by your own words, and trim the bottom bar.
 
-The latest release is [v0.0.8](https://github.com/SysAdminDoc/HushTumblr/releases/tag/v0.0.8), with 44 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out. Changes are listed in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.9](https://github.com/SysAdminDoc/HushTumblr/releases/tag/v0.0.9), with 46 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out. Changes are listed in the [changelog](CHANGELOG.md).
 
 **[Add HushTumblr to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushTumblr)**
 
@@ -29,7 +29,7 @@ The latest release is [v0.0.8](https://github.com/SysAdminDoc/HushTumblr/release
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.0.0 or newer.
 2. Add HushTumblr as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushTumblr
-3. Download the Tumblr 46.5.0.109 bundle (`.apkm`, version code 1460500109) from [APKMirror](https://www.apkmirror.com/apk/tumblr-inc/tumblr/tumblr-social-media-art-46-5-0-109-release/).
+3. Download the Tumblr 46.8.1.100 bundle (`.apkm`, version code 1460801100) from [APKMirror](https://www.apkmirror.com/apk/tumblr-inc/tumblr/tumblr-social-media-art-46-8-1-100-release/).
 4. Patch it with the default selection. That's every patch except Spoof signature for Google sign-in, which you can pick after turning on **Settings → Advanced → Expert mode** in Morphe Manager.
 5. Uninstall stock Tumblr, then install the patched app. Your blogs and follows come back when you sign in, but drafts kept only on the phone don't.
 
@@ -43,7 +43,7 @@ Long-press the Tumblr logo at the top of your dashboard. You can also tap **Hush
 
 ## Patches
 
-The latest release includes every patch listed below.
+There are 46 patches.
 
 | Patch | What it does |
 |---|---|
@@ -58,6 +58,7 @@ The latest release includes every patch listed below.
 | `Hide ads` | Takes ad cards and paid Blaze posts out of your dashboard and other feeds, and stops Tumblr asking its ad networks for more. On by default. Turn it off in Tumblr settings > HushTumblr > Feed. |
 | `Hide advertising ID` | Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you'd deleted your ad ID in Android. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy. |
 | `Hide blog notification reminders` | Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
+| `Hide filtered posts` | Takes the posts Tumblr covers with "This post contains filtered content" out of your dashboard, searches and other feeds, so your filtered tags and words hide them completely. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide gift purchase popups` | Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide hashtags` | Takes the tags off the bottom of posts in your dashboard, other feeds and Tumblr TV, and keeps the source link. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Hide note counts` | Takes the like, reblog and comment counts off the footer under posts, community posts included, and the counts off the top of a post's notes and its tabs. The buttons stay and still work. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
@@ -66,6 +67,7 @@ The latest release includes every patch listed below.
 | `Hide reblogs` | Takes reblogs out of your dashboard and other feeds as each page loads, and keeps the posts people made themselves. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested blogs` | Takes the blogs Tumblr suggests you follow out of your dashboard and other feeds, whether as cards, rows or carousels, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested communities` | Takes the communities Tumblr suggests you join out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
+| `Hide suggested tags` | Takes the tags Tumblr suggests you follow out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide text posts` | Takes text posts out of your dashboard and other feeds as each page loads. A post with no pictures or video, its reblog trail included, counts as a text post. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide the Communities tab` | Takes the Communities tab out of the bottom bar and stops the Communities tips in the post editor. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide the Explore tab` | Takes the Explore and search button off the bottom bar. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
@@ -104,7 +106,7 @@ HushTumblr collects nothing and has no server. The release check is off until yo
 ## Help
 
 - **Android won't install it.** Uninstall stock Tumblr first. Updating a patched copy needs the same signing key.
-- **Morphe Manager says the APK isn't supported.** It has to be the Tumblr 46.5.0.109 `.apkm` bundle with version code 1460500109.
+- **Morphe Manager says the APK isn't supported.** It has to be the Tumblr 46.8.1.100 `.apkm` bundle with version code 1460801100.
 - **A switch seems to do nothing.** Feed filters work as pages load, so scroll or refresh. Tracking and ad changes wait for Tumblr to restart.
 - **Anything else.** [Open an issue](https://github.com/SysAdminDoc/HushTumblr/issues/new/choose) with your HushTumblr and Tumblr versions.
 
@@ -114,8 +116,8 @@ HushTumblr collects nothing and has no server. The release check is off until yo
 |---|---|
 | App | Tumblr for Android |
 | Package | `com.tumblr` |
-| Version | **46.5.0.109** |
-| Version code | `1460500109` |
+| Version | **46.8.1.100** |
+| Version code | `1460801100` |
 | Android | 8.0 or newer |
 | Architecture | Any (the bundle carries ARM64, 32-bit ARM and x86 builds) |
 | Input | Tumblr's split APK bundle (`.apkm`) |
@@ -124,10 +126,10 @@ Every patch is checked against this exact build, and other versions aren't suppo
 
 ## Verify a download
 
-Each release ships `SHA256SUMS.txt`, signed as `SHA256SUMS.txt.asc` with the HushTumblr release key. Its fingerprint is `2143 368A A5CE 6E5D FFEA  79CF BBC1 3768 83CF 3AB4` and the public key is [keys/hushtumblr-release.asc](keys/hushtumblr-release.asc). Morphe Manager doesn't check it, so that's up to you. The v0.0.8 bundle's line:
+Each release ships `SHA256SUMS.txt`, signed as `SHA256SUMS.txt.asc` with the HushTumblr release key. Its fingerprint is `2143 368A A5CE 6E5D FFEA  79CF BBC1 3768 83CF 3AB4` and the public key is [keys/hushtumblr-release.asc](keys/hushtumblr-release.asc). Morphe Manager doesn't check it, so that's up to you. The v0.0.9 bundle's line:
 
 ```text
-fedf2fe2b8360c304bd4d30aba317efbd016031be132cb6baedd4c15f46af347  patches-0.0.8.mpp
+3caa7043e85cfc3948fba8676e4dc48b623f46d359f9c8fd08b7f925d2d06783  patches-0.0.9.mpp
 ```
 
 ```text

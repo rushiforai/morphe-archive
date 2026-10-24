@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Drive the Pdb Google sign-in flow on the running device and report the outcome.
+#
+# Usage: pdblogin [--account-substring <text>]
+set -uo pipefail
+export PATH="$HOME/tools/android-sdk/platform-tools:$PATH"
+
+OUT="${PDB_WORK:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/work}/device"
+PKG=pdb.app
+mkdir -p "$OUT"
+A() { timeout 90 adb "$@"; }
+
+dump() {
+  A shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1
+  A shell cat /sdcard/u.xml 2>/dev/null
+}
+
+# tap_text <text>: find the node whose text equals/starts with <text> and tap its centre.
+tap_text() {
+  local want="$1" xml
+  xml="$(dump)"
+  local coords
+  coords="$(printf '%s' "$xml" | python3 -c "
+import sys,re
+want=sys.argv[1]
+x=sys.stdin.read()
+for m in re.finditer(r'<node[^>]*>', x):
+    s=m.group(0)
+    t=re.search(r'text=\"([^\"]*)\"', s)
+    if not t: continue
+    if t.group(1)==want or t.group(1).startswith(want):
+        b=re.search(r'bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"', s)
+        if b:
+            x1,y1,x2,y2=map(int,b.groups())
+            print((x1+x2)//2, (y1+y2)//2); break
+" "$want")"
+  if [[ -z "$coords" ]]; then echo "  ! could not find '$want'" >&2; return 1; fi
+  echo "  tap '$want' -> $coords"
+  A shell input tap $coords >/dev/null 2>&1
+  return 0
+}
+
+echo "== current focus =="
+A shell dumpsys window 2>/dev/null | grep -oE 'mCurrentFocus=Window\{[^}]*\}' | head -1
+
+echo "== dismiss any system dialog =="
+xml="$(dump)"
+for label in "Don’t allow" "Don't allow" "Allow" "OK" "Got it"; do
+  if printf '%s' "$xml" | grep -q "text=\"$label\""; then tap_text "$label" && sleep 3; break; fi
+done
+
+echo "== tap Continue with Google =="
+tap_text "Continue with Google" || tap_text "Continue with" || true
+sleep 12
+
+echo "== account picker =="
+A shell dumpsys window 2>/dev/null | grep -oE 'mCurrentFocus=Window\{[^}]*\}' | head -1
+ACCOUNT="${2:-hello.madusha@gmail.com}"
+tap_text "$ACCOUNT" || tap_text "Madusha" || true
+sleep 25
+
+echo "== result =="
+A shell dumpsys window 2>/dev/null | grep -oE 'mCurrentFocus=Window\{[^}]*\}' | head -1
+echo "-- UI --"
+dump | grep -oE 'text="[^"]+"' | grep -v 'text=""' | head -25
+echo "-- auth errors --"
+A logcat -d -v brief 2>/dev/null \
+  | grep -iE "PdbExtras|Not registered|OAuth2|ApiException|DEVELOPER_ERROR|12500" | tail -6
+A exec-out screencap -p > "$OUT/login-result.png" 2>/dev/null && echo "screenshot: $OUT/login-result.png"

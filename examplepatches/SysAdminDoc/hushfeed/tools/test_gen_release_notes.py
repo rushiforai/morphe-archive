@@ -75,6 +75,38 @@ class ReleaseNotesGeneratorTest(unittest.TestCase):
                 self.assertEqual(generator.published(changelog).encode("utf-8"), restored.read_bytes())
 
 
+class RecentReleasesTest(unittest.TestCase):
+    """Only the newest releases that fit BUDGET are embedded, their translations counted."""
+    ENGLISH = "\n\n".join(f"## 0.{minor}.0 (date)\n\n* **TikTok:** " + "x" * 100 for minor in (70, 69, 68)) + "\n"
+
+    def setUp(self):
+        saved = generator.BUDGET
+        self.addCleanup(lambda: setattr(generator, "BUDGET", saved))
+        self.section = generator.size(generator.releases(self.ENGLISH)[(0, 70, 0)])
+        generator.BUDGET = 2 * self.section + 10
+
+    def test_the_newest_releases_that_fit_are_kept_in_order(self):
+        english, translated = generator.recent(self.ENGLISH, {})
+        self.assertEqual(self.ENGLISH.split("\n\n## 0.68.0")[0] + "\n", english)
+        self.assertEqual({}, translated)
+
+    def test_translations_count_against_the_budget_and_follow_the_cut(self):
+        german = ("## 0.70.0 (date)\n\n* **TikTok:** " + "ü" * 60 + "\n\n"
+                  "## 0.69.0 (date)\n\n* **TikTok:** Alt.\n")
+        english, translated = generator.recent(self.ENGLISH, {"de": german})
+        self.assertEqual([(0, 70, 0)], list(generator.releases(english)))
+        self.assertEqual({"de": "## 0.70.0 (date)\n\n* **TikTok:** " + "ü" * 60 + "\n"}, translated)
+
+    def test_the_newest_release_goes_in_even_over_the_budget(self):
+        generator.BUDGET = 10
+        english, translated = generator.recent(self.ENGLISH, {"de": "## 0.69.0 (date)\n\n* **TikTok:** Alt.\n"})
+        self.assertEqual([(0, 70, 0)], list(generator.releases(english)))
+        self.assertEqual({}, translated)
+
+    def test_sizes_are_class_file_bytes(self):
+        self.assertEqual(1 + 2 + 2 + 3 + 6, generator.size("a\0ü€🚀"))
+
+
 class TranslatedNotesGateTest(unittest.TestCase):
     ENGLISH = "## 0.68.0 (date)" + 2 * chr(10) + "* **TikTok:** One." + 2 * chr(10) + "* **TikTok:** Two." + 2 * chr(10) + "## 0.67.0 (date)" + 2 * chr(10) + "* Old." + chr(10)
     SECTION = "## 0.68.0 (date)" + 2 * chr(10) + "* **TikTok:** Eins." + 2 * chr(10) + "* **TikTok:** Zwei." + chr(10)

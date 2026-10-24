@@ -17,7 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings({ "unused", "unchecked" })
 public final class UpnpActivity extends BrowserScreenActivity {
 

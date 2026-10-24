@@ -134,9 +134,11 @@ public final class SettingsDialog extends DialogFragment {
             // Below Android 15 this window draws its own bars in the framework theme's colours,
             // grey and black, which a light page's dark icons can't be read on. The page's colour
             // goes behind them instead. Android 15 and newer draw the page there already.
-            if (colors != null) {
-                window.setStatusBarColor(colors.background);
-                window.setNavigationBarColor(colors.background);
+            // A black page over another Background colour does the same.
+            ScreenColors page = colors == null ? ScreenColors.black() : colors;
+            if (page != ScreenColors.DEFAULT) {
+                window.setStatusBarColor(page.background);
+                window.setNavigationBarColor(page.background);
             }
         }
         return dialog;
@@ -202,7 +204,7 @@ public final class SettingsDialog extends DialogFragment {
         pageContext.setText(L10n.t("Settings"));
         pageContext.setAllCaps(true);
         pageContext.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-        pageContext.setTextColor((colors == null ? ScreenColors.DEFAULT : colors).heading);
+        pageContext.setTextColor((colors == null ? ScreenColors.black() : colors).heading);
         pageContext.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         pageContext.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         pageContext.setLetterSpacing(0.08f);
@@ -243,7 +245,7 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     private void buildSearch(LinearLayout root) {
-        ScreenColors palette = colors == null ? ScreenColors.DEFAULT : colors;
+        ScreenColors palette = colors == null ? ScreenColors.black() : colors;
         searchBox = new LinearLayout(getContext());
         searchBox.setGravity(Gravity.CENTER_VERTICAL);
         android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
@@ -417,7 +419,7 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     private int background() {
-        return colors == null ? Color.BLACK : colors.background;
+        return (colors == null ? ScreenColors.black() : colors).background;
     }
 
     private int foreground() {

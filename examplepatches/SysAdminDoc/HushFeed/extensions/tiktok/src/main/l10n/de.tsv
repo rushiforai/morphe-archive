@@ -201,6 +201,7 @@ All available languages	Alle verfügbaren Sprachen
 All events	Alle Ereignisse
 All loaded tabs	Alle geladenen Tabs
 Allow Duet and Stitch anyway	Duett und Stitch trotzdem erlauben
+Allow Add to Story anyway	Zur Story hinzufügen trotzdem erlauben
 Allow screenshots and Circle to Search	Screenshots und Circle to Search erlauben
 Allow storage for TikTok in Android settings to save profile pictures	Zum Speichern eines Profilbilds wird die Speicherberechtigung gebraucht
 Allow storage for TikTok in Android settings to save sounds	Zum Speichern eines Sounds wird die Speicherberechtigung gebraucht
@@ -659,6 +660,7 @@ Hushfeed can't read the creator pattern %1$s	Hushfeed kann das Creator-Muster %1
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed hat ein TikTok-CAPTCHA ausgeblendet. Schalte „CAPTCHA-Popups ausblenden“ aus, wenn etwas nicht mehr funktioniert.
 Hushfeed is active	Hushfeed ist aktiv
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.	Zeigt die Optionen Duett und Stitch auch dann, wenn der Creator sie ausgeschaltet hat. TikTok kann das Ergebnis trotzdem ablehnen.
+Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.	Zeigt Zur Story hinzufügen bei einer Story, deren Creator die Wiederverwendung ausgeschaltet hat. TikTok kann das Posten trotzdem ablehnen.
 Import finished	Import abgeschlossen
 Import loaded values	Geladene Werte importieren
 Imported %1$d values	%1$d Werte importiert
@@ -841,6 +843,7 @@ Open TikTok on	TikTok öffnen mit
 Opens github.com in your browser	Öffnet github.com in deinem Browser
 Operator code	Netzbetreibercode
 Operator name	Name des Netzbetreibers
+Original	Original
 Original language	Originalsprache
 Other	Sonstiges
 Other feed filters	Andere Feed-Filter
@@ -950,9 +953,9 @@ Save	Speichern
 Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.	Speichert Untertiteldateien (SRT) mit dem Video. Sie landen ab Android 11 in Movies, unter Android 10 in Download und bei älteren Versionen in deinem Videoordner. Ab Android 11 mit eingeschaltetem „Details speichern“ wandert das Video nach Download oder Documents, und die Untertitel bleiben in Movies.
 Save a profile picture on a long press	Profilbild per langem Druck speichern
 Save a story on a long press	Story per langem Druck speichern
-Save every photo in the post at full size as a JPEG, not as the screen shows it.	Jedes Foto des Beitrags in voller Größe als JPEG speichern, nicht so, wie der Bildschirm es zeigt.
+Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on.	Jedes Foto des Beitrags in voller Größe speichern, nicht so, wie der Bildschirm es zeigt. Jedes wird ein JPEG, außer „Fotos so behalten, wie TikTok sie sendet“ ist an.
 Keep photos as TikTok sent them	Fotos so behalten, wie TikTok sie sendet
-Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those.	Gespeicherte Fotos, Titelbilder und Story-Fotos bleiben HEIF oder WebP, statt zu JPEG zu werden. Manche Galerien und Computer können sie nicht öffnen.
+Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.	Gespeicherte Fotos, Titelbilder, Story-Fotos und unbewegte Sticker sind genau die Dateien, die TikTok gesendet hat, kein neues JPEG oder PNG. Manche Galerien und Computer können HEIF oder WebP nicht öffnen.
 Save field values	Feldwerte speichern
 Save full report	Vollständigen Bericht speichern
 Save media	Medien speichern
@@ -1097,7 +1100,7 @@ The last one is still waiting to start	Das letzte wartet noch auf den Start
 Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	Verhindert, dass TikTok Nutzungsberichte, Werbe-Tracking und Absturzberichte sendet. TikToks eigene Diagnosewerkzeuge werden dadurch ebenfalls still.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	Verhindert, dass TikTok deinen Bildschirm auf die Bildrate des jeweiligen Videos bremst. Auf einem Telefon mit 90 oder 120 Hz macht diese Anfrage die ganze App langsamer, auch das Scrollen.
 Keep the screen's brightness in the camera	Bildschirmhelligkeit in der Kamera behalten
-Stops TikTok from turning your screen brighter while you film, edit or post a video.	Verhindert, dass TikTok deinen Bildschirm heller macht, während du ein Video filmst, bearbeitest oder postest.
+Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	Verhindert, dass TikTok deinen Bildschirm heller macht, während du ein Video filmst, bearbeitest oder postest. Der Frontblitz macht den Bildschirm weiterhin weiß, aber mit deiner eigenen Helligkeit.
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	Verhindert, dass TikTok die Bewegungs- und Kompasssensoren deines Telefons ausliest. Apps können dein Telefon daran wiedererkennen.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	Verhindert, dass TikTok liest, was du kopiert hast. Einen Link aus TikTok zu kopieren funktioniert weiterhin.
 Stop a long press on Like from opening TikTok's repost action.	Verhindern, dass langes Drücken auf Gefällt mir TikToks Reposten öffnet.
@@ -1655,13 +1658,15 @@ Remove story rings	Story-Ringe entfernen
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Den Story-Ring von Profilbildern im Feed, in Kommentaren und auf Profilen entfernen. Ein Tipp auf das Bild öffnet dann das Profil statt der Story.
 Remove the LIVE ring	LIVE-Ring entfernen
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Den pulsierenden LIVE-Ring von Profilbildern im Feed und in Kommentaren entfernen. Ein Tipp auf das Bild einer Person, die gerade live ist, öffnet ihr Profil statt des LIVE.
+Open the Story when a creator is LIVE	Story öffnen, wenn jemand LIVE ist
+When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	Hat jemand, der gerade LIVE ist, auch eine Story, öffnet ein Tipp auf das Bild im Profil die Story. Tippe noch einmal auf das Bild, um dem LIVE beizutreten.
 Writing	Schreiben
 Lift text length limits	Längenbegrenzungen für Text aufheben
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Kommentare, Repost-Notizen und deine Bio dürfen länger werden, als die TikTok-App sonst erlaubt. Die Server von TikTok können einen langen Text trotzdem ablehnen.
 Show only mutual friends on the Friends tab	Im Tab „Freunde“ nur gegenseitige Freunde zeigen
 On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Im Tab „Freunde“ Beiträge, Reposts und LIVEs von Konten ausblenden, denen ihr nicht gegenseitig folgt, auch vorgeschlagene Konten. Deine eigenen Beiträge bleiben.
 Latest first on Following	Neueste zuerst bei „Gefolgt“
-Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.	Jeden Schwung, den der Feed „Gefolgt“ lädt, mit dem neuesten Beitrag zuerst abspielen. Was ein Schwung enthält, bestimmt weiterhin TikTok, und Werbung und LIVEs bleiben an ihrem Platz.
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	Den Feed „Gefolgt“ mit dem neuesten Beitrag zuerst abspielen. Ein neuerer Beitrag, der später lädt, rückt direkt hinter das Video, das du gerade ansiehst, und nichts, woran du schon vorbeigescrollt hast, verschiebt sich. Werbung und LIVEs bleiben an ihrem Platz.
 Show follow status	Folgestatus anzeigen
 Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Unter dem @Nutzernamen eines Profils anzeigen, ob es dir folgt oder dir nicht zurückfolgt. Follower- und Gefolgt-Listen markieren Konten, denen du folgst, die dir aber nicht zurückfolgen.
 Follows you	Folgt dir
@@ -1983,6 +1988,8 @@ Keep offline videos until you delete them	Offline-Videos behalten, bis du sie l�
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok entfernt für die Offline-Ansicht gespeicherte Videos nach einer festen Zeit, manchmal schon nach zwei Tagen, ob angesehen oder nicht. Ist das an, bleiben sie, bis du sie in TikToks Offline-Video-Einstellungen löschst. TikTok kann angesehene Videos trotzdem entfernen, wenn dein Telefon wenig Speicher hat.
 Hide Thoughts on profiles	Thoughts auf Profilen ausblenden
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Die Thoughts-Blase ausblenden, die TikTok über einem Profilbild zeigt, und auf deinem eigenen Profil die Aufforderung, einen zu teilen. TikTok neu starten, damit das gilt.
+Turn on Thoughts	Thoughts einschalten
+Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.	Thoughts auf Profilen und im Posteingang zeigen, dazu die Aufforderung, einen zu teilen, für Konten, bei denen TikTok sie nicht eingeschaltet hat. Die Server von TikTok können das Posten trotzdem ablehnen. TikTok neu starten, damit das gilt.
 
 About Hushfeed	Über Hushfeed
 Version, changes and licenses	Version, Änderungen und Lizenzen
@@ -2253,7 +2260,7 @@ Two at once	Zwei gleichzeitig
 Three at once	Drei gleichzeitig
 LIVE recording quality	Qualität von LIVE-Aufnahmen
 Same as the room	Wie im Raum
-Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.	„Wie im Raum“ nimmt die Qualität auf, die du gerade schaust. „Höchste“ nimmt den besten Stream des Raums auf, auch wenn du ihn in niedrigerer Qualität schaust.
+Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.	„Wie im Raum“ nimmt die Qualität auf, die du gerade schaust. „Höchste“ nimmt den besten Stream des Raums auf, auch wenn du ihn in niedrigerer Qualität schaust. Eine Zahl nimmt genau diese Qualität auf, oder die nächstliegende, wenn der Raum sie nicht anbietet.
 Long-press Profile for Watch history	Profil lange drücken für Wiedergabeverlauf
 Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.	Halte den Tab Profil gedrückt, um deinen Wiedergabeverlauf zu öffnen. Ein Tippen auf Profil funktioniert wie bisher. Wenn du durch langes Drücken auf Profil das Konto wechselst, übernimmt dies diesen Druck, und der Name oben in deinem Profil wechselt weiterhin das Konto.
 Open the comments at full height	Kommentare in voller Höhe öffnen
@@ -2269,5 +2276,19 @@ Oldest first	Älteste zuerst
 Longest first	Längste zuerst
 Shortest first	Kürzeste zuerst
 Most viewed first	Meistgesehene zuerst
+Least viewed first	Am wenigsten gesehene zuerst
 Most liked first	Meistgelikte zuerst
-Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.	Sortiert die Videos, die ein Profil- oder Gefällt-mir-Raster bisher geladen hat, angeheftete Videos bleiben vorn. Beim Scrollen erfasst die Reihenfolge mehr Videos. Beim nächsten Öffnen eines Rasters gilt sie.
+Least liked first	Am wenigsten gelikte zuerst
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Sortiert ein Profil- oder Gefällt-mir-Raster, angeheftete Videos bleiben vorn. Solange eine Reihenfolge gewählt ist, lädt das Raster von selbst bis zu 300 Videos nach, damit die Reihenfolge mehr als den ersten Bildschirm erfasst. Eine Schaltfläche in der oberen Ecke des Rasters ändert die Reihenfolge direkt dort.
+Sort this grid	Dieses Raster sortieren
+Blur the video behind the bar	Video hinter der Leiste unscharf machen
+Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Macht im Haupt-Feed den Teil des Videos unscharf, der hinter der Glaskapsel liegt, sodass sie wie Milchglas aussieht. Braucht Liquid-Glass-Look und Android 12 oder neuer.
+LIVE recording source	Quelle der LIVE-Aufnahme
+Stream only	Nur Stream
+Screen	Bildschirm
+Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.	Nur Stream speichert wie bisher das Video des Raums. Bildschirm nimmt auf, was dein Handy zeigt, mit dem Ton der App, wenn TikTok die Mikrofonberechtigung hat. Android fragt jedes Mal, ob die Bildschirmaufnahme erlaubt ist, und zeigt während der Aufnahme einen eigenen Hinweis.
+Recording this LIVE's screen	Der Bildschirm dieses LIVE wird aufgenommen
+Open the room and tap Stop to save it.	Öffne den Raum und tippe auf Stopp, um die Aufnahme zu speichern.
+Screen recording wasn't allowed	Bildschirmaufnahme wurde nicht erlaubt
+Recording this LIVE's screen from now	Der Bildschirm dieses LIVE wird ab jetzt aufgenommen
+Recording this LIVE's screen from now, without sound	Der Bildschirm dieses LIVE wird ab jetzt ohne Ton aufgenommen

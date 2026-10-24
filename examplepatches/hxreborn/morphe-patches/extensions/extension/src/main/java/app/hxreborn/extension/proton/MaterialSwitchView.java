@@ -4,7 +4,6 @@
  */
 package app.hxreborn.extension.proton;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -12,6 +11,8 @@ import android.content.Context;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+
+import app.hxreborn.extension.shared.ProxyHandler;
 
 @SuppressWarnings("unused")
 public final class MaterialSwitchView {
@@ -63,20 +64,10 @@ public final class MaterialSwitchView {
         }
     }
 
-    private abstract static class FunctionHandler implements InvocationHandler {
+    private abstract static class FunctionHandler extends ProxyHandler {
 
         @Override
-        public final Object invoke(Object proxy, Method method, Object[] args) {
-            final String name = method.getName();
-            if ("toString".equals(name)) {
-                return getClass().getSimpleName();
-            }
-            if ("hashCode".equals(name)) {
-                return System.identityHashCode(proxy);
-            }
-            if ("equals".equals(name)) {
-                return proxy == args[0];
-            }
+        protected final Object handle(Method method, Object[] args) {
             return apply(args[0]);
         }
 

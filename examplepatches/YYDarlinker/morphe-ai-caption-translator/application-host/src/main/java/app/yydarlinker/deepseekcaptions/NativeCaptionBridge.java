@@ -20,6 +20,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * What the patched YouTube code calls. Methods marked "bound at patch time" are empty stubs whose
  * bodies the patch replaces with accesses to the obfuscated caption model; every other method is
  * ordinary code that the patch only calls.
+ *
+ * <p>The bridge only observes: it records what the native model says in
+ * {@link CaptionNativeProjection} and tells {@link CaptionSessionReconciler}. It never writes the
+ * session intent and never decides that captions are wanted, so a native Off cannot become a user
+ * command.
  */
 public final class NativeCaptionBridge {
     private static final String DISABLE = "DISABLE_CAPTIONS_OPTION";
@@ -29,7 +34,6 @@ public final class NativeCaptionBridge {
 
     private static final Object SELECTION_LOCK = new Object();
     private static final AtomicBoolean drawObserved = new AtomicBoolean();
-    private static final AtomicBoolean captionsShownInFlight = new AtomicBoolean();
 
     private static volatile Context context;
 
@@ -41,11 +45,41 @@ public final class NativeCaptionBridge {
 
     private NativeCaptionBridge() {}
 
-    enum Refresh {
-        APPLIED,
-        AI_STARTED,
-        CAPTIONS_OFF,
-        DEFERRED
+    /** One thing the native caption model reported. */
+    static final class Event {
+        enum Kind {
+            TRACK_LIST,
+            SELECTION
+        }
+
+        final Kind kind;
+        final List<?> tracks;
+        final Object track, origin;
+        final int reason;
+        final String modelOwner;
+
+        private Event(
+                Kind kind,
+                List<?> tracks,
+                Object track,
+                Object origin,
+                int reason,
+                String modelOwner) {
+            this.kind = kind;
+            this.tracks = tracks;
+            this.track = track;
+            this.origin = origin;
+            this.reason = reason;
+            this.modelOwner = modelOwner;
+        }
+
+        static Event trackList(List<?> tracks) {
+            return new Event(Kind.TRACK_LIST, tracks, null, null, 0, null);
+        }
+
+        static Event selection(Object track, Object origin, int reason, String modelOwner) {
+            return new Event(Kind.SELECTION, null, track, origin, reason, modelOwner);
+        }
     }
 
     /** One selection of a video. The player objects are held weakly: a manager can be collected. */
@@ -117,18 +151,55 @@ public final class NativeCaptionBridge {
         return enabled();
     }
 
-    // ---- The source tracks of a video ----
+    // ---- Observation ----
+
+    /**
+     * The one observation entry point: the native model said something. It records a projection and
+     * notifies the reconciler; it never writes the session intent and never starts or stops the
+     * engine itself. [epoch] is the player-owner epoch of the session the event belongs to.
+     */
+    static void observe(Object manager, Event event, long epoch) {
+        if (event == null) return;
+        if (!CaptionSessionReconciler.observable(epoch)) {
+            mark(
+                    "NATIVE_OBSERVATION_STALE",
+                    "kind="
+                            + event.kind
+                            + ";epoch="
+                            + epoch
+                            + ";session_epoch="
+                            + CaptionSessionReconciler.sessionEpoch());
+            return;
+        }
+        try {
+            switch (event.kind) {
+                case TRACK_LIST:
+                    collectSourceCatalog(event.tracks);
+                    onTrackListObserved(event.tracks, epoch);
+                    break;
+                case SELECTION:
+                    captureSelection(manager, event, epoch);
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception failure) {
+            mark("NATIVE_OBSERVE_FAILED", failure.getClass().getSimpleName());
+        }
+    }
 
     /** Called when the native model first exposes its signed source tracks. */
     public static void onOriginalTrackList(List<?> tracks) {
-        collectSourceCatalog(tracks);
-        if (!CaptionAddonSupport.aiInstalled()
-                || context == null
-                || tracks == null
-                || tracks.isEmpty()
-                || CaptionActions.isVisibleActive()) return;
+        observe(
+                null,
+                Event.trackList(tracks),
+                CaptionPlayerAuthority.ownerEpoch());
+    }
+
+    private static void onTrackListObserved(List<?> tracks, long epoch) {
+        if (tracks == null || tracks.isEmpty()) return;
         try {
-            String owner = "", sourceUrl = "";
+            String owner = "";
             Set<String> sources = new HashSet<>();
             for (Object track : tracks) {
                 String candidate = url(track);
@@ -137,12 +208,10 @@ public final class NativeCaptionBridge {
                 if (candidateOwner.isEmpty()) continue;
                 if (!owner.isEmpty() && !owner.equals(candidateOwner)) return;
                 owner = candidateOwner;
-                sourceUrl = CaptionUrls.sourceCaptionUrl(candidate);
-                sources.add(sourceUrl);
+                sources.add(CaptionUrls.sourceCaptionUrl(candidate));
             }
             if (owner.isEmpty()) return;
             boolean foreground = owner.equals(CaptionActions.currentVideoIdSnapshot());
-            boolean sourceReady = false;
             synchronized (SELECTION_LOCK) {
                 String markKey = owner + ":" + foreground;
                 if (!markKey.equals(lastTrackListMark)) {
@@ -160,12 +229,8 @@ public final class NativeCaptionBridge {
                                     + ";elapsed_realtime_ms="
                                     + SystemClock.elapsedRealtime());
                 }
-                if (foreground && sources.size() == 1) sourceReady = true;
             }
-            if (sourceReady
-                    && CaptionButtonController.captionsKnownOn()
-                    && !CaptionActions.isVisibleActive())
-                CaptionButtonController.scheduleCaptionsShown();
+            if (foreground) CaptionSessionReconciler.onObservation(context, "track_list", epoch);
         } catch (Exception failure) {
             mark("NATIVE_TRACK_LIST_FAILED", failure.getClass().getSimpleName());
         }
@@ -232,11 +297,17 @@ public final class NativeCaptionBridge {
 
     public static void onNativeSelectionWithReason(
             Object manager, Object track, Object origin, int reason) {
-        captureSelection(manager, track, origin, reason, null);
+        observe(
+                manager,
+                Event.selection(track, origin, reason, null),
+                CaptionPlayerAuthority.ownerEpoch());
     }
 
     public static void onNativeSelection(Object manager, Object track, Object origin) {
-        captureSelection(manager, track, origin, 0, null);
+        observe(
+                manager,
+                Event.selection(track, origin, 0, null),
+                CaptionPlayerAuthority.ownerEpoch());
     }
 
     /**
@@ -256,45 +327,58 @@ public final class NativeCaptionBridge {
         // Forced-caption fallback can make the committed track non-null even after explicit Off.
         // Preserve that user intent; automatic null/default events still use the actual track.
         boolean explicitOff = isPreferred(origin) && isOff(requested);
-        onNativeSelectionApplied(
-                manager, explicitOff ? null : committed, origin, reason, modelOwner);
+        observe(
+                manager,
+                Event.selection(
+                        explicitOff ? null : committed,
+                        origin,
+                        reason,
+                        modelOwner == null ? "" : modelOwner.trim()),
+                CaptionPlayerAuthority.ownerEpoch());
     }
 
     public static void onNativeSelectionApplied(
             Object manager, Object track, Object origin, int reason, String modelOwner) {
         try {
-            captureSelection(
-                    manager, track, origin, reason, modelOwner == null ? "" : modelOwner.trim());
+            observe(
+                    manager,
+                    Event.selection(
+                            track, origin, reason, modelOwner == null ? "" : modelOwner.trim()),
+                    CaptionPlayerAuthority.ownerEpoch());
         } catch (Exception failed) {
             mark("NATIVE_APPLIED_CAPTURE_FAILED", failed.getClass().getSimpleName());
         }
     }
 
     /**
-     * Records what the native player selected for a video and, when that video is on screen, makes
-     * the engine follow it. [modelOwner] is null for plain selections and the model's video for
-     * applied events.
+     * Records what the native player selected for a video as a projection and hands it to the
+     * reconciler. [event.modelOwner] is null for plain selections and the model's video for applied
+     * events.
      */
-    private static void captureSelection(
-            Object manager, Object track, Object origin, int reason, String modelOwner) {
+    private static void captureSelection(Object manager, Event event, long epoch) {
+        Selection value;
+        String code;
+        String current = CaptionActions.currentVideoIdSnapshot();
         synchronized (SELECTION_LOCK) {
             // Internal null/reselect callbacks must not erase the snapshot or change memory.
             if (manager != null && manager == switchingManager) return;
-            String code = track == null ? DISABLE : language(track);
+            Object track = event.track;
+            code = track == null ? DISABLE : language(track);
             if (AUTO_TRANSLATE.equals(code)) return;
             boolean off = isOff(track);
             String video =
-                    off ? (modelOwner == null ? modelVideo(manager) : modelOwner) : videoOf(track);
-            String current = CaptionActions.currentVideoIdSnapshot();
-            boolean applied = modelOwner != null;
+                    off
+                            ? (event.modelOwner == null ? modelVideo(manager) : event.modelOwner)
+                            : videoOf(track);
+            boolean applied = event.modelOwner != null;
             // A reset with no model emits a null selection, not an explicit Off on the departed
             // video. Never infer its owner from a reused manager's previous selection.
             if (applied && off && video.isEmpty()) return;
-            if (applied && !modelOwner.isEmpty() && !off && !modelOwner.equals(video)) {
+            if (applied && !event.modelOwner.isEmpty() && !off && !event.modelOwner.equals(video)) {
                 mark(
                         "NATIVE_APPLIED_OWNER_REJECTED",
                         "model_track_mismatch;model_foreground="
-                                + modelOwner.equals(current)
+                                + event.modelOwner.equals(current)
                                 + ";track_foreground="
                                 + video.equals(current));
                 return;
@@ -307,7 +391,7 @@ public final class NativeCaptionBridge {
             if (video.isEmpty() && !current.isEmpty()) return;
             if (!off && !isSourceTrack(track)) return;
 
-            Selection value = new Selection(video, manager, track, origin, reason);
+            value = new Selection(video, manager, track, event.origin, event.reason);
             if (applied) markApplied(value, code, current);
             selections.remove(video);
             selections.put(video, value);
@@ -317,9 +401,18 @@ public final class NativeCaptionBridge {
                 mark("NATIVE_SELECTION_BACKGROUND", "visible_state_preserved");
                 return;
             }
-            publishSourceCatalog(manager);
-            followNativeSelection(value, track, code, isPreferred(origin));
         }
+        publishSourceCatalog(manager);
+        boolean explicit = isPreferred(event.origin);
+        CaptionNativeProjection.selection(
+                value.video,
+                value.language,
+                value.selectedUrl,
+                value.off,
+                value.translated,
+                explicit,
+                epoch);
+        CaptionSessionReconciler.onNativeSelection(context, epoch, explicit);
     }
 
     private static void markApplied(Selection value, String code, String current) {
@@ -351,68 +444,6 @@ public final class NativeCaptionBridge {
                             + SystemClock.elapsedRealtime());
     }
 
-    /** Follows the native selection: it is the only language authority. */
-    private static void followNativeSelection(
-            Selection value, Object track, String code, boolean explicit) {
-        boolean off = value.off;
-        if (!explicit && !off)
-            SourceCatalog.defaultLanguage(
-                    value.video, CaptionLanguageContext.observe(value.selectedUrl, "").sourceCode);
-        if (off) {
-            if (explicit) EngineResume.declined();
-            else EngineResume.automaticReset();
-            applySelection(null, explicit);
-            return;
-        }
-        applySelection(track, explicit);
-    }
-
-    /** Starts the engine for a native track (or stops it for null/Off). */
-    static void applySelection(Object track, boolean explicit) {
-        if (!CaptionAddonSupport.aiInstalled()) return;
-        try {
-            String code = track == null ? DISABLE : language(track);
-            if (AUTO_TRANSLATE.equals(code)) return;
-            if (DISABLE.equals(code)) {
-                if (explicit) {
-                    CaptionChoice.toggle(false);
-                    CaptionChoice.markExplicitOff();
-                } else CaptionChoice.automaticOff();
-                if (enabled()) CaptionActions.deactivateFromNativeCaptionState();
-                return;
-            }
-            String selected = url(track);
-            if (!DeepSeekCaptionHook.isYouTubeTimedTextUrl(selected)) return;
-            // A manual Off survives every automatic track rebuild. An explicit selection is
-            // allowed to replace it.
-            if (!explicit && (CaptionChoice.userOff() || CaptionChoice.explicitOff())) return;
-            boolean translate = TargetLanguage.fromUrl(selected) != null;
-            // The native selection is the session state; no separate language memory exists.
-            CaptionChoice.select(code, translate);
-            if (!enabled()) return;
-            // The track may be an automatic/prefetch selection while the CC control is off.
-            // Keep it for the later onCaptionsShown(), but do not start visible AI captions.
-            if (!CaptionButtonController.captionsKnownOn()) return;
-            startEngine(selected, translate);
-            CaptionMusicSuppressor.kick();
-        } catch (Exception failed) {
-            mark("AI_SELECTION_FAILED", failed.getClass().getSimpleName());
-        }
-    }
-
-    /** Activates the engine on [selected]: our own target track, a translation, or source only. */
-    private static void startEngine(String selected, boolean translate) {
-        CaptionButtonController.noteAiTrackSelected();
-        SourceSelection own =
-                translate ? SourceTrackPolicy.ownTargetTrack(context, selected) : null;
-        if (own != null) CaptionActions.activateSource(context, own.url);
-        else if (translate) {
-            String source = SourceTrackPolicy.apply(context, selected);
-            CaptionLifecycleRestore.noteAiTarget(source);
-            CaptionActions.activate(context, source);
-        } else CaptionActions.activateSource(context, selected);
-    }
-
     // ---- Switching videos ----
 
     static void onVideoId(String video) {
@@ -424,27 +455,12 @@ public final class NativeCaptionBridge {
         }
     }
 
-    private static Selection currentSelection() {
-        String video = CaptionActions.currentVideoIdSnapshot();
-        return video.isEmpty() ? null : selections.get(video);
-    }
-
     private static Selection latestForManager(Object manager) {
         Selection found = null;
         if (manager != null)
             for (Selection value : selections.values())
                 if (value.manager.get() == manager) found = value;
         return found;
-    }
-
-    /** Is the manager of [value] still showing that video's captions? */
-    private static boolean ownsManager(Selection value) {
-        Object manager = value.manager.get();
-        if (manager == null) return false;
-        Selection owner = latestForManager(manager);
-        if (owner != null && !owner.video.equals(value.video)) return false;
-        String model = modelVideo(manager);
-        return model.isEmpty() || model.equals(value.video);
     }
 
     private static String modelVideo(Object manager) {
@@ -464,163 +480,6 @@ public final class NativeCaptionBridge {
             return owner;
         } catch (Exception unavailable) {
             return "";
-        }
-    }
-
-    private static List<?> tracksFor(Selection value, Object manager) {
-        return value.translated ? translatedTracks(manager) : nativeTracks(manager);
-    }
-
-    /** The live track object of a selection, or null when it no longer exists. */
-    private static Object currentTrack(Selection value) {
-        if (value.off || !ownsManager(value)) return null;
-        Object manager = value.manager.get();
-        if (manager == null) return null;
-        try {
-            List<?> tracks = tracksFor(value, manager);
-            if (tracks != null && !tracks.isEmpty()) {
-                for (Object track : tracks)
-                    if (value.video.equals(videoOf(track))
-                            && value.language.equals(language(track))
-                            && value.translated == (TargetLanguage.fromUrl(url(track)) != null)
-                            && value.asr == vss(track).startsWith("a.")) return track;
-                return null; // A changed native model is authoritative; never reuse its old object.
-            }
-        } catch (Exception unavailable) {
-            return null;
-        }
-        Object track = value.track.get();
-        return track != null && value.video.equals(videoOf(track)) ? track : null;
-    }
-
-    /**
-     * Native managers may be collected after Shorts prefetch. Keep only the selected descriptor,
-     * not strong player objects; never use a descriptor contradicted by a surviving native model.
-     */
-    private static boolean canActivateSnapshot(Selection value) {
-        if (value.off
-                || !value.video.equals(CaptionActions.currentVideoIdSnapshot())
-                || !value.video.equals(CaptionUrls.videoId(value.selectedUrl))) return false;
-        Object manager = value.manager.get();
-        if (manager == null) return true;
-        if (!ownsManager(value)) return false;
-        try {
-            List<?> tracks = tracksFor(value, manager);
-            return tracks == null || tracks.isEmpty() || currentTrack(value) != null;
-        } catch (Exception unavailable) {
-            return false;
-        }
-    }
-
-    /** Starts the engine for the current native selection, without changing that selection. */
-    static Refresh refreshNativeTrack() {
-        synchronized (SELECTION_LOCK) {
-            if (CaptionChoice.userOff()) return Refresh.CAPTIONS_OFF;
-            Selection value = currentSelection();
-            if (value == null) return Refresh.DEFERRED;
-            if (value.off) return Refresh.CAPTIONS_OFF;
-            if (!enabled()) return Refresh.CAPTIONS_OFF;
-            // The official CC control is the only authority for whether captions are visible.
-            // A signed selection can exist from a background/default prefetch while CC is off;
-            // starting the AI overlay from it made target captions appear with no CC in the UI.
-            if (!CaptionButtonController.captionsKnownOn()) return Refresh.DEFERRED;
-            if (!canActivateSnapshot(value)) {
-                // The native manager/track object can be between rebuilds while the last signed
-                // selection for this video is still the user's real choice. Waiting for a new
-                // applied event made the menu toggle look "on" with no captions until the next
-                // video/track change; start from the descriptor now, and let a newer native
-                // selection replace it normally.
-                if (!value.video.equals(CaptionActions.currentVideoIdSnapshot())
-                        || !DeepSeekCaptionHook.isYouTubeTimedTextUrl(value.selectedUrl))
-                    return Refresh.DEFERRED;
-                mark(
-                        "NATIVE_REFRESH_DESCRIPTOR_FALLBACK",
-                        "translated="
-                                + value.translated
-                                + ";reason=stale_native_objects");
-            }
-            CaptionChoice.select(value.language, value.translated);
-            startEngine(value.selectedUrl, value.translated);
-            CaptionMusicSuppressor.forceNativeRendererScan();
-            CaptionMusicSuppressor.kick();
-            mark(
-                    "ENGINE_NATIVE_ACTIVATED",
-                    "target="
-                            + value.language
-                            + ";translated="
-                            + value.translated);
-            return value.translated ? Refresh.AI_STARTED : Refresh.APPLIED;
-        }
-    }
-
-    /**
-     * Starts the current session target immediately from the video's own signed source catalogue
-     * when the native translated track has not been committed yet. The target still comes from the
-     * native selection (CaptionChoice), never from a new language memory of this bridge's own: this
-     * only removes the wait for a translated-track callback.
-     */
-    static Refresh refreshFromCatalog() {
-        if (!enabled()) return Refresh.CAPTIONS_OFF;
-        if (!CaptionButtonController.captionsKnownOn()) return Refresh.DEFERRED;
-        String video = CaptionActions.currentVideoIdSnapshot();
-        String target = CaptionChoice.targetLanguage();
-        if (video.isEmpty() || target.isEmpty()) return Refresh.DEFERRED;
-        SourceCatalog.Snapshot snapshot = SourceCatalog.snapshot(video);
-        if (!snapshot.complete || snapshot.tracks.isEmpty()) return Refresh.DEFERRED;
-        String base = TargetLanguage.withCode(snapshot.tracks.get(0).url, target);
-        SourceSelection own = SourceTrackPolicy.ownTargetTrack(context, base);
-        if (own != null) {
-            CaptionChoice.select(own.language, false);
-            CaptionActions.activateSource(context, own.url);
-            CaptionMusicSuppressor.forceNativeRendererScan();
-            CaptionMusicSuppressor.kick();
-            mark(
-                    "ENGINE_CATALOG_ACTIVATED",
-                    "target=" + own.language + ";mode=source;reason=no_native_translated_track");
-            return Refresh.APPLIED;
-        }
-        String translated = SourceTrackPolicy.apply(context, base);
-        CaptionChoice.select(target, true);
-        startEngine(translated, true);
-        CaptionMusicSuppressor.forceNativeRendererScan();
-        CaptionMusicSuppressor.kick();
-        mark(
-                "ENGINE_CATALOG_ACTIVATED",
-                "target=" + target + ";mode=translation;reason=no_native_translated_track");
-        return Refresh.AI_STARTED;
-    }
-
-    /**
-     * The native CC control turned on. The official Auto captions setting owns whether this
-     * happens; here the remembered language becomes the active one. If the player committed no
-     * track (the "never auto show" policy leaves captions off until a manual tap), the last signed
-     * source track of the foreground video is used to start the engine directly.
-     */
-    static void onCaptionsShown() {
-        if (!enabled()) return;
-        if (!captionsShownInFlight.compareAndSet(false, true)) return;
-        try {
-            Selection value = currentSelection();
-            if (value == null || value.off) {
-                Refresh catalog = refreshFromCatalog();
-                mark("CAPTIONS_SHOWN", "target=;native=" + catalog.name());
-                return;
-            }
-            CaptionChoice.select(value.language, value.translated);
-            Refresh refreshed = refreshNativeTrack();
-            if (refreshed == Refresh.DEFERRED) refreshed = refreshFromCatalog();
-            mark(
-                    "CAPTIONS_SHOWN",
-                    "target="
-                            + value.language
-                            + ";translated="
-                            + value.translated
-                            + ";native="
-                            + refreshed.name());
-        } catch (Exception failed) {
-            mark("CAPTIONS_SHOWN_FAILED", failed.getClass().getSimpleName());
-        } finally {
-            captionsShownInFlight.set(false);
         }
     }
 

@@ -16,8 +16,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
@@ -33,7 +35,9 @@ import org.junit.Test
 /**
  * The Recent list's put in Don't save search history (#196), without a Facebook build: the one
  * Map.put whose map was just loaded from a Map field of the save method's own class goes to the
- * extension with the same registers in the same call form, and any other put is left alone.
+ * extension with the same registers in the same call form, and any other put is left alone. And
+ * the analytics event factory (#221): only a private method taking details and a name, reading a
+ * privacy context and answering one static of its own class is one, and the hook asks with the name.
  */
 class DontSaveSearchHistoryShapesTest {
     private val owner = "Lfixture/RecentSearches;"
@@ -119,5 +123,67 @@ class DontSaveSearchHistoryShapesTest {
         val hook = ExtensionDex.classDef(SEARCH_HISTORY).methods.singleOrNull { it.descriptor() == KEEP_RECENT }
         assertTrue("$KEEP_RECENT is not in the extension", hook != null)
         assertTrue("$KEEP_RECENT is static", AccessFlags.STATIC.isSet(hook!!.accessFlags))
+    }
+
+    private val logger = "Lfixture/Logger;"
+    private val readPrivacy = ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 3,
+        ImmutableFieldReference("Lfixture/Details;", "A01", PRIVACY_CONTEXT))
+
+    private fun loadNotLogged(into: Int, fieldOwner: String = logger) =
+        ImmutableInstruction21c(Opcode.SGET_OBJECT, into, ImmutableFieldReference(fieldOwner, "A04", "Lfixture/NotLogged;"))
+
+    private fun factory(
+        vararg body: Instruction,
+        flags: Int = AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
+        parameters: List<String> = listOf("Lfixture/Details;", "Ljava/lang/String;"),
+    ): Method = ImmutableMethod(
+        logger,
+        "A00",
+        parameters.map { ImmutableMethodParameter(it, null, null) },
+        "Lfixture/Event;",
+        flags,
+        null,
+        null,
+        ImmutableMethodImplementation(5, body.toList(), null, null),
+    )
+
+    private fun answer(register: Int = 1) = ImmutableInstruction11x(Opcode.RETURN_OBJECT, register)
+
+    @Test
+    fun `an event factory answers its own not-logged event`() {
+        val method = factory(readPrivacy, loadNotLogged(1), answer())
+        assertEquals("$logger->A04:Lfixture/NotLogged;", notLoggedEvent(method).toString())
+        val mutable = MutableMethod(method)
+        mutable.keepVisitsOut(notLoggedEvent(method)!!)
+        val patched = mutable.implementation!!.instructions.toList()
+        assertEquals(3 + 6, patched.size)
+        assertEquals(KEEP_VISIT_OUT, (patched[0] as ReferenceInstruction).reference.toString())
+        assertEquals("the event's name, the last register", 4, (patched[0] as RegisterRangeInstruction).startRegister)
+        assertEquals("$logger->A04:Lfixture/NotLogged;", (patched[3] as ReferenceInstruction).reference.toString())
+        assertEquals("Facebook's code follows as it was", listOf(Opcode.IGET_OBJECT, Opcode.SGET_OBJECT, Opcode.RETURN_OBJECT),
+            patched.drop(6).map { it.opcode })
+    }
+
+    @Test
+    fun `other methods aren't event factories`() {
+        assertNull("static", notLoggedEvent(factory(readPrivacy, loadNotLogged(1), answer(),
+            flags = AccessFlags.PRIVATE.value or AccessFlags.STATIC.value)))
+        assertNull("not private", notLoggedEvent(factory(readPrivacy, loadNotLogged(1), answer(), flags = AccessFlags.PUBLIC.value)))
+        assertNull("no name last", notLoggedEvent(factory(readPrivacy, loadNotLogged(1), answer(),
+            parameters = listOf("Lfixture/Details;", "Lfixture/Details;"))))
+        assertNull("three parameters", notLoggedEvent(factory(readPrivacy, loadNotLogged(1), answer(),
+            parameters = listOf("Lfixture/Details;", "Ljava/lang/String;", "Ljava/lang/String;"))))
+        assertNull("no privacy context read", notLoggedEvent(factory(loadNotLogged(1), answer())))
+        assertNull("another class's static", notLoggedEvent(factory(readPrivacy, loadNotLogged(1, "Lfixture/Other;"), answer())))
+        assertNull("a static that isn't what it answers", notLoggedEvent(factory(readPrivacy, loadNotLogged(1), answer(2))))
+        assertNull("two statics it could answer",
+            notLoggedEvent(factory(readPrivacy, loadNotLogged(1), answer(), loadNotLogged(2), answer(2))))
+    }
+
+    @Test
+    fun `the extension takes the event's name`() {
+        val hook = ExtensionDex.classDef(SEARCH_HISTORY).methods.singleOrNull { it.descriptor() == KEEP_VISIT_OUT }
+        assertTrue("$KEEP_VISIT_OUT is not in the extension", hook != null)
+        assertTrue("$KEEP_VISIT_OUT is static", AccessFlags.STATIC.isSet(hook!!.accessFlags))
     }
 }

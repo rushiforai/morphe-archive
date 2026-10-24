@@ -16,11 +16,11 @@ import app.morphe.patches.netanalyzer.shared.addToolbarIcon
 import app.morphe.patches.netanalyzer.shared.patchesMenuPatch
 import app.morphe.patches.netanalyzer.shared.propertyFields
 import app.morphe.patches.netanalyzer.shared.textButtonSlot
-import app.morphe.patches.netanalyzer.shared.toJavaName
 import app.morphe.patches.netanalyzer.shared.toolbarActionsPatch
 import app.morphe.patches.netanalyzer.shared.registerAtLaunch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.toJavaClassName
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.matchSingle
@@ -77,7 +77,7 @@ val toolsHistoryPatch = bytecodePatch(
             "invoke-static { p0 }, $FEATURES_CLASS->captureNavigator(Ljava/lang/Object;)V",
         )
 
-        val registration = listOf(historyClass.toJavaName(), routeClass.toJavaName(), navigate.originalMethod.name, fieldNames)
+        val registration = listOf(historyClass.toJavaClassName(), routeClass.toJavaClassName(), navigate.originalMethod.name, fieldNames)
             .joinToString(REGISTRATION_SEPARATOR)
         registerAtLaunch("$FEATURES_CLASS->registerToolsHistory(Ljava/lang/String;)V", registration)
     }

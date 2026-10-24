@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2026 Morphe
  * Copyright (C) 2026 hxreborn
  * SPDX-License-Identifier: GPL-3.0-only
  *
@@ -11,10 +12,11 @@ package app.morphe.patches.protonmail.misc.fix.signature
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.proton.PROTON_EXTENSION_PACKAGE
 import app.morphe.patches.shared.misc.signature.spoofSignature
 
 private const val APPLICATION_CLASS = "Lch/protonmail/android/App;"
-private const val PATCH_APPLICATION_CLASS = "Lapp/hxreborn/extension/proton/PatchApplication;"
+private const val PATCH_APPLICATION_CLASS = "${PROTON_EXTENSION_PACKAGE}PatchApplication;"
 
 val spoofSignaturePatch = bytecodePatch {
     compatibleWith(AppCompatibilities.PROTON_MAIL)

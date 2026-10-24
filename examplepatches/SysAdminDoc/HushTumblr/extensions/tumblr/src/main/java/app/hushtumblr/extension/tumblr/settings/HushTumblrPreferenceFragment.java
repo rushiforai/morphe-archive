@@ -420,6 +420,9 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                     Settings.HIDE_SUGGESTED_COMMUNITIES, L10n.t("Hide suggested communities"),
                     L10n.t("Takes the communities Tumblr suggests you join, and their headings, out of your "
                         + "dashboard and other feeds."), SettingsIcons.BLOCK);
+            patchToggle(feed, context, build, PatchFamily.HIDE_SUGGESTED_TAGS, Settings.HIDE_SUGGESTED_TAGS,
+                    L10n.t("Hide suggested tags"), L10n.t("Takes the tags Tumblr suggests you follow, and their "
+                        + "headings, out of your dashboard and other feeds."), SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.HIDE_WATCH_IT_ROWS, Settings.HIDE_WATCH_IT_ROWS,
                     L10n.t("Hide Watch it rows"), L10n.t("Takes Tumblr TV's Watch it rows and video hub cards, and "
                         + "their headings, out of your dashboard and other feeds."), SettingsIcons.BLOCK);
@@ -470,6 +473,9 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                 patchToggle(feed, context, build, PatchFamily.HIDE_POSTS_WITH_WORDS, Settings.WORDS_SUMMARY,
                         L10n.t("Match post summaries"), scopeSummary, SettingsIcons.SEARCH);
             }
+            patchToggle(feed, context, build, PatchFamily.HIDE_FILTERED_POSTS, Settings.HIDE_FILTERED_POSTS,
+                    L10n.t("Hide filtered posts"), L10n.t("Takes the posts Tumblr covers for your filtered tags "
+                        + "and words out of your feeds."), SettingsIcons.BLOCK);
         }
 
         // Parts of each post card. Tags, the Follow button and the counts are read as each card is drawn,

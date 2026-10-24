@@ -4,7 +4,6 @@
  */
 package app.hxreborn.extension.proton;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.om.FabricatedOverlay;
 import android.content.om.OverlayInfo;
@@ -16,9 +15,10 @@ import android.content.res.loader.ResourcesLoader;
 import android.content.res.loader.ResourcesProvider;
 import android.os.Build;
 import android.util.TypedValue;
+import androidx.annotation.RequiresApi;
 import app.morphe.extension.shared.Logger;
 
-@TargetApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 public final class AccentOverlay {
 
     private static final String OVERLAY_NAME = "hx_accent_color";

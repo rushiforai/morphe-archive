@@ -40,6 +40,7 @@ import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 
 import com.facebook.stories.viewer.activity.StoryViewerActivity;
+import com.facebook.stories.viewer.activity.StoryViewerDefaultNavBarActivity;
 
 /**
  * The Mark as seen button: it follows the card the seen helper is about to count, shows over the
@@ -262,6 +263,25 @@ public class StorySeenButtonTest {
         StorySeenButton.onCard(StorySeenForTests.ACCOUNT, null, "c2");
         ShadowLooper.idleMainLooper();
         assertEquals("the eye came back without the viewer in front", View.GONE, eye.getVisibility());
+        controller.pause().stop().destroy();
+    }
+
+    /** 584 opens the story viewer as one of its empty subclasses as well, one per nav bar look. */
+    @Test
+    public void theEyeShowsOverAStoryViewerSubclass() {
+        Settings.MARK_STORIES_SEEN.save(true);
+        ActivityController<StoryViewerDefaultNavBarActivity> controller =
+                Robolectric.buildActivity(StoryViewerDefaultNavBarActivity.class).setup();
+        StoryViewerDefaultNavBarActivity viewer = controller.get();
+        StorySeenButton.activityCreated(viewer);
+        StorySeenButton.activityResumed(viewer);
+        StorySeenButton.onCard(StorySeenForTests.ACCOUNT, null, "c1");
+        ShadowLooper.idleMainLooper();
+        ImageView eye = eyeIn(viewer);
+        assertNotNull("no eye over a story viewer subclass", eye);
+        assertEquals(View.VISIBLE, eye.getVisibility());
+        StorySeenButton.activityPaused(viewer);
+        assertEquals(View.GONE, eye.getVisibility());
         controller.pause().stop().destroy();
     }
 

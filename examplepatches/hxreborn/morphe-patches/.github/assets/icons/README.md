@@ -15,7 +15,9 @@ circle. Nothing else is changed.
 
 ## Sources
 
-Every icon comes from the app's own APK, at the version and resource listed below.
+Most icons come from the app's own APK, at the version and resource listed below. Files named
+`<package>.png` come from the app's Google Play listing: the release workflow fetches the listing
+icon at 96x96, cut to a circle, for any app without an icon here.
 
 | File | App | Developer | Source |
 |---|---|---|---|
@@ -33,7 +35,6 @@ Every icon comes from the app's own APK, at the version and resource listed belo
 | `focusnow.png` | FocusNow (`com.ferdinandobermeier.focusmate`) | Ferdinand Obermeier | APK 3.8.0, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
 | `forus.png` | ForusApp (`com.myvitale.forus`) | MyVitale | APK 3.0.15, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
 | `showly.png` | Showly (`com.michaldrabik.showly2`) | Michał Drabik / Trakt | APK 3.70.0, `mipmap/ic_launcher_round`, xxxhdpi |
-| `tiktok.png` | TikTok (`com.zhiliaoapp.musically`) | TikTok Pte. Ltd. | APK 47.0.3, adaptive icon `mipmap/c` |
 | `protonmail.png` | Proton Mail (`ch.protonmail.android`) | Proton AG | APK 7.11.8, adaptive icon `ic_launcher_round` |
 | `protonauthenticator.png` | Proton Authenticator (`proton.android.authenticator`) | Proton AG | APK 1.3.10, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
 | `protonpass.png` | Proton Pass (`proton.android.pass`) | Proton AG | APK 1.40.3, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
@@ -123,17 +124,26 @@ Every icon comes from the app's own APK, at the version and resource listed belo
 | `sheytoon.png` | Sheytoon (`com.triovent.datingapp`) | Sheytoon Inc. | APK 6.7, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
 | `serializd.png` | Serializd (`com.serializdmobile`) | Serializd | Play 1.992, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
 | `musicolet.png` | Musicolet (`in.krosbits.musicolet`) | Krosbits | APK 6.14.1 build540, adaptive icon `res/mipmap-anydpi-v26/ic_launcher_ex4.xml`, cut to a circle |
+| `musicoletcastplugin.png` | Cast Plug-in for Musicolet (`in.krosbits.castplugin`) | Krosbits | APK 1.9, `res/mipmap-xxxhdpi-v4/ic_launcher.png` |
 | `sygic.png` | Sygic GPS Navigation (`com.sygic.aura`) | Sygic a.s. | APK 26.6.1, adaptive icon `res/mipmap-anydpi/ic_launcher.xml` (`ic_launcher_background` under `ic_launcher_foreground`, xxxhdpi, centre 72dp cut to a circle) |
 | `minishare.png` | MiniShare (`com.omniashare.minishare`) | Not on Google Play | APK 1.6.6, `res/mipmap-xxxhdpi-v4/ic_launcher.png`, cut to a circle |
 | `narababy.png` | Nara Baby (`com.naraorganics.nara`) | Nara Organics | APK 2.8.2, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
 | `wattpad.png` | Wattpad (`wp.wattpad`) | Wattpad.com | APK 11.41.1, `res/mipmap-xxxhdpi-v4/ic_launcher.webp` (round icon cropped to the circle) |
 | `graphmessenger.png` | Graph Messenger (`ir.ilmili.telegraph`) | Databite | APK 13.0.2.0, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
 | `glasswidgets.png` | Glass Widgets (`com.jndapp.glass.widgets`) | JustNewDesigns | APK 1.0.10, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
-
-Showly's icon is also published under GPLv3 in [`trakt/showly`](https://github.com/trakt/showly),
+| `yuka.png` | Yuka (`io.yuka.android`) | Yuka SAS | APK 5.7, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
 | `periodcalendar.png` | Period Tracker and Calendar (`com.lbrc.PeriodCalendar`) | SimpleInnovation | APK 13.3.2, adaptive icon `res/mipmap-anydpi-v26/ic_launcher.xml`, cut to a circle |
 | `udictionary.png` | U Dictionary (`com.youdao.hindict`) | Youdao (Hong Kong) Limited | APK 6.7.5, `res/mipmap-xxhdpi/ic_launcher_round.png` |
 | `magicearth.png` | Magic Earth (`com.generalmagic.magicearth`) | Magic Lane International | APK 7.1.26, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
+| `3way.png` | 3way: Couples & Singles Hookup (`app.threesome.dating`) | 3way App | APK 3.1.0, `res/drawable-xxhdpi-v4/ic_launcher_round.png` |
+| `internetspeedmeterlite.png` | Internet Speed Meter Lite (`com.internet.speed.meter.lite`) | DynamicApps | APK 1.7.0-lite, square icon `res/drawable/app_icon.png` cut to a circle |
+| `com.andatsoft.myapk.fwa.png` | My APK (`com.andatsoft.myapk.fwa`) | Cards | Google Play listing icon, added 2026-10-12 |
+| `viber.png` | Viber (`com.viber.voip`) | Viber Media | APK 29.1.1.0, `res/mipmap-xxxhdpi-v4/ic_launcher_viber_round.webp` |
+| `com.azeravn.bulletjournal.png` | May: Beautiful Bullet Journal (`com.azeravn.bulletjournal`) | AZ Family | Google Play listing icon, added 2026-10-10 |
+| `com.dev2a.junk_journal.png` | Jujo (`com.dev2a.junk_journal`) | Dev2a Inc | Google Play listing icon, added 2026-10-14 |
+| `pl.neptis.yanosik.mobi.android.png` | Yanosik (`pl.neptis.yanosik.mobi.android`) | Yanosik S.A. | Google Play listing icon, added 2026-10-10 |
+
+Showly's icon is also published under GPLv3 in [`trakt/showly`](https://github.com/trakt/showly),
 so its copyright terms are compatible with this one. The rest are used under nominative fair
 use only, with no licence claimed.
 

@@ -5,6 +5,11 @@
 package app.morphe.patches.shared.misc.secshell
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.DEX_CHECKSUM_OFFSET
+import app.morphe.patches.shared.DEX_FILE_SIZE_OFFSET
+import app.morphe.patches.shared.DEX_HEADER_SIZE
+import app.morphe.patches.shared.DEX_MAP_ITEM_SIZE
+import app.morphe.patches.shared.DEX_SIGNATURE_OFFSET
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -12,13 +17,8 @@ import java.util.zip.Adler32
 import java.util.zip.CRC32
 
 private const val CIPHER_HEAD_SIZE = 0x20000
-private const val HEADER_SIZE = 0x70
 private const val ENDIAN_TAG = 0x12345678
-private const val CHECKSUM_OFFSET = 8
-private const val SIGNATURE_OFFSET = 12
 private const val SIGNED_OFFSET = 32
-private const val FILE_SIZE_OFFSET = 0x20
-private const val MAP_ITEM_SIZE = 12
 private const val ADLER_MODULUS = 65521
 private const val FORGE_PAIRS = 6
 
@@ -69,7 +69,7 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
                 cursor = hit
                 continue
             }
-            val end = mapList + 4 + items.size * MAP_ITEM_SIZE
+            val end = mapList + 4 + items.size * DEX_MAP_ITEM_SIZE
             found += Slot(mapList - mapOffset, end - (mapList - mapOffset), items)
             cursor = end
         }
@@ -81,13 +81,13 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
 
     private fun mapItems(mapList: Int): List<MapItem>? {
         val count = buffer.getInt(mapList)
-        if (count !in MIN_MAP_ITEMS..MAX_MAP_ITEMS || mapList + 4 + count * MAP_ITEM_SIZE > blob.size) return null
+        if (count !in MIN_MAP_ITEMS..MAX_MAP_ITEMS || mapList + 4 + count * DEX_MAP_ITEM_SIZE > blob.size) return null
         val items = (0 until count).map {
-            val item = mapList + 4 + it * MAP_ITEM_SIZE
+            val item = mapList + 4 + it * DEX_MAP_ITEM_SIZE
             MapItem(buffer.getShort(item).toInt() and 0xFFFF, buffer.getInt(item + 4), buffer.getInt(item + 8))
         }
         val ordered = items.zipWithNext().all { (first, second) -> first.offset <= second.offset }
-        return items.takeIf { ordered && it[1].offset == HEADER_SIZE }
+        return items.takeIf { ordered && it[1].offset == DEX_HEADER_SIZE }
     }
 
     private fun slotEnd(index: Int) = slots.getOrNull(index + 1)?.start ?: (slots[index].start + slots[index].size)
@@ -130,7 +130,7 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
         dexEntries().indexOf(name).takeIf { it >= 0 } ?: throw PatchException("SecShell payload has no $name")
 
     private fun deriveKeystream(): ByteArray {
-        val version = blob.copyOfRange(0, CHECKSUM_OFFSET)
+        val version = blob.copyOfRange(0, DEX_CHECKSUM_OFFSET)
         val slot = slots.maxBy { it.mapItems.first { item -> item.type == TYPE_STRING_ID }.size }
         val region = blob.copyOfRange(slot.start, slot.start + slot.size)
         val plain = plainHead(region, slot, version)
@@ -139,14 +139,14 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
         val keystream = ByteArray(CIPHER_HEAD_SIZE) { (region[it].toInt() xor plain[it].toInt()).toByte() }
         val dex = region.xorHead(keystream)
         restoreHeaderDigests(dex)
-        for (index in CHECKSUM_OFFSET until SIGNED_OFFSET) {
+        for (index in DEX_CHECKSUM_OFFSET until SIGNED_OFFSET) {
             keystream[index] = (region[index].toInt() xor dex[index].toInt()).toByte()
         }
 
         slots.forEach { other ->
             val decoded = blob.copyOfRange(other.start, other.start + other.size).xorHead(keystream)
-            val stored = ByteBuffer.wrap(decoded).order(ByteOrder.LITTLE_ENDIAN).getInt(CHECKSUM_OFFSET)
-            if (stored != adlerOf(decoded, SIGNATURE_OFFSET)) {
+            val stored = ByteBuffer.wrap(decoded).order(ByteOrder.LITTLE_ENDIAN).getInt(DEX_CHECKSUM_OFFSET)
+            if (stored != adlerOf(decoded, DEX_SIGNATURE_OFFSET)) {
                 throw PatchException("SecShell payload dex at ${other.start} does not decipher with the derived key")
             }
         }
@@ -157,11 +157,11 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
         val sections = slot.mapItems.associateBy { it.type }
         val dataOffset = slot.mapItems.filter { it.type > TYPE_METHOD_HANDLE || it.type < TYPE_HEADER }
             .minOf { it.offset }
-        val header = ByteBuffer.allocate(HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN).apply {
+        val header = ByteBuffer.allocate(DEX_HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN).apply {
             put(version)
-            position(FILE_SIZE_OFFSET)
+            position(DEX_FILE_SIZE_OFFSET)
             putInt(slot.size)
-            putInt(HEADER_SIZE)
+            putInt(DEX_HEADER_SIZE)
             putInt(ENDIAN_TAG)
             putInt(0)
             putInt(0)
@@ -175,7 +175,7 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
         }.array()
 
         val stringIds = sections.getValue(TYPE_STRING_ID)
-        if (stringIds.offset != HEADER_SIZE) throw PatchException("SecShell payload string ids do not follow the header")
+        if (stringIds.offset != DEX_HEADER_SIZE) throw PatchException("SecShell payload string ids do not follow the header")
         val ids = ByteBuffer.allocate(stringIds.size * 4).order(ByteOrder.LITTLE_ENDIAN)
         var cursor = sections.getValue(TYPE_STRING_DATA).offset
         repeat(stringIds.size) {
@@ -194,7 +194,7 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
             output[it] = 0
             output[it + ADLER_MODULUS] = -1
         }
-        ByteBuffer.wrap(output).order(ByteOrder.LITTLE_ENDIAN).putInt(CHECKSUM_OFFSET, adlerOf(output, SIGNATURE_OFFSET))
+        ByteBuffer.wrap(output).order(ByteOrder.LITTLE_ENDIAN).putInt(DEX_CHECKSUM_OFFSET, adlerOf(output, DEX_SIGNATURE_OFFSET))
 
         val current = CRC32().apply { update(output) }.value.toInt()
         val flippableBits = lows.flatMap { low ->
@@ -238,8 +238,8 @@ internal class SecShellEmbeddedDex(bytes: ByteArray) : SecShellContainer {
             val signature = MessageDigest.getInstance("SHA-1").apply {
                 update(dex, SIGNED_OFFSET, dex.size - SIGNED_OFFSET)
             }.digest()
-            signature.copyInto(dex, SIGNATURE_OFFSET)
-            ByteBuffer.wrap(dex).order(ByteOrder.LITTLE_ENDIAN).putInt(CHECKSUM_OFFSET, adlerOf(dex, SIGNATURE_OFFSET))
+            signature.copyInto(dex, DEX_SIGNATURE_OFFSET)
+            ByteBuffer.wrap(dex).order(ByteOrder.LITTLE_ENDIAN).putInt(DEX_CHECKSUM_OFFSET, adlerOf(dex, DEX_SIGNATURE_OFFSET))
         }
     }
 }

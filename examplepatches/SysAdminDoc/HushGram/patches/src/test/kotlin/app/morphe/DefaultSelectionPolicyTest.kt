@@ -23,7 +23,6 @@ class DefaultSelectionPolicyTest {
         "Install next to Instagram" to "Moves the build to a package of its own, so it installs as a second app " +
             "with its own data and sign-in instead of updating the Instagram already on the phone.",
         "Pure black dark mode" to "Rewrites Instagram's colors when you patch, with no switch to turn it off.",
-        "Swipe left to open the profile" to "A test feature until a left swipe is seen opening the profile on a phone.",
         "View DM photos and videos anonymously" to "A test feature until the sender's side is checked " +
             "with two accounts.",
     )

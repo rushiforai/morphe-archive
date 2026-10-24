@@ -8,6 +8,9 @@ import java.util.*;
 public final class HiddenDroppedThreads {
     static final String KEY="hideDroppedHomeThreads";
     static final String DRAFTS="hideDroppedDrafts",SENT="hideDroppedSent";
+    // Legacy 191/226 HOME uses mode 100 for browsing history. 242+ uses
+    // 100 for the all/favorites screen and 103 for browsing history.
+    private static volatile int legacyHistoryModeState;
     private static final Map<String,Boolean> nativeStatus=new LinkedHashMap<>();
     private static final List<Original> originals=new ArrayList<>();
     private static final class Original {
@@ -17,8 +20,18 @@ public final class HiddenDroppedThreads {
     static boolean option(String key){Context c=Haiagaru.applicationContextForExtension();return c!=null&&c.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(key,false);}
     static boolean enabled(){return option(KEY);}
     static boolean anyEnabled(){return enabled()||option(DRAFTS)||option(SENT);}
+    private static boolean legacyHistoryMode100(){
+        int state=legacyHistoryModeState;if(state!=0)return state==1;
+        Context context=Haiagaru.applicationContextForExtension();if(context==null)return false;
+        try{
+            String version=context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName;
+            boolean legacy=version!=null&&(version.startsWith("0.8.10.191")||version.startsWith("0.8.10.226"));
+            synchronized(HiddenDroppedThreads.class){if(legacyHistoryModeState==0)legacyHistoryModeState=legacy?1:2;return legacyHistoryModeState==1;}
+        }catch(Exception ignored){return false;}
+    }
+    static boolean historyMode(int mode){int id=Math.abs(mode);return id==103||(id==100&&legacyHistoryMode100());}
     static boolean active(int mode){return Math.abs(mode)==104?option(DRAFTS)||option(SENT):enabled();}
-    static boolean target(int mode){int id=Math.abs(mode);return id==101||id==102||id==103||id==104;}
+    static boolean target(int mode){int id=Math.abs(mode);return id==101||id==102||id==104||historyMode(mode);}
     static Object postData(Object row)throws Exception{
         if(row==null)return null;String name=row.getClass().getName(),field;
         if(name.equals("o.onAdDisplayed$Keep"))field="b";
@@ -42,6 +55,22 @@ public final class HiddenDroppedThreads {
         synchronized(nativeStatus){known=key==null?null:nativeStatus.get(key);}
         return Boolean.TRUE.equals(known)||DroppedThreadStatus.droppedUrl(url);
     }
+    private static void rememberDrop(Object row,Context context) {
+        try {
+            if(!dropped(row))return;
+            String key=threadKey(DroppedThreadStatus.rowUrl(row,context));if(key==null)return;
+            synchronized(nativeStatus){
+                if(nativeStatus.size()>=4096)nativeStatus.remove(nativeStatus.keySet().iterator().next());
+                nativeStatus.put(key,true);
+            }
+        } catch(Exception ignored) { /* URL lookup must not disable native flag filtering. */ }
+    }
+    private static boolean knownThreadDrop(Object row) {
+        try {
+            String key=threadKey(DroppedThreadStatus.rowUrl(row,Haiagaru.applicationContextForExtension()));
+            synchronized(nativeStatus){return Boolean.TRUE.equals(nativeStatus.get(key));}
+        } catch(Exception ignored) {return false;}
+    }
     private static boolean postHeading(Object row){
         if(row==null)return false;
         String name=row.getClass().getName();
@@ -54,6 +83,14 @@ public final class HiddenDroppedThreads {
             return "下書き".equals(text)||"送信済み".equals(text)||"書き込んだスレ".equals(text)
                     ||"Drafts".equals(text)||"Sent".equals(text)||"Posted threads".equals(text);
         }catch(Exception ignored){return false;}
+    }
+    static boolean timeHeading(Object row){
+        if(row==null)return false;String name=row.getClass().getName();
+        return name.equals("o.onAdDisplayed$write")
+                ||name.equals("o.Yy2$ComponentActivity")||name.equals("o.getAvailabilityStatus$RemoteActionCompatParcelizer");
+    }
+    static void removeEmptyTimeHeadings(List<?> rows){
+        for(int i=rows.size()-1;i>=0;i--)if(timeHeading(rows.get(i))&&(i+1==rows.size()||timeHeading(rows.get(i+1))))rows.remove(i);
     }
     static boolean dropped(Object row)throws Exception{
         if(row==null)return false;
@@ -71,22 +108,27 @@ public final class HiddenDroppedThreads {
         if(source==null||!target(mode)||!active)return source;
         try{
             Context context=Haiagaru.applicationContextForExtension();
-            for(Object row:source){if(row==null||postData(row)!=null)continue;
-                String key=threadKey(DroppedThreadStatus.rowUrl(row,context));if(key==null)continue;
-                synchronized(nativeStatus){if(nativeStatus.size()>=4096)nativeStatus.remove(nativeStatus.keySet().iterator().next());nativeStatus.put(key,dropped(row));}
-            }
+            // HOME history can hold an older copy with a zero flag. Zero means unknown,
+            // not proof of a live thread; never erase positive native evidence with it.
+            for(Object row:source)if(row!=null)rememberDrop(row,context);
             ArrayList<Object> out=new ArrayList<>();
             for(Object row:source){
-                Object post=Math.abs(mode)==104?postData(row):null;
-                boolean hide;
-                if(post!=null)hide=option(sent(post)?SENT:DRAFTS)&&knownPostDrop(post);
-                else hide=(Math.abs(mode)!=104||option(SENT))&&(dropped(row)||DroppedThreadStatus.dropped(row));
+                boolean hide=false;
+                try {
+                    Object post=Math.abs(mode)==104?postData(row):null;
+                    if(post!=null)hide=option(sent(post)?SENT:DRAFTS)&&knownPostDrop(post);
+                    else hide=(Math.abs(mode)!=104||option(SENT))&&(dropped(row)||knownThreadDrop(row)||DroppedThreadStatus.dropped(row));
+                } catch(Exception error) {
+                    // Keep only this unknown row, not every dropped row in the history.
+                    android.util.Log.w("Haiagaru","DAT-drop row left unchanged",error);
+                }
                 if(!hide)out.add(row);
             }
             if(Math.abs(mode)==104&&out.size()!=source.size()){
                 for(int i=out.size()-1;i>=0;i--)if(postHeading(out.get(i))
                         &&(i+1==out.size()||postHeading(out.get(i+1))))out.remove(i);
             }
+            if(historyMode(mode)&&out.size()!=source.size())removeEmptyTimeHeadings(out);
             return out.size()==source.size()?source:out;
         }
         catch(Exception error){android.util.Log.w("Haiagaru","DAT-drop display filter left unchanged",error);return source;}

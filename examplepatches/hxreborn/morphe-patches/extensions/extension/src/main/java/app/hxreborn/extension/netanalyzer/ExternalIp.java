@@ -5,10 +5,8 @@
 package app.hxreborn.extension.netanalyzer;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 final class ExternalIp {
@@ -64,7 +62,7 @@ final class ExternalIp {
         InetAddress address = null;
         String hostname = null;
         Object location = null;
-        for (Field field : instanceFields(state)) {
+        for (Field field : FieldLayout.instanceFieldsByName(state)) {
             final Object value = field.get(state);
             if (field.getType() == InetAddress.class) {
                 address = (InetAddress) value;
@@ -81,7 +79,7 @@ final class ExternalIp {
         final List<Object> texts = new ArrayList<>();
         final List<Object> coordinates = new ArrayList<>();
         if (location != null) {
-            for (Field field : instanceFields(location)) {
+            for (Field field : FieldLayout.instanceFieldsByName(location)) {
                 if (field.getType() == String.class) {
                     texts.add(field.get(location));
                 } else if (field.getType() == double.class) {
@@ -90,18 +88,6 @@ final class ExternalIp {
             }
         }
         return new ExternalIp(address, hostname, texts, coordinates);
-    }
-
-    private static List<Field> instanceFields(Object object) {
-        final List<Field> fields = new ArrayList<>();
-        for (Field field : object.getClass().getDeclaredFields()) {
-            if (!Modifier.isStatic(field.getModifiers())) {
-                field.setAccessible(true);
-                fields.add(field);
-            }
-        }
-        Collections.sort(fields, (left, right) -> left.getName().compareTo(right.getName()));
-        return fields;
     }
 
     private static String text(List<Object> values, String name) {

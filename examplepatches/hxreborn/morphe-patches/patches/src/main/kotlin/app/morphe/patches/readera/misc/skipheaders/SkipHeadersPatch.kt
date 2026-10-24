@@ -19,6 +19,7 @@ import app.morphe.patches.readera.shared.disableSignatureChecksPatch
 import app.morphe.patches.readera.shared.showTtsPreferenceRow
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.addMethod
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -123,54 +124,46 @@ val skipHeadersPatch = bytecodePatch(
                 .toMutable(),
         )
         val speechCrops = "${controller.type}->$SPEECH_CROPS_FIELD:$SPARSE_ARRAY_TYPE"
-        val ingestCroppedPage = ImmutableMethod(
-            controller.type,
+        val ingestCroppedPage = controller.addMethod(
             SPEECH_CROP_PAGE_METHOD,
-            listOf(ImmutableMethodParameter("I", null, null)),
+            listOf("I"),
             "V",
             AccessFlags.PRIVATE.value,
-            null,
-            null,
-            MutableMethodImplementation(8),
-        ).toMutable().apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    iget-object v0, p0, $pageIndexes
-                    aget v0, v0, p1
-                    iget-object v1, p0, $sizes
-                    invoke-virtual { v1, v0 }, $sizeOf
-                    move-result-object v1
-                    iget-object v2, p0, $speechCrops
-                    if-nez v2, :lookup
-                    new-instance v2, $SPARSE_ARRAY_TYPE
-                    invoke-direct { v2 }, $SPARSE_ARRAY_TYPE-><init>()V
-                    iput-object v2, p0, $speechCrops
-                    :lookup
-                    invoke-virtual { v2, v0 }, $SPARSE_ARRAY_TYPE->get(I)Ljava/lang/Object;
-                    move-result-object v3
-                    check-cast v3, $RECT_TYPE
-                    if-nez v3, :apply
-                    iget-object v3, p0, ${pagesHolder.definingClass}->${pagesHolder.name}:${pagesHolder.type}
-                    iget-object v3, v3, ${pages.definingClass}->${pages.name}:${pages.type}
-                    aget-object v3, v3, p1
-                    invoke-direct { p0, v3, v0, v1 }, $speechCropRect
-                    move-result-object v3
-                    if-eqz v3, :whole
-                    invoke-virtual { v2, v0, v3 }, $SPARSE_ARRAY_TYPE->put(ILjava/lang/Object;)V
-                    goto :apply
-                    :whole
-                    new-instance v3, $RECT_TYPE
-                    const/4 v4, 0x0
-                    const/high16 v5, 0x3f800000
-                    invoke-direct { v3, v4, v4, v5, v5 }, $RECT_TYPE-><init>(FFFF)V
-                    :apply
-                    invoke-direct { p0, v0, v3 }, $ingest
-                    return-void
-                """,
-            )
-        }
-        controller.methods.add(ingestCroppedPage)
+            8,
+            """
+                iget-object v0, p0, $pageIndexes
+                aget v0, v0, p1
+                iget-object v1, p0, $sizes
+                invoke-virtual { v1, v0 }, $sizeOf
+                move-result-object v1
+                iget-object v2, p0, $speechCrops
+                if-nez v2, :lookup
+                new-instance v2, $SPARSE_ARRAY_TYPE
+                invoke-direct { v2 }, $SPARSE_ARRAY_TYPE-><init>()V
+                iput-object v2, p0, $speechCrops
+                :lookup
+                invoke-virtual { v2, v0 }, $SPARSE_ARRAY_TYPE->get(I)Ljava/lang/Object;
+                move-result-object v3
+                check-cast v3, $RECT_TYPE
+                if-nez v3, :apply
+                iget-object v3, p0, ${pagesHolder.definingClass}->${pagesHolder.name}:${pagesHolder.type}
+                iget-object v3, v3, ${pages.definingClass}->${pages.name}:${pages.type}
+                aget-object v3, v3, p1
+                invoke-direct { p0, v3, v0, v1 }, $speechCropRect
+                move-result-object v3
+                if-eqz v3, :whole
+                invoke-virtual { v2, v0, v3 }, $SPARSE_ARRAY_TYPE->put(ILjava/lang/Object;)V
+                goto :apply
+                :whole
+                new-instance v3, $RECT_TYPE
+                const/4 v4, 0x0
+                const/high16 v5, 0x3f800000
+                invoke-direct { v3, v4, v4, v5, v5 }, $RECT_TYPE-><init>(FFFF)V
+                :apply
+                invoke-direct { p0, v0, v3 }, $ingest
+                return-void
+            """,
+        )
 
         SpeechPagesFingerprint.let { match ->
             val firstPage = match.method.getInstruction<OneRegisterInstruction>(match.instructionMatches[1].index).registerA

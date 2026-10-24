@@ -8,4 +8,4 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.gms.gmsCoreSupportPatchFor
 
 @Suppress("unused")
-val gmsCoreSupportPatch = gmsCoreSupportPatchFor(AppCompatibilities.BIOBIRD)
+val gmsCoreSupportPatch = gmsCoreSupportPatchFor(AppCompatibilities.BIOBIRD, default = true)

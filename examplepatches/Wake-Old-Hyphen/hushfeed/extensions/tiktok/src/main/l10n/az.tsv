@@ -870,6 +870,7 @@ Open TikTok on	TikTok-u burada açın
 Opens github.com in your browser	github.com brauzerinizdə açılır
 Operator code	Operator kodu
 Operator name	Operator adı
+Original	Orijinal
 Original language	Orijinal dil
 Other	Digər
 Other feed filters	Digər lent filtrləri
@@ -1412,7 +1413,7 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	Axtarışda TikTok Shop-u gizlədin
 Hide the Products block and product cards in search results.	Axtarış nəticələrindəki Məhsullar blokunu və məhsul kartlarını gizlədin.
 Hide TikTok's Auto scroll button	TikTok-un Auto scroll düyməsini gizlədin
-Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.	TikTok-un öz Auto scroll əməliyyatını video panelindən çıxarır. Avtomatik keçid işləməyə davam edir.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	TikTok-un öz Auto scroll əməliyyatını video panelindən, planşetlərdə və açılmış qatlanan telefonlarda isə videonun yanındakı Auto scroll açarını çıxarır. Avtomatik keçid söndürülü olanda da işləyir.
 Hide the unread badges on the bottom tabs	Alt nişanlardakı oxunmamış nişanları gizlədin
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gələnlər və Profil daxil olmaqla hər alt nişandakı qırmızı say və nöqtələri, həmçinin Gələnlər üzərində yeni bəyənmələri, izləyiciləri, şərhləri və kimin LIVE-da olduğunu sayan balonu gizlədin. Gələnlərin özü yenə də nələrin gəldiyini göstərir.
 Speed while you hold the video	Videonu basıb saxlayarkən sürət
@@ -1652,13 +1653,15 @@ Remove story rings	Hekayə halqalarını sil
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Hekayə halqasını lentdə, şərhlərdə və profillərdə profil şəkillərindən götür. Şəklə toxunmaq hekayəni yox, profili açır.
 Remove the LIVE ring	LIVE halqasını sil
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Lentdə və şərhlərdə profil şəkillərindəki döyünən LIVE halqasını götür. Canlı yayımda olan yaradıcının şəklinə toxunmaq LIVE-ı yox, profilini açır.
+Open the Story when a creator is LIVE	Yaradıcı LIVE-dadırsa Hekayəni aç
+When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	LIVE-da olan yaradıcının Hekayəsi də varsa, profilindəki şəklinə toxunmaq Hekayəni açır. LIVE-a qoşulmaq üçün şəklə yenidən toxun.
 Writing	Yazmaq
 Lift text length limits	Mətn uzunluğu limitlərini qaldır
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Şərhlər, repost qeydləri və bionuz TikTok tətbiqinin dayandığı uzunluqdan keçə bilsin. TikTok serverləri uzun mətni yenə də rədd edə bilər.
 Show only mutual friends on the Friends tab	Dostlar bölməsində yalnız qarşılıqlı dostları göstərin
 On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Dostlar bölməsində qarşılıqlı izləşmədiyiniz hesabların, o cümlədən təklif olunan hesabların paylaşımlarını, repostlarını və LIVE-larını gizlədin. Öz paylaşımlarınız qalır.
 Latest first on Following	İzlənilənlər lentində ən yenilər əvvəl
-Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.	İzlənilənlər lentinin yüklədiyi hər dəstəni ən yeni paylaşımdan başlayaraq oynadın. Hər dəstədə nələrin gələcəyini yenə TikTok seçir, reklamlar və LIVE-lar yerində qalır.
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	İzlənilənlər lentini ən yeni paylaşımdan başlayaraq oynadın. Sonradan yüklənən daha yeni paylaşım izlədiyiniz videodan dərhal sonraya keçir, artıq keçdiyiniz heç nə yerini dəyişmir. Reklamlar və LIVE-lar yerində qalır.
 Show follow status	İzləmə vəziyyətini göstər
 Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Profildə @istifadəçi adının altında onun sizi izləyib-izləmədiyini göstərin. İzləyici və izlənilən siyahıları sizi geri izləməyən, sizin izlədiyiniz hesabları qeyd edir.
 Follows you	Sizi izləyir
@@ -2250,7 +2253,7 @@ Two at once	Eyni anda iki
 Three at once	Eyni anda üç
 LIVE recording quality	LIVE yazısının keyfiyyəti
 Same as the room	Otaqdakı kimi
-Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.	"Otaqdakı kimi" baxdığın keyfiyyəti yazır. "Ən yüksək" sən daha aşağı keyfiyyətdə baxsan da, otağın ən yaxşı yayımını yazır.
+Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.	"Otaqdakı kimi" baxdığın keyfiyyəti yazır. "Ən yüksək" sən daha aşağı keyfiyyətdə baxsan da, otağın ən yaxşı yayımını yazır. Rəqəm həmin keyfiyyəti yazır, otaqda yoxdursa ən yaxınını.
 Long-press Profile for Watch history	Baxış tarixçəsi üçün Profili uzun basın
 Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.	Baxış tarixçənizi açmaq üçün Profil nişanını basıb saxlayın. Profilə toxunmaq əvvəlki kimi işləyir. Profili basıb saxlamaq sizdə hesabı dəyişirsə, bu seçim həmin basmanı götürür, profilinizin yuxarısındakı ad isə yenə hesabı dəyişir.
 Open the comments at full height	Şərhləri tam hündürlükdə açın
@@ -2266,5 +2269,8 @@ Oldest first	Əvvəlcə ən köhnələr
 Longest first	Əvvəlcə ən uzunlar
 Shortest first	Əvvəlcə ən qısalar
 Most viewed first	Əvvəlcə ən çox baxılanlar
+Least viewed first	Əvvəlcə ən az baxılanlar
 Most liked first	Əvvəlcə ən çox bəyənilənlər
-Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.	Profil və ya bəyənilənlər şəbəkəsinin indiyə qədər yüklədiyi videoları sıralayır, sancılmış videolar əvvəldə qalır. Aşağı sürüşdükcə sıra daha çox videonu əhatə edir. Şəbəkə növbəti dəfə açılanda bunu izləyir.
+Least liked first	Əvvəlcə ən az bəyənilənlər
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Profil və ya bəyənilənlər şəbəkəsini sıralayır, sancılmış videolar əvvəldə qalır. Sıra seçiləndə şəbəkə 300 videoya qədər özü yüklənməyə davam edir, beləliklə sıra ilk ekrandan daha çoxunu əhatə edir. Şəbəkənin yuxarı küncündəki düymə sıranı elə oradaca dəyişir.
+Sort this grid	Bu şəbəkəni sırala

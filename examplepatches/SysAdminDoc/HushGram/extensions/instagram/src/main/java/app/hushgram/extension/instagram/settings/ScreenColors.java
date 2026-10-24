@@ -646,7 +646,9 @@ public final class ScreenColors {
     /** Paints a row with the colours on show, if there are any. */
     static void row(View row, Preference preference) {
         ScreenColors colors = shown;
-        (colors == null ? DEFAULT : colors).paintRow(row, preference);
+        ScreenColors used = colors == null ? DEFAULT : colors;
+        used.paintRow(row, preference);
+        NewRowDots.paint(row, preference, used.accent);
     }
 
     /** Paints a section title with the colours on show, if there are any. */

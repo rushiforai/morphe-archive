@@ -20,6 +20,7 @@ import app.morphe.patches.photoeditorpro.shared.submitRequestMethod
 import app.morphe.patches.photoeditorpro.shared.markPatchInstalled
 import app.morphe.patches.photoeditorpro.shared.methodMatching
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.smali.parameterRegister
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
@@ -58,8 +59,7 @@ private val TRACED_TOOLS = mapOf(
 @Suppress("unused")
 val showAiProgressPatch = bytecodePatch(
     name = "Show AI progress",
-    description = "Reads the current stage off the real network activity instead of the " +
-        "fake progress bar InShot ships.",
+    description = "Shows the current stage of AI Remove and Enhance on their loading screens.",
 ) {
     compatibleWith(AppCompatibilities.PHOTO_EDITOR_PRO)
     dependsOn(spoofIosPlatformPatch, spoofSignaturePatch)
@@ -115,10 +115,9 @@ private fun BytecodePatchContext.hookTask(
         it.parameterTypes.count { type -> type.toString() == "I" } == 1 && it.returnType == "V" &&
             it.indexOfFirstLiteralInstruction(RESULT_DELIVERED) >= 0
     }
-    val statusRegister = 1 + resultHandler.parameterTypes
-        .takeWhile { it.toString() != "I" }
-        .sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
-    resultHandler.addInstructions(0, "invoke-static { p$statusRegister }, $PROGRESS_TRACE_CLASS->finished(I)V")
+    val statusIndex = resultHandler.parameterTypes.indexOfFirst { it.toString() == "I" }
+    val statusRegister = resultHandler.parameterRegister(statusIndex)
+    resultHandler.addInstructions(0, "invoke-static { $statusRegister }, $PROGRESS_TRACE_CLASS->finished(I)V")
 }
 
 private fun BytecodePatchContext.hookLoadingFragment(fragmentClass: String) {

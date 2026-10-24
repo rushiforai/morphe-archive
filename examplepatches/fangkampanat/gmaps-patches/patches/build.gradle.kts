@@ -15,8 +15,6 @@ patches {
 dependencies {
     // Android API stubs defined here.
     compileOnly(project(":patches:stub"))
-    // Only use inline helpers; no patch-library runtime classes enter the bundle.
-    compileOnly(libs.morphe.patches.library)
 }
 
 kotlin {

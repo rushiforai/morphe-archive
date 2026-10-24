@@ -50,10 +50,11 @@ dependencies {
     checkstyle(libs.spring.javaformat.checkstyle)
     implementation(libs.morphe.extensions.library)
     compileOnly(libs.okhttp)
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.16")
+    compileOnly(libs.androidx.annotation)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     testImplementation(libs.okhttp)
-    testImplementation("org.json:json:20240303")
+    testImplementation(libs.json)
 }
 
 abstract class GenerateWebAssets : DefaultTask() {

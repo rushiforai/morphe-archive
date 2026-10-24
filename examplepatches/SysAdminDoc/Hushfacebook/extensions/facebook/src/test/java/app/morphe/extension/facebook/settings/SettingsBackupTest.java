@@ -207,6 +207,8 @@ public class SettingsBackupTest {
         Settings.HIDDEN_SOURCES.resetToDefault();
         Settings.HIDDEN_SHARE_ITEMS.resetToDefault();
         Settings.HIDDEN_MENU_TILES.resetToDefault();
+        Settings.AMOLED_BACKGROUND.resetToDefault();
+        Settings.AMOLED_LIGHT_BACKGROUND.resetToDefault();
         Settings.SEEN_MENU_TILES.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
@@ -251,7 +253,7 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
@@ -270,6 +272,8 @@ public class SettingsBackupTest {
         assertEquals(Settings.START_TAB, SettingsBackup.START);
         assertEquals(Settings.FEEDS_SUBTAB, SettingsBackup.SUBTAB);
         assertEquals(Settings.HOME_FEED, SettingsBackup.HOME_FEED);
+        assertEquals(Settings.AMOLED_BACKGROUND, SettingsBackup.BACKGROUND);
+        assertEquals(Settings.AMOLED_LIGHT_BACKGROUND, SettingsBackup.LIGHT_BACKGROUND);
         assertEquals(Settings.COMMENT_ORDER, SettingsBackup.ORDER);
         assertEquals(Settings.PLAYBACK_QUALITY, SettingsBackup.PLAYBACK);
         assertEquals(Settings.REELS_PLAYBACK_QUALITY, SettingsBackup.REELS_QUALITY);
@@ -965,6 +969,142 @@ public class SettingsBackupTest {
         assertEquals(picks, SettingsBackup.Snapshot.fromBundle(state).menuTiles);
         state.putString("hidden_menu_tiles", "gaming,gaming");
         assertNull(SettingsBackup.Snapshot.fromBundle(state).menuTiles);
+    }
+
+    /**
+     * AMOLED's Background color (#214) goes out and comes back as its row keeps it. A file can set
+     * it back to blank, an older file leaves it alone, and a color the row would refuse or keep
+     * differently refuses the whole file.
+     */
+    @Test
+    public void backgroundColorRoundTripsAsItsRowKeepsIt() throws Exception {
+        Settings.AMOLED_BACKGROUND.save("#0D1117");
+        String file = SettingsBackup.create();
+        assertEquals("#0D1117", new JSONObject(file).getJSONObject("settings").get(SettingsBackup.BACKGROUND.key));
+        Settings.AMOLED_BACKGROUND.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("#0D1117", snapshot.backgroundChange());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("#0D1117", Settings.AMOLED_BACKGROUND.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals(0, SettingsBackup.parse(file).changes().size());
+        // L10n.isolate wraps the color code in direction marks (U+2068, U+2069), which aren't compared.
+        assertEquals("If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be #0D1117.",
+                SettingsBackupPreference.backgroundSentence(snapshot.background)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
+        assertEquals("If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be the color "
+                + "it was patched with.", SettingsBackupPreference.backgroundSentence(""));
+
+        // A color saved some other way goes out as the row keeps it, and one it refuses goes out blank.
+        Settings.AMOLED_BACKGROUND.save(" 0d1117 ");
+        assertEquals("#0D1117", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.BACKGROUND.key));
+        Settings.AMOLED_BACKGROUND.save("#FFFFFF");
+        assertEquals("", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.BACKGROUND.key));
+        Settings.AMOLED_BACKGROUND.save("#0D1117");
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"#0d1117", "0D1117", " #0D1117", "#FF0D1117", "#800D1117", "#545454", "#FFFFFF",
+                "black", "#0D111", 5, true, JSONObject.NULL}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.BACKGROUND.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the Background color " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject lightest = new JSONObject(file);
+        lightest.getJSONObject("settings").put(SettingsBackup.BACKGROUND.key, "#535353");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(lightest.toString())));
+        assertEquals("#535353", Settings.AMOLED_BACKGROUND.savedValue());
+
+        JSONObject blank = new JSONObject(file);
+        blank.getJSONObject("settings").put(SettingsBackup.BACKGROUND.key, "");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(blank.toString())));
+        assertEquals("", Settings.AMOLED_BACKGROUND.savedValue());
+
+        Settings.AMOLED_BACKGROUND.save("#101010");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.BACKGROUND.key);
+        SettingsBackup.apply(SettingsBackup.parse(older.toString()));
+        assertEquals("#101010", Settings.AMOLED_BACKGROUND.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals("#0D1117", SettingsBackup.Snapshot.fromBundle(state).background);
+        state.putString("amoled_background", "#0d1117");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).background);
+    }
+
+    /**
+     * AMOLED's Light background color (#214) goes out and comes back as its row keeps it, the same
+     * way, and a color its rule refuses, too dark for light mode's text, refuses the whole file.
+     */
+    @Test
+    public void lightBackgroundColorRoundTripsAsItsRowKeepsIt() throws Exception {
+        Settings.AMOLED_LIGHT_BACKGROUND.save("#FFF8E7");
+        String file = SettingsBackup.create();
+        assertEquals("#FFF8E7", new JSONObject(file).getJSONObject("settings").get(SettingsBackup.LIGHT_BACKGROUND.key));
+        Settings.AMOLED_LIGHT_BACKGROUND.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("#FFF8E7", snapshot.lightBackgroundChange());
+        assertNull("the dark row's is left", snapshot.backgroundChange());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("#FFF8E7", Settings.AMOLED_LIGHT_BACKGROUND.savedValue());
+        assertEquals("", Settings.AMOLED_BACKGROUND.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals(0, SettingsBackup.parse(file).changes().size());
+        assertEquals("If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be #FFF8E7.",
+                SettingsBackupPreference.lightBackgroundSentence(snapshot.lightBackground)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
+        assertEquals("If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be "
+                + "Facebook's own white.", SettingsBackupPreference.lightBackgroundSentence(""));
+
+        // A color saved some other way goes out as the row keeps it, and one it refuses goes out blank.
+        Settings.AMOLED_LIGHT_BACKGROUND.save(" fff8e7 ");
+        assertEquals("#FFF8E7", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.LIGHT_BACKGROUND.key));
+        Settings.AMOLED_LIGHT_BACKGROUND.save("#000000");
+        assertEquals("", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.LIGHT_BACKGROUND.key));
+        Settings.AMOLED_LIGHT_BACKGROUND.save("#FFF8E7");
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"#fff8e7", "FFF8E7", " #FFF8E7", "#FFFFF8E7", "#80FFF8E7", "#A5A5A5", "#979797",
+                "#2D88FF", "cream", "#FFF8E", 5, true, JSONObject.NULL}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.LIGHT_BACKGROUND.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the Light background color " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject darkest = new JSONObject(file);
+        darkest.getJSONObject("settings").put(SettingsBackup.LIGHT_BACKGROUND.key, "#A6A6A6");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(darkest.toString())));
+        assertEquals("#A6A6A6", Settings.AMOLED_LIGHT_BACKGROUND.savedValue());
+
+        JSONObject blank = new JSONObject(file);
+        blank.getJSONObject("settings").put(SettingsBackup.LIGHT_BACKGROUND.key, "");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(blank.toString())));
+        assertEquals("", Settings.AMOLED_LIGHT_BACKGROUND.savedValue());
+
+        Settings.AMOLED_LIGHT_BACKGROUND.save("#F5F5F5");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.LIGHT_BACKGROUND.key);
+        SettingsBackup.apply(SettingsBackup.parse(older.toString()));
+        assertEquals("#F5F5F5", Settings.AMOLED_LIGHT_BACKGROUND.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals("#FFF8E7", SettingsBackup.Snapshot.fromBundle(state).lightBackground);
+        state.putString("amoled_light_background", "#fff8e7");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).lightBackground);
     }
 
     /**

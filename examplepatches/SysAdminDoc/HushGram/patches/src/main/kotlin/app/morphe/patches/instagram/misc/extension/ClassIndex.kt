@@ -130,10 +130,17 @@ internal fun BytecodePatchContext.classesLoading(literal: Long): List<ClassDef> 
 /**
  * The classes outside the extension whose code calls [name] on [definingClass], in the app's
  * order. The patcher's index of the types each class refers to picks the classes to read; a class
- * a patch has changed since it indexed the app is always read.
+ * a patch has changed since it indexed the app is always read. The index also keeps each call's
+ * [parameters] and [returnType], so giving them narrows a search whose owner most classes name.
  */
-internal fun BytecodePatchContext.classesCalling(definingClass: String, name: String): List<ClassDef> =
-    classesMatching(Fingerprint(filters = listOf(methodCall(definingClass = definingClass, name = name))))
+internal fun BytecodePatchContext.classesCalling(
+    definingClass: String,
+    name: String,
+    parameters: List<String>? = null,
+    returnType: String? = null,
+): List<ClassDef> = classesMatching(Fingerprint(filters = listOf(
+    methodCall(definingClass = definingClass, name = name, parameters = parameters, returnType = returnType),
+)))
 
 /**
  * Every method calling [name] on [definingClass], the extension's included, in the app's order. The

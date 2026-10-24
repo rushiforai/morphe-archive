@@ -208,11 +208,11 @@ private fun Element.hasSiblingCorners() =
 
 private fun Element.surfaceOrPage() = if (hasSiblingCorners()) Role.SURFACE else Role.PAGE
 
-private fun Element.roleOf(attribute: String, fileKind: String): Pair<Role, Boolean>? {
+private fun Element.roleOf(attribute: String, resourceType: String): Pair<Role, Boolean>? {
     val lineSized = isLineSized(getAttribute("android:layout_width"), getAttribute("android:layout_height"))
 
     return when {
-        fileKind == "color" && attribute == "android:color" -> Role.INK to false
+        resourceType == "color" && attribute == "android:color" -> Role.INK to false
         attribute in INK_ATTRIBUTES -> Role.INK to false
         attribute in GRADIENT_ATTRIBUTES && isInStateItem() -> Role.STATE to false
         attribute in GRADIENT_ATTRIBUTES -> surfaceOrPage() to true
@@ -221,7 +221,7 @@ private fun Element.roleOf(attribute: String, fileKind: String): Pair<Role, Bool
         tagName == "solid" && attribute == "android:color" -> surfaceOrPage() to false
         attribute == "android:drawable" -> (if (isInStateItem()) Role.STATE else Role.PAGE) to false
         attribute in BACKGROUND_ATTRIBUTES && lineSized -> Role.LINE to false
-        attribute in BACKGROUND_ATTRIBUTES -> Role.PAGE to (fileKind == "layout")
+        attribute in BACKGROUND_ATTRIBUTES -> Role.PAGE to (resourceType == "layout")
         else -> null
     }
 }
@@ -275,15 +275,15 @@ private fun ResourcePatchContext.recolorXmlAttributes(recolorer: Recolorer) {
     var rewritten = 0
 
     resourceFiles(RESOURCE_DIRECTORY_PREFIXES, "xml").forEach { file ->
-        val kind = file.parentFile.name.substringBefore('-')
-        val inDialog = (kind == "layout" && DIALOG_LAYOUT_MARKER in file.name) ||
+        val resourceType = file.parentFile.name.substringBefore('-')
+        val inDialog = (resourceType == "layout" && DIALOG_LAYOUT_MARKER in file.name) ||
             file.name.startsWith(DIALOG_DRAWABLE_PREFIX)
 
         document("res/${file.parentFile.name}/${file.name}").use { document ->
             document.documentElement.doRecursively { node ->
                 val element = node as? Element ?: return@doRecursively
                 element.attributeNodes().map { it.nodeName }.forEach { attribute ->
-                    val (baseRole, brandToBlack) = element.roleOf(attribute, kind) ?: return@forEach
+                    val (baseRole, brandToBlack) = element.roleOf(attribute, resourceType) ?: return@forEach
                     val role = if (inDialog && baseRole == Role.PAGE) Role.SURFACE else baseRole
                     recolorer.rewrite(element.getAttribute(attribute), role, brandToBlack)?.let {
                         element.setAttribute(attribute, it)

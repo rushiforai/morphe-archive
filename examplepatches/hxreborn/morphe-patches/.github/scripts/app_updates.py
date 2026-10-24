@@ -19,7 +19,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 import requests
-from versions import build_tags, compare, tracked_version, version_key
+from versions import APP_UPDATE_TITLE_PREFIX, build_tags, compare, tracked_version, version_key
 
 TRACKER_REPO = "https://github.com/rushiranpise/patches-tracker"
 TRACKER_SHA = "b41567ad88e784f04c8a60f1cd11e4c956d8e57a"
@@ -136,7 +136,8 @@ def play_apk(app, ctx):
             for file in files:
                 file.unlink()
             facts = read_apk(archive, app["package"], workdir)
-            facts.update(source="play", path=str(archive))
+            facts.update(source="play", path=str(archive),
+                         min_sdk=play_min_sdk(facts["min_sdk"], workdir / "base.apk"))
         except Exception as error:
             facts = {"source": "play", "error": f"{type(error).__name__}: {error}"[:300]}
         slot["facts"] = facts
@@ -328,6 +329,17 @@ def read_apk(path, package, workdir):
             "min_sdk": int(min_sdk.group(1)) if min_sdk else None,
             "format": kind, "abis": re.findall(r"'([^']+)'", abis.group(1)) if abis else [],
             "certs": sorted(set(certs)), "size": path.stat().st_size, "path": str(path)}
+
+
+DEX_VERSION_MIN_SDK = {b"037": 24, b"038": 26, b"039": 28}
+
+
+def play_min_sdk(manifest_min_sdk, apk):
+    if manifest_min_sdk is None or manifest_min_sdk < 24:
+        return manifest_min_sdk
+    with zipfile.ZipFile(apk) as archive, archive.open("classes.dex") as dex:
+        dex_min_sdk = DEX_VERSION_MIN_SDK.get(dex.read(8)[4:7])
+    return min(manifest_min_sdk, dex_min_sdk) if dex_min_sdk else None
 
 
 def download(app, source, result, version, ctx, workdir):
@@ -545,7 +557,7 @@ def sync_issues(apps, results, bundle_version):
     names = [app["name"] for app in apps.values()]
     for record in results:
         app = apps[record["package"]]
-        prefix = f"[App Update]: {app['name']} "
+        prefix = f"{APP_UPDATE_TITLE_PREFIX}{app['name']} "
         candidate = record["candidate"] if record["status"] == "update" else None
         open_same = None
         open_newer = False

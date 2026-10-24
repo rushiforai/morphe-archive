@@ -40,6 +40,7 @@ public class ReelsTopBarSettingsTest {
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();
+        Settings.HIDE_REELS_FRIENDS_TAB.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         BaseSettings.SAFE_MODE.save(false);
@@ -52,6 +53,7 @@ public class ReelsTopBarSettingsTest {
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();
+        Settings.HIDE_REELS_FRIENDS_TAB.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
@@ -115,5 +117,23 @@ public class ReelsTopBarSettingsTest {
             assertFalse(setting.key, setting.get());
             assertTrue(setting.key, ConfigurationBackup.eligible().containsKey(setting.key));
         }
+    }
+
+    /** The Friends tab switch (#300) comes right after Your algorithm, off, and goes with the patch. */
+    @Test public void theFriendsTabSwitchFollowsYourAlgorithmAndStartsOff() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference algorithm = page.getPreferenceScreen().findPreference(Settings.HIDE_REELS_YOUR_ALGORITHM.key);
+        Preference friends = page.getPreferenceScreen().findPreference(Settings.HIDE_REELS_FRIENDS_TAB.key);
+        assertNotNull(friends);
+        assertEquals("Hide the Friends tab on Reels", friends.getTitle().toString());
+        assertTrue(friends.getSummary().toString(), friends.getSummary().toString().contains("Reels stays where it is."));
+        PreferenceGroup reels = (PreferenceGroup) algorithm.getParent();
+        assertEquals(indexIn(reels, algorithm) + 1, indexIn(reels, friends));
+        assertFalse(Settings.HIDE_REELS_FRIENDS_TAB.get());
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_REELS_FRIENDS_TAB.key));
+        controller.close();
+        controller = null;
+        open(EnumSet.noneOf(PatchFamily.class));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.HIDE_REELS_FRIENDS_TAB.key));
     }
 }

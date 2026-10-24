@@ -22,7 +22,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class ToolsHistoryActivity extends HostScreenActivity {
 
@@ -43,7 +43,10 @@ public final class ToolsHistoryActivity extends HostScreenActivity {
 
     @Override
     void buildContent() {
-        addToolbarIcon(MaterialIcons.DELETE, "Clear History", (view) -> confirmClear());
+        addClearHistoryIcon(true, () -> {
+            ToolsHistory.clearUnstarred(this);
+            populate();
+        });
         populate();
     }
 
@@ -104,17 +107,6 @@ public final class ToolsHistoryActivity extends HostScreenActivity {
                 ToolsHistory.delete(this, entry);
                 populate();
             })
-            .show();
-    }
-
-    private void confirmClear() {
-        new AlertDialog.Builder(this).setTitle("Warning")
-            .setMessage("Do you want to delete all history items? (Starred items will be preserved.)")
-            .setPositiveButton("OK", (dialog, which) -> {
-                ToolsHistory.clearUnstarred(this);
-                populate();
-            })
-            .setNegativeButton("Cancel", null)
             .show();
     }
 

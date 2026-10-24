@@ -1,6 +1,7 @@
 package io.github.forsigh.waze
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 
@@ -11,7 +12,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val removeAdsPatch = bytecodePatch(
     name = "Remove ads",
-    description = "Removes ads from Waze.",
+    description = "Removes ads.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
@@ -20,6 +21,12 @@ val removeAdsPatch = bytecodePatch(
     // patch can be ticked alone and still produce a build where the override exists — without the
     // dependency the key is collected and never written, which looks exactly like a working patch.
     dependsOn(configOverridesPatch)
+
+    val beacons by booleanOption(
+        "beacons", true,
+        title = "Block beacon popups",
+        description = "Waze's promotional beacon popups. Stock: shown.",
+    )
 
     execute {
         // All Boolean (com/waze/config/b) keys, so must hook the Boolean getter.
@@ -34,6 +41,7 @@ val removeAdsPatch = bytecodePatch(
                 "CONFIG_VALUE_GOOGLE_ADS_IN_CAR_ENABLED",
                 "CONFIG_VALUE_GOOGLE_ADS_DISCOVERY_PINS_ENABLED",
             )
+        if (beacons == true) recordBoolean("ads", true, "CONFIG_VALUE_BEACONS_POPUP_OPTOUT")
         // Long keys: pin limits to zero, the "takeover" ad timer to about once a lifetime,
         // partner pins ("external POIs") off.
         recordLong(

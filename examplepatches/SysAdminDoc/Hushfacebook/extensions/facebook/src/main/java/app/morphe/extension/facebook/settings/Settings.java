@@ -349,6 +349,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting UPLOAD_STORIES_IN_HD =
             new BooleanSetting("hushfacebook_upload_stories_in_hd", FALSE);
 
+    /**
+     * A song added to a photo for your Story gets a clip of at least 30 seconds instead of
+     * Facebook's 15 ({@link app.morphe.extension.facebook.stories.StoryMusic}, #156). Starts off.
+     * Read each time a song is picked.
+     */
+    public static final BooleanSetting LONGER_STORY_MUSIC =
+            new BooleanSetting("hushfacebook_longer_story_music", FALSE);
+
     /** The two page filters that take server-inlined ads out of Reels and Watch. */
     public static final BooleanSetting HIDE_SPONSORED_REELS =
             new BooleanSetting("hushfacebook_hide_sponsored_reels", TRUE);
@@ -360,6 +368,14 @@ public class Settings extends BaseSettings {
     /** The posts on a profile or Page timeline that carry Facebook's sponsored data. */
     public static final BooleanSetting HIDE_SPONSORED_PROFILE_POSTS =
             new BooleanSetting("hushfacebook_hide_sponsored_profile_posts", TRUE);
+
+    /**
+     * The note bubble on a profile picture, left out of the profile's Bloks layout ({@link
+     * app.morphe.extension.facebook.profile.ProfileNotes}). Starts off. Read each time Facebook
+     * lays the profile out, so a change shows the next time a profile opens.
+     */
+    public static final BooleanSetting HIDE_PROFILE_NOTES =
+            new BooleanSetting("hushfacebook_hide_profile_notes", FALSE);
 
     /**
      * The ads and boosted listings of Marketplace's feed: its query asks the server to skip them,
@@ -503,6 +519,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_reel_audio_line", FALSE);
 
     /**
+     * The "This is taking a while. Try checking your network connection." message a video shows
+     * when it's slow to load isn't shown
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#hideSlowConnectionMessage}, #222).
+     * The video keeps loading as before. Off by default. A change shows the next time a video stalls.
+     */
+    public static final BooleanSetting HIDE_SLOW_CONNECTION_MESSAGE =
+            new BooleanSetting("hushfacebook_hide_slow_connection_message", FALSE);
+
+    /**
      * A video tapped in the feed opens in the full-screen player on its own, with no reels to swipe
      * to after it ({@link app.morphe.extension.facebook.reels.FeedVideoAlone}, #161). The player's
      * reels feed is told nothing more came. The Reels tab keeps scrolling. Off until it's turned on,
@@ -518,6 +543,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DONT_SEND_REEL_WATCH_HISTORY =
             new BooleanSetting("hushfacebook_dont_send_reel_watch_history", FALSE);
+
+    /**
+     * The Reels tab's next reel, picked from what Facebook has loaded ({@link
+     * app.morphe.extension.facebook.reels.NewestReels}): the newest posted first instead of
+     * Facebook's ranking. Starts off. Reels already placed stay where they are.
+     */
+    public static final BooleanSetting NEWEST_REELS_FIRST =
+            new BooleanSetting("hushfacebook_newest_reels_first", FALSE);
 
     /**
      * Facebook's own analytics uploads ({@link app.morphe.extension.facebook.misc.AnalyticsUploads}):
@@ -750,6 +783,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_load_whole_reply_threads", FALSE);
 
     /**
+     * A tap anywhere on a View more replies row opens the replies, not only a tap on its words
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #219). Off by default.
+     * A change shows on the next rows drawn.
+     */
+    public static final BooleanSetting TAP_ANYWHERE_ON_VIEW_MORE_REPLIES =
+            new BooleanSetting("hushfacebook_tap_anywhere_on_view_more_replies", FALSE);
+
+    /**
      * A group post's comments end without the Related groups list and its Join buttons
      * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #101). Off by default. A
      * change shows on the next comments opened.
@@ -852,6 +893,32 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FRAME_STEP =
             new BooleanSetting("hushfacebook_frame_step", FALSE);
+
+    /**
+     * Two fingers on a profile's photo or a story zoom it in place, and it springs back when they
+     * lift ({@link app.morphe.extension.facebook.media.PinchZoom}, #220). Starts off. Asked as each
+     * second finger lands, so a change shows from the next pinch. Off or paused, every touch goes to
+     * Facebook as before.
+     */
+    public static final BooleanSetting PINCH_TO_ZOOM =
+            new BooleanSetting("hushfacebook_pinch_to_zoom", FALSE);
+
+    /**
+     * Pinch to zoom's second switch (#220): a zoom stays where the fingers left it when they lift,
+     * until a tap, a pinch back to 1x, Back or the window losing focus lets it go. Starts off. Asked
+     * as each zoom starts.
+     */
+    public static final BooleanSetting PINCH_TO_ZOOM_KEEP =
+            new BooleanSetting("hushfacebook_pinch_to_zoom_keep", FALSE, Setting.parent(PINCH_TO_ZOOM));
+
+    /**
+     * Pinch to zoom's third switch (#220): two quick taps on a profile photo zoom it to twice its size
+     * about the tap, and two more put it back. The first tap waits the double tap time, so a lone tap
+     * still opens the photo, just that much later. Never in the story viewer. Starts off. Asked on
+     * each tap, so a change shows from the next one.
+     */
+    public static final BooleanSetting PINCH_TO_ZOOM_DOUBLE_TAP =
+            new BooleanSetting("hushfacebook_pinch_to_zoom_double_tap", FALSE, Setting.parent(PINCH_TO_ZOOM));
 
     /**
      * Videos, reels and video stories start at the quality in {@link #PLAYBACK_QUALITY}, through
@@ -1681,6 +1748,25 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting AMOLED_FEED_GAPS =
             new BooleanSetting("hushfacebook_amoled_feed_gaps", FALSE, false);
+
+    /**
+     * With the AMOLED black theme, the dark colour its backgrounds take, as {@code #RRGGBB}, in place
+     * of the one the patch's Background colour option wrote ({@link
+     * app.morphe.extension.facebook.theme.AmoledTheme#load}, issue #214). Blank keeps the patch's,
+     * and so does a paused Facebook. Read once as Facebook starts, so a change brings up the restart
+     * row. Not a switch.
+     */
+    public static final StringSetting AMOLED_BACKGROUND =
+            new StringSetting("hushfacebook_amoled_background", "", true);
+
+    /**
+     * With the AMOLED black theme, the light colour Facebook's light mode backgrounds take in place of
+     * its white, as {@code #RRGGBB} ({@link app.morphe.extension.facebook.theme.AmoledTheme#load},
+     * issue #214). Blank keeps Facebook's own, and so does a paused Facebook. Read once as Facebook
+     * starts, so a change brings up the restart row. Not a switch.
+     */
+    public static final StringSetting AMOLED_LIGHT_BACKGROUND =
+            new StringSetting("hushfacebook_amoled_light_background", "", true);
 
     /**
      * The strip some posts carry ("Are you interested in this post?", "Show less", who recently

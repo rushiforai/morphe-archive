@@ -34,6 +34,8 @@ body:
         - "1Weather 12.9.3"
         - "1Weather 13.1.0"
         - "1Weather (another version, type it below)"
+        - "3way 3.1.0"
+        - "3way (another version, type it below)"
         - "aCalendar 2.9.5"
         - "aCalendar 2.9.6"
         - "aCalendar (another version, type it below)"
@@ -78,13 +80,14 @@ body:
         - "botim (another version, type it below)"
         - "CalcNote 2.25.111"
         - "CalcNote (another version, type it below)"
+        - "Cast Plug-in for Musicolet 1.9"
+        - "Cast Plug-in for Musicolet (another version, type it below)"
         - "Castle 2.1.1"
         - "Castle 2.1.3"
         - "Castle (another version, type it below)"
         - "Castle for TV 1.1.5"
         - "Castle for TV (another version, type it below)"
         - "Catzy 1.61.0"
-        - "Catzy 1.62.0"
         - "Catzy (another version, type it below)"
         - "Cubasis LE 3 3.8.6"
         - "Cubasis LE 3 (another version, type it below)"
@@ -134,6 +137,8 @@ body:
         - "imo 2026.08.1041"
         - "imo 2026.09.1051"
         - "imo (another version, type it below)"
+        - "Internet Speed Meter Lite 1.7.0-lite"
+        - "Internet Speed Meter Lite (another version, type it below)"
         - "Joyn 6.9.0-AOS-609012264"
         - "Joyn (another version, type it below)"
         - "Joyn Austria 6.9.0-AOS-JOYN_AT-2212264"
@@ -234,7 +239,7 @@ body:
         - "Proton Authenticator 1.3.10"
         - "Proton Authenticator (another version, type it below)"
         - "Proton Lumo 2.1.4-gms"
-        - "Proton Lumo 2.1.4-nogms"
+        - "Proton Lumo 2.1.5-nogms"
         - "Proton Lumo (another version, type it below)"
         - "Proton Mail 7.10.4"
         - "Proton Mail 7.11.10"
@@ -338,6 +343,8 @@ body:
         - "Trainline (another version, type it below)"
         - "U Dictionary 6.7.5"
         - "U Dictionary (another version, type it below)"
+        - "Viber 29.1.1.0"
+        - "Viber (another version, type it below)"
         - "Video Editor 1.621.196"
         - "Video Editor (another version, type it below)"
         - "VLLO 13.9.0"
@@ -361,6 +368,8 @@ body:
         - "Yanosik (another version, type it below)"
         - "Yi iot 5.1.7_20260914"
         - "Yi iot (another version, type it below)"
+        - "Yuka 5.7"
+        - "Yuka (another version, type it below)"
         # /generated
     validations:
       required: true
@@ -377,7 +386,6 @@ body:
       options:
         - Morphe Manager
         - morphe-cli
-        - A Morphe-AutoBuilds APK
         - A pre-patched APK from somewhere else
     validations:
       required: true

@@ -6,10 +6,11 @@ package app.morphe.patches.faststlviewer.misc.premium
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
@@ -37,12 +38,11 @@ private fun BytecodePatchContext.forceBooleanFieldReadsTrue(fieldAccessFingerpri
     val field = anchor.instructionMatches.first().instruction.getReference<FieldReference>()!!
     booleanFieldReadFingerprint(field).matchAll(anchor.originalClassDef).forEach { reader ->
         val method = reader.method
-        method.instructions.withIndex()
-            .filter { (_, read) -> read.opcode == Opcode.IGET_BOOLEAN && read.getReference<FieldReference>() == field }
-            .reversed()
-            .forEach { (index, read) ->
-                val valueRegister = (read as TwoRegisterInstruction).registerA
-                method.addInstruction(index + 1, "const/4 v$valueRegister, 0x1")
-            }
+        method.findInstructionIndicesReversed {
+            opcode == Opcode.IGET_BOOLEAN && getReference<FieldReference>() == field
+        }.forEach { index ->
+            val valueRegister = method.getInstruction<TwoRegisterInstruction>(index).registerA
+            method.addInstruction(index + 1, "const/4 v$valueRegister, 0x1")
+        }
     }
 }

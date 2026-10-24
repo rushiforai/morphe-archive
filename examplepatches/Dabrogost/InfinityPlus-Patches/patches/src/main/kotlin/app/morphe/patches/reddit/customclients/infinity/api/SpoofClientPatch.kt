@@ -8,6 +8,8 @@
 package app.morphe.patches.reddit.customclients.infinity.api
 
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.reddit.customclients.infinity.InfinityCompatible
@@ -15,6 +17,8 @@ import app.morphe.patches.reddit.customclients.infinity.misc.extension.sharedExt
 import app.morphe.patches.reddit.customclients.spoofClientPatch
 import app.morphe.util.replaceStringMatchesWithFunc
 import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
 
 internal const val EXTENSION_CLASS_NAME = "Lapp/morphe/extension/infinity/APIUtils;"
@@ -33,9 +37,49 @@ private val disableBillingPatch = bytecodePatch(
     default = false
 ) {
     execute {
-        billingClientOnServiceConnectedFingerprint.methodOrNull?.returnEarly()
-        infinityStartSubscriptionActivityFingerprint.methodOrNull?.returnEarly()
-        infinityStartSubscriptionActivityNewFingerprint.methodOrNull?.returnEarly()
+        if (!packageMetadata.versionName.matches(Regex("8\\.3\\.\\d+"))) {
+            throw PatchException("The Spoof client patch supports Infinity+ 8.3.x only.")
+        }
+
+        // Resolve every critical method before modifying any of them. Missing or ambiguous
+        // matches must fail even when the patcher is not running with --validate.
+        val billingCallback = billingClientOnServiceConnectedFingerprint.matchAllOrNull()
+            ?.singleOrNull()?.method
+            ?: throw PatchException("Expected exactly one Infinity+ billing connection callback.")
+
+        val subscriptionLaunchers = listOf(
+            infinityStartSubscriptionActivityHelperFingerprint,
+            infinityStartSubscriptionActivityNewFingerprint
+        ).flatMap { it.matchAllOrNull().orEmpty() }
+            .distinctBy { it.originalMethod.toString() }
+        val subscriptionLauncher = subscriptionLaunchers.singleOrNull()
+            ?: throw PatchException(
+                "Expected exactly one supported Infinity+ subscription lockout method."
+            )
+
+        val stateSetterReference = (subscriptionLauncher.instructionMatches[1].instruction
+            as ReferenceInstruction).reference as MethodReference
+        val stateSetter = subscriptionStateSetterFingerprint(stateSetterReference)
+            .matchAllOrNull()?.singleOrNull()?.method
+            ?: throw PatchException("Unable to validate the Infinity+ subscription-state setter.")
+
+        // Purchase-query callbacks can still request state 4 even with billing setup disabled.
+        // Normalize both restrictive states to the app's startup state before the original
+        // setter updates its observers AND byte field. Preserve all other state transitions.
+        stateSetter.addInstructions(0, """
+            const/4 v0, 0x4
+            if-eq p1, v0, :subscription_unrestricted
+            const/16 v0, 0x8
+            if-ne p1, v0, :subscription_state_original
+            :subscription_unrestricted
+            const/4 p1, 0x5
+            :subscription_state_original
+            nop
+        """)
+
+        billingCallback.returnEarly()
+        // Also suppress the forced navigation and activity-finishing event, not just state 8.
+        subscriptionLauncher.method.returnEarly()
     }
 }
 

@@ -78,7 +78,7 @@ public class TabOrderSettingsTest {
         // Listed here, not in a static field, so the settings load once the rule has given them a context.
         BooleanSetting[] switches = {Settings.HIDE_HOME_TAB, Settings.HIDE_SEARCH_TAB, Settings.HIDE_REELS_TAB,
                 Settings.SHOW_REELS_TAB, Settings.HIDE_CREATE_TAB, Settings.HIDE_PROFILE_TAB, Settings.SHOW_MESSAGES_TAB,
-                Settings.SHOW_ACTIVITY_TAB};
+                Settings.SHOW_ACTIVITY_TAB, Settings.HIDE_MESSAGES_TAB};
         for (BooleanSetting setting : switches) setting.resetToDefault();
         // The list shows the bar as Instagram last built it, which other tests in this JVM may have built.
         TabOrder.forgetForTests();
@@ -174,14 +174,42 @@ public class TabOrderSettingsTest {
         return (log.length() - log.replace(needle, "").length()) / needle.length();
     }
 
-    /** Every tab is listed, the bar's first, with a box for whether it's on it. Messages on Instagram's own bar can't come off. */
+    /** Every tab is listed, the bar's first, with a box for whether it's on it. */
     @Test public void everyTabIsListedWithItsBox() throws Exception {
         open(PatchFamily.REELS_TAB);
         AlertDialog dialog = openList();
         assertEquals("Show and reorder tabs", String.valueOf(shadowOf(dialog).getTitle()));
-        assertEquals(Arrays.asList("[x] Home", "[x] Search", "[x] Reels", "[x] Messages (fixed)", "[x] Create",
+        assertEquals(Arrays.asList("[x] Home", "[x] Search", "[x] Reels", "[x] Messages", "[x] Create",
                 "[x] Profile", "[ ] Activity"), shown(list(dialog)));
         assertEquals("Drag to move Home", String.valueOf(TabPicker.handle(list(dialog).getChildAt(0)).getContentDescription()));
+    }
+
+    /** #298: Messages on Instagram's own bar comes off with Hide the Messages tab, and its box puts it back. */
+    @Test public void messagesOnInstagramsBarComesOffWithItsHideSwitch() throws Exception {
+        open(PatchFamily.REELS_TAB);
+        AlertDialog dialog = openList();
+        box(list(dialog), TabPicker.MESSAGES).setChecked(false);
+        press(dialog, DialogInterface.BUTTON_POSITIVE);
+        assertTrue(Settings.HIDE_MESSAGES_TAB.get());
+        assertFalse("Instagram's bar has it, so nothing was added to take away", Settings.SHOW_MESSAGES_TAB.get());
+
+        dialog = openList();
+        assertTrue(shown(list(dialog)).toString(), shown(list(dialog)).contains("[ ] Messages"));
+        box(list(dialog), TabPicker.MESSAGES).setChecked(true);
+        press(dialog, DialogInterface.BUTTON_POSITIVE);
+        assertFalse(Settings.HIDE_MESSAGES_TAB.get());
+        assertFalse(Settings.SHOW_MESSAGES_TAB.get());
+    }
+
+    /** A Messages tab HushGram added comes off by turning Show the Messages tab back off, not by hiding it. */
+    @Test public void messagesHushgramAddedComesOffWithItsShowSwitch() throws Exception {
+        Settings.SHOW_MESSAGES_TAB.save(true);
+        open(PatchFamily.REELS_TAB);
+        AlertDialog dialog = openList();
+        box(list(dialog), TabPicker.MESSAGES).setChecked(false);
+        press(dialog, DialogInterface.BUTTON_POSITIVE);
+        assertFalse(Settings.SHOW_MESSAGES_TAB.get());
+        assertFalse(Settings.HIDE_MESSAGES_TAB.get());
     }
 
     /** #207: a drag moves a tab, the boxes turn tabs on and off, and OK saves both at once. */
@@ -194,7 +222,7 @@ public class TabOrderSettingsTest {
         drag(list, TabPicker.HOME, 40);
         box(list, TabPicker.SEARCH).setChecked(false);
         box(list, TabPicker.ACTIVITY).setChecked(true);
-        assertEquals(Arrays.asList("[x] Messages (fixed)", "[x] Home", "[ ] Search", "[x] Reels", "[x] Create",
+        assertEquals(Arrays.asList("[x] Messages", "[x] Home", "[ ] Search", "[x] Reels", "[x] Create",
                 "[x] Profile", "[x] Activity"), shown(list));
         assertEquals("nothing is saved before OK", "", Settings.TAB_ORDER.get());
 
@@ -209,7 +237,7 @@ public class TabOrderSettingsTest {
                 String.valueOf(row().getSummary()).replaceAll("[⁦-⁩]", ""));
 
         dialog = openList();
-        assertEquals("the list opens as it was saved", Arrays.asList("[x] Messages (fixed)", "[x] Home", "[ ] Search",
+        assertEquals("the list opens as it was saved", Arrays.asList("[x] Messages", "[x] Home", "[ ] Search",
                 "[x] Reels", "[x] Create", "[x] Profile", "[x] Activity"), shown(list(dialog)));
     }
 
@@ -231,11 +259,11 @@ public class TabOrderSettingsTest {
         Settings.SHOW_ACTIVITY_TAB.save(true);
         open(PatchFamily.REELS_TAB);
         AlertDialog dialog = openList();
-        assertEquals(Arrays.asList("[x] Profile", "[x] Messages (fixed)", "[x] Home", "[x] Search", "[x] Reels",
+        assertEquals(Arrays.asList("[x] Profile", "[x] Messages", "[x] Home", "[x] Search", "[x] Reels",
                 "[x] Activity", "[ ] Create"), shown(list(dialog)));
         press(dialog, DialogInterface.BUTTON_NEUTRAL);
         assertTrue("the list stays open", dialog.isShowing());
-        assertEquals(Arrays.asList("[x] Home", "[x] Search", "[x] Reels", "[x] Messages (fixed)", "[ ] Activity",
+        assertEquals(Arrays.asList("[x] Home", "[x] Search", "[x] Reels", "[x] Messages", "[ ] Activity",
                 "[x] Create", "[x] Profile"), shown(list(dialog)));
 
         press(dialog, DialogInterface.BUTTON_POSITIVE);
@@ -255,11 +283,11 @@ public class TabOrderSettingsTest {
         TabOrder.builtForTests(Arrays.asList("FEED", "CLIPS", "DIRECT", "PROFILE"));
         open(PatchFamily.REELS_TAB);
         AlertDialog dialog = openList();
-        assertEquals(Arrays.asList("[x] Home", "[x] Reels", "[x] Messages (fixed)", "[x] Profile", "[ ] Search",
+        assertEquals(Arrays.asList("[x] Home", "[x] Reels", "[x] Messages", "[x] Profile", "[ ] Search",
                 "[ ] Activity", "[ ] Create (fixed)"), shown(list(dialog)));
         box(list(dialog), TabPicker.SEARCH).setChecked(true);
         press(dialog, DialogInterface.BUTTON_NEUTRAL);
-        assertEquals(Arrays.asList("[x] Home", "[x] Reels", "[x] Messages (fixed)", "[x] Profile", "[x] Search",
+        assertEquals(Arrays.asList("[x] Home", "[x] Reels", "[x] Messages", "[x] Profile", "[x] Search",
                 "[ ] Activity", "[ ] Create (fixed)"), shown(list(dialog)));
         press(dialog, DialogInterface.BUTTON_POSITIVE);
         assertFalse(Settings.HIDE_SEARCH_TAB.get());
@@ -295,7 +323,7 @@ public class TabOrderSettingsTest {
         open(PatchFamily.REELS_TAB);
         assertTrue(String.valueOf(row().getSummary()).replaceAll("[⁦-⁩]", "").startsWith("Tabs go in this order: Profile, Messages"));
         AlertDialog dialog = openList();
-        assertEquals(Arrays.asList("[x] Profile", "[x] Messages (fixed)", "[x] Home", "[x] Search", "[x] Reels",
+        assertEquals(Arrays.asList("[x] Profile", "[x] Messages", "[x] Home", "[x] Search", "[x] Reels",
                 "[x] Activity", "[ ] Create"), shown(list(dialog)));
 
         box(list(dialog), TabPicker.SEARCH).setChecked(false);

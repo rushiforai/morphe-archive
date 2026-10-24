@@ -2,7 +2,6 @@ package app.yydarlinker.deepseekcaptions;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.SystemClock;
 import android.util.Base64;
 
 import org.json.JSONArray;
@@ -35,14 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * source track (read from the source cache, where the AI runtime has put it; nothing is fetched
  * here) and an invisible character as the text of every cue. The native renderer is then
  * structurally satisfied at every cue boundary, and no source text stays painted under the overlay.
- * When the source is not in the cache within a short wait, one long invisible cue of the requested
- * format is the fallback.
+ * When the source is not in the cache yet, one long invisible cue of the requested format answers
+ * at once; the next request uses the mirror as soon as the runtime has written it.
  */
 final class LoopbackCaptionServer {
     private static final AtomicInteger THREAD_IDS = new AtomicInteger();
     private static final String INVISIBLE_CUE = "\u2060";
-    private static final long SOURCE_WAIT_MS = 1_600L;
-    private static final long SOURCE_POLL_MS = 35L;
     private static final int MAX_LINE = 32 * 1024;
     private static final long MAX_BODY = 4L * 1024L * 1024L;
     private static final int MAX_ENCODED_URL = 24 * 1024;
@@ -216,13 +213,11 @@ final class LoopbackCaptionServer {
 
     /** The mirror of the real source track, or the fallback of the requested format. */
     private Track trackFor(String translatedUrl) {
-        // An invisible TimedText can still allocate a native background window.
-        CaptionMusicSuppressor.forceNativeRendererScan();
         String sourceKey = "";
-        String failure = "Source track not ready within the short wait window";
+        String failure = "Source track mirror is not ready";
         try {
             sourceKey = SourceCaptionCache.key(CaptionUrls.sourceCaptionUrl(translatedUrl));
-            SourceCaptionCache.Entry source = awaitSource(sourceKey);
+            SourceCaptionCache.Entry source = SourceCaptionCache.get(context, sourceKey);
             Track masked = source == null ? null : mask(source.body, source.contentType);
             if (masked != null) {
                 if (!sourceKey.equals(lastMaskedSourceKey)) {
@@ -245,23 +240,7 @@ final class LoopbackCaptionServer {
                     "NATIVE_RENDERER_MASK_FALLBACK",
                     failure + "; falling back to invisible ownership track");
         }
-        CaptionMusicSuppressor.forceNativeRendererScan();
         return fallbackTrack(translatedUrl);
-    }
-
-    private SourceCaptionCache.Entry awaitSource(String key) {
-        SourceCaptionCache.Entry source = SourceCaptionCache.get(context, key);
-        long deadline = SystemClock.elapsedRealtime() + SOURCE_WAIT_MS;
-        while (source == null && SystemClock.elapsedRealtime() < deadline) {
-            try {
-                Thread.sleep(SOURCE_POLL_MS);
-            } catch (InterruptedException interrupted) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-            source = SourceCaptionCache.get(context, key);
-        }
-        return source;
     }
 
     /** The source track with the same cues and timing, every text replaced by the invisible one. */

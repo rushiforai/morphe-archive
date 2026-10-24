@@ -24,18 +24,52 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
+import java.util.ArrayDeque;
 
 /** Uses the bundled emoji font only for emoji clusters missing from the device font. */
 final class EmojiFontFallback {
     private static final String FONT_ASSET = "haiagaru/NotoColorEmoji.ttf";
     private static volatile Typeface emojiTypeface;
     private static volatile boolean fontLoadFailed;
+    private static final java.util.concurrent.atomic.AtomicBoolean fontLoadStarted=new java.util.concurrent.atomic.AtomicBoolean();
     private static volatile Context applicationContext;
     /** missing = only clusters absent from the device, all = every emoji cluster. */
     private static volatile String renderMode = "missing";
     private static boolean lifecycleRegistered;
     private static final WeakHashMap<View, ViewTreeObserver.OnGlobalLayoutListener>
             threadObservers = new WeakHashMap<>();
+    private static final WeakHashMap<View, LayoutRefresh> pendingRefreshes = new WeakHashMap<>();
+
+    /** Popups/layout passes must not synchronously walk every visible response on the input frame. */
+    private static final class LayoutRefresh implements Runnable {
+        final WeakReference<View> root;
+        final ArrayDeque<WeakReference<View>> remaining = new ArrayDeque<>();
+        LayoutRefresh(View view) { root=new WeakReference<>(view); remaining.add(root); }
+        @Override public void run() {
+            View owner=root.get();
+            if(owner==null)return;
+            if(!owner.isAttachedToWindow()||pendingRefreshes.get(owner)!=this){
+                remaining.clear();if(pendingRefreshes.get(owner)==this)pendingRefreshes.remove(owner);return;
+            }
+            long start=android.os.SystemClock.uptimeMillis();int visited=0;
+            while(!remaining.isEmpty()&&visited<32&&android.os.SystemClock.uptimeMillis()-start<4){
+                View next=remaining.removeFirst().get();visited++;
+                if(next==null||!next.isAttachedToWindow())continue;
+                if(next instanceof TextView)applyToRow(next);
+                else if(next instanceof ViewGroup){
+                    ViewGroup group=(ViewGroup)next;
+                    for(int i=0;i<group.getChildCount();i++)remaining.addLast(new WeakReference<>(group.getChildAt(i)));
+                }
+            }
+            if(remaining.isEmpty())pendingRefreshes.remove(owner);
+            else owner.postOnAnimation(this);
+        }
+    }
+    private static void scheduleRefresh(View root) {
+        if(!root.isAttachedToWindow()||pendingRefreshes.containsKey(root))return;
+        LayoutRefresh refresh=new LayoutRefresh(root);pendingRefreshes.put(root,refresh);
+        root.postOnAnimation(refresh);
+    }
 
     private EmojiFontFallback() {
     }
@@ -67,11 +101,11 @@ final class EmojiFontFallback {
                 WeakReference<View> reference = new WeakReference<>(root);
                 ViewTreeObserver.OnGlobalLayoutListener observer = () -> {
                     View current = reference.get();
-                    if (current != null) applyToRow(current);
+                    if (current != null) scheduleRefresh(current);
                 };
                 root.getViewTreeObserver().addOnGlobalLayoutListener(observer);
                 threadObservers.put(root, observer);
-                root.post(() -> applyToRow(root));
+                scheduleRefresh(root);
             }
 
             @Override
@@ -89,6 +123,7 @@ final class EmojiFontFallback {
             @Override
             public void onActivityDestroyed(Activity activity) {
                 View root = activity.getWindow().getDecorView();
+                pendingRefreshes.remove(root);
                 ViewTreeObserver.OnGlobalLayoutListener observer = threadObservers.remove(root);
                 if (observer != null && root.getViewTreeObserver().isAlive()) {
                     root.getViewTreeObserver().removeOnGlobalLayoutListener(observer);
@@ -106,7 +141,7 @@ final class EmojiFontFallback {
 
     static void refreshVisibleRows() {
         for (View root : new ArrayList<>(threadObservers.keySet()))
-            if (root != null) root.post(() -> applyToRow(root));
+            if (root != null) scheduleRefresh(root);
     }
 
     static void applyToRow(View view) {
@@ -127,8 +162,9 @@ final class EmojiFontFallback {
     static CharSequence processText(CharSequence source) {
         if (source == null || applicationContext == null || "off".equals(renderMode)) return source;
         source = restoreExternalEmojiPlaceholders(source);
+        if (!containsEmojiCandidate(source)) return source;
         Typeface fallback = getTypeface(applicationContext);
-        if (fallback == null || !containsEmojiCandidate(source)) return source;
+        if (fallback == null) return source;
         return applyToText(source, new Paint(), fallback);
     }
 
@@ -373,16 +409,19 @@ final class EmojiFontFallback {
 
     private static Typeface getTypeface(Context context) {
         if (emojiTypeface != null || fontLoadFailed) return emojiTypeface;
-        synchronized (EmojiFontFallback.class) {
-            if (emojiTypeface != null || fontLoadFailed) return emojiTypeface;
-            try {
-                emojiTypeface = Typeface.createFromAsset(context.getAssets(), FONT_ASSET);
-            } catch (Throwable error) {
-                fontLoadFailed = true;
-                Log.w("Haiagaru", "Unable to load bundled emoji font", error);
-            }
-            return emojiTypeface;
+        if(fontLoadStarted.compareAndSet(false,true)){
+            Context resolved=applicationContext!=null?applicationContext:context.getApplicationContext();
+            final Context fontContext=resolved!=null?resolved:context;
+            // Font mapping/parsing can take seconds on a cold start. Never hold the
+            // UI thread (or a monitor it needs) while reading the bundled asset.
+            Thread loader=new Thread(()->{
+                try{emojiTypeface=Typeface.createFromAsset(fontContext.getAssets(),FONT_ASSET);}
+                catch(Throwable error){fontLoadFailed=true;Log.w("Haiagaru","Unable to load bundled emoji font",error);}
+                if(emojiTypeface!=null)new android.os.Handler(android.os.Looper.getMainLooper()).post(EmojiFontFallback::refreshVisibleRows);
+            },"Haiagaru-emoji-font");
+            loader.setPriority(Thread.MIN_PRIORITY);loader.start();
         }
+        return emojiTypeface;
     }
 
     private static void loadConfiguration(Context context) {

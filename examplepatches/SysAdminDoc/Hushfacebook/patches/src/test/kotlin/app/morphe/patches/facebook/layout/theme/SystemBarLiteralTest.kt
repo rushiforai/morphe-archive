@@ -133,7 +133,7 @@ class SystemBarLiteralTest {
         val app = app()
         assertEquals("literals rewritten", 1, with(app) { blackenColourLiterals() })
         for (bar in bars) assertEquals(bar, facebooks, app.written(bar))
-        assertEquals("the control", "const FF000000", app.written("card"))
+        assertEquals("the control", "read $PAGE_FIELD", app.written("card"))
     }
 
     @Test
@@ -152,7 +152,7 @@ class SystemBarLiteralTest {
             readSurfaceLiterals()
         }
         for (bar in bars) assertEquals(bar, facebooks, app.written(bar))
-        assertEquals("the control", "const FF000000", app.written("card"))
+        assertEquals("the control", "read $PAGE_FIELD", app.written("card"))
     }
 
     /**

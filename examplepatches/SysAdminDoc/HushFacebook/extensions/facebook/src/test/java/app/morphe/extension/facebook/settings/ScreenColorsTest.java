@@ -9,6 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -44,6 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 import app.morphe.extension.facebook.download.DownloadQuality;
+import app.morphe.extension.facebook.theme.AmoledBackground;
+import app.morphe.extension.facebook.theme.AmoledForTests;
+import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.facebook.theme.PalettesForTests;
 import app.morphe.extension.facebook.theme.TonePalette;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -66,11 +70,16 @@ public class ScreenColorsTest {
 
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** The Background colours issue #214 names: a dark navy and the lightest grey the row takes. */
+    private static final int NAVY = 0xFF0D1117;
+    private static final int LIGHTEST_GREY = 0xFF535353;
+
     @After
     public void restore() {
         PatchFamily.inBuildForTests = null;
         ScreenColors.shown = null;
         Settings.FONT_SOURCE.resetToDefault();
+        AmoledForTests.reset();
     }
 
     /** The WCAG contrast ratio of two opaque colours, 1 to 21. */
@@ -152,6 +161,138 @@ public class ScreenColorsTest {
         assertMeets("black page", controls(ScreenColors.DEFAULT), NON_TEXT);
     }
 
+    /**
+     * The black page over another Background colour (issue #214) holds to AA as the black one does:
+     * for the two colours the issue names and for every colour the row admits on a grid across
+     * the whole range, saturated ones included.
+     */
+    @Test
+    public void theBlackPageOverABackgroundColourMeetsAa() {
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.MATERIAL_YOU_THEME));
+        List<Integer> colours = new ArrayList<>(java.util.Arrays.asList(NAVY, LIGHTEST_GREY));
+        for (int red = 0; red <= 0xFF; red += 0x11) {
+            for (int green = 0; green <= 0xFF; green += 0x11) {
+                for (int blue = 0; blue <= 0xFF; blue += 0x11) {
+                    Integer admitted = AmoledBackground.colour(
+                            String.format(java.util.Locale.ROOT, "#%02X%02X%02X", red, green, blue));
+                    if (admitted != null && admitted != Color.BLACK) colours.add(admitted);
+                }
+            }
+        }
+        assertTrue("the grid admitted only " + colours.size() + " colours", colours.size() > 20);
+        for (int colour : colours) {
+            AmoledForTests.useBackground(colour);
+            ScreenColors colors = ScreenColors.black();
+            String name = String.format(java.util.Locale.ROOT, "black page over #%06X", colour & 0xFFFFFF);
+            assertEquals(name, colour, colors.background);
+            assertEquals(name, AmoledTheme.surfaces()[1], colors.card);
+            assertMeets(name, pairs(colors), TEXT);
+            assertMeets(name, controls(colors), NON_TEXT);
+        }
+    }
+
+    /**
+     * Navy is dark enough for the black page's text and switches to read on its cards as they are,
+     * so only the page, the cards, the dialogs and their edge change.
+     */
+    @Test
+    public void navyTakesTheSurfacesAndKeepsTheText() {
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.MATERIAL_YOU_THEME));
+        AmoledForTests.useBackground(NAVY);
+        ScreenColors colors = ScreenColors.black();
+        ScreenColors black = ScreenColors.DEFAULT;
+        assertEquals(NAVY, colors.background);
+        // Navy plus the card step AMOLED gives Facebook's own cards, #121213, and the input fill's, #262627.
+        assertEquals(0xFF1F232A, colors.card);
+        assertEquals(colors.card, colors.dialog);
+        assertEquals(0xFF33373E, colors.outline);
+        assertEquals(black.title, colors.title);
+        assertEquals(black.summary, colors.summary);
+        assertEquals(black.heading, colors.heading);
+        assertEquals(black.accent, colors.accent);
+        assertEquals(black.switchOff, colors.switchOff);
+        assertEquals(black.onAccent, colors.onAccent);
+        assertSame(colors, ScreenColors.black());
+    }
+
+    /** The lightest grey lifts what would read under AA on its cards, and the primary action's text turns black. */
+    @Test
+    public void theLightestGreyLiftsWhatItMust() {
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.MATERIAL_YOU_THEME));
+        AmoledForTests.useBackground(LIGHTEST_GREY);
+        ScreenColors colors = ScreenColors.black();
+        assertEquals(LIGHTEST_GREY, colors.background);
+        assertNotEquals(ScreenColors.DEFAULT.summary, colors.summary);
+        assertNotEquals(ScreenColors.DEFAULT.accent, colors.accent);
+        assertEquals(Color.BLACK, colors.onAccent);
+        assertTrue(TonePalette.luminance(colors.card) > TonePalette.luminance(colors.background));
+        assertTrue(TonePalette.luminance(colors.outline) > TonePalette.luminance(colors.card));
+    }
+
+    /** A black Background colour, a build without the AMOLED theme, or one with Material You keeps the black page. */
+    @Test
+    public void blackOrNoAmoledKeepsTheBlackPage() {
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.MATERIAL_YOU_THEME));
+        assertSame(ScreenColors.DEFAULT, ScreenColors.black());
+        assertSame(ScreenColors.DEFAULT, ScreenColors.current());
+        AmoledForTests.useBackground(NAVY);
+        PatchFamily.inBuildForTests = EnumSet.complementOf(
+                EnumSet.of(PatchFamily.MATERIAL_YOU_THEME, PatchFamily.AMOLED_THEME));
+        assertSame(ScreenColors.DEFAULT, ScreenColors.black());
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        assertSame(ScreenColors.DEFAULT, ScreenColors.black());
+    }
+
+    /** The settings screen over navy: its page, its bars, the card under each row and a dialog. */
+    @Test
+    public void theScreenTakesTheBackgroundColour() {
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.MATERIAL_YOU_THEME));
+        AmoledForTests.useBackground(NAVY);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = show(controller.get());
+            assertNull(ScreenColors.shown);
+            ScreenColors colors = ScreenColors.black();
+            assertEquals(NAVY, ((ColorDrawable) dialog.getView().getBackground()).getColor());
+            assertEquals(NAVY, dialog.getDialog().getWindow().getStatusBarColor());
+            assertEquals(NAVY, dialog.getDialog().getWindow().getNavigationBarColor());
+            ListView list = dialog.getView().findViewById(android.R.id.list);
+            assertEquals(NAVY, ((ColorDrawable) list.getBackground()).getColor());
+            int cards = 0;
+            for (View row : rows(dialog)) {
+                Integer surface = surfaceColour(row.getBackground());
+                if (surface == null) continue;
+                assertEquals(colors.card, surface.intValue());
+                cards++;
+            }
+            assertTrue("no row sits on a card", cards > 10);
+            android.app.AlertDialog alert = new android.app.AlertDialog.Builder(controller.get())
+                    .setTitle("Import settings").setPositiveButton("Import", null).create();
+            alert.show();
+            try {
+                ScreenColors.dialog(alert);
+                Integer panel = surfaceColour(alert.getWindow().getDecorView().getBackground());
+                assertNotNull("the dialog has no panel", panel);
+                assertEquals(colors.dialog, panel.intValue());
+            } finally {
+                alert.dismiss();
+            }
+        }
+    }
+
+    /** The fill of a row's card or a dialog's panel, through the ripple and inset around it. */
+    private static Integer surfaceColour(android.graphics.drawable.Drawable drawable) {
+        if (drawable instanceof RippleDrawable && ((RippleDrawable) drawable).getNumberOfLayers() > 0) {
+            return surfaceColour(((RippleDrawable) drawable).getDrawable(0));
+        }
+        if (drawable instanceof android.graphics.drawable.InsetDrawable) {
+            return surfaceColour(((android.graphics.drawable.InsetDrawable) drawable).getDrawable());
+        }
+        if (drawable instanceof GradientDrawable && ((GradientDrawable) drawable).getColor() != null) {
+            return ((GradientDrawable) drawable).getColor().getDefaultColor();
+        }
+        return null;
+    }
+
     /** The framework's own wallpaper palette, as a phone on Android 12 and newer reads it. */
     @Test
     @Config(sdk = 34)
@@ -217,6 +358,13 @@ public class ScreenColorsTest {
             SettingsDialog dialog = show(controller.get());
             assertNull(ScreenColors.shown);
             assertEquals(Color.BLACK, ((ColorDrawable) dialog.getView().getBackground()).getColor());
+            // The black page leaves the window's bars to the framework theme, which a window only
+            // reads once it has its decor.
+            android.view.Window plain = new android.app.Dialog(controller.get(), dialog.getTheme()).getWindow();
+            plain.getDecorView();
+            android.view.Window window = dialog.getDialog().getWindow();
+            assertEquals(plain.getStatusBarColor(), window.getStatusBarColor());
+            assertEquals(plain.getNavigationBarColor(), window.getNavigationBarColor());
         }
     }
 

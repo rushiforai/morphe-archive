@@ -3,48 +3,45 @@ package app.morphe.patches.score365.premium
 import app.morphe.patches.score365.utils.COMPATIBILITY_365SCORE
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-private object IsPremiumFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/billingClient/entitlement/EntitlementState;",
-    name = "isPremium",
-    returnType = "Z",
+private const val ENTITLEMENT_STATE = "Lcom/scores365/billingClient/entitlement/EntitlementState;"
+private const val REWARD_START_KEY = "iabc_fnrts"
+
+private val FEATURE_GETTERS = setOf(
+    "isPremium",
+    "getAdsFree",
+    "getTipster",
+    "getPlus",
+    "getDelayedNotifications",
+    "getNotificationSounds",
 )
 
-private object GetAdsFreeFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/billingClient/entitlement/EntitlementState;",
-    name = "getAdsFree",
-    returnType = "Z",
+private object EntitlementStateConstructorFingerprint : Fingerprint(
+    definingClass = ENTITLEMENT_STATE,
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("Z", "Z", "Z", "Z", "Z", "Ljava/util/Set;", "Ljava/util/List;", "J", "Z"),
 )
 
-private object GetTipsterFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/billingClient/entitlement/EntitlementState;",
-    name = "getTipster",
-    returnType = "Z",
-)
-
-private object GetPlusFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/billingClient/entitlement/EntitlementState;",
-    name = "getPlus",
-    returnType = "Z",
-)
-
-private object GetNotificationSoundsFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/billingClient/entitlement/EntitlementState;",
-    name = "getNotificationSounds",
-    returnType = "Z",
-)
-
-private object HasFeatureFingerprint : Fingerprint(
-    definingClass = "Lcom/scores365/billingClient/entitlement/EntitlementState;",
-    name = "hasFeature",
-    returnType = "Z",
+private object RemoveAdsBasicActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/scores365/removeAds/RemoveAdsBasicActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+    strings = listOf(REWARD_START_KEY),
 )
 
 /**
  * Unlocks 365Score premium features by patching the core EntitlementState methods
- * (isPremium, getAdsFree, getTipster, getPlus, getNotificationSounds, hasFeature)
- * to always return true.
+ * (isPremium, getAdsFree, getTipster, getPlus, getNotificationSounds, hasFeature),
+ * forcing constructor entitlement flags to true, and disabling grace-period checks.
  */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
@@ -54,25 +51,41 @@ val unlockPremiumPatch = bytecodePatch(
     compatibleWith(*COMPATIBILITY_365SCORE)
 
     execute {
-        val targets = listOf(
-            IsPremiumFingerprint,
-            GetAdsFreeFingerprint,
-            GetTipsterFingerprint,
-            GetPlusFingerprint,
-            GetNotificationSoundsFingerprint,
-            HasFeatureFingerprint,
-        )
+        EntitlementStateConstructorFingerprint.methodOrNull?.let { method ->
+            method.addInstructions(
+                0,
+                """
+                    const/16 p1, 0x1
+                    const/16 p2, 0x1
+                    const/16 p3, 0x1
+                    const/16 p4, 0x1
+                    const/16 p5, 0x1
+                """.trimIndent(),
+            )
+        }
 
-        for (target in targets) {
-            val method = target.methodOrNull ?: continue
-            if (method.implementation != null) {
-                method.addInstructions(
-                    0,
-                    """
-                    const/4 v0, 0x1
-                    return v0
-                    """.trimIndent(),
-                )
+        val entitlementClass = mutableClassDefByOrNull(ENTITLEMENT_STATE)
+        if (entitlementClass != null) {
+            val getters = entitlementClass.methods.filter {
+                it.name in FEATURE_GETTERS && it.returnType == "Z" && it.parameters.isEmpty() &&
+                    it.implementation != null
+            }
+            getters.forEach { it.returnEarly(true) }
+
+            entitlementClass.methods.filter {
+                it.name == "hasFeature" && it.returnType == "Z" && it.implementation != null
+            }.forEach { it.returnEarly(true) }
+        }
+
+        RemoveAdsBasicActivityOnCreateFingerprint.methodOrNull?.let { method ->
+            val instructions = method.implementation!!.instructions.toList()
+            val index = instructions.indexOfFirst {
+                it.opcode == Opcode.CONST_STRING &&
+                    ((it as ReferenceInstruction).reference as StringReference).string == REWARD_START_KEY
+            }
+            if (index >= 0) {
+                val register = (instructions[index] as OneRegisterInstruction).registerA
+                method.replaceInstruction(index, "const-string v$register, \"morphe_disabled_$REWARD_START_KEY\"")
             }
         }
     }

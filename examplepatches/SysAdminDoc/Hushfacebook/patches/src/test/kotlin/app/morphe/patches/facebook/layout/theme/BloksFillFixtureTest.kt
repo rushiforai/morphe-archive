@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -30,11 +31,14 @@ import org.junit.Test
  * a resource gives them. On each declared build the box builder beside BoxDecoration's border
  * reader has to hand its fill to AccentColor.bloksFill before it sets the fill Paint's colour, and
  * the text span builder has to hand its colour to AccentColor.bloksText before it makes the span.
+ * AMOLED hooks the same builder for its Light background color (#214), with AmoledTheme.bloksFill.
  *
  * Read from 582 (2026-10-10): the border reader is `LX/4Nl;->A00(LX/4TW;LX/1Vp;)I`, the builder
  * `LX/4Nl;->A01(LX/4TW;LX/1Vp;I)LX/4Nm;`, whose drawable fills with Paint `A05`, the themed colour
  * reader `LX/4MD;->A00` and the text span builder `LX/4MC;->A02`. None of those names is used here.
  */
+private const val COLOR_DRAWABLE = "Landroid/graphics/drawable/ColorDrawable;-><init>(I)V"
+
 class BloksFillFixtureTest {
     private val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
 
@@ -45,7 +49,10 @@ class BloksFillFixtureTest {
     private fun Method.descriptor() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
     @After
-    fun forgetTheLastMatch() = BoxDecorationBorderFingerprint.clearMatch()
+    fun forgetTheLastMatch() {
+        BoxDecorationBorderFingerprint.clearMatch()
+        NativeTemplateBuilderFingerprint.clearMatch()
+    }
 
     @Test
     fun `each Bloks box's fill goes through the accent before it's painted, on each declared build`() {
@@ -74,20 +81,23 @@ class BloksFillFixtureTest {
                 assertEquals("$name: and only it", 1, box.methods.count { isBoxBuilder(it, border) })
                 val fill = builder.parameterRegisterNumber(2)
 
-                BoxDecorationBorderFingerprint.clearMatch()
-                val context = PatchContexts.of(listOf(box))
-                with(context) { hookBloksFills() }
-                val after = context.mutableClassDefBy(box.type).methods.single { it.descriptor() == builder.descriptor() }.body()
+                // Accent color's route six, and AMOLED's light mode surfaces (#214) on the same builder.
+                for (target in listOf(ACCENT_BLOKS_FILL, AMOLED_BLOKS_FILL)) {
+                    BoxDecorationBorderFingerprint.clearMatch()
+                    val context = PatchContexts.of(listOf(box))
+                    with(context) { hookBloksFills(target) }
+                    val after = context.mutableClassDefBy(box.type).methods.single { it.descriptor() == builder.descriptor() }.body()
 
-                val hook = after[0]
-                assertEquals("$name: the builder starts with bloksFill", ACCENT_BLOKS_FILL,
-                    ((hook as ReferenceInstruction).reference as MethodReference).toString())
-                assertEquals("$name: on the fill's register", fill, (hook as RegisterRangeInstruction).startRegister)
-                assertEquals("$name: one register", 1, hook.registerCount)
-                assertEquals("$name: and the answer", Opcode.MOVE_RESULT, after[1].opcode)
-                assertEquals("$name: goes back into the fill", fill, (after[1] as OneRegisterInstruction).registerA)
-                assertEquals("$name: the rest of the builder is as it was", builder.body().size + 2, after.size)
-                assertTrue("$name: and still paints the fill", after.drop(2).any { it.setsPaintColour(fill) })
+                    val hook = after[0]
+                    assertEquals("$name: the builder starts with $target", target,
+                        ((hook as ReferenceInstruction).reference as MethodReference).toString())
+                    assertEquals("$name: on the fill's register", fill, (hook as RegisterRangeInstruction).startRegister)
+                    assertEquals("$name: one register", 1, hook.registerCount)
+                    assertEquals("$name: and the answer", Opcode.MOVE_RESULT, after[1].opcode)
+                    assertEquals("$name: goes back into the fill", fill, (after[1] as OneRegisterInstruction).registerA)
+                    assertEquals("$name: the rest of the builder is as it was", builder.body().size + 2, after.size)
+                    assertTrue("$name: and still paints the fill", after.drop(2).any { it.setsPaintColour(fill) })
+                }
                 checked += version
             }
         }
@@ -133,6 +143,81 @@ class BloksFillFixtureTest {
                 assertEquals("$name: and comes back there", colour, (after[init + 1] as OneRegisterInstruction).registerA)
                 assertTrue("$name: before the span's constructor", after[init + 2].makesColourSpan())
                 assertEquals("$name: the rest of the builder is as it was", builder.body().size + 2, after.size)
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * The Menu's profile card in light mode (#214) is a native template box. Its server colour never
+     * reaches the box builder: the template builder that traces [NATIVE_TEMPLATE_BOX], and the child
+     * builder it hands its own parameters to, give it to Litho's backgroundColor (584 `LX/3T3;->A1H`),
+     * which wraps it in a ColorDrawable. Each of those colours has to go through AmoledTheme.bloksFill
+     * just before the call, on the call's own register.
+     */
+    @Test
+    fun `each native template box's background goes through the light background before it's set, on each declared build`() {
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in bundles(version)) {
+                val name = bundle.name
+                val owners = FixtureDex.classesHolding(bundle, NATIVE_TEMPLATE_BOX)
+                assertEquals("$name: one class traces a native template box", 1, owners.size)
+                val owner = owners.single()
+                val builder = owner.methods.single { holdsString(it, NATIVE_TEMPLATE_BOX) }
+                val parameters = builder.parameterTypes.map(CharSequence::toString)
+                val childCalls = builder.body()
+                    .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
+                    .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+                    .filter { it.returnType == builder.returnType && it.parameterTypes.map(CharSequence::toString) == parameters }
+                    .distinctBy { it.toString() }
+                assertTrue("$name: the builder hands its parameters to its child builders", childCalls.isNotEmpty())
+                val childClasses = FixtureDex.classes(bundle, childCalls.map { it.definingClass }.toSet()).values.toList()
+                val children = childCalls.map { call -> childClasses.flatMap { it.methods }.single { it.descriptor() == call.toString() } }
+
+                // Litho's component builder and the classes above it, as far as the bundle has them.
+                val chain = mutableListOf<ClassDef>()
+                var type: String? = builder.returnType
+                while (type != null && chain.none { it.type == type }) {
+                    val classDef = FixtureDex.classes(bundle, setOf(type))[type] ?: break
+                    chain += classDef
+                    type = classDef.superclass
+                }
+                val colourSetters = chain.flatMap { it.methods }.filter { method ->
+                    method.returnType == "V" && method.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+                        method.body().any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == COLOR_DRAWABLE }
+                }.map { it.name }.toSet()
+                assertTrue("$name: Litho's component builder wraps a colour in a ColorDrawable", colourSetters.isNotEmpty())
+                fun Instruction.setsBackground() = opcode == Opcode.INVOKE_VIRTUAL &&
+                    ((this as ReferenceInstruction).reference as MethodReference).let { call ->
+                        call.name in colourSetters && call.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+                            chain.any { it.type == call.definingClass }
+                    }
+
+                NativeTemplateBuilderFingerprint.clearMatch()
+                val context = PatchContexts.of((listOf(owner) + childClasses + chain).distinctBy { it.type })
+                with(context) { hookNativeTemplateBackgrounds() }
+
+                var sites = 0
+                for (method in listOf(builder) + children) {
+                    val before = method.body()
+                    val after = context.mutableClassDefBy(method.definingClass).methods.single { it.descriptor() == method.descriptor() }.body()
+                    val calls = before.count { it.setsBackground() }
+                    if (method == builder) assertTrue("$name: the box builder sets a background colour", calls > 0)
+                    assertEquals("$name ${method.descriptor()}: two more instructions per colour", before.size + 2 * calls, after.size)
+                    after.withIndex().filter { (_, instruction) -> instruction.setsBackground() }.forEach { (index, call) ->
+                        val colour = (call as FiveRegisterInstruction).registerD
+                        val hook = after[index - 2]
+                        assertEquals("$name: the colour goes to bloksFill first", AMOLED_BLOKS_FILL,
+                            ((hook as ReferenceInstruction).reference as MethodReference).toString())
+                        assertEquals("$name: on the colour's register", colour, (hook as RegisterRangeInstruction).startRegister)
+                        assertEquals("$name: one register", 1, hook.registerCount)
+                        assertEquals("$name: and comes back there", colour, (after[index - 1] as OneRegisterInstruction).registerA)
+                    }
+                    sites += calls
+                }
+                assertTrue("$name: both builders' backgrounds are hooked", sites >= 2)
                 checked += version
             }
         }

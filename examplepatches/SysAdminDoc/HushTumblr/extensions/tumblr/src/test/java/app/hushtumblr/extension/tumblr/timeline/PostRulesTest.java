@@ -69,6 +69,7 @@ public class PostRulesTest {
         Settings.WORDS_REBLOG_TRAIL.resetToDefault();
         Settings.WORDS_TAGS.resetToDefault();
         Settings.WORDS_SUMMARY.resetToDefault();
+        Settings.HIDE_FILTERED_POSTS.resetToDefault();
         TextSettings.HIDDEN_WORDS.resetToDefault();
         TextSettings.ALLOWED_WORDS.resetToDefault();
         HookStatus.clear();
@@ -85,7 +86,31 @@ public class PostRulesTest {
 
     @Test
     public void withEverySwitchOffEveryPostStays() {
-        List<Object> page = Arrays.asList(TEXT, PHOTO, VIDEO);
+        List<Object> page = Arrays.asList(TEXT, PHOTO, VIDEO,
+                TimelineItems.filteredPost(Collections.singletonList("spoilers"), null));
+        assertSame(page, TimelineFilter.filter(page));
+    }
+
+    /** A post Tumblr covers for a filtered tag or word goes, and one with an empty note stays. */
+    @Test
+    public void hideFilteredPostsTakesOutWhatTumblrWouldCover() {
+        Settings.HIDE_FILTERED_POSTS.save(true);
+        TimelineObject tagged = TimelineItems.filteredPost(Collections.singletonList("spoilers"), Collections.emptyList(),
+                new TextBlock("covered"));
+        TimelineObject worded = TimelineItems.filteredPost(null, Collections.singletonList("finale"), new ImageBlock());
+        TimelineObject empty = TimelineItems.filteredPost(Collections.emptyList(), Collections.singletonList(null));
+        HookStatus.clear();
+        assertEquals(Arrays.asList(TEXT, empty, PHOTO), shown(TEXT, tagged, empty, worded, PHOTO));
+        String report = String.join(" | ", HookStatus.report());
+        assertTrue(report, report.contains(FamilyNames.HIDE_FILTERED_POSTS) && report.contains("post removed 2"));
+    }
+
+    /** Without the bridge's capability the switch does nothing, even when it's on. */
+    @Test
+    public void hideFilteredPostsNeedsItsBridge() {
+        Settings.HIDE_FILTERED_POSTS.save(true);
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.FILTERED_POSTS)));
+        List<Object> page = Arrays.asList(TEXT, TimelineItems.filteredPost(Collections.singletonList("spoilers"), null));
         assertSame(page, TimelineFilter.filter(page));
     }
 

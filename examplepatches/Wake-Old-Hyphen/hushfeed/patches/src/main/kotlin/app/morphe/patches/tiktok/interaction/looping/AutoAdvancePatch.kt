@@ -40,9 +40,12 @@ import app.morphe.util.singleOrPatchException
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/AutoAdvance;"
 private const val COMPONENT = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/AutoScrollComponent;"
+private const val RIGHT_COLUMN = "Lcom/ss/android/ugc/feed/platform/cell/interact/right/InteractRightAreaComponent;"
+private const val RAIL_SWITCH = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/AutoScrollSwitchAssem;"
 private const val LAZY = "LAZY"
 private const val IMMEDIATE = "IMMEDIATE"
 private const val SEARCH_FLAG = "search_auto_scroll"
+private const val FEED_FLAG = "fyp_auto_scroll"
 
 private object LazyRegistrationFingerprint : Fingerprint(
     filters = listOf(
@@ -145,7 +148,53 @@ internal fun MutableMethod.chooseAutoAdvanceLoadStrategy(strategyIndex: Int, str
     )
 }
 
-private object Availability : Fingerprint(returnType = "Z", parameters = emptyList(), strings = listOf("fyp_auto_scroll"))
+// A string matches inside a longer one, and tablet_fyp_auto_scroll's own Z() reader ends with the
+// key, so the gate also has to load it exactly.
+internal object Availability : Fingerprint(
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf(FEED_FLAG),
+    custom = { method, _ -> method.loadsExactly(FEED_FLAG) },
+)
+
+/**
+ * Sends each read of the feed gate in the video's right-hand column through the extension's rail
+ * answer, right after its result lands. The column adds TikTok's Auto scroll switch or button
+ * only when that read says yes. Returns how many reads it hooked.
+ */
+internal fun MutableMethod.answerRailGate(gate: Method): Int {
+    val instructions = implementationOrPatchException("Auto advance").instructions.toList()
+    check(instructions.any {
+        it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == RAIL_SWITCH
+    }) {
+        "Auto advance: the right column no longer adds TikTok's Auto scroll switch."
+    }
+    val reads = instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.INVOKE_STATIC &&
+            instruction.getReference<MethodReference>()?.let {
+                it.definingClass == gate.definingClass && it.name == gate.name &&
+                    it.parameterTypes.isEmpty() && it.returnType == "Z"
+            } == true
+    }
+    check(reads.isNotEmpty()) {
+        "Auto advance: the right column no longer reads the feed gate before its Auto scroll control."
+    }
+    reads.asReversed().forEach { (index, _) ->
+        val result = instructions[index + 1]
+        check(result.opcode == Opcode.MOVE_RESULT) {
+            "Auto advance: the right column's feed gate read at $index keeps no result."
+        }
+        val register = (result as OneRegisterInstruction).registerA
+        addInstructions(
+            index + 2,
+            """
+                invoke-static/range {v$register .. v$register}, $EXTENSION->railAvailable(Z)Z
+                move-result v$register
+            """,
+        )
+    }
+    return reads.size
+}
 
 // The feed gate and the panel entry are two different flags. Both are anchored on the string
 // rather than on the class that reads it, because those names change every build. Parameter and
@@ -158,11 +207,14 @@ private object Completion : Fingerprint(definingClass = COMPONENT, name = "onPla
 private object Stop : Fingerprint(definingClass = COMPONENT, returnType = "V",
     parameters = listOf("Ljava/lang/String;", "Z"), strings = listOf("turn_off_auto_scroll"))
 
-/** Whether [method] loads exactly the search flag's key, not one of the longer keys it begins. */
-private fun loadsSearchFlag(method: Method) = method.implementation?.instructions?.any {
+/** Whether this method loads exactly [key], not only a longer key that holds it. */
+private fun Method.loadsExactly(key: String) = implementation?.instructions?.any {
     (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
-        it.getReference<StringReference>()?.string == SEARCH_FLAG
+        it.getReference<StringReference>()?.string == key
 } == true
+
+/** Whether [method] loads exactly the search flag's key, not one of the longer keys it begins. */
+private fun loadsSearchFlag(method: Method) = method.loadsExactly(SEARCH_FLAG)
 
 // Search results take auto scroll from a flag of their own. It's read in two places: the gate
 // search asks before it gives its feed auto scroll, and the search service's starting state.
@@ -407,6 +459,15 @@ val autoAdvancePatch = bytecodePatch(
                 """,
             )
         }
+
+        // Tablets and unfolded foldables get TikTok's Auto scroll as a switch or button in the
+        // video's right-hand column, above or below the avatar. The column adds it only when the
+        // feed gate says yes, so that one read goes through the hide switch too (#234), and the
+        // gate's other readers keep their answer.
+        mutableClassDefBy(RIGHT_COLUMN).methods.filter {
+            it.name == "onViewCreated" && it.parameterTypes == listOf("Landroid/view/View;")
+        }.singleOrPatchException("Auto advance: right column onViewCreated(View)")
+            .answerRailGate(available)
 
         // Search results' own flag, answered through the child switch. Their feed builds the
         // same component, so the hooks above start it there once the flag lets it exist. The

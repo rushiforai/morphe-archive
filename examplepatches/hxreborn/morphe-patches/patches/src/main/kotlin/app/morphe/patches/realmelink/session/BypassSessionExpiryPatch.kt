@@ -13,8 +13,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patches.shared.misc.generated.descriptor
-import app.morphe.patches.shared.misc.generated.replaceStub
+import app.morphe.patches.shared.misc.smali.descriptor
+import app.morphe.patches.shared.misc.smali.replaceStub
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.matchSingle
@@ -34,8 +34,8 @@ private inline fun <reified T : Reference> Match.referenceOf(filter: Instruction
 @Suppress("unused")
 val bypassSessionExpiryPatch = bytecodePatch(
     name = "Bypass session expiry",
-    description = "Renews the session in the background instead of asking to sign in again. " +
-        "The sign-in prompt appears only when renewal fails.",
+    description = "Keeps the account signed in after the session expires. " +
+        "Asks to sign in again only if renewal fails.",
 ) {
     compatibleWith(AppCompatibilities.REALME_LINK)
 

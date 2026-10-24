@@ -1,0 +1,26 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const context = vm.createContext({});
+vm.runInContext(fs.readFileSync(__dirname + '/Code.js', 'utf8'), context);
+const run = source => vm.runInContext(source, context);
+assert.equal(run(`bonus_('草 www 乙 ワロタ', [{term:'死ね',weight:2}])`), 0);
+assert.equal(run(`bonus_('死ね', [{term:'死ね',weight:2}])`), 2);
+assert.equal(run(`bonus_('死ね 消えろ', [{term:'死ね',weight:2},{term:'消えろ',weight:1}])`), 2);
+run(`
+  const date = new Date().toISOString().slice(0,10);
+  const sample = {reportId:'1234567890123456',service:'edge',site:'bbs.eddibb.cc',board:'liveedge',date:date,type:'id',value:'abc',body:'死ね'};
+  const row = ['', 'alice', 'report', 'key', JSON.stringify(sample)];
+  const rules = [{term:'死ね',weight:2}];
+`);
+assert.equal(run(`aggregate_([row],{alice:{}},rules,Date.now())[0].minLevel`),5);
+assert.equal(run(`aggregate_([row,row],{alice:{}},rules,Date.now())[0].minLevel`),5);
+assert.equal(run(`aggregate_([row],{alice:{disabled:true}},rules,Date.now()).length`),0);
+assert.equal(run(`aggregate_([row],{alice:{reviewOnly:true}},rules,Date.now()).length`),0);
+assert.equal(run(`aggregate_([row],{alice:{}},rules,Date.now()+3*86400000).length`),0);
+assert.equal(run(`'body' in aggregate_([row],{alice:{}},rules,Date.now())[0]`),false);
+assert.throws(() => run(`validate_({...sample,service:'5ch'})`));
+assert.throws(() => run(`validate_({...sample,date:'2026-02-30'})`));
+assert.throws(() => run(`validate_({...sample,type:'suffix',value:'abc'})`));
+assert.equal(run(`validate_(sample).value`),'abc');
+console.log('PASS: 13 policy checks (not a deployed GAS integration test)');

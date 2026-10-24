@@ -15,6 +15,7 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.util.readsAfter
+import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -189,6 +190,113 @@ internal fun BytecodePatchContext.routeOwnAuthorities(packageName: String, autho
 }
 
 /*
+ * Other authorities aren't spelled out anywhere: Facebook puts them together from BuildConstants'
+ * name for the Facebook app, "com.facebook.katana", and a suffix, BuildConstants.A04() +
+ * ".provider.CacheProvider" in 584 (or a pattern, "content://%s.provider.AttributionIdProvider").
+ * In a clone that named the stock app's provider, whose permission the clone doesn't hold, and
+ * Android closed the clone as soon as its full-screen viewer (ImmersiveActivity) resumed and asked
+ * that provider for a cached value (#16).
+ * Wherever such a name is put together, the result goes through the extension, which answers the
+ * running app's authority. A suffix after anything else is left alone: the phone id requests put
+ * it after each Meta app's package, and the platform and photos providers take the package from
+ * Facebook's injector.
+ */
+
+internal const val BUILD_CONSTANTS = "Lcom/facebook/common/build/BuildConstants;"
+
+private const val STRING = "Ljava/lang/String;"
+
+private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+
+private val FILLED_ARRAYS = setOf(Opcode.FILLED_NEW_ARRAY, Opcode.FILLED_NEW_ARRAY_RANGE)
+
+/** Whether [this] names one of [authorities] after [packageName], or with [packageName] in place of its %s. */
+internal fun String.buildsOwnAuthority(packageName: String, authorities: Set<String>): Boolean =
+    if (contains("%s")) replace("%s", packageName).ownAuthority(authorities) != null else (packageName + this) in authorities
+
+/** The registers a call or filled array passes, in order, or null for anything else. */
+private fun Instruction.passedRegisters(): List<Int>? = when (this) {
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    else -> null
+}
+
+/**
+ * Whether what [register] holds as the instruction at [index] starts is always a String one of
+ * BuildConstants' methods answers, or (with [arrays]) an array filled with nothing else.
+ */
+private fun Method.holdsBuildConstantsName(code: List<Instruction>, index: Int, register: Int, arrays: Boolean = true): Boolean {
+    val writers = writersReaching(index, register)
+    return writers.isNotEmpty() && writers.all { at ->
+        if (code.getOrNull(at)?.opcode != Opcode.MOVE_RESULT_OBJECT) return@all false
+        val made = code.getOrNull(at - 1) ?: return@all false
+        when (made.opcode) {
+            in STATIC_CALLS -> ((made as ReferenceInstruction).reference as? MethodReference)
+                ?.let { it.definingClass == BUILD_CONSTANTS && it.returnType == STRING && it.parameterTypes.isEmpty() } == true
+            in FILLED_ARRAYS -> arrays && made.passedRegisters()!!.all { holdsBuildConstantsName(code, at - 1, it, arrays = false) }
+            else -> false
+        }
+    }
+}
+
+/**
+ * Where [this] puts one of [authorities] together from BuildConstants' name: the index of each
+ * move-result-object taking the String a static call answers from a suffix literal
+ * ([buildsOwnAuthority]) and BuildConstants' names alone ([holdsBuildConstantsName]). The call goes
+ * right after it. A spot something jumps onto is left out, since the jump would pass the call.
+ */
+internal fun Method.builtAuthorityResults(packageName: String, authorities: Set<String>): List<Int> {
+    val code = implementation?.instructions?.toList() ?: return emptyList()
+    val suffixes = code.indices.filter { code[it].loadedString()?.buildsOwnAuthority(packageName, authorities) == true }
+    if (suffixes.isEmpty()) return emptyList()
+    val targets = branchTargets(code)
+    return suffixes.flatMap { at ->
+        val suffix = (code[at] as OneRegisterInstruction).registerA
+        readsAfter(at, suffix).filter { call ->
+            val built = code.getOrNull(call + 1)
+            val arguments = code[call].passedRegisters()
+            code[call].opcode in STATIC_CALLS &&
+                ((code[call] as ReferenceInstruction).reference as? MethodReference)?.returnType == STRING &&
+                built?.opcode == Opcode.MOVE_RESULT_OBJECT && (built as OneRegisterInstruction).registerA <= 255 &&
+                call + 2 !in targets &&
+                arguments != null && arguments.count { it == suffix } == 1 &&
+                arguments.filter { it != suffix }.let { names -> names.isNotEmpty() && names.all { holdsBuildConstantsName(code, call, it) } }
+        }.map { it + 1 }
+    }.distinct().sorted()
+}
+
+/**
+ * Hands every authority Facebook's code puts together from BuildConstants' name
+ * ([builtAuthorityResults]) to the extension, which answers the running app's. Answers how many it
+ * handed over. The classes come from the string index by each suffix of an authority under
+ * [packageName], and the extension is left alone.
+ */
+internal fun BytecodePatchContext.routeBuiltAuthorities(packageName: String, authorities: Set<String>): Int {
+    val owners = authorities.filter { it.startsWith("$packageName.") }
+        .flatMap { classDefByStrings(it.removePrefix(packageName), StringComparisonType.ENDS_WITH) }
+        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+        .distinctBy { it.type }
+        .filter { owner -> owner.methods.any { it.builtAuthorityResults(packageName, authorities).isNotEmpty() } }
+        .map { it.type }
+    return owners.sumOf { type ->
+        mutableClassDefBy(type).methods.sumOf { method ->
+            val results = method.builtAuthorityResults(packageName, authorities)
+            results.asReversed().forEach { at ->
+                val register = method.getInstruction<OneRegisterInstruction>(at).registerA
+                method.addInstructions(
+                    at + 1,
+                    """
+                        invoke-static/range { v$register .. v$register }, $AUTHORITY_CALL
+                        move-result-object v$register
+                    """,
+                )
+            }
+            results.size
+        }
+    }
+}
+
+/*
  * Facebook's rich notification templates build their RemoteViews with the package spelled out,
  * new RemoteViews("com.facebook.katana", layout), 14 times in 582. RemoteViews takes its layouts
  * from that package, so in a clone a notification either named an app that isn't installed, which
@@ -289,13 +397,7 @@ private fun passesOnlyAs(instruction: Instruction, register: Int, calls: Map<Str
     if (instruction.opcode !in CALLS) return false
     val called = ((instruction as ReferenceInstruction).reference as? MethodReference)?.toString() ?: return false
     val position = calls[called] ?: return false
-    val arguments = when (instruction) {
-        is FiveRegisterInstruction -> listOf(
-            instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG,
-        ).take(instruction.registerCount)
-        is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + instruction.registerCount).toList()
-        else -> return false
-    }
+    val arguments = instruction.passedRegisters() ?: return false
     return arguments.getOrNull(position) == register && arguments.count { it == register } == 1
 }
 
@@ -491,6 +593,7 @@ internal val clonedPackagePatch = bytecodePatch {
 
     execute {
         routeOwnAuthorities(packageMetadata.packageName, stockAuthorities)
+        routeBuiltAuthorities(packageMetadata.packageName, stockAuthorities)
         routeRemoteViewsPackage(packageMetadata.packageName)
         routeOwnPackageCalls(packageMetadata.packageName)
         if (routeMetaAppLookups() == 0) {

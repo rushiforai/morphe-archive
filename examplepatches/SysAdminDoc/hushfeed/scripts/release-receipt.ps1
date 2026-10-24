@@ -745,6 +745,33 @@ function Resolve-ReceiptCatalog {
     }
 }
 
+function Test-ReceiptAuditFacts {
+    <#
+    .SYNOPSIS
+        Whether a receipt's audit block is well formed and covers every declared version. A
+        receipt written before the block existed has none and passes; build-release-receipt.ps1
+        always writes one now. Answers the failure text, or $null.
+    #>
+    param($Audit, [Parameter(Mandatory = $true)][string[]]$PackageVersions)
+    if ($null -eq $Audit) { return $null }
+    $items = @(@($Audit) | Where-Object { $null -ne $_ })
+    $covered = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach ($item in $items) {
+        $version = [string]$item.appVersion
+        if ($version -cnotin $PackageVersions) {
+            return "The receipt's audit is of TikTok $version; the catalog targets $($PackageVersions -join ', ')."
+        }
+        if ([string]$item.results -cne "audit/results/tiktok-$version.json") { return "The receipt's TikTok $version audit names $($item.results)." }
+        if ([string]$item.sha256 -cnotmatch '^[0-9a-f]{64}$') { return "The receipt's TikTok $version audit has no results hash." }
+        if ([string]$item.sourceCommit -cnotmatch '^[0-9a-f]{40}$') { return "The receipt's TikTok $version audit names no build commit." }
+        if ([int]$item.checks -le 0) { return "The receipt's TikTok $version audit counts no checks." }
+        if (-not $covered.Add($version)) { return "The receipt records two audits of TikTok $version." }
+    }
+    $unaudited = @($PackageVersions | Where-Object { -not $covered.Contains($_) })
+    if ($unaudited.Count) { return "The receipt's audit leaves out TikTok $($unaudited -join ', ')." }
+    return $null
+}
+
 function Test-ReleaseReceipt {
     <#
     .SYNOPSIS
@@ -951,6 +978,8 @@ function Test-ReleaseReceipt {
         return Fail ("No target in the receipt is the declared $ExpectedPackageName " +
             "$($unproved -join ', ') patched without -f; it only records $ran.")
     }
+    $auditProblem = Test-ReceiptAuditFacts -Audit $Receipt.audit -PackageVersions $ExpectedPackageVersions
+    if ($auditProblem) { return Fail $auditProblem }
 
     # A PowerShell function that returns an empty array hands back nothing, so an allowlist with
     # no entries arrives here as $null, and @($null) is an array holding one null. Left alone,

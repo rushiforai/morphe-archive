@@ -139,7 +139,7 @@ private val disablePlayStoreUpdatesResourcePatch = resourcePatch {
 @Suppress("unused")
 val disablePlayStoreUpdatesPatch = bytecodePatch(
     name = "Disable Play Store updates",
-    description = "Stops the Play Store from updating Waze.",
+    description = "Stops the Play Store updating Waze.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

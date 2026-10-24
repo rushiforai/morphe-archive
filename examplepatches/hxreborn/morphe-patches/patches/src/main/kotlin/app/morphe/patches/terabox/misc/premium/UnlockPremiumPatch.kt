@@ -8,6 +8,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.patches.terabox.ads.HasPrivilegeFingerprint
 import app.morphe.patches.terabox.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.terabox.misc.quality.unlockHdPlaybackPatch
@@ -17,7 +18,6 @@ import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.formatter.DexFormatter
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PREMIUM_PLUS_LEVEL = 2
@@ -69,8 +69,8 @@ val unlockPremiumPatch = bytecodePatch(
             AccessFlags.STATIC.isSet(it.accessFlags) && it.type == vipManager.type
         }
         val loadServerVipInfo = """
-            sget-object v0, ${DexFormatter.INSTANCE.getFieldDescriptor(vipManagerInstance)}
-            invoke-virtual { v0 }, ${DexFormatter.INSTANCE.getMethodDescriptor(currentVipInfo.method)}
+            sget-object v0, ${descriptor(vipManagerInstance)}
+            invoke-virtual { v0 }, ${descriptor(currentVipInfo.method)}
             move-result-object v0
         """
 

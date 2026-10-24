@@ -346,8 +346,8 @@ public class BudgetCueTest {
 
     /**
      * Puts the reader on the recommendation feed: a Home tab that exists, is shown and is
-     * selected. TikTok's tab resource is absent from the test app, so the lookup is seeded the
-     * way the other feed tests seed it.
+     * selected, over a video feed's pager. TikTok's tab resource is absent from the test app, so
+     * the lookup is seeded the way the other feed tests seed it.
      *
      * <p>The cue used to ask {@link app.morphe.extension.tiktok.blockauthor.FeedVisibility#isOnFeed},
      * which answers "assume the feed" when it cannot find the tab, so every case here ran the
@@ -356,6 +356,10 @@ public class BudgetCueTest {
      */
     private static View standOnTheFeed(Activity activity) {
         android.view.ViewGroup root = activity.findViewById(android.R.id.content);
+        root.addView(new com.ss.android.ugc.aweme.common.widget.VerticalViewPager(activity),
+                new android.widget.FrameLayout.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT));
         View home = new View(activity);
         root.addView(home, new android.widget.FrameLayout.LayoutParams(96, 100,
                 android.view.Gravity.BOTTOM));

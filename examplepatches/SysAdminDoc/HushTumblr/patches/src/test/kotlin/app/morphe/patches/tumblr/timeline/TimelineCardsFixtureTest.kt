@@ -43,6 +43,10 @@ class TimelineCardsFixtureTest {
         check(hideSuggestedCommunitiesPatch, "hideSuggestedCommunities", "suggestedCommunityCards")
 
     @Test
+    fun `Hide suggested tags reads carousels and turns its switch on`() =
+        check(hideSuggestedTagsPatch, "hideSuggestedTags", "suggestedTagCards")
+
+    @Test
     fun `Hide Watch it rows reads carousels and turns its switch on`() =
         check(hideWatchItRowsPatch, "hideWatchItRows", "watchItRows")
 

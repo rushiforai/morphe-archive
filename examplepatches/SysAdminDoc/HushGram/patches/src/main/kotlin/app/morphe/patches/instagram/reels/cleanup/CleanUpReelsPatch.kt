@@ -43,12 +43,12 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val PATCH = "Clean up Reels"
 
 /**
- * Takes ten things off the Reels viewer, each behind its own switch: the Follow button beside a
+ * Takes eleven things off the Reels viewer, each behind its own switch: the Follow button beside a
  * reel's author, the pills that prompt you to make something or promote something, and friends'
  * activity with the comment preview, and the Add comment bar under a reel opened from a profile's
  * reposts, and the same bar under every reel, the Reels tab's included, the reply bar under a reel
- * opened from a chat, the Save button in a reel's button column, the Reels tab's top bar, and the
- * Create (+) and Your algorithm buttons in the top bar of reels.
+ * opened from a chat, the Save button in a reel's button column, the Reels tab's top bar, the
+ * Create (+) and Your algorithm buttons in the top bar of reels, and the Friends tab beside Reels.
  * The patch is in the default selection and every switch starts off. Friends' activity covers the
  * floating bubbles and the Liked by or Followed by line with its faces. See ReelParts.kt for each
  * part.
@@ -59,7 +59,11 @@ private const val PATCH = "Clean up Reels"
  * is the Reels tab's. It finds the Create button by the kind Instagram tags it with and Your
  * algorithm by its class, in the bar of any reel viewer, and sets just that button gone.
  *
- * An eleventh switch, Keep clear mode on, has Instagram's own clear mode carry from the reel you
+ * The Friends tab has no name, id or tag to find it by, so the one place Instagram builds it, where
+ * the tab gets its facepile icon, hands the tab's view to ReelsTopBar, which hides it the same way.
+ * See FriendsTab.kt.
+ *
+ * A twelfth switch, Keep clear mode on, has Instagram's own clear mode carry from the reel you
  * turned it on for to the next reels, and keeps the seek bar of a long reel off while it's in clear
  * mode (#277). See ClearMode.kt. Its places are found and checked before any part is hidden, so a
  * build that lacks one changes nothing.
@@ -72,7 +76,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides extra buttons and prompts on reels, such as Follow, Edits, templates, Meta AI, Ray-Ban " +
         "Meta glasses, friends' activity, the Add a comment bar, the reply bar on reels from chats, the Save button, the " +
-        "Create and Your algorithm buttons and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons while you aren't " +
+        "Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons while you aren't " +
         "touching the screen. Keep clear mode on carries Instagram's clear mode to the next reels. " +
         "Starts off. Turn it on in HushGram settings > Reels.",
 ) {
@@ -85,7 +89,9 @@ val cleanUpReelsPatch = bytecodePatch(
         requireStatusMethod("reelDeclutter")
         val clearMode = findClearModeWhereItFits()
         val clearModeStubs = clearModeStubs()
+        val friendsTab = findFriendsTab()
         hideReelParts()
+        markFriendsTab(friendsTab)
         if (clearMode != null) {
             applyClearMode(clearMode)
             clearModeStubs.fill(clearMode)

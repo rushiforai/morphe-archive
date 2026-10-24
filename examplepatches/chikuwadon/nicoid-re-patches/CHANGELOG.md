@@ -1,3 +1,37 @@
+## 1.9.8 (2026-10-24)
+
+### ✨ New Features
+
+* **nicoid:** Add optional fixed quality for Google Cast: highest available, 720p, 480p, or 360p. Fixed mode selects the best available format up to the chosen resolution from playback startup and buffers instead of switching to a lower quality. Applies to the next Cast playback. ([#77](https://github.com/chikuwadon/nicoid-re-patches/issues/77))
+* **nicoid:** Add a one-tap Cast disconnect button to the playback controls. ([#77](https://github.com/chikuwadon/nicoid-re-patches/issues/77))
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the portrait seek bar remaining visible after playback controls hide in normal and Shorts playback, while preserving the always-visible controls setting. ([#78](https://github.com/chikuwadon/nicoid-re-patches/issues/78))
+* **nicoid:** Fix the phone’s comment list appearing empty during Google Cast playback. ([#77](https://github.com/chikuwadon/nicoid-re-patches/issues/77))
+* **nicoid:** Fix double-tapping a comment seeking the inactive local player instead of the Cast receiver. ([#77](https://github.com/chikuwadon/nicoid-re-patches/issues/77))
+
+### 🔧 Improvements
+
+* **nicoid:** Keep comment-list following synchronized with the Cast playback position. ([#77](https://github.com/chikuwadon/nicoid-re-patches/issues/77))
+* **nicoid:** Reuse fetched Cast comments without additional downloads and prevent outdated session results from replacing the current video’s comment list. ([#77](https://github.com/chikuwadon/nicoid-re-patches/issues/77))
+
+## 1.9.7 (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix silent playback and playback progress repeatedly moving backward when switching from popup to background playback.
+* **nicoid:** Prevent outdated popup playback retries from restarting paused playback or affecting a different video.
+* **nicoid:** Fix playback API connections not being released when a request fails.
+* **nicoid:** Reject malformed or incomplete local cache playback requests before they cause excessive memory usage.
+
+### 🔧 Improvements
+
+* **nicoid:** Reduce memory usage when loading large thumbnails and cached notification artwork while preserving their display resolution.
+* **nicoid:** Skip unnecessary artwork reads for outdated playback notifications.
+* **nicoid:** Validate playback API redirects before forwarding authentication data and limit excessively large responses.
+* **nicoid:** Remove unused generated code from playback and image-loading components.
+
 ## 1.9.6 (2026-10-23)
 
 ### ✨ New Features

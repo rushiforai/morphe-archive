@@ -14,12 +14,12 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -28,8 +28,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val TOOLBAR_ACTION_METHOD = "hxToolbarAction"
 private const val LABEL_FONT_SIZE_SP = 17
@@ -120,7 +118,7 @@ internal fun rowChevronMethod(classDef: MutableClass): Method = with(context) {
             ?: throw PatchException("$palette has no $ROW_CHEVRON_TINT property")
         val companion = references.modifierCompanion
         val smali = """
-            invoke-static {}, ${chevron.descriptor()}
+            invoke-static {}, ${descriptor(chevron)}
             move-result-object v0
             const-string v1, "$ROW_CHEVRON_DESCRIPTION"
             sget-object v2, ${companion.definingClass}->${companion.name}:${companion.type}
@@ -128,29 +126,27 @@ internal fun rowChevronMethod(classDef: MutableClass): Method = with(context) {
             const/4 v4, 0x0
             const v5, ${ROW_CHEVRON_END_DP.toRawBits()}
             const/4 v6, 0x0
-            invoke-static { v2, v3, v4, v5, v6 }, ${references.padding.descriptor()}
+            invoke-static { v2, v3, v4, v5, v6 }, ${descriptor(references.padding)}
             move-result-object v2
             sget-object v3, ${references.colorLocal.definingClass}->${references.colorLocal.name}:${references.colorLocal.type}
-            invoke-virtual { p0, v3 }, ${references.currentValue.descriptor()}
+            invoke-virtual { p0, v3 }, ${descriptor(references.currentValue)}
             move-result-object v3
             check-cast v3, $palette
             iget-wide v3, v3, $palette->$tintField:$LONG_TYPE
             move-object v5, p0
             const/4 v6, 0x0
             const/4 v7, 0x0
-            invoke-static/range { v0 .. v7 }, ${iconCall.instruction.getReference<MethodReference>()!!.descriptor()}
+            invoke-static/range { v0 .. v7 }, ${descriptor(iconCall.instruction.getReference<MethodReference>()!!)}
             return-void
         """
-        ImmutableMethod(
-            classDef.type,
+        classDef.addMethod(
             ROW_CHEVRON_METHOD,
-            listOf(ImmutableMethodParameter(references.composerType, null, null)),
+            listOf(references.composerType),
             "V",
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(ROW_CHEVRON_REGISTERS),
-        ).toMutable().apply { addInstructions(0, smali) }.also { classDef.methods.add(it) }
+            ROW_CHEVRON_REGISTERS,
+            smali,
+        )
     }
 }
 
@@ -184,7 +180,7 @@ private fun addIconButton(
     ).matchSingle().instructionMatches.last().instruction.getReference<MethodReference>()!!.also { iconButton = it }
     val icon = iconMethod(slot.classDef, iconName, pathData)
     val smali = """
-        invoke-static {}, ${icon.descriptor()}
+        invoke-static {}, ${descriptor(icon)}
         move-result-object v0
         const-string v1, "$description"
         const/4 v2, $ICON_BUTTON_ENABLED
@@ -196,24 +192,21 @@ private fun addIconButton(
         move-object v4, p0
         const/4 v5, 0x0
         const/4 v6, 0x0
-        invoke-static/range { v0 .. v6 }, ${button.descriptor()}
+        invoke-static/range { v0 .. v6 }, ${descriptor(button)}
         return-void
     """
-    val method = ImmutableMethod(
-        slot.classDef.type,
+    val method = slot.classDef.addMethod(
         TOOLBAR_ACTION_METHOD + toolbarActionMethods.size,
-        listOf(ImmutableMethodParameter(references.composerType, null, null)),
+        listOf(references.composerType),
         "V",
         AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-        null,
-        null,
-        MutableMethodImplementation(ICON_BUTTON_REGISTERS),
-    ).toMutable().apply { addInstructions(0, smali) }
-    slot.classDef.methods.add(method)
+        ICON_BUTTON_REGISTERS,
+        smali,
+    )
     toolbarActionMethods["${slot.classDef.type}$clickFactory$clickArgument"] = method
     slot.method.addInstructions(
         slot.index,
-        "invoke-static/range { v${slot.composerRegister} .. v${slot.composerRegister} }, ${method.descriptor()}",
+        "invoke-static/range { v${slot.composerRegister} .. v${slot.composerRegister} }, ${descriptor(method)}",
     )
 }
 
@@ -282,7 +275,7 @@ internal fun addToolbarAction(slot: ToolbarSlot, label: String, activity: String
     val actionMethod = toolbarActionMethod(slot.classDef, label, "$EXTENSION_PACKAGE.$activity")
     slot.method.addInstructions(
         slot.index,
-        "invoke-static/range { v${slot.composerRegister} .. v${slot.composerRegister} }, ${actionMethod.descriptor()}",
+        "invoke-static/range { v${slot.composerRegister} .. v${slot.composerRegister} }, ${descriptor(actionMethod)}",
     )
 }
 
@@ -392,22 +385,22 @@ private fun toolbarActionMethod(classDef: MutableClass, label: String, activity:
             appendLine("const/4 v1, $CLICKABLE_ENABLED")
             appendLine("const/4 v2, 0x0")
             appendLine("const/4 v4, 0x0")
-            appendLine("invoke-static/range { v0 .. v4 }, ${references.clickable.descriptor()}")
+            appendLine("invoke-static/range { v0 .. v4 }, ${descriptor(references.clickable)}")
             appendLine("move-result-object v0")
             appendLine("const v1, ${ACTION_PADDING_HORIZONTAL_DP.toRawBits()}")
             appendLine("const v2, ${ACTION_PADDING_VERTICAL_DP.toRawBits()}")
             appendLine("const v3, ${ACTION_PADDING_HORIZONTAL_DP.toRawBits()}")
             appendLine("const v4, ${ACTION_PADDING_VERTICAL_DP.toRawBits()}")
-            appendLine("invoke-static { v0, v1, v2, v3, v4 }, ${references.padding.descriptor()}")
+            appendLine("invoke-static { v0, v1, v2, v3, v4 }, ${descriptor(references.padding)}")
             appendLine("move-result-object v${textStart + offsets[modifierIndex]}")
             appendLine("move-object/from16 v0, v$composerRegister")
             appendLine("sget-object v1, ${references.colorLocal.definingClass}->${references.colorLocal.name}:${references.colorLocal.type}")
-            appendLine("invoke-virtual { v0, v1 }, ${references.currentValue.descriptor()}")
+            appendLine("invoke-virtual { v0, v1 }, ${descriptor(references.currentValue)}")
             appendLine("move-result-object v1")
             appendLine("check-cast v1, ${references.color.definingClass}")
             appendLine("iget-wide v${textStart + offsets[references.colorIndex]}, v1, ${references.color.definingClass}->${references.color.name}:${references.color.type}")
             appendLine("const/16 v0, $LABEL_FONT_SIZE_SP")
-            appendLine("invoke-static { v0 }, ${references.fontSize.descriptor()}")
+            appendLine("invoke-static { v0 }, ${descriptor(references.fontSize)}")
             appendLine("move-result-wide v${textStart + offsets[references.fontSizeIndex]}")
             types.forEachIndexed { index, type ->
                 val register = textStart + offsets[index]
@@ -419,20 +412,18 @@ private fun toolbarActionMethod(classDef: MutableClass, label: String, activity:
                     else -> appendLine(if (type.isWide()) "const-wide/16 v$register, 0x0" else "const/16 v$register, 0x0")
                 }
             }
-            appendLine("invoke-static/range { v$textStart .. v${textStart + references.textRegisters - 1} }, ${references.textComposable.descriptor()}")
+            appendLine("invoke-static/range { v$textStart .. v${textStart + references.textRegisters - 1} }, ${descriptor(references.textComposable)}")
             appendLine("return-void")
         }
 
-        ImmutableMethod(
-            classDef.type,
+        classDef.addMethod(
             TOOLBAR_ACTION_METHOD + toolbarActionMethods.size,
-            listOf(ImmutableMethodParameter(references.composerType, null, null)),
+            listOf(references.composerType),
             "V",
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(TEMPORARY_REGISTERS + references.textRegisters + ACTION_METHOD_PARAMETERS),
-        ).toMutable().apply { addInstructions(0, smali) }.also { classDef.methods.add(it) }
+            TEMPORARY_REGISTERS + references.textRegisters + ACTION_METHOD_PARAMETERS,
+            smali,
+        )
     }
 
 private fun registerOffsets(types: List<String>): List<Int> {

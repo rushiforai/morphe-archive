@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import com.ss.android.ugc.aweme.common.widget.VerticalViewPager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -102,6 +103,8 @@ public class FeedVisibilityTest {
             Activity activity = controller.get();
             FrameLayout pager = new FrameLayout(activity);
             FrameLayout feedPage = new FrameLayout(activity);
+            feedPage.addView(new VerticalViewPager(activity), new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             View homeTab = new View(activity);
             homeTab.setId(0x7f0a4b89);
             homeTab.setSelected(true);
@@ -134,6 +137,119 @@ public class FeedVisibilityTest {
                 FeedVisibility.resolveForTests(activity.getPackageName(), "47.5.3:op1", 0);
             }
         }
+    }
+
+    /**
+     * The top tabs on 47.5.3 are pages of one sideways pager above the bottom bar: For You and
+     * Following each hold a video feed's pager, and Shop and the Nearby tab hold a store and a
+     * grid with search boxes. The Home tab stays shown and selected on all four, so the filtered
+     * count sat over Shop's search box (S22, 2026-10-23). The pages here sit where TikTok lays
+     * them, a screen width apart, and the pager scrolls between them.
+     */
+    @Test public void shopAndNearbyAreNotTheRecommendationFeed() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout topTabs = new FrameLayout(activity);
+            FrameLayout forYou = page(activity, true);
+            FrameLayout shop = page(activity, false);
+            FrameLayout following = page(activity, true);
+            FrameLayout nearby = page(activity, false);
+            topTabs.addView(forYou, matchParent());
+            topTabs.addView(shop, matchParent());
+            topTabs.addView(nearby, matchParent());
+            root.addView(topTabs, matchParent());
+            View homeTab = new View(activity);
+            homeTab.setId(0x7f0a4b89);
+            homeTab.setSelected(true);
+            root.addView(homeTab, new FrameLayout.LayoutParams(60, 40, Gravity.BOTTOM));
+            activity.setContentView(root);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            int width = topTabs.getWidth();
+            assertTrue("the window never laid out", width > 0 && homeTab.getWidth() > 0);
+            shop.setTranslationX(width);
+            nearby.setTranslationX(2 * width);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.5.3:op1", homeTab.getId());
+            try {
+                assertTrue(FeedVisibility.onRecommendationFeed(activity));
+
+                topTabs.scrollTo(width, 0);
+                assertTrue("the tab still reads shown and selected",
+                        homeTab.isShown() && homeTab.isSelected());
+                assertFalse("Shop counted as the recommendation feed",
+                        FeedVisibility.onRecommendationFeed(activity));
+                // The lock's own check asks for the tab alone and still covers it.
+                assertTrue(FeedVisibility.onFeedTab(activity));
+
+                topTabs.scrollTo(2 * width, 0);
+                assertFalse("the Nearby tab counted as the recommendation feed",
+                        FeedVisibility.onRecommendationFeed(activity));
+
+                topTabs.scrollTo(0, 0);
+                assertTrue(FeedVisibility.onRecommendationFeed(activity));
+
+                // Following's page built after For You's was found: the next search finds it.
+                topTabs.addView(following, matchParent());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                following.setTranslationX(-width);
+                topTabs.scrollTo(-width, 0);
+                Shadows.shadowOf(Looper.getMainLooper())
+                        .idleFor(java.time.Duration.ofMillis(FeedVisibility.FEED_PAGER_SEARCH_GAP_MS));
+                assertTrue("Following's feed was not found",
+                        FeedVisibility.onRecommendationFeed(activity));
+                topTabs.scrollTo(width, 0);
+                assertFalse(FeedVisibility.onRecommendationFeed(activity));
+                topTabs.scrollTo(-width, 0);
+                assertTrue(FeedVisibility.onRecommendationFeed(activity));
+
+                // A feed's pager hidden on its page is not on show.
+                following.getChildAt(0).setVisibility(View.GONE);
+                Shadows.shadowOf(Looper.getMainLooper())
+                        .idleFor(java.time.Duration.ofMillis(FeedVisibility.FEED_PAGER_SEARCH_GAP_MS));
+                assertFalse(FeedVisibility.onRecommendationFeed(activity));
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.5.3:op1", 0);
+            }
+        }
+    }
+
+    /**
+     * A cold start asks before the feed's pager is built, and the pass that brings it can come
+     * right after. Until this activity has a feed pager, every ask searches, so the label can't
+     * wait for a layout pass that never comes.
+     */
+    @Test public void aFeedBuiltRightAfterAFailedLookIsFoundAtOnce() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout root = new FrameLayout(activity);
+            View homeTab = new View(activity);
+            homeTab.setId(0x7f0a4b89);
+            homeTab.setSelected(true);
+            root.addView(homeTab, new FrameLayout.LayoutParams(60, 40, Gravity.BOTTOM));
+            activity.setContentView(root);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.5.3:op1", homeTab.getId());
+            try {
+                assertFalse("no feed's pager yet", FeedVisibility.onRecommendationFeed(activity));
+                root.addView(new VerticalViewPager(activity), 0, matchParent());
+                assertTrue("the feed built right after a failed look was missed",
+                        FeedVisibility.onRecommendationFeed(activity));
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.5.3:op1", 0);
+            }
+        }
+    }
+
+    /** A top tab page, holding a video feed's pager when it is one of the feeds. */
+    private static FrameLayout page(Activity activity, boolean feed) {
+        FrameLayout page = new FrameLayout(activity);
+        if (feed) page.addView(new VerticalViewPager(activity), matchParent());
+        return page;
+    }
+
+    private static FrameLayout.LayoutParams matchParent() {
+        return new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
     }
 
     /**

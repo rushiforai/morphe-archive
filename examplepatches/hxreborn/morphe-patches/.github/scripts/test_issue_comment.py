@@ -51,13 +51,22 @@ NOT_REQUESTS = [
 ]
 
 failures = 0
+checks = 0
+
+
+def record(ok):
+    global failures, checks
+    checks += 1
+    failures += not ok
+
+
 for text in REQUESTS:
     ok = is_request(text)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} replies to: {text[:70]!r}")
 for text in NOT_REQUESTS:
     ok = not is_request(text)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} silent on: {text[:70]!r}")
 
 PINGS = [
@@ -121,30 +130,30 @@ NOT_PINGS = [
 
 for text in PINGS:
     ok = is_status_ping(text)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} answers ping: {text[:70]!r}")
 for text in NOT_PINGS:
     ok = not is_status_ping(text)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} silent on: {text[:70]!r}")
 
 ISSUE = {"created_at": "2026-10-09T06:22:46Z"}
 ok = is_early_status_ping(ISSUE, {"created_at": "2026-10-13T10:00:00Z", "body": PINGS[0]})
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a ping 4 days after opening gets the reply")
 
 ok = not is_early_status_ping(ISSUE, {"created_at": "2026-11-09T06:22:47Z", "body": PINGS[0]})
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a ping after 30 days gets no reply")
 
 text = ping_reply({"labels": []})
 ok = text == PING_MARKER + "\nThere's no ETA for this request yet. Any updates will be posted here.\n"
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} the ping reply is the marker and the no-ETA sentence")
 
 text = ping_reply({"labels": [{"name": "in pre-release"}]})
 ok = text == PING_MARKER + "\nA pre-release with this change is out, see the comment above. It ships in the next stable release once confirmed.\n"
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a ping on an issue in pre-release points at the pre-release comment")
 
 PATCHES = {"version": "1.49.1", "patches": [{"compatiblePackages": [
@@ -155,21 +164,21 @@ PATCHES = {"version": "1.49.1", "patches": [{"compatiblePackages": [
 COMMENTED_AT = timestamp("2026-10-15T10:00:00Z")
 text = closed_issue_reply(COMMENTED_AT)
 ok = text.startswith(CLOSED_MARKER + "\n") and "template=app_update.yml" in text and "issues/new/choose" in text
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} the closed-issue reply carries its marker and both forms")
 
 ok = text.rstrip().endswith("The bot locks this issue on October 23, 2026 unless someone comments before then.")
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} the closed-issue reply names the day the lock job locks it")
 
 text = closed_issue_reply(COMMENTED_AT, "[App Update]: Proton VPN 5.20.57.0", PATCHES)
 ok = text.splitlines()[1] == "Version 1.49.1 of the bundle supports Proton VPN 5.20.39.0 and 5.20.57.0. This issue is closed. For anything new, open a new issue:"
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a title naming a supported app opens with its targeted versions")
 
 text = closed_issue_reply(COMMENTED_AT, "[Feature]: Hide Unnecessary boxes", PATCHES)
 ok = text.splitlines()[1] == "This issue is closed. For anything new, open a new issue:"
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} a title naming no app keeps the plain opening")
 
 RELEASE_QUESTIONS = [
@@ -192,22 +201,22 @@ NOT_RELEASE_QUESTIONS = [
 ]
 for text in RELEASE_QUESTIONS:
     ok = is_release_question(text)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} release question: {text[:70]!r}")
 for text in NOT_RELEASE_QUESTIONS:
     ok = not is_release_question(text)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} not a release question: {text[:70]!r}")
 
 ok = unreleased_reply() == UNRELEASED_MARKER + "\nThe commit that closed this issue is not in a release yet. A comment here names the release that includes it.\n"
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} the unreleased reply is the marker and one plain line")
 
 started = time.monotonic()
 flood = [is_status_ping("?" * 5000 + "x"), is_status_ping("\n" * 60000 + "x"), is_request("\n" * 60000 + "x"),
          is_release_question("when " * 20000), is_release_question("release " * 20000 + "x")]
 ok = flood == [False] * 5 and time.monotonic() - started < 2
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} long runs of question marks and newlines are read in linear time")
 
 HERE = Path(__file__).resolve().parent
@@ -270,7 +279,7 @@ NEEDS_INFO_CASES = [
 for name, kwargs, calls in NEEDS_INFO_CASES:
     status, seen = run_needs_info(**kwargs)
     ok = status == 0 and seen == calls
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} needs info: {name}")
 
 FAKE_REPLY_GH = r'''#!/usr/bin/env python3
@@ -385,18 +394,18 @@ REPLY_CASES = [
 for name, kwargs, code, marker in REPLY_CASES:
     status, posted, _ = run_reply(**kwargs)
     ok = status == code and (len(posted) == 1 and posted[0].startswith(marker + "\n") if marker else not posted)
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} reply job: {name}")
 
 status, posted, calls = run_reply("any update?", state="open")
 ok = status == 0 and len(posted) == 1 and posted[0].startswith(PING_MARKER) and not any("timeline" in " ".join(call) for call in calls)
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} reply job: an open issue never reads the timeline")
 
 ISSUE_EVENT = {"state": "open", "user": {"login": "reporter"}, "labels": [{"name": "needs info"}]}
 COMMENT_EVENT = {"user": {"login": "reporter", "type": "User"}, "author_association": "CONTRIBUTOR"}
 ok = answers_needs_info(ISSUE_EVENT, COMMENT_EVENT)
-failures += not ok
+record(ok)
 print(f"{'ok  ' if ok else 'FAIL'} needs info: a contributor-association author counts as the reporter")
 
 FAKE_DISCUSSION_GH = r'''#!/usr/bin/env python3
@@ -477,10 +486,8 @@ REQUEST_CASES = [
 for name, kwargs, code, pinged, labels in REQUEST_CASES:
     status, posted, left = run_request(**kwargs)
     ok = status == code and (len(posted) == 1 and posted[0].startswith(PING_MARKER + "\n") if pinged else not posted) and left == labels
-    failures += not ok
+    record(ok)
     print(f"{'ok  ' if ok else 'FAIL'} request job: {name}")
 
-total = (len(REQUESTS) + len(NOT_REQUESTS) + len(PINGS) + len(NOT_PINGS) + len(RELEASE_QUESTIONS) + len(NOT_RELEASE_QUESTIONS)
-         + 9 + len(NEEDS_INFO_CASES) + 1 + len(REPLY_CASES) + 1 + len(REQUEST_CASES))
-print(f"\n{total - failures}/{total} passed")
+print(f"\n{checks - failures}/{checks} passed")
 sys.exit(1 if failures else 0)

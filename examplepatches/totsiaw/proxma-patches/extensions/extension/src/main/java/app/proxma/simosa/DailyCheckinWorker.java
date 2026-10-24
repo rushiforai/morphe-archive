@@ -30,6 +30,17 @@ public final class DailyCheckinWorker extends Worker {
     @Override
     public Result doWork() {
         Context context = getApplicationContext();
+
+        // If both features are already latched, this is a no-op re-run (e.g. app opened
+        // again after midnight already claimed). Skip silently — no notification, no work.
+        boolean checkinLatched = AutoClaim.check(context, "checkin") != null;
+        boolean ladderLatched = AutoClaim.check(context, "ladder") != null;
+        if (checkinLatched && ladderLatched) {
+            Log.i(TAG, "WORKER_NOOP both latched");
+            scheduleMidnight(context, ExistingWorkPolicy.KEEP);
+            return Result.success();
+        }
+
         boolean settled;
         try {
             settled = BackgroundCheckin.doCheckIn(context);

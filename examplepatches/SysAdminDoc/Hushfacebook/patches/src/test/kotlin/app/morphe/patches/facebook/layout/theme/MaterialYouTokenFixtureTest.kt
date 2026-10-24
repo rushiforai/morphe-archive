@@ -518,6 +518,203 @@ class MaterialYouTokenFixtureTest {
         assertEquals("one fixture for each declared build", declaredBuilds(), builds)
     }
 
+    /** AmoledTheme's LIGHT_BACKGROUND_TOKENS, the fills only light mode's Light background color moves. */
+    private fun amoledLightBackgrounds(): Set<String> {
+        val start = amoled.indexOf("LIGHT_BACKGROUND_TOKENS =")
+        check(start >= 0) { "AmoledTheme declares no LIGHT_BACKGROUND_TOKENS" }
+        return Regex(""""([A-Z_]+)"""").findAll(amoled.substring(start, amoled.indexOf(")));", start))).map { it.groupValues[1] }.toSet()
+    }
+
+    private val lightBackground = File(RepoFiles.root,
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/AmoledLightBackground.java").readText()
+
+    /**
+     * Issue #214: in light mode the Light background color moves each background AMOLED names that
+     * holds a light grey (an opaque grey with every channel LIGHT_MIN_CHANNEL or more). No dark or
+     * darker style gives one of those tokens such a grey, so the Video tab, dark in light mode, keeps
+     * its colours. The light style gives a card white, every fill LIGHT_BACKGROUND_TOKENS adds a light
+     * grey, a grey button the grey AmoledLightBackground holds text to, and a comment's bubble and the
+     * composer's bar a grey no darker than that button.
+     */
+    @Test
+    fun `every light grey AMOLED moves in light mode is no dark style's in each declared build`() {
+        val lightOnly = amoledLightBackgrounds()
+        val backgrounds = amoledBackgrounds() + lightOnly
+        assertTrue("LIGHT_BACKGROUND_TOKENS lists nothing", lightOnly.isNotEmpty())
+        val floor = amoledChannel("LIGHT_MIN_CHANNEL")
+        val textSurface = Regex("""static final int TEXT_SURFACE_GREY = 0x([0-9A-F]+);""").find(lightBackground)
+            ?.groupValues?.get(1)?.toLong(16)?.toInt() ?: error("AmoledLightBackground declares no TEXT_SURFACE_GREY")
+        fun lightGrey(colour: Int): Boolean {
+            val channels = listOf(colour shr 16 and 0xFF, colour shr 8 and 0xFF, colour and 0xFF)
+            return colour ushr 24 == 0xFF && channels.min() >= floor && channels.max() - channels.min() <= 8
+        }
+        var builds = 0
+        for (target in AppCompatibilities.facebook().single().targets) {
+            val version = checkNotNull(target.version)
+            for (fixture in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                withBaseApk(fixture) { apk ->
+                    val attributes = tokenAttributes(apk)
+                    val styles = fdsStyles(apk, attributes.values.toSet())
+                    val light = styles.values.single { it.parent == 0 && it.sets > 300 }
+                    val dark = styles.values.single { it.parent == light.id && it.sets > 300 }
+                    val darker = styles.values.singleOrNull { it.parent == dark.id }
+                    fun lightColour(name: String) =
+                        light.values[attributes[name] ?: error("${fixture.name}: no FDS token $name")]
+
+                    for (name in backgrounds) {
+                        val attribute = attributes[name] ?: continue
+                        for (style in listOfNotNull(dark, darker)) {
+                            val colour = style.values[attribute] ?: continue
+                            assertTrue("${fixture.name}: $name is ${hex(setOf(colour))} in style ${Integer.toHexString(style.id)}, " +
+                                "a light grey the Light background color would move", !lightGrey(colour))
+                        }
+                    }
+                    assertEquals("${fixture.name}: a card", -1, lightColour("CARD_BACKGROUND"))
+                    for (name in lightOnly) {
+                        val colour = lightColour(name)
+                        assertTrue("${fixture.name}: $name is ${colour?.let { hex(setOf(it)) }} in light mode, no light grey",
+                            colour != null && lightGrey(colour))
+                    }
+                    for (name in listOf("SECONDARY_BUTTON_BACKGROUND", "SECONDARY_BUTTON_BACKGROUND_OPAQUE")) {
+                        assertEquals("${fixture.name}: $name", textSurface, lightColour(name))
+                    }
+                    for (name in listOf("COMMENT_BACKGROUND", "TEXT_INPUT_BAR_BACKGROUND")) {
+                        val colour = checkNotNull(lightColour(name)) { "${fixture.name}: no light $name" }
+                        assertTrue("${fixture.name}: $name ${hex(setOf(colour))} is darker than a grey button",
+                            (0..16 step 8).all { (colour shr it and 0xFF) >= (textSurface shr it and 0xFF) })
+                    }
+                }
+                builds++
+            }
+        }
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
+    }
+
+    /** AmoledTheme's Java set [constant], from its declaration to the end of it. */
+    private fun amoledSet(constant: String): Set<String> {
+        val start = amoled.indexOf("$constant =")
+        check(start >= 0) { "AmoledTheme declares no $constant" }
+        return Regex(""""([A-Z_]+)"""").findAll(amoled.substring(start, amoled.indexOf(")));", start))).map { it.groupValues[1] }.toSet()
+    }
+
+    /**
+     * Issue #214's reviewer gaps: the blue text roles light mode's Light background color holds past
+     * TEXT_TOKENS. Each is an FDS token whose light style colour FDS_LIGHT lists and whose dark style
+     * sets another, so the Video tab's dark blues keep theirs. ACCENT isn't one, since its light blue
+     * is the dark style's too. Each of Mig's light fills is a constant of a Mig colour enum and no
+     * FDS token's, so the name alone says it's Mig's.
+     */
+    @Test
+    fun `every blue text role and Mig fill light mode adds is light mode's alone in each declared build`() {
+        val text = amoledSet("LIGHT_TEXT_TOKENS")
+        val fills = amoledSet("MIG_LIGHT_FILLS")
+        assertTrue("LIGHT_TEXT_TOKENS, found $text", "TEXT_INPUT_ACTIVE_TEXT" in text && "ACCENT" !in text)
+        assertTrue("MIG_LIGHT_FILLS, found $fills", "FILL" in fills)
+        val lightTable = listedTokens("FDS_LIGHT")
+        var builds = 0
+        for (target in AppCompatibilities.facebook().single().targets) {
+            val version = checkNotNull(target.version)
+            for (fixture in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                withBaseApk(fixture) { apk ->
+                    val attributes = tokenAttributes(apk)
+                    val styles = fdsStyles(apk, attributes.values.toSet())
+                    val light = styles.values.single { it.parent == 0 && it.sets > 300 }
+                    val dark = styles.values.single { it.parent == light.id && it.sets > 300 }
+                    val darker = styles.values.singleOrNull { it.parent == dark.id }
+                    for (name in text) {
+                        val attribute = attributes[name] ?: error("${fixture.name}: no FDS token $name")
+                        val colour = light.values[attribute]
+                        assertTrue("${fixture.name}: $name is ${colour?.let { hex(setOf(it)) }} in light mode, which FDS_LIGHT doesn't list",
+                            colour != null && colour in lightTable[name].orEmpty())
+                        val darkColour = dark.values[attribute]
+                        assertTrue("${fixture.name}: the dark style gives $name ${darkColour?.let { hex(setOf(it)) }}",
+                            darkColour != null && darkColour != colour)
+                        darker?.values?.get(attribute)?.let {
+                            assertTrue("${fixture.name}: the darker style gives $name light mode's blue", it != colour)
+                        }
+                    }
+                    attributes["ACCENT"]?.let { accent ->
+                        assertEquals("${fixture.name}: ACCENT's light blue is the dark style's", light.values[accent],
+                            dark.values[accent] ?: light.values[accent])
+                    }
+                    val names = migColourNames(apk)
+                    assertTrue("${fixture.name}: Mig's enums have no ${fills - names}", names.containsAll(fills))
+                    assertTrue("${fixture.name}: FDS tokens named ${fills intersect attributes.keys}", (fills intersect attributes.keys).isEmpty())
+                }
+                builds++
+            }
+        }
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
+    }
+
+    /**
+     * Issue #214's light screens, route two, on each declared build's own styles and colours written
+     * out as the resource decoder names them. The patch gives light mode's page, cards, comments and
+     * composer bar surface resources of their own, each a white or light grey the light style reads
+     * through the default colours alone, under the name of its colour, and changes nothing in the
+     * dark style's family or in any other item. Text or icons read the same whites, which is why
+     * the surfaces get resources of their own.
+     */
+    @Test
+    fun `the light surfaces the patch repoints are light mode's alone in each declared build`() {
+        var builds = 0
+        for (target in AppCompatibilities.facebook().single().targets) {
+            val version = checkNotNull(target.version)
+            for (fixture in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                withBaseApk(fixture) { apk ->
+                    val build = fixture.name
+                    val attributes = tokenAttributes(apk)
+                    val tokens = attributes.entries.associate { (token, attribute) -> "attr_0x%08x".format(attribute) to token }
+                    val decoded = decode(apk)
+                    assertTrue("$build: a night colour isn't a configured one", decoded.configuredColours.containsAll(decoded.nightColours))
+                    val surfaces = mutableMapOf<String, Int>()
+                    val moved = mutableSetOf<String>()
+                    val shared = mutableSetOf<String>()
+                    var files = 0
+                    for (file in decoded.styleFiles.values) {
+                        val (light, dark) = fdsThemeStyles(file, tokens) ?: continue
+                        files++
+                        fun snapshot() = file.documentElement.elements().associate { style ->
+                            style.getAttribute("name") to style.elements().map { it.getAttribute("name") to it.textContent }
+                        }
+                        val before = snapshot()
+                        surfaces += repointLightSurfaces(file, tokens, decoded.colours, decoded.configuredColours)
+                        val after = snapshot()
+                        val lightName = light.getAttribute("name")
+                        assertEquals("$build: a style other than the light one changed", before - lightName, after - lightName)
+                        val darkSets = dark.elements().map { it.getAttribute("name") }.toSet()
+                        val stock = before.getValue(lightName).toMap()
+                        val repointed = mutableSetOf<String>()
+                        for ((attribute, value) in after.getValue(lightName)) {
+                            val was = stock.getValue(attribute)
+                            if (value == was) continue
+                            val token = tokens[attribute] ?: error("$build: the light style's $attribute changed, no FDS token")
+                            assertTrue("$build: $token is no light surface", token in LIGHT_SURFACE_TOKENS)
+                            assertTrue("$build: the dark style doesn't set $token", attribute in darkSets)
+                            val colour = checkNotNull(defaultColour(was, decoded.colours, decoded.configuredColours)) { "$build: $token's $was" }
+                            assertTrue("$build: $token's ${hex(setOf(colour))} is no light grey", isLightSurface(colour))
+                            assertEquals("$build: $token", "@color/$LIGHT_SURFACE" + "%06x".format(colour and 0xFFFFFF), value)
+                            moved += token
+                            repointed += was
+                        }
+                        for ((attribute, value) in after.getValue(lightName)) {
+                            val token = tokens[attribute] ?: continue
+                            if (token !in LIGHT_SURFACE_TOKENS && value in repointed) shared += token
+                        }
+                    }
+                    assertEquals("$build: style files with Facebook's light and dark themes", 1, files)
+                    assertTrue("$build: the page, cards, comments and the composer's bar, found $moved",
+                        moved.containsAll(setOf("SURFACE_BACKGROUND", "CARD_BACKGROUND", "COMMENT_BACKGROUND", "TEXT_INPUT_BAR_BACKGROUND")))
+                    assertTrue("$build: a surface resource takes a name Facebook has", surfaces.keys.none { it in decoded.colours })
+                    assertTrue("$build: no text or icon reads the surfaces' colours, so they need no resources of their own",
+                        shared.isNotEmpty())
+                }
+                builds++
+            }
+        }
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
+    }
+
     /** AmoledTheme's TEXT_TOKENS: FDS's names, then Mig's, as its comments mark them. */
     private fun amoledTextRoles(): Pair<Set<String>, Set<String>> {
         val start = amoled.indexOf("TEXT_TOKENS =")
@@ -740,6 +937,8 @@ class MaterialYouTokenFixtureTest {
         val nightColours: Set<String>,
         val styleFiles: Map<String, Document>,
         val styleColours: Map<String, Map<String, Int>>,
+        /** The colours any configuration other than the default gives a value of their own. */
+        val configuredColours: Set<String>,
     )
 
     private fun decode(apk: File): Decoded {
@@ -763,10 +962,12 @@ class MaterialYouTokenFixtureTest {
         val nightColours = mutableSetOf<String>()
         val styleFiles = mutableMapOf<String, Document>()
         val styleColours = mutableMapOf<String, Map<String, Int>>()
+        val configuredColours = mutableSetOf<String>()
         for (resource in byId.values.sortedBy { it.resourceId }) {
             val entries = resource.iterator().asSequence().filterNotNull().filter { !it.isNull }.toList()
             if (resource.type == "color") {
                 if (entries.any { it.resConfig.uiModeNight == ResConfig.UiModeNight.NIGHT }) nightColours += name(resource)
+                if (entries.any { !it.resConfig.isDefault }) configuredColours += name(resource)
                 entries.firstOrNull { it.resConfig.isDefault && !it.isComplex }?.let { colours[name(resource)] = text(it.resValue) }
             } else if (resource.type.startsWith("style")) {
                 val bag = entries.firstOrNull { it.resConfig.isDefault && it.isComplex }?.tableEntry as? ResTableMapEntry ?: continue
@@ -789,7 +990,7 @@ class MaterialYouTokenFixtureTest {
                 styleColours[name(resource)] = values
             }
         }
-        return Decoded(colours, nightColours, styleFiles, styleColours)
+        return Decoded(colours, nightColours, styleFiles, styleColours, configuredColours)
     }
 
     private fun emptyResources(): Document =

@@ -260,6 +260,8 @@ Hide suggested blogs	Ocultar blogs sugeridos
 Takes the blogs Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Quita los blogs que Tumblr te sugiere seguir, y sus encabezados, de tu panel y otros feeds.
 Hide suggested communities	Ocultar comunidades sugeridas
 Takes the communities Tumblr suggests you join, and their headings, out of your dashboard and other feeds.	Quita las comunidades a las que Tumblr te sugiere unirte, y sus encabezados, de tu panel y otros feeds.
+Hide suggested tags	Ocultar etiquetas sugeridas
+Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Quita las etiquetas que Tumblr te sugiere seguir, y sus encabezados, de tu panel y otros feeds.
 Hide Watch it rows	Ocultar filas de Watch it
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Quita las filas de Watch it y las tarjetas de video de Tumblr TV, y sus encabezados, de tu panel y otros feeds.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
@@ -305,6 +307,8 @@ Hide text posts	Ocultar publicaciones de texto
 Takes posts with no pictures or video, the reblogged part included, out of your dashboard and other feeds.	Quita de tu panel y otros feeds las publicaciones sin imágenes ni video, incluida la parte rebloggeada.
 Hide posts with these words	Ocultar publicaciones con estas palabras
 Takes posts out of your feeds when a hidden word matches one of the selected fields below.	Quita publicaciones de tus feeds cuando una palabra oculta coincide en uno de los campos seleccionados abajo.
+Hide filtered posts	Ocultar publicaciones filtradas
+Takes the posts Tumblr covers for your filtered tags and words out of your feeds.	Quita de tus feeds las publicaciones que Tumblr tapa por tus etiquetas y palabras filtradas.
 Words to hide	Palabras para ocultar
 One word or phrase a line	Una palabra o frase por línea
 Changes are saved only when you tap Save.	Los cambios solo se guardan cuando tocas Guardar.

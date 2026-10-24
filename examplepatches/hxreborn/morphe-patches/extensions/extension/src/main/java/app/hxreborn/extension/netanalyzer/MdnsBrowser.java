@@ -150,12 +150,6 @@ final class MdnsBrowser {
         this.listener = listener;
     }
 
-    boolean isUnicastFallback() {
-        synchronized (this.lock) {
-            return this.unicastResponse;
-        }
-    }
-
     List<BonjourService> services() {
         synchronized (this.lock) {
             return new ArrayList<>(this.services);

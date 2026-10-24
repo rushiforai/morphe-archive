@@ -68,7 +68,7 @@ val hideSuggestedPostsPatch = bytecodePatch(
     description = "Removes posts from accounts you don't follow, suggested accounts, surveys and shopping rows " +
         "from Home. It also takes shop tiles out of Explore and the shopping bag off posts with tagged products. " +
         "Posts from accounts you follow stay. Extra switches can also hide the 'Are you interested in this post?' " +
-        "question, all videos, photos, carousels, posts " +
+        "question, the caught up card, all videos, photos, carousels, posts " +
         "you've liked or posts from accounts you pick. A post's menu has Hide posts from this account to add one " +
         "to that list, and those posts leave Home on the next refresh. On by default. Turn it off in HushGram " +
         "settings > Feed.",
@@ -95,6 +95,8 @@ val hideSuggestedPostsPatch = bytecodePatch(
         val sectionHeader = suggestedSectionHeaderOrWarn()
         // On 451 the end of feed card shows that title itself, over the same section (#104).
         val caughtUpTitle = caughtUpCardTitleOrWarn(sectionHeader)
+        // Hide the caught up card folds the same card's row (#307). A build without it keeps the card.
+        val caughtUpCard = hideCaughtUpCardOrWarn()
         filterSuggestedFeedItems()
         endFollowingAtItsCard()
         // The Older Posts page's loading row, a separate builder; a build without it keeps Instagram's row.
@@ -102,6 +104,8 @@ val hideSuggestedPostsPatch = bytecodePatch(
         nextPage?.write(this)
         val itemsFilled = sectionHeader?.write(this) == true
         caughtUpTitle?.write(this, itemsFilled)
+        // After the title's hook, which checks the binder's code by index.
+        caughtUpCard?.write(this)
         exploreShops.write(this)
         productTags.write(this)
         interest.write(this)

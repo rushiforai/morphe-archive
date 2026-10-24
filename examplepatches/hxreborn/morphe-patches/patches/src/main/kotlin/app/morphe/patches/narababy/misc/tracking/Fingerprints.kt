@@ -6,13 +6,6 @@ package app.morphe.patches.narababy.misc.tracking
 
 import app.morphe.patcher.Fingerprint
 
-internal object CrashlyticsSetCollectionEnabledFingerprint : Fingerprint(
-    definingClass = "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;",
-    name = "setCrashlyticsCollectionEnabled",
-    returnType = "V",
-    parameters = listOf("Z"),
-)
-
 internal object KlaviyoInitializeFingerprint : Fingerprint(
     definingClass = "Lcom/klaviyo/analytics/Klaviyo;",
     name = "initialize",

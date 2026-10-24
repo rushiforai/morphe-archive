@@ -41,6 +41,7 @@ class ColourResolverFixtureTest {
     @After
     fun forgetMatches() {
         DarkSchemeResolveFingerprint.clearMatch()
+        LightSchemeResolveFingerprint.clearMatch()
         FdsSchemeResolveFingerprint.clearMatch()
         NavigationBarPainterFingerprint.clearMatch()
     }
@@ -117,7 +118,47 @@ class ColourResolverFixtureTest {
         assertEquals("a declared build has no fixture", versions, checked)
     }
 
-    private val systemBarsController = "Lcom/facebook/navigation/statusbar/controller/SystemBarsController;"
+    /**
+     * Issue #214's Mig screens: the Light background color's hook on Mig's light scheme. One resolver
+     * and one return, reading its token from the parameter that still holds it, and that token is the
+     * Mig colour interface the dark scheme's hook reads too, so the enum names AmoledTheme lists are
+     * the ones it gets. The sibling that takes an Integer and asks the scheme again isn't hooked.
+     */
+    @Test
+    fun `Mig's light scheme takes the light hook on one resolver and one return, its token intact, on each declared build`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                forgetMatches()
+                val name = bundle.name
+                val classes = FixtureDex.classes(bundle, setOf(DARK_COLOR_SCHEME, LIGHT_COLOR_SCHEME))
+                val context = PatchContexts.of(classes.values)
+
+                val darkToken = with(context) {
+                    hookLightSchemeResolver()
+                    DarkSchemeResolveFingerprint.method.parameterTypes.single().toString()
+                }
+
+                val hooked = context.mutableClassDefBy(LIGHT_COLOR_SCHEME).methods.filter { it.calls(APPLY_LIGHT) }
+                assertEquals("$name: light scheme methods hooked, ${hooked.map { it.descriptor() }}", 1, hooked.size)
+                val resolver = hooked.single()
+                assertFalse("$name: the light resolver is static", AccessFlags.STATIC.isSet(resolver.accessFlags))
+                assertEquals("$name: the light resolver's token", darkToken, resolver.parameterTypes.single().toString())
+                val body = resolver.implementation!!
+                val calls = body.instructions.filter { it.calls(APPLY_LIGHT) }
+                assertEquals("$name: returns hooked", 1, calls.size)
+                assertEquals("$name: the hook reads the token from its parameter", body.registerCount - 1,
+                    (calls.single() as FiveRegisterInstruction).registerD)
+                assertTrue("$name: the dark scheme takes no light hook",
+                    context.mutableClassDefBy(DARK_COLOR_SCHEME).methods.none { it.calls(APPLY_LIGHT) })
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    private val systemBarsController ="Lcom/facebook/navigation/statusbar/controller/SystemBarsController;"
 
     private fun Method.calls(descriptor: String) = implementation?.instructions?.any {
         (it as? ReferenceInstruction)?.reference?.toString() == descriptor

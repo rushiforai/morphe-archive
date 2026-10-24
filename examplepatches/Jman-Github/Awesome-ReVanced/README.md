@@ -1,13 +1,14 @@
 # [Jman-Github/Awesome-ReVanced](https://github.com/Jman-Github/Awesome-ReVanced)
 > [!NOTE]
-> 💊 A curated list of ReVanced & Morphe resources, patch repositories, tools, builders, and community projects.   
+> 💊 A curated list of ReVanced, Morphe & Reseam resources, patch repositories, tools, builders, and community projects. \
 > 🔍 Use browser search to find a project, app, maintainer, or patch family quickly.   
 > 👉 Suggestions, corrections, and new entries are welcome in [issues](https://github.com/Jman-Github/Awesome-ReVanced/issues).   
-> 🧭 Status badges are refreshed by the repository activity workflow.   
+> 🧭 GitHub status badges are refreshed by the repository activity workflow; other hosts use their own commit badges. \
 
 **Jump to:**   
 • [✅ Official ReVanced](#-official-revanced)   
 • [✅ Official Morphe](#-official-morphe)   
+• [✅ Official Reseam](#-official-reseam) \
 • [📚 Resources](#-resources)   
 • [🩹 Patches](#-patches)   
 • [🔨 Projects](#-projects)    
@@ -81,6 +82,13 @@ Official Morphe channels, core repositories, and maintained tooling.
 - [![Morphe Crowdin](https://img.shields.io/badge/Crowdin-morphe-gray)](https://crowdin.com/project/morphe) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![Morphe OpenCollective](https://img.shields.io/badge/OpenCollective-morpheapp-gray)](https://opencollective.com/morpheapp) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 
+## ✅ Official Reseam
+
+Official Reseam website and patch repository, hosted on the Reseam Git service.
+
+- [![Reseam Website](https://img.shields.io/badge/Website-reseam.app-gray)](https://reseam.app/) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![Reseam Patches (Forgejo)](https://img.shields.io/gitea/last-commit/reseam/patches?gitea_url=https%3A%2F%2Fgit.reseam.app&label=Reseam%20Patches%20%28Forgejo%29&logo=gitea)](https://git.reseam.app/reseam/patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+
 ## 📚 Resources
 
 Documentation, indexes, troubleshooting material, and external reference pages.
@@ -127,7 +135,7 @@ Documentation, indexes, troubleshooting material, and external reference pages.
 
 ## 🩹 Patches
 
-Patch repositories and related integration repositories.
+ReVanced, Morphe, and Reseam patch repositories and related integrations.
 
 - [![Anddea (uses Morphe)](https://img.shields.io/github/last-commit/anddea/revanced-patches?label=Anddea(uses%20Morphe)&logo=github)](https://github.com/anddea/revanced-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
   - [![Anddea Integrations](https://img.shields.io/github/last-commit/anddea/revanced-integrations?label=Anddea%20Integrations&logo=github)](https://github.com/anddea/revanced-integrations) ![Archived](https://img.shields.io/badge/status-archived-red)
@@ -513,6 +521,19 @@ Patch repositories and related integration repositories.
 - [![Lovaion Patches (uses Morphe)](https://img.shields.io/github/last-commit/danieleavolio/lovaion-patches?label=Lovaion%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/danieleavolio/lovaion-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![Morphe Catppuccin (uses Morphe)](https://img.shields.io/github/last-commit/titandrive/morphe-catppuccin?label=Morphe%20Catppuccin%20(uses%20Morphe)&logo=github)](https://github.com/titandrive/morphe-catppuccin) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![Spotify TV Crossfade (uses Morphe)](https://img.shields.io/github/last-commit/ethan-manny/spotify-tv-crossfade?label=Spotify%20TV%20Crossfade%20(uses%20Morphe)&logo=github)](https://github.com/ethan-manny/spotify-tv-crossfade) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![BaconReader Reseam Patches (uses Reseam)](https://img.shields.io/github/last-commit/JoanComasFdz/baconreader-reseam-patches?label=BaconReader%20Reseam%20Patches%20(uses%20Reseam)&logo=github)](https://github.com/JoanComasFdz/baconreader-reseam-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![madkarmaa Reseam Patches (uses Reseam)](https://img.shields.io/github/last-commit/madkarmaa/reseam-patches?label=madkarmaa%20Reseam%20Patches%20(uses%20Reseam)&logo=github)](https://github.com/madkarmaa/reseam-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![BaconReader Morphe Patches (uses Morphe)](https://img.shields.io/github/last-commit/JoanComasFdz/baconreader-morphe-patches?label=BaconReader%20Morphe%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/JoanComasFdz/baconreader-morphe-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![YouTube Music Lyrics (uses Morphe)](https://img.shields.io/github/last-commit/BDCrusher/ytmusic-lyrics?label=YouTube%20Music%20Lyrics%20(uses%20Morphe)&logo=github)](https://github.com/BDCrusher/ytmusic-lyrics) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![jagjordi Patches (uses Morphe)](https://img.shields.io/github/last-commit/jagjordi/morphe-patches?label=jagjordi%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/jagjordi/morphe-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![Neil Morphe Patches (uses Morphe)](https://img.shields.io/github/last-commit/nm-nvan/Neil-Morphe-Patches?label=Neil%20Morphe%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/nm-nvan/Neil-Morphe-Patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![SABP Eppy Patches (uses Morphe)](https://img.shields.io/github/last-commit/epabafree/sabp-eppy-patches?label=SABP%20Eppy%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/epabafree/sabp-eppy-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![TaobaoLingo (uses Morphe)](https://img.shields.io/github/last-commit/GoodLight999/TaobaoLingo?label=TaobaoLingo%20(uses%20Morphe)&logo=github)](https://github.com/GoodLight999/TaobaoLingo) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![Facebook Lite Patches (uses Morphe)](https://img.shields.io/github/last-commit/BlazeFTL/FaceBook-Lite-Morphe?label=Facebook%20Lite%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/BlazeFTL/FaceBook-Lite-Morphe) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![F1 TV 4K Patches (uses Morphe)](https://img.shields.io/github/last-commit/ythemelis/f1tv-4k-morphe-patches?label=F1%20TV%204K%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/ythemelis/f1tv-4k-morphe-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![JUDU Patches (uses Morphe)](https://img.shields.io/github/last-commit/Vakarux12/raid-judu-patches?label=JUDU%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/Vakarux12/raid-judu-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![Gboard Clipboard History (uses Morphe)](https://img.shields.io/github/last-commit/ShubhamJ010/gboard-clipboard-history?label=Gboard%20Clipboard%20History%20(uses%20Morphe)&logo=github)](https://github.com/ShubhamJ010/gboard-clipboard-history) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![HRIS APN Patches (uses Morphe)](https://img.shields.io/github/last-commit/cosm1c-matcha/hris-apn?label=HRIS%20APN%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/cosm1c-matcha/hris-apn) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![Rufusin](https://img.shields.io/github/last-commit/rufusin/revanced-patches?label=Rufusin&logo=github)](https://github.com/rufusin/revanced-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
   - [![Rufusin Integrations](https://img.shields.io/github/last-commit/rufusin/revanced-integrations?label=Rufusin%20Integrations&logo=github)](https://github.com/rufusin/revanced-integrations) ![Inactive](https://img.shields.io/badge/status-inactive-red)
 - [![Aunali321](https://img.shields.io/github/last-commit/Aunali321/ReVancedExperiments?label=Aunali321&logo=github)](https://github.com/Aunali321/ReVancedExperiments) ![Active](https://img.shields.io/badge/status-active-brightgreen)
@@ -530,7 +551,6 @@ Patch repositories and related integration repositories.
 - [![PawiX25](https://img.shields.io/github/last-commit/PawiX25/pepper-revanced-patches?label=PawiX25&logo=github)](https://github.com/PawiX25/pepper-revanced-patches) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![Pepper Morphe Patches (uses Morphe)](https://img.shields.io/badge/Pepper%20Morphe%20Patches%20(uses%20Morphe)-gray?logo=github)](https://github.com/PawiX25/pepper-morphe-patches) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![Bluetooth Audio Keep Alive](https://img.shields.io/github/last-commit/LeeeeT/bt-keepalive-patch?label=Bluetooth%20Audio%20Keep%20Alive&logo=github)](https://github.com/LeeeeT/bt-keepalive-patch) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
-- [![AlexNaga](https://img.shields.io/github/last-commit/AlexNaga/android-patches?label=AlexNaga&logo=github)](https://github.com/AlexNaga/android-patches) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![Patcheddit by wchill (uses Morphe)](https://img.shields.io/github/last-commit/wchill/patcheddit?label=Patcheddit%20by%20wchill%20(uses%20Morphe)&logo=github)](https://github.com/wchill/patcheddit) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![loskutov (uses Morphe)](https://img.shields.io/github/last-commit/loskutov/youtube-domain-fronting-patch?label=loskutov%20(uses%20Morphe)&logo=github)](https://github.com/loskutov/youtube-domain-fronting-patch) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![kareemlukitomo (uses Morphe)](https://img.shields.io/github/last-commit/kareemlukitomo/morphe-patches?label=kareemlukitomo%20(uses%20Morphe)&logo=github)](https://github.com/kareemlukitomo/morphe-patches) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
@@ -576,7 +596,7 @@ Patch repositories and related integration repositories.
 
 ## 🔨 Projects
 
-Managers, patching tools, plugin ecosystems, and adjacent ReVanced/Morphe projects.
+Managers, patching tools, plugin ecosystems, and adjacent ReVanced, Morphe, and Reseam projects.
 
 - [![ReVanced Patch Bundles](https://img.shields.io/github/last-commit/Jman-Github/ReVanced-Patch-Bundles?label=ReVanced%20Patch%20Bundles&logo=github)](https://github.com/Jman-Github/ReVanced-Patch-Bundles) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![Universal ReVanced Manager](https://img.shields.io/github/last-commit/Jman-Github/Universal-ReVanced-Manager?label=Universal%20ReVanced%20Manager&logo=github)](https://github.com/Jman-Github/Universal-ReVanced-Manager) ![Active](https://img.shields.io/badge/status-active-brightgreen)

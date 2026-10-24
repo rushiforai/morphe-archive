@@ -95,15 +95,13 @@ public class CaptionMotionContractTest {
         layout();
     }
 
-    private void assertNoSettledReflow(String plan, String text) throws Exception {
-        idle(300);
-        layout();
-        assertEquals("a settled motion must not re-paginate", plan, field("desiredLayout"));
-        assertEquals("a settled motion must not swap text", text, fixture.text().getText().toString());
-    }
-
+    /**
+     * A moving video rectangle is a transform, not a content swap. The event identity survives the
+     * whole motion; when the geometry finally settles, the narrower width may commit exactly one
+     * new page plan, and that plan must then stay stable.
+     */
     @Test
-    public void movingGeometryKeepsItsContentAndOnlyTranslatesTheBox() throws Exception {
+    public void movingGeometryKeepsItsContentWhileTheBoxTranslates() throws Exception {
         String text =
                 "中国的整体军事现代化，比仅让四辆坦克驶过红场更令人印象深刻。"
                         + "没有标点也能显示完整意思，而且这句话足够长，需要分成好几页显示。"
@@ -113,8 +111,7 @@ public class CaptionMotionContractTest {
         N39UiGeometryFixture.bounds = new Rect(0, 0, 590, 340);
         layout();
         idle(16);
-        String beforeKey = (String) field("desiredLayout");
-        String beforeText = fixture.text().getText().toString();
+        String event = (String) field("pendingIdentity");
         FrameLayout box = fixture.anchor();
 
         int[] widths = {580, 560, 540, 520, 500, 480, 460, 440};
@@ -123,14 +120,33 @@ public class CaptionMotionContractTest {
             N39UiGeometryFixture.bounds = new Rect(0, 0, width, 340);
             layout();
             idle(16);
-            assertEquals("motion must not start a new page generation", beforeKey, field("desiredLayout"));
-            assertEquals("motion must not swap text", beforeText, fixture.text().getText().toString());
+            assertEquals("motion must never switch the event", event, field("pendingIdentity"));
             moved |= box.getTranslationX() != 0f || box.getTranslationY() != 0f;
         }
         assertTrue("the box followed the video by translation", moved);
 
-        // The geometry stops inside the same presentation class: no reflow is allowed at all.
-        assertNoSettledReflow(beforeKey, beforeText);
+        // The geometry is now held at 440 px: the settled width needs three equal pre-draw samples,
+        // then the stable-width re-plan may commit once, and only once. Repeating the same held
+        // frame must not start another generation.
+        idle(300);
+        layout();
+        idle(16);
+        layout();
+        idle(16);
+        layout();
+        String settled = (String) field("desiredLayout");
+        String settledText = fixture.text().getText().toString();
+        assertTrue("the narrower settled video re-plans to its own width", !settled.isEmpty());
+        assertTrue(
+                "the settled plan is narrower than the full class width",
+                ((CaptionPresentationBudget) field("planBudget")).width < 528);
+        idle(300);
+        layout();
+        assertEquals("a settled geometry must not re-plan repeatedly", settled, field("desiredLayout"));
+        assertEquals(
+                "a settled re-plan must not blank or swap the event",
+                settledText,
+                fixture.text().getText().toString());
     }
 
     @Test

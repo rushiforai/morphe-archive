@@ -34,6 +34,16 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
     private var revision by mutableIntStateOf(0)
     private val checkedItems = spec.checked?.toList()?.toMutableStateList()
     private val actions = linkedMapOf<Int, Button>()
+    private var composeContent: ComposeView? = null
+    private var dismissed = true
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var generation = 0
+    private var actionPending = false
+    private fun traceWindow(event: String) {
+        if (System.getProperty("haiagaru.dialog.trace") != "true") return
+        android.util.Log.d("HaiagaruDialog", "$event id=${System.identityHashCode(this)} showing=$isShowing attached=${window?.decorView?.isAttachedToWindow}")
+        if (event == "show-enter") android.util.Log.d("HaiagaruDialog", "show caller", Throwable())
+    }
     private val nativeList = object : ListView(context) {
         override fun post(action: Runnable): Boolean = android.os.Handler(android.os.Looper.getMainLooper()).post(action)
         override fun setItemChecked(position: Int, value: Boolean) {
@@ -57,6 +67,13 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
         val content = ComposeView(context).apply {
             setContent { HaiagaruUi.Theme { DialogContent() } }
         }
+        composeContent = content
+        content.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(view: View) {
+                if (dismissed) view.post { if (dismissed) removeDismissedWindow() }
+            }
+            override fun onViewDetachedFromWindow(view: View) = Unit
+        })
         setContentView(content)
     }
 
@@ -69,10 +86,81 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
     override fun setTitle(value: CharSequence?) { heading = value?.toString().orEmpty() }
     fun getButton(which: Int): Button = requireNotNull(actions[which])
     fun getListView(): ListView = nativeList
+    override fun dismiss() {
+        // All callers, including custom button/choice listeners, must leave Compose's
+        // input coroutine before detaching it. Ignore stale requests after a re-show.
+        val requestedGeneration = generation
+        mainHandler.post {
+            if (generation == requestedGeneration) dismissNow()
+        }
+    }
+
+    private fun dismissNow() {
+        if (dismissed) return
+        dismissed = true
+        traceWindow("dismiss-enter")
+        try {
+            super.dismiss()
+        } catch (detached: IllegalArgumentException) {
+            // Activity/window cleanup can remove this decor before our queued
+            // dismissal runs. Do not turn an already detached dialog into a crash.
+            if (window?.decorView?.isAttachedToWindow == true) throw detached
+        }
+        composeContent?.disposeComposition()
+        removeDismissedWindow()
+        traceWindow("dismiss-exit")
+    }
+
+    private fun removeDismissedWindow() {
+        if (!dismissed || isShowing) return
+        val decor = window?.decorView ?: return
+        // Clear modality even when detach completed synchronously. A queued layout/
+        // attach from the previous Activity must not restore an invisible input trap.
+        window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        window?.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+        decor.visibility = View.GONE
+        // A dismissed zero-height Compose window can remain attached across a native
+        // viewer transition. It still dims and consumes input despite isShowing=false.
+        // Remove only this dialog's own decor, never an Activity or another dialog.
+        if (decor.isAttachedToWindow) {
+            try { window?.windowManager?.removeViewImmediate(decor) }
+            catch (_: IllegalArgumentException) { /* Already removed by the platform. */ }
+        }
+    }
+    /** Remove this window before native callbacks attach another modal window/activity. */
+    fun dismissForNavigation(action: Runnable) {
+        // Do not detach Compose while its long-press coroutine is dispatching.
+        // Detach can cancel that coroutine inside Dialog.dismiss(), skipping cleanup
+        // and the queued native navigation. Run BOTH operations after input dispatch.
+        if (actionPending || dismissed) return
+        actionPending = true
+        val requestedGeneration = generation
+        mainHandler.post {
+            if (generation != requestedGeneration) return@post
+            dismissNow()
+            if (!spec.activity.isFinishing && !spec.activity.isDestroyed) action.run()
+        }
+    }
+
+    private fun dispatchClosingAction(action: () -> Unit) {
+        if (actionPending || dismissed) return
+        actionPending = true
+        val requestedGeneration = generation
+        mainHandler.post {
+            if (generation != requestedGeneration) return@post
+            try {
+                if (!spec.activity.isFinishing && !spec.activity.isDestroyed) action()
+            } finally {
+                // Preserve DialogInterface's callback-before-dismiss ordering, but
+                // execute both outside the Compose input dispatch.
+                if (generation == requestedGeneration) dismissNow()
+            }
+        }
+    }
     fun setButton(which: Int, text: CharSequence, callback: DialogInterface.OnClickListener?) {
         actions[which] = Button(context).apply {
             this.text = text
-            setOnClickListener { try { callback?.onClick(this@HaiagaruDialog, which) } finally { dismiss() } }
+            setOnClickListener { dispatchClosingAction { callback?.onClick(this@HaiagaruDialog, which) } }
         }
         refresh()
     }
@@ -82,11 +170,22 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
     }
 
     override fun show() {
+        generation++
+        actionPending = false
+        dismissed = false
+        traceWindow("show-enter")
+        window?.apply {
+            clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            decorView.visibility = View.VISIBLE
+        }
         super.show()
+        traceWindow("show-super-return")
         window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setLayout((context.resources.displayMetrics.widthPixels * .92f).toInt(), WindowManager.LayoutParams.WRAP_CONTENT)
         }
+        traceWindow("show-exit")
     }
 
     @OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -103,7 +202,8 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
             onDispose { adapterModel.unregisterDataSetObserver(observer) }
         }
         @Suppress("UNUSED_VARIABLE") val modelVersion = version
-        Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
             Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 spec.icon?.let { drawable ->
                     val model = remember(drawable) { ImageView(context).apply { setImageDrawable(drawable) } }
@@ -111,7 +211,11 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
                 }
                 if (heading.isNotBlank()) Text(heading, style = MaterialTheme.typography.headlineSmall)
                 spec.customTitle?.let { ModelContent(it, version) { refresh() } }
-                Column(Modifier.fillMaxWidth().heightIn(max = (context.resources.configuration.screenHeightDp * .60f).dp)
+                val browser = spec.view?.takeIf { weightedSurface(it) != null } as? android.widget.LinearLayout
+                if (browser != null) {
+                    BrowserModel(browser, version, Modifier.fillMaxWidth()
+                        .height((context.resources.configuration.screenHeightDp * .55f).dp)) { refresh() }
+                } else Column(Modifier.fillMaxWidth().heightIn(max = (context.resources.configuration.screenHeightDp * .60f).dp)
                     .verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (spec.progress) Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -141,7 +245,7 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
                                         chosen = index
                                         spec.itemClick?.onClick(this@HaiagaruDialog, index)
                                     } else {
-                                        try { spec.itemClick?.onClick(this@HaiagaruDialog, index) } finally { dismiss() }
+                                        dispatchClosingAction { spec.itemClick?.onClick(this@HaiagaruDialog, index) }
                                     }
                                     refresh()
                                 }).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -153,7 +257,7 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
                         }
                         }
                     }
-                    spec.view?.let { ModelContent(it, version) { refresh() } }
+                    spec.view?.let { ModelContent(it, version, insideScroll = true) { refresh() } }
 
                 }
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {

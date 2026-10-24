@@ -4,12 +4,18 @@ import android.os.Build
 import android.view.ViewGroup
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +24,16 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 /** Shared expressive shapes, motion, color and accessible spacing for extension screens. */
 object HaiagaruUi {
+    /** Same opaque backdrop as Compose; transparent native window colors must not reveal black. */
+    @JvmStatic fun toolTabHeaderColors(context: android.content.Context): IntArray {
+        val native = try { NativeThemeColors.colors(context)?.takeIf { it.size == 7 } }
+            catch (_: RuntimeException) { null }
+        val dark = context.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val scheme = native?.let(::chMateColorScheme) ?: if (dark) darkColorScheme() else lightColorScheme()
+        return intArrayOf(scheme.background.toArgb(), scheme.onBackground.toArgb())
+    }
+    private val LocalNativeColors = staticCompositionLocalOf<IntArray?> { null }
     @JvmStatic
     fun controls(activity: HaiagaruComposeActivity, model: android.view.View): android.view.View =
         androidx.compose.ui.platform.ComposeView(activity).apply {
@@ -78,11 +94,73 @@ object HaiagaruUi {
     @Composable
     fun Theme(content: @Composable () -> Unit) {
         val context = LocalContext.current
-        val dark = isSystemInDarkTheme()
-        val colors = if (Build.VERSION.SDK_INT >= 31) {
-            if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        } else if (dark) darkColorScheme() else expressiveLightColorScheme()
-        MaterialExpressiveTheme(colorScheme = colors, content = content)
+        val systemDark = isSystemInDarkTheme()
+        val fallback = if (Build.VERSION.SDK_INT >= 31) {
+            if (systemDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else if (systemDark) darkColorScheme() else expressiveLightColorScheme()
+        // Dialogs wrap the native Activity in a fixed Light theme for resource loading.
+        // Ask ChMate's palette getter, which also works for standalone video Activities.
+        var host = context
+        for (depth in 0 until 16) {
+            if (host is android.app.Activity || host !is android.content.ContextWrapper) break
+            val base = host.baseContext
+            if (base === host) break
+            host = base
+        }
+        val native = try { NativeThemeColors.colors(host)?.takeIf { it.size == 7 } }
+            catch (_: RuntimeException) { null }
+        val colors = native?.let(::chMateColorScheme) ?: fallback
+        CompositionLocalProvider(LocalNativeColors provides native) {
+            MaterialExpressiveTheme(colorScheme = colors, content = content)
+        }
+    }
+
+    /** Use ChMate's palette for every container role, including cards and tonal buttons. */
+    private fun chMateColorScheme(palette: IntArray): ColorScheme {
+        val nativeText = Color(palette[1])
+        val backdrop = if (nativeText.luminance() > .5f) Color.Black else Color.White
+        val background = Color(palette[0]).compositeOver(Color(palette[6]).compositeOver(backdrop))
+        val surface = Color(palette[3]).compositeOver(background)
+        val text = nativeText.compositeOver(surface)
+        val primary = Color(palette[2]).takeIf { it.alpha > 0f }
+            ?.compositeOver(surface) ?: text
+        val dark = background.luminance() < .179f
+        val base = if (dark) darkColorScheme() else lightColorScheme()
+        val container = lerp(surface, primary, .15f)
+        fun on(color: Color) = if (color.luminance() > .179f) Color.Black else Color.White
+        return base.copy(
+            primary = primary, onPrimary = on(primary),
+            primaryContainer = container, onPrimaryContainer = on(container),
+            secondary = primary, onSecondary = on(primary),
+            secondaryContainer = container, onSecondaryContainer = on(container),
+            tertiary = primary, onTertiary = on(primary),
+            tertiaryContainer = container, onTertiaryContainer = on(container),
+            background = background, onBackground = nativeText.compositeOver(background),
+            surface = surface, onSurface = text,
+            surfaceVariant = lerp(surface, text, .08f),
+            onSurfaceVariant = lerp(surface, text, .78f),
+            outline = lerp(surface, text, .55f), outlineVariant = lerp(surface, text, .30f),
+            inverseSurface = text, inverseOnSurface = surface, inversePrimary = on(text),
+            surfaceTint = primary,
+            surfaceDim = lerp(surface, Color.Black, .06f),
+            surfaceBright = lerp(surface, text, .12f),
+            surfaceContainerLowest = surface,
+            surfaceContainerLow = lerp(surface, text, .02f),
+            surfaceContainer = lerp(surface, text, .04f),
+            surfaceContainerHigh = lerp(surface, text, .08f),
+            surfaceContainerHighest = lerp(surface, text, .12f),
+        )
+    }
+
+    @Composable internal fun sliderColors(): SliderColors {
+        val palette = LocalNativeColors.current ?: return SliderDefaults.colors()
+        val scheme = MaterialTheme.colorScheme
+        val active = Color(palette[4]).takeIf { it.alpha > 0f }
+            ?.compositeOver(scheme.surface) ?: scheme.primary
+        val inactive = Color(palette[5]).takeIf { it.alpha > 0f }
+            ?.compositeOver(scheme.surface) ?: scheme.outlineVariant
+        return SliderDefaults.colors(thumbColor = active, activeTrackColor = active,
+            inactiveTrackColor = inactive)
     }
 
     @Composable
@@ -90,7 +168,8 @@ object HaiagaruUi {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (title != null) Text(title, style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 12.dp, top = 8.dp))
-            Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+            Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
                 Column(Modifier.fillMaxWidth().padding(8.dp), content = content)
             }
         }

@@ -4,17 +4,12 @@
  */
 package app.morphe.patches.quranify.misc.premium
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.quranify.misc.integrity.bypassIntegrityCheckPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
-import app.morphe.patches.shared.misc.revenuecat.BuildCustomerInfoFingerprint
-import app.morphe.patches.shared.misc.revenuecat.customerInfoJsonParameter
-import app.morphe.util.getFreeRegisterProvider
-import app.morphe.util.matchSingle
+import app.morphe.patches.shared.misc.revenuecat.grantRevenueCatEntitlements
 
-private const val EXTENSION_CLASS = "Lapp/hxreborn/extension/shared/RevenueCatUnlock;"
 private const val ENTITLEMENT = "Quranify Premium"
 private const val PRODUCT = "quranify_premium"
 
@@ -29,21 +24,6 @@ val unlockPremiumPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        BuildCustomerInfoFingerprint.matchSingle().method.apply {
-            val registers = getFreeRegisterProvider(0, 3)
-            val jsonRegister = registers.getFreeRegister4Bit()
-            val entitlementRegister = registers.getFreeRegister4Bit()
-            val productRegister = registers.getFreeRegister4Bit()
-
-            addInstructions(
-                0,
-                """
-                    move-object/from16 v$jsonRegister, ${customerInfoJsonParameter()}
-                    const-string v$entitlementRegister, "$ENTITLEMENT"
-                    const-string v$productRegister, "$PRODUCT"
-                    invoke-static { v$jsonRegister, v$entitlementRegister, v$productRegister }, $EXTENSION_CLASS->grantEntitlement(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
-                """,
-            )
-        }
+        grantRevenueCatEntitlements(ENTITLEMENT to PRODUCT)
     }
 }

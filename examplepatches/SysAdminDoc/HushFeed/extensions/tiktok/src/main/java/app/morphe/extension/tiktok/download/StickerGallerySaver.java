@@ -1109,10 +1109,10 @@ public final class StickerGallerySaver {
             if (readableHeader ? isAnimatedWebp(header) : animated) {
                 return MediaFormat.animated(Settings.DOWNLOAD_STICKER_FORMAT.get());
             }
-            return MediaFormat.png();
+            return stillSticker(header);
         }
         if (isPng(header) || isJpeg(header) || (mimeType != null && mimeType.startsWith("image/"))) {
-            return MediaFormat.png();
+            return stillSticker(header);
         }
         if (animated && mimeType != null) {
             String safeExtension = extension == null ? "bin" : extension;
@@ -1124,6 +1124,21 @@ public final class StickerGallerySaver {
             );
         }
         throw new IllegalStateException("Unsupported sticker media type");
+    }
+
+    /**
+     * What a sticker that doesn't move is written as. By default it's decoded and written again
+     * as a PNG, which every gallery opens. With Keep photos as TikTok sent them on (#229) the
+     * file TikTok sent is saved byte for byte, but only for an encoding its own header proves,
+     * so a URL or a server's content type can't put a wrong name on the bytes.
+     */
+    private static MediaFormat stillSticker(byte[] header) {
+        if (Settings.KEEP_PHOTOS_AS_SENT.get()) {
+            if (isWebp(header)) return MediaFormat.webp();
+            if (isJpeg(header)) return MediaFormat.passthrough("image/jpeg", "jpg", false, "JPEG");
+            if (isPng(header)) return MediaFormat.passthrough("image/png", "png", false, "PNG");
+        }
+        return MediaFormat.png();
     }
 
     private static byte[] peekHeader(BufferedInputStream inputStream) throws Exception {

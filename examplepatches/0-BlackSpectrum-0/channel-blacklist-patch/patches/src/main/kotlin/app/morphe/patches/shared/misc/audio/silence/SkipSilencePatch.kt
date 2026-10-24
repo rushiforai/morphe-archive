@@ -7,6 +7,7 @@
 
 package app.morphe.patches.shared.misc.audio.silence
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.bytecodePatch
@@ -14,7 +15,6 @@ import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.noTitleUnsortedPreferenceCategory
-import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import java.util.logging.Logger
 
@@ -59,7 +59,7 @@ internal fun skipSilencePatch(
             )
         }
 
-        SetSkipSilenceEnabledFingerprint.matchSingle().method.addInstructions(
+        SetSkipSilenceEnabledFingerprint.method.addInstructions(
             0,
             """
                 invoke-static { p1 }, $EXTENSION_CLASS->isSkipSilenceEnabled(Z)Z
@@ -78,5 +78,29 @@ internal fun skipSilencePatch(
                 move-result p7
             """
         )
+
+        // Lower the silence threshold for quiet audio.
+        SilenceSkippingProcessorQueueInputFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $EXTENSION_CLASS->updateSilenceThresholdLevel(Ljava/nio/ByteBuffer;)V"
+        )
+
+        SilenceSkippingProcessorFlushFingerprint.method.addInstruction(
+            0,
+            "invoke-static { }, $EXTENSION_CLASS->resetSilenceThresholdLevel()V"
+        )
+
+        SilenceSkippingProcessorIsNoiseFingerprint.apply {
+            val match = instructionMatches.first()
+            val thresholdRegister = match.getInstruction<TwoRegisterInstruction>().registerA
+
+            method.addInstructions(
+                match.index + 1,
+                """
+                    invoke-static { v$thresholdRegister }, $EXTENSION_CLASS->adaptiveSilenceThresholdLevel(S)S
+                    move-result v$thresholdRegister
+                """
+            )
+        }
     }
 }

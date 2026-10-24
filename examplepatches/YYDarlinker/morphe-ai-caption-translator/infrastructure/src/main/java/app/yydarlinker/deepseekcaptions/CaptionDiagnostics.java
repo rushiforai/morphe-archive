@@ -56,9 +56,14 @@ final class CaptionDiagnostics {
                         && !stage.equals("REBUILD_SELECTED")
                         && !stage.equals("REBUILD_DISPLAY")
                 || stage.equals("ENGINE_MODE_SAVED")
+                || stage.equals("INTENT_APPLY")
+                || stage.equals("INTENT_USER_OFF")
+                || stage.equals("INTENT_USER_SELECTED")
+                || stage.equals("INTENT_DEACTIVATE")
                 || stage.equals("ENGINE_SNAPSHOT_ACTIVATED")
                 || stage.equals("NATIVE_APPLIED_CAPTURE_FAILED")
                 || stage.equals("NATIVE_APPLIED_OWNER_REJECTED")
+                || stage.equals("NATIVE_OBSERVATION_STALE")
                 || stage.equals("PLAYER_TRANSITION_SAFE_BLANK")
                 || stage.equals("PLAYER_TRANSITION_STABLE");
     }
@@ -154,7 +159,7 @@ final class CaptionDiagnostics {
 
     /** The three header lines: engine, mode and the state of the display text debug. */
     private static String header(Context context, boolean localized) {
-        boolean translates = CaptionChoice.translates();
+        boolean translates = CaptionSessionIntent.load(context).translates();
         boolean debug = DeepSeekConfig.displayTextDebugEnabled(context);
         if (!localized) {
             return "Engine: Event rebuild / "

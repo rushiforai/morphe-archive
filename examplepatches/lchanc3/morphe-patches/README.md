@@ -21,15 +21,15 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.4.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;16 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
+> **[v1.6.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 
 **Supported versions:**
 
-| 3.9.2 | 3.8.5 | 3.8.4 | 🧪&nbsp;any |
-| :---: | :---: | :---: | :---: |
+| 3.9.2 | 🧪&nbsp;any |
+| :---: | :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -45,7 +45,8 @@
 | **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds. While an article is open it waits until you leave it or do something that needs PTT, so opening links does not log you in again every time. |  |
 | **Remove ads** | Stops the banner, the rows inside articles and lists, and the ad the app falls back to when it thinks AdMob is blocked. No ad is requested at all, so nothing is downloaded and nothing is reported. |  |
 | **Search history actions** | Long press a recent search keyword in the article search dialog to delete it, clear the history, or add a home screen shortcut that opens the board with that search. Shortcuts made from the 最近搜尋 tab open the search too. |  |
-| **Stop on bot detection** | Shows PTT's message and stops when its DDoS/BOT detection turns the connection away, instead of showing it as garbled text and reconnecting into it every few seconds.<br><sub>Only 3.9.2</sub> |  |
+| **Sharper images** | Shows pictures at the resolution they are drawn at. The full size viewer no longer halves anything taller or wider than 2048 pixels, and previews are no longer decoded smaller than their frame. Uses more memory for large pictures. |  |
+| **Stop on bot detection** | Shows PTT's message and stops when its DDoS/BOT detection turns the connection away, instead of showing it as garbled text and reconnecting into it every few seconds. |  |
 | **Stop on login ban** | Shows PTT's message and stops when it temporarily bans the account from logging in, instead of sitting at 連線中 until the app is closed. |  |
 | **Wrap recent searches** | Lays the recent search keywords out over several lines instead of one line you have to scroll sideways. |  |
 
@@ -58,7 +59,7 @@
 
 **Supported versions:**
 
-| 3.0.0-alpha.3 |
+| 3.0.0-alpha.6 |
 | :---: |
 
 | Patch | Description | Options |

@@ -35,6 +35,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.theme.ThemeUtils;
 
 /**
  * Opens a dialog showing official links.
@@ -176,8 +177,8 @@ public class MorpheAboutPreference extends Preference {
         final boolean isNetworkConnected = Utils.isNetworkConnected();
 
         // Get theme colors.
-        String foregroundColorHex = Utils.getColorHexString(Utils.getAppForegroundColor());
-        String backgroundColorHex = Utils.getColorHexString(Utils.getDialogBackgroundColor());
+        String foregroundColorHex = Utils.getColorHexString(ThemeUtils.getAppForegroundColor());
+        String backgroundColorHex = Utils.getColorHexString(ThemeUtils.getDialogBackgroundColor());
 
         // Morphe brand colors from logo.
         String morpheBlue = "#1E5AA8";

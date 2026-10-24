@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -158,7 +159,7 @@ public final class AccountAvatarSwipe {
         final boolean haptics = isHapticFeedbackEnabled();
         final AvatarSwitchStyle style = getSwitchStyle();
 
-        if (activity == null || style == AvatarSwitchStyle.NONE || !AvatarSwitchAnimation.isSupported()) {
+        if (activity == null || style == AvatarSwitchStyle.NONE || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             if (target != null) {
                 if (activity != null && haptics) {
                     activity.getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);

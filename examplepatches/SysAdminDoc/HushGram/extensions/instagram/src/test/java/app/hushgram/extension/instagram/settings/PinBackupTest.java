@@ -106,9 +106,48 @@ public class PinBackupTest {
         assertTrue(Settings.LOCK_MESSAGES.savedValue());
         assertTrue(Settings.LOCK_APP.savedValue());
         assertEquals(0, result.applied);
-        assertEquals(2, result.skipped);
+        assertEquals("the locks are known settings, not skipped ones", 0, result.skipped);
+        assertEquals(2, result.held);
         assertFalse("nothing to undo", ConfigurationBackup.canUndo());
+        assertEquals("Imported 0 settings. Lock switches stay as they are until you change them here.",
+                HushgramPreferenceFragment.configurationReceipt(false, result));
         Settings.LOCK_APP.resetToDefault();
+    }
+
+    /** A file from a newer version can hold both: unknown keys and locks the PIN keeps. */
+    @Test
+    public void theReceiptTellsHeldLocksApartFromUnknownKeys() throws Exception {
+        MessagesLockForTests.open();
+        String file = "{\"project\":\"HushGram\",\"schema\":1,\"settings\":{"
+                + "\"" + Settings.LOCK_MESSAGES.key + "\":{\"type\":\"boolean\",\"value\":false},"
+                + "\"" + Settings.HIDE_ADS.key + "\":{\"type\":\"boolean\",\"value\":false},"
+                + "\"from_a_newer_version\":{\"type\":\"boolean\",\"value\":true}}}";
+
+        ConfigurationBackup.Result result = ConfigurationBackup.restore(file.getBytes(StandardCharsets.UTF_8));
+
+        assertTrue(Settings.LOCK_MESSAGES.savedValue());
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        assertEquals(1, result.applied);
+        assertEquals(1, result.skipped);
+        assertEquals(1, result.held);
+        assertEquals("Imported 1 settings. Skipped 1 that this version doesn't know. Lock switches stay as they are "
+                + "until you change them here.", HushgramPreferenceFragment.configurationReceipt(false, result));
+        ConfigurationBackup.forgetUndo();
+        Settings.HIDE_ADS.resetToDefault();
+    }
+
+    /** A lock the file leaves as it already is changed nothing, so nothing is said about it. */
+    @Test
+    public void aLockTheFileDoesNotChangeIsNotReportedAsHeld() throws Exception {
+        MessagesLockForTests.open();
+        String file = "{\"project\":\"HushGram\",\"schema\":1,\"settings\":{"
+                + "\"" + Settings.LOCK_MESSAGES.key + "\":{\"type\":\"boolean\",\"value\":true}}}";
+
+        ConfigurationBackup.Result result = ConfigurationBackup.restore(file.getBytes(StandardCharsets.UTF_8));
+
+        assertEquals(0, result.held);
+        assertEquals(0, result.skipped);
+        assertEquals("Imported 0 settings.", HushgramPreferenceFragment.configurationReceipt(false, result));
     }
 
     /** Unlocked, as settings opened over a locked Instagram ask first; while locked, see SettingsRelockTest. */
@@ -140,9 +179,13 @@ public class PinBackupTest {
         MessagesLockForTests.open();
         assertFalse(MessagesLock.locked());
 
-        ConfigurationBackup.undo(token);
+        ConfigurationBackup.Result undone = ConfigurationBackup.undo(token);
 
         assertTrue(Settings.LOCK_MESSAGES.savedValue());
+        assertEquals(0, undone.skipped);
+        assertEquals(1, undone.held);
+        assertEquals("Settings restored. Lock switches stay as they are until you change them here.",
+                HushgramPreferenceFragment.configurationReceipt(true, undone));
         ConfigurationBackup.forgetUndo();
     }
 }

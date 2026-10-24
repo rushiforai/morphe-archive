@@ -20,7 +20,6 @@ private const val LOCAL_HEADER_SIZE = 30
 private const val CENTRAL_HEADER_SIZE = 46
 private const val END_RECORD_SIZE = 22
 
-private const val LOCAL_SIGNATURE = 0x04034b50
 private const val CENTRAL_SIGNATURE = 0x02014b50
 private const val END_SIGNATURE = 0x06054b50
 

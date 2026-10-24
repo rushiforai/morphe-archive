@@ -467,25 +467,13 @@ final class CaptionSurface {
     }
 
     /**
-     * The on-screen width of the rendered video, including a player-transition scale. The local
-     * rectangle deliberately cancels such a scale (the caption is placed inside the scaled host);
-     * this value is only for deciding how far a comments-sheet animation has progressed.
+     * The cached rendered surface view. The size law reads its global matrix and local size; no
+     * search and no geometry mutation happens here. A detached view is not evidence of a current
+     * video plane, so it returns null and the caller keeps the previous scale.
      */
-    static int visibleVideoWidth() {
+    static View currentSurfaceView() {
         View surface = renderedSurfaceView.get();
-        if (surface == null) surface = renderedSurface(player());
-        if (surface == null) return 0;
-        Rect visible = new Rect();
-        return surface.getGlobalVisibleRect(visible) ? visible.width() : 0;
-    }
-
-    /** The on-screen height of the rendered video; used to tell a comments resize from a crop. */
-    static int visibleVideoHeight() {
-        View surface = renderedSurfaceView.get();
-        if (surface == null) surface = renderedSurface(player());
-        if (surface == null) return 0;
-        Rect visible = new Rect();
-        return surface.getGlobalVisibleRect(visible) ? visible.height() : 0;
+        return surface != null && surface.isAttachedToWindow() ? surface : null;
     }
 
     /**

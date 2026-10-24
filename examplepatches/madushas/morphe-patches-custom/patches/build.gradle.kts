@@ -1,0 +1,82 @@
+group = "app.madushas.pdb-patches"
+
+patches {
+    about {
+        name = "Madusha's Morphe Patches"
+        description = "Patches for Pdb (pdb.app) and MyDialog (net.omobio.dialogsc): telemetry removal, security-check bypasses, ad removal, premium unlock and power-user features."
+        source = "https://github.com/madushas/morphe-patches-custom"
+        author = "madushas"
+        contact = "https://github.com/madushas"
+        website = "https://morphe.software/add-source?github=madushas/morphe-patches-custom"
+        license = "GPLv3"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+}
+
+val generatedSecretsDir = layout.buildDirectory.dir("generated/secrets/kotlin")
+
+sourceSets {
+    main {
+        kotlin.srcDir(generatedSecretsDir)
+    }
+}
+
+fun String.kotlinStringLiteral() = replace("\\", "\\\\").replace("\"", "\\\"")
+
+val generateSecrets by tasks.registering {
+    val sharedMapsApiKey = providers.environmentVariable("SHARED_MAPS_API_KEY")
+    inputs.property("SHARED_MAPS_API_KEY", sharedMapsApiKey.orElse(""))
+    outputs.dir(generatedSecretsDir)
+
+    doLast {
+        val outputDir = generatedSecretsDir.get().asFile.resolve("app/template/patches/shared")
+        outputDir.mkdirs()
+        outputDir.resolve("BuildSecrets.kt").writeText(
+            """
+            package app.template.patches.shared
+
+            internal object BuildSecrets {
+                const val SHARED_MAPS_API_KEY = "${sharedMapsApiKey.orNull.orEmpty().kotlinStringLiteral()}"
+            }
+            """.trimIndent(),
+        )
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn(generateSecrets)
+}
+
+tasks.named("sourcesJar") {
+    dependsOn(generateSecrets)
+}
+
+// Separate configuration so gson is available at runtime for the
+// generatePatchesList task but never bundled into the APK.
+val patchListGeneratorClasspath: Configuration by configurations.creating
+
+dependencies {
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
+}
+
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+
+        dependsOn(build)
+
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    // Used by gradle-semantic-release-plugin.
+    publish {
+        dependsOn("generatePatchesList")
+    }
+}

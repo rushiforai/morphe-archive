@@ -166,6 +166,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtumblr_hide_suggested_communities", FALSE);
 
     /**
+     * The carousels of tags Tumblr suggests you follow, and their headings, and the prompts to share
+     * a tag between its posts, come out of each page
+     * ({@link app.hushtumblr.extension.tumblr.timeline.TimelineFilter}). Off to start.
+     */
+    public static final BooleanSetting HIDE_SUGGESTED_TAGS =
+            new BooleanSetting("hushtumblr_hide_suggested_tags", FALSE);
+
+    /**
      * Tumblr TV's "Watch it" rows and video hub cards, and their headings, come out of each page
      * ({@link app.hushtumblr.extension.tumblr.timeline.TimelineFilter}). Off to start.
      */
@@ -299,6 +307,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_POSTS_WITH_WORDS =
             new BooleanSetting("hushtumblr_hide_posts_with_words", FALSE);
+
+    /**
+     * Posts Tumblr covers with "This post contains filtered content", because of a tag or word in
+     * your own filters, leave each page of posts Tumblr loads
+     * ({@link app.hushtumblr.extension.tumblr.timeline.PostRules}).
+     */
+    public static final BooleanSetting HIDE_FILTERED_POSTS =
+            new BooleanSetting("hushtumblr_hide_filtered_posts", FALSE);
 
     /**
      * Tumblr's Dark palette paints its backgrounds in the color picked when patching, black unless

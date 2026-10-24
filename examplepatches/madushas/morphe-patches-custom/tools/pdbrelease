@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Release helper for the Pdb Morphe patch bundle.
+#
+# Morphe Manager resolves a source from the repository's LATEST RELEASE
+# (https://morphe.software/add-source?github=madushas/pdb_patch), so a version
+# only becomes visible once it is released with a `patches-<version>.mpp` asset.
+# Bumping gradle.properties alone publishes nothing — this script keeps the three
+# version-bearing files and the release asset in agreement.
+#
+# Usage:
+#   pdbrelease --check     verify the working tree is consistent (no changes)
+#   pdbrelease --prepare   build, regenerate patches-list.json, sync patches-bundle.json, commit
+#   pdbrelease --publish   ...and push + create the GitHub release (needs gh auth)
+#
+# Every version-bearing file must read the same version:
+#   gradle.properties      version                  -> the .mpp manifest + asset name
+#   patches-bundle.json    version, download_url    -> what a Manager source reads
+#   patches-list.json      version, patches[]       -> the patch catalogue
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO"
+OWNER_REPO="madushas/pdb_patch"
+
+MODE="${1:---check}"
+
+export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+export GITHUB_ACTOR="${GITHUB_ACTOR:-madushas}"
+# GITHUB_TOKEN comes from the environment (set by the user's shell profile).
+# The script fails fast below if it is missing, instead of reading token files.
+
+VERSION="$(grep -E '^version' gradle.properties | head -1 | cut -d= -f2 | tr -d ' ')"
+ASSET="$REPO/patches/build/libs/patches-$VERSION.mpp"
+URL="https://github.com/$OWNER_REPO/releases/download/v$VERSION/patches-$VERSION.mpp"
+
+report() {
+  python3 - "$VERSION" "$URL" <<'PY'
+import json, sys
+version, url = sys.argv[1], sys.argv[2]
+ok = True
+b = json.load(open("patches-bundle.json"))
+l = json.load(open("patches-list.json"))
+if b["version"] != version:
+    print(f"  MISMATCH patches-bundle.json version {b['version']} != {version}"); ok = False
+if b["download_url"] != url:
+    print(f"  MISMATCH patches-bundle.json download_url\n    {b['download_url']}\n    {url}"); ok = False
+if l["version"] != version:
+    print(f"  MISMATCH patches-list.json version {l['version']} != {version}"); ok = False
+print(f"  gradle.properties    {version}")
+print(f"  patches-bundle.json  {b['version']}  ({b['download_url'].rsplit('/',1)[-1]})")
+print(f"  patches-list.json    {l['version']}  ({len(l['patches'])} patches)")
+sys.exit(0 if ok else 1)
+PY
+}
+
+echo "==> Version $VERSION"
+echo "==> Metadata"
+if report; then echo "  (consistent)"; META_OK=1; else META_OK=0; fi
+if [[ -f "$ASSET" ]]; then
+  echo "==> Asset: $(du -h "$ASSET" | cut -f1)  $ASSET"
+else
+  echo "==> Asset NOT built yet: $ASSET"
+fi
+
+if [[ "$MODE" == "--check" ]]; then
+  [[ "$META_OK" == "1" ]] || { echo "Metadata is inconsistent — run: pdbrelease --prepare"; exit 1; }
+  [[ -f "$ASSET" ]] || { echo "Bundle not built — run: pdbrelease --prepare"; exit 1; }
+  echo "==> Ready to release v$VERSION"
+  echo "    tag/asset: v$VERSION / patches-$VERSION.mpp"
+  echo "    source:    https://morphe.software/add-source?github=$OWNER_REPO"
+  exit 0
+fi
+
+echo "==> Building bundle"
+# ORDERING IS CRITICAL:
+#   1. generatePatchesList depends on `build`, and `build` re-runs `jar`, which
+#      OVERWRITES any classes.dex that buildAndroid merged into the .mpp.
+#      Running the list generator after buildAndroid silently ships a dex-less bundle.
+#   2. buildAndroid (D8, merges classes.dex into the .mpp) must therefore be the
+#      LAST gradle task, and the dex check must run after every gradle invocation.
+# A dex-less .mpp makes Morphe Manager throw "Patch bundle is missing dex entries"
+# and show 0 patches (validateDexEntries in PatchBundle.Loader).
+./gradlew :patches:generatePatchesList --no-daemon -q
+./gradlew :patches:buildAndroid --no-daemon -q
+
+echo "==> Verifying the bundle contains dex (after the LAST gradle task)"
+if ! unzip -l "$ASSET" | grep -q "\.dex"; then
+  echo "  FAIL: no .dex entries in $ASSET — the Manager would show 0 patches" >&2
+  exit 1
+fi
+unzip -l "$ASSET" | grep "\.dex" | sed 's/^/  /'
+
+echo "==> Syncing patches-bundle.json"
+python3 - "$VERSION" "$URL" <<'PY'
+import collections, json, sys
+version, url = sys.argv[1], sys.argv[2]
+p = "patches-bundle.json"
+d = json.load(open(p), object_pairs_hook=collections.OrderedDict)
+d["download_url"] = url
+d["version"] = version
+json.dump(d, open(p, "w"), indent=1, ensure_ascii=False)
+open(p, "a").write("\n")
+PY
+report || { echo "metadata still inconsistent — aborting"; exit 1; }
+
+if [[ -z "$(git status --porcelain)" ]]; then
+  echo "==> Nothing to commit"
+else
+  git add -A
+  git commit -q -m "release: v$VERSION"
+  echo "==> Committed"
+fi
+
+if [[ "$MODE" == "--publish" ]]; then
+  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    echo "GITHUB_TOKEN is not set in the environment — required for gh release create" >&2
+    exit 1
+  fi
+  echo "==> Pushing and creating the release"
+  git push origin HEAD
+  gh release create "v$VERSION" "$ASSET" \
+    --repo "$OWNER_REPO" \
+    --title "Pdb Extras v$VERSION" \
+    --generate-notes
+  echo "==> Released v$VERSION — refresh the source in Morphe Manager"
+else
+  cat <<EOF
+==> Prepared. To publish (this is the step that makes it visible in Morphe Manager):
+
+    git push origin HEAD
+    gh release create v$VERSION patches/build/libs/patches-$VERSION.mpp \\
+      --repo $OWNER_REPO --title "Pdb Extras v$VERSION" --generate-notes
+
+    Then in Morphe Manager re-add / refresh:
+    https://morphe.software/add-source?github=$OWNER_REPO
+EOF
+fi

@@ -1548,8 +1548,10 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
     execute {
         val profile = profileFor(packageMetadata.versionName)
+        patchNativeToolTabs(packageMetadata.versionName)
         patchReadingPosition(packageMetadata.versionName)
         patchUnreadToolbarCount(packageMetadata.versionName)
+        patchHiddenNgUnread(packageMetadata.versionName)
         patchHomeBoardMultiSelect(packageMetadata.versionName, profile.homeFragmentClass)
 
         val readManager = when (packageMetadata.versionName) {
@@ -1592,6 +1594,8 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchPostHistoryRetentionCount(packageMetadata.versionName)
         patchBrowsingAndSearchHistory(packageMetadata.versionName)
         patchGroupedBrowsingHistory(packageMetadata.versionName)
+        patchNativeDrawDates(packageMetadata.versionName)
+        patchNativeUiTheme(packageMetadata.versionName)
         patchFavoriteThreads(packageMetadata.versionName)
         patchHomeRefreshKeywords(packageMetadata.versionName)
         patchClipboardHistory(packageMetadata.versionName)
@@ -1952,6 +1956,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchWacchoiLongPressMenu(packageMetadata.versionName)
         patchImageListResolvedMedia(packageMetadata.versionName)
         patchThumbnailClickAttachments(packageMetadata.versionName)
+        patchThumbnailRebind242(packageMetadata.versionName)
         if (packageMetadata.versionName in setOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev")) {
             patchPostVersionInfo(profile.applicationClass)
         }
@@ -1963,6 +1968,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchHissiExternalIntentBoundaries()
         patchHttpsTransport()
         patchNativeUpdatePolicy(packageMetadata.versionName)
+        patchThreadRefreshValidators(packageMetadata.versionName)
         patchPatrolImages(packageMetadata.versionName)
         patchPatrolInterval(packageMetadata.versionName)
         patchExternalBoardAuth(packageMetadata.versionName)
@@ -2709,18 +2715,19 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchWacchoiLongPressM
         } else null
     }.asReversed()
     val mutableBuilder = mutableClassDefBy(owner).findMutableMethodOf(builder)
-    returns.filter { versionName != "0.8.10.226 dev" }.forEach { (index, register) ->
+    val wrapResponseMenu=versionName=="0.8.10.226 dev"||versionName=="0.8.10.242 dev"
+    returns.filter { !wrapResponseMenu }.forEach { (index, register) ->
         mutableBuilder.addInstructionsWithLabels(index, """
             invoke-static/range {v$register .. v$register}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendForCurrentDialog(Ljava/lang/Object;)V
         """.trimIndent())
     }
-    if (versionName != "0.8.10.226 dev") mutableBuilder.addInstructionsWithLabels(0, """
+    if (!wrapResponseMenu) mutableBuilder.addInstructionsWithLabels(0, """
         invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->captureDialog(Ljava/lang/Object;)V
     """.trimIndent())
     // A native branch jumps directly to the shared return when action 35 is
     // hidden. Return-site insertion alone leaves that path unhooked. A wrapper
     // has one unconditional post-processing boundary for every native exit.
-    if (versionName == "0.8.10.226 dev") {
+    if (wrapResponseMenu) {
         val klass = mutableClassDefBy(owner)
         val delegate = MutableMethod(com.android.tools.smali.dexlib2.immutable.ImmutableMethod(owner,
             "haiagaruNativeResponseMenu", builder.parameters, builder.returnType, builder.accessFlags,
@@ -3036,7 +3043,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyWacchoiLong
         "invoke-static/range {v$nameMenuRegister .. v$nameMenuRegister}, " +
             "Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->reorderLegacyNameMenu(Ljava/lang/Object;)V")
     nameMenu.addInstructionsWithLabels(nameAnchor.index, """
-        invoke-static {p0, v$nameMenuRegister, p1}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendLegacyForResponse(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+        invoke-static {p0, v$nameMenuRegister, p1}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendLegacyForName(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
     """.trimIndent())
     val callback = mutableClassDefBy(owner).methods.single { method ->
         method.name == "Wx_"
@@ -4817,7 +4824,7 @@ val haiagaruPatch = resourcePatch(
             entry.textContent = "フィルタ"
             strings.documentElement.appendChild(entry)
         }
-        val responseLabels = listOf("投稿者を強調", "レスを保存", "過去レスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索")
+        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録")
         val archiveIcons = mapOf(
             "haiagaru_response_history" to "M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 .07,.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,8v5l4.28,2.54 .72,-1.21 -3.5,-2.08V8H12z",
             "haiagaru_response_save" to "M17,3H5c-1.11,0 -2,.9 -2,2v14c0,1.1 .89,2 2,2h14c1.1,0 2,-.9 2,-2V7l-4,-4zM12,19c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3zM15,9H5V5h10v4z",
@@ -5194,6 +5201,34 @@ val haiagaruPatch = resourcePatch(
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:theme", "@android:style/Theme.Material.Light.NoActionBar")
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:windowSoftInputMode", "adjustResize")
             })
+            application.appendChild(document.createElement("provider").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.SettingsShareProvider")
+                setAndroidAttribute("authorities", document.documentElement.getAttribute("package") + ".haiagaru.settings")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("grantUriPermissions", "true")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.SettingsImportActivity")
+                setAndroidAttribute("exported", "true")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+                appendChild(document.createElement("intent-filter").apply {
+                    appendChild(document.createElement("action").apply { setAndroidAttribute("name", "android.intent.action.VIEW") })
+                    for(category in listOf("android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"))
+                        appendChild(document.createElement("category").apply { setAndroidAttribute("name", category) })
+                    appendChild(document.createElement("data").apply { setAndroidAttribute("mimeType", "application/vnd.haiagaru.settings") })
+                })
+                appendChild(document.createElement("intent-filter").apply {
+                    appendChild(document.createElement("action").apply { setAndroidAttribute("name", "android.intent.action.VIEW") })
+                    appendChild(document.createElement("category").apply { setAndroidAttribute("name", "android.intent.category.DEFAULT") })
+                    for(scheme in listOf("content", "file"))
+                        appendChild(document.createElement("data").apply { setAndroidAttribute("scheme", scheme) })
+                    appendChild(document.createElement("data").apply {
+                        setAndroidAttribute("host", "*")
+                        setAndroidAttribute("mimeType", "*/*")
+                        setAndroidAttribute("pathPattern", ".*\\.haiagaru")
+                    })
+                })
+            })
             for(permission in listOf("android.permission.FOREGROUND_SERVICE", "android.permission.FOREGROUND_SERVICE_DATA_SYNC", "android.permission.POST_NOTIFICATIONS")){
                 val exists=(0 until document.getElementsByTagName("uses-permission").length).any {
                     (document.getElementsByTagName("uses-permission").item(it) as Element).getAttributeNS(ANDROID_XML_NAMESPACE,"name")==permission
@@ -5239,11 +5274,7 @@ val haiagaruPatch = resourcePatch(
                     pathAttribute = "android:pathPrefix",
                 )
                 application.appendChild(hissiActivity)
-                application.setAttributeNS(
-                    ANDROID_XML_NAMESPACE,
-                    "android:usesCleartextTraffic",
-                    "true",
-                )
+                application.setAndroidAttribute("usesCleartextTraffic", "true")
             } else {
                 application.appendChild(hissiActivity)
             }

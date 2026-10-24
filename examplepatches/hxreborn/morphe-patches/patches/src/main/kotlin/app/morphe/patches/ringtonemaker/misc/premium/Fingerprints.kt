@@ -16,7 +16,7 @@ internal object PremiumUserFingerprint : Fingerprint(
     returnType = "Z",
     parameters = emptyList(),
     filters = listOf(
-        opcode(Opcode.SGET_BOOLEAN, InstructionLocation.MatchFirst()),
+        opcode(Opcode.SGET_BOOLEAN),
         opcode(Opcode.INVOKE_STATIC, InstructionLocation.MatchAfterWithin(2)),
     ),
 )

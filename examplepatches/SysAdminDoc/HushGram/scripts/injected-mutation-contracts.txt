@@ -354,6 +354,12 @@ start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSaveButto
 once-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSaveButton()Z in instance (L*;JJ)L*; holding android_purge_26_q2_ClipsUfiComponent_maybeCreateSaveButtonComponent
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSaveCount()Z in instance (L*;JJ)L*; holding android_purge_26_q2_ClipsUfiComponent_maybeCreateSaveCountComponent
 once-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSaveCount()Z in instance (L*;JJ)L*; holding android_purge_26_q2_ClipsUfiComponent_maybeCreateSaveCountComponent
+# Hide the Friends tab on Reels hands friendsTab(View) the Friends tab's view right after the method
+# that builds the Reels top tabs gives the tab its icon and reads the tab's view back (#300). That
+# method is the one taking the TabLayout first that loads the Friends tab icon and takes the tabs'
+# callbacks (a shorter sibling that only swaps the icon holds the same constant), and it's the hook's
+# only caller, so once-call.
+once-call Lapp/hushgram/extension/instagram/reels/ReelsTopBar;->friendsTab(Landroid/view/View;)V in (Lcom/google/android/material/tabs/TabLayout;*Lkotlin/jvm/functions/Function1;*)V holding const:0x7f0806a5
 # Keep clear mode on, the same patch's eighth switch, has Instagram's clear mode (its fullscreen view)
 # carry from reel to reel. The action handler's turn-on and turn-off each tell the extension once,
 # after the action they run, with what they were handed: entered(handler, reason) in the one instance
@@ -366,7 +372,9 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSaveCount(
 # the scrubber, with Instagram's answer and the reel state's clear mode flag (#277); left out, a long
 # reel in clear mode keeps its seek bar. The reel holder's chrome alpha setter passes the alpha it was
 # asked for through chrome() once, with the one it holds, right after reading that (#233); left out,
-# Instagram's reset of a page it binds at rest brings back the buttons of a reel in clear mode.
+# Instagram's reset of a page it binds at rest brings back the buttons of a reel in clear mode. The
+# pager listener's scroll state change hands settled() the pager and the state once, right after
+# reading the pager on its way to rest (#233); left out, a swipe back that snaps back ends clear mode.
 # Each hook is called from its one method and nowhere else.
 # Left out, clear mode ends with every swipe as Instagram has it; twice or elsewhere, it isn't the
 # hook the patch wrote.
@@ -381,6 +389,7 @@ start-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->built(Ljava/l
 once-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->built(Ljava/lang/Object;)V in instance (L*;)L*; holding android_purge_26_q3_ClipsFullscreenViewComponent_render
 once-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->scrubber(II)Z in instance (L*;)L*; holding android_purge_26_q3_ClipsScrubberRowComponent_render
 once-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->chrome(FF)F in instance (F)V holding android_purge_26_q2_LithoClipsItemDefinition_Holder_updateChromeAlpha
+once-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->settled(Ljava/lang/Object;Ljava/lang/Object;)V in instance (L*;)V holding android_purge_26_q2_ClipsViewerViewPagerListener_onScrollStateChanged
 first-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->enter(Ljava/lang/Object;Ljava/lang/Object;)V outside Lapp/hushgram/extension/
 first-call Lapp/hushgram/extension/instagram/reels/ReelClearMode;->reelId(Ljava/lang/Object;)Ljava/lang/String; outside Lapp/hushgram/extension/
 #
@@ -420,6 +429,11 @@ no-call Landroid/content/pm/ShortcutManager;->addDynamicShortcuts(Ljava/util/Lis
 no-call Landroid/content/pm/ShortcutManager;->setDynamicShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/
 no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/
 no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/hushgram/extension/
+# Pick the app icon sends every call Instagram makes to turn a component on or off to AppIcon, which
+# drops only the ones that would undo the picked icon. One left in Instagram's code can turn its own
+# launcher alias back on at start beside HushGram's, so the home screen shows two icons.
+no-call Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V outside Lapp/hushgram/extension/
+no-call Landroid/content/pm/PackageManager;->setComponentEnabledSettings(Ljava/util/List;)V outside Lapp/hushgram/extension/
 # The settings patch also sends the call that gives Home's title view, which holds the Instagram
 # logo, its long press to SettingsEntry.setLogoLongClickListener, in the method that draws Home's
 # header from a state (MainFeedActionBar.A08 on 450, the method the Ghost mode button's rules below
@@ -1487,6 +1501,21 @@ once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepSta
 # checks on all seven 450 builds that the read is that one and where the hook lands.
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->followList(I)I in instance (Landroid/os/Bundle;)V pooled holding FollowListFragment.ShouldFetchSuggestedUsers
 #
+# The same switch takes the Suggested tab off someone else's follow lists (#302). The pager's read of
+# its UnifiedFollowFragment.HAS_SIMILAR_ACCOUNTS argument goes to ProfileSuggestions.suggestedTab right
+# after the getBoolean's move-result, in UnifiedFollowFragment's onCreate, the one method of that shape
+# loading the key (the places opening the pager put it or ask whether it's there). Left out, the tab
+# comes back; twice or elsewhere, it isn't the hook the patch wrote. FollowListSuggestionsHookTest
+# checks on every 452 build that the read is that one and where the hook lands.
+once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->suggestedTab(I)I in instance (Landroid/os/Bundle;)V pooled holding UnifiedFollowFragment.HAS_SIMILAR_ACCOUNTS
+#
+# It also takes Suggested for you off the bottom of the mutual followers list (#302). The list
+# adapter's rows (LX/0N6E;->A0C()V on 452.1) hand the suggested accounts to
+# ProfileSuggestions.mutualSuggestions right after reading them and before their isEmpty(). The rows
+# load no string, so the rule picks them by the config id they read to pick the section's header and
+# the subList they cut the mutual followers with. MutualSuggestionsHookTest checks every 452 build.
+once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->mutualSuggestions(Ljava/util/List;)Ljava/util/List; in instance ()V holding const:0x81089600002d70 Ljava/util/List;->subList(II)Ljava/util/List;
+#
 # Hide Complete your profile, Hide suggested people on profiles' third switch, asks
 # ProfileSuggestions.hideCompletionCards first in the check your own profile's posts make before adding
 # the Complete your profile cards (LX/0806;->A02(LX/0Ha3;)Z on 385611438), the one boolean method of one
@@ -1531,6 +1560,13 @@ once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepNot
 # the patch wrote. HideHighlightsHookTest checks on the 449 fixture where it lands, with and
 # without Hide suggested people on profiles in the same method.
 once-call Lapp/hushgram/extension/instagram/profile/ProfileHighlights;->keepTray()I in instance (L*;LX/*;LX/*;)V class-holding ProfileHeaderBinderGroup.bindView ProfileHeaderBinderGroup.createView
+# Hide profile tabs hands the list of a profile's tab keys to ProfileTabs.tabs, with the builder
+# (which keeps the signed-in session) and the profile's user, right before the builder returns it:
+# the one instance method taking a user, answering a list and naming all four tab keys. The hook
+# picks the setting for your own profile or everyone else's from the two IDs (#296). Left out, every
+# tab stays; twice or elsewhere, it isn't the hook the patch wrote. HideProfileTabsHookTest checks on
+# every 452 fixture that it lands right before the one return, naming the builder, the user and the list.
+once-call Lapp/hushgram/extension/instagram/profile/ProfileTabs;->tabs(Ljava/lang/Object;Ljava/lang/Object;Ljava/util/List;)Ljava/util/List; in instance (Lcom/instagram/user/model/User;)Ljava/util/List; pooled holding profile_media_grid profile_clips profile_reposts profile_tagged_media_photos_of_you
 # Hide the Threads button hands the list a profile's top bar builds its buttons from to
 # ThreadsButton.buttons right after the bar's binder reads it (ProfileActionBar.A00 on 450, the one
 # method of its shape reading the bar's A06 group), and builds from the answer. Left out, the
@@ -1720,23 +1756,41 @@ shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in i
 # on 452). Left out, the switch does nothing; twice or elsewhere, it isn't the hook the patch wrote.
 # SwipeToProfileHookTest checks on the 452 fixture where it lands.
 once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->allow(I)Z in instance ()Z holding android_purge_26_q3_ClipsViewerSwipeNavigationDelegate_isSwipeFromReelsToActionAllowed
-# It also hands the profile panel's gate to SwipeToProfile.allow in the swipe container's touch check,
-# its one (MotionEvent)Z method calling its panel switch (onInterceptTouchEvent on 452), so a touch
-# doesn't turn the panel off again. The tab host's tab change (00M2.A0O on 452) calls
-# SwipeToProfile.tabChanging first and SwipeToProfile.tabChanged right before each of its two returns,
-# which turn the Reels tab's profile panel on and off. Left out, the panel never shows for an account
-# Instagram's server didn't pick; twice or elsewhere, it isn't the hook the patch wrote.
-once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->allow(I)Z in instance (Landroid/view/MotionEvent;)Z calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(ZF)V class-holding No\ssupport\sfor\sdisabling\scenter\spanel
+# The tab host's swipe setup (setUpSwipeNavigationController, 00M2.A0I on 452) hands its new tab bar
+# answer (07xk.A05) to SwipeToProfile.leaveOutRightPanel right after it is read, so the right panel
+# (the profile) gets built with the switch on, and calls SwipeToProfile.tabChanged right after it hands
+# the container its panels, so that panel starts off away from Reels (#283). The tab change (00M2.A0O
+# on 452) calls SwipeToProfile.tabChanging first and SwipeToProfile.tabChanged right before each of
+# its two returns, which turn the Reels tab's profile panel on and off. Left out, the panel is never
+# built or never shows for an account on the new tab bar; twice or elsewhere, it isn't the hook the
+# patch wrote.
+once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->leaveOutRightPanel(ILjava/lang/Object;)Z in instance (Landroid/os/Bundle;)V calling static Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(L*;Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;L*;L*;L*;DD)V holding MainTabControllerImpl.setUpSwipeNavigationController
+once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->tabChanged(Ljava/lang/Object;)V in instance (Landroid/os/Bundle;)V calling static Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(L*;Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;L*;L*;L*;DD)V holding MainTabControllerImpl.setUpSwipeNavigationController
 start-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->tabChanging(Ljava/lang/Object;)V in instance (L*;L*;Ljava/lang/Integer;)V holding MainTabController.delegateOnTabChanged MainTabController.updatePagerForTabChanged
 once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->tabChanging(Ljava/lang/Object;)V in instance (L*;L*;Ljava/lang/Integer;)V holding MainTabController.delegateOnTabChanged MainTabController.updatePagerForTabChanged
 once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->tabChanged(Ljava/lang/Object;)V in instance (L*;L*;Ljava/lang/Integer;)V sites 2 holding MainTabController.delegateOnTabChanged MainTabController.updatePagerForTabChanged
 # In the same touch check it puts SwipeToProfile.childScrolls in the place of the container's walk of
-# the views under the finger (09bV.A00 on 452), and SwipeToProfile.pagerInput in the place of its one
-# call turning the tabs' pager input on, so no pager takes the swipe while the switch is on. Left out,
-# the container gives the swipe to a pager and never slides the profile in; twice or elsewhere, it
-# isn't the hook the patch wrote. SwipeToProfileHookTest checks on the 452 fixtures where both land.
+# the views under the finger (09bV.A00 on 452), SwipeToProfile.pagerInput in the place of its one
+# call setting the tabs' pager input as a touch starts, and SwipeToProfile.touched first thing with
+# each event, which holds that pager once a swipe has gone left by the touch slop. Left out, the
+# container gives a swipe left to a pager and never slides the profile in, or a held pager costs the
+# swipe right to Home; twice or elsewhere, it isn't the hook the patch wrote. SwipeToProfileHookTest
+# checks on the 452 fixtures where all three land.
 once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->childScrolls(Landroid/view/View;IIIII)Z in instance (Landroid/view/MotionEvent;)Z calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(ZF)V class-holding No\ssupport\sfor\sdisabling\scenter\spanel
 sole-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->pagerInput(Ljava/lang/Object;I)V replacing Landroidx/viewpager2/widget/ViewPager2;->setUserInputEnabled(Z)V in instance (Landroid/view/MotionEvent;)Z calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(ZF)V class-holding No\ssupport\sfor\sdisabling\scenter\spanel
+start-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->touched(Landroid/view/View;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(ZF)V class-holding No\ssupport\sfor\sdisabling\scenter\spanel
+once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->touched(Landroid/view/View;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->*(ZF)V class-holding No\ssupport\sfor\sdisabling\scenter\spanel
+# Once the panel has slid in, Instagram opens the profile in a screen of its own (ModalActivity) with
+# no swipe back, so the profile (UserDetailFragment) hands itself to SwipeToProfile.profileResumed
+# first in its onResume and to SwipeToProfile.profilePaused first in its onPause, and every screen's
+# touch is offered to SwipeToProfile.closesProfile in IgFragmentActivity.dispatchTouchEvent, first or
+# right after Tap to play's TapClock. Left out, a right swipe on the profile the reel opened does
+# nothing; twice or elsewhere, it isn't the hook the patch wrote.
+start-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->profileResumed(Ljava/lang/Object;)V in instance ()V holding UserDetailFragment.onResume
+once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->profileResumed(Ljava/lang/Object;)V in instance ()V holding UserDetailFragment.onResume
+start-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->profilePaused(Ljava/lang/Object;)V in instance ()V holding UserDetailFragment.onPause
+once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->profilePaused(Ljava/lang/Object;)V in instance ()V holding UserDetailFragment.onPause
+once-call Lapp/hushgram/extension/instagram/reels/SwipeToProfile;->closesProfile(Landroid/app/Activity;Landroid/view/MotionEvent;)Z in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 # Find the reel you came from hands the reel's media to ReelOrigin.opening first thing in the Reels
 # viewer's profile opener (07FC.A03 on 450, the one method holding the marker below), reading the media
 # field of its one argument into v0 on the way, and hands a profile's Reels tab to
@@ -1770,10 +1824,22 @@ shared-call Lapp/hushgram/extension/instagram/misc/VersionCode;->read(Landroid/c
 shared-call Lapp/hushgram/extension/instagram/misc/VersionCode;->read(Landroid/content/pm/PackageInfo;)I in instance (Landroid/content/Context;L*;L*;)V holding Error\sgetting\sapp\sversion\scode.
 # Change the like animation hands the animation the double-tap heart is set up with to
 # LikeAnimation.pick first thing in LikeActionView's set-up for a post, and the check that set-up makes
-# before it plays one of Instagram's own animations to LikeAnimation.allow, once each, and nowhere else.
+# before it plays one of Instagram's own animations to LikeAnimation.allow, once each. Since 452 the
+# feed and Reels hearts are Litho components (#299): pick also takes the post's animation where the
+# config reader returns it (04mS.A01 on 452.1, picked by the config ids it reads) and where the feed
+# heart (05oX) and the Reels heart (086g) keep theirs in their constructors, and allow takes the
+# answer of the eligibility check in each heart's render, in the like button's tap handler (06nK.FhH,
+# which logs ufi_like_clicked) and twice in the heart spring's static check (0EcK.A00), and nowhere else.
 start-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->pick(Ljava/lang/Object;)Ljava/lang/Object; in instance (Lcom/instagram/common/session/UserSession;LX/*;)V holding Lcom/instagram/ui/mediaactions/LikeActionView;->A01:LX/*;
 once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->pick(Ljava/lang/Object;)Ljava/lang/Object; in instance (Lcom/instagram/common/session/UserSession;LX/*;)V holding Lcom/instagram/ui/mediaactions/LikeActionView;->A01:LX/*;
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->pick(Ljava/lang/Object;)Ljava/lang/Object; in static (LX/*;)LX/*; holding const:0x36ebcb const:0xbb8a25c3 const:0x4cba04c3
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->pick(Ljava/lang/Object;)Ljava/lang/Object; in instance (Lcom/instagram/common/session/UserSession;LX/*;LX/*;Z)V class-holding custom_likes_animation like_heart
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->pick(Ljava/lang/Object;)Ljava/lang/Object; in instance (Lcom/instagram/common/session/UserSession;LX/*;LX/*;)V class-holding like_custom_likes like_heart
 once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->allow(I)Z in instance (Lcom/instagram/common/session/UserSession;LX/*;)V holding Lcom/instagram/ui/mediaactions/LikeActionView;->A01:LX/*;
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->allow(I)Z in instance (LX/*;)LX/*; holding custom_likes_animation like_heart
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->allow(I)Z in instance (LX/*;)LX/*; holding like_custom_likes like_heart
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->allow(I)Z in instance (Lcom/instagram/feed/media/Media;LX/*;Ljava/lang/String;Lkotlin/jvm/functions/Function0;I)V holding like_from_ufi ufi_like_clicked
+once-call Lapp/hushgram/extension/instagram/feed/LikeAnimation;->allow(I)Z in static (Lcom/instagram/common/session/UserSession;LX/*;Ljava/lang/Integer;)Z sites 2 holding Ljava/lang/RuntimeException;-><init>()V LX/*;->*(Lcom/instagram/common/session/UserSession;)Z
 # Show hidden like counts hands HiddenLikeCounts.hidden the poster's id and the post's hidden-count flag
 # first thing in the method every caller asks whether to hide a post's count (04fX.A06 on 452, asked by
 # the like rows below and by at least eight other callers, among them the Reels item config), the one
@@ -1865,6 +1931,15 @@ once-call Lapp/hushgram/extension/instagram/download/ProfilePicture;->offer(Ljav
 # ProfilePicture.offerPopup the list of items, the account and the context right before the popup
 # takes the list. Left out, that list never gets the rows; a second call isn't what the patch wrote.
 once-call Lapp/hushgram/extension/instagram/download/ProfilePicture;->offerPopup(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)V in instance (Landroid/view/View;)V holding UserOptionsBottomSheetOverflowHelper UserOptionsOverflowHelper
+# Profile extras button (#234) hands ProfileExtras.bound the profile bar and its right row first thing
+# in the bar's bind (ProfileActionBar.A00 on 452, the same one method Hide the Threads button reads the
+# list in). The bar empties both rows on every bind, so the extension puts its button in again behind
+# it. ProfileExtras.screen follows each call of that bind from the profile screen, with the bar and the
+# screen, which the extension reads the account off. Its call sites have no string
+# to anchor a rule on, so ProfileExtrasHookTest checks on every 452 fixture that each lands right after
+# its call. Left out, the button never shows; twice or elsewhere, it isn't the hook the patch wrote.
+start-call Lapp/hushgram/extension/instagram/download/ProfileExtras;->bound(Landroid/view/View;Landroid/view/View;)V in instance (Lcom/instagram/common/session/UserSession;Landroid/app/Activity;LX/*;LX/*;Landroid/content/Context;Lkotlin/jvm/functions/Function1;)V holding userSession activity Lcom/instagram/profile/actionbar/ProfileActionBar;->A06:Lcom/instagram/common/ui/base/IgLinearLayout;
+once-call Lapp/hushgram/extension/instagram/download/ProfileExtras;->bound(Landroid/view/View;Landroid/view/View;)V in instance (Lcom/instagram/common/session/UserSession;Landroid/app/Activity;LX/*;LX/*;Landroid/content/Context;Lkotlin/jvm/functions/Function1;)V holding userSession activity Lcom/instagram/profile/actionbar/ProfileActionBar;->A06:Lcom/instagram/common/ui/base/IgLinearLayout;
 # Download voice messages (#20) hands VoiceMessage.offer the answer to whether a message's kind can be
 # saved, and the message, right after the menu model's builder asks it (09xN.invoke on 450, the
 # lambda building the long-press menu's model, the one method of this shape loading these strings

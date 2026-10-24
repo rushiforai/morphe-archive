@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -24,16 +24,17 @@ Second \"item\" text"</string>
   <string name="morphe_settings_reset_color">Reimposta colore</string>
   <string name="morphe_settings_color_invalid">Colore non valido</string>
   <string name="morphe_settings_restart_title">Riavvio necessario</string>
-  <string name="morphe_settings_restart_dialog_message">Riavvia l\'app affinché questa modifica abbia effetto.</string>
+  <string name="morphe_settings_restart_dialog_message">Riavvia l\'app affinché questa modifica abbia effetto</string>
   <string name="morphe_settings_restart">Riavvia</string>
   <!-- String is also duplicated in Reddit import / export preference -->
   <string name="morphe_settings_import">Importa</string>
   <string name="morphe_settings_import_copy">Copia</string>
   <string name="morphe_settings_import_reset">Reimposta le impostazioni di Morphe ai valori predefiniti</string>
-  <string name="morphe_settings_import_success">Importate %d impostazioni</string>
+  <string name="morphe_settings_import_success">Importate %s impostazioni</string>
   <string name="morphe_settings_import_failure_parse">Importazione non riuscita: %s</string>
   <string name="morphe_settings_navigate_up">Torna su</string>
   <string name="morphe_settings_search_hint">Cerca impostazioni</string>
+  <string name="morphe_settings_screen_info_title">A proposito di</string>
   <string name="morphe_settings_search_no_results_title">Nessun risultato trovato per \"%s\"</string>
   <string name="morphe_settings_search_no_results_summary">Prova con un\'altra parola chiave</string>
   <string name="morphe_settings_search_recent_searches">Ricerche recenti</string>
@@ -75,7 +76,7 @@ Per tradurre nuove lingue o migliorare le traduzioni esistenti, visita morphe.so
   <string name="morphe_settings_export_file_failed">Impossibile esportare le impostazioni</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">Stai usando la versione più recente delle Patch Morphe &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Stai usando la versione delle Patch Spectre &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Aggiornamento disponibile: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Per aggiornare le tue patch, usa Spectre per ripatchare quest\'app</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Stai usando la versione delle Patch Morphe &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Aggiornamento disponibile: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Per aggiornare le tue patch, usa Morphe per ripatchare quest\'app</string>
   <string name="morphe_settings_about_links_dev_header">Nota</string>
   <string name="morphe_settings_about_links_dev_body">Questa è una versione pre-rilascio e potresti riscontrare problemi inaspettati</string>
   <string name="morphe_settings_about_links_header">Link ufficiali</string>
@@ -102,10 +103,9 @@ Per tradurre nuove lingue o migliorare le traduzioni esistenti, visita morphe.so
   <string name="morphe_debug_toast_on_error_title">Mostra notifica per errore di Morphe</string>
   <string name="morphe_debug_toast_on_error_user_dialog_message">"Disabilitare i messaggi di errore nasconderà tutte le notifiche di errore di Morphe.
 
-Non sarai notificato di eventi imprevisti."</string>
+Non sarai notificato di eventi imprevisti"</string>
   <string name="morphe_debug_export_logs_title">Esporta i registri di debug</string>
   <string name="morphe_debug_export_logs_summary">Esporta i registri di debug Morphe</string>
-  <string name="morphe_debug_export_logs_file">Esporta su file</string>
   <string name="morphe_debug_export_logs_success">Registri di debug esportati con successo</string>
   <string name="morphe_debug_export_logs_failed">Esportazione dei registri di debug non riuscita</string>
   <string name="morphe_debug_logs_search_hint">Cerca registro di debug…</string>
@@ -179,31 +179,31 @@ Il comportamento è scomparso in una fase precedente della ricerca, quindi potre
   <!-- misc.gms.gmsCoreSupportResourcePatch -->
   <string name="microg_settings_summary">Apri le impostazioni di MicroG</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="gms_core_toast_not_installed_message">MicroG non è installato. Installalo.</string>
+  <string name="gms_core_toast_not_installed_message">MicroG non è installato. Installalo</string>
   <string name="gms_core_dialog_title">Azione necessaria</string>
-  <string name="gms_core_dialog_outdated_message">"La versione di MicroG v%1s è obsoleta e potrebbe causare problemi.
+  <string name="gms_core_dialog_outdated_message">"La tua MicroG v%1s è obsoleta e potrebbe causare problemi.
 
-Aggiorna MicroG all'ultima versione v%2s."</string>
+Aggiorna MicroG all'ultima versione v%2s"</string>
   <string name="gms_core_dialog_update_text">Aggiorna</string>
   <string name="gms_core_dialog_ignore_text">Ignora</string>
   <string name="gms_core_dialog_conflict_message">"Il MicroG installato non è consigliato da Morphe:
 
 %1s
 
-Tocca per disinstallarlo, poi riapri questa app e installa MicroG RE."</string>
+Tocca per disinstallarlo, poi riapri questa app e installa MicroG RE"</string>
   <string name="gms_core_dialog_uninstall_text">Disinstalla</string>
   <!-- "Don't kill my app" should be kept in English and not translated -->
   <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG non ha l'autorizzazione per essere eseguito in background.
 
 Segui la guida \"Don't kill my app\" per il tuo telefono e applica le istruzioni alla tua installazione di MicroG.
 
-Questo è necessario per il corretto funzionamento dell'app."</string>
+Questo è necessario per il corretto funzionamento dell'app"</string>
   <string name="gms_core_dialog_open_website_text">Apri sito web</string>
   <string name="gms_core_dialog_not_whitelisted_using_battery_optimizations_message">"Le ottimizzazioni della batteria di MicroG devono essere disabilitate per evitare problemi.
 
 Disabilitare le ottimizzazioni della batteria non influirà negativamente sull'utilizzo della batteria.
 
-Clicca \"Continua\" per consentire le modifiche."</string>
+Clicca \"Continua\" per consentire le modifiche"</string>
   <string name="gms_core_dialog_continue_text">Continua</string>
   <string name="morphe_gms_core_battery_optimization_dialog_title">Mostra la finestra di dialogo di ottimizzazione della batteria MicroG</string>
   <string name="morphe_gms_core_battery_optimization_dialog_user_dialog_message">"Disabilitando questa opzione, verrà nascosto l'avviso di disattivazione dell'ottimizzazione della batteria per MicroG.
@@ -229,4 +229,7 @@ Se le ottimizzazioni della batteria non vengono modificate, potrebbero verificar
 Se desideri un'esperienza più stabile, allora &lt;b&gt;disinstalla&lt;/b&gt; questa versione e passa ad una consigliata ✅ &lt;b&gt;%2$s&lt;/b&gt;"</string>
   <string name="morphe_experimental_app_version_dialog_confirm">⚠️ Voglio la versione sperimentale</string>
   <string name="morphe_experimental_app_version_dialog_open_homepage">✅ Voglio la versione stabile</string>
+  <!-- misc.crashlog.crashLogPatch -->
+  <string name="morphe_crash_log_saved_documents">Registro degli arresti anomali salvato nei documenti utente: %s</string>
+  <string name="morphe_crash_log_saved">Registro degli arresti anomali salvato: %s</string>
 </resources>

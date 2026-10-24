@@ -7,10 +7,10 @@ package app.morphe.patches.storywise.misc.premium
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
-
-private const val DART_AOT_LIBRARY = "lib/arm64-v8a/libapp.so"
 
 private class AotEdit(val name: String, val pattern: String, val mask: String, val replacement: String)
 
@@ -52,8 +52,7 @@ val unlockPremiumPatch = resourcePatch(
     availability(requireArm64)
 
     execute {
-        val library = get(DART_AOT_LIBRARY)
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY")
+        val library = dartAotLibrary()
 
         PASS_STATUS_EDITS.forEach { edit ->
             val replaced = library.replaceMasked(

@@ -25,6 +25,7 @@ import app.morphe.patches.instagram.download.playerQueriesPatch
 import app.morphe.patches.instagram.download.reel.DOWNLOAD
 import app.morphe.patches.instagram.download.reel.ELIGIBLE_MARKER
 import app.morphe.patches.instagram.download.reel.OPTION
+import app.morphe.patches.instagram.download.reel.ROW_ICON
 import app.morphe.patches.instagram.download.reel.code
 import app.morphe.patches.instagram.download.reel.newOption
 import app.morphe.patches.instagram.download.reel.optionIcon
@@ -512,7 +513,7 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo(): PageIndex {
         feedOptionStub.accessFlags, feedOptionStub.annotations, feedOptionStub.hiddenApiRestrictions,
         ImmutableMethodImplementation(5, emptyList(), null, null),
     ).toMutable().apply {
-        addInstructions(0, newOption(icon, "move-object v1, p0"))
+        addInstructions(0, newOption(icon, "move-object v1, p0", iconByName = ROW_ICON))
     })
     writeBridges()
     writeImageBridges()

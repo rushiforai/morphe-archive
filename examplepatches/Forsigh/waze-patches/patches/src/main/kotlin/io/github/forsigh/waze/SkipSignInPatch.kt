@@ -188,7 +188,7 @@ internal val AgeConfirmedFingerprint = Fingerprint(
 @Suppress("unused")
 val skipSignInPatch = bytecodePatch(
     name = "Skip sign-in",
-    description = "Boots straight into the map as a guest.",
+    description = "Starts as a guest, straight to the map.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

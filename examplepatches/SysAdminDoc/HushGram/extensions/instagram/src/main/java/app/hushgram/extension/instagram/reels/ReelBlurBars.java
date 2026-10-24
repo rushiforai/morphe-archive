@@ -8,16 +8,24 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.Insets;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.DrawableWrapper;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.os.Build;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import app.hushgram.extension.instagram.misc.GlassTabBar;
@@ -64,6 +73,15 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * strip shows it mirrored and blurred, so it reads as the reel running on ({@link #drawStrip}). A
  * docked glass pill paints that strip round itself (#258). A floating one has the reel itself running
  * on behind it (#221), so it gets no strip.
+ *
+ * <p>Instagram draws nothing in the status bar's band above the viewer or in the gesture bar's band
+ * under the tab bar, so the black behind the viewer showed there (#258). While a reel is in front, the
+ * background that black comes from also paints the same copy into those two bands ({@link #drawBands}):
+ * the reel's top mirrored up under the clock, darker under white icons and lighter under dark ones so
+ * the clock stays readable, and the strip running on under the tab bar. That background is the one of the viewer's nearest parent that
+ * spans the window across both bands ({@link #bandsHost}): Instagram's swipe container, which fills the
+ * window in black over the window root's own. It sits under the viewer and everything opened over it,
+ * so a sheet or another screen covers it as it covered the black.
  */
 public final class ReelBlurBars {
     /** The steps a failure is reported under. */
@@ -82,6 +100,12 @@ public final class ReelBlurBars {
     static final String STRIP = "showed the reel under the tab bar";
     /** The step a failure painting that strip is reported under. */
     static final String DRAW_STRIP = "draw the strip under the tab bar";
+    /** Counted each time the bands under the system bars got a frame of the reel on screen. */
+    static final String BANDS = "showed the reel under the system bars";
+    /** The step a failure painting those bands is reported under. */
+    static final String DRAW_BANDS = "draw the reel under the system bars";
+    /** The step a failure taking the strip and the bands away is reported under. */
+    static final String DROP_STRIP = "take the reel away from the bars";
 
     /** Instagram's tab bar, whose strip under a reel {@link #drawStrip} fills. */
     static final String TAB_BAR = "tab_bar";
@@ -105,6 +129,11 @@ public final class ReelBlurBars {
     static final int BLUR_PASSES = 2;
     /** How much black goes over the blurred copy, so the video stays the brightest thing. */
     static final int DIM_ALPHA = 110;
+    /**
+     * How much goes over it under the status bar, where the clock and icons sit on it: black under
+     * light icons, white under dark ones.
+     */
+    static final int STATUS_DIM_ALPHA = 150;
 
     /** Reads a video's current frame. Swapped in tests, since a stand-in video has no surface. */
     interface FrameSource {
@@ -126,6 +155,12 @@ public final class ReelBlurBars {
     static volatile Predicate<View> wearsGlass = GlassTabBar::wearsGlass;
     static volatile Predicate<View> floatingGlass = GlassTabBar::wearsFloatingGlass;
 
+    /** The system bars' insets on [decor]'s window, or null with none known. Swapped in tests, whose window has none. */
+    static volatile Function<View, Rect> barInsets = ReelBlurBars::systemBars;
+
+    /** Whether [view]'s window asks for dark status bar icons. Swapped in tests, whose window asks for neither. */
+    static volatile Predicate<View> darkStatusIcons = ReelBlurBars::asksForDarkStatusIcons;
+
     /** How many times a pager's loop has run, so tests can see it stop. */
     static volatile int rounds;
 
@@ -142,10 +177,28 @@ public final class ReelBlurBars {
     @Nullable private static Bitmap stripFrame;
     private static final Paint STRIP_PAINT = new Paint(Paint.FILTER_BITMAP_FLAG);
     private static final Paint STRIP_DIM = new Paint();
+    private static final Paint STATUS_DIM = new Paint();
+    private static final Paint STATUS_LIGHT = new Paint();
+
+    /**
+     * The bands under the system bars, in {@link #bandsHost}: the status bar's down to [bandTop], the
+     * gesture bar's from [bandBottom], whose picture runs on from the strip that starts at [bandAnchor].
+     * Set for the strip's owner. Only touched on the main thread.
+     */
+    private static int bandTop;
+    private static int bandBottom = Integer.MAX_VALUE;
+    private static int bandAnchor;
+    /** The view whose background paints the bands. */
+    @Nullable private static WeakReference<View> bandsHost;
+    @Nullable private static BandsDrawable bandsBackground;
 
     static {
         STRIP_DIM.setColor(0xFF000000);
         STRIP_DIM.setAlpha(DIM_ALPHA);
+        STATUS_DIM.setColor(0xFF000000);
+        STATUS_DIM.setAlpha(STATUS_DIM_ALPHA);
+        STATUS_LIGHT.setColor(0xFFFFFFFF);
+        STATUS_LIGHT.setAlpha(STATUS_DIM_ALPHA);
     }
 
     private ReelBlurBars() {
@@ -179,6 +232,184 @@ public final class ReelBlurBars {
             HookStatus.threw(FamilyNames.REEL_BLUR_BARS, DRAW_STRIP, failure);
             return false;
         }
+    }
+
+    /**
+     * Paints the bands under the system bars, within [left] to [right] and [top] to [bottom] of the
+     * canvas of the view whose background they are: above {@link #bandTop} the reel's top mirrored upward with
+     * {@link #STATUS_DIM_ALPHA} over it in the colour that keeps the window's status bar icons readable,
+     * and below {@link #bandBottom} the strip under the tab bar running on (#258). Paints nothing and
+     * says false when {@link #drawStrip} would, or with neither band there. Never throws.
+     */
+    static boolean drawBands(Canvas canvas, float left, float top, float right, float bottom) {
+        try {
+            Controller owner = stripOwner;
+            Bitmap shown = stripFrame;
+            if (owner == null || shown == null || shown.isRecycled() || right <= left || bottom <= top
+                    || !owner.inFrontNow() || !owner.on.getAsBoolean()) {
+                return false;
+            }
+            float scale = (right - left) / shown.getWidth();
+            boolean drew = false;
+            if (bandTop > top) {
+                int saved = canvas.save();
+                canvas.clipRect(left, top, right, bandTop);
+                canvas.translate(left, bandTop);
+                canvas.scale(scale, -scale);
+                canvas.drawBitmap(shown, 0, 0, STRIP_PAINT);
+                canvas.restoreToCount(saved);
+                View host = bandsHost == null ? null : bandsHost.get();
+                boolean darkIcons = host != null && darkStatusIcons.test(host);
+                canvas.drawRect(left, top, right, bandTop, darkIcons ? STATUS_LIGHT : STATUS_DIM);
+                drew = true;
+            }
+            if (bandBottom < bottom) {
+                int saved = canvas.save();
+                canvas.clipRect(left, bandBottom, right, bottom);
+                canvas.translate(left, bandAnchor + shown.getHeight() * scale);
+                canvas.scale(scale, -scale);
+                canvas.drawBitmap(shown, 0, 0, STRIP_PAINT);
+                canvas.restoreToCount(saved);
+                canvas.drawRect(left, bandBottom, right, bottom, STRIP_DIM);
+                drew = true;
+            }
+            return drew;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_BLUR_BARS, DRAW_BANDS, failure);
+            return false;
+        }
+    }
+
+    /** The system bars' insets on [decor]'s window while they show, or null before it has any. */
+    @Nullable
+    @SuppressWarnings("deprecation")
+    static Rect systemBars(View decor) {
+        WindowInsets insets = decor.getRootWindowInsets();
+        if (insets == null) return null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+            return new Rect(bars.left, bars.top, bars.right, bars.bottom);
+        }
+        return new Rect(insets.getStableInsetLeft(), insets.getStableInsetTop(), insets.getStableInsetRight(), insets.getStableInsetBottom());
+    }
+
+    /**
+     * Whether [view]'s window asks for dark status bar icons, through the older view flag (which
+     * Instagram's Reels sets in light mode) or the insets controller.
+     */
+    @SuppressWarnings("deprecation")
+    static boolean asksForDarkStatusIcons(View view) {
+        if ((view.getWindowSystemUiVisibility() & View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) != 0) return true;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false;
+        WindowInsetsController controller = view.getWindowInsetsController();
+        return controller != null && (controller.getSystemBarsAppearance() & WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS) != 0;
+    }
+
+    /**
+     * The view whose background paints bands down to [top] and from [bottom] of the window round
+     * [pager]: the nearest of its parents that spans the window's width and both bands, so no
+     * background between it and the reel paints over them. On Instagram that is the swipe container,
+     * whose black covered the window root's background (#258). The window root when no parent does.
+     */
+    static View bandsHost(View pager, int top, int bottom) {
+        View root = pager.getRootView();
+        int width = root.getWidth();
+        int height = root.getHeight();
+        int[] at = new int[2];
+        for (ViewParent parent = pager.getParent(); parent instanceof View && parent != root; parent = parent.getParent()) {
+            View view = (View) parent;
+            view.getLocationInWindow(at);
+            int viewBottom = at[1] + view.getHeight();
+            boolean wide = at[0] <= 0 && at[0] + view.getWidth() >= width;
+            boolean coversTop = top <= 0 || (at[1] <= 0 && viewBottom >= top);
+            boolean coversBottom = bottom >= height || (at[1] <= bottom && viewBottom >= height);
+            if (wide && coversTop && coversBottom) return view;
+        }
+        return root;
+    }
+
+    /**
+     * Makes [host]'s background paint the bands down to [top] and from [bottom] of the window, the
+     * gesture bar's running on from [anchor], keeping what it had under them. A background that
+     * changed since, from Instagram or the system, is kept the same way. Another view holding them
+     * gives them up first, so the new geometry isn't reset with it.
+     */
+    private static void showBands(View host, int top, int bottom, int anchor) {
+        View held = bandsHost == null ? null : bandsHost.get();
+        if (held != null && held != host) dropBands();
+        Drawable current = host.getBackground();
+        boolean holding = holdsBands(current);
+        if (!holding && host == host.getRootView() && rootWrapped(current)) return;
+        int[] at = new int[2];
+        host.getLocationInWindow(at);
+        bandTop = top - at[1];
+        bandBottom = bottom - at[1];
+        bandAnchor = anchor - at[1];
+        if (bandsBackground == null) bandsBackground = new BandsDrawable();
+        if (!holding) {
+            bandsBackground.original = current;
+            host.setBackground(bandsBackground);
+            bandsHost = new WeakReference<>(host);
+        }
+        host.invalidate();
+    }
+
+    /** Gives the bands' view back the background it had, or at least has it drawn again without them. */
+    private static void dropBands() {
+        View host = bandsHost == null ? null : bandsHost.get();
+        if (host != null && bandsBackground != null) {
+            if (holdsBands(host.getBackground())) host.setBackground(bandsBackground.original);
+            else host.invalidate();
+        }
+        if (bandsBackground != null) bandsBackground.original = null;
+        bandsHost = null;
+        bandTop = 0;
+        bandBottom = Integer.MAX_VALUE;
+    }
+
+    /**
+     * Whether [background] is the window root's own inset or blur layer round the background it was
+     * given. Kept as the covered background, it would come back wrapped twice, so the root gets no
+     * bands while it has one.
+     */
+    static boolean rootWrapped(@Nullable Drawable background) {
+        if (background instanceof InsetDrawable) return true;
+        if (!(background instanceof LayerDrawable)) return false;
+        LayerDrawable layers = (LayerDrawable) background;
+        Drawable first = layers.getNumberOfLayers() == 2 ? layers.getDrawable(0) : null;
+        return first != null && first.getClass().getName().endsWith("BackgroundBlurDrawable");
+    }
+
+    /**
+     * Whether [background] is the bands or holds them. The window root wraps what it's given in an
+     * inset or a layer when its insets or blur change, and keeping that wrapper as the covered
+     * background would have the bands draw themselves forever.
+     */
+    static boolean holdsBands(@Nullable Drawable background) {
+        return holdsBands(background, 0);
+    }
+
+    private static boolean holdsBands(@Nullable Drawable background, int depth) {
+        if (background == null || depth >= 8) return false;
+        if (background instanceof BandsDrawable) return true;
+        if (background instanceof LayerDrawable) {
+            LayerDrawable layers = (LayerDrawable) background;
+            for (int i = 0; i < layers.getNumberOfLayers(); i++) if (holdsBands(layers.getDrawable(i), depth + 1)) return true;
+            return false;
+        }
+        return background instanceof DrawableWrapper && holdsBands(((DrawableWrapper) background).getDrawable(), depth + 1);
+    }
+
+    /** The bands' background while it paints them, for tests. */
+    @Nullable
+    static Drawable bandsBackground() {
+        return bandsHost == null || bandsHost.get() == null ? null : bandsBackground;
+    }
+
+    /** The view whose background paints the bands, or null while none does, for tests. */
+    @Nullable
+    static View bandsHost() {
+        return bandsHost == null || bandsBackground == null ? null : bandsHost.get();
     }
 
     /** The frame the strip under the tab bar shows, for tests. */
@@ -236,6 +467,10 @@ public final class ReelBlurBars {
         floatingGlass = GlassTabBar::wearsFloatingGlass;
         rounds = 0;
         logged = false;
+        dropBands();
+        barInsets = ReelBlurBars::systemBars;
+        darkStatusIcons = ReelBlurBars::asksForDarkStatusIcons;
+        bandsBackground = null;
         stripOwner = null;
         stripFrame = null;
         tabBarId = -1;
@@ -359,8 +594,10 @@ public final class ReelBlurBars {
 
         /**
          * Puts the pre-draw listener on the window's observer or takes it off. The observer is the whole
-         * window's, so it is on only while the loop is asleep: an awake loop has no use for it, and a
-         * hidden pager would otherwise be asked about on every frame the app draws.
+         * window's, so it is on only while the loop is asleep or this pager's bands show: an awake loop
+         * has no other use for it, and a hidden pager would otherwise be asked about on every frame the
+         * app draws. The bands need it because a pager turning invisible lays nothing out, and the
+         * background holding them would show them over the next screen until the loop looked again.
          */
         private void watchDraws(ViewGroup group, boolean watch) {
             if (drawListening == watch) return;
@@ -400,18 +637,33 @@ public final class ReelBlurBars {
             releaseAll();
         }
 
-        /** The pager came back in front after the loop stopped for it. */
+        /**
+         * The pager came back in front after the loop stopped for it, or left it, which takes the strip
+         * and the bands away now: the background holding them isn't drawn again on its own.
+         */
         @Override
         public void onGlobalLayout() {
+            leftFront();
             wake();
+        }
+
+        /** Runs inside Instagram's layout, draw and scroll callbacks, so it never throws. */
+        private void leftFront() {
+            try {
+                if (stripOwner == this && !inFrontNow()) dropStrip();
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.REEL_BLUR_BARS, DROP_STRIP, failure);
+            }
         }
 
         /**
          * Drawing starts again after the pager went from invisible to visible, which lays nothing out, or
-         * after its window came back. Never cancels the draw.
+         * after its window came back. While the bands show, a frame after the pager went invisible takes
+         * them away. Never cancels the draw.
          */
         @Override
         public boolean onPreDraw() {
+            leftFront();
             wake();
             return true;
         }
@@ -425,6 +677,7 @@ public final class ReelBlurBars {
         /** A scroll moved something. Looks once it has been quiet for a moment. */
         @Override
         public void onScrollChanged() {
+            leftFront();
             ViewGroup group = pager.get();
             if (group != null) schedule(group, SETTLE_MILLIS);
         }
@@ -446,7 +699,7 @@ public final class ReelBlurBars {
                     return;
                 }
                 asleep = false;
-                watchDraws(group, false);
+                watchDraws(group, stripOwner == this && bandsBackground() != null);
                 scan(group);
                 schedule(group, REFRESH_MILLIS);
             } catch (Throwable failure) {
@@ -458,6 +711,8 @@ public final class ReelBlurBars {
         private void scan(ViewGroup group) {
             List<View> kept = new ArrayList<>();
             View bar = stripBar(group);
+            Bands bands = bands(group, bar);
+            boolean wanted = bar != null || bands != null;
             Bitmap strip = null;
             for (TextureView video : videos(group)) {
                 if (video.getWidth() <= 0 || video.getHeight() <= 0) continue;
@@ -470,7 +725,7 @@ public final class ReelBlurBars {
                 Rect picture = pictureIn(video, container);
                 if (picture == null || !hasBars(picture, container)) {
                     HookStatus.counted(FamilyNames.REEL_BLUR_BARS, FULL_SCREEN);
-                    if (bar != null && strip == null) strip = stripCopy(video);
+                    if (wanted && strip == null) strip = stripCopy(video);
                     continue;
                 }
                 if (paint(video, container)) {
@@ -482,7 +737,40 @@ public final class ReelBlurBars {
             for (View container : new ArrayList<>(backdrops.keySet())) {
                 if (!kept.contains(container)) release(container);
             }
-            showStrip(bar, strip);
+            showStrip(bar, bands, strip);
+        }
+
+        /**
+         * The bands under the system bars this pager leaves black, in the window. Null with neither: no
+         * insets, or the viewer reaching both edges. A floating pill has the reel running on behind it
+         * (#221), so its bottom stays as it is.
+         */
+        @Nullable
+        private Bands bands(ViewGroup group, @Nullable View bar) {
+            View decor = group.getRootView();
+            int height = decor.getHeight();
+            Rect insets = barInsets.apply(decor);
+            if (insets == null || height <= 0) return null;
+            int[] at = new int[2];
+            group.getLocationInWindow(at);
+            int top = Math.min(at[1], insets.top);
+            int anchor;
+            int edge;
+            View shown = barRef == null ? null : barRef.get();
+            if (bar != null) {
+                bar.getLocationInWindow(at);
+                anchor = at[1];
+                edge = at[1] + bar.getHeight();
+            } else if (shown != null && shown.isShown() && floatingGlass.test(shown)) {
+                anchor = height;
+                edge = height;
+            } else {
+                anchor = at[1] + group.getHeight();
+                edge = anchor;
+            }
+            int bottom = Math.max(edge, height - insets.bottom);
+            if (top <= 0 && bottom >= height) return null;
+            return new Bands(top, bottom, anchor);
         }
 
         /**
@@ -516,28 +804,44 @@ public final class ReelBlurBars {
             return blurred;
         }
 
-        /** Shows [frame] in the strip under [bar], or takes this controller's strip away when either is null. */
-        private void showStrip(@Nullable View bar, @Nullable Bitmap frame) {
-            if (bar == null || frame == null) {
+        /**
+         * Shows [frame] in the strip under [bar] and in [bands], or takes this controller's strip away
+         * with no frame or neither place to show it.
+         */
+        private void showStrip(@Nullable View bar, @Nullable Bands bands, @Nullable Bitmap frame) {
+            if (frame == null || (bar == null && bands == null)) {
                 dropStrip();
                 return;
             }
             stripOwner = this;
             stripFrame = frame;
-            if (!wearsGlass.test(bar)) {
-                if (barBackground == null) barBackground = new StripDrawable();
-                if (bar.getBackground() != barBackground) {
-                    barBackground.original = bar.getBackground();
-                    bar.setBackground(barBackground);
+            if (bar != null) {
+                if (!wearsGlass.test(bar)) {
+                    if (barBackground == null) barBackground = new StripDrawable();
+                    if (bar.getBackground() != barBackground) {
+                        barBackground.original = bar.getBackground();
+                        bar.setBackground(barBackground);
+                    }
                 }
+                bar.invalidate();
+                HookStatus.counted(FamilyNames.REEL_BLUR_BARS, STRIP);
+            } else {
+                restoreBar();
             }
-            bar.invalidate();
-            HookStatus.counted(FamilyNames.REEL_BLUR_BARS, STRIP);
+            ViewGroup group = pager.get();
+            if (bands != null && group != null) {
+                showBands(bandsHost(group, bands.top, bands.bottom), bands.top, bands.bottom, bands.anchor);
+                watchDraws(group, true);
+                HookStatus.counted(FamilyNames.REEL_BLUR_BARS, BANDS);
+            } else {
+                dropBands();
+                if (group != null) watchDraws(group, asleep);
+            }
         }
 
         /**
-         * Takes this controller's strip away and recycles its copy: Instagram's own bar gets back the
-         * background it had.
+         * Takes this controller's strip and bands away and recycles its copy: Instagram's own bar and the
+         * bands' view get back the backgrounds they had.
          */
         void dropStrip() {
             View bar = barRef == null ? null : barRef.get();
@@ -545,15 +849,24 @@ public final class ReelBlurBars {
                 stripOwner = null;
                 stripFrame = null;
                 if (bar != null) bar.invalidate();
+                dropBands();
+                ViewGroup group = pager.get();
+                if (group != null) watchDraws(group, asleep);
             }
-            if (bar != null && barBackground != null && bar.getBackground() == barBackground) {
-                bar.setBackground(barBackground.original);
-            }
-            if (barBackground != null) barBackground.original = null;
+            restoreBar();
             if (stripRaw != null) stripRaw.recycle();
             if (stripBlurred != null && stripBlurred != stripRaw) stripBlurred.recycle();
             stripRaw = null;
             stripBlurred = null;
+        }
+
+        /** Gives Instagram's own bar back the background it had under the strip. */
+        private void restoreBar() {
+            View bar = barRef == null ? null : barRef.get();
+            if (bar != null && barBackground != null && bar.getBackground() == barBackground) {
+                bar.setBackground(barBackground.original);
+            }
+            if (barBackground != null) barBackground.original = null;
         }
 
         /** Every visible TextureView under the pager. */
@@ -664,6 +977,22 @@ public final class ReelBlurBars {
         void releaseAll() {
             for (View container : new ArrayList<>(backdrops.keySet())) release(container);
             dropStrip();
+        }
+    }
+
+    /**
+     * Where the bands under the system bars run, in the window: the status bar's down to [top], the
+     * gesture bar's from [bottom], with the strip under the tab bar starting at [anchor].
+     */
+    private static final class Bands {
+        final int top;
+        final int bottom;
+        final int anchor;
+
+        Bands(int top, int bottom, int anchor) {
+            this.top = top;
+            this.bottom = bottom;
+            this.anchor = anchor;
         }
     }
 
@@ -806,6 +1135,71 @@ public final class ReelBlurBars {
         @SuppressWarnings("deprecation")
         public int getOpacity() {
             return PixelFormat.TRANSLUCENT;
+        }
+    }
+
+    /**
+     * The bands' view's background while a reel is in front: the background it covered, then the bands
+     * under the system bars ({@link #drawBands}) over it. It answers the covered background's opacity,
+     * since a window root takes its format from it, or translucent with none, since the bands alone
+     * leave the rest of the view uncovered.
+     */
+    static final class BandsDrawable extends Drawable {
+        @Nullable Drawable original;
+        /** Set while drawing, so a covered background that somehow leads back here draws once. */
+        private boolean drawing;
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            if (drawing) return;
+            drawing = true;
+            try {
+                Rect bounds = getBounds();
+                Drawable covered = original;
+                if (covered != null) {
+                    covered.setBounds(bounds);
+                    covered.draw(canvas);
+                }
+                drawBands(canvas, bounds.left, bounds.top, bounds.right, bounds.bottom);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.REEL_BLUR_BARS, DRAW_BANDS, failure);
+            } finally {
+                drawing = false;
+            }
+        }
+
+        @Override
+        public boolean getPadding(@NonNull Rect padding) {
+            Drawable covered = original;
+            if (covered != null) return covered.getPadding(padding);
+            return super.getPadding(padding);
+        }
+
+        @Override
+        public int getMinimumWidth() {
+            Drawable covered = original;
+            return covered == null ? 0 : covered.getMinimumWidth();
+        }
+
+        @Override
+        public int getMinimumHeight() {
+            Drawable covered = original;
+            return covered == null ? 0 : covered.getMinimumHeight();
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public int getOpacity() {
+            Drawable covered = original;
+            return covered == null ? PixelFormat.TRANSLUCENT : covered.getOpacity();
         }
     }
 

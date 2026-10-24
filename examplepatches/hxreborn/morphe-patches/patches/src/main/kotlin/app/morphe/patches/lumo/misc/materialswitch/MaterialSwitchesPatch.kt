@@ -12,11 +12,11 @@ import app.morphe.patches.lumo.misc.PageFinishedFingerprint
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.pairip.removePairipVirtualizationPatch
-import app.morphe.patches.shared.misc.generated.descriptor
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.descriptor
+import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val WEB_SWITCH_CLASS = "Lapp/hxreborn/extension/proton/WebMaterialSwitch;"
@@ -31,7 +31,7 @@ private fun BytecodePatchContext.drawNativeSwitchesAsViews() {
         .matchSingle().originalMethod
     val function = androidView.parameterTypes.first().toString()
     val modifierCompanion = switch.instructions.firstNotNullOf { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { field ->
+        instruction.getReference<FieldReference>()?.takeIf { field ->
             instruction.opcode == Opcode.SGET_OBJECT && field.type == field.definingClass &&
                 modifier in classDefBy(field.type).interfaces
         }

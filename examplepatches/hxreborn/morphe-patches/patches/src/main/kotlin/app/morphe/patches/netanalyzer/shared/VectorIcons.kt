@@ -5,7 +5,6 @@
 package app.morphe.patches.netanalyzer.shared
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -15,11 +14,12 @@ import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.smali.addMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -31,7 +31,6 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val REFERENCE_ICON = "leak_add"
 private const val ICON_METHOD = "hxIcon"
@@ -112,7 +111,7 @@ internal fun iconMethod(classDef: MutableClass, name: String, pathData: String):
             appendLine("new-instance v0, ${api.builderInit.definingClass}")
             appendLine("const-string v1, \"$name\"")
             api.builderArguments.forEach { (register, literal) -> appendLine(literal.format(register)) }
-            appendLine("invoke-direct/range { v0 .. v${api.builderRegisters - 1} }, ${api.builderInit.descriptor()}")
+            appendLine("invoke-direct/range { v0 .. v${api.builderRegisters - 1} }, ${descriptor(api.builderInit)}")
             appendLine("new-instance v1, $ARRAY_LIST_TYPE")
             appendLine("invoke-direct { v1 }, $ARRAY_LIST_TYPE-><init>()V")
             pathCommands(pathData).forEach { (command, values) ->
@@ -124,30 +123,28 @@ internal fun iconMethod(classDef: MutableClass, name: String, pathData: String):
                     values.forEachIndexed { value, number ->
                         appendLine("const v${value + 3}, ${number.toRawBits()}")
                     }
-                    appendLine("invoke-direct/range { v2 .. v${values.size + 2} }, ${node.descriptor()}")
+                    appendLine("invoke-direct/range { v2 .. v${values.size + 2} }, ${descriptor(node)}")
                 }
                 appendLine("invoke-virtual { v1, v2 }, $ARRAY_LIST_TYPE->add(Ljava/lang/Object;)Z")
             }
             appendLine("new-instance v2, ${api.brushInit.definingClass}")
             appendLine("sget-wide v3, ${api.black.definingClass}->${api.black.name}:${api.black.type}")
-            appendLine("invoke-direct { v2, v3, v4 }, ${api.brushInit.descriptor()}")
-            appendLine("invoke-static { v0, v1, v2 }, ${api.addPath.descriptor()}")
-            appendLine("invoke-virtual { v0 }, ${api.build.descriptor()}")
+            appendLine("invoke-direct { v2, v3, v4 }, ${descriptor(api.brushInit)}")
+            appendLine("invoke-static { v0, v1, v2 }, ${descriptor(api.addPath)}")
+            appendLine("invoke-virtual { v0 }, ${descriptor(api.build)}")
             appendLine("move-result-object v0")
             appendLine("sput-object v0, $cacheReference")
             appendLine(":done")
             appendLine("return-object v0")
         }
-        ImmutableMethod(
-            classDef.type,
+        classDef.addMethod(
             "$ICON_METHOD$index",
             emptyList(),
             api.build.returnType,
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(ICON_REGISTERS),
-        ).toMutable().apply { addInstructionsWithLabels(0, smali) }.also { classDef.methods.add(it) }
+            ICON_REGISTERS,
+            smali,
+        )
     }
 
 context(context: BytecodePatchContext)

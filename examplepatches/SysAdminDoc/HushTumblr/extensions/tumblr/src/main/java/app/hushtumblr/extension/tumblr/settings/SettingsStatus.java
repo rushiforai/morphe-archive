@@ -77,6 +77,8 @@ public final class SettingsStatus {
     public static boolean suggestedBlogCards() { return false; }
     public static boolean hideSuggestedCommunities() { return false; }
     public static boolean suggestedCommunityCards() { return false; }
+    public static boolean hideSuggestedTags() { return false; }
+    public static boolean suggestedTagCards() { return false; }
     public static boolean hideWatchItRows() { return false; }
     public static boolean watchItRows() { return false; }
     public static boolean hideHashtags() { return false; }
@@ -110,6 +112,8 @@ public final class SettingsStatus {
     public static boolean textPosts() { return false; }
     public static boolean hidePostsWithWords() { return false; }
     public static boolean postWords() { return false; }
+    public static boolean hideFilteredPosts() { return false; }
+    public static boolean filteredPosts() { return false; }
     public static boolean darkBackground() { return false; }
     public static boolean themeBackground() { return false; }
     public static boolean hideExploreTab() { return false; }

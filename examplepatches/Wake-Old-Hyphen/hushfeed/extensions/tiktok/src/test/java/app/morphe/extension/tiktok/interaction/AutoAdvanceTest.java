@@ -377,18 +377,32 @@ public class AutoAdvanceTest {
         assertFalse(AutoAdvance.panelAvailable(false));
         assertTrue(AutoAdvance.panelAvailable(true));
     }
-    @Test public void theHideSwitchGreyedUnderAnOffAutoAdvanceHidesNothing() {
-        // The row is greyed out and says to turn Auto-advance on first; an account in TikTok's
-        // own rollout keeps TikTok's Auto scroll action rather than losing it to a switch whose
-        // row claims it is inactive.
+    /** #234: an account in TikTok's own rollout can hide its Auto scroll with Auto-advance off. */
+    @Test public void theHideSwitchWorksWithAutoAdvanceOff() {
         Settings.AUTO_ADVANCE.save(false);
         Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.save(true);
         try {
-            assertTrue(AutoAdvance.panelAvailable(true));
+            assertFalse("the panel action stayed for a rollout account",
+                    AutoAdvance.panelAvailable(true));
             assertFalse(AutoAdvance.panelAvailable(false));
+            assertFalse("the foldable's rail switch stayed", AutoAdvance.railAvailable(true));
+            assertTrue("the feed gate went with the hidden controls", AutoAdvance.available(true));
         } finally {
             Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.resetToDefault();
         }
+    }
+    @Test public void theRailControlFollowsTheGateUntilHidden() {
+        Settings.AUTO_ADVANCE.save(true);
+        assertTrue(AutoAdvance.railAvailable(true));
+        assertFalse("the rail answered yes over a no gate", AutoAdvance.railAvailable(false));
+        Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.save(true);
+        try {
+            assertFalse("the rail switch stayed with the hide switch on", AutoAdvance.railAvailable(true));
+        } finally {
+            Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.resetToDefault();
+        }
+        assertTrue("each video cell builds its rail once, so flipping the switch needs a restart",
+                Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.rebootApp);
     }
     @Test public void aCollectedFeedViewEndsTheControlsWork() {
         FeedView view = new FeedView();

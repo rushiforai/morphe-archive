@@ -24,20 +24,17 @@ jobs:
           SOURCE_BRANCH: ${{ github.ref_name }}
           TARGET_BRANCH: main
         run: |
-          # Check if PR already exists (base=main, head=dev)
           if gh pr list --base "$TARGET_BRANCH" --head "$SOURCE_BRANCH" --json number | jq -e '. | length > 0' >/dev/null; then
             echo "Pull request already exists."
             exit 0
           fi
 
-          # Check if there are any commits between branches
           COMMITS=$(gh api "repos/${{ github.repository }}/compare/${TARGET_BRANCH}...${SOURCE_BRANCH}" --jq '.total_commits')
           if [ "$COMMITS" -eq 0 ]; then
             echo "No commits between $TARGET_BRANCH and $SOURCE_BRANCH. Skipping PR creation."
             exit 0
           fi
 
-          # Try to create the PR
           gh pr create \
             --base "$TARGET_BRANCH" \
             --head "$SOURCE_BRANCH" \

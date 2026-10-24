@@ -9,6 +9,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -43,6 +44,13 @@ internal data class BoundSetting(
     }
 }
 
+/** Paragraphs belong below the field, never inside its floating label. */
+internal fun labeledSetting(control: View, text: String): BoundSetting {
+    val detailed = text.contains('\n') || text.length > 100
+    return BoundSetting(control, if (detailed) text.lineSequence().first().take(80) else text,
+        description = if (detailed) text else "")
+}
+
 internal fun prepareSettingsBindings(root: ViewGroup) {
     for (index in 0 until root.childCount) {
         val view = root.getChildAt(index)
@@ -69,10 +77,7 @@ internal fun settingsRows(root: ViewGroup): List<BoundSetting> {
                     val text = view.text.toString()
                     // Floating labels cannot display paragraphs, route syntax or examples.
                     // Keep the complete help text in the row, separate from its short label.
-                    val detailed = text.contains('\n') || text.length > 100
-                    result.add(BoundSetting(next,
-                        if (detailed) text.lineSequence().first().take(80) else text,
-                        description = if (detailed) text else ""))
+                    result.add(labeledSetting(next, text))
                 }
             } else if (view is ViewGroup && view !is Spinner) collect(view)
             else if (view is TextView || view is Spinner || view is ImageView) {
@@ -83,27 +88,30 @@ internal fun settingsRows(root: ViewGroup): List<BoundSetting> {
         }
     }
     collect(root)
-    return result
+    val grouped = mutableListOf<BoundSetting>()
+    for (row in result) {
+        val help = row.control is TextView && row.control !is Button && row.control !is EditText &&
+            !row.control.hasOnClickListeners() && !row.control.isLongClickable && row.control.text !is android.text.Spanned
+        if (help && grouped.isNotEmpty()) {
+            val previous = grouped.removeAt(grouped.lastIndex)
+            grouped.add(previous.copy(description = listOf(previous.description, row.label).filter { it.isNotBlank() }.joinToString("\n\n")))
+        } else grouped.add(row)
+    }
+    return grouped
 }
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
     val view = item.control
-    if (item.description.isNotBlank()) {
-        androidx.compose.foundation.text.selection.SelectionContainer {
-            Text(item.description, style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(12.dp))
-        }
-    }
     when (view) {
         is android.widget.RadioButton -> {
-            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(enabled = item.enabled) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).selectable(selected = item.checked == true, enabled = item.enabled, role = Role.RadioButton) {
                 view.performClick()
                 changed()
             }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = item.checked == true, onClick = null, enabled = item.enabled)
-                Text(item.label, Modifier.padding(start = 12.dp), style = MaterialTheme.typography.bodyLarge)
+                Text(item.label, Modifier.weight(1f).padding(start = 12.dp), style = MaterialTheme.typography.bodyLarge)
             }
         }
         is CompoundButton -> {
@@ -137,14 +145,14 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
                 title = { Text(item.label) }, text = {
                     androidx.compose.foundation.lazy.LazyColumn {
                         items(view.count) { index ->
-                            Row(Modifier.fillMaxWidth().clickable {
+                            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = view.selectedItemPosition == index, role = Role.RadioButton) {
                                 view.setSelection(index)
                                 // Offscreen Spinners have no layout pass to deliver selection callbacks.
                                 view.onItemSelectedListener?.onItemSelected(view, null, index, view.getItemIdAtPosition(index))
                                 choosing = false; changed()
                             }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 RadioButton(selected = view.selectedItemPosition == index, onClick = null)
-                                Text(view.getItemAtPosition(index).toString(), Modifier.padding(start = 12.dp))
+                                Text(view.getItemAtPosition(index).toString(), Modifier.weight(1f).padding(start = 12.dp))
                             }
                         }
                     }
@@ -156,8 +164,11 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
             modifier = Modifier.fillMaxWidth().combinedClickable(enabled = view.isEnabled,
                 onClick = { view.performClick(); changed() }, onLongClick = { view.performLongClick(); changed() }))
         is TextView -> {
-            if (view.hasOnClickListeners()) TextButton(onClick = { view.performClick(); changed() },
-                modifier = Modifier.fillMaxWidth()) { Text(view.text.toString()) }
+            if (view.hasOnClickListeners() || view.isLongClickable) Text(view.text.toString(),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    .combinedClickable(enabled = view.isEnabled, onClick = { view.performClick(); changed() },
+                        onLongClick = { view.performLongClick(); changed() }).padding(12.dp))
             else if (view.text.isNotBlank()) androidx.compose.foundation.text.selection.SelectionContainer {
                 val content = androidx.compose.ui.text.buildAnnotatedString {
                     append(view.text.toString())
@@ -171,6 +182,14 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
             }
         }
     }
+    if (item.description.isNotBlank()) {
+        HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        androidx.compose.foundation.text.selection.SelectionContainer {
+            Text(item.description, style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp))
+        }
+    }
 }
 
 @Composable
@@ -182,11 +201,44 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
     val numeric = view.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_NUMBER
     val decimal = numeric && view.inputType and InputType.TYPE_NUMBER_FLAG_DECIMAL != 0
     val secret = view.inputType and InputType.TYPE_MASK_VARIATION == InputType.TYPE_TEXT_VARIATION_PASSWORD
+    val archiveLayout = LocalArchiveControlLayout.current
+    if (archiveLayout < 100) {
+        androidx.compose.foundation.text.BasicTextField(value = value, onValueChange = {
+            value = it
+            if (it.text != view.text.toString()) view.setText(it.text)
+            changed()
+        }, enabled = enabled, singleLine = view.maxLines == 1,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+            keyboardOptions = KeyboardOptions(keyboardType = when {
+                decimal -> KeyboardType.Decimal
+                numeric -> KeyboardType.Number
+                else -> KeyboardType.Text
+            }), visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+            decorationBox = { input ->
+                Surface(shape = MaterialTheme.shapes.small,
+                    border = androidx.compose.foundation.BorderStroke(1.dp,
+                        if (view.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                    Column(Modifier.fillMaxWidth().heightIn(min = (48f + (archiveLayout - 50) * .16f).dp)
+                        .padding(horizontal = 12.dp, vertical = (4f + (archiveLayout - 50) * .16f).dp),
+                        verticalArrangement = Arrangement.Center) {
+                        Text(title.ifBlank { "入力" }, style = MaterialTheme.typography.labelSmall, maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        input()
+                    }
+                }
+            })
+        view.error?.let { Text(it.toString(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+        return
+    }
     OutlinedTextField(value = value, onValueChange = {
         value = it
         if (it.text != view.text.toString()) view.setText(it.text)
         changed()
-    }, label = { Text(title.ifBlank { "入力" }) },
+    }, label = { Text(title.ifBlank { "入力" }, maxLines = 1,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         enabled = enabled, singleLine = view.maxLines == 1,
         minLines = if (view.maxLines == 1) 1 else view.minLines.coerceIn(1, 12),

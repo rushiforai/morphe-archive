@@ -112,18 +112,24 @@ internal fun BytecodePatchContext.launchOnboardingFingerprint() = Fingerprint(
     filters = listOf(newInstance(UpgradeOnboardingLauncherFingerprint.originalClassDef.type)),
 )
 
-private val BytecodePatchContext.legacyLaunchDefaultIndex
-    get() = UpgradeOnboardingLauncherFingerprint.originalMethod.implementation!!.instructions
-        .filterIsInstance<SwitchPayload>()
-        .single()
-        .switchElements
-        .maxOf { it.key } + 1
+private val switchOpcodes = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH)
+
+private val BytecodePatchContext.onboardingLaunchKey: Int
+    get() {
+        val instructions = UpgradeOnboardingLauncherFingerprint.originalMethod.implementation!!.instructions.toList()
+        val addresses = instructions.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+        val switchAddress = addresses[instructions.indexOfFirst { it.opcode in switchOpcodes }]
+        val launchAddress = addresses[UpgradeOnboardingLauncherFingerprint.instructionMatches.first().index]
+        val cases = instructions.filterIsInstance<SwitchPayload>().single().switchElements
+        val launchCase = cases.filter { switchAddress + it.offset <= launchAddress }.maxByOrNull { it.offset }
+        return launchCase?.key ?: (cases.maxOf { it.key } + 1)
+    }
 
 internal fun BytecodePatchContext.onboardingLaunchCoroutineFingerprint() = Fingerprint(
     returnType = "Ljava/lang/Object;",
     filters = listOf(
         newInstance(UpgradeOnboardingLauncherFingerprint.originalClassDef.type),
-        literal(legacyLaunchDefaultIndex, location = MatchAfterWithin(2)),
+        literal(onboardingLaunchKey, location = MatchAfterWithin(2)),
     ),
 )
 

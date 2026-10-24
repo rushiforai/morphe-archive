@@ -18,11 +18,11 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.formatter.DexFormatter
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -135,9 +135,9 @@ internal fun BytecodePatchContext.injectAppCompatDefaultNightMode() {
         ?: throw PatchException("Expected one AppCompat default night mode read, found $nightModeReads")
 
     val readInstructions = when (nightModeRead) {
-        is FieldReference -> "sget v0, ${DexFormatter.INSTANCE.getFieldDescriptor(nightModeRead)}"
+        is FieldReference -> "sget v0, ${descriptor(nightModeRead)}"
         is MethodReference ->
-            "invoke-static { }, ${DexFormatter.INSTANCE.getMethodDescriptor(nightModeRead)}\nmove-result v0"
+            "invoke-static { }, ${descriptor(nightModeRead)}\nmove-result v0"
         else -> throw PatchException("Unexpected night mode read: $nightModeRead")
     }
 

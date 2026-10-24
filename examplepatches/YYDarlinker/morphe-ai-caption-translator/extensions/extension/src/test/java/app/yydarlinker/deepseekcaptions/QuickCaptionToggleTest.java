@@ -24,6 +24,7 @@ public class QuickCaptionToggleTest {
         @Implementation public static String language(Object t){return "fr";}
         @Implementation public static String vss(Object t){return "tfr.en";}
         @Implementation public static String url(Object t){return "https://www.youtube.com/api/timedtext?v=abcdefghijk&lang=en&tlang=fr";}
+        @Implementation public static String nativeModelVideo(Object m){return "abcdefghijk";}
     }
     @Implements(CaptionQuickToggle.class) public static class Menu {
         @Implementation public static boolean topMenu(){return top;}
@@ -33,29 +34,62 @@ public class QuickCaptionToggleTest {
     @Implements(CaptionActions.class) public static class Core {
         @Implementation public static void activate(Context context,String url){} // No network in switch tests.
         @Implementation public static void refreshConfiguration(Context context){}
+        // The real port writes the session intent on a user off; the fake port has no application,
+        // so the intent write is done here instead.
+        @Implementation public static void deactivateByUser(){CaptionSessionReconciler.onUserOff(CaptionAddonSupport.context(),"cc_button");}
+        @Implementation public static void deactivateAfterNativeReset(){}
     }
-    @Before public void reset(){installFakePort();setVideo("");installed=true;top=false;shorts=false;validKey=true;rows=0;selections.clear();CaptionChoice.reset();CaptionQuickToggle.cancelActivationRetry();}
+    @Before public void reset(){
+        installFakePort();setVideo("");installed=true;top=false;shorts=false;validKey=true;rows=0;selections.clear();
+        CaptionSessionIntent.resetForTests(CaptionAddonSupport.context());
+        CaptionSessionReconciler.resetForTests();
+        CaptionNativeProjection.resetForTests();
+    }
+    /** The application announces a video: that is what starts the caption session. */
+    private static void startVideo(Activity a,String video){
+        setVideo(video);
+        CaptionSessionReconciler.onVideo(a,video);
+    }
     @Test public void switchingEngineKeepsTheNativeSelection(){
         Activity a=Robolectric.buildActivity(Activity.class).setup().get();CaptionAddonSupport.initialize(a);DeepSeekConfig.saveEnabled(a,false);Track track=new Track();
-        setVideo("abcdefghijk");Object manager=new Object();NativeCaptionBridge.onNativeSelectionWithReason(manager,track,Origin.PREFERRED_TRACK,17);assertTrue(CaptionChoice.translates());
-        assertTrue(String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast()),CaptionQuickToggle.setEngine(a,true));assertTrue(DeepSeekConfig.enabled(a));assertEquals("fr",CaptionChoice.targetLanguage());
+        CaptionSessionIntent.resetForTests(a);startVideo(a,"abcdefghijk");Object manager=new Object();
+        NativeCaptionBridge.onNativeSelectionWithReason(manager,track,Origin.PREFERRED_TRACK,17);
+        CaptionSessionIntent chosen=CaptionSessionIntent.load(a);
+        assertTrue("the CC menu choice is the user's target",chosen.hasTarget());assertEquals("fr",chosen.targetLanguage);assertTrue(chosen.translateTarget);
+        assertTrue("the CC menu choice is a user on act",chosen.aiEnabled);
+        assertTrue("the menu selection starts the feature",DeepSeekConfig.enabled(a));
         assertTrue(selections.isEmpty());
-        assertTrue(CaptionQuickToggle.setEngine(a,false));assertFalse(DeepSeekConfig.enabled(a));assertTrue(selections.isEmpty());assertEquals("fr",CaptionChoice.targetLanguage());a.finish();
+        assertTrue(String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast()),CaptionQuickToggle.setEngine(a,true));assertTrue(DeepSeekConfig.enabled(a));assertEquals("fr",CaptionSessionIntent.load(a).targetLanguage);
+        assertTrue(selections.isEmpty());
+        assertTrue(CaptionQuickToggle.setEngine(a,false));assertFalse(DeepSeekConfig.enabled(a));assertTrue(selections.isEmpty());
+        assertEquals("turning AI off keeps its target","fr",CaptionSessionIntent.load(a).targetLanguage);a.finish();
     }
     @Test public void menuClickTogglesDirectlyWithoutDialog(){
         Activity a=Robolectric.buildActivity(Activity.class).setup().get();CaptionAddonSupport.initialize(a);DeepSeekConfig.saveEnabled(a,false);top=true;
-        NativeCaptionBridge.onNativeSelection(new Object(),null,Origin.PREFERRED_TRACK);
-        CaptionQuickToggle.onMenu(new Object(),3);listener.onClick(new View(a));assertTrue(DeepSeekConfig.enabled(a));
-        listener.onClick(new View(a));assertFalse(DeepSeekConfig.enabled(a));
+        startVideo(a,"abcdefghijk");
+        NativeCaptionBridge.onNativeSelection(new Object(),new Track(),Origin.PREFERRED_TRACK);
+        assertTrue("the menu gave the switch a target",CaptionSessionIntent.load(a).hasTarget());
+        assertTrue("the explicit menu selection starts the feature",DeepSeekConfig.enabled(a));
+        CaptionQuickToggle.onMenu(new Object(),3);listener.onClick(new View(a));assertFalse(DeepSeekConfig.enabled(a));
+        listener.onClick(new View(a));assertTrue(DeepSeekConfig.enabled(a));
         assertNull(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog());a.finish();
     }
     @Test public void missingKeyDoesNotTurnOffNativeCaptions(){
         Activity a=Robolectric.buildActivity(Activity.class).setup().get();DeepSeekConfig.saveEnabled(a,false);validKey=false;
         assertFalse(CaptionQuickToggle.setEngine(a,true));assertFalse(DeepSeekConfig.enabled(a));assertTrue(selections.isEmpty());a.finish();
     }
-    @Test public void offCaptionsRemainOffWhenEngineChanges(){
-        Activity a=Robolectric.buildActivity(Activity.class).setup().get();DeepSeekConfig.saveEnabled(a,false);NativeCaptionBridge.onNativeSelection(new Object(),null,Origin.PREFERRED_TRACK);
-        assertTrue(String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast()),CaptionQuickToggle.setEngine(a,true));assertFalse(CaptionChoice.isOn());assertFalse("the user's new AI-on decision must clear the old CC-off latch",CaptionChoice.userOff());assertTrue(selections.isEmpty());a.finish();
+    @Test public void anExplicitOffIsAUserActAndTheSwitchCanUndoItWithATarget(){
+        Activity a=Robolectric.buildActivity(Activity.class).setup().get();CaptionAddonSupport.initialize(a);
+        DeepSeekConfig.saveEnabled(a,false);CaptionSessionIntent.resetForTests(a);startVideo(a,"abcdefghijk");
+        NativeCaptionBridge.onNativeSelection(new Object(),null,Origin.PREFERRED_TRACK);
+        assertFalse("an explicit caption-menu Off is a user act",CaptionSessionIntent.load(a).aiEnabled);
+        // The Off row leaves no target; choosing one in the same menu is the user's next act.
+        NativeCaptionBridge.onNativeSelection(new Object(),new Track(),Origin.PREFERRED_TRACK);
+        assertEquals("the menu supplied the target","fr",CaptionSessionIntent.load(a).targetLanguage);
+        assertTrue(String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast()),CaptionQuickToggle.setEngine(a,true));
+        assertTrue(CaptionSessionIntent.load(a).aiEnabled);
+        assertTrue("the target is retained",CaptionSessionIntent.load(a).hasTarget());
+        assertTrue(selections.isEmpty());a.finish();
     }
     @Test public void onlyRecognizedPlayerMenusReceiveAnEntry(){
         Activity a=Robolectric.buildActivity(Activity.class).setup().get();CaptionAddonSupport.initialize(a);Object panel=new Object();
@@ -65,5 +99,19 @@ public class QuickCaptionToggleTest {
         CaptionQuickToggle.observeMenuPath("captions_sheet_content.e",new byte[]{1});CaptionQuickToggle.onMenu(panel,3);assertEquals(1,rows);
         CaptionQuickToggle.observeMenuPath("overflow_menu_item.e", "yt_outline_closed_caption_".getBytes(java.nio.charset.StandardCharsets.US_ASCII));CaptionQuickToggle.onMenu(panel,3);assertEquals(2,rows);
         CaptionQuickToggle.onMenu(panel,3);assertEquals(2,rows);a.finish();
+    }
+    /** A fresh install has no target: the switch must not stay on and silence native captions. */
+    @Test public void switchingOnWithoutAnyTargetRollsBackAndKeepsNativeCaptions(){
+        Activity a=Robolectric.buildActivity(Activity.class).setup().get();CaptionAddonSupport.initialize(a);
+        DeepSeekConfig.saveEnabled(a,false);CaptionSessionIntent.resetForTests(a);startVideo(a,"abcdefghijk");
+        assertFalse("a switch-on that cannot start anything is not effective",CaptionQuickToggle.setEngine(a,true));
+        assertFalse("the feature switch is rolled back",DeepSeekConfig.enabled(a));
+        assertFalse("the intent is rolled back",CaptionSessionIntent.load(a).aiEnabled);
+        assertFalse("no target was ever chosen",CaptionSessionIntent.load(a).hasTarget());
+        assertEquals("the user is told to pick the language in YouTube's own menu",
+                CaptionStrings.get(a,"choose_translation"),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertFalse("native captions keep painting",NativeCaptionBridge.suppressNativeDraw());
+        a.finish();
     }
 }

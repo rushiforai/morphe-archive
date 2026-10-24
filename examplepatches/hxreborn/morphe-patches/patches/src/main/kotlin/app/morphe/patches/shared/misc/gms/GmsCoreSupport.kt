@@ -18,12 +18,13 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
 import app.morphe.patches.shared.misc.signature.replaceString
 import app.morphe.patches.shared.misc.signature.stockSigningCertificate
+import app.morphe.patches.shared.misc.smali.toJavaClassName
+import app.morphe.util.getReference
 import app.morphe.util.matchAllMethodIndicesForEach
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
 import java.security.MessageDigest
@@ -81,6 +82,5 @@ internal fun BytecodePatchContext.redirectGmsPackageToGmsCore() {
 
 private fun Instruction.isString(value: String) =
     (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
-        ((this as? ReferenceInstruction)?.reference as? StringReference)?.string == value
+        getReference<StringReference>()?.string == value
 
-private fun String.toJavaClassName() = removePrefix("L").removeSuffix(";").replace('/', '.')

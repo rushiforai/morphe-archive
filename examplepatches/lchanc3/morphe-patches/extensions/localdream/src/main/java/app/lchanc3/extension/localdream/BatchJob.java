@@ -70,6 +70,11 @@ final class BatchJob {
     private static final String PREF_UPSCALER = "upscaler_standalone_selected_upscaler";
     private static final String PREF_SCALE = "upscaler_standalone_upscale_scale";
 
+    /** The app's choice of where models are stored, see {@link #modelsDir}. */
+    private static final String STORAGE_PREFS = "model_storage";
+    private static final String STORAGE_LOCATION = "location";
+    private static final String STORAGE_DOWNLOADS = "DOWNLOADS";
+
     static final class Item {
         final int index;
         final Uri source;
@@ -709,7 +714,7 @@ final class BatchJob {
         for (String id : new String[]{"upscaler_anime", "upscaler_realistic"}) {
             if (upscalerFile(context, id).length() > 0) ids.add(id);
         }
-        File[] models = new File(context.getFilesDir(), "models").listFiles();
+        File[] models = modelsDir(context).listFiles();
         if (models != null) {
             List<String> others = new ArrayList<>();
             for (File model : models) {
@@ -725,7 +730,21 @@ final class BatchJob {
     }
 
     static File upscalerFile(Context context, String id) {
-        return new File(new File(new File(context.getFilesDir(), "models"), id), "upscaler.bin");
+        return new File(new File(modelsDir(context), id), "upscaler.bin");
+    }
+
+    /**
+     * Where the app keeps its models: app storage, or Download/LocalDream once
+     * they have been moved there in its settings (3.0.0-alpha.6). Mirrors
+     * ModelStorage.modelsDir(), which reads the same preference.
+     */
+    private static File modelsDir(Context context) {
+        String location = context.getSharedPreferences(STORAGE_PREFS, Context.MODE_PRIVATE)
+                .getString(STORAGE_LOCATION, null);
+        File root = STORAGE_DOWNLOADS.equals(location)
+                ? new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "LocalDream")
+                : context.getFilesDir();
+        return new File(root, "models");
     }
 
     /** The name the app gives the upscaler, from its own strings. */

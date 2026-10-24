@@ -7,9 +7,9 @@ package app.hxreborn.extension.netanalyzer;
 import java.lang.ref.WeakReference;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Intent;
-import android.os.Bundle;
+
+import app.hxreborn.extension.shared.ActivityCallbacksAdapter;
 
 final class HostActivity {
 
@@ -49,7 +49,7 @@ final class HostActivity {
         activity.startActivity(intent.setClassName(activity, activityClass));
     }
 
-    private static final class HostRefresh implements Application.ActivityLifecycleCallbacks {
+    private static final class HostRefresh extends ActivityCallbacksAdapter {
 
         private final Class<?> hostClass;
 
@@ -63,30 +63,6 @@ final class HostActivity {
                 hostRefreshPending = false;
                 activity.recreate();
             }
-        }
-
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        }
-
-        @Override
-        public void onActivityStarted(Activity activity) {
-        }
-
-        @Override
-        public void onActivityPaused(Activity activity) {
-        }
-
-        @Override
-        public void onActivityStopped(Activity activity) {
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        }
-
-        @Override
-        public void onActivityDestroyed(Activity activity) {
         }
 
     }

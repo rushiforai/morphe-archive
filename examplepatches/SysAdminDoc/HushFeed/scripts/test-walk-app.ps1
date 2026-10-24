@@ -55,6 +55,12 @@ foreach ($key in $WalkLabels.Keys) {
     Assert-WalkContract ($italian[$key] -match $WalkLabels[$key]) "$key's label doesn't match Italian '$($italian[$key])'."
     Assert-WalkContract (Test-WalkTapAllowed -Node ([pscustomobject]@{ Text = $italian[$key]; Desc = '' })) "The walk refused '$($italian[$key])', which it needs."
 }
+# English TikTok 47.5.3 on the S22 writes the Inbox row with an ampersand.
+foreach ($row in 'Activity & new followers', 'Activity and new followers', 'Activity') {
+    Assert-WalkContract ($row -match $WalkLabels.ActivityRow) "The Activity row label doesn't match '$row'."
+    Assert-WalkContract (Test-WalkTapAllowed -Node ([pscustomobject]@{ Text = $row; Desc = '' })) "The walk refused '$row', which it needs."
+}
+Assert-WalkContract ('Activity status: turned off' -notmatch $WalkLabels.ActivityRow) 'The Activity row label matched the status button.'
 Assert-WalkContract ('Aggiungi un commento...' -match $WalkLabels.CommentsSheet) "The comment field didn't mark the comment sheet."
 Assert-WalkContract ('Seguiti' -notmatch $WalkLabels.Friends -and 'Visualizza 18 risposte' -notmatch $WalkLabels.CommentsSheet) 'A label matched the wrong row.'
 

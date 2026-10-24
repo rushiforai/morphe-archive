@@ -79,7 +79,7 @@ class GridSortAnchorsTest {
 
                     val ask = setAfter.first().getReference<MethodReference>()!!
                     assertEquals(
-                        "Lapp/morphe/extension/tiktok/feed/GridSort;->data(Ljava/util/List;)Ljava/util/List;",
+                        "Lapp/morphe/extension/tiktok/feed/GridSort;->data(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;",
                         "${ask.definingClass}->${ask.name}(${ask.parameterTypes.joinToString("")})${ask.returnType}",
                     )
                     assertEquals(

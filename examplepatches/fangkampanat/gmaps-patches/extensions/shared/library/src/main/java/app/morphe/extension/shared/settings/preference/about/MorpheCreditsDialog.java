@@ -21,6 +21,7 @@ import java.util.Locale;
 
 import app.morphe.extension.shared.StringRef;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.Dim;
 
 class MorpheCreditsDialog extends Dialog {
@@ -65,8 +66,8 @@ class MorpheCreditsDialog extends Dialog {
 
     private String createDialogHtml() {
         // Get theme colors.
-        String foregroundColorHex = Utils.getColorHexString(Utils.getAppForegroundColor());
-        String backgroundColorHex = Utils.getColorHexString(Utils.getDialogBackgroundColor());
+        String foregroundColorHex = Utils.getColorHexString(ThemeUtils.getAppForegroundColor());
+        String backgroundColorHex = Utils.getColorHexString(ThemeUtils.getDialogBackgroundColor());
 
         // Morphe brand colors from logo.
         String morpheBlue = "#1E5AA8";
@@ -297,7 +298,7 @@ class MorpheCreditsDialog extends Dialog {
         // Set rounded rectangle background.
         ShapeDrawable mainBackground = new ShapeDrawable(new RoundRectShape(
                 Dim.roundedCorners(28), null, null));
-        mainBackground.getPaint().setColor(Utils.getDialogBackgroundColor());
+        mainBackground.getPaint().setColor(ThemeUtils.getDialogBackgroundColor());
         mainLayout.setBackground(mainBackground);
 
         // Create WebView.

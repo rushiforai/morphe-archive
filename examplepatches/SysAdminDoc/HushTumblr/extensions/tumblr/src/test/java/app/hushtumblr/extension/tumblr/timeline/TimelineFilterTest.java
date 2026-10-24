@@ -61,6 +61,7 @@ public class TimelineFilterTest {
         Settings.HIDE_ADS.resetToDefault();
         Settings.HIDE_SUGGESTED_BLOGS.resetToDefault();
         Settings.HIDE_SUGGESTED_COMMUNITIES.resetToDefault();
+        Settings.HIDE_SUGGESTED_TAGS.resetToDefault();
         Settings.HIDE_WATCH_IT_ROWS.resetToDefault();
         TimelineFilter.carouselItemsForTests = null;
         TimelinePaging.resetForTests();
@@ -201,6 +202,47 @@ public class TimelineFilterTest {
         assertSame(page, TimelineFilter.filter(page));
     }
 
+    /**
+     * A blog's posts keep their own copy of the list they hand the base constructor. That copy is
+     * the filtered one, and the base constructor's call, right after, hands the same list back
+     * without reading the page again. A page that isn't that list is filtered as usual.
+     */
+    @Test
+    public void aBlogsOwnCopyOfItsPostsIsFilteredOnce() {
+        List<Object> page = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.GEMINI_AD),
+                TimelineItems.post());
+        List<?> kept = TimelineFilter.filterKept(page);
+        assertEquals(Arrays.asList(page.get(0), page.get(2)), kept);
+        assertSame(kept, TimelineFilter.filter(kept));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("Hide ads: invoked 1,") && report.contains("ad removed 1"));
+
+        List<Object> next = new ArrayList<>(page);
+        assertEquals(Arrays.asList(page.get(0), page.get(2)), TimelineFilter.filter(next));
+        report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("Hide ads: invoked 2,") && report.contains("ad removed 2"));
+    }
+
+    /**
+     * Between a blog's own posts, the "Like this? Follow to see more" heading over its "Follow
+     * <blog>" button, a carousel of suggested blogs and the one-item form of the prompt go with Hide
+     * suggested blogs, and stay with it off. A button that opens a page stays either way.
+     */
+    @Test
+    public void aBlogsFollowPromptAndSuggestionsGoWithSuggestedBlogs() {
+        List<Object> page = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.followButton(), TimelineItems.post(), TimelineItems.carousel(TimelineObjectType.CAROUSEL,
+                        TimelineItems.of(TimelineObjectType.TINY_BLOG_CAROUSEL_CARD)), TimelineItems.post(),
+                TimelineItems.webButton(), TimelineItems.post(), TimelineItems.of(TimelineObjectType.BLOG_FOLLOW_CTA),
+                TimelineItems.of(TimelineObjectType.BLOG_SUBSCRIPTION_CTA), TimelineItems.post());
+        assertSame(page, TimelineItems.onABlog(page));
+        Settings.HIDE_SUGGESTED_BLOGS.save(true);
+        assertEquals(Arrays.asList(page.get(0), page.get(3), page.get(5), page.get(6), page.get(7), page.get(10)),
+                TimelineItems.onABlog(page));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("heading removed 1") && report.contains("card removed 4"));
+    }
+
     /** A page with nothing to take out comes back as the very list Tumblr built. */
     @Test
     public void postsAndOtherItemsStay() {
@@ -263,15 +305,17 @@ public class TimelineFilterTest {
         List<Object> page = Arrays.asList(TimelineItems.of(TimelineObjectType.TITLE),
                 TimelineItems.of(TimelineObjectType.BLOG_CARD), TimelineItems.of(TimelineObjectType.COMMUNITY_ROW),
                 TimelineItems.of(TimelineObjectType.VIDEO_HUBS_ROW), TimelineItems.post(),
-                TimelineItems.of(TimelineObjectType.TITLE));
+                TimelineItems.carousel(TimelineObjectType.CAROUSEL,
+                        TimelineItems.of(TimelineObjectType.TAG_CAROUSEL_CARD)),
+                TimelineItems.of(TimelineObjectType.SIGNPOST), TimelineItems.of(TimelineObjectType.TITLE));
         assertSame(page, TimelineFilter.filter(page));
     }
 
     /**
-     * Every tab of a search loads its pages as a search response, and there a blog or community card
-     * is what was searched for. With both switches on the Blogs tab's cards and rows, the Communities
-     * tab's, and a mixed page with headings and a carousel all come back as the very list Tumblr
-     * built, while the same pages in a dashboard lose every card.
+     * Every tab of a search loads its pages as a search response, and on the Blogs and Communities
+     * tabs a blog or community card is what was searched for. With both switches on, their cards and
+     * rows come back as the very list Tumblr built, while the same pages in a dashboard lose every
+     * card.
      */
     @Test
     public void aSearchKeepsTheBlogsAndCommunitiesItFound() {
@@ -281,18 +325,13 @@ public class TimelineFilterTest {
                 TimelineItems.of(TimelineObjectType.BLOG_ROW), TimelineItems.of(TimelineObjectType.COMPACT_BLOG_CARD));
         List<Object> communities = Arrays.asList(TimelineItems.of(TimelineObjectType.COMMUNITY_CARD),
                 TimelineItems.of(TimelineObjectType.COMMUNITY_ROW));
-        List<Object> mixed = Arrays.asList(TimelineItems.of(TimelineObjectType.TITLE),
-                TimelineItems.carousel(TimelineObjectType.CAROUSEL,
-                        TimelineItems.of(TimelineObjectType.TINY_BLOG_CAROUSEL_CARD)),
-                TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
-                TimelineItems.of(TimelineObjectType.COMMUNITY_CARD), TimelineItems.of(TimelineObjectType.TITLE));
 
-        for (List<Object> page : Arrays.asList(blogs, communities, mixed)) {
+        for (List<Object> page : Arrays.asList(blogs, communities)) {
             assertSame(page, TimelineItems.inSearchResults(page));
         }
         String report = String.join("\n", HookStatus.report(""));
-        assertTrue(report, report.contains(TimelineFilter.KEPT_RESULT + " 4"));
-        assertTrue(report, report.contains(TimelineFilter.KEPT_RESULT + " 2"));
+        assertTrue(report, report.contains(TimelineFilter.KEPT_RESULT + " 3"));
+        assertTrue(report, report.contains(TimelineFilter.KEPT_RESULT + " 1"));
         assertFalse(report, report.contains("card removed"));
         assertFalse(report, report.contains("heading removed"));
 
@@ -300,7 +339,106 @@ public class TimelineFilterTest {
                 TimelineItems.onTheDashboard(blogs));
         assertEquals("a row is a line of a list and stays", Arrays.asList(communities.get(1)),
                 TimelineItems.onTheDashboard(communities));
-        assertEquals(Arrays.asList(mixed.get(2)), TimelineItems.onTheDashboard(mixed));
+    }
+
+    /**
+     * A search's Posts tab is the one whose pages hold posts, and there a carousel of a tag's top
+     * blogs or related communities sits between the posts found, under its heading. Those go with
+     * their switches as in a dashboard, the heading that ends the page with them, and all stay with
+     * the switches off.
+     */
+    @Test
+    public void aSearchsPostsTabLosesTheCardsBetweenItsPosts() {
+        List<Object> posts = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.carousel(TimelineObjectType.CAROUSEL,
+                        TimelineItems.of(TimelineObjectType.TINY_BLOG_CAROUSEL_CARD)),
+                TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.carousel(TimelineObjectType.CAROUSEL, TimelineItems.of(TimelineObjectType.COMMUNITY_CARD)),
+                TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE));
+        assertSame(posts, TimelineItems.inSearchResults(posts));
+
+        Settings.HIDE_SUGGESTED_BLOGS.save(true);
+        assertEquals(Arrays.asList(posts.get(0), posts.get(3), posts.get(4), posts.get(5), posts.get(6)),
+                TimelineItems.inSearchResults(posts));
+        Settings.HIDE_SUGGESTED_COMMUNITIES.save(true);
+        assertEquals(Arrays.asList(posts.get(0), posts.get(3), posts.get(6)), TimelineItems.inSearchResults(posts));
+        String report = String.join("\n", HookStatus.report(""));
+        assertFalse(report, report.contains(TimelineFilter.KEPT_RESULT));
+    }
+
+    /**
+     * A carousel of tags Tumblr suggests ("Check out these tags", "Explore more #tag") goes with its
+     * heading, and the one that ends a page takes its heading too. A carousel of the tags you follow
+     * stays, and so does a page of lone tag cards, which is a carousel loading more of itself. The
+     * other card switches leave tags alone, and this one leaves their cards.
+     */
+    @Test
+    public void aCarouselOfSuggestedTagsGoesWithItsHeading() {
+        List<Object> page = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.carousel(TimelineObjectType.CAROUSEL,
+                        TimelineItems.of(TimelineObjectType.TAG_CAROUSEL_CARD)),
+                TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.carousel(TimelineObjectType.CAROUSEL,
+                        TimelineItems.of(TimelineObjectType.FOLLOWED_TAG_CAROUSEL_CARD)),
+                TimelineItems.of(TimelineObjectType.BLOG_CARD), TimelineItems.of(TimelineObjectType.TITLE));
+        Settings.HIDE_SUGGESTED_BLOGS.save(true);
+        Settings.HIDE_SUGGESTED_COMMUNITIES.save(true);
+        Settings.HIDE_WATCH_IT_ROWS.save(true);
+        assertEquals("the other switches", Arrays.asList(page.get(0), page.get(1), page.get(2), page.get(3),
+                page.get(4), page.get(5)), TimelineItems.onTheDashboard(page));
+        Settings.HIDE_SUGGESTED_BLOGS.resetToDefault();
+        Settings.HIDE_SUGGESTED_COMMUNITIES.resetToDefault();
+        Settings.HIDE_WATCH_IT_ROWS.resetToDefault();
+
+        Settings.HIDE_SUGGESTED_TAGS.save(true);
+        assertEquals(Arrays.asList(page.get(0), page.get(3), page.get(4), page.get(5), page.get(6)),
+                TimelineItems.onTheDashboard(page));
+        List<Object> more = Arrays.asList(TimelineItems.of(TimelineObjectType.TAG_CAROUSEL_CARD),
+                TimelineItems.of(TimelineObjectType.TAG_CAROUSEL_CARD));
+        assertSame("a carousel's own page", more, TimelineItems.onTheDashboard(more));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame("paused", page, TimelineItems.onTheDashboard(page));
+        PauseForTests.resume();
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.TIMELINE_ADS));
+        assertSame("without the patch", page, TimelineItems.onTheDashboard(page));
+    }
+
+    /**
+     * A search's Posts tab shows "Related tags" between its posts, and those go. Its Tags tab lists
+     * the tags it found under their headings, a page with no posts, and keeps every item.
+     */
+    @Test
+    public void aSearchKeepsTheTagsItFoundAndLosesTheOnesBetweenItsPosts() {
+        Settings.HIDE_SUGGESTED_TAGS.save(true);
+        List<Object> posts = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.carousel(TimelineObjectType.CAROUSEL,
+                        TimelineItems.of(TimelineObjectType.TAG_CAROUSEL_CARD)),
+                TimelineItems.post());
+        assertEquals(Arrays.asList(posts.get(0), posts.get(3)), TimelineItems.inSearchResults(posts));
+
+        List<Object> tags = Arrays.asList(TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.of(TimelineObjectType.COMMUNITY_HUB_HEADER_CARD),
+                TimelineItems.of(TimelineObjectType.TITLE), TimelineItems.of(TimelineObjectType.TAG_CARDS_COLLECTION));
+        assertSame(tags, TimelineItems.inSearchResults(tags));
+    }
+
+    /**
+     * Between a tag's posts Tumblr asks you to share the tag, and that prompt goes. The same kind of
+     * item is the message of an empty Your tags tab, a page with no posts, and it stays there, so the
+     * page isn't emptied either.
+     */
+    @Test
+    public void thePromptToShareATagGoesOnlyFromBetweenPosts() {
+        Settings.HIDE_SUGGESTED_TAGS.save(true);
+        List<Object> tagPage = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.SIGNPOST),
+                TimelineItems.post());
+        assertEquals(Arrays.asList(tagPage.get(0), tagPage.get(2)), TimelineItems.onTheDashboard(tagPage));
+
+        HookStatus.clear();
+        List<Object> yourTags = Collections.singletonList(TimelineItems.of(TimelineObjectType.SIGNPOST));
+        assertSame(yourTags, TimelineItems.onTheDashboard(yourTags));
+        String report = String.join("\n", HookStatus.report(""));
+        assertFalse(report, report.contains(TimelinePaging.EMPTIED));
     }
 
     /**
@@ -348,7 +486,9 @@ public class TimelineFilterTest {
         assertEquals(left, TimelineItems.onABlog(page));
         assertEquals(left, TimelineItems.inLikes(page));
         assertEquals("the blogs beside a dashboard's card", left, TimelineItems.besideABlogCard(page, false));
-        assertSame("the blogs beside a search result", page, TimelineItems.besideABlogCard(page, true));
+        List<Object> related = Arrays.asList(TimelineItems.of(TimelineObjectType.BLOG_CARD),
+                TimelineItems.of(TimelineObjectType.BLOG_CARD));
+        assertSame("the blogs beside a search result", related, TimelineItems.besideABlogCard(related, true));
 
         HookStatus.clear();
         assertSame(page, TimelineFilter.filter(page));
@@ -608,8 +748,10 @@ public class TimelineFilterTest {
      */
     private static void checkCards(BooleanSetting setting, Set<String> kinds) {
         for (String kind : kinds) {
-            List<Object> page = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.valueOf(kind)),
-                    TimelineItems.post());
+            // A button is a card only when it follows a blog.
+            Object card = TimelineFilter.BUTTON.equals(kind) ? TimelineItems.followButton()
+                    : TimelineItems.of(TimelineObjectType.valueOf(kind));
+            List<Object> page = Arrays.asList(TimelineItems.post(), card, TimelineItems.post());
             assertSame(kind + " with the switch off", page, TimelineItems.onTheDashboard(page));
             setting.save(true);
             List<?> shown = TimelineItems.onTheDashboard(page);

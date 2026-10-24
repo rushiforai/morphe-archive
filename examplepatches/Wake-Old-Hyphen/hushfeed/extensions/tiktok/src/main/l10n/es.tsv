@@ -838,6 +838,7 @@ Open TikTok on	Abrir TikTok en
 Opens github.com in your browser	Abre github.com en tu navegador
 Operator code	Código del operador
 Operator name	Nombre del operador
+Original	Original
 Original language	Idioma original
 Other	Otros
 Other feed filters	Otros filtros del feed
@@ -1412,7 +1413,7 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	Ocultar TikTok Shop en la búsqueda
 Hide the Products block and product cards in search results.	Ocultar el bloque de Productos y las tarjetas de producto en los resultados de búsqueda.
 Hide TikTok's Auto scroll button	Ocultar el botón Auto scroll de TikTok
-Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.	Quita la acción Auto scroll de TikTok del panel del vídeo. Los vídeos siguen avanzando automáticamente.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	Quita la acción Auto scroll de TikTok del panel del vídeo y el interruptor Auto scroll junto al vídeo en tabletas y plegables abiertos. Funciona también con el avance automático desactivado.
 Hide the unread badges on the bottom tabs	Ocultar las insignias de no leídos en las pestañas inferiores
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Oculta los contadores y puntos rojos de todas las pestañas inferiores, incluidas Bandeja de entrada y Perfil, y la burbuja sobre Bandeja de entrada que cuenta los nuevos me gusta, seguidores, comentarios y quién está en LIVE. La bandeja de entrada sigue mostrando lo que ha llegado.
 Speed while you hold the video	Velocidad mientras mantienes pulsado el vídeo
@@ -1652,13 +1653,15 @@ Remove story rings	Quitar los anillos de historias
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Quitar el anillo de historia de las fotos de perfil en el feed, en los comentarios y en los perfiles. Al tocar una foto se abre el perfil en vez de la historia.
 Remove the LIVE ring	Quitar el anillo de LIVE
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Quitar el anillo pulsante de LIVE de las fotos de perfil en el feed y en los comentarios. Al tocar la foto de alguien que está en directo se abre su perfil en vez del LIVE.
+Open the Story when a creator is LIVE	Abrir la historia cuando alguien está en LIVE
+When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	Si alguien que está en LIVE también tiene una historia, al tocar su foto en su perfil se abre la historia. Toca la foto otra vez para unirte al LIVE.
 Writing	Escribir
 Lift text length limits	Quitar los límites de longitud del texto
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Deja que los comentarios, las notas de reposts y tu biografía pasen del largo en el que se detiene la app de TikTok. Los servidores de TikTok aún pueden rechazar uno largo.
 Show only mutual friends on the Friends tab	Mostrar solo amigos mutuos en la pestaña Amigos
 On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	En la pestaña Amigos, ocultar publicaciones, reposts y LIVE de cuentas con las que no os seguís mutuamente, incluidas las sugeridas. Tus propias publicaciones se quedan.
 Latest first on Following	Lo más reciente primero en Siguiendo
-Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.	Reproducir cada tanda que carga el feed Siguiendo empezando por la publicación más reciente. TikTok sigue eligiendo qué trae cada tanda, y los anuncios y los LIVE se quedan en su sitio.
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	Reproducir el feed Siguiendo empezando por la publicación más reciente. Una publicación más nueva que carga después sube justo detrás del video que estás viendo, y nada de lo que ya pasaste cambia de lugar. Los anuncios y los LIVE se quedan en su sitio.
 Show follow status	Mostrar el estado de seguimiento
 Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Bajo el @usuario de un perfil, indicar si te sigue o no te sigue de vuelta. Las listas de seguidores y seguidos marcan las cuentas que sigues que no te siguen de vuelta.
 Follows you	Te sigue
@@ -2250,7 +2253,7 @@ Two at once	Dos a la vez
 Three at once	Tres a la vez
 LIVE recording quality	Calidad de grabación de LIVE
 Same as the room	Igual que la sala
-Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.	«Igual que la sala» graba la calidad que estás viendo. «La más alta» graba el mejor stream de la sala, aunque lo veas en una calidad más baja.
+Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.	«Igual que la sala» graba la calidad que estás viendo. «La más alta» graba el mejor stream de la sala, aunque lo veas en una calidad más baja. Un número graba esa calidad, o la más cercana que tenga la sala si no la ofrece.
 Long-press Profile for Watch history	Mantener pulsado Perfil para abrir el historial de visualización
 Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.	Mantén pulsada la pestaña Perfil para abrir tu historial de visualización. Tocar Perfil funciona como antes. Si al mantener pulsado Perfil cambias de cuenta, esta opción ocupa ese gesto, y el nombre en la parte superior de tu perfil sigue cambiando de cuenta.
 Open the comments at full height	Abrir los comentarios a toda la altura
@@ -2266,5 +2269,8 @@ Oldest first	Más antiguos primero
 Longest first	Más largos primero
 Shortest first	Más cortos primero
 Most viewed first	Más vistos primero
+Least viewed first	Menos vistos primero
 Most liked first	Con más me gusta primero
-Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.	Ordena los vídeos que una cuadrícula de perfil o de Me gusta ha cargado hasta ahora, y los fijados quedan primero. Al desplazarte, el orden abarca más vídeos. La próxima vez que se abra una cuadrícula, lo seguirá.
+Least liked first	Con menos me gusta primero
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Ordena una cuadrícula de perfil o de Me gusta, con los vídeos fijados primero. Mientras haya un orden elegido, la cuadrícula sigue cargando sola hasta 300 vídeos, así el orden abarca más que la primera pantalla. Un botón en la esquina superior de la cuadrícula cambia el orden ahí mismo.
+Sort this grid	Ordenar esta cuadrícula

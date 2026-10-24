@@ -252,6 +252,38 @@ public class GestureActionsTest {
      * Every Double tap choice but TikTok's own takes the tap from the like, as every Long press
      * choice but TikTok's takes the press. One the dispatch forgot would like the video instead.
      */
+    /**
+     * #239: with a double tap that does nothing there is nothing for a single tap to wait for, so
+     * the feed's tap timer gets a zero window. Any corner with an action keeps TikTok's window.
+     */
+    @Test public void aTapOnlyWaitsWhenADoubleTapDoesSomething() {
+        try {
+            assertEquals("TikTok's like still needs the window", 300, GestureActions.feedDoubleTapTimeout(300));
+            Settings.DOUBLE_TAP_ACTION.save("comments");
+            assertEquals(300, GestureActions.feedDoubleTapTimeout(300));
+            Settings.DOUBLE_TAP_ACTION.save("nothing");
+            assertEquals("nothing to wait for", 0, GestureActions.feedDoubleTapTimeout(300));
+
+            Settings.DOUBLE_TAP_SPLIT_ZONES.save(true);
+            Settings.DOUBLE_TAP_TOP_LEFT_ACTION.save("nothing");
+            Settings.DOUBLE_TAP_TOP_RIGHT_ACTION.save("nothing");
+            Settings.DOUBLE_TAP_BOTTOM_LEFT_ACTION.save("nothing");
+            Settings.DOUBLE_TAP_BOTTOM_RIGHT_ACTION.save("copy_link");
+            assertEquals("one corner still acts on a double tap", 300, GestureActions.feedDoubleTapTimeout(300));
+            Settings.DOUBLE_TAP_BOTTOM_RIGHT_ACTION.save("nothing");
+            assertEquals(0, GestureActions.feedDoubleTapTimeout(300));
+            Settings.DOUBLE_TAP_ACTION.save("default");
+            assertEquals("the plain row is set aside while corners are on", 0, GestureActions.feedDoubleTapTimeout(300));
+        } finally {
+            Settings.DOUBLE_TAP_ACTION.resetToDefault();
+            Settings.DOUBLE_TAP_SPLIT_ZONES.resetToDefault();
+            Settings.DOUBLE_TAP_TOP_LEFT_ACTION.resetToDefault();
+            Settings.DOUBLE_TAP_TOP_RIGHT_ACTION.resetToDefault();
+            Settings.DOUBLE_TAP_BOTTOM_LEFT_ACTION.resetToDefault();
+            Settings.DOUBLE_TAP_BOTTOM_RIGHT_ACTION.resetToDefault();
+        }
+    }
+
     @Test public void everyDoubleTapChoiceButTikToksTakesTheTap() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
             var activity = controller.get();

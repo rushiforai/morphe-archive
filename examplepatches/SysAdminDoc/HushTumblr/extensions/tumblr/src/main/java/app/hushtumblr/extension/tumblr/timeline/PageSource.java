@@ -29,7 +29,9 @@ import java.util.Set;
  * {@code TumblrCommonService.searchTimeline} and each later one from
  * {@code searchTimelinePagination}, both an {@code ApiResponse<SearchResultsResponse>}, so
  * {@code SearchResultsResponseJsonAdapter.fromJson} is on the stack for every page of results and
- * for nothing else. There the blog and community cards are what was asked for, and they stay.
+ * for nothing else. On its Blogs and Communities tabs the cards are what was asked for, and they
+ * stay. Its Posts tab is the one whose pages hold posts, and there {@code TimelineFilter} takes a
+ * card between them for a suggestion.
  *
  * <p>The cards go only under a response known to be a feed: the dashboard, Explore and the other
  * feeds that load a {@code WrappedTimelineResponse}, a tag's page ({@code CommunityHubResponse}),

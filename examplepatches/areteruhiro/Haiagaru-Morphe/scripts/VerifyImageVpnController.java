@@ -24,6 +24,10 @@ public final class VerifyImageVpnController {
         ImageVpnController.initialize(context);
         if (ImageVpnController.enabled()) throw new AssertionError("Runtime must be opt-in");
         ImageVpnController.setEnabled(true);
+        for(String host:new String[]{"www.activetk.jp","loggerip.web.app"}) {
+            String protectedUrl="https://"+host+"/offline-test.png";
+            if(!ImageVpnController.route(protectedUrl).startsWith("http://127.0.0.1:"))throw new AssertionError("Default host unprotected: "+host);
+        }
         String mapped = ImageVpnController.route(target);
         if (!mapped.startsWith("http://127.0.0.1:") || mapped.contains("yajuvideo")) throw new AssertionError("Unsafe capability URL");
         URL local = new URL(mapped);

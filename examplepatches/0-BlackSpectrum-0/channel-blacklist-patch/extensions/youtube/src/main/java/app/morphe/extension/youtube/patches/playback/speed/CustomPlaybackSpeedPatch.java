@@ -177,6 +177,14 @@ public class CustomPlaybackSpeedPatch {
 
     /**
      * Injection point.
+     * With audio offload the device hardware decodes the audio, and usually does not support changing the pitch.
+     */
+    public static boolean disableAudioOffload(boolean original) {
+        return original && !Settings.ENABLE_PLAYBACK_AUDIO_PITCH.get();
+    }
+
+    /**
+     * Injection point.
      */
     public static float getTapAndHoldSpeed() {
         return TAP_AND_HOLD_SPEED;
@@ -730,7 +738,7 @@ public class CustomPlaybackSpeedPatch {
      * @param isPlus  True to display a plus symbol, false to display a minus symbol.
      * @return A configured {@link Button} with the specified styling and layout parameters.
      */
-    private static Button createStyledButton(Context context, boolean isPlus) {
+    public static Button createStyledButton(Context context, boolean isPlus) {
         Button button = new Button(context, null, 0); // Disable default theme style.
         button.setText(""); // No text on button.
         ShapeDrawable background = new ShapeDrawable(new RoundRectShape(

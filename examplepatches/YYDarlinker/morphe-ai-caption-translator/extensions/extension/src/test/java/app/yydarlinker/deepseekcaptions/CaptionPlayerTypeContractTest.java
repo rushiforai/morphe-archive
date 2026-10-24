@@ -3,6 +3,7 @@ package app.yydarlinker.deepseekcaptions;
 import static org.junit.Assert.*;
 
 import android.app.Activity;
+import android.graphics.Rect;
 
 import org.junit.After;
 import org.junit.Before;
@@ -66,5 +67,66 @@ public class CaptionPlayerTypeContractTest {
         assertTrue(CaptionPlayerAuthority.isCompactType("NONE"));
         assertFalse(CaptionPlayerAuthority.isCompactType("WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED"));
         assertFalse(CaptionPlayerAuthority.isCompactType("WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN"));
+    }
+
+    @Test
+    public void aCompactStateIsReconciledFromTheCurrentPlayerType() {
+        type("WATCH_WHILE_MINIMIZED");
+        assertEquals(CaptionPlayerAuthority.COMPACT, CaptionPlayerAuthority.state());
+
+        // The callback that would report the regular player again is not guaranteed on re-entry:
+        // the player was reused. The bounded resume read is the recovery path, and a settled
+        // non-compact type is enough to reopen display without waiting for a layout event.
+        CaptionPlayerAuthority.installCurrentPlayerTypeForTests(() -> "WATCH_WHILE_MAXIMIZED");
+        assertTrue(CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled());
+        assertEquals(CaptionPlayerAuthority.REGULAR, CaptionPlayerAuthority.state());
+        assertTrue(CaptionPlayerAuthority.displayPermitted());
+    }
+
+    @Test
+    public void aSlidingReconcileStillWaitsForGeometry() {
+        type("WATCH_WHILE_MINIMIZED");
+        CaptionPlayerAuthority.installCurrentPlayerTypeForTests(
+                () -> "WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED");
+        assertTrue(CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled());
+        assertEquals(CaptionPlayerAuthority.TRANSITIONING_TO_REGULAR, CaptionPlayerAuthority.state());
+        assertFalse(CaptionPlayerAuthority.displayPermitted());
+        CaptionPlayerAuthority.settleRegular();
+        assertEquals(CaptionPlayerAuthority.REGULAR, CaptionPlayerAuthority.state());
+    }
+
+    @Test
+    public void aSettledTypeRecoversAStuckSlidingState() {
+        type("WATCH_WHILE_MINIMIZED");
+        CaptionPlayerAuthority.installCurrentPlayerTypeForTests(
+                () -> "WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED");
+        CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled();
+        assertEquals(CaptionPlayerAuthority.TRANSITIONING_TO_REGULAR, CaptionPlayerAuthority.state());
+
+        // The slide ended, but its stable layout event never arrived. The next bounded read of the
+        // official type must reopen display instead of leaving the quarantine latched.
+        CaptionPlayerAuthority.installCurrentPlayerTypeForTests(() -> "WATCH_WHILE_MAXIMIZED");
+        assertTrue(CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled());
+        assertEquals(CaptionPlayerAuthority.REGULAR, CaptionPlayerAuthority.state());
+        assertTrue(CaptionPlayerAuthority.displayPermitted());
+    }
+
+    @Test
+    public void onlyARegularSizedSurfaceContradictsTheMiniplayerName() {
+        // Portrait: the miniplayer is a wide, very short strip; detail/fullscreen is much taller.
+        assertFalse(
+                CaptionPlayerTransitionGuard.looksLikeRegularPlayer(
+                        new Rect(0, 2090, 1212, 2305), 1264, 2736));
+        assertTrue(
+                CaptionPlayerTransitionGuard.looksLikeRegularPlayer(
+                        new Rect(0, 0, 1264, 711), 1264, 2736));
+        // Landscape: a floating miniplayer is short; a regular player fills most of the height.
+        assertFalse(
+                CaptionPlayerTransitionGuard.looksLikeRegularPlayer(
+                        new Rect(2000, 800, 2640, 1160), 2736, 1264));
+        assertTrue(
+                CaptionPlayerTransitionGuard.looksLikeRegularPlayer(
+                        new Rect(0, 0, 2460, 1264), 2736, 1264));
+        assertFalse(CaptionPlayerTransitionGuard.looksLikeRegularPlayer(null, 1264, 2736));
     }
 }

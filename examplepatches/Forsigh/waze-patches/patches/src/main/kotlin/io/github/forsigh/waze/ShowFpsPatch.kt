@@ -13,7 +13,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val showFpsPatch = bytecodePatch(
     name = "Show FPS counter",
-    description = "Shows Waze's frames-per-second counter on the map.",
+    description = "Shows the frame-rate counter.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

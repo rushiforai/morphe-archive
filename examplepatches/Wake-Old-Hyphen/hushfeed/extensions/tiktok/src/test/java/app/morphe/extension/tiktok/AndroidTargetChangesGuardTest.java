@@ -100,6 +100,10 @@ public class AndroidTargetChangesGuardTest {
             new ReviewedWrites("feed/SensitiveWarnings.java", 2,
                     "safe: writes the mask and the Aweme the host handed it, and already catches "
                             + "a refusal and reports it as a diagnostic row"),
+            new ReviewedWrites("feed/GridSort.java", 1,
+                    "safe: writes mmItems on the profile grid adapter the hook was given, an "
+                            + "instance field, with a sorted copy of the list TikTok last handed "
+                            + "that adapter"),
             new ReviewedWrites("feedfilter/FeedItemsFilter.java", 3,
                     "safe: writes the search results' mItems, friendFeedData and, since #12, the "
                             + "Following feed's items field (mItems up to 46.8.3, items from "
@@ -203,8 +207,8 @@ public class AndroidTargetChangesGuardTest {
         int reviewed = REVIEWED_WRITES.stream().mapToInt(row -> row.writes).sum();
         assertEquals("the reviewed total no longer matches what the scan finds", reviewed, total);
         // Nine on 2026-09-19; four comment-menu instance writes were added for #169, and two
-        // LIVE profile card label writes for #159.
-        assertEquals("the audit counted fifteen reflective writes on 2026-10-20", 15, total);
+        // LIVE profile card label writes for #159, and the grid sort chip's re-sort for #180.
+        assertEquals("the audit counted sixteen reflective writes on 2026-10-23", 16, total);
     }
 
     @Test

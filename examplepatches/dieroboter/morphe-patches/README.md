@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## Patches list
 
 <!-- PATCHES_START -->
-> **[v1.5.1](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;40 patches total
+> **[v1.5.2](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details>
 <summary>File Manager&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -107,7 +107,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details>
-<summary>GIF Maker&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>GIF Maker&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **Supported versions:**
@@ -122,6 +122,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Disable Toto backend](#disable-toto-backend) | Disables the Toto server-driven config/offers backend: its app-start initialization, config reporting (including the background worker), FCM promotional-push token registration and the worker scheduling all become no-ops. |  |
 | [Disable ad consent flow](#disable-ad-consent-flow) | Disables the Google UMP ad-consent flow: the SDK's consent request returns immediately, so no consent information is requested and no consent form is ever loaded or shown. |  |
 | [Disable rate prompts](#disable-rate-prompts) | Disables the in-app rate-us prompts (the SDK's rate-dialog source gate always returns false) and hides the 'Rate us' row in the settings screen. |  |
+| [Hide settings buttons](#hide-settings-buttons) | Hides the 'VIP Customer Support', 'Rate us' and 'Share app' rows in the settings screen, and the rate button on the home screen bar. The support button on the home screen is not affected. |  |
 | [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) from the manifest. |  |
 | [Unlock premium](#unlock-premium) | Unlocks premium: forces the PremiumHelper SDK's isPremium check to always return true, which also suppresses banner/interstitial ads and the paywall and relaunch offers through the SDK's own premium paths. |  |
 

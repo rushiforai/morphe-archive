@@ -113,7 +113,7 @@ Java.perform(function () {
                     const menuItem = popup.getMenu().findItem(0x7e484a01);
                     check(menuItem !== null, 'native Menu action appended');
                     const browseItem = popup.getMenu().findItem(0x7e484a03);
-                    check(browseItem !== null && String(browseItem.getTitle()) === '過去レスを見る', 'archive browse action appended');
+                    check(browseItem !== null && String(browseItem.getTitle()) === '保存済みレスを見る', 'archive browse action appended');
                     A.append(null, popup.getMenu(), response, board);
                     check(popup.getMenu().size() === 2, 'save and browse actions do not duplicate');
                     const nativeItem = popup.getMenu().add.overload('int','int','int','java.lang.CharSequence')

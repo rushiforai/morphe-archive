@@ -9,21 +9,19 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.readera.shared.disableSignatureChecksPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.addMethod
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstructionReversed
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val EXTENSION_SLIDER_DESCRIPTOR = "Lapp/hxreborn/extension/readera/SpeechRateSlider;"
 private const val EXTENSION_TARGET_DESCRIPTOR = "Lapp/hxreborn/extension/readera/SpeechRateTarget;"
@@ -49,27 +47,18 @@ val speechRateSliderPatch = bytecodePatch(
 
         ApplySpeechRateFingerprint.classDef.apply {
             interfaces.add(EXTENSION_TARGET_DESCRIPTOR)
-            methods.add(
-                ImmutableMethod(
-                    type,
-                    "applySpeechRate",
-                    listOf(ImmutableMethodParameter("F", null, null)),
-                    "V",
-                    AccessFlags.PUBLIC.value,
-                    null,
-                    null,
-                    MutableMethodImplementation(3),
-                ).toMutable().apply {
-                    addInstructions(
-                        0,
-                        """
-                            iput p1, p0, $rateField
-                            const/4 v0, 0x0
-                            invoke-static { p0, v0 }, $applyRate
-                            return-void
-                        """,
-                    )
-                },
+            addMethod(
+                "applySpeechRate",
+                listOf("F"),
+                "V",
+                AccessFlags.PUBLIC.value,
+                3,
+                """
+                    iput p1, p0, $rateField
+                    const/4 v0, 0x0
+                    invoke-static { p0, v0 }, $applyRate
+                    return-void
+                """,
             )
         }
 
@@ -77,9 +66,7 @@ val speechRateSliderPatch = bytecodePatch(
             val rootField = it.instructionMatches[0].instruction.getReference<FieldReference>()!!
             val seekBarId = it.method.getInstruction<WideLiteralInstruction>(it.instructionMatches[1].index).wideLiteral
             val labelId = it.method.getInstruction<WideLiteralInstruction>(it.instructionMatches[4].index).wideLiteral
-            val returnIndex = it.method.implementation!!.instructions.indexOfLast { instruction ->
-                instruction.opcode == Opcode.RETURN_VOID
-            }
+            val returnIndex = it.method.indexOfFirstInstructionReversed(Opcode.RETURN_VOID)
             val registers = it.method.getFreeRegisterProvider(returnIndex, 3)
             val rootRegister = registers.getFreeRegister4Bit()
             val seekBarRegister = registers.getFreeRegister4Bit()

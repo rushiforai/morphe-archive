@@ -315,7 +315,7 @@ public final class SelectorDexFixture {
         put(classes, COLORS, List.of(method(COLORS, "<init>", "V", false, 6, colors, CONTEXT, "I")));
         designColors(classes, hooks, patched, fault);
         if (patched) put(classes, hooks, List.of(hook(hooks, "onActivityTheme", "V", -1, "Landroid/app/Activity;"), hook(hooks, "onComposeTheme", "V", -1, THEME),
-                wideHook(hooks, "designPage"), wideHook(hooks, "designPanel")));
+                wideHook(hooks, "designPage"), wideHook(hooks, "designPanel"), wideHook(hooks, "designFooter")));
     }
 
     /** A hook that takes a long and hands one back, asking whether the settings are ready as every hook does. */
@@ -387,6 +387,18 @@ public final class SelectorDexFixture {
                 staticCall(DARK_COLORS, "get", DS_COLORS, new String[0]), moved(1, true), end(),
                 staticCall(BLUE_COLORS, "get", DS_COLORS, new String[0]), moved(1, true), end());
         put(classes, DS_THEME, List.of(method(DS_THEME, "theme", "V", true, 4, theme, CONFIGURATION, DS_COLORS)));
+
+        // The footer under a post reads its group's panel color and hands it straight to the background modifier.
+        String footer = FIXTURE + "PostFooter;", group = FIXTURE + "ContentGroup;", paint = FIXTURE + "Background;";
+        String modifier = FIXTURE + "Modifier;", shape = FIXTURE + "Shape;";
+        put(classes, group, List.of(method(group, "panel", "J", false, 3, body(wide(0, 0xFF1A1A1AL), returnedWide(0)))));
+        put(classes, paint, List.of(method(paint, "background", modifier, true, 4, body(returned(0, true)), modifier, "J", shape)));
+        List<Instruction> draw = body(literal(0, "com.tumblr.ui.widget.splitnotescount.composable.PostFooterSplitNotesCountContent (PostFooterSplitNotesCountContent.kt:33)"),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(group, "panel", "J"), 4), movedWide(1),
+                staticCall(paint, "background", modifier, new String[]{modifier, "J", shape}, 5, 1, 2, 6), moved(0, true), end());
+        if (patched && !fault.equals("theme-footer-missing")) draw.addAll(3, body(range(Opcode.INVOKE_STATIC_RANGE, ref(hooks, "designFooter", "J", "J"), 1, 2),
+                movedWide(fault.equals("theme-footer-wrong-register") ? 3 : 1)));
+        put(classes, footer, List.of(method(footer, "draw", "V", true, 7, draw, group, modifier, shape)));
     }
 
     private static void storeButtons(Map<String, ClassDef> classes, boolean patched, String fault) {
@@ -482,6 +494,8 @@ public final class SelectorDexFixture {
         fixture(root, "theme-design-missing-read", "designPanel(J)J has 1 calls", "darkBackground");
         fixture(root, "theme-design-late", "designPage(J)J is not where its rule puts it", "darkBackground");
         fixture(root, "theme-design-other-palette", "misrouted call Lapp/hushtumblr/extension/tumblr/ui/DarkBackground;->designPage(J)J", "darkBackground");
+        fixture(root, "theme-footer-wrong-register", "designFooter(J)J doesn't take the post footer's color and put its answer back where it was", "darkBackground");
+        fixture(root, "theme-footer-missing", "designFooter(J)J has 0 calls", "darkBackground");
         fixture(root, "store-good", "", "hideTumblrMart");
         fixture(root, "store-swapped-diamond", "hideDiamond(Landroid/view/View;Landroid/view/View;)Z isn't asked first thing", "hideTumblrMart");
         fixture(root, "store-missing-second-button", "hideTumblrMart(Landroid/view/View;)V has 1 calls", "hideTumblrMart");

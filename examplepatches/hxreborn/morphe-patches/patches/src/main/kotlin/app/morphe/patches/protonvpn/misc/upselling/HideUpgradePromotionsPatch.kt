@@ -16,13 +16,13 @@ import app.morphe.patches.protonvpn.misc.anchors.ServerGroupsMainScreenStateToSt
 import app.morphe.patches.protonvpn.misc.restrictions.filterConstructorProperty
 import app.morphe.patches.protonvpn.misc.anchors.findPropertyField
 import app.morphe.patches.protonvpn.misc.anchors.setExtensionMember
-import app.morphe.patches.protonvpn.misc.anchors.toJavaClassName
 import app.morphe.patches.protonvpn.misc.anchors.unitInstanceField
 import app.morphe.patches.protonvpn.misc.restrictions.filterReturnValue
 import app.morphe.patches.protonvpn.misc.settings.patchesSettingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.proton.UPSELLING_VISIBILITY_CLASS
 import app.morphe.patches.shared.misc.proton.markFeaturePatched
+import app.morphe.patches.shared.misc.smali.toJavaClassName
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags

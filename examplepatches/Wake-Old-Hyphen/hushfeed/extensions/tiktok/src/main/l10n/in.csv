@@ -835,6 +835,7 @@ Open TikTok on,Buka TikTok di
 Opens github.com in your browser,Membuka github.com di browser kamu
 Operator code,Kode operator
 Operator name,Nama operator
+Original,Asli
 Original language,Bahasa asli
 Other,Lainnya
 Other feed filters,Filter feed lainnya
@@ -1408,7 +1409,7 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search,Sembunyikan TikTok Shop di pencarian
 Hide the Products block and product cards in search results.,Sembunyikan blok Produk dan kartu produk di hasil pencarian.
 Hide TikTok's Auto scroll button,Sembunyikan tombol Auto scroll TikTok
-Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,Menghapus aksi Auto scroll milik TikTok dari panel video. Video tetap dilanjutkan secara otomatis.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,Menghapus aksi Auto scroll milik TikTok dari panel video serta sakelar Auto scroll di samping video pada tablet dan ponsel lipat yang terbuka. Tetap berfungsi saat lanjut otomatis nonaktif.
 Hide the unread badges on the bottom tabs,Sembunyikan lencana belum dibaca di tab bawah
 "Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.","Menyembunyikan angka dan titik merah di semua tab bawah, termasuk Kotak Masuk dan Profil, serta gelembung di atas Kotak Masuk yang menghitung suka, pengikut, dan komentar baru, juga siapa yang sedang LIVE. Kotak masuk sendiri tetap menampilkan yang masuk."
 Speed while you hold the video,Kecepatan saat video ditahan
@@ -1645,13 +1646,15 @@ Remove story rings,Hapus cincin cerita
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Hapus cincin cerita dari foto profil di feed, di komentar, dan di profil. Mengetuk foto akan membuka profil, bukan ceritanya."
 Remove the LIVE ring,Hapus cincin LIVE
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,"Hapus cincin LIVE yang berdenyut dari foto profil di feed dan di komentar. Mengetuk foto kreator yang sedang live akan membuka profilnya, bukan LIVE-nya."
+Open the Story when a creator is LIVE,Buka cerita saat kreator sedang LIVE
+"When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.","Jika kreator yang sedang LIVE juga punya cerita, mengetuk fotonya di profilnya akan membuka cerita. Ketuk foto itu lagi untuk bergabung ke LIVE."
 Writing,Menulis
 Lift text length limits,Lepas batas panjang teks
 "Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.","Biarkan komentar, catatan repost, dan bio kamu melewati panjang yang dibatasi aplikasi TikTok. Server TikTok tetap bisa menolak teks yang panjang."
 Show only mutual friends on the Friends tab,Hanya tampilkan teman yang saling mengikuti di tab Teman
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","Di tab Teman, sembunyikan postingan, repost, dan LIVE dari akun yang tidak saling mengikuti dengan Anda, termasuk akun yang disarankan. Postingan Anda sendiri tetap ada."
 Latest first on Following,Terbaru dulu di Mengikuti
-"Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.","Putar setiap kelompok yang dimuat feed Mengikuti mulai dari postingan terbaru. TikTok tetap memilih isi setiap kelompok, dan iklan serta LIVE tetap di tempatnya."
+"Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.","Putar feed Mengikuti mulai dari postingan terbaru. Postingan lebih baru yang dimuat belakangan naik tepat setelah video yang sedang kamu tonton, dan yang sudah kamu lewati tidak berpindah. Iklan dan LIVE tetap di tempatnya."
 Show follow status,Tampilkan status mengikuti
 "Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.","Di bawah @nama pengguna pada profil, tampilkan apakah akun itu mengikuti Anda atau tidak mengikuti balik. Daftar pengikut dan yang diikuti menandai akun yang Anda ikuti tetapi tidak mengikuti balik."
 Follows you,Mengikuti Anda
@@ -2228,7 +2231,7 @@ Two at once,Dua sekaligus
 Three at once,Tiga sekaligus
 LIVE recording quality,Kualitas rekaman LIVE
 Same as the room,Sama seperti di ruang
-"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.","""Sama seperti di ruang"" merekam kualitas yang sedang kamu tonton. ""Tertinggi"" merekam stream terbaik di ruang itu, meski kamu menontonnya dengan kualitas lebih rendah."
+"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.","""Sama seperti di ruang"" merekam kualitas yang sedang kamu tonton. ""Tertinggi"" merekam stream terbaik di ruang itu, meski kamu menontonnya dengan kualitas lebih rendah. Angka merekam kualitas itu, atau yang terdekat di ruang jika tidak tersedia."
 Long-press Profile for Watch history,Tekan lama Profil untuk riwayat tontonan
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.","Tekan lama tab Profil untuk membuka riwayat tontonanmu. Mengetuk Profil tetap berfungsi seperti biasa. Jika menekan lama Profil mengganti akunmu, opsi ini mengambil alih tekanan itu, dan nama di bagian atas profilmu tetap bisa mengganti akun."
 Open the comments at full height,Buka komentar dengan tinggi penuh
@@ -2244,5 +2247,8 @@ Oldest first,Terlama dulu
 Longest first,Terpanjang dulu
 Shortest first,Terpendek dulu
 Most viewed first,Paling banyak ditonton dulu
+Least viewed first,Paling sedikit ditonton dulu
 Most liked first,Paling banyak disukai dulu
-"Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.","Mengurutkan video yang sudah dimuat kisi profil atau Disukai, dan video yang disematkan tetap di depan. Saat kamu menggulir, urutannya mencakup lebih banyak video. Kisi yang dibuka berikutnya mengikuti ini."
+Least liked first,Paling sedikit disukai dulu
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Mengurutkan kisi profil atau Disukai, dan video yang disematkan tetap di depan. Selama urutan dipilih, kisi terus memuat sendiri hingga 300 video, jadi urutannya mencakup lebih dari layar pertama. Tombol di sudut atas kisi mengubah urutan langsung di sana."
+Sort this grid,Urutkan kisi ini

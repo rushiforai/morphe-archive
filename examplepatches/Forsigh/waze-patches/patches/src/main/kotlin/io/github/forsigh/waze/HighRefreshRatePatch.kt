@@ -44,7 +44,7 @@ private val DisplayModeCeilingFingerprint = Fingerprint(
 @Suppress("unused")
 val highRefreshRatePatch = bytecodePatch(
     name = "Allow high refresh rate",
-    description = "Runs Waze above 60 Hz, up to your screen's refresh rate.",
+    description = "Runs above 60 Hz, up to your screen's limit.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

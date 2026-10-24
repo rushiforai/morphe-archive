@@ -18,6 +18,7 @@ final class SiteCardMetadata {
     static final class Data {
         final String url, title, description, image, site;
         final long savedAt;
+        boolean tunnel;
         Data(String url, String title, String description, String image, String site) {
             this(url,title,description,image,site,System.currentTimeMillis());
         }
@@ -26,7 +27,7 @@ final class SiteCardMetadata {
             this.savedAt=savedAt;
         }
         JSONObject json() throws Exception { return new JSONObject().put("url",url).put("title",title)
-                .put("description",description).put("image",image).put("site",site).put("saved",savedAt); }
+                .put("description",description).put("image",image).put("site",site).put("saved",savedAt).put("tunnel",tunnel); }
     }
     private static final Pattern META = Pattern.compile("(?is)<meta\\b(?:\"[^\"]*\"|'[^']*'|[^'\">])*>");
     private static final Pattern ATTR = Pattern.compile("(?is)([a-z_:][a-z0-9_:.-]*)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))");
@@ -59,12 +60,25 @@ final class SiteCardMetadata {
     }
 
     private static final class Content {
-        final byte[] bytes; final String url,type;
+        final byte[] bytes; final String url,type; boolean tunnel;
         Content(byte[] bytes,String url,String type){this.bytes=bytes;this.url=url;this.type=type;}
     }
     private static Content get(String address, boolean image) throws Exception {
+        return get(address,image,false);
+    }
+    private static Content get(String address, boolean image, boolean inheritedProtection) throws Exception {
         String url=safeUrl(address); if(url==null)throw new IOException("Unsupported URL");
         for(int redirect=0;redirect<=3;redirect++) {
+            // Decide before DNS/request creation, including a redirect into a registered domain.
+            if(inheritedProtection || ImageVpnController.protectedPreview(url)) {
+                app.morphe.extension.chmate.vpn.nativecore.imagevpn.Image result=ImageVpnController.fetchPreview(url);
+                String type=result.getContentType(); byte[] bytes=result.getBody();
+                if(bytes==null || type==null || (image ? !type.startsWith("image/") :
+                        !(type.contains("text/html")||type.contains("application/xhtml+xml"))))
+                    throw new IOException("Not preview content");
+                if(bytes.length>(image?2*1024*1024:512*1024))throw new IOException("Preview too large");
+                Content content=new Content(bytes,result.getURL(),type);content.tunnel=true;return content;
+            }
             Request request=new Request.Builder().url(url).header("User-Agent","Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/131.0 Mobile Safari/537.36")
                     .header("Accept",image?"image/*":"text/html,application/xhtml+xml").build();
             try(Response response=CLIENT.newCall(request).execute()) {
@@ -103,7 +117,9 @@ final class SiteCardMetadata {
         String prefix=new String(content.bytes,0,Math.min(content.bytes.length,4096),StandardCharsets.ISO_8859_1);
         Matcher encoding=Pattern.compile("(?i)charset\\s*=\\s*['\"]?([a-z0-9_.-]+)").matcher(content.type+" "+prefix);
         if(encoding.find())try{charset=Charset.forName(encoding.group(1));}catch(Exception ignored){}
-        return parse(new String(content.bytes,charset),content.url,url);
+        Data data=parse(new String(content.bytes,charset),content.url,url);
+        if(data!=null)data.tunnel=content.tunnel;
+        return data;
     }
     static Data parse(String html,String base,String original) throws Exception {
         int end=html.toLowerCase(Locale.ROOT).indexOf("</head>");if(end>=0)html=html.substring(0,end);
@@ -127,7 +143,10 @@ final class SiteCardMetadata {
     private static String first(Map<String,String> values,String... keys){for(String key:keys){String v=values.get(key);if(v!=null&&!v.trim().isEmpty())return v;}return "";}
     private static String clean(String v,int max){String text=Html.fromHtml(v).toString().replaceAll("[\\p{Cntrl}\\s]+"," ").trim();return text.substring(0,Math.min(max,text.length()));}
     static Bitmap image(String url) throws Exception {
-        Content content=get(url,true);BitmapFactory.Options bounds=new BitmapFactory.Options();bounds.inJustDecodeBounds=true;
+        return image(url,false);
+    }
+    static Bitmap image(String url,boolean protectedPage) throws Exception {
+        Content content=get(url,true,protectedPage);BitmapFactory.Options bounds=new BitmapFactory.Options();bounds.inJustDecodeBounds=true;
         BitmapFactory.decodeByteArray(content.bytes,0,content.bytes.length,bounds);
         if(bounds.outWidth<=0||bounds.outHeight<=0||(long)bounds.outWidth*bounds.outHeight>40000000) return null;
         BitmapFactory.Options options=new BitmapFactory.Options();options.inSampleSize=1;
@@ -145,7 +164,10 @@ final class SiteCardMetadata {
         byte[] bytes=new android.util.AtomicFile(file).readFully();JSONObject j=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
         if(!url.equals(j.optString("url")))return null;
         long saved=j.optLong("saved");if(saved<=0||System.currentTimeMillis()-saved>86400000)return null;
-        return new Data(url,j.getString("title"),j.optString("description"),j.optString("image"),j.optString("site"),saved);
+        Data data=new Data(url,j.getString("title"),j.optString("description"),j.optString("image"),j.optString("site"),saved);
+        // Old caches cannot prove that an unregistered URL did not redirect into a protected site.
+        if(!j.has("tunnel"))return null;
+        data.tunnel=j.optBoolean("tunnel");return data;
     }catch(Exception missing){return null;}}
     static void store(Data data){try{
         File directory=directory();if(!directory.isDirectory()&&!directory.mkdirs())return;

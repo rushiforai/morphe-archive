@@ -69,6 +69,9 @@ public class FollowListSuggestionsSettingsTest {
         android.preference.Preference row = page.getPreferenceScreen().findPreference(Settings.HIDE_FOLLOW_LIST_SUGGESTIONS.key);
         assertNotNull(row);
         assertEquals("Hide Suggested for you on follow lists", row.getTitle().toString());
+        String summary = String.valueOf(row.getSummary());
+        assertTrue("names the Suggested tab and the mutual list (#302): " + summary,
+                summary.contains("the Suggested tab off other people's follow lists") && summary.contains("mutual lists"));
         assertEquals("Profiles", ((PreferenceGroup) row.getParent()).getTitle().toString());
         assertFalse(Settings.HIDE_FOLLOW_LIST_SUGGESTIONS.get());
         PreferenceGroup profiles = row.getParent();

@@ -217,6 +217,25 @@
       "fallback": true
     },
     {
+      "id": "reseam-v0-29-0",
+      "family": "Reseam",
+      "loader": "reseam",
+      "coordinate": "app.reseam:reseam:0.29.0",
+      "dependencies": [],
+      "range": "*",
+      "fallback": true,
+      "executables": {
+        "windows-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.29.0/reseam-windows-x64.exe",
+          "sha256": "7c7ea5676f27f8f1cf0aca1e35b9a8b3445c7f4afaf33c3315b3d37e4f743bc6"
+        },
+        "linux-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.29.0/reseam-linux-x64",
+          "sha256": "ee60444e6fb0bd5a6cd3ec4076bbc3b2757a24541da4690517838510efdb8c99"
+        }
+      }
+    },
+    {
       "id": "reseam-v0-28-0",
       "family": "Reseam",
       "loader": "reseam",

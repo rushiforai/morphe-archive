@@ -5,7 +5,9 @@ plugins {
 }
 
 dependencies {
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
     implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.window:window:1.3.0")
     implementation("androidx.compose.ui:ui:1.8.3")
     implementation("androidx.compose.foundation:foundation:1.8.3")
     // Expressive is publicly available in the alpha API (hidden in 1.4 stable).

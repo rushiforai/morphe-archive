@@ -147,6 +147,7 @@ public class SettingsStatus {
     public static boolean exactCountsEnabled = false;
     public static boolean engagementRateEnabled = false;
     public static boolean avatarRingsEnabled = false;
+    public static boolean storyOverLiveEnabled = false;
     public static boolean lengthLimitsEnabled = false;
     public static boolean keepFavoritesTabEnabled = false;
     public static boolean followStatusEnabled = false;
@@ -579,6 +580,14 @@ public class SettingsStatus {
         avatarRingsEnabled = true;
     }
 
+    /**
+     * The profile picture's tap was hooked, so the Story first switch has something to change.
+     * A build where the tap wasn't found keeps the rings rows without it.
+     */
+    public static void enableStoryOverLive() {
+        storyOverLiveEnabled = true;
+    }
+
     public static void enableLengthLimits() {
         lengthLimitsEnabled = true;
     }
@@ -661,6 +670,13 @@ public class SettingsStatus {
 
     public static void enableProfileThoughts() {
         profileThoughtsEnabled = true;
+    }
+
+    /** Hide profile shortcuts found TikTok's two Thoughts gates on this build and put the switch in front. */
+    public static boolean thoughtsSwitchEnabled = false;
+
+    public static void enableThoughtsSwitch() {
+        thoughtsSwitchEnabled = true;
     }
 
     /** Hide profile shortcuts found the question your profile's menu asks about each cell, and hooked it. */

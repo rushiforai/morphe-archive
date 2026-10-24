@@ -30,10 +30,11 @@ _Supported version(s): 3.3.5, 3.3.4.2_
 
 ### My Telenor (`com.telenor.pakistan.mytelenor`)
 
-_Supported version(s): 4.2.62_
+_Supported version(s): 4.2.63_
 
 | Patch | Description |
 |-------|-------------|
+| **Auto-claim daily rewards** | Claims daily streak MBs and Answer & Win quiz rewards automatically via a background WorkManager job scheduled from MainActivity. |
 | **Block trackers** | Stops the Insider, TikTok Business SDK and Mixpanel Session Replay trackers from initializing (event/attribution/session-replay tracking never starts). Leaves AWS Amplify, Firebase core/RemoteConfig/FCM and Google Ads init untouched so app data, push and the remote ad-config the ads patch relies on keep working. |
 | **Block trackers (manifest flags)** | Disables Firebase Analytics + Google advertiser-id auto-collection and the Facebook SDK's auto app-events / advertiser-id / auto-init via AndroidManifest <meta-data> flags — the SDK-side auto-collection that no bytecode init-stub can reach. Leaves Firebase core (FCM push, RemoteConfig) and the Facebook ContentProvider intact. Separate from the bytecode Block trackers patch so you can pick either or both. |
 | **Bypass device validation** | Neutralizes the client-side device-validation gate (anti-root / anti-emulator / anti-Frida / anti-Xposed / anti-tamper battery) that shows a "Device validation failed" toast and kills the app via finishAffinity() on a rooted, emulated or re-signed build. Redirects the single failure callback to the success path so all ~16 checks report as passed and the app keeps running pre- and post-login. |

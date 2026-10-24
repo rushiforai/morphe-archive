@@ -1,5 +1,6 @@
 package io.github.forsigh.waze
 
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 
@@ -15,13 +16,19 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 @Suppress("unused")
 val instrumentClusterPatch = bytecodePatch(
     name = "Instrument cluster support",
-    description = "Shows the map, alerts and ETA on the car's digital cluster, where it has one.",
+    description = "Shows the map and alerts on the car's cluster screen.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
     category("Experimental")
 
     dependsOn(configOverridesPatch)
+
+    val large by booleanOption(
+        "large", true,
+        title = "Large cluster layout",
+        description = "Uses the bigger layout on the cluster. Stock: small.",
+    )
 
     execute {
         recordBoolean(
@@ -31,6 +38,7 @@ val instrumentClusterPatch = bytecodePatch(
             "CONFIG_VALUE_CAR_LIB_INSTRUMENT_CLUSTER_INSTRUCTIONS_AND_ETA_ENABLED",
             "CONFIG_VALUE_CAR_LIB_INSTRUMENT_CLUSTER_MAP_POIS_ENABLED",
         )
-        println("instrumentClusterPatch: cluster map, alerts, instructions/ETA and map POIs forced on")
+        if (large == true) recordBoolean("clu", true, "CONFIG_VALUE_AAOS_LCV_SUPPORT_ENABLED")
+        println("instrumentClusterPatch: cluster map, alerts, instructions/ETA and map POIs forced on, large = ${if (large == true) "on" else "stock"}")
     }
 }

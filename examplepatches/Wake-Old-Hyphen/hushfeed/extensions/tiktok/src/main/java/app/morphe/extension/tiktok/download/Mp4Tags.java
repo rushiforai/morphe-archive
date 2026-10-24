@@ -24,6 +24,11 @@ import java.util.Map;
  * <p>The tags go in moov/udta/meta/ilst. Growing moov moves everything after it, so when moov comes
  * before the media data, as it does in a file built for streaming, every chunk offset that points
  * past it moves by the same amount. A file this can't follow safely is left as it was.
+ *
+ * <p>TikTok's own files carry a QuickTime key list (an mdta meta: aigc_info, comment, vid_md5,
+ * encoder) where the iTunes tags go. Players read one udta meta, and VLC reads an iTunes item only
+ * from an iTunes meta, so that list is carried over into the iTunes meta as freeform items named by
+ * their keys, which ffprobe shows under the same names as before.
  */
 final class Mp4Tags {
     /** A moov larger than this isn't read into memory, and the file is saved without tags. */
@@ -143,7 +148,7 @@ final class Mp4Tags {
             }
             if (hadMeta) return null;
             hadMeta = true;
-            List<byte[]> items = ilstItems(data, child[0], child[1]);
+            List<byte[]> items = ilstItems(data, child[0], child[1], tags);
             if (items == null) return null;
             for (byte[] item : items) {
                 String type = new String(item, 4, 4, StandardCharsets.ISO_8859_1);
@@ -156,20 +161,25 @@ final class Mp4Tags {
     }
 
     /**
-     * The items of an existing udta/meta that a player would read the same way, or null when the
-     * meta is another kind (an mdta key list) that this shouldn't merge into.
+     * The items of an existing udta/meta as iTunes items a player reads the same way, or null when
+     * the meta can't be read. An mdta key list's entries come back as freeform items, leaving out
+     * the ones whose key names a tag {@code tags} writes, the way an iTunes item of that type is.
      */
-    private static List<byte[]> ilstItems(byte[] data, int start, int size) {
+    private static List<byte[]> ilstItems(byte[] data, int start, int size, Map<String, String> tags) {
         int header = headerSize(data, start, start + size);
         if (header < 0 || size < header + 4) return null;
         List<byte[]> items = new ArrayList<>();
-        boolean apple = false;
+        List<String> keys = null;
+        int handler = 0;
         for (int[] child : children(data, start + header + 4, start + size)) {
             if (child == null) return null;
             int type = fourCcAt(data, child[0] + 4);
             if (type == fourCc("hdlr")) {
                 if (child[1] < 20) return null;
-                apple = fourCcAt(data, child[0] + 16) == fourCc("mdir");
+                handler = fourCcAt(data, child[0] + 16);
+            } else if (type == fourCc("keys")) {
+                keys = keyNames(data, child[0], child[1]);
+                if (keys == null) return null;
             } else if (type == fourCc("ilst")) {
                 int itemsHeader = headerSize(data, child[0], child[0] + child[1]);
                 if (itemsHeader < 0) return null;
@@ -179,7 +189,70 @@ final class Mp4Tags {
                 }
             }
         }
-        return apple ? items : null;
+        if (handler == fourCc("mdir")) return items;
+        if (handler != fourCc("mdta") || keys == null) return null;
+        List<byte[]> freeform = new ArrayList<>();
+        for (byte[] item : items) {
+            // An mdta item's type is the 1-based index of its key, and its value is one data box.
+            long index = readUnsigned(item, 4);
+            if (index < 1 || index > keys.size()) return null;
+            String key = keys.get((int) index - 1);
+            if (tags.containsKey(KEY_TAGS.get(key))) continue;
+            int dataHeader = headerSize(item, 8, item.length);
+            if (dataHeader < 0 || fourCcAt(item, 12) != fourCc("data") || readUnsigned(item, 8) != item.length - 8) {
+                return null;
+            }
+            freeform.add(freeformItem(key, Arrays.copyOfRange(item, 8, item.length)));
+        }
+        return freeform;
+    }
+
+    /** The key a QuickTime list names for each tag this writes, as ffmpeg spells them. */
+    private static final Map<String, String> KEY_TAGS = new LinkedHashMap<>();
+
+    static {
+        KEY_TAGS.put("title", new String(TITLE, StandardCharsets.ISO_8859_1));
+        KEY_TAGS.put("artist", new String(ARTIST, StandardCharsets.ISO_8859_1));
+        KEY_TAGS.put("date", new String(DATE, StandardCharsets.ISO_8859_1));
+        KEY_TAGS.put("comment", new String(COMMENT, StandardCharsets.ISO_8859_1));
+        KEY_TAGS.put("description", new String(DESCRIPTION, StandardCharsets.ISO_8859_1));
+    }
+
+    /** The names in a keys box, in index order, or null when the box doesn't add up. */
+    private static List<String> keyNames(byte[] data, int start, int size) {
+        int header = headerSize(data, start, start + size);
+        if (header < 0 || size < header + 8) return null;
+        long count = readUnsigned(data, start + header + 4);
+        List<String> names = new ArrayList<>();
+        int position = start + header + 8;
+        int end = start + size;
+        for (long index = 0; index < count; index++) {
+            if (end - position < 8) return null;
+            long length = readUnsigned(data, position);
+            if (length < 8 || length > end - position) return null;
+            names.add(new String(data, position + 8, (int) length - 8, StandardCharsets.UTF_8));
+            position += (int) length;
+        }
+        return position == end ? names : null;
+    }
+
+    /** A "----" item: the iTunes freeform kind, named {@code name}, holding {@code data} as it was. */
+    private static byte[] freeformItem(String name, byte[] data) {
+        ByteArrayOutputStream mean = new ByteArrayOutputStream();
+        writeInt(mean, 0);
+        byte[] domain = "com.apple.iTunes".getBytes(StandardCharsets.ISO_8859_1);
+        mean.write(domain, 0, domain.length);
+        ByteArrayOutputStream label = new ByteArrayOutputStream();
+        writeInt(label, 0);
+        byte[] text = name.getBytes(StandardCharsets.UTF_8);
+        label.write(text, 0, text.length);
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        byte[] meanBox = box("mean", mean.toByteArray());
+        body.write(meanBox, 0, meanBox.length);
+        byte[] nameBox = box("name", label.toByteArray());
+        body.write(nameBox, 0, nameBox.length);
+        body.write(data, 0, data.length);
+        return box("----", body.toByteArray());
     }
 
     private static byte[] meta(List<byte[]> kept, Map<String, String> tags) {

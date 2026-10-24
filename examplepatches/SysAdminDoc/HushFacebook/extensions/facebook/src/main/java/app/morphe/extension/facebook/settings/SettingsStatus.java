@@ -66,6 +66,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyMusicLength() {
+        return false;
+    }
+
+    public static boolean pinchToZoom() {
+        return false;
+    }
+
     public static boolean sponsoredReels() {
         return false;
     }
@@ -75,6 +83,10 @@ public final class SettingsStatus {
     }
 
     public static boolean sponsoredProfilePosts() {
+        return false;
+    }
+
+    public static boolean profileNotes() {
         return false;
     }
 
@@ -95,6 +107,10 @@ public final class SettingsStatus {
     }
 
     public static boolean reelWatchHistory() {
+        return false;
+    }
+
+    public static boolean newestReelsFirst() {
         return false;
     }
 

@@ -40,6 +40,7 @@ import app.morphe.extension.shared.oauth2.requests.OAuth2Requester;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.PreferredClientCheck;
 import app.morphe.extension.shared.spoof.js.JavaScriptEngineSupport;
 import app.morphe.extension.shared.spoof.js.JavaScriptManager;
 import app.morphe.extension.shared.spoof.potoken.PoTokenManager;
@@ -73,6 +74,10 @@ public class StreamingDataRequest {
 
         List<ClientType> orderToUse = new ArrayList<>(availableClients.size());
         orderToUse.add(preferredClient);
+        // YouTube serves each TV device separately, so another one can still play when the first is cut off.
+        if (preferredClient == ClientType.TV_SABR) {
+            orderToUse.add(ClientType.TV_SABR_WII_U);
+        }
 
         for (ClientType client : availableClients) {
             if (client.requireJS && !JavaScriptEngineSupport.supportsJavaScriptEngine()) {
@@ -396,7 +401,7 @@ public class StreamingDataRequest {
             // TV SABR clients in live streams will be temporarily fallbacked to TV DASH clients.
             //
             // TODO: Override other playerConfigs such as exoPlayerConfig.
-            if (clientType.requireSABR && clientType == ClientType.TV_SABR
+            if ((clientType == ClientType.TV_SABR || clientType == ClientType.TV_SABR_WII_U)
                     && Utils.containsAny(streamingData.getServerAbrStreamingUrl(), "yt_live_broadcast", "yt_premiere_broadcast")) {
                 Logger.printDebug(() -> "Live stream detected, fallback to TV dash");
                 fallbackWithTVDash = true;
@@ -485,11 +490,15 @@ public class StreamingDataRequest {
             // A download reports its own failure, so it never adds a toast of its own here.
             final boolean showErrorToast = ((++i == clientOrder.length) || debugEnabled) && !isDownload;
 
+            if (clientType.requireJS) {
+                JavaScriptManager.warmUpInBackground();
+            }
+
             HttpURLConnection connection =
                     send(clientType, videoId, authorization, showErrorToast, includeVideoDetails);
             StreamData streamingData = buildPlayerResponseBuffer(clientType, connection, videoId, isInline);
 
-            if (clientType == ClientType.TV_SABR && fallbackWithTVDash) {
+            if ((clientType == ClientType.TV_SABR || clientType == ClientType.TV_SABR_WII_U) && fallbackWithTVDash) {
                 fallbackWithTVDash = false;
                 clientType = ClientType.TV_DASH;
                 HttpURLConnection fallBackConnection =
@@ -501,6 +510,8 @@ public class StreamingDataRequest {
                 // Stats for nerds describes what is playing, which a download never changes.
                 if (!isDownload) {
                     lastSpoofedClientType = clientType;
+                    // The first attempt is with the default client.
+                    PreferredClientCheck.onStreamsFetched(videoId, i == 1, clientType);
                 }
 
                 if (clientType.requireJS) {

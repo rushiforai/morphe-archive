@@ -19,6 +19,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.all.misc.clone.resetTargetPackageName
 import app.morphe.patches.all.misc.clone.setOrGetFallbackPackageName
+import app.morphe.patches.all.misc.crashlog.crashLogPatch
 import app.morphe.patches.all.misc.fix.openurllinks.removeLinkVerification
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
@@ -46,7 +47,6 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.settings.settingsPatch
-import app.morphe.patches.youtube.misc.check.checkEnvironmentPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.fix.contentprovider.fixContentProviderPatch
 import app.morphe.patches.youtube.misc.fix.likebutton.fixLikeButtonPatch
@@ -130,8 +130,8 @@ private val settingsResourcePatch = resourcePatch {
                 "morphe_settings_screen_00_about_bold.xml",
                 "morphe_settings_screen_01_ads.xml",
                 "morphe_settings_screen_01_ads_bold.xml",
-                "morphe_settings_screen_02_alt_thumbnails.xml",
-                "morphe_settings_screen_02_alt_thumbnails_bold.xml",
+                "morphe_settings_screen_02_dearrow.xml",
+                "morphe_settings_screen_02_dearrow_bold.xml",
                 "morphe_settings_screen_03_feed.xml",
                 "morphe_settings_screen_03_feed_bold.xml",
                 "morphe_settings_screen_04_general.xml",
@@ -229,7 +229,9 @@ val settingsPatch = bytecodePatch(
         fixPipChatBarPatch,
         addLicensePatch,
         removeLinkVerification,
-        checkEnvironmentPatch,
+        crashLogPatch(
+            mainActivityFingerprint = YouTubeActivityOnCreateFingerprint
+        ),
         experimentalAppNoticePatch(
             mainActivityFingerprint = YouTubeActivityOnCreateFingerprint,
             recommendedAppVersion = COMPATIBILITY_YOUTUBE.targets.first { !it.isExperimental }.version!!
@@ -478,11 +480,11 @@ object PreferenceScreen : BasePreferenceScreen() {
         iconBold = "@drawable/morphe_settings_screen_01_ads_bold",
         layout = "@layout/preference_with_icon"
     )
-    val ALTERNATIVE_THUMBNAILS = Screen(
-        key = "morphe_settings_screen_02_alt_thumbnails",
+    val DEARROW = Screen(
+        key = "morphe_settings_screen_02_dearrow",
         summaryKey = null,
-        icon = "@drawable/morphe_settings_screen_02_alt_thumbnails",
-        iconBold = "@drawable/morphe_settings_screen_02_alt_thumbnails_bold",
+        icon = "@drawable/morphe_settings_screen_02_dearrow",
+        iconBold = "@drawable/morphe_settings_screen_02_dearrow_bold",
         layout = "@layout/preference_with_icon",
         sorting = Sorting.UNSORTED
     )

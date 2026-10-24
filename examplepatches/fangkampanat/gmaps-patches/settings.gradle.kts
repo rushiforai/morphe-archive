@@ -1,7 +1,7 @@
 rootProject.name = "gmaps-patches"
 
 pluginManagement {
-    // Plugin 1.3.3 reads these credentials eagerly while applying its settings.
+    // The Morphe settings plugin reads these credentials eagerly while applying its settings.
     // Fail before plugin application with the documented setup instead of its
     // null-provider IllegalArgumentException. Never use placeholder credentials.
     val githubUser = providers.gradleProperty("gpr.user")
@@ -36,7 +36,7 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.3"
+    id("app.morphe.patches") version "2.0.0"
 }
 
 settings {
@@ -51,29 +51,6 @@ settings {
 
 include(":patches:stub")
 
-// Include morphe-patcher as composite builds if they exist locally
-mapOf(
-    "morphe-patcher" to "app.morphe:morphe-patcher",
-).forEach { (libraryPath, libraryName) ->
-    val libDir = file("../$libraryPath")
-    if (libDir.exists()) {
-        includeBuild(libDir) {
-            dependencySubstitution {
-                substitute(module(libraryName)).using(project(":"))
-            }
-        }
-    }
-}
-
-// Include morphe-patches-library as composite build if it exists locally.
-// It is a multi-module project, so each artifact maps to a specific subproject.
-file("../morphe-patches-library").let { libDir ->
-    if (libDir.exists()) {
-        includeBuild(libDir) {
-            dependencySubstitution {
-                substitute(module("app.morphe:morphe-patches-library")).using(project(":patch-library"))
-                substitute(module("app.morphe:morphe-extensions-library")).using(project(":extension-library"))
-            }
-        }
-    }
-}
+// morphe-patcher and morphe-extensions-library resolve from the version catalog.
+// Do not substitute the sibling checkouts with includeBuild: they stay on older
+// releases for other projects and would silently replace the catalog versions.

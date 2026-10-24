@@ -14,6 +14,16 @@ public final class VerifyBoardAuthRules {
         check(BoardAuthRules.required("認証が必要です"),"Japanese error");
         check(BoardAuthRules.required("認証コードを入力してください"),"code error");
         check(BoardAuthRules.required("Authentication Required"),"English error");
+        check(BoardAuthRules.identityCookie("countsession"),"ex0ch session protected");
+        check(BoardAuthRules.identityCookie("securitykey"),"session signature protected");
+        check(!BoardAuthRules.identityCookie("cf_clearance"),"clearance is not identity");
+        check(!BoardAuthRules.identityCookie("countsession_other"),"identity exact name only");
+        check(BoardAuthRules.required("CAPTCHAが必要です"),"CAPTCHA required");
+        check(BoardAuthRules.required("reCAPTCHA verification failed"),"reCAPTCHA error");
+        check(BoardAuthRules.required("画像認証を完了してください"),"image challenge");
+        check(BoardAuthRules.required("人間であることを確認してください"),"human verification");
+        check(BoardAuthRules.suggested("https://board.example/a/", "CAPTCHA: https://board.example/challenge?token=abc").equals("https://board.example/challenge?token=abc"),"same-origin CAPTCHA URL");
+        check(BoardAuthRules.suggested("https://board.example/a/", "CAPTCHA: https://evil.example/challenge").isEmpty(),"no cross-origin automatic challenge suggestion");
         check(!BoardAuthRules.required("書き込みに成功しました"),"success ignored");
         check(!BoardAuthRules.required(null),"null ignored");
         check(!BoardAuthRules.required("x".repeat(65537)+"認証コード"),"bounded scan");

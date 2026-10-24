@@ -38,7 +38,6 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
             return insets;
         });
         location=new TextView(this);root.addView(location);
-        TextView help=new TextView(this);help.setText("認証先を確認し、サイト上でコードなどを入力してください。認証の成功はサイト上の表示で確認してください。");root.addView(help);
         LinearLayout actions=new LinearLayout(this);root.addView(actions);
         Button complete=new Button(this);complete.setText("認証を反映して戻る");actions.addView(complete);
         complete.setOnClickListener(v->{
@@ -56,6 +55,18 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
+        android.widget.CheckBox captchaCookies=new android.widget.CheckBox(this);
+        captchaCookies.setText("CAPTCHA用のサードパーティCookieを許可");
+        captchaCookies.setChecked(false);
+        captchaCookies.setOnCheckedChangeListener((button,enabled)->{
+            if(!enabled){CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);return;}
+            new HaiagaruDialog.Builder(this).setTitle("サードパーティCookieを許可しますか？")
+                .setMessage("認証サービスなど、表示中のサイト以外からのCookieもこの認証画面で受け入れます。信頼する認証先で必要な場合だけ許可してください。")
+                .setNegativeButton("キャンセル",(d,w)->captchaCookies.setChecked(false))
+                .setOnCancelListener(d->captchaCookies.setChecked(false))
+                .setPositiveButton("許可して再読込",(d,w)->{CookieManager.getInstance().setAcceptThirdPartyCookies(web,true);web.reload();}).show();
+        });
+        root.addView(captchaCookies);
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient(){
             private boolean navigate(WebView view,String url) {
@@ -82,7 +93,8 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
             }
         });
         root.addView(web,new LinearLayout.LayoutParams(-1,0,1));HaiagaruUi.showModel(this, "外部板の認証", root);
-        if(state==null || web.restoreState(state)==null) web.loadUrl(auth);
+        if(state==null || web.restoreState(state)==null)
+            ExternalBoardAuth.prepareWebSession(this,board,auth,()->web.loadUrl(auth));
     }
     @Override protected void onSaveInstanceState(Bundle state){if(web!=null)web.saveState(state);super.onSaveInstanceState(state);}
     @Override public void onBackPressed(){finish();}

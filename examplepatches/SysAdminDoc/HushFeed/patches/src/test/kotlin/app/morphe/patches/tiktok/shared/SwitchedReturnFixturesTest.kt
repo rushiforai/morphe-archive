@@ -45,6 +45,11 @@ import app.morphe.patches.tiktok.privacy.PitayaLiteStartFingerprint
 import app.morphe.patches.tiktok.privacy.PitayaPluginLookupFingerprint
 import app.morphe.patches.tiktok.privacy.PitayaRealProviderFingerprint
 import app.morphe.patches.tiktok.privacy.installAiProfilingSwitch
+import app.morphe.patches.tiktok.promobanners.THOUGHTS_CONSUMPTION_KEY
+import app.morphe.patches.tiktok.promobanners.THOUGHTS_PUBLISH_KEY
+import app.morphe.patches.tiktok.promobanners.THOUGHTS_SWITCH
+import app.morphe.patches.tiktok.promobanners.installThoughtsSwitch
+import app.morphe.patches.tiktok.promobanners.resolveThoughtsGates
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
 import app.morphe.util.numberOfParameterRegistersLogical
@@ -68,8 +73,8 @@ import org.junit.rules.TemporaryFolder
  * The six patches that used to change TikTok with no switch now ask one first: Skip the splash
  * ad, Limit background traffic, Drop the animated image cache, Skip update checks, Stop on-device
  * AI profiling and Enable voice comments. Skip passkey sign-in came later with its switch already
- * in front, the same way, and so did the two gates of the translate button in Translate comments.
- * This puts their real hooks on each declared build and reads every hooked method back.
+ * in front, the same way, and so did the two gates of the translate button in Translate comments
+ * and the two Thoughts gates of Turn on Thoughts in Hide profile shortcuts. This puts their real hooks on each declared build and reads every hooked method back.
  *
  * <p>Each one has to ask its switch before anything else runs, leave with the patch's old answer
  * when the switch says yes, and land on TikTok's own first instruction, with all of TikTok's code
@@ -123,6 +128,7 @@ class SwitchedReturnFixturesTest {
             val probe = bytecodePatch(name = "switched return probe") {
                 execute {
                     val translateButton = findCommentTranslateButtonTargets(this::classDefByOrNull, this::classDefForEach)
+                    val thoughts = resolveThoughtsGates()
                     val hooks = buildList {
                         listOf(
                             SplashPreloadTaskFingerprint, SplashPreloadEntryFingerprint,
@@ -140,11 +146,25 @@ class SwitchedReturnFixturesTest {
                         add(before(PasskeyDeviceSupportFingerprint.method, PASSKEY_SIGN_IN_SWITCH, false))
                         add(before(translateButton.enabledRead, COMMENT_TRANSLATE_BUTTON_SWITCH, true))
                         add(before(translateButton.styleAnswer, COMMENT_TRANSLATE_BUTTON_SWITCH, true))
+                        add(before(thoughts.publish, THOUGHTS_SWITCH, true))
+                        add(before(thoughts.consumption, THOUGHTS_SWITCH, true))
                     }
                     // Four tasks, the reviewed gates (two or three on the splash service), the
                     // buffer gate, push setup, two update tasks, three Pitaya doors, the voice gate,
-                    // the passkey support check and the translate button's two gates.
+                    // the passkey support check, the translate button's two gates and the two
+                    // Thoughts gates.
                     assertTrue("$version: ${splashGates().size} splash gates", splashGates().size in 5..6)
+                    // Turn on Thoughts (#186): each gate is the static getter of its own key's
+                    // lazy value, and the two are different classes.
+                    for ((gate, key) in listOf(
+                        thoughts.publish to THOUGHTS_PUBLISH_KEY,
+                        thoughts.consumption to THOUGHTS_CONSUMPTION_KEY,
+                    )) {
+                        assertTrue("$version: $key gate is static", AccessFlags.STATIC.isSet(gate.accessFlags))
+                        assertTrue("$version: $key gate reads a lazy value", gate.isLazyAbRead())
+                    }
+                    assertTrue("$version: the Thoughts gates share a class",
+                        thoughts.publish.definingClass != thoughts.consumption.definingClass)
                     expected = hooks.size
 
                     // The animated image cache passes the preparer count through rather than
@@ -168,6 +188,7 @@ class SwitchedReturnFixturesTest {
                     installVoiceCommentSwitch()
                     installPasskeySignInSwitch()
                     installCommentTranslateButton()
+                    thoughts.installThoughtsSwitch()
 
                     for (hook in hooks) {
                         val now = mutableClassDefBy(hook.definingClass).methods.filter { signature(it) == hook.signature }

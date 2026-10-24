@@ -194,6 +194,7 @@ All available languages,Semua bahasa yang tersedia
 All events,Semua peristiwa
 All loaded tabs,Semua tab yang dimuat
 Allow Duet and Stitch anyway,Tetap izinkan Duet dan Stitch
+Allow Add to Story anyway,Tetap izinkan Tambahkan ke Cerita
 Allow screenshots and Circle to Search,Izinkan tangkapan layar dan Circle to Search
 Allow storage for TikTok in Android settings to save profile pictures,Izin penyimpanan dibutuhkan untuk menyimpan foto profil
 Allow storage for TikTok in Android settings to save sounds,Izin penyimpanan dibutuhkan untuk menyimpan suara
@@ -651,6 +652,7 @@ Hushfeed can't read the creator pattern %1$s,Hushfeed tidak bisa membaca pola kr
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.,Hushfeed menyembunyikan satu CAPTCHA TikTok. Matikan Sembunyikan popup CAPTCHA kalau ada yang berhenti berfungsi.
 Hushfeed is active,Hushfeed aktif
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.,Menampilkan opsi Duet dan Stitch meskipun kreator mematikannya. TikTok masih bisa menolak hasilnya.
+Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.,Menampilkan Tambahkan ke Cerita pada cerita yang kreatornya mematikan penggunaan ulang konten. TikTok masih bisa menolak mengunggahnya.
 Import finished,Impor selesai
 Import loaded values,Impor nilai yang dimuat
 Imported %1$d values,%1$d nilai diimpor
@@ -835,6 +837,7 @@ Open TikTok on,Buka TikTok di
 Opens github.com in your browser,Membuka github.com di browser kamu
 Operator code,Kode operator
 Operator name,Nama operator
+Original,Asli
 Original language,Bahasa asli
 Other,Lainnya
 Other feed filters,Filter feed lainnya
@@ -944,9 +947,9 @@ Save,Simpan
 "Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.","Menyimpan file subtitel (SRT) bersama video. File itu masuk ke Movies di Android 11 ke atas, Download di Android 10, dan folder videomu di versi yang lebih lama. Di Android 11 ke atas dengan Simpan detail menyala, video pindah ke Download atau Documents dan subtitel tetap di Movies."
 Save a profile picture on a long press,Simpan foto profil dengan tekan lama
 Save a story on a long press,Simpan Story dengan tekan lama
-"Save every photo in the post at full size as a JPEG, not as the screen shows it.","Simpan setiap foto dalam unggahan dalam ukuran penuh sebagai JPEG, bukan seperti yang ditampilkan layar."
+"Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on.","Simpan setiap foto dalam unggahan dalam ukuran penuh, bukan seperti yang ditampilkan layar. Setiap foto menjadi JPEG kecuali Simpan foto seperti yang dikirim TikTok aktif."
 Keep photos as TikTok sent them,Simpan foto seperti yang dikirim TikTok
-"Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those.","Foto, sampul, dan foto Story yang disimpan tetap HEIF atau WebP, tidak diubah menjadi JPEG. Beberapa galeri dan komputer tidak bisa membukanya."
+"Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.","Foto, sampul, foto Story, dan stiker diam yang disimpan adalah file persis seperti yang dikirim TikTok, bukan JPEG atau PNG baru. Beberapa galeri dan komputer tidak bisa membuka HEIF atau WebP."
 Save field values,Simpan nilai bidang
 Save full report,Simpan laporan lengkap
 Save media,Simpan media
@@ -1091,7 +1094,7 @@ The last one is still waiting to start,Yang sebelumnya masih menunggu untuk dimu
 "Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.","Menghentikan TikTok mengirim laporan penggunaan, pelacakan iklan, dan laporan error. Alat diagnostik TikTok sendiri juga ikut diam."
 "Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.","Menghentikan TikTok memperlambat layarmu agar sesuai frame rate tiap video. Di ponsel 90 atau 120 Hz, permintaan itu membuat seluruh aplikasi, termasuk menggulir, berjalan lebih lambat."
 Keep the screen's brightness in the camera,Pertahankan kecerahan layar di kamera
-"Stops TikTok from turning your screen brighter while you film, edit or post a video.","Mencegah TikTok membuat layarmu lebih terang saat kamu merekam, mengedit, atau memposting video."
+"Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.","Mencegah TikTok membuat layarmu lebih terang saat kamu merekam, mengedit, atau memposting video. Flash depan tetap membuat layar putih, tetapi dengan kecerahanmu sendiri."
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.,Menghentikan TikTok membaca sensor gerak dan kompas ponselmu. Aplikasi bisa memakainya untuk mengenali ponselmu.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.,Mencegah TikTok membaca apa yang kamu salin. Menyalin tautan dari TikTok tetap berfungsi.
 Stop a long press on Like from opening TikTok's repost action.,Cegah tekan lama pada Suka membuka aksi posting ulang TikTok.
@@ -1645,13 +1648,15 @@ Remove story rings,Hapus cincin cerita
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Hapus cincin cerita dari foto profil di feed, di komentar, dan di profil. Mengetuk foto akan membuka profil, bukan ceritanya."
 Remove the LIVE ring,Hapus cincin LIVE
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,"Hapus cincin LIVE yang berdenyut dari foto profil di feed dan di komentar. Mengetuk foto kreator yang sedang live akan membuka profilnya, bukan LIVE-nya."
+Open the Story when a creator is LIVE,Buka cerita saat kreator sedang LIVE
+"When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.","Jika kreator yang sedang LIVE juga punya cerita, mengetuk fotonya di profilnya akan membuka cerita. Ketuk foto itu lagi untuk bergabung ke LIVE."
 Writing,Menulis
 Lift text length limits,Lepas batas panjang teks
 "Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.","Biarkan komentar, catatan repost, dan bio kamu melewati panjang yang dibatasi aplikasi TikTok. Server TikTok tetap bisa menolak teks yang panjang."
 Show only mutual friends on the Friends tab,Hanya tampilkan teman yang saling mengikuti di tab Teman
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","Di tab Teman, sembunyikan postingan, repost, dan LIVE dari akun yang tidak saling mengikuti dengan Anda, termasuk akun yang disarankan. Postingan Anda sendiri tetap ada."
 Latest first on Following,Terbaru dulu di Mengikuti
-"Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.","Putar setiap kelompok yang dimuat feed Mengikuti mulai dari postingan terbaru. TikTok tetap memilih isi setiap kelompok, dan iklan serta LIVE tetap di tempatnya."
+"Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.","Putar feed Mengikuti mulai dari postingan terbaru. Postingan lebih baru yang dimuat belakangan naik tepat setelah video yang sedang kamu tonton, dan yang sudah kamu lewati tidak berpindah. Iklan dan LIVE tetap di tempatnya."
 Show follow status,Tampilkan status mengikuti
 "Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.","Di bawah @nama pengguna pada profil, tampilkan apakah akun itu mengikuti Anda atau tidak mengikuti balik. Daftar pengikut dan yang diikuti menandai akun yang Anda ikuti tetapi tidak mengikuti balik."
 Follows you,Mengikuti Anda
@@ -1967,6 +1972,8 @@ Keep offline videos until you delete them,Simpan video offline sampai kamu mengh
 "TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.","TikTok menghapus video yang disimpan untuk ditonton offline setelah waktu tertentu, kadang hanya dua hari, sudah ditonton atau belum. Saat ini menyala, video tetap ada sampai kamu menghapusnya di pengaturan Video offline TikTok. TikTok masih bisa menghapus yang sudah ditonton saat ruang ponselmu menipis."
 Hide Thoughts on profiles,Sembunyikan Thoughts di profil
 "Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.","Sembunyikan gelembung Thoughts yang TikTok tampilkan di atas foto profil, dan ajakan untuk membagikannya di profilmu sendiri. Mulai ulang TikTok agar berlaku."
+Turn on Thoughts,Aktifkan Thoughts
+"Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.","Tampilkan Thoughts di profil dan di Kotak Masuk, serta ajakan untuk membagikannya, untuk akun yang belum diaktifkan TikTok. Server TikTok tetap bisa menolak untuk mempostingnya. Mulai ulang TikTok agar berlaku."
 About Hushfeed,Tentang Hushfeed
 "Version, changes and licenses","Versi, perubahan, dan lisensi"
 Active,Aktif
@@ -2228,7 +2235,7 @@ Two at once,Dua sekaligus
 Three at once,Tiga sekaligus
 LIVE recording quality,Kualitas rekaman LIVE
 Same as the room,Sama seperti di ruang
-"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.","""Sama seperti di ruang"" merekam kualitas yang sedang kamu tonton. ""Tertinggi"" merekam stream terbaik di ruang itu, meski kamu menontonnya dengan kualitas lebih rendah."
+"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.","""Sama seperti di ruang"" merekam kualitas yang sedang kamu tonton. ""Tertinggi"" merekam stream terbaik di ruang itu, meski kamu menontonnya dengan kualitas lebih rendah. Angka merekam kualitas itu, atau yang terdekat di ruang jika tidak tersedia."
 Long-press Profile for Watch history,Tekan lama Profil untuk riwayat tontonan
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.","Tekan lama tab Profil untuk membuka riwayat tontonanmu. Mengetuk Profil tetap berfungsi seperti biasa. Jika menekan lama Profil mengganti akunmu, opsi ini mengambil alih tekanan itu, dan nama di bagian atas profilmu tetap bisa mengganti akun."
 Open the comments at full height,Buka komentar dengan tinggi penuh
@@ -2244,5 +2251,19 @@ Oldest first,Terlama dulu
 Longest first,Terpanjang dulu
 Shortest first,Terpendek dulu
 Most viewed first,Paling banyak ditonton dulu
+Least viewed first,Paling sedikit ditonton dulu
 Most liked first,Paling banyak disukai dulu
-"Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.","Mengurutkan video yang sudah dimuat kisi profil atau Disukai, dan video yang disematkan tetap di depan. Saat kamu menggulir, urutannya mencakup lebih banyak video. Kisi yang dibuka berikutnya mengikuti ini."
+Least liked first,Paling sedikit disukai dulu
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Mengurutkan kisi profil atau Disukai, dan video yang disematkan tetap di depan. Selama urutan dipilih, kisi terus memuat sendiri hingga 300 video, jadi urutannya mencakup lebih dari layar pertama. Tombol di sudut atas kisi mengubah urutan langsung di sana."
+Sort this grid,Urutkan kisi ini
+Blur the video behind the bar,Buramkan video di belakang bilah
+"Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.","Buramkan bagian video di feed utama yang ada di belakang pil kaca, sehingga terlihat seperti kaca buram. Perlu Tampilan kaca cair dan Android 12 ke atas."
+LIVE recording source,Sumber rekaman LIVE
+Stream only,Hanya siaran
+Screen,Layar
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.","Hanya siaran menyimpan video ruangan seperti biasa. Layar merekam apa yang ditampilkan ponsel saat Anda menonton, beserta suara aplikasi jika TikTok punya izin mikrofon. Android meminta izin merekam layar setiap kali dan menampilkan pemberitahuannya sendiri saat merekam."
+Recording this LIVE's screen,Merekam layar LIVE ini
+Open the room and tap Stop to save it.,Buka ruangan dan ketuk Berhenti untuk menyimpannya.
+Screen recording wasn't allowed,Perekaman layar tidak diizinkan
+Recording this LIVE's screen from now,Merekam layar LIVE ini mulai sekarang
+"Recording this LIVE's screen from now, without sound","Merekam layar LIVE ini mulai sekarang, tanpa suara"

@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.theme.ThemeUtils;
 
 public class LicensesDialog extends Dialog {
 
@@ -85,7 +86,7 @@ public class LicensesDialog extends Dialog {
         // Apply the background color to the navigation bar.
         Window window = getWindow();
         if (window != null) {
-            window.setNavigationBarColor(Utils.getAppBackgroundColor());
+            window.setNavigationBarColor(ThemeUtils.getAppBackgroundColor());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 window.setNavigationBarContrastEnforced(true);
             }

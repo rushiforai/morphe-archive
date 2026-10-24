@@ -84,22 +84,60 @@ final class QualityChoice {
 
     /**
      * Automatic first, then the playable renditions tallest first, H.264 before HEVC at a height,
-     * the larger before the smaller. Two that would read the same are offered once.
+     * the larger before the smaller. Two that would read the same are offered once. When no
+     * playable gear reaches {@link QualitySelector#TALL_ENOUGH}, a taller H.264 or HEVC address
+     * the video carries on its own is offered too (#240). What was offered and what was left out
+     * goes to the report ({@link DownloadPickerReport}).
      */
     static List<Option> options(Object video, Context context) {
         List<Option> options = new ArrayList<>();
         Object raw = QualitySelector.rawGears(video);
         if (!(raw instanceof List<?>)) return options;
+        List<String> report = new ArrayList<>();
         options.add(new Option(VideoDownloads.AUTOMATIC, sized(L10n.t("Automatic (TikTok's file)"),
                 QualitySelector.addressSize(VideoDownloads.automaticSource(video)), context)));
-        boolean needsSound = Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"))
-                && !Settings.DOWNLOAD_WITHOUT_SOUND.get();
+        boolean dash = Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"));
+        boolean needsSound = dash && !Settings.DOWNLOAD_WITHOUT_SOUND.get();
+        int own = QualitySelector.ownHeight(video);
+        report.add("TikTok's own file: " + (own > 0 ? own + "p" : "height unknown") + ", gears listed: "
+                + ((List<?>) raw).size() + (dash ? ", separate sound track" : ""));
         List<Object> gears = new ArrayList<>();
+        int tallest = 0;
         for (Object gear : (List<?>) raw) {
-            if (!QualitySelector.hasUsableAddress(gear) || !QualitySelector.playable(gear)) continue;
-            // A picture on its own track is saved only with a sound to put beside it.
-            if (needsSound && VideoDownloads.audioUrls(video, gear).isEmpty()) continue;
+            String reason = null;
+            if (!QualitySelector.hasUsableAddress(gear)) {
+                reason = "no usable address";
+            } else if (!QualitySelector.playable(gear)) {
+                reason = "no other player opens " + codecName(gear);
+            } else if (needsSound && VideoDownloads.audioUrls(video, gear).isEmpty()) {
+                // A picture on its own track is saved only with a sound to put beside it.
+                reason = "no sound track to put beside it";
+            }
+            if (reason != null) {
+                report.add("gear " + QualitySelector.describe(gear) + " " + codecName(gear) + ": left out, " + reason);
+                continue;
+            }
             gears.add(gear);
+            tallest = Math.max(tallest, QualitySelector.heightOf(gear));
+        }
+        for (QualitySelector.SourceGear source : QualitySelector.sources(video)) {
+            if (source.getPlayAddr() == null) {
+                report.add("source " + source.getGearName() + ": not on this video");
+                continue;
+            }
+            String what = "source " + QualitySelector.describe(source) + " " + codecName(source) + ": ";
+            if (!QualitySelector.hasUsableAddress(source)) {
+                report.add(what + "left out, no usable address");
+            } else if (dash) {
+                report.add(what + "left out, the video has a separate sound track");
+            } else if (tallest >= QualitySelector.TALL_ENOUGH) {
+                report.add(what + "not needed, a gear at " + tallest + "p is offered");
+            } else if (QualitySelector.heightOf(source) <= tallest) {
+                report.add(what + "left out, no taller than the gears (" + tallest + "p)");
+            } else {
+                gears.add(source);
+                report.add(what + "offered, taller than the gears (" + tallest + "p)");
+            }
         }
         // Not Comparator.comparingInt, which arrived at API 24.
         Collections.sort(gears, (a, b) -> {
@@ -113,9 +151,20 @@ final class QualityChoice {
             String shape = (height > 0 ? height + "p" : L10n.t("Unknown resolution"))
                     + (QualitySelector.codec(gear) == 1 ? " HEVC" : " H.264");
             String label = sized(shape, QualitySelector.size(gear), context);
-            if (seen.add(label)) options.add(new Option(gear, label));
+            boolean offered = seen.add(label);
+            if (offered) options.add(new Option(gear, label));
+            if (!(gear instanceof QualitySelector.SourceGear)) {
+                report.add("gear " + QualitySelector.describe(gear) + " " + codecName(gear) + ": "
+                        + (offered ? "offered" : "left out, reads the same as another choice"));
+            }
         }
+        DownloadPickerReport.record(report);
         return options;
+    }
+
+    private static String codecName(Object gear) {
+        int code = QualitySelector.codec(gear);
+        return code == 0 ? "H.264" : code == 1 ? "HEVC" : code == 2 ? "ByteVC2" : "codec " + code;
     }
 
     private static String sized(String what, long bytes, Context context) {

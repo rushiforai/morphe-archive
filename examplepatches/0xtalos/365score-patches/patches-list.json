@@ -1,17 +1,17 @@
 {
-  "version": "v1.3.2",
+  "version": "v1.3.3",
   "appNames": {
     "com.scores365": "365Scores"
   },
   "patches": [
     {
       "name": "Block update screen",
-      "description": "Blocks the 'This app is out of date' update screen and popup on launch.",
+      "description": "Hides the 'This app is out of date' update screen, new version popup, and Google Play services update prompt.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
         "com.scores365": [
-          "14.9.5"
+          "14.9.7"
         ]
       },
       "compatibility": [
@@ -19,10 +19,10 @@
           "name": "365Scores",
           "packageName": "com.scores365",
           "description": null,
-          "appIconColor": null,
+          "appIconColor": 16761095,
           "targets": [
             {
-              "version": "14.9.5",
+              "version": "14.9.7",
               "experimental": false
             }
           ]
@@ -37,7 +37,7 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.scores365": [
-          "14.9.5"
+          "14.9.7"
         ]
       },
       "compatibility": [
@@ -45,10 +45,10 @@
           "name": "365Scores",
           "packageName": "com.scores365",
           "description": null,
-          "appIconColor": null,
+          "appIconColor": 16761095,
           "targets": [
             {
-              "version": "14.9.5",
+              "version": "14.9.7",
               "experimental": false
             }
           ]
@@ -58,12 +58,12 @@
     },
     {
       "name": "Disable ads",
-      "description": "Removes banner and interstitial advertisements from 365Score.",
+      "description": "Disables Google Mobile Ads (AdMob) initialization and the app's own ad placements, removing banner, interstitial, rewarded, native and mediated ads.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
         "com.scores365": [
-          "14.9.5"
+          "14.9.7"
         ]
       },
       "compatibility": [
@@ -71,10 +71,10 @@
           "name": "365Scores",
           "packageName": "com.scores365",
           "description": null,
-          "appIconColor": null,
+          "appIconColor": 16761095,
           "targets": [
             {
-              "version": "14.9.5",
+              "version": "14.9.7",
               "experimental": false
             }
           ]
@@ -89,7 +89,7 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.scores365": [
-          "14.9.5"
+          "14.9.7"
         ]
       },
       "compatibility": [
@@ -97,10 +97,10 @@
           "name": "365Scores",
           "packageName": "com.scores365",
           "description": null,
-          "appIconColor": null,
+          "appIconColor": 16761095,
           "targets": [
             {
-              "version": "14.9.5",
+              "version": "14.9.7",
               "experimental": false
             }
           ]
@@ -109,15 +109,16 @@
       "options": []
     },
     {
-      "name": "MicroG integration",
-      "description": "Allows Google Sign-In and account sync to work on non-rooted devices by redirecting Google Play Services to ReVanced GmsCore / MicroG.",
+      "name": "GmsCore support",
+      "description": "Makes Google sign-in and Google APIs work in the patched app by using MicroG RE instead of Google Play services. Requires MicroG RE to be installed.",
       "use": false,
       "dependencies": [
-        "ResourcePatch"
+        "ResourcePatch",
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.scores365": [
-          "14.9.5"
+          "14.9.7"
         ]
       },
       "compatibility": [
@@ -125,10 +126,36 @@
           "name": "365Scores",
           "packageName": "com.scores365",
           "description": null,
-          "appIconColor": null,
+          "appIconColor": 16761095,
           "targets": [
             {
-              "version": "14.9.5",
+              "version": "14.9.7",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Spoof signature",
+      "description": "Makes the app report its original signing certificate to itself, so Firebase and Google APIs restricted to the original app keep working.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.scores365": [
+          "14.9.7"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "365Scores",
+          "packageName": "com.scores365",
+          "description": null,
+          "appIconColor": 16761095,
+          "targets": [
+            {
+              "version": "14.9.7",
               "experimental": false
             }
           ]
@@ -143,7 +170,7 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.scores365": [
-          "14.9.5"
+          "14.9.7"
         ]
       },
       "compatibility": [
@@ -151,10 +178,10 @@
           "name": "365Scores",
           "packageName": "com.scores365",
           "description": null,
-          "appIconColor": null,
+          "appIconColor": 16761095,
           "targets": [
             {
-              "version": "14.9.5",
+              "version": "14.9.7",
               "experimental": false
             }
           ]

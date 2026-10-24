@@ -27,7 +27,8 @@ public final class ToolbarIconsActivity extends HaiagaruComposeActivity {
     private void render() {
         rows.removeAllViews();
         TextView help = new TextView(this);
-        help.setText("アイコンの画像だけを変更します。表示・非表示と配置順は、ChMateのHOME・板・スレの各ツールバー設定で変更してください。画像の色はそのまま使います。\n画像は端末内にコピーするため、元画像を移動しても利用できます。"); rows.addView(help);
+        help.setText("アイコンの画像だけを変更します。表示・非表示と配置順は、ChMateのHOME・板・スレの各ツールバー設定で変更してください。画像の色はそのまま使います。\nフローティングのフィルターは独立して画像を変更できます。表示の切替はフィルター設定、位置変更はボタンの長押しで行います。画像の変更は再起動せず反映されます。\n画像は端末内にコピーするため、元画像を移動しても利用できます。"); rows.addView(help);
+        Button filters=new Button(this);filters.setText("フィルターの設定（下部パネル・追加項目）");filters.setOnClickListener(v->QuickFilterOptions.showToolbarSettings(this));rows.addView(filters);
         for (int i=0;i<ToolbarIcons.NAMES.length;i++) {
             final int n=i;
             TextView label = new TextView(this); label.setText(ToolbarIcons.NAMES[i]); rows.addView(label);
@@ -47,7 +48,7 @@ public final class ToolbarIconsActivity extends HaiagaruComposeActivity {
             reset.setOnClickListener(v->new HaiagaruDialog.Builder(this).setMessage(ToolbarIcons.NAMES[n]+"の画像を標準に戻しますか？")
                 .setNegativeButton("キャンセル",null).setPositiveButton("戻す",(d,w)->{
                     File f=ToolbarIcons.file(this,n); if(f.exists()&&!f.delete()){toast("画像を削除できませんでした");return;}
-                    ToolbarIcons.invalidate(n);render();SettingsRestart.confirm(this);
+                    ToolbarIcons.invalidate(n);render();if(n!=ToolbarIcons.index(ToolbarIcons.FLOATING_FILTER))SettingsRestart.confirm(this);
                 }).show());rows.addView(reset);
         }
         Button close=new Button(this);close.setText("閉じる");close.setOnClickListener(v->finish());rows.addView(close);
@@ -62,10 +63,12 @@ public final class ToolbarIconsActivity extends HaiagaruComposeActivity {
         io.execute(()->{
             String message;boolean saved=false;
             try(InputStream in=getContentResolver().openInputStream(uri)) {
-                importImage(this,target,in);saved=true;message="画像を保存しました。ChMateを再起動すると反映されます";
+                importImage(this,target,in);saved=true;message=target==ToolbarIcons.index(ToolbarIcons.FLOATING_FILTER)
+                        ?"画像を保存しました。フローティングのフィルターに反映しました"
+                        :"画像を保存しました。ChMateを再起動すると反映されます";
             }catch(Exception|OutOfMemoryError e){message="画像を保存できませんでした。16MiB以下のPNG/JPEG/WebP等を選んでください";}
             final String done=message;final boolean success=saved;
-            runOnUiThread(()->{busy=false;if(!isFinishing()&&!isDestroyed()){toast(done);render();if(success)SettingsRestart.confirm(this);}});io.shutdown();
+            runOnUiThread(()->{busy=false;if(!isFinishing()&&!isDestroyed()){toast(done);render();if(success&&target!=ToolbarIcons.index(ToolbarIcons.FLOATING_FILTER))SettingsRestart.confirm(this);}});io.shutdown();
         });
     }
     static void importImage(android.content.Context context,int target,InputStream in)throws IOException {

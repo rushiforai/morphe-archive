@@ -5,35 +5,27 @@
 package app.morphe.patches.shared.misc.jiagu
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.DEX_CHECKSUM_OFFSET
+import app.morphe.patches.shared.DEX_FILE_SIZE_OFFSET
+import app.morphe.patches.shared.DEX_HEADER_SIZE
+import app.morphe.patches.shared.DEX_MAGIC
+import app.morphe.patches.shared.DEX_MAP_ITEM_SIZE
+import app.morphe.patches.shared.DEX_MAP_OFF_OFFSET
+import app.morphe.patches.shared.DEX_SIGNATURE_OFFSET
+import app.morphe.patches.shared.readInt
+import app.morphe.patches.shared.writeInt
 import java.io.ByteArrayOutputStream
 import java.util.zip.Adler32
 
-private const val CHECKSUM_OFFSET = 8
-private const val FILE_SIZE_OFFSET = 32
-private const val MAP_OFF_OFFSET = 52
-private const val MAP_ENTRY_SIZE = 12
 private const val PART_HEADER_SIZE = 8
 private const val CONFIG_OFFSET = 12
 
-private val DEX_MAGIC = byteArrayOf(0x64, 0x65, 0x78, 0x0a)
 private val SUPPORTED_PAYLOAD_MAGIC = byteArrayOf(0x71, 0x68, 0x00, 0x01)
 
-private fun ByteArray.readInt(offset: Int) =
-    (this[offset].toInt() and 0xFF) or
-        ((this[offset + 1].toInt() and 0xFF) shl 8) or
-        ((this[offset + 2].toInt() and 0xFF) shl 16) or
-        ((this[offset + 3].toInt() and 0xFF) shl 24)
-
-private fun ByteArray.writeInt(offset: Int, value: Int) {
-    this[offset] = value.toByte()
-    this[offset + 1] = (value ushr 8).toByte()
-    this[offset + 2] = (value ushr 16).toByte()
-    this[offset + 3] = (value ushr 24).toByte()
-}
-
-private fun ByteArray.sealDex() = apply {
-    writeInt(FILE_SIZE_OFFSET, size)
-    writeInt(CHECKSUM_OFFSET, Adler32().apply { update(this@sealDex, 12, size - 12) }.value.toInt())
+private fun ByteArray.sealDexChecksum() = apply {
+    writeInt(DEX_FILE_SIZE_OFFSET, size)
+    val checksum = Adler32().apply { update(this@sealDexChecksum, DEX_SIGNATURE_OFFSET, size - DEX_SIGNATURE_OFFSET) }
+    writeInt(DEX_CHECKSUM_OFFSET, checksum.value.toInt())
 }
 
 // Cipher region from keystream offset 0, ZSTD magic included
@@ -101,7 +93,7 @@ internal class JiaguDex(private val bytes: ByteArray) {
         }.toByteArray()
         rebuilt.writeInt(4, rebuilt.size - 8)
 
-        return (stub + rebuilt).sealDex()
+        return (stub + rebuilt).sealDexChecksum()
     }
 
     fun withStub(replacement: ByteArray): ByteArray {
@@ -124,23 +116,23 @@ internal class JiaguDex(private val bytes: ByteArray) {
             )
         }
 
-        return (replacement + payload).sealDex()
+        return (replacement + payload).sealDexChecksum()
     }
 
     private companion object {
-        fun mapEntryCount(dex: ByteArray) = dex.readInt(dex.readInt(MAP_OFF_OFFSET))
+        fun mapEntryCount(dex: ByteArray) = dex.readInt(dex.readInt(DEX_MAP_OFF_OFFSET))
 
         fun stubSizeOf(dex: ByteArray): Int {
-            if (dex.size < 112 || !dex.copyOf(DEX_MAGIC.size).contentEquals(DEX_MAGIC)) {
+            if (dex.size < DEX_HEADER_SIZE || !dex.copyOf(DEX_MAGIC.size).contentEquals(DEX_MAGIC)) {
                 throw PatchException("classes.dex is not a dex file")
             }
 
-            val mapOffset = dex.readInt(MAP_OFF_OFFSET)
+            val mapOffset = dex.readInt(DEX_MAP_OFF_OFFSET)
             if (mapOffset <= 0 || mapOffset >= dex.size) {
                 throw PatchException("classes.dex has no readable map section")
             }
 
-            return mapOffset + 4 + mapEntryCount(dex) * MAP_ENTRY_SIZE
+            return mapOffset + 4 + mapEntryCount(dex) * DEX_MAP_ITEM_SIZE
         }
     }
 }

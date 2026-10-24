@@ -51,8 +51,12 @@ public final class RegionSpoof {
      * Calendar.getInstance(), DateFormat.getTimeFormat, DateUtils, java.time's
      * ZoneId.systemDefault() and ICU, which follows java.util's default on Android. So with Match
      * locale and timezone on, the preset's zone is made the process default too. The S22 showed
-     * all three reading it (2026-10-21), while the chat's date labels stayed on the phone's zone,
-     * so those are worked out somewhere that doesn't ask the default. The switch happens as the host application attaches its context,
+     * all three reading it (2026-10-21), while the chat's date labels stayed on the phone's zone.
+     * Those come from TikTok's own BDDateFormat (the chat's date headers through X/0Hdu on
+     * 47.5.3), which formats in librex.so with localtime_r. Bionic's localtime_r reads the TZ
+     * variable on every call and only falls back to the phone's persist.sys.timezone without it,
+     * so the preset's zone goes in TZ too, and TZ goes back to what it was (unset on a phone)
+     * with the phone's zone. The switch happens as the host application attaches its context,
      * before TikTok builds a formatter, and the zone it replaced is the phone's, kept for the
      * things that run on the phone's clock (phoneTimeZone()) and put back when the setting goes
      * off or Hushfeed is paused.
@@ -68,12 +72,30 @@ public final class RegionSpoof {
     private static final class AppliedZone {
         final String id;
         final TimeZone phone;
+        /** TZ as it was before this class set it, null when it wasn't set. */
+        @Nullable final String nativeBefore;
 
-        AppliedZone(String id, TimeZone phone) {
+        AppliedZone(String id, TimeZone phone, @Nullable String nativeBefore) {
             this.id = id;
             this.phone = phone;
+            this.nativeBefore = nativeBefore;
         }
     }
+
+    /** The TZ variable native code reads before the phone's own zone. A test swaps in its own. */
+    static class NativeZone {
+        @Nullable
+        String get() {
+            return android.system.Os.getenv("TZ");
+        }
+
+        void set(@Nullable String id) throws android.system.ErrnoException {
+            if (id == null) android.system.Os.unsetenv("TZ");
+            else android.system.Os.setenv("TZ", id, true);
+        }
+    }
+
+    static NativeZone nativeZone = new NativeZone();
 
     private static final class LocaleAnswer {
         final Locale original;
@@ -583,14 +605,18 @@ public final class RegionSpoof {
                 applied = null;
                 // One the system set since is the phone's already.
                 if (ours) TimeZone.setDefault(now.phone);
+                setNativeZone(now.nativeBefore);
                 reportZone("App time zone back to the phone's");
                 return;
             }
             String id = preset.getID();
             if (id.equals(current.getID())) return;
             TimeZone phone = ours ? now.phone : current;
+            // TZ is still this class's when the system put the phone's zone back as the default.
+            String nativeBefore = now != null ? now.nativeBefore : nativeZoneNow();
             TimeZone.setDefault(preset);
-            applied = new AppliedZone(id, phone);
+            setNativeZone(id);
+            applied = new AppliedZone(id, phone, nativeBefore);
             // Never the phone's zone in the log, since that's the real region.
             reportZone("App time zone set to " + id);
         }
@@ -600,6 +626,25 @@ public final class RegionSpoof {
     static void forgetProcessZone() {
         synchronized (ZONE_LOCK) {
             applied = null;
+        }
+    }
+
+    @Nullable
+    private static String nativeZoneNow() {
+        try {
+            return nativeZone.get();
+        } catch (RuntimeException error) {
+            Logger.printException(() -> "Region spoof could not read TZ", error);
+            return null;
+        }
+    }
+
+    /** A TZ that can't be set leaves native dates on the phone's zone, nothing worse. */
+    private static void setNativeZone(@Nullable String id) {
+        try {
+            nativeZone.set(id);
+        } catch (android.system.ErrnoException | RuntimeException error) {
+            Logger.printException(() -> "Region spoof could not set TZ", error);
         }
     }
 

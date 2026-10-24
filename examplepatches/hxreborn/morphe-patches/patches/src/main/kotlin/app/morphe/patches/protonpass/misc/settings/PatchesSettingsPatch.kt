@@ -14,9 +14,9 @@ import app.morphe.patches.shared.misc.proton.attachPatchContext
 import app.morphe.patches.shared.misc.proton.injectAppCompatDefaultNightMode
 import app.morphe.patches.shared.misc.proton.injectBundleVersion
 import app.morphe.patches.shared.misc.proton.patchesSettingsActivityPatch
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
-import com.android.tools.smali.dexlib2.formatter.DexFormatter
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -47,7 +47,7 @@ private fun BytecodePatchContext.addPatchesSettingsRow() {
             dividerIndex + 1,
             """
                 invoke-static/range { v$composer .. v$composer }, $settingsRowMethod
-                invoke-static { ${dividerRegisters.joinToString { "v$it" }} }, ${DexFormatter.INSTANCE.getMethodDescriptor(dividerReference)}
+                invoke-static { ${dividerRegisters.joinToString { "v$it" }} }, ${descriptor(dividerReference)}
             """,
         )
     }

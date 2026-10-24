@@ -8,6 +8,7 @@ import java.util.List;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -34,7 +35,9 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+import app.hxreborn.extension.shared.Dimensions;
+
+@TargetApi(Build.VERSION_CODES.Q)
 abstract class HostScreenActivity extends Activity {
 
     static final TextStyle TITLE_LARGE = new TextStyle(22, 28, 0f, TextStyle.MEDIUM);
@@ -70,6 +73,12 @@ abstract class HostScreenActivity extends Activity {
     private static final int ROW_SPACING_DP = 16;
 
     private static final int VALUE_SPACING_DP = 8;
+
+    private static final int LINE_TOP_DP = 2;
+
+    private static final String CLEAR_HISTORY_MESSAGE = "Do you want to delete all history items?";
+
+    private static final String KEEP_STARRED_NOTICE = " (Starred items will be preserved.)";
 
     private static final int DOT_CHEVRON_GAP_DP = 2;
 
@@ -132,11 +141,13 @@ abstract class HostScreenActivity extends Activity {
                 new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         root.addView(this.scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        root.setOnApplyWindowInsetsListener((view, insets) -> {
-            final Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return WindowInsets.CONSUMED;
-        });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            root.setOnApplyWindowInsetsListener((view, insets) -> {
+                final Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return WindowInsets.CONSUMED;
+            });
+        }
         getWindow().setStatusBarColor(this.palette.bar);
         getWindow().setNavigationBarColor(this.palette.bar);
         final int lightBars = this.palette.dark ? 0
@@ -354,6 +365,16 @@ abstract class HostScreenActivity extends Activity {
         return button;
     }
 
+    final void addClearHistoryIcon(boolean keepsStarred, Runnable clear) {
+        final String message = (keepsStarred) ? CLEAR_HISTORY_MESSAGE + KEEP_STARRED_NOTICE : CLEAR_HISTORY_MESSAGE;
+        addToolbarIcon(MaterialIcons.DELETE, "Clear History",
+                (view) -> new AlertDialog.Builder(this).setTitle("Warning")
+                    .setMessage(message)
+                    .setPositiveButton("OK", (dialog, which) -> clear.run())
+                    .setNegativeButton("Cancel", null)
+                    .show());
+    }
+
     final TextView text(String value, TextStyle style, int color) {
         final TextView view = new TextView(this);
         view.setText(value);
@@ -363,8 +384,7 @@ abstract class HostScreenActivity extends Activity {
     }
 
     final int dp(float value) {
-        return Math
-            .round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics()));
+        return Dimensions.dp(this, value);
     }
 
     final RippleDrawable rowBackground() {
@@ -394,8 +414,7 @@ abstract class HostScreenActivity extends Activity {
     }
 
     final LinearLayout.LayoutParams dotParams(int marginStartDp) {
-        final int size = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
-                BODY_MEDIUM.sizeSp * DOT_FONT_SCALE, getResources().getDisplayMetrics()));
+        final int size = Dimensions.sp(this, BODY_MEDIUM.sizeSp * DOT_FONT_SCALE);
         final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
         params.setMarginStart(dp(marginStartDp));
         return params;
@@ -417,6 +436,12 @@ abstract class HostScreenActivity extends Activity {
 
     static LinearLayout.LayoutParams matchWidth() {
         return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    final LinearLayout.LayoutParams lineParams() {
+        final LinearLayout.LayoutParams params = matchWidth();
+        params.topMargin = dp(LINE_TOP_DP);
+        return params;
     }
 
     static int withAlpha(int color, float alpha) {
@@ -588,8 +613,7 @@ abstract class HostScreenActivity extends Activity {
             view.setIncludeFontPadding(false);
             view.setLetterSpacing(this.trackingSp / this.sizeSp);
             view.setTypeface(Typeface.create(Typeface.DEFAULT, this.weight, false));
-            final int lineHeight = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, this.lineHeightSp,
-                    view.getResources().getDisplayMetrics()));
+            final int lineHeight = Dimensions.sp(view.getContext(), this.lineHeightSp);
             view.setLineHeight(lineHeight);
             final int leading = lineHeight - view.getPaint().getFontMetricsInt(null);
             view.setPadding(0, leading / 2, 0, leading - leading / 2);

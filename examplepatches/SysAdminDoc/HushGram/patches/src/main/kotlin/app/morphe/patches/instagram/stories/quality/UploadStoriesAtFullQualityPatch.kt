@@ -57,12 +57,18 @@ private const val GET_INT = "getInt"
  * answers yes for a story at the start of that check while the switch is on. Every other share
  * type, and every server gate read after the check, keeps Instagram's own answer, so the 1440
  * experiment and the server's own caps still decide where they apply.
+ *
+ * Measured on 452 (2026-10-23, #37): with the switch on a 10 s story goes up at 1080x1920 and
+ * 9.2 Mbps (7.1 Mbps off on a 1080 wide screen), but the server keeps one 720x1280 rendition near
+ * 1.2 Mbps either way, as it does for @instagram's own stories, while reels get a ladder to 1080p.
+ * Story photos already go up at 1440x2560 (quality 84) and are served at 1080x1920.
  */
 @Suppress("unused")
 val uploadStoriesAtFullQualityPatch = bytecodePatch(
     name = "Upload stories at full quality",
-    description = "Sends the video stories you post at up to 1080 pixels wide instead of 720, as Instagram does with " +
-        "its own Upload at highest quality setting on. Starts off. Turn it on in HushGram settings > Stories.",
+    description = "Sends the video stories you post at 1080p and a higher bitrate, as Instagram does with its own " +
+        "Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so " +
+        "viewers see a small difference. Starts off. Turn it on in HushGram settings > Stories.",
     default = true,
 ) {
     category("Stories")

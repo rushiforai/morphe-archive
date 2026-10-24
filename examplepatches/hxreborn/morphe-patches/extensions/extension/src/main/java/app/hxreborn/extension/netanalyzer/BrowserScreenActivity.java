@@ -29,7 +29,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 abstract class BrowserScreenActivity extends HostScreenActivity {
 
     static final String EXTRA_IP = "ip";

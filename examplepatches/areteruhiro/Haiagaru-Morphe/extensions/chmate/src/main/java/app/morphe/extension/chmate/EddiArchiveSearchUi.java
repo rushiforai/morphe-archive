@@ -41,13 +41,24 @@ import org.json.JSONObject;
 
 /** Native search for the Edge archive index. Thread bodies remain on the original BBS. */
 final class EddiArchiveSearchUi {
+    static final int CONTROL_SCALE_TAG = 0x48690c01;
+    static final int RESULT_SCALE_TAG = 0x48690c02;
+    static final int RESULT_CARD_TAG = 0x48690c03;
+    static final int RESULT_FIRST_TAG = 0x48690c04;
+    static final int RESULT_PADDING_TAG = 0x48690c05;
+    static final int CONTROL_LAYOUT_TAG = 0x48690c06;
+    static final int REFRESH_ACTION_TAG = 0x48690c07;
+    static final int REFRESH_ENABLED_TAG = 0x48690c08;
+    static final int SEARCH_BUSY_TAG = 0x48690c09;
     interface ThreadOpener {
         boolean open(String url);
     }
 
     private static final String HOST = "eddiarchive3rd.boy.jp";
     private static final String PREFS = "haiagaru_eddi_search";
-    private static final String STATE_KEY = "haiagaru.eddi.search.state";
+    static final String STATE_KEY = "haiagaru.eddi.search.state";
+    java.util.function.Consumer<String> onStateSaved;
+    private final Runnable closeAction;
     // Also stored in the Activity bundle: leave room for the view hierarchy
     // below Android's Binder transaction limit.
     private static final int MAX_SAVED_LENGTH = 120_000;
@@ -70,6 +81,8 @@ final class EddiArchiveSearchUi {
     private final EditText startDate;
     private final EditText endDate;
     private final Spinner sort;
+    private final Spinner provider;
+    private int activeProvider;
     private final Switch orSearch;
     private final Switch fuzzy;
     private final Button previous;
@@ -91,19 +104,30 @@ final class EddiArchiveSearchUi {
     private final java.util.Map<TextView, Float> resultTextSizes = new java.util.IdentityHashMap<>();
     private int controlScale;
     private int resultScale;
+    private int resultPadding;
+    private int controlLayoutScale;
     private boolean hideSearchForm;
     private int restoreScrollY = -1;
+    private boolean disposed;
 
     static EddiArchiveSearchUi show(Activity activity, Uri source, ThreadOpener opener, Bundle state) {
-        return new EddiArchiveSearchUi(activity, source, opener, state);
+        return new EddiArchiveSearchUi(activity, source, opener, state, false, activity::finish);
     }
 
-    private EddiArchiveSearchUi(Activity activity, Uri source, ThreadOpener opener, Bundle state) {
+    static EddiArchiveSearchUi embed(Activity activity,Uri source,ThreadOpener opener,Bundle state,Runnable close) {
+        return new EddiArchiveSearchUi(activity,source,opener,state,true,close);
+    }
+    LinearLayout rootView(){return root;}
+
+    private EddiArchiveSearchUi(Activity activity, Uri source, ThreadOpener opener, Bundle state, boolean embedded, Runnable close) {
         this.activity = activity;
+        this.closeAction = close;
         this.opener = opener;
         android.content.SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         controlScale = clampTextScale(prefs.getInt("controlTextScale", 100));
         resultScale = clampTextScale(prefs.getInt("resultTextScale", 100));
+        resultPadding = clampResultPadding(prefs.getInt("resultVerticalPadding", 16));
+        controlLayoutScale = clampControlLayout(prefs.getInt("controlLayoutScale", 100));
         hideSearchForm = prefs.getBoolean("hideSearchForm", false);
         int theme = Haiagaru.hissiViewerTheme();
         boolean dark = theme == 1 || theme == 2 || (theme != 3
@@ -114,10 +138,11 @@ final class EddiArchiveSearchUi {
         muted = dark ? Color.rgb(185, 188, 198) : Color.rgb(95, 99, 108);
 
         root = new LinearLayout(activity);
+        root.setTag(REFRESH_ACTION_TAG,(Runnable)this::refreshResults);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(background);
         root.setPadding(dp(16), dp(12), dp(16), dp(8));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (!embedded && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // This native search screen returns before HissiMenuActivity installs
             // its WebView insets handler. Keep the heading below the status bar.
             activity.getWindow().setDecorFitsSystemWindows(false);
@@ -128,7 +153,7 @@ final class EddiArchiveSearchUi {
             });
         }
         TextView heading = text("‹ エッヂ過去ログ検索", 21, foreground);
-        heading.setOnClickListener(view -> activity.finish());
+        heading.setOnClickListener(view -> closeAction.run());
         LinearLayout header = row();
         header.addView(heading, weighted());
         Button appearance = button("表示");
@@ -138,7 +163,20 @@ final class EddiArchiveSearchUi {
         searchForm = new LinearLayout(activity);
         searchForm.setOrientation(LinearLayout.VERTICAL);
         root.addView(searchForm);
-        searchForm.addView(text("結果をタップしてスレを開き、「戻る」で検索結果に戻れます", 12, muted));
+
+        provider = new Spinner(activity);
+        provider.setContentDescription("過去ログの検索先");
+        provider.setAdapter(new ArrayAdapter<String>(activity,
+                android.R.layout.simple_spinner_dropdown_item,
+                new String[]{"エッヂ過去ログ（従来）", "Kyodemo（現行＋過去ログ）"}) {
+            @Override public View getView(int position, View recycled, ViewGroup parent) {
+                return styleSortText(super.getView(position, recycled, parent));
+            }
+            @Override public View getDropDownView(int position, View recycled, ViewGroup parent) {
+                return styleSortText(super.getDropDownView(position, recycled, parent));
+            }
+        });
+        searchForm.addView(provider);
 
         keyword = input("スレタイを入力", false);
         keyword.setSingleLine(true);
@@ -251,14 +289,35 @@ final class EddiArchiveSearchUi {
             activity.startActivity(intent);
         });
         root.addView(original);
+        provider.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (activeProvider == position) return;
+                activeProvider = position;
+                ++generation; // Do not let the previous provider's in-flight response replace this screen.
+                root.setTag(SEARCH_BUSY_TAG,Boolean.FALSE);
+                root.setTag(REFRESH_ENABLED_TAG,Boolean.FALSE);
+                page = 1;
+                displayedPage = null;
+                displayedQuery = null;
+                results.removeAllViews();
+                resultTextSizes.clear();
+                previous.setEnabled(false);
+                next.setEnabled(false);
+                updateProviderControls();
+                status.setText("検索先を変更しました。「検索」で取得します。");
+                saveState(null);
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent) { }
+        });
         applyAppearance();
-        HaiagaruUi.showArchiveSearch((HaiagaruComposeActivity) activity, root);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) root.requestApplyInsets();
+        if (!embedded) HaiagaruUi.showArchiveSearch((HaiagaruComposeActivity) activity, root);
+        if (!embedded && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) root.requestApplyInsets();
 
         if (!restoreSavedSearch(source, state)) {
             restoreQuery(source);
             search(page);
         }
+        updateProviderControls();
     }
 
     /** Save data only, never retain the Activity or its views between launches. */
@@ -272,6 +331,7 @@ final class EddiArchiveSearchUi {
             if (displayedPage != null) {
                 saved.put("resultQuery", displayedQuery);
                 saved.put("total", displayedPage.total);
+                saved.put("hasNext", displayedPage.hasNext);
                 JSONArray threads = new JSONArray();
                 for (ThreadResult thread : displayedPage.threads) {
                     threads.put(new JSONObject().put("title", thread.title)
@@ -287,6 +347,7 @@ final class EddiArchiveSearchUi {
             }
             if (encoded.length() > MAX_SAVED_LENGTH) return;
             if (state != null) state.putString(STATE_KEY, encoded);
+            if (onStateSaved != null) onStateSaved.accept(encoded);
             activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit().putString("last", encoded).apply();
         } catch (Exception error) {
@@ -295,6 +356,10 @@ final class EddiArchiveSearchUi {
     }
 
     void dispose() {
+        onStateSaved = null;
+        disposed = true;
+        root.setTag(REFRESH_ACTION_TAG,null);
+        root.setTag(SEARCH_BUSY_TAG,Boolean.FALSE);
         ++generation;
     }
 
@@ -310,13 +375,14 @@ final class EddiArchiveSearchUi {
             if (!fromActivityState && source != null && source.getEncodedQuery() != null
                     && !source.getEncodedQuery().isEmpty()) return false;
             Uri query = Uri.parse(saved.getString("query"));
-            if (!HOST.equalsIgnoreCase(query.getHost())) return false;
+            if (!HOST.equalsIgnoreCase(query.getHost()) && !KyodemoArchive.accepts(query.toString())) return false;
             restoreQuery(query);
             boolean expanded = saved.optBoolean("expanded");
             advancedScroll.setVisibility(expanded ? View.VISIBLE : View.GONE);
             details.setText(expanded ? "詳細条件 ▴" : "詳細条件 ▾");
             JSONArray rows = saved.optJSONArray("threads");
-            if (rows != null && rows.length() <= 50) {
+            String resultQuery = saved.optString("resultQuery", query.toString());
+            if (rows != null && rows.length() <= 50 && resultQuery.equals(query.toString())) {
                 List<ThreadResult> threads = new ArrayList<>();
                 for (int index = 0; index < rows.length(); index++) {
                     JSONObject row = rows.getJSONObject(index);
@@ -326,9 +392,9 @@ final class EddiArchiveSearchUi {
                 }
                 displayedQuery = saved.optString("resultQuery", query.toString());
                 display(Math.max(1, saved.optInt("page", page)),
-                        new SearchPage(threads, Math.max(0, saved.optInt("total"))));
-                status.setText("前回の検索結果 " + totalResults + "件 · " + page
-                        + "ページ目（「検索」で更新）");
+                        new SearchPage(threads, saved.optInt("total"), saved.optBoolean("hasNext",
+                                (long) page * 50 < saved.optInt("total"))));
+                status.setText("前回の" + resultStatus() + "（「検索」で更新）");
                 int position = Math.max(0, saved.optInt("scroll"));
                 HaiagaruUi.scrollTo(scroll, position);
             } else {
@@ -346,7 +412,7 @@ final class EddiArchiveSearchUi {
         if (forward) {
             if (next.isEnabled()) next.performClick();
         } else if (page <= 1) {
-            activity.finish();
+            closeAction.run();
         } else if (previous.isEnabled()) {
             previous.performClick();
         }
@@ -354,6 +420,17 @@ final class EddiArchiveSearchUi {
 
     private void restoreQuery(Uri uri) {
         if (uri == null) return;
+        if (KyodemoArchive.accepts(uri.toString())) {
+            activeProvider = 1;
+            provider.setSelection(1);
+            set(keyword, KyodemoArchive.parameter(uri.toString(), "k"));
+            set(startDate, KyodemoArchive.parameter(uri.toString(), "fr"));
+            set(endDate, KyodemoArchive.parameter(uri.toString(), "to"));
+            page = Math.max(1, KyodemoArchive.page(uri.toString()));
+            return;
+        }
+        activeProvider = 0;
+        provider.setSelection(0);
         set(keyword, uri.getQueryParameter("keyword"));
         set(exclude, uri.getQueryParameter("keyword_exclude"));
         set(minimumReplies, uri.getQueryParameter("NoR"));
@@ -375,8 +452,20 @@ final class EddiArchiveSearchUi {
 
     private void search(int requestedPage) {
         if (requestedPage < 1) return;
+        final Uri uri;
+        try { uri = queryUri(requestedPage); }
+        catch (IllegalArgumentException invalid) { status.setText(invalid.getMessage()); return; }
+        search(requestedPage,uri);
+    }
+    /** Re-fetch the displayed page/conditions, not unsubmitted edits in the form. */
+    private void refreshResults(){
+        if(disposed||Boolean.TRUE.equals(root.getTag(SEARCH_BUSY_TAG))||displayedPage==null||displayedQuery==null)return;
+        search(page,Uri.parse(displayedQuery));
+    }
+    private void search(int requestedPage,Uri uri) {
+        if(disposed||requestedPage<1)return;
         int requestId = ++generation;
-        Uri uri = queryUri(requestedPage);
+        root.setTag(SEARCH_BUSY_TAG,Boolean.TRUE);
         status.setText("検索中…");
         previous.setEnabled(false);
         next.setEnabled(false);
@@ -385,6 +474,7 @@ final class EddiArchiveSearchUi {
                 SearchPage result = fetch(uri);
                 activity.runOnUiThread(() -> {
                     if (requestId == generation && !activity.isFinishing()) {
+                        root.setTag(SEARCH_BUSY_TAG,Boolean.FALSE);
                         displayedQuery = uri.toString();
                         display(requestedPage, result);
                         saveState(null);
@@ -396,10 +486,12 @@ final class EddiArchiveSearchUi {
                         ? "SEARCH_HTTP_" + message.substring(5) : "SEARCH_FAILED";
                 activity.runOnUiThread(() -> {
                     if (requestId != generation || activity.isFinishing()) return;
+                    root.setTag(SEARCH_BUSY_TAG,Boolean.FALSE);
                     Haiagaru.reportEddiArchiveError(activity, code,
                             "Search request failed: " + uri.getHost(), error);
-                    status.setText("検索に失敗しました（" + code
-                            + "）。Download/Haiagaru に診断ログを保存しました。");
+                    status.setText((code.matches("SEARCH_HTTP_5[0-9]{2}")
+                            ? "検索先が一時的に利用できません。検索先を切り替えてお試しください"
+                            : "検索に失敗しました") + "（" + code + "）。診断ログを保存しました。");
                     previous.setEnabled(page > 1);
                 });
             }
@@ -407,6 +499,8 @@ final class EddiArchiveSearchUi {
     }
 
     private Uri queryUri(int requestedPage) {
+        if (provider.getSelectedItemPosition() == 1)
+            return Uri.parse(KyodemoArchive.query(value(keyword), value(startDate), value(endDate), requestedPage));
         Uri.Builder builder = new Uri.Builder().scheme("https").authority(HOST).path("/")
                 .appendQueryParameter("page", String.valueOf(requestedPage))
                 .appendQueryParameter("keyword", value(keyword))
@@ -442,6 +536,14 @@ final class EddiArchiveSearchUi {
                     bytes.write(buffer, 0, length);
                 }
             }
+            if (KyodemoArchive.accepts(uri.toString())) {
+                KyodemoArchive.Page parsed = KyodemoArchive.parse(new String(bytes.toByteArray(),
+                        java.nio.charset.Charset.forName("Windows-31J")), KyodemoArchive.page(uri.toString()));
+                List<ThreadResult> threads = new ArrayList<>();
+                for (KyodemoArchive.Row row : parsed.rows)
+                    threads.add(new ThreadResult(clean(row.titleHtml), clean(row.dateHtml), row.url));
+                return new SearchPage(threads, -1, parsed.hasNext);
+            }
             return parse(new String(bytes.toByteArray(), StandardCharsets.UTF_8));
         } finally {
             connection.disconnect();
@@ -476,21 +578,25 @@ final class EddiArchiveSearchUi {
     }
 
     private void display(int requestedPage, SearchPage result) {
+        root.setTag(REFRESH_ENABLED_TAG,Boolean.TRUE);
         page = requestedPage;
         displayedPage = result;
         totalResults = result.total;
         results.removeAllViews();
         resultTextSizes.clear();
-        status.setText("検索結果 " + totalResults + "件 · " + page + "ページ目");
+        status.setText(resultStatus());
         if (result.threads.isEmpty()) {
             results.addView(resultText("該当するスレはありません。検索条件を変えてください。", 15, muted));
         }
+        int resultIndex=0;
         for (ThreadResult thread : result.threads) {
             LinearLayout card = new LinearLayout(activity);
             card.setOrientation(LinearLayout.VERTICAL);
-            card.setPadding(dp(12), dp(12), dp(12), dp(12));
-            card.setBackgroundColor(background == Color.WHITE
-                    ? Color.rgb(242, 246, 248) : Color.rgb(36, 38, 43));
+            styleResultSpacing(card);
+            boolean first=resultIndex++==0;
+            card.setTag(RESULT_FIRST_TAG,first);
+            int lineColor=background==Color.WHITE?Color.rgb(181,187,195):Color.rgb(105,113,124);
+            card.setBackground(new ResultRules(first,lineColor,dp(1)));
             TextView title = resultText(thread.title, 16, foreground);
             card.addView(title);
             card.addView(resultText(thread.date, 12, muted));
@@ -509,17 +615,51 @@ final class EddiArchiveSearchUi {
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.bottomMargin = dp(7);
+            params.bottomMargin = 0;
+            card.setTag(RESULT_CARD_TAG,Boolean.TRUE);
             results.addView(card, params);
         }
         previous.setEnabled(page > 1);
-        next.setEnabled(result.threads.size() == 50 && (long) page * 50 < totalResults);
+        next.setEnabled(result.total < 0 ? result.hasNext
+                : result.threads.size() == 50 && (long) page * 50 < result.total);
         HaiagaruUi.scrollTo(scroll, 0);
         if (restoreScrollY >= 0) {
             int position = restoreScrollY;
             restoreScrollY = -1;
             HaiagaruUi.scrollTo(scroll, position);
         }
+    }
+
+    private String resultStatus() {
+        return (totalResults < 0 ? "検索結果 " + displayedPage.threads.size() + "件（このページ）"
+                : "検索結果 " + totalResults + "件") + " · " + page + "ページ目";
+    }
+
+    private void updateProviderControls() {
+        boolean original = provider.getSelectedItemPosition() != 1;
+        // Kyodemo has no equivalent for these options; do not silently ignore an enabled control.
+        for (View control : new View[]{exclude, orSearch, fuzzy, minimumReplies, sort})
+            control.setVisibility(original ? View.VISIBLE : View.GONE);
+        // The sort caption is paired with the Spinner by the Compose model renderer.
+        ViewGroup advanced = (ViewGroup) advancedScroll.getChildAt(0);
+        for (int i = 0; i < advanced.getChildCount(); i++) {
+            View child = advanced.getChildAt(i);
+            if (child instanceof TextView && "並び順".contentEquals(((TextView) child).getText()))
+                child.setVisibility(original ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    /** Shared row boundaries: top only for the first result, bottom for every result. */
+    private static final class ResultRules extends android.graphics.drawable.Drawable {
+        final boolean first;final android.graphics.Paint paint=new android.graphics.Paint();final int thickness;
+        ResultRules(boolean first,int color,int thickness){this.first=first;this.thickness=thickness;paint.setColor(color);}
+        @Override public void draw(android.graphics.Canvas canvas){android.graphics.Rect b=getBounds();
+            if(first)canvas.drawRect(b.left,b.top,b.right,b.top+thickness,paint);
+            canvas.drawRect(b.left,b.bottom-thickness,b.right,b.bottom,paint);
+        }
+        @Override public void setAlpha(int alpha){paint.setAlpha(alpha);invalidateSelf();}
+        @Override public void setColorFilter(android.graphics.ColorFilter filter){paint.setColorFilter(filter);invalidateSelf();}
+        @Override public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
     }
 
     private static String clean(String html) {
@@ -594,6 +734,9 @@ final class EddiArchiveSearchUi {
     }
 
     private void applyAppearance() {
+        root.setTag(CONTROL_SCALE_TAG, controlScale);
+        root.setTag(RESULT_SCALE_TAG, resultScale);
+        root.setTag(CONTROL_LAYOUT_TAG, controlLayoutScale);
         int position = HaiagaruUi.scrollPosition(scroll);
         for (java.util.Map.Entry<TextView, Float> entry : controlTextSizes.entrySet()) {
             TextView view = entry.getKey();
@@ -601,15 +744,17 @@ final class EddiArchiveSearchUi {
             // Remove the theme's fixed button/input minimum when compacting,
             // but keep usable touch targets and let larger fonts grow naturally.
             if (view instanceof Button || view instanceof EditText) {
-                int minimum = dp(controlScale < 100 ? 40 : 48);
+                int minimum = dp(48);
                 view.setMinimumHeight(minimum);
                 view.setMinHeight(minimum);
-                view.setPadding(dp(8), dp(controlScale < 100 ? 2 : 6), dp(8),
-                        dp(controlScale < 100 ? 2 : 6));
+                int vertical = Math.round(6 * controlLayoutScale / 100f);
+                view.setPadding(dp(8), dp(vertical), dp(8), dp(vertical));
             }
         }
         for (java.util.Map.Entry<TextView, Float> entry : resultTextSizes.entrySet())
             entry.getKey().setTextSize(scaledTextSize(entry.getValue(), resultScale));
+        for (int index = 0; index < results.getChildCount(); index++)
+            styleResultSpacing(results.getChildAt(index));
         searchForm.setVisibility(hideSearchForm ? View.GONE : View.VISIBLE);
         advancedScroll.getLayoutParams().height = dp(Math.round(240 * controlScale / 100f));
         advancedScroll.requestLayout();
@@ -622,19 +767,47 @@ final class EddiArchiveSearchUi {
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(20), dp(8), dp(20), 0);
         SeekBar controls = sizeSlider(content, "検索欄・操作ボタン", controlScale);
-        SeekBar titles = sizeSlider(content, "検索結果", resultScale);
+        TextView densityLabel = new TextView(activity);
+        densityLabel.setText("検索欄・操作ボタンの間隔: " + controlLayoutScale + "%");
+        content.addView(densityLabel);
+        SeekBar density = new SeekBar(activity);
+        density.setMax(50);
+        density.setProgress(controlLayoutScale - 50);
+        density.setContentDescription("検索欄・操作ボタンの間隔");
+        density.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                densityLabel.setText("検索欄・操作ボタンの間隔: " + (progress + 50) + "%");
+            }
+            @Override public void onStartTrackingTouch(SeekBar bar) { }
+            @Override public void onStopTrackingTouch(SeekBar bar) { }
+        });
+        content.addView(density);
+        SeekBar titles = sizeSlider(content, "検索結果の文字サイズ", resultScale);
+        TextView spacingLabel = new TextView(activity);
+        spacingLabel.setText("結果ごとの上下余白: " + resultPadding + "dp");
+        content.addView(spacingLabel);
+        SeekBar spacing = new SeekBar(activity);
+        spacing.setMax(32);
+        spacing.setProgress(resultPadding);
+        spacing.setContentDescription("結果ごとの上下余白");
+        spacing.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                spacingLabel.setText("結果ごとの上下余白: " + progress + "dp");
+            }
+            @Override public void onStartTrackingTouch(SeekBar bar) { }
+            @Override public void onStopTrackingTouch(SeekBar bar) { }
+        });
+        content.addView(spacing);
         CheckBox hide = new CheckBox(activity);
         hide.setText("検索欄を隠して結果を広く表示");
         hide.setChecked(hideSearchForm);
         content.addView(hide);
-        TextView help = new TextView(activity);
-        help.setText("検索欄を隠しても「表示」から再表示できます。文字サイズは次回も保持します。");
-        content.addView(help);
         new HaiagaruDialog.Builder(activity).setTitle("過去ログ検索の表示設定")
                 .setView(content).setNegativeButton("キャンセル", null)
-                .setNeutralButton("標準に戻す", (dialog, which) -> saveAppearance(100, 100, false))
+                .setNeutralButton("標準に戻す", (dialog, which) -> saveAppearance(100, 100, 16, 100, false))
                 .setPositiveButton("適用", (dialog, which) -> saveAppearance(
-                        controls.getProgress() + 70, titles.getProgress() + 70, hide.isChecked()))
+                        controls.getProgress() + 70, titles.getProgress() + 70,
+                        spacing.getProgress(), density.getProgress() + 50, hide.isChecked()))
                 .show();
     }
 
@@ -657,12 +830,30 @@ final class EddiArchiveSearchUi {
         return slider;
     }
 
-    private void saveAppearance(int controls, int titles, boolean hide) {
+    static int clampResultPadding(int value) {
+        return Math.max(0, Math.min(32, value));
+    }
+
+    static int clampControlLayout(int value) {
+        return Math.max(50, Math.min(100, value));
+    }
+
+    private void styleResultSpacing(View card) {
+        card.setTag(RESULT_PADDING_TAG, resultPadding);
+        card.setPadding(dp(12), dp(resultPadding), dp(12), dp(resultPadding));
+        card.setMinimumHeight(dp(48));
+    }
+
+    private void saveAppearance(int controls, int titles, int padding, int layoutScale, boolean hide) {
         controlScale = clampTextScale(controls);
         resultScale = clampTextScale(titles);
+        resultPadding = clampResultPadding(padding);
+        controlLayoutScale = clampControlLayout(layoutScale);
         hideSearchForm = hide;
         activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                 .putInt("controlTextScale", controlScale).putInt("resultTextScale", resultScale)
+                .putInt("resultVerticalPadding", resultPadding)
+                .putInt("controlLayoutScale", controlLayoutScale)
                 .putBoolean("hideSearchForm", hideSearchForm).apply();
         applyAppearance();
     }
@@ -704,9 +895,14 @@ final class EddiArchiveSearchUi {
     private static final class SearchPage {
         final List<ThreadResult> threads;
         final int total;
+        final boolean hasNext;
         SearchPage(List<ThreadResult> threads, int total) {
+            this(threads, total, threads.size() == 50 && total > 50);
+        }
+        SearchPage(List<ThreadResult> threads, int total, boolean hasNext) {
             this.threads = threads;
             this.total = total;
+            this.hasNext = hasNext;
         }
     }
 }

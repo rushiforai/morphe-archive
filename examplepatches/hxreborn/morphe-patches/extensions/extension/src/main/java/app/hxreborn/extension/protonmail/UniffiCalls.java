@@ -5,11 +5,12 @@
 package app.hxreborn.extension.protonmail;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import app.hxreborn.extension.shared.ProxyHandler;
 
 public final class UniffiCalls {
 
@@ -102,7 +103,7 @@ public final class UniffiCalls {
         throw new IllegalStateException(String.valueOf(thrown));
     }
 
-    private static final class BlockingContinuation implements InvocationHandler {
+    private static final class BlockingContinuation extends ProxyHandler {
 
         private final CountDownLatch resumed = new CountDownLatch(1);
 
@@ -115,7 +116,12 @@ public final class UniffiCalls {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
+        protected String describe() {
+            return "UniffiCalls";
+        }
+
+        @Override
+        protected Object handle(Method method, Object[] args) {
             final String name = method.getName();
             if ("getContext".equals(name)) {
                 return this.context;
@@ -124,15 +130,6 @@ public final class UniffiCalls {
                 this.result = args[0];
                 this.resumed.countDown();
                 return null;
-            }
-            if ("toString".equals(name)) {
-                return "UniffiCalls";
-            }
-            if ("hashCode".equals(name)) {
-                return System.identityHashCode(proxy);
-            }
-            if ("equals".equals(name)) {
-                return proxy == args[0];
             }
             return null;
         }

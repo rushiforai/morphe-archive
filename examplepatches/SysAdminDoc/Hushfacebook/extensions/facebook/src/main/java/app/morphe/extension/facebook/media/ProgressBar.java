@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.facebook.reels.CaptionRoom;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -575,10 +576,14 @@ public final class ProgressBar {
      * before the scrubber listens to that reel, starts nothing. The reel played with its bar at the
      * start and no time (#120). So every {@link #UPDATE_CHECK_MS} until a first draw, {@link
      * #updateAgain} runs the update once more, which goes on by itself once it draws.
+     *
+     * <p>Whatever the switches, the label also hands {@link CaptionRoom} the reel's page, so the
+     * footer's caption draws its last line whole (#96).
      */
     public static void mounts(@Nullable ViewGroup label, @Nullable Object scrubber) {
         try {
             if (label == null) return;
+            CaptionRoom.mounted(label);
             HandOver over = handOvers.remove(label);
             watch(label, scrubber, over == null ? null : over.shown);
             if (over == null) return;
@@ -834,11 +839,13 @@ public final class ProgressBar {
      * hidden and nothing is written, as the scrubber's position and length are the last reel's.
      *
      * <p>Being asked at all means the update drew the reel, which ends the label's watch from {@link
-     * #mounts}, whatever the switches.
+     * #mounts}, whatever the switches. It also hands {@link CaptionRoom} the label, since the first
+     * reel after a start gets no light mount (#96).
      */
     public static boolean refreshesTime(ViewGroup label, @Nullable View bar) {
         try {
             if (label == null) return false;
+            CaptionRoom.updated(label);
             // Facebook found the reel's position and length and moved the bar: the update draws.
             Watch watch = watches.remove(label);
             if (watch != null && watch.runs > 0) {

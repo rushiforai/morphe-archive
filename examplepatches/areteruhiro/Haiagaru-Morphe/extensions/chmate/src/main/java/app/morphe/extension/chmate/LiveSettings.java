@@ -39,6 +39,7 @@ final class LiveSettings {
     void toggle(Switch v,String key){toggle(v,key,null);}
     void toggle(Switch v,String key,Runnable effect){
         if(v==null)return;
+        if(prefs==SettingsProfiles.prefs(v.getContext())){SettingsProfiles.booleanKey(key);SettingsProfiles.defaultValue(key,v.isChecked());}
         final boolean[] previous={v.isChecked()};
         ((Toggle)v).changed=()->{boolean value=v.isChecked();if(previous[0]==value)return;previous[0]=value;
             prefs.edit().putBoolean(key,value).apply();if(effect!=null)effect.run();refreshed.run();SettingsEffects.changed(v.getContext(),key,value);};
@@ -46,6 +47,7 @@ final class LiveSettings {
     void choice(Spinner v,String key){choice(v,key,i->i);}
     interface NumberValue { int value(int position); }
     void choice(Spinner v,String key,NumberValue value){
+        if(v!=null&&prefs==SettingsProfiles.prefs(v.getContext())){java.util.Set<Integer> allowed=new java.util.HashSet<>();for(int i=0;i<v.getCount();i++)allowed.add(value.value(i));SettingsProfiles.choiceKey(key,allowed);SettingsProfiles.defaultValue(key,value.value(v.getSelectedItemPosition()));}
         choice(v,()->prefs.edit().putInt(key,value.value(v.getSelectedItemPosition())).apply());
     }
     void choice(Spinner v,Runnable save){
@@ -66,5 +68,5 @@ final class LiveSettings {
         try{int value=Integer.parseInt(v.getText().toString().trim());if(value<min||value>max)throw new NumberFormatException();
             v.setError(null);prefs.edit().putInt(key,value).apply();refreshed.run();
         }catch(NumberFormatException e){v.setError(min+"〜"+max);}
-    });}
+    });if(v!=null&&prefs==SettingsProfiles.prefs(v.getContext()))SettingsProfiles.numberKey(key,min,max);}
 }

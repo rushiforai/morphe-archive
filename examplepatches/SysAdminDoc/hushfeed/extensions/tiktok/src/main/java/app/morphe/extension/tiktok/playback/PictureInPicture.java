@@ -210,24 +210,34 @@ public final class PictureInPicture {
 
     /**
      * The video on screen: the largest TextureView or SurfaceView showing, which is what TikTok's
-     * player draws into. Neighbouring cells sit off screen and show nothing. The frame a Long press
-     * saves is read from the same view.
+     * player draws into. Neighbouring cells sit off screen and show nothing.
      */
     public static View videoView(View root) {
+        List<View> shown = videoViews(root);
+        return shown.isEmpty() ? null : shown.get(0);
+    }
+
+    /**
+     * Every TextureView and SurfaceView showing, the largest first, and in tree order where two are
+     * the same size. The largest isn't always the one with a frame to read, so the Long press frame
+     * save reads down this list.
+     */
+    public static List<View> videoViews(View root) {
         List<View> found = new ArrayList<>();
         collect(root, found);
-        View best = null;
-        long bestArea = 0;
+        List<View> shown = new ArrayList<>();
+        List<Long> areas = new ArrayList<>();
         Rect bounds = new Rect();
         for (View view : found) {
             if (!view.isShown() || !view.getGlobalVisibleRect(bounds)) continue;
             long area = (long) bounds.width() * bounds.height();
-            if (area > bestArea) {
-                best = view;
-                bestArea = area;
-            }
+            if (area <= 0) continue;
+            int at = 0;
+            while (at < areas.size() && areas.get(at) >= area) at++;
+            shown.add(at, view);
+            areas.add(at, area);
         }
-        return best;
+        return shown;
     }
 
     private static void collect(View view, List<View> found) {

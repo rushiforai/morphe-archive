@@ -8,12 +8,13 @@
 package app.morphe.patches.reddit.customclients.infinity.api
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionLocation
-import app.morphe.patcher.OpcodeFilter
 import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal val getDefaultUserAgentFingerprint = Fingerprint(
     definingClass = EXTENSION_CLASS_NAME,
@@ -46,8 +47,11 @@ internal fun userAgentFingerprint(versionName: String) = Fingerprint(
 )
 
 internal val redirectUriFingerprint = Fingerprint(
-    definingClass = "Lml/docilealligator",
-    strings = listOf("infinity://localhost")
+    strings = listOf("infinity://localhost"),
+    // 8.3.4 moved token exchanges into obfuscated WebView/coroutine classes outside
+    // the application package. Patch those as well as the authorization activities.
+    // Exclude the injected defaults, which must not call their own redirect getter.
+    custom = { _, classDef -> !classDef.type.startsWith("Lapp/morphe/extension/") }
 )
 
 internal val settingsActivityOnBackStackChangedFingerprint = Fingerprint(
@@ -65,27 +69,51 @@ internal val settingsActivityOnBackStackChangedFingerprint = Fingerprint(
 )
 
 internal val billingClientOnServiceConnectedFingerprint = Fingerprint(
+    name = "onServiceConnected",
+    parameters = listOf("Landroid/content/ComponentName;", "Landroid/os/IBinder;"),
+    returnType = "V",
     strings = listOf("Billing service connected")
 )
 
-internal val infinityStartSubscriptionActivityFingerprint = Fingerprint(
+// Both supported 8.3.x layouts must identify the same single lockout method.
+// The first method-call filter identifies its subscription-state setter.
+
+// Infinity+ 8.3.4: Infinity.f() no longer builds the subscription Intent itself. It checks a
+// flag and then hands the Context, a boolean and the Intent flags (0x10008000) to a static
+// helper that creates and starts SubscriptionActivityNew. The helper's name is obfuscated
+// (za3.X in 8.3.4), so match on its signature, built only from framework types, rather than
+// on its name.
+internal val infinityStartSubscriptionActivityHelperFingerprint = Fingerprint(
     definingClass = "Lml/docilealligator/infinityforreddit/Infinity;",
+    parameters = emptyList(),
+    returnType = "V",
+    strings = listOf("account_name"),
     filters = listOf(
+        literal(8),
+        methodCall(parameters = listOf("I"), returnType = "V", opcode = Opcode.INVOKE_VIRTUAL),
+        literal(0x10008000),
         methodCall(
-            definingClass = "Landroid/content/Intent;",
-            name = "<init>",
-            opcode = Opcode.INVOKE_DIRECT
-        ),
-        literal(0x10008000)
+            parameters = listOf(
+                "Landroid/content/Context;",
+                "Z",
+                "Ljava/lang/Integer;"
+            ),
+            returnType = "V",
+            opcode = Opcode.INVOKE_STATIC
+        )
     )
 )
-// Infinity+ 8.3.x moved its subscription launch into SubscriptionActivityNew.
+
+// Infinity+ 8.3.0 introduced this SubscriptionActivityNew companion layout.
 // Based on Adiker's upstream PR: https://github.com/wchill/patcheddit/pull/108
 internal val infinityStartSubscriptionActivityNewFingerprint = Fingerprint(
     definingClass = "Lml/docilealligator/infinityforreddit/Infinity;",
     parameters = emptyList(),
     returnType = "V",
+    strings = listOf("account_name"),
     filters = listOf(
+        literal(8),
+        methodCall(parameters = listOf("I"), returnType = "V", opcode = Opcode.INVOKE_VIRTUAL),
         literal(0x10008000),
         methodCall(
             definingClass = "Lml/docilealligator/infinityforreddit/activities/SubscriptionActivityNew\$",
@@ -99,4 +127,30 @@ internal val infinityStartSubscriptionActivityNewFingerprint = Fingerprint(
             opcode = Opcode.INVOKE_VIRTUAL
         )
     )
+)
+
+// Resolve through the lockout method, without hardcoding the obfuscated class or method.
+// Verify the observable update followed by the byte-field write before injecting a guard.
+internal fun subscriptionStateSetterFingerprint(reference: MethodReference) = Fingerprint(
+    definingClass = reference.definingClass,
+    name = reference.name,
+    parameters = listOf("I"),
+    returnType = "V",
+    filters = OpcodesFilter.opcodesToFilters(
+        Opcode.IGET_OBJECT,
+        Opcode.INVOKE_STATIC,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.IPUT_BYTE,
+        Opcode.RETURN_VOID
+    ),
+    custom = { method, _ ->
+        val implementation = method.implementation
+        !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            implementation != null && implementation.registerCount in 3..16 &&
+            implementation.instructions.firstOrNull().let {
+                // v0 is a local overwritten by the original first instruction.
+                it?.opcode == Opcode.IGET_OBJECT && (it as OneRegisterInstruction).registerA == 0
+            }
+    }
 )

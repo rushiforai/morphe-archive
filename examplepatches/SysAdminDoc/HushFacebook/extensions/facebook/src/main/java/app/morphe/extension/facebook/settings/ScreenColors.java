@@ -37,6 +37,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.facebook.theme.TonePalette;
 import app.morphe.extension.shared.settings.preference.ImmediateAction;
 
@@ -52,7 +53,8 @@ import app.morphe.extension.shared.settings.preference.ImmediateAction;
  * which ScreenColorsTest works out.
  *
  * <p>Without the theme in the build, {@link #forScreen} answers null and the screen keeps the black
- * page and dark Material rows it always had.
+ * page and dark Material rows it always had, in the AMOLED theme's Background colour when that
+ * isn't black ({@link #black}).
  */
 final class ScreenColors {
     final boolean light;
@@ -80,6 +82,14 @@ final class ScreenColors {
     @Nullable
     static volatile ScreenColors shown;
     static final ScreenColors DEFAULT = new ScreenColors();
+
+    /** WCAG 2.2 AA for text, and for the parts of a control that show its state. */
+    private static final double TEXT_CONTRAST = 4.5;
+    private static final double CONTROL_CONTRAST = 3.0;
+
+    /** {@link #black} for the last Background colour it was asked about. */
+    @Nullable
+    private static volatile ScreenColors tinted;
 
     private ScreenColors() {
         light = false;
@@ -120,6 +130,52 @@ final class ScreenColors {
             outline = palette.tone(TonePalette.NEUTRAL_VARIANT, 30);
             onAccent = background;
         }
+    }
+
+    /**
+     * The black page over another Background colour: the page in it, cards and dialogs on the card
+     * step AMOLED raises Facebook's own cards by, and their edge on the input fill's step, so the
+     * screen matches the app around it. The black page's text and switches move toward white
+     * wherever the lighter card leaves them under AA, and the primary action's text turns black
+     * when the lifted accent leaves white under it.
+     */
+    private ScreenColors(int[] surfaces) {
+        light = false;
+        background = surfaces[0];
+        card = surfaces[1];
+        dialog = card;
+        outline = surfaces[surfaces.length - 1];
+        title = AmoledTheme.readable(DEFAULT.title, card, TEXT_CONTRAST);
+        summary = AmoledTheme.readable(DEFAULT.summary, card, TEXT_CONTRAST);
+        heading = AmoledTheme.readable(DEFAULT.heading, card, TEXT_CONTRAST);
+        accent = AmoledTheme.readable(DEFAULT.accent, card, CONTROL_CONTRAST);
+        switchOff = AmoledTheme.readable(DEFAULT.switchOff, card, CONTROL_CONTRAST);
+        onAccent = TonePalette.luminance(accent) <= (1.05 / TEXT_CONTRAST) - 0.05 ? Color.WHITE : Color.BLACK;
+    }
+
+    /**
+     * The black page's colours: {@link #DEFAULT}, unless the AMOLED theme is in this build with a
+     * Background colour other than black. Then they're built from that colour (issue #214), which
+     * left the page black with dark blue cards under an app in #0D1117. A Material You build hides
+     * the Background row, so a colour saved before it doesn't count.
+     */
+    static ScreenColors black() {
+        if (!PatchFamily.AMOLED_THEME.inBuild() || PatchFamily.MATERIAL_YOU_THEME.inBuild()) return DEFAULT;
+        int[] surfaces = AmoledTheme.surfaces();
+        if (surfaces[0] == Color.BLACK) return DEFAULT;
+        ScreenColors colors = tinted;
+        if (colors == null || colors.background != surfaces[0] || colors.card != surfaces[1]
+                || colors.outline != surfaces[surfaces.length - 1]) {
+            colors = new ScreenColors(surfaces);
+            tinted = colors;
+        }
+        return colors;
+    }
+
+    /** The colours on show, or {@link #black} when the black page is. */
+    static ScreenColors current() {
+        ScreenColors colors = shown;
+        return colors == null ? black() : colors;
     }
 
     /**
@@ -438,7 +494,7 @@ final class ScreenColors {
 
     static void recoveryMessage(View row) {
         ScreenColors palette = forScreen(row.getContext());
-        if (palette == null) palette = DEFAULT;
+        if (palette == null) palette = black();
         HushfacebookPreferenceFragment.showAllText(row);
         TextView title = row.findViewById(android.R.id.title);
         TextView summary = row.findViewById(android.R.id.summary);
@@ -606,26 +662,23 @@ final class ScreenColors {
 
     /** Paints a row with the colours on show, if there are any. */
     static void row(View row, Preference preference) {
-        ScreenColors colors = shown;
-        (colors == null ? DEFAULT : colors).paintRow(row, preference);
+        current().paintRow(row, preference);
     }
 
     /** Paints a section title with the colours on show, if there are any. */
     static void heading(View row) {
-        ScreenColors colors = shown;
-        (colors == null ? DEFAULT : colors).paintHeading(row);
+        current().paintHeading(row);
     }
 
     /** Paints both recovery actions even if the ordinary settings page failed to initialize. */
     static void recoveryAction(View row, boolean primary) {
         ScreenColors colors = forScreen(row.getContext());
-        (colors == null ? DEFAULT : colors).paintRecoveryAction(row, primary);
+        (colors == null ? black() : colors).paintRecoveryAction(row, primary);
     }
 
     /** Paints a dialog with the colours on show, if there are any. */
     static void dialog(@Nullable AlertDialog dialog) {
-        ScreenColors colors = shown;
-        (colors == null ? DEFAULT : colors).paint(dialog);
+        current().paint(dialog);
     }
 
     private static int dp(View view, int value) {

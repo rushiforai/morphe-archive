@@ -49,6 +49,18 @@ final class FieldLayout {
         return found.toArray(new Field[0]);
     }
 
+    static List<Field> instanceFieldsByName(Object object) {
+        final List<Field> fields = new ArrayList<>();
+        for (Field field : object.getClass().getDeclaredFields()) {
+            if (!Modifier.isStatic(field.getModifiers())) {
+                field.setAccessible(true);
+                fields.add(field);
+            }
+        }
+        Collections.sort(fields, (left, right) -> left.getName().compareTo(right.getName()));
+        return fields;
+    }
+
     static Object get(Field field, Object owner) {
         try {
             return field.get(owner);

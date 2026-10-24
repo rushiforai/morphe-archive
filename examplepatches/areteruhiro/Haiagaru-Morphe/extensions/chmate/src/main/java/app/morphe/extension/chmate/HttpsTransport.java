@@ -31,6 +31,11 @@ public final class HttpsTransport {
                 || ImageVpnController.isLocalEndpoint(host, port)
                 || (ImageVpnController.enabled() && "127.0.0.1".equals(host) && port == 9);
     }
+    /** Hissi's HTTP endpoint is deliberately excluded; it is not a local/proxy-bypass endpoint. */
+    public static boolean isHttpUpgradeExempt(String host,int port){
+        return "hissi.org".equalsIgnoreCase(host)||"www.hissi.org".equalsIgnoreCase(host)
+                ||isLocalThumbnailEndpoint(host,port);
+    }
 
     /** -1 selects the HTTPS default; nonstandard explicitly selected ports are retained. */
     public static int upgradePort(int port) {
@@ -39,7 +44,7 @@ public final class HttpsTransport {
 
     public static URL upgrade(URL original) throws IOException {
         if (original == null || !shouldUpgrade(original.getProtocol())
-                || isLocalThumbnailEndpoint(original.getHost(), original.getPort())) return original;
+                || isHttpUpgradeExempt(original.getHost(), original.getPort())) return original;
         String external = original.toExternalForm();
         String upgraded = "https" + external.substring(original.getProtocol().length());
         String authority = original.getAuthority();

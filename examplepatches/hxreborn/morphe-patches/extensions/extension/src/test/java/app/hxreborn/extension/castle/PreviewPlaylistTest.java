@@ -42,12 +42,20 @@ public final class PreviewPlaylistTest {
     }
 
     @Test
-    public void readsThePaddedDurationAndLastServedSegment() {
+    public void readsTheLastServedSegment() {
         // when
         PreviewPlaylist.Padding padding = PreviewPlaylist.Padding.of(paddedPreview());
 
         // then
         assertEquals(1, padding.lastServed);
+    }
+
+    @Test
+    public void readsThePaddedDuration() {
+        // when
+        PreviewPlaylist.Padding padding = PreviewPlaylist.Padding.of(paddedPreview());
+
+        // then
         assertEquals(20.0, padding.seconds, 0.0);
     }
 

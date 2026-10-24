@@ -160,14 +160,22 @@ public final class ReleaseNotes {
     }
 
     static void show(Context context, String current, Runnable onDismiss) {
+        show(context, current, onDismiss, ReleaseNotesData.TEXT, ReleaseNotesData.translated(L10n.tableTag(context)));
+    }
+
+    /**
+     * The dialog over {@code source}, the English notes, and {@code translated}, the phone's
+     * table or null. Only the newest releases are bundled, so tests that need older releases
+     * under a translated one bring their own.
+     */
+    static void show(Context context, String current, Runnable onDismiss, String source, String translated) {
         if (SettingsUi.dialogOpen(KEY, context)) return;
         TextView body = new TextView(context);
         // A release translated for the phone's table shows in that language (#91), and the rest
         // come from the English summary table. A LocaleSpan per run is what a screen reader that
         // switches languages reads; the text locale only sets line breaking and hyphenation.
         Locale own = L10n.shownLocale(context);
-        List<Section> sections = sections(ReleaseNotesData.TEXT,
-                ReleaseNotesData.translated(L10n.tableTag(context)), current,
+        List<Section> sections = sections(source, translated, current,
                 context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(DISMISSED, null));
         boolean anyEnglish = false;
         boolean allEnglish = true;

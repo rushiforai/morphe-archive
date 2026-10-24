@@ -45,6 +45,8 @@ import org.robolectric.util.ReflectionHelpers;
 import org.robolectric.util.ReflectionHelpers.ClassParameter;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * #159: a LIVE panel's views inflate through its own (dark) LIVE overlay, applied with force,
@@ -98,6 +100,8 @@ public class LivePanelThemeTest {
         SettingsStatus.liveControlsEnabled = false;
         Settings.DARK_LIVE_PANELS.save(Settings.DARK_LIVE_PANELS.defaultValue);
         LivePanelTheme.stockSeen = false;
+        // A Spark page asked with no activity looks for any darkened room, so none carries over.
+        ReflectionHelpers.<Map<?, ?>>getStaticField(LivePanelTheme.class, "LIGHT_ROOMS").clear();
     }
 
     private static int textColor(Context context) {
@@ -380,33 +384,80 @@ public class LivePanelThemeTest {
         assertEquals(textColor(other), textColor(plain));
     }
 
-    @Test public void aDarkenedRoomsSparkPagesReadTheRoomsLightTheme() {
+    /** Spark's SchemaBundle, the page schema's parsed query. */
+    public static final class SchemaBundle {
+        final Map<String, String> queries = new HashMap<>();
+        String url;
+
+        public Map<String, String> getAllQueries() {
+            return queries;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
+    /** Spark's SparkContext, one page's schema. */
+    public static final class SparkPage {
+        public SchemaBundle schemaBundle;
+        public String fullUrl;
+    }
+
+    /** The audience ranking popup's schema, as the emulator's heap held it (2026-10-23), cut down. */
+    private static String rankingUrl(String buyers, String type) {
+        return "sslocal://lynxview_popup?room_id=1&url=https%3A%2F%2Fexample%2Faudience_rank.js&width=360"
+                + "&can_show_top_buyers_rank=" + buyers + "&entrance_rank_type=" + type + "&show_anchor_header=0";
+    }
+
+    private static SparkPage ranking(boolean buyers) {
+        SparkPage page = new SparkPage();
+        page.schemaBundle = new SchemaBundle();
+        page.schemaBundle.queries.put("can_show_top_buyers_rank", buyers ? "1" : "0");
+        page.fullUrl = rankingUrl(buyers ? "1" : "0", buyers ? "top_buyers" : "top_viewers");
+        return page;
+    }
+
+    @Test public void onlyTheShopRankingOverADarkenedRoomKeepsSparksLightTheme() {
         RuntimeEnvironment.setQualifiers("+night");
         Activity live = room();
-        int roomText = textColor(live);
-        assertSame("the switch starts off", live, LivePanelTheme.sparkContext(live));
+        SparkPage buyers = ranking(true);
+        assertTrue("the switch starts off", !LivePanelTheme.sparkKeepsStock(buyers, live));
         Settings.DARK_LIVE_PANELS.save(true);
-        assertSame("a room the switch never darkened", live, LivePanelTheme.sparkContext(live));
+        assertTrue("a room the switch never darkened", !LivePanelTheme.sparkKeepsStock(buyers, live));
         LivePanelTheme.darkLiveRoom(live, android.R.style.Theme_Black);
-        assertTrue("the room went dark", roomText != textColor(live));
 
-        Context spark = LivePanelTheme.sparkContext(live);
-        assertNotSame(live, spark);
-        assertEquals("the room's light theme", roomText, textColor(spark));
-        assertTrue("the room itself stays dark", roomText != textColor(live));
-        assertEquals("found through a popup's own wrapper", roomText,
-                textColor(LivePanelTheme.sparkContext(new ContextThemeWrapper(live, OVERLAY))));
-        assertSame("outside a room", dark, LivePanelTheme.sparkContext(dark));
-        assertSame("no context", null, LivePanelTheme.sparkContext(null));
+        assertTrue("the shop ranking", LivePanelTheme.sparkKeepsStock(buyers, live));
+        assertTrue("found through a popup's own wrapper",
+                LivePanelTheme.sparkKeepsStock(buyers, new ContextThemeWrapper(live, OVERLAY)));
+        assertTrue("asked with no activity, the darkened room", LivePanelTheme.sparkKeepsStock(buyers, null));
+        assertTrue("asked with no activity, the darkened room", LivePanelTheme.sparkKeepsStock(buyers, dark));
+        assertTrue("the plain viewer ranking reads dark", !LivePanelTheme.sparkKeepsStock(ranking(false), live));
+        assertTrue("another Spark page reads dark", !LivePanelTheme.sparkKeepsStock(new SparkPage(), live));
+        assertTrue("no page", !LivePanelTheme.sparkKeepsStock(null, live));
+        assertTrue("another room the switch never darkened", !LivePanelTheme.sparkKeepsStock(buyers, room()));
+
+        // The schema's parsed query wins; the page's URLs answer when it has none.
+        SparkPage parsed = ranking(false);
+        parsed.fullUrl = rankingUrl("1", "top_buyers");
+        assertTrue("the parsed query says viewers", !LivePanelTheme.sparkKeepsStock(parsed, live));
+        SparkPage url = ranking(true);
+        url.schemaBundle.queries.clear();
+        assertTrue("the page's full URL", LivePanelTheme.sparkKeepsStock(url, live));
+        url.fullUrl = null;
+        url.schemaBundle.url = rankingUrl("1", "top_buyers");
+        assertTrue("the schema's URL", LivePanelTheme.sparkKeepsStock(url, live));
+        url.schemaBundle.url = rankingUrl("10", "top_buyers");
+        assertTrue("only the whole value", !LivePanelTheme.sparkKeepsStock(url, live));
 
         Settings.DARK_LIVE_PANELS.save(false);
-        assertSame("the switch off", live, LivePanelTheme.sparkContext(live));
+        assertTrue("the switch off", !LivePanelTheme.sparkKeepsStock(buyers, live));
         Settings.DARK_LIVE_PANELS.save(true);
         ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess", ClassParameter.from(boolean.class, true));
-        assertSame("paused", live, LivePanelTheme.sparkContext(live));
+        assertTrue("paused", !LivePanelTheme.sparkKeepsStock(buyers, live));
         ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess", ClassParameter.from(boolean.class, false));
         SettingsStatus.liveControlsEnabled = false;
-        assertSame("without the patch", live, LivePanelTheme.sparkContext(live));
+        assertTrue("without the patch", !LivePanelTheme.sparkKeepsStock(buyers, live));
     }
 
     @Test public void theRankingsTabsReadTheirColorsThroughItsLightTheme() {

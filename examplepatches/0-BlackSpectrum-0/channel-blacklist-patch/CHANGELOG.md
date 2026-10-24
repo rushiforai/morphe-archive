@@ -1,3 +1,9 @@
+## [2.5.0](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/compare/v2.4.0...v2.5.0) (2026-10-23)
+
+### ✨ New Features
+
+* Sync upstream v1.48.0-dev.19 (YouTube 21.42.241) ([eefd368](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/commit/eefd368b70942c4400a25417b6c8154693d0da0a))
+
 ## [2.4.0](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/compare/v2.3.0...v2.4.0) (2026-10-10)
 
 ### ✨ New Features

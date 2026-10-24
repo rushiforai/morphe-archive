@@ -5,6 +5,9 @@
 package app.morphe.patches.shared.misc.ijiami
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.readInt
+import app.morphe.patches.shared.readShort
+import app.morphe.patches.shared.writeInt
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

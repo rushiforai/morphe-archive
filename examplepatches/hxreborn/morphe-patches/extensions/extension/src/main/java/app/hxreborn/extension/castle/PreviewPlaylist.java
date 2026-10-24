@@ -5,7 +5,6 @@
 package app.hxreborn.extension.castle;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -16,6 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.net.Uri;
+
+import app.hxreborn.extension.shared.Streams;
 
 @SuppressWarnings("unused")
 public final class PreviewPlaylist {
@@ -38,9 +39,9 @@ public final class PreviewPlaylist {
 
     public static InputStream expand(String location, InputStream playlist) throws IOException {
         if (location == null || !location.contains(PREVIEW_PATH)) {
-            return playlist;
+            return FullHdPlaylist.expand(playlist);
         }
-        byte[] original = readAll(playlist);
+        byte[] original = Streams.readAll(playlist);
         String expanded;
         try {
             expanded = expand(new String(original, StandardCharsets.UTF_8));
@@ -76,7 +77,7 @@ public final class PreviewPlaylist {
         return available;
     }
 
-    private static boolean exists(String url) throws IOException {
+    static boolean exists(String url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         try {
             connection.setConnectTimeout(TIMEOUT_MILLIS);
@@ -93,16 +94,6 @@ public final class PreviewPlaylist {
         } finally {
             connection.disconnect();
         }
-    }
-
-    private static byte[] readAll(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-        int read;
-        while ((read = input.read(buffer)) != -1) {
-            output.write(buffer, 0, read);
-        }
-        return output.toByteArray();
     }
 
     static final class Padding {

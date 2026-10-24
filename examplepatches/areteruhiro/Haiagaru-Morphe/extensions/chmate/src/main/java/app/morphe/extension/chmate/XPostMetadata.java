@@ -89,7 +89,7 @@ final class XPostMetadata {
 
     private static String download(String id) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(
-                "https://cdn.syndication.twimg.com/tweet-result?id=" + id + "&lang=ja&token=0").openConnection();
+                "https://cdn.syndication.twimg.com/tweet-result?id=" + id + "&lang=ja&token="+XEmbedToken.forPost(id)).openConnection();
         try {
             connection.setConnectTimeout(8_000);
             connection.setReadTimeout(8_000);

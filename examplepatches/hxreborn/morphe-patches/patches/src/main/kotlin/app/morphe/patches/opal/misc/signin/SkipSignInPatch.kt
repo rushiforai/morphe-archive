@@ -9,6 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -20,7 +21,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import com.android.tools.smali.dexlib2.util.ReferenceUtil
 
 private const val EXTENSION_CLASS = "Lapp/hxreborn/extension/opal/LocalAccount;"
 private const val LOCAL_USER_ID = "local-user"
@@ -73,7 +73,7 @@ val skipSignInPatch = bytecodePatch(
                 check(executeCall.opcode == Opcode.INVOKE_STATIC) { "$createStatement is not followed by a static call" }
                 val connectionRegister = (executeCall as FiveRegisterInstruction).registerC
 
-                val executeCallDescriptor = ReferenceUtil.getMethodDescriptor(executeCall.getReference<MethodReference>()!!)
+                val executeCallDescriptor = descriptor(executeCall.getReference<MethodReference>()!!)
                 addInstructions(
                     executeIndex + 1,
                     statements.joinToString("\n") { statement ->

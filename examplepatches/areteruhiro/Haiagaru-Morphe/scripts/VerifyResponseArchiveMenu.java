@@ -43,7 +43,8 @@ public final class VerifyResponseArchiveMenu {
             for (var i : m.getImplementation().getInstructions())
                 if (i instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s)
                     labels.add(s.getString());
-        check(labels.contains("過去レスを見る"), "browse label bundled");
+        check(labels.contains("保存済みレスを見る"), "browse label bundled");
+        check(!labels.contains("過去レスを見る"), "obsolete browse label removed");
         check(labels.contains("このレスをアーカイブに保存"), "save label bundled");
         check(calls(ARCHIVE, "handle", ARCHIVE, "showList"), "browse dispatch opens list");
         String wacchoi = "Lapp/morphe/extension/chmate/WacchoiLongPressMenu;";

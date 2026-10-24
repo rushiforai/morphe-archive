@@ -11,10 +11,10 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.netanalyzer.shared.FEATURES_CLASS
 import app.morphe.patches.netanalyzer.shared.addFeatureActivity
 import app.morphe.patches.netanalyzer.shared.lanScanObserverPatch
-import app.morphe.patches.netanalyzer.shared.toJavaName
 import app.morphe.patches.netanalyzer.shared.registerAtLaunch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.toJavaClassName
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
@@ -36,7 +36,7 @@ val customDeviceNamesPatch = bytecodePatch(
 
         val deviceName = LanDeviceNameFingerprint.matchSingle()
         val nameMap = deviceName.instructionMatches.first().instruction.getReference<FieldReference>()!!
-        val registration = listOf(nameMap.definingClass.toJavaName(), nameMap.name)
+        val registration = listOf(nameMap.definingClass.toJavaClassName(), nameMap.name)
             .joinToString(REGISTRATION_SEPARATOR)
 
         val method = deviceName.method

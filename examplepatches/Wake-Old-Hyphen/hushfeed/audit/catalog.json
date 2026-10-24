@@ -1353,7 +1353,7 @@
    },
    {
     "id": "blocks-contacts-query",
-    "what": "With the switch on, opening the Friends tab makes TikTok query the contacts provider and the blocker logs that it answered with an empty cursor.",
+    "what": "With the switch on, opening the Friends tab and the Inbox makes TikTok query the contacts provider and the blocker logs that it answered with an empty cursor.",
     "steps": [
      {
       "set": {
@@ -1368,6 +1368,12 @@
      },
      {
       "open": "friends"
+     },
+     {
+      "wait": 8000
+     },
+     {
+      "open": "inbox"
      },
      {
       "wait": 8000
@@ -1401,7 +1407,7 @@
     "auto": true
    }
   ],
-  "notes": "The 2026-09-17 device audit saw the contact blocker fire when the Friends tab opened. On TikTok 47.1.4 (2026-10-16) the Friends tab showed \"From your contacts\" cards matched on TikTok's server and made no local read in 15 seconds, so the check now turns the switch on before a restart and reads the log from the restart's marker (fromStep), which counts a read at start-up as well as one on Friends. A process that never reads the contacts provider is inconclusive, not a failure: the patch log's intercepted site count is then the proof. Never open Find friends or a contacts page to force a read, since that's where TikTok asks to upload them. The log line is Logger.printInfo so it needs no debug."
+  "notes": "The 2026-09-17 device audit saw the contact blocker fire when the Friends tab opened. On TikTok 47.1.4 (2026-10-16) the Friends tab showed \"From your contacts\" cards matched on TikTok's server and made no local read in 15 seconds, so the check now turns the switch on before a restart and reads the log from the restart's marker (fromStep), which counts a read at start-up as well as one on Friends. On 47.5.3 (2026-10-23) Android's app-op record on the S22 showed one contacts read, at 09:15:55Z, while Hide inbox items' conversation-rows check had TikTok freshly restarted on the Inbox, and none during this check, then none in a rerun that opened Friends and the Inbox after a restart. TikTok syncs contacts on its own clock, so the check opens both and stays inconclusive between syncs. A process that never reads the contacts provider is inconclusive, not a failure: the patch log's intercepted site count is then the proof. Never open Find friends or a contacts page to force a read, since that's where TikTok asks to upload them. The log line is Logger.printInfo so it needs no debug. On 47.5.3 'blocks-contacts-query' read inconclusive twice (2026-10-23, S22): TikTok made its one contacts read of the session outside the check, as above."
  },
  {
   "name": "Block installed app scanning",
@@ -1472,7 +1478,7 @@
     "auto": true
    }
   ],
-  "notes": "Reads the export (probe report) instead of logcat because TikTok scans at start-up, before the runner's log marker. The scan happens only when TikTok asks (ad SDKs, app-link checks), so the check also opens the own profile, and a session that still lists nothing reads inconclusive (the patch log's intercepted site count is the proof then, 2026-10-16). The description says opening another app from TikTok still works: that is not exercised (the runner cannot leave TikTok). Logged at Logger.printInfo, buffered by LogBufferManager.appendEvent."
+  "notes": "Reads the export (probe report) instead of logcat because TikTok scans at start-up, before the runner's log marker. The scan happens only when TikTok asks (ad SDKs, app-link checks), so the check also opens the own profile, and a session that still lists nothing reads inconclusive (the patch log's intercepted site count is the proof then, 2026-10-16). The description says opening another app from TikTok still works: that is not exercised (the runner cannot leave TikTok). Logged at Logger.printInfo, buffered by LogBufferManager.appendEvent. On 47.5.3 (2026-10-23, S22) 'blocks-package-listing' read inconclusive: the report's blocked lines stayed empty after the profile visit, so TikTok listed no packages that session."
  },
  {
   "name": "Block popups",
@@ -1587,7 +1593,7 @@
     "auto": true
    }
   ],
-  "notes": "A popup is recorded in the checklist only after TikTok first raises it, and it is dropped only once its box is ticked, so the catalog check can fail on a quiet session (no popup raised) without the patch being broken. Safety prompts (CAPTCHA, verification, sign-in, age, ban, appeal, consent) are never recorded or dropped (PopupLabels.isSafety); that classifier takes a string and is covered by unit tests. The LIVE bubble only appears when someone TikTok knows about is live. Wind-down screens appear only on TikTok's own screen-time triggers, which the audit cannot cause (hide_wind_down_screens logs 'Block popups: kept back <trigger>' when one is held back)."
+  "notes": "A popup is recorded in the checklist only after TikTok first raises it, and it is dropped only once its box is ticked, so the catalog check can fail on a quiet session (no popup raised) without the patch being broken. Safety prompts (CAPTCHA, verification, sign-in, age, ban, appeal, consent) are never recorded or dropped (PopupLabels.isSafety); that classifier takes a string and is covered by unit tests. The LIVE bubble only appears when someone TikTok knows about is live. Wind-down screens appear only on TikTok's own screen-time triggers, which the audit cannot cause (hide_wind_down_screens logs 'Block popups: kept back <trigger>' when one is held back). On 47.5.3 (2026-10-23, S22) 'live-bubble' read inconclusive because no followed account was live, so TikTok raised no bubble to skip."
  },
  {
   "name": "Block suggested video notifications",
@@ -2317,7 +2323,7 @@
      {
       "set": {
        "comment_keyword_filter": "true",
-       "comment_blocked_keywords": "the,you,and,this,love,lol,for"
+       "comment_blocked_keywords": "the,you,and,this,love,lol,for,que,de,kk,haha,jaja"
       }
      },
      {
@@ -2476,7 +2482,7 @@
     "auto": true
    }
   ],
-  "notes": "The keyword filter works on the comment page as TikTok parses it, so it must be switched on before the sheet opens, and the video must already have comments. The matching words are 'the', 'you', 'and', 'this', 'love', 'lol', 'for' (KeywordRules); a video with only emoji comments would remove nothing, in which case pick another video. Block from comment (the thumbs-down block) and Export comments act on a person or write a file and are not exercised. Poll results and surveys need a video with a poll or survey (naturally served only)."
+  "notes": "The keyword filter works on the comment page as TikTok parses it, so it must be switched on before the sheet opens, and the video must already have comments. The matching words are 'the', 'you', 'and', 'this', 'love', 'lol', 'for', plus 'que', 'de', 'kk', 'haha' and 'jaja' since the S22 account is served Portuguese and Spanish videos too (47.5.3's first audit failed on a page of Portuguese comments). KeywordRules matches them anywhere in a comment. A video with only emoji comments would remove nothing, in which case pick another video. Block from comment (the thumbs-down block) and Export comments act on a person or write a file and are not exercised. Poll results and surveys need a video with a poll or survey (naturally served only)."
  },
  {
   "name": "Confirm feed interactions",
@@ -3176,7 +3182,7 @@
      },
      {
       "probe": "report",
-      "expect": "target_version: 47\\.1\\.4"
+      "expect": "target_version: 47\\.5\\.3"
      }
     ],
     "auto": true
@@ -4360,7 +4366,7 @@
   "checks": [
    {
     "id": "record-and-report",
-    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.1.4 target with at least one gate.",
+    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.5.3 target with at least one gate.",
     "steps": [
      {
       "open": "feed"
@@ -4398,7 +4404,7 @@
       "extras": {
        "op": "stop"
       },
-      "expect": "\\\"target\\\": \\\"TikTok 47\\.1\\.4\\\"[\\s\\S]*\\\"gate_count\\\": [1-9]"
+      "expect": "\\\"target\\\": \\\"TikTok 47\\.5\\.3\\\"[\\s\\S]*\\\"gate_count\\\": [1-9]"
      }
     ],
     "auto": true
@@ -6621,9 +6627,9 @@
      {
       "probe": "hasids",
       "extras": {
-       "names": "ixq,iwi"
+       "names": "iy0,iws"
       },
-      "expect": "(ixq|iwi)=\\d+/[1-9]",
+      "expect": "(iy0|iws)=\\d+/[1-9]",
       "retrySwipe": 6,
       "precondition": true
      },
@@ -6644,10 +6650,10 @@
      {
       "probe": "hasids",
       "extras": {
-       "names": "ixq,iwi"
+       "names": "iy0,iws"
       },
-      "expect": "ixq=\\d+/0\\b",
-      "expectNot": "iwi=\\d+/[1-9]"
+      "expect": "iy0=\\d+/0\\b",
+      "expectNot": "iws=\\d+/[1-9]"
      },
      {
       "set": {
@@ -6703,7 +6709,7 @@
     "auto": false
    }
   ],
-  "notes": "The + under the avatar has no content description on 47.1.4; the only 'Follow' match on the feed is the Following tab at the top (seen 2026-10-16). The check counts the plus views by id instead: ixq is the TuxIconView plus and iwi the icon-res one, both in ix9 under user_avatar (from the probe's windowviews on 47.1.4). Ids are renamed every build, so a retarget takes them from a fresh windowviews of the feed: the views just below user_avatar in the avatar column. hasids counts a view as shown only when every parent is visible, so it reads 0 whichever of them the patch sets GONE."
+  "notes": "The + under the avatar has no content description on 47.1.4; the only 'Follow' match on the feed is the Following tab at the top (seen 2026-10-16). The check counts the plus views by id instead: iy0 is the TuxIconView plus and iws the icon-res one, both in ixi under user_avatar (from dumpsys activity top on 47.5.3, 2026-10-23; 47.1.4 called them ixq, iwi and ix9). Ids are renamed every build, so a retarget takes them from a fresh windowviews of the feed: the views just below user_avatar in the avatar column. hasids counts a view as shown only when every parent is visible, so it reads 0 whichever of them the patch sets GONE."
  },
  {
   "name": "Hide feed save button",
@@ -6847,7 +6853,7 @@
       "extras": {
        "desc": "Search"
       },
-      "expect": "finddesc found"
+      "expect": "finddesc found[\\s\\S]* at=\\d+,(\\d{1,2}|1\\d\\d) size="
      },
      {
       "set": {
@@ -6868,7 +6874,7 @@
       "extras": {
        "desc": "Search"
       },
-      "expectNot": "finddesc found"
+      "expectNot": " at=\\d+,(\\d{1,2}|1\\d\\d) size="
      },
      {
       "set": {
@@ -6924,7 +6930,7 @@
     "auto": false
    }
   ],
-  "notes": "The automatic check assumes the magnifier's content description is exactly 'Search' in an English UI. Hide opened-video search (hide_opened_video_search) is a child switch for the search bar under a video opened from search or a profile; it needs a search-opened video and is not covered here."
+  "notes": "The automatic check assumes the magnifier's content description is exactly 'Search' in an English UI, and counts only a match in the top bar (y under 200): the 'Search · ...' bar TikTok puts under some videos has a 'Search' icon of its own near the bottom, which failed 47.5.3's first audit with the top magnifier gone. Hide opened-video search (hide_opened_video_search) is a child switch for the search bar under a video opened from search or a profile; it needs a search-opened video and is not covered here."
  },
  {
   "name": "Hide floating promotions",
@@ -7356,7 +7362,7 @@
       "extras": {
        "family": "inbox"
       },
-      "expect": "bound=\\[.*l91.*\\]",
+      "expect": "bound=\\[.*l89.*\\]",
       "expectNot": "missed="
      },
      {
@@ -7482,7 +7488,7 @@
     "auto": true
    }
   ],
-  "notes": "Row-level hiding is checked against the English labels 'Activity' and 'New followers' (the model-level category is FOLLOWER/ACTIVITY/SHOP, the label is only how the probe finds the row). Chat rows, Message requests, TikTok Shop, Bulletin board, Tako and the archive entrance depend on what the test account has, so conversations are a review check and the chat row ids (w3x, tv_request_unread_count, v0g, oo6) are named in InboxFilter.java for a person to look up with the views action. The header probe lines print shown=true/false for ids kpy, fh0 and l8a; the hide path sets those views GONE. Chat-screen switches (Hide call buttons, Hide suggested replies, Hide sticker suggestions) need an open chat; opening a chat to look is allowed but writing is not, and a test account with no chats cannot show them. Search loaded activity (inbox_loaded_search) adds a search box to Activity and is a visual check only. The hide runs on layout passes, which is why every phase leaves and re-enters the Inbox before reading."
+  "notes": "Row-level hiding is checked against the English labels 'Activity' and 'New followers' (the model-level category is FOLLOWER/ACTIVITY/SHOP, the label is only how the probe finds the row). Chat rows, Message requests, TikTok Shop, Bulletin board, Tako and the archive entrance depend on what the test account has, so conversations are a review check and the chat row ids (w3x, tv_request_unread_count, v0g, oo6) are named in InboxFilter.java for a person to look up with the views action. The header probe lines print shown=true/false for ids kpy, fh0 and l8a; the hide path sets those views GONE. Chat-screen switches (Hide call buttons, Hide suggested replies, Hide sticker suggestions) need an open chat; opening a chat to look is allowed but writing is not, and a test account with no chats cannot show them. Search loaded activity (inbox_loaded_search) adds a search box to Activity and is a visual check only. The hide runs on layout passes, which is why every phase leaves and re-enters the Inbox before reading. 'group-banner' binds only when TikTok draws its group chat prompt in the Inbox, which the S22 account wasn't shown on 47.5.3 (2026-10-23), so the check read inconclusive."
  },
  {
   "name": "Hide inbox stories",
@@ -7790,7 +7796,7 @@
    },
    {
     "id": "search-page",
-    "what": "Search page before typing: TikTok's own 'You may like' list and the trending word in the search box show with the switch off (47.1.4 draws the list natively for some accounts) and are gone with it on; the box keeps its plain 'Search' placeholder and history stays.",
+    "what": "Search page before typing: with the switch off a suggested word sits in the search box, so the only 'Search' label is the red button; with it on the box is back to its plain 'Search' placeholder (two labels) and the shot shows no 'You may like' list. History stays. The list is drawn outside the view tree (47.1.4 and 47.5.3), so findtext can't see it and only the shot judges it.",
     "steps": [
      {
       "set": {
@@ -7821,9 +7827,9 @@
      {
       "probe": "findtext",
       "extras": {
-       "text": "You may like"
+       "text": "Search"
       },
-      "expect": "ok findtext found",
+      "expect": "ok findtext found [^\\n]*\\(1 matches ",
       "precondition": true
      },
      {
@@ -7858,9 +7864,9 @@
      {
       "probe": "findtext",
       "extras": {
-       "text": "You may like"
+       "text": "Search"
       },
-      "expect": "ok findtext none"
+      "expect": "ok findtext found [^\\n]*\\(2 matches "
      },
      {
       "shot": "search-no-suggestions",
@@ -9745,7 +9751,7 @@
     "auto": true
    }
   ],
-  "notes": "highest stays 0.0 until TikTok asks the window for a rate above zero with the switch on, so a feed where TikTok never caps reads inconclusive after ten swipes. On the S22 at 2026-10-16 no TikTok window asked for one: `dumpsys window windows` prints preferredRefreshRate only when it's set, and it was nowhere, so TikTok 47.1.4 may only cap some videos or none. The fingerprint check at patch time is what shows the hook is in place."
+  "notes": "highest stays 0.0 until TikTok asks the window for a rate above zero with the switch on, so a feed where TikTok never caps reads inconclusive after ten swipes. On the S22 at 2026-10-16 no TikTok window asked for one: `dumpsys window windows` prints preferredRefreshRate only when it's set, and it was nowhere, so TikTok 47.1.4 may only cap some videos or none. The fingerprint check at patch time is what shows the hook is in place. On 47.5.3 (2026-10-23, S22) 'highest-rate-read-on-video-start' read inconclusive the same way: no TikTok window asked for a rate."
  },
  {
   "name": "Keep the screen's brightness in the camera",
@@ -10181,7 +10187,7 @@
     "auto": true
    }
   ],
-  "notes": "Fires only when TikTok asks the system for a location. The 2026-09-17 device pass (Local tab, Copy link, resume, search, inbox) never saw it fire, so this check is expected to stay inconclusive on most sessions; the SettingsStatus flag is the standing proof that the hooks are in the APK. Run it after opening anything that wants a location (nearby or Local feeds, a location sticker) on a phone with location permission granted to TikTok."
+  "notes": "Fires only when TikTok asks the system for a location. The 2026-09-17 device pass (Local tab, Copy link, resume, search, inbox) never saw it fire, so this check is expected to stay inconclusive on most sessions; the SettingsStatus flag is the standing proof that the hooks are in the APK. Run it after opening anything that wants a location (nearby or Local feeds, a location sticker) on a phone with location permission granted to TikTok. On 47.5.3 (2026-10-23, S22) 'blocks-location-reads' read inconclusive with both location permissions granted: Android's app-op record put TikTok's last location access at 2026-09-27, so TikTok asked for no location during the run."
  },
  {
   "name": "Long-press controls",
@@ -11094,7 +11100,7 @@
     "auto": true
    }
   ],
-  "notes": "Most videos have no HDR gear, so the check swipes up to fifteen times for one and reads inconclusive on a feed without (not a patch failure). It reads the \"SDR playback\" family through hookdetails, which SdrPlayback binds on every drop from SimVideo or SimVideoUrlModel setBitRate, rather than the once-per-process log line (\"SDR playback dropped N HDR gear(s) of M from ...\"), which a log step could only see if it landed after the step in front of it (2026-10-16). The switch is on before the restart so every gear list in the process passes the filter. The filter shares its entry with Prefer H.264 (SdrPlayback.filter calls H264Playback.keepH264 first), so an H.264-only list passes through unchanged."
+  "notes": "Most videos have no HDR gear, so the check swipes up to fifteen times for one and reads inconclusive on a feed without (not a patch failure). It reads the \"SDR playback\" family through hookdetails, which SdrPlayback binds on every drop from SimVideo or SimVideoUrlModel setBitRate, rather than the once-per-process log line (\"SDR playback dropped N HDR gear(s) of M from ...\"), which a log step could only see if it landed after the step in front of it (2026-10-16). The switch is on before the restart so every gear list in the process passes the filter. The filter shares its entry with Prefer H.264 (SdrPlayback.filter calls H264Playback.keepH264 first), so an H.264-only list passes through unchanged. 'hdr-gears-dropped' binds only when TikTok serves a video with HDR gears; none came up on 47.5.3 (2026-10-23, S22), so it read inconclusive."
  },
  {
   "name": "Playback quality",
@@ -11995,7 +12001,9 @@
   "kind": "runtime",
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/videooverlays/AvatarRingsPatch.kt",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/AvatarRings.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/AvatarRings.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/videooverlays/StoryOverLive.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/StoryOverLive.java"
   ],
   "settings": [
    {
@@ -12009,6 +12017,12 @@
     "default": false,
     "type": "bool",
     "row": "Remove the LIVE ring"
+   },
+   {
+    "key": "open_story_over_live",
+    "default": false,
+    "type": "bool",
+    "row": "Open the Story when a creator is LIVE"
    }
   ],
   "surface": "feed",
@@ -12526,7 +12540,7 @@
     "auto": true
    }
   ],
-  "notes": "The benchmark switch is applied by BenchmarkRuns.onAppOpened at every start, and PackageManager keeps the component state across restarts, so the check first forces default, then disables, so \"disabled\" is logged (it is only logged on a change). The runner restores the switch and restarts TikTok after the patch, which puts the service back. The sensor check passes only when TikTok registers an accelerometer, gyroscope, magnetometer or rotation listener in the first seconds; shake-to-skip and ad SDKs do, but a quiet session may log nothing (inconclusive, not a failure)."
+  "notes": "The benchmark switch is applied by BenchmarkRuns.onAppOpened at every start, and PackageManager keeps the component state across restarts, so the check first forces default, then disables, so \"disabled\" is logged (it is only logged on a change). The runner restores the switch and restarts TikTok after the patch, which puts the service back. The sensor check passes only when TikTok registers an accelerometer, gyroscope, magnetometer or rotation listener in the first seconds; shake-to-skip and ad SDKs do, but a quiet session may log nothing (inconclusive, not a failure). On 47.5.3 (2026-10-23, S22) 'sensor-registrations-refused' read inconclusive: TikTok registered no sensor listener in the window."
  },
  {
   "name": "Resume videos after scrolling",
@@ -13385,7 +13399,7 @@
     "auto": false
    }
   ],
-  "notes": "TikTok has the control behind a server gate and only some regions and accounts have the LIVE search surface; the patch forces the gate on (FeatureControls.enableLiveSearch returns setting || original). The gate read could also be captured with the Feature Gate Recorder but the gate's name is not recorded in source, so the audit proves the seam and leaves the visual to a person. The click is the probe's findtext on the English 'LIVE' label and goes nowhere near a room."
+  "notes": "TikTok has the control behind a server gate and only some regions and accounts have the LIVE search surface; the patch forces the gate on (FeatureControls.enableLiveSearch returns setting || original). The gate read could also be captured with the Feature Gate Recorder but the gate's name is not recorded in source, so the audit proves the seam and leaves the visual to a person. The click is the probe's findtext on the English 'LIVE' label and goes nowhere near a room. On 47.5.3 (2026-10-23, S22) 'search-in-live' read inconclusive: the 'cats' search never made TikTok read the LIVE search setting (no 'LIVE search' hook family), and the audit doesn't open a LIVE room to provoke it."
  },
  {
   "name": "Show author region",
@@ -13680,7 +13694,7 @@
    },
    {
     "id": "sheet-text",
-    "what": "Review: names read '@handle' and the time line carries a country after it.",
+    "what": "Review: names read '@handle' and the time line carries a country after it. TikTok 47.5.3 sends comment accounts with no country, so the probe files AQ under each bound commenter in the feed's creator cache (as if their videos had played) and has the open sheet bind its rows again, which then show it from there.",
     "steps": [
      {
       "set": {
@@ -13704,7 +13718,17 @@
       "waitMs": 2500
      },
      {
-      "log": "Commenter region: the comment's account carried (one|none), showing [A-Z]{2}",
+      "wait": 3000
+     },
+     {
+      "probe": "seed-commenter-region",
+      "extras": {
+       "region": "AQ"
+      },
+      "expect": "ok seed-commenter-region AQ for [1-9][0-9]* commenters, rebound 1 list"
+     },
+     {
+      "log": "Commenter region: the comment's account carried none, showing (?-i:AQ)\\b",
       "within": 4000
      },
      {
@@ -13712,10 +13736,17 @@
      },
      {
       "shot": "commenters",
-      "review": "Comment rows show '@username' in place of display names and a country (or flag) after each comment's time. Failing looks like display names and times only."
+      "review": "Comment rows show '@username' in place of display names and a country (or flag) after each comment's time: AQ (Antarctica) on the rows whose account carried none. Failing looks like display names and times only."
      },
      {
       "back": true
+     },
+     {
+      "probe": "seed-commenter-region",
+      "extras": {
+       "region": "clear"
+      },
+      "expect": "ok seed-commenter-region cleared"
      },
      {
       "set": {
@@ -13738,7 +13769,7 @@
     "auto": true
    }
   ],
-  "notes": "The commenter's country comes from the Show author region cache for creators seen in the feed, which is why Show author region is switched on. A commenter whose country is unknown shows no flag. Debug line when a region is looked up: 'Commenter region: the comment's account ...' (printDebug, CommenterDetails.java:500)."
+  "notes": "The commenter's country comes from the Show author region cache for creators seen in the feed, which is why Show author region is switched on. A commenter whose country is unknown shows no flag. TikTok 47.5.3 sends no country with any comment account (a heap check on 2026-10-23 found no other source in the client), so sheet-text seeds that cache through the probe's seed-commenter-region action and clears it after. The action also has the open sheet's list bind its rows again, because closing and reopening a video's sheet shows TikTok's cached rows without binding them, so a reopen never reached the region code. Debug line when a region is looked up: 'Commenter region: the comment's account ...' (printDebug, CommenterDetails.java:500)."
  },
  {
   "name": "Show engagement rate",

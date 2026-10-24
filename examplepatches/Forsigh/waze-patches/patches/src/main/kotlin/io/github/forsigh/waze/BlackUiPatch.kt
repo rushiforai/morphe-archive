@@ -268,7 +268,7 @@ val blackUiPatch = resourcePatch(
 @Suppress("unused")
 val blackUiDexPatch = bytecodePatch(
     name = "AMOLED Dark Mode For UI",
-    description = "Dark-mode backgrounds go pure black.",
+    description = "Makes the dark UI pure black.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

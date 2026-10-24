@@ -1,0 +1,4 @@
+Haiagaru Image VPN optional library package v2
+
+The JNI payload is supplied from image-stack.aar. Verify compatibility by the
+per-ABI SHA-256 values in ImageVpnResourcesPatch before selecting this file.

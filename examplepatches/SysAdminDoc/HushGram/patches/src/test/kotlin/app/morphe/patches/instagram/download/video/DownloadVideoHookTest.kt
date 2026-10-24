@@ -23,6 +23,7 @@ import app.morphe.patches.instagram.download.VIDEO_VERSION
 import app.morphe.patches.instagram.download.reel.DOWNLOAD
 import app.morphe.patches.instagram.download.reel.ELIGIBLE_MARKER
 import app.morphe.patches.instagram.download.reel.OPTION
+import app.morphe.patches.instagram.download.reel.ROW_ICON
 import app.morphe.patches.instagram.feed.suggested.HideRowAsserts
 import app.morphe.patches.instagram.feed.suggested.ALLOW_HIDE
 import app.morphe.patches.instagram.feed.suggested.OFFER_HIDE
@@ -361,6 +362,12 @@ class DownloadVideoHookTest {
         assertTrue("the name isn't the one handed over", factory.any {
             it.opcode == Opcode.MOVE_OBJECT && (it as TwoRegisterInstruction).registerA == 1 && it.registerB == 4
         })
+        // The name and Download's icon go through rowIcon, so the feed's Details row draws the info glyph.
+        val icon = factory.indexOfFirst { it.referenceText() == ROW_ICON }
+        assertEquals("rowIcon takes the name and the icon", listOf(1, 3),
+            (factory[icon] as Instruction35c).let { listOf(it.registerC, it.registerD) })
+        assertEquals(Opcode.MOVE_RESULT, factory[icon + 1].opcode)
+        assertTrue("before the option is made", icon < factory.indexOfFirst { it.opcode == Opcode.INVOKE_DIRECT })
         val builder = context.method(lambda, "invoke").code()
         val cover = builder.indexOfFirst { it.referenceText() == OFFER_COVER }
         assertEquals("offered right after Download cover", cover + 1, builder.indexOfFirst { it.referenceText() == OFFER_PLAYER })

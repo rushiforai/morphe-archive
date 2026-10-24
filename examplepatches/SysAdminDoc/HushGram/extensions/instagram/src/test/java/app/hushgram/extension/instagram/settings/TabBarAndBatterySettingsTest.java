@@ -30,6 +30,7 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
+import app.hushgram.extension.instagram.misc.GlassBlur;
 import app.hushgram.extension.instagram.misc.GlassCorners;
 import app.hushgram.extension.instagram.misc.GlassHeight;
 import app.hushgram.extension.instagram.misc.GlassLift;
@@ -83,6 +84,7 @@ public class TabBarAndBatterySettingsTest {
         Settings.GLASS_TAB_BAR_HEIGHT.resetToDefault();
         Settings.GLASS_TAB_BAR_CORNERS.resetToDefault();
         Settings.GLASS_TAB_BAR_LIFT.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR_STRENGTH.resetToDefault();
         Settings.GLASS_TAB_BAR_REELS_HIDE.resetToDefault();
         Settings.GLASS_TAB_BAR_FLOAT.resetToDefault();
         Settings.SAVED_ON_PROFILE.resetToDefault();
@@ -107,7 +109,7 @@ public class TabBarAndBatterySettingsTest {
     @Test public void withoutThePatchesNoneOfTheirRowsShow() throws Exception {
         open();
         for (String key : List.of(Settings.GLASS_TAB_BAR.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_HEIGHT.key,
-                Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.SAVED_ON_PROFILE.key, Settings.STOP_HEARTBEAT.key,
+                Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.SAVED_ON_PROFILE.key, Settings.STOP_HEARTBEAT.key,
                 Settings.STOP_UPLOAD_ALARM.key)) {
             assertNull(key, row(key));
         }
@@ -217,6 +219,50 @@ public class TabBarAndBatterySettingsTest {
         Settings.GLASS_TAB_BAR.save(false);
         assertFalse("no glass, no corners to pick", Settings.GLASS_TAB_BAR_CORNERS.isAvailable());
         assertEquals(Collections.singletonList(Settings.GLASS_TAB_BAR), Settings.GLASS_TAB_BAR_CORNERS.getParentSettings());
+    }
+
+    /**
+     * Blur strength (#289) is a list right after Blur behind the tab bar, starting on the blur the pill has always
+     * had, backed up, waiting on a restart, and offered only where that blur applies.
+     */
+    @Test public void blurStrengthFollowsTheBlurSwitchStartsOnStandardAndIsBackedUp() throws Exception {
+        open(PatchFamily.GLASS_TAB_BAR);
+        Preference found = row(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key);
+        assertTrue(found instanceof HushgramPreferenceFragment.GlassBlurRow);
+        HushgramPreferenceFragment.GlassBlurRow strength = (HushgramPreferenceFragment.GlassBlurRow) found;
+        assertEquals("Blur strength", String.valueOf(strength.getTitle()));
+        PreferenceGroup section = sectionOf(page.getPreferenceScreen(), strength);
+        assertEquals("Tab bar", String.valueOf(section.getTitle()));
+        int blurAt = -1;
+        int strengthAt = -1;
+        for (int i = 0; i < section.getPreferenceCount(); i++) {
+            String key = section.getPreference(i).getKey();
+            if (Settings.GLASS_TAB_BAR_BLUR.key.equals(key)) blurAt = i;
+            if (Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key.equals(key)) strengthAt = i;
+        }
+        assertEquals("right after Blur behind the tab bar", blurAt + 1, strengthAt);
+        List<String> entries = new ArrayList<>();
+        for (CharSequence entry : strength.getEntries()) entries.add(String.valueOf(entry));
+        assertEquals(Arrays.asList("Light", "Standard", "Strong"), entries);
+        assertEquals("STANDARD", strength.getValue());
+        assertEquals("Standard", String.valueOf(strength.getSummary()));
+        assertTrue(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.rebootApp);
+        strength.setValue("STRONG");
+        ShadowLooper.idleMainLooper();
+        assertEquals(GlassBlur.STRONG, Settings.GLASS_TAB_BAR_BLUR_STRENGTH.savedValue());
+        assertEquals("Strong", String.valueOf(strength.getSummary()));
+        assertTrue(AbstractPreferenceFragment.restartPending.contains(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key));
+
+        Settings.GLASS_TAB_BAR.save(false);
+        Settings.GLASS_TAB_BAR_BLUR.save(true);
+        assertFalse("no glass bar, no blur to size", Settings.GLASS_TAB_BAR_BLUR_STRENGTH.isAvailable());
+        Settings.GLASS_TAB_BAR.save(true);
+        Settings.GLASS_TAB_BAR_BLUR.save(false);
+        assertFalse("blur is off", Settings.GLASS_TAB_BAR_BLUR_STRENGTH.isAvailable());
+        Settings.GLASS_TAB_BAR_BLUR.save(true);
+        assertTrue(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.isAvailable());
+        assertEquals(Collections.singletonList(Settings.GLASS_TAB_BAR_BLUR), Settings.GLASS_TAB_BAR_BLUR_STRENGTH.getParentSettings());
     }
 
     /**
@@ -385,11 +431,11 @@ public class TabBarAndBatterySettingsTest {
         int liquidAt = -1;
         for (int i = 0; i < section.getPreferenceCount(); i++) {
             String key = section.getPreference(i).getKey();
-            if (Settings.GLASS_TAB_BAR_BLUR.key.equals(key)) blurAt = i;
+            if (Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key.equals(key)) blurAt = i;
             if (Settings.GLASS_TAB_BAR_LIQUID.key.equals(key)) liquidAt = i;
         }
         assertTrue(blurAt >= 0);
-        assertEquals("right after Blur behind the tab bar", blurAt + 1, liquidAt);
+        assertEquals("right after Blur strength, which follows Blur behind the tab bar", blurAt + 1, liquidAt);
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_LIQUID.key));
 
         Settings.GLASS_TAB_BAR.save(false);

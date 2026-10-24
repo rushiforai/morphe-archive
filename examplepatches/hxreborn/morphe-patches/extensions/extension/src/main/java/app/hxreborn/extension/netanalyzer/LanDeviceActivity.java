@@ -12,7 +12,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings("unused")
 public final class LanDeviceActivity extends HostScreenActivity {
 

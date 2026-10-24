@@ -55,6 +55,62 @@ public class LiveRoomStreamTest {
                 LiveRoomStream.forRecording(null, null));
     }
 
+    private static final String ALL = "{\"data\":{"
+            + "\"origin\":{\"main\":{\"flv\":\"https://p.example.com/origin.flv\"}},"
+            + "\"uhd\":{\"main\":{\"flv\":\"https://p.example.com/uhd.flv\"}},"
+            + "\"hd\":{\"main\":{\"flv\":\"https://p.example.com/hd.flv\"}},"
+            + "\"sd\":{\"main\":{\"flv\":\"https://p.example.com/sd.flv\"}},"
+            + "\"ld\":{\"main\":{\"flv\":\"https://p.example.com/ld.flv\"}},"
+            + "\"ao\":{\"main\":{\"flv\":\"https://p.example.com/ao.flv\"}}}}";
+
+    private static String preset(String json, String choice) {
+        return LiveRoomStream.choose(json, null, null, null,
+                LiveRoomStream.forRecording(choice, "ld"), null, null).target.quality;
+    }
+
+    private static String room(String... keys) {
+        StringBuilder json = new StringBuilder("{\"data\":{");
+        for (int i = 0; i < keys.length; i++) {
+            if (i > 0) json.append(',');
+            json.append('"').append(keys[i]).append("\":{\"main\":{\"flv\":\"https://p.example.com/")
+                    .append(keys[i]).append(".flv\"}}");
+        }
+        return json.append("}}").toString();
+    }
+
+    /** #203: each of the room's own presets records that stream when the room has it. */
+    @Test public void eachPresetRecordsItsOwnStream() {
+        for (String key : new String[]{"origin", "uhd", "hd", "sd", "ld"}) {
+            assertEquals(key, preset(ALL, key));
+        }
+    }
+
+    @Test public void aMissingPresetFallsToTheNearestBelowThenAbove() {
+        assertEquals("below first", "sd", preset(room("origin", "sd", "ld"), "hd"));
+        assertEquals("the closest below, not the lowest", "hd", preset(room("origin", "hd", "ld"), "uhd"));
+        assertEquals("nothing below, so the nearest above", "hd", preset(room("origin", "hd"), "ld"));
+        assertEquals("only the top exists", "origin", preset(room("origin", "ao"), "sd"));
+        assertEquals("only the bottom exists", "ld", preset(room("ld"), "origin"));
+    }
+
+    @Test public void aPresetNeverRecordsAudioOnly() {
+        assertEquals("ld", preset(room("ao", "ld"), "hd"));
+        LiveRoomStream.Pick onlyAudio = LiveRoomStream.choose(room("ao"), null, null, null,
+                LiveRoomStream.forRecording("hd", null), null, null);
+        assertNull(onlyAudio.target);
+        assertNotNull(onlyAudio.problem);
+    }
+
+    @Test public void aPresetAlsoFallsBackOnHls() {
+        Map<String, String> hls = new LinkedHashMap<>();
+        hls.put("origin", "https://p.example.com/o.m3u8");
+        hls.put("ld", "https://p.example.com/l.m3u8");
+        LiveRoomStream.Pick pick = LiveRoomStream.choose(null, null, hls, null,
+                LiveRoomStream.forRecording("sd", null), null, null);
+        assertEquals(LiveRecorder.Transport.HLS, pick.target.transport);
+        assertEquals("ld", pick.target.quality);
+    }
+
     @Test public void lowestPrefersAKnownSmallStreamToAnUnknownKey() {
         Map<String, String> flv = new LinkedHashMap<>();
         flv.put("ld", "https://p.example.com/ld.flv");

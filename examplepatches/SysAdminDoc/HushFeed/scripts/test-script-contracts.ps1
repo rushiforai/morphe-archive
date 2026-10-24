@@ -1205,6 +1205,20 @@ try {
         Assert-True ([bool]$result.Reason) "Receipt validation refused $description without saying why."
     }
 
+    # The device audit block goes through the same validator every gate runs: one covering the
+    # declared version passes, and one of another TikTok build is refused for that reason.
+    function New-AuditFact([string]$Version) {
+        return [pscustomobject]@{ results = "audit/results/tiktok-$Version.json"; sha256 = ('d' * 64)
+            appVersion = $Version; sourceCommit = ('c' * 40); checks = 3 }
+    }
+    $audited = Test-TestReceipt -Receipt (New-TestReceipt -Mutate {
+        param($r) $r | Add-Member -NotePropertyName audit -NotePropertyValue @(New-AuditFact '46.7.3') })
+    Assert-True $audited.Valid "A receipt whose audit covers the declared version was refused: $($audited.Reason)"
+    $misaudited = Test-TestReceipt -Receipt (New-TestReceipt -Mutate {
+        param($r) $r | Add-Member -NotePropertyName audit -NotePropertyValue @(New-AuditFact '46.6.3') })
+    Assert-True ($misaudited.Reason -like '*audit is of TikTok 46.6.3*') `
+        "A receipt audited on another TikTok build was refused for the wrong reason: $($misaudited.Reason)"
+
     # A receipt built only from forced runs against newer builds has to be refused for that
     # reason and name the target it is missing, not trip over some other field on the way.
     $onlyForced = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $mutations['only forced runs past the target'])
@@ -3833,6 +3847,7 @@ Write-Host '[scripts] adb device lease contracts passed'
 & (Join-Path $Root 'scripts/test-fixture-jobs.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-release-publication.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-walk-receipt.ps1')
+& (Join-Path $Root 'scripts/test-audit-results.ps1')
 & (Join-Path $Root 'scripts/test-walk-app.ps1')
 & (Join-Path $Root 'scripts/test-device-lease.ps1')
 & (Join-Path $Root 'audit/test-evidence.ps1')

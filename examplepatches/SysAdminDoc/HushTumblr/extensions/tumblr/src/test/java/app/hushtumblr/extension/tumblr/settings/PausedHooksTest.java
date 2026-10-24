@@ -204,6 +204,8 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_SUGGESTED_BLOGS, Collections.singletonList(TimelineItems::aPageLosesItsBlogCard));
         // A page with a suggested community card comes back without it.
         probes.put(Settings.HIDE_SUGGESTED_COMMUNITIES, Collections.singletonList(TimelineItems::aPageLosesItsCommunityCard));
+        // A page with a carousel of suggested tags comes back without it.
+        probes.put(Settings.HIDE_SUGGESTED_TAGS, Collections.singletonList(TimelineItems::aPageLosesItsTagCarousel));
         // A page with a Watch it row comes back without it.
         probes.put(Settings.HIDE_WATCH_IT_ROWS, Collections.singletonList(TimelineItems::aPageLosesItsWatchItRow));
         // A post's tags are left out.
@@ -246,6 +248,8 @@ public class PausedHooksTest {
         TextSettings.HIDDEN_WORDS.save(TimelineItems.PROBE_WORD);
         probes.put(Settings.HIDE_POSTS_WITH_WORDS, Collections.singletonList(() -> withSwitch(
                 Settings.WORDS_CURRENT_TEXT, TimelineItems::aPageLosesItsPostWithAHiddenWord)));
+        // A page with a post Tumblr covers for a filtered tag comes back without it.
+        probes.put(Settings.HIDE_FILTERED_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsFilteredPost));
         // A theme on the Dark palette gets the patch's background style, and the design system's
         // page gray comes back as the style's color.
         probes.put(Settings.DARK_BACKGROUND, Arrays.asList(

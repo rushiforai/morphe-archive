@@ -14,8 +14,9 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
-import android.util.TypedValue;
 import android.widget.TextView;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 public final class ProgressTrace {
 
@@ -288,8 +289,7 @@ public final class ProgressTrace {
     }
 
     private static float stageScale(TextView view) {
-        float target = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, STAGE_SP,
-                view.getResources().getDisplayMetrics());
+        float target = Dimensions.spExact(view.getContext(), STAGE_SP);
         float actual = view.getTextSize();
         return (actual <= target) ? 1f : target / actual;
     }

@@ -477,30 +477,61 @@ public final class CommenterDetails {
     }
 
     /**
-     * The country the commenter's account is set to. A comment carries no country of its own,
-     * so the account's is the only one there is.
+     * The country the commenter's account is set to. A comment carries no country of its own, so
+     * the account's is the only one there is, and 47.5.3 often leaves it off (#201). Then the
+     * country remembered for the same account answers: first by uid, then by exact handle. What
+     * the account does carry is remembered under both, so the same person's next comment, or
+     * their reply further down, still shows it.
      */
-    private static String regionOf(Object comment) {
+    static String regionOf(Object comment) {
         Object user = comment == null ? null : Reflect.property(comment, "getUser", "user");
         if (user == null) {
             return null;
         }
+        String source = "account region";
         String region = AuthorRegion.regionCode(Reflect.string(user, "getRegion", "region"));
         if (region == null) {
             region = AuthorRegion.regionCode(Reflect.string(user, "getAccountRegion", "accountRegion"));
+            source = "account accountRegion";
         }
-        boolean carried = region != null;
-        // Some comment payloads leave the country off the account. The feed already read it
-        // for this creator's video, so look it up by this commenter's own handle. Only the
-        // exact handle matches, so a recycled cell never gets another commenter's country.
         if (region == null) {
-            region = AuthorRegion.seenRegion(handleOf(user));
+            region = twoLetters(Reflect.string(user, "getIsoCountryCode", "isoCountryCode"));
+            source = "account isoCountryCode";
+        }
+        String uid = Reflect.string(user, "getUid", "uid");
+        String handle = handleOf(user);
+        if (region != null) {
+            AuthorRegion.learnFromComment(uid, handle, region);
+        } else {
+            // Some comment payloads leave the country off the account. Only the exact uid or
+            // handle matches, so a recycled cell never gets another commenter's country.
+            region = AuthorRegion.seenRegionByUid(uid);
+            source = "remembered by uid";
+            if (region == null) {
+                region = AuthorRegion.seenRegion(handle);
+                source = "remembered by handle";
+            }
         }
         String shown = region;
-        Logger.printDebug(() -> "Commenter region: the comment's account "
-                + (carried ? "carried one" : "carried none") + ", showing "
-                + (shown == null ? "nothing" : shown + (carried ? "" : " from the feed")));
+        String answered = source;
+        Logger.printDebug(() -> "Commenter region: "
+                + (shown == null ? "no source had one, showing nothing" : answered + " answered, showing " + shown));
         return region;
+    }
+
+    /** A two letter country code in upper case, or null for anything else. */
+    private static String twoLetters(String raw) {
+        String code = AuthorRegion.regionCode(raw);
+        if (code == null || code.length() != 2) {
+            return null;
+        }
+        for (int i = 0; i < 2; i++) {
+            char c = code.charAt(i);
+            if (c < 'A' || c > 'Z') {
+                return null;
+            }
+        }
+        return code;
     }
 
     private static void remember(String uid, String handle) {

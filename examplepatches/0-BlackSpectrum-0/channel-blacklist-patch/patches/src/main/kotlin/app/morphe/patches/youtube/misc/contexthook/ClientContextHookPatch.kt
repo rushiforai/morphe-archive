@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-patches
+ * https://github.com/MorpheApp/morphe-patches/pull/260
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -15,14 +15,14 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
+import app.morphe.patches.youtube.misc.playservice.is_21_20_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_21_or_greater
-import app.morphe.patches.youtube.misc.playservice.is_21_33_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.shared.CLIENT_INFO_CLASS
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneParameters
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.indexOfFirstInstruction
+import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -96,9 +96,9 @@ val clientContextHookPatch = bytecodePatch(
         }
 
         val messageLiteBuilderMethod : MethodReference
-        (if (is_21_33_or_greater) AuthenticationChangeListenerFingerprint
+        (if (is_21_20_or_greater) AuthenticationChangeListenerFingerprint
         else AuthenticationChangeListenerLegacyFingerprint).method.apply {
-            val messageLiteBuilderIndex = indexOfFirstInstruction(
+            val messageLiteBuilderIndex = indexOfFirstInstructionOrThrow(
                 filter = methodCall(
                     opcode = Opcode.INVOKE_VIRTUAL,
                     parameters = emptyList(),

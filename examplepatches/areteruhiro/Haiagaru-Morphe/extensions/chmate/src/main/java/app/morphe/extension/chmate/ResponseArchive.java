@@ -109,7 +109,7 @@ public final class ResponseArchive {
         if (!(object instanceof Menu)) return;
         Menu menu = (Menu) object;
         if (ResponseMenuSettings.visible(VIEW_ARCHIVE) && menu.findItem(VIEW_ARCHIVE) == null)
-            menu.add(Menu.NONE, VIEW_ARCHIVE, ResponseMenuSettings.order(VIEW_ARCHIVE, menu.size()), "過去レスを見る")
+            menu.add(Menu.NONE, VIEW_ARCHIVE, ResponseMenuSettings.order(VIEW_ARCHIVE, menu.size()), "保存済みレスを見る")
                     .setIcon(archiveIcon(false))
                     .setOnMenuItemClickListener(ResponseArchive::handle);
     }
@@ -124,6 +124,7 @@ public final class ResponseArchive {
         appendViewMenu(menuObject);
         if (!(menuObject instanceof Menu) || response == null || board == null) return;
         Menu menu = (Menu) menuObject;
+        ResponseMenuSettings.addTools(menu,tools->{try{append(owner,tools,response,board);WacchoiLongPressMenu.appendToolsForResponse(owner,tools,response,board);}catch(Exception error){report(error);}});
         if (!ResponseMenuSettings.visible(ITEM) || menu.findItem(ITEM) != null) return;
         ResponseArchiveEntry entry = snapshot(response, board);
         menu.add(Menu.NONE, ITEM, ResponseMenuSettings.order(ITEM, menu.size()), "このレスをアーカイブに保存")
@@ -133,6 +134,9 @@ public final class ResponseArchive {
     }
 
     public static boolean handle(Object object) {
+        if(ResponseMenuSettings.handleTools(object))return true;
+        if(WacchoiLongPressMenu.handlePrefixNg(object))return true;
+        if(WacchoiLongPressMenu.handleSuffixNg(object))return true;
         if (PosterHighlight.handle(object)) return true;
         if (!(object instanceof MenuItem)) return false;
         int id = ((MenuItem) object).getItemId();
@@ -153,7 +157,7 @@ public final class ResponseArchive {
     /** 242's response-body sheet passes its exact target as the third argument. */
     public static void appendSheet(Object model, Object builder, Object response) {
         try {
-            appendSheetAction(builder, "過去レスを見る", archiveIcon(false),
+            appendSheetAction(builder, "保存済みレスを見る", archiveIcon(false),
                     () -> showList(Haiagaru.toolbarActivity(null)));
         } catch (Exception e) { report(e); }
         try {
@@ -170,7 +174,7 @@ public final class ResponseArchive {
     }
 
     static void appendSheetAction(Object builder, String title, int icon, Runnable action) throws Exception {
-            int actionId=title.equals("過去レスを見る")?VIEW_ARCHIVE:title.equals("このレスをアーカイブに保存")||title.equals("レスを保存")?ITEM:title.equals("投稿者を強調")?0x7e484b01:0;
+            int actionId=title.equals("保存済みレスを見る")?VIEW_ARCHIVE:title.equals("このレスをアーカイブに保存")||title.equals("レスを保存")?ITEM:title.equals("投稿者を強調")?0x7e484b01:0;
             if(actionId!=0&&!ResponseMenuSettings.visible(actionId))return;
             for (Method method : builder.getClass().getDeclaredMethods()) {
                 Class<?>[] p = method.getParameterTypes();

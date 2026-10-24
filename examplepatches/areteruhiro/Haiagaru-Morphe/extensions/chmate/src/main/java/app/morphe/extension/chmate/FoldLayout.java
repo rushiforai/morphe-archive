@@ -17,7 +17,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
 
-/** Window-width driven native layout selection. Never interrupts editing or media playback. */
+/** OEM folding-feature driven native layout selection. Never interrupts editing or media playback. */
 final class FoldLayout {
     static final String KEY = "automaticFoldMode";
     private static final String MODE = "enableTabletHome2";
@@ -50,10 +50,6 @@ final class FoldLayout {
     static synchronized void install(Application app) {
         if (installed) return;
         installed = true;
-        if (enabled()) {
-            int width = app.getResources().getConfiguration().screenWidthDp;
-            if (width > 0) nativePrefs(app).edit().putBoolean(MODE, width >= 600).apply();
-        }
         app.registerComponentCallbacks(new ComponentCallbacks() {
             @Override public void onConfigurationChanged(Configuration config) { schedule(); }
             @Override public void onLowMemory() { }
@@ -67,6 +63,7 @@ final class FoldLayout {
             }
             @Override public void onActivityResumed(Activity a) {
                 resumed = new WeakReference<>(a);
+                if (enabled() && browser(a)) FoldWindowTracker.start(a, FoldLayout::schedule);
                 if (switching && a.getTaskId() == switchingTask
                         && (HOME.equals(a.getClass().getName()) || TABLET.equals(a.getClass().getName()))) {
                     switching = false;
@@ -85,25 +82,31 @@ final class FoldLayout {
                 ReadingPosition.saveActivity(a);
             }
             @Override public void onActivityDestroyed(Activity a) {
+                FoldWindowTracker.stop(a);
                 ViewTreeObserver.OnGlobalLayoutListener listener = ACTIVITIES.remove(a);
                 if (listener != null && a.getWindow().getDecorView().getViewTreeObserver().isAlive())
                     a.getWindow().getDecorView().getViewTreeObserver().removeOnGlobalLayoutListener(listener);
                 if (resumed.get() == a) resumed.clear();
             }
-            @Override public void onActivityStarted(Activity a) { }
-            @Override public void onActivityStopped(Activity a) { }
+            @Override public void onActivityStarted(Activity a) {
+                if (enabled() && browser(a)) FoldWindowTracker.start(a, FoldLayout::schedule);
+            }
+            @Override public void onActivityStopped(Activity a) { FoldWindowTracker.stop(a); }
             @Override public void onActivitySaveInstanceState(Activity a, Bundle state) { }
         });
     }
 
-    static void settingsChanged() { schedule(); }
+    static void settingsChanged() {
+        if (!enabled()) FoldWindowTracker.stopAll();
+        else { Activity a = resumed.get(); if (a != null && browser(a)) FoldWindowTracker.start(a, FoldLayout::schedule); }
+        schedule();
+    }
 
     private static void evaluate(Activity a) {
         if (!enabled() || switching || a == null || !browser(a) || a.isFinishing() || a.isDestroyed()) return;
-        // Activity configuration follows the active cover/inner display and split-window width.
-        int width = a.getResources().getConfiguration().screenWidthDp;
-        if (width <= 0) return;
-        boolean desired = width >= 600;
+        Boolean posture = FoldWindowTracker.tablet(a);
+        if (posture == null) return;
+        boolean desired = posture;
         boolean previous = nativePrefs(a).getBoolean(MODE, false);
         boolean tabletScreen = TABLET.equals(a.getClass().getName());
         boolean homeScreen = HOME.equals(a.getClass().getName());

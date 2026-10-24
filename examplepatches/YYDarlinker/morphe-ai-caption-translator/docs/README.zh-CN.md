@@ -4,7 +4,13 @@
 
 [English](../README.md) · [添加到 Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator) · [下载补丁](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) · [反馈问题](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues)
 
-当前版本：[v1.5.6](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.6)。
+当前版本：[v1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.7)。
+
+## 1.5.7 更新
+
+- 同一视频退出再进入后，AI 字幕会自动恢复，不需要手动关开。
+- 逐词高亮／滚动式字幕视频不再重复台词，也不会把不同说话人的词混在一起；字幕按完整行重建。
+- 打开评论区时，字幕大小跟随面板动画同步变化，不再延迟或回弹。
 
 ## 功能
 

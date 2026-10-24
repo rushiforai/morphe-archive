@@ -104,7 +104,7 @@ internal val ExtractCopyV2Fingerprint = Fingerprint(
 @Suppress("unused")
 val themePatch = bytecodePatch(
     name = "Theme",
-    description = "Pick any theme for the map - day and night.",
+    description = "Picks the map theme for day and night.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)

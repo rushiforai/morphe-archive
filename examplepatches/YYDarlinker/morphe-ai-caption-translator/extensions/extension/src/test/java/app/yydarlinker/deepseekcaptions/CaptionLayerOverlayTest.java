@@ -50,6 +50,7 @@ public class CaptionLayerOverlayTest {
         static Rect video = new Rect(0, 0, 2247, 1264);
         static int globalWidth = 2247;
         static int globalHeight = 1264;
+        static View surface;
 
         @Implementation
         public static FrameLayout captionHost() {
@@ -57,13 +58,15 @@ public class CaptionLayerOverlayTest {
         }
 
         @Implementation
-        public static int visibleVideoWidth() {
-            return globalWidth;
-        }
-
-        @Implementation
-        public static int visibleVideoHeight() {
-            return globalHeight;
+        public static View currentSurfaceView() {
+            if (surface != null) {
+                // The sheet animation is a uniform scale on the player container; the local
+                // surface keeps its measured size while its global short side shrinks.
+                float scale = globalWidth / 2247f;
+                surface.setScaleX(scale);
+                surface.setScaleY(scale);
+            }
+            return surface;
         }
 
         @Implementation
@@ -89,6 +92,8 @@ public class CaptionLayerOverlayTest {
 
     private Activity a;
     private FrameLayout content, watchPage, player, plane, sheet;
+    /** Makes page planning slow enough that the endpoint hold is observable, not a race. */
+    private volatile boolean slowPages;
 
     @Before
     public void setUp() {
@@ -114,6 +119,8 @@ public class CaptionLayerOverlayTest {
         Layer.video = new Rect(0, 0, 2247, 1264);
         Layer.globalWidth = 2247;
         Layer.globalHeight = 1264;
+        Layer.surface = new View(a);
+        Layer.surface.layout(0, 0, 2247, 1264);
         CaptionActions.install(
                 new app.yydarlinker.caption.contracts.CaptionContracts.CaptionPort() {
                     public void command(app.yydarlinker.caption.contracts.CaptionContracts.Action action, String value) {}
@@ -132,21 +139,31 @@ public class CaptionLayerOverlayTest {
                             long end,
                             CaptionPresentationBudget geometry,
                             CaptionRenderSpec spec) {
+                        if (slowPages) {
+                            try {
+                                Thread.sleep(180);
+                            } catch (InterruptedException interrupted) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
                         return TranslationPresentation.pages(body, start, end, geometry, spec);
                     }
                 });
         CaptionOverlay.resetPresentationDedupForTests();
+        CaptionOverlay.resetGlyphForTests();
         CaptionOverlay.clear();
         CaptionOverlay.setActivity(a);
     }
 
     @After
     public void tearDown() {
+        CaptionOverlay.resetGlyphForTests();
         CaptionOverlay.clear();
         CaptionOverlay.setActivity(null);
         CaptionPlayerAuthority.resetForTests();
         CaptionSurface.invalidateGeometry();
         Layer.host = null;
+        Layer.surface = null;
         a.finish();
     }
 
@@ -272,6 +289,10 @@ public class CaptionLayerOverlayTest {
         Layer.globalHeight = 1050;
         layout();
         pump();
+        // The size step is a 180 ms frame-clock transition; sample it in the middle.
+        CaptionOverlay.advanceDisplayedGlyph(0);
+        CaptionOverlay.advanceDisplayedGlyph(120_000_000L);
+        CaptionOverlay.applyCommentScale(a, text());
         assertEquals(
                 "the binary class waits for the sheet endpoint",
                 CaptionPresentationClass.Kind.FULL,
@@ -288,11 +309,133 @@ public class CaptionLayerOverlayTest {
         layout();
         pump();
         awaitPlan(innerWidth(1478));
+        settleGlyph();
         assertEquals(
                 CaptionPresentationClass.Kind.REDUCED,
                 field("presentationClass", false));
         assertEquals("the endpoint commits the real detail font", 44.5f, measuredGlyphHeight(text()), 0.6f);
-        assertEquals("the temporary scale is reset at the endpoint", 1f, text().getScaleY(), .01f);
+        assertEquals(
+                "the painted page follows the continuous size law",
+                lawGlyphForGlobalWidth(1478),
+                paintedGlyphHeight(),
+                0.9f);
+    }
+
+    /**
+     * The endpoint is a content change, not a size change: while the new page is being planned the
+     * previous layout is still on screen, and the 180 ms size step must reach the detail endpoint
+     * before the new page lands. A scale reset at the commit would paint it at the full size for
+     * that whole latency.
+     */
+    @Test
+    public void theEndpointStepReachesTheDetailSizeWhileTheOldPageIsStillHeld()
+            throws Exception {
+        slowPages = true;
+        show("剧透一下：下一期我会分享一份指南。", "scale:hold");
+        awaitCaption();
+        assertEquals(55.5f, paintedGlyphHeight(), 0.8f);
+
+        Layer.globalWidth = 1850;
+        Layer.globalHeight = 1050;
+        layout();
+        pump();
+        CaptionOverlay.advanceDisplayedGlyph(0);
+        CaptionOverlay.advanceDisplayedGlyph(120_000_000L);
+        CaptionOverlay.applyCommentScale(a, text());
+        assertTrue("the sheet must already be shrinking the text", text().getScaleY() < .96f);
+
+        Layer.globalWidth = 1478;
+        Layer.globalHeight = 831;
+        Layer.video = new Rect(0, 0, 1478, 831);
+        plane.setLayoutParams(new FrameLayout.LayoutParams(1478, 831));
+        player.setLayoutParams(new FrameLayout.LayoutParams(1478, 831));
+        layout();
+        float beforeEndpoint = paintedGlyphHeight();
+        pump();
+        assertEquals(
+                "the viewport endpoint commits the reduced class",
+                CaptionPresentationClass.Kind.REDUCED,
+                field("presentationClass", false));
+        assertTrue(
+                "the new page cannot be there yet: the planner is slow on purpose",
+                pages().isEmpty());
+        // A step starts on the frame clock; the first frame still paints the old value.
+        CaptionOverlay.advanceDisplayedGlyph(0);
+        assertEquals(
+                "the first frame of a step must not jump",
+                beforeEndpoint,
+                paintedGlyphHeight(),
+                1.2f);
+        CaptionOverlay.advanceDisplayedGlyph(180_000_000L);
+        CaptionOverlay.applyCommentScale(a, text());
+        assertEquals(
+                "the old layout must reach the size law's endpoint while it is still held",
+                lawGlyphForGlobalWidth(1478),
+                paintedGlyphHeight(),
+                0.9f);
+
+        awaitPlan(innerWidth(1478));
+        settleGlyph();
+        assertEquals(44.5f, measuredGlyphHeight(text()), 0.6f);
+        assertEquals(
+                "the law's correction is still valid after the real detail layout is applied",
+                lawGlyphForGlobalWidth(1478) / measuredGlyphHeight(text()),
+                text().getScaleY(),
+                .02f);
+        slowPages = false;
+    }
+
+    /** A pre-draw class commit must be rendered by the next frame callback, not by pre-draw. */
+    @Test
+    public void aClassCommitFromPreDrawRendersInTheNextAnimationPhase() throws Exception {
+        show("剧透一下：下一期我会分享一份指南。", "frame:callback");
+        awaitCaption();
+        Object before = field("desiredLayout", false);
+        Layer.video = new Rect(0, 0, 1478, 831);
+        Layer.globalWidth = 1478;
+        Layer.globalHeight = 831;
+        plane.setLayoutParams(new FrameLayout.LayoutParams(1478, 831));
+        player.setLayoutParams(new FrameLayout.LayoutParams(1478, 831));
+        layout();
+        java.lang.reflect.Field watchField = CaptionOverlay.class.getDeclaredField("WATCH");
+        watchField.setAccessible(true);
+        android.view.ViewTreeObserver.OnPreDrawListener watch =
+                (android.view.ViewTreeObserver.OnPreDrawListener) watchField.get(null);
+        watch.onPreDraw();
+        assertEquals(
+                "the model/geometry commit is decided in pre-draw",
+                CaptionPresentationClass.Kind.REDUCED,
+                field("presentationClass", false));
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(20));
+        assertNotEquals(
+                "the content commit must have run in the frame callback",
+                before,
+                field("desiredLayout", false));
+    }
+
+    /** The speculative plan must be the plan the commit asks for, and must not be planned twice. */
+    @Test
+    public void aPrefetchedPlanIsReadyForTheRequestThatNeedsIt() throws Exception {
+        CaptionPageExecutor executor = (CaptionPageExecutor) field("LAYOUTS", false);
+        String key = "prefetch:test:" + System.nanoTime();
+        java.util.concurrent.atomic.AtomicInteger plans = new java.util.concurrent.atomic.AtomicInteger();
+        executor.prefetch(key, () -> {
+            plans.incrementAndGet();
+            return TranslationPresentation.pages(
+                    "预制的分页计划。", 0, 4000, slowBudget(), renderSpec());
+        });
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline && executor.get(key) == null) Thread.sleep(2);
+        assertNotNull("the speculative plan must land in the cache", executor.get(key));
+        assertFalse("a prefetch must cache a real plan", executor.get(key).isEmpty());
+        assertEquals("the planner runs once", 1, plans.get());
+
+        executor.prefetch(key, () -> {
+            plans.incrementAndGet();
+            return Collections.emptyList();
+        });
+        Thread.sleep(30);
+        assertEquals("a cached plan is not planned again", 1, plans.get());
     }
 
     @Test
@@ -315,6 +458,8 @@ public class CaptionLayerOverlayTest {
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200));
         layout();
         awaitPlan(innerWidth(1478));
+        // awaitPlan returns on the commit frame; the new box needs its own layout pass.
+        layout();
 
         assertTrue(
                 "a reduced landscape viewport must use the detail reading size",
@@ -415,7 +560,232 @@ public class CaptionLayerOverlayTest {
         assertEquals(text, joined.toString());
     }
 
+    @Test
+    public void aStableNarrowerVideoReplansTheBoxInsideTheVideo() throws Exception {
+        show("剧透一下：下一期我会分享一份指南。", "stable:replan");
+        awaitCaption();
+        awaitPlan(innerWidth(2247));
+        layout();
+        assertEquals(2067, (int) (Integer) field("classFrameWidth", false));
+
+        Layer.video = new Rect(0, 0, 1901, 1264);
+        plane.setLayoutParams(new FrameLayout.LayoutParams(1901, 1264));
+        player.setLayoutParams(new FrameLayout.LayoutParams(1901, 1264));
+        layout();
+        pump(); // records the new rectangle
+        pump(); // the same rectangle again: the transition is over
+        int padding = text().getPaddingLeft() + text().getPaddingRight();
+        int expectedInner = ((Math.round(1901 * .92f) - padding) / 8) * 8;
+        awaitPlan(expectedInner);
+        layout();
+
+        int box = (int) (Integer) field("boxWidth", false);
+        assertTrue("the committed box must fit the narrower video: " + box, box <= 1901);
+        assertTrue("the stable class width must have been replaced: " + box, box < 2067);
+        assertEquals(
+                "the plan uses 92% of the video, quantized to 8 px",
+                expectedInner,
+                CaptionOverlay.budget().width);
+        float center = anchor().getTranslationX() + box / 2f;
+        assertEquals("the box stays on the video center line", 1901 / 2f, center, 1f);
+    }
+
+    /**
+     * The old "static" test compared one frame with the previous one, so a rectangle flickering
+     * between two values settled once per pair of frames and re-planned the box back and forth.
+     * Three consecutive identical widths are required now: a two-frame flicker never settles.
+     */
+    @Test
+    public void anAlternatingVideoRectangleNeverReplansTheBox() throws Exception {
+        show("剧透一下：下一期我会分享一份指南。", "stable:flicker");
+        awaitCaption();
+        awaitPlan(innerWidth(2247));
+        layout();
+        assertEquals(2067, (int) (Integer) field("classFrameWidth", false));
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_FULLSCREEN");
+        CaptionDiagnostics.clear(a);
+
+        int[] widths = {1478, 1478, 2247, 2247, 1478, 1478, 2247, 2247};
+        for (int width : widths) {
+            int height = width == 1478 ? 831 : 1264;
+            Layer.video = new Rect(0, 0, width, height);
+            plane.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+            player.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+            layout();
+            pump();
+        }
+
+        assertEquals("a two-frame flicker is not a settled geometry", 0, stableReplans());
+        assertEquals(2067, (int) (Integer) field("classFrameWidth", false));
+    }
+
+    /** A width that stays for three samples re-plans exactly once, on the third sample. */
+    @Test
+    public void aStableNarrowerVideoReplansOnlyOnTheThirdSample() throws Exception {
+        show("剧透一下：下一期我会分享一份指南。", "stable:three");
+        awaitCaption();
+        awaitPlan(innerWidth(2247));
+        layout();
+        assertEquals(2067, (int) (Integer) field("classFrameWidth", false));
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_FULLSCREEN");
+        CaptionDiagnostics.clear(a);
+
+        Layer.video = new Rect(0, 0, 1901, 1264);
+        plane.setLayoutParams(new FrameLayout.LayoutParams(1901, 1264));
+        player.setLayoutParams(new FrameLayout.LayoutParams(1901, 1264));
+        layout();
+
+        pump();
+        assertEquals("one sample is not stable", 0, stableReplans());
+        pump();
+        assertEquals("two equal samples are still not stable", 0, stableReplans());
+        pump();
+        assertEquals("the third equal sample re-plans exactly once", 1, stableReplans());
+
+        int padding = text().getPaddingLeft() + text().getPaddingRight();
+        int expectedInner = ((Math.round(1901 * .92f) - padding) / 8) * 8;
+        awaitPlan(expectedInner);
+        assertEquals("still one re-plan after the new plan lands", 1, stableReplans());
+    }
+
+    /** The number of stable-geometry re-plans recorded for this test's diagnostics. */
+    private int stableReplans() {
+        String history = CaptionDiagnostics.history(a);
+        int count = 0, at = 0;
+        while ((at = history.indexOf("CAPTION_STABLE_REPLAN", at)) >= 0) {
+            count++;
+            at += "CAPTION_STABLE_REPLAN".length();
+        }
+        return count;
+    }
+
+    @Test
+    public void anUnplannedWideBoxIsFittedInsideTheVideoUntilTheReplanLands() throws Exception {
+        show(
+                "中国的整体军事现代化，比仅让四辆坦克驶过红场更令人印象深刻。"
+                        + "没有标点也能显示完整意思，而且这句话足够长，需要分成好几页显示。"
+                        + "每一页都应该是一个完整的分句，不会被从中间切开。",
+                "fit:hold");
+        awaitCaption();
+        awaitPlan(innerWidth(2247));
+        layout();
+        float unplanned = text().getScaleX();
+        int content = (int) (Integer) field("stableTextWidth", false);
+        assertTrue("the long line must fill the class width: " + content, content > 1901);
+
+        Layer.video = new Rect(0, 0, 1850, 1264);
+        plane.setLayoutParams(new FrameLayout.LayoutParams(1850, 1264));
+        player.setLayoutParams(new FrameLayout.LayoutParams(1850, 1264));
+        layout();
+        pump();
+
+        assertEquals(
+                "the box is still the class width while the plan is being prepared",
+                2067,
+                (int) (Integer) field("boxWidth", false));
+        float fitted = text().getScaleX();
+        assertEquals(
+                "the draw-time fit is video width / content width",
+                unplanned * 1850f / content,
+                fitted,
+                .01f);
+        assertTrue("the fitted text is smaller, not clipped", fitted < unplanned);
+    }
+
+    @Test
+    public void aRestoredWideVideoReturnsTheBoxToTheClassWidth() throws Exception {
+        show("剧透一下：下一期我会分享一份指南。", "stable:restore");
+        awaitCaption();
+        awaitPlan(innerWidth(2247));
+        layout();
+
+        Layer.video = new Rect(0, 0, 1901, 1264);
+        plane.setLayoutParams(new FrameLayout.LayoutParams(1901, 1264));
+        player.setLayoutParams(new FrameLayout.LayoutParams(1901, 1264));
+        layout();
+        pump();
+        pump();
+        int padding = text().getPaddingLeft() + text().getPaddingRight();
+        awaitPlan(((Math.round(1901 * .92f) - padding) / 8) * 8);
+        layout();
+        assertTrue((int) (Integer) field("boxWidth", false) < 2067);
+
+        Layer.video = new Rect(0, 0, 2460, 1264);
+        plane.setLayoutParams(new FrameLayout.LayoutParams(2460, 1264));
+        player.setLayoutParams(new FrameLayout.LayoutParams(2460, 1264));
+        layout();
+        pump();
+        pump();
+        awaitPlan(innerWidth(2247));
+        layout();
+
+        assertEquals(
+                "a wide video returns the established class width",
+                2067,
+                (int) (Integer) field("boxWidth", false));
+        float center = anchor().getTranslationX() + anchor().getWidth() / 2f;
+        assertEquals("the restored box is centered on the video", 2460 / 2f, center, 1f);
+    }
+
+    /** A 55.5 -> 44.5 step moves on frame times only: no first-frame jump, 180 ms monotone. */
+    @Test
+    public void aGlyphStepIsInterpolatedOnTheFrameClock() {
+        CaptionOverlay.resetGlyphForTests();
+        CaptionOverlay.noteGlyphTargetForTests(55.5f);
+        assertEquals(55.5f, CaptionOverlay.displayedGlyphPx(), .001f);
+
+        CaptionOverlay.noteGlyphTargetForTests(44.5f);
+        long start = 1_000_000_000L;
+        assertTrue(CaptionOverlay.advanceDisplayedGlyph(start));
+        assertEquals(
+                "the first frame of a step must not jump",
+                55.5f,
+                CaptionOverlay.displayedGlyphPx(),
+                .001f);
+
+        float previous = 55.5f;
+        for (long t = start + 16_000_000L; t < start + 180_000_000L; t += 16_000_000L) {
+            CaptionOverlay.advanceDisplayedGlyph(t);
+            float now = CaptionOverlay.displayedGlyphPx();
+            assertTrue("the painted size is monotone: " + previous + " -> " + now, now <= previous);
+            assertTrue("the target is not overshot: " + now, now >= 44.5f);
+            previous = now;
+        }
+        CaptionOverlay.advanceDisplayedGlyph(start + 180_000_000L);
+        assertEquals(44.5f, CaptionOverlay.displayedGlyphPx(), .001f);
+        assertFalse(
+                "a completed step does not oscillate",
+                CaptionOverlay.advanceDisplayedGlyph(start + 400_000_000L));
+        assertEquals(44.5f, CaptionOverlay.displayedGlyphPx(), .001f);
+    }
+
+    /** Ends a pending 180 ms size step and applies its final scale to the view. */
+    private void settleGlyph() throws Exception {
+        CaptionOverlay.settleDisplayedGlyphForTests();
+        CaptionOverlay.applyCommentScale(a, text());
+    }
+
     private static float measuredGlyphHeight(TextView view) {
         return SubtitleStyleMetrics.measuredGlyphHeightPx(view.getPaint());
+    }
+
+    /** The size the user actually sees: the laid-out glyph height times the temporary scale. */
+    private float paintedGlyphHeight() throws Exception {
+        TextView view = text();
+        return measuredGlyphHeight(view) * view.getScaleY();
+    }
+
+    /** The continuous law at the surface scale this test's shadow derives from globalWidth. */
+    private static float lawGlyphForGlobalWidth(int globalWidth) {
+        return CaptionOverlay.glyphHeightPxForVideo(
+                2, 2736, 1264, 1264f * globalWidth / 2247f);
+    }
+
+    private static CaptionRenderSpec renderSpec() {
+        return CaptionLanguageContext.explicit("en", "zh-Hans").renderSpec;
+    }
+
+    private static CaptionPresentationBudget slowBudget() {
+        return new CaptionPresentationBudget(944, 40f, 48.68f, renderSpec());
     }
 }

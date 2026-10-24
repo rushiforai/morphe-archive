@@ -4,7 +4,6 @@
  */
 package app.hxreborn.extension.proton;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -15,6 +14,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import app.morphe.extension.shared.Utils;
+
+import app.hxreborn.extension.shared.ProxyHandler;
 
 @SuppressWarnings("unused")
 public final class PatchesMenu {
@@ -75,21 +76,15 @@ public final class PatchesMenu {
         return intent;
     }
 
-    private static final class RowClickHandler implements InvocationHandler {
+    private static final class RowClickHandler extends ProxyHandler {
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
-            final String name = method.getName();
-            if ("toString".equals(name)) {
-                return SETTINGS_ROW_TITLE;
-            }
-            if ("hashCode".equals(name)) {
-                return System.identityHashCode(proxy);
-            }
-            if ("equals".equals(name)) {
-                return proxy == args[0];
-            }
+        protected String describe() {
+            return SETTINGS_ROW_TITLE;
+        }
 
+        @Override
+        protected Object handle(Method method, Object[] args) {
             MAIN_HANDLER.post(PatchesMenu::show);
             return null;
         }

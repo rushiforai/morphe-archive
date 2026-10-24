@@ -12,7 +12,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.widget.LinearLayout;
 
-@TargetApi(Build.VERSION_CODES.S_V2)
+@TargetApi(Build.VERSION_CODES.Q)
 @SuppressWarnings({ "unused", "unchecked" })
 public final class BonjourServiceActivity extends BrowserScreenActivity {
 

@@ -478,6 +478,47 @@ public class TimerLifecycleTest {
     }
 
     /**
+     * #285: with Full screen Reels on, HushGram hides the navigation bar on Reels and Instagram is answered
+     * 0 for it there, so the pill gave up the bar's room and dropped by the bar's height with every switch
+     * to Reels, then rose again on Home. While the bar is hidden the pill keeps that room, and the reel
+     * keeps its margin and its size. A bar that simply isn't there leaves no room.
+     */
+    @Test public void thePillKeepsItsHeightWhileFullScreenHidesTheNavigationBar() {
+        LinearLayout tabs = namedTabBar();
+        Reel reel = showReel();
+        Settings.GLASS_TAB_BAR.save(true);
+        GlassTabBar.apply(activity);
+        GlassTabBar.nowInFront(activity);
+        assertEquals("Home, with the bar showing", 0, GlassTabBar.navBarHeight(63));
+        idle(GlassTabBar.REELS_LOOK_MS * 2);
+        tabs.getViewTreeObserver().dispatchOnPreDraw();
+        layout();
+        idle(500);
+        layout();
+        int pill = tabs.getLayoutParams().height;
+        assertEquals(150 + 63, pill);
+        assertEquals(pill, bottomMargin(reel.viewer));
+        int height = reel.viewer.getHeight();
+
+        // Reels hides the bar: Instagram is answered 0 for the height it offers, then offers its 0 back.
+        assertEquals(0, GlassTabBar.navBarHeight(0, 63));
+        idle(GlassTabBar.REELS_LOOK_MS * 2);
+        tabs.getViewTreeObserver().dispatchOnPreDraw();
+        layout();
+        assertEquals("the pill kept its height", pill, tabs.getLayoutParams().height);
+        assertEquals("and the reel its margin", pill, bottomMargin(reel.viewer));
+        assertEquals("and its size", height, reel.viewer.getHeight());
+
+        assertEquals("no bar at all", 0, GlassTabBar.navBarHeight(0));
+        idle(GlassTabBar.REELS_LOOK_MS * 2);
+        tabs.getViewTreeObserver().dispatchOnPreDraw();
+        layout();
+        assertEquals(150, tabs.getLayoutParams().height);
+        assertEquals(150, bottomMargin(reel.viewer));
+        GlassTabBar.restoreAll();
+    }
+
+    /**
      * #222: Instagram pads its screens by the navigation bar's height it last had: 0 under a floating
      * pill, the real height with the keyboard up or its bar hidden for a paused reel. The Reels viewer's
      * margin makes up the difference, so its bottom edge and its size stay put whichever answer Instagram

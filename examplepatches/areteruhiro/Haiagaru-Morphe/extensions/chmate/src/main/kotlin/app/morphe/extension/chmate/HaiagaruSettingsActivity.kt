@@ -41,9 +41,39 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
         setContent { HaiagaruUi.Theme { SettingsScreen() } }
         gestures = HaiagaruSettingsGestures(this, window.decorView,
             { onBackPressedDispatcher.onBackPressed() }, { top() }, { bottom() }).also { it.setCloseAction { finish() } }
+        if (savedInstanceState == null) window.decorView.post { MinimalSetup.offer(this) }
     }
 
-    override fun onResume() { super.onResume(); revision++ }
+    @Deprecated("Activity result compatibility")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SettingsProfiles.OPEN && resultCode == RESULT_OK && data?.data != null)
+            startActivity(android.content.Intent(this, SettingsImportActivity::class.java).setData(data.data)
+                .addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val light = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK !=
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            val mask = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+            window.insetsController?.setSystemBarsAppearance(if (light) mask else 0, mask)
+        } else {
+            @Suppress("DEPRECATION")
+            var flags = window.decorView.systemUiVisibility
+            if (android.os.Build.VERSION.SDK_INT >= 23) flags = if (light)
+                flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                else flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            if (android.os.Build.VERSION.SDK_INT >= 26) flags = if (light)
+                flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                else flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = flags
+        }
+        revision++
+    }
     override fun onDestroy() {
         gestures?.close()
         preferences.forEach { it.unregisterOnSharedPreferenceChangeListener(listener) }
@@ -109,19 +139,28 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             matches = found; indexedQuery = query; searching = false
         }
         Scaffold(topBar = {
-            if (selected < 0 && query.isBlank()) LargeTopAppBar(title = { Text("Haiagaru") },
+            if (selected < 0 && query.isBlank()) TopAppBar(title = { Text("Haiagaru") },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
             else TopAppBar(title = { Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else groups[selected].title(english),
                 maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
         }) { insets ->
             LazyColumn(state = list, modifier = Modifier.fillMaxSize().padding(insets).imePadding(),
-                contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (selected < 0) {
                     item { OutlinedTextField(query, { query = it }, label = { Text(if (english) "Find a setting" else "設定を検索") },
                         leadingIcon = { Icon(Icons.Filled.Search, null) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)) }
                     if (query.isBlank()) {
+                        item {
+                            HaiagaruUi.Group {
+                                TextButton(onClick = { SettingsProfiles.share(this@HaiagaruSettingsActivity) }) { Text("設定を共有（.haiagaru）") }
+                                TextButton(onClick = { SettingsProfiles.open(this@HaiagaruSettingsActivity) }) { Text("設定ファイルを読み込む") }
+                                TextButton(onClick = { MinimalSetup.show(this@HaiagaruSettingsActivity) }) { Text("最低限構成を選び直す") }
+                                Text("共有するのは表示・動作設定です。認証情報、履歴、NG登録、標準ツールバー設定は含めません。",
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                         item { Text(if (english) "Saved automatically. Choose what you want to change." else "変更は自動で保存されます。変えたいことから選べます。",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp)) }
@@ -130,7 +169,9 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                                 ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium) },
                                     supportingContent = { Text(if (english) group.enSummary else group.summary) },
                                     leadingContent = { Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer) {
-                                        Text(group.mark, Modifier.padding(14.dp), style = MaterialTheme.typography.titleMedium) } },
+                                        Box(Modifier.size(52.dp), contentAlignment = Alignment.Center) {
+                                            Text(group.mark, style = MaterialTheme.typography.titleMedium)
+                                        } } },
                                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
                                     colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                                     modifier = Modifier.clickable { selected = groups.indexOf(group) })
@@ -155,8 +196,11 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                     }
                 } else {
                     val group = groups[selected]
-                    item { Text(if (english) group.enSummary else group.summary, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp)) }
+                    item { HaiagaruUi.Group {
+                        Text(group.title(english), style = MaterialTheme.typography.titleMedium)
+                        HorizontalDivider()
+                        Text(if (english) group.enSummary else group.summary, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } }
                     group.sources.forEach { source ->
                         val rows = settingsRows(body(source))
                         if (group.sources.size > 1) item("heading:$source") {

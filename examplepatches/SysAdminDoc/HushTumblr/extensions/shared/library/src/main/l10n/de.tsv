@@ -260,6 +260,8 @@ Hide suggested blogs	Vorgeschlagene Blogs ausblenden
 Takes the blogs Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Entfernt die Blogs, denen du laut Tumblr folgen sollst, samt ihren Überschriften aus deinem Dashboard und anderen Feeds.
 Hide suggested communities	Vorgeschlagene Communitys ausblenden
 Takes the communities Tumblr suggests you join, and their headings, out of your dashboard and other feeds.	Entfernt die Communitys, denen du laut Tumblr beitreten sollst, samt ihren Überschriften aus deinem Dashboard und anderen Feeds.
+Hide suggested tags	Vorgeschlagene Tags ausblenden
+Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Entfernt die Tags, denen du laut Tumblr folgen sollst, samt ihren Überschriften aus deinem Dashboard und anderen Feeds.
 Hide Watch it rows	Watch-it-Reihen ausblenden
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Entfernt die Watch-it-Reihen und Video-Hub-Karten von Tumblr TV samt ihren Überschriften aus deinem Dashboard und anderen Feeds.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
@@ -305,6 +307,8 @@ Hide text posts	Textbeiträge ausblenden
 Takes posts with no pictures or video, the reblogged part included, out of your dashboard and other feeds.	Entfernt Beiträge ohne Bilder und Videos, auch im rebloggten Teil, aus deinem Dashboard und anderen Feeds.
 Hide posts with these words	Beiträge mit diesen Wörtern ausblenden
 Takes posts out of your feeds when a hidden word matches one of the selected fields below.	Entfernt Posts aus deinen Feeds, wenn ein ausgeblendetes Wort in einem der unten ausgewählten Felder vorkommt.
+Hide filtered posts	Gefilterte Beiträge ausblenden
+Takes the posts Tumblr covers for your filtered tags and words out of your feeds.	Entfernt die Beiträge, die Tumblr wegen deiner gefilterten Tags und Wörter verdeckt, aus deinen Feeds.
 Words to hide	Auszublendende Wörter
 One word or phrase a line	Ein Wort oder eine Wortgruppe pro Zeile
 Changes are saved only when you tap Save.	Änderungen werden erst gespeichert, wenn du auf Speichern tippst.

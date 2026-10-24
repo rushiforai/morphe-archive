@@ -82,7 +82,7 @@ internal fun BytecodePatchContext.hookGridSort(versionName: String): Boolean {
     setData.addInstructions(
         0,
         """
-            invoke-static/range { p1 .. p1 }, $GRID_SORT->data(Ljava/util/List;)Ljava/util/List;
+            invoke-static/range { p0 .. p1 }, $GRID_SORT->data(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;
             move-result-object p1
         """,
     )

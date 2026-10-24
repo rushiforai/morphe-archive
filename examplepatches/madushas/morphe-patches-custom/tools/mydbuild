@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Apply the MyDialog Morphe patch bundle to mydialog-18-6-5.apk and (optionally) install.
+#
+# Usage:
+#   mydbuild              # build the .mpp, patch the APK
+#   mydbuild --install    # ... and install to the connected device / emulator
+set -euo pipefail
+
+# Lives in the merged repo; the MyDialog APK + analysis workspace stay in ../mydialog_patch.
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MYD_APK_DIR="${MYD_APK_DIR:-$HOME/dev/sandbox/mydialog_patch}"
+WORK="${MYD_WORK:-$REPO/work}"
+IN="${MYD_INPUT:-$MYD_APK_DIR/mydialog-18-6-5.apk}"
+OUT="${MYD_OUTPUT:-$REPO/mydialog_patched.apk}"
+
+export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+export GITHUB_ACTOR="${GITHUB_ACTOR:-madushas}"
+# The Morphe Gradle plugin resolves from GitHub Packages, so a token is required.
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+  echo "GITHUB_TOKEN is not set in the environment (required by the Morphe Gradle plugin)" >&2
+  exit 1
+fi
+export MORPHE_DATA_DIR="${MORPHE_DATA_DIR:-$HOME/.morphe-data}"
+mkdir -p "$WORK"
+
+if [[ ! -f "$IN" ]]; then
+  echo "input APK not found: $IN (set MYD_INPUT=/path/to/apk)" >&2
+  exit 1
+fi
+
+# The bundle is built by `pdbbuild` (generatePatchesList then buildAndroid LAST —
+# dex ordering matters); this tool just consumes the newest dex-verified .mpp.
+MPP="$(ls -t "$REPO"/patches/build/libs/patches-*.mpp 2>/dev/null | grep -vE 'sources|javadoc' | head -1)"
+if [[ -z "$MPP" ]]; then
+  echo "No .mpp produced" >&2
+  exit 1
+fi
+if ! unzip -l "$MPP" | grep -q "\.dex"; then
+  echo "FAIL: $MPP has no classes.dex — the Manager would reject it" >&2
+  exit 1
+fi
+echo "==> Bundle: $MPP"
+
+echo "==> Patching $IN"
+# "Fix SIM identifier access" is default-on since v0.5.1 (see SimAccessFixPatch.kt).
+java -jar "$HOME/tools/opt/morphe-desktop.jar" patch \
+  --patches="$MPP" \
+  --bytecode-mode FULL \
+  -o "$OUT" \
+  -r "$WORK/patch-result.json" \
+  -f \
+  "$IN"
+
+echo "==> Output: $OUT"
+
+if [[ "${1:-}" == "--install" ]]; then
+  SERIAL="${MYD_SERIAL:-emulator-5554}"
+  echo "==> Installing to $SERIAL"
+  adb -s "$SERIAL" install -r "$OUT"
+  echo "==> Launching"
+  adb -s "$SERIAL" shell monkey -p net.omobio.dialogsc -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+fi

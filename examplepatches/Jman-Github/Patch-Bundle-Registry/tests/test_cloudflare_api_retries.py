@@ -54,6 +54,15 @@ def test_transport_retries_stop_after_five_attempts(monkeypatch):
     assert obj.http.calls == 5
 
 
+@pytest.mark.parametrize("status", [429, 500, 502, 503, 504])
+def test_exhausted_http_retries_report_the_final_status(monkeypatch, status):
+    obj = cloud(monkeypatch, [httpx.Response(503)] * 4 + [httpx.Response(status)])
+    with pytest.raises(RuntimeError) as error:
+        obj.api("GET", "/test")
+    assert str(error.value) == f"Cloudflare API retries exhausted (HTTP {status})"
+    assert obj.http.calls == 5
+
+
 def test_long_cooldown_does_not_block_runner_indefinitely(monkeypatch):
     obj = cloud(monkeypatch, [httpx.Response(429, headers={"Retry-After": "3600"})])
     with pytest.raises(RuntimeError, match="cooldown"):

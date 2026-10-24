@@ -18,10 +18,13 @@ import app.morphe.patches.tumblr.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.tumblr.misc.extension.parameterRegisterNumber
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -74,16 +77,58 @@ class TimelineListHookFixtureTest {
     }
 
     /**
+     * A blog's posts, likes and blog search keep their own copy of the items they hand
+     * `TimelineResponse` and read that copy back, so each of their constructors filters the items
+     * before that call, with the call that tells the base constructor not to filter them again.
+     */
+    @Test
+    fun `each declared build filters the items the timeline response subclasses keep`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val subclasses = mutableListOf<ClassDef>()
+            FixtureDex.forEach(build) { dex ->
+                dex.classes.filter { it.superclass == TIMELINE_RESPONSE }.forEach { subclasses += ImmutableClassDef.of(it) }
+            }
+            assertEquals("${build.name}: the subclasses", setOf("PostsResponse", "LikesResponse", "BlogSearchResponse"),
+                subclasses.map { it.type.substringAfterLast('/').removeSuffix(";") }.toSet())
+            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet()
+            val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, types).values + subclasses)
+            timelineListHookPatch.execute(context)
+
+            for (subclass in subclasses) {
+                val originals = subclass.methods.filter { it.name == "<init>" && it.instructionList().firstOrNull()
+                    ?.methodRef()?.let { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" } == TIMELINE_LISTS[1] }
+                assertEquals("${subclass.type}: one constructor hands its items on", 1, originals.size)
+                val original = originals.single()
+                val patched = context.mutableClassDefBy(subclass.type).methods.single { it.identity() == original.identity() }
+                val body = patched.instructionList()
+                val before = original.instructionList()
+                val items = patched.parameterRegisterNumber(original.parameterTypes.indexOfFirst { it.toString() == "Ljava/util/List;" })
+                assertEquals("${subclass.type}: the items are what it hands on", items, (before[0] as FiveRegisterInstruction).registerD)
+                assertEquals("${subclass.type}: the kept filter is called", TIMELINE_KEPT_HOOK, body[0].methodRef()?.let {
+                    "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" })
+                val call = body[0] as RegisterRangeInstruction
+                assertEquals("${subclass.type}: on the items", listOf(items, 1), listOf(call.startRegister, call.registerCount))
+                assertEquals(subclass.type, Opcode.MOVE_RESULT_OBJECT, body[1].opcode)
+                assertEquals("${subclass.type}: back into the items", items, (body[1] as OneRegisterInstruction).registerA)
+                assertEquals("${subclass.type}: what follows is Tumblr's own code", before.map { it.opcode },
+                    body.drop(2).map { it.opcode })
+            }
+        }
+    }
+
+    /**
      * What `TimelineFilter` reads from an item by name, in each declared build. A name that's gone
      * keeps every item, so this is what says Hide ads can see a paid placement: the display block's
      * sponsored state and the display type, each with the SPONSORED constant the filter compares
      * against. An enum constant's name() is the string its <clinit> hands the constructor, so that's
-     * checked as well as the field.
+     * checked as well as the field. A button counts as a follow prompt by the class of what its tap
+     * follows, so that class is checked by name too.
      */
     @Test
     fun `each declared build keeps the item members the filter reads by name`() {
         for (build in Fixtures.declaredBuilds()) {
-            val classes = FixtureDex.classes(build, FILTER_READS.keys + SPONSORED_ENUMS)
+            val classes = FixtureDex.classes(build, FILTER_READS.keys + SPONSORED_ENUMS + ACTION_LINK)
+            assertTrue("${build.name}: $ACTION_LINK", ACTION_LINK in classes)
             for ((type, getters) in FILTER_READS) {
                 val methods = classes[type]?.methods?.toList().orEmpty()
                 for (getter in getters) {
@@ -105,11 +150,33 @@ class TimelineListHookFixtureTest {
         }
     }
 
+    /**
+     * Each item kind the filter takes out by name, the constant names `TimelineFilter`'s static
+     * initializer holds, is a constant of `TimelineObjectType` in each declared build. A kind Tumblr
+     * renamed or dropped would leave its items on screen without a word.
+     */
+    @Test
+    fun `each declared build has every item kind the filter takes out`() {
+        val filter = ExtensionDex.classes().single { it.type == TIMELINE_FILTER }
+        val kinds = filter.methods.single { it.name == "<clinit>" }.instructionList()
+            .mapNotNull { it.stringRef() }.filter { CONSTANT_NAME.matches(it) }.toSet()
+        assertTrue("the filter's kinds are read: $kinds", "GEMINI_AD" in kinds && "BLOG_SUBSCRIPTION_CTA" in kinds)
+        for (build in Fixtures.declaredBuilds()) {
+            val type = FixtureDex.classes(build, setOf(OBJECT_TYPE)).getValue(OBJECT_TYPE)
+            val names = type.fields.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.type == OBJECT_TYPE }
+                .map { it.name }.toSet()
+            assertEquals("${build.name}: kinds Tumblr doesn't have", emptySet<String>(), kinds - names)
+        }
+    }
+
     private fun Method.identity() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 }
 
+private val CONSTANT_NAME = Regex("[A-Z][A-Z0-9_]+")
+
 private const val MODEL = "Lcom/tumblr/rumblr/model"
 private const val SPONSORED = "SPONSORED"
+private const val OBJECT_TYPE = "$MODEL/TimelineObjectType;"
 
 /** Each class `TimelineFilter.Model` reads by name, with its getters as `name()returnType`. */
 private val FILTER_READS = mapOf(
@@ -121,7 +188,13 @@ private val FILTER_READS = mapOf(
     ),
     "$MODEL/Timelineable;" to listOf("getTimelineObjectType()$MODEL/TimelineObjectType;"),
     "$MODEL/Display;" to listOf("getSponsored()$MODEL/SponsoredState;"),
+    "$MODEL/GenericButton;" to listOf("getButton()$MODEL/GenericButton\$Button;"),
+    "$MODEL/GenericButton\$Button;" to listOf("getLinks()$MODEL/GenericButton\$Button\$Links;"),
+    "$MODEL/GenericButton\$Button\$Links;" to listOf("getTap()$MODEL/link/Link;"),
 )
+
+/** What a button's tap follows when it does something in place, which is following a blog. */
+private const val ACTION_LINK = "$MODEL/link/ActionLink;"
 
 /** The enums whose SPONSORED constant marks a paid placement. */
 private val SPONSORED_ENUMS = setOf("$MODEL/SponsoredState;", "$MODEL/post/DisplayType;")

@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from versions import build_tags, compare
+from versions import APP_UPDATE_TITLE_PREFIX, build_tags, compare
 
 ISSUE_LABEL = "app-update"
 COMPAT_PATH = "patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt"
@@ -130,8 +130,8 @@ def sync_bump_prs(records):
             continue
         branch = f"app-update/{record['package']}"
         subject = f"bump({name}): add support for `{apk['version']}`"
-        tracker = next((i["number"] for i in issues if i["title"] == f"[App Update]: {name} {record['candidate']}"),
-                       None)
+        tracker_title = f"{APP_UPDATE_TITLE_PREFIX}{name} {record['candidate']}"
+        tracker = next((i["number"] for i in issues if i["title"] == tracker_title), None)
         branch_subject = None
         if git("ls-remote", "--heads", "origin", f"refs/heads/{branch}").strip():
             git("fetch", "-q", "--depth=1", "origin", f"refs/heads/{branch}")

@@ -7,12 +7,12 @@ package app.morphe.patches.walp.misc.premium
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
+import app.morphe.patches.shared.misc.dart.dartAotLibrary
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 import app.morphe.patches.shared.misc.requireArm64
 import app.morphe.patches.shared.replaceMasked
 import app.morphe.patches.shared.replaceMaskedEvery
-
-private const val DART_AOT_LIBRARY = "lib/arm64-v8a/libapp.so"
 
 private const val ADS_REMOVED_READ_SITES = 5
 
@@ -41,8 +41,7 @@ val unlockPremiumPatch = resourcePatch(
     dependsOn(removePairipProtectionPatch)
 
     execute {
-        val library = get(DART_AOT_LIBRARY)
-        if (!library.exists()) throw PatchException("Could not find $DART_AOT_LIBRARY")
+        val library = dartAotLibrary()
 
         val reads = library.replaceMaskedEvery(
             ADS_REMOVED_PREFERENCE_READ,

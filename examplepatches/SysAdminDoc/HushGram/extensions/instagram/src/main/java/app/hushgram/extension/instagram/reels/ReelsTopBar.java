@@ -65,6 +65,12 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * gives it its taps, and a list of buttons that changes is built again with new views, which the
  * next search finds.
  *
+ * <p>A fourth takes the Friends tab off the Reels tab's top bar (#300), the lane of reels the people
+ * you follow shared. Its title comes from a string pack and its tab has no id or tag, so the Clean up
+ * Reels patch hands each Friends tab's view to {@link #friendsTab} as Instagram builds it, where the
+ * tab gets its facepile icon. It goes gone like a button, and the Reels title is left alone in the
+ * strip. A sideways swipe on a reel doesn't change lanes, so the tab is the only way there.
+ *
  * <p>No frame or layout listener runs for nothing. With the switch off, HushGram paused or the
  * settings not read yet, an activity gets none, and a window focus listener, which only hears focus
  * changes, notices the switch turned on once the settings screen closes. While on, a pre-draw
@@ -106,6 +112,8 @@ public final class ReelsTopBar {
     static final String COUNT_YOUR_ALGORITHM_HID = "Reels top bar Your algorithm button hidden";
     static final String COUNT_BUTTON_HID_AGAIN = "Reels top bar button hidden again after Instagram showed it";
     static final String COUNT_BUTTON_PUT_BACK = "Reels top bar button put back";
+    static final String COUNT_FRIENDS_SEEN = "Reels Friends tab built";
+    static final String COUNT_FRIENDS_HID = "Reels Friends tab hidden";
     /** The most views looked at inside one bar for its buttons. */
     static final int MAX_BAR_VIEWS = 200;
 
@@ -121,7 +129,31 @@ public final class ReelsTopBar {
     /** For each class looked at as a bar, its fields leading to a source, looked up once. */
     private static final WeakHashMap<Class<?>, Field[][]> SOURCE_FIELDS = new WeakHashMap<>();
 
+    /** The Friends tabs' views Instagram built, held weakly so a closed viewer's can go. */
+    private static final Set<View> FRIENDS_TABS = Collections.synchronizedSet(
+            Collections.newSetFromMap(new WeakHashMap<>()));
+
     private ReelsTopBar() {
+    }
+
+    /**
+     * Called by the patch as Instagram builds the Friends tab at the top of Reels, with the tab's
+     * view. Only marks it: the search hides it while the switch is on, so turning it off or pausing
+     * puts it back.
+     */
+    public static void friendsTab(View tab) {
+        try {
+            if (tab == null) return;
+            FRIENDS_TABS.add(tab);
+            HookStatus.counted(FamilyNames.REEL_DECLUTTER, COUNT_FRIENDS_SEEN);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, "Friends tab", failure);
+        }
+    }
+
+    /** Whether [view] is a Friends tab Instagram built, as the patch handed it over. */
+    static boolean isFriendsTab(View view) {
+        return FRIENDS_TABS.contains(view);
     }
 
     /** Called as the application starts. Does nothing in a build without Clean up Reels. */
@@ -138,7 +170,8 @@ public final class ReelsTopBar {
     /** Whether anything in a top bar is hidden now: one of the switches on, HushGram not paused, the settings read. */
     static boolean wanted() {
         return Utils.settingsReady() && !HushgramPause.isPaused() && (Settings.HIDE_REELS_TOP_BAR.get()
-                || Settings.HIDE_REELS_CREATE_BUTTON.get() || Settings.HIDE_REELS_YOUR_ALGORITHM.get());
+                || Settings.HIDE_REELS_CREATE_BUTTON.get() || Settings.HIDE_REELS_YOUR_ALGORITHM.get()
+                || Settings.HIDE_REELS_FRIENDS_TAB.get());
     }
 
     /** Whether [view], inside a bar, is its Create (+) button, by the kind the bar tags it with. */
@@ -534,17 +567,25 @@ public final class ReelsTopBar {
         /**
          * Walks [root], past what's gone, for bars. Hides each one of the Reels tab's that shows while
          * its switch is on, and otherwise the buttons in it whose switches are on. A hidden bar's
-         * buttons go too, since Instagram can show it again with no layout to search after.
+         * buttons go too, since Instagram can show it again with no layout to search after. A Friends
+         * tab outside any bar Instagram keeps the names of goes as well.
          */
         private void search(View root) {
             int barId = id(root.getContext(), BAR_ID);
             boolean wholeBar = Settings.HIDE_REELS_TOP_BAR.get();
+            boolean friends = Settings.HIDE_REELS_FRIENDS_TAB.get();
             ArrayDeque<View> pending = new ArrayDeque<>();
             pending.add(root);
             int seen = 0;
             while (!pending.isEmpty() && seen++ < MAX_VIEWS) {
                 View view = pending.poll();
                 if (view.getVisibility() == View.GONE) continue;
+                if (friends && isFriendsTab(view)) {
+                    if (view.getVisibility() == View.VISIBLE) {
+                        hide(view, Settings.HIDE_REELS_FRIENDS_TAB, View.GONE, COUNT_FRIENDS_HID);
+                    }
+                    continue;
+                }
                 boolean byClass = isBarClass(view);
                 if (byClass || (barId != 0 && view.getId() == barId)) {
                     Viewer viewer = viewerOf(view);
@@ -584,7 +625,8 @@ public final class ReelsTopBar {
         private void hideButtons(View bar) {
             boolean create = Settings.HIDE_REELS_CREATE_BUTTON.get();
             boolean algorithm = Settings.HIDE_REELS_YOUR_ALGORITHM.get();
-            if ((!create && !algorithm) || !(bar instanceof ViewGroup)) return;
+            boolean friends = Settings.HIDE_REELS_FRIENDS_TAB.get();
+            if ((!create && !algorithm && !friends) || !(bar instanceof ViewGroup)) return;
             ArrayDeque<View> pending = new ArrayDeque<>();
             ViewGroup group = (ViewGroup) bar;
             for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
@@ -597,6 +639,8 @@ public final class ReelsTopBar {
                     if (shown) hide(view, Settings.HIDE_REELS_CREATE_BUTTON, View.GONE, COUNT_CREATE_HID);
                 } else if (algorithm && isYourAlgorithmButton(view)) {
                     if (shown) hide(view, Settings.HIDE_REELS_YOUR_ALGORITHM, View.GONE, COUNT_YOUR_ALGORITHM_HID);
+                } else if (friends && isFriendsTab(view)) {
+                    if (shown) hide(view, Settings.HIDE_REELS_FRIENDS_TAB, View.GONE, COUNT_FRIENDS_HID);
                 } else if (view instanceof ViewGroup) {
                     ViewGroup inner = (ViewGroup) view;
                     for (int i = 0; i < inner.getChildCount(); i++) pending.add(inner.getChildAt(i));

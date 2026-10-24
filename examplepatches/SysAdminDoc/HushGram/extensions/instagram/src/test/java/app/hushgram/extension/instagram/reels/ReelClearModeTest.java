@@ -10,13 +10,19 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.view.View;
+import android.view.ViewGroup;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,9 +39,9 @@ import app.hushgram.extension.shared.settings.PauseForTests;
 
 /**
  * Keep clear mode on: clear mode you turn on for a reel is handed to each next reel through
- * Instagram's own turn-on, once per reel, until you leave it yourself. A viewer that closes, a page
- * with no exit button and anything that fails end it. Off, paused or unready, every reel is as
- * Instagram has it.
+ * Instagram's own turn-on, once per reel, until you leave it yourself. A swipe that snaps back keeps
+ * it on its reel. A viewer that closes, a page with no exit button and anything that fails end it.
+ * Off, paused or unready, every reel is as Instagram has it.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 37})
@@ -44,6 +50,9 @@ public class ReelClearModeTest {
 
     /** The reasons Instagram's handler is given, named as Instagram 450 names them. */
     private enum Reason { EXIT_BUTTON, OVERFLOW_MENU, REELS_VIEWER_SWIPE_OR_EXIT }
+
+    /** The pager's scroll states, named as Instagram 452 names them. */
+    private enum Scroll { IDLE, DRAGGING, SETTLING }
 
     private static final class Reel {
         final String id;
@@ -62,6 +71,10 @@ public class ReelClearModeTest {
         final Object handler = new Object();
         final List<String> turnedOn = new ArrayList<>();
         final List<Runnable> posted = new ArrayList<>();
+        /** The Reels pager, on screen while {@link #pagerShown}. */
+        final Object pager = new Object();
+        boolean pagerShown = true;
+        RuntimeException showingFailure;
         Reel page;
         long now = 10_000;
         int asked;
@@ -96,6 +109,12 @@ public class ReelClearModeTest {
         @Override
         public long now() {
             return now;
+        }
+
+        @Override
+        public boolean showing(Object pager) {
+            if (showingFailure != null) throw showingFailure;
+            return pager == this.pager && pagerShown;
         }
 
         void runPosted() {
@@ -149,6 +168,20 @@ public class ReelClearModeTest {
 
     private static boolean counted(int times) {
         return HookStatus.report().toString().contains(ReelClearMode.CARRIED + " " + times);
+    }
+
+    private static boolean kept(int times) {
+        return HookStatus.report().toString().contains(ReelClearMode.KEPT + " " + times);
+    }
+
+    /** A swipe from [reel] that takes its exit button off the screen and snaps back without landing. */
+    private void snapBack(Reel reel) {
+        viewer.page = reel;
+        ReelClearMode.settled(viewer.pager, Scroll.DRAGGING);
+        ReelClearMode.left(viewer.handler, reel, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        ReelClearMode.settled(viewer.pager, Scroll.SETTLING);
+        viewer.now += 300;
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
     }
 
     /** Whether the hook named [hook] was reported as having thrown. */
@@ -265,6 +298,243 @@ public class ReelClearModeTest {
         ReelClearMode.paged();
         viewer.runPosted();
         assertEquals("and never again", 2, viewer.asked);
+    }
+
+    /**
+     * A swipe back takes the exit button off the screen and can snap back without landing. The pager
+     * reports no page then, so once it comes to rest the same reel is put back in clear mode, after
+     * Instagram is done with the change, and it carries on from there (#233).
+     */
+    @Test
+    public void aSwipeThatSnapsBackKeepsTheSameReelInClearMode() {
+        Reel first = reel("first");
+        Reel second = reel("second");
+        viewer.page = first;
+        tapClearMode();
+
+        ReelClearMode.settled(viewer.pager, Scroll.DRAGGING);
+        ReelClearMode.left(viewer.handler, first, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        assertEquals("asked once, and held back", 1, viewer.asked);
+        assertTrue(ReelClearMode.waiting());
+        // The reel before it builds its button as the drag shows it, which tries again in vain.
+        reel("before");
+        viewer.runPosted();
+        assertEquals(2, viewer.asked);
+        ReelClearMode.settled(viewer.pager, Scroll.SETTLING);
+        assertTrue("settling isn't rest", viewer.posted.isEmpty());
+
+        viewer.now += 300;
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertEquals("not before Instagram is done with the change", 2, viewer.asked);
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertEquals("one try", 1, viewer.posted.size());
+        viewer.runPosted();
+
+        assertEquals(Arrays.asList("first OVERFLOW_MENU", "first OVERFLOW_MENU"), viewer.turnedOn);
+        assertEquals(3, viewer.asked);
+        assertTrue(ReelClearMode.wanted());
+        assertFalse(ReelClearMode.waiting());
+        assertTrue(HookStatus.report().toString(), kept(1));
+        assertFalse("it wasn't carried to another reel", HookStatus.report().toString().contains(ReelClearMode.CARRIED));
+        assertEquals("back in clear mode, a reset keeps its buttons hidden", 0f, ReelClearMode.chrome(1f, 0f), 0f);
+
+        swipe(first, second);
+        assertEquals("second OVERFLOW_MENU", viewer.turnedOn.get(2));
+        assertTrue(counted(1));
+        assertEquals("reels kept in clear mode after a swipe snapped back", ReelClearMode.KEPT);
+    }
+
+    /**
+     * A swipe that lands reports its page before the pager comes to rest, and a page whose exit
+     * button comes late goes on waiting for it. Neither puts the reel that left back in clear mode.
+     */
+    @Test
+    public void aSwipeThatLandsIsntTakenForASnapBack() {
+        Reel first = reel("first");
+        Reel second = reel("second");
+        Reel late = new Reel("late");
+        viewer.page = first;
+        tapClearMode();
+
+        ReelClearMode.left(viewer.handler, first, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        viewer.page = second;
+        ReelClearMode.paged();
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertEquals("the page's try is the only one", 1, viewer.posted.size());
+        viewer.runPosted();
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertTrue("nothing waits, so rest asks for nothing", viewer.posted.isEmpty());
+        assertEquals(Arrays.asList("first OVERFLOW_MENU", "second OVERFLOW_MENU"), viewer.turnedOn);
+
+        // The page landed before its button was built: rest asks for nothing, the button's try does.
+        ReelClearMode.left(viewer.handler, second, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        viewer.page = late;
+        ReelClearMode.paged();
+        viewer.runPosted();
+        assertTrue(ReelClearMode.waiting());
+        viewer.now += 200;
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertTrue("a rest after a page asks for nothing", viewer.posted.isEmpty());
+        assertEquals("the reel that left isn't put back", 2, viewer.turnedOn.size());
+        assertTrue("the late page still waits for its button", ReelClearMode.waiting());
+        viewer.now += 200;
+        ReelClearMode.built(late);
+        viewer.runPosted();
+
+        assertEquals(Arrays.asList("first OVERFLOW_MENU", "second OVERFLOW_MENU", "late OVERFLOW_MENU"), viewer.turnedOn);
+        assertTrue(HookStatus.report().toString(), counted(2));
+        assertFalse(HookStatus.report().toString().contains(ReelClearMode.KEPT));
+    }
+
+    /**
+     * A page reported while the reel waits means the swipe landed, through every try after it. A
+     * rest once the page's try waited on a late button doesn't put the reel that left back, even
+     * when Instagram's turn-on would still read that reel.
+     */
+    @Test
+    public void aRestAfterAPageWithALateButtonLeavesTheReelThatLeftOut() {
+        Reel first = reel("first");
+        Reel late = new Reel("late");
+        viewer.page = first;
+        tapClearMode();
+
+        ReelClearMode.left(viewer.handler, first, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        viewer.page = late;
+        ReelClearMode.paged();
+        viewer.runPosted();
+        assertTrue("the page's try waits for its button", ReelClearMode.waiting());
+
+        viewer.page = first;
+        viewer.now += 200;
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertTrue("the swipe landed, so rest asks for nothing", viewer.posted.isEmpty());
+        viewer.runPosted();
+        assertEquals("the reel that left isn't put back", Collections.singletonList("first OVERFLOW_MENU"), viewer.turnedOn);
+
+        viewer.page = late;
+        viewer.now += 200;
+        ReelClearMode.built(late);
+        viewer.runPosted();
+        assertEquals(Arrays.asList("first OVERFLOW_MENU", "late OVERFLOW_MENU"), viewer.turnedOn);
+        assertTrue(HookStatus.report().toString(), counted(1));
+        assertFalse(HookStatus.report().toString().contains(ReelClearMode.KEPT));
+    }
+
+    /**
+     * A swipe can report its page before the reel's exit button leaves, so no page comes while it
+     * waits. A first try that finds another reel on the pager means the swipe landed all the same.
+     */
+    @Test
+    public void aRestAfterATryFoundAnotherReelLeavesTheReelThatLeftOut() {
+        Reel first = reel("first");
+        Reel late = new Reel("late");
+        viewer.page = first;
+        tapClearMode();
+
+        viewer.page = late;
+        ReelClearMode.paged();
+        assertTrue("nothing waits yet, so the page asks for nothing", viewer.posted.isEmpty());
+        ReelClearMode.left(viewer.handler, first, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        assertEquals(1, viewer.asked);
+        assertTrue("the first try waits for the next reel's button", ReelClearMode.waiting());
+
+        viewer.page = first;
+        viewer.now += 200;
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertTrue("the swipe landed, so rest asks for nothing", viewer.posted.isEmpty());
+        viewer.runPosted();
+        assertEquals("the reel that left isn't put back", Collections.singletonList("first OVERFLOW_MENU"), viewer.turnedOn);
+
+        viewer.page = late;
+        viewer.now += 200;
+        ReelClearMode.built(late);
+        viewer.runPosted();
+        assertEquals(Arrays.asList("first OVERFLOW_MENU", "late OVERFLOW_MENU"), viewer.turnedOn);
+        assertTrue(HookStatus.report().toString(), counted(1));
+        assertFalse(HookStatus.report().toString().contains(ReelClearMode.KEPT));
+    }
+
+    /**
+     * Leaving Reels takes the exit button away too. A pager at rest off screen, a wait that ran out,
+     * a state short of rest, no pager and no wait at all put nothing back in clear mode.
+     */
+    @Test
+    public void aPagerOffScreenOrAWaitRunOutPutsNothingBack() {
+        Reel first = reel("first");
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertTrue("with nothing waiting, rest asks for nothing", viewer.posted.isEmpty());
+        viewer.page = first;
+        tapClearMode();
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        assertTrue("nor while the reel is still in clear mode", viewer.posted.isEmpty());
+
+        viewer.pagerShown = false;
+        snapBack(first);
+        viewer.runPosted();
+        assertEquals("tried, and held back", 2, viewer.asked);
+        assertEquals(Collections.singletonList("first OVERFLOW_MENU"), viewer.turnedOn);
+        assertTrue("the wait goes on", ReelClearMode.waiting());
+
+        viewer.pagerShown = true;
+        ReelClearMode.settled(null, Scroll.IDLE);
+        ReelClearMode.settled(viewer.pager, null);
+        ReelClearMode.settled(viewer.pager, Reason.OVERFLOW_MENU);
+        assertTrue("no pager or no rest asks for nothing", viewer.posted.isEmpty());
+
+        viewer.now += ReelClearMode.RETRY_WINDOW_MS;
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        viewer.runPosted();
+        assertEquals("the wait ran out", 2, viewer.asked);
+        assertEquals(1, viewer.turnedOn.size());
+        assertFalse(ReelClearMode.wanted());
+        assertFalse(ReelClearMode.waiting());
+        assertFalse(HookStatus.report().toString().contains(ReelClearMode.KEPT));
+    }
+
+    /** Turned off before the pager comes to rest, or a pager check that throws, forgets clear mode, and the throw is reported. */
+    @Test
+    public void aSnapBackWhileOffOrAThrowingCheckForgetsClearMode() {
+        Reel first = reel("first");
+        viewer.page = first;
+        tapClearMode();
+        ReelClearMode.left(viewer.handler, first, Reason.REELS_VIEWER_SWIPE_OR_EXIT);
+        Settings.KEEP_REEL_CLEAR_MODE.save(false);
+        ReelClearMode.settled(viewer.pager, Scroll.IDLE);
+        viewer.runPosted();
+        assertFalse(ReelClearMode.wanted());
+        assertFalse(ReelClearMode.waiting());
+        assertEquals(1, viewer.asked);
+
+        Settings.KEEP_REEL_CLEAR_MODE.save(true);
+        tapClearMode();
+        viewer.showingFailure = new IllegalStateException("the pager changed");
+        snapBack(first);
+        viewer.runPosted();
+        assertFalse(ReelClearMode.wanted());
+        assertTrue(HookStatus.missing(FamilyNames.REEL_DECLUTTER).toString(), reported("clear mode retry"));
+        assertEquals("nothing was turned on but your own taps", Arrays.asList("first OVERFLOW_MENU", "first OVERFLOW_MENU"), viewer.turnedOn);
+        assertEquals(2, viewer.asked);
+    }
+
+    /** The patch's own check asks the pager view: shown, attached and mostly in view. */
+    @Test
+    public void thePatchedCheckAsksThePagerView() {
+        assertFalse("not a view", ReelClearMode.PATCHED.showing(new Object()));
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        View pager = new View(activity);
+        assertFalse("not on screen yet", ReelClearMode.PATCHED.showing(pager));
+        activity.setContentView(pager, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        ShadowLooper.idleMainLooper();
+        assertTrue("laid out", pager.getWidth() > 0 && pager.getHeight() > 0);
+        assertTrue("on screen", ReelClearMode.PATCHED.showing(pager));
+
+        pager.setTranslationX(pager.getWidth() * 0.4f);
+        assertTrue("mostly in view", ReelClearMode.PATCHED.showing(pager));
+        pager.setTranslationX(pager.getWidth() * 0.6f);
+        assertFalse("mostly off to the side", ReelClearMode.PATCHED.showing(pager));
+        pager.setTranslationX(0f);
+        pager.setVisibility(View.GONE);
+        assertFalse("hidden", ReelClearMode.PATCHED.showing(pager));
     }
 
     /**

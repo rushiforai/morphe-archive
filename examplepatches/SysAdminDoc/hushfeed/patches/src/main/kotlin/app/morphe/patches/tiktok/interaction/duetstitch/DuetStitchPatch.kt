@@ -62,11 +62,24 @@ private object AuthorStitchSettingFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/**
+ * Whether a post may be added to your story. The answer is the server's share-to-story number
+ * compared with 2, and the story feed's Add to Story button reads it through this one extension
+ * function (#88).
+ */
+private object CanShareToStoryFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/AwemeExtKt;",
+    name = "canShareToStory",
+    returnType = "Z",
+    parameters = listOf(AWEME),
+)
+
 @Suppress("unused")
 val duetStitchPatch = bytecodePatch(
     name = "Allow Duet and Stitch",
     description = "Shows the Duet and Stitch buttons on videos whose creator turned them off, " +
-        "so you can still make one. TikTok may still refuse some videos or the upload. Starts " +
+        "so you can still make one, and Add to Story on a story whose creator turned off content " +
+        "reuse. TikTok may still refuse some videos or the upload. Starts " +
         "off. Turn it on in Hushfeed settings > Share sheet.",
 ) {
     category("Downloads")
@@ -80,6 +93,7 @@ val duetStitchPatch = bytecodePatch(
             StitchSettingFingerprint to "setting",
             AuthorDuetSettingFingerprint to "authorSetting",
             AuthorStitchSettingFingerprint to "authorSetting",
+            CanShareToStoryFingerprint to "storyShareable",
         )) {
             fingerprint.method.apply {
                 // The value is taken as the getter hands it back, rather than the getter being

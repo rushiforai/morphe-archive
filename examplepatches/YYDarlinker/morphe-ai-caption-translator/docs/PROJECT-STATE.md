@@ -1,25 +1,21 @@
-# PROJECT-STATE — 1.5.6 发布（N40–N48 修复；N49/N50 上游评估；N51 两层投影；N52 显示保证；1.5.5 发布；N53 字幕图层/字号；N54 原生样式/分页评估；N55 动画双时钟；N56 回归修复/恢复拖动；N57 拖动/抖动根因；N58 稳定图层/触摸代理/视口档位；N59 Patcher 2.0.0/Morphe 1.48.0 适配与语言菜单功能删除；N60 Flyout VerifyError 修复；N61 字幕越界/档位/Shorts 字号图层；N62 评论区快速换档/AI 开关即刻生效/短字幕框宽；N63 评论区动画同步字号/AI 首视频遮挡原生样式；N64 官方 CC 显示权威/无 CC 不显示 AI 译文字幕）
+# PROJECT-STATE — 1.5.7 发布（N40–N48 修复；N49/N50 上游评估；N51 两层投影；N52 显示保证；1.5.5 发布；N53 字幕图层/字号；N54 原生样式/分页评估；N55 动画双时钟；N56 回归修复/恢复拖动；N57 拖动/抖动根因；N58 稳定图层/触摸代理/视口档位；N59 Patcher 2.0.0/Morphe 1.48.0 适配与语言菜单功能删除；N60 Flyout VerifyError 修复；N61 字幕越界/档位/Shorts 字号图层；N62 评论区快速换档/AI 开关即刻生效/短字幕框宽；N63 评论区动画同步字号/AI 首视频遮挡原生样式；N64 官方 CC 显示权威/无 CC 不显示 AI 译文字幕；N65 评论区端点预排/字号与布局解耦；N66–N68 AI 会话恢复/滚动字幕重建）
 
 ## 1. 当前身份
 
 - 活动仓库：`E:\Projects\DeepSeek morphe-ai-caption-translator`
 - 分支：`dev/1.5.5-deepseek`
 - 基线：`2c96054` / `v1.5.4`（2026-10-14）；1.5.5 发布提交 `40d5d58`，已合并 `origin/main`（`a42c593`）
-- 版本：1.5.6；发布构建为 `release-1.5.6`（N53–N58 的显示/图层修复 + N59 Patcher 2.0.0、
-  Morphe Patches 1.48.0 适配与自动翻译语言列表功能删除 + N60 Flyout VerifyError 修复 +
-  N61 详情页越界/档位稳定/Shorts 字号/单行行高/图层上移 +
-  N62 评论区快速换档/AI 开关即刻生效/短字幕框宽 +
-  N63 评论区动画同步字号/AI 首视频遮挡原生样式 +
-  N64 官方 CC 显示权威/无 CC 不显示 AI 译文字幕）；
+- 版本：1.5.7；发布构建 `release-1.5.7`（N65 评论区端点预排/字号与布局解耦 + N66–N68 AI 会话意图/恢复与滚动字幕重建）。
   官方 Morphe Patches 1.48.0 / Patcher 2.0.0；YouTube 只声明 21.x 目标：21.42.241、21.41.525、
   21.28.208、21.23.492、21.20.405、21.16.256（按用户要求不再声明或适配 20.x）
-- 发布状态：已发布 **1.5.6**：annotated tag `v1.5.6` → `2b96358`，GitHub release
-  `https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.6`，资产
-  `patches-1.5.6.mpp` 578,441 B / `E272FCE1…`；`main` 与 `dev` 已快进到该发布提交。
-  `patches-list.json`、`patches-bundle.json`、CHANGELOG、README 均已指向 1.5.6；匿名
-  raw → asset 校验通过（`verify_remote_source.py main 1.5.6`）。旧的 1.6.0/1.6.1 只做过本地
-  构建，按用户要求号段回到 1.5.6，不发布 1.6.x；旧本地 1.5.5 资产（`CB4D3135…`）保留在
-  证据目录
+- 发布状态：已发布 **1.5.7**：annotated tag `v1.5.7`，发布提交 `18c6141`；`main` 与 `dev`
+  已指向该提交。GitHub release
+  `https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.7`，资产
+  `patches-1.5.7.mpp` **587,256 B** /
+  `41D96E4B65ED9419854E02013BA71D73B884AD444683DDD559EC32E74DA77159`；匿名下载校验通过
+  （大小与 SHA-256 一致）。`patches-list.json`、`patches-bundle.json`、CHANGELOG、README
+  均已指向 1.5.7。上一发布 1.5.6：tag `v1.5.6` → `2b96358`，资产
+  `patches-1.5.6.mpp` 578,441 B / `E272FCE1…`。旧本地 1.5.5 资产（`CB4D3135…`）保留在证据目录
 - 模块：`caption-contracts`、`caption-shared`、`translation-core`、`infrastructure`、`application-host`、`presentation`、`ui`、`patches`、`ui-preview`
 - 开发环境：`.devenv/`（JDK 21、Python 3.12、Android SDK 35/36、Robolectric 均在 `work/toolchain/`；Gradle home 为 `work/gradle-home/`）
 
@@ -1017,3 +1013,92 @@
   `docs`/release notes 的 1.5.6 说明。
 - 边界：未连接真机；官方 CC 状态来自真实 CC 控件扫描，扫描前可能短暂空白；没有原生目标语言时
   不会伪造翻译。
+
+## 38. 2026-10-23 N65 评论区端点预排、字号与布局解耦（1.5.7 本地构建）
+
+- 用户复测：横屏全屏经播放器 UI 打开评论区仍卡顿，字幕字号“明显有一点滞后”；要求从根因给出
+  既不影响原生开合动画、又能让字号与动画同时到位的方案。根因/修复记录
+  `docs/N65-CAPTION-SHEET-ENDPOINT-20261023.md`。
+- 输入诊断：`caption-diagnostics-1.5.6-20261023-120203.txt`（5,545,712 B / 12,711 events）。
+  证据：FULL→REDUCED 提交后 **277/294/273/292/303/303 ms** 字号才上屏；反向 REDUCED→FULL 为
+  **13/14/13/18/15/13 ms**；提交瞬间字号比目标大 **24.7%**（60.717945/48.68376）。
+- 根因：
+  1. 档位只在动画端点提交，端点又需要一个从未排过版的新宽度（1483 px）计划；`caption_hold`
+     期间原样保留旧 layout 与旧字号，等后台单线程排完（≈280–300 ms）。
+  2. `commitPresentationClass()` 在提交帧就 `resetCommentScale()`，而新字号 200–300 ms 后才到，
+     旧 layout 以原生 55.5 绘制 → 可见回弹后再缩小。
+  3. 关闭方向因为 FULL 计划本就在缓存里（13 ms）且缩放收敛在 1.0，所以只有“开”看得见。
+  4. 动画期间每帧重复读 8 次同一块可见矩形（`currentVideoBounds` 2 次 + 进度/缩放各 3 次）；
+     `followVisibleText` 在视频窄于框宽后每帧 `setLayoutParams`，让播放器 overlay 每帧重 measure。
+  5. `commentProgress()` 无可见矩形时返回 -1，`applyCommentScale()` 未拦截 → 偶发 scale=1.198。
+- 修复：
+  1. **预排端点**：`preplanEndpoint()` 在动画中用与 `render()` 相同的宽度/字号/key 规则构造预算，
+     交给新增的 `CaptionPageExecutor.prefetch()`（独立单线程、只填缓存、不发布、不缓存空结果、
+     不占真实请求队列）；`planKey()` 抽出复用，保证预排即端点所需。
+  2. **视觉尺寸与布局解耦**：缩放改为 `目标字号 / 已布局档位字号`（`appliedClass`），提交不再
+     复位，新计划落地当帧重算为 1.0；提交帧也补一次 `applyCommentScale()`。
+  3. **每帧只读一次几何**：`CaptionSurface.observedVideoRect(Rect)` 取代
+     `visibleVideoWidth()/visibleVideoHeight()`；转场期间锚点宽度保持 class 宽度，只位移+缩放。
+  4. 新增 `COMMENT_SHEET_SYNC`（debug，48 ms/条）与 `COMMENT_SHEET_ENDPOINT`
+     （`commit_to_size_ms`、`plan_ready_at_commit`），端点延迟可结构化复测。
+  5. 清理本轮被替换的实现：`visibleVideoWidth/Height`、`commentScale` 字段、`classGlyphHeight`
+     字段、`applyCommentScale` 的端点复位分支、测试影子里的旧方法。
+- 验证：全量 `:extensions:extension:testDebugUnitTest` **291 tests / 54 result files**，
+  0 failures / 0 errors / 0 skipped（2026-10-23 12:37）；新增
+  `CaptionLayerOverlayTest.theEndpointNeverPaintsTheOldLayoutAtItsOwnSizeWhileThePageIsPlanned`
+  （提交帧 painted glyph 已是 44.5，计划落地后 scale=1）与
+  `aPrefetchedPlanIsReadyForTheRequestThatNeedsIt`（预排进缓存、只算一次、命中后不再算）；
+  更新 `theReadingSizeFollowsTheSheetScaleBeforeTheClassCommits`。本地化 232×14；
+  `verifyIntegrationSources` `errors=[]`。
+- 本地产物：`build/n65/gradle/patches/libs/patches-1.5.7.mpp` **580,946 B**，SHA-256
+  `53190017F4E1EAF12FACAEFEA118508D61C5C6231D352D6C800151D0E958AD70`；manifest
+  `Version: 1.5.7`、`Patcher-Version: 2.0.0`；内嵌 MPE 含 `local-1.5.7-n65`；
+  `gradle.properties` 为 `version=1.5.7` / `captionBuildId=local-1.5.7-n65`。构建用
+  `validation/runs/20261023-n65/build-dir.init.gradle` 把输出隔离到 `build/n65`，已发布
+  `build/n39/.../patches-1.5.6.mpp` 未被覆盖（SHA 仍 `E272FCE1…`）。
+- 边界：未连接真机；预排依赖“端点宽 = min(本地视频宽, 0.66×参考宽)”的预测，命中失败会退回
+  旧路径并在 `COMMENT_SHEET_ENDPOINT.plan_ready_at_commit=false` 可见；动画中仍是 View 渲染
+  变换（轻微栅格化），落地后恢复原生字号渲染；全屏↔详情 `SLIDING` 拖动仍不缩放。
+
+## 39. 2026-10-24 N66–N68 会话恢复/滚动字幕重建与 1.5.7 发布
+
+- 输入诊断：`caption-diagnostics-1.5.7-20261023-130333.txt`（N66）与
+  `caption-diagnostics-1.5.7-20261024-001310.txt`（N68）；字幕文件
+  `g22Z__ShvVY.en.json3` / `.en.vtt`（18,532 events）。
+- 根因一（同一视频再进入不显示）：
+  1. 离开视频时的 `WATCH_WHILE_MINIMIZED` 把 player authority 锁成 `COMPACT`。
+  2. 再进入同一视频时播放器被复用，YouTube 不一定再发 player type 回调；`setVideo` 对相同 id
+     直接返回，`CaptionSessionReconciler.onVideo` 为 `fresh=false`，`appliedKey` 仍匹配，
+     `needsResume()` 又因引擎仍 `visible/ownsNativeTrack` 返回 false。
+  3. 结果 engine 的源/译文/选中事件都在，但 `CaptionOverlayV2.blocked()` 一直拒绝绘制，
+     诊断落在 `REBUILD_PRESENTED … suppressed/player_suppressed`，且之后没有恢复入口。
+- 根因二（特定视频重复/跳变）：
+  1. JSON3 是 `wpWinPosId` 逐词高亮轨道，每个 event 都是整行快照，`pPenId` 标记已说/未说；
+     旧 `json3Spans()` 只认 `wWinId`，把每次高亮都当新台词。
+  2. 多个 `wpWinPosId` 说话窗口被按时间拍平成一条词流，造成逐词交错。
+  3. 诊断 `words=20939 / blocks=3858 / raw_fragments=102759`；同段源文本出现
+     `We'll not only do it again We'll not only do it again …` 的重复。
+- 修复：
+  1. **恢复**：`CaptionApplication.playback()` 每次 tick、以及同一视频 `VIDEO` 事件，调用
+     `CaptionPlayerAuthority.reconcileCurrentPlayerTypeIfUnsettled()`；官方镜像 `NONE` 不作为
+     有效类型；settled 非滑动类型从 `COMPACT` 直接恢复到 `REGULAR`；滑动类型仍等几何 probe；
+     `WATCH_WHILE_MINIMIZED` 可用真实播放器几何兜底（竖屏高度 ≥15% / 横屏 ≥40%，宽 ≥35%），
+     真实 miniplayer/Shorts/NONE/HIDDEN/INLINE_MINIMAL 不放行。记
+     `PLAYER_TYPE_RECONCILED reason=official|geometry`。
+  2. **滚动字幕**：`wpWinPosId` 轨道按窗口 episode 累积；`karaokeSpeech()` 只取最后一个非 dim
+     `pPenId` 段之前的已说前缀；一行一个 span；起点相差 ≤250 ms 的同时窗口合并为一条同时字幕。
+  3. 旧 `wWinId` 行为保留；`wpWinPosId` 无 `pPenId` 的轨道仍按整行前缀/后缀去重。
+- 验证：`:translation-core:testDebugUnitTest` **254 tests**、
+  `:extensions:extension:testDebugUnitTest` **344 tests**，0 failures / 0 errors / 0 skipped；
+  本地化 232×14；真实 6.7 MB JSON3 从 20,939 words 降到 **11,090 words**，开头与 58 s 文本不再
+  重复/交错；`verifyIntegrationSources errors=[]`。
+- 发布：MPP `build/n39/gradle/patches/libs/patches-1.5.7.mpp` **587,256 B**，SHA-256
+  `41D96E4B65ED9419854E02013BA71D73B884AD444683DDD559EC32E74DA77159`；发布提交
+  `18c6141` / tag `v1.5.7`；GitHub release 资产匿名下载为 587,256 B，SHA-256 与上述一致。
+  manifest `Version: 1.5.7`、`Patcher-Version: 2.0.0`；内嵌 MPE 含 `release-1.5.7`；
+  `patches-list.json` / `patches-bundle.json` / CHANGELOG / README 均为 1.5.7；
+  `validate_morphe_metadata.py 1.5.7`、`verify_bundle.py 1.5.7`、
+  `test_release_contract.py` 均通过。README 的 1.5.7 说明只保留三条体验差异：
+  再进入恢复、滚动字幕不再重复/交错、评论区字号跟随动画。
+- 边界：VTT source-only 路径未改颜色高亮去重；未连接真机；未构建/签名 APK；1.5.6 资产字节
+  `E272FCE1…` 保持不变。

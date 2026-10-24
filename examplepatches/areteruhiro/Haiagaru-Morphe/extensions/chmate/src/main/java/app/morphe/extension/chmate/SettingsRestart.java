@@ -8,11 +8,15 @@ import android.os.*;
 final class SettingsRestart {
     private static final java.util.WeakHashMap<Activity,HaiagaruDialog> OPEN=new java.util.WeakHashMap<>();
     static void confirm(Activity activity){
+        confirm(activity,()->{});
+    }
+    static void confirm(Activity activity,Runnable deferred){
         if(activity.isFinishing()||activity.isDestroyed())return;
         HaiagaruDialog previous=OPEN.get(activity);if(previous!=null&&previous.isShowing())return;
         HaiagaruDialog dialog=new HaiagaruDialog.Builder(activity).setTitle("変更の反映には再起動が必要です")
                 .setMessage("今すぐChMateを再起動しますか？未保存の入力や実行中のアップロード・検索は中断されます。「あとで」を選んでも設定は保存され、次の起動時に反映されます。")
-                .setNegativeButton("あとで",null).setPositiveButton("今すぐ再起動",(d,w)->restart(activity)).create();
+                .setNegativeButton("あとで",(d,w)->deferred.run()).setOnCancelListener(d->deferred.run())
+                .setPositiveButton("今すぐ再起動",(d,w)->restart(activity)).create();
         OPEN.put(activity,dialog);dialog.setOnDismissListener(d->OPEN.remove(activity));dialog.show();
     }
     private static void restart(Activity activity){

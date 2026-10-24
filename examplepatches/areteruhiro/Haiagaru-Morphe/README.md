@@ -10,7 +10,12 @@ ChMate `0.8.10.191 dev` / `0.8.10.226 dev` / `0.8.10.242 dev` 対応のMorpheパ
 ChMateに追加設定・閲覧・メディア・バックアップ機能を組み込むパッチです。
 従来の機能紹介は [Haiagaru](https://github.com/areteruhiro/Haiagaru) も参照してください。
 
-最新正式版: [1.11.0](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest) ／ [変更内容・更新手順・確認範囲](docs/release-1.11.0.md)
+最新正式版: [1.11.2](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest) ／ [変更内容・更新手順・確認範囲](docs/release-1.11.2.md)
+
+次期プレ版の公開前検証中: [初回最低限構成・.haiagaru設定共有・履歴から走査再開](docs/settings-sharing-history-resume.md)、
+[検索・フィルター改善](docs/search-filter-2026-10-20.md)、
+[過去ログ文字倍率・折りたたみ端末判定](docs/archive-scale-fold-fix.md)。
+ローカル実装の案内であり、公開済みを意味しません。
 
 更新前にバックアップしてください。**[正式版1.7.1からの変更](docs/release-1.9.0-from-1.7.1.md)** ／ **[プレ版1.8.15からの差分・操作案内](docs/release-1.9.0.md)**。versionCode最大化が初期有効です。
 
@@ -28,7 +33,6 @@ Cookieエラー、ワッチョイ検索、画像一覧、高度なNGなどを案
 
 * Remove ads (including margins)
 * 画像キャッシュサイズを最大256GBまで選択（4／8／16／32／64／128／256GBを追加、現在の設定は維持）。[詳細](docs/image-cache-size.md)
-* Modify User-Agent
 * 画像を含むHTTP通信のHTTPS切り替え（Haiagaru設定でON/OFF、初期値OFF）
 * Remove MonaKey
 * GitHubから更新できるDAT落ちスレ用検索プリセット

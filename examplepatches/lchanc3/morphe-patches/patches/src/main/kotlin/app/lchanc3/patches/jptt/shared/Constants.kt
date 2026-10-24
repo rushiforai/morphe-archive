@@ -21,6 +21,7 @@ internal object Constants {
     const val EXTENSION_BOT_BLOCK_CLASS = "Lapp/lchanc3/extension/jptt/BotBlockPatch;"
     const val EXTENSION_ANIMATED_IMAGE_CLASS = "Lapp/lchanc3/extension/jptt/AnimatedImagePatch;"
     const val EXTENSION_IMAGE_MEMORY_CACHE_CLASS = "Lapp/lchanc3/extension/jptt/ImageMemoryCachePatch;"
+    const val EXTENSION_IMAGE_QUALITY_CLASS = "Lapp/lchanc3/extension/jptt/ImageQualityPatch;"
 
     const val ARTICLE_FRAGMENT_CLASS = "Lcom/joshua/jptt/ArticleFragment;"
     const val ARTICLE_URL_TASK_CLASS = "Lcom/joshua/jptt/ArticleUrlAsyncTask;"
@@ -38,7 +39,7 @@ internal object Constants {
     /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */
     const val JSOCKET_CLASS_PREFIX = "Lcom/joshua/jptt/JSocket"
 
-    /** The JPTT release new patches are written and verified against. */
+    /** The JPTT release every patch is written and verified against. */
     private val LATEST_TARGET = AppTarget(version = "3.9.2")
 
     /**
@@ -51,33 +52,20 @@ internal object Constants {
     private val UNTESTED_TARGET = AppTarget(version = null, isExperimental = true)
 
     /**
-     * For the patches that were written before [LATEST_TARGET], which keep
-     * working on every release they were verified against.
+     * Only the latest JPTT release is supported: older ones get no new patches
+     * or fixes, so claiming them would only send people to an older bundle.
      *
      * Morphe Manager builds its supported set from these version strings alone,
      * so anything not listed lands in "incompatible" and has to be patched
-     * through the unsupported-version dialog. A new JPTT release is added here
-     * once these patches have been run against it with `verifyAgainstApk`, and
-     * the older ones stay. Newest first, as Morphe asks.
+     * through the unsupported-version dialog. A new JPTT release replaces
+     * [LATEST_TARGET] once every patch has been run against it with
+     * `verifyAgainstApk`.
      */
-    val COMPATIBILITY_JPTT = jptt(
-        LATEST_TARGET,
-        AppTarget(version = "3.8.5"),
-        AppTarget(version = "3.8.4"),
-        UNTESTED_TARGET,
-    )
-
-    /**
-     * For new patches: they are only written and verified against the latest
-     * JPTT release, so they claim nothing older.
-     */
-    val COMPATIBILITY_JPTT_LATEST = jptt(LATEST_TARGET, UNTESTED_TARGET)
-
-    private fun jptt(vararg targets: AppTarget) = Compatibility(
+    val COMPATIBILITY_JPTT = Compatibility(
         name = "JPTT",
         packageName = "com.joshua.jptt",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFCFCFC,
-        targets = targets.toList(),
+        targets = listOf(LATEST_TARGET, UNTESTED_TARGET),
     )
 }

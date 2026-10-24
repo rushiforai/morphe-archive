@@ -1,3 +1,11 @@
+# [0.7.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.7.0) (2026-10-23)
+
+### Features
+
+* **Pocket Casts:** Add separate Catppuccin Latte, Macchiato, and restored Radioactivity theme choices for 8.23-rc-1.
+* **Pocket Casts:** Add an optional custom TTF file picker for the interface and show notes.
+* **Pocket Casts:** Theme Featured cards, now-playing surfaces, Details headers/body, and the Up Next playing banner. Preserve stock theme choices.
+
 # [0.6.1](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.6.1) (2026-10-18)
 
 ### Features

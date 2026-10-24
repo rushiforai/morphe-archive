@@ -39,8 +39,10 @@ private fun stateFlowSetValue(location: InstructionLocation = InstructionLocatio
 
 internal object UserInfoToStringFingerprint : ToStringFingerprint("PartialJointUserInt(user=")
 
-private fun Method.referencesType(type: String) = parameterTypes.firstOrNull()?.toString() == type ||
-    instructionsOrNull?.any { it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == type } == true
+private fun Method.receivesType(type: String) = parameterTypes.firstOrNull()?.toString() == type ||
+    instructionsOrNull?.firstOrNull()?.let {
+        it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == type
+    } == true
 
 private fun BytecodePatchContext.userInfoUpdateFingerprint(): Fingerprint {
     val userInfo = UserInfoToStringFingerprint.originalClassDef.type
@@ -52,7 +54,7 @@ private fun BytecodePatchContext.userInfoUpdateFingerprint(): Fingerprint {
             opcode(Opcode.MOVE_RESULT_WIDE, MatchAfterImmediately()),
             stateFlowSetValue(),
         ),
-        custom = { method, _ -> method.referencesType(userInfo) },
+        custom = { method, _ -> method.receivesType(userInfo) },
     )
 }
 

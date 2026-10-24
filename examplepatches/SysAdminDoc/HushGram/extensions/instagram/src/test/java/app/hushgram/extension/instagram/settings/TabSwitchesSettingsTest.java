@@ -101,6 +101,20 @@ public class TabSwitchesSettingsTest {
         assertNull("the glass bar's rows need their own patch", row(Settings.GLASS_TAB_BAR.key));
     }
 
+    /** #298: Hide the Messages tab sits under Tab bar, starts off, needs no restart and points at the header's button. */
+    @Test public void hideTheMessagesTabIsATabBarRowThatNeedsNoRestart() throws Exception {
+        open(PatchFamily.REELS_TAB);
+        SwitchPreference toggle = (SwitchPreference) row(Settings.HIDE_MESSAGES_TAB.key);
+        assertNotNull(toggle);
+        assertEquals("Hide the Messages tab", String.valueOf(toggle.getTitle()));
+        assertEquals("Tab bar", String.valueOf(sectionOf(page.getPreferenceScreen(), toggle).getTitle()));
+        assertFalse(toggle.isChecked());
+        assertFalse(Settings.HIDE_MESSAGES_TAB.rebootApp);
+        assertTrue(String.valueOf(toggle.getSummary()).contains("Messages button on Home's header"));
+        assertTrue(PatchFamily.REELS_TAB.switches.stream().anyMatch(setting -> setting.key.equals(Settings.HIDE_MESSAGES_TAB.key)));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_MESSAGES_TAB.key));
+    }
+
     @Test public void theStartTabIsAChoiceUnderTabBarThatStartsAtHome() throws Exception {
         open(PatchFamily.REELS_TAB);
         Preference found = row(Settings.START_TAB.key);

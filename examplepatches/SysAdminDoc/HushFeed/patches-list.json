@@ -164,7 +164,7 @@
     },
     {
       "name": "Allow Duet and Stitch",
-      "description": "Shows the Duet and Stitch buttons on videos whose creator turned them off, so you can still make one. TikTok may still refuse some videos or the upload. Starts off. Turn it on in Hushfeed settings > Share sheet.",
+      "description": "Shows the Duet and Stitch buttons on videos whose creator turned them off, so you can still make one, and Add to Story on a story whose creator turned off content reuse. TikTok may still refuse some videos or the upload. Starts off. Turn it on in Hushfeed settings > Share sheet.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -3351,7 +3351,7 @@
     },
     {
       "name": "Hide profile shortcuts",
-      "description": "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders, and can hide the Thoughts bubble, and Balance and the TikTok Minis icons in your profile's menu. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
+      "description": "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders, and can hide the Thoughts bubble, and Balance and the TikTok Minis icons in your profile's menu. It can also turn Thoughts on for accounts TikTok left out. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -4206,6 +4206,7 @@
       "use": true,
       "dependencies": [
         "BytecodePatch",
+        "ResourcePatch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5408,7 +5409,7 @@
     },
     {
       "name": "Remove avatar rings",
-      "description": "Takes the story and LIVE rings off profile pictures, so tapping a picture opens the profile instead of a story or LIVE. Starts off. Turn it on in Hushfeed settings > Feed screen.",
+      "description": "Takes the story and LIVE rings off profile pictures, so tapping a picture opens the profile instead of a story or LIVE. It can also open a LIVE creator's Story from their profile picture. Starts off. Turn it on in Hushfeed settings > Feed screen.",
       "category": "Feed",
       "use": true,
       "dependencies": [

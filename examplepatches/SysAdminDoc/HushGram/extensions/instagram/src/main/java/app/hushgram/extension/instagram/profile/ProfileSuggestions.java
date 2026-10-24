@@ -45,6 +45,14 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * accounts to suggest, and the patch hands that answer to {@link #followList}. A 0 means it never
  * asks, so the section is never fetched or drawn and every account in the list stays.
  *
+ * <p>Someone else's follow lists open in a pager with mutual, followers and following tabs, and it
+ * can add a Suggested tab of accounts to follow (#302). The pager reads, as it opens, whether to add
+ * that tab, and the patch hands that answer to {@link #suggestedTab}: a 0 leaves the tab out, and a
+ * list opened on it starts on its first tab. The mutual tab draws Suggested for you under the people
+ * you both follow, and the patch hands its accounts to {@link #mutualSuggestions} each time it draws
+ * them: an empty list draws no section, and the mutual followers above stay. The same switch as
+ * {@link #followList} takes both.
+ *
  * <p>Your own profile can also show Complete your profile's cards (Add bio, Find people to follow)
  * above its posts. Its posts ask one check whether to add them, and {@link #hideCompletionCards}
  * answers first: a yes makes that check say no, so the cards are never added.
@@ -80,6 +88,8 @@ public final class ProfileSuggestions {
     static final String STANDALONE_ROW = "standalone row";
     static final String CHAINING_BUTTON = "discover people button";
     static final String FOLLOW_LIST = "follow list section";
+    static final String SUGGESTED_TAB = "suggested tab on follow lists";
+    static final String MUTUAL_SUGGESTIONS = "suggested section under mutual followers";
     static final String COMPLETION_CARDS = "complete your profile cards";
     static final String FOLLOW_BACKS = "people you don't follow back";
 
@@ -203,6 +213,37 @@ public final class ProfileSuggestions {
     static int followList(int fetch, BooleanSupplier on) {
         if (fetch == 0) return 0;
         return hides(FOLLOW_LIST, on) ? 0 : fetch;
+    }
+
+    /**
+     * Injected right after the pager over someone else's follow lists reads whether to add its
+     * Suggested tab (#302). Answers 0 while Hide Suggested for you on follow lists is on, and [add]
+     * otherwise, or when anything goes wrong. A 0 coming in stays 0. Never throws.
+     */
+    public static int suggestedTab(int add) {
+        return suggestedTab(add, ProfileSuggestions::followListOn);
+    }
+
+    static int suggestedTab(int add, BooleanSupplier on) {
+        if (add == 0) return 0;
+        return hides(SUGGESTED_TAB, on) ? 0 : add;
+    }
+
+    /**
+     * Injected where the mutual followers list reads the accounts it suggests under the people you
+     * both follow, right before it checks whether there are any (#302). Answers an empty list while
+     * Hide Suggested for you on follow lists is on, so the list draws no Suggested for you section,
+     * and [accounts] as they came otherwise, or when anything goes wrong. The list keeps its own copy
+     * of the accounts either way. Counts only when there were accounts to hide. Never throws.
+     */
+    public static List<?> mutualSuggestions(List<?> accounts) {
+        return mutualSuggestions(accounts, ProfileSuggestions::followListOn);
+    }
+
+    static List<?> mutualSuggestions(List<?> accounts, BooleanSupplier on) {
+        HookStatus.invoked(FamilyNames.PROFILE_SUGGESTIONS);
+        if (accounts == null || accounts.isEmpty()) return accounts;
+        return decides(MUTUAL_SUGGESTIONS, on) ? Collections.emptyList() : accounts;
     }
 
     /**

@@ -5,7 +5,7 @@ authors' credits live here and in the per-file headers. Thank you to all of them
 
 ## Loupric: Morphe Waze music patch
 - Repository: https://github.com/Loupric/morphe-waze-music-patch (GPLv3), release v1.0.2, commit e9de88d0e579c19e8b71ee37f287eac6e48f5979
-- Used by: **Morphe YouTube Music as a Waze audio partner**
+- Used by: **Additional players as audio partners**
 - Ported from them: both edits, the manifest `<queries>` declaration and the `updateAppList` injection that builds the partner entry with the five-argument `au` constructor (feature bits 0x200001).
 - Changed here: the fingerprint is pinned by class name and signature, and the patch also forces Waze's audio-extension switches so the partner does not depend on a server rollout.
 

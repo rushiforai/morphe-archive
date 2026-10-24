@@ -11,6 +11,10 @@ val COMPATIBILITY_ANALITI = Compatibility(
     appIconColor = 0x1B5E20,
     targets = listOf(
         AppTarget(
+            version = "2026.10.98884",
+            description = "",
+        ),
+        AppTarget(
             version = "2026.10.98554",
             description = "",
         ),

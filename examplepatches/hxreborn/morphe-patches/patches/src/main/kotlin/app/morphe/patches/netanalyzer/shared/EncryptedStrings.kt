@@ -34,7 +34,7 @@ internal val stringKeyPatch = rawResourcePatch {
         val library = get(STRING_LIBRARY, true)
         if (!library.exists()) throw PatchException("$STRING_LIBRARY is missing")
 
-        val elf = ElfImage(library.readBytes())
+        val elf = Arm64ElfReader(library.readBytes())
         val keyParts = elf.pageRelativeLoads(elf.symbol(STRING_DECODER_SYMBOL)).take(STRING_KEY_PARTS)
         if (keyParts.size != STRING_KEY_PARTS) {
             throw PatchException("$STRING_DECODER_SYMBOL loads ${keyParts.size} page-relative qwords, expected $STRING_KEY_PARTS")

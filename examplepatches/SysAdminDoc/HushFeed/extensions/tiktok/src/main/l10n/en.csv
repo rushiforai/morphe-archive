@@ -202,6 +202,7 @@ All,All
 All available languages,All available languages
 All events,All events
 All loaded tabs,All loaded tabs
+Allow Add to Story anyway,Allow Add to Story anyway
 Allow Duet and Stitch anyway,Allow Duet and Stitch anyway
 Allow screenshots and Circle to Search,Allow screenshots and Circle to Search
 Allow storage for TikTok in Android settings to record LIVEs,Allow storage for TikTok in Android settings to record LIVEs
@@ -303,6 +304,8 @@ Blocked sound ids,Blocked sound ids
 Blocked sound names,Blocked sound names
 Blocked sounds,Blocked sounds
 Blocking,Blocking
+"Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.","Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up."
+Blur the video behind the bar,Blur the video behind the bar
 Bold,Bold
 Bottom left double tap,Bottom left double tap
 Bottom right double tap,Bottom right double tap
@@ -953,6 +956,7 @@ LIVE feed,LIVE feed
 LIVE followers range,LIVE followers range
 LIVE recording quality,LIVE recording quality
 LIVE recording saved to %1$s,LIVE recording saved to %1$s
+LIVE recording source,LIVE recording source
 LIVE replays,LIVE replays
 LIVE settings,LIVE settings
 LIVE share actions,LIVE share actions
@@ -973,6 +977,8 @@ Later,Later
 Latest first on Following,Latest first on Following
 Layout,Layout
 "Layout, search, profile and system","Layout, search, profile and system"
+Least liked first,Least liked first
+Least viewed first,Least viewed first
 Leave maximum empty to keep it unlimited.,Leave maximum empty to keep it unlimited.
 "Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.","Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show."
 Leave the sound out of the saved video. Save the sound as well still writes the sound file beside it if you want both.,Leave the sound out of the saved video. Save the sound as well still writes the sound file beside it if you want both.
@@ -1207,6 +1213,7 @@ Open external links directly,Open external links directly
 Open messages,Open messages
 Open profile and story website links in your system browser instead of TikTok's in-app browser.,Open profile and story website links in your system browser instead of TikTok's in-app browser.
 Open shared videos alone,Open shared videos alone
+Open the Story when a creator is LIVE,Open the Story when a creator is LIVE
 Open the comments at full height,Open the comments at full height
 Open the feed anyway,Open the feed anyway
 "Open the feed anyway, %1$d left today","Open the feed anyway, %1$d left today"
@@ -1214,6 +1221,7 @@ Open the feed anyway,Open the feed anyway
 Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.,Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.
 Open the feed once so Hushfeed can see which tabs TikTok loaded.,Open the feed once so Hushfeed can see which tabs TikTok loaded.
 Open the profile again and try once more,Open the profile again and try once more
+Open the room and tap Stop to save it.,Open the room and tap Stop to save it.
 Open the story again and try once more,Open the story again and try once more
 "Open your profile once, then return here to choose its shortcuts.","Open your profile once, then return here to choose its shortcuts."
 "Opens TikTok's own profile background editor in Edit profile, and shows the backgrounds other profiles have set. TikTok's servers may still refuse to save one for an account TikTok hasn't offered it to yet.","Opens TikTok's own profile background editor in Edit profile, and shows the backgrounds other profiles have set. TikTok's servers may still refuse to save one for an account TikTok hasn't offered it to yet."
@@ -1227,6 +1235,7 @@ Operator name,Operator name
 "Opus (.ogg), a smaller file","Opus (.ogg), a smaller file"
 Opus didn't work on this phone. Saving the sound as TikTok sent it instead.,Opus didn't work on this phone. Saving the sound as TikTok sent it instead.
 "Opus needs Android 10 or later, so sounds save as TikTok sent them.","Opus needs Android 10 or later, so sounds save as TikTok sent them."
+Original,Original
 Original language,Original language
 Original message,Original message
 Original order,Original order
@@ -1276,9 +1285,9 @@ Picks the older H.264 video format when TikTok also offers a newer one (HEVC or 
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
 Play Store,Play Store
-"Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.","Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place."
 "Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.","Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound."
 Play sounds TikTok pulled,Play sounds TikTok pulled
+"Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.","Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place."
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.
 Playback,Playback
 Player,Player
@@ -1364,6 +1373,9 @@ Recorded gate reads (%1$d),Recorded gate reads (%1$d)
 "Recording gate reads. Use a feature, then return here to stop.","Recording gate reads. Use a feature, then return here to stop."
 Recording stopped early. What was recorded is saved to %1$s,Recording stopped early. What was recorded is saved to %1$s
 Recording this LIVE from now,Recording this LIVE from now
+Recording this LIVE's screen,Recording this LIVE's screen
+Recording this LIVE's screen from now,Recording this LIVE's screen from now
+"Recording this LIVE's screen from now, without sound","Recording this LIVE's screen from now, without sound"
 Recording what the feed filters keep and hide. Tap to stop and save it in %1$s.,Recording what the feed filters keep and hide. Tap to stop and save it in %1$s.
 Recovered an interrupted settings change. Restart TikTok to apply this.,Recovered an interrupted settings change. Restart TikTok to apply this.
 Refresh values,Refresh values
@@ -1433,7 +1445,7 @@ SIM country preset,SIM country preset
 SOCKS5,SOCKS5
 STEM,STEM
 Same as the room,Same as the room
-"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.","Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower."
+"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.","Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered."
 Sample caption to test,Sample caption to test
 Sample category to test,Sample category to test
 Save,Save
@@ -1449,7 +1461,7 @@ Save cover,Save cover
 Save cover button in the share sheet,Save cover button in the share sheet
 Save details as JSON,Save details as JSON
 Save details beside the video,Save details beside the video
-"Save every photo in the post at full size as a JPEG, not as the screen shows it.","Save every photo in the post at full size as a JPEG, not as the screen shows it."
+"Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on.","Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as TikTok sent them is on."
 Save field values,Save field values
 Save full report,Save full report
 Save in which quality?,Save in which quality?
@@ -1486,7 +1498,7 @@ Saved %1$s videos,Saved %1$s videos
 Saved 1 seen video to the file,Saved 1 seen video to the file
 Saved one original photo,Saved one original photo
 Saved one video,Saved one video
-"Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those.","Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. Some galleries and computers can't open those."
+"Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.","Saved photos, covers, story photos and stickers that don't move are the exact files TikTok sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP."
 Saved post,Saved post
 Saved posts,Saved posts
 Saved the photos as a video in %1$s,Saved the photos as a video in %1$s
@@ -1523,7 +1535,9 @@ Saving the story,Saving the story
 Saving video,Saving video
 Saving video to %1$s,Saving video to %1$s
 Saving video: %1$s,Saving video: %1$s
+Screen,Screen
 Screen layout recorded. Export the diagnostic report to send it.,Screen layout recorded. Export the diagnostic report to send it.
+Screen recording wasn't allowed,Screen recording wasn't allowed
 Screen time,Screen time
 Scrolling comments on videos,Scrolling comments on videos
 Search,Search
@@ -1605,6 +1619,7 @@ Shortest first,Shortest first
 Show,Show
 Show @username beside a video instead of the display name the creator chose.,Show @username beside a video instead of the display name the creator chose.
 Show See translation,Show See translation
+"Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this.","Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts TikTok hasn't turned them on for. TikTok's servers may still refuse to post one. Restart TikTok to apply this."
 "Show TikTok's button for recording a spoken comment, on accounts that don't have it yet. It hasn't been tried on a real account, so it may not work.","Show TikTok's button for recording a spoken comment, on accounts that don't have it yet. It hasn't been tried on a real account, so it may not work."
 Show TikTok's feed buttons,Show TikTok's feed buttons
 Show TikTok's own progress bar on videos where it's normally hidden.,Show TikTok's own progress bar on videos where it's normally hidden.
@@ -1670,6 +1685,7 @@ Show where a video was posted,Show where a video was posted
 Show where commenters are from,Show where commenters are from
 Showing %1$s again,Showing %1$s again
 Shown. Tap to hide it.,Shown. Tap to hide it.
+Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.,Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.
 "Shows TikTok's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart TikTok to see the change.","Shows TikTok's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart TikTok to see the change."
 "Shows TikTok's play, pause, previous and next buttons on the feed. TikTok normally shows them only to people who use a screen reader. TikTok can see when you use them.","Shows TikTok's play, pause, previous and next buttons on the feed. TikTok normally shows them only to people who use a screen reader. TikTok can see when you use them."
 "Shows TikTok's text in the font file you import below. While both are on, this one wins over Use system font. If the file is removed or can't be read, the text goes back to what Use system font shows.","Shows TikTok's text in the font file you import below. While both are on, this one wins over Use system font. If the file is removed or can't be read, the text goes back to what Use system font shows."
@@ -1695,7 +1711,8 @@ Some Calm feed settings changed. Restore still puts back your earlier setup.,Som
 Some of these notes are in English.,Some of these notes are in English.
 Something is missing from %1$s. Tap for the whole report.,Something is missing from %1$s. Tap for the whole report.
 Sort loaded videos on profile grids,Sort loaded videos on profile grids
-"Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.","Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this."
+Sort this grid,Sort this grid
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."
 Sound,Sound
 "Sound IDs saved by the player's sound button, separated by commas. Remove one to unblock it.","Sound IDs saved by the player's sound button, separated by commas. Remove one to unblock it."
 Sound format,Sound format
@@ -1770,7 +1787,7 @@ Stops TikTok from reading your phone's motion and compass sensors. Apps can use 
 "Stops TikTok from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and For You learns less. Likes, follows and searches are still seen.","Stops TikTok from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and For You learns less. Likes, follows and searches are still seen."
 "Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.","Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too."
 "Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.","Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower."
-"Stops TikTok from turning your screen brighter while you film, edit or post a video.","Stops TikTok from turning your screen brighter while you film, edit or post a video."
+"Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.","Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness."
 "Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.","Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work."
 "Stops websites you open from inside TikTok from reaching back into the app. TikTok's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working.","Stops websites you open from inside TikTok from reaching back into the app. TikTok's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working."
 Store TikTok thinks it came from,Store TikTok thinks it came from
@@ -1780,6 +1797,8 @@ Story,Story
 Story position,Story position
 Story saved to %1$s,Story saved to %1$s
 Streak,Streak
+Stream only,Stream only
+"Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.","Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records."
 Structured value observed,Structured value observed
 Subscriber-only posts,Subscriber-only posts
 Subtitle language,Subtitle language
@@ -2077,6 +2096,7 @@ Turn off the swipe to the side menu,Turn off the swipe to the side menu
 Turn off the timer (TikTok closes at %1$s),Turn off the timer (TikTok closes at %1$s)
 Turn on %1$s first.,Turn on %1$s first.
 Turn on Keep a streak going first,Turn on Keep a streak going first
+Turn on Thoughts,Turn on Thoughts
 Turn on overrides,Turn on overrides
 "Turn the music disc at the bottom of the right column while a video plays, the way TikTok used to.","Turn the music disc at the bottom of the right column while a video plays, the way TikTok used to."
 Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.,Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.
@@ -2183,6 +2203,7 @@ What's new,What's new
 "When TikTok is in dark mode, the list of collections you get by holding the Favorites button is dark too instead of white.","When TikTok is in dark mode, the list of collections you get by holding the Favorites button is dark too instead of white."
 "When TikTok requests this key, return the selected value below","When TikTok requests this key, return the selected value below"
 "When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start.","When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start."
+"When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.","When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE."
 "When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on.","When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on."
 "When a video ends while TikTok plays in the background, it starts over instead of waiting for you to press Play in the notification. A call or another app's sound still pauses it.","When a video ends while TikTok plays in the background, it starts over instead of waiting for you to press Play in the notification. A call or another app's sound still pauses it."
 "When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.","When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most."

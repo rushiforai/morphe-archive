@@ -16,7 +16,7 @@ private const val ACTIVATED_STATUS = 'R'
 @Suppress("unused")
 val unlockFullVersionPatch = bytecodePatch(
     name = "Unlock full version",
-    description = "Unlocks the Off-Road Explorer features gated behind activation.",
+    description = "Unlocks the Off-Road Explorer features.",
 ) {
     dependsOn(bypassSignatureCheckPatch)
     compatibleWith(AppCompatibilities.ALPINEQUEST)

@@ -73,7 +73,6 @@ public final class RunHistory {
                 try {
                     runs.add(Long.parseLong(value.trim()));
                 } catch (NumberFormatException ex) {
-                    // A corrupt entry must not discard the rest of the history
                 }
             }
             if (!runs.isEmpty()) {

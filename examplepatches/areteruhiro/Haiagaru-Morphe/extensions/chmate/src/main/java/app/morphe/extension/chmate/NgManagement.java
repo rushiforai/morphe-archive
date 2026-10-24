@@ -166,13 +166,12 @@ public final class NgManagement {
         CheckBox remove = new CheckBox(activity);
         remove.setText("統合した元のNGNameを削除する（選択した対象のみ）");
         HaiagaruDialog dialog = new HaiagaruDialog.Builder(activity).setTitle("統合する下4桁を選択")
+                .setCustomTitle(remove)
                 .setMultiChoiceItems(labels.toArray(new String[0]), selected, (d, which, checked) -> selected[which] = checked)
                 .setNegativeButton("キャンセル", null).setPositiveButton("適用", null).create();
-        // A custom panel alongside HaiagaruDialog's choice list gives that list
-        // WRAP_CONTENT/zero weight on some framework themes. Many multi-line
-        // rows then push the button bar off-screen. Keep just the native list
-        // panel, and scroll the optional deletion checkbox as its footer.
-        dialog.getListView().addFooterView(remove, null, false);
+        // HaiagaruDialog renders choice rows in Compose rather than displaying
+        // its backing ListView. Put this option in the visible custom-title slot;
+        // ListView footer/header views are never composed and cannot be toggled.
         dialog.setOnShowListener(d -> dialog.getButton(HaiagaruDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             try {
                 List<Object> after = new ArrayList<>();

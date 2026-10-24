@@ -41,6 +41,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import app.hxreborn.extension.shared.Dimensions;
+
 @SuppressWarnings("unused")
 public final class NotesActivity extends Activity {
 
@@ -439,8 +441,7 @@ public final class NotesActivity extends Activity {
     }
 
     private int dp(float value) {
-        return Math
-            .round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics()));
+        return Dimensions.dp(this, value);
     }
 
     private final class RowAdapter extends BaseAdapter {
@@ -630,8 +631,7 @@ public final class NotesActivity extends Activity {
             super(context);
             this.paint.setColor(color);
             this.paint.setStyle(Paint.Style.STROKE);
-            this.paint.setStrokeWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2,
-                    context.getResources().getDisplayMetrics()));
+            this.paint.setStrokeWidth(Dimensions.dpExact(context, 2));
             this.paint.setStrokeCap(Paint.Cap.ROUND);
             this.paint.setStrokeJoin(Paint.Join.ROUND);
         }

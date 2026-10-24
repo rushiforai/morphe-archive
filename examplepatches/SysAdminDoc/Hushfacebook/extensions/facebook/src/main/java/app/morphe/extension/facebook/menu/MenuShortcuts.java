@@ -22,7 +22,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 /**
  * Takes the Meta AI shortcut, and any tile picked in Menu tiles to hide (#153), out of Facebook's Menu,
  * where they sit with Feeds, Marketplace, Reels and Groups above See more. A tile is matched by the
- * deep link it opens ({@link MenuTiles#keyOf}), never by its label.
+ * deep link it opens ({@link MenuTiles#keyOf}), or by what it bookmarks when it has no link and
+ * its server sends the route, as 584's Finds does ({@link MenuTiles#appKey}), never by its label.
  *
  * <p>Those rows are a bookmarks folder section's list of bookmarks, the same list See more opens
  * in full. The patch hands that list to {@link #kept} the moment the section reads it, before it
@@ -109,17 +110,30 @@ public final class MenuShortcuts {
         for (Object bookmark : bookmarks) {
             if (!PostDetails.isLiveTree(bookmark)) continue;
             String name = PostDetails.string(bookmark, NAME);
-            String key = MenuTiles.keyOf(PostDetails.string(bookmark, MenuTiles.URL));
+            String key = keyOf(bookmark);
             if (key != null && name != null && !isMetaAiName(name) && !tiles.containsKey(key)) tiles.put(key, name);
         }
         return tiles;
     }
 
-    /** Whether [bookmark] is a live bookmark model whose deep link keys to one of [tiles]. */
+    /** Whether [bookmark] is a live bookmark model that keys to one of [tiles]. */
     private static boolean isHiddenTile(@Nullable Object bookmark, Set<String> tiles) {
         if (!PostDetails.isLiveTree(bookmark)) return false;
-        String key = MenuTiles.keyOf(PostDetails.string(bookmark, MenuTiles.URL));
+        String key = keyOf(bookmark);
         return key != null && tiles.contains(key);
+    }
+
+    /**
+     * The key of the live bookmark model [bookmark]: by the deep link it opens, or, for one with
+     * no link that opens what it bookmarks by a route its server sends (584's Finds, #224), by
+     * the id of that node. Null for a bookmark with neither, a folder for one.
+     */
+    @Nullable
+    static String keyOf(Object bookmark) {
+        String key = MenuTiles.keyOf(PostDetails.string(bookmark, MenuTiles.URL));
+        if (key != null) return key;
+        Object node = PostDetails.tree(bookmark, MenuTiles.BOOKMARKED_NODE);
+        return node == null ? null : MenuTiles.appKey(PostDetails.string(node, MenuTiles.ID));
     }
 
     /** Whether [bookmark] is a live bookmark model named Meta AI. A released one is never read. */

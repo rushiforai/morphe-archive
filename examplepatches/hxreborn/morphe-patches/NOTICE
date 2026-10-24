@@ -19,3 +19,40 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Third-party components
+======================
+
+Apache License 2.0 (full text in third-party/licenses/Apache-2.0.txt, shipped in the bundle under
+META-INF/third-party/licenses/):
+
+- aircompressor 0.27, https://github.com/airlift/aircompressor. Zstandard decompressor ported without
+  sun.misc.Unsafe, in patches/src/main/java/app/morphe/patches/shared/misc/jiagu/zstd/. Each file keeps its
+  Apache-2.0 header.
+- Material Symbols, https://github.com/google/material-design-icons, Copyright Google LLC. Icon path data in
+  patches/src/main/kotlin/app/morphe/patches/netanalyzer/shared/MaterialIcons.kt and
+  extensions/extension/src/main/java/app/hxreborn/extension/netanalyzer/MaterialIcons.java.
+- Gson, https://github.com/google/gson, Copyright 2008 Google Inc. Bundled in the .mpp.
+- PNGJ, http://hjg.com.ar/pngj/. Bundled in the .mpp. Its NOTICE:
+
+    PNGJ : PNG image IO Java library
+    Copyright 2009-2012 Hernán J. González
+
+    This product includes software developed by:
+    Hernán J. González
+    (Buenos Aires, Argentina)
+    hgonzalez@gmail.com
+    http://hjg.com.ar/
+    http://stackexchange.com/users/103559/leonbloy
+
+SIL Open Font License 1.1 (full text in .github/assets/fonts/OFL.txt):
+
+- Fredoka, Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One). Subsets in
+  .github/assets/fonts/, used by the README banner generator.
+
+Code ported from other projects keeps the copyright and source lines in its file header:
+
+- MorpheApp/morphe-patches (GPLv3 with the NOTICE terms above): the GmsCore files, the shared
+  SpoofSignature extension and the Proton Mail signature patch.
+- L-JINBIN/ApkSignatureKillerEx, https://github.com/L-JINBIN/ApkSignatureKillerEx: the signature check in
+  extensions/extension/src/main/java/app/hxreborn/extension/shared/SpoofSignature.java is adapted from it.

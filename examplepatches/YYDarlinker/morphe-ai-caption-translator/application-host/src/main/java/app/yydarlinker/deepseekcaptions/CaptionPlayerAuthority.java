@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
 /**
  * The one player authority: owner identity, player type and display permission.
@@ -48,6 +49,9 @@ final class CaptionPlayerAuthority {
     private static String playerType = "";
     private static boolean typeAuthoritative;
 
+    /** Test-only current-player source; production reads the official public accessor. */
+    private static volatile Supplier<String> testPlayerType;
+
     /** Set by a real notification so the next surface pass may search despite its throttle. */
     private static boolean surfaceDirty;
 
@@ -66,7 +70,11 @@ final class CaptionPlayerAuthority {
     }
 
     static String stateName() {
-        switch (state) {
+        return stateName(state);
+    }
+
+    private static String stateName(int value) {
+        switch (value) {
             case COMPACT:
                 return "COMPACT";
             case TRANSITIONING_TO_REGULAR:
@@ -225,9 +233,90 @@ final class CaptionPlayerAuthority {
      * never waits for a type callback that may legitimately never repeat.
      */
     static String reconcileCurrentPlayerType() {
-        String resolved = OfficialPlayerTypeReader.read();
-        if (!resolved.isEmpty()) onNotification(resolved);
+        String resolved = resolveOfficialType();
+        if (resolved.isEmpty()) return "";
+        // The callback already settled this exact type; repeating it would churn the notification
+        // sequence on every player tick while the miniplayer is open.
+        if (resolved.equals(playerType) && typeAuthoritative) return resolved;
+        onNotification(resolved);
         return resolved;
+    }
+
+    /**
+     * The official mirror is only useful when it names a real mode. NONE is both "no player" and
+     * "the optional official player-type hook did not run", so it is never evidence to change the
+     * state this authority already learned from the callback.
+     */
+    private static String resolveOfficialType() {
+        String resolved = OfficialPlayerTypeReader.read();
+        return resolved.isEmpty() || "NONE".equals(resolved) ? "" : resolved;
+    }
+
+    /**
+     * A bounded resume check. It asks the official current-player surface only while display is
+     * still unsettled, which is exactly the "left the video, came back to the same video" case: the
+     * player is reused, so YouTube may not emit a second type callback and a COMPACT state learned
+     * on the way out would otherwise stay latched for the whole new visit.
+     */
+    static boolean reconcileCurrentPlayerTypeIfUnsettled() {
+        int before = state;
+        if (before != COMPACT
+                && before != UNKNOWN
+                && before != TRANSITIONING_TO_REGULAR) return false;
+        String resolved = resolveOfficialType();
+        // The official PlayerType mirror is updated by an optional hook. When that hook is not in
+        // the composition, or its callback is the one that went missing, only the real player
+        // surface can contradict a latched miniplayer. The fallback is deliberately narrow: it
+        // applies only to the WATCH_WHILE_MINIMIZED name, never to NONE/HIDDEN/INLINE_MINIMAL.
+        boolean staleMini =
+                before != UNKNOWN
+                        && ("WATCH_WHILE_MINIMIZED".equals(playerType)
+                                || "WATCH_WHILE_MINIMIZED".equals(resolved));
+        if (staleMini && CaptionPlayerTransitionGuard.recoverFromProvenGeometry()) {
+            reportReconcile("geometry", resolved, before);
+            return true;
+        }
+        if (resolved.isEmpty()) return false;
+        String beforeType = playerType;
+        if (!resolved.equals(playerType) || !typeAuthoritative) onNotification(resolved);
+        boolean changed = !resolved.equals(beforeType) || state != before;
+        if (state != REGULAR
+                && staleMini
+                && CaptionPlayerTransitionGuard.recoverFromProvenGeometry()) {
+            reportReconcile("geometry", resolved, before);
+            return true;
+        }
+        if (changed) reportReconcile("official", resolved, before);
+        return changed;
+    }
+
+    private static void reportReconcile(String reason, String resolved, int before) {
+        Activity current = activity.get();
+        if (current == null) return;
+        CaptionDiagnostics.mark(
+                current,
+                "PLAYER_TYPE_RECONCILED",
+                "reason="
+                        + reason
+                        + ";type="
+                        + (resolved.isEmpty() ? playerType : resolved)
+                        + ";before="
+                        + stateName(before)
+                        + ";state="
+                        + stateName()
+                        + ";"
+                        + shortId());
+    }
+
+    /**
+     * A proven regular-sized player surface is stronger evidence than a stale miniplayer name.
+     * The caller has already checked that the name being overridden is WATCH_WHILE_MINIMIZED.
+     */
+    static boolean settleRegularFromGeometry() {
+        if (!ownerValid()) return false;
+        surfaceDirty = true;
+        moveTo(REGULAR);
+        return state == REGULAR;
     }
 
     private static void moveTo(int next) {
@@ -245,8 +334,17 @@ final class CaptionPlayerAuthority {
             // A verified Shorts surface is never the compact miniplayer state.
             moveTo(COMPACT);
         else if (state == COMPACT || state == TRANSITIONING_TO_REGULAR)
-            moveTo(TRANSITIONING_TO_REGULAR);
+            // A sliding name is an animation in progress and needs real geometry before the
+            // caption may be painted. A settled non-compact name (MAXIMIZED/FULLSCREEN) is already
+            // the player's own statement that the expansion finished, so re-entry does not have to
+            // wait for a layout event that may never come.
+            moveTo(isSlidingType(playerType) ? TRANSITIONING_TO_REGULAR : REGULAR);
         else moveTo(REGULAR);
+    }
+
+    /** The regular player's own animation states; they are not a settled reading mode. */
+    private static boolean isSlidingType(String rawType) {
+        return normalized(rawType).startsWith("WATCH_WHILE_SLIDING_");
     }
 
     /**
@@ -322,7 +420,13 @@ final class CaptionPlayerAuthority {
         ownerEpoch = 0;
         notificationSequence = 0;
         restart(UNKNOWN);
+        testPlayerType = null;
         OfficialPlayerTypeReader.resetForTests();
+    }
+
+    /** Test-only: replace the official current-player read with a controlled value. */
+    static void installCurrentPlayerTypeForTests(Supplier<String> reader) {
+        testPlayerType = reader;
     }
 
     /**
@@ -338,6 +442,14 @@ final class CaptionPlayerAuthority {
         private OfficialPlayerTypeReader() {}
 
         static String read() {
+            Supplier<String> test = testPlayerType;
+            if (test != null) {
+                try {
+                    return normalized(test.get());
+                } catch (RuntimeException failure) {
+                    return "";
+                }
+            }
             resolve();
             try {
                 Object value = accessor == null ? null : accessor.invoke(null);

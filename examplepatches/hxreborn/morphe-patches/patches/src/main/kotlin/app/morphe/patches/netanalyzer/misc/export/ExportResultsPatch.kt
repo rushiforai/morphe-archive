@@ -21,11 +21,11 @@ import app.morphe.patches.netanalyzer.shared.emptyGroupSlotOrNull
 import app.morphe.patches.netanalyzer.shared.lanScanObserverPatch
 import app.morphe.patches.netanalyzer.shared.propertyFields
 import app.morphe.patches.netanalyzer.shared.hostToolsPatch
-import app.morphe.patches.netanalyzer.shared.toJavaName
 import app.morphe.patches.netanalyzer.shared.toolbarActionsPatch
 import app.morphe.patches.netanalyzer.shared.registerAtLaunch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.toJavaClassName
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
@@ -142,7 +142,7 @@ private fun registerWifiScanHolders() {
         .map { it.originalMethod.definingClass }.distinct()
     registerAtLaunch(
         "$WIFI_EXPORT_CLASS->register(Ljava/lang/String;)V",
-        hotspotType.toJavaName() + REGISTRATION_SEPARATOR + holders.joinToString(LIST_SEPARATOR) { it.toJavaName() },
+        hotspotType.toJavaClassName() + REGISTRATION_SEPARATOR + holders.joinToString(LIST_SEPARATOR) { it.toJavaClassName() },
     )
 }
 
@@ -176,7 +176,7 @@ private fun observeWhoisResults() = with(context) {
     val rdapResult = rdapStates.last().value
     val whoisResult = whoisStates.last().value
     val registration = listOf(
-        whoisResult.definingClass.toJavaName(), whoisResult.name, rdapResult.definingClass.toJavaName(), rdapResult.name,
+        whoisResult.definingClass.toJavaClassName(), whoisResult.name, rdapResult.definingClass.toJavaClassName(), rdapResult.name,
         address, useRdap,
     ).joinToString(REGISTRATION_SEPARATOR)
     val itemRegister = method.getFreeRegisterProvider(0, 1).getFreeRegister4Bit()

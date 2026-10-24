@@ -30,7 +30,6 @@ import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -423,6 +422,25 @@ public final class MaterialYouTheme {
     public static int darkBranch(int color) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
         return darkSiteGrey(color);
+    }
+
+    /**
+     * A Bloks bottom sheet's background, such as the account switcher the Menu's account name opens
+     * (issue #37). The sheet takes its colour from a light and dark pair the screen sends, not from an
+     * FDS token, and on 584 its dark side is #1F1F20, a grey none of the other routes know, so the
+     * sheet stayed grey over a Menu in the palette's colours. The patch sends here the colour the
+     * sheet paints its rounded background with, and the one its corner view takes. In dark mode a dark
+     * grey takes the palette's neutral at the same lightness. White, colours, see-through colours and,
+     * with AMOLED in the build, the whole sheet keep theirs.
+     */
+    public static int sheetBackground(int color) {
+        return sheetBackground(color, SettingsStatus.amoledTheme());
+    }
+
+    static int sheetBackground(int color, boolean amoled) {
+        HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        if (amoled || !DarkMode.on() || !AmoledTheme.isDarkNeutral(color, AmoledTheme.MAX_BAR_CHANNEL)) return color;
+        return palette().sameLightness(TonePalette.NEUTRAL, color);
     }
 
     /**
@@ -1055,22 +1073,9 @@ public final class MaterialYouTheme {
         return p == null ? 0xFF000000 | rgb : p.sameLightness(TonePalette.NEUTRAL, 0xFF000000 | rgb);
     }
 
-    /** A token table: six hex digits are an opaque colour, eight a colour with its alpha first. */
+    /** A token table, as {@link FdsTokens#parse} reads it. */
     static Map<String, int[]> parseTokens(String table) {
-        Map<String, int[]> tokens = new HashMap<>();
-        for (String entry : table.split(";")) {
-            int equals = entry.indexOf('=');
-            String[] hex = entry.substring(equals + 1).split(",");
-            int[] values = new int[hex.length];
-            for (int i = 0; i < hex.length; i++) {
-                int rgb = Integer.parseUnsignedInt(hex[i], 16);
-                values[i] = hex[i].length() == 8 ? rgb : 0xFF000000 | rgb;
-            }
-            if (tokens.put(entry.substring(0, equals), values) != null) {
-                throw new IllegalStateException("token listed twice: " + entry);
-            }
-        }
-        return tokens;
+        return FdsTokens.parse(table);
     }
 
     private static int[] parseSurfaces(String list) {

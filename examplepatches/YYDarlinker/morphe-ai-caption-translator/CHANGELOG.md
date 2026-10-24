@@ -1,3 +1,9 @@
+## [1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.6...v1.5.7) (2026-10-24)
+
+- Returning to the same video with AI captions left on now restores them automatically; no manual off/on toggle is needed.
+- Word-by-word or rolling subtitle tracks are rebuilt as complete lines, so lines no longer repeat or mix different speakers' words.
+- Opening the comments sheet now resizes captions together with the panel animation instead of after it, so the size no longer lags or jumps back.
+
 ## [1.5.6](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.5...v1.5.6) (2026-10-22)
 
 - Fix caption boxes running past the screen edge on the detail page after returning from fullscreen. A presentation class captured while the display was still rotating kept the old landscape frame width; the effective frame is now capped by the displayed video and the display, and the class cannot change before the viewport has settled.

@@ -23,11 +23,14 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
+internal const val CUEPOINT_LIST_CLASS =
+    $$"Lcom/google/android/apps/youtube/proto/streaming/CuepointListOuterClass$CuepointList;"
+
 private const val STREAMING_DATA_OUTER_CLASS =
     $$"Lcom/google/protos/youtube/api/innertube/StreamingDataOuterClass$StreamingData;"
 
 internal object CuepointListFingerprint : Fingerprint(
-    definingClass = $$"Lcom/google/android/apps/youtube/proto/streaming/CuepointListOuterClass$CuepointList;",
+    definingClass = CUEPOINT_LIST_CLASS,
     name = "<clinit>",
     filters = listOf(
         methodCall(name = "registerDefaultInstance")
@@ -43,6 +46,25 @@ internal object BuildInitPlaybackRequestFingerprint : Fingerprint(
     strings = listOf(
         "Content-Type",
         "Range",
+    )
+)
+
+/**
+ * Cronet implementation of the native media library network fetch,
+ * used by the native player for its own requests such as the Onesie /initplayback request.
+ */
+internal object NativeNetFetchFingerprint : Fingerprint(
+    superclass = "Lcom/google/android/libraries/youtube/media/interfaces/NetFetch;",
+    returnType = "Lcom/google/android/libraries/youtube/media/interfaces/NetFetchTask;",
+    parameters = listOf(
+        "Lcom/google/android/libraries/youtube/media/interfaces/HttpRequest;",
+        "Lcom/google/android/libraries/youtube/media/interfaces/NetFetchCallbacks;"
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = "Lorg/chromium/net/CronetEngine;",
+            name = "newUrlRequestBuilder"
+        )
     )
 )
 
@@ -229,7 +251,11 @@ internal object NerdsStatsVideoFormatBuilderFingerprint : Fingerprint(
     parameters = listOf("L"),
     filters = listOf(
         string("codecs=\"")
-    )
+    ),
+    custom = { method, _ ->
+        // 21.42+ has a mime type codecs parser with the same string.
+        method.parameterTypes.first() != "Ljava/lang/String;"
+    }
 )
 
 // Feature flag that turns on Platypus programming language code compiled to native C++.
@@ -289,5 +315,118 @@ internal object MediaSessionFeatureFlagFingerprint : Fingerprint(
 internal object ReelItemWatchResponseFeatureFlagFingerprint : Fingerprint(
     filters = listOf(
         literal(45638126L)
+    )
+)
+
+/**
+ * Builds a Cronet url request, which every network request of the app is made with.
+ */
+internal object CronetUrlRequestBuildFingerprint : Fingerprint(
+    superclass = "Lorg/chromium/net/ExperimentalUrlRequest\$Builder;",
+    name = "build",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Lorg/chromium/net/ExperimentalUrlRequest;",
+    parameters = listOf(),
+    filters = listOf(
+        // Creates the request with the url and the other values of the builder.
+        methodCall(returnType = "Lorg/chromium/net/ExperimentalUrlRequest;")
+    )
+)
+
+internal object CronetUrlRequestSetHttpMethodFingerprint : Fingerprint(
+    classFingerprint = CronetUrlRequestBuildFingerprint,
+    name = "setHttpMethod",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Lorg/chromium/net/ExperimentalUrlRequest\$Builder;",
+    parameters = listOf("Ljava/lang/String;"),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            definingClass = "this",
+            type = "Ljava/lang/String;"
+        )
+    )
+)
+
+/**
+ * Reads the response of a Cronet data source.
+ * If the response is finished, the remaining byte count is cleared and the end of the data is returned.
+ */
+internal object CronetDataSourceReadFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "I",
+    parameters = listOf("[B", "I", "I"),
+    filters = listOf(
+        methodCall(definingClass = "Ljava/nio/ByteBuffer;", name = "clear"),
+        // Reads the next part of the response.
+        methodCall(
+            definingClass = "this",
+            parameters = listOf("Ljava/nio/ByteBuffer;", "L"),
+            returnType = "V"
+        ),
+        // If the response is finished.
+        fieldAccess(
+            opcode = Opcode.IGET_BOOLEAN,
+            definingClass = "this",
+            type = "Z",
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        // Remaining byte count of the request.
+        fieldAccess(
+            opcode = Opcode.IPUT_WIDE,
+            definingClass = "this",
+            type = "J",
+            location = MatchAfterImmediately()
+        )
+    )
+)
+
+/**
+ * Reads the response of a Cronet data source into a buffer.
+ * If the response is finished, the remaining byte count is cleared and the end of the data is returned.
+ */
+internal object CronetDataSourceReadBufferFingerprint : Fingerprint(
+    classFingerprint = CronetDataSourceReadFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "I",
+    parameters = listOf("Ljava/nio/ByteBuffer;"),
+    filters = listOf(
+        // Reads the next part of the response.
+        methodCall(
+            definingClass = "this",
+            parameters = listOf("Ljava/nio/ByteBuffer;", "L"),
+            returnType = "V"
+        ),
+        // If the response is finished.
+        fieldAccess(
+            opcode = Opcode.IGET_BOOLEAN,
+            definingClass = "this",
+            type = "Z",
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        // Remaining byte count of the request.
+        fieldAccess(
+            opcode = Opcode.IPUT_WIDE,
+            definingClass = "this",
+            type = "J",
+            location = MatchAfterImmediately()
+        )
+    )
+)
+
+/**
+ * Exception that pauses a transfer for a task of a higher priority.
+ * A saved video continues from the last byte it got, after it is paused.
+ */
+internal object PriorityTooLowExceptionFingerprint : Fingerprint(
+    superclass = "Ljava/io/IOException;",
+    name = "<init>",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    returnType = "V",
+    parameters = listOf("I", "I"),
+    filters = listOf(
+        string("Priority too low [priority=")
     )
 )

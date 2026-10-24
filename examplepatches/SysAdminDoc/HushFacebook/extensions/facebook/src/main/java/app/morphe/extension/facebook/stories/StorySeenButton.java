@@ -84,7 +84,7 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * through as it would without it.
  */
 public final class StorySeenButton {
-    /** The story viewer's activity, a kept class name. */
+    /** The story viewer's activity, a kept class name. 584 opens it as one of its subclasses too ({@link #isViewer}). */
     static final String VIEWER = "com.facebook.stories.viewer.activity.StoryViewerActivity";
 
     static final String HOOK = "story seen button";
@@ -320,7 +320,7 @@ public final class StorySeenButton {
      */
     public static void activityCreated(Activity activity) {
         try {
-            if (!VIEWER.equals(activity.getClass().getName())) return;
+            if (!isViewer(activity)) return;
             Object token = rebuilding != null ? rebuilding : new Object();
             rebuilding = null;
             viewers.put(activity, token);
@@ -333,13 +333,25 @@ public final class StorySeenButton {
     /** From the activity callbacks: [activity] came to the front. Never throws. */
     public static void activityResumed(Activity activity) {
         try {
-            if (!VIEWER.equals(activity.getClass().getName())) return;
+            if (!isViewer(activity)) return;
             newest = tokenOf(activity);
             viewer = new WeakReference<>(activity);
             refresh();
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.STORY_SEEN, HOOK, failure);
         }
+    }
+
+    /**
+     * True for the story viewer. 584 opens it as StoryViewerActivity or as one of its empty
+     * subclasses (DefaultNavBar, BlackNavBar, Floating), so the kept name is looked for up the class's
+     * parents.
+     */
+    static boolean isViewer(Activity activity) {
+        for (Class<?> type = activity.getClass(); type != null; type = type.getSuperclass()) {
+            if (VIEWER.equals(type.getName())) return true;
+        }
+        return false;
     }
 
     /** [activity]'s token, given one now when its creation went unseen. Main thread. */
@@ -378,7 +390,7 @@ public final class StorySeenButton {
      */
     public static void activityDestroyed(Activity activity) {
         try {
-            if (!VIEWER.equals(activity.getClass().getName())) return;
+            if (!isViewer(activity)) return;
             Object token = viewers.remove(activity);
             if (viewer.get() == activity) {
                 viewer = new WeakReference<>(null);

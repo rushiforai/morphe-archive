@@ -8,7 +8,7 @@ public class VerifyHiddenDroppedThreads {
    Object live=new o.onAdDisplayed.setIcon(2);List<Object> source=Arrays.asList(header,live,dropped);
    check(HiddenDroppedThreads.dropped(dropped),"native drop bit");check(!HiddenDroppedThreads.dropped(live),"other state bit preserved");
    for(int mode:new int[]{101,102,103,-101}){List<?> out=HiddenDroppedThreads.filter(source,mode,true);check(out.equals(Arrays.asList(header,live)),"target mode "+mode);check(source.size()==3,"source unchanged");}
-   check(HiddenDroppedThreads.filter(source,104,true)==source,"posted untouched");check(HiddenDroppedThreads.filter(source,100,true)==source,"other tab untouched");check(HiddenDroppedThreads.filter(source,103,false)==source,"OFF restores original");
+   check(HiddenDroppedThreads.filter(source,104,true)==source,"posted untouched");if(!HiddenDroppedThreads.historyMode(100))check(HiddenDroppedThreads.filter(source,100,true)==source,"mode 100 outside DAT targets for 242+");check(HiddenDroppedThreads.filter(source,103,false)==source,"OFF restores original");
   }
   System.out.println("PASS: "+checks+" DAT-drop display checks");
  }

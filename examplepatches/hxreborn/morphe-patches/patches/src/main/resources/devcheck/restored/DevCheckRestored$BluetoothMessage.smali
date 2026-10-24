@@ -1,11 +1,8 @@
 .class final LDevCheckRestored$BluetoothMessage;
 .super Ljava/lang/Object;
 
-# interfaces
 .implements Ljava/lang/Runnable;
 
-
-# annotations
 .annotation system Ldalvik/annotation/EnclosingClass;
     value = LDevCheckRestored;
 .end annotation
@@ -15,14 +12,10 @@
     name = "BluetoothMessage"
 .end annotation
 
-
-# instance fields
 .field private final activity:Lstub/BluetoothActivity;
 
 .field private final message:Ljava/lang/String;
 
-
-# direct methods
 .method constructor <init>(Lstub/BluetoothActivity;Ljava/lang/String;)V
     .registers 3
 
@@ -35,8 +28,6 @@
     return-void
 .end method
 
-
-# virtual methods
 .method public run()V
     .registers 3
 

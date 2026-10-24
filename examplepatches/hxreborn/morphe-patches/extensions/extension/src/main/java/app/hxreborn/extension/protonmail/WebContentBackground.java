@@ -5,12 +5,12 @@
 package app.hxreborn.extension.protonmail;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import app.hxreborn.extension.proton.AmoledTheme;
+import app.hxreborn.extension.shared.Streams;
 
 @SuppressWarnings("unused")
 public final class WebContentBackground {
@@ -40,17 +40,6 @@ public final class WebContentBackground {
             return input;
         }
         return (input != null) ? new BackgroundReplacingInputStream(input) : null;
-    }
-
-    private static byte[] readAllBytes(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-
-        for (int bytesRead; (bytesRead = input.read(buffer)) != -1;) {
-            output.write(buffer, 0, bytesRead);
-        }
-
-        return output.toByteArray();
     }
 
     private static void replaceInPlace(byte[] content, byte[] target, byte[] replacement) {
@@ -115,7 +104,7 @@ public final class WebContentBackground {
 
         private ByteArrayInputStream replacement() throws IOException {
             if (this.replacement == null) {
-                byte[] content = WebContentBackground.readAllBytes(this.source);
+                byte[] content = Streams.readAll(this.source);
                 replaceInPlace(content, PROTON_DARK_BACKGROUND_BYTES, AMOLED_BACKGROUND_BYTES);
                 this.replacement = new ByteArrayInputStream(content);
             }

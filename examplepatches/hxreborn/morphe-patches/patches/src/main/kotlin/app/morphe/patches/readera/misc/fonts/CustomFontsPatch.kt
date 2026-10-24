@@ -5,24 +5,21 @@
 package app.morphe.patches.readera.misc.fonts
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.readera.shared.disableSignatureChecksPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.smali.addMethod
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val LOAD_CUSTOM_FONTS_METHOD = "loadCustomFonts"
 private const val FONT_FOLDER_PICKER_REQUEST = 63555
@@ -57,66 +54,58 @@ val customFontsPatch = bytecodePatch(
         val scanFolder = SystemFontsScanFingerprint.instructionMatches.last().instruction.getReference<MethodReference>()!!
 
         val fontsModel = SaveCustomFontsCacheFingerprint.classDef
-        val loadCustomFonts = ImmutableMethod(
-            fontsModel.type,
+        val loadCustomFonts = fontsModel.addMethod(
             LOAD_CUSTOM_FONTS_METHOD,
-            listOf(),
+            emptyList(),
             "Ljava/util/List;",
             AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(4),
-        ).toMutable().apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    const-string v0, "custom"
-                    invoke-static { v0 }, $isCacheCurrent
-                    move-result v1
-                    if-eqz v1, :scan
-                    invoke-static { }, $settings
-                    move-result-object v1
-                    iget-object v1, v1, $fontFolder
-                    invoke-static { v0, v1 }, $isCachePathCurrent
-                    move-result v1
-                    if-eqz v1, :scan
-                    invoke-static { v0 }, $readCache
-                    move-result-object v1
-                    if-eqz v1, :scan
-                    invoke-interface { v1 }, Ljava/util/List;->isEmpty()Z
-                    move-result v2
-                    if-eqz v2, :prepare
-                    :scan
-                    invoke-static { }, $createAnalyzer
-                    move-result-object v0
-                    invoke-static { }, $settings
-                    move-result-object v1
-                    iget-object v1, v1, $fontFolder
-                    invoke-static { v0, v1 }, $scanFolder
-                    move-result-object v1
-                    invoke-static { }, $readLigatureMaps
-                    move-result-object v2
-                    invoke-static { v1, v2 }, $applyLigatureMaps
-                    invoke-static { v1 }, $saveCustomCache
-                    invoke-static { v0 }, $close
-                    :prepare
-                    invoke-interface { v1 }, Ljava/util/List;->iterator()Ljava/util/Iterator;
-                    move-result-object v2
-                    :next
-                    invoke-interface { v2 }, Ljava/util/Iterator;->hasNext()Z
-                    move-result v3
-                    if-eqz v3, :done
-                    invoke-interface { v2 }, Ljava/util/Iterator;->next()Ljava/lang/Object;
-                    move-result-object v3
-                    check-cast v3, $fontType
-                    invoke-virtual { v3 }, $prepareFont
-                    goto :next
-                    :done
-                    return-object v1
-                """,
-            )
-        }
-        fontsModel.methods.add(loadCustomFonts)
+            4,
+            """
+                const-string v0, "custom"
+                invoke-static { v0 }, $isCacheCurrent
+                move-result v1
+                if-eqz v1, :scan
+                invoke-static { }, $settings
+                move-result-object v1
+                iget-object v1, v1, $fontFolder
+                invoke-static { v0, v1 }, $isCachePathCurrent
+                move-result v1
+                if-eqz v1, :scan
+                invoke-static { v0 }, $readCache
+                move-result-object v1
+                if-eqz v1, :scan
+                invoke-interface { v1 }, Ljava/util/List;->isEmpty()Z
+                move-result v2
+                if-eqz v2, :prepare
+                :scan
+                invoke-static { }, $createAnalyzer
+                move-result-object v0
+                invoke-static { }, $settings
+                move-result-object v1
+                iget-object v1, v1, $fontFolder
+                invoke-static { v0, v1 }, $scanFolder
+                move-result-object v1
+                invoke-static { }, $readLigatureMaps
+                move-result-object v2
+                invoke-static { v1, v2 }, $applyLigatureMaps
+                invoke-static { v1 }, $saveCustomCache
+                invoke-static { v0 }, $close
+                :prepare
+                invoke-interface { v1 }, Ljava/util/List;->iterator()Ljava/util/Iterator;
+                move-result-object v2
+                :next
+                invoke-interface { v2 }, Ljava/util/Iterator;->hasNext()Z
+                move-result v3
+                if-eqz v3, :done
+                invoke-interface { v2 }, Ljava/util/Iterator;->next()Ljava/lang/Object;
+                move-result-object v3
+                check-cast v3, $fontType
+                invoke-virtual { v3 }, $prepareFont
+                goto :next
+                :done
+                return-object v1
+            """,
+        )
 
         listOf(FontsByCategoryFingerprint to 2, FontNamesFingerprint to 2).forEach { (fingerprint, emptyListMatch) ->
             fingerprint.let {

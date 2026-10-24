@@ -571,6 +571,76 @@ public class RebuildContractTest {
         .put("segs", new JSONArray().put(new JSONObject().put("utf8", text)));
   }
 
+  /** One karaoke snapshot: the spoken prefix, then the dim future part of the same line. */
+  static JSONObject karaoke(
+      long start, long duration, int window, int pen, String spoken, String pending)
+      throws Exception {
+    JSONArray segs = new JSONArray();
+    if (!spoken.isEmpty()) segs.put(new JSONObject().put("utf8", spoken));
+    if (!pending.isEmpty())
+      segs.put(new JSONObject().put("utf8", pending).put("pPenId", pen + 1));
+    return new JSONObject()
+        .put("tStartMs", start)
+        .put("dDurationMs", duration)
+        .put("wpWinPosId", window)
+        .put("pPenId", pen)
+        .put("segs", segs);
+  }
+
+  @Test
+  public void karaokeWindowSnapshotsOnlyAddNewlySpokenWords() throws Exception {
+    String body =
+        new JSONObject()
+            .put(
+                "events",
+                new JSONArray()
+                    .put(karaoke(0, 1000, 1, 547, "One", " two three."))
+                    .put(karaoke(200, 800, 1, 547, "One", " two three."))
+                    .put(karaoke(500, 1500, 1, 547, "One two", " three."))
+                    .put(karaoke(1000, 1000, 1, 547, "One two", " three."))
+                    .put(karaoke(1500, 1000, 1, 547, "One two three.", "")))
+            .toString();
+    RebuildSource s = json(body);
+    assertEquals("One two three.", s.text(0, s.words.size() - 1));
+    assertEquals(3, s.words.size());
+    assertEquals(0, s.words.get(0).start);
+    assertEquals(2500, s.words.get(2).end);
+  }
+
+  @Test
+  public void theSameWordsInDifferentKaraokeWindowsAreDifferentSpeakers() throws Exception {
+    String body =
+        new JSONObject()
+            .put(
+                "events",
+                new JSONArray()
+                    .put(karaoke(0, 1000, 1, 10, "No.", ""))
+                    .put(karaoke(500, 1000, 2, 11, "No.", "")))
+            .toString();
+    RebuildSource s = json(body);
+    assertEquals("No. No.", s.text(0, s.words.size() - 1));
+    assertEquals(2, s.words.size());
+  }
+
+  @Test
+  public void aKaraokeLineStaysOneLineThroughItsFinalHold() throws Exception {
+    String body =
+        new JSONObject()
+            .put(
+                "events",
+                new JSONArray()
+                    .put(karaoke(0, 200, 3, 715, "He's", " like a little, little spider."))
+                    .put(karaoke(200, 200, 3, 715, "He's like", " a little, little spider."))
+                    .put(karaoke(400, 200, 3, 715, "He's like a little,", " little spider."))
+                    .put(karaoke(600, 200, 3, 715, "He's like a little, little", " spider."))
+                    .put(karaoke(800, 800, 3, 715, "He's like a little, little spider.", ""))
+                    .put(karaoke(1600, 1200, 3, 715, "He's like a little, little spider.", "")))
+            .toString();
+    RebuildSource s = json(body);
+    assertEquals("He's like a little, little spider.", s.text(0, s.words.size() - 1));
+    assertEquals(6, s.words.size());
+  }
+
   @Test
   public void coarseRollingWindowsProduceOnlyNewSpeech() throws Exception {
     String body =

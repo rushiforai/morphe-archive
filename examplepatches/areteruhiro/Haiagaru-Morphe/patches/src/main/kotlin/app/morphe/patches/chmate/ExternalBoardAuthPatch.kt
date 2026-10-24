@@ -47,6 +47,7 @@ internal fun BytecodePatchContext.patchExternalBoardAuth(version: String) {
         load.accessFlags,load.annotations,load.hiddenApiRestrictions,
         ImmutableMethodImplementation(3,emptyList(),emptyList(),emptyList()))).apply {
         addInstructions(0,"""
+            invoke-static {p0}, $AUTH->rememberJar(Ljava/lang/Object;)V
             invoke-virtual {p0, p1}, $original
             move-result-object v0
             invoke-static {v0, p1}, $AUTH->cookies(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;
@@ -55,6 +56,20 @@ internal fun BytecodePatchContext.patchExternalBoardAuth(version: String) {
         """.trimIndent())
     })
     val extension = mutableClassDefBy(AUTH)
+    val urlParse=mutableClassDefBy(url).methods.single {
+        it.accessFlags and 0x8 != 0 && it.returnType==url && it.parameterTypes.map(CharSequence::toString)==listOf("Ljava/lang/String;")
+    }
+    val urlStub=extension.methods.single{it.name=="parseUrl"}
+    extension.methods.remove(urlStub)
+    extension.methods.add(MutableMethod(ImmutableMethod(urlStub.definingClass,urlStub.name,urlStub.parameters,
+        urlStub.returnType,urlStub.accessFlags,urlStub.annotations,urlStub.hiddenApiRestrictions,
+        ImmutableMethodImplementation(1,emptyList(),emptyList(),emptyList()))).apply {
+        addInstructions(0,"""
+            invoke-static {p0}, $urlParse
+            move-result-object p0
+            return-object p0
+        """.trimIndent())
+    })
     val old = extension.methods.single { it.name == "parseCookie" }
     extension.methods.remove(old)
     extension.methods.add(MutableMethod(ImmutableMethod(old.definingClass,old.name,old.parameters,

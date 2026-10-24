@@ -13,9 +13,11 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -32,6 +34,10 @@ import com.bytedance.android.live.design.resource.theme.LiveThemeAwareDialogFrag
 import com.bytedance.android.live.design.resource.theme.LiveThemeAwareFragment;
 import com.bytedance.android.live.design.view.sheet.LiveSheetFragment;
 import com.bytedance.android.live.rank.impl.list.RankListDialog;
+import com.bytedance.android.livesdk.fansclub.FansClubPanel;
+import com.bytedance.android.livesdk.profile.ProfilePanel;
+
+import androidx.cardview.widget.CardView;
 import com.bytedance.android.live.rank.impl.list.view.PopularityRankingEducationDialog;
 
 import org.junit.After;
@@ -45,6 +51,8 @@ import org.robolectric.util.ReflectionHelpers;
 import org.robolectric.util.ReflectionHelpers.ClassParameter;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * #159: a LIVE panel's views inflate through its own (dark) LIVE overlay, applied with force,
@@ -98,6 +106,8 @@ public class LivePanelThemeTest {
         SettingsStatus.liveControlsEnabled = false;
         Settings.DARK_LIVE_PANELS.save(Settings.DARK_LIVE_PANELS.defaultValue);
         LivePanelTheme.stockSeen = false;
+        // A Spark page asked with no activity looks for any darkened room, so none carries over.
+        ReflectionHelpers.<Map<?, ?>>getStaticField(LivePanelTheme.class, "LIGHT_ROOMS").clear();
     }
 
     private static int textColor(Context context) {
@@ -380,33 +390,80 @@ public class LivePanelThemeTest {
         assertEquals(textColor(other), textColor(plain));
     }
 
-    @Test public void aDarkenedRoomsSparkPagesReadTheRoomsLightTheme() {
+    /** Spark's SchemaBundle, the page schema's parsed query. */
+    public static final class SchemaBundle {
+        final Map<String, String> queries = new HashMap<>();
+        String url;
+
+        public Map<String, String> getAllQueries() {
+            return queries;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
+    /** Spark's SparkContext, one page's schema. */
+    public static final class SparkPage {
+        public SchemaBundle schemaBundle;
+        public String fullUrl;
+    }
+
+    /** The audience ranking popup's schema, as the emulator's heap held it (2026-10-23), cut down. */
+    private static String rankingUrl(String buyers, String type) {
+        return "sslocal://lynxview_popup?room_id=1&url=https%3A%2F%2Fexample%2Faudience_rank.js&width=360"
+                + "&can_show_top_buyers_rank=" + buyers + "&entrance_rank_type=" + type + "&show_anchor_header=0";
+    }
+
+    private static SparkPage ranking(boolean buyers) {
+        SparkPage page = new SparkPage();
+        page.schemaBundle = new SchemaBundle();
+        page.schemaBundle.queries.put("can_show_top_buyers_rank", buyers ? "1" : "0");
+        page.fullUrl = rankingUrl(buyers ? "1" : "0", buyers ? "top_buyers" : "top_viewers");
+        return page;
+    }
+
+    @Test public void onlyTheShopRankingOverADarkenedRoomKeepsSparksLightTheme() {
         RuntimeEnvironment.setQualifiers("+night");
         Activity live = room();
-        int roomText = textColor(live);
-        assertSame("the switch starts off", live, LivePanelTheme.sparkContext(live));
+        SparkPage buyers = ranking(true);
+        assertTrue("the switch starts off", !LivePanelTheme.sparkKeepsStock(buyers, live));
         Settings.DARK_LIVE_PANELS.save(true);
-        assertSame("a room the switch never darkened", live, LivePanelTheme.sparkContext(live));
+        assertTrue("a room the switch never darkened", !LivePanelTheme.sparkKeepsStock(buyers, live));
         LivePanelTheme.darkLiveRoom(live, android.R.style.Theme_Black);
-        assertTrue("the room went dark", roomText != textColor(live));
 
-        Context spark = LivePanelTheme.sparkContext(live);
-        assertNotSame(live, spark);
-        assertEquals("the room's light theme", roomText, textColor(spark));
-        assertTrue("the room itself stays dark", roomText != textColor(live));
-        assertEquals("found through a popup's own wrapper", roomText,
-                textColor(LivePanelTheme.sparkContext(new ContextThemeWrapper(live, OVERLAY))));
-        assertSame("outside a room", dark, LivePanelTheme.sparkContext(dark));
-        assertSame("no context", null, LivePanelTheme.sparkContext(null));
+        assertTrue("the shop ranking", LivePanelTheme.sparkKeepsStock(buyers, live));
+        assertTrue("found through a popup's own wrapper",
+                LivePanelTheme.sparkKeepsStock(buyers, new ContextThemeWrapper(live, OVERLAY)));
+        assertTrue("asked with no activity, the darkened room", LivePanelTheme.sparkKeepsStock(buyers, null));
+        assertTrue("asked with no activity, the darkened room", LivePanelTheme.sparkKeepsStock(buyers, dark));
+        assertTrue("the plain viewer ranking reads dark", !LivePanelTheme.sparkKeepsStock(ranking(false), live));
+        assertTrue("another Spark page reads dark", !LivePanelTheme.sparkKeepsStock(new SparkPage(), live));
+        assertTrue("no page", !LivePanelTheme.sparkKeepsStock(null, live));
+        assertTrue("another room the switch never darkened", !LivePanelTheme.sparkKeepsStock(buyers, room()));
+
+        // The schema's parsed query wins; the page's URLs answer when it has none.
+        SparkPage parsed = ranking(false);
+        parsed.fullUrl = rankingUrl("1", "top_buyers");
+        assertTrue("the parsed query says viewers", !LivePanelTheme.sparkKeepsStock(parsed, live));
+        SparkPage url = ranking(true);
+        url.schemaBundle.queries.clear();
+        assertTrue("the page's full URL", LivePanelTheme.sparkKeepsStock(url, live));
+        url.fullUrl = null;
+        url.schemaBundle.url = rankingUrl("1", "top_buyers");
+        assertTrue("the schema's URL", LivePanelTheme.sparkKeepsStock(url, live));
+        url.schemaBundle.url = rankingUrl("10", "top_buyers");
+        assertTrue("only the whole value", !LivePanelTheme.sparkKeepsStock(url, live));
 
         Settings.DARK_LIVE_PANELS.save(false);
-        assertSame("the switch off", live, LivePanelTheme.sparkContext(live));
+        assertTrue("the switch off", !LivePanelTheme.sparkKeepsStock(buyers, live));
         Settings.DARK_LIVE_PANELS.save(true);
         ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess", ClassParameter.from(boolean.class, true));
-        assertSame("paused", live, LivePanelTheme.sparkContext(live));
+        assertTrue("paused", !LivePanelTheme.sparkKeepsStock(buyers, live));
         ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess", ClassParameter.from(boolean.class, false));
         SettingsStatus.liveControlsEnabled = false;
-        assertSame("without the patch", live, LivePanelTheme.sparkContext(live));
+        assertTrue("without the patch", !LivePanelTheme.sparkKeepsStock(buyers, live));
     }
 
     @Test public void theRankingsTabsReadTheirColorsThroughItsLightTheme() {
@@ -840,6 +897,281 @@ public class LivePanelThemeTest {
         RankPage loop = page(null);
         loop.parent = loop;
         assertSame("a parent loop ends", null, LivePanelTheme.stockPanel(loop));
+    }
+
+    /** A custom drawn tab strip with three paints of its own, the way the fan club's is built. */
+    static final class StripView extends View {
+        final Paint selected = new Paint();
+        final Paint other = new Paint();
+        final Paint unselected = new Paint();
+
+        StripView(Context context) {
+            super(context);
+            selected.setColor(Color.WHITE);
+            other.setColor(Color.WHITE);
+            unselected.setColor(0x0D000000);
+        }
+    }
+
+    private Dialog dialogWith(View content) {
+        Dialog dialog = new Dialog(dark);
+        dialog.setContentView(content);
+        // Shown, so the decor is attached and keeps the system UI flags it is given.
+        dialog.show();
+        return dialog;
+    }
+
+    @Test public void aPanelsNavigationBarGoesDarkInDarkModeWithTheSwitch() {
+        FansClubPanel panel = new FansClubPanel();
+        panel.overlay = OVERLAY;
+        panel.dialog = dialogWith(new FrameLayout(dark));
+        android.view.WindowInsetsController bars = panel.dialog.getWindow().getInsetsController();
+        bars.setSystemBarsAppearance(android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS, android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertTrue((bars.getSystemBarsAppearance() & android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS) != 0);
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(light));
+        assertTrue((bars.getSystemBarsAppearance() & android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS) != 0);
+
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertEquals(0, bars.getSystemBarsAppearance() & android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+    }
+
+    @Test public void theProfileCardsInnerTilesGoDarkButItsLabelsAndSeeThroughTilesStay() {
+        FrameLayout root = new FrameLayout(dark);
+        View tile = new View(dark);
+        tile.setBackground(new ColorDrawable(Color.WHITE));
+        View see = new View(dark);
+        see.setBackground(new ColorDrawable(0x29FFFFFF));
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(0xFFF2F2F2);
+        View rounded = new View(dark);
+        rounded.setBackground(shape);
+        ViewGroup strip = new FrameLayout(dark);
+        strip.setBackground(new ColorDrawable(Color.WHITE));
+        root.addView(tile);
+        root.addView(see);
+        root.addView(rounded);
+        root.addView(strip);
+        ProfilePanel panel = new ProfilePanel();
+        panel.overlay = OVERLAY;
+        panel.dialog = dialogWith(root);
+
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertEquals("the switch starts off", Color.WHITE, ((ColorDrawable) tile.getBackground()).getColor());
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        LivePanelTheme.cardLabels(Arrays.asList(), strip);
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertEquals(LivePanelTheme.DARK_FILL, ((ColorDrawable) tile.getBackground()).getColor());
+        assertEquals(0x29FFFFFF, ((ColorDrawable) see.getBackground()).getColor());
+        assertEquals(LivePanelTheme.DARK_FILL, ((GradientDrawable) rounded.getBackground()).getColor().getDefaultColor());
+        assertEquals("the label strip stays light", Color.WHITE, ((ColorDrawable) strip.getBackground()).getColor());
+        assertTrue("an ordinary panel keeps its fills", !LivePanelTheme.fillPanel(ShareDialog.class));
+    }
+
+    @Test public void theFanClubTabStripAndItsCardGoDarkInDarkModeWithTheSwitch() {
+        FrameLayout root = new FrameLayout(dark);
+        CardView card = new CardView(dark);
+        card.setCardBackgroundColor(Color.WHITE);
+        StripView strip = new StripView(dark);
+        card.addView(strip);
+        root.addView(card);
+        FansClubPanel panel = new FansClubPanel();
+        panel.overlay = OVERLAY;
+        panel.dialog = dialogWith(root);
+
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertEquals("the switch starts off", Color.WHITE, card.getCardBackgroundColor().getDefaultColor());
+        assertEquals(Color.WHITE, strip.selected.getColor());
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(light));
+        assertEquals("TikTok Light stays stock", Color.WHITE, strip.selected.getColor());
+
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertEquals(LivePanelTheme.DARK_FILL, card.getCardBackgroundColor().getDefaultColor());
+        assertEquals(LivePanelTheme.DARK_FILL, strip.selected.getColor());
+        assertEquals(LivePanelTheme.DARK_FILL, strip.other.getColor());
+        assertEquals(LivePanelTheme.DARK_TAB, strip.unselected.getColor());
+    }
+
+    /** A plain LIVE sheet with a window, like the long-press menu: dark through its overlay, no fills of its own. */
+    public static final class MenuSheet extends LiveThemeAwareDialogFragment {
+        public Dialog dialog;
+
+        public Dialog getDialog() {
+            return dialog;
+        }
+    }
+
+    private static final int LIGHT_BAR = android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+
+    /** Runs the panel window's before-frame listeners, as the next frame would. */
+    private static void nextFrame(Dialog dialog) {
+        ReflectionHelpers.callInstanceMethod(dialog.getWindow().getDecorView().getViewTreeObserver(), "dispatchOnPreDraw");
+    }
+
+    private static void layOut(View root) {
+        root.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, 1080, 600);
+    }
+
+    private static TextView text(Context context, int color) {
+        TextView text = new TextView(context);
+        text.setText("Fan");
+        text.setTextColor(color);
+        return text;
+    }
+
+    @Test public void aSheetsNavigationBarStaysDarkWhenTikTokTurnsItLightAgain() {
+        MenuSheet stock = new MenuSheet();
+        stock.overlay = OVERLAY;
+        stock.dialog = dialogWith(new FrameLayout(dark));
+        android.view.WindowInsetsController stockBars = stock.dialog.getWindow().getInsetsController();
+        stockBars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        LivePanelTheme.darkLivePanel(stock, LayoutInflater.from(dark));
+        nextFrame(stock.dialog);
+        assertEquals("the switch starts off", LIGHT_BAR, stockBars.getSystemBarsAppearance() & LIGHT_BAR);
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        MenuSheet menu = new MenuSheet();
+        menu.overlay = OVERLAY;
+        menu.dialog = dialogWith(new FrameLayout(dark));
+        android.view.WindowInsetsController bars = menu.dialog.getWindow().getInsetsController();
+        LivePanelTheme.darkLivePanel(menu, LayoutInflater.from(dark));
+        assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
+
+        // TikTok's sheet puts the light bar back as it shows.
+        bars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        nextFrame(menu.dialog);
+        assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
+    }
+
+    @Test public void darkGrayTextOnASwappedFillTurnsLightAndStaysLight() {
+        android.widget.LinearLayout root = new android.widget.LinearLayout(dark);
+        root.setOrientation(android.widget.LinearLayout.VERTICAL);
+        // The fan club's tabs: a strip that paints them, and the labels in an overlay drawn after it.
+        FrameLayout tabs = new FrameLayout(dark);
+        FrameLayout holder = new FrameLayout(dark);
+        holder.addView(new StripView(dark));
+        FrameLayout overlay = new FrameLayout(dark);
+        TextView fan = text(dark, Color.BLACK);
+        overlay.addView(fan);
+        tabs.addView(holder);
+        tabs.addView(overlay);
+        root.addView(tabs, new android.widget.LinearLayout.LayoutParams(1080, 100));
+        TextView below = text(dark, Color.BLACK);
+        root.addView(below, new android.widget.LinearLayout.LayoutParams(1080, 100));
+        // The profile card's showcase row: a white shape under black and pink text.
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(Color.WHITE);
+        android.widget.LinearLayout row = new android.widget.LinearLayout(dark);
+        row.setBackground(shape);
+        TextView title = text(dark, 0x80161823);
+        TextView pink = text(dark, 0xFFFE2C55);
+        FrameLayout chip = new FrameLayout(dark);
+        chip.setBackground(new ColorDrawable(0x29FFFFFF));
+        TextView onChip = text(dark, Color.BLACK);
+        chip.addView(onChip);
+        row.addView(title);
+        row.addView(pink);
+        row.addView(chip);
+        root.addView(row, new android.widget.LinearLayout.LayoutParams(1080, 100));
+        TextView pill = text(dark, Color.BLACK);
+        pill.setBackground(new ColorDrawable(Color.WHITE));
+        root.addView(pill, new android.widget.LinearLayout.LayoutParams(1080, 100));
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        FansClubPanel lightPanel = new FansClubPanel();
+        lightPanel.overlay = OVERLAY;
+        lightPanel.dialog = dialogWith(root);
+        layOut(root);
+        LivePanelTheme.darkLivePanel(lightPanel, LayoutInflater.from(light));
+        assertEquals("TikTok Light stays stock", Color.BLACK, fan.getCurrentTextColor());
+        assertEquals(Color.BLACK, pill.getCurrentTextColor());
+
+        LivePanelTheme.darkLivePanel(lightPanel, LayoutInflater.from(dark));
+        assertEquals("the label over the dark tab", Color.WHITE, fan.getCurrentTextColor());
+        assertEquals("text keeps how see-through it is", 0x80FFFFFF, title.getCurrentTextColor());
+        assertEquals("colored text keeps its color", 0xFFFE2C55, pink.getCurrentTextColor());
+        assertEquals("text on its own light chip keeps its ink", Color.BLACK, onChip.getCurrentTextColor());
+        assertEquals("a white pill's own text", Color.WHITE, pill.getCurrentTextColor());
+        assertEquals("text beside the tabs, not over them, keeps its ink", Color.BLACK, below.getCurrentTextColor());
+
+        // TikTok recolors the label as the pick changes.
+        fan.setTextColor(0x66000000);
+        nextFrame(lightPanel.dialog);
+        assertEquals(0x66FFFFFF, fan.getCurrentTextColor());
+    }
+
+    @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void aDarkIconOnASwappedFillIsDrawnWhiteButColoredArtAndPhotosStay() {
+        FrameLayout root = new FrameLayout(dark);
+        android.widget.LinearLayout row = new android.widget.LinearLayout(dark);
+        row.setBackground(new ColorDrawable(Color.WHITE));
+        android.widget.ImageView chevron = new android.widget.ImageView(dark);
+        chevron.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        chevron.setPadding(10, 10, 10, 10);
+        chevron.setImageDrawable(new ColorDrawable(0x59000000));
+        android.widget.ImageView art = new android.widget.ImageView(dark);
+        art.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        art.setPadding(10, 10, 10, 10);
+        art.setImageDrawable(new ColorDrawable(0xFFFE2C55));
+        android.widget.ImageView photo = new android.widget.ImageView(dark);
+        photo.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        photo.setImageDrawable(new ColorDrawable(0xFF202020));
+        android.widget.ImageView badge = new android.widget.ImageView(dark);
+        badge.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        badge.setPadding(10, 10, 10, 10);
+        badge.setBackground(new LayerDrawable(new Drawable[]{new ColorDrawable(Color.WHITE)}));
+        badge.setImageDrawable(new ColorDrawable(Color.BLACK));
+        for (View icon : new View[]{chevron, art, photo, badge}) {
+            row.addView(icon, new android.widget.LinearLayout.LayoutParams(40, 40));
+        }
+        root.addView(row);
+        FansClubPanel panel = new FansClubPanel();
+        panel.overlay = OVERLAY;
+        panel.dialog = dialogWith(root);
+        layOut(root);
+
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertNull("the switch starts off", chevron.getColorFilter());
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+        assertNotNull("the chevron goes white", chevron.getColorFilter());
+        assertNull("colored art stays", art.getColorFilter());
+        assertNull("a photo stays", photo.getColorFilter());
+        assertNull("an icon on its own tile stays", badge.getColorFilter());
+
+        // TikTok swaps the chevron's image for colored art: it shows as drawn.
+        chevron.setImageDrawable(new ColorDrawable(0xFFFE2C55));
+        nextFrame(panel.dialog);
+        assertNull(chevron.getColorFilter());
+    }
+
+    @Test public void anIconIsOneDarkGrayInkOnAClearGround() {
+        int clear = Color.TRANSPARENT;
+        assertTrue(LivePanelTheme.darkMonochrome(new int[]{clear, 0x66000000, 0x66000000, clear}));
+        assertTrue("anti-aliased edges are the same ink", LivePanelTheme.darkMonochrome(new int[]{clear, 0x20161823, 0xFF161823}));
+        assertTrue("a photo has no clear ground", !LivePanelTheme.darkMonochrome(new int[]{0xFF202020, 0xFF202020}));
+        assertTrue("two inks are art", !LivePanelTheme.darkMonochrome(new int[]{clear, 0xFF000000, 0xFF505050}));
+        assertTrue("a colored ink is art", !LivePanelTheme.darkMonochrome(new int[]{clear, 0xFF7A1020}));
+        assertTrue("light ink is already readable", !LivePanelTheme.darkMonochrome(new int[]{clear, Color.WHITE}));
+        assertTrue("nothing drawn", !LivePanelTheme.darkMonochrome(new int[]{clear, clear}));
+        assertTrue(LivePanelTheme.darkInk(0x80161823));
+        assertTrue("TikTok's pink isn't gray", !LivePanelTheme.darkInk(0xFFFE2C55));
+        assertEquals(0x59FFFFFF, LivePanelTheme.lightened(0x59000000));
+        assertTrue(!LivePanelTheme.ownBackdrop(null));
+        assertTrue(!LivePanelTheme.ownBackdrop(new ColorDrawable(Color.TRANSPARENT)));
+        assertTrue(!LivePanelTheme.ownBackdrop(new ColorDrawable(LivePanelTheme.DARK_FILL)));
+        assertTrue(LivePanelTheme.ownBackdrop(new ColorDrawable(0x29FFFFFF)));
+        assertTrue(LivePanelTheme.ownBackdrop(new LayerDrawable(new Drawable[]{new ColorDrawable(Color.WHITE)})));
+        assertTrue("a ripple with only its mask is clear", !LivePanelTheme.ownBackdrop(new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(Color.GRAY), null, new ColorDrawable(Color.WHITE))));
     }
 
     /** A ranking built on the daily one, the way TikTok splits its list dialogs into variants. */

@@ -56,6 +56,10 @@ internal const val ACTIVITY_THEME_HOOK = "$DARK_BACKGROUND->onActivityTheme(Land
 internal const val COMPOSE_THEME_HOOK = "$DARK_BACKGROUND->onComposeTheme(Landroid/content/res/Resources\$Theme;)V"
 internal const val DESIGN_PAGE_HOOK = "$DARK_BACKGROUND->designPage(J)J"
 internal const val DESIGN_PANEL_HOOK = "$DARK_BACKGROUND->designPanel(J)J"
+internal const val DESIGN_FOOTER_HOOK = "$DARK_BACKGROUND->designFooter(J)J"
+
+/** The Compose note of the footer under a post, the function that paints its background. */
+internal const val POST_FOOTER_NOTE = "${FOOTER_CONTROLS}PostFooterSplitNotesCountContent ("
 
 /** The style the patch adds. The extension's `DarkBackground.STYLE` looks it up by this name. */
 internal const val DARK_BACKGROUND_STYLE = "HushTumblrDarkBackground"
@@ -288,6 +292,8 @@ val darkBackgroundPatch = bytecodePatch(
         // Everything found and checked before any edit, so a refusal leaves the APK as it was.
         val hooks = resolveThemeHooks()
         val designColors = resolveDesignColors()
+        // Only with the design colors hooked: the footer's hook only swaps the gray they hand out.
+        val footer = designColors?.let { resolvePostFooterColor() }
         hooks.activity.addInstructions(
             hooks.activityIndex,
             "invoke-static/range { v${hooks.activityRegister} .. v${hooks.activityRegister} }, $ACTIVITY_THEME_HOOK",
@@ -306,6 +312,13 @@ val darkBackgroundPatch = bytecodePatch(
                         "move-result-wide v${read.register}",
                 )
             }
+        }
+        footer?.let { (method, read) ->
+            mutableOf(method).addInstructions(
+                read.index,
+                "invoke-static/range { v${read.register} .. v${read.register + 1} }, ${read.hook}\n" +
+                    "move-result-wide v${read.register}",
+            )
         }
         enableCapability("themeBackground")
         enableStatus("darkBackground")
@@ -478,6 +491,53 @@ internal fun BytecodePatchContext.resolveDesignColors(): DesignColorHooks? {
     requireExtensionHook(PATCH, DESIGN_PAGE_HOOK)
     requireExtensionHook(PATCH, DESIGN_PANEL_HOOK)
     return DesignColorHooks(initializer, reads)
+}
+
+/**
+ * Finds where the footer under a post reads the color it paints itself with, or answers null with
+ * a warning, which leaves the footer Tumblr's gray and changes nothing else.
+ *
+ * The footer is a Compose function ([POST_FOOTER_NOTE]) that reads the design system's
+ * `Content.panel` and hands it straight to the background modifier, a static
+ * `(Modifier, long, Shape)` call answering the modifier's type. The patch hands the Dark palette's
+ * `Content.panel` a step up from the picked color for the settings rows, which left the footer a
+ * shade lighter than the card above it. The hook goes right after the `move-result-wide`,
+ * before the modifier takes the color, and writes its answer back into the same pair of registers.
+ * In 46.8.1.100 that's `bjf.d`, `ts5.g()` at 176 and `androidx.compose.foundation.b.c` at 178.
+ * Found by reading Tumblr 46.8.1.100 (2026-10-22).
+ */
+internal fun BytecodePatchContext.resolvePostFooterColor(): Pair<Method, DesignColorRead>? {
+    fun without(why: String): Pair<Method, DesignColorRead>? {
+        patchLog.warning("$PATCH: $why, so the footer under a post keeps Tumblr's gray")
+        return null
+    }
+    val footers = classDefByStrings(POST_FOOTER_NOTE, StringComparisonType.STARTS_WITH)
+        .filter { !it.type.startsWith(EXTENSION_ROOT) }
+        .distinctBy { it.type }
+        .flatMap { owner -> owner.methods.filter { method -> method.strings().any { it.startsWith(POST_FOOTER_NOTE) } } }
+    val footer = footers.singleOrNull() ?: return without("${footers.size} functions carry the post footer's note instead of one")
+    val body = footer.instructionList()
+    val reads = body.indices.mapNotNull { at ->
+        if (body[at].colorGetter() == null) return@mapNotNull null
+        val kept = body.getOrNull(at + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_WIDE } as? OneRegisterInstruction
+            ?: return@mapNotNull null
+        body.getOrNull(at + 2)?.takeIf { it.isBackgroundOf(kept.registerA) } ?: return@mapNotNull null
+        DesignColorRead(at + 2, kept.registerA, DESIGN_FOOTER_HOOK)
+    }
+    val read = reads.singleOrNull()
+        ?: return without("the post footer hands ${reads.size} design colors straight to a background instead of one")
+    requireExtensionHook(PATCH, DESIGN_FOOTER_HOOK)
+    return footer to read
+}
+
+/** A static `(modifier, long, shape)` call answering the modifier's type, with the long in [register] and the one after. */
+private fun Instruction.isBackgroundOf(register: Int): Boolean {
+    if (opcode != Opcode.INVOKE_STATIC) return false
+    val call = methodRef() ?: return false
+    val types = call.parameterTypes.map(CharSequence::toString)
+    if (types.size != 3 || types[1] != "J" || !types[0].startsWith("L") || !types[2].startsWith("L") || call.returnType != types[0]) return false
+    val five = this as FiveRegisterInstruction
+    return five.registerCount == 4 && five.registerD == register && five.registerE == register + 1
 }
 
 /**

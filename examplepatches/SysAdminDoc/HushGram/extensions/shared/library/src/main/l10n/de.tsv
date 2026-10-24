@@ -30,6 +30,22 @@ Empties the activity log that a diagnostic report would include.	Leert das Aktiv
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
 Export diagnostic report	Diagnosebericht exportieren
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Ab dem nächsten Start verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.
+Lock these settings	Diese Einstellungen sperren
+Pick a wait of 1, 6 or 24 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Wähle eine Wartezeit von 1, 6 oder 24 Stunden. Gesperrt ändert sich hier nichts, bis du das Entsperren anforderst und die Wartezeit vorbei ist.
+Ask to unlock	Entsperren anfordern
+These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	Diese Einstellungen sind gesperrt. Tippe, um die Wartezeit von %1$s zu starten, danach sind sie 10 Minuten lang offen.
+Unlock asked	Entsperren angefordert
+These settings open at %1$s, for 10 minutes.	Diese Einstellungen öffnen sich um %1$s für 10 Minuten.
+Settings are open	Einstellungen sind offen
+They lock again at %1$s. Tap to lock them now or turn the lock off.	Sie sperren sich um %1$s wieder. Tippe, um sie jetzt zu sperren oder die Sperre auszuschalten.
+# context: the wait of a settings lock when it is exactly one hour; %1$d is the number
+%1$d hour	%1$d Stunde
+# context: the same wait for any other number of hours; %1$d is how many
+%1$d hours	%1$d Stunden
+Turn the lock off	Sperre ausschalten
+Settings locked	Einstellungen gesperrt
+Lock turned off	Sperre ausgeschaltet
+These settings are locked. Ask to unlock first.	Diese Einstellungen sind gesperrt. Fordere zuerst das Entsperren an.
 Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut
 Gray out stories you've watched	Angesehene Stories ausgrauen
@@ -161,7 +177,7 @@ Download as photo	Als Foto herunterladen
 Download on stories	Herunterladen bei Stories
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Fügt dem Menü jeder Story die Option Herunterladen hinzu, ob Foto oder Video, gespeichert in deiner Download-Qualität. Ausgeschaltet oder pausiert kommt Instagrams eigenes Menü zurück.
 Upload stories at full quality	Stories in voller Qualität hochladen
-Video stories you post are sent up to 1080 pixels wide instead of 720, as they are with Instagram's own Upload at highest quality setting on. Photo stories stay as they are.	Video-Stories, die du postest, werden bis zu 1080 Pixel breit statt 720 gesendet, so wie mit Instagrams eigener Einstellung „In höchster Qualität hochladen“. Foto-Stories bleiben, wie sie sind.
+Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	Video-Stories, die du postest, werden in 1080p und mit höherer Bitrate gesendet, so wie mit Instagrams eigener Einstellung „In höchster Qualität hochladen“. Instagram verkleinert Story-Videos auf seinen Servern trotzdem auf 720p, daher ist der sichtbare Unterschied gering. Foto-Stories werden schon größer hochgeladen, als Instagram sie behält.
 Download feed videos	Feed-Videos herunterladen
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Fügt dem Menü eines Beitrags mit Video in deinem Feed „Herunterladen“ hinzu. Nutzt die Qualität unten. Aus oder pausiert gilt wieder das Menü von Instagram.
 Playback	Wiedergabe
@@ -205,6 +221,8 @@ Show the Reels tab	Reels-Tab anzeigen
 Puts Reels back on the tab bar if Instagram left it off yours. Hide the Reels tab wins if both are on. Restart Instagram to see the change.	Setzt Reels zurück in die Tab-Leiste, falls Instagram es bei dir weggelassen hat. Reels-Tab ausblenden hat Vorrang, wenn beide an sind. Starte Instagram neu, um die Änderung zu sehen.
 Show the Messages tab	Nachrichten-Tab anzeigen
 Puts Messages on the tab bar, before Profile, if Instagram left it off yours. Tab order can move it. Restart Instagram to see the change.	Setzt Nachrichten vor Profil in die Tab-Leiste, falls Instagram es bei dir weggelassen hat. Mit Tab-Reihenfolge kannst du es verschieben. Starte Instagram neu, um die Änderung zu sehen.
+Hide the Messages tab	Den Nachrichten-Tab ausblenden
+Takes the Messages button off the tab bar. A Messages button on Home's header still opens your chats, and so do notifications.	Nimmt die Nachrichten-Taste aus der Tab-Leiste. Eine Nachrichten-Taste oben auf der Startseite öffnet deine Chats weiter, und Benachrichtigungen auch.
 Show the Activity tab	Aktivität-Tab anzeigen
 Puts Activity, the screen the heart opens, on the tab bar before Profile. Tab order can move it, and Hide notifications on Home's header takes the heart away. Restart Instagram to see the change.	Setzt Aktivität, den Bildschirm hinter dem Herz, vor Profil in die Tab-Leiste. Mit Tab-Reihenfolge kannst du es verschieben, und Benachrichtigungen oben auf der Startseite ausblenden nimmt das Herz weg. Starte Instagram neu, um die Änderung zu sehen.
 Keep the reel speed	Reel-Geschwindigkeit beibehalten
@@ -329,7 +347,7 @@ Doesn't follow you	Folgt dir nicht
 Hide suggested people	Vorgeschlagene Personen ausblenden
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Entfernt „Vorschläge für dich“ und die Schaltfläche „Personen entdecken“ von Profilen, auch von deinem. Bios, Zahlen, Beiträge und Follower-Listen bleiben.
 Hide Suggested for you on follow lists	„Vorschläge für dich“ in Follower-Listen ausblenden
-Leaves the Suggested for you section off the bottom of the followers and following lists. Every account in the list stays.	Lässt den Bereich „Vorschläge für dich“ unten in den Listen deiner Follower und der Konten, denen du folgst, weg. Jedes Konto in der Liste bleibt.
+Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	Lässt den Bereich „Vorschläge für dich“ in den Listen der Follower, Gefolgten und gemeinsamen Follower weg, ebenso den Tab „Vorschläge“ in den Follower-Listen anderer Personen. Jedes Konto in den Listen bleibt.
 Hide Complete your profile	Profil vervollständigen ausblenden
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	Entfernt die Karten von Profil vervollständigen, etwa Steckbrief hinzufügen und Personen zum Folgen finden, von deinem eigenen Profil. Steckbrief, Zahlen und Beiträge bleiben.
 Hide People you don't follow back	Personen, denen du nicht zurückfolgst, ausblenden
@@ -372,6 +390,8 @@ HushGram settings exported.	HushGram-Einstellungen exportiert.
 Couldn't export HushGram settings. Try another file.	HushGram-Einstellungen konnten nicht exportiert werden. Versuche eine andere Datei.
 Settings restored.	Einstellungen wiederhergestellt.
 Imported %1$d settings. Skipped %2$d that this version doesn't know.	%1$d Einstellungen importiert. %2$d übersprungen, die diese Version nicht kennt.
+Imported %1$d settings.	%1$d Einstellungen importiert.
+Lock switches stay as they are until you change them here.	Die Sperrschalter bleiben, wie sie sind, bis du sie hier änderst.
 Restart Instagram to apply these choices.	Starte Instagram neu, um diese Werte anzuwenden.
 Couldn't save the settings. The previous values were restored.	Die Einstellungen konnten nicht gespeichert werden. Die vorherigen Werte wurden wiederhergestellt.
 Undo couldn't fully restore the settings. Check the shown values. Undo has been used up.	Rückgängig konnte die Einstellungen nicht vollständig wiederherstellen. Prüfe die angezeigten Werte. Rückgängig wurde verbraucht.
@@ -428,7 +448,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	Suchleiste wie bei Videos in Nachrichten
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	Gibt Reels die Suchleiste eines Videos im Chat, eine dünne graue Linie, die beim Abspielen weiß wird, mit einem großen runden weißen Griff. Die Zeit steht darüber. Zum Spulen ziehen. Ist die größere Suchleiste auch an, gilt dieser Stil. Die Leiste bleibt auch bei kurzen Reels.
 Blur the bars around a reel	Balken um ein Reel weichzeichnen
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar shows the reel blurred too. Open Reels again after a change.	Ein Reel, das den Bildschirm nicht ausfüllt, zeigt über und unter sich eine unscharfe Kopie von sich selbst statt schwarzer Balken, und auch der Streifen unter der Tab-Leiste zeigt das Reel unscharf. Öffne Reels nach einer Änderung erneut.
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	Ein Reel, das den Bildschirm nicht ausfüllt, zeigt über und unter sich eine unscharfe Kopie von sich selbst statt schwarzer Balken, und auch der Streifen unter der Tab-Leiste und der Bereich hinter der Uhr zeigen das Reel unscharf. Öffne Reels nach einer Änderung erneut.
 # Chosen navigation long-press settings entry. Account tab availability varies.
 Settings entry	Zugang zu den Einstellungen
 Open settings with a tab long press	Einstellungen durch langes Drücken auf einen Tab öffnen
@@ -450,6 +470,8 @@ Ask for larger photos	Größere Fotos anfordern
 Empties Home on purpose, so you see the stories row and nothing under it. Profiles, Explore and Reels still show posts. Pull down on Home to refresh after changing it.	Leert die Startseite absichtlich, sodass du die Story-Leiste siehst und nichts darunter. Profile, Entdecken und Reels zeigen weiter Beiträge. Ziehe die Startseite nach dem Ändern nach unten, um sie zu aktualisieren.
 Hide the home feed	Startseiten-Feed ausblenden
 On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider screen. This uses more data. Restart Instagram to see the change.	Fragt auf einem Handy mit weniger als 1440 Pixeln Breite bei Instagram Fotos in der Größe für einen breiteren Bildschirm an. Das verbraucht mehr Daten. Starte Instagram neu, um die Änderung zu sehen.
+Full size covers	Cover in voller Größe
+Reel covers and grid pictures come at full size, so Download cover saves a picked cover at full size too. Grids use a lot more data. Restart Instagram to see the change.	Reel-Cover und Rasterbilder kommen in voller Größe, sodass Cover herunterladen ein ausgewähltes Cover auch in voller Größe speichert. Raster verbrauchen deutlich mehr Daten. Starte Instagram neu, um die Änderung zu sehen.
 Stop swiping between tabs	Wischen zwischen Tabs stoppen
 %d notifications	%d Benachrichtigungen
 1 hour	1 Stunde
@@ -466,6 +488,8 @@ Group by type	Nach Art gruppieren
 Group notifications	Benachrichtigungen gruppieren
 Hide shopping	Shopping ausblenden
 Hide surveys	Umfragen ausblenden
+Hide the caught up card	Karte „Alles gesehen“ ausblenden
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	Blendet die Karte nach den Beiträgen von Konten, denen du folgst, aus, die sagt, dass du die neuesten gesehen hast, samt ihrem Link zu älteren Beiträgen. Wenn die Startseite gar keine neuen Beiträge hat, bleibt die Karte. Ziehe die Startseite nach dem Ändern nach unten, um sie zu aktualisieren.
 Instagram is locked	Instagram ist gesperrt
 Instagram locks as soon as you leave it or the screen turns off.	Instagram sperrt sich, sobald du es verlässt oder der Bildschirm ausgeht.
 Instagram locks once you've been away from it for %1$s.	Instagram sperrt sich, wenn du %1$s lang weg warst.
@@ -529,8 +553,18 @@ Loads smaller photos and starts videos, reels and stories at the lowest quality.
 Place	Ort
 Send downloads to another app	Downloads an eine andere App senden
 Send to	Senden an
+Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	An eine andere App gesendet. Um stattdessen hier zu speichern, schalte „Downloads an eine andere App senden“ unter Downloads aus.
 Spoof location	Standort vortäuschen
 Stop after 20 reels	Nach 20 Reels stoppen
+Take a scroll break	Scroll-Pause machen
+# context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
+After %1$d minutes	Nach %1$d Minuten
+Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	Aus. Es kann die Tabs Startseite, Reels und Entdecken für 5 Minuten abdecken, nachdem du eine Weile darauf verbracht hast.
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	Nach %1$d Minuten auf den Tabs Startseite, Reels und Entdecken deckt ein Pausenbildschirm sie für 5 Minuten ab. Nachrichten, dein Profil und die Tableiste funktionieren weiter.
+Time for a break	Zeit für eine Pause
+Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	Startseite, Reels und Entdecken öffnen sich wieder, wenn der Countdown abgelaufen ist. Nachrichten und dein Profil funktionieren weiter.
+# context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
+Time for a break. Home, Reels and Explore open again in %1$s.	Zeit für eine Pause. Startseite, Reels und Entdecken öffnen sich wieder in %1$s.
 Storage	Speicher
 That isn't a place. Type a latitude and a longitude with a comma between them.	Das ist kein Ort. Gib einen Breiten- und einen Längengrad mit einem Komma dazwischen ein.
 That's %1$d reels. Swiping in Reels is off until Instagram has been in the background for %2$d minutes.	Das sind %1$d Reels. Wischen in Reels ist aus, bis Instagram %2$d Minuten im Hintergrund war.
@@ -633,6 +667,7 @@ Adds Details to a feed post's or reel's menu. It shows when it went up, who post
 Caption	Bildunterschrift
 Caption copied	Bildunterschrift kopiert
 Copy caption	Bildunterschrift kopieren
+Copy caption without hashtags	Bildunterschrift ohne Hashtags kopieren
 Copy username	Benutzernamen kopieren
 Couldn't copy the caption	Bildunterschrift konnte nicht kopiert werden
 Couldn't copy the username	Benutzername konnte nicht kopiert werden
@@ -662,6 +697,10 @@ Bio	Steckbrief
 Bio copied	Steckbrief kopiert
 Copy bio	Steckbrief kopieren
 Copy username and bio	Benutzername und Steckbrief kopieren
+Profile extras button	Zusatzknopf im Profil
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	Setzt neben die drei Punkte in Profilen einen Button, der die Profilaktionen von HushGram öffnet. Die Zeilen im Drei-Punkte-Menü bleiben auch erhalten.
+HushGram profile actions	HushGram-Profilaktionen
+Nothing to do for this profile	Hier gibt es nichts zu tun
 Couldn't copy the bio	Steckbrief konnte nicht kopiert werden
 Couldn't open the picture	Das Bild konnte nicht geöffnet werden
 Profile picture	Profilbild
@@ -849,6 +888,10 @@ Clearest	Am klarsten
 Clear	Klar
 Frosted	Milchglas
 Standard	Standard
+Blur strength	Stärke der Unschärfe
+# context: a blur strength step of the tab bar
+Light	Leicht
+Strong	Stark
 Compact	Kompakt
 Tall	Hoch
 Tab bar corners	Ecken der Tab-Leiste
@@ -882,6 +925,8 @@ Full screen Reels	Vollbild-Reels
 Hides the status bar and the navigation bar while Reels shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Blendet die Statusleiste und die Navigationsleiste aus, solange Reels angezeigt wird. Wische vom Rand herein, um sie kurz wieder einzublenden. Zurück und die Tastatur funktionieren wie gewohnt.
 Full screen Home	Vollbild-Startseite
 Hides the status bar and the navigation bar while Home shows. Swipe in from the edge to bring them back for a moment.	Blendet die Statusleiste und die Navigationsleiste aus, solange die Startseite angezeigt wird. Wische vom Rand herein, um sie kurz wieder einzublenden.
+Full screen Messages	Vollbild-Nachrichten
+Hides the status bar and the navigation bar while your messages or a chat shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Blendet die Statusleiste und die Navigationsleiste aus, solange deine Nachrichten oder ein Chat angezeigt werden. Wische vom Rand herein, um sie kurz wieder einzublenden. Zurück und die Tastatur funktionieren wie gewohnt.
 Hide Notes on profile pictures	Notizen auf Profilbildern ausblenden
 Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay as they are.	Entfernt die Notizblase von Profilbildern, auch von deinem. Notizen in Nachrichten bleiben, wie sie sind.
 # context: the line that opens a category's page in HushGram settings, under the page title
@@ -915,6 +960,8 @@ Hide the Create button on reels	Erstellen-Button bei Reels ausblenden
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	Entfernt den Plus-Button, der die Kamera öffnet, oben bei Reels, im Reels-Tab und überall sonst, und schließt die Lücke. Der Rest der Leiste bleibt.
 Hide Your algorithm on reels	Dein Algorithmus bei Reels ausblenden
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	Entfernt den Button Dein Algorithmus oben im Reels-Tab und schließt die Lücke. Der Rest der Leiste bleibt.
+Hide the Friends tab on Reels	Freunde-Tab bei Reels ausblenden
+Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	Entfernt den Tab Freunde mit Reels, die Personen geteilt haben, denen du folgst, oben im Reels-Tab. Reels bleibt, wo es ist.
 Hide the Save button on reels	Speichern-Button bei Reels ausblenden
 Burn-in guard	Einbrennschutz
 Dim when idle	Abdunkeln bei Inaktivität
@@ -1069,7 +1116,7 @@ The navigation bar only	Nur die Navigationsleiste
 Full screen Reels and Home hide the status bar and the navigation bar.	Vollbild-Reels und Vollbild-Startseite blenden die Statusleiste und die Navigationsleiste aus.
 Full screen Reels and Home hide only the status bar at the top. The navigation bar stays.	Vollbild-Reels und Vollbild-Startseite blenden nur die Statusleiste oben aus. Die Navigationsleiste bleibt.
 Full screen Reels and Home hide only the navigation bar at the bottom. The status bar stays.	Vollbild-Reels und Vollbild-Startseite blenden nur die Navigationsleiste unten aus. Die Statusleiste bleibt.
-Turn on Full screen Reels or Full screen Home to use this choice.	Aktiviere „Vollbild-Reels“ oder „Vollbild-Startseite“, um diese Auswahl zu nutzen.
+Turn on Full screen Reels, Full screen Home or Full screen Messages to use this choice.	Aktiviere „Vollbild-Reels“, „Vollbild-Startseite“ oder „Vollbild-Nachrichten“, um diese Auswahl zu nutzen.
 Choose carousel pages	Karussellseiten auswählen
 Adds Choose pages to a carousel's menu, after Save all, and to the download icon. Tick the pages you want and only those save, in order.	Fügt dem Menü eines Karussells nach Alle speichern und dem Download-Symbol Seiten auswählen hinzu. Hake die gewünschten Seiten an, dann werden nur diese der Reihe nach gespeichert.
 Choose pages	Seiten auswählen
@@ -1128,10 +1175,13 @@ LINE	LINE
 KakaoTalk	KakaoTalk
 Discord	Discord
 Band	Band
-# context: Tabs on profiles row under Profiles; Reposts and Tagged are the names of Instagram's own profile tabs
-Tabs on profiles	Tabs in Profilen
-Every tab shows on profiles. Untick the ones you don't want. The grid of posts always stays.	Auf Profilen werden alle Tabs angezeigt. Entferne das Häkchen bei denen, die du nicht willst. Das Raster mit den Beiträgen bleibt immer.
-Left off profiles: %1$s. The grid of posts stays.	Auf Profilen ausgeblendet: %1$s. Das Raster mit den Beiträgen bleibt.
+# context: Tabs on your profile and Tabs on other profiles rows under Profiles, one for the signed-in account's own profile and one for everyone else's; Reposts and Tagged are the names of Instagram's own profile tabs
+Tabs on your profile	Tabs in deinem Profil
+Tabs on other profiles	Tabs in anderen Profilen
+Every tab shows on your profile. Untick the ones you don't want. The grid of posts always stays.	In deinem Profil werden alle Tabs angezeigt. Entferne das Häkchen bei denen, die du nicht willst. Das Raster mit den Beiträgen bleibt immer.
+Every tab shows on other people's profiles. Untick the ones you don't want. The grid of posts always stays.	In den Profilen anderer werden alle Tabs angezeigt. Entferne das Häkchen bei denen, die du nicht willst. Das Raster mit den Beiträgen bleibt immer.
+Left off your profile: %1$s. The grid of posts stays.	In deinem Profil ausgeblendet: %1$s. Das Raster mit den Beiträgen bleibt.
+Left off other profiles: %1$s. The grid of posts stays.	In anderen Profilen ausgeblendet: %1$s. Das Raster mit den Beiträgen bleibt.
 Reposts	Reposts
 Tagged	Markiert
 # context: Show all recent searches switch under Explore; See all is Instagram's own row under the recent searches
@@ -1163,3 +1213,12 @@ Puts a music icon beside a reel. Tap it and the Reels tab skips other reels usin
 Hidden sounds	Ausgeblendete Sounds
 The sounds you hid with the music icon. Uncheck one to see its reels again.	Die Sounds, die du mit dem Musiksymbol ausgeblendet hast. Nimm bei einem den Haken weg, um seine Reels wieder zu sehen.
 No sounds are hidden yet. Turn on Hide reels by sound, then tap the music icon beside a reel.	Noch keine Sounds ausgeblendet. Schalte „Reels nach Sound ausblenden“ ein und tippe dann auf das Musiksymbol neben einem Reel.
+# context: read aloud after a settings row's name when a dot marks it as added since the settings were last opened
+New	Neu
+App icon	App-Symbol
+Instagram on black	Instagram auf Schwarz
+Instagram on plum	Instagram auf Pflaume
+Instagram's own	Instagrams eigenes
+Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Instagrams eigenes. Wähle ein anderes, um das Symbol auf deinem Startbildschirm und in der App-Übersicht zu ändern.
+%1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Es erscheint, sobald du Instagram verlässt. Fehlt das Symbol auf deinem Startbildschirm, füge es aus der App-Übersicht wieder hinzu.
+the home screen icon you picked	das von dir gewählte App-Symbol

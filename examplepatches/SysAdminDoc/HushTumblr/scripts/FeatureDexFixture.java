@@ -60,8 +60,11 @@ public final class FeatureDexFixture {
     private static final String CORE_APP = "Lcom/tumblr/CoreApp;";
     private static final String ACTIVITY = "Lcom/tumblr/ui/activity/JumpoffActivity;";
     private static final String COMPONENT_ACTIVITY = "Lfixture/ComponentActivity;";
+    // A blog's posts page is a subclass of the page every blog, likes and search page starts from.
+    private static final String TIMELINE_RESPONSE = "Lcom/tumblr/rumblr/response/timeline/TimelineResponse;";
+    private static final String POSTS_RESPONSE = "Lcom/tumblr/rumblr/response/timeline/PostsResponse;";
     private static final Map<String, String> SUPERCLASSES = Map.of(APP, CORE_APP, ACTIVITY, COMPONENT_ACTIVITY,
-            CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;");
+            CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;", POSTS_RESPONSE, TIMELINE_RESPONSE);
     private static final String VOID = "V";
     private static final String OBJECT = "Ljava/lang/Object;";
     private static final String LIST = "Ljava/util/List;";
@@ -396,7 +399,7 @@ public final class FeatureDexFixture {
     private static void timeline(Map<String, List<Method>> classes, String variant) {
         boolean hooked = !variant.equals("clean");
         String pagination = "Lcom/tumblr/rumblr/model/PaginationLink;";
-        for (String owner : List.of("Lcom/tumblr/rumblr/model/Timeline;", "Lcom/tumblr/rumblr/response/timeline/TimelineResponse;")) {
+        for (String owner : List.of("Lcom/tumblr/rumblr/model/Timeline;", TIMELINE_RESPONSE)) {
             String[] parameters = owner.endsWith("Timeline;") ? new String[]{LIST, pagination} : new String[]{LIST, pagination, "Ljava/util/Map;"};
             List<Instruction> body = new ArrayList<>();
             boolean filter = hooked && !(variant.equals("missing") && owner.endsWith("TimelineResponse;"));
@@ -410,8 +413,19 @@ public final class FeatureDexFixture {
             body.add(end());
             classes.put(owner, List.of(method(owner, "<init>", VOID, false, parameters.length + 1, body, parameters)));
         }
+        // The subclass keeps its own copy of the items it hands the base constructor, and reads that back.
+        List<Instruction> copy = new ArrayList<>();
+        if (hooked && !variant.equals("copy-missing")) copy.addAll(List.of(invoke(Opcode.INVOKE_STATIC, ref(TIMELINE_FILTER, "filterKept", LIST, LIST), 1),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1)));
+        copy.addAll(List.of(invoke(Opcode.INVOKE_DIRECT, ref(TIMELINE_RESPONSE, "<init>", VOID, LIST, pagination, "Ljava/util/Map;"), 0, 1, 2, 3),
+                member(Opcode.IPUT_OBJECT, 1, 0, POSTS_RESPONSE, "f", LIST), end()));
+        classes.put(POSTS_RESPONSE, List.of(method(POSTS_RESPONSE, "<init>", VOID, false, 4, copy, LIST, pagination, "Ljava/util/Map;"),
+                method(POSTS_RESPONSE, "getTimelineObjects", LIST, false, 2, List.of(member(Opcode.IGET_OBJECT, 0, 1, POSTS_RESPONSE, "f", LIST),
+                        new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)))));
         if (hooked) classes.put(TIMELINE_FILTER, List.of(method(TIMELINE_FILTER, "filter", LIST, true, 2,
-                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), LIST)));
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), LIST),
+                method(TIMELINE_FILTER, "filterKept", LIST, true, 2,
+                        List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), LIST)));
         // The filter can empty a page, so the fragment's question about an empty page comes with it.
         paging(classes, hooked ? "good" : "clean");
     }
@@ -771,12 +785,12 @@ public final class FeatureDexFixture {
 
     private static void smallSelectors(File root, Map<String, List<Method>> settings) throws Exception {
         SMALL_CASES.clear();
-        for (String variant : List.of("good", "missing", "wrong-list", "late")) {
+        for (String variant : List.of("good", "missing", "copy-missing", "wrong-list", "late")) {
             reset(); enable("hideReblogs");
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             timeline(classes, variant); postBridge(classes, "good");
             smallCase(root, "feature-small-timeline-" + variant, classes, "hideReblogs", variant.equals("good") ? ""
-                    : variant.equals("missing") ? "has 0 calls" : variant.equals("late") ? "is not where its rule puts it" : "doesn't take what its rule hands it");
+                    : variant.contains("missing") ? "has 0 calls" : variant.equals("late") ? "is not where its rule puts it" : "doesn't take what its rule hands it");
         }
         for (String variant : List.of("good", "missing", "wrong-next", "wrong-flag", "wrong-load", "late", "uncontrolled")) {
             reset(); enable("hideReblogs");

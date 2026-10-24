@@ -8,15 +8,24 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
+
+/** Only archive-search controls opt in; settings and result rows retain their spacing. */
+internal val LocalArchiveControlLayout = staticCompositionLocalOf { 100 }
 
 /** Observe legacy controllers without attaching their form widgets or replacing listeners. */
 @Composable internal fun rememberModelRevision(vararg roots: View?): Int {
@@ -38,6 +47,11 @@ private fun modelFingerprint(view: View?): Long {
     if (view == null) return 0L
     var value = System.identityHashCode(view).toLong()
     value = value * 31 + System.identityHashCode(view.getTag(0x48690b03))
+    value = value * 31 + (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(EddiArchiveSearchUi.CONTROL_SCALE_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(EddiArchiveSearchUi.RESULT_SCALE_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(EddiArchiveSearchUi.REFRESH_ENABLED_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(EddiArchiveSearchUi.SEARCH_BUSY_TAG)?.hashCode() ?: 0)
     value = value * 31 + view.visibility + if (view.isEnabled) 1 else 0
     when (view) {
         is TextView -> value = value * 31 + view.text.hashCode() + (view.error?.hashCode() ?: 0)
@@ -57,6 +71,34 @@ private fun modelFingerprint(view: View?): Long {
 /** Only WebView and platform playback/canvas content use View interop. */
 internal class NativeSurfaceSlot(val surface: View) : View(surface.context)
 
+internal fun weightedSurface(root: View?): Int? = if (root is LinearLayout)
+    (0 until root.childCount).firstOrNull {
+        val child = root.getChildAt(it)
+        child is NativeSurfaceSlot && child.visibility == View.VISIBLE &&
+            (child.layoutParams as? LinearLayout.LayoutParams)?.weight?.let { weight -> weight > 0 } == true
+    } else null
+
+/** Bounded browser plus independently scrolling controls, also used by web dialogs. */
+@Composable internal fun BrowserModel(root: LinearLayout, revision: Int, modifier: Modifier, changed: () -> Unit) {
+    val index = weightedSurface(root) ?: return
+    BoxWithConstraints(modifier) {
+        val percent = if (root.getTag(HissiMenuController.CHECKER_LAYOUT_TAG) == true || root.context is HissiMenuActivity)
+            root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0).getInt("checkerHeaderPercent", 30).coerceIn(10, 60) else 30
+        val controlsHeight = maxHeight * (percent / 100f)
+        Column(Modifier.fillMaxSize()) {
+            if (index > 0) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)
+                .verticalScroll(rememberScrollState())) {
+                for (i in 0 until index) ModelContent(root.getChildAt(i), revision, insideScroll = true, changed = changed)
+            }
+            ModelContent(root.getChildAt(index), revision, Modifier.weight(1f), changed = changed)
+            if (index + 1 < root.childCount) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)
+                .verticalScroll(rememberScrollState())) {
+                for (i in index + 1 until root.childCount) ModelContent(root.getChildAt(i), revision, insideScroll = true, changed = changed)
+            }
+        }
+    }
+}
+
 internal fun prepareNativeSurfaces(root: ViewGroup) {
     for (index in 0 until root.childCount) {
         val child = root.getChildAt(index)
@@ -72,12 +114,35 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 }
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
-@Composable internal fun ModelContent(view: View, revision: Int = 0, modifier: Modifier = Modifier, changed: () -> Unit = {}) {
+@Composable internal fun ModelContent(view: View, revision: Int = 0, modifier: Modifier = Modifier,
+    insideScroll: Boolean = false, changed: () -> Unit = {}) {
     if (view.visibility != View.VISIBLE) return
+    if (view is ViewGroup && view.getTag(EddiArchiveSearchUi.RESULT_CARD_TAG) == true) {
+        val ruleColor = MaterialTheme.colorScheme.outline.copy(alpha = .70f)
+        val first = view.getTag(EddiArchiveSearchUi.RESULT_FIRST_TAG) == true
+        val padding = EddiArchiveSearchUi.clampResultPadding(view.getTag(EddiArchiveSearchUi.RESULT_PADDING_TAG) as? Int ?: 16)
+        Box(modifier.fillMaxWidth().heightIn(min = 48.dp).combinedClickable(
+            enabled = view.isEnabled, onClick = { view.performClick(); changed() }) .drawBehind {
+            val stroke = 1.dp.toPx()
+            if (first) drawLine(ruleColor, Offset(0f, stroke / 2), Offset(size.width, stroke / 2), stroke)
+            drawLine(ruleColor, Offset(0f, size.height - stroke / 2), Offset(size.width, size.height - stroke / 2), stroke)
+        }.padding(horizontal = 12.dp, vertical = padding.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                for (index in 0 until view.childCount) {
+                    val text = view.getChildAt(index) as? TextView ?: continue
+                    Text(text.text.toString(), fontSize = if (index == 0) 16.sp else 12.sp,
+                        color = if (index == 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        return
+    }
     when (view) {
         is NativeSurfaceSlot -> AndroidView(factory = { view.surface },
             modifier = if (view.layoutParams?.width == 1 && view.layoutParams?.height == 1) Modifier.size(1.dp)
-                else Modifier.fillMaxWidth().height(420.dp))
+                else if ((view.layoutParams as? LinearLayout.LayoutParams)?.weight?.let { it > 0 } == true)
+                    modifier.fillMaxSize()
+                else modifier.fillMaxWidth().height(420.dp))
         is ListView -> {
             val adapter = view.adapter ?: return
             DisposableEffect(adapter) {
@@ -95,6 +160,7 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                     val label = adapter.getItem(index)?.toString().orEmpty()
                     val selectable = adapter.isEnabled(index) && view.isEnabled
                     Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         modifier = Modifier.fillMaxWidth().combinedClickable(enabled = selectable,
                             onClick = {
                                 if (view.choiceMode != ListView.CHOICE_MODE_NONE)
@@ -117,6 +183,19 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                 onValueChange = { value -> view.progress = value.toInt(); changed() },
                 valueRange = 0f..view.max.coerceAtLeast(1).toFloat(), enabled = view.isEnabled)
         }
+        is CompoundButton -> {
+            var checked by remember(view) { mutableStateOf(view.isChecked) }
+            Row(modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = checked, onCheckedChange = { value ->
+                    checked = value
+                    view.isChecked = value
+                    changed()
+                }, enabled = view.isEnabled)
+                Text(view.text?.toString().orEmpty(), Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (view.isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = .38f))
+            }
+        }
         is ProgressBar -> {
             if (view.isIndeterminate) LinearProgressIndicator(Modifier.fillMaxWidth())
             else LinearProgressIndicator(progress = { view.progress.toFloat() / view.max.coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth())
@@ -128,12 +207,19 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
         }
         is LinearLayout -> if (view.orientation == LinearLayout.HORIZONTAL &&
             (0 until view.childCount).all { (view.getChildAt(it) is Button && view.getChildAt(it) !is CompoundButton) || view.getChildAt(it).javaClass == View::class.java }) {
-            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val scale = LocalArchiveControlLayout.current
+            val compact = scale < 100
+            val toolbarHeight = (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG) as? Int)?.coerceIn(32, 56)
+            val effectiveHeight = toolbarHeight?.let { maxOf(it.toFloat(), 20f * LocalDensity.current.fontScale + 8f).dp }
+            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides (if (toolbarHeight != null) 0.dp else LocalMinimumInteractiveComponentSize.current)) {
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy((8f * scale / 100f).dp)) {
                 for (index in 0 until view.childCount) {
                     val button = view.getChildAt(index) as? Button ?: continue
                     if (button.visibility == View.VISIBLE) {
                         val release = button.getTag(0x48690b01) as? Runnable
-                        if (release == null) TextButton(onClick = { button.performClick(); changed() }, enabled = button.isEnabled) { Text(button.text.toString()) }
+                        if (release == null) TextButton(onClick = { button.performClick(); changed() }, enabled = button.isEnabled,
+                            contentPadding = if (toolbarHeight != null) PaddingValues(horizontal = 8.dp) else if (compact) PaddingValues(horizontal = (8f + (scale - 50) * .16f).dp, vertical = ((scale - 50) * .16f).dp) else ButtonDefaults.TextButtonContentPadding,
+                            modifier = if (effectiveHeight != null) Modifier.height(effectiveHeight) else Modifier.heightIn(min = 48.dp)) { Text(button.text.toString()) }
                         else Text(button.text.toString(), style = MaterialTheme.typography.labelLarge,
                             modifier = Modifier.padding(12.dp).pointerInput(button) {
                                 detectTapGestures(onTap = { if (button.isEnabled) { button.performClick(); changed() } },
@@ -143,8 +229,13 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                     }
                 }
             }
-        } else ModelChildren(view, revision, changed)
+            }
+        } else ModelChildren(view, revision, insideScroll, changed)
         is ScrollView -> {
+            if (insideScroll) {
+                ModelChildren(view, revision, true, changed)
+                return
+            }
             val scroll = rememberScrollState()
             var horizontal by remember(view) { mutableFloatStateOf(0f) }
             @Suppress("UNCHECKED_CAST")
@@ -160,62 +251,91 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
             LaunchedEffect(view, request) { if (request != null) scroll.scrollTo(request.position) }
             LaunchedEffect(view) { snapshotFlow { scroll.value }.collect { view.setTag(0x48690b04, it) } }
             Column(modifier.fillMaxWidth().heightIn(max = 600.dp).then(gestures).verticalScroll(scroll)) {
-                ModelChildren(view, revision, changed)
+                ModelChildren(view, revision, true, changed)
             }
         }
-        is ViewGroup -> ModelChildren(view, revision, changed)
+        is ViewGroup -> ModelChildren(view, revision, insideScroll, changed)
     }
 }
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-@Composable private fun ModelChildren(view: ViewGroup, revision: Int, changed: () -> Unit) {
+@Composable private fun ModelChildren(view: ViewGroup, revision: Int, insideScroll: Boolean = false, changed: () -> Unit) {
     // Result cards use a listener on their LinearLayout, not on the title TextView.
     val click = if (!view.hasOnClickListeners()) Modifier else Modifier.combinedClickable(
         enabled = view.isEnabled, onClick = { view.performClick(); changed() },
         onLongClick = { view.performLongClick(); changed() })
-    Column(Modifier.fillMaxWidth().then(click), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val resultList = view.childCount > 0 && (0 until view.childCount).all {
+        view.getChildAt(it).getTag(EddiArchiveSearchUi.RESULT_CARD_TAG) == true
+    }
+    val gap = if (resultList) 0f else 8f * LocalArchiveControlLayout.current / 100f
+    Column(Modifier.fillMaxWidth().then(click), verticalArrangement = Arrangement.spacedBy(gap.dp)) {
             // Pair explanatory labels with editable fields while retaining composite controls and lists.
             var index = 0
             while (index < view.childCount) {
                 val child = view.getChildAt(index++)
                 val next = view.getChildAt(index)
                 if (child is TextView && child !is Button && child !is EditText && !child.hasOnClickListeners() &&
-                    next is EditText && child.visibility == View.VISIBLE) {
+                    (next is EditText || next is Spinner) && child.visibility == View.VISIBLE) {
                     index++
-                    BoundTextField(next, child.text.toString(), changed = changed)
-                } else ModelContent(child, revision, changed = changed)
+                    if (next.visibility == View.VISIBLE)
+                        BoundSettingRow(labeledSetting(next, child.text.toString()), changed)
+                } else ModelContent(child, revision, insideScroll = insideScroll, changed = changed)
             }
     }
 }
 
 /** Bounded result viewport: do not nest it in ModelScreen's scrolling form. */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun ArchiveSearchScreen(activity: HaiagaruComposeActivity, root: LinearLayout) {
+@Composable internal fun ArchiveSearchScreen(activity: android.app.Activity, root: LinearLayout,
+    back: () -> Unit = { @Suppress("DEPRECATION") activity.onBackPressed() }) {
     var localRevision by remember(root) { mutableIntStateOf(0) }
     val revision = rememberModelRevision(root) + localRevision
     val changed = { localRevision++; Unit }
     val appearance = (root.getChildAt(0) as LinearLayout).getChildAt(1) as Button
-    Scaffold(topBar = { TopAppBar(title = { Text("エッヂ過去ログ検索") }, navigationIcon = {
-        TextButton(onClick = { activity.onBackPressed() }) { Text("戻る") }
-    }, actions = { TextButton(onClick = { appearance.performClick(); changed() }) { Text(appearance.text.toString()) } }) }) { insets ->
+    val density = LocalDensity.current
+    val controlScale = EddiArchiveSearchUi.clampTextScale(root.getTag(EddiArchiveSearchUi.CONTROL_SCALE_TAG) as? Int ?: 100)
+    val resultScale = EddiArchiveSearchUi.clampTextScale(root.getTag(EddiArchiveSearchUi.RESULT_SCALE_TAG) as? Int ?: 100)
+    val layoutScale = EddiArchiveSearchUi.clampControlLayout(root.getTag(EddiArchiveSearchUi.CONTROL_LAYOUT_TAG) as? Int ?: 100)
+    val controlsDensity = Density(density.density, density.fontScale * controlScale / 100f)
+    val resultsDensity = Density(density.density, density.fontScale * resultScale / 100f)
+    Scaffold(topBar = { CompositionLocalProvider(LocalDensity provides controlsDensity) { TopAppBar(title = { Text("エッヂ過去ログ検索") }, navigationIcon = {
+        TextButton(onClick = back) { Text("戻る") }
+    }, actions = { TextButton(onClick = { appearance.performClick(); changed() }) { Text(appearance.text.toString()) } }) } }) { insets ->
         BoxWithConstraints(Modifier.fillMaxSize().padding(insets).imePadding().padding(horizontal = 16.dp)) {
             val formHeight = maxHeight * .40f
-            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy((8f * layoutScale / 100f).dp)) {
+                CompositionLocalProvider(LocalDensity provides controlsDensity, LocalArchiveControlLayout provides layoutScale) {
                 Column(Modifier.fillMaxWidth().heightIn(max = formHeight).verticalScroll(rememberScrollState())) {
                     val form = root.getChildAt(1) as LinearLayout
                     if (form.visibility == View.VISIBLE) for (index in 0 until form.childCount) {
-                        // The instructions above the keyword are not its input label.
-                        ModelContent(form.getChildAt(index), revision, changed = changed)
+                        // This form already owns vertical scrolling. Flatten the
+                        // model's advanced-options ScrollView so focus relocation
+                        // cannot make two nested scrollers fight on every keystroke.
+                        ModelContent(form.getChildAt(index), revision, insideScroll = true, changed = changed)
                     }
                 }
                 Text((root.getChildAt(2) as TextView).text.toString(),
                     style = MaterialTheme.typography.bodySmall, maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                ModelContent(root.getChildAt(3), revision, Modifier.weight(1f), changed)
+                }
+                CompositionLocalProvider(LocalDensity provides resultsDensity) {
+                    val refresh = root.getTag(EddiArchiveSearchUi.REFRESH_ACTION_TAG) as? Runnable
+                    val refreshEnabled = refresh != null && root.getTag(EddiArchiveSearchUi.REFRESH_ENABLED_TAG) == true
+                    if (refreshEnabled) {
+                        PullToRefreshBox(
+                            isRefreshing = root.getTag(EddiArchiveSearchUi.SEARCH_BUSY_TAG) == true,
+                            onRefresh = { refresh?.run(); changed() }, modifier = Modifier.weight(1f).fillMaxWidth()
+                        ) {
+                            ModelContent(root.getChildAt(3), revision, Modifier.fillMaxSize(), changed = changed)
+                        }
+                    } else ModelContent(root.getChildAt(3), revision, Modifier.weight(1f), changed = changed)
+                }
+                CompositionLocalProvider(LocalDensity provides controlsDensity) {
                 ModelContent(root.getChildAt(4), revision, changed = changed)
                 val original = root.getChildAt(5) as Button
                 TextButton(onClick = { original.performClick(); changed() }) {
                     Text(original.text.toString(), maxLines = 1)
+                }
                 }
             }
         }
@@ -224,17 +344,43 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 
 /** Compose shell for controller-built tools, including asynchronous status and list changes. */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun ModelScreen(activity: HaiagaruComposeActivity, title: String, root: View) {
+@Composable internal fun ModelScreen(activity: android.app.Activity, title: String, root: View,
+    back: () -> Unit = { @Suppress("DEPRECATION") activity.onBackPressed() }, showTopBar: Boolean = true) {
     var localRevision by remember(root) { mutableIntStateOf(0) }
     val revision = rememberModelRevision(root) + localRevision
     if (root is ViewGroup) prepareNativeSurfaces(root)
     @Suppress("UNUSED_VARIABLE") val observed = revision
-    Scaffold(topBar = { TopAppBar(title = { Text(title) }, navigationIcon = {
-        TextButton(onClick = { activity.onBackPressed() }) { Text("戻る") }
+    Scaffold(topBar = { if (showTopBar) TopAppBar(title = { Text(title) }, navigationIcon = {
+        TextButton(onClick = back) { Text("戻る") }
     }) }) { insets ->
+        val surfaceIndex = if (root is LinearLayout) (0 until root.childCount).firstOrNull {
+            val child = root.getChildAt(it)
+            child is NativeSurfaceSlot && (child.layoutParams as? LinearLayout.LayoutParams)?.weight?.let { weight -> weight > 0 } == true
+        } else null
+        if (root is LinearLayout && surfaceIndex != null) {
+            // A WebView owns its vertical scrolling. Never measure it inside verticalScroll.
+            BoxWithConstraints(Modifier.fillMaxSize().padding(insets).imePadding()) {
+                val checker = root.getTag(HissiMenuController.CHECKER_LAYOUT_TAG) == true
+                val percent = if (checker) root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0)
+                    .getInt("checkerHeaderPercent", 30).coerceIn(10, 60) else 35
+                val controlsHeight = maxHeight * (percent / 100f)
+                Column(Modifier.fillMaxSize()) {
+                    if (surfaceIndex > 0) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)
+                        .verticalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
+                        for (index in 0 until surfaceIndex) ModelContent(root.getChildAt(index), revision, insideScroll = true) { localRevision++ }
+                    }
+                    ModelContent(root.getChildAt(surfaceIndex), revision, Modifier.weight(1f)) { localRevision++ }
+                    if (surfaceIndex + 1 < root.childCount) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)
+                        .verticalScroll(rememberScrollState())) {
+                        for (index in surfaceIndex + 1 until root.childCount) ModelContent(root.getChildAt(index), revision, insideScroll = true) { localRevision++ }
+                    }
+                }
+            }
+        } else {
         Column(Modifier.fillMaxSize().padding(insets).imePadding().verticalScroll(rememberScrollState())
             .padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             HaiagaruUi.Group { ModelContent(root, revision) { localRevision++ } }
+        }
         }
     }
 }

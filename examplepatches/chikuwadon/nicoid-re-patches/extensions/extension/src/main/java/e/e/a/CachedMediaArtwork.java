@@ -36,6 +36,7 @@ public final class CachedMediaArtwork {
         } catch(Exception ignored) { }
         String cachedPath=path;
         WORKER.execute(()->{
+            synchronized(CURRENT){if(CURRENT.get(session)!=token)return;}
             Bitmap bitmap=cachedPath==null?null:read(cachedPath);
             if(bitmap!=null){
                 Bitmap artwork=bitmap;
@@ -62,10 +63,20 @@ public final class CachedMediaArtwork {
     private static Object field(Object owner,String name)throws Exception {return owner.getClass().getField(name).get(owner);}
     static Bitmap read(String path) {
         synchronized(ART){Bitmap found=ART.get(path);if(found!=null&&!found.isRecycled())return found;}
-        try(InputStream input=new CacheInputStream(new CacheFile(path))){
-            Bitmap bitmap=BitmapFactory.decodeStream(input);if(bitmap==null)return null;
+        try {
+            BitmapFactory.Options options=new BitmapFactory.Options();
+            options.inJustDecodeBounds=true;
+            try(InputStream input=new CacheInputStream(new CacheFile(path))){BitmapFactory.decodeStream(input,null,options);}
+            if(options.outWidth<=0||options.outHeight<=0)return null;
+            // Keep at least the final 640px resolution, with at most a 1280px intermediate.
+            int sample=1;
+            while(Math.max(options.outWidth,options.outHeight)/sample>1280)sample*=2;
+            options.inJustDecodeBounds=false;options.inSampleSize=sample;
+            Bitmap bitmap;
+            try(InputStream input=new CacheInputStream(new CacheFile(path))){bitmap=BitmapFactory.decodeStream(input,null,options);}
+            if(bitmap==null)return null;
             int largest=Math.max(bitmap.getWidth(),bitmap.getHeight());
-            if(largest>640){float scale=640f/largest;bitmap=Bitmap.createScaledBitmap(bitmap,Math.max(1,Math.round(bitmap.getWidth()*scale)),Math.max(1,Math.round(bitmap.getHeight()*scale)),true);}
+            if(largest>640){float scale=640f/largest;Bitmap original=bitmap;bitmap=Bitmap.createScaledBitmap(original,Math.max(1,Math.round(original.getWidth()*scale)),Math.max(1,Math.round(original.getHeight()*scale)),true);if(bitmap!=original)original.recycle();}
             synchronized(ART){ART.put(path,bitmap);}return bitmap;
         }catch(Exception ignored){return null;}
     }

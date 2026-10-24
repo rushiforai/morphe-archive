@@ -28,6 +28,14 @@ public class VerifyHttpsTransport {
                 "A URL without authority must not cause NullPointerException");
         rewrite(original.toString(), "https://example.com/a%2Fb?x=http://other/#fragment");
         rewrite("http://example.com", "https://example.com");
+        rewrite("http://hissi.org/read.php/android/", "http://hissi.org/read.php/android/");
+        rewrite("HTTP://HISSI.ORG:80/read.php/android/?a=%2F#f", "http://HISSI.ORG:80/read.php/android/?a=%2F#f");
+        rewrite("http://www.hissi.org/read.php/android/", "http://www.hissi.org/read.php/android/");
+        rewrite("http://hissi.org.evil/read.php/", "https://hissi.org.evil/read.php/");
+        rewrite("https://hissi.org/read.php/android/", "https://hissi.org/read.php/android/");
+        check(HttpsTransport.isHttpUpgradeExempt("hissi.org",80), "OkHttp Hissi exception");
+        check(!HttpsTransport.isLocalThumbnailEndpoint("hissi.org",80), "Hissi must not bypass the configured proxy");
+        check(!HttpsTransport.isHttpUpgradeExempt("hissi.org.evil",80), "Hissi lookalike must still upgrade");
         rewrite("HTTP://example.com:8080/a", "https://example.com:8080/a");
         rewrite("http://example.com:080/a", "https://example.com/a");
         rewrite("http://u:p%40ss@example.com:80/a", "https://u:p%40ss@example.com/a");

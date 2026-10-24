@@ -1066,13 +1066,15 @@ function Get-KeystoreCertificate {
     .DESCRIPTION
         The alias's own certificate is the first of its chain. A keystore keytool can't read as it
         is gets read as a BouncyCastle BKS store, the kind the desktop CLI makes, with the CLI's jar
-        as the provider. The password goes over in the environment, so it stays off the command line,
-        and so it can't be empty: Windows PowerShell removes a variable set to nothing.
+        as the provider. The password goes over in the environment, so it stays off the command line.
+        An empty one can't, since Windows removes a variable set to nothing, so a store with no
+        password (the morphe.keystore Morphe makes) gets an empty line at keytool's prompt instead,
+        which reads the store without checking its integrity.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Keystore,
         [Parameter(Mandatory = $true)][string]$Alias,
-        [Parameter(Mandatory = $true)][string]$Password,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Password,
         [Parameter(Mandatory = $true)][string]$Java,
         [Parameter(Mandatory = $true)][string]$DesktopJar
     )
@@ -1109,7 +1111,11 @@ function Get-KeystoreCertificate {
                 $kind = @('-storetype', $storeType, '-providerclass', 'org.bouncycastle.jce.provider.BouncyCastleProvider', '-providerpath', $DesktopJar)
             }
             $global:LASTEXITCODE = -1
-            $lines = @(& $keytool -list -v -keystore $Keystore -alias $Alias -storepass:env $variable @kind 2>&1 | ForEach-Object { "$_" })
+            if ($Password) {
+                $lines = @(& $keytool -list -v -keystore $Keystore -alias $Alias -storepass:env $variable @kind 2>&1 | ForEach-Object { "$_" })
+            } else {
+                $lines = @('' | & $keytool -list -v -keystore $Keystore -alias $Alias @kind 2>&1 | ForEach-Object { "$_" })
+            }
             $as = if ($storeType) { "as $storeType" } else { 'as it is' }
             if ($LASTEXITCODE -ne 0) {
                 # Its error line, without the stack trace a provider's failure brings along.

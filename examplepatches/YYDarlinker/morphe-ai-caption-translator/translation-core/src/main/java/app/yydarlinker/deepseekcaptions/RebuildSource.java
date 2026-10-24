@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -437,6 +438,113 @@ final class RebuildSource {
         return true;
     }
 
+    /**
+     * A karaoke track advances the highlight by showing the same line again in a new, very short
+     * cue/event: every step carries the whole sentence and only its highlight position differs.
+     * Read as independent cues, one spoken sentence enters the token stream once per highlight.
+     *
+     * <p>A spoken sentence cannot be delivered inside {@link #DISPLAY_STEP_MAX_MS}; a line that is
+     * shown again immediately after a line with the same tokens is a display step, not new speech.
+     * The merge is deliberately local: two consecutive lines with the same tokens, a window that
+     * touches (gap no larger than {@link #DISPLAY_STEP_GAP_MS}), each window short enough to be a
+     * display step, and each window fast enough (at least {@link #DISPLAY_STEP_MIN_RATE} tokens per
+     * second) that it cannot be ordinary slow speech. There is no whole-track repetition threshold,
+     * and genuine repeated speech is left untouched. The first line keeps its word timing; its last
+     * word is extended to the end of the last display window.
+     */
+    private static final long DISPLAY_STEP_MAX_MS = 400;
+
+    private static final long DISPLAY_STEP_GAP_MS = 600;
+
+    /** A display step shows a dense line; slower repeated words are real speech. */
+    private static final int DISPLAY_STEP_MIN_RATE = 12;
+
+    /** One displayed line: every span a single cue/event emitted, in onset order. */
+    private static final class DisplayLine {
+        final int from, to;
+        final List<String> tokens;
+        final long start, end;
+
+        DisplayLine(List<Span> spans, int from, int to) {
+            this.from = from;
+            this.to = to;
+            long first = spans.get(from).start, last = spans.get(from).end;
+            StringBuilder text = new StringBuilder();
+            for (int i = from; i < to; i++) {
+                Span span = spans.get(i);
+                first = Math.min(first, span.start);
+                last = Math.max(last, span.end);
+                text.append(span.text);
+            }
+            start = first;
+            end = last;
+            tokens = tokens(visibleText(text.toString()));
+        }
+
+        boolean mergeableWith(DisplayLine next) {
+            // "The same line" means the same token sequence after zero-width padding was removed.
+            if (tokens.isEmpty() || tokens.size() != next.tokens.size()) return false;
+            if (end <= start || next.end <= next.start) return false;
+            if (end - start > DISPLAY_STEP_MAX_MS || next.end - next.start > DISPLAY_STEP_MAX_MS)
+                return false;
+            // Implied speech rate: a 200 ms cue with one word is 5 tokens/second, i.e. real speech,
+            // not a highlight step. A dense karaoke line is far above this floor.
+            if (tokens.size() * 1000L < DISPLAY_STEP_MIN_RATE * (end - start)) return false;
+            if (next.tokens.size() * 1000L < DISPLAY_STEP_MIN_RATE * (next.end - next.start))
+                return false;
+            if (next.start - end > DISPLAY_STEP_GAP_MS) return false;
+            for (int i = 0; i < tokens.size(); i++)
+                if (!tokens.get(i).equals(next.tokens.get(i))) return false;
+            return true;
+        }
+    }
+
+    /**
+     * Merges consecutive display steps before the word stream is built. This is the cue/event
+     * layer: a line is every contiguous span carrying one cue id, so a multi-segment JSON3 event
+     * (word offsets) and a multi-range VTT cue are both one line. The pass has its own contract and
+     * runs before {@link #collapseDoubledCues(List)}, which still handles whole-track equivalent
+     * copies with its original systematic threshold.
+     */
+    private static List<Span> mergeDisplaySteps(List<Span> spans) {
+        List<DisplayLine> lines = displayLines(spans);
+        if (lines.size() < 2) return spans;
+        List<Span> out = new ArrayList<>(spans.size());
+        for (int at = 0; at < lines.size(); ) {
+            int last = at;
+            while (last + 1 < lines.size()
+                    && lines.get(last).mergeableWith(lines.get(last + 1))) last++;
+            DisplayLine first = lines.get(at);
+            if (last == at) {
+                for (int i = first.from; i < first.to; i++) out.add(spans.get(i));
+            } else {
+                DisplayLine ending = lines.get(last);
+                for (int i = first.from; i < first.to; i++) {
+                    Span span = spans.get(i);
+                    // Word-level timing belongs to the first display step; only the last word
+                    // reaches the end of the last step, so the merged line keeps its whole window.
+                    if (i + 1 == first.to && ending.end > span.end)
+                        span = span.withEnd(ending.end);
+                    out.add(span);
+                }
+            }
+            at = last + 1;
+        }
+        return out;
+    }
+
+    /** Contiguous spans of one cue/event; a sorted stream keeps every cue's spans together. */
+    private static List<DisplayLine> displayLines(List<Span> spans) {
+        List<DisplayLine> lines = new ArrayList<>();
+        int from = 0;
+        for (int i = 1; i <= spans.size(); i++)
+            if (i == spans.size() || spans.get(i).cue != spans.get(from).cue) {
+                lines.add(new DisplayLine(spans, from, i));
+                from = i;
+            }
+        return lines;
+    }
+
     private static List<Span> collapseDoubledCues(List<Span> spans) {
         int n = spans.size();
         List<int[]> blocks = new ArrayList<>();
@@ -556,7 +664,12 @@ final class RebuildSource {
         // indivisible during ordering. Equal real native onsets may be repeated by an overlapping
         // JSON3 window.
         spans.sort(Comparator.comparingLong((Span v) -> v.start));
-        spans = collapseDoubledCues(withoutZeroWidthSpaces(spans));
+        spans = withoutZeroWidthSpaces(spans);
+        // Display steps are a property of the cue/event stream, not of the whole track: merge them
+        // before the systematic doubled-copy pass, whose contract (repeated >= 6 and a large share
+        // of the track) must stay exactly as it was.
+        spans = mergeDisplaySteps(spans);
+        spans = collapseDoubledCues(spans);
         if (translating) spans = withoutRuby(spans);
         List<Span> ordered = orderedSpans(spans, webVtt);
 
@@ -664,7 +777,9 @@ final class RebuildSource {
     /** The spans of a JSON3 track: whole events, or runs between explicit segment offsets. */
     private static void json3Spans(JSONArray events, List<Span> spans) {
         if (events == null) return;
-        Map<Integer, CoarseFrame> frames = new HashMap<>();
+        Map<String, CoarseFrame> frames = new HashMap<>();
+        Map<String, KaraokeLine> lines = new HashMap<>();
+        List<KaraokeLine> completed = new ArrayList<>();
         for (int i = 0; i < events.length(); i++) {
             JSONObject event = events.optJSONObject(i);
             if (event == null) continue;
@@ -699,8 +814,12 @@ final class RebuildSource {
                 JSONObject part = segs.optJSONObject(j);
                 if (part != null) text.append(part.optString("utf8", ""));
             }
-            if (event.has("wWinId")) {
-                int window = event.optInt("wWinId");
+            if (event.has("wpWinPosId")) {
+                // A word-level track repeats the whole line as a snapshot at every highlight step.
+                // Build one line per window episode and read only the words already spoken.
+                karaokeEvent(lines, completed, event, text.toString(), start, end, i);
+            } else if (event.has("wWinId")) {
+                String window = "w" + event.optInt("wWinId");
                 frames.put(
                         window,
                         appendFrame(
@@ -713,6 +832,152 @@ final class RebuildSource {
                                 frames.get(window)));
             } else spans.add(new Span(text.toString(), start, end, i, false));
         }
+        completed.addAll(lines.values());
+        flushKaraoke(completed, spans);
+    }
+
+    /**
+     * One displayed line of a word-level JSON3 track: the words spoken so far, not the dim tail the
+     * same snapshot already shows. Kept whole so simultaneous speaker windows never interleave
+     * word by word in the source stream.
+     */
+    private static final class KaraokeLine {
+        List<String> tokens;
+        String text;
+        final long start;
+        long end;
+        final int cue;
+
+        KaraokeLine(List<String> tokens, String text, long start, long end, int cue) {
+            this.tokens = tokens;
+            this.text = text;
+            this.start = start;
+            this.end = end;
+            this.cue = cue;
+        }
+    }
+
+    /** Spoken-line clusters whose first windows are this close are one simultaneous caption. */
+    private static final long KARAOKE_SIMULTANEOUS_MS = 250;
+
+    private static void karaokeEvent(
+            Map<String, KaraokeLine> lines,
+            List<KaraokeLine> completed,
+            JSONObject event,
+            String text,
+            long start,
+            long end,
+            int cue) {
+        String speech = hasKaraokePens(event) ? karaokeSpeech(event, text) : text;
+        List<String> now = tokens(speech);
+        String window = "p" + event.optInt("wpWinPosId");
+        KaraokeLine line = lines.get(window);
+        if (now.isEmpty()) {
+            if (line != null) line.end = Math.max(line.end, end);
+            return;
+        }
+        if (line == null) {
+            lines.put(window, new KaraokeLine(now, speech.trim(), start, end, cue));
+            return;
+        }
+        if (prefixOf(line.tokens, now)) {
+            line.tokens = now;
+            line.text = speech.trim();
+            line.end = Math.max(line.end, end);
+            return;
+        }
+        // A roll-up window drops its top line: the remaining words are a suffix of the same line,
+        // not a new spoken sentence.
+        if (now.size() < line.tokens.size() && suffixOf(line.tokens, now)) {
+            line.end = Math.max(line.end, end);
+            return;
+        }
+        completed.add(line);
+        lines.put(window, new KaraokeLine(now, speech.trim(), start, end, cue));
+    }
+
+    private static void flushKaraoke(Collection<KaraokeLine> lines, List<Span> out) {
+        if (lines.isEmpty()) return;
+        List<Span> spans = new ArrayList<>(lines.size());
+        for (KaraokeLine line : lines) {
+            if (line.tokens.isEmpty() || line.text.isEmpty()) continue;
+            spans.add(new Span(line.text, line.start, line.end, line.cue, false));
+        }
+        spans.sort(Comparator.comparingLong(span -> span.start));
+        // Two speaker windows that start together are one simultaneous caption; a line that merely
+        // overlaps a long hold is a later caption, not a second copy of this one.
+        List<Span> clusters = new ArrayList<>(spans.size());
+        for (Span span : spans) {
+            Span previous = clusters.isEmpty() ? null : clusters.get(clusters.size() - 1);
+            if (previous != null && span.start - previous.start <= KARAOKE_SIMULTANEOUS_MS) {
+                clusters.set(
+                        clusters.size() - 1,
+                        new Span(
+                                joinKaraoke(previous.text, span.text),
+                                previous.start,
+                                Math.max(previous.end, span.end),
+                                previous.cue,
+                                false));
+            } else clusters.add(span);
+        }
+        out.addAll(clusters);
+    }
+
+    private static String joinKaraoke(String left, String right) {
+        if (left.isEmpty()) return right;
+        if (right.isEmpty()) return left;
+        return left + " " + right;
+    }
+
+    private static boolean prefixOf(List<String> prefix, List<String> value) {
+        if (prefix.size() > value.size()) return false;
+        return sameRange(prefix, 0, value, 0, prefix.size());
+    }
+
+    private static boolean suffixOf(List<String> value, List<String> suffix) {
+        if (suffix.size() > value.size()) return false;
+        return sameRange(value, value.size() - suffix.size(), suffix, 0, suffix.size());
+    }
+
+    private static boolean hasKaraokePens(JSONObject event) {
+        JSONArray segs = event.optJSONArray("segs");
+        if (segs == null) return false;
+        for (int i = 0; i < segs.length(); i++) {
+            JSONObject part = segs.optJSONObject(i);
+            if (part != null && part.has("pPenId")) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The text up to the last segment that does not carry a dimmed pen. A karaoke line shows the
+     * whole sentence from its first word, but only the unstyled prefix has actually been spoken;
+     * the styled suffix is the future part of the same line and is not new speech.
+     */
+    private static String karaokeSpeech(JSONObject event, String text) {
+        JSONArray segs = event.optJSONArray("segs");
+        if (segs == null || !event.has("pPenId")) return text;
+        int pen = event.optInt("pPenId", Integer.MIN_VALUE);
+        int at = 0, end = 0;
+        boolean spoken = false, styled = false;
+        for (int i = 0; i < segs.length(); i++) {
+            JSONObject part = segs.optJSONObject(i);
+            if (part == null) continue;
+            at += part.optString("utf8", "").length();
+            int partPen =
+                    part.has("pPenId")
+                            ? part.optInt("pPenId", Integer.MIN_VALUE)
+                            : Integer.MIN_VALUE;
+            boolean dim = partPen != Integer.MIN_VALUE && partPen != pen;
+            if (dim) styled = true;
+            else {
+                spoken = true;
+                end = at;
+            }
+        }
+        if (!styled) return text;
+        if (!spoken) return "";
+        return text.substring(0, Math.min(end, text.length())).trim();
     }
 
     /** Merges runs with no independent onset instead of inventing simultaneous word order. */
@@ -756,11 +1021,14 @@ final class RebuildSource {
         final List<String> tokens;
         final long end;
         final boolean rolling;
+        /** The span this window last emitted, so a display hold can extend it instead of repeat it. */
+        final int span;
 
-        CoarseFrame(List<String> tokens, long end, boolean rolling) {
+        CoarseFrame(List<String> tokens, long end, boolean rolling, int span) {
             this.tokens = tokens;
             this.end = end;
             this.rolling = rolling;
+            this.span = span;
         }
     }
 
@@ -776,22 +1044,35 @@ final class RebuildSource {
         if (now.isEmpty()) return previous;
         int carry = 0;
         boolean rolling = false;
-        if (previous != null && !append && start < previous.end) {
+        long windowEnd = end;
+        boolean continuous = previous != null && !append && start < previous.end;
+        if (continuous) {
             boolean grows =
                     now.size() > previous.tokens.size()
                             && sameRange(previous.tokens, 0, now, 0, previous.tokens.size());
+            boolean same =
+                    now.size() == previous.tokens.size()
+                            && sameRange(previous.tokens, 0, now, 0, now.size());
             if (grows) {
                 carry = previous.tokens.size();
                 rolling = true;
+                windowEnd = Math.max(previous.end, end);
+            } else if (same && previous.rolling) {
+                // The line was shown again with the same words: a highlight step or the final hold.
+                // The words are not spoken twice; only this line's display window grows.
+                extendLast(out, previous, end);
+                return new CoarseFrame(now, Math.max(previous.end, end), true, previous.span);
             } else if (previous.rolling) {
                 for (int n = Math.min(previous.tokens.size(), now.size()); n > 0; n--)
                     if (sameRange(previous.tokens, previous.tokens.size() - n, now, 0, n)) {
                         carry = n;
                         rolling = true;
+                        windowEnd = Math.max(previous.end, end);
                         break;
                     }
             }
         }
+        int span = previous == null ? -1 : previous.span;
         if (carry < now.size()) {
             StringBuilder fresh = new StringBuilder();
             for (int n = carry; n < now.size(); n++) {
@@ -802,9 +1083,17 @@ final class RebuildSource {
                         && !cjk(value.codePointAt(0))) fresh.append(' ');
                 fresh.append(value);
             }
+            span = out.size();
             out.add(new Span(fresh.toString(), start, end, cue, false));
         }
-        return new CoarseFrame(now, end, rolling);
+        return new CoarseFrame(now, windowEnd, rolling, span);
+    }
+
+    /** Extends the last span this window emitted; a hold never creates a second copy of it. */
+    private static void extendLast(List<Span> out, CoarseFrame previous, long end) {
+        if (previous.span < 0 || previous.span >= out.size()) return;
+        Span last = out.get(previous.span);
+        if (end > last.end) out.set(previous.span, last.withEnd(end));
     }
 
     private static boolean sameRange(List<String> a, int x, List<String> b, int y, int count) {

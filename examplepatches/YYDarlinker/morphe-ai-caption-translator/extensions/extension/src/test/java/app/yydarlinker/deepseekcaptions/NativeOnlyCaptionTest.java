@@ -22,8 +22,9 @@ import app.yydarlinker.caption.contracts.CaptionContracts.*;
 import static org.junit.Assert.*;
 
 /**
- * The addon must follow YouTube's native caption selection. It must not persist a target, add a
- * target to a source request, or select a native track of its own.
+ * The addon must follow YouTube's native caption selection without ever turning an observation into
+ * a user command. A native track or a native Off only updates the projection; the AI session is
+ * started by the session intent, which only a user act writes.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
@@ -32,11 +33,13 @@ import static org.junit.Assert.*;
         shadows = {
             NativeOnlyCaptionTest.Flags.class,
             NativeOnlyCaptionTest.Tracks.class,
-            NativeOnlyCaptionTest.Core.class,
-            NativeOnlyCaptionTest.Cc.class
+            NativeOnlyCaptionTest.Core.class
         })
 public class NativeOnlyCaptionTest {
-    enum Origin { PREFERRED_TRACK, DEFAULT }
+    enum Origin {
+        PREFERRED_TRACK,
+        DEFAULT
+    }
 
     private static final String VIDEO = "abcdefghijk";
     private static final String SOURCE =
@@ -49,7 +52,6 @@ public class NativeOnlyCaptionTest {
     static final List<String> activations = new ArrayList<>();
     static final List<String> sources = new ArrayList<>();
     static String currentVideo = "";
-    static boolean ccOn = true;
 
     static final class Track {
         final String language, url, vss;
@@ -133,14 +135,6 @@ public class NativeOnlyCaptionTest {
         public static void refreshConfiguration(Context context) {}
     }
 
-    @Implements(CaptionButtonController.class)
-    public static class Cc {
-        @Implementation
-        public static boolean captionsKnownOn() {
-            return ccOn;
-        }
-    }
-
     private Activity activity;
 
     @Before
@@ -183,63 +177,91 @@ public class NativeOnlyCaptionTest {
                         return Collections.emptyList();
                     }
                 });
-        CaptionChoice.reset();
-        ccOn = true;
+        CaptionNativeProjection.resetForTests();
+        CaptionSessionReconciler.resetForTests();
+        CaptionSessionIntent.resetForTests(activity);
+        SourceCatalog.clear();
         translated.clear();
         nativeTracks.clear();
         activations.clear();
         sources.clear();
         currentVideo = VIDEO;
         DeepSeekConfig.saveEnabled(activity, true);
+        CaptionSessionReconciler.onVideo(activity, VIDEO);
     }
 
     @After
     public void after() {
-        CaptionChoice.reset();
+        CaptionSessionReconciler.resetForTests();
+        CaptionNativeProjection.resetForTests();
+        CaptionSessionIntent.resetForTests(activity);
         activity.finish();
     }
 
     @Test
     public void sourceRequestsAreNeverGivenAFabricatedTarget() {
-        CaptionChoice.select("ja", true);
+        CaptionSessionIntent.userToggled(activity, true);
+        CaptionSessionIntent.userSelected(activity, "ja", true);
         assertEquals(SOURCE, DeepSeekCaptionHook.rewriteUrl(null, SOURCE));
     }
 
     @Test
-    public void automaticNativeTranslationBecomesTheCurrentSessionTarget() {
+    public void anAutomaticNativeTranslationOnlyUpdatesTheProjection() {
         Track zh = new Track("zh-Hans", TRANSLATED, "t.zh-Hans");
         translated.add(zh);
 
         NativeCaptionBridge.onNativeSelection(new Object(), zh, Origin.DEFAULT);
 
-        assertEquals("zh-Hans", CaptionChoice.language());
-        assertTrue(CaptionChoice.translates());
+        CaptionNativeProjection.Snapshot projection = CaptionNativeProjection.snapshot();
+        assertEquals("zh-Hans", projection.language);
+        assertTrue(projection.translated);
+        CaptionSessionIntent intent = CaptionSessionIntent.load(activity);
+        assertFalse("an observation must not switch AI captions on", intent.aiEnabled);
+        assertFalse(intent.hasTarget());
+        assertEquals(0L, intent.revision);
+        assertTrue("an observation must not start a session", activations.isEmpty());
+    }
+
+    @Test
+    public void anExplicitCaptionMenuSelectionIsTheUserActThatStartsTheTarget() {
+        CaptionSessionIntent.userToggled(activity, true);
+        // The CC control reading off is an observation; it is not a reason to refuse the user's
+        // own menu selection (the removed N64 gate).
+        CaptionNativeProjection.ccState(CaptionNativeProjection.OFF);
+        Track zh = new Track("zh-Hans", TRANSLATED, "t.zh-Hans");
+        translated.add(zh);
+
+        NativeCaptionBridge.onNativeSelection(new Object(), zh, Origin.PREFERRED_TRACK);
+
+        assertTrue(CaptionSessionIntent.load(activity).translateTarget);
+        assertEquals("zh-Hans", CaptionSessionIntent.load(activity).targetLanguage);
         assertEquals("native translated selection starts the AI overlay", 1, activations.size());
         assertTrue(activations.get(0), activations.get(0).contains("tlang=zh-Hans"));
     }
 
     @Test
-    public void aNativeTrackWhileTheCcControlIsOffDoesNotStartVisibleAiCaptions() {
-        ccOn = false;
-        Track zh = new Track("zh-Hans", TRANSLATED, "t.zh-Hans");
-        translated.add(zh);
-
-        NativeCaptionBridge.onNativeSelection(new Object(), zh, Origin.DEFAULT);
-
-        assertTrue("official CC off must keep the AI overlay inactive", activations.isEmpty());
-        assertEquals("the track remains available for a later CC-on event", "zh-Hans", CaptionChoice.language());
-    }
-
-    @Test
     public void nativeSourceSelectionDoesNotStartTranslation() {
+        CaptionSessionIntent.userToggled(activity, true);
         Track en = new Track("en", SOURCE, ".en");
         nativeTracks.add(en);
 
         NativeCaptionBridge.onNativeSelection(new Object(), en, Origin.PREFERRED_TRACK);
 
-        assertEquals("en", CaptionChoice.language());
-        assertFalse(CaptionChoice.translates());
+        assertFalse(CaptionSessionIntent.load(activity).translateTarget);
+        assertEquals("en", CaptionSessionIntent.load(activity).targetLanguage);
         assertTrue(activations.isEmpty());
         assertEquals(1, sources.size());
+    }
+
+    @Test
+    public void anAutomaticallySelectedTrackWhileTheCcControlReadsOffStartsNothing() {
+        CaptionNativeProjection.ccState(CaptionNativeProjection.OFF);
+        Track zh = new Track("zh-Hans", TRANSLATED, "t.zh-Hans");
+        translated.add(zh);
+
+        NativeCaptionBridge.onNativeSelection(new Object(), zh, Origin.DEFAULT);
+
+        assertTrue("an observation must not start the overlay", activations.isEmpty());
+        assertEquals("zh-Hans", CaptionNativeProjection.snapshot().language);
     }
 }

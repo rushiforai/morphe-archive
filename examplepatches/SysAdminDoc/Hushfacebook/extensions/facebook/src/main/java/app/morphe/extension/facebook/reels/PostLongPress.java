@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import app.morphe.extension.facebook.media.PinchZoom;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -68,6 +69,7 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>A post whose author turned comments off has no Comment button, so its second footer button is
  * whatever follows Like there (Share or Send), which opens its own sheet and posts nothing. With the
  * switch off, with Hushfacebook paused or when anything in here fails, touches go through untouched.
+ * A press on a Pinch to zoom copy that stays up is the zoom's, so it starts no timer.
  *
  * <p>A held press left to Facebook counts why, and with Debug logging on logs the view under the
  * finger, so a phone's report says which check passed the hold over.
@@ -154,6 +156,7 @@ public final class PostLongPress {
             swallowing = false;
             stop();
             if (root == null || !Utils.settingsReady() || !Settings.LONG_PRESS_OPENS_COMMENTS.get()) return;
+            if (PinchZoom.covers(root)) return;
             HookStatus.invoked(FAMILY);
             pressedRoot = new WeakReference<>(root);
             downX = event.getRawX();

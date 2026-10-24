@@ -354,6 +354,10 @@ Hide read receipts	Okundu bilgisini gizle
 People you chat with in Facebook's own chats can't see that you've read their messages. The chat can stay unread on this phone.	Facebook'un kendi sohbetlerinde konuştuğunuz kişiler mesajlarını okuduğunuzu göremez. Sohbet bu telefonda okunmamış kalabilir.
 Facebook can't tell when you take a screenshot or record your screen, so it can't react.	Facebook ekran görüntüsü aldığınızı veya ekranı kaydettiğinizi fark etmez, bu yüzden tepki veremez.
 Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels you've watched may come back.	Facebook'a izlediğiniz reellerin listesini göndermeyi bırakır. Facebook bu listeyi akışınızı sıralamak için kullanır, bu yüzden izlediğiniz reeller geri gelebilir.
+# context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
+Newest reels first	Önce en yeni reels
+# context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
+The Reels tab plays the newest posted of the reels Facebook has loaded for you first, instead of its own pick. It can't fetch newer ones, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	Reels sekmesi, Facebook'un senin için yüklediği reels videoları arasından en son paylaşılanları kendi seçimi yerine önce oynatır. Daha yenilerini getiremez ve sıraya girmiş reels videoları yerinde kalır. Henüz gerçek bir hesapta denenmediği için varsayılan olarak kapalı.
 # context: what stays in while Hushfacebook is paused, shown before the patch's name in brackets; the patch raises the app's version number so Google Play never offers an update
 Meta's apps can install beside this one	Meta uygulamaları bunun yanına kurulabilir
 Messenger, Facebook Lite, Business Suite and Workplace can install next to this Facebook. Their shared permissions no longer clash.	Messenger, Facebook Lite, Business Suite ve Workplace bu Facebook'un yanına kurulabilir. Ortak izinleri artık çakışmaz.
@@ -480,6 +484,10 @@ Comments show their replies right away, so there's no View replies to tap.	Yorum
 Load whole reply threads	Yanıt dizilerini tamamen yükle
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	Açık bir yanıt dizisi sen kaydırdıkça yüklenmeye devam eder, daha fazla yanıt için dokunman gerekmez.
+# context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
+Tap anywhere on View more replies	Daha fazla yanıt gör satırının her yerine dokun
+# context: summary of that switch
+The whole View more replies row opens the replies, not just its words.	Daha fazla yanıt gör satırının tamamı yanıtları açar, yalnızca yazısı değil.
 Hide related groups	İlgili grupları gizle
 A group post's comments end without the Related groups list and its Join buttons.	Bir grup gönderisinin yorumları, İlgili gruplar listesi ve Katıl düğmeleri olmadan biter.
 # context: row title under Comments that opens Facebook's own settings; reaction counts are the numbers next to the reactions on a post
@@ -514,6 +522,10 @@ Hides ads between your search results. The results you searched for stay.	Arama 
 Hide sponsored profile posts	Profillerdeki sponsorlu gönderileri gizle
 # context: summary of that switch; Page is Facebook's name for a business or public figure's page
 Hides ads between posts on someone's profile or a Page. Their own posts stay.	Birinin profilindeki veya bir Sayfadaki gönderilerin arasındaki reklamları gizler. Kendi gönderileri kalır.
+# context: switch title under News feed; a note is the short text bubble (or a 'Drop a thought' prompt) Facebook shows over a person's profile picture
+Hide profile notes	Profil notlarını gizle
+# context: summary of that switch
+Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Profil fotoğraflarının üzerindeki not balonunu gizler. Bir profili bir sonraki açışınızda uygulanır.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Hushfacebook ayarları burada açılamıyor. Bunun yerine Facebook logosuna basılı tut.
@@ -1599,6 +1611,22 @@ Shows a small button at the left edge of a reel or video that has the window rea
 Upload Stories in HD	Hikayeleri HD yükle
 # context: summary of that switch; standard is the normal upload quality, high the better one
 Videos you post to your Story ask Facebook for its high upload quality instead of standard. Applies to the next Story you post.	Hikayenizde paylaştığınız videolar Facebook'tan standart yerine yüksek yükleme kalitesi ister. Paylaşacağınız bir sonraki hikayeden itibaren geçerlidir.
+# context: switch title under Stories; a photo story is a still picture posted to your own Story, and a song added to it plays while the picture shows
+Longer music on photo stories	Fotoğraf hikayelerinde daha uzun müzik
+# context: summary of that switch; 15 seconds is how long Facebook lets the song on a photo play, and the song's length can be shorter than 30
+A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	Hikayeniz için bir fotoğrafa eklediğiniz şarkı 15 yerine 30 saniyeye kadar çalar. Seçeceğiniz bir sonraki şarkıdan itibaren geçerlidir.
+# context: switch title under Stories; two fingers spread apart on a story or a profile photo make it bigger
+Pinch to zoom	Yakınlaştırmak için kıstır
+# context: summary of that switch; "let go" means lifting your fingers off the screen
+Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.	Bir hikayeyi veya birinin profilindeki bir fotoğrafı iki parmakla açarak yakınlaştır. Bıraktığında eski haline döner.
+# context: switch title under Stories, right below Pinch to zoom; the zoomed picture stays zoomed after the fingers lift
+Stay zoomed	Yakınlaştırılmış kalsın
+# context: summary of that switch; "Pinch to zoom" is the label of the switch above it, so use its translation; "Back" is the phone's Back button
+With Pinch to zoom on, the photo or story stays zoomed when you let go, and a story stays paused. Drag with one finger or pinch again. Tap or press Back when you're done.	Yakınlaştırmak için kıstır açıkken fotoğraf veya hikaye bıraktığında yakınlaştırılmış kalır ve hikaye duraklatılmış olarak bekler. Tek parmakla kaydır veya yeniden kıstır. İşin bitince dokun veya Geri'ye bas.
+# context: switch title under Stories, right below Stay zoomed; two quick taps on a photo zoom it in where you tapped
+Double tap to zoom	Yakınlaştırmak için çift dokun
+# context: summary of that switch; "Pinch to zoom" is the label of the switch two rows above it, so use its translation; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, and double tap again to put it back. A single tap still opens the photo, a moment later.	Yakınlaştırmak için kıstır açıkken profildeki bir fotoğrafa çift dokunarak dokunduğun yere yakınlaşırsın, tekrar çift dokununca eski haline döner. Tek dokunuş fotoğrafı yine açar, sadece bir an sonra.
 No ads downloaded in advance	Önceden indirilen reklam yok
 No ad tracking	Reklam takibi yok
 No Facebook ads in other apps	Diğer uygulamalarda Facebook reklamı yok
@@ -1678,6 +1706,8 @@ Birthdays	Doğum günleri
 Fundraisers	Bağış kampanyaları
 # context: a Menu tile's name in the list of tiles to hide; Facebook's own name for it; job listings
 Jobs	İş ilanları
+# context: a Menu tile's name in the list of tiles to hide; Facebook's own name for it; the Finds shopping tab, a product name Facebook keeps in English
+Finds	Finds
 # context: a Menu tile's name in the list of tiles to hide; Facebook's own name for it; Facebook's dating feature
 Dating	Flört
 # context: import preview and toast, no Menu tile will be in that list after the import
@@ -1774,8 +1804,48 @@ Hides the People you may know row Facebook shows when you open search. Your rece
 # context: switch title under Search; on, what the user searches for isn't added to their Facebook search history
 Don't save search history	Arama geçmişini kaydetme
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
-What you search for isn't added to your Facebook search history. Searches already there stay until you delete them.	Aradıklarınız Facebook arama geçmişinize eklenmez. Zaten orada olan aramalar siz silene kadar kalır.
+What you search for, and the pages and profiles you open from a search, aren't added to your Facebook search history. Searches already there stay until you delete them.	Aradıklarınız ve bir aramadan açtığınız sayfalar ile profiller Facebook arama geçmişinize eklenmez. Zaten orada olan aramalar siz silene kadar kalır.
 # context: switch title under Reels and Watch; the audio line is the scrolling line at the bottom of a reel naming its sound, like "Name · Original audio" or a song title
 Hide the audio line on reels	Reels'te ses satırını gizle
 # context: summary of that switch; "Original audio" is Facebook's own label, so use the wording Facebook shows in this language
 Takes the line with the reel's sound, "Original audio" or a song, off the bottom of reels. Other info stays. A change shows from the next reel.	Reels'in altındaki, reel'in sesini gösteren satırı ("Orijinal ses" veya bir şarkı) kaldırır. Diğer bilgiler kalır. Değişiklik bir sonraki reel'den itibaren görünür.
+# context: switch title under Reels and Watch; the message is Facebook's own "This is taking a while. Try checking your network connection." that pops up while a video or GIF loads slowly
+Hide the slow connection message	Yavaş bağlantı mesajını gizle
+# context: summary of that switch; "This is taking a while" is Facebook's own message, so use the wording Facebook shows in this language
+Stops the "This is taking a while" message about your network connection when a video or GIF is slow to load. It keeps loading as before.	Bir video veya GIF yavaş yüklenirken ağ bağlantınızla ilgili "Bu biraz zaman alıyor" mesajını durdurur. Yüklenmeye her zamanki gibi devam eder.
+# context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for dark mode's backgrounds; also its dialog's title
+Background color	Arka plan rengi
+# context: text in that row's dialog above the field; %1$s is the lightest gray code it takes, %2$s the color code the patch wrote, both like #0D1117; keep #RRGGBB and #0D1117 as they are
+A color code (#RRGGBB) for dark mode's backgrounds, like #0D1117. Grays up to about %1$s work. Leave it blank for %2$s, the color Hushfacebook was patched with.	Karanlık modun arka planları için bir renk kodu (#RRGGBB), örneğin #0D1117. Yaklaşık %1$s tonuna kadar griler çalışır. Hushfacebook'u yamalarken seçilen renk olan %2$s için boş bırakın.
+# context: summary of that row while it's blank; %1$s is the color code the patch wrote, like #0D1117
+Uses %1$s, the color Hushfacebook was patched with. Type a color code to change it.	Hushfacebook'u yamalarken seçilen renk olan %1$s kullanılır. Değiştirmek için bir renk kodu yazın.
+# context: summary of that row with a color saved; %1$s is that color code, like #0D1117
+Dark mode's backgrounds use %1$s. Restart Facebook to see the change.	Karanlık modun arka planları %1$s kullanır. Değişikliği görmek için Facebook'u yeniden başlatın.
+# context: shown when Save is tapped on that row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #0D1117 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #0D1117, or leave it blank for the color Hushfacebook was patched with.	“%1$s” bir renk değil. Altı haneli bir renk kodu (#RRGGBB) yazın, örneğin #0D1117, ya da Hushfacebook'u yamalarken seçilen renk için boş bırakın.
+# context: shown when Save is tapped on that row with an eight-digit code that isn't fully opaque; %1$s is what was typed; keep #RRGGBB and #0D1117 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #0D1117.	%1$s saydam. Altı haneli, opak bir renk kodu (#RRGGBB) yazın, örneğin #0D1117.
+# context: shown when Save is tapped on that row with a color too light for Facebook's white text; %1$s is what was typed, %2$s the lightest gray code it takes
+%1$s is too light for Facebook's text to stay readable. Pick a darker color. Grays up to about %2$s work.	%1$s, Facebook'un metninin okunabilir kalması için fazla açık. Daha koyu bir renk seçin. Yaklaşık %2$s tonuna kadar griler çalışır.
+# context: import preview sentence: the file sets AMOLED's Background color row back to blank; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be the color it was patched with.	Yamalı Facebook'unuz AMOLED siyah temayı içeriyorsa karanlık modun arka planları yamalarken seçilen renk olacak.
+# context: import preview sentence: the file sets AMOLED's Background color row; %1$s is a color code like #0D1117; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be %1$s.	Yamalı Facebook'unuz AMOLED siyah temayı içeriyorsa karanlık modun arka planları %1$s olacak.
+# context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for light mode's backgrounds in place of white; also its dialog's title
+Light background color	Açık arka plan rengi
+# context: message in that row's dialog; %1$s is a gray color code like #A6A6A6; keep #RRGGBB and #FFF8E7 as they are
+A color code (#RRGGBB) for light mode's backgrounds in place of white, like #FFF8E7. Grays down to about %1$s work, and text gets darker where it needs to. Leave it blank for Facebook's own white.	Aydınlık modun arka planları için beyaz yerine bir renk kodu (#RRGGBB), örneğin #FFF8E7. Yaklaşık %1$s tonuna kadar griler çalışır ve metin gereken yerlerde koyulaşır. Facebook'un kendi beyazı için boş bırakın.
+# context: summary of that row while it's blank, so Facebook's light mode keeps its own white backgrounds
+Uses Facebook's own white. Type a color code to change it.	Facebook'un kendi beyazı kullanılır. Değiştirmek için bir renk kodu yazın.
+# context: summary of that row once a color is saved; %1$s is the color code
+Light mode's backgrounds use %1$s. Restart Facebook to see the change.	Aydınlık modun arka planları %1$s kullanır. Değişikliği görmek için Facebook'u yeniden başlatın.
+# context: shown when Save is tapped on that row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #FFF8E7 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #FFF8E7, or leave it blank for Facebook's own white.	“%1$s” bir renk değil. Altı haneli bir renk kodu (#RRGGBB) yazın, örneğin #FFF8E7, ya da Facebook'un kendi beyazı için boş bırakın.
+# context: shown when Save is tapped on that row with an eight-digit code that isn't fully opaque; %1$s is what was typed; keep #RRGGBB and #FFF8E7 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #FFF8E7.	%1$s saydam. Altı haneli, opak bir renk kodu (#RRGGBB) yazın, örneğin #FFF8E7.
+# context: shown when Save is tapped on that row with a color too dark for light mode's dark text; %1$s is what was typed, %2$s a gray color code like #A6A6A6
+%1$s is too dark for Facebook's light mode text to stay readable. Pick a lighter color. Grays down to about %2$s work.	%1$s, Facebook'un aydınlık mod metninin okunabilir kalması için fazla koyu. Daha açık bir renk seçin. Yaklaşık %2$s tonuna kadar griler çalışır.
+# context: import preview sentence: the file sets AMOLED's Light background color row back to blank; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be Facebook's own white.	Yamalı Facebook'unuz AMOLED siyah temayı içeriyorsa aydınlık modun arka planları Facebook'un kendi beyazı olacak.
+# context: import preview sentence: the file sets AMOLED's Light background color row; %1$s is a color code like #FFF8E7; "AMOLED black theme" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be %1$s.	Yamalı Facebook'unuz AMOLED siyah temayı içeriyorsa aydınlık modun arka planları %1$s olacak.

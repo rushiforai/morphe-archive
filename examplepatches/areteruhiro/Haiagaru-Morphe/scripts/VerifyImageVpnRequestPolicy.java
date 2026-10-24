@@ -19,6 +19,18 @@ public final class VerifyImageVpnRequestPolicy {
         public void connect() { throw new AssertionError("No real traffic allowed"); }
     }
     public static void main(String[] args) throws Exception {
+        for(String host:new String[]{"www.activetk.jp","loggerip.web.app"})
+            if(!ImageVpnRequestPolicy.isProtectedUrl("https://"+host+"/test"))throw new AssertionError("Missing default "+host);
+        for(String host:new String[]{"www.activetk.jp.evil.test","evilactivetk.jp","other.web.app"})
+            if(ImageVpnRequestPolicy.isProtectedUrl("https://"+host+"/test"))throw new AssertionError("Suffix match "+host);
+        ImageVpnRequestPolicy.setDomains(ImageVpnRequestPolicy.normalizeDomains("EXAMPLE.com\nexample.com\n画像.example"));
+        if(!ImageVpnRequestPolicy.isProtectedUrl("https://example.com/a.png"))throw new AssertionError("Custom domain missing");
+        if(ImageVpnRequestPolicy.isProtectedUrl("https://sub.example.com/a.png"))throw new AssertionError("Wildcard escaped");
+        for(String invalid:new String[]{"https://example.com/path","*.example.com","127.0.0.1","user@example.com","example.com:443","bad..example"}){
+            try{ImageVpnRequestPolicy.parseDomains(invalid);throw new AssertionError("Invalid domain "+invalid);}
+            catch(IllegalArgumentException expected){}
+        }
+        ImageVpnRequestPolicy.setDomains(ImageVpnRequestPolicy.DEFAULT_DOMAINS);
         URL target = new URL("https://tools.yajuvideo.st/om/test.jpg");
         URL normal = new URL("https://i.imgur.com/image.png");
         if (!ImageVpnRequestPolicy.isProtectedUrl(target.toString())) throw new AssertionError("Target validation");

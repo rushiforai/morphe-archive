@@ -39,13 +39,7 @@ internal fun main(args: Array<String>) {
 
     val exceptions = mutableListOf<Exception>()
 
-    arrayOf(
-        "music",
-        "shared",
-        "shared-youtube",
-        "youtube",
-        "reddit"
-    ).forEach { appId ->
+    arrayOf("shared", "shared-youtube", "youtube").forEach { appId ->
         localesAll.forEach { locale ->
             val srcFolderName = locale.getSrcLocaleFolderName()
             val srcSubPath = "$srcFolderName/$appId/strings.xml"

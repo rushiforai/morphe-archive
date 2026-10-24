@@ -165,24 +165,23 @@ public final class ImgurAlbumAttachments {
     }
 
     private static String[] projectImageVpn(Object model, String bodyField, String[] urls) {
-        if (!ImageVpnController.enabled()) return urls;
         String body = null;
-        if (Haiagaru.mediaImageFetchEnabled()) {
-            try {
-                Field field = model.getClass().getDeclaredField(bodyField);
-                field.setAccessible(true);
-                Object raw = field.get(model);
-                if (raw instanceof String) body = (String) raw;
-            } catch (ReflectiveOperationException ignored) { }
-        }
-        return ImageVpnController.attachments(body, urls);
+        try {
+            Field field = model.getClass().getDeclaredField(bodyField);
+            field.setAccessible(true);
+            Object raw = field.get(model);
+            if (raw instanceof String) body = (String) raw;
+        } catch (ReflectiveOperationException ignored) { }
+        urls = GifAutoFetch.project(model, body, urls);
+        if (!ImageVpnController.enabled()) return urls;
+        return ImageVpnController.attachments(Haiagaru.mediaImageFetchEnabled() ? body : null, urls);
     }
 
     /** Runs before the native cached attachment getter; networking stays off the UI thread. */
     public static void prepare(Object model, String bodyFieldName, String cacheFieldName) {
         if (model == null) return;
         int mode = Haiagaru.mediaAutoFetchMode();
-        if (mode == 3 && !Haiagaru.mediaImageFetchEnabled()) return;
+        if (mode == 3 && !Haiagaru.mediaImageFetchEnabled() && Haiagaru.gifAutoFetchMode() == 3) return;
         try {
             Field bodyField = model.getClass().getDeclaredField(bodyFieldName);
             bodyField.setAccessible(true);
@@ -413,7 +412,8 @@ public final class ImgurAlbumAttachments {
                 boolean video = DirectVideoUrls.supported(image);
                 if (video && mode == 3) continue;
                 if (!video && XMediaAttachments.isPoster(image) && mode != 0 && mode != 1) continue;
-                if (!video && !Haiagaru.mediaImageFetchEnabled() && !XMediaAttachments.isPoster(image)) continue;
+                if (!video && !Haiagaru.mediaImageFetchEnabled() && !XMediaAttachments.isPoster(image)
+                        && !GifAutoFetchPolicy.supported(image)) continue;
                 if (video && mode == 0) {
                     VIDEO_MODELS.put(model, Boolean.TRUE);
                     String poster = XMediaAttachments.generatedPoster(image);

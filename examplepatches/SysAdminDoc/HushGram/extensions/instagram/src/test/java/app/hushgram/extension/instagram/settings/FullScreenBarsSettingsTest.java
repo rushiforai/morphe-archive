@@ -37,6 +37,7 @@ public class FullScreenBarsSettingsTest {
         RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
         Settings.FULL_SCREEN_REELS.resetToDefault();
         Settings.FULL_SCREEN_HOME.resetToDefault();
+        Settings.FULL_SCREEN_MESSAGES.resetToDefault();
         Settings.FULL_SCREEN_HIDES.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -49,6 +50,7 @@ public class FullScreenBarsSettingsTest {
         PatchFamily.inBuildForTests = null;
         Settings.FULL_SCREEN_REELS.resetToDefault();
         Settings.FULL_SCREEN_HOME.resetToDefault();
+        Settings.FULL_SCREEN_MESSAGES.resetToDefault();
         Settings.FULL_SCREEN_HIDES.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -93,6 +95,7 @@ public class FullScreenBarsSettingsTest {
         open(EnumSet.noneOf(PatchFamily.class));
         assertNull(page.getPreferenceScreen().findPreference(Settings.FULL_SCREEN_REELS.key));
         assertNull(page.getPreferenceScreen().findPreference(Settings.FULL_SCREEN_HOME.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.FULL_SCREEN_MESSAGES.key));
         assertNull(page.getPreferenceScreen().findPreference(Settings.FULL_SCREEN_HIDES.key));
         assertFalse(ConfigurationBackup.eligible().containsKey(Settings.FULL_SCREEN_HIDES.key));
     }
@@ -117,8 +120,33 @@ public class FullScreenBarsSettingsTest {
         assertEquals("BOTH", row.getValue());
         assertEquals(app.hushgram.extension.instagram.reels.HiddenBars.BOTH, Settings.FULL_SCREEN_HIDES.get());
         assertFalse(Settings.FULL_SCREEN_HIDES.isAvailable());
-        assertEquals("Turn on Full screen Reels or Full screen Home to use this choice.", row.getSummary().toString());
+        assertEquals("Turn on Full screen Reels, Full screen Home or Full screen Messages to use this choice.", row.getSummary().toString());
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.FULL_SCREEN_HIDES.key));
+    }
+
+    /** #288: Full screen Messages sits under Messages, starts off, is backed up, wakes Bars to hide and answers off while paused. */
+    @Test public void messagesIsUnderMessagesAndStartsOff() throws Exception {
+        open(EnumSet.of(PatchFamily.FULL_SCREEN_BARS));
+        android.preference.Preference row = page.getPreferenceScreen().findPreference(Settings.FULL_SCREEN_MESSAGES.key);
+        assertNotNull(row);
+        assertEquals("Full screen Messages", row.getTitle().toString());
+        assertEquals("Hides the status bar and the navigation bar while your messages or a chat shows. Swipe in from "
+                + "the edge to bring them back for a moment. Back and the keyboard work as usual.", row.getSummary().toString());
+        assertEquals("Messages", ((PreferenceGroup) row.getParent()).getTitle().toString());
+        assertFalse(Settings.FULL_SCREEN_MESSAGES.get());
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.FULL_SCREEN_MESSAGES.key));
+
+        page.searchSettings("full screen reels and home");
+        assertNotNull("the patch's name finds it", row.getParent());
+        page.searchSettings("");
+
+        assertFalse(Settings.FULL_SCREEN_HIDES.isAvailable());
+        Settings.FULL_SCREEN_MESSAGES.save(true);
+        assertTrue("Bars to hide picks for it too", Settings.FULL_SCREEN_HIDES.isAvailable());
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse(Settings.FULL_SCREEN_MESSAGES.get());
+        assertTrue(Settings.FULL_SCREEN_MESSAGES.savedValue());
     }
 
     /** #231: with either switch on the row says what each choice hides. */

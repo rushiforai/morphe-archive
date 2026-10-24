@@ -30,6 +30,7 @@ from scripts.source_cleanup import clean_inputs, clean_snapshots, configured_sou
 from scripts.source_policy import disabled_sources, source_channels
 
 ROOT = Path(__file__).resolve().parents[1]
+D1_CLEANUP_BATCH_SIZE = 1000
 
 
 def merge_ids(*registries):
@@ -188,7 +189,7 @@ class Cloud:
             if not result.get("success"):
                 raise RuntimeError("Cloudflare API returned unsuccessful status")
             return result["result"]
-        raise RuntimeError("Cloudflare API retries exhausted")
+        raise RuntimeError(f"Cloudflare API retries exhausted (HTTP {response.status_code})")
 
     def sql(self, sql, params=()):
         self.transfers().add("d1_requests")
@@ -202,6 +203,29 @@ class Cloud:
         if not all(row.get("success") for row in result):
             raise RuntimeError("D1 query failed")
         return result[0].get("results", [])
+
+    def cleanup_records(self, statement, params=()):
+        # Scan each rowid page once, even when matching versions are sparse.
+        # Fixed targets keep a retried DELETE/UPDATE from advancing to another batch.
+        cursor = None
+        while True:
+            rows = self.sql(
+                "SELECT rowid FROM catalog_records ORDER BY rowid LIMIT ?"
+                if cursor is None
+                else "SELECT rowid FROM catalog_records WHERE rowid>? ORDER BY rowid LIMIT ?",
+                [D1_CLEANUP_BATCH_SIZE]
+                if cursor is None
+                else [cursor, D1_CLEANUP_BATCH_SIZE],
+            )
+            if not rows:
+                return
+            # Callers supply fixed SQL; record values remain bound parameters.
+            self.sql(
+                statement + " AND rowid IN (SELECT value FROM json_each(?))",  # noqa: S608
+                [*params, encode([row["rowid"] for row in rows]).decode()],
+            )
+            self.transfers().add("d1_cleanup_batches")
+            cursor = rows[-1]["rowid"]
 
     def put(self, key, body):
         for attempt in range(5):
@@ -583,8 +607,10 @@ class Cloud:
         pending = self.sql("SELECT seq FROM catalog_generations WHERE status='staging'")
         for row in pending:
             abandoned = row["seq"]
-            self.sql("DELETE FROM catalog_records WHERE from_seq=?", [abandoned])
-            self.sql("UPDATE catalog_records SET to_seq=NULL WHERE to_seq=?", [abandoned])
+            self.cleanup_records("DELETE FROM catalog_records WHERE from_seq=?", [abandoned])
+            self.cleanup_records(
+                "UPDATE catalog_records SET to_seq=NULL WHERE to_seq=?", [abandoned]
+            )
             self.sql("DELETE FROM catalog_generations WHERE seq=?", [abandoned])
         base = ROOT / "database" / manifest["snapshot"]
         names = set(manifest["files"]) | {"history.json"}
@@ -691,13 +717,13 @@ class Cloud:
         # Older snapshots contain removed data and cannot remain restorable. Keep
         # the newly verified snapshot and all records visible in that snapshot.
         self.sql("DELETE FROM catalog_generations WHERE seq<>?", [sequence])
-        self.sql(
+        self.cleanup_records(
             "DELETE FROM catalog_records WHERE NOT (from_seq<=? AND (to_seq IS NULL OR to_seq>?))",
             [sequence, sequence],
         )
         # Discarded future versions must not expire rows retained by this snapshot
         # when their sequence numbers are reused by a later publication.
-        self.sql("UPDATE catalog_records SET to_seq=NULL WHERE to_seq>?", [sequence])
+        self.cleanup_records("UPDATE catalog_records SET to_seq=NULL WHERE to_seq>?", [sequence])
         retained = {"objects/" + digest for digest in self.object_digests(document)}
         retained.add(active["manifest_key"])
         for row in self.read_records(document):
@@ -1007,7 +1033,7 @@ class Cloud:
             # A normal unchanged refresh has no expired versions to remove.
             # Explicit maintenance can still clean previously orphaned D1 versions.
             floor = min(row["seq"] for row in keep)
-            self.sql("DELETE FROM catalog_records WHERE to_seq<=?", [floor])
+            self.cleanup_records("DELETE FROM catalog_records WHERE to_seq<=?", [floor])
         if obsolete:
             self.sql(
                 "DELETE FROM catalog_generations WHERE seq IN (SELECT value FROM json_each(?))",

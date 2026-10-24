@@ -59,7 +59,9 @@ private const val PATCH = "Clean up Reels"
  * FeedVideoAlone.kt). A twelfth, also off, leaves the speaker button out of the bottom of the
  * sidebar (see ReelSoundButton.kt). A thirteenth, also off, takes the line naming a reel's sound,
  * "Original audio" or a song, out of the same chip list the first switch filters, and has the row
- * the Reels tab draws it in on its own draw nothing (#200, see ReelAnchors.kt). With Debug
+ * the Reels tab draws it in on its own draw nothing (#200, see ReelAnchors.kt). A fourteenth, also
+ * off, keeps a video that's slow to load from showing "This is taking a while. Try checking your
+ * network connection." (#222, see ReelSlowConnection.kt). With Debug
  * logging on, it also reports whether a reel that ends
  * is on the player the Reels auto-advance controller holds (see ReelBinding.kt), with no switch.
  *
@@ -76,7 +78,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
         "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Save button, the speaker button or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Save button, the speaker button or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, and stop the \"This is taking a while\" message when a video is slow to load. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -109,6 +111,8 @@ val cleanUpReelsPatch = bytecodePatch(
         hideReelFooterSoundButton()
         // #161: a feed video's player asks for no more reels after it.
         keepFeedVideosAlone()
+        // #222: the "This is taking a while" message a stalled video posts.
+        hideSlowConnectionMessage()
         enableStatus("reelDeclutter")
     }
 }

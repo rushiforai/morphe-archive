@@ -48,7 +48,9 @@ internal object ExpertTierFingerprint : Fingerprint(
  */
 internal object GlobalMessageBarFingerprint : Fingerprint(
     returnType = "V",
-    parameters = listOf("L"),
+    // No parameter constraint: 2026.10.98554 uses F(Lu31;)V and 2026.10.98884
+    // uses j()V. Both contain the two literals below and only one such method
+    // exists in either APK.
     filters = listOf(
         string("action_user_account"),
         string("signIn_was_here"),

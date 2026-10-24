@@ -28,16 +28,19 @@ import app.morphe.extension.tiktok.settings.L10n;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Saves the frame on screen as a JPEG, for the Long press action.
  *
- * <p>Read from the view TikTok's player draws into, the largest TextureView or SurfaceView showing,
- * the same one picture-in-picture keeps. Not a screenshot: the caption, the buttons and Hushfeed's
- * own overlays are other views and stay out of it. A TextureView hands its last frame back on the
- * main thread. A SurfaceView's frame sits in a buffer only the compositor draws, and PixelCopy,
- * Android 7 and newer, is the way to read it back. TikTok's feed player on the S22 draws into a
- * SurfaceView, so that's the path most presses take.
+ * <p>Read from the view TikTok's player draws into: the largest TextureView or SurfaceView showing,
+ * and the next one down when that one has no frame. Not a screenshot: the caption, the buttons and
+ * Hushfeed's own overlays are other views and stay out of it. A TextureView hands its last frame
+ * back on the main thread. A SurfaceView's frame sits in a buffer only the compositor draws, and
+ * PixelCopy, Android 7 and newer, is the way to read it back. When the player draws into a layer of
+ * its own under the SurfaceView instead, as 47.5.3 does on the S22 ({@link PlayerLayers}), that
+ * layer is read first and the SurfaceView, which then holds nothing, only after it.
  *
  * <p>The frame is read at the video's own size, which the post carries, not at the size it's
  * drawn: both readers scale the decoded picture to the bitmap they're handed, and the crop TikTok
@@ -62,8 +65,22 @@ public final class FrameSaver {
         void copied(boolean copied);
     }
 
+    /** Copies the frame a player's own layer last showed, then answers on the main thread. */
+    interface LayerReader {
+        void read(PlayerLayers.Layer layer, Bitmap into, Copied copied);
+    }
+
+    /** Finds the player's own layer under a SurfaceView, or null when it draws into the view. */
+    interface LayerFinder {
+        PlayerLayers.Layer under(SurfaceView view);
+    }
+
     /** PixelCopy on a phone; a test stands in its own, since Robolectric draws no surface. */
     static SurfaceReader surfaceReader = new PixelCopyReader();
+    /** The same for the player's layer. */
+    static LayerReader layerReader = new PixelCopyLayerReader();
+    /** The layers the player reported; a test stands in its own, since Robolectric's views have none. */
+    static LayerFinder layerFinder = PlayerLayers::under;
 
     private FrameSaver() {
     }
@@ -82,14 +99,21 @@ public final class FrameSaver {
     private static void capture(Activity activity, Object aweme, long positionMs) {
         Window window = activity == null ? null : activity.getWindow();
         View root = window == null ? null : window.peekDecorView();
-        View video = root == null ? null : PictureInPicture.videoView(root);
-        if (video == null) {
+        List<View> videos = root == null ? new ArrayList<>() : PictureInPicture.videoViews(root);
+        if (videos.isEmpty()) {
             Utils.showToastShort(L10n.t("There's no video on screen to save a frame from"));
             return;
         }
-        if (video instanceof SurfaceView && Build.VERSION.SDK_INT < 24) {
-            Utils.showToastShort(L10n.t("Saving a frame from this video needs Android 7 or newer"));
-            return;
+        if (Build.VERSION.SDK_INT < 24) {
+            List<View> readable = new ArrayList<>();
+            for (View video : videos) {
+                if (!(video instanceof SurfaceView)) readable.add(video);
+            }
+            if (readable.isEmpty()) {
+                Utils.showToastShort(L10n.t("Saving a frame from this video needs Android 7 or newer"));
+                return;
+            }
+            videos = readable;
         }
         // Android 6 to 9 write a real file, so without the permission the save would fail after
         // the frame was already read. Asked first, the way every other saver here asks it.
@@ -99,24 +123,56 @@ public final class FrameSaver {
             Utils.showToastLong(L10n.t("Allow storage for TikTok in Android settings to save frames"));
             return;
         }
-        int[] size = frameSize(aweme, video,
-                video instanceof SurfaceView ? surfaceBuffer((SurfaceView) video) : null);
-        if (size == null) {
+        Context app = activity.getApplicationContext();
+        String name = DownloadFilenameFormatter.formatFrameName(aweme, positionMs);
+        readFrom(videos, 0, aweme, app, name);
+    }
+
+    /**
+     * Reads the frame from {@code videos[index]}, and from the next view down when that one has no
+     * frame to give: a SurfaceView no frame reaches answers PixelCopy with no data, and a
+     * TextureView without a surface hands back nothing. Says so only once every view gave nothing.
+     */
+    private static void readFrom(List<View> videos, int index, Object aweme, Context app, String name) {
+        if (index >= videos.size()) {
             couldNotRead();
             return;
         }
-        Context app = activity.getApplicationContext();
-        String name = DownloadFilenameFormatter.formatFrameName(aweme, positionMs);
+        View video = videos.get(index);
+        Runnable next = () -> {
+            Logger.printInfo(() -> "No frame in " + video.getClass().getName() + " ("
+                    + (index + 1) + " of " + videos.size() + ")");
+            readFrom(videos, index + 1, aweme, app, name);
+        };
         if (video instanceof TextureView) {
-            Bitmap frame = textureFrame((TextureView) video, size);
+            int[] size = frameSize(aweme, video);
+            Bitmap frame = size == null ? null : textureFrame((TextureView) video, size);
             if (frame == null) {
-                couldNotRead();
+                next.run();
             } else {
                 publish(app, frame, name);
             }
             return;
         }
-        readSurface((SurfaceView) video, size, app, name);
+        SurfaceView surface = (SurfaceView) video;
+        Runnable fromView = () -> {
+            int[] size = frameSize(aweme, video, surfaceBuffer(surface));
+            if (size == null) {
+                next.run();
+            } else {
+                read(size, (frame, copied) -> surfaceReader.read(surface, frame, copied), app, name, next);
+            }
+        };
+        PlayerLayers.Layer layer = layerFinder.under(surface);
+        int[] layerSize = layer == null ? null : frameSize(aweme, video, new int[]{layer.width, layer.height});
+        if (layerSize == null) {
+            fromView.run();
+            return;
+        }
+        read(layerSize, (frame, copied) -> layerReader.read(layer, frame, copied), app, name, () -> {
+            Logger.printInfo(() -> "No frame in the player's layer under " + video.getClass().getName());
+            fromView.run();
+        });
     }
 
     /**
@@ -197,7 +253,13 @@ public final class FrameSaver {
         }
     }
 
-    private static void readSurface(SurfaceView view, int[] size, Context app, String name) {
+    /** One PixelCopy read into the bitmap it's handed. */
+    private interface Copy {
+        void into(Bitmap frame, Copied copied);
+    }
+
+    /** Copies a surface's frame and saves it, or runs {@code otherwise} when it had none. */
+    private static void read(int[] size, Copy copy, Context app, String name, Runnable otherwise) {
         final Bitmap frame;
         try {
             frame = Bitmap.createBitmap(size[0], size[1], Bitmap.Config.ARGB_8888);
@@ -207,19 +269,19 @@ public final class FrameSaver {
             return;
         }
         try {
-            surfaceReader.read(view, frame, copied -> {
+            copy.into(frame, copied -> {
                 if (copied) {
                     publish(app, frame, name);
                 } else {
                     frame.recycle();
-                    couldNotRead();
+                    otherwise.run();
                 }
             });
         } catch (RuntimeException refused) {
             // PixelCopy turns down a surface that's already gone, a swipe at the same moment.
             Logger.printInfo(() -> "The video's surface couldn't be read: " + refused);
             frame.recycle();
-            couldNotRead();
+            otherwise.run();
         }
     }
 
@@ -269,6 +331,22 @@ public final class FrameSaver {
                 PixelCopy.request(view, into, result -> {
                     if (result != PixelCopy.SUCCESS) {
                         Logger.printInfo(() -> "PixelCopy couldn't read the video's frame: " + result);
+                    }
+                    copied.copied(result == PixelCopy.SUCCESS);
+                }, new Handler(Looper.getMainLooper()));
+            } else {
+                copied.copied(false);
+            }
+        }
+    }
+
+    /** PixelCopy from the Surface the player draws into, which only Android 10 and newer build. */
+    private static final class PixelCopyLayerReader implements LayerReader {
+        @Override public void read(PlayerLayers.Layer layer, Bitmap into, Copied copied) {
+            if (Build.VERSION.SDK_INT >= 24) {
+                PixelCopy.request(layer.surface, into, result -> {
+                    if (result != PixelCopy.SUCCESS) {
+                        Logger.printInfo(() -> "PixelCopy couldn't read the player's layer: " + result);
                     }
                     copied.copied(result == PixelCopy.SUCCESS);
                 }, new Handler(Looper.getMainLooper()));

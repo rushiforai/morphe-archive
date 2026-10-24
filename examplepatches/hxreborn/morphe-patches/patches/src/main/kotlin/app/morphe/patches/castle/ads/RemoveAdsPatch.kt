@@ -11,9 +11,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.secshell.SecShellPayload
 import app.morphe.patches.shared.misc.secshell.editSecShellPayload
 import app.morphe.patches.shared.misc.secshell.secShellPayloadPatch
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.util.ReferenceUtil
 
 private const val AD_LOCATION_CLASS = "Lcom/gxgx/daqiandy/bean/AdsStateBean;"
 private const val AD_PLACEMENT_CLASS = "Lcom/gxgx/daqiandy/bean/AdsMaxStateBean;"
@@ -43,9 +43,9 @@ private fun SecShellPayload.completeRewardedActions() {
         0,
         """
             move-object/from16 v0, p0
-            iget-object v0, v0, ${ReferenceUtil.getFieldDescriptor(listener)}
+            iget-object v0, v0, ${descriptor(listener)}
             if-eqz v0, :done
-            invoke-interface { v0 }, ${ReferenceUtil.getMethodDescriptor(complete)}
+            invoke-interface { v0 }, ${descriptor(complete)}
             :done
             return-void
         """,

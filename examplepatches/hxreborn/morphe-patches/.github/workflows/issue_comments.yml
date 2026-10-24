@@ -27,7 +27,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-          sparse-checkout: .github/scripts/issue_comment.py
+          sparse-checkout: |
+            .github/scripts/issue_comment.py
+            .github/scripts/versions.py
           sparse-checkout-cone-mode: false
       - env:
           GH_TOKEN: ${{ github.token }}
@@ -63,6 +65,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/scripts/issue_comment.py
+            .github/scripts/versions.py
             patches-list.json
           sparse-checkout-cone-mode: false
       - env:
@@ -109,6 +112,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/scripts/issue_comment.py
+            .github/scripts/versions.py
             .github/actions/triage/discussion.sh
           sparse-checkout-cone-mode: false
       - env:

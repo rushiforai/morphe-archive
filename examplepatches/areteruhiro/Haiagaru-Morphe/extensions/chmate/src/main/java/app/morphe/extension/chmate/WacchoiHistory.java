@@ -22,6 +22,7 @@ final class WacchoiHistory {
     static final class Session {
         final Context context;final JSONObject data;final JSONArray records=new JSONArray();final long epoch;
         boolean queued;long characters;
+        final Set<String> recordKeys=new HashSet<>();
         Session(Context c,Intent args)throws Exception{
             context=c.getApplicationContext();epoch=generation;
             data=new JSONObject().put("id",UUID.randomUUID().toString()).put("time",System.currentTimeMillis())
@@ -34,12 +35,17 @@ final class WacchoiHistory {
                     .put("limit",args.getIntExtra("limit",20)).put("status","開始しています");
         }
         synchronized void add(int kind,String a,String b,String c,String d){
+            if(!recordKeys.add(kind+"\n"+a))return;
             try{long size=(long)a.length()+b.length()+c.length()+d.length();
                 if(records.length()<WacchoiStorageLimits.bound(context,3)&&characters+size<=WacchoiStorageLimits.bound(context,4)){records.put(new JSONObject().put("kind",kind).put("a",a).put("b",b).put("c",c).put("d",d));characters+=size;}
                 else data.put("truncated",true);
             }catch(Exception e){report(e);}
         }
         synchronized void status(String value){try{data.put("status",value);}catch(Exception e){report(e);}save();}
+        synchronized void progress(SearchCursor cursor,String next,String url,String title,Set<String> visited){
+            try{if(cursor==null)data.remove("checkpoint");else data.put("checkpoint",cursor.encode(next,url,title,visited));}
+            catch(Exception e){report(e);}
+        }
         synchronized void save(){
             if(queued)return;queued=true;
             IO.execute(()->{
@@ -77,6 +83,13 @@ final class WacchoiHistory {
         rows.sort((a,b)->Long.compare(b.optLong("time"),a.optLong("time")));return rows;
     }
     private static File[] files(File dir){File[] list=dir.listFiles(f->f.getName().matches("[a-f0-9-]{36}\\.json"));return list==null?new File[0]:list;}
+    static JSONObject readOne(Context c,String id)throws Exception{
+        if(id==null||!id.matches("[a-f0-9-]{36}"))throw new IOException("履歴IDが不正です");
+        try(InputStream in=new AtomicFile(new File(directory(c),id+".json")).openRead();ByteArrayOutputStream out=new ByteArrayOutputStream()){
+            byte[] block=new byte[8192];int n;while((n=in.read(block))!=-1){if((long)out.size()+n>MAX_FILE)throw new IOException("history size");out.write(block,0,n);}
+            return new JSONObject(out.toString("UTF-8"));
+        }
+    }
     private static void trim(Context c,File dir){File[] list=files(dir);Arrays.sort(list,(a,b)->Long.compare(b.lastModified(),a.lastModified()));long bytes=0;for(int i=0;i<list.length;i++){bytes+=list[i].length();if(i>=WacchoiStorageLimits.bound(c,0)||bytes>WacchoiStorageLimits.scaled(c,1,1024L*1024))new AtomicFile(list[i]).delete();}}
     interface Selected{void open(JSONObject data);}
     static String recordText(JSONObject r){return r.optString("a")+"\n"+r.optString("b")+"\n"+r.optString("c")+"\n"+r.optString("d");}

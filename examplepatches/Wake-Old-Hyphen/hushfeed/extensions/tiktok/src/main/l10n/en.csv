@@ -973,6 +973,8 @@ Later,Later
 Latest first on Following,Latest first on Following
 Layout,Layout
 "Layout, search, profile and system","Layout, search, profile and system"
+Least liked first,Least liked first
+Least viewed first,Least viewed first
 Leave maximum empty to keep it unlimited.,Leave maximum empty to keep it unlimited.
 "Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.","Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show."
 Leave the sound out of the saved video. Save the sound as well still writes the sound file beside it if you want both.,Leave the sound out of the saved video. Save the sound as well still writes the sound file beside it if you want both.
@@ -1207,6 +1209,7 @@ Open external links directly,Open external links directly
 Open messages,Open messages
 Open profile and story website links in your system browser instead of TikTok's in-app browser.,Open profile and story website links in your system browser instead of TikTok's in-app browser.
 Open shared videos alone,Open shared videos alone
+Open the Story when a creator is LIVE,Open the Story when a creator is LIVE
 Open the comments at full height,Open the comments at full height
 Open the feed anyway,Open the feed anyway
 "Open the feed anyway, %1$d left today","Open the feed anyway, %1$d left today"
@@ -1227,6 +1230,7 @@ Operator name,Operator name
 "Opus (.ogg), a smaller file","Opus (.ogg), a smaller file"
 Opus didn't work on this phone. Saving the sound as TikTok sent it instead.,Opus didn't work on this phone. Saving the sound as TikTok sent it instead.
 "Opus needs Android 10 or later, so sounds save as TikTok sent them.","Opus needs Android 10 or later, so sounds save as TikTok sent them."
+Original,Original
 Original language,Original language
 Original message,Original message
 Original order,Original order
@@ -1276,9 +1280,9 @@ Picks the older H.264 video format when TikTok also offers a newer one (HEVC or 
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
 Play Store,Play Store
-"Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.","Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place."
 "Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.","Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound."
 Play sounds TikTok pulled,Play sounds TikTok pulled
+"Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.","Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place."
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.
 Playback,Playback
 Player,Player
@@ -1433,7 +1437,7 @@ SIM country preset,SIM country preset
 SOCKS5,SOCKS5
 STEM,STEM
 Same as the room,Same as the room
-"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.","Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower."
+"Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.","Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered."
 Sample caption to test,Sample caption to test
 Sample category to test,Sample category to test
 Save,Save
@@ -1695,7 +1699,8 @@ Some Calm feed settings changed. Restore still puts back your earlier setup.,Som
 Some of these notes are in English.,Some of these notes are in English.
 Something is missing from %1$s. Tap for the whole report.,Something is missing from %1$s. Tap for the whole report.
 Sort loaded videos on profile grids,Sort loaded videos on profile grids
-"Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.","Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this."
+Sort this grid,Sort this grid
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."
 Sound,Sound
 "Sound IDs saved by the player's sound button, separated by commas. Remove one to unblock it.","Sound IDs saved by the player's sound button, separated by commas. Remove one to unblock it."
 Sound format,Sound format
@@ -1797,7 +1802,7 @@ Tag saved videos with their details,Tag saved videos with their details
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story."
 Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.,Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.
-Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.
 Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.,Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.
@@ -2183,6 +2188,7 @@ What's new,What's new
 "When TikTok is in dark mode, the list of collections you get by holding the Favorites button is dark too instead of white.","When TikTok is in dark mode, the list of collections you get by holding the Favorites button is dark too instead of white."
 "When TikTok requests this key, return the selected value below","When TikTok requests this key, return the selected value below"
 "When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start.","When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start."
+"When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.","When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE."
 "When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on.","When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on."
 "When a video ends while TikTok plays in the background, it starts over instead of waiting for you to press Play in the notification. A call or another app's sound still pauses it.","When a video ends while TikTok plays in the background, it starts over instead of waiting for you to press Play in the notification. A call or another app's sound still pauses it."
 "When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.","When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most."

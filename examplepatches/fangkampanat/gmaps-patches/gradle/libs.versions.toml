@@ -1,10 +1,10 @@
 # Dependencies must also be addded to LicensesDialog.java
 
 [versions]
-morphe-patcher = "1.5.2"
-morphe-patches-library = "1.4.1"
-# Tracking https://github.com/google/smali/issues/100.
-smali = "d92701d947"
+morphe-patcher = "2.0.0"
+morphe-patches-library = "2.0.0"
+# Morphe fork of smali used by morphe-patcher 2.0.0.
+smali = "4220ae75f7"
 agp = "9.1.0"
 annotation = "1.10.0"
 androidx-core = "1.18.0"    # 1.19.0+ requires upgrading android compile sdk
@@ -18,7 +18,6 @@ protobuf = "0.10.0"
 protoc = "4.35.1"
 
 [libraries]
-morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
 morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }

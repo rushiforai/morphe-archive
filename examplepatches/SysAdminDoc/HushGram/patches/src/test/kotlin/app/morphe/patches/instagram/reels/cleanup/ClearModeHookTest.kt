@@ -71,8 +71,11 @@ class ClearModeHookTest {
     private val anyType = "Ljava/lang/Object;"
     private val stringType = "Ljava/lang/String;"
     private val floatValue = "Ljava/lang/Number;->floatValue()F"
+    private val scrollState = "Lfixture/ScrollState;"
+    private val pagerHost = "Lfixture/PagerHost;"
     private val hooks = listOf(
         CLEAR_MODE_ENTERED, CLEAR_MODE_LEFT, CLEAR_MODE_CURRENT, CLEAR_MODE_PAGED, CLEAR_MODE_BUILT, CLEAR_MODE_SCRUBBER, CLEAR_MODE_CHROME_ALPHA,
+        CLEAR_MODE_SETTLED,
     )
 
     private fun marker(name: String, quarter: String = "q3") = "android_purge_26_${quarter}_$name"
@@ -94,8 +97,9 @@ class ClearModeHookTest {
      * branch around a missing action still lands past the hook. The viewer's turn-on passes the reel
      * it read off the pager through the extension in front of its own test. The pager's listener and
      * the exit button's render each ask first thing. The reel holder's chrome setter passes the
-     * alpha it was asked for through the extension right after reading the one it holds. The stubs
-     * call the handler's turn-on and the reel's getId.
+     * alpha it was asked for through the extension right after reading the one it holds. The pager
+     * listener's scroll state change hands over the pager right after reading it, with the state.
+     * The stubs call the handler's turn-on and the reel's getId.
      */
     @Test
     fun everyHookGoesInAndBothStubsAreFilled() {
@@ -189,6 +193,16 @@ class ClearModeHookTest {
         assertEquals("the answer goes where the asked alpha was", 4, (chrome[holds + 1] as OneRegisterInstruction).registerA)
         assertEquals("the lock isn't read next", "$holder->locked:$function0", chrome[holds + 2].referenceText())
         assertEquals("the chrome setter asks once", 1, chrome.count { it.referenceText() == CLEAR_MODE_CHROME_ALPHA })
+
+        // The scroll state change: the pager it just read and the state, ahead of Instagram's own test of the pager.
+        val scrolled = context.method(listener, "onScrollStateChanged")
+        val settles = scrolled.indexOfFirst { it.referenceText() == CLEAR_MODE_SETTLED }
+        assertEquals("the pager isn't read just before", "$pagerHost->pager:$VIEW_PAGER", scrolled[settles - 1].referenceText())
+        // Two locals, then this and the state.
+        assertCall("the scroll state's hook", scrolled[settles], CLEAR_MODE_SETTLED, listOf(1, 3))
+        assertEquals("Instagram's own test of the pager doesn't follow", Opcode.IF_EQZ, scrolled[settles + 1].opcode)
+        assertEquals(1, (scrolled[settles + 1] as OneRegisterInstruction).registerA)
+        assertEquals("the scroll state change hands over once", 1, scrolled.count { it.referenceText() == CLEAR_MODE_SETTLED })
 
         val enter = context.method(CLEAR_MODE, CLEAR_MODE_ENTER_STUB)
         assertEquals(
@@ -294,6 +308,18 @@ class ClearModeHookTest {
             Shape(alphaHigh = true) to "keeps the alphas in v18 and v1, which the hook's call can't name",
             Shape(askedOverwritten = true) to "ReelHolder;->updateChrome writes over parameter 0",
             Shape(alphaStored = false) to "doesn't store the alpha it was asked for",
+            Shape(scrollStates = 0) to "expected one method marked $REEL_SCROLL_STATE, found 0",
+            Shape(scrollStates = 2) to "expected one method marked $REEL_SCROLL_STATE, found 2",
+            Shape(scrollTakesState = false) to "isn't an instance method taking the scroll state",
+            Shape(stateInApp = false) to "the scroll state $scrollState isn't in the app",
+            Shape(stateIsEnum = false) to "the scroll state $scrollState isn't an enum",
+            Shape(stateNamesIdle = false) to "the scroll state $scrollState doesn't name $REEL_AT_REST",
+            Shape(viewPagerReads = 0) to "reads the pager 0 times, expected once",
+            Shape(viewPagerReads = 2) to "reads the pager 2 times, expected once",
+            Shape(settleEndsAtRead = true) to "ends at reading the pager",
+            Shape(jumpToSettle = true) to "jumps past its read of the pager",
+            Shape(settleHigh = true) to "keeps the pager and the state in v1 and v17, which the hook's call can't name",
+            Shape(stateOverwritten = true) to "PagerListener;->onScrollStateChanged writes over parameter 0",
             Shape(stubs = false) to "has no static $stringType $CLEAR_MODE_ID_STUB(",
         )
         for ((shape, expected) in cases) {
@@ -315,7 +341,10 @@ class ClearModeHookTest {
      */
     @Test
     fun aMethodChangedAfterItsPlaceWasFoundStopsThePatch() {
-        for (changed in listOf(handler to "enable", handler to "dismiss", actions to "enabled", row to "render", holder to "updateChrome")) {
+        for (changed in listOf(
+            handler to "enable", handler to "dismiss", actions to "enabled", row to "render", holder to "updateChrome",
+            listener to "onScrollStateChanged",
+        )) {
             val classes = classes()
             val context = PatchContexts.of(classes)
             val found = context.findClearMode()
@@ -333,8 +362,9 @@ class ClearModeHookTest {
      * In each declared build every hook goes where the stand-ins put it: after the action's call in
      * the handler's turn-on and turn-off, in front of the viewer's own test of the pager's reel,
      * first thing in the pager listener's page report and the exit button's render, in front of
-     * the seek bar row's test of whether to draw the scrubber, and right after the reel holder's
-     * chrome setter reads the alpha it holds.
+     * the seek bar row's test of whether to draw the scrubber, right after the reel holder's chrome
+     * setter reads the alpha it holds, and right after the pager listener's scroll state change
+     * reads the pager.
      */
     @Test
     fun eachDeclaredBuildGetsEveryHook() {
@@ -381,14 +411,16 @@ class ClearModeHookTest {
         val render = methods.single { CLEAR_MODE_BUTTON in it.markers() }
         val scrubberRow = methods.single { CLEAR_MODE_SCRUBBER_ROW in it.markers() }
         val chrome = methods.single { CLEAR_MODE_CHROME in it.markers() }
+        val scrolled = methods.single { REEL_SCROLL_STATE in it.markers() }
         val handlerType = enable.definingClass
         val reasonType = enable.parameterTypes.single().toString()
         val itemType = dismiss.parameterTypes.first().toString()
+        val stateType = scrolled.parameterTypes.single().toString()
         // The row's state and what it holds, what the row builds, and the reel state whose toString names the flag.
         val rowFields = holders.single { it.type == scrubberRow.definingClass }.instanceFields.map { it.type }.filter { it.startsWith("L") }.toSet()
         val heldFields = FixtureDex.classes(bundle, rowFields).values.flatMap { held -> held.instanceFields.map { it.type } }.filter { it.startsWith("L") }
         val built = scrubberRow.code().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.type() }
-        val extra = FixtureDex.classes(bundle, setOf(reasonType, itemType) + rowFields + heldFields + built).values +
+        val extra = FixtureDex.classes(bundle, setOf(reasonType, itemType, stateType) + rowFields + heldFields + built).values +
             FixtureDex.classesHolding(bundle, CLEAR_MODE_FLAG_NAME)
         val context = PatchContexts.of((holders + extra + ExtensionDex.classDef(CLEAR_MODE)).distinctBy { it.type })
 
@@ -508,6 +540,21 @@ class ClearModeHookTest {
         assertEquals("$name: the answer is kept", Opcode.MOVE_RESULT, newChrome[holds + 1].opcode)
         assertEquals("$name: the answer goes where the asked alpha was", askedAlpha, (newChrome[holds + 1] as OneRegisterInstruction).registerA)
 
+        // The scroll state change: the pager it just read and the state, right after the read.
+        val newScrolled = after(scrolled)
+        assertEquals("$name: the scroll state change grew", scrolled.code().size + 1, newScrolled.size)
+        val settles = newScrolled.indexOfFirst { it.referenceText() == CLEAR_MODE_SETTLED }
+        assertEquals("$name: the scroll state change hands over once", 1, newScrolled.count { it.referenceText() == CLEAR_MODE_SETTLED })
+        assertEquals("$name: the pager is read just before", Opcode.IGET_OBJECT, newScrolled[settles - 1].opcode)
+        val pagerField = (newScrolled[settles - 1] as ReferenceInstruction).reference as FieldReference
+        assertEquals("$name: the read is of the pager", VIEW_PAGER, pagerField.type)
+        val pagerRegister = (newScrolled[settles - 1] as TwoRegisterInstruction).registerA
+        assertEquals(
+            "$name: the hook hands over the pager and the state",
+            listOf(pagerRegister, scrolled.implementation!!.registerCount - 1),
+            newScrolled[settles].registers(),
+        )
+
         val enter = context.method(CLEAR_MODE, CLEAR_MODE_ENTER_STUB)
         assertEquals("$name: the stub calls the handler's turn-on", "$handlerType->${enable.name}($reasonType)V", enter[2].referenceText())
         val reelId = context.method(CLEAR_MODE, CLEAR_MODE_ID_STUB)
@@ -577,6 +624,16 @@ class ClearModeHookTest {
         val alphaHigh: Boolean = false,
         val askedOverwritten: Boolean = false,
         val alphaStored: Boolean = true,
+        val scrollStates: Int = 1,
+        val scrollTakesState: Boolean = true,
+        val stateInApp: Boolean = true,
+        val stateIsEnum: Boolean = true,
+        val stateNamesIdle: Boolean = true,
+        val viewPagerReads: Int = 1,
+        val settleEndsAtRead: Boolean = false,
+        val jumpToSettle: Boolean = false,
+        val settleHigh: Boolean = false,
+        val stateOverwritten: Boolean = false,
         val stubs: Boolean = true,
     )
 
@@ -588,7 +645,8 @@ class ClearModeHookTest {
      * whose reel state names its clear mode flag in its toString, and which builds the scrubber from
      * the reel and that state past a test of an unboxed yes or no; and the reel holder, whose chrome
      * setter reads the alpha its cell holds, keeps the asked one from rising past it while locked,
-     * and stores the asked one.
+     * and stores the asked one; and the scroll state enum, which the pager listener's scroll state
+     * change tests for rest before it reads the pager.
      */
     private fun classes(shape: Shape = Shape()): List<ClassDef> {
         // The far shape moves the reel state to another package, where the row can't see a class that isn't public.
@@ -715,6 +773,61 @@ class ClearModeHookTest {
             invoke-static { v1 }, $purge
             return-void
         """)
+
+        // 452's scroll state change (07Hr.G9K) reads the pager into v1 on the way to rest only and
+        // tests it for null; the high shape keeps the state past v15 and tests a copy of it.
+        val scrollHigh = shape.settleHigh
+        val scrollSelf = if (scrollHigh) "v3" else "p0"
+        val scrollTested = if (scrollHigh) "v2" else "p1"
+        val scrollMarker = if (shape.scrollStates == 0) "ClipsViewerViewPagerListener_onPageScrolled" else REEL_SCROLL_STATE
+        val pagerRead = (
+            if (shape.viewPagerReads == 0) "iget-object v1, v0, $pagerHost->view:$anyType\n"
+            else "iget-object v1, v0, $pagerHost->pager:$VIEW_PAGER\n".repeat(shape.viewPagerReads)
+            )
+        val scrollBody = if (shape.settleEndsAtRead) {
+            """
+                const-string v0, "${marker(scrollMarker, "q2")}"
+                invoke-static { v0 }, $purge
+                iget-object v0, p0, $listener->host:$pagerHost
+                $pagerRead
+            """
+        } else {
+            """
+                ${if (scrollHigh) "move-object/from16 v3, p0\nmove-object/from16 v2, p1" else ""}
+                const-string v0, "${marker(scrollMarker, "q2")}"
+                invoke-static { v0 }, $purge
+                sget-object v0, $scrollState->IDLE:$scrollState
+                if-ne $scrollTested, v0, :done
+                ${if (shape.stateOverwritten) "const/4 p1, 0x0" else ""}
+                iget-object v0, $scrollSelf, $listener->host:$pagerHost
+                ${if (shape.jumpToSettle) "if-eqz v0, :settle" else ""}
+                $pagerRead
+                ${if (shape.jumpToSettle) ":settle" else ""}
+                if-eqz v1, :done
+                invoke-static { v1 }, Lfixture/Log;->rest($anyType)V
+                :done
+                return-void
+            """
+        }
+        val scrollParameters = if (shape.scrollTakesState) listOf(scrollState) else listOf(scrollState, "I")
+        val scrolls = (0 until maxOf(shape.scrollStates, 1)).map { copy ->
+            method(
+                listener, if (copy == 0) "onScrollStateChanged" else "onScrollStateChangedAgain", scrollParameters, "V",
+                (if (scrollHigh) 17 else 3) + scrollParameters.size, scrollBody,
+            )
+        }
+        val stateNames = listOfNotNull(if (shape.stateNamesIdle) REEL_AT_REST else null, "DRAGGING", "SETTLING")
+        val stateClass = ImmutableClassDef(
+            scrollState, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or AccessFlags.ENUM.value,
+            if (shape.stateIsEnum) "Ljava/lang/Enum;" else "Ljava/lang/Object;", null, null, null, emptyList(),
+            listOf(
+                method(
+                    scrollState, "<clinit>", emptyList(), "V", 1,
+                    stateNames.joinToString("\n") { "const-string v0, \"$it\"" } + "\nreturn-void",
+                    AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value,
+                ),
+            ),
+        )
 
         val local = if (shape.buttonLocals) "v0" else "p1"
         val renderParameters = if (shape.buttonTakesScope) listOf(scope) else listOf(scope, "I")
@@ -912,7 +1025,8 @@ class ClearModeHookTest {
             if (shape.reasonInApp) reasonClass else null,
             if (shape.itemInApp) itemClass else null,
             classDef(actions, listOf(enabled)),
-            classDef(listener, listOf(paged)),
+            classDef(listener, listOf(paged) + scrolls, fields = listOf(field(listener, "host", pagerHost))),
+            if (shape.stateInApp) stateClass else null,
             classDef(button, listOf(render), fields = buttonFields),
             rowClass,
             rowStateClass,

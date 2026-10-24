@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# Static verification of a Morphe-patched Pdb APK.
+#   pdbverify [pdb_patched.apk]
+#
+# Checks the manifest (via aapt2), the injected preferences (via aapt2) and the
+# extension classes in the DEX. For the premium bytecode itself, decode with
+# apktool and inspect `zdf.V()` / `l5b` (see PLAN-PDB.md).
+set -uo pipefail
+
+APK="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/pdb_patched.apk}"
+export PATH="$HOME/tools/android-sdk/build-tools/35.0.0:$PATH"
+[[ -f "$APK" ]] || { echo "missing $APK" >&2; exit 1; }
+
+TMP="$(mktemp -d /tmp/opencode/pdbverify.XXXXXX)"
+trap 'rm -rf "$TMP"' EXIT
+MAN="$TMP/manifest.txt"
+
+fail=0
+ok()   { printf '  \033[32m✔\033[0m %s\n' "$1"; }
+bad()  { printf '  \033[31m�’\033[0m %s\n' "$1"; fail=1; }
+check(){ if [[ "$2" == "$3" ]]; then ok "$1 ($2)"; else bad "$1 — expected $3, got $2"; fi; }
+
+echo "== pdbverify: $APK =="
+echo "size: $(du -h "$APK" | cut -f1)"
+
+aapt2 dump xmltree --file AndroidManifest.xml "$APK" > "$MAN" 2>/dev/null
+
+echo
+echo "-- manifest --"
+app="$(awk '/E: application /{f=1} f' "$MAN" | grep -m1 'name(0x01010003)' | sed -E 's/.*="([^"]+)".*/\1/')"
+check "application.android:name" "$app" "pdb.app.App"
+check "requiredSplitTypes occurrences" "$(grep -c requiredSplitTypes "$MAN")" "0"
+check "PdbInitProvider registered" "$(grep -c "app.template.extension.pdb.PdbInitProvider" "$MAN")" "1"
+check "PairIP leftovers" "$(grep -cE "com\.pairip|pairip" "$MAN")" "0"
+
+for p in MobileAdsInitProvider AppLovinInitProvider VungleProvider YandexAdsInitializeProvider; do
+  if python3 - "$MAN" "$p" <<'PY'
+import re,sys
+lines=open(sys.argv[1],encoding='utf-8',errors='replace').read().splitlines()
+want=sys.argv[2]
+for i,l in enumerate(lines):
+    if 'E: provider' in l:
+        blk=[]; j=i
+        while j<len(lines) and (j==i or not lines[j].strip().startswith(('E: ','C: '))):
+            blk.append(lines[j]); j+=1
+        s="\n".join(blk)
+        if want in s and 'enabled(0x0101000e)=false' in s:
+            sys.exit(0)
+sys.exit(1)
+PY
+  then ok "$p disabled"; else bad "$p NOT disabled"; fi
+done
+
+echo
+echo "-- settings entry (res/layout/fragment_app_setting.xml) --"
+SETL="$TMP/settings.txt"
+aapt2 dump xmltree --file res/layout/fragment_app_setting.xml "$APK" > "$SETL" 2>/dev/null
+# @+id/ entries compile to numeric resource ids; resolve the name from the resource table.
+ENTRY_HEX="$(aapt2 dump resources "$APK" 2>/dev/null | grep -m1 "id/morphe_extras_entry" | grep -oE "0x7f0a[0-9a-f]{4}")"
+check "morphe_extras_entry id resource" "$([[ -n "$ENTRY_HEX" ]] && echo 1 || echo 0)" "1"
+check "settings layout references the entry" "$(grep -c "$ENTRY_HEX" "$SETL" 2>/dev/null || echo 0)" "1"
+
+echo
+echo "-- trackers --"
+for t in \
+  com.google.android.gms.measurement.AppMeasurementReceiver \
+  com.google.android.gms.measurement.AppMeasurementService \
+  com.google.android.gms.measurement.AppMeasurementJobService \
+  io.appmetrica.analytics.internal.PreloadInfoContentProvider \
+  io.appmetrica.analytics.internal.AppMetricaService; do
+  if python3 - "$MAN" "$t" <<'PY'
+import re,sys
+lines=open(sys.argv[1],encoding='utf-8',errors='replace').read().splitlines()
+want=sys.argv[2]
+for i,l in enumerate(lines):
+    if 'E: ' in l:
+        blk=[]; j=i
+        while j<len(lines) and (j==i or not lines[j].strip().startswith(('E: ','C: '))):
+            blk.append(lines[j]); j+=1
+        s="\n".join(blk)
+        if want in s and 'enabled(0x0101000e)=false' in s:
+            sys.exit(0)
+sys.exit(1)
+PY
+  then ok "$t disabled"; else bad "$t NOT disabled"; fi
+done
+# The app calls FirebaseCrashlytics.getInstance() at startup, so the registrars
+# must stay registered (each name appears twice in the manifest: meta-data name +
+# value). The collection opt-out below is what actually stops the reporting.
+_registrars="$(grep -c "CrashlyticsRegistrar\|CrashlyticsNdkRegistrar" "$MAN" || true)"
+if [[ "${_registrars:-0}" -ge 1 ]]; then ok "Crashlytics registrars kept ($_registrars)"; else bad "Crashlytics registrars missing"; fi
+check "Crashlytics collection opt-out" "$(grep -c "firebase_crashlytics_collection_enabled" "$MAN")" "1"
+check "Analytics collection opt-out" "$(grep -c "analytics_collection_enabled" "$MAN")" "1"
+check "FirebaseInitProvider kept (auth)" "$(grep -c "FirebaseInitProvider" "$MAN")" "1"
+
+echo
+echo "-- dex (string scan) --"
+for c in PdbStartup PdbInitProvider PdbSettings PdbTools PdbExtrasActivity SettingsEntryHook; do
+  n="$(unzip -p "$APK" 'classes*.dex' 2>/dev/null | grep -ac "app/template/extension/pdb/$c" || true)"
+  if [[ "${n:-0}" -gt 0 ]]; then ok "$c present"; else bad "$c missing"; fi
+done
+
+echo
+echo "-- signature --"
+apksigner verify --print-certs "$APK" 2>/dev/null | grep -E "certificate DN|SHA-1 digest" | head -2
+
+echo
+[[ "$fail" == "0" ]] && echo "RESULT: PASS" || echo "RESULT: FAIL"
+exit "$fail"

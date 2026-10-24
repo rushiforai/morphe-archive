@@ -61,7 +61,7 @@ internal fun BytecodePatchContext.patchHttpsTransport() {
                         move-object/from16 v1, p0
                         iget-object v0, v1, $host
                         iget v2, v1, ${classDef.type}->${port.name}:I
-                        invoke-static { v0, v2 }, $HTTPS->isLocalThumbnailEndpoint(Ljava/lang/String;I)Z
+                        invoke-static { v0, v2 }, $HTTPS->isHttpUpgradeExempt(Ljava/lang/String;I)Z
                         move-result v0
                         # Small SDK builders alias p0 with v2. Restore the receiver
                         # before either branch resumes the original implementation.

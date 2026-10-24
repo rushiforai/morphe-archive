@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,6 +33,11 @@ import java.io.File
  * keeps the answer in it. After that test, the one put of the Recent list into a map of the
  * method's own class goes to the extension with the same registers, and the rest of Facebook's
  * code stays as it was.
+ *
+ * Profile visits (#221): exactly one method has the analytics event factory's shape, its class
+ * implements the interface the profile asks for its visit event through, and both of that class's
+ * event makers call it. The hook asks the extension with the event's name first thing and, on a
+ * true, answers the factory's own "not logged" event, leaving the rest of its code as it was.
  * Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class DontSaveSearchHistoryFixtureTest {
@@ -108,9 +114,65 @@ class DontSaveSearchHistoryFixtureTest {
             patched.drop(2).filterIndexed { index, _ -> index != put }.map { it.opcode })
     }
 
+    private fun visits(bundle: File) {
+        val factories = FixtureDex.methodsWhere(bundle, { dex -> dex.stringSection.any { it == PRIVACY_CONTEXT } }) {
+            !it.definingClass.startsWith(EXTENSION_CLASSES) && notLoggedEvent(it) != null
+        }
+        assertEquals("${bundle.name}: one analytics event factory, found ${factories.map { it.descriptor() }}", 1, factories.size)
+        val factory = factories.single()
+        val where = "${bundle.name}: ${factory.descriptor()}"
+        val notLogged = notLoggedEvent(factory)!!
+        val owner = FixtureDex.classes(bundle, setOf(factory.definingClass)).values.single()
+
+        // The profile's code asks for its visit event by name through an interface the factory's class implements.
+        val asks = FixtureDex.classesHolding(bundle, PROFILE_VISIT).flatMap { it.methods }.flatMap { method ->
+            val instructions = method.implementation?.instructions?.toList() ?: return@flatMap emptyList()
+            instructions.indices.filter { index ->
+                val named = instructions[index]
+                named.opcode in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO) &&
+                    (named as ReferenceInstruction).reference.toString() == PROFILE_VISIT
+            }.mapNotNull { index ->
+                instructions.drop(index + 1).take(3).firstOrNull { it.opcode == Opcode.INVOKE_INTERFACE }
+                    ?.let { ((it as ReferenceInstruction).reference as MethodReference).definingClass }
+            }
+        }
+        assertTrue("${bundle.name}: the visit event is asked for through the logger's interface",
+            asks.any { it in owner.interfaces })
+        // Both of the class's ways to make an event go through the factory.
+        val callers = owner.methods.filter { method ->
+            method.implementation?.instructions?.any {
+                (it as? ReferenceInstruction)?.reference?.toString() == factory.descriptor()
+            } == true
+        }
+        assertEquals("$where is called by the class's two event makers", 2, callers.size)
+
+        val context = PatchContexts.of(listOf(owner))
+        val method = context.mutableClassDefBy(owner.type).methods.single { it.descriptor() == factory.descriptor() }
+        val original = method.implementation!!.instructions.toList()
+        method.keepVisitsOut(notLogged)
+        val patched = method.implementation!!.instructions.toList()
+        assertEquals("$where gains six instructions", original.size + 6, patched.size)
+        val call = patched[0] as RegisterRangeInstruction
+        assertEquals("$where: the extension is asked first", KEEP_VISIT_OUT, (patched[0] as ReferenceInstruction).reference.toString())
+        assertEquals("$where: with the event's name, the last parameter", method.implementation!!.registerCount - 1, call.startRegister)
+        assertEquals("$where: and nothing else", 1, call.registerCount)
+        assertEquals(Opcode.MOVE_RESULT, patched[1].opcode)
+        assertEquals(Opcode.IF_EQZ, patched[2].opcode)
+        assertEquals("$where: a true answers the factory's own not-logged event", notLogged.toString(),
+            (patched[3] as ReferenceInstruction).reference.toString())
+        assertEquals(Opcode.RETURN_OBJECT, patched[4].opcode)
+        assertEquals("$where: the rest of Facebook's code stays", original.map { it.opcode }, patched.drop(6).map { it.opcode })
+    }
+
     @Test
     fun `each declared build hands Facebook's own don't-save boolean to the extension first thing where a search is saved`() =
         bundles { bundle ->
             save(bundle)
+        }
+
+    @Test
+    fun `each declared build asks the extension first thing where an analytics event is made`() =
+        bundles { bundle ->
+            visits(bundle)
         }
 }

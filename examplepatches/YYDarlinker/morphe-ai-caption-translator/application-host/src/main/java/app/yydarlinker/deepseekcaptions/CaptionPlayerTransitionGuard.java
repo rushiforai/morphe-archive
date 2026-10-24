@@ -2,6 +2,7 @@ package app.yydarlinker.deepseekcaptions;
 
 import android.app.Activity;
 import android.graphics.Rect;
+import android.util.DisplayMetrics;
 import android.view.Choreographer;
 import android.view.View;
 
@@ -235,6 +236,39 @@ final class CaptionPlayerTransitionGuard {
                         && rect.height() > 1
                 ? rect
                 : null;
+    }
+
+    /**
+     * A last-resort permission check for a latched miniplayer name. It is used only when the player
+     * type that is being contradicted is {@code WATCH_WHILE_MINIMIZED}, and only when a visible
+     * player surface is actually regular-sized. A genuine miniplayer stays compact; a Shorts
+     * surface is excluded because its own authority already owns that decision.
+     */
+    static boolean recoverFromProvenGeometry() {
+        int state = CaptionPlayerAuthority.state();
+        if (state != CaptionPlayerAuthority.COMPACT
+                && state != CaptionPlayerAuthority.TRANSITIONING_TO_REGULAR) return false;
+        Activity activity = activityRef.get();
+        if (activity == null || activity.isFinishing() || activity.getWindow() == null) return false;
+        if (CaptionSurface.isShorts()) return false;
+        Rect rect = readPlayerRect(activity);
+        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+        if (!looksLikeRegularPlayer(rect, metrics.widthPixels, metrics.heightPixels)) return false;
+        return CaptionPlayerAuthority.settleRegularFromGeometry();
+    }
+
+    /**
+     * The miniplayer is a wide but very short strip in portrait (about 8% of the screen height) and
+     * a small floating window in landscape (about 28%). A regular detail/fullscreen player is at
+     * least a quarter of the portrait height or two fifths of the landscape height.
+     */
+    static boolean looksLikeRegularPlayer(Rect rect, int screenWidth, int screenHeight) {
+        if (rect == null || screenWidth <= 0 || screenHeight <= 0) return false;
+        int width = rect.width(), height = rect.height();
+        if (width <= 1 || height <= 1) return false;
+        boolean portrait = screenWidth <= screenHeight;
+        float minimumHeight = screenHeight * (portrait ? 0.15f : 0.40f);
+        return height >= minimumHeight && width >= screenWidth * 0.35f;
     }
 
     /** The rectangle of the player: the cached view, else the observed one, else the largest id. */

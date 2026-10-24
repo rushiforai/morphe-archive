@@ -1,8 +1,6 @@
 .class public final LDevCheckRestored;
 .super Ljava/lang/Object;
 
-
-# annotations
 .annotation system Ldalvik/annotation/MemberClasses;
     value = {
         LDevCheckRestored$BluetoothMessage;,
@@ -10,8 +8,6 @@
     }
 .end annotation
 
-
-# direct methods
 .method private constructor <init>()V
     .registers 1
 
@@ -753,7 +749,7 @@
 
     int-to-float p0, p0
 
-    const/high16 v4, 0x42c80000    # 100.0f
+    const/high16 v4, 0x42c80000
 
     mul-float/2addr p0, v4
 
@@ -794,11 +790,11 @@
 
     int-to-double v2, p2
 
-    const-wide v4, 0x3ffccccccccccccdL    # 1.8
+    const-wide v4, 0x3ffccccccccccccdL
 
     mul-double/2addr v2, v4
 
-    const-wide/high16 v4, 0x4040000000000000L    # 32.0
+    const-wide/high16 v4, 0x4040000000000000L
 
     add-double/2addr v2, v4
 
@@ -1473,7 +1469,7 @@
 
     mul-float/2addr v1, v2
 
-    const/high16 v2, 0x43270000    # 167.0f
+    const/high16 v2, 0x43270000
 
     sub-float/2addr v2, v1
 
@@ -2577,11 +2573,11 @@
 
     move-result v0
 
-    const-wide/high16 v21, 0x4024000000000000L    # 10.0
+    const-wide/high16 v21, 0x4024000000000000L
 
     if-nez v0, :cond_a
 
-    const-wide v30, 0x408f400000000000L    # 1000.0
+    const-wide v30, 0x408f400000000000L
 
     long-to-double v7, v9
 
@@ -2599,7 +2595,7 @@
 
     move-wide/from16 v25, v9
 
-    const-wide/high16 v9, 0x4059000000000000L    # 100.0
+    const-wide/high16 v9, 0x4059000000000000L
 
     invoke-static {v7, v8, v9, v10}, Ljava/lang/Math;->min(DD)D
 
@@ -2638,7 +2634,7 @@
     goto :goto_8
 
     :cond_a
-    const-wide v30, 0x408f400000000000L    # 1000.0
+    const-wide v30, 0x408f400000000000L
 
     :goto_8
     array-length v0, v5
@@ -2743,7 +2739,7 @@
 
     div-double v0, v0, v21
 
-    const-wide/high16 v2, 0x4059000000000000L    # 100.0
+    const-wide/high16 v2, 0x4059000000000000L
 
     invoke-static {v0, v1, v2, v3}, Ljava/lang/Math;->min(DD)D
 
@@ -2813,7 +2809,7 @@
 
     move-object/from16 p0, v17
 
-    const-wide/high16 v2, 0x4059000000000000L    # 100.0
+    const-wide/high16 v2, 0x4059000000000000L
 
     const/4 v8, 0x0
 
@@ -2830,7 +2826,7 @@
 
     move-object/from16 v2, v32
 
-    const-wide v30, 0x408f400000000000L    # 1000.0
+    const-wide v30, 0x408f400000000000L
 
     move-object/from16 v17, p0
 

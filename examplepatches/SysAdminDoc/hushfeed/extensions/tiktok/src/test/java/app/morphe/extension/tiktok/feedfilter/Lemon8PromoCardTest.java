@@ -23,8 +23,9 @@ import org.robolectric.annotation.Config;
 
 /**
  * The Lemon8 install promo card is an inserted card with CardInsertInfo card type 9, and none
- * of TikTok's ad flags. It leaves with Remove feed ads, and a friend recommendation card or any
- * other insert stays.
+ * of TikTok's ad flags. The Lynx Lemon8 card is a type 105 insert drawn by Lynx (impl type 2)
+ * with card type 40, 105 or 114. Both leave with Remove feed ads, and a friend recommendation
+ * card or any other insert stays.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
@@ -36,7 +37,9 @@ public class Lemon8PromoCardTest {
 
     public static class Insert extends Aweme {
         Object cardInsertInfo;
+        int awemeType;
 
+        @Override public int getAwemeType() { return awemeType; }
         @Override public boolean isAd() { return false; }
         @Override public boolean isSoftAd() { return false; }
         @Override public boolean isWithPromotionalMusic() { return false; }
@@ -46,11 +49,16 @@ public class Lemon8PromoCardTest {
         public Object getContentModel() { return null; }
     }
 
-    /** TikTok's CardInsertInfo, by its card type. */
+    /** TikTok's CardInsertInfo, by its card type and how the card is drawn. */
     public static final class CardInsert {
         final int cardType;
-        CardInsert(int cardType) { this.cardType = cardType; }
+        final int cardImplType;
+        CardInsert(int cardType, int cardImplType) {
+            this.cardType = cardType;
+            this.cardImplType = cardImplType;
+        }
         public int getCardType() { return cardType; }
+        public int getCardImplType() { return cardImplType; }
     }
 
     @Before public void setUp() {
@@ -66,8 +74,29 @@ public class Lemon8PromoCardTest {
 
     private static Insert insert(Integer type) {
         Insert item = new Insert();
-        item.cardInsertInfo = type == null ? null : new CardInsert(type);
+        item.cardInsertInfo = type == null ? null : new CardInsert(type, 0);
         return item;
+    }
+
+    private static Insert lynxInsert(int awemeType, int cardType, int implType) {
+        Insert item = new Insert();
+        item.awemeType = awemeType;
+        item.cardInsertInfo = new CardInsert(cardType, implType);
+        return item;
+    }
+
+    @Test public void lynxLemon8CardIsDropped() {
+        Settings.REMOVE_ADS.save(true);
+        assertTrue("the daily dose card seen in For You", filter.getFiltered(lynxInsert(105, 40, 2)));
+        assertTrue("a cached response's other type", filter.getFiltered(lynxInsert(105, 114, 2)));
+        assertTrue("a live response's type", filter.getFiltered(lynxInsert(105, 105, 2)));
+    }
+
+    @Test public void lynxCardTypesStayOutsideALynxInsert() {
+        Settings.REMOVE_ADS.save(true);
+        assertFalse("a native card of the same type", filter.getFiltered(lynxInsert(105, 40, 1)));
+        assertFalse("a video carrying the type", filter.getFiltered(lynxInsert(0, 40, 2)));
+        assertFalse("another Lynx insert", filter.getFiltered(lynxInsert(105, 92, 2)));
     }
 
     @Test public void lemon8CardInsertIsDropped() {

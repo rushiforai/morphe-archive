@@ -31,6 +31,9 @@ import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.noTitleUnsortedPreferenceCategory
 import app.morphe.patches.util.resource.StringResourceSanitizer
+import app.morphe.patches.util.resource.editText
+import app.morphe.patches.util.resource.removeStringResource
+import app.morphe.patches.util.resource.setStringResource
 import app.morphe.util.ResourceGroup
 import app.morphe.util.asSequence
 import app.morphe.util.copyResources
@@ -271,7 +274,7 @@ internal fun baseCustomBrandingPatch(
                 // block may have already run and the settings are already wrote to file.
                 // Instead, the non-functional in-app settings are removed on app startup by extension code.
                 if (isMountedInstall(originalAppPackageName)) {
-                    // A mounted install keeps the original app installed and the system parses the
+                    // A mounted installation keeps the original app installed and the system parses the
                     // manifest of the stock APK, so the launch aliases and any manifest branding
                     // attribute are never used. Resource ids are unchanged by patching and are still
                     // resolved from the mounted APK, and replacing what those ids point to is the only
@@ -563,7 +566,7 @@ internal fun baseCustomBrandingPatch(
         }
 
         // Copy the user provided icon files here and not in the finalize block, because a mounted
-        // install uses them to replace the icon of the app and that is done while finalizing.
+        // installation uses them to replace the icon of the app and that is done while finalizing.
         if (useCustomIcon) {
             // Copy user provided files
             val iconPathFile = File(customIcon!!.trim())
@@ -722,7 +725,7 @@ private fun bundledBrandingResource(resourceFile: String): ByteArray? =
  * If the app is installed by mounting (root).
  *
  * The installer type is not reported to patches, so it is inferred from the package name, which
- * only a regular install changes. Other patches change it while executing, so this is accurate
+ * only a regular installation changes. Other patches change it while executing, so this is accurate
  * only after all patches have executed.
  */
 private fun isMountedInstall(originalAppPackageName: String) =
@@ -747,9 +750,14 @@ private fun hasMountedNotificationIcon(iconStyle: String, customIcon: String?): 
 }
 
 /**
- * The resource directories of a type, such as 'drawable' and every 'drawable-<qualifier>'.
+ * The resource directories of a type, such as 'drawable' and every 'drawable-<qualifier>',
+ * with the files of the name in them decoded.
+ *
+ * @param fileName The name of the files to decode, which can use wildcards.
  */
-private fun ResourcePatchContext.resourceDirectories(resourceType: String): List<File> {
+private fun ResourcePatchContext.resourceDirectories(resourceType: String, fileName: String): List<File> {
+    decode("res/$resourceType/$fileName", "res/$resourceType-*/$fileName")
+
     val directories = get("res").listFiles { file ->
         file.isDirectory && (file.name == resourceType || file.name.startsWith("$resourceType-"))
     } ?: throw PatchException("Could not find the app resources")
@@ -821,19 +829,12 @@ private fun Element.isLauncherEntry(): Boolean =
 private fun ResourcePatchContext.setAppNameResource(resourceName: String, appName: String): Boolean {
     var defaultAppNameSet = false
 
-    resourceDirectories("values").forEach { valuesDirectory ->
+    resourceDirectories("values", "strings.xml").forEach { valuesDirectory ->
         if (!valuesDirectory.resolve("strings.xml").exists()) return@forEach
 
-        document("res/${valuesDirectory.name}/strings.xml").use { document ->
-            val resources = document.getElementsByTagName("resources").item(0) ?: return@use
-            val declarations = resources.childNodes.asSequence()
-                .filterIsInstance<Element>()
-                .filter { it.tagName == "string" && it.getAttribute("name") == resourceName }
-                .toList()
-
+        this["res/${valuesDirectory.name}/strings.xml"].editText { text ->
             if (valuesDirectory.name != "values") {
-                declarations.forEach { it.removeFromParent() }
-                return@use
+                return@editText text.removeStringResource(resourceName)
             }
 
             val sanitizedAppName = StringResourceSanitizer.sanitizeAndroidResourceString(
@@ -841,16 +842,8 @@ private fun ResourcePatchContext.setAppNameResource(resourceName: String, appNam
                 appName
             )
 
-            if (declarations.isEmpty()) {
-                val declaration = document.createElement("string")
-                declaration.setAttribute("name", resourceName)
-                declaration.textContent = sanitizedAppName
-                resources.appendChild(declaration)
-            } else {
-                declarations.forEach { it.textContent = sanitizedAppName }
-            }
-
             defaultAppNameSet = true
+            text.setStringResource(resourceName, sanitizedAppName)
         }
     }
 
@@ -897,7 +890,7 @@ private fun ResourcePatchContext.setNotificationIconResource(
 
     var removedIcons = 0
 
-    resourceDirectories("drawable").forEach { drawableDirectory ->
+    resourceDirectories("drawable", "$originalNotificationIconName.*").forEach { drawableDirectory ->
         drawableDirectory.listFiles { file ->
             file.isFile && file.nameWithoutExtension == originalNotificationIconName
         }?.forEach { iconFile ->
@@ -967,7 +960,7 @@ private fun ResourcePatchContext.setLauncherIconResource(
     var replacedIcons = 0
 
     iconReferences.forEach { (resourceType, resourceName) ->
-        resourceDirectories(resourceType).forEach { typeDirectory ->
+        resourceDirectories(resourceType, "$resourceName.xml").forEach { typeDirectory ->
             // Only the adaptive icon is replaced. A raster icon of the same name is used by
             // Android 7 and older, which the target apps no longer support.
             val iconFile = typeDirectory.resolve("$resourceName.xml")

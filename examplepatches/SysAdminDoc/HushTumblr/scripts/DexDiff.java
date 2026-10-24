@@ -300,12 +300,12 @@ public class DexDiff {
 
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("answers", 4), Map.entry("settings", 3), Map.entry("firebaseCertificate", 1), Map.entry("activityNotifications", 7),
-            Map.entry("settingsRow", 3), Map.entry("featureSwitch", 4), Map.entry("timelineList", 4), Map.entry("timelinePaging", 5),
-            Map.entry("timelineCarousel", 3), Map.entry("postBridge", 3), Map.entry("paidPostBridge", 6), Map.entry("postJsonPresence", 3), Map.entry("imageDescriptions", 10), Map.entry("reviewPrompt", 3),
+            Map.entry("settingsRow", 3), Map.entry("featureSwitch", 4), Map.entry("timelineList", 5), Map.entry("timelinePaging", 5),
+            Map.entry("timelineCarousel", 3), Map.entry("paidPostBridge", 6), Map.entry("postJsonPresence", 3), Map.entry("imageDescriptions", 10), Map.entry("reviewPrompt", 3),
             Map.entry("blogNotificationReminder", 2), Map.entry("giftMessagePopup", 3),
             Map.entry("followButton", 3), Map.entry("footerButton", 3), Map.entry("postTags", 5),
             Map.entry("noteCounts", 6), Map.entry("unreadDots", 2), Map.entry("nativeTimestamps", 6), Map.entry("bottomBarTabs", 3),
-            Map.entry("darkBackground", 5), Map.entry("storeButtons", 5), Map.entry("accountIdentity", 10),
+            Map.entry("darkBackground", 6), Map.entry("storeButtons", 5), Map.entry("accountIdentity", 10),
             Map.entry("matureContent", 12), Map.entry("rootPostMutes", 10), Map.entry("mutualMarkers", 13));
 
     /**
@@ -356,9 +356,10 @@ public class DexDiff {
                 String[] columns = line.split("\\|", -1);
                 boolean family = columns[0].equals("family");
                 int mutationValues = columns.length - 3;
-                boolean validMutation = family || (!columns[2].equals("guard")
-                        ? MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues
-                        : mutationValues >= 2 && mutationValues % 2 == 0);
+                // A post bridge rule names one bridge or several, a guard pairs of values.
+                boolean validMutation = family || (columns[2].equals("guard") ? mutationValues >= 2 && mutationValues % 2 == 0
+                        : columns[2].equals("postBridge") ? mutationValues >= 1
+                        : MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues);
                 // A family's capability column may be empty: a manifest-only patch changes no bytecode.
                 if ((family && columns.length != 4) || (!family && columns.length < 4)
                         || Arrays.stream(columns).limit(family ? 3 : columns.length).anyMatch(String::isBlank)
@@ -3349,7 +3350,10 @@ public class DexDiff {
             capability(c.callee, found);
         }
 
-        /** Each timeline page constructor hands its items, its first parameter, through the hook first thing. */
+        /**
+         * Each timeline page constructor hands its items, its first parameter, through the hook first
+         * thing, and each subclass keeping its own copy of them filters that copy, see [timelineCopies].
+         */
         void timelineList(Contract c) {
             boolean found = true;
             for (String key : c.strings.subList(1, 3)) {
@@ -3358,7 +3362,41 @@ public class DexDiff {
                 int items = parameter(old, 0);
                 found &= hookAt(old, actual(old), 0, c.strings.get(0), List.of(items), items, List.of());
             }
-            capability(c.callee, found);
+            capability(c.callee, found && timelineCopies(c.strings.get(3), c.strings.get(2)));
+        }
+
+        /**
+         * Each constructor of a subclass of the base page class whose first instruction hands one of
+         * its own list parameters to the base page constructor puts that list through the hook just
+         * before, since the subclass keeps its own copy of it. A subclass answering its own items
+         * with no such constructor is one the filter can't reach. True when every one is so.
+         */
+        boolean timelineCopies(String hook, String base) {
+            String owner = base.substring(0, base.indexOf("->"));
+            boolean found = true;
+            int seen = 0;
+            for (ClassDef cd : clean.classes.values()) {
+                if (!owner.equals(cd.getSuperclass())) continue;
+                boolean hands = false, answers = false;
+                for (Method old : cd.getMethods()) {
+                    answers |= old.getName().equals("getTimelineObjects") && old.getParameterTypes().isEmpty()
+                            && old.getReturnType().equals("Ljava/util/List;");
+                    Instruction first = old.getName().equals("<init>") && old.getImplementation() != null ? get(instructions(old), 0) : null;
+                    if (first == null || first.getOpcode() != Opcode.INVOKE_DIRECT && first.getOpcode() != Opcode.INVOKE_DIRECT_RANGE
+                            || !base.equals(String.valueOf(reference(first)))) continue;
+                    int items = arguments(first).get(1);
+                    boolean list = false;
+                    for (int k = 0; k < old.getParameterTypes().size(); k++)
+                        list |= old.getParameterTypes().get(k).toString().equals("Ljava/util/List;") && parameter(old, k) == items;
+                    if (!list) continue;
+                    hands = true;
+                    seen++;
+                    found &= hookAt(old, actual(old), 0, hook, List.of(items), items, List.of());
+                }
+                if (answers && !hands) { fail(cd.getType() + " keeps its own timeline items and no constructor hands them to " + base); found = false; }
+            }
+            if (seen == 0) { fail("no subclass of " + owner + " hands its items to " + base); found = false; }
+            return found;
         }
 
         /**
@@ -4645,8 +4683,10 @@ public class DexDiff {
             return true;
         }
 
+        /** The getter may return a Tumblr model the interface hands back as a supertype, an object. */
         boolean directBridge(String type, Method face, MethodReference getter) {
-            if (!publicGetter(getter, face.getReturnType())) return false;
+            if (!publicGetter(getter, getter == null ? face.getReturnType() : getter.getReturnType())) return false;
+            if (!assignable(getter.getReturnType(), face.getReturnType())) { fail(getter + " isn't a getter of " + face.getReturnType()); return false; }
             String added = type + "->" + face.getName() + "()" + face.getReturnType();
             Method call = clean.methods.containsKey(added) ? null : actual(added);
             List<Instruction> body = call == null ? List.of() : instructions(call);
@@ -5460,7 +5500,7 @@ public class DexDiff {
                 if (answer == null || answer.getOpcode() != Opcode.MOVE_RESULT_OBJECT) fail("the Compose colors' theme isn't asked for once and kept in a register");
                 else themed = hookAt(composer, actual(composer), asked.get(0) + 2, c.strings.get(1), List.of(firstRegister(answer)), -1, List.of(firstRegister(answer)));
             }
-            designColors(c.strings.get(3), c.strings.get(4));
+            designColors(c.strings.get(3), c.strings.get(4), c.strings.get(5));
             capability(c.callee, found && themed);
         }
 
@@ -5479,7 +5519,7 @@ public class DexDiff {
          * colors some other way as it was, so there both hooks go uncalled, and a call to either
          * anywhere else is refused as misrouted.
          */
-        void designColors(String pageHook, String panelHook) {
+        void designColors(String pageHook, String panelHook, String footerHook) {
             List<Method> themes = new ArrayList<>();
             for (Method m : tumblrMethods()) if (clean.texts.get(m.toString()).stream().anyMatch(t -> t.startsWith(DESIGN_THEME_NOTE))) themes.add(m);
             MethodReference holder = themes.size() == 1 ? nightColors(themes.get(0)) : null;
@@ -5522,6 +5562,54 @@ public class DexDiff {
                     vouch(m, at, List.of(register, register + 1));
                 }
             }
+            postFooter(footerHook);
+        }
+
+        static final String POST_FOOTER_NOTE = "com.tumblr.ui.widget.splitnotescount.composable.PostFooterSplitNotesCountContent (";
+
+        /**
+         * The footer under a post handing the color it paints itself with to [hook] right after reading
+         * it, the answer moved back over the color before the background modifier takes it. The place
+         * is found in the clean target the way the patch finds it: the one color read kept and handed
+         * straight to a static (modifier, long, shape) call. Only checked once the design colors are,
+         * as the patch only adds it then, and a build without that one read keeps the footer as it was.
+         */
+        void postFooter(String hook) {
+            List<Method> footers = new ArrayList<>();
+            for (Method m : tumblrMethods()) if (clean.texts.get(m.toString()).stream().anyMatch(t -> t.startsWith(POST_FOOTER_NOTE))) footers.add(m);
+            if (footers.size() != 1 || clean.duplicates.contains(footers.get(0).getDefiningClass())) return;
+            List<Instruction> was = instructions(footers.get(0));
+            List<Integer> places = new ArrayList<>(), registers = new ArrayList<>();
+            for (int at = 0; at + 2 < was.size(); at++) {
+                if (colorGetter(was.get(at)) == null || was.get(at + 1).getOpcode() != Opcode.MOVE_RESULT_WIDE) continue;
+                int register = firstRegister(was.get(at + 1));
+                if (!paintsBackground(was.get(at + 2), register)) continue;
+                places.add(at + 2);
+                registers.add(register);
+            }
+            if (places.size() != 1) return;
+            Method m = actual(footers.get(0));
+            List<Integer> sites = calls(m, hook, 1);
+            if (sites.size() != 1) return;
+            int at = sites.get(0), register = registers.get(0);
+            List<Instruction> body = instructions(m);
+            if (!arguments(body.get(at)).equals(List.of(register, register + 1)) || !movesTo(get(body, at + 1), register, Opcode.MOVE_RESULT_WIDE)) {
+                fail(hook + " doesn't take the post footer's color and put its answer back where it was in " + m);
+                return;
+            }
+            remove(m, at, at + 2);
+            anchor(m, at, places.get(0), hook);
+            vouch(m, at, List.of(register, register + 1));
+        }
+
+        /** A static (modifier, long, shape) call answering the modifier's type, taking the long in [register] and the next. */
+        static boolean paintsBackground(Instruction i, int register) {
+            MethodReference call = i.getOpcode() == Opcode.INVOKE_STATIC ? called(i) : null;
+            if (call == null) return false;
+            List<String> types = call.getParameterTypes().stream().map(Object::toString).toList();
+            List<Integer> handed = arguments(i);
+            return types.size() == 3 && types.get(1).equals("J") && types.get(0).startsWith("L") && types.get(2).startsWith("L")
+                    && call.getReturnType().equals(types.get(0)) && handed.size() == 4 && handed.get(1) == register && handed.get(2) == register + 1;
         }
 
         /**

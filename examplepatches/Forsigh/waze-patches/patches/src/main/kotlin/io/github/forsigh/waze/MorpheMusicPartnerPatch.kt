@@ -1,16 +1,24 @@
 package io.github.forsigh.waze
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction11x
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 import org.w3c.dom.Element
 
 /**
- * Morphe YouTube Music as a Waze audio partner - Loupric's Waze-side pair, ported.
+ * Additional players as audio partners - Loupric's Waze-side pair, ported, then widened to two more
+ * players.
  *
  * THE TWO EDITS (both upstream's, kept exactly):
  *
@@ -45,6 +53,23 @@ private const val MORPHE_MUSIC_PACKAGE = "app.morphe.android.apps.youtube.music"
 /** The label Waze shows for the partner row (upstream's choice, kept). */
 private const val MORPHE_MUSIC_LABEL = "Morphe Music"
 
+/** Plain media apps, added alongside the Morphe entry when their gear is on. */
+
+/**
+ * `au.g(Context)` - the per-partner availability check. Stock, it only takes the install-check path
+ * for package equal to the Spotify literal; everything else is asked for a
+ * `com.waze.sdk.audio.ACTION_INIT` broadcast receiver, which a plain media app never ships, so it reads
+ * as unavailable: the settings row goes dead and the car side drops it. BitChord (1.8.1) and Smart
+ * AudioBook Player (11.9.0) both ship a MediaBrowserService but no Waze SDK receiver (their manifests
+ * were pulled off the device and read), so this is the gate that keeps them out.
+ */
+internal val PartnerAvailabilityFingerprint = Fingerprint(
+    definingClass = "Lcom/waze/sdk/au;",
+    name = "g",
+    parameters = listOf("Landroid/content/Context;"),
+    returnType = "Z",
+)
+
 /**
  * `SdkConfiguration.updateAppList()` - the roster refresh that rebuilds `appConfigs` and persists each
  * partner's scope. Pinned by its own call to `savePackageScopesToSharedPref`, which is what makes it this
@@ -74,7 +99,7 @@ val morpheMusicSupportPatch = resourcePatch(
     name = null,
     description = "Declares Morphe YouTube Music (app.morphe.android.apps.youtube.music) in Waze's " +
         "manifest <queries>, so Android's package visibility lets Waze find it at all. Applied as part " +
-        "of \"Morphe YouTube Music as a Waze audio partner\".",
+        "of \"Additional players as audio partners\".",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
@@ -90,13 +115,15 @@ val morpheMusicSupportPatch = resourcePatch(
             val declared = (0 until packages.length).mapNotNull { index ->
                 (packages.item(index) as? Element)?.getAttribute("android:name")?.takeIf(String::isNotEmpty)
             }
-            if (MORPHE_MUSIC_PACKAGE in declared) {
-                println("morpheMusicSupportPatch: $MORPHE_MUSIC_PACKAGE already declared in <queries>")
-            } else {
-                val element = dom.createElement("package")
-                element.setAttribute("android:name", MORPHE_MUSIC_PACKAGE)
-                queries.appendChild(element)
-                println("morpheMusicSupportPatch: declared $MORPHE_MUSIC_PACKAGE in <queries>")
+            for (pkg in listOf(MORPHE_MUSIC_PACKAGE)) {
+                if (pkg in declared) {
+                    println("morpheMusicSupportPatch: $pkg already declared in <queries>")
+                } else {
+                    val element = dom.createElement("package")
+                    element.setAttribute("android:name", pkg)
+                    queries.appendChild(element)
+                    println("morpheMusicSupportPatch: declared $pkg in <queries>")
+                }
             }
         }
     }
@@ -105,7 +132,7 @@ val morpheMusicSupportPatch = resourcePatch(
 @Suppress("unused")
 val morpheMusicPartnerPatch = bytecodePatch(
     name = "Morphe YouTube Music as a Waze audio partner",
-    description = "Lets Morphe YouTube Music work as Waze's audio partner.",
+    description = "Lets Morphe YouTube Music play through Waze.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
@@ -127,26 +154,62 @@ val morpheMusicPartnerPatch = bytecodePatch(
         // Upstream's insertion point: right AFTER the last scope-save call, where the rebuilt map is in
         // hand and non-null. Registers v4-v10 are free there; v1 (the monitor) is not touched.
         val insertIndex = matches.last().index + 1
-        method.addInstructionsWithLabels(
-            insertIndex,
-            """
-            sget-object v4, Lcom/waze/sdk/SdkConfiguration;->appConfigs:Ljava/util/Map;
-            const-string v6, "$MORPHE_MUSIC_PACKAGE"
-            invoke-interface {v4, v6}, Ljava/util/Map;->containsKey(Ljava/lang/Object;)Z
-            move-result v7
-            if-nez v7, :cond_skip_morphe
-            new-instance v5, Lcom/waze/sdk/au;
-            const-string v7, "$MORPHE_MUSIC_LABEL"
-            const v8, 0x200001
-            const/4 v9, 0x0
-            const/4 v10, 0x0
-            invoke-direct/range {v5 .. v10}, Lcom/waze/sdk/au;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;[B)V
-            invoke-interface {v4, v6, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-            :cond_skip_morphe
-            nop
-            """.trimIndent(),
-        )
-        println("morpheMusicPartnerPatch: Morphe Music entry injected after the scope save in updateAppList")
+        val block = buildString {
+            append(
+                """
+                sget-object v4, Lcom/waze/sdk/SdkConfiguration;->appConfigs:Ljava/util/Map;
+                const-string v6, "$MORPHE_MUSIC_PACKAGE"
+                invoke-interface {v4, v6}, Ljava/util/Map;->containsKey(Ljava/lang/Object;)Z
+                move-result v7
+                if-nez v7, :cond_skip_morphe
+                new-instance v5, Lcom/waze/sdk/au;
+                const-string v7, "$MORPHE_MUSIC_LABEL"
+                const v8, 0x200001
+                const/4 v9, 0x0
+                const/4 v10, 0x0
+                invoke-direct/range {v5 .. v10}, Lcom/waze/sdk/au;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;[B)V
+                invoke-interface {v4, v6, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                :cond_skip_morphe
+                nop
+                """.trimIndent(),
+            )
+        }
+        method.addInstructionsWithLabels(insertIndex, block)
+        println("morpheMusicPartnerPatch: injected the Morphe Music partner entry after the scope save")
+
+        // One instruction in au.g(Context): after the "com.spotify.music" comparison, stock branches on
+        // the equals result and only Spotify gets the install check. Pinning the result to true sends
+        // every partner down that path, so an installed player is available instead of waiting for a
+        // Waze SDK receiver it does not ship. The branch itself is untouched.
+        val availability = PartnerAvailabilityFingerprint.method
+        val implementation = availability.implementation
+            ?: throw PatchException("morpheMusicPartnerPatch: au.g has no implementation to patch")
+        val instructions = implementation.instructions
+        var pinned = false
+        for (i in 0 until instructions.size - 2) {
+            val insn = instructions.elementAt(i)
+            if (insn.opcode != Opcode.CONST_STRING) continue
+            val literal = (insn as? ReferenceInstruction)?.reference?.toString() ?: continue
+            if (literal != "com.spotify.music") continue
+            // Shape: const-string "com.spotify.music" -> invoke-virtual String.equals -> move-result
+            // -> if-eqz. The equals call sits between the literal and the result, so scan forward.
+            for (j in i + 1 until minOf(i + 5, instructions.size)) {
+                val move = instructions.elementAt(j)
+                if (move.opcode != Opcode.MOVE_RESULT) continue
+                availability.replaceInstruction(j, BuilderInstruction11n(Opcode.CONST_4, (move as Instruction11x).registerA, 1))
+                pinned = true
+                break
+            }
+            if (pinned) break
+        }
+        if (!pinned) {
+            throw PatchException(
+                "morpheMusicPartnerPatch: au.g no longer compares the Spotify literal before a " +
+                    "move-result - refusing to report an availability fix that was not applied"
+            )
+        }
+        println("morpheMusicPartnerPatch: partner availability pinned to the install check in au.g")
+
 
         // The partner list the injected entry feeds is gated at its source: getPartnerAudioApps
         // iterates appConfigs only when CONFIG_VALUE_AUDIO_EXTENSION_SDK_FEATURE_ENABLED reads true,

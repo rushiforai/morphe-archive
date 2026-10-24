@@ -2,12 +2,12 @@ group = "app.madushas.pdb-patches"
 
 patches {
     about {
-        name = "Pdb Patches"
-        description = "Patches for Pdb (pdb.app): premium unlock, ad removal, PairIP license bypass and a power-user feature menu."
-        source = "https://github.com/madushas/pdb_patch"
+        name = "Madusha's Morphe Patches"
+        description = "Patches for Pdb (pdb.app) and MyDialog (net.omobio.dialogsc): telemetry removal, security-check bypasses, ad removal, premium unlock and power-user features."
+        source = "https://github.com/madushas/morphe-patches-custom"
         author = "madushas"
         contact = "https://github.com/madushas"
-        website = "https://morphe.software/add-source?github=madushas/pdb_patch"
+        website = "https://morphe.software/add-source?github=madushas/morphe-patches-custom"
         license = "GPLv3"
     }
 }
@@ -72,7 +72,7 @@ tasks {
         dependsOn(build)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
-        mainClass.set("app.morphe.util.PatchListGeneratorKt")
+        mainClass.set("util.PatchListGeneratorKt")
     }
 
     // Used by gradle-semantic-release-plugin.

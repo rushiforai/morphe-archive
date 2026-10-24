@@ -22,11 +22,12 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.net.Uri;
-import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 final class TileMapView extends View {
 
@@ -169,8 +170,7 @@ final class TileMapView extends View {
         this.markerOutline.setColor(OUTLINE_COLOR);
         this.markerOutline.setStrokeWidth(dp(MARKER_OUTLINE_DP));
         this.attributionText.setColor(ATTRIBUTION_TEXT_COLOR);
-        this.attributionText
-            .setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, ATTRIBUTION_TEXT_SP, displayMetrics()));
+        this.attributionText.setTextSize(Dimensions.spExact(context, ATTRIBUTION_TEXT_SP));
         this.attributionBackground.setColor(ATTRIBUTION_BACKGROUND_COLOR);
         this.gestures = new GestureDetector(context, new GestureListener());
         this.scaler = new ScaleGestureDetector(context, new ScaleListener());
@@ -196,22 +196,6 @@ final class TileMapView extends View {
         final double clamped = Math.max(-MAX_LATITUDE, Math.min(MAX_LATITUDE, latitude));
         final double sine = Math.sin(Math.toRadians(clamped));
         return HALF - Math.log((1 + sine) / (1 - sine)) / (4 * Math.PI);
-    }
-
-    static double longitudeOf(double u) {
-        return u * FULL_TURN_DEGREES - HALF_TURN_DEGREES;
-    }
-
-    static double latitudeOf(double v) {
-        return Math.toDegrees(Math.atan(Math.sinh(Math.PI * (1 - 2 * v))));
-    }
-
-    static double pixelX(double longitude, double zoom) {
-        return mercatorU(longitude) * worldSize(zoom);
-    }
-
-    static double pixelY(double latitude, double zoom) {
-        return mercatorV(latitude) * worldSize(zoom);
     }
 
     void setMarkers(List<MapMarker> markers, boolean animate) {
@@ -520,7 +504,7 @@ final class TileMapView extends View {
     }
 
     private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, displayMetrics());
+        return Dimensions.dpExact(getContext(), value);
     }
 
     private final class GestureListener extends GestureDetector.SimpleOnGestureListener {

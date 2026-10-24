@@ -18,7 +18,6 @@ import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -66,14 +65,6 @@ private const val EXTENSION_MEMBERS_CLASS = "Lapp/hxreborn/extension/protonvpn/M
 
 internal fun BytecodePatchContext.setExtensionMember(member: String, value: String) =
     mutableClassDefBy(EXTENSION_MEMBERS_CLASS).methods.single { it.name == member }.returnEarly(value)
-
-internal fun Method.parameterRegister(index: Int): String {
-    val receiver = if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
-    val preceding = parameterTypes.take(index).sumOf { if (it == "J" || it == "D") 2 else 1 }
-    return "p${receiver + preceding}"
-}
-
-internal fun String.toJavaClassName() = substring(1, length - 1).replace('/', '.')
 
 private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference
 

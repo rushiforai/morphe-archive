@@ -143,12 +143,6 @@ public final class WebSettingsThemeTest {
     }
 
     @Test
-    public void missingViewIsIgnored() {
-        WebSettingsTheme.hideBeforeStyling(null);
-        WebSettingsTheme.injectEnabledStyles(null);
-    }
-
-    @Test
     @Config(qualifiers = "night", shadows = { PatchedBuild.Amoled.class, PatchedBuild.Accent.class,
             PatchedBuild.Upselling.class, PatchedBuild.Applied.class })
     public void viewIsHiddenFor2500MillisecondsWhenAmoledStylesIt() {

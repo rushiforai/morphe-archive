@@ -10,7 +10,7 @@ Java.perform(function(){
    const save=m.findItem(0x7e484a01),browse=m.findItem(0x7e484a03),highlight=m.findItem(0x7e484b01);
    if(save===null||browse===null)throw Error('Missing ordinary menu actions');
    if(String(save.getTitle())!=='レスを保存')throw Error('Save label clipped');
-   if(String(browse.getTitle())!=='過去レスを見る')throw Error('Browse label changed');
+   if(String(browse.getTitle())!=='保存済みレスを見る')throw Error('Browse label changed');
    if(highlight!==null&&String(highlight.getTitle())!=='投稿者を強調')throw Error('Highlight label clipped');
    const data=Java.use('org.json.JSONObject').$new(save.getIntent().getStringExtra('haiagaru.response.archive'));
    if(data.getInt('number')<=0)throw Error('Missing selected response');

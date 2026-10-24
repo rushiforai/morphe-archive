@@ -108,6 +108,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.RETURN_REFRESH)
                 || build.contains(PatchFamily.AI_DETECTED_POSTS)
                 || build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)
+                || build.contains(PatchFamily.PROFILE_NOTES)
                 || build.contains(PatchFamily.AFFILIATE_LINKS)
                 || build.contains(PatchFamily.POST_WORDS)
                 || build.contains(PatchFamily.POST_PROMPTS)
@@ -127,6 +128,12 @@ final class FeedPages {
             if (build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_SPONSORED_PROFILE_POSTS,
                         L10n.t("Hides ads between posts on someone's profile or a Page. Their own posts stay.")));
+            }
+            // Read each time Facebook lays a profile out, so a change shows on the next profile opened.
+            if (build.contains(PatchFamily.PROFILE_NOTES)) {
+                feed.addPreference(toggle(context, Settings.HIDE_PROFILE_NOTES,
+                        L10n.t("Hides the note bubble that sits on profile pictures. Applies the next time you open a "
+                                + "profile.")));
             }
             // One switch covers the cards on reels and in the comment sheet too.
             if (build.contains(PatchFamily.AFFILIATE_LINKS)) {
@@ -318,7 +325,8 @@ final class FeedPages {
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.SPONSORED_STORIES) || build.contains(PatchFamily.SUGGESTED_STORIES)
                 || build.contains(PatchFamily.STORY_AUTO_ADVANCE) || build.contains(PatchFamily.STORY_SEEN)
-                || build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.STORY_UPLOAD_HD)) {
+                || build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.STORY_UPLOAD_HD)
+                || build.contains(PatchFamily.STORY_MUSIC_LENGTH) || build.contains(PatchFamily.PINCH_TO_ZOOM)) {
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             if (build.contains(PatchFamily.SPONSORED_STORIES)) {
                 stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES,
@@ -369,6 +377,25 @@ final class FeedPages {
                         L10n.t("Videos you post to your Story ask Facebook for its high upload quality instead of "
                                 + "standard. Applies to the next Story you post.")));
             }
+            if (build.contains(PatchFamily.STORY_MUSIC_LENGTH)) {
+                // Read each time a song is picked, so a change applies from the next one.
+                stories.addPreference(toggle(context, Settings.LONGER_STORY_MUSIC,
+                        L10n.t("A song you add to a photo for your Story plays for up to 30 seconds instead of 15. "
+                                + "Applies to the next song you pick.")));
+            }
+            if (build.contains(PatchFamily.PINCH_TO_ZOOM)) {
+                // Asked as each second finger lands, so a change shows from the next pinch.
+                stories.addPreference(toggle(context, Settings.PINCH_TO_ZOOM,
+                        L10n.t("Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.")));
+                stories.addPreference(toggle(context, Settings.PINCH_TO_ZOOM_KEEP,
+                        L10n.t("With Pinch to zoom on, the photo or story stays zoomed when you let go, and a story "
+                                + "stays paused. Drag with one finger or pinch again. Tap or press Back when you're done."))
+                        .needs(Settings.PINCH_TO_ZOOM));
+                stories.addPreference(toggle(context, Settings.PINCH_TO_ZOOM_DOUBLE_TAP,
+                        L10n.t("With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, "
+                                + "and double tap again to put it back. A single tap still opens the photo, a moment later."))
+                        .needs(Settings.PINCH_TO_ZOOM));
+            }
         }
     }
 
@@ -411,6 +438,8 @@ final class FeedPages {
                     L10n.t("Comments show their replies right away, so there's no View replies to tap.")));
             comments.addPreference(toggle(context, Settings.LOAD_WHOLE_REPLY_THREADS,
                     L10n.t("An open reply thread keeps loading as you scroll, so there's no View more replies to tap.")));
+            comments.addPreference(toggle(context, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
+                    L10n.t("The whole View more replies row opens the replies, not just its words.")));
             comments.addPreference(toggle(context, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
                     L10n.t("A group post's comments end without the Related groups list and its Join buttons.")));
             comments.addPreference(toggle(context, Settings.HIDE_SHOP_LINK_COMMENTS,

@@ -108,6 +108,22 @@ public class SearchSettingsClarityTest {
         });
     }
 
+    /**
+     * #233. The Story first row says where it works and how the LIVE is still reached. It needs
+     * its own hook on the profile picture's tap, which a build can leave out while the rings
+     * apply, so the rings rows stay without it.
+     */
+    @Test public void storyFirstRowSaysWhereAndHowToReachTheLive() {
+        assertRow("INTERFACE", "open_story_over_live", "Open the Story when a creator is LIVE", "on their profile");
+        assertRow("INTERFACE", "open_story_over_live", "Open the Story when a creator is LIVE", "Tap the picture again to join the LIVE");
+
+        SettingsStatus.storyOverLiveEnabled = false;
+        onPage("INTERFACE", page -> {
+            assertNull("the Story first row outlived its hook", page.findPreference("open_story_over_live"));
+            assertNotNull("the rings rows follow their own flag", page.findPreference("hide_live_ring"));
+        });
+    }
+
     @Test public void sideMenuButtonRowNamesTheMenuAndNeedsTheToolbarCheck() {
         assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "TikTok Minis");
         assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "Restart TikTok");

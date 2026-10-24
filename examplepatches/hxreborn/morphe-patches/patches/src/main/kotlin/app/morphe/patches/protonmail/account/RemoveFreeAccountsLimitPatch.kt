@@ -51,7 +51,7 @@ private val removeFreeAccountsLimitMarkerPatch =
 @Suppress("unused")
 val removeFreeAccountsLimitPatch = resourcePatch(
     name = "Remove free accounts limit",
-    description = "Removes the limit for maximum free accounts logged in.",
+    description = "Removes the limit on signed-in free accounts.",
 ) {
     dependsOn(patchesSettingsPatch, removeFreeAccountsLimitMarkerPatch)
     compatibleWith(AppCompatibilities.PROTON_MAIL)

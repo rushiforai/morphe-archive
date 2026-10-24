@@ -59,14 +59,15 @@ internal const val NO_IMAGE_URL_SHORT =
  * the screen. Included in the default selection with its switch initially off, since a larger
  * photo means more data. Only the pixels loaded change: the view's size comes from the post. A
  * second switch, also off to start, asks for a larger size on a phone narrower than 1440 pixels
- * (see LargerPhotos.kt).
+ * (see LargerPhotos.kt), and a third, Full size covers, reports a screen big enough for full size
+ * reel covers (#214).
  */
 @Suppress("unused")
 val fullResolutionPhotosPatch = bytecodePatch(
     name = "Full resolution photos",
     description = "Loads photos in the largest size Instagram sends instead of one picked for your screen. A " +
-        "second switch asks for a larger size on screens under 1440 pixels wide. Uses more data. Starts off. Turn " +
-        "it on in HushGram settings > Feed.",
+        "second switch asks for a larger size on screens under 1440 pixels wide, and a third gets reel covers and " +
+        "grid pictures at full size. Uses more data. Starts off. Turn it on in HushGram settings > Feed.",
     default = true,
 ) {
     category("Feed")

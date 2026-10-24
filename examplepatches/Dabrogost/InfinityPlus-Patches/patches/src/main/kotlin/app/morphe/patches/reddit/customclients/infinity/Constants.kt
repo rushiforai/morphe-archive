@@ -14,6 +14,6 @@ internal val InfinityCompatible = arrayOf(
     Compatibility(
         name = "Infinity for Reddit+",
         packageName = "ml.docilealligator.infinityforreddit.plus",
-        targets = listOf(AppTarget(version = null))
+        targets = listOf(AppTarget(version = "8.3.4"))
     )
 )

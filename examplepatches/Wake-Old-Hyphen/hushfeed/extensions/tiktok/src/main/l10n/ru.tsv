@@ -901,6 +901,7 @@ Open TikTok on	Открыть TikTok на
 Opens github.com in your browser	Открывает github.com в вашем браузере
 Operator code	Код оператора
 Operator name	Название оператора
+Original	Оригинал
 Original language	Язык оригинала
 Other	Другое
 Other feed filters	Другие фильтры ленты
@@ -1532,7 +1533,7 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	Скрывать TikTok Shop в поиске
 Hide the Products block and product cards in search results.	Скрывать блок «Товары» и карточки товаров в результатах поиска.
 Hide TikTok's Auto scroll button	Скрывать кнопку автопрокрутки TikTok
-Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.	Убирает собственную функцию автопрокрутки TikTok из панели видео. Автоматическое переключение продолжает работать.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	Убирает собственную функцию автопрокрутки TikTok из панели видео и переключатель автопрокрутки рядом с видео на планшетах и раскрытых складных телефонах. Работает и при выключенном автоматическом переключении.
 Hide the unread badges on the bottom tabs	Скрывать значки непрочитанного на нижних вкладках
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Скрывать красные счётчики и точки на всех нижних вкладках, включая «Входящие» и «Профиль», а также всплывающий значок над «Входящими» с числом новых лайков, подписчиков, комментариев и тех, кто в LIVE. Сами входящие по-прежнему показывают, что пришло.
 Speed while you hold the video	Скорость при удержании видео
@@ -1790,13 +1791,15 @@ Remove story rings	Убрать кольца историй
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Убирать кольцо истории с фото профиля в ленте, в комментариях и в профилях. Нажатие на фото открывает профиль, а не историю.
 Remove the LIVE ring	Убрать кольцо LIVE
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Убирать пульсирующее кольцо LIVE с фото профиля в ленте и в комментариях. Нажатие на фото автора в эфире открывает его профиль, а не LIVE.
+Open the Story when a creator is LIVE	Открывать историю, когда автор в LIVE
+When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	Если у автора в LIVE есть и история, нажатие на его фото в профиле открывает историю. Нажмите на фото ещё раз, чтобы перейти в LIVE.
 Writing	Написание
 Lift text length limits	Снять ограничения длины текста
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Комментарии, заметки к репостам и описание профиля могут быть длиннее, чем позволяет приложение TikTok. Серверы TikTok всё равно могут отклонить длинный текст.
 Show only mutual friends on the Friends tab	Показывать во вкладке «Друзья» только взаимных друзей
 On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Во вкладке «Друзья» скрывать публикации, репосты и LIVE аккаунтов без взаимной подписки, в том числе рекомендованных. Ваши собственные публикации остаются.
 Latest first on Following	Сначала новые в «Подписках»
-Play each batch the Following feed loads newest post first. TikTok still picks what each batch brings, and ads and LIVEs keep their place.	Воспроизводить каждую партию, которую загружает лента «Подписки», начиная с самой новой публикации. Что попадёт в партию, по-прежнему решает TikTok, а реклама и LIVE остаются на своих местах.
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	Воспроизводить ленту «Подписки», начиная с самой новой публикации. Более новая публикация, загруженная позже, встаёт сразу за видео, которое вы смотрите, а то, что вы уже пролистали, не сдвигается. Реклама и LIVE остаются на своих местах.
 Show follow status	Показывать статус подписки
 Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Под @именем пользователя в профиле показывать, подписан ли он на вас или не подписан в ответ. В списках подписчиков и подписок отмечаются аккаунты, на которые вы подписаны, но которые не подписаны на вас.
 Follows you	Подписан на вас
@@ -2430,7 +2433,7 @@ Two at once	Два одновременно
 Three at once	Три одновременно
 LIVE recording quality	Качество записи LIVE
 Same as the room	Как в трансляции
-Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower.	«Как в трансляции» записывает качество, которое вы смотрите. «Самое высокое» записывает лучший поток трансляции, даже если вы смотрите её в более низком качестве.
+Same as the room records the quality you're watching. Highest records the best stream the room has, even while you watch it lower. A number records that quality, or the closest one the room has when it isn't offered.	«Как в трансляции» записывает качество, которое вы смотрите. «Самое высокое» записывает лучший поток трансляции, даже если вы смотрите её в более низком качестве. Число записывает именно это качество, а если трансляция его не предлагает, ближайшее из доступных.
 Long-press Profile for Watch history	Долгое нажатие на Профиль открывает историю просмотров
 Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.	Нажмите и удерживайте вкладку Профиль, чтобы открыть историю просмотров. Обычное нажатие на Профиль работает как раньше. Если удержание Профиля у вас переключает аккаунты, эта настройка занимает это нажатие, а имя вверху профиля по-прежнему переключает аккаунты.
 Open the comments at full height	Открывать комментарии на всю высоту
@@ -2446,5 +2449,8 @@ Oldest first	Сначала старые
 Longest first	Сначала длинные
 Shortest first	Сначала короткие
 Most viewed first	Сначала самые просматриваемые
+Least viewed first	Сначала наименее просматриваемые
 Most liked first	Сначала с наибольшим числом лайков
-Sorts the videos a profile or Liked grid has loaded so far, with pinned videos first, and the order covers more videos as you scroll. The next time a grid opens, it follows this.	Сортирует видео, которые сетка профиля или раздела «Понравившиеся» уже загрузила, закреплённые остаются первыми. По мере прокрутки порядок охватывает больше видео. В следующий раз сетка откроется уже в этом порядке.
+Least liked first	Сначала с наименьшим числом лайков
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Сортирует сетку профиля или раздела «Понравившиеся», закреплённые видео остаются первыми. Пока выбран порядок, сетка сама подгружает до 300 видео, чтобы порядок охватывал больше первого экрана. Кнопка в верхнем углу сетки меняет порядок прямо там.
+Sort this grid	Сортировка этой сетки

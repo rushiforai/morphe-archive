@@ -166,6 +166,24 @@ public class MenuTilesTest {
         assertNull(MenuTiles.keyOf("fb://Market place"));
     }
 
+    /** 584's Finds has no link, so it keys by Facebook's id for the app it bookmarks (#224). */
+    @Test
+    public void aTileWithNoLinkKeysByTheAppItBookmarks() {
+        assertEquals(MenuTiles.FINDS, MenuTiles.appKey("204127677323356"));
+        assertEquals("app_7", MenuTiles.appKey(" 7 "));
+        assertEquals("Finds", MenuTiles.label(MenuTiles.FINDS));
+        assertEquals("App 7", MenuTiles.label("app_7"));
+        assertEquals(MenuTiles.Hidden.SAVED, MenuTiles.hide(Collections.singletonList(MenuTiles.FINDS)));
+        assertEquals(Collections.singleton(MenuTiles.FINDS), MenuTiles.hidden());
+        assertTrue(MenuTiles.choices().contains(MenuTiles.FINDS));
+        assertNull(MenuTiles.appKey(null));
+        assertNull(MenuTiles.appKey(""));
+        assertNull(MenuTiles.appKey("0"));
+        assertNull(MenuTiles.appKey("-204127677323356"));
+        assertNull(MenuTiles.appKey("204127677323356x"));
+        assertNull(MenuTiles.appKey("12345678901234567890"));
+    }
+
     @Test
     public void thePickedKeysAreSavedCleanAndKeepOrder() {
         assertEquals(MenuTiles.Hidden.SAVED, MenuTiles.hide(Arrays.asList("gaming", "marketplace")));

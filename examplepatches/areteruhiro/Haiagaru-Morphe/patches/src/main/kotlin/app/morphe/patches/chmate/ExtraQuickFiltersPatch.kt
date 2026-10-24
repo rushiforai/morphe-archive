@@ -51,7 +51,8 @@ internal fun BytecodePatchContext.patchExtraQuickFilters(version: String) {
         """.trimIndent())
     } else {
         val rows = mutableClassDefBy("Lo/emptyToNull;").methods.single { it.name == "c" && it.parameterTypes.size == 14 && it.parameterTypes[7] == "Lo/IObjectWrapperStub;" }
-        rows.addInstructions(0,"invoke-static/range {p4 .. p7}, $EXTRA_FILTERS->observeConfig(Ljava/lang/Object;Ljava/lang/Object;ILjava/lang/Object;)V")
+        check(rows.parameterTypes[3]=="Lo/zzacn;")
+        rows.addInstructions(0,"invoke-static/range {p3 .. p7}, $EXTRA_FILTERS->observeConfigWithMode(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;ILjava/lang/Object;)V")
         val apply = adapter.methods.single { it.name == "b" && it.parameterTypes == listOf("Lo/zzacr\$read;", "Lo/zzcbx;") }
         apply.addInstructions(0,"""
             invoke-static/range {p0 .. p1}, $EXTRA_FILTERS->modernSnapshot(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;

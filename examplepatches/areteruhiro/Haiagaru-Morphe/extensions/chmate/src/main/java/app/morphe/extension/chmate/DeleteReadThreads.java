@@ -36,6 +36,7 @@ public final class DeleteReadThreads {
     }
 
     public static boolean longClick(Object fragment, View button) {
+        if(ExtraQuickFilters.longClick(fragment,button))return true;
         if (!boardList(fragment) || button == null || button.getId() != 5) return false;
         if (!Haiagaru.deleteReadThreadsLongPressEnabled()) return false;
         show(fragment);

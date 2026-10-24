@@ -37,6 +37,13 @@ public final class NativeImagePacketStack implements SstpImageSession.PacketStac
         catch (Exception error) { throw new IOException("IMAGE_VPN_IMAGE_FETCH_FAILED", error); }
     }
 
+    public Image fetchPreview(String url) throws IOException {
+        Session current = session;
+        if (current == null) throw new IOException("IMAGE_VPN_STACK_DISCONNECTED");
+        try { return current.fetchPreview(url, 2L * 1024 * 1024, 15000); }
+        catch (Exception error) { throw new IOException("IMAGE_VPN_PREVIEW_FETCH_FAILED", error); }
+    }
+
     public String probeExitAddress() throws IOException {
         Session current = session;
         if (current == null) throw new IOException("IMAGE_VPN_STACK_DISCONNECTED");

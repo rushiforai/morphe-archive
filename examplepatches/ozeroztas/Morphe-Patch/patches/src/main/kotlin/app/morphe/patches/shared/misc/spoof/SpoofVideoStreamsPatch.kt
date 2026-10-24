@@ -86,6 +86,7 @@ private val spoofVideoStreamsResourcePatch = resourcePatch {
 internal fun spoofVideoStreamsPatch(
     extensionClass: String,
     mainActivityOnCreateFingerprints: List<Fingerprint>,
+    fixCronetOnesie: BytecodePatchBuilder.() -> Boolean,
     fixMediaFetchHotConfigAlternative: BytecodePatchBuilder.() -> Boolean,
     fixParsePlaybackResponseFeatureFlag: BytecodePatchBuilder.() -> Boolean,
     fixMediaSessionFeatureFlag: BytecodePatchBuilder.() -> Boolean,
@@ -361,6 +362,100 @@ internal fun spoofVideoStreamsPatch(
 
         // endregion
 
+        // region Request plain streams of other clients as GET requests with a short range.
+        // Streams of other clients are plain urls, which the server rejects or sends slowly if they are
+        // requested like the streams of the app, with a POST body. Saving a video also requests a large
+        // range, which the server sends at about playback speed.
+
+        CronetUrlRequestBuildFingerprint.let {
+            val fields = it.classDef.fields
+            val urlField = fields.first { field ->
+                field.type == "Ljava/lang/String;" && AccessFlags.FINAL.isSet(field.accessFlags)
+            }
+            val uploadField = fields.first { field -> field.type == "Lorg/chromium/net/UploadDataProvider;" }
+            val httpMethodField = CronetUrlRequestSetHttpMethodFingerprint.instructionMatches.first().getFieldAccessed()
+
+            // Insert before the hook at the start of the method, which moves the index of the call.
+            val createRequest = it.instructionMatches.last()
+            val urlRegister = createRequest.instruction.registersUsed[1]
+            it.method.addInstructions(
+                createRequest.index,
+                """
+                    invoke-static/range { v$urlRegister .. v$urlRegister }, $EXTENSION_CLASS->limitPlainStreamRange(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v$urlRegister
+                """
+            )
+
+            it.method.addInstructionsWithLabels(
+                0,
+                """
+                    move-object/from16 v0, p0
+                    iget-object v1, v0, $urlField
+                    invoke-static { v1 }, $EXTENSION_CLASS->isPlainStreamRequest(Ljava/lang/String;)Z
+                    move-result v1
+                    if-eqz v1, :keep_request
+                    const-string v1, "GET"
+                    iput-object v1, v0, $httpMethodField
+                    const/4 v1, 0x0
+                    iput-object v1, v0, $uploadField
+                    :keep_request
+                    nop
+                """
+            )
+        }
+
+        // A response with a shortened range ends before the requested range does. The app takes that
+        // as the end of the stream, and a saved video would end there. Instead, the transfer is paused
+        // like for a task of a higher priority, and the saved video continues from the last byte it got.
+        // The response ends when its remaining byte count is zero, or when it is finished.
+        CronetDataSourceReadFingerprint.let {
+            val remainingBytesField = it.instructionMatches.last().getFieldAccessed()
+            val exceptionType = PriorityTooLowExceptionFingerprint.method.definingClass
+
+            val helperMethod = ImmutableMethod(
+                it.classDef.type,
+                "patch_pauseIfStreamRangeLimited",
+                listOf(ImmutableMethodParameter(it.classDef.type, null, null)),
+                "V",
+                AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+                null,
+                null,
+                MutableMethodImplementation(4),
+            ).toMutable().apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        iget-wide v0, p0, $remainingBytesField
+                        invoke-static { v0, v1 }, $EXTENSION_CLASS->isLimitedStreamRangeFinished(J)Z
+                        move-result v0
+                        if-eqz v0, :keep_reading
+                        new-instance v0, $exceptionType
+                        const/4 v1, 0x0
+                        invoke-direct { v0, v1, v1 }, $exceptionType-><init>(II)V
+                        throw v0
+                        :keep_reading
+                        return-void
+                    """
+                )
+            }
+            it.classDef.methods.add(helperMethod)
+
+            // The response is read into a byte array or a buffer.
+            listOf(it, CronetDataSourceReadBufferFingerprint).forEach { read ->
+                // Insert after the remaining byte count is cleared, before the hook at the start of the method.
+                read.method.addInstruction(
+                    read.instructionMatches.last().index + 1,
+                    "invoke-static/range { p0 .. p0 }, $helperMethod"
+                )
+                read.method.addInstruction(
+                    0,
+                    "invoke-static/range { p0 .. p0 }, $helperMethod"
+                )
+            }
+        }
+
+        // endregion
+
         // region Append spoof info.
 
         NerdsStatsVideoFormatBuilderFingerprint.method.apply {
@@ -413,7 +508,7 @@ internal fun spoofVideoStreamsPatch(
                     Opcode.RETURN_OBJECT,
                 ),
                 custom = { method, _ ->
-                    !method.parameterTypes.isEmpty()
+                    method.parameterTypes.isNotEmpty()
                 }
             ).method.addInstructionsWithLabels(
                 0,
@@ -433,11 +528,30 @@ internal fun spoofVideoStreamsPatch(
 
         // region Turn off stream config replacement feature flag.
 
-        MediaFetchHotConfigFingerprint.let {
-            it.method.insertLiteralOverride(
-                it.instructionMatches.first().index,
-                "$EXTENSION_CLASS->useMediaFetchHotConfigReplacement(Z)Z"
-            )
+        if (fixCronetOnesie()) {
+            // The flag was removed and the native player sends the Onesie /initplayback
+            // request itself, which never reaches the Java /initplayback hook.
+            NativeNetFetchFingerprint.let {
+                it.method.apply {
+                    val index = it.instructionMatches.first().index
+                    val urlRegister = getInstruction(index).registersUsed[1]
+
+                    addInstructions(
+                        index,
+                        """
+                            invoke-static/range { v$urlRegister .. v$urlRegister }, $EXTENSION_CLASS->blockInitPlaybackRequest(Ljava/lang/String;)Ljava/lang/String;
+                            move-result-object v$urlRegister
+                        """
+                    )
+                }
+            }
+        } else {
+            MediaFetchHotConfigFingerprint.let {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    "$EXTENSION_CLASS->useMediaFetchHotConfigReplacement(Z)Z"
+                )
+            }
         }
 
         if (fixMediaFetchHotConfigAlternative()) {
@@ -490,9 +604,8 @@ internal fun spoofVideoStreamsPatch(
                                 && it.parameterTypes.first() == "Ljava/nio/ByteBuffer;"
                     }
                 ) {
-                    val cuepointListType = $$"Lcom/google/android/apps/youtube/proto/streaming/CuepointListOuterClass$CuepointList;"
                     val cueField = fields.single {
-                        it.type == cuepointListType
+                        it.type == CUEPOINT_LIST_CLASS
                     }
                     val superClass = superclass!!
 
@@ -520,7 +633,7 @@ internal fun spoofVideoStreamsPatch(
                                     null
                                 )
                             ),
-                            cuepointListType,
+                            CUEPOINT_LIST_CLASS,
                             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
                             null,
                             null,
@@ -532,7 +645,7 @@ internal fun spoofVideoStreamsPatch(
                                     sget-object v0, $cueField
                                     invoke-static { v0, p0, p1 }, $superClass->parseFrom(${superClass}Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)$superClass
                                     move-result-object p0
-                                    check-cast p0, $cuepointListType
+                                    check-cast p0, $CUEPOINT_LIST_CLASS
                                     return-object p0
                                 """
                             )

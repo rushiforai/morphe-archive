@@ -4,14 +4,13 @@
  */
 package app.morphe.patches.protonmail.misc.banner
 
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.protonmail.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstStringInstructionOrThrow
@@ -23,14 +22,6 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 internal const val AUTO_DELETE_BANNER_EXTENSION_CLASS =
     "Lapp/hxreborn/extension/protonmail/AutoDeleteBanner;"
-
-internal object AutoDeleteStatesFingerprint : Fingerprint(
-    strings = listOf("AutoDeleteUpsell", "AutoDeleteDisabled", "AutoDeleteEnabled"),
-)
-
-internal object AutoDeleteBannerFingerprint : Fingerprint(
-    strings = listOf("Getting the auto-delete banner failed."),
-)
 
 private fun Method.enumConstant(name: String): FieldReference =
     getInstruction<ReferenceInstruction>(
@@ -51,12 +42,9 @@ val autoDeleteBannerStatePatch = bytecodePatch {
         }
 
         with(AutoDeleteBannerFingerprint.method) {
-            val stateReadIndices = instructions.withIndex()
-                .filter { (_, instruction) ->
-                    instruction.opcode == Opcode.SGET_OBJECT &&
-                        instruction.getReference<FieldReference>() in stateFields
-                }
-                .map { it.index }
+            val stateReadIndices = findInstructionIndicesReversed {
+                opcode == Opcode.SGET_OBJECT && getReference<FieldReference>() in stateFields
+            }
 
             if (stateReadIndices.size != stateFields.size) {
                 throw PatchException(
@@ -65,7 +53,7 @@ val autoDeleteBannerStatePatch = bytecodePatch {
                 )
             }
 
-            stateReadIndices.reversed().forEach { index ->
+            stateReadIndices.forEach { index ->
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
                 val stateType = getInstruction<ReferenceInstruction>(index)
                     .getReference<FieldReference>()!!.type

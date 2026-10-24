@@ -3841,6 +3841,8 @@ if ($LASTEXITCODE -ne 0) { throw 'The pre-push fixture contracts did not pass.' 
 if ($LASTEXITCODE -ne 0) { throw 'The resolved build advisory contracts did not pass.' }
 & (Join-Path $PSScriptRoot 'test-walk-receipt.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'The whole-app walk receipt contracts did not pass.' }
+& (Join-Path $PSScriptRoot 'test-walk-app.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'The whole-app walk contracts did not pass.' }
 
 # --- Test-ChangelogVersions ------------------------------------------------------------------
 #

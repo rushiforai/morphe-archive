@@ -72,7 +72,7 @@ private const val INTEGER = "Ljava/lang/Integer;"
 /**
  * Takes the accounts Instagram suggests off profiles. In the default selection with its switch off:
  * suggestions are one of Instagram's features, so leaving them out is the user's pick. Asked for in
- * #15 and #20, its follow list switch in #139, its Complete your profile switch in #159 and its
+ * #15 and #20, its follow list switch in #139 (the Suggested tab and the mutual list's section in #302), its Complete your profile switch in #159 and its
  * People you don't follow back switch in #161, its suggestions in notifications switch in #181 and its
  * Featured in notifications switch in #259.
  */
@@ -80,7 +80,7 @@ private const val INTEGER = "Ljava/lang/Integer;"
 val hideProfileSuggestionsPatch = bytecodePatch(
     name = "Hide suggested people on profiles",
     description = "Takes Suggested for you and the Discover people button off profiles. Bios, counts and posts stay. " +
-        "More switches take Suggested for you off the followers and following lists, the Complete your profile " +
+        "More switches take Suggested for you off the follow lists and their Suggested tab, the Complete your profile " +
         "cards off your own profile, and People you don't follow back, suggested threads and people, and the " +
         "Featured section off your notifications. Starts off. Turn it on in HushGram settings > Profiles.",
 ) {
@@ -92,6 +92,8 @@ val hideProfileSuggestionsPatch = bytecodePatch(
         requireStatusMethod("profileSuggestions")
         val sites = findProfileSuggestions()
         val followList = findFollowListSuggestions()
+        val suggestedTab = findSuggestedTabOrWarn()
+        val mutualSuggestions = findMutualSuggestionsOrWarn()
         val completion = findCompletionGate()
         val followBacks = findFollowBacks()
         val followBackSection = findFollowBackSectionOrWarn()
@@ -99,6 +101,8 @@ val hideProfileSuggestionsPatch = bytecodePatch(
         val featured = notificationSuggestions?.let { (_, lists) -> findFeaturedSectionOrWarn(lists) }
         hideProfileSuggestions(sites)
         hideFollowListSuggestions(followList)
+        suggestedTab?.let { hideSuggestedTab(it) }
+        mutualSuggestions?.let { hideMutualSuggestions(it) }
         hideCompletionCards(completion)
         hideFollowBacks(followBacks)
         followBackSection?.let { hideFollowBackSection(it) }

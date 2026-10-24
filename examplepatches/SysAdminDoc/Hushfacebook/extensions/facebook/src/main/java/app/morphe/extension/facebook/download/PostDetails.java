@@ -247,13 +247,17 @@ public final class PostDetails {
         return name == null || name.trim().isEmpty() ? null : name;
     }
 
-    static Object tree(Object model, int field) {
+    /**
+     * The tree in [model]'s [field], or null when it holds none or [model] isn't live. Public for
+     * the Menu's tiles, which read a bookmark's node this way.
+     */
+    public static Object tree(Object model, int field) {
         if (!isLiveTree(model)) return null;
         Object value = call(model, "getTree", field);
         return isTree(value) ? value : null;
     }
 
-    private static List<?> trees(Object model, int field) {
+    static List<?> trees(Object model, int field) {
         if (!isLiveTree(model)) return null;
         Object value = call(model, "getTreeList", field);
         return value instanceof List ? (List<?>) value : null;
@@ -263,6 +267,14 @@ public final class PostDetails {
     public static String string(Object model, int field) {
         Object value = call(model, "getString", field);
         return value instanceof String ? (String) value : null;
+    }
+
+    /**
+     * When the tree [edge] holds in its [field] was posted, in seconds, or 0 when it doesn't say.
+     * Public for Newest reels first, which reads a reel edge's node this way.
+     */
+    public static long postedSecondsOf(Object edge, int field) {
+        return time(tree(edge, field), CREATION_TIME);
     }
 
     private static long time(Object model, int field) {

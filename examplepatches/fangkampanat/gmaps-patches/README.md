@@ -11,7 +11,7 @@ This repository provides `.mpp` patch bundles. Supply a clean Google Maps APK to
 ## Patches list
 
 <!-- PATCHES_START -->
-[v1.3.2](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.3.2) · 2 patches
+[v1.4.0](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.0) · 2 patches
 
 Eligible versions: Any version.
 
@@ -25,7 +25,7 @@ Eligible versions: Any version.
 ## Requirements
 
 - A computer with Java 21 or newer
-- The latest [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop/releases/latest)
+- [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop/releases/latest) 1.19.0 or newer
 - A clean Google Maps APK for Android 10 or newer
 - An ARM64 device with 4 KiB memory pages
 
@@ -33,7 +33,7 @@ The patch accepts any Google Maps version. It stops if required hooks cannot be 
 
 ## Tested devices and apps
 
-The latest tested Maps version is `26.41.04.993332563`, patched with bundle `1.3.1`, using official MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`.
+The latest tested Maps version is `26.41.04.993332563`, patched with bundle `1.4.0` in Morphe Desktop `1.19.0`, using official MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`.
 
 | Device | Results |
 |---|---|

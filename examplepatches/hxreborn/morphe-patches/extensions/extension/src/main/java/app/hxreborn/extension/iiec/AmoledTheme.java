@@ -10,7 +10,6 @@ import java.util.List;
 import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -18,6 +17,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+
+import app.hxreborn.extension.shared.ActivityCallbacksAdapter;
+import app.hxreborn.extension.shared.NightMode;
 
 @SuppressWarnings("unused")
 public final class AmoledTheme {
@@ -61,7 +63,7 @@ public final class AmoledTheme {
         };
         preferences.registerOnSharedPreferenceChangeListener(editorThemeListener);
 
-        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+        application.registerActivityLifecycleCallbacks(new ActivityCallbacksAdapter() {
             @Override
             public void onActivityPreCreated(Activity activity, Bundle savedInstanceState) {
                 applyOverlay(activity);
@@ -80,26 +82,6 @@ public final class AmoledTheme {
                 if (applyOverlay(activity)) {
                     reapplyWindowBackground(activity);
                 }
-            }
-
-            @Override
-            public void onActivityStarted(Activity activity) {
-            }
-
-            @Override
-            public void onActivityResumed(Activity activity) {
-            }
-
-            @Override
-            public void onActivityPaused(Activity activity) {
-            }
-
-            @Override
-            public void onActivityStopped(Activity activity) {
-            }
-
-            @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
             }
 
             @Override
@@ -172,17 +154,11 @@ public final class AmoledTheme {
     }
 
     private static boolean isAmoledSelected(Activity activity) {
-        if (!isNight(activity)) {
+        if (!NightMode.isActive(activity)) {
             return false;
         }
 
         return isAmoledValue(PreferenceManager.getDefaultSharedPreferences(activity));
-    }
-
-    private static boolean isNight(Activity activity) {
-        int uiMode = activity.getResources().getConfiguration().uiMode;
-
-        return (uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
 }

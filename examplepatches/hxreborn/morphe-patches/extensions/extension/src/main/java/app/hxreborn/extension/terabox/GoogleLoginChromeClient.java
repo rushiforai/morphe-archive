@@ -8,7 +8,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
@@ -25,6 +24,8 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import org.json.JSONObject;
+
+import app.hxreborn.extension.shared.NightMode;
 
 @SuppressWarnings("unused")
 public class GoogleLoginChromeClient extends WebChromeClient {
@@ -144,7 +145,7 @@ public class GoogleLoginChromeClient extends WebChromeClient {
         }
 
         view.evaluateJavascript(LOGIN_PAGE_SCRIPT, null);
-        if (isNightMode(view.getContext())) {
+        if (NightMode.isActive(view.getContext())) {
             applyDarkTheme(view);
         }
     }
@@ -180,11 +181,6 @@ public class GoogleLoginChromeClient extends WebChromeClient {
         decor.setSystemUiVisibility(decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
     }
 
-    private static boolean isNightMode(Context context) {
-        int uiMode = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return uiMode == Configuration.UI_MODE_NIGHT_YES;
-    }
-
     @Override
     public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
         return openPopup(view, resultMsg);
@@ -205,7 +201,7 @@ public class GoogleLoginChromeClient extends WebChromeClient {
         settings.setUserAgentString(opener.getSettings().getUserAgentString());
         CookieManager.getInstance().setAcceptThirdPartyCookies(popup, true);
 
-        boolean night = isNightMode(activity);
+        boolean night = NightMode.isActive(activity);
         if (night) {
             popup.setBackgroundColor(DARK_BACKGROUND);
         }

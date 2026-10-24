@@ -29,9 +29,8 @@ import androidx.compose.ui.unit.dp
 
 /** Compose-only presentation; the existing controller owns search, budgets, history and resume. */
 object SearchComposeUi {
-    @JvmStatic fun show(activity: HissiWacchoiSearchActivity) {
-        activity.setContent { HaiagaruUi.Theme { SearchScreen(activity) } }
-    }
+    @JvmStatic fun embed(activity: android.app.Activity, controller: HissiWacchoiSearchController): View =
+        SettingsTabUi.composeView(activity) { SearchScreen(controller) }
 }
 
 private val searchToggleDefaults = mapOf(
@@ -47,7 +46,7 @@ private fun searchToggleValues(prefs: SharedPreferences) =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SearchScreen(a: HissiWacchoiSearchActivity) {
+private fun SearchScreen(a: HissiWacchoiSearchController) {
     var revision by remember { mutableIntStateOf(0) }
     val prefs = remember { a.getSharedPreferences(WacchoiSearchOptions.PREFS, 0) }
     var toggleValues by remember(prefs) { mutableStateOf(searchToggleValues(prefs)) }
@@ -81,13 +80,19 @@ private fun SearchScreen(a: HissiWacchoiSearchActivity) {
         if (source != 2) {
             a.pageLimitInput.error?.let { add(it.toString()) }
             a.requestLimitInput.error?.let { add(it.toString()) }
+            a.startOffsetInput.error?.let { add(it.toString()) }
         }
     }.distinct()
     var options by rememberSaveable { mutableStateOf(false) }
     var boardPicker by rememberSaveable { mutableStateOf(false) }
     var advanced by rememberSaveable { mutableStateOf(false) }
     var dateField by rememberSaveable { mutableStateOf("") }
-    val list = rememberLazyListState()
+    val list = rememberLazyListState(a.tabScrollIndex, a.tabScrollOffset)
+    LaunchedEffect(a, list) {
+        snapshotFlow { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }.collect { (index, offset) ->
+            a.tabScrollIndex = index; a.tabScrollOffset = offset
+        }
+    }
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     LaunchedEffect(errors) {
@@ -103,6 +108,7 @@ private fun SearchScreen(a: HissiWacchoiSearchActivity) {
         TopAppBar(title = { Text(if (fullWacchoi) "ワッチョイ全文検索" else "投稿を探す", maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
             IconButton(onClick = { a.finish() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "戻る") }
         }, actions = {
+            TextButton(onClick = { a.showScanJobs() }) { Text("走査一覧") }
             TextButton(onClick = { a.historyFromCompose() }) { Text("履歴") }
             IconButton(onClick = { options = true }) { Icon(Icons.Filled.Settings, "検索の設定") }
         })
@@ -128,6 +134,8 @@ private fun SearchScreen(a: HissiWacchoiSearchActivity) {
     }) { insets ->
         LazyColumn(state = list, modifier = Modifier.fillMaxSize().padding(insets),
             contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            item { OutlinedButton(onClick = { a.prepareAnotherScan(); changed() }, enabled = enabled,
+                modifier = Modifier.fillMaxWidth()) { Text("別の走査を準備（バックグラウンド・同時3件まで）") } }
             item {
                 HaiagaruUi.Group {
                     SearchToggle("投稿検索を利用する", if (enabled) "条件と履歴はこの画面で管理できます" else "オフです。条件と保存済みの履歴は残ります",
@@ -221,6 +229,7 @@ private fun SearchScreen(a: HissiWacchoiSearchActivity) {
                     if (advanced) {
                         BoundTextField(a.pageLimitInput, if (source == 1) "調べるスレ数（1〜10000）" else "板・日付ごとの一覧ページ数（1〜10000）", editing, changed)
                         BoundTextField(a.requestLimitInput, "通信回数の上限（0は無制限）", editing, changed)
+                        BoundTextField(a.startOffsetInput, if (source == 1) "開始スレ位置（0は先頭）" else "開始ページ（0は先頭・最初の板と日付に適用）", editing, changed)
                         Text("通信は最低10秒間隔です。上限に達したら停止し、続きから再開できます。通信回数は開始・再開ごとに数えます。",
                             Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -237,8 +246,13 @@ private fun SearchScreen(a: HissiWacchoiSearchActivity) {
             }
         }
     }
-    if (options) ModalBottomSheet(onDismissRequest = { options = false }) {
-        SearchOptionsSheet(a, prefs, toggleValues, changed)
+    if (options) androidx.compose.ui.window.Dialog(onDismissRequest = { options = false },
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Scaffold(Modifier.fillMaxSize(), topBar = {
+            TopAppBar(title = { Text("投稿検索の設定") }, navigationIcon = {
+                IconButton(onClick = { options = false }) { Icon(Icons.AutoMirrored.Filled.ArrowBack,"戻る") }
+            })
+        }) { insets -> Box(Modifier.fillMaxSize().padding(insets)) { SearchOptionsSheet(a, prefs, toggleValues, changed) } }
     }
     if (boardPicker) ModalBottomSheet(onDismissRequest = { boardPicker = false }) {
         LazyColumn(Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(16.dp),
@@ -314,7 +328,7 @@ private fun SearchResultCard(result: View) {
 }
 
 @Composable
-private fun SearchOptionsSheet(a: HissiWacchoiSearchActivity, prefs: SharedPreferences,
+private fun SearchOptionsSheet(a: HissiWacchoiSearchController, prefs: SharedPreferences,
                                toggleValues: Map<String, Boolean>, changed: () -> Unit) {
     var confirm by remember { mutableIntStateOf(0) }
     var retention by rememberSaveable { mutableStateOf(false) }
@@ -347,7 +361,7 @@ private fun SearchOptionsSheet(a: HissiWacchoiSearchActivity, prefs: SharedPrefe
 }
 
 @Composable
-private fun SearchRetention(a: HissiWacchoiSearchActivity, prefs: SharedPreferences, back: () -> Unit) {
+private fun SearchRetention(a: HissiWacchoiSearchController, prefs: SharedPreferences, back: () -> Unit) {
     var values by rememberSaveable { mutableStateOf(WacchoiStorageLimits.KEYS.indices.map { WacchoiStorageLimits.value(a, it).toString() }) }
     var invalid by remember { mutableIntStateOf(-1) }
     LazyColumn(Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -57,7 +57,7 @@ func TestOnlyPrivatePacketLinkForDNS(t *testing.T) {
 func TestFailClosedAndInputs(t *testing.T) {
     session, err := NewSession("10.8.0.2", "10.8.0.1", testRoots(t), 1500, &testSink{})
     if err != nil { t.Fatal(err) }
-    for _, raw := range []string{"https://example.com/a.jpg", "file:///etc/passwd", "https://user@tools.yajuvideo.st/a.jpg", "https://tools.yajuvideo.st:8080/a.jpg"} {
+    for _, raw := range []string{"https:///a.jpg", "file:///etc/passwd", "https://user@tools.yajuvideo.st/a.jpg", "https://tools.yajuvideo.st:8080/a.jpg"} {
         if _, err := session.Fetch(raw, 1024, 1000); err == nil { t.Fatal("URL accepted", raw) }
     }
     session.Close()

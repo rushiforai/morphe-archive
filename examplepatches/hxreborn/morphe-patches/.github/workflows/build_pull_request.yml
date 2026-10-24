@@ -14,6 +14,9 @@ on:
 jobs:
   build:
     name: Build
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,10 +31,25 @@ jobs:
       - name: Check regexes for Android
         run: python3 .github/scripts/check_android_regex.py
 
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Run script tests
+        run: |
+          pip install requests
+          for test in .github/scripts/test_*.py .github/actions/triage/test_*.py; do
+            python "$test" || exit 1
+          done
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
       - name: Run tests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:test :extensions:extension:test :extensions:extension:checkstyle --no-daemon
+        run: ./gradlew :patches:test :extensions:extension:test :extensions:extension:checkstyle :extensions:extension:lintRelease --no-daemon
 
       - name: Verify project compiles
         env:

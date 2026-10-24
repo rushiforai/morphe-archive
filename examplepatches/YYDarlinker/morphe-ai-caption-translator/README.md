@@ -4,6 +4,12 @@
 
 [中文说明](docs/README.zh-CN.md) · [Add to Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator) · [Releases](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) · [Report a problem](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues)
 
+## What's new in 1.5.7
+
+- Returning to the same video with AI captions left on now restores them automatically; no manual off/on toggle is needed.
+- Videos with word-by-word or rolling captions no longer repeat lines or mix different speakers' words; caption text is rebuilt as complete lines.
+- Opening the comments sheet now resizes captions together with the panel animation instead of after it, so the size no longer lags or jumps back.
+
 ## What it does
 
 - Translates a video’s existing subtitles when you select a language from YouTube’s **Auto-translate** menu while AI captions are enabled.
@@ -70,7 +76,7 @@ You can access it through [Alibaba Cloud Model Studio (international)](https://w
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.6](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

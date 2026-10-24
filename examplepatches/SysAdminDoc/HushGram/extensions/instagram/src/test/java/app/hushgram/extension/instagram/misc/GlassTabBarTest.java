@@ -77,6 +77,7 @@ public class GlassTabBarTest {
         Settings.GLASS_TAB_BAR_HEIGHT.resetToDefault();
         Settings.GLASS_TAB_BAR_CORNERS.resetToDefault();
         Settings.GLASS_TAB_BAR_LIFT.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR_STRENGTH.resetToDefault();
         Settings.GLASS_TAB_BAR_OPACITY.resetToDefault();
         Settings.GLASS_TAB_BAR_HAPTICS.resetToDefault();
         Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.resetToDefault();
@@ -1438,6 +1439,183 @@ public class GlassTabBarTest {
         }
     }
 
+    /**
+     * #289: the blur strength steps keep the 12 : 24 : 40 ratio the request asked for, and Standard is
+     * exactly the radius the glass has always used (18dp, worked out at a quarter size), at any density.
+     */
+    @Test
+    public void blurStrengthStandardIsTodaysRadiusAndTheOthersScaleFromIt() {
+        assertEquals(GlassBlur.STANDARD, Settings.GLASS_TAB_BAR_BLUR_STRENGTH.defaultValue);
+        float quarter = 1f / GlassTabBar.DOWNSAMPLE;
+        for (float density : new float[]{1f, 1.5f, 2.625f, 3f, 3.5f}) {
+            float todays = Math.max(1f, Math.round(GlassTabBar.BLUR_DP * density) * quarter);
+            assertEquals("standard at " + density, todays, GlassBlur.effectRadius(GlassBlur.STANDARD, density, quarter), 0f);
+            assertEquals(Math.round(GlassTabBar.BLUR_DP * density), GlassBlur.radiusPx(GlassBlur.STANDARD, density));
+            assertEquals(Math.round(9f * density), GlassBlur.radiusPx(GlassBlur.LIGHT, density));
+            assertEquals(Math.round(30f * density), GlassBlur.radiusPx(GlassBlur.STRONG, density));
+            assertTrue(GlassBlur.radiusPx(GlassBlur.LIGHT, density) < GlassBlur.radiusPx(GlassBlur.STANDARD, density));
+            assertTrue(GlassBlur.radiusPx(GlassBlur.STANDARD, density) < GlassBlur.radiusPx(GlassBlur.STRONG, density));
+        }
+        assertEquals(9f, GlassBlur.LIGHT.dp, 0f);
+        assertEquals(18f, GlassBlur.STANDARD.dp, 0f);
+        assertEquals(30f, GlassBlur.STRONG.dp, 0f);
+        assertEquals(GlassBlur.radiusPx(GlassBlur.STANDARD, 3f), GlassBlur.radiusPx(null, 3f));
+        assertEquals("never under one pixel", 1f, GlassBlur.effectRadius(GlassBlur.LIGHT, 0.1f, 0.25f), 0f);
+    }
+
+    /** #289: the bubble swells to about 1.08 mid-slide, settles back to exactly 1, and a finger's size eases out. */
+    @Test
+    public void theBubbleSwellsWhileItMovesAndSettlesAtOne() {
+        assertEquals(1f, GlassTabBar.bubbleScale(0, 1f), 0f);
+        assertEquals(1f + GlassTabBar.BUBBLE_SWELL, GlassTabBar.bubbleScale(GlassTabBar.SLIDE_MS / 2, 1f), 0.001f);
+        assertEquals(1f, GlassTabBar.bubbleScale(GlassTabBar.SLIDE_MS, 1f), 0f);
+        assertEquals(1f, GlassTabBar.bubbleScale(GlassTabBar.SLIDE_MS * 4, 1.08f), 0f);
+        assertEquals(1f, GlassTabBar.bubbleScale(-30, 1f), 0f);
+        assertEquals("a released finger doesn't pop", 1.08f, GlassTabBar.bubbleScale(0, 1.08f), 0.001f);
+        for (long t = 0; t < GlassTabBar.SLIDE_MS; t += 20) {
+            float now = GlassTabBar.bubbleScale(t, 1.08f);
+            assertTrue("never above the swell", now <= 1.0801f);
+            assertTrue("never under 1", now >= 1f);
+        }
+    }
+
+    private static void settle(Object pill, long ago) {
+        ReflectionHelpers.setField(pill, "slideStart", android.view.animation.AnimationUtils.currentAnimationTimeMillis() - ago);
+    }
+
+    /**
+     * #289: with the liquid look on, the selected tab's capsule is a bubble: bigger than at rest while it
+     * slides between tabs, exactly the rest size once it settles, lit at its top edge and rimmed. With the
+     * liquid look off the capsule is flat and never changes size or draws the rim. On dark and light glass,
+     * on Android 10, where there is no lens, so the rim and gradient are all the bubble has.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 29, qualifiers = "en-rUS-w411dp-h891dp-xhdpi")
+    public void theLiquidLooksCapsuleIsABubbleThatSwellsWhileItMoves() {
+        GlassTabBar.animationsOnForTests = true;
+        for (int base : new int[]{Color.BLACK, Color.WHITE}) {
+            for (boolean liquid : new boolean[]{true, false}) {
+                try (GlassHost host = new GlassHost(base, true, GlassHeight.STANDARD, false, false)) {
+                    String where = (base == Color.BLACK ? "dark" : "light") + (liquid ? " liquid" : " flat");
+                    Settings.GLASS_TAB_BAR_LIQUID.save(liquid);
+                    assertTrue(host.bar.getChildAt(0).performClick());
+                    GlassTabBar.apply(host.activity);
+                    host.frame();
+                    Object pill = host.bar.getBackground();
+                    RectF capsule = ReflectionHelpers.getField(pill, "capsule");
+                    try (Pixels ignored = host.background()) { }
+                    settle(pill, GlassTabBar.SLIDE_MS * 4);
+                    try (Pixels ignored = host.background()) { }
+                    float restHeight = capsule.height();
+                    assertEquals(where + ": settled", 1f, (float) ReflectionHelpers.getField(pill, "bubbleNow"), 0f);
+
+                    assertTrue(host.bar.getChildAt(3).performClick());
+                    try (Pixels ignored = host.background()) { }
+                    settle(pill, GlassTabBar.SLIDE_MS / 2);
+                    try (Pixels pixels = host.background()) {
+                        float now = ReflectionHelpers.getField(pill, "bubbleNow");
+                        if (liquid) {
+                            assertEquals(where + ": swollen mid-slide", 1.08f, now, 0.01f);
+                            assertTrue(where + ": taller", capsule.height() > restHeight * 1.05f);
+                            assertTrue(where + ": the rim and gradient were made", (int) ReflectionHelpers.getField(pill, "bubbleShade") != 0);
+                            if (base == Color.BLACK) {
+                                int x = Math.round(capsule.centerX());
+                                int top = Color.red(pixels.bitmap.getPixel(x, Math.round(capsule.top) + host.dp(3)));
+                                int bottom = Color.red(pixels.bitmap.getPixel(x, Math.round(capsule.bottom) - host.dp(6)));
+                                assertTrue(where + ": lit at the top edge (" + top + " vs " + bottom + ")", top > bottom + 15);
+                            }
+                        } else {
+                            assertEquals(where + ": flat stays 1", 1f, now, 0f);
+                            assertEquals(where + ": same height", restHeight, capsule.height(), 0.5f);
+                            assertEquals(where + ": no rim", 0, (int) ReflectionHelpers.getField(pill, "bubbleShade"));
+                        }
+                    }
+                    settle(pill, GlassTabBar.SLIDE_MS * 4);
+                    try (Pixels ignored = host.background()) { }
+                    assertEquals(where + ": settled again", 1f, (float) ReflectionHelpers.getField(pill, "bubbleNow"), 0f);
+                    assertEquals(where + ": back to its rest height", restHeight, capsule.height(), 0.5f);
+                }
+            }
+        }
+    }
+
+    /** #289: a finger sliding the liquid bubble holds it swollen, and the slide after the lift starts from that size. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 29, qualifiers = "en-rUS-w411dp-h891dp-xhdpi")
+    public void aFingerHoldsTheBubbleSwollen() {
+        GlassTabBar.animationsOnForTests = true;
+        try (GlassHost host = new GlassHost(Color.BLACK, true, GlassHeight.STANDARD, false, false)) {
+            Settings.GLASS_TAB_BAR_LIQUID.save(true);
+            assertTrue(host.bar.getChildAt(0).performClick());
+            GlassTabBar.apply(host.activity);
+            host.frame();
+            Object pill = host.bar.getBackground();
+            Object glass = host.glass();
+            ReflectionHelpers.setField(glass, "dragX", host.bar.getWidth() / 2f);
+            try (Pixels ignored = host.background()) { }
+            assertEquals(1.08f, (float) ReflectionHelpers.getField(pill, "bubbleNow"), 0.001f);
+            ReflectionHelpers.setField(glass, "dragX", Float.NaN);
+            try (Pixels ignored = host.background()) { }
+            assertEquals("the lift starts the slide at the held size", 1.08f, (float) ReflectionHelpers.getField(pill, "bubbleFrom"), 0.001f);
+            assertTrue((float) ReflectionHelpers.getField(pill, "bubbleNow") > 1.05f);
+        }
+    }
+
+    /**
+     * #289: the lens only runs on Android 13 and newer. Before, it answers false without trying, and the bubble
+     * has its rim and gradient alone.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 29)
+    public void theLensDoesNothingBeforeAndroid13() {
+        GlassLens lens = new GlassLens();
+        android.graphics.RenderNode backdrop = new android.graphics.RenderNode("backdrop");
+        backdrop.setPosition(0, 0, 40, 40);
+        android.graphics.RenderNode target = new android.graphics.RenderNode("target");
+        Canvas canvas = target.beginRecording(200, 100);
+        try {
+            assertFalse(GlassLens.supported());
+            assertFalse(lens.paint(canvas, backdrop, 0f, 0f, 4f, 200, 100, new RectF(20, 20, 80, 60), 20f));
+            assertEquals(1, lens.asked);
+            assertEquals(0, lens.painted);
+        } finally {
+            target.endRecording();
+        }
+    }
+
+    /**
+     * #289: on Android 13 the lens paints into a recording canvas, or, where this machine can't run the shader,
+     * turns itself off for good and answers false with nothing thrown. A canvas that isn't recorded for the GPU
+     * and a missing backdrop get no lens either way.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void theLensRunsOnAndroid13AndFailsQuietly() {
+        GlassLens lens = new GlassLens();
+        android.graphics.RenderNode backdrop = new android.graphics.RenderNode("backdrop");
+        backdrop.setPosition(0, 0, 40, 40);
+        android.graphics.RenderNode target = new android.graphics.RenderNode("target");
+        assertTrue(GlassLens.supported());
+        Canvas bitmapCanvas = new Canvas(Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888));
+        assertFalse("a canvas that isn't recorded for the GPU gets no lens",
+                lens.paint(bitmapCanvas, backdrop, 0f, 0f, 4f, 200, 100, new RectF(20, 20, 80, 60), 20f));
+        Canvas canvas = target.beginRecording(200, 100);
+        try {
+            assertFalse("no backdrop, no lens", lens.paint(canvas, null, 0f, 0f, 4f, 200, 100, new RectF(20, 20, 80, 60), 20f));
+            boolean drew = lens.paint(canvas, backdrop, 0f, 0f, 4f, 200, 100, new RectF(20, 20, 80, 60), 20f);
+            assertEquals(drew ? 1 : 0, lens.painted);
+            boolean again = lens.paint(canvas, backdrop, 0f, 0f, 4f, 200, 100, new RectF(30, 20, 90, 60), 20f);
+            assertEquals("a lens that failed stays off, one that worked keeps working", drew, again);
+        } finally {
+            target.endRecording();
+        }
+        lens.discard();
+    }
+
     @Test
     public void theCapsuleSlideIsTimedNotCountedAndEasesOut() {
         assertEquals(0f, GlassTabBar.slideProgress(0), 0f);
@@ -1633,11 +1811,24 @@ public class GlassTabBarTest {
         GlassTabBar.drawLeavingOutSurfaces(new Canvas(glass), feed, paths, 0);
 
         assertEquals("the SurfaceView is left out", 0, video.drawn);
-        assertEquals("the feed's own background still shows", Color.RED, glass.getPixel(50, 30));
+        assertEquals("#144: the video's place is cleared, not the feed's background", 0, glass.getPixel(50, 30));
+        assertEquals("the feed's own background still shows round it", Color.RED, glass.getPixel(50, 58));
         assertEquals("a child draws where it sits, scrolled", Color.GREEN, glass.getPixel(50, 66));
         assertEquals(Color.RED, glass.getPixel(50, 86));
-        assertEquals("a see-through child isn't drawn", Color.RED, glass.getPixel(50, 12));
+        assertEquals("a see-through child isn't drawn", 0, glass.getPixel(50, 12));
         assertEquals("nothing above the feed", 0, glass.getPixel(50, 5));
+
+        // With a copy of the video's frame, the frame draws in its place, under what's drawn after it.
+        Bitmap frame = Bitmap.createBitmap(10, 5, Bitmap.Config.ARGB_8888);
+        frame.eraseColor(Color.YELLOW);
+        Bitmap withFrame = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+        GlassTabBar.drawLeavingOutSurfaces(new Canvas(withFrame), feed, paths, new HashSet<>(),
+                view -> view == video ? frame : null, 0);
+        assertEquals("the copied frame fills the video's place", Color.YELLOW, withFrame.getPixel(50, 30));
+        assertEquals("stretched to the whole of it", Color.YELLOW, withFrame.getPixel(98, 53));
+        assertEquals(Color.RED, withFrame.getPixel(50, 58));
+        assertEquals(Color.GREEN, withFrame.getPixel(50, 66));
+        assertEquals(0, video.drawn);
     }
 
     /**

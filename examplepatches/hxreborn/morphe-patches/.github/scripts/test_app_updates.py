@@ -1,4 +1,7 @@
 import json
+import tempfile
+import zipfile
+from pathlib import Path
 
 import app_updates
 from app_updates import compare
@@ -64,3 +67,20 @@ assert ("issue", "edit", "2", "--title", "[App Update]: Showly 3.72.0") == next(
 assert ("issue", "edit", "7", "--title", "[App Update]: Newcomer 1.1") == next(c for c in calls if c[1:3] == ("edit", "7"))
 assert ("issue", "close", "4", "--comment", "targeted in v1.38.0") == next(c for c in calls if c[1] == "close"), calls
 print("issue sync passes")
+
+
+def base_apk_with_dex(folder, version):
+    apk = Path(folder) / f"{version}.apk"
+    with zipfile.ZipFile(apk, "w") as archive:
+        archive.writestr("classes.dex", b"dex\n" + version.encode() + b"\0" + bytes(104))
+    return apk
+
+
+with tempfile.TemporaryDirectory() as folder:
+    assert app_updates.play_min_sdk(32, base_apk_with_dex(folder, "038")) == 26
+    assert app_updates.play_min_sdk(29, base_apk_with_dex(folder, "039")) == 28
+    assert app_updates.play_min_sdk(26, base_apk_with_dex(folder, "039")) == 26
+    assert app_updates.play_min_sdk(32, base_apk_with_dex(folder, "035")) is None
+    assert app_updates.play_min_sdk(21, base_apk_with_dex(folder, "035")) == 21
+    assert app_updates.play_min_sdk(None, base_apk_with_dex(folder, "039")) is None
+print("play min SDK passes")

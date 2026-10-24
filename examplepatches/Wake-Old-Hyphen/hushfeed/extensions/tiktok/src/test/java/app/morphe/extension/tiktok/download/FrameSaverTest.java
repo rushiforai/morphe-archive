@@ -65,10 +65,14 @@ public class FrameSaverTest {
     private File directory;
     private String oldPath;
     private FrameSaver.SurfaceReader oldReader;
+    private FrameSaver.LayerReader oldLayerReader;
+    private FrameSaver.LayerFinder oldLayerFinder;
 
     @Before public void setUp() {
         oldPath = Settings.DOWNLOAD_PHOTO_PATH.get();
         oldReader = FrameSaver.surfaceReader;
+        oldLayerReader = FrameSaver.layerReader;
+        oldLayerFinder = FrameSaver.layerFinder;
         Settings.DOWNLOAD_PHOTO_PATH.save(DIRECTORY);
         Shadows.shadowOf(RuntimeEnvironment.getApplication())
                 .grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -93,6 +97,8 @@ public class FrameSaverTest {
             }
         } finally {
             FrameSaver.surfaceReader = oldReader;
+            FrameSaver.layerReader = oldLayerReader;
+            FrameSaver.layerFinder = oldLayerFinder;
             Settings.DOWNLOAD_PHOTO_PATH.save(oldPath);
         }
     }
@@ -229,6 +235,106 @@ public class FrameSaverTest {
 
         assertNothingSaved();
         assertEquals("The frame couldn't be read. Try again.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aPlayerLayerUnderTheSurfaceIsReadFirstAtTheVideosOwnSize() throws Exception {
+        // 47.5.3 on the S22: the player draws into a 576x1024 layer of its own under the cell's
+        // SurfaceView, and the SurfaceView never gets a frame.
+        SurfaceView video = new SurfaceView(activity);
+        show(video);
+        PlayerLayers.Layer layer = new PlayerLayers.Layer(null, 576, 1024);
+        FrameSaver.layerFinder = view -> view == video ? layer : null;
+        List<int[]> asked = new ArrayList<>();
+        FrameSaver.layerReader = (read, into, copied) -> {
+            assertSame("the layer under the video's surface is read", layer, read);
+            asked.add(new int[]{into.getWidth(), into.getHeight()});
+            into.eraseColor(FRAME_COLOR);
+            copied.copied(true);
+        };
+        FrameSaver.surfaceReader = (view, into, copied) -> fail("the layer had the frame");
+        Post post = new Post("7350000000000000011", 720, 1280);
+
+        FrameSaver.save(activity, post, 4_000);
+        awaitSaves();
+
+        assertEquals(1, asked.size());
+        assertArrayEquals("the post's size, the layer's shape", new int[]{720, 1280}, asked.get(0));
+        assertSavedJpeg(new File(directory, DownloadFilenameFormatter.formatFrameName(post, 4_000)), 720, 1280);
+        assertEquals("Frame saved to " + DIRECTORY, ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aPlayerLayerWithNoFrameHandsTheReadToTheSurfaceItHangsUnder() throws Exception {
+        SurfaceView video = new SurfaceView(activity);
+        show(video);
+        FrameSaver.layerFinder = view -> new PlayerLayers.Layer(null, 576, 1024);
+        List<Bitmap> handed = new ArrayList<>();
+        FrameSaver.layerReader = (read, into, copied) -> {
+            handed.add(into);
+            copied.copied(false);
+        };
+        List<View> read = new ArrayList<>();
+        FrameSaver.surfaceReader = (view, into, copied) -> {
+            read.add(view);
+            into.eraseColor(FRAME_COLOR);
+            copied.copied(true);
+        };
+        Post post = new Post("7350000000000000012", 720, 1280);
+
+        FrameSaver.save(activity, post, 0);
+        awaitSaves();
+
+        assertEquals("the layer is asked once", 1, handed.size());
+        assertTrue("its unused bitmap is let go", handed.get(0).isRecycled());
+        assertEquals(1, read.size());
+        assertSame(video, read.get(0));
+        assertSavedJpeg(new File(directory, DownloadFilenameFormatter.formatFrameName(post, 0)), 720, 1280);
+    }
+
+    @Test public void aSurfaceWithNoFrameHandsTheReadToTheNextViewDown() throws Exception {
+        // A SurfaceView PixelCopy answers with no data, the largest view showing, passes the read
+        // on to the next view down rather than giving up.
+        SurfaceView empty = new SurfaceView(activity);
+        content.addView(empty, new FrameLayout.LayoutParams(400, 780));
+        ShowingTexture video = new ShowingTexture(activity);
+        show(video);
+        List<View> read = new ArrayList<>();
+        FrameSaver.surfaceReader = (view, into, copied) -> {
+            read.add(view);
+            copied.copied(false);
+        };
+        Post post = new Post("7350000000000000009", 576, 1024);
+
+        FrameSaver.save(activity, post, 3_000);
+        awaitSaves();
+
+        assertEquals("the larger surface is tried first, once", 1, read.size());
+        assertSame(empty, read.get(0));
+        assertEquals(1, video.asked.size());
+        assertArrayEquals(new int[]{576, 1024}, video.asked.get(0));
+        assertSavedJpeg(new File(directory, DownloadFilenameFormatter.formatFrameName(post, 3_000)), 576, 1024);
+        assertEquals("Frame saved to " + DIRECTORY, ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aTextureWithNoFrameHandsTheReadOnToo() throws Exception {
+        content.addView(new TextureView(activity) {
+            @Override public Bitmap getBitmap(int width, int height) {
+                return null;
+            }
+        }, new FrameLayout.LayoutParams(400, 780));
+        SurfaceView video = new SurfaceView(activity);
+        show(video);
+        FrameSaver.surfaceReader = (view, into, copied) -> {
+            assertSame("the surface under the empty texture is read", video, view);
+            into.eraseColor(FRAME_COLOR);
+            copied.copied(true);
+        };
+        Post post = new Post("7350000000000000010", 720, 1280);
+
+        FrameSaver.save(activity, post, 0);
+        awaitSaves();
+
+        assertSavedJpeg(new File(directory, DownloadFilenameFormatter.formatFrameName(post, 0)), 720, 1280);
+        assertEquals("Frame saved to " + DIRECTORY, ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void noVideoOnScreenSavesNothingAndSaysSo() throws Exception {

@@ -45,6 +45,7 @@ public class FeatureSwitchesTest {
                 Settings.HIDE_FEED_FOLLOW_BUTTON, Settings.HIDE_FEED_SAVE_BUTTON,
                 Settings.HIDE_LIVE_ENTRANCE, Settings.HIDE_FEED_SEARCH_BUTTON,
                 Settings.HIDE_FEED_SIDEBAR_BUTTON, Settings.DISABLE_FEED_SIDEBAR_SWIPE,
+                Settings.OPEN_STORY_OVER_LIVE,
                 Settings.HIDE_COMMENT_QUICK_REACTIONS, Settings.ENABLE_LONG_PRESS_SPEED_LOCK,
                 Settings.ENABLE_NON_PERSONALIZED_SEARCH, Settings.ENABLE_LIVE_SEARCH}) {
             setting.save(setting.defaultValue);
@@ -234,6 +235,17 @@ public class FeatureSwitchesTest {
         PausedProcess.set(false);
         Settings.DISABLE_FEED_SIDEBAR_SWIPE.save(false);
         assertFalse("turned back off, the swipe is back", FeatureControls.sidebarSwipeOff());
+    }
+
+    /**
+     * #233: the profile picture's Story first switch starts off, so a LIVE creator's picture
+     * opens the LIVE as TikTok has it, and turning it on takes effect on the next tap.
+     * StoryOverLiveTest holds what the tap does.
+     */
+    @Test public void theStoryFirstSwitchStartsOffAndNeedsNoRestart() {
+        assertEquals("the key", "open_story_over_live", Settings.OPEN_STORY_OVER_LIVE.key);
+        assertFalse("the switch starts off", Settings.OPEN_STORY_OVER_LIVE.defaultValue);
+        assertFalse("changing it needs no restart", Settings.OPEN_STORY_OVER_LIVE.rebootApp);
     }
 
     /**

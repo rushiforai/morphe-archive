@@ -17,12 +17,12 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.protonvpn.misc.anchors.resourceFieldsPatch
 import app.morphe.patches.protonvpn.misc.settings.patchesSettingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patches.shared.misc.generated.addStaticMethod
-import app.morphe.patches.shared.misc.generated.descriptor
-import app.morphe.patches.shared.misc.generated.replaceStub
 import app.morphe.patches.shared.misc.proton.MATERIAL_SWITCHES_CLASS
 import app.morphe.patches.shared.misc.proton.literalWrittenTo
 import app.morphe.patches.shared.misc.proton.markFeaturePatched
+import app.morphe.patches.shared.misc.smali.addStaticMethod
+import app.morphe.patches.shared.misc.smali.descriptor
+import app.morphe.patches.shared.misc.smali.replaceStub
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle

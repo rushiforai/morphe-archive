@@ -6,6 +6,7 @@
  */
 package app.morphe.extension.facebook.settings;
 
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.backgroundSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.downloadActionSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabSummary;
@@ -13,6 +14,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fitAboveKeyboard;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.folderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.homeFeedSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lightBackgroundSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lockAfterSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.photoNameSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.seenKeepSummary;
@@ -69,6 +71,8 @@ import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
+import app.morphe.extension.facebook.theme.AmoledBackground;
+import app.morphe.extension.facebook.theme.AmoledLightBackground;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.notifications.QuietHour;
@@ -236,7 +240,7 @@ final class ValueRows {
          */
         @Override protected View onCreateDialogView() {
             Context context = getContext();
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            ScreenColors colors = ScreenColors.current();
             TextView help = new TextView(context);
             help.setId(android.R.id.message);
             help.setText(getDialogMessage());
@@ -354,7 +358,7 @@ final class ValueRows {
 
         @Override protected View onCreateDialogView() {
             Context context = getContext();
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            ScreenColors colors = ScreenColors.current();
             TextView help = new TextView(context);
             help.setId(android.R.id.message);
             help.setText(getDialogMessage());
@@ -450,7 +454,7 @@ final class ValueRows {
 
         @Override protected View onCreateDialogView() {
             Context context = getContext();
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            ScreenColors colors = ScreenColors.current();
             int pad = Math.round(20 * context.getResources().getDisplayMetrics().density);
             TextView label = new TextView(context);
             label.setText(L10n.t("Example without post details"));
@@ -647,6 +651,66 @@ final class ValueRows {
         protected void showDialog(Bundle state) {
             super.showDialog(state);
             if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /**
+     * AMOLED's Background color row (#214), or its Light background color row. Its summary follows
+     * its text, whoever sets it, and Save turns down a colour {@link AmoledBackground} (or
+     * {@link AmoledLightBackground}) refuses with the dialog still open, so what was typed can be
+     * fixed rather than typed again.
+     */
+    static final class BackgroundRow extends EditTextPreference {
+        /** Says why Save was refused. The page sets it, since its dialogs close with it. */
+        @Nullable Consumer<String> refused;
+
+        /** Whether it's the Light background color row. */
+        final boolean light;
+
+        BackgroundRow(Context context) {
+            this(context, false);
+        }
+
+        BackgroundRow(Context context, boolean light) {
+            super(context);
+            this.light = light;
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(light ? lightBackgroundSummary(text) : backgroundSummary(text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the folder's does. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) {
+                AlertDialog dialog = (AlertDialog) getDialog();
+                ScreenColors.dialog(dialog);
+                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(button -> {
+                    String typed = getEditText().getText().toString();
+                    String why = light ? AmoledLightBackground.problem(typed) : AmoledBackground.problem(typed);
+                    if (why != null) {
+                        if (refused != null) refused.accept(why);
+                        return;
+                    }
+                    // As Android's own button does: the click, then the close, each posted in turn.
+                    Handler main = new Handler(Looper.getMainLooper());
+                    main.post(() -> onClick(dialog, DialogInterface.BUTTON_POSITIVE));
+                    main.post(dialog::dismiss);
+                });
+            }
             fitAboveKeyboard(getDialog());
         }
     }

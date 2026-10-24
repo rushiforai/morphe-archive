@@ -1,3 +1,358 @@
+# Haiagaru 1.12.1
+
+1.12.0からの不具合修正です。ご報告いただいたサムネイルのちらつきと、常時下部フィルター、ワッチョイ長押しの設定を見直しました。
+
+## 修正内容
+
+- 242で同じレスを再表示するたびにサムネイルを消して読み直していた処理を修正しました。通常の再表示では表示済みの画像を保持し、明示的な再読み込みは残しています。
+- 下部フィルターの常時表示中は、フィルターの高さを本文の表示領域から確保するように変更しました。本体のスクロール位置計算にフィルター部分が含まれないようにし、レスへの移動先や一覧の末尾が隠れる問題を改善しています。
+- Haiagaru設定に「ワッチョイ長押しに『下4桁をNG登録』を表示」を追加しました。本文長押し・ツールバーの表示設定とは別々にオン／オフできます。本文側で保存済みの表示設定は引き継ぎます。
+- 191の長押しメニューで、オフにしても下4桁NGの項目が残る経路も修正しました。
+
+## 更新時のお願い
+
+191のImage NG修正や画像取得VPNを使う場合は、パッチ本体とは別にライブラリZIPが必要です。
+
+- Image NG修正：haiagaru-image-ng.zip
+- 画像取得VPN：haiagaru-image-vpn-v2.zip
+
+ZIPは展開せず、Morpheの対応する追加ファイル欄で選択してください。2つは別のファイルです。使わない任意パッチのライブラリは不要です。更新前の設定・ログのバックアップもおすすめします。
+
+## 確認範囲
+
+242で、同じレスを繰り返し表示した際のサムネイルの保持、常時下部フィルターの表示領域とオン／オフ、レスへの移動と末尾の表示、下4桁NG設定の独立動作を確認しました。共通処理の191／226での重複操作は一部省略しています。
+
+「新着のあるスレを開き直すと新着位置が見えない」という報告については、表示領域の対策を入れていますが、報告と同じ新着到着条件での再現確認は残っています。すべての画面サイズ・ポップアップ・長時間利用を網羅したものではありません。症状が残る場合は、設定と発生する操作を添えてお知らせください。
+
+## 謝辞
+
+不具合のご報告や動作確認にご協力いただき、ありがとうございます。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+
+
+### 🐛 Bug Fixes
+
+* preserve thumbnails and separate long-press NG settings [skip ci] ([7da6ae7](https://github.com/areteruhiro/Haiagaru-Morphe/commit/7da6ae75671fe710c79cdd5269ac263c2fdaa73e))
+
+# Haiagaru 1.12.0
+
+1.11.3からの正式版更新です。プレ版で確認してきた修正と、今回のGIF取得設定・ポップアップの見切れ対策をまとめました。
+
+## 更新前に：追加ファイルについて
+
+**191のImage NG修正や画像取得VPNを使う場合は、パッチ本体とは別にライブラリZIPをダウンロードしてください。**
+
+- 191のImage NG修正：haiagaru-image-ng.zip
+- 画像取得VPN：haiagaru-image-vpn-v2.zip
+- ZIPは展開せず、Morpheで対応するパッチの追加ファイル欄へ指定してください。2つは別のファイルです。使わない任意パッチのライブラリは不要です。
+- 更新前に設定・ログをバックアップしておくことをおすすめします。
+
+## フィルター・NG・読み込み
+
+- 「下部フィルターを常に表示」を追加しました。初期設定はオフで、上部フィルターとも併用できます。必要なときだけ下部パネルを開く従来の使い方も残しています。
+- 常時表示中に、返信やID抽出のポップアップの最後のレスがフィルターに隠れる問題を修正しました。重なる分の余白を確保し、末尾までスクロールして読めるようにしています。
+- フィルターの「人気レス」が「−」や0になったり、別のレスをポップアップした後に抽出結果が消えたりする問題に対策しました。スレ全体とポップアップの集計を分離しています。
+- 「自分」フィルターの抽出と、標準方式／直接返信数方式の切り替えを見直しました。「人気レスをポップアップで表示」は判定方式とは別に選べます。フィルターの件数表示は初期オフです。
+- 「非表示NGのレスを未読件数に含めない」を有効にした際の、スレ開閉・件数計算の負荷を減らしました。安価が多い本文の表示処理も軽量化しています。
+- DAT落ち非表示の判定とHOME履歴の表示を見直しました。履歴の時刻見出しだけが残る場合にも対応しています。
+- ワッチョイ長押しの検索メニューと本文長押しのツールを別々に設定できるようにしました。242で本文長押しから下4桁NGの登録画面が開かない問題、NG登録時の対象板や説明の表示も修正しています。
+- 更新時に古い情報が使われて「更新なし」になる場合への対策を追加しました。自動更新の抑制は設定で切り替えられます。
+- Webリンクカードを含むレスで、再表示や更新時にスクロール位置がずれる問題を修正しました。位置復元前にキャッシュ済みカードの高さを反映します。
+
+## GIF・画像・動画
+
+- 「画像・動画を見る」に「GIFリンクから自動で読み込むもの」を追加しました。「画像＋GIF／画像のみ／GIFのみ／取得しない」から選べます。画像は静止サムネイル、GIFは本体の取得で、自動再生の設定ではありません。
+- 静止サムネイルの生成にもGIFの取得が必要です（最大8MB）。対象は .gif のリンクで、実体がMP4のアニメーションは動画の設定に従います。
+- GIFビューアの操作バーを下部にまとめ、再生・一時停止とメニューを整理しました。動画の戻る／進む表示も設定した秒数に合わせています。
+- 下部フィルターから画像一覧を開いて戻った際に、灰色の画面が残り操作できなくなる問題に対策しました。
+- フローティングのフィルターボタンも、ツールバーのアイコン画像設定から変更できます。
+
+## タブレット・専用ビューア
+
+- 必死チェッカー、投稿検索と結果、ワッチョイ検索、エッヂ過去ログ、Haiagaru設定を本体のタブで開けるようにしました。長押しメニューからの入口にも対応しています。
+- 自動追加先はオンでホーム側、オフでスレ側です。画面ごとの自動表示設定を残し、「画面を新しいタブに追加」からの手動追加は別に使えます。
+- スレ側の専用ビューアでは左右スワイプで隣のタブへ移動できます。左ペインのチェッカーから右へスワイプした際の終了処理も見直しました。
+- タブの×ボタンの背景・重なり・終了処理を修正し、見出しと×を含むバーの高さを調整できるようにしました。本体テーマの色も反映します。
+- チェッカー上部パネルの最大高さ、操作バーの高さ、文字サイズ・余白、「調整」ボタンの表示設定を見直しました。
+
+## 過去ログ・検索・設定
+
+- エッヂ過去ログの代替検索先としてKyodemoを追加しました。従来の検索先が失敗しても無断で切り替えず、検索先を選んで使えます。
+- 検索結果は横線で区切り、文字サイズ・余白・操作欄の密度を調整できるようにしました。下へ引いて再検索する操作にも対応しています。
+- 過去ログの表示倍率、結果のスクロール、タブ内で日付を入力したときの上下の揺れを修正しました。
+- 必死チェッカーの文字化けを見直し、hissi.orgはHTTP通信を維持します。
+- 投稿検索は複数走査、開始位置の指定、進行中一覧、履歴からの再開に対応しました。検索先ごとの待ち時間は共有し、連続アクセスを抑えています。
+- 設定カードを「機能名・スイッチ→説明」の順に整理し、説明の見切れや余白を調整しました。設定を .haiagaru ファイルで共有・取り込めます。
+- 自作テーマの取り込み画面から、取り込み済みテーマの一覧・削除を行えます。
+- MEGAログインのメール入力欄と説明を分離し、処理中・ログイン状態を分かりやすくしました。
+- 推奨構成でパッチ適用したときのManifest属性の重複エラーを修正しました。折りたたみ端末の姿勢検出にはWindowManagerの情報を使用します。
+
+## 確認範囲
+
+起動、スレ本文・画像の表示と、変更したフィルター・NG登録・タブ・検索画面の基本操作を確認しています。今回追加したGIF設定とポップアップ末尾対策も確認済みです。共通処理は一部の版で重複した操作を省略しています。
+
+すべてのテーマ・画面サイズ・長時間利用を網羅したものではありません。NGを多く含む実データでの遅延、間欠的な表示不具合、実サイトのCAPTCHAやMEGAへのログインは引き続き確認が必要です。不具合が残る場合は、バージョンと発生する操作を添えてご報告いただけると助かります。
+
+ご報告や確認に協力してくださった皆さん、ありがとうございます。Red Frame X 様、ｵｲｺﾗﾐﾈｵ 様、GIF操作バーの改善案をくださった ﾜｯﾁｮｲ 3f3c-gNc7 様にも感謝します。
+
+
+### 🐛 Bug Fixes
+
+* defer checker swipe navigation and stabilize archive form scrolling ([5745491](https://github.com/areteruhiro/Haiagaru-Morphe/commit/57454916a234ad18597fdb71997f6f8c0502ec50))
+* improve history filtering, GIF controls and archive search ([b04e5a9](https://github.com/areteruhiro/Haiagaru-Morphe/commit/b04e5a9da22da34913d3a46edc04edaefc69d139))
+* improve theme, filters and native tool tabs ([02f30e3](https://github.com/areteruhiro/Haiagaru-Morphe/commit/02f30e3d70dc7d39dc49f2919c2b1696e4893220))
+* link VPN v2 to published prerelease asset ([30e9ac5](https://github.com/areteruhiro/Haiagaru-Morphe/commit/30e9ac5b0a024039f13c2b0d3bfceca2ae6cbfcf))
+* reduce dense anchor text decoration cost ([f5c531d](https://github.com/areteruhiro/Haiagaru-Morphe/commit/f5c531db1602d2a35ac76789ecd0a7476d138830))
+* reduce hidden NG unread count overhead ([900fa7d](https://github.com/areteruhiro/Haiagaru-Morphe/commit/900fa7dc951780034b0dbdbe5718eb0e83344449))
+* restore popular filters and reduce unread count overhead ([bcc1787](https://github.com/areteruhiro/Haiagaru-Morphe/commit/bcc178746770409b2599c0de92a425d0c4c4deea))
+* restore popular filters and validate thread refresh ([9fd160a](https://github.com/areteruhiro/Haiagaru-Morphe/commit/9fd160a70274eb398129d2c2233bbde2418995a8))
+* route tablet tools to selected pane and streamline viewer controls ([98d7463](https://github.com/areteruhiro/Haiagaru-Morphe/commit/98d7463a0715dcc802e0888a91b36ac4fd75fbd4))
+* separate Wacchoi menus and repair NG editor layout ([ff1afeb](https://github.com/areteruhiro/Haiagaru-Morphe/commit/ff1afeb9f97e76e893aa6ae9c126d798421ea9fe))
+
+### ✨ New Features
+
+* add GIF fetch choices and preserve popup visibility [skip ci] ([44eb352](https://github.com/areteruhiro/Haiagaru-Morphe/commit/44eb352d79cf9417fe27a89cfcdf80e6bdb9caec))
+* improve Hissi and popular replies ([c61c0b3](https://github.com/areteruhiro/Haiagaru-Morphe/commit/c61c0b368bd575a3ef48996c3c406956cc5b5675))
+* improve search resume, settings sharing and accessible controls ([ed09503](https://github.com/areteruhiro/Haiagaru-Morphe/commit/ed0950328e2967380e3813176649bc2098ea86a9))
+* integrate search tabs and harden dialog navigation ([c1316a0](https://github.com/areteruhiro/Haiagaru-Morphe/commit/c1316a03e4eea80baf547732c66e236cf66c9e69))
+* keep bottom filters visible and fix response menu navigation ([10b4deb](https://github.com/areteruhiro/Haiagaru-Morphe/commit/10b4deb52169ebd8745ffb1ac85183fd2babf1f2))
+
+# Haiagaru 1.12.0-dev.13
+
+今回は、下部フィルターをいつも表示しておける設定を追加しました。242のNG登録が開かない不具合も修正しています。
+
+- 「下部フィルターを常に表示」を追加しました。初期設定はオフです。オンにするとスレ本文の下端に固定され、外側をタップしても閉じません。最後のレスが隠れないよう表示領域を確保し、上部フィルターとも併用できます。
+- 常時表示は設定のオン／オフをその場で反映します。AA・自分・返信の個別表示や件数表示の設定も引き継ぎ、設定共有の対象にも含めました。従来の、必要なときだけ下部パネルを開く使い方も残しています。
+- 242で、本文長押しから「ﾜｯﾁｮｲ下4桁をNG登録」を押してもNGName追加画面が開かない不具合を修正しました。対象板と登録内容を確認してから保存できます。
+- タブレットのスレ側に開いた専用ビューアでも、左右スワイプで隣のスレやビューアのタブへ移動できるようにしました。スレ側ではタブ移動を優先し、ホーム側と単独画面では従来の履歴移動設定を使います。端のタブから勝手に閉じたり、一周したりはしません。
+
+不具合のご報告、ありがとうございます。気になる動きが残っている場合は、使っているChMateとHaiagaruのバージョン、発生する操作を添えて教えていただけると助かります。
+
+追加ライブラリの指定方法は前版と同じです。191のImage NG修正には haiagaru-image-ng.zip、画像取得VPNには haiagaru-image-vpn-v2.zip をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。使わない任意パッチのライブラリは不要です。
+
+
+### ✨ New Features
+
+* keep bottom filters visible and fix response menu navigation ([40b8d29](https://github.com/areteruhiro/Haiagaru-Morphe/commit/40b8d297b0dc42fffb154dbf08e2a71d741f2da7))
+
+# Haiagaru 1.12.0-dev.12
+
+いつもご報告ありがとうございます。今回はタブレットでのタブ追加先を見直し、NG未読補正の軽量化とビューアの調整をまとめました。
+
+- 「タブレットの追加画面をホーム側のタブで開く」は、オンでホーム側、オフでスレ側へ追加します。設定画面や専用ビューア、手動追加も同じ切り替えに従います。各画面の自動タブ表示をオフにした場合は別画面で開きます。既存のタブは移動しません。
+- 「非表示NGのレスを未読件数に含めない」を追加で軽量化しました。無関係なスレの情報取得や、レス一覧に対する反射検索の繰り返しを減らしています。既読位置や取得済みログは変更しません。
+- GIFの操作バーを下部へまとめました。再生／一時停止とメニューを残し、読み込み後の空の余白を削減。画面密度や文字サイズも考慮しています。
+- 必死チェッカーの「上部パネルの最大高さ」と「上部ツールバーの高さ」が、新UIでも反映されるよう修正しました。前者は検索・操作欄全体の上限、後者は操作ボタン行の高さです。内容が少ない場合、最大高さを変えても見た目は変わりません。
+- 必死チェッカーの左右スワイプで、タッチ処理中に画面を閉じる経路を修正しました。履歴移動と終了はタッチ処理の後に行い、タブ表示ではそのビューア自身のタブだけを閉じます。
+- エッヂ過去ログ検索の終了日など、詳細条件への入力時に画面が上下へ動く原因になる二重スクロールを整理しました。同じ構造の操作欄も見直し、入力ラベルの折り返しによる高さ変化を抑えています。
+- ダイアログを閉じる際、既に外れたウィンドウを再度閉じようとしてクラッシュする経路を修正しました。
+
+タブの追加・再選択・終了は191／226／242で確認しています。NG補正の件数やオン／オフ、GIF操作と高さ設定も確認しましたが、NG有効時の遅延がすべての環境で解消したとはまだ断言できません。GIF操作の確認には合成データを使用しており、すべての配信先での再生確認ではありません。
+
+GIF操作バーの改善案をご提供いただいた ﾜｯﾁｮｲ 3f3c-gNc7 様、ありがとうございます。
+
+追加ライブラリについて：191のImage NG修正を選ぶ場合は haiagaru-image-ng.zip、画像取得VPNを選ぶ場合は haiagaru-image-vpn-v2.zip をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。使わない任意パッチのライブラリは不要です。
+
+
+### 🐛 Bug Fixes
+
+* defer checker swipe navigation and stabilize archive form scrolling ([4b7b405](https://github.com/areteruhiro/Haiagaru-Morphe/commit/4b7b4050f7fc8abb6edb0bd104c16e710774ed6c))
+* route tablet tools to selected pane and streamline viewer controls ([5ed5283](https://github.com/areteruhiro/Haiagaru-Morphe/commit/5ed5283041ae71d46f854053a9ed33e8f0528836))
+
+# Haiagaru 1.12.0-dev.12
+
+いつもご報告ありがとうございます。今回はタブレットでのタブ追加先を見直し、NG未読補正の軽量化とビューアの調整をまとめました。
+
+- 「タブレットの追加画面をホーム側のタブで開く」は、オンでホーム側、オフでスレ側へ追加します。設定画面や専用ビューア、手動追加も同じ切り替えに従います。各画面の自動タブ表示をオフにした場合は別画面で開きます。既存のタブは移動しません。
+- 「非表示NGのレスを未読件数に含めない」を追加で軽量化しました。無関係なスレの情報取得や、レス一覧に対する反射検索の繰り返しを減らしています。既読位置や取得済みログは変更しません。
+- GIFの操作バーを下部へまとめました。再生／一時停止とメニューを残し、読み込み後の空の余白を削減。画面密度や文字サイズも考慮しています。
+- 必死チェッカーの「上部パネルの最大高さ」と「上部ツールバーの高さ」が、新UIでも反映されるよう修正しました。前者は検索・操作欄全体の上限、後者は操作ボタン行の高さです。内容が少ない場合、最大高さを変えても見た目は変わりません。
+- ダイアログを閉じる際、既に外れたウィンドウを再度閉じようとしてクラッシュする経路を修正しました。
+
+タブの追加・再選択・終了は191／226／242で確認しています。NG補正の件数やオン／オフ、GIF操作と高さ設定も確認しましたが、NG有効時の遅延がすべての環境で解消したとはまだ断言できません。GIF操作の確認には合成データを使用しており、すべての配信先での再生確認ではありません。
+
+GIF操作バーの改善案をご提供いただいた ﾜｯﾁｮｲ 3f3c-gNc7 様、ありがとうございます。
+
+追加ライブラリについて：191のImage NG修正を選ぶ場合は haiagaru-image-ng.zip、画像取得VPNを選ぶ場合は haiagaru-image-vpn-v2.zip をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。使わない任意パッチのライブラリは不要です。
+
+
+### 🐛 Bug Fixes
+
+* route tablet tools to selected pane and streamline viewer controls ([5ed5283](https://github.com/areteruhiro/Haiagaru-Morphe/commit/5ed5283041ae71d46f854053a9ed33e8f0528836))
+
+# Haiagaru 1.12.0-dev.11
+
+いつもご報告ありがとうございます。今回は、ワッチョイ検索の設定が別のメニューにも反映される問題と、高度なNGの説明が入力欄にはみ出す問題を修正しました。これまで確認を進めていた改善も含めています。
+
+- ワッチョイ部分の長押しと、レス本文の長押し・ツールバーの表示設定を分けました。ワッチョイ長押しの検索をオンにしても、レス側には勝手に追加されません。上下4桁検索・上4桁NGも独立して切り替えられます。
+- 高度なNGの説明を短い入力ラベルと分け、長い選択肢も画面幅に収まるようにしました。
+- レスのポップアップを開くと人気レスが0件になり、表示できなくなる問題を修正しました。ポップアップ用の短いデータで、元スレの集計が上書きされないようにしています。
+- 「非表示NGのレスを未読件数に含めない」の開閉時処理を追加で軽量化しました。再計算で他のスレのキャッシュを消さず、NG候補だけで判定できる場合は全レスの走査を省きます。
+- タブレットの専用ビューアは、親のタブ表示設定がオフでもスレと同じタブ欄に追加されます。画面ごとの個別設定をオフにした場合は、別画面で開きます。
+- 「画面を新しいタブに追加」から、設定画面の開き方に左右されず手動追加できるようにしました。
+- 専用タブの見出し・×バーの高さを32〜64dpで調整できるようにし、背景を本体テーマに合わせました。
+- 必死チェッカーの上部ボタン設定に「調整」を追加しました。
+- 「ツールバーのアイコン画像」に「フローティングのフィルター」を追加しました。通常のフィルターとは別に画像を指定でき、変更・標準に戻す操作は再起動せず反映されます。
+
+対応版の共通処理と変更した画面を確認していますが、長時間利用でのすべての症状の解消を保証するものではありません。再発した場合は、操作手順と設定を添えて教えていただけると助かります。
+
+追加ライブラリについて：191のImage NG修正を選ぶ場合は、添付の haiagaru-image-ng.zip をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。画像取得VPNを選ぶ場合は別の haiagaru-image-vpn-v2.zip が必要です。使わない任意パッチのライブラリは不要です。
+
+
+### 🐛 Bug Fixes
+
+* separate Wacchoi menus and repair NG editor layout ([c21d00c](https://github.com/areteruhiro/Haiagaru-Morphe/commit/c21d00cc60a8f792aae74096fa0ab6d3e478f31f))
+
+# Haiagaru 1.12.0-dev.10
+
+いつもご報告ありがとうございます。人気レスがあるのに表示されない問題を中心に、タブや長押しメニューの動作を見直しました。
+
+- 「非表示NGのレスを未読件数に含めない」をオンにしたときの処理を軽量化しました。同じスレのURL解析や、NGのないレスの走査を繰り返さないようにしています。
+- Haiagaruホーム設定の大きな見出しを通常サイズにし、上部の余白を詰めました。
+- 安価（>>数字）が多い本文の表示装飾を軽量化しました。本文や安価リンクの位置は変えず、不要な編集用データの構築を減らしています。
+- 人気レスの標準表示が古い判定データで空になる経路を修正しました。後からデータが揃った場合も、スレを切り替えずに再集計します。
+- 直接返信数で判定する人気レスは、件数表示や追加フィルターをオフにしていても抽出するよう修正しました。ポップアップ表示のオン／オフは独立したままです。
+- ワッチョイ長押しの検索・上4桁NGをオフにしても残る問題を修正しました。個別の非表示設定を、古い表示設定や「追加ツール」より優先します。
+- ワッチョイ長押しの検索やID長押しの必死チェッカーから開く場合も、画面ごとのタブ表示設定に従います。
+- タブの×は背景をなくし、明暗の縁取りで見分けやすくしました。専用のヘッダーへ配置し、内容と重ならないようにしています。
+- エッヂ過去ログ検索の結果を下へ引くと、表示中の条件・ページを更新できます。検索欄に入力途中の内容があっても、表示中の結果の条件を使います。
+- 「HTTPをHTTPSに切り替える」が有効でも、hissi.orgのHTTP通信は切り替え対象から除外します。
+- 絵文字フォントの読み込みをバックグラウンドへ移し、起動直後に画面が応答しなくなる経路を軽減しました。
+
+191・226・242でパッチ適用と人気レスの回帰テストを確認しています。標準方式の件数と直接返信方式の抽出も実スレで確認しました。ただし、長時間利用での断続的な症状がすべて解消したとは断定できません。もし再発したら、表示方式と人気レスの設定を添えて教えていただけると助かります。
+
+追加ライブラリについて：191のImage NG修正を選ぶ場合は、添付の `haiagaru-image-ng.zip` をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。画像取得VPNを選ぶ場合は別の `haiagaru-image-vpn-v2.zip` が必要です。使わない任意パッチのライブラリは不要です。
+
+
+### 🐛 Bug Fixes
+
+* reduce dense anchor text decoration cost ([267150e](https://github.com/areteruhiro/Haiagaru-Morphe/commit/267150e96704a358fdc840cd9f4d93847057ff41))
+
+# Haiagaru 1.12.0-dev.9
+
+いつもご報告ありがとうございます。人気レスがあるのに表示されない問題を中心に、タブや長押しメニューの動作を見直しました。
+
+- 「非表示NGのレスを未読件数に含めない」をオンにしたときの処理を軽量化しました。同じスレのURL解析や、NGのないレスの走査を繰り返さないようにしています。
+- Haiagaruホーム設定の大きな見出しを通常サイズにし、上部の余白を詰めました。
+- 人気レスの標準表示が古い判定データで空になる経路を修正しました。後からデータが揃った場合も、スレを切り替えずに再集計します。
+- 直接返信数で判定する人気レスは、件数表示や追加フィルターをオフにしていても抽出するよう修正しました。ポップアップ表示のオン／オフは独立したままです。
+- ワッチョイ長押しの検索・上4桁NGをオフにしても残る問題を修正しました。個別の非表示設定を、古い表示設定や「追加ツール」より優先します。
+- ワッチョイ長押しの検索やID長押しの必死チェッカーから開く場合も、画面ごとのタブ表示設定に従います。
+- タブの×は背景をなくし、明暗の縁取りで見分けやすくしました。専用のヘッダーへ配置し、内容と重ならないようにしています。
+- エッヂ過去ログ検索の結果を下へ引くと、表示中の条件・ページを更新できます。検索欄に入力途中の内容があっても、表示中の結果の条件を使います。
+- 「HTTPをHTTPSに切り替える」が有効でも、hissi.orgのHTTP通信は切り替え対象から除外します。
+- 絵文字フォントの読み込みをバックグラウンドへ移し、起動直後に画面が応答しなくなる経路を軽減しました。
+
+191・226・242でパッチ適用と人気レスの回帰テストを確認しています。標準方式の件数と直接返信方式の抽出も実スレで確認しました。ただし、長時間利用での断続的な症状がすべて解消したとは断定できません。もし再発したら、表示方式と人気レスの設定を添えて教えていただけると助かります。
+
+追加ライブラリについて：191のImage NG修正を選ぶ場合は、添付の `haiagaru-image-ng.zip` をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。画像取得VPNを選ぶ場合は別の `haiagaru-image-vpn-v2.zip` が必要です。使わない任意パッチのライブラリは不要です。
+
+
+### 🐛 Bug Fixes
+
+* restore popular filters and reduce unread count overhead ([12d3d95](https://github.com/areteruhiro/Haiagaru-Morphe/commit/12d3d95e6fa55bec58a6585b79832c69b3613d4a))
+
+# Haiagaru 1.12.0-dev.8
+
+いつもご報告ありがとうございます。今回はテーマの反映やフィルター、タブ操作を中心に改善しました。
+
+- 人気レスの抽出で上部フィルターが消える問題を修正し、AAなどのボタンの高さ・下枠を揃えました。
+- 「フィルターに件数を表示」を初期オフにしました。保存済みの設定は引き継ぎます。
+- Haiagaru画面と動画シークバーがChMateのテーマ色を使うよう調整しました。
+- ワッチョイ長押しの下4桁検索・上4桁検索・上4桁NGを個別に表示・非表示にできます。
+- 必死チェッカーもどき専用ビューアをタブ化の対象に追加し、追加タブの×でそのタブを閉じられるようにしました。
+- 必死チェッカーの余分な見出し・スレ立て集計を整理しました。ビューア内の「調整」で文字サイズ・上下余白・操作バーの高さを変更できます。
+- MEGAの入力欄と説明を分け、ログイン処理中と接続状態を分かりやすくしました。
+- 自作テーマの取り込み・削除の入口を整理しました。
+- NGName統合時の削除オプションが操作できない問題を修正しました。
+- ツールバーのカスタム画像に「★スレのみ巡回」を追加しました。
+
+191・226・242でパッチ適用・起動・タブ開閉・人気レス抽出を確認し、共通画面は代表の版で画像表示や設定操作を確認しています。長時間利用や実アカウントでのMEGAログインなどは未確認です。人気レスが時々表示されないという報告も、完全解消を断定せず引き続き確認します。
+
+追加ライブラリについて：191のImage NG修正を選ぶ場合は、添付の `haiagaru-image-ng.zip` をダウンロードし、展開せずにパッチの追加ファイルへ指定してください。画像取得VPNを選ぶ場合は別の `haiagaru-image-vpn-v2.zip` が必要です。使わない任意パッチのライブラリは不要です。
+
+[操作案内・詳しい確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.8/docs/release-next-prerelease.md)
+
+高度なNGの使用例は案内ページに掲載しています。追加ダウンロード資材としては添付しません。
+
+
+### 🐛 Bug Fixes
+
+* improve theme, filters and native tool tabs ([0259df7](https://github.com/areteruhiro/Haiagaru-Morphe/commit/0259df7b444e9f2f8301344540004c98003584ec))
+
+# Haiagaru 1.12.0-dev.7
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.7/docs/release-next-prerelease.md)
+
+高度なNGの使用例は案内ページに掲載しています。追加ダウンロード資材としては添付しません。
+
+
+### 🐛 Bug Fixes
+
+* reduce hidden NG unread count overhead ([533ebb2](https://github.com/areteruhiro/Haiagaru-Morphe/commit/533ebb209b5c92eba41ae045cc6a10eba14d9f75))
+
+# Haiagaru 1.12.0-dev.6
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.6/docs/release-next-prerelease.md)
+
+高度なNGの使用例は案内ページに掲載しています。追加ダウンロード資材としては添付しません。
+
+
+### 🐛 Bug Fixes
+
+* restore popular filters and validate thread refresh ([cadf2f1](https://github.com/areteruhiro/Haiagaru-Morphe/commit/cadf2f11f9540a68dfd6455bde6f59fbec538cc4))
+
+# Haiagaru 1.12.0-dev.5
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.5/docs/release-next-prerelease.md)
+
+高度なNGの使用例は案内ページに掲載しています。追加ダウンロード資材としては添付しません。
+
+
+### 🐛 Bug Fixes
+
+* link VPN v2 to published prerelease asset ([d08ce69](https://github.com/areteruhiro/Haiagaru-Morphe/commit/d08ce69d0d9838d8cb626786201b7dd4f7668df2))
+
+# Haiagaru 1.12.0-dev.4
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.4/docs/release-next-prerelease.md)
+
+高度なNGの使用例は案内ページに掲載しています。追加ダウンロード資材としては添付しません。
+
+
+### ✨ New Features
+
+* improve Hissi and popular replies ([9d199da](https://github.com/areteruhiro/Haiagaru-Morphe/commit/9d199da0c599f62b7b7b8d3f0816b956cfce584f))
+
+# Haiagaru 1.12.0-dev.3
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.3/docs/release-next-prerelease.md)
+
+
+### 🐛 Bug Fixes
+
+* improve history filtering, GIF controls and archive search ([7d8720a](https://github.com/areteruhiro/Haiagaru-Morphe/commit/7d8720a6b65a26e8a8f421e22aa968ddb0c2f801))
+
+# Haiagaru 1.12.0-dev.2
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.2/docs/release-next-prerelease.md)
+
+
+### ✨ New Features
+
+* integrate search tabs and harden dialog navigation ([d85251f](https://github.com/areteruhiro/Haiagaru-Morphe/commit/d85251f4a4cb1f4383999db17d6f356a3940144f))
+
+# Haiagaru 1.12.0-dev.1
+
+[修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.12.0-dev.1/docs/release-next-prerelease.md)
+
+
+### ✨ New Features
+
+* improve search resume, settings sharing and accessible controls ([fd9def0](https://github.com/areteruhiro/Haiagaru-Morphe/commit/fd9def0b930cc226b4a1bfe27cd085c459c1effa))
+
 # Haiagaru 1.11.2
 
 [修正内容・操作案内・確認範囲](https://github.com/areteruhiro/Haiagaru-Morphe/blob/1.11.2/docs/release-1.11.2.md)

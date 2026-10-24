@@ -64,6 +64,9 @@ param(
     [string]$Aapt2,
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
     [string]$KeyAlias = 'sideload',
+    # The keystore was made by the desktop CLI with its own default alias and passwords, so only
+    # its path is passed and the CLI opens it the way it wrote it.
+    [switch]$CliDefaultKeystore,
     [string]$OutDir = (Join-Path $env:TEMP 'hushtelegram-device'),
     # The checkout whose catalog and release bundle are used, the one holding this script unless
     # given. The contract tests point it at a fixture.
@@ -184,7 +187,7 @@ try {
     $passwordVariable = 'HUSHTELEGRAM_SIDELOAD_KEYSTORE_PASSWORD'
     $keystorePassword = [Environment]::GetEnvironmentVariable(
         $passwordVariable, [EnvironmentVariableTarget]::Process)
-    if ([string]::IsNullOrEmpty($keystorePassword)) {
+    if ([string]::IsNullOrEmpty($keystorePassword) -and -not $CliDefaultKeystore) {
         $keystorePassword = 'sideload'
         Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
     }
@@ -216,9 +219,12 @@ try {
     Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
     $enable = @()
     foreach ($name in $names) { $enable += '-e'; $enable += $name }
-    $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
-        '--keystore', $Keystore, '--keystore-password', $keystorePassword,
-        '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($Apk)
+    $signing = @('--keystore', $Keystore)
+    if (-not $CliDefaultKeystore) {
+        $signing += @('--keystore-password', $keystorePassword, '--keystore-entry-alias', $KeyAlias,
+            '--keystore-entry-password', $keystorePassword)
+    }
+    $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result) + $signing + $enable + @($Apk)
     $argumentFile = Resolve-WithinRoot -Root $runDir -Path (Join-Path $runDir 'morphe-patch.args')
     $argumentFileLines = @($arguments | ForEach-Object {
         $value = [string]$_

@@ -15,6 +15,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.interaction.sharesheet.SHARE_LIVE_QUALITY
+import app.morphe.patches.tiktok.interaction.sharesheet.addOwnedShareAction
+import app.morphe.patches.tiktok.interaction.sharesheet.ownedShareActionsPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
@@ -851,41 +854,82 @@ internal fun roomThemeJoin(instructions: List<Instruction>): Int {
 }
 
 /**
- * TikTok's Spark theme lookup (X.0GrQ.LIZLLL on 47.4.3, #159): the light or dark answer Spark's
- * web pages and popups take for a context, read from TikTok's theme name attribute in the
- * context's theme ("TikTok Theme Dark" or "Const" is dark). Over a room the room hook darkened,
- * a shop room's Top customers popup asked it with the room, drew dark, and kept the light page's
- * dark tab titles (S22, 2026-10-20). Its answer's type is renamed each build, so it's found by
- * its Context parameter and the theme names it compares; the one other method comparing them
- * takes a String.
+ * The LIVE room activity's onConfigurationChanged (#159). The room handles a dark mode flip itself
+ * (uiMode is in its configChanges), so androidx's AppCompat reworks its theme inside the super
+ * call: it moves the room's resources to the new night mode, calls setTheme with the room's last
+ * theme, which reaches the room hook, then applies that same theme again with force, putting the
+ * room's light style back over the dark app theme the hook just added. A room left open while
+ * the system theme flipped opened Share white (S22, 2026-10-23).
  */
-internal object SparkThemeNameFingerprint : Fingerprint(
-    parameters = listOf("Landroid/content/Context;"),
-    strings = listOf("TikTok Theme Light", "TikTok Theme Dark"),
+internal object LivePlayActivityConfigurationFingerprint : Fingerprint(
+    definingClass = LIVE_PLAY_ACTIVITY,
+    name = "onConfigurationChanged",
+    returnType = "V",
+    parameters = listOf("Landroid/content/res/Configuration;"),
 )
 
-/**
- * The same class's page color lookup, (Context)Integer, which resolves Spark's page background
- * against the context's theme the same way, so it came out dark over the darkened room too.
- */
-internal fun <M : Method> sparkThemeColor(methods: Iterable<M>): M? = methods.singleOrNull {
-    !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Ljava/lang/Integer;" &&
-        it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
+/** Hands the room to the room hook again right after its super onConfigurationChanged returns. */
+internal fun hookRoomConfiguration(changed: MutableMethod) {
+    val instructions = changed.implementation?.instructions?.toList()
+        ?: throw PatchException("LIVE controls: the room's onConfigurationChanged has no body")
+    val parent = instructions.indexOfFirst {
+        val call = (it as? ReferenceInstruction)?.reference as? MethodReference
+        it.opcode == Opcode.INVOKE_SUPER && call?.name == "onConfigurationChanged"
+    }
+    if (parent < 0) throw PatchException("LIVE controls: the room's onConfigurationChanged never calls its super")
+    changed.addInstruction(
+        parent + 1,
+        "invoke-static/range {p0 .. p0}, $PANEL_THEME->darkLiveRoom(Landroid/app/Activity;)V",
+    )
 }
 
-/** Hands the context a Spark theme lookup reads to the extension first, which can swap in the room's light one. */
-internal fun hookSparkTheme(lookup: MutableMethod) {
-    if (AccessFlags.STATIC.isSet(lookup.accessFlags) || lookup.implementation == null ||
-        lookup.parameterTypes.map(CharSequence::toString) != listOf("Landroid/content/Context;")
+/**
+ * Spark's light or dark decision for one page, SparkContext.LJIIZILJ(Context) on 47.5.3 (#159).
+ * It takes the page schema's force_theme_style first, then asks TikTok's theme name lookup with
+ * the page's own fragment, popup or activity context, and the page's container color (LJJJJI)
+ * and the theme its Lynx page reads (LJJJJ) both follow its answer. Over a room the room hook
+ * darkened, a shop room's viewer ranking with its Top customers tab drew dark with its native
+ * tab titles still dark (S22, 2026-10-20). SparkContext keeps its name; the decision is its one
+ * Context method reading the fix_spark_issues_when_recreate switch, and its answer's enum, whose
+ * constants keep their names, is renamed each build (X.0Grb on 47.4.3, X.0HD4 on 47.5.3).
+ */
+internal object SparkPageThemeFingerprint : Fingerprint(
+    definingClass = SPARK_CONTEXT,
+    parameters = listOf("Landroid/content/Context;"),
+    strings = listOf("fix_spark_issues_when_recreate"),
+)
+
+internal const val SPARK_CONTEXT = "Lcom/bytedance/hybrid/spark/SparkContext;"
+
+/**
+ * Asks the extension first whether the page stays stock, and answers the theme enum's LIGHT for
+ * it before Spark decides; every other page goes on to Spark's own decision.
+ */
+internal fun hookSparkPage(decision: MutableMethod, theme: ClassDef) {
+    val implementation = decision.implementation
+    if (AccessFlags.STATIC.isSet(decision.accessFlags) || implementation == null ||
+        decision.definingClass != SPARK_CONTEXT ||
+        decision.parameterTypes.map(CharSequence::toString) != listOf("Landroid/content/Context;") ||
+        implementation.registerCount < 3
     ) {
-        throw PatchException("LIVE controls: ${lookup.definingClass}->${lookup.name} isn't a Spark theme lookup")
+        throw PatchException("LIVE controls: ${decision.definingClass}->${decision.name} isn't Spark's page theme decision")
     }
-    lookup.addInstructions(
+    if (theme.type != decision.returnType || theme.fields.none {
+            it.name == "LIGHT" && it.type == theme.type && AccessFlags.STATIC.isSet(it.accessFlags)
+        }
+    ) {
+        throw PatchException("LIVE controls: ${theme.type} has no LIGHT for Spark's page theme")
+    }
+    decision.addInstructionsWithLabels(
         0,
         """
-            invoke-static/range {p1 .. p1}, $PANEL_THEME->sparkContext(Landroid/content/Context;)Landroid/content/Context;
-            move-result-object p1
+            invoke-static/range {p0 .. p1}, $PANEL_THEME->sparkKeepsStock(Ljava/lang/Object;Landroid/content/Context;)Z
+            move-result v0
+            if-eqz v0, :morphe_spark_decides
+            sget-object v0, ${theme.type}->LIGHT:${theme.type}
+            return-object v0
         """,
+        ExternalLabel("morphe_spark_decides", decision.getInstruction(0)),
     )
 }
 
@@ -1693,7 +1737,7 @@ val liveControlsPatch = bytecodePatch(
         "and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
 ) {
     category("Playback")
-    dependsOn(settingsPatch, sharedExtensionPatch)
+    dependsOn(settingsPatch, sharedExtensionPatch, ownedShareActionsPatch, screenRecordManifestPatch)
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
@@ -1776,17 +1820,17 @@ val liveControlsPatch = bytecodePatch(
             it.name == "darkAppTheme" && it.returnType == "I" && it.parameterTypes.isEmpty()
         }.returnEarly(darkTheme)
         hookRoomTheme(LivePlayActivityThemeFingerprint.method)
+        // A dark mode flip with a room open doesn't recreate it: AppCompat re-applies the room's
+        // last light theme with force after setTheme, so the room hook runs again once the
+        // change is through.
+        hookRoomConfiguration(LivePlayActivityConfigurationFingerprint.method)
         // TikTok's Spark pages read light or dark from the theme name of the context they open
-        // in, so over the darkened room a shop room's Top customers popup drew dark with dark tab
-        // titles (S22, 2026-10-20). Its theme and page color lookups hand their context to the
-        // extension first, which gives back one over the room's kept light theme, so the room's
-        // Spark popups stay stock.
-        val sparkTheme = SparkThemeNameFingerprint.method
-        hookSparkTheme(sparkTheme)
-        hookSparkTheme(
-            sparkThemeColor(mutableClassDefBy(sparkTheme.definingClass).methods)
-                ?: throw PatchException("LIVE controls: the Spark page color lookup wasn't found"),
-        )
+        // in, so over the darkened room they draw dark, which suits them, except a shop room's
+        // viewer ranking with a Top customers tab: its native tab titles kept their light colors
+        // on the dark sheet (S22, 2026-10-20). Spark's per-page decision asks the extension first,
+        // which answers light for that page alone, found by its schema.
+        val sparkPage = SparkPageThemeFingerprint.method
+        hookSparkPage(sparkPage, classDefBy(sparkPage.returnType))
         // A translated bio's "See original" link read dark on the dark profile card (Login2,
         // 2026-10-18): its replacement span draws it in the bio view's own light-theme text
         // color, skipping the link color. The extension makes the link color the view's text
@@ -1954,6 +1998,12 @@ val liveControlsPatch = bytecodePatch(
             "invoke-static/range {v${stored.register} .. v${stored.register}}, " +
                 "$EXTENSION->noteLiveQualityPick(Ljava/lang/String;)V",
         )
+        // Gaming (LIVE Studio) and low-latency rooms leave the newer Video quality entry out of
+        // their Share sheet; with Offer LIVE quality on, both blocks answer no (#37).
+        LiveSheetActionsFingerprint.method.hookQualityEntryBlocks(qualityEntryBlocks(LiveSheetActionsFingerprint.method))
+        // A LIVE room's share sheet is the regular one with itemType "live", so the recording
+        // quality row rides the same finished-row hook Block this creator and Save cover use (#203).
+        addOwnedShareAction(SHARE_LIVE_QUALITY)
     }
 }
 
@@ -1983,4 +2033,76 @@ internal fun MutableMethod.hookViewerCount(site: ViewerCountSite) {
         site.formatIndex,
         "invoke-static/range {v${site.pairLow} .. v${site.pairLow + 1}}, $EXTENSION->noteViewerCount(J)V",
     )
+}
+
+/**
+ * The provider of a LIVE room's share sheet entries (X.0qEC.LIZ on 47.5.3, provideLiveSheetActions
+ * in its own log line). It adds Video quality, the older picker when the stream asks for a quality
+ * button and the newer one beside the resolution selection setting, and it leaves the newer one out
+ * of two kinds of room: LIVE Studio rooms (streamed from TikTok's PC app, most gaming rooms), whose
+ * mode check is a static (Room)Z call after the AUDIO read, and rooms that support low latency,
+ * which TikTok's LiveTalentDefinitionBlockLowLatencySetting blocks (#37).
+ */
+internal object LiveSheetActionsFingerprint : Fingerprint(
+    returnType = "Ljava/util/List;",
+    parameters = listOf(LIVE_MODE, LIVE_ROOM_TYPE, "Lcom/bytedance/ies/sdk/datachannel/DataChannel;", "Z"),
+    strings = listOf("provideLiveSheetActions(). enable=", "LiveSheetActionProvider"),
+)
+
+/** The two answers in the sheet provider that keep the newer quality entry out of a room (#37). */
+internal data class QualityEntryBlocks(val studioResult: Int, val lowLatencyResult: Int)
+
+/**
+ * Finds both blocks in [method]: the move-result of the Room mode check that follows the sget of
+ * LiveMode.AUDIO (true for LIVE Studio), and the move-result of Room.isSupportLowLatency. Each is a
+ * boolean the entry's branch compares with one, so the hook can hand it back as zero.
+ */
+internal fun qualityEntryBlocks(method: Method): QualityEntryBlocks {
+    val instructions = method.implementation?.instructions?.toList().orEmpty()
+    fun resultAfter(call: Int): Int {
+        if (instructions.getOrNull(call + 1)?.opcode != Opcode.MOVE_RESULT) {
+            throw PatchException("LIVE controls: the sheet provider's call at $call has no boolean result")
+        }
+        return call + 1
+    }
+    val audio = instructions.indexOfFirst { instruction ->
+        instruction.opcode == Opcode.SGET_OBJECT &&
+            ((instruction as ReferenceInstruction).reference as? FieldReference).let {
+                it?.definingClass == LIVE_MODE && it.name == "AUDIO"
+            }
+    }
+    if (audio < 0) throw PatchException("LIVE controls: the sheet provider no longer reads LiveMode.AUDIO")
+    val studio = (audio + 1 until instructions.size).firstOrNull { index ->
+        val instruction = instructions[index]
+        instruction.opcode == Opcode.INVOKE_STATIC &&
+            ((instruction as ReferenceInstruction).reference as? MethodReference).let {
+                it != null && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf(LIVE_ROOM_TYPE)
+            }
+    } ?: throw PatchException("LIVE controls: the sheet provider has no room mode check after the AUDIO read")
+    val lowLatency = instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+            ((instruction as ReferenceInstruction).reference as? MethodReference).let {
+                it?.definingClass == LIVE_ROOM_TYPE && it.name == "isSupportLowLatency"
+            }
+    }.map { it.index }.singleOrNull()
+        ?: throw PatchException("LIVE controls: expected one isSupportLowLatency read in the sheet provider")
+    return QualityEntryBlocks(resultAfter(studio), resultAfter(lowLatency))
+}
+
+/**
+ * Hands each block's boolean to the extension, which answers zero while Offer LIVE quality is on
+ * and the flag otherwise. Both go in after their move-result, later one first so the earlier index
+ * still holds; nothing branches onto the instruction after either.
+ */
+internal fun MutableMethod.hookQualityEntryBlocks(blocks: QualityEntryBlocks) {
+    for (result in listOf(blocks.studioResult, blocks.lowLatencyResult).sortedDescending()) {
+        val register = (getInstruction(result) as OneRegisterInstruction).registerA
+        addInstructions(
+            result + 1,
+            """
+                invoke-static {v$register}, $EXTENSION->qualityEntryBlocked(I)I
+                move-result v$register
+            """,
+        )
+    }
 }

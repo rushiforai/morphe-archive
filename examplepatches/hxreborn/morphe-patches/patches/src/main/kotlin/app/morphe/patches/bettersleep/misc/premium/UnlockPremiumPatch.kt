@@ -6,19 +6,15 @@ package app.morphe.patches.bettersleep.misc.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.bettersleep.misc.fix.iterable.restoreIterableRequestsPatch
 import app.morphe.patches.bettersleep.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipVirtualizationPatch
+import app.morphe.patches.shared.misc.smali.addStaticMethod
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import com.android.tools.smali.dexlib2.util.ReferenceUtil
 
 internal const val PURCHASE_CLASS = "Lcom/ipnossoft/api/purchasemanager/purchaserepo/localdb/Purchase;"
 
@@ -60,50 +56,39 @@ val unlockPremiumPatch = bytecodePatch(
             check(mutableClassDefBy(type).staticFields.any { it.name == name && it.type == type }) { "$type->$name not found" }
         }
 
-        featureManager.directMethods.add(
-            lifetimePurchaseMethod(featureManager.type, constructor, dataSourceName, purchaseType),
+        featureManager.addStaticMethod(
+            LIFETIME_PURCHASE_METHOD,
+            emptyList(),
+            PURCHASE_CLASS,
+            20,
+            lifetimePurchaseSmali(constructor, dataSourceName, purchaseType),
         )
     }
 }
 
-private fun lifetimePurchaseMethod(
-    definingClass: String,
+private fun lifetimePurchaseSmali(
     constructor: MethodReference,
     dataSourceName: String,
     purchaseType: String,
-) = ImmutableMethod(
-    definingClass,
-    LIFETIME_PURCHASE_METHOD,
-    emptyList<ImmutableMethodParameter>(),
-    PURCHASE_CLASS,
-    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
-    null,
-    null,
-    MutableMethodImplementation(20),
-).toMutable().apply {
-    addInstructions(
-        0,
-        """
-            new-instance v0, $PURCHASE_CLASS
-            const-string v1, "lifetime"
-            const-string v2, ""
-            const-string v3, ""
-            const-wide v4, ${PURCHASE_TIME}L
-            const-wide v6, ${EXPIRY_TIME}L
-            const-string v8, "GOOGLE"
-            sget-object v9, $dataSourceName->GOOGLE:$dataSourceName
-            sget-object v10, $purchaseType->PURCHASE:$purchaseType
-            const/4 v11, 0x0
-            const/4 v12, 0x0
-            const/4 v13, 0x0
-            const/4 v14, 0x0
-            const/4 v15, 0x0
-            const/16 v16, 0x1
-            const/16 v17, 0x0
-            const/16 v18, 0x0
-            const/16 v19, 0x0
-            invoke-direct/range { v0 .. v19 }, ${ReferenceUtil.getMethodDescriptor(constructor)}
-            return-object v0
-        """,
-    )
-}
+) = """
+        new-instance v0, $PURCHASE_CLASS
+        const-string v1, "lifetime"
+        const-string v2, ""
+        const-string v3, ""
+        const-wide v4, ${PURCHASE_TIME}L
+        const-wide v6, ${EXPIRY_TIME}L
+        const-string v8, "GOOGLE"
+        sget-object v9, $dataSourceName->GOOGLE:$dataSourceName
+        sget-object v10, $purchaseType->PURCHASE:$purchaseType
+        const/4 v11, 0x0
+        const/4 v12, 0x0
+        const/4 v13, 0x0
+        const/4 v14, 0x0
+        const/4 v15, 0x0
+        const/16 v16, 0x1
+        const/16 v17, 0x0
+        const/16 v18, 0x0
+        const/16 v19, 0x0
+        invoke-direct/range { v0 .. v19 }, ${descriptor(constructor)}
+        return-object v0
+    """

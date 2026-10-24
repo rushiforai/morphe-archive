@@ -122,6 +122,45 @@ class PostFiltersFixtureTest {
     fun `Hide posts with these words bridges the post model and turns its switch on`() =
         check(hidePostsWithWordsPatch, "hidePostsWithWords", "postWords")
 
+    @Test
+    fun `Hide filtered posts bridges the post's filtered note and turns its switch on`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val types = FILTERED_POST_BRIDGES.flatMap { listOf(it.model, it.adapter) }.toSet()
+            val classes = FixtureDex.classes(build, types)
+            assertEquals("${build.name}: the models and their adapters", types, classes.keys)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+
+            filteredPostBridgePatch.execute(context)
+            hideFilteredPostsPatch.execute(context)
+
+            // The getters each adapter writes under "filtered", "tags" and "content".
+            val calls = mapOf(
+                "hushFiltered" to "$POST->c0()$FILTERED",
+                "hushFilteredTags" to "$FILTERED->b()Ljava/util/List;",
+                "hushFilteredContent" to "$FILTERED->a()Ljava/util/List;",
+            )
+            for (bridge in FILTERED_POST_BRIDGES) {
+                val model = context.mutableClassDefBy(bridge.model)
+                assertTrue("${build.name}: ${bridge.model} implements ${bridge.bridge}", bridge.bridge in model.interfaces)
+                for (getter in bridge.getters) {
+                    val added = model.methods.single { it.name == getter.name && it.parameterTypes.isEmpty() }
+                    val where = "${build.name}: ${bridge.model}->${getter.name}"
+                    assertEquals(where, getter.returnType, added.returnType)
+                    assertTrue("$where is public", AccessFlags.PUBLIC.isSet(added.accessFlags))
+                    val body = added.instructionList()
+                    assertEquals("$where: call, result, return",
+                        listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), body.map { it.opcode })
+                    assertEquals(where, calls.getValue(getter.name), body[0].methodRef().toString())
+                }
+            }
+            for (flag in listOf("hideFilteredPosts", "filteredPosts")) {
+                val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
+                    .implementation!!.instructions.first()
+                assertEquals("${build.name}: $flag", 1, (first as NarrowLiteralInstruction).narrowLiteral)
+            }
+        }
+    }
+
     private fun check(patch: BytecodePatch, status: String, capability: String) {
         for (build in Fixtures.declaredBuilds()) {
             val types = POST_BRIDGES.flatMap { listOf(it.model, it.adapter) }.toSet()

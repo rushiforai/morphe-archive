@@ -57,6 +57,42 @@ class DuetStitchCallersTest {
             source.contains("AuthorStitchSettingFingerprint to \"authorSetting\""))
     }
 
+    @Test
+    fun `the add to story answer is one static function that returns by return`() {
+        for (apk in Fixtures.apks()) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val matches = container.dexEntryNames.flatMap { entry ->
+                container.getEntry(entry)!!.dexFile.classes
+                    .filter { it.type == "Lcom/ss/android/ugc/aweme/feed/model/AwemeExtKt;" }
+                    .flatMap { it.methods }
+                    .filter { it.name == "canShareToStory" }
+            }
+            assertEquals("${apk.name}: canShareToStory", 1, matches.size)
+            val method = matches.single()
+            assertEquals("${apk.name}: return type", "Z", method.returnType)
+            assertEquals("${apk.name}: parameters", listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+                method.parameterTypes.map { it.toString() })
+            val instructions = method.implementation!!.instructions.toList()
+            assertTrue("${apk.name}: it no longer reads the server's share-to-story number",
+                instructions.any {
+                    it.opcode == Opcode.INVOKE_VIRTUAL &&
+                        it.getReference<MethodReference>()?.name == "getShareStoryStatus"
+                })
+            assertTrue("${apk.name}: it has no plain return to answer at",
+                instructions.any { it.opcode == Opcode.RETURN })
+            assertTrue("${apk.name}: it returns something other than a plain int",
+                instructions.none { it.opcode == Opcode.RETURN_OBJECT || it.opcode == Opcode.RETURN_WIDE })
+        }
+    }
+
+    @Test
+    fun `the patch answers add to story`() {
+        val root = File("src/main/kotlin").takeIf { it.isDirectory } ?: File("patches/src/main/kotlin")
+        val source = File(root, "app/morphe/patches/tiktok/interaction/duetstitch/DuetStitchPatch.kt").readText()
+        assertTrue("canShareToStory is not answered",
+            source.contains("CanShareToStoryFingerprint to \"storyShareable\""))
+    }
+
     private fun label(pair: Pair<ClassDef, Method>) = "${pair.first.type}->${pair.second.name}"
 
     /** Every method in the fixture that invokes one of the named no-argument int getters on User. */

@@ -14,7 +14,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -28,15 +27,15 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
 import app.morphe.patches.all.misc.clone.cloneAppPatch
 import app.morphe.patches.all.misc.clone.setOrGetFallbackPackageName
+import app.morphe.patches.all.misc.gms.gmsCorePackageQueriesPatch
 import app.morphe.patches.shared.misc.gms.Constants.ACTIONS
 import app.morphe.patches.shared.misc.gms.Constants.AUTHORITIES
 import app.morphe.patches.shared.misc.gms.Constants.PERMISSIONS
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.IntentPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
-import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstStringInstructionOrThrow
 import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
@@ -154,14 +153,8 @@ fun gmsCoreSupportPatch(
 
         fun transformPrimeMethod(packageName: String) {
             primeMethodFingerprint!!.method.apply {
-                var register = 2
-
-                val index = instructions.indexOfFirst {
-                    if (it.getReference<StringReference>()?.string != fromPackageName) return@indexOfFirst false
-
-                    register = (it as OneRegisterInstruction).registerA
-                    return@indexOfFirst true
-                }
+                val index = indexOfFirstStringInstructionOrThrow(fromPackageName)
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
 
                 replaceInstruction(index, "const-string v$register, \"$packageName\"")
             }
@@ -218,7 +211,7 @@ fun gmsCoreSupportPatch(
         )
 
         // GNP expects the original Google package even when the installed app is renamed.
-        GnpRegistrationTargetFingerprint.matchSingle().let { match ->
+        GnpRegistrationTargetFingerprint.let { match ->
             val result = match.instructionMatches[1]
             match.method.replaceInstruction(
                 result.index,
@@ -524,6 +517,7 @@ fun gmsCoreSupportResourcePatch(
 ) = resourcePatch {
     dependsOn(
         cloneAppPatch,
+        gmsCorePackageQueriesPatch,
         linkHandlingPatch(fromPackageName, screen)
     )
 
@@ -578,15 +572,10 @@ fun gmsCoreSupportResourcePatch(
                 "$fromPackageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" to "$toPackageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
                 "com.google.android.c2dm" to "$GMS_CORE_VENDOR_GROUP_ID.android.c2dm",
                 "com.google.android.libraries.photos.api.mars" to "$GMS_CORE_VENDOR_GROUP_ID.android.apps.photos.api.mars",
-                // Make every known MicroG / GMS variant visible to the package manager
-                // so the extension can detect conflicting installs, and allow the app to
-                // request their uninstall on Android 14+.
-                "</queries>" to
-                        "<package android:name=\"$GMS_CORE_VENDOR_GROUP_ID.android.gms\"/>" +
-                        "<package android:name=\"com.mgoogle.android.gms\"/>" +
-                        "<package android:name=\"org.microg.gms\"/>" +
-                        "</queries>" +
-                        "<uses-permission android:name=\"android.permission.REQUEST_DELETE_PACKAGES\"/>",
+                // Allow the app to request uninstall of conflicting MicroG / GMS variants on Android 14+.
+                // The variants are made visible to the package manager by gmsCorePackageQueriesPatch.
+                // Also add the external PoToken provider app to the queries.
+                "</queries>" to "<package android:name=\"app.morphe.pot.helper\"/></queries><uses-permission android:name=\"android.permission.REQUEST_DELETE_PACKAGES\"/>",
             )
 
             val manifest = get("AndroidManifest.xml")

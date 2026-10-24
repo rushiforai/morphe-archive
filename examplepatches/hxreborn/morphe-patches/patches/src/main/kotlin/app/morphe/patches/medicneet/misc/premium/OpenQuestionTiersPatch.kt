@@ -9,6 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
@@ -18,7 +19,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.util.ReferenceUtil
 
 private const val OPEN_TIER_RETRY_CLASS = "Lapp/hxreborn/extension/medicneet/OpenTierRetry;"
 
@@ -39,9 +39,9 @@ private fun BytecodePatchContext.retryDeniedQuestionQueries() {
     val method = run.method
 
     val parser = FirestoreQueryParserFingerprint.matchSingle().instructionMatches
-    val whereField = ReferenceUtil.getFieldDescriptor(parser.first().instruction.getReference<FieldReference>()!!)
+    val whereField = descriptor(parser.first().instruction.getReference<FieldReference>()!!)
     val fieldPathType = parser.last().instruction.getReference<TypeReference>()!!.type
-    val fieldPathFactory = ReferenceUtil.getMethodDescriptor(fieldPathFactoryFingerprint(fieldPathType).matchSingle().method)
+    val fieldPathFactory = descriptor(fieldPathFactoryFingerprint(fieldPathType).matchSingle().method)
 
     val thisRegister = method.implementation!!.registerCount - method.parameterTypes.size - 1
     val failure = handler.getInstruction<OneRegisterInstruction>().registerA
@@ -55,8 +55,8 @@ private fun BytecodePatchContext.retryDeniedQuestionQueries() {
     method.addInstructionsWithLabels(
         resumeIndex,
         """
-            iget-object v$path, p0, ${ReferenceUtil.getFieldDescriptor(pathRead.instruction.getReference<FieldReference>()!!)}
-            iget-object v$where, p0, ${ReferenceUtil.getFieldDescriptor(paramsRead.instruction.getReference<FieldReference>()!!)}
+            iget-object v$path, p0, ${descriptor(pathRead.instruction.getReference<FieldReference>()!!)}
+            iget-object v$where, p0, ${descriptor(paramsRead.instruction.getReference<FieldReference>()!!)}
             if-eqz v$where, :resume
             iget-object v$where, v$where, $whereField
             const-string v$tier, "$TIER_FIELD"
@@ -110,26 +110,26 @@ private fun BytecodePatchContext.answerDeniedSegmentReads() {
     method.addInstructionsWithLabels(
         resumeIndex,
         """
-            iget-object v$path, v$thisRegister, ${ReferenceUtil.getFieldDescriptor(holderRead.instruction.getReference<FieldReference>()!!)}
+            iget-object v$path, v$thisRegister, ${descriptor(holderRead.instruction.getReference<FieldReference>()!!)}
             check-cast v$path, $requestType
-            iget-object v$path, v$path, ${ReferenceUtil.getFieldDescriptor(requestPath)}
+            iget-object v$path, v$path, ${descriptor(requestPath)}
             invoke-static { v$failure, v$path }, $OPEN_TIER_RETRY_CLASS->isOpenSegmentRead(Ljava/lang/Throwable;Ljava/lang/String;)Z
             move-result v$isOpenSegment
             if-eqz v$isOpenSegment, :resume
             new-instance v$snapshot, $snapshotType
             invoke-direct { v$snapshot }, $snapshotType-><init>()V
-            iput-object v$path, v$snapshot, ${ReferenceUtil.getFieldDescriptor(snapshotPath.instruction.getReference<FieldReference>()!!)}
+            iput-object v$path, v$snapshot, ${descriptor(snapshotPath.instruction.getReference<FieldReference>()!!)}
             new-instance v$metadata, $metadataType
             invoke-direct { v$metadata }, $metadataType-><init>()V
             sget-object v$flag, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
-            iput-object v$flag, v$metadata, ${ReferenceUtil.getFieldDescriptor(metadataFlags[0].instruction.getReference<FieldReference>()!!)}
-            iput-object v$flag, v$metadata, ${ReferenceUtil.getFieldDescriptor(metadataFlags[1].instruction.getReference<FieldReference>()!!)}
-            iput-object v$metadata, v$snapshot, ${ReferenceUtil.getFieldDescriptor(snapshotMetadata.instruction.getReference<FieldReference>()!!)}
-            iget-object v$results, v$resultRegister, ${ReferenceUtil.getFieldDescriptor(resultList)}
+            iput-object v$flag, v$metadata, ${descriptor(metadataFlags[0].instruction.getReference<FieldReference>()!!)}
+            iput-object v$flag, v$metadata, ${descriptor(metadataFlags[1].instruction.getReference<FieldReference>()!!)}
+            iput-object v$metadata, v$snapshot, ${descriptor(snapshotMetadata.instruction.getReference<FieldReference>()!!)}
+            iget-object v$results, v$resultRegister, ${descriptor(resultList)}
             const/4 v$insertIndex, 0x0
             invoke-virtual { v$results, v$insertIndex, v$snapshot }, Ljava/util/ArrayList;->add(ILjava/lang/Object;)V
-            iget-object v$reply, v$resultRegister, ${ReferenceUtil.getFieldDescriptor(resultReply)}
-            invoke-virtual { v$reply, v$results }, ${ReferenceUtil.getMethodDescriptor(send)}
+            iget-object v$reply, v$resultRegister, ${descriptor(resultReply)}
+            invoke-virtual { v$reply, v$results }, ${descriptor(send)}
             return-void
         """,
         ExternalLabel("resume", method.getInstruction(resumeIndex)),

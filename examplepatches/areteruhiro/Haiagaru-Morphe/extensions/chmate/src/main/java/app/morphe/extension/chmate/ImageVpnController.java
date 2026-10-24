@@ -18,13 +18,14 @@ public final class ImageVpnController {
     private static Context context;
     private static ImageVpnRelay relay;
     private static final Pattern IMAGE = Pattern.compile(
-            "https?://tools\\.yajuvideo\\.st/[^\\s<>\"']+", Pattern.CASE_INSENSITIVE);
+            "https?://[^\\s<>\"']+", Pattern.CASE_INSENSITIVE);
     private static final ThreadLocal<Boolean> PARSING = new ThreadLocal<>();
     private ImageVpnController() {}
 
     public static synchronized void initialize(Context source) {
         Context app = source.getApplicationContext();
         context = app == null ? source : app;
+        reloadDomains();
         try (InputStream marker = context.getAssets().open("haiagaru/image-vpn/installed")) {
             installed = marker.read() == '1';
         } catch (IOException missing) { installed = false; }
@@ -35,9 +36,35 @@ public final class ImageVpnController {
     public static boolean available() { return installed; }
     public static boolean enabled() { return enabled; }
 
+    public static void reloadDomains() {
+        if (context == null) return;
+        String value = context.getSharedPreferences("io.github.areteruhiro.chmate.haiagaru.ui-config", Context.MODE_PRIVATE)
+                .getString("imageVpnDomains", ImageVpnRequestPolicy.DEFAULT_DOMAINS);
+        try { ImageVpnRequestPolicy.setDomains(value); }
+        catch (IllegalArgumentException invalid) { ImageVpnRequestPolicy.setDomains(ImageVpnRequestPolicy.DEFAULT_DOMAINS); }
+    }
+
+    /** Registered preview targets never go direct, including without the optional VPN asset. */
+    static boolean protectedPreview(String value) {
+        try { return ImageVpnRequestPolicy.isTarget(new URL(value)); }
+        catch (IOException invalid) { return false; }
+    }
+
+    static app.morphe.extension.chmate.vpn.nativecore.imagevpn.Image fetchPreview(String value) throws IOException {
+        ImageVpnFetchManager manager;
+        synchronized(ImageVpnController.class) {
+            if (!enabled || context == null) throw new IOException("IMAGE_VPN_PREVIEW_DISABLED");
+            manager=ImageVpnFetchManager.getInstance(context);
+        }
+        app.morphe.extension.chmate.vpn.nativecore.imagevpn.Image result=manager.fetchPreview(value);
+        if (!enabled) throw new IOException("IMAGE_VPN_DISABLED");
+        return result;
+    }
+
     public static synchronized void setEnabled(boolean value) {
         enabled = installed && value;
         if (!enabled && relay != null) { relay.close(); relay = null; }
+        if (!enabled && context != null) ImageVpnFetchManager.getInstance(context).close();
         lastError = enabled ? "IMAGE_VPN_IDLE" : "IMAGE_VPN_DISABLED";
     }
 
@@ -59,8 +86,7 @@ public final class ImageVpnController {
         try {
             URL parsed = new URL(value);
             String host = parsed.getHost();
-            if (!ImageVpnRequestPolicy.TARGET_HOST.equalsIgnoreCase(host)
-                    && !(ImageVpnRequestPolicy.TARGET_HOST + ".").equalsIgnoreCase(host)) return value;
+            if (!ImageVpnRequestPolicy.isTargetHost(host)) return value;
         } catch (IOException malformed) { return value; }
         if (!ImageVpnRequestPolicy.isProtectedUrl(value))
             return "http://127.0.0.1:9/haiagaru-image-vpn-invalid-url.jpg";
@@ -111,7 +137,8 @@ public final class ImageVpnController {
                 String candidate = images.group();
                 try {
                     String path = new URL(candidate).getPath().toLowerCase(java.util.Locale.ROOT);
-                    if (path.matches(".*\\.(?:jpe?g|png|gif|webp|bmp)$")) urls.add(route(candidate));
+                    if (GifAutoFetchPolicy.supported(candidate) && !GifAutoFetchPolicy.gif(Haiagaru.gifAutoFetchMode())) continue;
+                    if (ImageVpnRequestPolicy.isProtectedUrl(candidate) && path.matches(".*\\.(?:jpe?g|png|gif|webp|bmp)$")) urls.add(route(candidate));
                 } catch (IOException ignored) { }
             }
         }

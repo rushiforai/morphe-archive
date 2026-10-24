@@ -5,9 +5,15 @@
 package app.morphe.patches.shared.misc.ijiami
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.DEX_FILE_SIZE_OFFSET
+import app.morphe.patches.shared.DEX_HEADER_SIZE
+import app.morphe.patches.shared.DEX_MAGIC
+import app.morphe.patches.shared.DEX_MAP_ITEM_SIZE
+import app.morphe.patches.shared.DEX_MAP_OFF_OFFSET
+import app.morphe.patches.shared.readInt
+import app.morphe.patches.shared.readShort
+import app.morphe.patches.shared.writeInt
 
-private const val FILE_SIZE_OFFSET = 32
-private const val MAP_OFF_OFFSET = 52
 private const val STRING_IDS_OFFSET = 56
 private const val TYPE_IDS_OFFSET = 64
 private const val PROTO_IDS_OFFSET = 72
@@ -19,14 +25,12 @@ private const val DATA_OFFSET = 104
 private const val HEADER_SIZE_OFFSET = 36
 private const val ENDIAN_TAG_OFFSET = 40
 
-private const val DEX_HEADER_SIZE = 112
 private const val ENDIAN_TAG = 0x12345678
 private const val CLASS_DEF_SIZE = 32
 private const val CLASS_DATA_FIELD = 24
 private const val FIELD_ID_SIZE = 8
 private const val METHOD_ID_SIZE = 8
 private const val PROTO_ID_SIZE = 12
-private const val MAP_ENTRY_SIZE = 12
 private const val CODE_HEADER_SIZE = 16
 private const val CODE_INSNS_SIZE_OFFSET = 12
 
@@ -275,9 +279,9 @@ internal class PayloadDex private constructor(
                 cursor = uleb(uleb(cursor).second).second
             }
 
-            for (kind in 2..3) {
+            for (section in 2..3) {
                 var method = 0L
-                repeat(counts[kind]) {
+                repeat(counts[section]) {
                     val (diff, afterDiff) = uleb(cursor)
                     method += diff.toLong() and 0xFFFFFFFFL
                     if (method >= methodIdsSize) {
@@ -341,7 +345,7 @@ internal class PayloadDex private constructor(
             val firstSize = recoverHeadBlock(payload, starts.getOrElse(1) { payload.size }, version)
 
             val sizes = starts.mapIndexed { index, dexStart ->
-                if (index == 0) firstSize else payload.readInt(dexStart + FILE_SIZE_OFFSET)
+                if (index == 0) firstSize else payload.readInt(dexStart + DEX_FILE_SIZE_OFFSET)
             }
 
             starts.forEachIndexed { index, dexStart ->
@@ -370,18 +374,18 @@ internal class PayloadDex private constructor(
             }
 
             val entries = payload.readInt(mapOffset)
-            val room = (limit.toLong() - mapOffset - 4) / MAP_ENTRY_SIZE
+            val room = (limit.toLong() - mapOffset - 4) / DEX_MAP_ITEM_SIZE
             if (entries < 0 || entries > room) {
                 throw PatchException("Map list entry count out of range in first payload dex: $entries")
             }
 
-            val dexSize = mapOffset + 4 + entries * MAP_ENTRY_SIZE
+            val dexSize = mapOffset + 4 + entries * DEX_MAP_ITEM_SIZE
             if (dexSize > limit) {
                 throw PatchException("Map list exceeds first payload dex boundary: $dexSize > $limit")
             }
 
             val sections = (0 until entries).associate { entry ->
-                val base = mapOffset + 4 + entry * MAP_ENTRY_SIZE
+                val base = mapOffset + 4 + entry * DEX_MAP_ITEM_SIZE
                 payload.readShort(base) to (payload.readInt(base + 4) to payload.readInt(base + 8))
             }
 
@@ -404,10 +408,10 @@ internal class PayloadDex private constructor(
             val recovered = ByteArray(stringIdsOffset + 4 * stringCount)
             DEX_MAGIC.copyInto(recovered)
             version.copyInto(recovered, DEX_MAGIC.size)
-            recovered.writeInt(FILE_SIZE_OFFSET, dexSize)
+            recovered.writeInt(DEX_FILE_SIZE_OFFSET, dexSize)
             recovered.writeInt(HEADER_SIZE_OFFSET, DEX_HEADER_SIZE)
             recovered.writeInt(ENDIAN_TAG_OFFSET, ENDIAN_TAG)
-            recovered.writeInt(MAP_OFF_OFFSET, mapOffset)
+            recovered.writeInt(DEX_MAP_OFF_OFFSET, mapOffset)
             SECTION_HEADER_FIELDS.forEach { (type, field) ->
                 val (count, offset) = sections[type] ?: (0 to 0)
                 recovered.writeInt(field, count)

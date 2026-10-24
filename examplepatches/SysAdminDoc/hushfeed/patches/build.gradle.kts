@@ -483,7 +483,7 @@ val documentationTest = tasks.register<Test>("documentationTest") {
     classpath = sourceSets.test.get().runtimeClasspath
     maxHeapSize = "512m"
     include(documentationClasses)
-    // TestFilter has no public getter for CLI patterns in the pinned Gradle 9.7.1 API.
+    // TestFilter has no public getter for CLI patterns in the pinned Gradle 9.8.2 API.
     // Record forwarded filters before input snapshotting, then apply them before execution.
     inputs.property("suiteSelection", provider {
         (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns

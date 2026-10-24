@@ -63,7 +63,9 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
  * off, or when something throws, Instagram draws the part.
  *
  * <p>The patch's sixth switch, the Reels tab's top bar, needs no hook, and neither do the two for
- * the Create and Your algorithm buttons in it: {@link ReelsTopBar} hides those views at runtime.
+ * the Create and Your algorithm buttons in it: {@link ReelsTopBar} hides those views at runtime. The
+ * Friends tab in it has the patch hand {@link ReelsTopBar#friendsTab} each tab's view as it's built,
+ * and is hidden the same way.
  */
 public final class ReelDeclutter {
     /**

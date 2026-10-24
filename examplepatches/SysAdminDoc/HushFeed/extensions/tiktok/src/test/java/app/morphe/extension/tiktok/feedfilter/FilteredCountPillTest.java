@@ -9,8 +9,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +27,8 @@ import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 
+import com.ss.android.ugc.aweme.common.widget.VerticalViewPager;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
@@ -48,6 +53,8 @@ public class FilteredCountPillTest {
     private boolean feedFilterWas;
     private ActivityController<Activity> controller;
     private View home;
+    /** TikTok's sideways pager of top tabs, with For You's page in it. */
+    private FrameLayout topTabs;
 
     @Before
     public void setUp() {
@@ -68,9 +75,20 @@ public class FilteredCountPillTest {
         FeedFilterCounters.resetSessionForTests();
     }
 
-    /** A shown, selected Home tab, as the lookup would find it in TikTok. */
-    private static View standOnTheFeed(Activity activity) {
+    /**
+     * A shown, selected Home tab and For You's video pager, as the lookups would find them in
+     * TikTok. The pager sits in a page of the sideways top tab pager, the way it does on 47.5.3.
+     */
+    private View standOnTheFeed(Activity activity) {
         ViewGroup root = activity.findViewById(android.R.id.content);
+        topTabs = new FrameLayout(activity);
+        FrameLayout forYou = new FrameLayout(activity);
+        forYou.addView(new VerticalViewPager(activity), new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        topTabs.addView(forYou, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        root.addView(topTabs, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         View home = new View(activity);
         root.addView(home, new FrameLayout.LayoutParams(96, 100, Gravity.BOTTOM));
         home.setSelected(true);
@@ -146,6 +164,81 @@ public class FilteredCountPillTest {
         ((ViewGroup) home.getParent()).removeView(home);
         layout();
         assertEquals(View.GONE, pill.getVisibility());
+    }
+
+    /**
+     * Shop and the Nearby tab are pages of the same sideways pager as For You and Following,
+     * with the Home tab still selected under them, and the label sat over Shop's search box
+     * (S22, 47.5.3, 2026-10-23).
+     */
+    @Test
+    public void onShopOrNearbyTheLabelHides() {
+        Settings.FILTERED_COUNT_PILL.save(true);
+        FeedFilterCounters.removedItems("FeedItemList", 2, "AdsFilter");
+        controller.start().resume().visible();
+        FrameLayout shop = new FrameLayout(controller.get());
+        topTabs.addView(shop, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        int width = topTabs.getWidth();
+        assertTrue("the window never laid out", width > 0);
+        shop.setTranslationX(width);
+        TextView pill = FilteredCountPill.pillForTests();
+        assertNotNull(pill);
+        layout();
+        assertEquals(View.VISIBLE, pill.getVisibility());
+
+        topTabs.scrollTo(width, 0);
+        layout();
+        assertTrue("the Home tab still reads shown and selected", home.isShown() && home.isSelected());
+        assertEquals("the label sat over Shop", View.GONE, pill.getVisibility());
+
+        topTabs.scrollTo(0, 0);
+        layout();
+        assertEquals(View.VISIBLE, pill.getVisibility());
+    }
+
+    /**
+     * Following's page can come up while FeedVisibility holds its next look of the window, and
+     * nothing says a layout pass follows to ask again. The label asks once the hold is over.
+     */
+    @Test
+    public void aFeedPageThatComesUpDuringAHeldLookGetsTheLabel() {
+        Settings.FILTERED_COUNT_PILL.save(true);
+        FeedFilterCounters.removedItems("FeedItemList", 2, "AdsFilter");
+        controller.start().resume().visible();
+        Activity activity = controller.get();
+        FrameLayout shop = new FrameLayout(activity);
+        topTabs.addView(shop, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        int width = topTabs.getWidth();
+        assertTrue("the window never laid out", width > 0);
+        shop.setTranslationX(width);
+        TextView pill = FilteredCountPill.pillForTests();
+        assertNotNull(pill);
+        layout();
+        assertEquals(View.VISIBLE, pill.getVisibility());
+
+        // Shop: For You's pager is known and off screen, so this look starts the hold.
+        topTabs.scrollTo(width, 0);
+        layout();
+        assertEquals(View.GONE, pill.getVisibility());
+
+        FrameLayout following = new FrameLayout(activity);
+        following.addView(new VerticalViewPager(activity), new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        topTabs.addView(following, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        following.setTranslationX(-width);
+        topTabs.scrollTo(-width, 0);
+        layout();
+        assertEquals("still inside the hold", View.GONE, pill.getVisibility());
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(
+                java.time.Duration.ofMillis(2 * FeedVisibility.FEED_PAGER_SEARCH_GAP_MS));
+        assertEquals("Following never got its label", View.VISIBLE, pill.getVisibility());
     }
 
     @Test

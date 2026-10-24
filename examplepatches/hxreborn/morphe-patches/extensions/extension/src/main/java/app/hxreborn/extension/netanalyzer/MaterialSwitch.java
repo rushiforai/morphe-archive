@@ -8,9 +8,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.util.TypedValue;
 import android.view.View;
 import android.widget.Checkable;
+
+import app.hxreborn.extension.shared.Dimensions;
 
 final class MaterialSwitch extends View implements Checkable {
 
@@ -95,7 +96,7 @@ final class MaterialSwitch extends View implements Checkable {
     }
 
     private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+        return Dimensions.dpExact(getContext(), value);
     }
 
 }

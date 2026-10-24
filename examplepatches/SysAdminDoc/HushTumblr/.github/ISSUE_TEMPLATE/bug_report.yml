@@ -17,7 +17,7 @@ body:
     attributes:
       label: HushTumblr and Tumblr versions
       description: Open Tumblr's Settings and tap HushTumblr, or long-press the Tumblr icon and tap HushTumblr. Then tap About, near the bottom under More settings, and copy the Version line.
-      placeholder: HushTumblr 0.0.8 on Tumblr 46.5.0.109
+      placeholder: HushTumblr 0.0.9 on Tumblr 46.8.1.100
     validations:
       required: true
   - type: input
@@ -25,7 +25,7 @@ body:
     attributes:
       label: Which Tumblr file did you patch?
       description: Where it came from, such as APKMirror's bundle, and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
-      placeholder: APKMirror bundle, 46.5.0.109 (1460500109)
+      placeholder: APKMirror bundle, 46.8.1.100 (1460801100)
   - type: dropdown
     id: manager
     attributes:
@@ -78,6 +78,7 @@ body:
         - Hide advertising ID
         - Hide Blaze prompts
         - Hide blog notification reminders
+        - Hide filtered posts
         - Hide gift purchase popups
         - Hide hashtags
         - Hide note counts
@@ -86,6 +87,7 @@ body:
         - Hide reblogs
         - Hide suggested blogs
         - Hide suggested communities
+        - Hide suggested tags
         - Hide text posts
         - Hide the ad-free banner
         - Hide the comment button

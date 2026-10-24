@@ -135,7 +135,6 @@ final class Boot {
         }
     }
 
-    // Original factory name required by the packer's identity check
     static void restoreFactoryName(ApplicationInfo info) {
         String factory = packerFactory(info);
         if (factory.isEmpty()) return;
