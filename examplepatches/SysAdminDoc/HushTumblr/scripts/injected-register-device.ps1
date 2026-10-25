@@ -1,4 +1,5 @@
 . (Join-Path $PSScriptRoot 'device-lease.ps1')
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 function Invoke-AndroidVerifierTally {
     [CmdletBinding()]
@@ -8,6 +9,7 @@ function Invoke-AndroidVerifierTally {
         [Parameter(Mandatory = $true)][string]$Local,
         [Parameter(Mandatory = $true)][string]$Label,
         [scriptblock]$AdbInvoker,
+        [hashtable]$Evidence,
         [string]$LeaseToken = $env:HUSHTUMBLR_DEVICE_LEASE_TOKEN,
         [string]$LeaseDirectory = $env:HUSHTUMBLR_DEVICE_LEASE_DIR,
         [string]$Project = 'HushTumblr',
@@ -23,19 +25,34 @@ function Invoke-AndroidVerifierTally {
     $primaryFailure = $null
     # A clean Tumblr build can raise no verifier message at all (the Facebook sibling's never did), so
     # an empty tally is a real answer here, and the proof that dex2oat verified anything has to
-    # come from elsewhere: it read a file of
-    # the pushed size, and it didn't log that the file was missing. dex2oat exits 0 on a missing
-    # dex file.
-    $localSize = (Get-Item -LiteralPath $Local).Length
+    # come from matching local/remote hashes before and after execution, the pushed size,
+    # completion and the marked log. dex2oat exits 0 on a missing dex file.
+    $localHeld = $null
+    if ($null -ne $Evidence) { $Evidence.Clear(); $Evidence.completed = $false }
     $lease = Enter-HushDeviceLease -Adb $Adb -Serial $Serial -LeaseToken $LeaseToken `
         -LeaseDirectory $LeaseDirectory -Project $Project -ChatIdentity $ChatIdentity -AdbInvoker $AdbInvoker
     try {
+        $localHeld = Open-HeldFile -Path $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Local) -What 'The device verifier input'
+        $Local = Get-HeldPath $localHeld
+        $localSize = $localHeld.Length
+        $localHash = Get-StreamSha256 $localHeld
         $push = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
             -Arguments @('push', $Local, $remote)
         if ($push.ExitCode -ne 0) {
             throw (Format-HushTumblrAdbFailure -Message "Could not push $Label to $Serial" -Result $push)
         }
 
+        $readRemoteHash = {
+            param([string]$Boundary)
+            $reply = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker -Arguments @('shell', 'sha256sum', $remote)
+            $lines = @($reply.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            if ($reply.ExitCode -ne 0 -or $lines.Count -ne 1 -or $lines[0] -cnotmatch '^([0-9a-f]{64})\s+(.+)$' -or $Matches[2] -cne $remote) {
+                throw "Could not read the pushed $Label APK digest $Boundary verification."
+            }
+            if ($Matches[1] -cne $localHash) { throw "The pushed $Label APK digest changed $Boundary verification." }
+            return $Matches[1]
+        }
+        $remoteBefore = & $readRemoteHash 'before'
         $setup = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
             -Arguments @('shell', "rm -rf $directory && mkdir -p $directory")
         if ($setup.ExitCode -ne 0) {
@@ -65,7 +82,7 @@ function Invoke-AndroidVerifierTally {
         $compiler = if ($instructionSet -in @('arm', 'x86')) { 'dex2oat' } else { 'dex2oat64' }
         $dexCommand = "$compiler --dex-file=$remote --oat-file=$directory/out.oat " +
             "--output-vdex=$directory/out.vdex --instruction-set=$instructionSet " +
-            '--compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=$?; ' +
+            '--compiler-filter=verify --runtime-arg -Xmx1024m -j2; echo exit=$?; ' +
             'echo size=$(stat -c %s ' + $remote + ' 2>/dev/null || echo 0)'
         $dex = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
             -Arguments @('shell', $dexCommand)
@@ -87,6 +104,7 @@ function Invoke-AndroidVerifierTally {
             throw "dex2oat on $Label read a file of $readSize bytes on $Serial, not the $localSize bytes pushed."
         }
 
+        $remoteAfter = & $readRemoteHash 'after'
         $logResult = Invoke-HushLeasedAdb -Adb $Adb -Lease $lease -Invoker $AdbInvoker `
             -Arguments @('logcat', '-d')
         if ($logResult.ExitCode -ne 0) {
@@ -122,6 +140,20 @@ function Invoke-AndroidVerifierTally {
             if ($tally.ContainsKey($message)) { $tally[$message]++ }
             else { $tally.Add($message, 1) }
         }
+        if ($null -ne $Evidence) {
+            $Evidence.localSha256 = $localHash
+            $Evidence.remoteBeforeSha256 = $remoteBefore
+            $Evidence.remoteAfterSha256 = $remoteAfter
+            $Evidence.localSize = $localSize
+            $Evidence.readSize = $readSize
+            $Evidence.exitCode = $dexExit
+            $Evidence.markerFound = $true
+            $Evidence.device = $lease.Identity
+            $Evidence.messages = @(foreach ($message in @($tally.Keys | Sort-Object)) {
+                [ordered]@{ message = $message; count = $tally[$message] }
+            })
+            $Evidence.completed = $true
+        }
         return $tally
     } catch {
         $primaryFailure = $_
@@ -150,6 +182,16 @@ function Invoke-AndroidVerifierTally {
                 throw "Verifier cleanup failed. $message"
             }
         }
-        } finally { Exit-HushDeviceLease $lease }
+        } finally {
+            try { Exit-HushDeviceLease $lease }
+            finally { if ($localHeld) { $localHeld.Dispose() } }
+        }
     }
+}
+
+function Write-HushVerifierEvidence {
+    param([string]$Path, $Evidence)
+    $bytes = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -InputObject $Evidence -Depth 10) + "`n")
+    $stream = [IO.File]::Open($Path, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try { $stream.Write($bytes, 0, $bytes.Length); $stream.Flush($true) } finally { $stream.Dispose() }
 }

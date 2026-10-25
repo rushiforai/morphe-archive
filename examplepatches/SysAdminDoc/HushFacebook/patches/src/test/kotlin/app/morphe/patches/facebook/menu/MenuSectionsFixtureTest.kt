@@ -232,6 +232,14 @@ class MenuSectionsFixtureTest {
                     assertTrue("${bundle.name}: v${free.single()} in ${method.name}", free.single() <= 15)
                 }
 
+                // The native section reads whether its group is folded once, from the state it casts,
+                // before the group, and two such locals are free for the fold hook (issue #224).
+                assertNotNull("${bundle.name}: the native section's one fold read before its group", foldRead(native, nativeRead))
+                // And it hands its header whether the group starts folded from one flag of its own.
+                assertNotNull("${bundle.name}: the native section's header seed", startRead(native, nativeRead))
+                val borrowed = native.freeLocalsAt(PATCH, nativeRead.index + 1, 2)
+                assertTrue("${bundle.name}: v${borrowed.joinToString(", v")} in ${native.name}", borrowed.all { it <= 15 })
+
                 // The native section draws the group's collapsible header, the one TalkBack reads
                 // as "Upgrades, header. Section is expanded." on the phone.
                 val headers = created(native).mapNotNull(classes::get)

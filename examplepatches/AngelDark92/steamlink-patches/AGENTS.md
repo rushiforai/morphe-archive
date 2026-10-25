@@ -8,7 +8,7 @@ This repository patches several Android apps for the Samsung Galaxy XR (SM-I610)
 
 | App | Package | Exact verified bases (versionName/versionCode) | Kotlin patches | Resources | Extension task → payload |
 |---|---|---|---|---|---|
-| Steam Link VR | `com.valvesoftware.steamlinkvr` | 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 | `patches/src/main/kotlin/app/template/patches/steamlink/` | `patches/src/main/resources/steamlink/` plus the pre-built layer payloads `patches/src/main/resources/extensions/` (`controller-grip-haptics.mpe`, `controller-hal-pose.mpe`, `shizuku-bridge.mpe`) | `assembleExtension` → `extension.mpe`; also `assembleMinimalExtension`, `assembleBatteryExtension` |
+| Steam Link VR | `com.valvesoftware.steamlinkvr` | 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395 | `patches/src/main/kotlin/app/template/patches/steamlink/` | `patches/src/main/resources/steamlink/` plus the pre-built layer payloads `patches/src/main/resources/extensions/` (`controller-grip-haptics.mpe`, `controller-hal-pose.mpe`, `shizuku-bridge.mpe`) | `assembleExtension` → `extension.mpe`; also `assembleMinimalExtension`, `assembleBatteryExtension` |
 | 4XVR | `cn.vr4p.oculus4xvrplayerov` | 2.0.22/20022 | `patches/src/main/kotlin/app/template/patches/fourxvr/` | `patches/src/main/resources/fourxvr/` | `assembleFourXvrExtension` → `fourxvr-extension.mpe` |
 
 - Per-app compatibility registries live in `shared/Constants.kt` (`COMPATIBILITIES_STEAM_LINK*`, `COMPATIBILITIES_FOUR_XVR`); `shared/PatchCategories.kt` categories are app-neutral and shared.

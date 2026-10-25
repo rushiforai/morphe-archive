@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -60,12 +60,12 @@ public final class HidePlayerFlyoutMenuPatch {
     /**
      * Injection point.
      */
-    public static void hideNativeBottomSheetFooter(String path, List<Object> treeNodeResultList) {
+    public static void hideNativeBottomSheetFooter(CharSequence path, List<Object> treeNodeResultList) {
         if (HIDE_PLAYER_FLYOUT_CAPTIONS_FOOTER || HIDE_PLAYER_FLYOUT_QUALITY_FOOTER) {
             try {
                 final int size = treeNodeResultList.size();
                 if (size > 2) {
-                    if (path.startsWith(CAPTIONS_BODY_PATH) && HIDE_PLAYER_FLYOUT_CAPTIONS_FOOTER) {
+                    if (Utils.startsWith(path, CAPTIONS_BODY_PATH) && HIDE_PLAYER_FLYOUT_CAPTIONS_FOOTER) {
                         int i = 0;
                         for (Object object : treeNodeResultList) {
                             if (!ConversionContext.ELEMENT_IDENTIFIER_COMPONENT.equals(object.toString())) {
@@ -80,7 +80,8 @@ public final class HidePlayerFlyoutMenuPatch {
 
                         treeNodeResultList.remove(size - 1);
 
-                    } else if (path.startsWith(ADVANCED_VIDEO_QUALITY_BODY_PATH) && HIDE_PLAYER_FLYOUT_QUALITY_FOOTER) {
+                    } else if (Utils.startsWith(path, ADVANCED_VIDEO_QUALITY_BODY_PATH)
+                            && HIDE_PLAYER_FLYOUT_QUALITY_FOOTER) {
                         for (Object object : treeNodeResultList) {
                             if (!ConversionContext.ELEMENT_IDENTIFIER_COMPONENT.equals(object.toString())) {
                                 return;
@@ -149,8 +150,9 @@ public final class HidePlayerFlyoutMenuPatch {
                             return EMPTY_BYTE_ARRAY;
                         }
                     } else if (HIDE_PLAYER_FLYOUT_CAPTIONS_HEADER && model.hasBottomSheetHeaderModel()) {
-                        // 'CAPTIONS_HEADER_PATH(bottom_sheet_header.e)' is used not only for captions player flyout menu but also in other places:
-                        // https://github.com/mrx7014/MRXHalawa-Patches/issues/2637.
+                        // CAPTIONS_HEADER_PATH, 'bottom_sheet_header.e', is used not only
+                        // for captions player flyout menu but also in other places:
+                        // https://github.com/MorpheApp/morphe-patches/issues/2637.
                         //
                         // Filter only if the bottom sheet title is 'Captions'.
                         String bottomSheetTitle = model.getBottomSheetHeaderModel().getHeaderContent().getTitleText();

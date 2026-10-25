@@ -21,8 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the ads in feeds and articles, the banner ads and the splash ad, and stops the " +
-        "Google and Amazon ad SDKs from starting. Ads inside videos are part of the stream and stay.",
+    description = "Removes ads from feeds, articles and the splash screen.",
 ) {
     compatibleWith(COMPATIBILITY_BLEACHER_REPORT)
 

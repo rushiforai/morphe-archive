@@ -1,0 +1,235 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ */
+package app.morphe.patches.facebook.downloads.photo
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.comments.options.GRAPHQL_COMMENT
+import app.morphe.patches.facebook.downloads.video.ATTACHMENTS_FIELD
+import app.morphe.patches.facebook.downloads.video.IMMUTABLE_LIST
+import app.morphe.patches.facebook.downloads.video.graphQlGetter
+import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.layout.theme.branchTargets
+import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.util.classDefForEachReferencing
+import app.morphe.util.getFreeRegisterProvider
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+
+/*
+ * A comment's long-press sheet, which offers Save photo on a photo comment and nothing on a GIF
+ * (#226). Read from 584, 2026-10-24, arm64; the obfuscated names are for reviewers, the code never
+ * writes one down.
+ *
+ * - The sheet is a component (LX/Nld;) made by CommentBottomSheetFragment, and its render builds
+ *   the rows into one list. It holds the name "CommentBottomSheetMenuSocket".
+ * - Save photo comes last: render copies the comment's attachments (GraphQLComment's getter of
+ *   `attachments`), keeps the ones styled as a photo (a GIF's attachment isn't), and when any are
+ *   left builds the row. That's a click action wrapped in a row-click object (LX/3yR;, a 3tD, a
+ *   Function0 and the Function1 tap, the first two null), handed with the component context, the
+ *   title, a null subtitle and an icon to one static row builder (LX/Nld;->A03), whose answer goes
+ *   into the list when it isn't null.
+ * - Every way past Save photo, rows or none, meets at the list's isEmpty, and render draws the sheet
+ *   only when that says no.
+ *
+ * The hook goes right after that test: the extension is asked for a tap action for the comment, and
+ * when it answers one, a row of Facebook's own kind is built the way Save photo's is, with Save
+ * photo's icon, and added to the list.
+ */
+
+internal const val COMMENT_SHEET_SOCKET = "CommentBottomSheetMenuSocket"
+internal const val GIF_ROW_CLICK = "$EXTENSION_PACKAGE/download/CommentGif;->clickFor(Ljava/lang/Object;)Lkotlin/jvm/functions/Function1;"
+internal const val GIF_ROW_TITLE = "$EXTENSION_PACKAGE/download/CommentGif;->title()Ljava/lang/String;"
+
+private const val STRING = "Ljava/lang/String;"
+private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
+private const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
+
+/**
+ * Where the sheet's render takes the Save GIF row, and what the row is built from: the hook goes
+ * at [insert], [comment], [context] and [list] are the registers holding the comment, the component
+ * context and the rows, and [builder], [wrapper], [wrapperInit], [icon] and [add] are Save photo's
+ * own row builder, its row-click type and constructor, its icon and the list's add.
+ */
+internal data class CommentGifPoint(
+    val insert: Int,
+    val comment: Int,
+    val context: Int,
+    val list: Int,
+    val builder: String,
+    val wrapper: String,
+    val wrapperInit: String,
+    val icon: Int,
+    val add: String,
+)
+
+private fun Instruction.methodCalled() = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val first = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return first == register || (opcode.setsWideRegister() && first + 1 == register)
+}
+
+private fun Instruction.firstRegister() = when (this) {
+    is RegisterRangeInstruction -> startRegister
+    is FiveRegisterInstruction -> registerC
+    else -> -1
+}
+
+/**
+ * The hook point in [method] when it's the comment sheet's render, read through Save photo's row:
+ * the one call of the comment's [attachmentsGetter], then the first static (row-click, context,
+ * String, String, int) builder after it, the row-click newed up for it from a Function1, the icon
+ * constant, the add of its answer to the list, and the list's isEmpty test right after. Null when
+ * any of those is missing, when the hook point is a branch target, or when the comment or context
+ * register could hold something else there.
+ */
+internal fun commentGifPoint(method: Method, attachmentsGetter: String): CommentGifPoint? {
+    if (!holdsString(method, COMMENT_SHEET_SOCKET)) return null
+    val code = method.implementation?.instructions?.toList() ?: return null
+
+    val getter = code.indices.singleOrNull { at ->
+        val call = code[at].methodCalled() ?: return@singleOrNull false
+        (code[at].opcode == Opcode.INVOKE_VIRTUAL || code[at].opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+            call.definingClass == GRAPHQL_COMMENT && call.name == attachmentsGetter &&
+            call.parameterTypes.isEmpty() && call.returnType == IMMUTABLE_LIST
+    } ?: return null
+    val comment = code[getter].firstRegister()
+
+    val builderAt = (getter + 1 until minOf(code.size, getter + 40)).firstOrNull { at ->
+        val call = code[at].methodCalled() ?: return@firstOrNull false
+        val types = call.parameterTypes.map(CharSequence::toString)
+        code[at].opcode == Opcode.INVOKE_STATIC && types.size == 5 && types[0].startsWith("L") &&
+            types[1].startsWith("L") && types[2] == STRING && types[3] == STRING && types[4] == "I" &&
+            call.returnType.startsWith("L")
+    } ?: return null
+    val build = code[builderAt] as FiveRegisterInstruction
+    val builder = code[builderAt].methodCalled()!!
+
+    val wrapperAt = (builderAt - 1 downTo getter + 1).firstOrNull { at ->
+        val call = code[at].methodCalled() ?: return@firstOrNull false
+        val types = call.parameterTypes.map(CharSequence::toString)
+        code[at].opcode == Opcode.INVOKE_DIRECT && call.name == "<init>" && types.size == 3 &&
+            types[1] == FUNCTION0 && types[2] == FUNCTION1 && (code[at] as FiveRegisterInstruction).registerC == build.registerC
+    } ?: return null
+    val wrapperInit = code[wrapperAt].methodCalled()!!
+    val newed = code[wrapperAt - 1]
+    if (newed.opcode != Opcode.NEW_INSTANCE || (newed as OneRegisterInstruction).registerA != build.registerC ||
+        ((newed as ReferenceInstruction).reference as TypeReference).type != wrapperInit.definingClass
+    ) return null
+
+    val iconWrite = code[builderAt - 1]
+    if (!iconWrite.writes(build.registerG) || iconWrite !is NarrowLiteralInstruction) return null
+    val icon = iconWrite.narrowLiteral
+
+    val result = code.getOrNull(builderAt + 1) ?: return null
+    if (result.opcode != Opcode.MOVE_RESULT_OBJECT) return null
+    val row = (result as OneRegisterInstruction).registerA
+    val nullTest = code.getOrNull(builderAt + 2) ?: return null
+    if (nullTest.opcode != Opcode.IF_EQZ || (nullTest as OneRegisterInstruction).registerA != row) return null
+    val addAt = code.getOrNull(builderAt + 3) ?: return null
+    val add = addAt.methodCalled() ?: return null
+    if (addAt.opcode != Opcode.INVOKE_VIRTUAL || add.name != "add" || (addAt as FiveRegisterInstruction).registerCount != 2 ||
+        addAt.registerD != row
+    ) return null
+    val list = addAt.registerC
+
+    val isEmpty = code.getOrNull(builderAt + 4) ?: return null
+    val isEmptyCall = isEmpty.methodCalled() ?: return null
+    if (isEmptyCall.name != "isEmpty" || isEmptyCall.returnType != "Z" || isEmpty.firstRegister() != list) return null
+    val answer = code.getOrNull(builderAt + 5) ?: return null
+    if (answer.opcode != Opcode.MOVE_RESULT) return null
+    val empty = code.getOrNull(builderAt + 6) ?: return null
+    if (empty.opcode != Opcode.IF_NEZ || (empty as OneRegisterInstruction).registerA != (answer as OneRegisterInstruction).registerA) return null
+    val insert = builderAt + 7
+    if (insert >= code.size || insert in branchTargets(code)) return null
+
+    // The short call forms the row is built with take v0 to v15 only.
+    val context = build.registerD
+    if (context > 15 || list > 15) return null
+    // Every way to the hook point must find the context and the comment where Save photo's row
+    // found them: each register is written once, by the copy render starts with, or for the
+    // comment by one move and its cast to GraphQLComment, with no write after.
+    val before = code.subList(0, insert)
+    if (before.count { it.writes(context) } != 1) return null
+    val commentWrites = before.indices.filter { before[it].writes(comment) }
+    if (commentWrites.size != 2 || commentWrites[1] != commentWrites[0] + 1 || commentWrites[1] > getter) return null
+    val cast = before[commentWrites[1]]
+    if (cast.opcode != Opcode.CHECK_CAST || ((cast as ReferenceInstruction).reference as TypeReference).type != GRAPHQL_COMMENT) return null
+
+    return CommentGifPoint(
+        insert = insert,
+        comment = comment,
+        context = context,
+        list = list,
+        builder = builder.toString(),
+        wrapper = wrapperInit.definingClass,
+        wrapperInit = wrapperInit.toString(),
+        icon = icon,
+        add = add.toString(),
+    )
+}
+
+/**
+ * Finds the comment sheet's render and returns the step that adds Save GIF to it. Refuses unless
+ * exactly one method outside the extension has the shape [commentGifPoint] looks for. Nothing
+ * changes until the step runs.
+ */
+internal fun BytecodePatchContext.commentSheetGifRow(): () -> Unit {
+    val attachmentsGetter = graphQlGetter(GRAPHQL_COMMENT, IMMUTABLE_LIST, ATTACHMENTS_FIELD, "a comment's attachments")
+    val found = mutableListOf<Pair<String, Method>>()
+    classDefForEachReferencing(types = listOf(GRAPHQL_COMMENT), strings = listOf(COMMENT_SHEET_SOCKET)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
+        classDef.methods.filter { commentGifPoint(it, attachmentsGetter) != null }.mapTo(found) { classDef.type to it }
+    }
+    val (owner, holder) = found.singleOrNull() ?: throw PatchException(
+        "$PHOTO_PATCH: expected one comment sheet render ($COMMENT_SHEET_SOCKET) that builds Save photo's row from a " +
+            "comment's attachments, found ${found.size}",
+    )
+    return {
+        val method = mutableClassDefBy(owner).methods.single {
+            it.name == holder.name && it.parameterTypes.map(CharSequence::toString) == holder.parameterTypes.map(CharSequence::toString)
+        }
+        val point = commentGifPoint(method, attachmentsGetter)
+            ?: throw PatchException("$PHOTO_PATCH: $owner->${holder.name} lost its Save photo row before it was hooked")
+        val registers = method.getFreeRegisterProvider(point.insert, 4, point.comment, point.context, point.list)
+        val action = registers.getFreeRegister4Bit()
+        val wrapper = registers.getFreeRegister4Bit()
+        val none = registers.getFreeRegister4Bit()
+        val icon = registers.getFreeRegister4Bit()
+        method.addInstructionsWithLabels(
+            point.insert,
+            """
+                move-object/from16 v$action, v${point.comment}
+                invoke-static { v$action }, $GIF_ROW_CLICK
+                move-result-object v$action
+                if-eqz v$action, :hush_no_gif
+                new-instance v$wrapper, ${point.wrapper}
+                const/4 v$none, 0x0
+                invoke-direct { v$wrapper, v$none, v$none, v$action }, ${point.wrapperInit}
+                invoke-static { }, $GIF_ROW_TITLE
+                move-result-object v$action
+                const v$icon, ${point.icon}
+                invoke-static { v$wrapper, v${point.context}, v$action, v$none, v$icon }, ${point.builder}
+                move-result-object v$action
+                if-eqz v$action, :hush_no_gif
+                invoke-virtual { v${point.list}, v$action }, ${point.add}
+            """,
+            ExternalLabel("hush_no_gif", method.getInstruction(point.insert)),
+        )
+    }
+}

@@ -17,7 +17,7 @@ private const val INTERSTITIAL = "Lcom/applovin/mediation/ads/MaxInterstitialAd;
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, interstitial and rewarded ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_BOXBOX)
 

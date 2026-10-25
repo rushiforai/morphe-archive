@@ -31,11 +31,15 @@ Every switch but Debug logging acts as if it were off, and what was set when you
 Export diagnostic report	Diagnosebericht exportieren
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Ab dem nächsten Start verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.
 Lock these settings	Diese Einstellungen sperren
-Pick a wait of 1, 6 or 24 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Wähle eine Wartezeit von 1, 6 oder 24 Stunden. Gesperrt ändert sich hier nichts, bis du das Entsperren anforderst und die Wartezeit vorbei ist.
+Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Wähle eine Wartezeit von 1 bis 72 Stunden. Gesperrt ändert sich hier nichts, bis du das Entsperren anforderst und die Wartezeit vorbei ist.
 Ask to unlock	Entsperren anfordern
 These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	Diese Einstellungen sind gesperrt. Tippe, um die Wartezeit von %1$s zu starten, danach sind sie 10 Minuten lang offen.
 Unlock asked	Entsperren angefordert
 These settings open at %1$s, for 10 minutes.	Diese Einstellungen öffnen sich um %1$s für 10 Minuten.
+These settings open at %1$s, for 10 minutes. Tap to stop the wait.	Diese Einstellungen öffnen sich um %1$s für 10 Minuten. Tippe, um die Wartezeit zu beenden.
+Stop the wait	Wartezeit beenden
+Keep waiting	Weiter warten
+Wait stopped. These settings stay locked.	Wartezeit beendet. Diese Einstellungen bleiben gesperrt.
 Settings are open	Einstellungen sind offen
 They lock again at %1$s. Tap to lock them now or turn the lock off.	Sie sperren sich um %1$s wieder. Tippe, um sie jetzt zu sperren oder die Sperre auszuschalten.
 # context: the wait of a settings lock when it is exactly one hour; %1$d is the number
@@ -534,6 +538,7 @@ Find the reel	Reel finden
 Stop looking	Suche beenden
 Couldn't find the reel you came from	Das Reel, von dem du kamst, wurde nicht gefunden
 That's a trial reel, so it isn't on their profile	Das ist ein Test-Reel, deshalb ist es nicht im Profil
+That reel isn't on their profile. It might be a trial reel.	Das Reel ist nicht im Profil. Vielleicht ist es ein Test-Reel.
 Clear saved copies now	Gespeicherte Kopien jetzt löschen
 Clear the media cache	Medien-Cache leeren
 Couldn't clear the saved copies. Try again.	Die gespeicherten Kopien konnten nicht gelöscht werden. Versuch es noch einmal.
@@ -736,6 +741,8 @@ Google's emoji everywhere	Überall Googles Emojis
 # context: Layout switch; it turns Instagram's blue into a color picked in the row under it
 Accent color	Akzentfarbe
 Turns Instagram's blue, on Follow buttons, links and the like, into the color you pick below. Restart Instagram to see the change.	Färbt Instagrams Blau auf Folgen-Buttons, Links und Ähnlichem in die Farbe um, die du unten auswählst. Starte Instagram neu, um die Änderung zu sehen.
+Badges in the accent color	Badges in der Akzentfarbe
+The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Die roten Punkte und Zahlen für neue Nachrichten und Benachrichtigungen nehmen die Farbe an, die du ausgewählt hast. Starte Instagram neu, um die Änderung zu sehen.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Farbe
 Instagram blue	Instagram-Blau
@@ -746,6 +753,8 @@ Red	Rot
 Orange	Orange
 Green	Grün
 Teal	Petrol
+Material You	Material You
+Material You needs Android 12 or newer, so Instagram's blue stays.	Material You braucht Android 12 oder neuer, deshalb bleibt das Blau von Instagram.
 # context: Layout switch; it puts HushGram's logo on the screen Android shows while Instagram starts
 HushGram launch screen	HushGram-Startbildschirm
 Shows HushGram's logo instead of Instagram's on the screen you see while Instagram starts, on Android 13 and newer. It shows from the next start.	Zeigt auf dem Bildschirm, den du beim Start von Instagram siehst, das Logo von HushGram statt dem von Instagram, ab Android 13. Es erscheint ab dem nächsten Start.
@@ -923,6 +932,8 @@ The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x t
 Zoomed photo	Vergrößertes Foto
 Full screen Reels	Vollbild-Reels
 Hides the status bar and the navigation bar while Reels shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Blendet die Statusleiste und die Navigationsleiste aus, solange Reels angezeigt wird. Wische vom Rand herein, um sie kurz wieder einzublenden. Zurück und die Tastatur funktionieren wie gewohnt.
+Fill the screen	Bildschirm füllen
+Reels that are nearly the screen's shape fill it, cut a little at the sides, instead of showing black bars above and below. Square and wide videos still fit.	Reels, die fast die Form des Bildschirms haben, füllen ihn aus und werden an den Seiten etwas abgeschnitten, statt oben und unten schwarze Balken zu zeigen. Quadratische und breite Videos passen weiterhin hinein.
 Full screen Home	Vollbild-Startseite
 Hides the status bar and the navigation bar while Home shows. Swipe in from the edge to bring them back for a moment.	Blendet die Statusleiste und die Navigationsleiste aus, solange die Startseite angezeigt wird. Wische vom Rand herein, um sie kurz wieder einzublenden.
 Full screen Messages	Vollbild-Nachrichten
@@ -1222,3 +1233,26 @@ Instagram's own	Instagrams eigenes
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Instagrams eigenes. Wähle ein anderes, um das Symbol auf deinem Startbildschirm und in der App-Übersicht zu ändern.
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Es erscheint, sobald du Instagram verlässt. Fehlt das Symbol auf deinem Startbildschirm, füge es aus der App-Übersicht wieder hinzu.
 the home screen icon you picked	das von dir gewählte App-Symbol
+# context: Your fonts in story text switch under Stories and the Your story fonts row and dialog under it; the fonts are .ttf or .otf files picked from the phone, shown in Instagram's story text editor after its own
+Your fonts in story text	Deine Schriftarten im Story-Text
+Adds the fonts below to the story text editor, after Instagram's own fonts, which all stay. Pick one there like any other font.	Fügt die Schriftarten unten dem Story-Texteditor hinzu, nach den Schriftarten von Instagram, die alle bleiben. Wähle dort eine wie jede andere Schriftart.
+Your story fonts	Deine Story-Schriftarten
+Add .ttf or .otf files from your phone. Uncheck one to take it out.	Füge .ttf- oder .otf-Dateien von deinem Handy hinzu. Entferne das Häkchen, um eine herauszunehmen.
+No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor, after Instagram's fonts.	Noch keine Schriftarten hinzugefügt. Füge eine .ttf- oder .otf-Datei hinzu, dann erscheint sie im Story-Texteditor nach den Schriftarten von Instagram.
+Add a font file	Schriftdatei hinzufügen
+Removed from your story fonts	Aus deinen Story-Schriftarten entfernt
+That file isn't a font HushGram can use. Nothing was added.	Diese Datei ist keine Schriftart, die HushGram nutzen kann. Es wurde nichts hinzugefügt.
+Added %1$s. Pick it in the story text editor, after Instagram's fonts.	%1$s hinzugefügt. Wähle sie im Story-Texteditor nach den Schriftarten von Instagram.
+# context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
+Logo and titles at the start	Logo und Titel am Anfang
+Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Setzt das Instagram-Logo und den Titel jeder Leiste an den Anfang der Leiste, wo Instagram sie früher zeigte. Schalte es ein, wenn Instagram sie bei dir zentriert. Es hat Vorrang vor den Zentrier-Schaltern darüber. Starte Instagram neu, um die Änderung auf der Startseite zu sehen.
+# context: Emoji font in story text, a switch under Stories after Your story fonts; turning it on opens the phone's file picker for an emoji font file (.ttf), used only for emoji typed in Instagram's story text editor (#275)
+Emoji font in story text	Emoji-Schriftart im Story-Text
+Emoji you type in story text draw from an emoji font file you pick. Turning it on asks for the file. Off, Instagram's emoji come back.	Emojis, die du im Story-Text eingibst, kommen aus einer Emoji-Schriftdatei, die du auswählst. Beim Einschalten wirst du nach der Datei gefragt. Aus kommen die Emojis von Instagram zurück.
+That file isn't a font HushGram can use. Story emoji haven't changed.	Diese Datei ist keine Schriftart, die HushGram nutzen kann. Die Story-Emojis wurden nicht geändert.
+Emoji font saved. Emoji in story text draw in it.	Emoji-Schriftart gespeichert. Emojis im Story-Text erscheinen jetzt in ihr.
+Rows in Instagram's settings	Zeilen in Instagrams Einstellungen
+Every row of Instagram's Settings and activity shows. Untick the ones you don't use.	Alle Zeilen von Instagrams Einstellungen und Aktivitäten werden angezeigt. Hake die ab, die du nicht brauchst.
+%1$d row is left off Instagram's Settings and activity.	%1$d Zeile fehlt in Instagrams Einstellungen und Aktivitäten.
+%1$d rows are left off Instagram's Settings and activity.	%1$d Zeilen fehlen in Instagrams Einstellungen und Aktivitäten.
+Open Settings and activity in Instagram once, then come back here. Its rows show up in this list to untick.	Öffne in Instagram einmal Einstellungen und Aktivitäten und komm dann hierher zurück. Die Zeilen erscheinen dann in dieser Liste zum Abhaken.

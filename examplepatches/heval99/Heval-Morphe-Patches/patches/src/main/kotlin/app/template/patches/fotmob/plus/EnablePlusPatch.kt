@@ -30,9 +30,7 @@ private fun MutableMethod?.returnEarlyIfImplemented(value: Boolean) =
 @Suppress("unused")
 val enablePlusPatch = bytecodePatch(
     name = "Enable FotMob+",
-    description = "Removes ads and the FotMob+ paywall. On 238 and newer it also unlocks the " +
-        "exclusive app icons (More > FotMob+). The membership screen still shows no " +
-        "subscription; early access is managed by FotMob."
+    description = "Unlocks FotMob+ and removes ads."
 ) {
     compatibleWith(COMPATIBILITY_FOTMOB)
 

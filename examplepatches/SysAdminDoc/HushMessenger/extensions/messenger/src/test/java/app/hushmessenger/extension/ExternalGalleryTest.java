@@ -11,7 +11,12 @@ import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.ParcelFileDescriptor;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,14 +35,23 @@ import static org.robolectric.Shadows.shadowOf;
 public class ExternalGalleryTest {
     static final String CAMERA_SCREEN = "com.facebook.messaging.montage.composer.MontageComposerActivity";
     Application app;
+    private java.util.concurrent.Executor originalWork;
 
     @Before public void reset() {
+        originalWork = GalleryActivity.work;
+        GalleryActivity.work = Runnable::run;
+        GalleryPicker.lastOutcome = GalleryPicker.Outcome.NOT_USED;
         app = RuntimeEnvironment.getApplication();
         Settings.initialize(app);
         Settings.preferences.edit().clear().commit();
         Settings.activeAt.clear();
         Settings.hookErrors.clear();
         CrashGuard.resetForTests();
+    }
+
+    @After public void restoreWorker() {
+        GalleryActivity.work = originalWork;
+        GalleryPicker.lastOutcome = GalleryPicker.Outcome.NOT_USED;
     }
 
     /** A gallery app that answers a photo pick, as Samsung's Gallery and Google Photos do. */
@@ -179,6 +193,131 @@ public class ExternalGalleryTest {
         @Override public Uri insert(Uri uri, ContentValues values) { return null; }
         @Override public int delete(Uri uri, String selection, String[] arguments) { return 0; }
         @Override public int update(Uri uri, ContentValues values, String selection, String[] arguments) { return 0; }
+        @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws java.io.FileNotFoundException {
+            if (uri.getPath().contains("revoked")) throw new SecurityException("private provider URI must not enter diagnostics");
+            File file = new File(getContext().getCacheDir(), "gallery-result-test.bin");
+            try (java.io.FileOutputStream output = new java.io.FileOutputStream(file)) { output.write(1); }
+            catch (IOException failed) { throw new java.io.FileNotFoundException("test media unavailable"); }
+            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        }
+    }
+
+    public static class SlowProvider extends PickedProvider {
+        static java.util.concurrent.CountDownLatch entered, release;
+        static volatile boolean mainThread;
+        @Override public String getType(Uri uri) {
+            mainThread = Looper.myLooper() == Looper.getMainLooper();
+            entered.countDown();
+            try { if (!release.await(3, java.util.concurrent.TimeUnit.SECONDS)) throw new IllegalStateException("test provider timeout"); }
+            catch (InterruptedException stopped) { Thread.currentThread().interrupt(); throw new IllegalStateException(stopped); }
+            return super.getType(uri);
+        }
+    }
+
+    @Test public void aSlowProviderDoesNotBlockTheResultScreenAndItsGrantIsCheckedBeforeReturn() throws Exception {
+        installGallery();
+        Robolectric.setupContentProvider(SlowProvider.class, "gallery.slow");
+        SlowProvider.entered = new java.util.concurrent.CountDownLatch(1);
+        SlowProvider.release = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        GalleryActivity.work = task -> originalWork.execute(() -> { try { task.run(); } finally { done.countDown(); } });
+        try (ActivityController<GalleryActivity> controller = Robolectric.buildActivity(GalleryActivity.class).setup()) {
+            ShadowActivity screen = shadowOf(controller.get());
+            screen.receiveResult(screen.getNextStartedActivityForResult().intent, Activity.RESULT_OK,
+                new Intent().setData(Uri.parse("content://gallery.slow/image/7")));
+            assertTrue(SlowProvider.entered.await(3, java.util.concurrent.TimeUnit.SECONDS));
+            assertFalse(SlowProvider.mainThread);
+            assertFalse(controller.get().isFinishing());
+            SlowProvider.release.countDown();
+            assertTrue(done.await(3, java.util.concurrent.TimeUnit.SECONDS));
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(Activity.RESULT_OK, screen.getResultCode());
+            assertEquals(GalleryPicker.Outcome.SELECTED, GalleryPicker.lastOutcome);
+        } finally { SlowProvider.release.countDown(); }
+    }
+
+    @Test public void timeoutAndCancelDiscardALateResultWithoutSendingAnything() {
+        installGallery();
+        Robolectric.setupContentProvider(PickedProvider.class, "gallery.delayed");
+        for (boolean timeout : new boolean[] {true, false}) {
+            java.util.List<Runnable> queued = new java.util.ArrayList<>();
+            GalleryActivity.work = queued::add;
+            try (ActivityController<GalleryActivity> controller = Robolectric.buildActivity(GalleryActivity.class).setup()) {
+                GalleryActivity activity = controller.get();
+                ShadowActivity screen = shadowOf(activity);
+                screen.receiveResult(screen.getNextStartedActivityForResult().intent, Activity.RESULT_OK,
+                    new Intent().setData(Uri.parse("content://gallery.delayed/image/7")));
+                assertFalse(activity.isFinishing());
+                if (timeout) shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(GalleryActivity.RESULT_TIMEOUT_MILLIS));
+                else { activity.finish(); controller.pause().stop().destroy(); }
+                queued.get(0).run();
+                shadowOf(Looper.getMainLooper()).idle();
+                assertNotEquals(Activity.RESULT_OK, screen.getResultCode());
+                assertNull(screen.getResultIntent());
+                if (timeout) assertEquals(GalleryPicker.Outcome.RESULT_TIMEOUT, GalleryPicker.lastOutcome);
+            }
+        }
+    }
+
+    @Test public void aRecreatedResultScreenReceivesTheOwnedJobOnce() {
+        installGallery();
+        Robolectric.setupContentProvider(PickedProvider.class, "gallery.recreated");
+        java.util.List<Runnable> queued = new java.util.ArrayList<>();
+        GalleryActivity.work = queued::add;
+        try (ActivityController<GalleryActivity> controller = Robolectric.buildActivity(GalleryActivity.class).setup()) {
+            GalleryActivity old = controller.get();
+            ShadowActivity screen = shadowOf(old);
+            screen.receiveResult(screen.getNextStartedActivityForResult().intent, Activity.RESULT_OK,
+                new Intent().setData(Uri.parse("content://gallery.recreated/image/7")));
+            controller.recreate();
+            assertNotSame(old, controller.get());
+            queued.get(0).run();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(Activity.RESULT_OK, shadowOf(controller.get()).getResultCode());
+            assertNotEquals(Activity.RESULT_OK, screen.getResultCode());
+            assertEquals(1, queued.size());
+        }
+    }
+
+    @Test public void revokedGrantsAndBusyWorkersHaveCategoricalFailures() {
+        installGallery();
+        Robolectric.setupContentProvider(PickedProvider.class, "gallery.revoked");
+        for (boolean busy : new boolean[] {false, true}) {
+            GalleryActivity.work = busy ? task -> { throw new java.util.concurrent.RejectedExecutionException(); } : Runnable::run;
+            try (ActivityController<GalleryActivity> controller = Robolectric.buildActivity(GalleryActivity.class).setup()) {
+                ShadowActivity screen = shadowOf(controller.get());
+                screen.receiveResult(screen.getNextStartedActivityForResult().intent, Activity.RESULT_OK,
+                    new Intent().setDataAndType(Uri.parse("content://gallery.revoked/image/revoked"), "image/jpeg"));
+                assertEquals(Activity.RESULT_CANCELED, screen.getResultCode());
+                assertNull(screen.getResultIntent());
+                assertEquals(busy ? GalleryPicker.Outcome.RESULT_BUSY : GalleryPicker.Outcome.RESULT_REVOKED, GalleryPicker.lastOutcome);
+            }
+        }
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void nonMediaAndNonLocalResultsAreInvalid() {
+        assertNull(GalleryPicker.handBack(app, new Intent().setDataAndType(Uri.parse("https://example.com/photo"), "image/jpeg")));
+        assertNull(GalleryPicker.handBack(app, new Intent().setDataAndType(Uri.parse("content://example/file"), "text/plain")));
+    }
+
+    @Test public void missingPickerAndMissingHostScreenAreDifferentAndWildcardTypesAreResolvedOnce() {
+        assertNull(GalleryPicker.screenIntent(app));
+        assertEquals(GalleryPicker.Outcome.PICKER_MISSING, GalleryPicker.lastOutcome);
+        installGallery();
+        android.content.Context missingHost = new android.content.ContextWrapper(app) {
+            @Override public String getPackageName() { return "com.example.without.gallery.screen"; }
+        };
+        assertNull(GalleryPicker.screenIntent(missingHost));
+        assertEquals(GalleryPicker.Outcome.COMPONENT_MISSING, GalleryPicker.lastOutcome);
+        assertNotNull(GalleryPicker.screenIntent(app));
+        Robolectric.setupContentProvider(PickedProvider.class, "gallery.wildcard");
+        Uri uri = Uri.parse("content://gallery.wildcard/image/7");
+        assertEquals("image/jpeg", GalleryPicker.handBack(app, new Intent().setDataAndType(uri, "*/*")).getType());
+        Intent unknown = new Intent().setData(uri).putExtra(GalleryPicker.RESULT_PREPARED, true);
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        Settings.externalMediaResult(1112, Activity.RESULT_OK, unknown);
+        assertNull("An already prepared result must not query its provider on the UI thread", unknown.getType());
     }
 
     @Test public void aPickWithNoTypeGetsItsOwnTypeSoTheChatOpensItInTheEditor() {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -37,19 +37,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.youtube.sponsorblock.SponsorBlockChannelWhitelist;
-import app.morphe.extension.shared.ui.SheetBottomDialog;
-import app.morphe.extension.shared.ui.Dim;
-import app.morphe.extension.shared.theme.ThemeUtils;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import android.widget.TextView;
-import android.widget.ScrollView;
-import android.widget.Button;
-import android.view.View;
-import android.view.Gravity;
-import android.text.TextUtils;
-import android.graphics.Typeface;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.sponsorblock.SegmentPlaybackController;
 import app.morphe.extension.shared.sponsorblock.objects.CategoryBehaviour;
@@ -61,6 +48,7 @@ import app.morphe.extension.shared.sponsorblock.requests.SBRequester.SegmentSubm
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.VideoState;
 import app.morphe.extension.youtube.sponsorblock.ui.SponsorBlockViewController;
 
 /**
@@ -195,11 +183,8 @@ public class SponsorBlockUtils {
             final long videoLength = VideoInformation.getVideoLength();
             SegmentSubmitAction submitType = isHighlight ? SegmentSubmitAction.HIGHLIGHT : SegmentSubmitAction.SKIP;
 
-            if (start < 0 || end < 0 || videoLength <= 0 || videoId.isEmpty() || segmentCategory == null) {
-                Logger.printException(() -> "Invalid parameters");
-                return;
-            }
-            if (!isHighlight && start >= end) {
+            if (start < 0 || end < 0 || videoLength <= 0 || videoId.isEmpty() || segmentCategory == null
+                    || (!isHighlight && start >= end)) {
                 Logger.printException(() -> "Invalid parameters");
                 return;
             }
@@ -231,7 +216,13 @@ public class SponsorBlockUtils {
                             formatSegmentTime(newSponsorSegmentDialogShownMillis)),
                     null,
                     str("morphe_sb_new_segment_mark_end"),
-                    () -> newSponsorSegmentEndMillis = newSponsorSegmentDialogShownMillis,
+                    () -> {
+                        final long videoLength = VideoInformation.getVideoLength();
+                        newSponsorSegmentEndMillis =
+                                VideoState.getCurrent() == VideoState.ENDED && videoLength > 0
+                                        ? videoLength
+                                        : newSponsorSegmentDialogShownMillis;
+                    },
                     null,
                     str("morphe_sb_new_segment_mark_start"),
                     () -> newSponsorSegmentStartMillis = newSponsorSegmentDialogShownMillis,
@@ -301,11 +292,8 @@ public class SponsorBlockUtils {
                     str("morphe_sb_new_segment_confirm_submit"),
                     () -> {
                         SponsorBlockViewController.hideNewSegmentLayout();
-                        SegmentCategory[] categories = SegmentCategory.categoriesWithoutUnsubmitted();
-                        CharSequence[] titles = new CharSequence[categories.length];
-                        for (int i = 0, length = categories.length; i < length; i++) {
-                            titles[i] = categories[i].getTitleWithColorDot();
-                        }
+                        CharSequence[] titles = getTitlesWithColorDot(
+                                SegmentCategory.categoriesWithoutUnsubmitted());
                         newUserCreatedSegmentCategory = null;
                         new AlertDialog.Builder(SponsorBlockViewController.getOverLaysViewGroupContext())
                                 .setTitle(str("morphe_sb_new_segment_choose_category"))
@@ -384,18 +372,22 @@ public class SponsorBlockUtils {
         try {
             Utils.verifyOnMainThread();
             final SegmentCategory[] values = SegmentCategory.categoriesWithoutHighlights();
-            CharSequence[] titles = new CharSequence[values.length];
-            for (int i = 0; i < values.length; i++) {
-                titles[i] = values[i].getTitleWithColorDot();
-            }
 
             new AlertDialog.Builder(context)
                     .setTitle(str("morphe_sb_new_segment_choose_category"))
-                    .setItems(titles, (dialog, which) -> SBRequester.voteToChangeCategoryOnBackgroundThread(segment, values[which]))
+                    .setItems(getTitlesWithColorDot(values), (dialog, which) -> SBRequester.voteToChangeCategoryOnBackgroundThread(segment, values[which]))
                     .show();
         } catch (Exception ex) {
             Logger.printException(() -> "onNewCategorySelect failure", ex);
         }
+    }
+
+    private static CharSequence[] getTitlesWithColorDot(SegmentCategory[] categories) {
+        CharSequence[] titles = new CharSequence[categories.length];
+        for (int i = 0; i < categories.length; i++) {
+            titles[i] = categories[i].getTitleWithColorDot();
+        }
+        return titles;
     }
 
     public static void onPreviewClicked() {
@@ -541,205 +533,9 @@ public class SponsorBlockUtils {
         return str("morphe_sb_stats_saved_second_format", secondsFormatted);
     }
 
-    public static void showChannelWhitelistDialog(Context context) {
-        try {
-            Utils.verifyOnMainThread();
-
-            SheetBottomDialog.DraggableLinearLayout mainLayout =
-                    SheetBottomDialog.createMainLayout(context, null);
-            mainLayout.setPadding(Dim.dp16, 0, Dim.dp16, Dim.dp16);
-
-            TextView titleView = new TextView(context);
-            titleView.setText(str("morphe_sb_channel_whitelist_title"));
-            titleView.setTextSize(18);
-            titleView.setTypeface(Typeface.DEFAULT_BOLD);
-            titleView.setTextColor(ThemeUtils.getAppForegroundColor());
-            titleView.setGravity(Gravity.CENTER_HORIZONTAL);
-            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            titleParams.setMargins(0, Dim.dp8, 0, Dim.dp16);
-            titleView.setLayoutParams(titleParams);
-            mainLayout.addView(titleView);
-
-            LinearLayout dynamicContainer = new LinearLayout(context);
-            dynamicContainer.setOrientation(LinearLayout.VERTICAL);
-            mainLayout.addView(dynamicContainer);
-
-            buildWhitelistContent(context, dynamicContainer);
-
-            SheetBottomDialog.SlideDialog dialog =
-                    SheetBottomDialog.createSlideDialog(context, mainLayout, 300);
-            dialog.show();
-        } catch (Exception ex) {
-            Logger.printException(() -> "showChannelWhitelistDialog failure", ex);
-        }
-    }
-
-    private static void buildWhitelistContent(Context context, LinearLayout container) {
-        container.removeAllViews();
-
-        String currentChannelId = VideoInformation.getChannelId();
-        if (!currentChannelId.isEmpty()) {
-            String currentChannelName = VideoInformation.getChannelName();
-            String currentDisplayName = currentChannelName.isEmpty() ? currentChannelId : currentChannelName;
-
-            TextView sectionLabel = new TextView(context);
-            sectionLabel.setText(str("morphe_sb_channel_whitelist_current_channel"));
-            sectionLabel.setTextSize(13);
-            sectionLabel.setTextColor(ThemeUtils.getAppForegroundColor());
-            sectionLabel.setAlpha(0.7f);
-            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            labelParams.setMargins(0, 0, 0, Dim.dp4);
-            sectionLabel.setLayoutParams(labelParams);
-            container.addView(sectionLabel);
-
-            LinearLayout currentRow = new LinearLayout(context);
-            currentRow.setOrientation(LinearLayout.HORIZONTAL);
-            currentRow.setGravity(Gravity.CENTER_VERTICAL);
-            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            rowParams.setMargins(0, 0, 0, Dim.dp12);
-            currentRow.setLayoutParams(rowParams);
-
-            TextView channelIdText = new TextView(context);
-            channelIdText.setText(currentDisplayName);
-            channelIdText.setTextSize(14);
-            channelIdText.setTextColor(ThemeUtils.getAppForegroundColor());
-            channelIdText.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-            channelIdText.setEllipsize(TextUtils.TruncateAt.END);
-            channelIdText.setSingleLine(true);
-            currentRow.addView(channelIdText);
-
-            boolean isWhitelisted = SponsorBlockChannelWhitelist.isChannelWhitelisted(currentChannelId);
-            Button actionBtn = CustomDialog.createButton(
-                    context, null,
-                    isWhitelisted
-                            ? str("morphe_sb_channel_whitelist_remove")
-                            : str("morphe_sb_channel_whitelist_add"),
-                    () -> {
-                        if (SponsorBlockChannelWhitelist.isChannelWhitelisted(currentChannelId)) {
-                            SponsorBlockChannelWhitelist.removeChannel(currentChannelId);
-                            Utils.showToastShort(str("morphe_sb_channel_whitelist_channel_removed"));
-                        } else {
-                            SponsorBlockChannelWhitelist.addChannel(currentChannelId, currentChannelName);
-                            Utils.showToastShort(str("morphe_sb_channel_whitelist_channel_added"));
-                        }
-                        buildWhitelistContent(context, container);
-                    },
-                    !isWhitelisted, false
-            );
-            LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, Dim.dp36);
-            btnParams.setMargins(Dim.dp8, 0, 0, 0);
-            actionBtn.setLayoutParams(btnParams);
-            currentRow.addView(actionBtn);
-            container.addView(currentRow);
-
-            View divider = new View(context);
-            divider.setBackgroundColor(Utils.isDarkModeEnabled() ? 0x26FFFFFF : 0x26000000);
-            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, Dim.dp1);
-            dividerParams.setMargins(0, 0, 0, Dim.dp12);
-            divider.setLayoutParams(dividerParams);
-            container.addView(divider);
-        }
-
-        TextView channelsHeader = new TextView(context);
-        channelsHeader.setText(str("morphe_sb_channel_whitelist_channels_header"));
-        channelsHeader.setTextSize(13);
-        channelsHeader.setTextColor(ThemeUtils.getAppForegroundColor());
-        channelsHeader.setAlpha(0.7f);
-        LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        headerParams.setMargins(0, 0, 0, Dim.dp8);
-        channelsHeader.setLayoutParams(headerParams);
-        container.addView(channelsHeader);
-
-        LinkedHashMap<String, String> channels = SponsorBlockChannelWhitelist.getWhitelistedChannels();
-
-        if (channels.isEmpty()) {
-            TextView emptyView = new TextView(context);
-            emptyView.setText(str("morphe_sb_channel_whitelist_empty"));
-            emptyView.setTextSize(14);
-            emptyView.setTextColor(ThemeUtils.getAppForegroundColor());
-            emptyView.setAlpha(0.5f);
-            emptyView.setGravity(Gravity.CENTER_HORIZONTAL);
-            LinearLayout.LayoutParams emptyParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            emptyParams.setMargins(0, Dim.dp8, 0, Dim.dp8);
-            emptyView.setLayoutParams(emptyParams);
-            container.addView(emptyView);
-        } else {
-            ScrollView scrollView = new ScrollView(context);
-            scrollView.setVerticalScrollBarEnabled(false);
-            scrollView.setOverScrollMode(View.OVER_SCROLL_NEVER);
-            scrollView.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    Math.min(Dim.pctHeight(40), channels.size() * Dim.dp(44))));
-
-            LinearLayout listContainer = new LinearLayout(context);
-            listContainer.setOrientation(LinearLayout.VERTICAL);
-
-            for (Map.Entry<String, String> entry : channels.entrySet()) {
-                String id = entry.getKey();
-                String name = entry.getValue();
-                String displayName = name.isEmpty() ? id : name;
-                listContainer.addView(buildChannelRow(context, id, displayName, container));
-            }
-
-            scrollView.addView(listContainer);
-            container.addView(scrollView);
-        }
-    }
-
-    private static LinearLayout buildChannelRow(Context context, String channelId, String displayName, LinearLayout container) {
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        rowParams.setMargins(0, 0, 0, Dim.dp8);
-        row.setLayoutParams(rowParams);
-
-        TextView idText = new TextView(context);
-        idText.setText(displayName);
-        idText.setTextSize(14);
-        idText.setTextColor(ThemeUtils.getAppForegroundColor());
-        idText.setLayoutParams(new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        idText.setEllipsize(TextUtils.TruncateAt.END);
-        idText.setSingleLine(true);
-        row.addView(idText);
-
-        Button removeBtn = CustomDialog.createButton(
-                context, null,
-                str("morphe_sb_channel_whitelist_remove"),
-                () -> {
-                    SponsorBlockChannelWhitelist.removeChannel(channelId);
-                    Utils.showToastShort(str("morphe_sb_channel_whitelist_channel_removed"));
-                    buildWhitelistContent(context, container);
-                },
-                false, false
-        );
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, Dim.dp36);
-        btnParams.setMargins(Dim.dp8, 0, 0, 0);
-        removeBtn.setLayoutParams(btnParams);
-        row.addView(removeBtn);
-
-        return row;
-    }
-
-    private static class EditByHandSaveDialogListener implements DialogInterface.OnClickListener {
+    private static class EditByHandSaveDialogListener {
         private boolean settingStart;
         private WeakReference<EditText> editTextRef = new WeakReference<>(null);
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            saveTime(which == DialogInterface.BUTTON_NEUTRAL);
-        }
 
         public void saveTime(boolean useCurrentTime) {
             try {

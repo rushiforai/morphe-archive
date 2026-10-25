@@ -57,7 +57,7 @@ class HevalControlsPatcherTest {
                 packageName = PKG,
                 apkFileType = ApkFileType.APKM,
                 appIconColor = 0xD0BCFF,
-                targets = listOf(AppTarget(version = "1.4.4", versionCode = 56)),
+                targets = listOf(AppTarget(version = "1.4.5", versionCode = 57)),
             ),
         )
         val featurePatch = host.featurePatch(feature) {
@@ -77,7 +77,7 @@ class HevalControlsPatcherTest {
             apk = apk,
             workDir = workDir.resolve(run),
             pkg = PKG,
-            version = "1.4.4",
+            version = "1.4.5",
             patchNames = setOf("Heval Controls", feature.name),
             allPatches = setOf(host.patch, featurePatch),
         )
@@ -97,7 +97,7 @@ class HevalControlsPatcherTest {
         // Registry getters were rewritten.
         val registry = byType.getValue("${EXTENSION}Registry;")
         assertEquals(HevalRegistryCodec.encode(listOf(feature)), registry.constString("encoded"))
-        assertEquals("1.4.4 (56)", registry.constString("patchedAppVersion"))
+        assertEquals("1.4.5 (57)", registry.constString("patchedAppVersion"))
         assertTrue(registry.constString("bundleVersion").isNotBlank())
 
         // The feature's method starts with the gate.

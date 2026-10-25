@@ -4,20 +4,29 @@ import software.santodan.nuvio.NuvioNative;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Uses the target APK's existing themed Compose controls, dialog and text editor. */
 final class IntroUi {
+    // Compose calls this bridge repeatedly while controls are visible.
+    private static final Map<Class<?>, Map<String, Method>> methods = new ConcurrentHashMap<>();
     interface Callback { Object invoke(Object[] args) throws Exception; }
     interface Action { void run() throws Exception; }
     interface Content { void render(Object composer) throws Exception; }
     static Method method(Class<?> owner, String name, int count) throws Exception {
+        Map<String, Method> cache = methods.computeIfAbsent(owner, ignored -> new ConcurrentHashMap<>());
+        String key = name + ':' + count;
+        Method cached = cache.get(key);
+        if (cached != null) return cached;
         Method result = null;
         for (Method candidate : owner.getDeclaredMethods()) if (candidate.getName().equals(name) && candidate.getParameterCount() == count) {
             if (result != null) throw new NoSuchMethodException("Ambiguous " + owner.getName() + '.' + name);
             result = candidate;
         }
         if (result == null) throw new NoSuchMethodException(owner.getName() + '.' + name);
-        result.setAccessible(true); return result;
+        result.setAccessible(true);
+        Method previous = cache.putIfAbsent(key, result);
+        return previous == null ? result : previous;
     }
     static Object field(Object value, String name) throws Exception {
         Field field = value.getClass().getDeclaredField(name); field.setAccessible(true); return field.get(value);

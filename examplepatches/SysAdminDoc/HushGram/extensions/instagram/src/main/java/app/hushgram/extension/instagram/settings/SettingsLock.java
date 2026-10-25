@@ -11,8 +11,9 @@ import app.hushgram.extension.shared.Utils;
 
 /**
  * Lock these settings (#301). Locked, the settings page changes nothing. Ask to unlock starts the
- * wait the lock was set with, 1, 6 or 24 hours, and when it ends the page opens for ten minutes,
- * then locks again unless the lock was turned off in that time.
+ * wait the lock was set with, 1 to 72 hours, and when it ends the page opens for ten minutes, then
+ * locks again unless the lock was turned off in that time. A wait can be stopped before it ends,
+ * which keeps the lock as it was before the ask.
  *
  * <p>The wait is counted on the clock that runs from the phone's start, which setting the time of
  * day doesn't move. Only when the phone restarted since Ask to unlock does it fall back on the time
@@ -34,7 +35,7 @@ final class SettingsLock {
     /** How long the page stays open once the wait is over. */
     static final long OPEN_MS = 10 * 60_000L;
     /** The waits a lock can be set with, in hours. */
-    static final int[] WAITS = {1, 6, 24};
+    static final int[] WAITS = {1, 6, 24, 48, 72};
     private static final long HOUR_MS = 3_600_000L;
 
     /** The phone's clocks. */
@@ -142,6 +143,16 @@ final class SettingsLock {
         if (state() != State.LOCKED) return false;
         Clocks now = clocks;
         Settings.SETTINGS_LOCK_ASKED.save(now.wall() + "," + now.elapsed() + "," + now.starts());
+        return true;
+    }
+
+    /**
+     * Stops a running wait, so the settings stay locked and the next ask starts the whole wait
+     * again. Only while waiting: it never opens anything or takes the lock off.
+     */
+    static boolean stopWait() {
+        if (state() != State.WAITING) return false;
+        Settings.SETTINGS_LOCK_ASKED.save("");
         return true;
     }
 

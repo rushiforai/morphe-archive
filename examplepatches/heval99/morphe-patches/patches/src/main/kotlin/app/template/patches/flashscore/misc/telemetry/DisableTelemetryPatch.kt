@@ -74,9 +74,7 @@ private val disableTelemetryManifestPatch = resourcePatch {
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables AppsFlyer, Apptentive, Crashlytics, Firebase Analytics and Performance " +
-        "collection, and Facebook automatic event logging. Facebook Login and push notifications " +
-        "keep working.",
+    description = "Disables analytics and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_FLASHSCORE)
 

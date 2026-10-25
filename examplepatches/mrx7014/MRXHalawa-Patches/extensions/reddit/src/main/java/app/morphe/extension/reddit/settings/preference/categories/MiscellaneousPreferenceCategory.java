@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -13,13 +13,18 @@ import android.content.Context;
 import android.preference.Preference;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.reddit.patches.AppIconPatch;
+import app.morphe.extension.reddit.patches.DownloadLocationPatch;
 import app.morphe.extension.reddit.patches.OpenLinksDirectlyPatch;
 import app.morphe.extension.reddit.patches.OpenLinksExternallyPatch;
+import app.morphe.extension.reddit.patches.RedgifsAudioPatch;
 import app.morphe.extension.reddit.patches.SanitizeSharingLinksPatch;
 import app.morphe.extension.reddit.patches.VersionCheckPatch;
 import app.morphe.extension.reddit.settings.Settings;
 import app.morphe.extension.reddit.settings.preference.BooleanSettingPreference;
+import app.morphe.extension.reddit.settings.preference.DownloadLocationPreference;
 import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.preference.ImportExportPreference;
 import app.morphe.extension.shared.settings.preference.SortedListPreference;
@@ -35,8 +40,11 @@ public class MiscellaneousPreferenceCategory extends ConditionalPreferenceCatego
 
     @Override
     public boolean getSettingsStatus() {
-        return OpenLinksDirectlyPatch.isPatchIncluded() ||
+        return AppIconPatch.isPatchIncluded() ||
+                DownloadLocationPatch.isPatchIncluded() ||
+                OpenLinksDirectlyPatch.isPatchIncluded() ||
                 OpenLinksExternallyPatch.isPatchIncluded() ||
+                RedgifsAudioPatch.isPatchIncluded() ||
                 SanitizeSharingLinksPatch.isPatchIncluded();
     }
 
@@ -53,9 +61,14 @@ public class MiscellaneousPreferenceCategory extends ConditionalPreferenceCatego
         importPref.setSummary(str("morphe_pref_import_export_summary"));
         addPreference(importPref);
 
-        SortedListPreference language = new SortedListPreference(context, BaseSettings.MORPHE_LANGUAGE);
-        addPreference(language);
+        addPreference(new SortedListPreference(context, BaseSettings.MORPHE_LANGUAGE));
 
+        if (AppIconPatch.isPatchIncluded()) {
+            addPreference(AppIconPatch.getIconPreference(context));
+        }
+        if (DownloadLocationPatch.isPatchIncluded()) {
+            addPreference(new DownloadLocationPreference(context));
+        }
         if (OpenLinksDirectlyPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
@@ -68,12 +81,27 @@ public class MiscellaneousPreferenceCategory extends ConditionalPreferenceCatego
                     Settings.OPEN_LINKS_EXTERNALLY
             ));
         }
+        if (RedgifsAudioPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.REDGIFS_AUDIO
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.REDGIFS_HD
+            ));
+        }
         if (SanitizeSharingLinksPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
                     Settings.SANITIZE_SHARING_LINKS
             ));
         }
+
+        addPreference(new BooleanSettingPreference(
+                context,
+                BaseSettings.DEBUG
+        ));
 
         // Include original privacy policy link that was changed to open Morphe settings.
         if (VersionCheckPatch.is_2026_25_or_greater) {
@@ -82,5 +110,7 @@ public class MiscellaneousPreferenceCategory extends ConditionalPreferenceCatego
             preference.externalURL = ResourceUtils.getString("privacy_policy_uri");
             addPreference(preference);
         }
+
+        Utils.setPreferenceTitlesToMultiLine(this);
     }
 }

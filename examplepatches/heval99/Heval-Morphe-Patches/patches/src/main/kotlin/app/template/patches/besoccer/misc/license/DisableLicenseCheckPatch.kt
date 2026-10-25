@@ -16,7 +16,7 @@ private const val LICENSE_CLIENT = "Lcom/pairip/licensecheck/LicenseClient;"
 @Suppress("unused")
 val disableLicenseCheckPatch = bytecodePatch(
     name = "Disable license check",
-    description = "Skips the Play Store license check so the patched app starts."
+    description = "Disables the Play Store license check so the app starts."
 ) {
     compatibleWith(COMPATIBILITY_BESOCCER)
 

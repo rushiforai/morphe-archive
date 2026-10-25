@@ -30,7 +30,7 @@ private fun BytecodePatchContext.concreteVoidMethods(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, native, interstitial, rewarded and app-open ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_BLUEMAIL)
 

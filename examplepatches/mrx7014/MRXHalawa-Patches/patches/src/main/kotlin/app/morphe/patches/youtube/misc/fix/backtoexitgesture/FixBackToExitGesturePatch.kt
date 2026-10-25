@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -13,13 +13,14 @@ package app.morphe.patches.youtube.misc.fix.backtoexitgesture
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
+import app.morphe.patches.youtube.misc.backgesture.addBackPressedHook
+import app.morphe.patches.youtube.misc.backgesture.addPredictiveBackGestureHook
+import app.morphe.patches.youtube.misc.backgesture.backGesturePatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
-import app.morphe.patches.youtube.misc.playservice.is_20_40_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
-import app.morphe.patches.youtube.shared.YouTubeMainActivityOnBackPressedFingerprint
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -36,6 +37,7 @@ internal val fixBackToExitGesturePatch = bytecodePatch(
     dependsOn(
         sharedExtensionPatch,
         playerTypeHookPatch,
+        backGesturePatch,
         versionCheckPatch,
         settingsPatch,
     )
@@ -45,7 +47,9 @@ internal val fixBackToExitGesturePatch = bytecodePatch(
             SwitchPreference("morphe_back_button_always_exits_feed", summary = true)
         )
 
-        RecyclerViewTopScrollingFingerprint.let {
+        // FIXME? Originally this only changed the first match, but for a while this has matched
+        //        2 or more nearly identical methods in different classes.
+        recyclerViewTopScrollingFingerprint().matchAll(1..2).forEach {
             it.method.addInstructionsAtControlFlowLabel(
                 it.instructionMatches.last().index + 1,
                 "invoke-static { }, $EXTENSION_CLASS->onTopView()V"
@@ -71,23 +75,7 @@ internal val fixBackToExitGesturePatch = bytecodePatch(
             )
         }
 
-        YouTubeMainActivityOnBackPressedFingerprint.let {
-            it.clearMatch()
-            it.method.apply {
-                val index = it.instructionMatches.first().index + 1
-
-                addInstructionsAtControlFlowLabel(
-                    index,
-                    "invoke-static { }, $EXTENSION_CLASS->onBackPressed()V"
-                )
-            }
-        }
-
-        if (is_20_40_or_greater) {
-            PredictiveGesturesOnBackInvokedFingerprint.method.addInstruction(
-                0,
-                "invoke-static { }, $EXTENSION_CLASS->onBackPressed()V"
-            )
-        }
+        addBackPressedHook(EXTENSION_CLASS, "onBackInvoked", afterActivityBackPressed = true)
+        addPredictiveBackGestureHook(EXTENSION_CLASS)
     }
 }

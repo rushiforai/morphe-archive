@@ -27,29 +27,60 @@ private val markMessagesAsDeletedFingerprint = Fingerprint(
     parameters = listOf("J", "Ljava/util/ArrayList;", "Z", "Z", "I", "I"),
 )
 
+private val deletedMessageUiFilters = listOf(
+    fieldAccess(
+        definingClass = "Lorg/telegram/messenger/MessageObject;",
+        name = "deleted",
+        type = "Z",
+        opcode = Opcode.IPUT_BOOLEAN,
+    ),
+    methodCall(
+        definingClass = "Lorg/telegram/messenger/NotificationsController;",
+        name = "removeDeletedMessagesFromNotifications",
+        returnType = "V",
+    ),
+)
+
+// Current UI workers: Telegram/Web 13.1.1 share the lambda signature; Plus 13.0.3.0
+// uses the static synthetic m0 worker with the androidx.collection/k parameters.
 private val deletedMessageUiFingerprint = Fingerprint(
     definingClass = "Lorg/telegram/messenger/MessagesController;",
     returnType = "V",
-    filters = listOf(
-        fieldAccess(
-            definingClass = "Lorg/telegram/messenger/MessageObject;",
-            name = "deleted",
-            type = "Z",
-            opcode = Opcode.IPUT_BOOLEAN,
-        ),
-        methodCall(
-            definingClass = "Lorg/telegram/messenger/NotificationsController;",
-            name = "removeDeletedMessagesFromNotifications",
-            returnType = "V",
-        ),
-    ),
+    filters = deletedMessageUiFilters,
+    custom = { method, _ ->
+        val parameters = method.parameterTypes.map { it.toString() }
+        (method.name == "lambda\$processUpdateArray\$419" && parameters == listOf(
+            "Lorg/telegram/messenger/support/LongSparseIntArray;",
+            "Lorg/telegram/messenger/support/LongSparseIntArray;",
+            "Landroid/util/SparseIntArray;",
+            "Lz/f;", "Lz/f;", "Lz/f;", "Lz/f;", "Lz/f;",
+            "Lorg/telegram/messenger/support/LongSparseIntArray;",
+        )) || (method.name == "m0" && parameters == listOf(
+            "Lorg/telegram/messenger/MessagesController;",
+            "Lorg/telegram/messenger/support/LongSparseIntArray;",
+            "Lorg/telegram/messenger/support/LongSparseIntArray;",
+            "Landroid/util/SparseIntArray;",
+            "Landroidx/collection/k;", "Landroidx/collection/k;", "Landroidx/collection/k;",
+            "Landroidx/collection/k;", "Landroidx/collection/k;",
+            "Lorg/telegram/messenger/support/LongSparseIntArray;",
+            "Ljava/util/ArrayList;",
+        ))
+    },
+)
+
+// Unconstrained historical matcher retained separately for older DEX layouts; it is not used
+// by the current patch path because current target signatures above are explicitly audited.
+private val deletedMessageUiLegacyFingerprint = Fingerprint(
+    definingClass = "Lorg/telegram/messenger/MessagesController;",
+    returnType = "V",
+    filters = deletedMessageUiFilters,
 )
 
 /*
  * The first parameter is build-specific:
- *   Telegram / Telegram Web 12.10.6 -> Lz/f;
- *   Telegram Plus 12.10.6.0 -> Landroidx/collection/k;
- *   older supported Plus builds may use Landroidx/collection/h;.
+ *   Telegram / Telegram Web 13.1.1 -> Lz/f;
+ *   Telegram Plus 13.0.3.0 -> Landroidx/collection/k;
+ *   older Plus builds may use Landroidx/collection/h;.
  *
  * Resolve the exact known variant at patch time rather than using a stale
  * LongSparseArray descriptor or silently skipping the notification hook.
@@ -98,9 +129,8 @@ val telegramAntiDeletePatch = bytecodePatch(
     dependsOn(telegramSpoofDependency())
 
     execute {
-        // Resolve the named method on Telegram/Web and older supported Plus builds.
-        // Plus 13.0.2.0 renamed this worker to m3 and changed its argument list;
-        // its body was verified to perform both push deletion and storage deletion.
+        // Resolve the named worker on the current targets. Plus 13.0.3.0's direct
+        // deleteMessagesByPush method is present; the older m3 fallback remains separate.
         val deleteMessagesByPushMethod =
             deleteMessagesByPushFingerprint.methodOrNull
                 ?: MessagesControllerDeletePushMessagesPlusFingerprint.methodOrNull

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -18,7 +18,7 @@ public class FixRecycledBitmapPatch {
 
     /**
      * Injection point.
-     * Fix: <a href="https://github.com/mrx7014/MRXHalawa-Patches/issues/686">Cannot obtain size for recycled Bitmap: ARGB_8888</a>.
+     * Fix: <a href="https://github.com/MorpheApp/morphe-patches/issues/686">Cannot obtain size for recycled Bitmap: ARGB_8888</a>.
      */
     public static Builder putBitmap(Builder builder, String key, Bitmap bitmap) {
         if (bitmap != null) {

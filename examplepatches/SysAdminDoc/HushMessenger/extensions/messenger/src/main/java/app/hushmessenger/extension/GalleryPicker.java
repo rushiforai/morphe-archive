@@ -21,11 +21,15 @@ final class GalleryPicker {
     static final String ITEMS_MARK = "app.hushmessenger.gallery_items";
     /** Set on that result once its items went to the Send to sheet. */
     static final String ITEMS_SENT = "app.hushmessenger.gallery_items_sent";
+    static final String RESULT_PREPARED = "app.hushmessenger.gallery_prepared";
     /** Messenger's own share entry. It takes several items and opens the Send to sheet with any chats it's handed on top. */
     static final String SHARE_HANDLER = "com.facebook.messenger.intents.ShareIntentHandler";
     /** The share sheet reads the chats to put on top from this key as a list of threads or as user ids. */
     static final String SHARE_TARGETS = "android.intent.extra.shortcut.ID";
     private static final String[] MEDIA = {"image/*", "video/*"};
+    enum Outcome { NOT_USED, PICKER_MISSING, COMPONENT_MISSING, LAUNCH_FAILED, RESULT_INVALID, RESULT_REVOKED,
+        RESULT_TIMEOUT, RESULT_BUSY, CANCELED, SELECTED }
+    static volatile Outcome lastOutcome = Outcome.NOT_USED;
 
     private GalleryPicker() {}
 
@@ -71,12 +75,18 @@ final class GalleryPicker {
 
     /** The pick screen when Android knows it under this package's own name and a gallery app answers a pick, otherwise null. */
     static Intent screenIntent(Context context) {
-        if (pickIntent(context) == null) return null;
+        if (pickIntent(context) == null) {
+            lastOutcome = Outcome.PICKER_MISSING;
+            return null;
+        }
         String own = context.getPackageName();
         Intent intent = new Intent().setClassName(own, GalleryActivity.class.getName());
         ResolveInfo screen = context.getPackageManager().resolveActivity(intent, 0);
         // A Root Mount install keeps the stock manifest, so the screen isn't there and Messenger's gallery stays.
-        if (screen == null || screen.activityInfo == null || !own.equals(screen.activityInfo.packageName)) return null;
+        if (screen == null || screen.activityInfo == null || !own.equals(screen.activityInfo.packageName)) {
+            lastOutcome = Outcome.COMPONENT_MISSING;
+            return null;
+        }
         return intent;
     }
 
@@ -103,15 +113,18 @@ final class GalleryPicker {
             if (item != null && !items.contains(item)) items.add(item);
         }
         if (items.isEmpty()) return null;
+        for (Uri item : items) if (!"content".equals(item.getScheme()) && !"file".equals(item.getScheme())) return null;
         Uri first = items.get(0);
         String type = first.equals(picked.getData()) ? picked.getType() : null;
-        if (type == null) type = typeOf(context, first);
+        if (type == null || "*/*".equals(type) || "application/octet-stream".equals(type)) type = typeOf(context, first);
+        if (type != null && !mediaType(type)) return null;
         Intent result = type == null ? new Intent().setData(first) : new Intent().setDataAndType(first, type);
         if (items.size() > 1) {
             java.util.Set<String> types = new java.util.LinkedHashSet<>();
             types.add(type == null ? "*/*" : type);
             for (Uri item : items.subList(1, items.size())) {
                 String itemType = typeOf(context, item);
+                if (itemType != null && !mediaType(itemType)) return null;
                 types.add(itemType == null ? "*/*" : itemType);
             }
             ClipData all = new ClipData("picked", types.toArray(new String[0]), new ClipData.Item(first));
@@ -119,11 +132,32 @@ final class GalleryPicker {
             result.setClipData(all);
             result.putExtra(ITEMS_MARK, true);
         }
-        return result.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        return result.putExtra(RESULT_PREPARED, true).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
     }
 
     private static String typeOf(Context context, Uri item) {
         return "content".equals(item.getScheme()) ? context.getContentResolver().getType(item) : null;
+    }
+
+    private static boolean mediaType(String type) {
+        String lower = type.toLowerCase(java.util.Locale.ROOT);
+        return lower.startsWith("image/") || lower.startsWith("video/");
+    }
+
+    /** Check the actual grant on a worker before the picker screen returns it to Messenger. */
+    static void requireReadable(Context context, Intent picked) throws java.io.IOException {
+        java.util.List<Uri> items = new java.util.ArrayList<>();
+        items.add(picked.getData());
+        ClipData clip = picked.getClipData();
+        for (int i = 0; clip != null && i < clip.getItemCount(); i++) {
+            Uri item = clip.getItemAt(i).getUri();
+            if (!items.contains(item)) items.add(item);
+        }
+        for (Uri item : items) {
+            try (android.content.res.AssetFileDescriptor file = context.getContentResolver().openAssetFileDescriptor(item, "r")) {
+                if (file == null) throw new java.io.IOException("gallery selection unavailable");
+            }
+        }
     }
 
     /**

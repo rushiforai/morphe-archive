@@ -28,6 +28,7 @@ import android.graphics.RenderNode;
 import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -357,6 +358,33 @@ public final class GlassTabBar {
         return true;
     }
 
+    /**
+     * Makes the ring round [badge] clear (#315): a GradientDrawable background gets a clear stroke
+     * [width] wide. One not in [cleared] is cleared as usual and added, and that's the true answer.
+     * One cleared before is cleared again only while the badge waits to redraw, and without asking for
+     * a frame: Instagram strokes a dot again in place when a tab is picked, and asks for the redraw
+     * itself, while a frame asked for here would come back here and ask for another.
+     */
+    static boolean clearRing(View badge, int width, java.util.Set<Drawable> cleared) {
+        Drawable background = badge.getBackground();
+        if (!(background instanceof GradientDrawable)) return false;
+        // Mutated first: a dot's drawable comes from Instagram's resources, shared with every other dot.
+        GradientDrawable ring = (GradientDrawable) background.mutate();
+        if (cleared.add(ring)) {
+            ring.setStroke(width, Color.TRANSPARENT);
+            return true;
+        }
+        if (!badge.isDirty()) return false;
+        Drawable.Callback callback = ring.getCallback();
+        ring.setCallback(null);
+        try {
+            ring.setStroke(width, Color.TRANSPARENT);
+        } finally {
+            ring.setCallback(callback);
+        }
+        return false;
+    }
+
     /** Whether [drawable] is a ripple with nothing in it but its mask: a touch's feedback, which draws nothing at rest. */
     static boolean touchFeedbackOnly(Drawable drawable) {
         if (!(drawable instanceof RippleDrawable)) return false;
@@ -550,6 +578,13 @@ public final class GlassTabBar {
     /** The selected tab's capsule sits 4dp in from the pill's top and bottom and stands 4dp past its slot. */
     static final int HIGHLIGHT_INSET_DP = 4;
     static final int HIGHLIGHT_GROW_DP = 4;
+    /**
+     * The ids of Instagram's count and dot badges on a tab, which it rings in the bar's own colour so a
+     * badge stands off the icon. On the glass that ring shows as a solid outline (#315), so it goes clear.
+     */
+    static final String[] BADGES = {"notification", "led_badge"};
+    /** The ring's width, as Instagram draws it for both badges. A clear stroke keeps it, so the badge keeps its size. */
+    static final int BADGE_RING_DP = 2;
 
     /** The blur is worked out at a quarter of the size, which also blurs it more for the same work. */
     static final int DOWNSAMPLE = 4;
@@ -621,6 +656,8 @@ public final class GlassTabBar {
     static final String COUNT_STORY_ASIDE = "Bar hidden over a story";
     /** Counted once for each bar whose Search tab the liquid look puts in a circle of its own (#65). */
     static final String COUNT_SEARCH_APART = "Search put in its own circle";
+    /** Counted each time a tab badge's ring, new to the glass, is made clear (#315). */
+    static final String COUNT_BADGE_RING = "Tab badge's ring made clear";
 
     /** Liquid look (#65): the clear gap between the pill and Search's circle beside it. */
     static final int SEARCH_GAP_DP = 8;
@@ -1274,6 +1311,8 @@ public final class GlassTabBar {
         private float compact;
         @Nullable private ValueAnimator compacting;
         /** The translation and alpha the liquid look gave each tab, and the tabs it put out of a touch's reach, so only what it did is undone. */
+        /** The badge backgrounds whose ring this bar has made clear. */
+        private final java.util.Set<Drawable> rings = java.util.Collections.newSetFromMap(new WeakHashMap<>());
         private final WeakHashMap<View, Float> shifted = new WeakHashMap<>();
         private final WeakHashMap<View, Float> faded = new WeakHashMap<>();
         private final WeakHashMap<View, Boolean> tucked = new WeakHashMap<>();
@@ -1655,6 +1694,17 @@ public final class GlassTabBar {
             return pillInsetPx(height, bar.getHeight() - room, gap(), density);
         }
 
+        /** Makes the ring of each badge on [tab] clear, as {@link #clearRing} does. */
+        private void clearBadgeRings(View tab) {
+            for (String name : BADGES) {
+                int badge = id(tab.getContext(), name);
+                View found = badge == 0 ? null : tab.findViewById(badge);
+                if (found != null && clearRing(found, dp(BADGE_RING_DP), rings)) {
+                    HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_BADGE_RING);
+                }
+            }
+        }
+
         /** The colour Instagram gave the bar, or white or black by the theme when it wasn't a plain one. */
         private int baseColor(@Nullable Drawable background) {
             if (background instanceof ColorDrawable) return ((ColorDrawable) background).getColor() | 0xff000000;
@@ -1674,6 +1724,7 @@ public final class GlassTabBar {
             // ripple is the tab's touch feedback, not a capsule, and stays.
             for (int i = 0; i < bar.getChildCount(); i++) {
                 View tab = bar.getChildAt(i);
+                clearBadgeRings(tab);
                 Drawable own = tab.getBackground();
                 if (own == null || touchFeedbackOnly(own)) continue;
                 tab.setBackground(null);

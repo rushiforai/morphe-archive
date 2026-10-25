@@ -4,7 +4,7 @@
 
 | App | Package | Supported builds | Patches by |
 |---|---|---|---|
-| Steam Link VR | `com.valvesoftware.steamlinkvr` | 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 | AngelDark92; controller tracking and haptics by [@4uva4ek](https://github.com/4uva4ek) |
+| Steam Link VR | `com.valvesoftware.steamlinkvr` | 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395 | AngelDark92; controller tracking and haptics by [@4uva4ek](https://github.com/4uva4ek) |
 | 4XVR | `cn.vr4p.oculus4xvrplayerov` | 2.0.22/20022 | [@logkim1](https://github.com/logkim1/4XVR-GalaxyXR) |
 
 - **Steam Link VR** — streams SteamVR from your PC to the headset. The patches fix resolution, color and OLED calibration, microphone, controller tracking, permissions and startup for Android XR.
@@ -32,6 +32,10 @@ Downgrade lists the builds Meta still serves. If the build you need is not offer
 <img width="2986" height="1896" alt="DownQ downgrade button on the Steam Link store page" src="https://github.com/user-attachments/assets/3cb2c534-f4b0-46a1-80be-1854d2ab2cbf" />
 
 4. Copy the APK to the headset.
+### Alternative direct download 
+- ```https://drive.google.com/file/d/1P9t7wf-DZQzb5anJIXBYTxGq_5mUuOfp/view?usp=sharing ``` 2.0.20
+- ```https://drive.google.com/file/d/1eGhp7IU7w_SqhbBdls3qFf1_Osxuj5Yu/view?usp=sharing ``` 2.0.23
+- ```https://drive.google.com/file/d/1U3UNdBFqEWcJ3LTWHFAto5KDu0xNBdQ5/view?usp=sharing ``` 2.0.24
 
 ## 2. Patch and install
 

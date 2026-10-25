@@ -35,17 +35,35 @@ namespace {
 #error "GXR_AST_SOURCE_PROJECTION_COUNT must be 2 or 3"
 #endif
 
+// The quad must stay a real, submitted Android Surface. The production helpers
+// keep the smallest nonzero alpha (1/255) so the compositor cannot treat the
+// layer as an empty submission. The 5001712 alpha-0 trial keeps the same layer
+// topology but removes the last 1/255 of darkening; build it separately and only
+// select it for the exact 2.0.20/5001712 base until the headset run proves that
+// the high-resolution path still engages.
+#ifndef GXR_AST_TRIGGER_ALPHA
+#define GXR_AST_TRIGGER_ALPHA 1
+#endif
+#if GXR_AST_TRIGGER_ALPHA < 0 || GXR_AST_TRIGGER_ALPHA > 255
+#error "GXR_AST_TRIGGER_ALPHA must be one 8-bit alpha byte"
+#endif
+
 constexpr char kLayerName[] =
     "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1";
 constexpr char kModeName[] = "android_surface_trigger_passthrough_v1";
 #if GXR_AST_SOURCE_PROJECTION_COUNT == 2
+#if GXR_AST_TRIGGER_ALPHA == 0
+constexpr char kBuildId[] = "android-surface-trigger-5001712-alpha0-v1.3-20261024";
+#else
 constexpr char kBuildId[] = "android-surface-trigger-5001712-v1.2-20260903";
+#endif
 #else
 constexpr char kBuildId[] = "android-surface-trigger-passthrough-v1.4-20260903";
 #endif
 constexpr char kLogTag[] = "GXRSurfaceTrigger";
 constexpr uint32_t kTriggerWidth = 2;
 constexpr uint32_t kTriggerHeight = 2;
+constexpr uint8_t kSurfaceAlpha = GXR_AST_TRIGGER_ALPHA;
 constexpr uint32_t kSourceProjectionCount = GXR_AST_SOURCE_PROJECTION_COUNT;
 constexpr uint32_t kSourceViewCount = kSourceProjectionCount * 2;
 constexpr uint32_t kRequiredLayerCount = kSourceProjectionCount + 1;
@@ -331,7 +349,12 @@ bool queueTriggerBuffer(SessionState& state) {
                     row[x * 4 + 0] = 0;
                     row[x * 4 + 1] = 0;
                     row[x * 4 + 2] = 0;
+#if GXR_AST_TRIGGER_ALPHA == 1
+                    // Keep the production alpha-1 helpers byte-identical.
                     row[x * 4 + 3] = 1;
+#else
+                    row[x * 4 + 3] = kSurfaceAlpha;
+#endif
                 }
             }
         }
@@ -346,7 +369,12 @@ bool queueTriggerBuffer(SessionState& state) {
             ",\"geometryResult\":" + std::to_string(geometryResult) +
             ",\"lockResult\":" + std::to_string(lockResult) +
             ",\"postResult\":" + std::to_string(postResult) +
+#if GXR_AST_TRIGGER_ALPHA == 1
+            // Keep the production alpha-1 helpers byte-identical.
             ",\"rgba\":[0,0,0,1],\"queued\":" +
+#else
+            ",\"rgba\":[0,0,0," + std::to_string(kSurfaceAlpha) + "],\"queued\":" +
+#endif
                 (state.bufferQueued ? std::string("true") : "false"));
     }
     if (!queued) cleanupTrigger(state);

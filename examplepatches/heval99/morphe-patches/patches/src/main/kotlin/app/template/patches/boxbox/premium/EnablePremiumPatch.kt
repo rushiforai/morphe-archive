@@ -29,8 +29,7 @@ private const val ENTITLEMENT_INFOS = "Lcom/revenuecat/purchases/EntitlementInfo
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the app's Pro plan. Features the BoxBox server grants by account " +
-        "(UserProfiles.isPro) may stay locked."
+    description = "Unlocks Pro features. Account-based Pro features may stay locked."
 ) {
     compatibleWith(COMPATIBILITY_BOXBOX)
 

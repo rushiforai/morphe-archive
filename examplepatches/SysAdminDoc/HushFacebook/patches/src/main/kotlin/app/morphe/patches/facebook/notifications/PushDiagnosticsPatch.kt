@@ -20,6 +20,7 @@ import app.morphe.patches.facebook.misc.extension.requireThisIntact
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
 import app.morphe.patches.facebook.misc.settings.compressedCodeRefusal
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.namedRegisters
 import app.morphe.util.returnEarly
@@ -69,7 +70,7 @@ internal data class RegistrationAnchors(val callback: Method, val failure: Metho
 /** Follow the kept callback into its typed Boolean validation, never treat the callback name as acceptance. */
 internal fun BytecodePatchContext.findRegistrationAnchors(): RegistrationAnchors {
     val candidates = mutableListOf<Method>()
-    classDefForEach { owner -> candidates += owner.methods.filter {
+    classDefForEachReferencing(strings = listOf("FacebookPushServerRegistrar")) { owner -> candidates += owner.methods.filter {
         it.name == "onRegisterPushTokenSucceeded" && it.returnType == "V" && it.parameterTypes.size == 4 &&
             it.parameterTypes[2].toString() == OPERATION_RESULT && !AccessFlags.STATIC.isSet(it.accessFlags) &&
             it.hasString("FacebookPushServerRegistrar")

@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.os.Looper;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -58,6 +59,7 @@ public class ScreenTitleTest {
     @Before public void prepare() {
         Settings.CENTER_PROFILE_NAME.resetToDefault();
         Settings.CENTER_SCREEN_TITLES.resetToDefault();
+        Settings.TITLES_AT_START.resetToDefault();
         PauseForTests.resume();
         ProfileTitle.resetForTests();
         ProfileTitle.idForTests(ProfileTitle.SHARED_BAR_ID, SHARED);
@@ -79,6 +81,7 @@ public class ScreenTitleTest {
         controller.close();
         Settings.CENTER_PROFILE_NAME.resetToDefault();
         Settings.CENTER_SCREEN_TITLES.resetToDefault();
+        Settings.TITLES_AT_START.resetToDefault();
         PauseForTests.resume();
     }
 
@@ -224,6 +227,47 @@ public class ScreenTitleTest {
         PauseForTests.pause(HushgramPause.Reason.SWITCH);
         focusBack();
         assertEquals(0f, group.getTranslationX(), 0f);
+    }
+
+    /** A title Instagram already put after the back button stays there at the start (#310). */
+    @Test public void atTheStartATitleAfterTheBackButtonStays() {
+        Settings.TITLES_AT_START.save(true);
+        ProfileTitle.resumed(activity);
+        assertEquals(0f, group.getTranslationX(), 0f);
+        assertTrue(ProfileTitle.watchingLayoutsForTests());
+    }
+
+    /** A title the newer bar pushed toward the middle goes back to just after the back button. */
+    @Test public void atTheStartAPushedInTitleGoesBackToTheBackButton() {
+        ((LinearLayout.LayoutParams) group.getLayoutParams()).leftMargin = 200;
+        group.requestLayout();
+        layout();
+        Settings.CENTER_SCREEN_TITLES.save(true);
+        Settings.TITLES_AT_START.save(true);
+        ProfileTitle.resumed(activity);
+        assertEquals("it wins over centering", -200f, group.getTranslationX(), 0f);
+        assertEquals(158f, group.getLeft() + group.getTranslationX(), 0f);
+        Settings.TITLES_AT_START.save(false);
+        Settings.CENTER_SCREEN_TITLES.save(false);
+        focusBack();
+        assertEquals("put back", 0f, group.getTranslationX(), 0f);
+    }
+
+    @Test public void atTheStartInARightToLeftBarTheTitleGoesUpToTheBackButtonOnTheRight() {
+        build(1001, 309, true);
+        area.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        for (int i = 0; i < area.getChildCount(); i++) {
+            ((FrameLayout.LayoutParams) area.getChildAt(i).getLayoutParams()).gravity = Gravity.LEFT;
+        }
+        ((FrameLayout.LayoutParams) group.getLayoutParams()).leftMargin = 300;
+        group.requestLayout();
+        layout();
+        assertEquals(688, group.getRight());
+        assertEquals(843, back.getLeft());
+        Settings.TITLES_AT_START.save(true);
+        ProfileTitle.resumed(activity);
+        assertEquals(155f, group.getTranslationX(), 0f);
+        assertEquals(0f, back.getTranslationX(), 0f);
     }
 
     @Test public void homesHeaderIsLeftToItsOwnSwitch() {

@@ -1,3 +1,97 @@
+## Unreleased
+
+* **TikTok:** Service+ cleanup now checks the first entry in a LIVE preview, matching TikTok's own display logic (#94).
+
+## 0.79.0 (2026-10-24)
+
+* **TikTok:** On PineDrama, Hushfeed's settings now say to restart PineDrama instead of TikTok (#156).
+
+* **TikTok:** A new Hide spam comments switch hides bot comments that push links, contacts or free followers. Your own comments and the creator's stay (#187).
+
+* **TikTok:** Hide videos you have already seen takes watched videos out of For You again (#172).
+
+* **TikTok:** With the AMOLED dark theme, the comment bar under a photo post is black now (#171).
+
+* **TikTok:** Use an imported font now works on PineDrama, and bold text stays bold (#243).
+
+* **TikTok:** The Scrolling comments on videos preset in Feature Gate Lab now tells you it only works on videos TikTok turned it on for (#98).
+
+* **TikTok:** A new Allow photo comments patch for PineDrama lets the comment box ask TikTok's server about photo comments, like TikTok does (#156).
+
+* **TikTok:** PineDrama moves to 47.5.3. Six more patches run on it now, so Morphe Manager offers 95 patches for it (#156).
+
+* **TikTok:** A new Report a newer phone to effects switch helps with effects that say they don't work on your phone (#176).
+
+* **TikTok:** PineDrama's saved stickers now show every sticker you saved instead of the first 100 (#214).
+
+* **TikTok:** A new LIVE recording source choice can record your screen while you watch a LIVE (#37).
+
+* **TikTok:** A new Blur the video behind the bar switch frosts the Liquid glass look's bar on Android 12 and up (#231).
+
+* **TikTok:** Dark LIVE panels in dark mode now darkens the light pieces that were left in LIVE rooms (#159).
+
+* **TikTok:** Tag saved videos with their details now really adds the title, creator, date and link to saved videos.
+
+* **TikTok:** Hide TikTok's Auto scroll button also hides the Auto scroll switch on tablets and unfolded foldables (#234).
+
+* **TikTok:** The README now says to patch the 47.5.3 bundle on a phone and the APK on a computer.
+
+* **TikTok:** With Keep Clear display across videos off, the buttons come back as your swipe ends instead of jumping in later (#232).
+
+* **TikTok:** With See-through bottom bar on, the caption and buttons no longer drop over the tabs after a swipe (#232).
+
+* **TikTok:** Long press to Save the frame on screen as a photo works again on 47.5.3.
+
+* **TikTok:** Remove feed ads also removes the smaller Lemon8 card in For You.
+
+* **TikTok:** The filtered count and the budget label no longer show on the Shop and Nearby tabs.
+
+* **TikTok:** With Dark LIVE panels in dark mode on, a room's viewer ranking opens dark again (#159).
+
+* **TikTok:** The README says to give morphe-desktop 2 GB of memory when you patch everything on a computer (#220).
+
+* **TikTok:** With Double tap set to Do nothing, a single tap pauses or plays right away (#239).
+
+* **TikTok:** The build moves to Gradle 9.8.2.
+
+* **TikTok:** The README lists the parts of Hushfeed's settings an add-on bundle can rely on.
+
+* **TikTok:** What's new keeps only the newest releases and Full changelog has the rest, which makes the extension smaller.
+
+* **TikTok:** Glass lens on the current tab now slides to the next tab every time (#231).
+
+* **TikTok:** With Automatic Clear display on, a search result you open again clears again (#84).
+
+* **TikTok:** LIVE recording quality also offers Original, 1080p, 720p, 540p and 360p (#203).
+
+* **TikTok:** When the download quality list stops below 720p, it also offers the video's own taller H.264 or HEVC version (#240).
+
+* **TikTok:** Show where commenters are from finds a country more often (#201).
+
+* **TikTok:** Latest first on Following keeps the posts below your video in date order as more load (#226).
+
+* **TikTok:** Profile and Liked grids can sort by Least viewed first and Least liked first, load more videos by themselves and have a sort button in the corner (#180).
+
+* **TikTok:** A new Open the Story when a creator is LIVE switch opens their Story first when you tap their picture (#233).
+
+* **TikTok:** With Record LIVEs you watch on, a LIVE room's Share sheet has a LIVE recording quality row (#203).
+
+* **TikTok:** Offer LIVE quality in more rooms now covers gaming and football LIVE rooms too (#37).
+
+* **TikTok:** In dark mode, the newer video quality picker in a LIVE room is readable again (#57).
+
+* **TikTok:** A LIVE room stays dark when your phone switches between light and dark (#159).
+
+* **TikTok:** A new Allow Add to Story anyway switch brings back Add to Story when a creator turned off content reuse (#88).
+
+* **TikTok:** With Region spoof matching the locale and time zone, chat date headers follow the preset's time zone (#184, #198).
+
+* **TikTok:** A new Turn on Thoughts switch shows Thoughts for accounts TikTok left out (#186).
+
+* **TikTok:** Keep photos as TikTok sent them now covers stickers that don't move too (#229).
+
+* **TikTok:** Keep the screen's brightness in the camera now covers the front flash and the fill light too (#200).
+
 ## 0.78.0 (2026-10-22)
 
 * **TikTok:** Hushfeed moves to TikTok 47.5.3, and 47.4.3 is dropped. Patch the 47.5.3 APK with the same signing key and your login and settings stay. PineDrama stays on 47.4.3.

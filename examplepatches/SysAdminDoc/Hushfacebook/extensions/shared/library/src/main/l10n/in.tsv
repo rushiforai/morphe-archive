@@ -449,6 +449,14 @@ Hide the Muse card	Sembunyikan kartu Muse
 The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	Kartu Muse, iklan Meta untuk aplikasi agen AI-nya, hilang dari bagian atas Menu Facebook.
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	Bagian “Juga dari Meta” hilang dari Menu Facebook, beserta tautannya ke aplikasi Meta lainnya dan iklannya untuk perangkat Meta. Pintasanmu sendiri tetap ada.
+# context: switch title under Menu; Help and support is the name of a section in Facebook's own Menu
+Hide Help and support	Sembunyikan “Bantuan & dukungan”
+# context: summary of that switch; Settings and privacy is Facebook's own Menu section
+The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	Bagian “Bantuan & dukungan” hilang dari Menu Facebook, beserta judulnya. “Pengaturan dan privasi” tetap ada.
+# context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
+Keep Settings and privacy expanded	Biarkan “Pengaturan dan privasi” terbuka
+# context: summary of that switch
+Settings and privacy in Facebook's Menu stays open, so its rows show without a tap.	“Pengaturan dan privasi” tetap terbuka di Menu Facebook, jadi barisnya terlihat tanpa perlu diketuk.
 # context: section title for the search settings, named like Facebook's own search
 Search	Pencarian
 # context: switch title under Search; Meta AI is Meta's assistant and keeps its name
@@ -797,6 +805,14 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	Menyimpan… Untuk
 Turn off double tap to like	Matikan ketuk dua kali untuk menyukai
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Mengetuk dua kali reel atau video tidak lagi menyukainya atau menampilkan hati. Satu ketukan dan tombol Suka tetap berfungsi seperti biasa.
+# context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
+Double tap to skip	Ketuk dua kali untuk melompat
+# context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
+A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	Mengetuk dua kali tepi kiri atau kanan reel atau video akan mundur atau maju 10 detik, atau 5 detik jika kurang dari 30 detik. Ketuk dua kali di tengah tetap berfungsi seperti biasa.
+# context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
+Tap shows the controls	Ketuk untuk menampilkan kontrol
+# context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
+A tap on a playing reel shows its controls while it keeps playing, and a second tap hides them. The button in the middle still pauses.	Ketukan pada reel yang sedang diputar menampilkan kontrolnya tanpa menghentikannya, dan ketukan kedua menyembunyikannya. Tombol di tengah tetap menjeda.
 Keep the reel speed	Pertahankan kecepatan reel
 # context: summary of that switch
 A playback speed you pick in a reel's menu stays for the next reels, after a restart too, until you pick another. Off, every reel starts at normal speed.	Kecepatan pemutaran yang kamu pilih di menu reel tetap dipakai untuk reel berikutnya, juga setelah dimulai ulang, sampai kamu memilih yang lain. Jika mati, setiap reel dimulai dengan kecepatan normal.
@@ -807,6 +823,10 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 Only on the right edge	Hanya di tepi kanan
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
 With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	Jika sakelar di atas aktif, hanya menahan sepertiga kanan reel yang memutarnya dengan kecepatan dua kali lipat. Kalau kamu menahan di bagian lain, menu tekan lama Facebook terbuka.
+# context: label of a switch under Hold a reel for 2x; a feed video is a video playing in Home's feed or in Watch, not a reel
+Hold a feed video for 2x	Tahan video feed untuk 2x
+# context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
+Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Menahan video di feed atau di Watch memutarnya dengan kecepatan dua kali lipat sampai kamu melepaskannya. Ini berfungsi tanpa sakelar di atas.
 Default playback quality	Kualitas pemutaran default
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Putar video, reel, dan cerita dengan kualitas di bawah. Kualitas yang dipilih di menu video itu sendiri tetap diutamakan.
 Playback quality	Kualitas pemutaran
@@ -1142,6 +1162,12 @@ Save photo	Simpan foto
 Save all photos	Simpan semua foto
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	Foto postingan ini tidak dapat disimpan. Coba lagi sebentar lagi.
+# context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
+Save GIF	Simpan GIF
+# context: message after a tap on Save GIF when the save didn't start
+Couldn't save this GIF. Try again in a moment.	GIF ini tidak dapat disimpan. Coba lagi sebentar lagi.
+# context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
+A GIF comment gets Save GIF when you long-press it.	Tekan lama komentar GIF untuk memunculkan Simpan GIF.
 Couldn't save this story's photo. Try again in a moment.	Foto cerita ini tidak dapat disimpan. Coba lagi sebentar lagi.
 Too many saves at once. Try again when one finishes.	Terlalu banyak unduhan sekaligus. Coba lagi setelah salah satunya selesai.
 # context: settings switch under Block Instant Games ads that makes a game's rewarded ad count as watched
@@ -1813,6 +1839,10 @@ Takes the line with the reel's sound, "Original audio" or a song, off the bottom
 Hide the slow connection message	Sembunyikan pesan koneksi lambat
 # context: summary of that switch; "This is taking a while" is Facebook's own message, so use the wording Facebook shows in this language
 Stops the "This is taking a while" message about your network connection when a video or GIF is slow to load. It keeps loading as before.	Menghentikan pesan "Ini memerlukan waktu agak lama" tentang koneksi jaringan Anda saat video atau GIF lambat dimuat. Video tetap dimuat seperti biasa.
+# context: switch title under Reels and Watch; the Reels row is the strip of reel tiles Facebook shows between posts in the news feed, each tile playing a short clip of its reel over and over
+Play whole reels in the feed's Reels row	Putar reel utuh di baris Reels pada feed
+# context: summary of that switch; a tile is one reel's box in that row
+The reels in your feed's Reels row play from the start and keep going, instead of repeating a second or two. Tiles drawn after a change pick it up.	Reel di baris Reels pada feed kamu diputar dari awal dan terus berlanjut, bukan mengulang satu atau dua detik. Kotak yang muncul setelah perubahan akan mengikutinya.
 # context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for dark mode's backgrounds; also its dialog's title
 Background color	Warna latar
 # context: text in that row's dialog above the field; %1$s is the lightest gray code it takes, %2$s the color code the patch wrote, both like #0D1117; keep #RRGGBB and #0D1117 as they are
@@ -1849,3 +1879,51 @@ Light mode's backgrounds use %1$s. Restart Facebook to see the change.	Latar mod
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be Facebook's own white.	Jika Facebook yang kamu patch menyertakan Tema hitam AMOLED, latar mode terang akan memakai putih bawaan Facebook.
 # context: import preview sentence: the file sets AMOLED's Light background color row; %1$s is a color code like #FFF8E7; "AMOLED black theme" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be %1$s.	Jika Facebook yang kamu patch menyertakan Tema hitam AMOLED, latar mode terang akan menjadi %1$s.
+# context: switch title under News feed, part of Hide suggested and promoted posts; "Related posts" is the heading Facebook shows over a list under a post
+Hide "Related posts" under posts	Sembunyikan "Postingan terkait" di bawah postingan
+# context: summary of that switch; "Related posts" is that heading, and Meta AI writes the titles in the list
+Hides the "Related posts" list Facebook adds under some posts, with its titles written by Meta AI. The post and its comments stay.	Menyembunyikan daftar "Postingan terkait" yang ditambahkan Facebook di bawah beberapa postingan, dengan judul yang ditulis oleh Meta AI. Postingan dan komentarnya tetap ada.
+# context: title of the row on the Appearance page that takes your own words for the top of Home in place of Facebook's logo; also its dialog's title and the patch's name; Home is Facebook's home feed tab
+Home header text	Teks header Beranda
+# context: message in that row's dialog; %1$d is the most characters allowed, 30
+Your own words at the top of Home instead of the Facebook logo, up to %1$d characters. They take Facebook's colors in light and dark mode. Leave it blank for Facebook's logo.	Kata-katamu sendiri di bagian atas Beranda sebagai pengganti logo Facebook, hingga %1$d karakter. Warnanya mengikuti warna Facebook di mode terang dan gelap. Biarkan kosong untuk logo Facebook.
+# context: summary of that row while it's blank
+Facebook's logo stays at the top of Home. Type your own words to show them there.	Logo Facebook tetap di bagian atas Beranda. Ketik kata-katamu sendiri untuk menampilkannya di sana.
+# context: summary of that row; %1$s is the saved words
+The top of Home says %1$s. Restart Facebook to see the change.	Bagian atas Beranda bertuliskan %1$s. Mulai ulang Facebook untuk melihat perubahannya.
+# context: import preview sentence: the file sets the Home header text row back to blank
+The top of Home will show Facebook's own logo.	Bagian atas Beranda akan menampilkan logo Facebook sendiri.
+# context: import preview sentence: the file sets the Home header text row; %1$s is the saved words; "Home header text" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Home header text, the top of Home will say %1$s.	Jika Facebook yang kamu patch menyertakan Teks header Beranda, bagian atas Beranda akan bertuliskan %1$s.
+# context: settings row title: picks a picture of your own for the top of Home; pairs with the Home header text row
+Home header picture	Gambar header Beranda
+# context: settings row title: takes the picked header picture away at once
+Remove the header picture	Hapus gambar header
+# context: summary under Remove the header picture
+Puts your words or Facebook's logo back at the top of Home. Restart Facebook to see the change.	Mengembalikan kata-kata Anda atau logo Facebook ke bagian atas Beranda. Mulai ulang Facebook untuk melihat perubahannya.
+# context: summary under Home header picture when nothing is picked
+No picture chosen. Choose one to show at the top of Home instead of Facebook's logo.	Belum ada gambar yang dipilih. Pilih satu untuk ditampilkan di bagian atas Beranda sebagai ganti logo Facebook.
+# context: summary under Home header picture; %1$s is the picked file's name
+The saved copy of %1$s is missing. Choose the picture again.	Salinan tersimpan dari %1$s tidak ditemukan. Pilih gambar itu lagi.
+# context: summary under Home header picture; %1$s is the picked file's name
+Selected %1$s. It shows at the top of Home in place of your words and Facebook's logo.	%1$s dipilih. Gambar ini tampil di bagian atas Beranda menggantikan kata-kata Anda dan logo Facebook.
+# context: summary under Home header picture while the picked picture is copied
+Copying the picture	Menyalin gambar
+# context: toast after a picture is picked; %1$s is the picked file's name
+Selected %1$s. Restart Facebook to see it at the top of Home.	%1$s dipilih. Mulai ulang Facebook untuk melihatnya di bagian atas Beranda.
+# context: toast when the picked file isn't a picture
+That isn't a picture Android can open. The top of Home didn't change.	Itu bukan gambar yang bisa dibuka Android. Bagian atas Beranda tidak berubah.
+# context: toast when the picked picture is too large; %1$d is the limit in megabytes
+That picture is over %1$d MB. The top of Home didn't change.	Gambar itu lebih dari %1$d MB. Bagian atas Beranda tidak berubah.
+# context: toast when the picture's copy can't be written
+Couldn't save a copy of that picture. Check that the phone has room, then try again.	Salinan gambar itu tidak dapat disimpan. Pastikan ponsel punya ruang kosong, lalu coba lagi.
+# context: toast when the picked file can't be read
+Couldn't open that file. The top of Home didn't change.	File itu tidak dapat dibuka. Bagian atas Beranda tidak berubah.
+# context: toast after Remove the header picture
+Header picture removed. Restart Facebook to see the change.	Gambar header dihapus. Mulai ulang Facebook untuk melihat perubahannya.
+# context: toast when Remove the header picture couldn't save
+Couldn't remove the header picture. Try again.	Gambar header tidak dapat dihapus. Coba lagi.
+# context: toast when the app holding the picked picture stalls
+The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	Aplikasi yang menyimpan gambar itu terlalu lama, jadi Hushfacebook berhenti menunggu. Bagian atas Beranda tidak berubah.
+# context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
+The app holding the last picture still hasn't answered. Try again later.	Aplikasi yang menyimpan gambar terakhir masih belum merespons. Coba lagi nanti.

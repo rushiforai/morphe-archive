@@ -173,6 +173,10 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_NOTIFICATION_POST_FOOTER,
                         L10n.t("A post you open from a notification ends without the \"More from your friends\" list "
                                 + "Facebook adds under it, which can carry ads.")));
+                // Asked as each post is drawn, so a change shows on the next post that scrolls in.
+                feed.addPreference(toggle(context, Settings.HIDE_RELATED_POSTS,
+                        L10n.t("Hides the \"Related posts\" list Facebook adds under some posts, with its titles written "
+                                + "by Meta AI. The post and its comments stay.")));
                 // The end of the feed is built as the feed runs out, so a change shows the next time it does.
                 feed.addPreference(toggle(context, Settings.HIDE_FIND_FRIENDS_CARD,
                         L10n.t("Hides the \"Want to see more posts from friends?\" card with its Find friends button where "

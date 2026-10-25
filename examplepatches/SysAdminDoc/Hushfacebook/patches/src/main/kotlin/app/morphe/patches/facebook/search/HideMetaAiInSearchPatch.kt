@@ -22,6 +22,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -64,7 +65,7 @@ val hideMetaAiInSearchPatch = bytecodePatch(
         // One walk over the whole APK finds the answer builder's callers and the result module.
         val callers = mutableListOf<Method>()
         val modules = mutableListOf<ClassDef>()
-        classDefForEach { classDef ->
+        classDefForEachReferencing(types = listOf(answerBuilder.definingClass, role)) { classDef ->
             for (method in classDef.methods) {
                 if (callsMethod(method, answerBuilder)) callers += method
                 if (isModuleConstructor(method, role)) modules += classDef

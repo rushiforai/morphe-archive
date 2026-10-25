@@ -17,8 +17,8 @@ internal val discord = Compatibility(
     apkFileType = ApkFileType.APKM,
     appIconColor = 0x5865F2,
     targets = listOf(AppTarget(
-        version = "349.9 - Stable",
-        versionCode = 349009,
+        version = "350.8 - Stable",
+        versionCode = 350008,
         minSdk = 26
     ))
 )
@@ -44,6 +44,7 @@ private var copyBiosSelected = false
 private var dashlessSelected = false
 private var favouriteAnythingSelected = false
 private var freeNitroSelected = false
+private var questAgentGuarded = false
 private val additionalSelections = mutableSetOf<String>()
 internal val discordBundleGuard = rawResourcePatch {
     execute { HbcPrivacy.verifyOriginal(get("assets/index.android.bundle")) }
@@ -59,6 +60,7 @@ private val runtimeAssets = rawResourcePatch {
         dashlessSelected = false
         favouriteAnythingSelected = false
         freeNitroSelected = false
+        questAgentGuarded = false
     }
     finalize {
         val bootstrap = object {}.javaClass.getResourceAsStream("/venus/bootstrap.js")
@@ -70,8 +72,8 @@ private val runtimeAssets = rawResourcePatch {
             "/*__FEATURES__*/",
             "{picker:$pickerSelected,voice:$voiceSelected,copyBios:$copyBiosSelected," +
                 "dashless:$dashlessSelected,favouriteAnything:$favouriteAnythingSelected,freeNitro:$freeNitroSelected," +
-                listOf("noTyping", "quickDelete", "noDelete", "jumpToTop", "hiddenChannels", "pastelize", "platformIndicators", "reviewDB", "readAll", "quests", "systemFont",
-                    "systemEmoji", "hideGift", "hideQuestDock", "gestures", "hideCall", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "customThemes", "iconPacks", "messageHighlight", "serverInfo")
+                listOf("noTyping", "quickDelete", "noDelete", "jumpToTop", "hiddenChannels", "pastelize", "platformIndicators", "reviewDB", "readAll", "quests", "badges", "systemFont",
+                    "systemEmoji", "hideGift", "hideQuestDock", "hideButtons", "gestures", "hideCall", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "iconPacks", "messageHighlight", "serverInfo", "fixEmbeds", "tenorGifs")
                     .joinToString(",") { "$it:${it in additionalSelections}" } + "}"
         )
         asset.writeText(selected)
@@ -148,7 +150,7 @@ internal fun skipLaunchOtaChecks(method: app.morphe.patcher.util.proxy.mutableTy
 
 internal fun pinPackagedDiscordBundle(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
     // Pin JS execution to the inspected packaged bundle, avoiding incompatible OTA cache bundles.
-    // 349.9 has two scratch locals; p1 is deliberately replaced with an asset loader.
+    // 350.8 has two scratch locals; p1 is deliberately replaced with an asset loader.
     if ((method.implementation?.registerCount ?: 0) - 2 < 2)
         throw PatchException("Bundle loader no longer has two safe scratch registers")
     method.addInstructions(0, """
@@ -434,8 +436,8 @@ val pastelize = bytecodePatch(
     execute {
         additionalSelections += "pastelize"
         pastelReplyText(Fingerprint(
+            // The lambda's number changes between builds ($9 in 349.9, $2 in 350.8); its signature is unique.
             definingClass = REPLY_PREVIEW,
-            name = "configureReply\$lambda\$9",
             returnType = "Lkotlin/Unit;",
             parameters = listOf("Lcom/discord/chat/bridge/structurabletext/StructurableText;", REPLY_PREVIEW, BRIDGE_MESSAGE, "I")
         ).method)
@@ -660,6 +662,10 @@ val hideCallButton = bundledPlugin("hideCall", "Hide the call button",
     "Removes Call from people's profiles. Message fills the space.")
 
 @Suppress("unused")
+val hideExtraButtons = bundledPlugin("hideButtons", "Hide extra buttons",
+    "Removes the Quests, Shop, Nitro and Apps buttons you don't use. Pick which ones, including Polls and Photos in the attach menu; the rest close up with no gaps.")
+
+@Suppress("unused")
 val hideQuestDock = bundledPlugin("hideQuestDock", "Hide the Quests banner",
     "Removes the Quest promotion above your profile bar. Quests still work.")
 
@@ -670,6 +676,14 @@ val validUser = bundledPlugin("validUser", "Fix unknown mentions",
 @Suppress("unused")
 val youBarSettings = bundledPlugin("youBarSettings", "Venus button on profile bar",
     "A shortcut to Venus settings, next to the notifications bell.")
+
+@Suppress("unused")
+val bringBackTenorGifs = bundledPlugin("tenorGifs", "Bring back Tenor GIFs",
+    "Tenor GIFs show in Discord's GIF picker again, mixed with Discord's own or on their own. Inspired by BringBackTenor by Livie.")
+
+@Suppress("unused")
+val fixLinkPreviews = bundledPlugin("fixEmbeds", "Fix link previews",
+    "Links to X, Instagram, TikTok, Reddit and more show the post. Links you send go through an embed service like FxTwitter, without tracking. Inspired by FixEmbed by the ShiggyCord team.")
 
 @Suppress("unused")
 val splitLargeMessages = bundledPlugin("splitMessages", "Send long messages",
@@ -690,6 +704,10 @@ val accountSwitcher = bundledPlugin("accountSwitcher", "Account switcher",
 @Suppress("unused")
 val unlockAppIcons = bundledPlugin("appIcons", "Unlock app icons",
     "Use any Discord app icon in Settings without Nitro.")
+
+@Suppress("unused")
+val unlockNitroThemes = bundledPlugin("nitroThemes", "Unlock Nitro themes",
+    "Use Discord's gradient themes in Settings > Appearance without Nitro. Only this phone sees them.")
 
 @Suppress("unused")
 val customThemes = bundledPlugin("customThemes", "Custom themes",
@@ -778,7 +796,7 @@ internal const val QUEST_DESKTOP_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x
 internal const val QUEST_AGENT_GUARD_SIZE = 14
 
 /**
- * Discord's OkHttp interceptor replaces every request's User-Agent with Discord-Android/349009;RNA.
+ * Discord's OkHttp interceptor replaces every request's User-Agent with Discord-Android/350008;RNA.
  * A request that already says it's the Windows desktop app passes through untouched; everything else is unchanged.
  * Locals v0-v2 are free: the interceptor has 5 registers and 2 of them are parameters.
  */
@@ -788,7 +806,7 @@ internal fun keepDesktopQuestAgent(method: app.morphe.patcher.util.proxy.mutable
         method.returnType != "Lokhttp3/Response;" || implementation.registerCount - 2 < 3)
         throw PatchException("Discord's User-Agent interceptor ABI changed")
     method.addInstructions(0, """
-        invoke-interface {p1}, Lokhttp3/Interceptor${'$'}Chain;->i()Lokhttp3/Request;
+        invoke-interface {p1}, Lokhttp3/Interceptor${'$'}Chain;->h()Lokhttp3/Request;
         move-result-object v0
         const-string v1, "User-Agent"
         invoke-virtual {v0, v1}, Lokhttp3/Request;->a(Ljava/lang/String;)Ljava/lang/String;
@@ -817,11 +835,36 @@ val questCompleter = bytecodePatch(
     execute {
         additionalSelections += "quests"
         // Play and Activity time only counts when it comes from the desktop app.
-        keepDesktopQuestAgent(Fingerprint(
-            definingClass = USER_AGENT_INTERCEPTOR,
-            name = "intercept",
-            returnType = "Lokhttp3/Response;",
-            parameters = listOf("Lokhttp3/Interceptor\$Chain;")
-        ).method)
+        if (!questAgentGuarded) {
+            questAgentGuarded = true
+            keepDesktopQuestAgent(Fingerprint(
+                definingClass = USER_AGENT_INTERCEPTOR,
+                name = "intercept",
+                returnType = "Lokhttp3/Response;",
+                parameters = listOf("Lokhttp3/Interceptor\$Chain;")
+            ).method)
+        }
+    }
+}
+
+@Suppress("unused")
+val badgeCompleter = bytecodePatch(
+    name = "Complete badges automatically",
+    description = "Plays real PC games in the background, up to 3 at once, toward your Hours Played and Unique Games Played badges."
+) {
+    compatibleWith(discord)
+    section(PLUGINS)
+    dependsOn(venusSettings)
+    execute {
+        additionalSelections += "badges"
+        if (!questAgentGuarded) {
+            questAgentGuarded = true
+            keepDesktopQuestAgent(Fingerprint(
+                definingClass = USER_AGENT_INTERCEPTOR,
+                name = "intercept",
+                returnType = "Lokhttp3/Response;",
+                parameters = listOf("Lokhttp3/Interceptor\$Chain;")
+            ).method)
+        }
     }
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -20,9 +20,9 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import app.morphe.patcher.string
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -91,8 +91,7 @@ internal object MiniplayerAnimatedExpandFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("I"),
     filters = listOf(
-        opcode(opcode = Opcode.CONST_4),
-        opcode(opcode = Opcode.IF_NE, location = MatchAfterImmediately()),
+        opcode(opcode = Opcode.IF_NE),
         opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
         opcode(opcode = Opcode.MOVE, location = MatchAfterWithin(7)),
         opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately())
@@ -174,7 +173,14 @@ internal object MiniplayerHorizontalRepositionFingerprint : Fingerprint(
     classFingerprint = MiniplayerRectDragFieldsNameFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf("Landroid/graphics/Rect;")
+    parameters = listOf("Landroid/graphics/Rect;"),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET,
+            definingClass = "Landroid/graphics/Rect;",
+            name = "left"
+        )
+    )
 )
 
 internal object MiniplayerOffscreenRectValidatorFingerprint : Fingerprint (
@@ -217,6 +223,39 @@ internal object NextGenWatchLayoutOnInterceptTouchEventFingerprint : Fingerprint
     name = "onInterceptTouchEvent",
     parameters = listOf("Landroid/view/MotionEvent;")
 )
+
+private object TopBarControllerFingerprint : Fingerprint(
+    returnType = "Landroid/os/Parcelable;",
+    parameters = listOf(),
+    filters = listOf(
+        string("instance-offset")
+    )
+)
+
+/**
+ * If the top bars of the home and other pages can be laid out behind the status bar.
+ * Returns false while the player is maximized, in fullscreen or sliding between them.
+ */
+internal fun getTopBarBehindStatusBarFingerprint(
+    playerTypeEnumType: String
+) = object : Fingerprint(
+    classFingerprint = TopBarControllerFingerprint,
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(
+        methodCall( // Player is sliding.
+            definingClass = playerTypeEnumType,
+            returnType = "Z"
+        ),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
+        methodCall( // Player is maximized or in fullscreen.
+            definingClass = playerTypeEnumType,
+            returnType = "Z",
+            location = MatchAfterWithin(5)
+        ),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately())
+    )
+) {}
 
 private object MiniplayerDimensionsCalculatorParentFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -366,7 +405,39 @@ internal object MiniplayerSetIconsLegacyFingerprint : Fingerprint(
     )
 )
 
+/**
+ * 21.42+
+ *
+ * Matches the resume (Continue watching) flag check of the show miniplayer command.
+ */
 internal object ShowMiniplayerCommandFingerprint: Fingerprint(
+    classFingerprint = Fingerprint(
+        filters = listOf(
+            literal(164817L),
+            literal(121253L)
+        )
+    ),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L", "L", "Ljava/util/Map;"),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_BOOLEAN,
+            type = "Z"
+        ),
+        opcode(
+            opcode = Opcode.IF_EQZ,
+            location = MatchAfterImmediately()
+        )
+    )
+)
+
+/**
+ * 21.41 and lower.
+ *
+ * Matches the resume (Continue watching) flag check of the show miniplayer command.
+ */
+internal object ShowMiniplayerCommandLegacyFingerprint: Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("L", "Ljava/util/Map;"),
@@ -376,7 +447,43 @@ internal object ShowMiniplayerCommandFingerprint: Fingerprint(
             opcode = Opcode.IF_EQZ,
             location = MatchAfterImmediately()
         ),
+        fieldAccess(
+            opcode = Opcode.IGET_BOOLEAN,
+            type = "Z",
+            location = MatchAfterWithin(5)
+        ),
+        opcode(
+            opcode = Opcode.IF_EQZ,
+            location = MatchAfterImmediately()
+        ),
         literal(164817L),
         literal(121253L)
+    )
+)
+
+internal object MiniplayerControlsFingerprint : Fingerprint(
+    name = "<init>",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "controls_layout"),
+        checkCast("Landroid/view/ViewGroup;", location = MatchAfterWithin(5))
+    )
+)
+
+internal object MiniplayerControlsVisibilityFingerprint : Fingerprint(
+    classFingerprint = MiniplayerControlsFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            smali = $$"Landroid/view/ViewGroup;->getLayoutParams()Landroid/view/ViewGroup$LayoutParams;"
+        ),
+        literal(8),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            smali = "Landroid/view/ViewGroup;->setVisibility(I)V",
+            location = MatchAfterImmediately()
+        )
     )
 )

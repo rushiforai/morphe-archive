@@ -9,6 +9,7 @@ package app.morphe.patches.tiktok.misc.inbox
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -73,10 +74,11 @@ internal val loadedInboxRequestSpecs = listOf(
     InboxRequestSpec("all tab refresh", INBOX_ALL_TAB_VM, 1, strings = listOf("all tab onRefresh(), from = ")),
     refreshClosure("creator refresh closure", INBOX_CREATOR_VM),
     refreshClosure("regular refresh closure", INBOX_REGULAR_VM),
-    // PowerPageLoader's three job launches have kept these names since 47.1.4 and carry no log line.
-    InboxRequestSpec("page loader load", INBOX_PAGE_LOADER, 1, tracked = true, name = "LJII"),
-    InboxRequestSpec("page loader append", INBOX_PAGE_LOADER, 1, tracked = true, name = "LJIIIIZZ"),
-    InboxRequestSpec("page loader refresh", INBOX_PAGE_LOADER, 0, tracked = true, name = "LJIIIZ"),
+    // PowerPageLoader's three job launches carry no log line, and PineDrama 47.5.3 moved each one's
+    // name a slot along. Each loads its direction from the loader's enum, whose constants keep their names.
+    InboxRequestSpec("page loader load", INBOX_PAGE_LOADER, 1, tracked = true, filters = listOf(fieldAccess(name = "Prev"))),
+    InboxRequestSpec("page loader append", INBOX_PAGE_LOADER, 1, tracked = true, filters = listOf(fieldAccess(name = "Next"))),
+    InboxRequestSpec("page loader refresh", INBOX_PAGE_LOADER, 0, tracked = true, filters = listOf(fieldAccess(name = "Refresh"))),
 )
 
 /**

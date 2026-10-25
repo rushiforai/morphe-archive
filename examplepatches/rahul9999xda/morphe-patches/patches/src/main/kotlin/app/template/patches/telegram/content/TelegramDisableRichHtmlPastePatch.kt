@@ -7,6 +7,8 @@ import app.template.patches.shared.Constants.TELEGRAM_PLUS_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
 import app.template.patches.telegram.ChatActivityEnterViewHandleRichHtmlPasteFingerprint
 import app.template.patches.telegram.ChatActivityEnterViewRichHtmlPastePlus1302Fingerprint
+import app.template.patches.telegram.ChatActivityEnterViewRichHtmlPastePlus1303Fingerprint
+import app.template.patches.telegram.ChatActivityEnterViewRichHtmlPaste1311Fingerprint
 import app.template.patches.telegram.ChatActivityEnterViewRichHtmlPasteTelegram1303Fingerprint
 import app.template.patches.telegram.ChatActivityEnterViewRichHtmlPasteWeb1303Fingerprint
 
@@ -22,11 +24,20 @@ val telegramDisableRichHtmlPastePatch = bytecodePatch(
     )
 
     execute {
-        // Current Telegram 13.0.3: only intercept the Android Paste menu item
+        // Current Telegram/Web 13.1.1 and Plus 13.0.3.0: only intercept the Android Paste menu item
         // (0x01020022), then delegate directly to the same superclass that the
         // original method uses for its non-rich-HTML fallback. All other menu
         // actions continue through the original method unchanged.
         val currentTargets = listOf(
+            // Both supplied Telegram 13.1.1 APKs declare this handler on `of`, whose
+            // direct superclass is `Components/mg` in both APKs.
+            ChatActivityEnterViewRichHtmlPaste1311Fingerprint to
+                "Lorg/telegram/ui/Components/mg;",
+            // Plus 13.0.3.0 qh0 directly extends EditTextBoldCursor, but its original fallback
+            // explicitly invokes EditText.onTextContextMenuItem; preserve that bypass.
+            ChatActivityEnterViewRichHtmlPastePlus1303Fingerprint to
+                "Landroid/widget/EditText;",
+            // Explicitly retained legacy descriptors for older builds.
             ChatActivityEnterViewRichHtmlPasteTelegram1303Fingerprint to
                 "Lorg/telegram/ui/Components/lg;",
             ChatActivityEnterViewRichHtmlPasteWeb1303Fingerprint to

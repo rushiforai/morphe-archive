@@ -87,10 +87,22 @@ param(
     [string[]]$SelectedPatchNames,
     [string]$AndroidJar,
     [string]$ApiVersions,
-    [string]$Bundle
+    [string]$Bundle,
+    [string]$DeviceEvidencePath,
+    [string]$EvidenceRunId,
+    [string]$ExpectedSourceSha256,
+    [string]$ExpectedPatchedSha256
 )
 
 $ErrorActionPreference = 'Stop'
+if ($DeviceEvidencePath) {
+    if (-not $Serial -or $EvidenceRunId -cnotmatch '^[0-9a-f]{32}$' -or
+        $ExpectedSourceSha256 -cnotmatch '^[0-9a-f]{64}$' -or $ExpectedPatchedSha256 -cnotmatch '^[0-9a-f]{64}$') {
+        throw 'Device evidence requires a serial, walk run ID and both expected input digests.'
+    }
+    $DeviceEvidencePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($DeviceEvidencePath)
+    if (Test-Path -LiteralPath $DeviceEvidencePath) { throw 'Device evidence already exists. A new walk cannot reuse it.' }
+}
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
@@ -224,6 +236,8 @@ $cleanBaseHeld = $null
 $cleanMergedHeld = $null
 $madeCleanMerge = $false
 $bundleHeld = $null
+$walkSourceHeld = $null
+$walkPatchedHeld = $null
 try {
 
 $selectionFile = '-'
@@ -274,6 +288,13 @@ if ($FromDevice) {
 if (-not $PatchedApk -or -not (Test-Path -LiteralPath $PatchedApk -PathType Leaf)) {
     throw 'No patched APK. Pass -PatchedApk, or -FromDevice -Serial <serial>.'
 }
+if ($DeviceEvidencePath) {
+    $walkPatchedHeld = Open-HeldFile -Path $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($PatchedApk) `
+        -Sha256 $ExpectedPatchedSha256 -What 'The walked verifier output'
+    if (-not [string]::Equals($PatchedApk, (Get-HeldPath $walkPatchedHeld), [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Device evidence requires the canonical held patched APK path.'
+    }
+}
 $patched = Get-ApkManifestFacts -Apk $PatchedApk -Aapt2 $Aapt2
 if ($patched.package -ne $package -or [string]::IsNullOrWhiteSpace($patched.versionName)) {
     throw "$PatchedApk is $($patched.package) $($patched.versionName), not a Tumblr build ($package)."
@@ -293,6 +314,13 @@ if (-not $CleanApk) {
     $CleanApk = $matching[0].FullName
 }
 if (-not (Test-Path -LiteralPath $CleanApk -PathType Leaf)) { throw "No clean APK at $CleanApk." }
+if ($DeviceEvidencePath) {
+    $walkSourceHeld = Open-HeldFile -Path $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CleanApk) `
+        -Sha256 $ExpectedSourceSha256 -What 'The walked verifier source'
+    if (-not [string]::Equals($CleanApk, (Get-HeldPath $walkSourceHeld), [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Device evidence requires the canonical held source APK path.'
+    }
+}
 # Tumblr ships only the split bundle, so a universal APK kept beside it is a merge whose v2 and v3
 # signature blocks no longer verify. Its signed form is the same-named bundle's base.apk, taken only
 # when every classes*.dex of the merge is byte-identical to base.apk's. Get-MergedApk below holds the
@@ -386,14 +414,19 @@ if ($Serial -and -not $failed) {
     $deviceLease = Enter-HushDeviceLease -Adb $adbPath -Serial $Serial -LeaseToken $LeaseToken `
         -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
     Write-Host "[registers] running the device verifier on $Serial"
+    $deviceStarted = [DateTimeOffset]::UtcNow
+    $cleanEvidence = @{}
+    $patchedEvidence = @{}
     $cleanTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
-        -Local $cleanBase -Label 'clean' -LeaseToken $deviceLease.Token -LeaseDirectory (Split-Path -Parent $deviceLease.Path)
+        -Local $cleanBase -Label 'clean' -LeaseToken $deviceLease.Token -LeaseDirectory (Split-Path -Parent $deviceLease.Path) `
+        -ChatIdentity $ChatIdentity -Evidence $cleanEvidence
     $patchedTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
-        -Local $PatchedApk -Label 'patched' -LeaseToken $deviceLease.Token -LeaseDirectory (Split-Path -Parent $deviceLease.Path)
+        -Local $PatchedApk -Label 'patched' -LeaseToken $deviceLease.Token -LeaseDirectory (Split-Path -Parent $deviceLease.Path) `
+        -ChatIdentity $ChatIdentity -Evidence $patchedEvidence
     $comparison = Compare-VerifierTallies -Clean $cleanTally -Patched $patchedTally
     Write-Host "[registers] verifier messages: clean $($comparison.CleanTotal), patched $($comparison.PatchedTotal)"
 
-    # Each tally is only returned once dex2oat has read a file of the pushed size, so two empty
+    # Each tally is only returned after matching remote hashes and the pushed-size check, so two empty
     # tallies are an answer: a clean build that raises nothing (the Facebook sibling's never did)
     # holds the patched one to nothing more.
     if (-not $comparison.Valid) {
@@ -414,6 +447,21 @@ if ($Serial -and -not $failed) {
         $failed = $true
     } else {
         Write-Host '[registers] device: the clean and patched verifier message tallies are identical.'
+        if ($DeviceEvidencePath) {
+            $deviceEvidence = [ordered]@{
+                schema = 1; runId = $EvidenceRunId; completed = $true; staticPassed = $true
+                serial = $Serial; device = $deviceLease.Identity
+                bundleSha256 = Get-StreamSha256 $bundleHeld
+                sourceSha256 = Get-StreamSha256 $walkSourceHeld
+                inputIdentity = Get-HeldInputIdentity -Merged $CleanMerged
+                cleanBaseSha256 = Get-StreamSha256 $cleanBaseHeld
+                patchedSha256 = Get-StreamSha256 $walkPatchedHeld
+                started = $deviceStarted.UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
+                finished = [DateTimeOffset]::UtcNow.UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
+                clean = $cleanEvidence; patched = $patchedEvidence
+            }
+            Write-HushVerifierEvidence -Path $DeviceEvidencePath -Evidence $deviceEvidence
+        }
     }
 }
 
@@ -421,6 +469,8 @@ $completed = $true
 } finally {
     try {
     # Held files can't be deleted, so the clean side is let go first.
+    if ($walkSourceHeld) { $walkSourceHeld.Dispose() }
+    if ($walkPatchedHeld) { $walkPatchedHeld.Dispose() }
     if ($cleanMergedHeld) { $cleanMergedHeld.Dispose() }
     if ($madeCleanMerge) { Close-MergedApk -Merged $CleanMerged }
     if ($cleanBaseHeld) { $cleanBaseHeld.Dispose() }

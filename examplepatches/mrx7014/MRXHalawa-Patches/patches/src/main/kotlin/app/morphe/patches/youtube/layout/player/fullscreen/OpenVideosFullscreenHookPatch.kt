@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -101,7 +101,7 @@ internal val openVideosFullscreenHookPatch = bytecodePatch {
 
         // Pass the fullscreen interface object to extension code.
         Fingerprint(
-            definingClass = "Lcom/google/android/apps/youtube/app/watch/nextgenwatch/ui/NextGenWatchLayout;",
+            definingClass = NEXT_GEN_WATCH_LAYOUT_CLASS,
             accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
             filters = listOf(
                 checkCast(fullScreenDefiningClass)

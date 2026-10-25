@@ -1,5 +1,8 @@
 {
-  "_comment": "README app categories, in display order. generate_patches_readme.py groups apps by package name; an app missing here is listed under 'Other' and the script prints a warning, so add every new app to one category.",
+  "_comment": "README app categories, in display order. generate_patches_readme.py groups apps by package name; an app missing here is listed under 'Other' and the script prints a warning, so add every new app to one category. Every app gets a Google Play link in the README unless its package is in notOnGooglePlay (no Play listing in any region; checked 2026-10-22 for AL, US, DE, GB and IN - some apps, e.g. Flashscore, are region-locked and still count as on Play).",
+  "notOnGooglePlay": [
+    "com.farproc.wifi.analyzer"
+  ],
   "categories": [
     {
       "name": "Sports & scores",
@@ -66,7 +69,6 @@
       "name": "Video & TV",
       "emoji": "📺",
       "packages": [
-        "ru.iptvremote.android.iptv",
         "app.expert.player",
         "com.duplila.screenshare"
       ]

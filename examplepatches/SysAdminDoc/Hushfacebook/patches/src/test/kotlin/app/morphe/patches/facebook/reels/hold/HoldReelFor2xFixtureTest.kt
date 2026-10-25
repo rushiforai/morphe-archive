@@ -27,6 +27,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
@@ -51,8 +53,11 @@ import java.io.File
  * check's press and view handed over once it has them, the hold's start
  * straight after each "speed_up" load, the touch dispatch handing the event over first, the speed
  * setter handing the player and the speed over first and going on with the speed it gets back, and
- * the extension's speed stub calling the getter. Reads the fixture bundles from
- * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ * the extension's speed stub calling the getter. For Hold a feed video for 2x, the player's one attach
+ * of its view and the one public ViewGroup field it writes, then the attach handing the container and
+ * the player over first, the touch dispatch handing the activity and the event over ahead of the
+ * guard, and the extension's stubs reading that field and calling the setter. Reads the fixture
+ * bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class HoldReelFor2xFixtureTest {
     private val Instruction.call: MethodReference?
@@ -176,10 +181,26 @@ class HoldReelFor2xFixtureTest {
                 val speedGetter = player.methods.single { isMethod(it, getterCall) }
                 assertTrue("$name: ${key(speedGetter)} isn't public", AccessFlags.PUBLIC.isSet(speedGetter.accessFlags))
 
+                // Hold a feed video for 2x: one static attach of the player's view, taking the container first
+                // and the player once, writing one ViewGroup field of the player, public like the setter.
+                val attachHolders = FixtureDex.classesHolding(bundle, ATTACH_VIEW_LOG).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                val attaches = attachHolders.flatMap { c -> c.methods.mapNotNull { m -> attachedPlayerParameter(m, player.type)?.let { m to it } } }
+                assertEquals("$name: attaches of ${player.type}'s view: ${attaches.map { key(it.first) }}", 1, attaches.size)
+                val (attach, playerParameter) = attaches.single()
+                val written = containersWritten(attach, player.type)
+                assertEquals("$name: ViewGroup fields of ${player.type} the attach writes: $written", 1, written.size)
+                val container = written.single()
+                val containerField = player.fields.single { it.name == container.name && it.type == container.type }
+                assertTrue("$name: ${player.type}'s ${container.name} isn't a public instance field",
+                    AccessFlags.PUBLIC.isSet(containerField.accessFlags) && !AccessFlags.STATIC.isSet(containerField.accessFlags))
+                assertTrue("$name: ${key(setter)} isn't public", AccessFlags.PUBLIC.isSet(setter.accessFlags))
+                assertTrue("$name: the attach has fewer than two locals", attach.localRegisterCount() >= 2)
+
                 val activity = FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY)).values.single()
                 val componentClasses = components.filter { c -> checks.any { it.definingClass == c.type } }
                 val classes: List<ClassDef> = (handlers + listeners + componentClasses + edgeClass + activity + player + configClass +
-                    speedUpClasses + speedClass + ExtensionDex.classDef(REEL_HOLD) + ExtensionDex.classDef(SETTINGS_STATUS))
+                    speedUpClasses + speedClass + attachHolders + ExtensionDex.classDef(REEL_HOLD) +
+                    ExtensionDex.classDef(FEED_VIDEO_HOLD) + ExtensionDex.classDef(SETTINGS_STATUS))
                     .distinctBy { it.type }
                 // A guard-only build, as Keep the reel speed has without this patch: the listeners'
                 // answers, the hold's start, the setter and the touch dispatch, and none of the rest.
@@ -200,6 +221,9 @@ class HoldReelFor2xFixtureTest {
                     hooks(activity.methods.single { it.name == "dispatchTouchEvent" && it.implementation != null }, TOUCH))
                 assertEquals("$name: the guard's hold starts", handlers.size,
                     handlers.flatMap { it.methods }.sumOf { hooks(it, HELD) })
+                assertEquals("$name: the guard hooks the feed video touch", 0,
+                    hooks(activity.methods.single { it.name == "dispatchTouchEvent" && it.implementation != null }, FEED_TOUCH))
+                assertEquals("$name: the guard hooks the attach", 0, hooks(attach, FEED_ATTACHED))
 
                 // The patcher runs the guard first, as a dependency, then the patch.
                 val context = PatchContexts.of(classes)
@@ -311,10 +335,43 @@ class HoldReelFor2xFixtureTest {
                 assertEquals("$name: the speed stub's register", listOf(stubMethod.localRegisterCount()), stub[1].registers())
                 assertEquals("$name: the speed stub's answer", Opcode.RETURN, stub[3].opcode)
 
+                // The feed video hold first, with the activity and the event, then the guard's, with the event.
                 val dispatch = activity.methods.single { it.name == "dispatchTouchEvent" && it.implementation != null }
-                val first = patched(dispatch)[0]
-                assertEquals("$name: the touch dispatch's first call", TOUCH, first.call.toString())
-                assertEquals("$name: the event the dispatch hands over", listOf(dispatch.localRegisterCount() + 1), first.registers())
+                val dispatchAfter = patched(dispatch)
+                val dispatchSelf = dispatch.localRegisterCount()
+                assertEquals("$name: the touch dispatch's first call", FEED_TOUCH, dispatchAfter[0].call.toString())
+                assertEquals("$name: the activity and event the dispatch hands over", listOf(dispatchSelf, dispatchSelf + 1),
+                    dispatchAfter[0].registers())
+                assertEquals("$name: the touch dispatch's second call", TOUCH, dispatchAfter[1].call.toString())
+                assertEquals("$name: the event the dispatch hands over", listOf(dispatchSelf + 1), dispatchAfter[1].registers())
+
+                // The attach reads the container and the player into its first two locals and hands them over.
+                val attachAfter = patched(attach)
+                assertEquals("$name: the attach's first move", Opcode.MOVE_OBJECT_FROM16, attachAfter[0].opcode)
+                assertEquals("$name: the container the attach reads", listOf(0, attach.parameterRegisterNumber(0)),
+                    (attachAfter[0] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+                assertEquals("$name: the attach's second move", Opcode.MOVE_OBJECT_FROM16, attachAfter[1].opcode)
+                assertEquals("$name: the player the attach reads", listOf(1, attach.parameterRegisterNumber(playerParameter)),
+                    (attachAfter[1] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+                assertEquals("$name: the attach's call", FEED_ATTACHED, attachAfter[2].call.toString())
+                assertEquals("$name: the registers the attach hands over", listOf(0, 1), attachAfter[2].registers())
+                assertEquals("$name: the attach lost its own first instruction", attach.code()[0].opcode, attachAfter[3].opcode)
+                assertEquals("$name: the attach's feed hooks", 1, attachAfter.count { it.call?.toString() == FEED_ATTACHED })
+
+                val viewStub = context.mutableClassDefBy(FEED_VIDEO_HOLD).methods.single { it.name == PLAYER_VIEW_STUB }.code()
+                assertEquals("$name: the view stub's cast", player.type, ((viewStub[0] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals("$name: the view stub's read", Opcode.IGET_OBJECT, viewStub[1].opcode)
+                assertEquals("$name: the field the view stub reads", container.toString(),
+                    ((viewStub[1] as ReferenceInstruction).reference as FieldReference).toString())
+                assertEquals("$name: the view stub's answer", Opcode.RETURN_OBJECT, viewStub[2].opcode)
+                val speedStubMethod = context.mutableClassDefBy(FEED_VIDEO_HOLD).methods.single { it.name == SET_PLAYER_SPEED_STUB }
+                val speedStub = speedStubMethod.code()
+                assertEquals("$name: the speed setter stub's cast", player.type,
+                    ((speedStub[0] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals("$name: the speed setter stub's call", key(setter), speedStub[1].call.toString())
+                assertEquals("$name: the speed setter stub's registers",
+                    listOf(speedStubMethod.localRegisterCount(), speedStubMethod.localRegisterCount() + 1), speedStub[1].registers())
+                assertEquals("$name: the speed setter stub's end", Opcode.RETURN_VOID, speedStub[2].opcode)
 
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "reelHold" }
                 assertEquals("$name: SettingsStatus.reelHold() isn't switched on", 1,

@@ -240,6 +240,21 @@ public class NewestReelsTest {
     }
 
     @Test
+    public void anUnavailableLazyEdgeIsReportedAndLeavesItsSignalUntimed() {
+        Settings.NEWEST_REELS_FIRST.save(true);
+        Object older = signal(REELS_TAB, 100);
+        Object unavailable = new Object();
+        Object newer = signal(REELS_TAB, 200);
+        NewestReels.edgeFailed(new IllegalStateException("Inflated edge is null"));
+        NewestReels.posted(REELS_TAB, null, unavailable);
+        List<Object> list = ranked(older, unavailable, newer);
+        NewestReels.sort(list);
+        assertEquals(Arrays.asList(newer, unavailable, older), list);
+        String line = statusLine();
+        assertTrue(line, line.contains("'reel edge' hook (it threw java.lang.IllegalStateException)"));
+    }
+
+    @Test
     public void aListThatRefusesChangesIsLeftAsItWas() {
         Settings.NEWEST_REELS_FIRST.save(true);
         Object older = signal(REELS_TAB, 100);

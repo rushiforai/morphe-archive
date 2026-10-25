@@ -22,8 +22,6 @@ dependencies {
 
     // Shared helpers (returnEarly, findFreeRegister, ...).
     implementation(libs.morphe.patches.library)
-    // Instagram specific patches and fingerprints shared with brosssh's bundle.
-    implementation(libs.instagram.morphe.patches.library)
 
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.junit.bom))

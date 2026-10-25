@@ -700,6 +700,9 @@ public final class Probe extends Instrumentation {
                                 // creator with a story and can't see the drawable.
                                 + " storyStatus=" + (creator == null ? null : fieldValue(creator, "storyStatus"))
                                 + "/" + optional(creator, "getStoryStatus")
+                                // Whether the author is LIVE right now (a room id), yes or no:
+                                // with a story status it finds a creator for Story over LIVE.
+                                + " authorLive=" + authorLive(creator)
                                 // Whether TikTok serves it as separate video and audio (DASH),
                                 // the case a chosen-quality download muxes itself.
                                 + " dash=" + optional(video, "hasDashBitrate")
@@ -714,6 +717,10 @@ public final class Probe extends Instrumentation {
                                 + " following=" + (optional(creator, "getFollowStatus") instanceof Number
                                         ? ((Number) optional(creator, "getFollowStatus")).intValue() != 0 : "unknown")
                                 + " awemeType=" + awemeType
+                                // Whether it's a story, and the server's share-to-story number
+                                // (2 lets Add to Story show): finds a story for that switch.
+                                + " story=" + optional(aweme, "getIsTikTokStory")
+                                + " shareStory=" + optional(aweme, "getShareStoryStatus")
                                 + " ad=" + optional(aweme, "isAd")
                                 + " live=" + (liveId instanceof Number && ((Number) liveId).longValue() > 0)
                                 + " originalSound=" + originalSound
@@ -731,6 +738,10 @@ public final class Probe extends Instrumentation {
                                 + " authorStitch=" + optional(creator, "getStitchSetting")
                                 + " permDuet=" + optional(optional(aweme, "getInteractPermission"), "getDuet")
                                 + " permStitch=" + optional(optional(aweme, "getInteractPermission"), "getStitch")
+                                // The creator's content reuse choice for Add to Story in the share
+                                // sheet: 0 anyone. Allow Add to Story anyway answers everything as 0
+                                // while it is on, so read it with the switch off.
+                                + " permStory=" + optional(optional(aweme, "getInteractPermission"), "getAllowAddingToStory")
                                 // How long ago it was posted, in seconds, for checking an order
                                 // by date (Latest first on Following).
                                 + " postedAgo=" + postedAgo(optional(aweme, "getCreateTime"))
@@ -3050,6 +3061,77 @@ public final class Probe extends Instrumentation {
                                 + " size " + clickable.getWidth() + 'x' + clickable.getHeight() + " handled=" + handled);
                         break;
                     }
+                    case "themeattrs": {
+                        // Which of TikTok's color attributes a window's theme still answers light
+                        // where TikTok's dark app style, applied last with force, answers dark, and
+                        // the styles that set each one (#159: Share over a LIVE room opened white).
+                        // The activity in front and every window root, colors and style names only.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        Method darkStyle = loader.loadClass("app.morphe.extension.tiktok.live.LivePanelTheme")
+                                .getDeclaredMethod("darkAppTheme");
+                        darkStyle.setAccessible(true);
+                        int dark = (Integer) darkStyle.invoke(null);
+                        android.content.res.Resources res = activity.getResources();
+                        StringBuilder out = new StringBuilder("dark style ").append(styleName(res, dark))
+                                .append(" night=").append(res.getConfiguration().uiMode
+                                        & android.content.res.Configuration.UI_MODE_NIGHT_MASK).append('\n');
+                        java.util.List<Context> contexts = new java.util.ArrayList<>();
+                        contexts.add(activity);
+                        for (android.view.View root : windowRoots()) {
+                            contexts.add(root.getContext());
+                            // The activity under a dialog, a LIVE room under its Share sheet.
+                            for (Context under = root.getContext(); under instanceof android.content.ContextWrapper;
+                                 under = ((android.content.ContextWrapper) under).getBaseContext()) {
+                                if (under instanceof android.app.Activity && !contexts.contains(under)) contexts.add(under);
+                            }
+                        }
+                        int limit = Integer.parseInt(intent.getStringExtra("limit") == null ? "25" : intent.getStringExtra("limit"));
+                        for (Context themed : contexts) {
+                            out.append("theme of ").append(contextChain(themed)).append(" night=")
+                                    .append(themed.getResources().getConfiguration().uiMode
+                                            & android.content.res.Configuration.UI_MODE_NIGHT_MASK).append('\n');
+                            if (dark == 0) continue;
+                            android.content.res.Resources.Theme theme = themed.getTheme();
+                            android.content.res.Resources.Theme darkened = res.newTheme();
+                            darkened.setTo(theme);
+                            darkened.applyStyle(dark, true);
+                            int base = attrBase(res);
+                            int light = 0, shown = 0, misses = 0;
+                            for (int entry = 0; misses < 64 && entry < 0x10000; entry++) {
+                                int attr = base | entry;
+                                String name;
+                                try {
+                                    name = res.getResourceEntryName(attr);
+                                    misses = 0;
+                                } catch (android.content.res.Resources.NotFoundException gap) {
+                                    misses++;
+                                    continue;
+                                }
+                                Integer now = themeColor(theme, res, attr);
+                                Integer wanted = themeColor(darkened, res, attr);
+                                if (now == null || wanted == null || now.equals(wanted)) continue;
+                                if (luminance(now) < 0.6 || luminance(wanted) > 0.4 || (now >>> 24) < 0x80) continue;
+                                light++;
+                                if (shown++ >= limit) continue;
+                                android.util.TypedValue source = new android.util.TypedValue();
+                                theme.resolveAttribute(attr, source, false);
+                                out.append("  ").append(name).append(' ').append(Integer.toHexString(now))
+                                        .append(" dark=").append(Integer.toHexString(wanted)).append(" from ")
+                                        .append(Build.VERSION.SDK_INT >= 29 ? styleName(res, source.sourceResourceId) : "?")
+                                        .append('\n');
+                            }
+                            out.append("  ").append(light).append(" attributes light where the dark style is dark\n");
+                        }
+                        String text = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "themeattrs[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok themeattrs " + contexts.size() + " themes in " + pieces + " pieces");
+                        break;
+                    }
                     case "windowviews": {
                         // Dialogs and bottom sheets can live in a separate WindowManager root.
                         // TikTok 47.0.3's comment sheet leaves MainActivity's own content view
@@ -3326,6 +3408,63 @@ public final class Probe extends Instrumentation {
             return view.getClass().getSimpleName() + " id=" + (resources == null ? view.getId() : idName(view, resources))
                     + " at=" + at[0] + "," + at[1] + " h=" + view.getHeight() + " padTop=" + view.getPaddingTop()
                     + " attached=" + view.isAttachedToWindow();
+        }
+
+        /** A style's id and entry name for the themeattrs action. */
+        private static String styleName(android.content.res.Resources resources, int style) {
+            if (style == 0) return "0";
+            try {
+                return "0x" + Integer.toHexString(style) + "/" + resources.getResourceEntryName(style);
+            } catch (android.content.res.Resources.NotFoundException missing) {
+                return "0x" + Integer.toHexString(style);
+            }
+        }
+
+        /** The context classes from a view's context down to the base. */
+        private static String contextChain(Context context) {
+            StringBuilder out = new StringBuilder();
+            for (int depth = 0; context != null && depth < 6; depth++) {
+                if (depth > 0) out.append(" > ");
+                out.append(context.getClass().getName());
+                context = context instanceof android.content.ContextWrapper ? ((android.content.ContextWrapper) context).getBaseContext() : null;
+            }
+            return out.toString();
+        }
+
+        /** The package part and type of TikTok's attribute ids, found from a type named attr. */
+        private static int attrBase(android.content.res.Resources resources) {
+            for (int type = 1; type < 0x40; type++) {
+                int base = 0x7f000000 | (type << 16);
+                try {
+                    if ("attr".equals(resources.getResourceTypeName(base))) return base;
+                } catch (android.content.res.Resources.NotFoundException missing) {
+                    // Not this type, or its first entry is gone.
+                }
+            }
+            throw new IllegalStateException("no attr type");
+        }
+
+        /** The color a theme gives an attribute, through a color state list's default, or null. */
+        private static Integer themeColor(android.content.res.Resources.Theme theme,
+                                          android.content.res.Resources resources, int attr) {
+            android.util.TypedValue value = new android.util.TypedValue();
+            if (!theme.resolveAttribute(attr, value, true)) return null;
+            if (value.type >= android.util.TypedValue.TYPE_FIRST_COLOR_INT
+                    && value.type <= android.util.TypedValue.TYPE_LAST_COLOR_INT) {
+                return value.data;
+            }
+            if (value.resourceId == 0) return null;
+            try {
+                if (!"color".equals(resources.getResourceTypeName(value.resourceId))) return null;
+                return resources.getColorStateList(value.resourceId, theme).getDefaultColor();
+            } catch (RuntimeException notColor) {
+                return null;
+            }
+        }
+
+        /** Relative luminance of a color, 0 for black to 1 for white, ignoring alpha. */
+        private static double luminance(int color) {
+            return (0.2126 * ((color >> 16) & 0xff) + 0.7152 * ((color >> 8) & 0xff) + 0.0722 * (color & 0xff)) / 255.0;
         }
 
         /** The resource entry name of a view's id, the raw number for an id without one. */
@@ -4506,6 +4645,14 @@ public final class Probe extends Instrumentation {
 
         private static boolean blank(Object value) {
             return value == null || String.valueOf(value).trim().isEmpty();
+        }
+
+        /** Whether the author has a LIVE room open, from the room id their model carries. */
+        private static Object authorLive(Object creator) {
+            if (creator == null) return "unknown";
+            Object room = optional(creator, "getRoomId");
+            if (!(room instanceof Number)) room = fieldValue(creator, "roomId");
+            return room instanceof Number ? ((Number) room).longValue() > 0 : "unknown";
         }
 
         /**

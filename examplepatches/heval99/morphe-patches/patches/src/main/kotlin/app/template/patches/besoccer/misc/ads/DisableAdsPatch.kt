@@ -88,8 +88,7 @@ private fun BytecodePatchContext.neuter(owner: String, names: Set<String>): List
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables Google Mobile Ads banner, native, interstitial, rewarded and app-open ads, " +
-            "and the ad networks mediated through it."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_BESOCCER)
 

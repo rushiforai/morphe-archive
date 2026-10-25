@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -8,6 +8,8 @@
 package app.morphe.extension.reddit.patches;
 
 import android.graphics.Typeface;
+
+import java.util.Locale;
 
 import app.morphe.extension.reddit.settings.Settings;
 
@@ -35,7 +37,7 @@ public final class ForceSystemFontPatch {
         }
 
         boolean italic = (style & Typeface.ITALIC) != 0
-                || (path != null && path.toLowerCase().contains("italic"));
+                || (path != null && path.toLowerCase(Locale.ROOT).contains("italic"));
 
         return Typeface.create(Typeface.DEFAULT, weight, italic);
     }
@@ -45,7 +47,7 @@ public final class ForceSystemFontPatch {
             return 400;
         }
 
-        String lowerCasePath = path.toLowerCase();
+        String lowerCasePath = path.toLowerCase(Locale.ROOT);
         if (lowerCasePath.contains("black")) {
             return 900;
         }

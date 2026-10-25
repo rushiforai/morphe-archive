@@ -46,10 +46,15 @@ internal fun sdkGateFingerprint(sdk: String) = Fingerprint(
 // The Ophan uploader (6.238: fg9.a(NativeAppSubmission)): it posts the queued page views and
 // events to Ophan, the Guardian's own analytics, and throws an IOException on failure so that
 // OphanCoroutineWorker keeps the events for a retry. The thrift model class keeps its name.
+// The endpoint is matched as a URL prefix (STARTS_WITH), so a longer path or query still matches
+// under patcher 2.0, which compares raw `strings` with the whole constant. The failure message is
+// a whole constant (GuardianSmokeTest finds it by equality) and stays in `strings`, which also
+// keeps the two anchors order-free.
 internal object OphanSubmitFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Lophan/thrift/nativeapp/NativeAppSubmission;"),
-    strings = listOf("https://ophan.theguardian.com/mob", "Ophan submission failed"),
+    strings = listOf("Ophan submission failed"),
+    filters = listOf(string("https://ophan.theguardian.com/mob", StringComparisonType.STARTS_WITH)),
     custom = { method, _ -> method.implementation != null },
 )
 

@@ -7,6 +7,7 @@ package app.morphe.patches.facebook.misc.settings
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -98,8 +99,9 @@ private fun Method.makesShortcutCall(): Boolean =
  */
 internal fun BytecodePatchContext.rerouteShortcutCalls(): Int {
     val callers = mutableListOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    // A shortcut call names the manager.
+    classDefForEachReferencing(types = listOf(SHORTCUT_MANAGER)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEachReferencing
         if (classDef.methods.any { it.makesShortcutCall() }) callers += classDef.type
     }
     return callers.sumOf { type -> mutableClassDefBy(type).methods.sumOf { it.rerouteShortcutCalls() } }

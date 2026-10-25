@@ -24,6 +24,7 @@ private val CONTROLLER_EXTRAPOLATION_BUILDS = listOf(
     ControllerExtrapolationBuild("2.0.21", 5001968, measured = false),
     ControllerExtrapolationBuild("2.0.22", 5002244, measured = false),
     ControllerExtrapolationBuild("2.0.23", 5002363, measured = true),
+    ControllerExtrapolationBuild("2.0.24", 5002395, measured = false),
 )
 
 internal fun isControllerExtrapolationBuild(version: String, versionCode: String): Boolean =

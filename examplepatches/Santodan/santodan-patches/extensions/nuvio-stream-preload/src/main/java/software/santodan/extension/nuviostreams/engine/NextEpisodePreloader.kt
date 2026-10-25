@@ -36,14 +36,14 @@ class NextEpisodePreloader(
                     state.next.videoId != state.currentVideoId && playedMs >= 30_000
                 val sameTarget = target?.profile == state.profile && target?.currentVideoId == state.currentVideoId &&
                     target?.next == state.next
-                if (!ready || !sameTarget) {
+                if (!sameTarget || !state.enabled) {
                     permit(null)
                     fetch?.cancelAndJoin()
                     fetch = null
                     target = null
                     retryAt = 0
-                }
-                if (ready) {
+                } else {
+                    // Observe a completed result even if pause/buffering arrived before this tick.
                     if (fetch?.isCompleted == true) {
                         val success = fetch.await()
                         permit(null)
@@ -52,17 +52,25 @@ class NextEpisodePreloader(
                         // when its 15-minute TTL expires; this keeps long episodes ready too.
                         retryAt = time + if (success) 60_000 else 15_000
                     }
-                    if (fetch == null && time >= retryAt) {
-                        target = state
-                        permit(state)
-                        fetch = async {
-                            try { withTimeoutOrNull(45_000) { search(state) } == true }
-                            catch (cancelled: CancellationException) {
-                                if (!currentCoroutineContext().isActive) throw cancelled
-                                false // A stale native search must not stop the playback observer.
-                            }
-                            catch (error: Exception) { onError(error); false }
+                    if (!ready) {
+                        permit(null)
+                        if (fetch != null) {
+                            fetch?.cancelAndJoin()
+                            fetch = null
+                            retryAt = maxOf(retryAt, time + 15_000)
                         }
+                    }
+                }
+                if (ready && fetch == null && time >= retryAt) {
+                    target = state
+                    permit(state)
+                    fetch = async {
+                        try { withTimeoutOrNull(45_000) { search(state) } == true }
+                        catch (cancelled: CancellationException) {
+                            if (!currentCoroutineContext().isActive) throw cancelled
+                            false // A stale native search must not stop the playback observer.
+                        }
+                        catch (error: Exception) { onError(error); false }
                     }
                 }
                 previous = state

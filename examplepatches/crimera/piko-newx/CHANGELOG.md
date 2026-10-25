@@ -1,3 +1,26 @@
+## [3.64.0](https://github.com/crimera/piko-newx/compare/v3.63.0...v3.64.0) (2026-10-24)
+
+### ✨ New Features
+* **Twitter - newx:** support 12.37.2-prod.01 ([284dfde](https://github.com/crimera/piko/commit/284dfde05bb696ba83bf6982a2868e7f99d62a7b))
+
+## [3.63.0](https://github.com/crimera/piko-newx/compare/v3.62.0...v3.63.0) (2026-10-24)
+
+### ✨ New Features
+* **Twitter - newx:** support 12.37.1-prod.01 ([a11b151](https://github.com/crimera/piko/commit/a11b151bd4e5b91a6cd65aa733185dbd66231dac))
+* **Twitter - newx:** support 12.37.0-prod.01 ([ec30b96](https://github.com/crimera/piko/commit/ec30b9639dd3c95e1e38bb0e81afc49c2a40356b))
+
+## [3.62.0](https://github.com/crimera/piko-newx/compare/v3.61.0...v3.62.0) (2026-10-24)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** resolve 12.37.0-prod.01 patch failures ([8f539fa](https://github.com/crimera/piko/commit/8f539faaf7118359a038589858c0a8947515db3d))
+
+### ✨ New Features
+* **Twitter - newx:** list every profile tab in the tab editor ([23e0423](https://github.com/crimera/piko/commit/23e0423ddd6449eeda5289568bfb53906ce88911))
+
+### 🔧 Improvements
+* **Twitter - newx:** remove classic inline action spacing patch ([4caa071](https://github.com/crimera/piko/commit/4caa071b3ad51de500a6732ce3e22c95cad26a6a))
+* **Twitter - newx:** remove share post as image patch ([432a91d](https://github.com/crimera/piko/commit/432a91d4f629befb189766f395c12e0f4f0a0d72))
+
 ## [3.61.0](https://github.com/crimera/piko-newx/compare/v3.60.0...v3.61.0) (2026-10-23)
 
 ### ✨ New Features

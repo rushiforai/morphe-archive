@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.extendsClass
 
 /**
@@ -47,8 +48,9 @@ val blockScreenshotDetectionPatch = bytecodePatch(
         val activities = HashMap<String, Boolean>()
         val isActivity = { type: String -> activities.getOrPut(type) { extendsClass(type, ACTIVITY) } }
         val owners = mutableSetOf<String>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        // A detection call names its method.
+        classDefForEachReferencing(names = DetectionCall.entries.map { it.method }) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
             if (classDef.methods.any { method ->
                     method.implementation?.instructions?.any { detectionCall(it, isActivity) != null } == true
                 }

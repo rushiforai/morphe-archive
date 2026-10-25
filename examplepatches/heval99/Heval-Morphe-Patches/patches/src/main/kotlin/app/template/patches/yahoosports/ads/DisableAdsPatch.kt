@@ -15,8 +15,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Hides ad cards on the home, scores, game, team and league screens, above " +
-        "articles and on video screens, turns off Taboola stream ads and removes video pre-roll ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_YAHOO_SPORTS)
 

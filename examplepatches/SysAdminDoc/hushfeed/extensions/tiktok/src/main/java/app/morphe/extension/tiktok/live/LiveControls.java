@@ -205,7 +205,7 @@ public final class LiveControls {
     /**
      * Called as the For You LIVE preview's Service+ row ("Service+ | Ask me anything!") is bound to
      * a LIVE, with the row and that LIVE's Service+ preview. True when the row still shows and the
-     * LIVE has no Service+ item, and the patch then runs the row's own hide before its show.
+     * LIVE has no first Service+ item, and the patch then runs the row's own hide before its show.
      * TikTok's show returns without hiding when there's nothing to show, and only the hide a
      * preview runs as it leaves the screen took the row away, so a preview bound to the next LIVE
      * without leaving first kept the last LIVE's row under the next LIVE's name (#94). Paused, it
@@ -214,9 +214,17 @@ public final class LiveControls {
     public static boolean hideStaleServicePlus(Object row, Object preview) {
         if (row == null || Setting.isPaused()) return false;
         try {
-            if (!Boolean.TRUE.equals(Reflect.invoke(row, "isShowing"))) return false;
+            boolean showing = Boolean.TRUE.equals(Reflect.invoke(row, "isShowing"));
             Object items = preview == null ? null : Reflect.readField(preview, "previewItem");
-            if (items instanceof List && !((List<?>) items).isEmpty()) return false;
+            List<?> entries = items instanceof List ? (List<?>) items : null;
+            int count = entries == null ? 0 : entries.size();
+            // The native renderer reads only item zero and returns without clearing a null item.
+            boolean hasFirst = count > 0 && entries.get(0) != null;
+            // Every bind, so a report shows whether a row under a LIVE was that LIVE's own (#94).
+            Logger.printDebug(() -> "LIVE preview: Service+ row bound, showing " + showing
+                    + ", this LIVE has " + count + " Service+ item" + (count == 1 ? "" : "s")
+                    + ", first item available " + hasFirst);
+            if (!showing || hasFirst) return false;
             Logger.printDebug(() -> "LIVE preview: hid a Service+ row left from the last LIVE");
             return true;
         } catch (Throwable failure) {

@@ -20,7 +20,7 @@ class MorpheCreditsDialog extends AboutWebViewDialog {
     private static final List<MorpheAboutPreference.WebLink> WORKS_LINKS_CURRENT = List.of(
             new MorpheAboutPreference.WebLink("Morphe",
                     str("morphe_settings_about_links_morphe"),
-                    "https://github.com/mrx7014/MRXHalawa-Patches/graphs/contributors"
+                    "https://github.com/morpheapp/morphe-patches/graphs/contributors"
             )
     );
 

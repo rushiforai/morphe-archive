@@ -15,16 +15,16 @@ For Android Auto visibility, install with Morphe Manager's **Install as Play Sto
 KingInstaller as a fallback).
 
 > GPLv3 · Not affiliated with Waze. Targets the Waze versions in the patch list below.
-> Twenty-one rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
-> *Skip sign-in*, *Theme*, *AMOLED Dark Mode For UI*, *Bigger speedometer & limit sign*, the three
-> **Android Auto** rows, the ten **Experimental** rows, and *Report speed limit* and *Speed-limit sign style*.
+> Twenty rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
+> *Skip sign-in*, *Theme*, *AMOLED Dark Mode For UI*, *Bigger speedometer & limit sign*, the four
+> **Android Auto** rows, the eight **Experimental** rows, and *Report speed limit* and *Speed-limit sign style*.
 
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.3](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+> **[v0.30.41](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.41)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;29 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;30 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -53,6 +53,7 @@ KingInstaller as a fallback).
 | [Live drive sharing](#live-drive-sharing) | Adds the hidden share-your-drive link. |  |
 | [Morphe YouTube Music as a Waze audio partner](#morphe-youtube-music-as-a-waze-audio-partner) | Lets Morphe YouTube Music play through Waze. |  |
 | [New alert icons](#new-alert-icons) | Uses Waze's newer alert icons. |  |
+| [No Android Auto telemetry](#no-android-auto-telemetry) | Stops Waze sending Android Auto screen-switch timings to its analytics. |  |
 | [Picture-in-picture](#picture-in-picture) | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
 | [Remove ads](#remove-ads) | Removes ads. | • Block beacon popups |
 | [Show FPS counter](#show-fps-counter) | Shows the frame-rate counter. |  |

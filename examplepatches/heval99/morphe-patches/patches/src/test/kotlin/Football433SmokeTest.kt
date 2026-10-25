@@ -96,7 +96,7 @@ class Football433SmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.3.548",
+            version = "2.3.585",
             patchNames = setOf("Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

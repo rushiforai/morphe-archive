@@ -20,7 +20,7 @@ private fun MutableMethod.forceEnumConstant(field: String, enumType: String) {
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium+",
-    description = "Enables app features locked behind the subscription paywall."
+    description = "Unlocks Premium+ features."
 ) {
     compatibleWith(COMPATIBILITY_MYFITNESSPAL)
 

@@ -1,13 +1,13 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original code hard forked from:
  * https://github.com/inotia00/revanced-patches/blob/54ce1d4808b12903602a1a0d9a721ee835093c38/patches/src/main/kotlin/app/revanced/patches/all/misc/network/OverrideCertificatePinningPatch.kt#L4
  *
  * File-Specific License Notice (GPLv3 Section 7 Terms)
  *
- * This file is part of the MRX Halawa Patches project and is licensed under
+ * This file is part of the Morphe project and is licensed under
  * the GNU General Public License version 3 (GPLv3), with the Additional
  * Terms under Section 7 described in the LICENSE file.
  *
@@ -61,7 +61,7 @@ val overrideCertificatePinningPatch = resourcePatch(
             }
         }
 
-        if (resXmlDirectory.resolve(networkSecurityFileName).exists()) {
+        if (get("res/xml/$networkSecurityFileName").exists()) {
             document("res/xml/$networkSecurityFileName").use { document ->
                 arrayOf(
                     "base-config",

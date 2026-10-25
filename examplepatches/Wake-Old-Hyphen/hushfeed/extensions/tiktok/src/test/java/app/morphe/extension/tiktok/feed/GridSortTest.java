@@ -202,6 +202,25 @@ public class GridSortTest {
         assertEquals(-1, GridSort.indexOf("sideways"));
     }
 
+    @Test public void theChipClearsFullWidthRowsAtTheTopOfTheGridButNotCellsOrAFooter() {
+        int[] none = {};
+        assertEquals("an empty grid", 0, GridSort.chipOffset(1080, none, none, none));
+        assertEquals("cells only, as on a creator's grid", 0, GridSort.chipOffset(1080,
+                new int[] {0, 0, 0, 480}, new int[] {480, 480, 480, 960}, new int[] {358, 358, 358, 358}));
+        assertEquals("the Liked tab's privacy note", 113, GridSort.chipOffset(1080,
+                new int[] {0, 113, 113, 113}, new int[] {113, 593, 593, 593}, new int[] {1080, 358, 358, 358}));
+        assertEquals("two notes stacked", 160, GridSort.chipOffset(1080,
+                new int[] {0, 100, 160}, new int[] {100, 160, 640}, new int[] {1080, 1080, 358}));
+        assertEquals("a note scrolled partly away", 63, GridSort.chipOffset(1080,
+                new int[] {-50, 63}, new int[] {63, 543}, new int[] {1080, 358}));
+        assertEquals("a note scrolled out of sight", 0, GridSort.chipOffset(1080,
+                new int[] {-113, 0}, new int[] {0, 480}, new int[] {1080, 358}));
+        assertEquals("the loading footer under the cells", 0, GridSort.chipOffset(1080,
+                new int[] {0, 0, 480}, new int[] {480, 480, 560}, new int[] {358, 358, 1080}));
+        assertEquals("a grid not laid out yet", 0, GridSort.chipOffset(0,
+                new int[] {0}, new int[] {0}, new int[] {0}));
+    }
+
     @Test public void theNextPageIsWantedOnlyForARealOrderOnScreenUnderTheCapWhilePagesAddVideos() {
         assertTrue(GridSort.wantsNextPage("newest", 0, 30, true));
         assertTrue(GridSort.wantsNextPage("least_liked", 30, 60, true));
@@ -402,7 +421,7 @@ public class GridSortTest {
         assertEquals(ids(GridSort.data(null,grid)), ids(GridSort.data(null,grid)));
     }
 
-    @Test public void theListTikTokOwnsIsNeverChangedAndNothingIsLostOrRepeated() {
+    @Test public void sortingLeavesTheListTikTokOwnsAloneAndNothingIsLostOrRepeated() {
         List<Aweme> grid = grid();
         String before = ids(grid);
         Settings.PROFILE_GRID_SORT.save("newest");
@@ -411,6 +430,94 @@ public class GridSortTest {
         assertEquals("TikTok's list keeps its order", before, ids(grid));
         assertEquals(grid.size(), sorted.size());
         for (Aweme post : grid) assertTrue("same post objects", sorted.contains(post));
+    }
+
+    /** TikTok's grid fragment: the adapter sits in an obfuscated field among others. */
+    public static final class GridFragment {
+        final String title = "Videos";
+        final List<Aweme> recent = new ArrayList<>();
+        final GridAdapter adapter;
+
+        GridFragment(GridAdapter adapter) {
+            this.adapter = adapter;
+        }
+    }
+
+    @Test public void openingAVideoFromASortedGridSwipesInTheGridsOrder() {
+        GridAdapter adapter = new GridAdapter();
+        GridFragment fragment = new GridFragment(adapter);
+        Settings.PROFILE_GRID_SORT.save("newest");
+        List<Aweme> model = grid();
+        List<Aweme> posts = new ArrayList<>(model);
+        adapter.mmItems = GridSort.data(adapter, model);
+        assertEquals("abcdefp", ids(model));
+
+        GridSort.beforeOpen(fragment);
+        assertEquals("the video page plays the grid's order", "apecdfb", ids(model));
+        assertEquals(posts.size(), model.size());
+        for (Aweme post : posts) assertTrue("the same post objects", model.contains(post));
+        GridSort.beforeOpen(fragment);
+        assertEquals("a second open changes nothing", "apecdfb", ids(model));
+
+        // TikTok appends the next page to the list it now holds in the grid's order.
+        model.add(new Post("g", 250, 1_000, 1, 1, false));
+        adapter.mmItems = GridSort.page(adapter, model);
+        assertEquals("apecdgfb", ids(adapter.mmItems));
+        GridSort.apply(adapter, "oldest");
+        assertEquals("a new order sorts TikTok's own order, not the written one",
+                "apfgcdeb", ids(adapter.mmItems));
+        GridSort.beforeOpen(fragment);
+        assertEquals("apfgcdeb", ids(model));
+
+        GridSort.apply(adapter, "off");
+        assertEquals("Original order is TikTok's, the new video where TikTok put it",
+                "abcdefpg", ids(adapter.mmItems));
+        GridSort.apply(adapter, "newest");
+        GridSort.beforeOpen(fragment);
+        assertEquals("apecdgfb", ids(model));
+        Settings.PROFILE_GRID_SORT.save("off");
+        assertSame("with no order TikTok's list gets its own order back and the grid shares it",
+                model, GridSort.data(adapter, model));
+        assertEquals("abcdefpg", ids(model));
+    }
+
+    @Test public void aFreshLoadAfterAnOpenIsTikToksOrderAgain() {
+        GridAdapter adapter = new GridAdapter();
+        GridFragment fragment = new GridFragment(adapter);
+        Settings.PROFILE_GRID_SORT.save("newest");
+        List<Aweme> model = grid();
+        adapter.mmItems = GridSort.data(adapter, model);
+        GridSort.beforeOpen(fragment);
+
+        List<Aweme> refreshed = grid();
+        adapter.mmItems = GridSort.data(adapter, refreshed);
+        assertEquals("apecdfb", ids(adapter.mmItems));
+        GridSort.apply(adapter, "off");
+        assertEquals("abcdefp", ids(adapter.mmItems));
+    }
+
+    @Test public void onlyTheSameVideosAreEverWrittenIntoTikToksList() {
+        Post a = new Post("a", 1, 1, 1, 1, false);
+        Post b = new Post("b", 2, 1, 1, 1, false);
+        Post c = new Post("c", 3, 1, 1, 1, false);
+        List<Object> target = new ArrayList<>(Arrays.asList(a, b, c));
+        assertTrue(GridSort.follow(target, Arrays.asList(c, a, b)));
+        assertEquals("cab", ids(target));
+        assertFalse("a video the list doesn't hold", GridSort.follow(target, Arrays.asList(c, a, new Post("x", 1, 1, 1, 1, false))));
+        assertFalse("one video twice", GridSort.follow(target, Arrays.asList(c, c, b)));
+        assertFalse("another size", GridSort.follow(target, Arrays.asList(c, a)));
+        assertEquals("cab", ids(target));
+        List<Object> fixed = List.of(a, b, c);
+        assertFalse("a list that can't change", GridSort.follow(fixed, Arrays.asList(c, b, a)));
+        assertTrue("already in that order", GridSort.follow(fixed, Arrays.asList(a, b, c)));
+
+        assertEquals("ba then the new one", "bac", ids(GridSort.rebuilt(Arrays.asList(b, a), Arrays.asList(a, c, b))));
+        assertEquals("a video that left is dropped", "bc", ids(GridSort.rebuilt(Arrays.asList(b, a), Arrays.asList(c, b))));
+        assertNull("nothing in common is a fresh list", GridSort.rebuilt(Arrays.asList(a), Arrays.asList(b, c)));
+        assertNull("a video twice", GridSort.rebuilt(Arrays.asList(a, b), Arrays.asList(a, b, a)));
+
+        GridSort.beforeOpen(null);
+        GridSort.beforeOpen(new GridFragment(new GridAdapter()));
     }
 
     @Test public void aNewPageIsSortedInWithTheRestWithoutRepeats() {

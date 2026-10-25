@@ -10,7 +10,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes banner, native and app-open ads and skips the ad consent form.",
+    description = "Removes all ads.",
 ) {
     compatibleWith(COMPATIBILITY_EASYLAUNCHER)
 

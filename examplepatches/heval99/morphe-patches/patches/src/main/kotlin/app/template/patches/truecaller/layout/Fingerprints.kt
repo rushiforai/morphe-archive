@@ -132,3 +132,55 @@ internal object BusinessDetailsScreenFingerprint : Fingerprint(
     strings = listOf("BusinessDetailsScreen", "BusinessDesTitle"),
     custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
 )
+
+internal const val CALL_LOG_HISTORY_ENTRY = "Lcom/truecaller/calllog/presentation/ui/screen/model/CallLogHistoryItem\$HistoryEntry"
+
+// toString() of the call log's source model (CallLogHistoryEntryData, ch8 in 26.41.5), a Kotlin data
+// class with phonebookId (0 for numbers not in the phonebook), normalisedNumber (E.164), countryCode,
+// name, isSpam, spamScoreLabel, isBlocked, blockReasonLabel and more. Parts of it are R8-outlined;
+// the patch maps the fields through the replayed append order.
+internal object CallLogHistoryEntryDataToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("CallLogHistoryEntryData(primaryHistoryEventId=", StringComparisonType.STARTS_WITH)),
+    strings = listOf(", phonebookId=", ", normalisedNumber=", ", blockReasonLabel="),
+)
+
+// toString() of the revamped call log's row model (CallLogHistoryItem.HistoryEntry, mh8 in 26.41.5),
+// whose subtitleLabel (an R8-merged base class) is the text or resource label under the name.
+internal object CallLogHistoryRowToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("HistoryEntry(id=", StringComparisonType.STARTS_WITH)),
+    strings = listOf(", subtitleLabel=", ", normalisedNumber="),
+)
+
+// The revamped call log's row mapper (b98.G(List) in 26.41.5): for each CallLogHistoryEntryData it
+// picks the context action (SAVE_CONTACT, ...), the name (Resource UNKNOWN when there is no name or
+// number) and the subtitle label (Resource RECORDING / VIDEO / WHATSAPP / WHATSAPP_VIDEO / ..., or a
+// text label), then builds one HistoryEntry. The kept enum constants are matched in that order.
+internal object CallLogRowMapperFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "L",
+    parameters = listOf("Ljava/util/List;"),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = "$CALL_LOG_HISTORY_ENTRY\$ContextAction\$Type;",
+            name = "SAVE_CONTACT",
+        ),
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = "$CALL_LOG_HISTORY_ENTRY\$Name\$Resource\$Type;", name = "UNKNOWN"),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = "$CALL_LOG_HISTORY_ENTRY\$SubtitleLabel\$Resource\$Type;",
+            name = "RECORDING",
+        ),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = "$CALL_LOG_HISTORY_ENTRY\$SubtitleLabel\$Resource\$Type;",
+            name = "WHATSAPP_VIDEO",
+        ),
+    ),
+)

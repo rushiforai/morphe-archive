@@ -9,8 +9,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val hideBettingContentPatch = bytecodePatch(
     name = "Hide betting content",
-    description = "Hides odds, bookmaker links and betting offers: odds in lists and match pages, " +
-        "the Odds tabs, Bet365 sign-up links and the promotions for streaming, tickets and betting.",
+    description = "Hides odds and betting content.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)

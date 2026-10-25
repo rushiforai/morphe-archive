@@ -152,4 +152,34 @@ internal val BLUE_NOISE_LAYOUTS = listOf(
             BlueNoiseGuard(0x881a0, 42960, "060b780ed894d32c5c4d29fba3594cb1a1e14b2392992bdc372a230ef47619f5"), // .rela.plt
             BlueNoiseGuard(0x20a78, 31600, "08a05d1c41821d0d0792fa49b67164ed75a0f7382bd7c0720f488658bf314195"), // .gnu.hash
         )),
+    BlueNoiseLayout("2.0.24", "5002395", 2301432,
+        "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b", 0x97aae, 0xa3ceb, 0xf2df4L,
+        listOf(
+            BlueNoiseSite(0x69f7f, "libGLESv3.so", "libgxd.so"),
+            BlueNoiseSite(0x42a32, "glShaderSource", "gxShaderSource"),
+            BlueNoiseSite(0x29123, "glDrawArrays", "gxDrawArrays"),
+            BlueNoiseSite(0x42374, "eglCreateContext", "gxdCreateContext"),
+            BlueNoiseSite(0x423ec, "eglDestroyContext", "gxdDestroyContext"),
+            BlueNoiseSite(0x423a9, "eglMakeCurrent", "gxdMakeCurrent"),
+            BlueNoiseSite(0x42410, "eglTerminate", "gxdTerminate"),
+            BlueNoiseSite(0xa3103, "glCompileShader", "gxCompileShader"),
+            BlueNoiseSite(0xa8d8b, "glLinkProgram", "gxLinkProgram"),
+            BlueNoiseSite(0x94548, "glDeleteShader", "gxDeleteShader"),
+            BlueNoiseSite(0xa80f0, "glDeleteProgram", "gxDeleteProgram"),
+        ), listOf(
+            BlueNoiseGuard(0x17e21c, 160, "d404e671d81be0ef12ee3b974e31e88f995bf1443f301c3413d394ecc9481e91"),
+            BlueNoiseGuard(0xf2ca0, 616, "eff4c2efcb12c806084d3cfaf1ffc0d50837e27c602ae6ed0285641942f94b88"),
+            BlueNoiseGuard(0xf2af4, 428, "60387966cc47190882ff82e3656a37b97a92050be0d14298debe49d9873b68bf"),
+            BlueNoiseGuard(0x99a51, 29, "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"),
+            BlueNoiseGuard(0xa3ceb, 296, "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"),
+            BlueNoiseGuard(0x17dfb0, 16, "885346be6eca816bd7fe4f28383d1f965f9c1cfb4b27ae864753192cea695dfd"),
+            BlueNoiseGuard(0x17e010, 16, "6c22fd81298266eec523ee5bb61b3a15c1b9e3058062b1b4c4f6bc0b585e608e"),
+            BlueNoiseGuard(0x17dff0, 16, "933029bad9935e437f85529e24c672f0242d690e9aea450e1b98f83dcb871fb7"),
+            BlueNoiseGuard(0x17dfe0, 16, "f891d299c318fb486ba196d6c5cf21aaffcbc7db8ccbc2bfacdef4f8f0bd5c64"),
+            BlueNoiseGuard(0x2f8, 122976, "9b2d417467ba1b8bcc50d0d7aade8e6d1fd52dc47cca87d023e276c93487c58e"), // .dynsym
+            BlueNoiseGuard(0x22c290, 544, "9f47f6399a02b015dd6f0e2caa8f73881ca993d117b0131c44f657950aef6d72"), // .dynamic
+            BlueNoiseGuard(0x69fa0, 125328, "fadb0f2e390cb76039cbecf820c8b19fa7cfc041257672f8dfd645c8a6e791d5"), // .rela.dyn
+            BlueNoiseGuard(0x88930, 43200, "fb3cac0953fd436b45093bfb19c8d26bc5bef61f7e90db27f2afe3128a83c462"), // .rela.plt
+            BlueNoiseGuard(0x20be0, 31668, "ed02bc776ee042083afbcd96d48429992e1e92425ca25046e8cddc9b083953b1"), // .gnu.hash
+        )),
 )

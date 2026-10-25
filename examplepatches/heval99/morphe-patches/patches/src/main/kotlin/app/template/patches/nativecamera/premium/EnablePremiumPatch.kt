@@ -36,9 +36,7 @@ private fun MutableMethod.prefsHelperCallAfterKey(returnsVoid: Boolean): Int {
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Native Camera premium (RAW DNG, 10-bit/HLG/UHDR video, boosted " +
-            "modes and the higher bitrate cap). Premium is a local flag; the license check is " +
-            "disabled as well so the patched app starts."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_NATIVECAMERA)
 

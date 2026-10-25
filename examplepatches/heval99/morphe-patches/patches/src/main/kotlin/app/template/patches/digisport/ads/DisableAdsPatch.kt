@@ -16,8 +16,7 @@ import app.template.patches.shared.addInstructionsWithLabelsChecked
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner ads and empty ad slots in articles, listings, results and " +
-        "the live programme list, and the pre-roll ads before live channels and videos."
+    description = "Removes banner ads and video ads."
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

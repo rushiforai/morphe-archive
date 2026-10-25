@@ -284,6 +284,29 @@ public class ContentShapeFilterTest {
     }
 
     @Test
+    public void aFeedPageReadBeforeTheFetchHandsItOverStillDropsAWatchedVideo() {
+        Settings.HIDE_SEEN_VIDEOS.save(true);
+        // Another rule on (on a phone Remove ads, on by default) keeps that early read running
+        // so it records what it kept. With no rule left it returns before recording anything.
+        Settings.HIDE_STORY.save(true);
+        SeenVideoHistory.onPlayProgressChange("watched", 9_000, 10_000);
+
+        // TikTok's feed fetch reads a new page through getItems before fetchFeedList returns
+        // it, and that read can't tell the page from a list the reader opened (#172).
+        FeedItemList response = page(new Item("watched"), new Item("fresh"));
+        FeedItemsFilter.filterOnRead(response);
+        FeedItemsFilter.filterOnRead(response);
+
+        // Handed over, the page loses the watched video before anything plays it.
+        assertEquals(Arrays.asList("fresh"), survivors(response));
+
+        // What the page kept still stays once it plays and is marked seen.
+        SeenVideoHistory.onPlayProgressChange("fresh", 9_000, 10_000);
+        FeedItemsFilter.filterOnRead(response);
+        assertEquals(Arrays.asList("fresh"), aids(response));
+    }
+
+    @Test
     public void anOpenedListKeepsWhatTheFeedRulesWouldTake() {
         Settings.HIDE_IMAGE.save(true);
 

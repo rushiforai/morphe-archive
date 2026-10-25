@@ -152,8 +152,7 @@ private fun MutableMethod.callsNoArgStaticBoolean(owner: String): MethodReferenc
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Pi Music Player Premium (ad-free) by forcing the local " +
-        "purchase-state checks to true."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_PIMUSICPLAYER)
 

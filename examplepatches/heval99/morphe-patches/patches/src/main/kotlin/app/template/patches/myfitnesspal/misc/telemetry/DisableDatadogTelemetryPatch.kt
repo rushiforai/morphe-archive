@@ -11,8 +11,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val disableDatadogTelemetryPatch = bytecodePatch(
     name = "Disable Datadog telemetry",
-    description = "Stops Datadog real-user monitoring (sessions, screens, taps, crashes, ANRs " +
-        "and network traces). Other analytics in the app are not changed.",
+    description = "Disables Datadog monitoring.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_MYFITNESSPAL)

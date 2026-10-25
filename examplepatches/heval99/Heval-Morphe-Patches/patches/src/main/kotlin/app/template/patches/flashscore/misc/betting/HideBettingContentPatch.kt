@@ -128,9 +128,7 @@ private fun BytecodePatchContext.enumConstantField(enumType: String, name: Strin
 @Suppress("unused")
 val hideBettingContentPatch = bytecodePatch(
     name = "Hide betting content",
-    description = "Hides odds in match lists and match summaries, the match and league Odds tabs, " +
-        "the league Winner Odds block, bet buttons, the bookmaker strip, betting bonuses and the " +
-        "gift icon, bookmakers next to TV channels and gambling notices.",
+    description = "Hides odds and betting content.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_FLASHSCORE)

@@ -42,10 +42,7 @@ internal const val SHOW_REVIEW_PROMPT_BINDING = "Lorg/mozilla/fenix/reviewprompt
 @Suppress("unused")
 val hidePromotionalPromptsPatch = bytecodePatch(
     name = "Hide promotional prompts",
-    description = "Stops Firefox's own promotions: in-app messages and their notifications, microsurveys, " +
-        "the \"Set as default browser\" prompts (at start, in onboarding and in the follow-up onboarding " +
-        "days), the onboarding sign-in page and the rating prompt. Sign-in, Set as default browser and " +
-        "Rate on Google Play in settings keep working.",
+    description = "Hides default browser, rating and promo prompts.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

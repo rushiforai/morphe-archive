@@ -1,14 +1,14 @@
 # App and patch development map
 
-This guide maps the TikTok app Hushfeed modifies to the code and release checks that make a patch. Its version and patch counts were last synced with the source on 2026-10-22, and `scripts/validate-release-facts.ps1` fails when they drift. The generated [patch catalog](../patches-list.json) is the current source of truth for patch names and compatibility.
+This guide maps the TikTok app Hushfeed modifies to the code and release checks that make a patch. Its version and patch counts were last synced with the source on 2026-10-24, and `scripts/validate-release-facts.ps1` fails when they drift. The generated [patch catalog](../patches-list.json) is the current source of truth for patch names and compatibility.
 
 ## What Hushfeed ships
 
 Hushfeed is a Morphe patch bundle, not a TikTok APK. Morphe Manager takes a TikTok APK chosen by the user, applies the selected patches, and signs the result with the user's existing key. The patch definitions and the runtime code they inject live in separate Gradle modules.
 
-Source snapshot: version 0.78.0, 138 patch entries. Those come from gradle.properties and patches-list.json.
+Source snapshot: version 0.79.0, 141 patch entries. Those come from gradle.properties and patches-list.json.
 
-Published bundle: version 0.78.0, 138 patches. Those come from patches-bundle.json and the release it names.
+Published bundle: version 0.79.0, 141 patches. Those come from patches-bundle.json and the release it names.
 
 The source runs ahead of the published bundle until the next release ships. The index moves only after a new bundle is published and verified, which is the release sequence described in CONTRIBUTING.md. Do not hand-edit the index to make the two match.
 
@@ -20,18 +20,18 @@ Keep every Unreleased bullet under a `###` group. The release cutter preserves t
 | --- | --- |
 | App | Global TikTok |
 | Package | com.zhiliaoapp.musically |
-| Supported version | 47.1.4 |
-| Version code | 2024701040 |
+| Supported version | 47.5.3 |
+| Version code | 2024705030 |
 | APK signer SHA-256 | 9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba |
 | Extension minimum Android API | 23 |
 
-Only the global TikTok package is declared. TikTok Lite and regional package variants are not patch targets.
+Global TikTok is the main target. PineDrama (com.ss.android.ttmd.video 47.5.3, version code 2024705030, signer SHA-256 e97ca0c8835c5a9e4f7702a0382b103ede9c5d51e5194c8db54f4c8833f54e18) is built from TikTok's 47.5.3 code, and the patches whose anchors it keeps declare it too: 95 of the 141 in the current catalog. It leaves out TikTok's stories, so the parts of a patch that need them check `shipsStories()` and skip on PineDrama. A patch's package and version support says only that it applies. Whether it works signed in on a drama feed is a separate runtime check. TikTok Lite and regional package variants aren't patch targets.
 
 The target identity is centralized in [AppCompatibilities.kt](../patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt). Patch definitions normally use that compatibility object instead of copying package names, signer hashes, or version codes into each patch. The README's [Supported target](../README.md#supported-target) section is the user-facing version record, and its install steps keep naming the build the published release patches, since that's what people install. When the target moves, update AppCompatibilities.kt from the reviewed APK and add one line under Supported target in the form ``- Next release: TikTok X.Y.Z, [on APKMirror](link) since YYYY-MM-DD (version code ...), SHA-256 `...`.`` The release's index step moves the install steps onto that build and drops the line.
 
 On 2026-10-09, a clean factory APK was downloaded from [TikTok's official Android download page](https://www.tiktok.com/download). It was TikTok 38.3.3, package com.zhiliaoapp.musically, version code 2023803030, minSdk 21, targetSdk 34, and 429,047,484 bytes. Its SHA-256 was AB8D9394D87CA046BDA8F49031791CFAF75588A0830B5D54766E1BCF8CCDD6BC. apksigner verified its official signer, which matches the certificate recorded for the supported target.
 
-That factory APK is useful for observing TikTok's unpatched onboarding and selected signed-in surfaces. It is not a patch fixture. Its version is far older than 47.1.4, so bytecode matches, resource IDs, and patch success on it say nothing about the supported target.
+That factory APK is useful for observing TikTok's unpatched onboarding and selected signed-in surfaces. It is not a patch fixture. Its version is far older than the supported build, so bytecode matches, resource IDs, and patch success on it say nothing about the supported target.
 
 ## Factory install observation
 
@@ -90,16 +90,16 @@ The Morphe Gradle plugin and the default extension namespace are configured in s
 
 The runtime code is grouped by feature under extensions/tiktok/src/main/java/app/morphe/extension/tiktok/. Current package folders are accountmanagement, blockauthor, captions, capture, cleardisplay, comment, commentsort, diagnostics, download, externalbrowser, favorites, featurecontrols, featuregatelab, feed, feedfilter, foldable, follow, font, ghostmode, inbox, interaction, live, misc, navigation, network, notinterested, offline, playback, popups, privacy, profile, publishdate, repost, search, seekbar, seen, settings, share, speed, spoof, storage, telemetry, theme, translation, upload, and wellbeing. Search the generated patch catalog by display name first, then follow its dependencies into the Kotlin and Java sources.
 
-The current catalog's 138 patches are grouped as follows:
+The current catalog's 141 patches are grouped as follows:
 
 | Manager category | Patches |
 | --- | ---: |
-| Comments | 13 |
+| Comments | 15 |
 | Downloads | 5 |
 | Feed | 20 |
 | Inbox | 7 |
 | Interaction | 18 |
-| Interface | 9 |
+| Interface | 10 |
 | Performance | 11 |
 | Playback | 20 |
 | Privacy | 16 |
@@ -194,7 +194,7 @@ The final signed build was exercised on a Galaxy S22 running Android 16 and TikT
 ## Adding or changing a patch
 
 1. Start from the exact patch name in patches-list.json. Read its Kotlin declaration, dependencies, runtime hook, tests, and the matching README entry.
-2. Confirm the behavior against the declared 47.1.4 APK. Record the package, version, and signer. Do not use the 38.3.3 factory APK as a bytecode or resource reference.
+2. Confirm the behavior against the declared APK. Record the package, version, and signer. Do not use the 38.3.3 factory APK as a bytecode or resource reference.
 3. Put the patch in the closest existing feature package. Use a narrow fingerprint and validate the exact number or shape of matches. PatchContracts.kt provides helpers that fail with a patch-specific message when a match disappears, becomes ambiguous, or changes shape.
 4. Decide whether the control belongs in Manager at patch time or in Hushfeed settings at runtime. For a runtime switch, add its stable key and default in Settings.java, connect it to the category row, and inject a hook that reads the setting. Add translation entries when new setting text is introduced.
 5. Add a patch test for the selected bytecode or resource contract. Add a runtime test beside the Java feature when behavior can be exercised without TikTok's private runtime. Keep APK-dependent tests tied to the external fixture directory.

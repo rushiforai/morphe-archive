@@ -187,12 +187,13 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
         }
         if (SettingsStatus.storyOverLiveEnabled) {
-            // #233. TikTok's profile picture opens the LIVE over a Story. With this on the Story
-            // comes first, and the next tap on the same picture still joins the LIVE.
+            // #233. TikTok's profile picture and Inbox chat picture open the LIVE over a Story.
+            // With this on the Story comes first, and the next tap on the same picture still
+            // joins the LIVE.
             addPreference(new TogglePreference(
                     context,
                     "Open the Story when a creator is LIVE",
-                    "When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.",
+                    "When a creator who's LIVE also has a Story, tapping their picture on their profile or on your chat with them in the Inbox opens the Story. Tap the picture again to join the LIVE.",
                     Settings.OPEN_STORY_OVER_LIVE
             ));
         }
@@ -700,6 +701,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Glass lens on the current tab",
                     "On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.",
                     Settings.GLASS_TAB_LENS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Blur the video behind the bar",
+                    "Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.",
+                    Settings.GLASS_VIDEO_BLUR
             ));
             addPreference(new TogglePreference(
                     context,

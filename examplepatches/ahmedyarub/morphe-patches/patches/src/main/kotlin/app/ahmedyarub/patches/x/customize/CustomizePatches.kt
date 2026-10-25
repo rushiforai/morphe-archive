@@ -31,10 +31,13 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 // region Inline action bar
 
-/** The action bar presenter, which copies a post's actions into the bar's state. */
+/**
+ * The action bar presenter, which copies a post's actions into the bar's state. 12.37 dropped the
+ * font scaling flag it used to read; the payments flag is read in it in 12.36 and 12.37 alike.
+ */
 private object InlineActionBarPresenterFingerprint : Fingerprint(
     parameters = listOf("Landroidx/compose/runtime/Composer;"),
-    strings = listOf("android_font_engagement_bar_content_scaling_enabled"),
+    strings = listOf("payments_posts_lpf_p2p_enabled"),
 )
 
 @Suppress("unused")

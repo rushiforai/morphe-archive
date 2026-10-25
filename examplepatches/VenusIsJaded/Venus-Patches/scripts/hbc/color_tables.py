@@ -32,7 +32,7 @@ def decode(bundle, module, themes):
     return out
 
 def themes_of(bundle):
-    # Themes (588): {ASH:'dark', LIGHT:'light', ONYX:'midnight', DARK:'darker'} in 349.9.
+    # Themes (588): {ASH:'dark', LIGHT:'light', ONYX:'midnight', DARK:'darker'}.
     h = bundle.h
     for ins in h.dis(h.func(bundle.modules[588])):
         if 'NewObjectWithBufferLong' in ins:

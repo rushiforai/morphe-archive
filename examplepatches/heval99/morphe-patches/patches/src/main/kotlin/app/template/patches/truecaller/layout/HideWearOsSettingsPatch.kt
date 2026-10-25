@@ -6,7 +6,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
 @Suppress("unused")
 val hideWearOsSettingsPatch = bytecodePatch(
     name = "Hide Wear OS settings",
-    description = "Removes the \"Truecaller for Wear OS\" entry from the Settings screen.",
+    description = "Hides the Wear OS entry in settings.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

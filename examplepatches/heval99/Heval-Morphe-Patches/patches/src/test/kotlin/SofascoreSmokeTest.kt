@@ -38,6 +38,10 @@ private const val SHARED_PREFERENCES = "Landroid/content/SharedPreferences;"
 private const val EVENT_HEAD_FLAGS = "Lcom/sofascore/model/mvvm/model/EventHeadFlags;"
 private const val BET365_SIGN_UP_PREFIX = "https://www.bet365.com/olp/open-account?affiliate="
 
+private const val RELEASE_APP = "Lcom/sofascore/results/ReleaseApp;"
+private const val FIREBASE_BUNDLE = "Lcom/sofascore/model/FirebaseBundle;"
+private val CONSENT_TYPES = listOf("ad_personalization", "ad_user_data", "analytics_storage", "ad_storage")
+
 private const val START_ACTIVITY = "Lcom/sofascore/results/main/start/StartActivity;"
 private const val SIGNATURE_SHA1 = "e235776bc0ad3837b01359177c438658b1424d23"
 
@@ -161,7 +165,7 @@ class SofascoreSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.10.05",
+            version = "26.10.12",
             patchNames = SOFASCORE_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -281,6 +285,38 @@ class SofascoreSmokeTest {
             label = "Crashlytics recordException(Throwable)", diagnostics
         )
 
+        // Sofascore's own analytics sender, found like the fingerprint: the (String,
+        // FirebaseBundle)V method holding "event_date" and "event_timestamp". It returns at once.
+        val analyticsSenders = classes.flatMap { it.methods }.filter { m ->
+            m.returnType == "V" && m.params() == listOf("Ljava/lang/String;", FIREBASE_BUNDLE) &&
+                m.strings().containsAll(listOf("event_date", "event_timestamp"))
+        }
+        assertTrue(
+            analyticsSenders.size == 1,
+            "expected one Sofascore analytics sender, found ${analyticsSenders.size}\n$diagnostics"
+        )
+        assertReturnsEarlyVoid(
+            analyticsSenders.single(),
+            label = "Sofascore analytics sender ${analyticsSenders.single().definingClass}", diagnostics
+        )
+
+        // Firebase Performance: isPerformanceMonitoringEnabled (R8-renamed; the no-arg boolean
+        // holding the "fpr_*" keys and "com.google.firebase.perf.SdkEnabled") returns false.
+        val perfEnabled = classes.flatMap { it.methods }.filter { m ->
+            m.returnType == "Z" && m.parameterTypes.isEmpty() &&
+                m.strings().containsAll(
+                    listOf("fpr_enabled", "fpr_disabled_android_versions", "com.google.firebase.perf.SdkEnabled")
+                )
+        }
+        assertTrue(
+            perfEnabled.size == 1,
+            "expected one isPerformanceMonitoringEnabled, found ${perfEnabled.size}\n$diagnostics"
+        )
+        assertForcedBoolean(
+            perfEnabled.single(), expected = false,
+            label = "Firebase Performance isPerformanceMonitoringEnabled()", diagnostics
+        )
+
         // Disable Facebook SDK: only the Audience Network (ads) init provider is
         // neutered. FacebookInitProvider must keep initializing the SDK, otherwise
         // the login screen crashes with "SDK has not been initialized" (issue #24).
@@ -338,6 +374,47 @@ class SofascoreSmokeTest {
             modalPredicate(classes, "Active subscription", "PR_XAIST", diagnostics),
             expected = true, label = "Active subscription predicate getHasServerAds()", diagnostics
         ) { ref, _ -> ref.definingClass == USER_ACCOUNT && ref.name == "getHasServerAds" }
+
+        // Disable ads: ReleaseApp's consent method (no-arg void holding the consent-type strings)
+        // no longer starts the ad SDK start-up thread, and keeps its Firebase consent code.
+        val consentMethod = require(RELEASE_APP).methods.filter { m ->
+            m.returnType == "V" && m.parameterTypes.isEmpty() &&
+                m.strings().containsAll(listOf("ad_personalization", "analytics_storage"))
+        }.singleOrNull() ?: error("no single ReleaseApp consent method\n$diagnostics")
+        val consentInsns = consentMethod.instructions()
+        fun Method.calls(owner: String, name: String) = instructions().count { insn ->
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+            ref != null && ref.definingClass == owner && ref.name == name
+        }
+        assertTrue(
+            consentMethod.calls("Ljava/lang/Thread;", "start") == 0,
+            "ReleaseApp.${consentMethod.name}() still calls Thread.start()\n$diagnostics"
+        )
+        assertTrue(
+            consentMethod.strings().containsAll(CONSENT_TYPES) &&
+                consentMethod.calls("Landroid/os/BaseBundle;", "putString") >= CONSENT_TYPES.size &&
+                consentMethod.calls("Lcom/google/firebase/analytics/FirebaseAnalytics;", "getInstance") == 1,
+            "ReleaseApp.${consentMethod.name}() lost its Firebase consent code\n$diagnostics"
+        )
+        // The thread is still built but never started: its constructor is followed by return-void.
+        val threadInit = consentInsns.indexOfLast { insn ->
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Ljava/lang/Thread;" && ref.name == "<init>"
+        }
+        assertTrue(
+            threadInit >= 0 && consentInsns.getOrNull(threadInit + 1)?.opcode == Opcode.RETURN_VOID,
+            "ReleaseApp.${consentMethod.name}(): Thread.<init> is not followed by return-void; got " +
+                "${consentInsns.getOrNull(threadInit + 1)?.opcode}\n$diagnostics"
+        )
+
+        // Disable ads, rule 9: with init skipped, every MobileAds static void returns at once
+        // (openDebugMenu is reachable from the hidden developer options).
+        val mobileAds = require("Lcom/google/android/gms/ads/MobileAds;")
+        for (name in listOf("initialize", "openDebugMenu", "setAppVolume", "setAppMuted")) {
+            val statics = mobileAds.methods.filter { it.name == name && it.returnType == "V" && it.implementation != null }
+            assertTrue(statics.isNotEmpty(), "MobileAds.$name not found\n$diagnostics")
+            statics.forEach { assertReturnsEarlyVoid(it, label = "MobileAds.$name(${it.parameterTypes.joinToString()})") }
+        }
 
         // Disable rating prompts: the "Rating Info" predicate reads "ask_review_v3" as false.
         val ratingPredicate = modalPredicate(classes, "Rating Info", "ask_review_v3", diagnostics)

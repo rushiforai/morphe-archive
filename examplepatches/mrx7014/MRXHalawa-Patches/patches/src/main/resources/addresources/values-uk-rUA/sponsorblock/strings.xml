@@ -23,7 +23,6 @@ Second \"item\" text"</string>
   <string name="morphe_sb_voting_button_summary">Додає кнопку для позитивної або негативної оцінки сегментів</string>
   <string name="morphe_sb_square_layout_title">Використовувати квадратний макет</string>
   <string name="morphe_sb_square_layout_summary">Використовує квадратні кути для кнопок та елементів керування SponsorBlock</string>
-  <!-- Translations should match the language used in 'morphe_ryd_compact_layout_title'. -->
   <string name="morphe_sb_compact_skip_button_title">Компактна кнопка пропуску</string>
   <string name="morphe_sb_compact_skip_button_summary">Зменшує ширину кнопки \"Пропустити\" для економії місця</string>
   <string name="morphe_sb_auto_hide_skip_button_title">Приховувати кнопку пропуску</string>
@@ -90,7 +89,7 @@ Second \"item\" text"</string>
   <string name="morphe_sb_settings_export_failed">Не вдалося експортувати: %s</string>
   <string name="morphe_sb_settings_morphe_export_user_id_warning">"Ваші налаштування містять особистий ID користувача SponsorBlock.
 
-Ваш ID користувача це як пароль і його не можна поширювати."</string>
+Ваш ID користувача це як пароль і його не можна поширювати"</string>
   <string name="morphe_sb_settings_morphe_export_user_id_warning_dismiss">Більше не показувати</string>
   <string name="morphe_sb_diff_segments_title">Змінити поведінку сегмента</string>
   <string name="morphe_sb_segments_sponsor">Спонсор</string>
@@ -153,7 +152,7 @@ Second \"item\" text"</string>
   <string name="morphe_sb_skip_ignore">Вимкнути</string>
   <string name="morphe_sb_submit_failed_invalid">Неможливо надіслати сегмент: %s</string>
   <string name="morphe_sb_submit_failed_timeout">SponsorBlock тимчасово не працює</string>
-  <string name="morphe_sb_submit_failed_unknown_error">Не вдалося надіслати сегмент (статус: %1$d %2$s)</string>
+  <string name="morphe_sb_submit_failed_unknown_error">Не вдалося надіслати сегмент (статус: %1$s %2$s)</string>
   <string name="morphe_sb_submit_failed_rate_limit">Неможливо надіслати сегмент. Частота обмежена (занадто багато від одного користувача або IP)</string>
   <string name="morphe_sb_submit_failed_forbidden">Неможливо надіслати сегмент: %s</string>
   <string name="morphe_sb_submit_failed_duplicate">"Неможливо надіслати сегмент.
@@ -161,10 +160,10 @@ Second \"item\" text"</string>
   <string name="morphe_sb_submit_succeeded">Сегмент успішно надіслано</string>
   <!-- Notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
   <string name="morphe_sb_sponsorblock_connection_failure_timeout">SponsorBlock тимчасово недоступний (тайм-аут API)</string>
-  <string name="morphe_sb_sponsorblock_connection_failure_status">SponsorBlock тимчасово недоступний (статус %d)</string>
+  <string name="morphe_sb_sponsorblock_connection_failure_status">SponsorBlock тимчасово недоступний (статус %s)</string>
   <string name="morphe_sb_sponsorblock_connection_failure_generic">SponsorBlock тимчасово не доступний</string>
   <string name="morphe_sb_vote_failed_timeout">Не вдалося проголосувати за сегмент (тайм-аут API)</string>
-  <string name="morphe_sb_vote_failed_unknown_error">Не вдалося проголосувати за сегмент (статус: %1$d %2$s)</string>
+  <string name="morphe_sb_vote_failed_unknown_error">Не вдалося проголосувати за сегмент (статус: %1$s %2$s)</string>
   <string name="morphe_sb_vote_failed_forbidden">Не вдалося проголосувати за сегмент: %s</string>
   <string name="morphe_sb_vote_upvote">Проголосувати \"за\"</string>
   <string name="morphe_sb_vote_downvote">Проголосувати \"проти\"</string>
@@ -173,7 +172,7 @@ Second \"item\" text"</string>
   <!-- A segment start and end time, such as "02:10 to 03:40". -->
   <string name="morphe_sb_vote_segment_time_to_from">%1$s до %2$s</string>
   <string name="morphe_sb_new_segment_choose_category">Вибрати категорію сегмента</string>
-  <string name="morphe_sb_new_segment_disabled_category">Категорія вимкнена у налаштуваннях. Увімкніть категорію, щоб надіслати.</string>
+  <string name="morphe_sb_new_segment_disabled_category">Категорія вимкнена у налаштуваннях. Увімкніть категорію, щоб надіслати</string>
   <string name="morphe_sb_new_segment_title">Новий сегмент SponsorBlock</string>
   <string name="morphe_sb_new_segment_mark_time_as_question">Встановити %s як початок чи кінець нового сегмента?</string>
   <string name="morphe_sb_new_segment_mark_start">Початок</string>
@@ -212,7 +211,7 @@ Second \"item\" text"</string>
   <string name="morphe_sb_stats_sb_disabled">SponsorBlock вимкнено</string>
   <string name="morphe_sb_stats_username">Ваше ім\'я користувача: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Натисніть тут, щоб змінити ім\'я користувача</string>
-  <string name="morphe_sb_stats_username_change_unknown_error">Не вдалося змінити ім\'я користувача: Статус: %1$d %2$s</string>
+  <string name="morphe_sb_stats_username_change_unknown_error">Не вдалося змінити ім\'я користувача: Статус: %1$s %2$s</string>
   <string name="morphe_sb_stats_username_changed">Ім\'я користувача успішно змінено</string>
   <string name="morphe_sb_stats_reputation">Ваша репутація - &lt;b&gt;%.2f&lt;/b&gt;</string>
   <string name="morphe_sb_stats_submissions">Ви створили &lt;b&gt;%s&lt;/b&gt; сегментів</string>
@@ -229,8 +228,7 @@ Second \"item\" text"</string>
   <string name="morphe_sb_stats_saved_second_format">%s секунд</string>
   <string name="morphe_sb_color_opacity_label">Непрозорість:</string>
   <string name="morphe_sb_color_dot_label">Колір:</string>
-  <string name="morphe_sb_about_title">Про інтеграцію</string>
-  <string name="morphe_sb_about_api_summary">"Дані надаються API SponsorBlock
+  <string name="morphe_sb_about_api_summary">"SponsorBlock - це краудсорсингова база сегментів відео, як-от спонсорські вставки, інтро, аутро та нагадування підписатися. Сегменти надсилають і оцінюють голосуванням користувачі, а сама база відкрита й безкоштовна для завантаження
 
-Торкніться тут, щоб відкрити Sponsor.ajay.app та переглянути завантаження для інших платформ"</string>
+Ідентифікатор відео, яке ви дивитеся, надсилається до API SponsorBlock для отримання його сегментів"</string>
 </resources>

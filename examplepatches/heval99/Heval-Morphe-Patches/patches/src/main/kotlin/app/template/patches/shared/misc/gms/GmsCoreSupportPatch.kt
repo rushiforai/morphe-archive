@@ -143,8 +143,7 @@ fun gmsCoreSupportPatch(
 
     return bytecodePatch(
         name = "GmsCore support",
-        description = "Makes Google sign-in and Google APIs work in the patched app by using " +
-            "MicroG RE instead of Google Play services. Requires MicroG RE to be installed." +
+        description = "Makes Google sign-in and Google services work. Requires MicroG RE." +
             (extraDescription?.let { " $it" } ?: ""),
         default = default,
     ) {

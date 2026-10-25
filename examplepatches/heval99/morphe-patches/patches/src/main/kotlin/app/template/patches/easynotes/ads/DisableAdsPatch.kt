@@ -8,9 +8,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_EASYNOTES
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the 'notes_edit_banner' unit from utils/AdManager and the app-open ad " +
-        "from App\$AppOpenAdManager. Both are gated on the single App.isAdFree() check, which " +
-        "normally depends on a VIP subscription."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_EASYNOTES)
 

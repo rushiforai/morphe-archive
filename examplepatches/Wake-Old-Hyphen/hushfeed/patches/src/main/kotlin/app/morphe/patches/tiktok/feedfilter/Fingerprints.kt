@@ -183,6 +183,46 @@ internal object FollowFeedListGetItemsFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+private const val FOLLOW_FEED_API_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/follow/api/FollowFeedApiV2;"
+
+/**
+ * The static helper that calls the Following feed API, GET or POST, with a count it writes as the
+ * literal 20 ([raiseFollowFeedFirstReadCount]). R8 names the class and method; the API interface
+ * keeps its real name and its two request methods, which one method calls both of.
+ */
+internal object FollowFeedRequestFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    custom = { method, _ ->
+        val calls = method.implementation?.instructions
+            ?.mapNotNull { it.getReference<MethodReference>() }
+            ?.filter { it.definingClass == FOLLOW_FEED_API_DESCRIPTOR }
+            ?.map { it.name }
+            ?: emptyList()
+        "followFeedGet" in calls && "followFeedPost" in calls
+    },
+)
+
+internal const val FOLLOWING_CACHE_DESCRIPTOR =
+    "Lcom/ss/android/ugc/aweme/cache/FollowingFeedCacheService\$FollowingCache;"
+
+/**
+ * The Following feed's restore of the list TikTok saved last run ([skipSavedFollowingFirstVideo]).
+ * It takes the saved cache, checks its age against FollowingCacheConfigModel.expiredTime and shows
+ * the saved list's first post. R8 names the class and method; the cache and its fields keep their
+ * real names.
+ */
+internal object FollowingCacheRestoreFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(FOLLOWING_CACHE_DESCRIPTOR, "Ljava/util/List;", "Z"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.getReference<FieldReference>()?.let {
+                it.definingClass == FOLLOWING_CACHE_DESCRIPTOR && it.name == "updateTime"
+            } == true
+        } == true
+    },
+)
+
 internal object InsertedFeedItemsFingerprint : Fingerprint(
     definingClass = BASE_LIST_FRAGMENT_PANEL_DESCRIPTOR,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),

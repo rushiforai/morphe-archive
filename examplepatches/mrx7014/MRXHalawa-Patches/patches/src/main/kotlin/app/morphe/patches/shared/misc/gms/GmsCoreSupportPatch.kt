@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -11,10 +11,9 @@
 package app.morphe.patches.shared.misc.gms
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionFilter
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -28,13 +27,14 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
 import app.morphe.patches.all.misc.clone.cloneAppPatch
 import app.morphe.patches.all.misc.clone.setOrGetFallbackPackageName
+import app.morphe.patches.all.misc.gms.gmsCorePackageQueriesPatch
 import app.morphe.patches.shared.misc.gms.Constants.ACTIONS
 import app.morphe.patches.shared.misc.gms.Constants.AUTHORITIES
 import app.morphe.patches.shared.misc.gms.Constants.PERMISSIONS
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.IntentPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
-import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstStringInstructionOrThrow
 import app.morphe.util.matchAllMethodIndicesForEach
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
@@ -97,6 +97,8 @@ fun gmsCoreSupportPatch(
     )
 
     execute {
+        GooglePlayUtilityFingerprint.method.returnEarly(0)
+
         val toPackageName = setOrGetFallbackPackageName(toPackageNameDefault)
 
         // Exact string replacements.
@@ -133,18 +135,16 @@ fun gmsCoreSupportPatch(
             )
         }
 
+        val authoritiesPrefix = AUTHORITIES.map { it to "content://$it" }
         fun contentUrisTransform(str: String): String? {
             // only when content:// URI
-            if (str.startsWith("content://")) {
-                // check if matches any authority
-                for (authority in AUTHORITIES) {
-                    val uriPrefix = "content://$authority"
-                    if (str.startsWith(uriPrefix)) {
-                        return str.replace(
-                            uriPrefix,
-                            "content://${authority.replace("com.google", GMS_CORE_VENDOR_GROUP_ID)}",
-                        )
-                    }
+            // check if matches any authority
+            for ((authority, uriPrefix) in authoritiesPrefix) {
+                if (str.startsWith(uriPrefix)) {
+                    return str.replace(
+                        uriPrefix,
+                        "content://${authority.replace("com.google", GMS_CORE_VENDOR_GROUP_ID)}",
+                    )
                 }
             }
 
@@ -153,14 +153,8 @@ fun gmsCoreSupportPatch(
 
         fun transformPrimeMethod(packageName: String) {
             primeMethodFingerprint!!.method.apply {
-                var register = 2
-
-                val index = instructions.indexOfFirst {
-                    if (it.getReference<StringReference>()?.string != fromPackageName) return@indexOfFirst false
-
-                    register = (it as OneRegisterInstruction).registerA
-                    return@indexOfFirst true
-                }
+                val index = indexOfFirstStringInstructionOrThrow(fromPackageName)
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
 
                 replaceInstruction(index, "const-string v$register, \"$packageName\"")
             }
@@ -168,25 +162,22 @@ fun gmsCoreSupportPatch(
 
         // endregion
 
-        val contentUriFilter = InstructionFilter { _, instruction ->
-            if (instruction.opcode != Opcode.CONST_STRING) return@InstructionFilter false
-            val stringRef = (instruction as? ReferenceInstruction)?.reference as? StringReference ?: return@InstructionFilter false
-            contentUrisTransform(stringRef.string) != null
-        }
-
-        contentUriFilter.matchAllMethodIndicesForEach(requireMatches = false) { index ->
+        string(
+            "content://", StringComparisonType.STARTS_WITH
+        ).matchAllMethodIndicesForEach(requireMatches = false) { index ->
             val instruction = getInstruction<ReferenceInstruction>(index)
             val string = (instruction.reference as StringReference).string
-            val transformedString = contentUrisTransform(string)!!
-
-            replaceInstruction(
-                index,
-                BuilderInstruction21c(
-                    Opcode.CONST_STRING,
-                    (instruction as OneRegisterInstruction).registerA,
-                    ImmutableStringReference(transformedString),
+            val transformedString = contentUrisTransform(string)
+            if (transformedString != null) {
+                replaceInstruction(
+                    index,
+                    BuilderInstruction21c(
+                        Opcode.CONST_STRING,
+                        (instruction as OneRegisterInstruction).registerA,
+                        ImmutableStringReference(transformedString),
+                    )
                 )
-            )
+            }
         }
 
         // Specific method that needs to be patched.
@@ -203,7 +194,6 @@ fun gmsCoreSupportPatch(
             }
         }
         ServiceCheckFingerprint.method.returnEarly()
-        GooglePlayUtilityFingerprint.method.returnEarly(0)
 
         // Set original and patched package names for extension to use.
         OriginalPackageNameExtensionFingerprint.method.returnEarly(fromPackageName)
@@ -219,6 +209,19 @@ fun gmsCoreSupportPatch(
         GmsCoreSupportFingerprint.method.returnEarly(
             GMS_CORE_VENDOR_GROUP_ID
         )
+
+        // GNP expects the original Google package even when the installed app is renamed.
+        GnpRegistrationTargetFingerprint.let { match ->
+            val result = match.instructionMatches[1]
+            match.method.replaceInstruction(
+                result.index,
+                BuilderInstruction21c(
+                    Opcode.CONST_STRING,
+                    (result.instruction as OneRegisterInstruction).registerA,
+                    ImmutableStringReference(fromPackageName),
+                ),
+            )
+        }
 
         executeBlock()
     }
@@ -514,6 +517,7 @@ fun gmsCoreSupportResourcePatch(
 ) = resourcePatch {
     dependsOn(
         cloneAppPatch,
+        gmsCorePackageQueriesPatch,
         linkHandlingPatch(fromPackageName, screen)
     )
 
@@ -568,7 +572,10 @@ fun gmsCoreSupportResourcePatch(
                 "$fromPackageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" to "$toPackageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
                 "com.google.android.c2dm" to "$GMS_CORE_VENDOR_GROUP_ID.android.c2dm",
                 "com.google.android.libraries.photos.api.mars" to "$GMS_CORE_VENDOR_GROUP_ID.android.apps.photos.api.mars",
-                "</queries>" to "<package android:name=\"$GMS_CORE_VENDOR_GROUP_ID.android.gms\"/></queries>",
+                // Allow the app to request uninstall of conflicting MicroG / GMS variants on Android 14+.
+                // The variants are made visible to the package manager by gmsCorePackageQueriesPatch.
+                // Also add the external PoToken provider app to the queries.
+                "</queries>" to "<package android:name=\"app.morphe.pot.helper\"/></queries><uses-permission android:name=\"android.permission.REQUEST_DELETE_PACKAGES\"/>",
             )
 
             val manifest = get("AndroidManifest.xml")

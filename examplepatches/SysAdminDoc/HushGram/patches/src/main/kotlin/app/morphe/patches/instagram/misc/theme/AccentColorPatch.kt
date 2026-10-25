@@ -71,8 +71,8 @@ private val GET_COLOR = listOf(listOf("I"), listOf("I", THEME))
  * Colors an XML style takes from a theme attribute never pass those reads (the framework reads them
  * through TypedArray), which left 451's bio links and the Activity tab's Follow buttons blue (#8). So
  * the patch also adds theme styles for each color ([accentThemePatch]), and once Instagram has laid
- * its Prism overrides over an activity's theme, the extension lays on the picked color's (see
- * [applyAccentTheme]). Instagram's own resources and color table stay as they are. Its Compose
+ * its Prism overrides over an activity's theme, or its theme util over a context of its own making
+ * such as the tab bar's, the extension lays on the picked color's (see [applyAccentTheme]). Instagram's own resources and color table stay as they are. Its Compose
  * screens, the bio and the Activity tab among them, read neither: their colors come from palettes
  * written into the code, and each accent blue a palette stores goes through the extension as the
  * palette is set up ([swapComposePalettes]).
@@ -81,7 +81,7 @@ private val GET_COLOR = listOf(listOf("I"), listOf("I", THEME))
 val accentColorPatch = bytecodePatch(
     name = "Accent color",
     description = "Swaps Instagram's blue on Follow buttons, links and other highlights for purple, pink, red, orange, " +
-        "green or teal. Restart Instagram to see a change. Starts off. Turn it on in HushGram settings > Layout.",
+        "green, teal or your wallpaper's colors (Material You, on Android 12 and newer). Restart Instagram to see a change. Starts off. Turn it on in HushGram settings > Layout.",
     default = true,
 ) {
     category("Interface")
@@ -92,6 +92,7 @@ val accentColorPatch = bytecodePatch(
         requireStatusMethod("accentColor")
         val attributes = requireAccentAttributes()
         findThemeOverrides()
+        findThemeUtil()
         val palettes = findPaletteStores()
         swapAccentColors()
         applyAccentTheme(attributes)

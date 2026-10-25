@@ -83,6 +83,7 @@ $Java = Resolve-Java -Explicit $Java
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list found: $catalogPath" }
+$catalogSha256 = (Get-FileHash -LiteralPath $catalogPath -Algorithm SHA256).Hash.ToLowerInvariant()
 try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
 catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
 $target = Get-PatchTarget -PatchList $catalog
@@ -95,6 +96,7 @@ if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
     throw ("No vendor APK. Pass -Apk with the $($target.PackageVersion) build, or set " +
         'HUSHPINTEREST_FIXTURE_DIR to the folder that holds it.')
 }
+$fixtureSha256 = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
 # The version the result is held to: the vendor APK's own, read the way verify-all-patches.ps1
 # and the receipt read it. The catalog can declare more than one build and the CLI reports the
 # version of the APK it was given, so holding every run to the newest build failed an older build
@@ -116,6 +118,10 @@ try {
 $complete = $false
 $outputReservation = $null
 $reservedPath = $null
+$ownedOutput = $false
+$evidenceStream = $null
+$evidencePath = $null
+$ownedEvidence = $false
 try {
 if ($OutputApk) {
     $reservedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputApk)
@@ -124,6 +130,11 @@ if ($OutputApk) {
     }
     try { $outputReservation = [IO.File]::Open($reservedPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None) }
     catch [IO.IOException] { throw 'The explicit APK destination already exists or is owned by another run. No output was overwritten.' }
+    $ownedOutput = $true
+    $evidencePath = "$reservedPath.build.json"
+    try { $evidenceStream = [IO.File]::Open($evidencePath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None) }
+    catch [IO.IOException] { throw 'The explicit build-evidence destination already exists. No evidence was overwritten.' }
+    $ownedEvidence = $true
 }
 $stockBase = Join-Path $OutDir 'stock-base.apk'
 try {
@@ -152,6 +163,11 @@ if ([string]::IsNullOrEmpty($keystorePassword)) {
 $version = Get-BundleVersion -Root $root
 $bundle = Get-ReleaseBundlePath -Root $root -Version $version
 if (-not (Test-Path $bundle)) { throw "No bundle at $bundle. Build it first: :patches:generatePatchesList then :patches:buildAndroid, through the governor." }
+$buildInputs = [ordered]@{
+    bundleSha256 = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+    fixtureSha256 = $fixtureSha256
+    catalogSha256 = $catalogSha256
+}
 # Only buildAndroid writes this bundle; a test run after a patch change leaves it behind, and the
 # phone would get the previous hooks while the result reads as a verdict on the new ones.
 if (-not $AllowStaleBundle) {
@@ -292,15 +308,43 @@ $global:LASTEXITCODE = -1
 if ($LASTEXITCODE -ne 0) { throw 'Patched bytecode failed its compiled mutation or structural checks.' }
 }
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
+# Record provenance only after the patch report, manifest and dex checks succeeded. Recheck
+# inputs so a concurrent rebuild cannot attach its new hash to an APK made from older bytes.
+foreach ($entry in @(@('bundleSha256', $bundle), @('fixtureSha256', $Apk), @('catalogSha256', $catalogPath))) {
+    if ((Get-FileHash -LiteralPath $entry[1] -Algorithm SHA256).Hash.ToLowerInvariant() -cne $buildInputs[$entry[0]]) {
+        throw 'A patch input changed during the run. No build evidence can be issued.'
+    }
+}
+$buildEvidence = [ordered]@{
+    schema = 1
+    bundleSha256 = $buildInputs.bundleSha256
+    fixtureSha256 = $buildInputs.fixtureSha256
+    catalogSha256 = $buildInputs.catalogSha256
+    packageName = [string]$stock.package
+    appVersion = [string]$stock.versionName
+    appVersionCode = [string]$stock.versionCode
+    selectedPatches = @($names)
+    signedApkSha256 = (Get-FileHash -LiteralPath $out -Algorithm SHA256).Hash.ToLowerInvariant()
+    completed = [DateTimeOffset]::UtcNow.UtcDateTime.ToString('o')
+}
+if (-not $evidenceStream) {
+    $evidencePath = "$out.build.json"
+    $evidenceStream = [IO.File]::Open($evidencePath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    $ownedEvidence = $true
+}
+$evidenceBytes = [Text.Encoding]::UTF8.GetBytes(($buildEvidence | ConvertTo-Json -Depth 4) + "`n")
+$evidenceStream.Write($evidenceBytes, 0, $evidenceBytes.Length)
+$evidenceStream.Flush($true)
 if ($outputReservation) {
     $input = [IO.File]::OpenRead($out)
     try { $input.CopyTo($outputReservation); $outputReservation.Flush($true) }
     finally { $input.Dispose() }
-    $outputReservation.Dispose()
-    $outputReservation = $null
     $out = $reservedPath
 }
 $complete = $true
+$evidenceStream.Dispose()
+$evidenceStream = $null
+if ($outputReservation) { $outputReservation.Dispose(); $outputReservation = $null }
 Write-Host "[device] $out"
 Write-Output $out
 
@@ -319,6 +363,7 @@ try {
 
 } finally {
     if ($outputReservation) { $outputReservation.Dispose() }
+    if ($evidenceStream) { $evidenceStream.Dispose() }
     # These are this run's paths only. A missing or replaced owner marker fails closed.
     $safeRun = Resolve-WithinRoot -Path $OutDir -Root $runParent
     if (-not (Test-Path -LiteralPath $ownerFile -PathType Leaf) -or [IO.File]::ReadAllText($ownerFile) -cne $runToken) {
@@ -332,6 +377,7 @@ try {
     }
     if (-not $complete) {
         Remove-Item -LiteralPath $safeRun -Recurse -Force
-        if ($reservedPath -and $outputReservation) { Remove-Item -LiteralPath $reservedPath -Force }
+        if ($ownedOutput) { Remove-Item -LiteralPath $reservedPath -Force }
+        if ($ownedEvidence -and (Test-Path -LiteralPath $evidencePath)) { Remove-Item -LiteralPath $evidencePath -Force }
     }
 }

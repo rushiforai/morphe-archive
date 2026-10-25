@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -42,7 +42,7 @@ public abstract class SpanFilterGroup<T> {
     public final T[] filters;
 
     @SafeVarargs
-    public SpanFilterGroup(final BooleanSetting setting, final T... filters) {
+    public SpanFilterGroup(BooleanSetting setting, T... filters) {
         this.setting = setting;
         this.filters = filters;
         if (filters.length == 0) {
@@ -65,5 +65,5 @@ public abstract class SpanFilterGroup<T> {
         return getClass().getSimpleName() + ": " + (setting == null ? "(null setting)" : setting);
     }
 
-    public abstract FilterGroupResult check(final T stack);
+    public abstract FilterGroupResult check(T stack);
 }

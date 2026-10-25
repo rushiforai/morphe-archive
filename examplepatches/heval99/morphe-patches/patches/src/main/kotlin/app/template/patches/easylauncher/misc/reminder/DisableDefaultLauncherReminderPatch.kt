@@ -14,8 +14,7 @@ private val ReferenceInstruction.methodReference get() = reference as? MethodRef
 @Suppress("unused")
 val disableDefaultLauncherReminderPatch = bytecodePatch(
     name = "Disable default launcher reminder",
-    description = "Stops the notification that asks you to set the app as the default launcher. " +
-        "It only appears while another launcher is the default.",
+    description = "Disables the reminder to set the app as default launcher.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_EASYLAUNCHER)

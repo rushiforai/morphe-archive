@@ -41,13 +41,13 @@ import java.util.List;
  * background through a RenderNode with a blur effect.
  *
  * <p>The video is found the way the frame save finds it: the player's own layer under the feed's
- * SurfaceView ({@link PlayerLayers}) when it draws into one, else the SurfaceView itself. A
- * TextureView, or a window with no video the pill sits fully over, has nothing to read, and the
- * plain glass stays. One bitmap is kept and written in place. It is sampled at an eighth of the
- * pill's size about 20 times a second while the bar is on screen and the window has focus, a few
- * times a second once the picture has stopped changing (a paused video), and not at all once the
- * switch is off, Hushfeed is paused, the bar is hidden or another background replaced the glass.
- * Android 12 added RenderEffect, so below it the switch does nothing.
+ * SurfaceView ({@link PlayerLayers}) when it draws into one, else the SurfaceView itself, measured
+ * as drawn (TikTok scales it up a little). A TextureView, or a window with no video under most of
+ * the pill, has nothing to read, and the plain glass stays. One bitmap is kept and written in
+ * place. It is sampled at an eighth of the pill's size about 20 times a second while the bar is on
+ * screen and the window has focus, a few times a second once the picture has stopped changing (a
+ * paused video), and not at all once the switch is off, Hushfeed is paused, the bar is hidden or
+ * another background replaced the glass. Android 12 added RenderEffect, so below it the switch does nothing.
  */
 final class GlassVideoBlur {
     /** The sample is this many times smaller than the pill, in each direction. */
@@ -112,6 +112,8 @@ final class GlassVideoBlur {
     private long lastFind;
     private long retryAt;
     private Source source;
+    /** The last state written to the debug log, so each change is logged once. */
+    private String state;
     /** Reads asked for since this blur was made, for the tests. */
     int reads;
 
@@ -133,7 +135,9 @@ final class GlassVideoBlur {
 
     /**
      * The part of the video the pill covers, in the video buffer's pixels, or null when the pill
-     * isn't fully over the video. Both rects are in the window's coordinates, and the buffer is
+     * isn't over the video. A pill hanging a little past the video's edge (a full width bar a few
+     * pixels lower than a scaled video) reads the part that is over it, as long as that is at least
+     * three quarters of the pill. Both rects are in the window's coordinates, and the buffer is
      * taken to fill the video's bounds.
      */
     static Rect sourceRect(Rect pill, Rect video, int bufferWidth, int bufferHeight) {
@@ -141,15 +145,36 @@ final class GlassVideoBlur {
                 || bufferWidth <= 0 || bufferHeight <= 0) {
             return null;
         }
-        if (!video.contains(pill)) return null;
+        Rect over = new Rect(pill);
+        if (!over.intersect(video)) return null;
+        if ((long) over.width() * over.height() * 4 < (long) pill.width() * pill.height() * 3) return null;
         float scaleX = bufferWidth / (float) video.width();
         float scaleY = bufferHeight / (float) video.height();
         Rect from = new Rect(
-                Math.max(0, Math.round((pill.left - video.left) * scaleX)),
-                Math.max(0, Math.round((pill.top - video.top) * scaleY)),
-                Math.min(bufferWidth, Math.round((pill.right - video.left) * scaleX)),
-                Math.min(bufferHeight, Math.round((pill.bottom - video.top) * scaleY)));
+                Math.max(0, Math.round((over.left - video.left) * scaleX)),
+                Math.max(0, Math.round((over.top - video.top) * scaleY)),
+                Math.min(bufferWidth, Math.round((over.right - video.left) * scaleX)),
+                Math.min(bufferHeight, Math.round((over.bottom - video.top) * scaleY)));
         return from.isEmpty() ? null : from;
+    }
+
+    /**
+     * Where the view draws in its window, after its own and its parents' scale and offsets. TikTok
+     * scales the feed's player view up to fill the screen (about 1.07 on the S22), so its corner plus
+     * its unscaled width and height ended above the bar and every pill looked off the video.
+     */
+    static Rect boundsInWindow(View view) {
+        RectF box = new RectF(0, 0, view.getWidth(), view.getHeight());
+        View at = view;
+        while (true) {
+            android.graphics.Matrix matrix = at.getMatrix();
+            if (!matrix.isIdentity()) matrix.mapRect(box);
+            box.offset(at.getLeft(), at.getTop());
+            if (!(at.getParent() instanceof View)) break;
+            at = (View) at.getParent();
+            box.offset(-at.getScrollX(), -at.getScrollY());
+        }
+        return new Rect(Math.round(box.left), Math.round(box.top), Math.round(box.right), Math.round(box.bottom));
     }
 
     /** The sample's width and height for a pill of this size: an eighth each way, at least a pixel. */
@@ -246,6 +271,7 @@ final class GlassVideoBlur {
                 ? ((android.graphics.drawable.InsetDrawable) background).getDrawable().getBounds()
                 : background.getBounds();
         if (video == null || pill.isEmpty()) {
+            note("none", "no video found behind the bar");
             hasFrame = false;
             return;
         }
@@ -253,6 +279,7 @@ final class GlassVideoBlur {
         pillInWindow.set(spot[0] + pill.left, spot[1] + pill.top, spot[0] + pill.right, spot[1] + pill.bottom);
         Rect from = sourceRect(pillInWindow, video.bounds(), video.bufferWidth(), video.bufferHeight());
         if (from == null) {
+            note("off", "the pill " + pillInWindow + " isn't over the video " + video.bounds());
             hasFrame = false;
             return;
         }
@@ -282,6 +309,7 @@ final class GlassVideoBlur {
             return;
         }
         failures = 0;
+        note("reading", "reading the video behind the bar");
         sample.getPixels(pixels, 0, sample.getWidth(), 0, 0, sample.getWidth(), sample.getHeight());
         still = Arrays.equals(pixels, before) ? still + 1 : 0;
         System.arraycopy(pixels, 0, before, 0, pixels.length);
@@ -293,22 +321,27 @@ final class GlassVideoBlur {
         source = null;
         if (++failures >= MAX_FAILURES) {
             // Nothing readable behind the pill: the plain glass shows until the next try.
+            note("failed", "the video behind the bar can't be read, plain glass for now");
             failures = 0;
             hasFrame = false;
             retryAt = now + RETRY_MS;
         }
     }
 
+    private void note(String now, String line) {
+        if (now.equals(state)) return;
+        state = now;
+        Logger.printDebug(() -> "Glass blur: " + line);
+    }
+
     /** The video behind the bar: the player's layer under the SurfaceView it draws into, else the SurfaceView. */
     @android.annotation.TargetApi(26)
     static Source findSource(View bar) {
         List<View> videos = PictureInPicture.videoViews(bar.getRootView());
-        int[] where = new int[2];
         for (View video : videos) {
             if (!(video instanceof SurfaceView)) continue;
             SurfaceView surface = (SurfaceView) video;
-            video.getLocationInWindow(where);
-            Rect bounds = new Rect(where[0], where[1], where[0] + video.getWidth(), where[1] + video.getHeight());
+            Rect bounds = boundsInWindow(video);
             PlayerLayers.Layer layer = PlayerLayers.under(surface);
             if (layer != null) {
                 return new LayerSource(layer.surface, bounds, layer.width, layer.height);

@@ -35,8 +35,8 @@ fun main(args: Array<String>) {
         check(bytes[expanded + 36].toInt() and 16 == 0)
         check(headerBytes.getInt(expanded + 40) == 1)
         check(headerBytes.getInt(expanded + 44) == 0)
-        check(headerBytes.getInt(expanded + 48) == result.prefixSize - 7)
-        check(headerBytes.getInt(expanded + 52) == result.prefixSize - 2)
+        check(headerBytes.getInt(expanded + 48) == result.prefixSize - 11)
+        check(headerBytes.getInt(expanded + 52) == result.prefixSize - 6)
         check(bytes.copyOfRange(result.codeOffset + result.prefixSize,
             result.codeOffset + result.prefixSize + result.originalCodeSize)
             .contentEquals(original.copyOfRange(HbcPrelude.GLOBAL_OFFSET, HbcPrelude.GLOBAL_OFFSET + HbcPrelude.GLOBAL_SIZE)))

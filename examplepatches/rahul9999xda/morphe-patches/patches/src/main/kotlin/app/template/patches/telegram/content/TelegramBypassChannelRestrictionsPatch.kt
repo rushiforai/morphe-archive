@@ -6,6 +6,18 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.TELEGRAM_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_PLUS_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
+import app.template.patches.telegram.CheckCanOpenChat2Normal1311Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat3Normal1311Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat4Normal1311Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat4Web1311Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat2Plus1303Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat3Plus1303Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat4Plus1303Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat4Plus1302Fingerprint
+import app.template.patches.telegram.CheckSensitiveNormal1311Fingerprint
+import app.template.patches.telegram.CheckSensitivePlus1303Fingerprint
+import app.template.patches.telegram.ShowCantOpenAlertNormal1311Fingerprint
+import app.template.patches.telegram.ShowCantOpenAlertPlus1303Fingerprint
 import app.template.patches.telegram.CheckCanOpenChat2Normal1303Fingerprint
 import app.template.patches.telegram.CheckCanOpenChat3Normal1303Fingerprint
 import app.template.patches.telegram.CheckCanOpenChat4Normal1303Fingerprint
@@ -211,7 +223,7 @@ private val checkCanOpenChat4WebFingerprint = Fingerprint(
     ),
 )
 
-// Telegram 13.0.2 legacy descriptor; Telegram 13.0.3 uses Lge/e;.
+// Legacy Telegram 13.0.2 descriptor; Telegram 13.1.1 uses Lge/e;.
 private val checkCanOpenChat4NormalFingerprint = Fingerprint(
     definingClass = "Lorg/telegram/messenger/MessagesController;",
     name = "checkCanOpenChat",
@@ -224,30 +236,6 @@ private val checkCanOpenChat4NormalFingerprint = Fingerprint(
     ),
 )
 
-// Plus Messenger 13.0.2.0 current descriptor is Ldj/e$c;. Keep Lej/e$c; as a legacy fallback.
-private val checkCanOpenChat4PlusFingerprint = Fingerprint(
-    definingClass = "Lorg/telegram/messenger/MessagesController;",
-    name = "checkCanOpenChat",
-    returnType = "Z",
-    parameters = listOf(
-        "Landroid/os/Bundle;",
-        "Lorg/telegram/ui/ActionBar/i2;",
-        "Lorg/telegram/messenger/MessageObject;",
-        "Ldj/e${'$'}c;",
-    ),
-)
-
-private val checkCanOpenChat4PlusLegacyFingerprint = Fingerprint(
-    definingClass = "Lorg/telegram/messenger/MessagesController;",
-    name = "checkCanOpenChat",
-    returnType = "Z",
-    parameters = listOf(
-        "Landroid/os/Bundle;",
-        "Lorg/telegram/ui/ActionBar/i2;",
-        "Lorg/telegram/messenger/MessageObject;",
-        "Lej/e${'$'}c;",
-    ),
-)
 
 @Suppress("unused")
 val telegramBypassChannelRestrictionsPatch = bytecodePatch(
@@ -313,6 +301,8 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
         resolveVariantMethod(
             showCantOpenAlertWebFingerprint,
             showCantOpenAlertNormalFingerprint,
+            ShowCantOpenAlertNormal1311Fingerprint,
+            ShowCantOpenAlertPlus1303Fingerprint,
             ShowCantOpenAlertNormal1303Fingerprint,
             showCantOpenAlertPlusFingerprint,
             methodName = "showCantOpenAlert",
@@ -323,6 +313,8 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
         resolveVariantMethod(
             checkSensitiveWebFingerprint,
             checkSensitiveNormalFingerprint,
+            CheckSensitiveNormal1311Fingerprint,
+            CheckSensitivePlus1303Fingerprint,
             CheckSensitiveNormal1303Fingerprint,
             checkSensitivePlusFingerprint,
             methodName = "checkSensitive",
@@ -340,6 +332,8 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
             resolveVariantMethod(
                 checkCanOpenChat2WebFingerprint,
                 checkCanOpenChat2NormalFingerprint,
+                CheckCanOpenChat2Normal1311Fingerprint,
+                CheckCanOpenChat2Plus1303Fingerprint,
                 CheckCanOpenChat2Normal1303Fingerprint,
                 checkCanOpenChat2PlusFingerprint,
                 methodName = "checkCanOpenChat/2",
@@ -347,6 +341,8 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
             resolveVariantMethod(
                 checkCanOpenChat3WebFingerprint,
                 checkCanOpenChat3NormalFingerprint,
+                CheckCanOpenChat3Normal1311Fingerprint,
+                CheckCanOpenChat3Plus1303Fingerprint,
                 CheckCanOpenChat3Normal1303Fingerprint,
                 checkCanOpenChat3PlusFingerprint,
                 methodName = "checkCanOpenChat/3",
@@ -354,11 +350,13 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
             resolveVariantMethod(
                 checkCanOpenChat4WebFingerprint,
                 checkCanOpenChat4NormalFingerprint,
+                CheckCanOpenChat4Normal1311Fingerprint,
+                CheckCanOpenChat4Web1311Fingerprint,
+                CheckCanOpenChat4Plus1303Fingerprint,
                 CheckCanOpenChat4Normal1303Fingerprint,
                 CheckCanOpenChat4Web1303Fingerprint,
                 CheckCanOpenChat4Web1310Fingerprint,
-                checkCanOpenChat4PlusFingerprint,
-                checkCanOpenChat4PlusLegacyFingerprint,
+                CheckCanOpenChat4Plus1302Fingerprint,
                 methodName = "checkCanOpenChat/4",
             ),
         ).forEach { method ->

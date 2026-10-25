@@ -351,6 +351,17 @@ public final class SeenVideoHistory {
     }
 
     /**
+     * Starts reading the account's record without waiting for it. The feed fetch reads a new
+     * page before handing it over, and asking then gives the read a head start, so the first
+     * page of a start is less likely to be judged against a record still empty (#172).
+     */
+    public static void warmUp() {
+        if (!Settings.HIDE_SEEN_VIDEOS.get()) return;
+        account();
+        ensureLoaded();
+    }
+
+    /**
      * Keeps the video playing now in the feed through a rebuild of the feed activity. The
      * filter lets it through until playback reaches another video; a refreshed page still
      * drops it, as {@link #shouldHide} always has, once the user has moved on.

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2640
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -12,6 +12,7 @@ package app.morphe.patches.youtube.shared
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterLast
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.InstructionLocation.MatchFirst
 import app.morphe.patcher.OpcodesFilter
@@ -22,9 +23,9 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import app.morphe.patcher.string
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -118,25 +119,27 @@ internal object RelateVideoOverlayLayoutParamFingerprint : Fingerprint(
     )
 )
 
-private object PlayerTypeEnumFingerprint : Fingerprint(
+internal object PlayerTypeEnumFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
-    strings = listOf(
-        "WATCH_WHILE_PICTURE_IN_PICTURE",
-        "NONE",
-        "HIDDEN",
-        "WATCH_WHILE_MINIMIZED",
-        "WATCH_WHILE_MAXIMIZED",
-        "WATCH_WHILE_FULLSCREEN",
-        "WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN",
-        "WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED",
-        "WATCH_WHILE_SLIDING_MINIMIZED_DISMISSED",
-        "INLINE_MINIMAL",
-        "VIRTUAL_REALITY_FULLSCREEN",
+    filters = listOf(
+        string("NONE"),
+        string("HIDDEN"),
+        string("WATCH_WHILE_MINIMIZED"),
+        string("WATCH_WHILE_MAXIMIZED"),
+        string("WATCH_WHILE_FULLSCREEN"),
+        string("WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN"),
+        string("WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED"),
+        string("WATCH_WHILE_SLIDING_MINIMIZED_DISMISSED"),
+        string("INLINE_MINIMAL"),
+        string("VIRTUAL_REALITY_FULLSCREEN"),
+        string("WATCH_WHILE_PICTURE_IN_PICTURE"),
+        opcode(Opcode.APUT_OBJECT),
     )
 )
 
+// 21.41+ YouTubePlayerOverlaysLayout is no longer a player type listener.
 internal fun BytecodePatchContext.getPlayerTypeFingerprint() = object : Fingerprint(
-    definingClass = "/YouTubePlayerOverlaysLayout;",
+    definingClass = "Lcom/google/android/apps/youtube/app/player/YouTubePlayerViewNotForReflection;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf(
@@ -148,21 +151,6 @@ internal object YouTubeMainActivityConstructorFingerprint : Fingerprint(
     definingClass = YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     parameters = listOf()
-)
-
-internal object YouTubeMainActivityOnBackPressedFingerprint : Fingerprint(
-    definingClass = YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE,
-    name = "onBackPressed",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf(),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_SUPER,
-            name = "onBackPressed"
-        ),
-        opcode(Opcode.RETURN_VOID)
-    )
 )
 
 internal object YouTubeActivityOnCreateFingerprint : Fingerprint(
@@ -201,7 +189,8 @@ internal object SeekbarOnDrawFingerprint : Fingerprint(
     name = "onDraw",
     filters = listOf(
         methodCall(smali = "Ljava/lang/Math;->round(F)I"),
-        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately())
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
+        methodCall(name = "drawCircle", location = MatchAfterLast())
     )
 )
 
@@ -321,6 +310,10 @@ internal object VideoQualityChangedFingerprint : Fingerprint(
             opcode = Opcode.IGET,
             type = "I",
             location = MatchAfterImmediately()
+        ),
+        methodCall( // VideoQuality constructor.
+            name = "<init>",
+            opcodes = listOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
         )
     )
 )
@@ -356,5 +349,53 @@ internal object WatchNextResponseParserFingerprint : Fingerprint(
             location = MatchAfterImmediately()
         ),
         literal(46659098L)
+    )
+)
+
+internal object VideoPlaybackIntentFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L", "Ljava/util/Map;"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, parameters = listOf(), returnType = "L"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        string("PLAYBACK_START_DESCRIPTOR_MUTATOR", MatchAfterImmediately()),
+        string("force_fullscreen"),
+        string("VideoPresenterConstants.VIDEO_THUMBNAIL_BITMAP_KEY")
+    )
+)
+
+internal object ShortsPlaybackIntentFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(
+        "L",
+        "Ljava/util/Map;",
+        "J",
+        "Ljava/lang/String;"
+    ),
+    filters = listOf(
+        // None of these strings are unique.
+        string("PLAYBACK_START_DESCRIPTOR_MUTATOR"),
+        string("com.google.android.apps.youtube.app.endpoint.flags"),
+        string("com.google.android.libraries.youtube.rendering.elements.sender_view")
+    )
+)
+
+// 21.19 and lower
+internal object ShortsPlaybackIntentFingerprintLegacy : Fingerprint(
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(
+        "L",
+        "Ljava/util/Map;",
+        "J",
+        "Ljava/lang/String;"
+    ),
+    filters = listOf(
+        // None of these strings are unique.
+        string("com.google.android.apps.youtube.app.endpoint.flags"),
+        string("ReelWatchFragmentArgs"),
+        string("reels_fragment_descriptor")
     )
 )

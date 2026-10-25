@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -38,7 +38,25 @@ public final class ChannelIdRoutes {
             Route.Method.POST,
             "player" +
                     "?prettyPrint=false" +
-                    "&fields=videoDetails.channelId"
+                    "&fields=videoDetails"
+    ).compile();
+
+    public static final Route.CompiledRoute GET_DESCRIPTION = new Route(
+            Route.Method.POST,
+            "player" +
+                    "?prettyPrint=false" +
+                    "&fields=videoDetails.shortDescription"
+    ).compile();
+
+    /**
+     * The title as set by the uploader, which is not translated to the language of the request,
+     * and the name of the channel.
+     */
+    public static final Route.CompiledRoute GET_TITLE = new Route(
+            Route.Method.POST,
+            "player" +
+                    "?prettyPrint=false" +
+                    "&fields=videoDetails.title,videoDetails.author"
     ).compile();
 
     private ChannelIdRoutes() {

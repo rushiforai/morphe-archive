@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-23T20:24:28Z",
+  "created_at": "2026-10-25T00:35:36",
   "description": "Morphe patches for Waze: themes, map colours, alerts, alert distances, speedometer, Android Auto and audio partners.",
-  "download_url": "https://github.com/Forsigh/waze-patches/releases/download/v0.30.3/patches-0.30.3.mpp",
+  "download_url": "https://github.com/Forsigh/waze-patches/releases/download/v0.30.41/patches-0.30.41.mpp",
   "signature_download_url": "",
-  "version": "0.30.3"
+  "version": "0.30.41"
 }

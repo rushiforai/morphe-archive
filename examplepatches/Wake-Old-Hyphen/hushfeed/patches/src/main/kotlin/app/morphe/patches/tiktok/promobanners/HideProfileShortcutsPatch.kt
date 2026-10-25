@@ -11,6 +11,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstruction
@@ -56,13 +57,13 @@ val hideProfileShortcutsPatch = bytecodePatch(
     name = "Hide profile shortcuts",
     description = "Hides the shortcuts you pick from the row under a profile's bio, like " +
         "TikTok Studio or Your orders, and can hide the Thoughts bubble, and Balance and the " +
-        "TikTok Minis icons in your profile's menu. Starts off. Turn it on " +
-        "in Hushfeed settings > App, then restart TikTok.",
+        "TikTok Minis icons in your profile's menu. It can also turn Thoughts on for accounts " +
+        "TikTok left out. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
     default = true,
 ) {
     category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok())
+    compatibleWith(*AppCompatibilities.tiktokAndPineDrama())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(
@@ -79,16 +80,25 @@ val hideProfileShortcutsPatch = bytecodePatch(
             val visibility = ThoughtVisibilityCallbackFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) }
             Triple(avatar, store, visibility)
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[$PATCH_NAME] Left out Hide thoughts on profiles on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Hide thoughts on profiles on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
         // Balance in your profile's menu (#194), held the same way by ProfileMenuCellsAnchorsTest.
         val menuCells = try {
             ProfileMenuCellFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) }
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[$PATCH_NAME] Left out Hide Balance in the profile menu on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Hide Balance in the profile menu on ${packageMetadata.buildName}: ${problem.message}")
+            null
+        }
+        // Turn on Thoughts (#186), the other way round from hiding them: TikTok's two Thoughts
+        // gates answer yes behind a switch that starts off. Held by SwitchedReturnFixturesTest.
+        val thoughtsGates = try {
+            resolveThoughtsGates()
+        } catch (problem: Exception) {
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Turn on Thoughts on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
         OwnProfileConversionFingerprint.method.filterProfileUserParameter(0)
@@ -108,6 +118,13 @@ val hideProfileShortcutsPatch = bytecodePatch(
             SettingsStatusLoadFingerprint.method.addInstruction(
                 0,
                 "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableProfileMenuCells()V",
+            )
+        }
+        if (thoughtsGates != null) {
+            thoughtsGates.installThoughtsSwitch()
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableThoughtsSwitch()V",
             )
         }
     }

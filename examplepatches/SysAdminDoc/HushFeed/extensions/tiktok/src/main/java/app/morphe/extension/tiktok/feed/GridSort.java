@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -483,10 +484,84 @@ public final class GridSort {
             int margin = SettingsUi.dp(context, 8);
             layout.setMargins(margin, margin, margin, margin);
             frame.addView(chip, layout);
+            followHeader(chip, grid);
         }
         chip.setText(L10n.t(LABELS[index]));
         // Set every time: the parent can outlive one adapter and get the next one.
         chip.setOnClickListener(view -> choose(adapter, view));
+        TextView placed = chip;
+        chip.post(() -> placeChip(placed, grid));
+    }
+
+    /**
+     * Keeps the chip under a full-width row at the top of the grid as the grid lays out and
+     * scrolls. The listener drops itself once the chip is taken away.
+     */
+    private static void followHeader(View chip, View grid) {
+        final class Follow implements ViewTreeObserver.OnScrollChangedListener, ViewTreeObserver.OnGlobalLayoutListener {
+            @Override
+            public void onScrollChanged() {
+                update();
+            }
+
+            @Override
+            public void onGlobalLayout() {
+                update();
+            }
+
+            private void update() {
+                if (chip.getParent() != null) {
+                    placeChip(chip, grid);
+                    return;
+                }
+                ViewTreeObserver observer = grid.getViewTreeObserver();
+                if (!observer.isAlive()) return;
+                observer.removeOnScrollChangedListener(this);
+                observer.removeOnGlobalLayoutListener(this);
+            }
+        }
+        Follow follow = new Follow();
+        ViewTreeObserver observer = grid.getViewTreeObserver();
+        observer.addOnScrollChangedListener(follow);
+        observer.addOnGlobalLayoutListener(follow);
+    }
+
+    private static void placeChip(View chip, View grid) {
+        try {
+            if (!(grid instanceof ViewGroup)) return;
+            ViewGroup rows = (ViewGroup) grid;
+            int count = rows.getChildCount();
+            int[] tops = new int[count];
+            int[] bottoms = new int[count];
+            int[] widths = new int[count];
+            for (int i = 0; i < count; i++) {
+                View row = rows.getChildAt(i);
+                tops[i] = row.getTop();
+                bottoms[i] = row.getBottom();
+                widths[i] = row.getWidth();
+            }
+            float y = grid.getTop() + chipOffset(grid.getWidth(), tops, bottoms, widths);
+            if (chip.getTranslationY() != y) chip.setTranslationY(y);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not place the grid sort chip", ex);
+        }
+    }
+
+    /**
+     * How far down the chip goes to clear the full-width rows at the top of the grid, such as the
+     * Liked tab's note about making liked videos public, which it covered: the bottom of the last
+     * row spanning the grid that starts at its top, or right under one that does. A row scrolled
+     * partly away pulls the chip up with it. Cells are narrower than the grid and never move it,
+     * and neither does a full-width footer further down.
+     */
+    static int chipOffset(int gridWidth, int[] tops, int[] bottoms, int[] widths) {
+        if (gridWidth <= 0) return 0;
+        int offset = 0;
+        for (int i = 0; i < tops.length; i++) {
+            if (widths[i] * 10 < gridWidth * 9 || bottoms[i] <= 0 || tops[i] > offset) continue;
+            offset = Math.max(offset, bottoms[i]);
+        }
+        return offset;
     }
 
     /** The orders as a list to pick from, the current one marked. */

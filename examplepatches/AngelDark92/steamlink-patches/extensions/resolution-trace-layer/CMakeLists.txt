@@ -20,7 +20,7 @@ if(NOT EXISTS "${OPENXR_SDK_SOURCE_DIR}/include/openxr/openxr.h")
     message(FATAL_ERROR "Set OPENXR_SDK_SOURCE_DIR to the bundled OpenXR-SDK 1.1.61 checkout")
 endif()
 
-function(add_gxr_surface_trigger_target target output_name source_projection_count)
+function(add_gxr_surface_trigger_target target output_name source_projection_count trigger_alpha)
     add_library(${target} SHARED
         src/android_surface_trigger_passthrough_layer.cpp
     )
@@ -31,6 +31,7 @@ function(add_gxr_surface_trigger_target target output_name source_projection_cou
         XR_USE_PLATFORM_ANDROID
         NDEBUG
         GXR_AST_SOURCE_PROJECTION_COUNT=${source_projection_count}
+        GXR_AST_TRIGGER_ALPHA=${trigger_alpha}
     )
     target_compile_options(${target} PRIVATE
         -O2
@@ -60,6 +61,7 @@ add_gxr_surface_trigger_target(
     gxr_android_surface_trigger_passthrough_v1
     gxr_ast
     3
+    1
 )
 
 # Exact Steam Link 2.0.20/5001712 helper: Valve submits 2 projection layers.
@@ -67,4 +69,16 @@ add_gxr_surface_trigger_target(
     gxr_android_surface_trigger_passthrough_5001712_v1
     gxr_ast_5001712
     2
+    1
+)
+
+# Exact 2.0.20/5001712 alpha-0 trial. Keep the same 2-to-3 layer topology and
+# submitted Surface, but clear the quad's alpha byte so it cannot darken the
+# centre of view. Select this payload only for (2.0.20, 5001712) until the
+# headset run proves the high-resolution compositor path still engages.
+add_gxr_surface_trigger_target(
+    gxr_android_surface_trigger_passthrough_5001712_alpha0_v1
+    gxr_ast_5001712_alpha0
+    2
+    0
 )

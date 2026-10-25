@@ -1,5 +1,3 @@
-import java.lang.Boolean.TRUE
-
 extension {
     name = "extensions/all/versioncode/change-version-code.mpe"
 }

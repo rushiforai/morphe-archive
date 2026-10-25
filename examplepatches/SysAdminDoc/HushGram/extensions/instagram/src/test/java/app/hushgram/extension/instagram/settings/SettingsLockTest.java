@@ -4,6 +4,7 @@
  */
 package app.hushgram.extension.instagram.settings;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -172,6 +173,32 @@ public class SettingsLockTest {
         phone.pass(30 * MINUTE);
         assertFalse(SettingsLock.ask());
         assertEquals(30 * MINUTE, SettingsLock.left());
+    }
+
+    @Test public void stoppingAWaitKeepsTheLockAndTheNextAskStartsItOver() {
+        assertTrue(SettingsLock.lock(48));
+        assertFalse("nothing to stop before an ask", SettingsLock.stopWait());
+        SettingsLock.ask();
+        phone.pass(47 * HOUR);
+        assertTrue(SettingsLock.stopWait());
+        assertEquals(State.LOCKED, SettingsLock.state());
+        assertEquals("", Settings.SETTINGS_LOCK_ASKED.savedValue());
+        assertEquals(48, SettingsLock.hours());
+        phone.pass(2 * HOUR);
+        assertEquals("the stopped wait never opens it", State.LOCKED, SettingsLock.state());
+        assertTrue(SettingsLock.ask());
+        assertEquals(48 * HOUR, SettingsLock.left());
+        phone.pass(48 * HOUR);
+        assertEquals(State.OPEN, SettingsLock.state());
+        assertFalse("open: nothing to stop", SettingsLock.stopWait());
+        assertEquals(State.OPEN, SettingsLock.state());
+    }
+
+    @Test public void theWaitsGoUpToThreeDays() {
+        assertArrayEquals(new int[] {1, 6, 24, 48, 72}, SettingsLock.WAITS);
+        assertTrue(SettingsLock.lock(72));
+        SettingsLock.ask();
+        assertEquals(72 * HOUR, SettingsLock.left());
     }
 
     @Test public void onlyAnOpenPageChangesTheLock() {

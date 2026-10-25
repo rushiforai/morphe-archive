@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -71,6 +71,7 @@ public class SavePlaylistRequest {
         return cache.put(libraryId, new SavePlaylistRequest(playlistId, libraryId, requestHeader));
     }
 
+    @SuppressWarnings("unused")
     @Nullable
     public static SavePlaylistRequest getRequestForLibraryId(String libraryId) {
         return cache.get(libraryId);
@@ -96,7 +97,7 @@ public class SavePlaylistRequest {
             connection.setFixedLengthStreamingMode(requestBody.length);
             connection.getOutputStream().write(requestBody);
             int responseCode = connection.getResponseCode();
-            if (responseCode == 200) {
+            if (responseCode == Requester.HTTP_STATUS_CODE_SUCCESS) {
                 return Requester.parseJSONObject(connection);
             }
             handleConnectionError("Save playlist failed with code: " + responseCode, null);

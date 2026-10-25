@@ -1,7 +1,7 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2282
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ * https://github.com/MorpheApp/morphe-patches/pull/2282
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -43,9 +43,6 @@ import android.widget.TextView;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
-
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
@@ -59,8 +56,9 @@ import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.patches.components.PlaybackSpeedMenuFilter;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.PipDismissHelper;
-import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.videoplayer.LegacyPlayerControlButton;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 @SuppressWarnings("unused")
 public class CustomPlaybackSpeedPatch {
@@ -179,6 +177,14 @@ public class CustomPlaybackSpeedPatch {
 
     /**
      * Injection point.
+     * With audio offload the device hardware decodes the audio, and usually does not support changing the pitch.
+     */
+    public static boolean disableAudioOffload(boolean original) {
+        return original && !Settings.ENABLE_PLAYBACK_AUDIO_PITCH.get();
+    }
+
+    /**
+     * Injection point.
      */
     public static float getTapAndHoldSpeed() {
         return TAP_AND_HOLD_SPEED;
@@ -187,20 +193,19 @@ public class CustomPlaybackSpeedPatch {
     /**
      * Injection point.
      */
-    public static CharSequence onSeekEduOverlayLoaded(Object context, CharSequence original) {
-        if (!DISABLE_TAP_AND_HOLD_SPEED && TextUtils.equals(tapAndHoldEduText, original)
-                && context instanceof ContextInterface contextInterface) {
-            try {
-                String identifier = contextInterface.patch_getIdentifier();
+    public static CharSequence onSeekEduOverlayLoaded(ContextInterface context, CharSequence original) {
+        try {
+            if (!DISABLE_TAP_AND_HOLD_SPEED && TextUtils.equals(tapAndHoldEduText, original)) {
+                String identifier = context.patch_getIdentifier();
                 if (identifier != null && identifier.startsWith("seek_edu_overlay_v2.e")) {
                     // 2.00x → 2x, 1.50x → 1.5x.
                     return VideoInformation.formatSpeedStringX(TAP_AND_HOLD_SPEED)
                             .replace(".00x", "x")
                             .replace("0x", "x") + ' ';
                 }
-            } catch (Exception ex) {
-                Logger.printException(() -> "onSeekEduOverlayLoaded failed", ex);
             }
+        } catch (Exception ex) {
+            Logger.printException(() -> "onSeekEduOverlayLoaded failed", ex);
         }
 
         return original;
@@ -356,16 +361,8 @@ public class CustomPlaybackSpeedPatch {
             SheetBottomDialog.DraggableLinearLayout mainLayout =
                     SheetBottomDialog.createMainLayout(context, LegacyPlayerControlButton.getDialogBackgroundColor());
 
-            // Wrap the dialog content in a ScrollView capped to most of the screen height,
-            // so the dialog remains fully usable in landscape where the available height is limited.
-            ScrollView scrollView = new ScrollView(context) {
-                @Override
-                protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                    heightMeasureSpec = MeasureSpec.makeMeasureSpec(Dim.pctHeight(75), MeasureSpec.AT_MOST);
-                    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-                }
-            };
-            scrollView.setVerticalScrollBarEnabled(false);
+            // Capped so the dialog remains fully usable in landscape, where height is limited.
+            ScrollView scrollView = SheetBottomDialog.createCappedScrollView(context);
 
             LinearLayout contentLayout = new LinearLayout(context);
             contentLayout.setOrientation(LinearLayout.VERTICAL);
@@ -741,7 +738,7 @@ public class CustomPlaybackSpeedPatch {
      * @param isPlus  True to display a plus symbol, false to display a minus symbol.
      * @return A configured {@link Button} with the specified styling and layout parameters.
      */
-    private static Button createStyledButton(Context context, boolean isPlus) {
+    public static Button createStyledButton(Context context, boolean isPlus) {
         Button button = new Button(context, null, 0); // Disable default theme style.
         button.setText(""); // No text on button.
         ShapeDrawable background = new ShapeDrawable(new RoundRectShape(

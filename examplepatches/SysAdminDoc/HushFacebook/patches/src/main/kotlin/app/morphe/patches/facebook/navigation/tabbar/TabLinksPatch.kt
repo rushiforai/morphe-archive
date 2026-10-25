@@ -11,6 +11,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.navigation.starttab.TAB_TAG
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -27,7 +28,8 @@ internal val tabLinksPatch = bytecodePatch {
 
     execute {
         val lookups = mutableListOf<Pair<Method, TabHook>>()
-        classDefForEach { classDef ->
+        // A lookup answers a TabTag.
+        classDefForEachReferencing(types = listOf(TAB_TAG)) { classDef ->
             classDef.methods.forEach { method -> launchedTabLookup(method)?.let { lookups += method to it } }
         }
         val (lookup, launched) = lookups.singleOrNull() ?: throw PatchException(

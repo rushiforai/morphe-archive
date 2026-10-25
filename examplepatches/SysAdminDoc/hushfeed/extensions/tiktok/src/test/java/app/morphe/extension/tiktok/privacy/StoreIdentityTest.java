@@ -40,7 +40,7 @@ public class StoreIdentityTest {
     /** The digest Morphe Manager holds a picked APK to, so a bad edit to the constant is caught. */
     private static final String TIKTOK_SIGNER_SHA256 =
             "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba";
-    /** PineDrama's (CN=TikTok Drama), as apksigner prints it for the APKMirror 47.1.4 and 47.4.3 bundles. */
+    /** PineDrama's (CN=TikTok Drama), as apksigner prints it for the APKMirror 47.1.4, 47.4.3 and 47.5.3 bundles. */
     private static final String PINEDRAMA_SIGNER_SHA256 =
             "e97ca0c8835c5a9e4f7702a0382b103ede9c5d51e5194c8db54f4c8833f54e18";
 

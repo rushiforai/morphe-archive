@@ -11,7 +11,8 @@ object MXPlayerCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF44336,
         targets = listOf(
-            AppTarget(version = "2.2.4")
+            AppTarget(version = "1.93.4", isExperimental = true)
+            
         )
     )
 }

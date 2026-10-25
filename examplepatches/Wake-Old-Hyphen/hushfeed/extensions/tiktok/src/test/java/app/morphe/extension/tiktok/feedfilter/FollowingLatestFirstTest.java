@@ -1,7 +1,10 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
 import app.morphe.extension.tiktok.feedfilter.CreatorExceptionsTest.Item;
@@ -247,6 +250,47 @@ public class FollowingLatestFirstTest {
         // Turned on with the list open: it waits for the restart the row asks for.
         Settings.FOLLOWING_LATEST_FIRST.save(true);
         assertEquals(List.of("a", "b", "c", "d"), read(list, post("c", 2 * HOUR), post("d", HOUR)));
+    }
+
+    @Test
+    public void onlyTheFirstReadIsAskedForMorePosts() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+
+        assertEquals(FollowingLatestFirst.FIRST_READ_COUNT, FollowingLatestFirst.requestCount(0, 0, 20));
+        // Load more keeps TikTok's size, and so does a count already past ours.
+        assertEquals(20, FollowingLatestFirst.requestCount(1760000000L, 0, 20));
+        assertEquals(60, FollowingLatestFirst.requestCount(0, 0, 60));
+        assertEquals(0, FollowingLatestFirst.requestCount(0, 0, 0));
+    }
+
+    @Test
+    public void offAsksForTikToksOwnCount() {
+        assertEquals(20, FollowingLatestFirst.requestCount(0, 0, 20));
+    }
+
+    @Test
+    public void theSavedFirstVideoIsLeftOutOnlyWithTheSwitchOn() {
+        assertFalse(FollowingLatestFirst.skipSavedFirstVideo());
+
+        FollowingLatestFirst.resetForTests();
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        assertTrue(FollowingLatestFirst.skipSavedFirstVideo());
+    }
+
+    @Test
+    public void pausedKeepsTheSavedFirstVideo() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        setPaused(true);
+        try {
+            assertFalse(FollowingLatestFirst.skipSavedFirstVideo());
+        } finally {
+            setPaused(false);
+        }
+    }
+
+    private static void setPaused(boolean paused) {
+        ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess",
+                ReflectionHelpers.ClassParameter.from(boolean.class, paused));
     }
 
     private static Item post(String aid, long ageSeconds) {

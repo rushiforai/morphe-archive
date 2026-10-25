@@ -17,7 +17,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner and interstitial ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_BLE_SCANNER)
 

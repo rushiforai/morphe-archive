@@ -36,10 +36,10 @@ public final class PlayerLayers {
     static final int MAX_PLACED = 32;
 
     /** A player's layer: the Surface it draws into and the size of that Surface's buffer. */
-    static final class Layer {
-        final Surface surface;
-        final int width;
-        final int height;
+    public static final class Layer {
+        public final Surface surface;
+        public final int width;
+        public final int height;
 
         Layer(Surface surface, int width, int height) {
             this.surface = surface;
@@ -52,8 +52,8 @@ public final class PlayerLayers {
         final WeakReference<Object> player;
         final WeakReference<Object> parent;
         final String parentName;
-        final int width;
-        final int height;
+        public final int width;
+        public final int height;
         final boolean visible;
 
         Placed(Object player, Object parent, int width, int height, boolean visible) {
@@ -112,7 +112,7 @@ public final class PlayerLayers {
     }
 
     /** The player layer drawing under {@code view}, or null when the player draws into the view. */
-    static Layer under(SurfaceView view) {
+    public static Layer under(SurfaceView view) {
         // SurfaceView hands out its SurfaceControl from Android 10, the first TikTok builds one on.
         if (Build.VERSION.SDK_INT < 29 || view == null) return null;
         Object own;

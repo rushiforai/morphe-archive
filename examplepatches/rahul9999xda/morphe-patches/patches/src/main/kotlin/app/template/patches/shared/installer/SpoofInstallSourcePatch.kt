@@ -95,7 +95,12 @@ private val ApplicationOnCreateFingerprint = Fingerprint(
     parameters = emptyList(),
     custom = { method, classDef ->
         method.name == "onCreate" &&
-            classDef.superclass == "Landroid/app/Application;"
+            // Signature spoof may already have re-parented ApplicationLoader to the
+            // extension subclass. It still is an Application.onCreate implementation.
+            classDef.superclass in setOf(
+                "Landroid/app/Application;",
+                "Lapp/template/extension/extension/SignatureHookApp;",
+            )
     },
 )
 

@@ -19,6 +19,7 @@ import app.morphe.patches.facebook.media.taptoplay.isEnumNaming
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
@@ -30,7 +31,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val HIDE_SECTION = "$EXTENSION_PACKAGE/menu/MenuSections;->hideSection(Ljava/lang/Object;)Z"
 internal const val HIDE_SERVER_SECTION = "$EXTENSION_PACKAGE/menu/MenuSections;->hideServerSection(Ljava/lang/Object;)Z"
-internal const val MUSE_DISMISSED = "$EXTENSION_PACKAGE/menu/MuseCard;->dismissed(ZLjava/lang/Object;)Z"
+internal const val SECTION_FOLDED = "$EXTENSION_PACKAGE/menu/MenuSections;->collapsed(ZLjava/lang/Object;)Z"
+internal const val MUSE_DISMISSED ="$EXTENSION_PACKAGE/menu/MuseCard;->dismissed(ZLjava/lang/Object;)Z"
 internal const val SHORTCUTS_KEPT = "$EXTENSION_PACKAGE/menu/MenuShortcuts;->kept(Ljava/util/List;)Ljava/util/List;"
 internal const val HELP_ROWS_KEPT = "$EXTENSION_PACKAGE/menu/MenuRows;->help(Ljava/util/List;)Ljava/util/List;"
 internal const val SETTINGS_ROWS_KEPT = "$EXTENSION_PACKAGE/menu/MenuRows;->settings(Ljava/util/List;)Ljava/util/List;"
@@ -39,7 +41,15 @@ internal const val LIST_COPY_OF = "$IMMUTABLE_LIST->copyOf(Ljava/util/Collection
 /**
  * Both sections of a Menu group ask the extension about the group as soon as they know it, and
  * hand back no children when it says the group goes. See MenuSectionAnchors.kt for how the Menu is
- * built. Every other group, Settings and Help included, builds as Facebook built it.
+ * built. Help and support goes only by its own switch (issue #224), and every other group, Settings
+ * included, builds as Facebook built it.
+ *
+ * Right after the native section reads its group, whether the group is folded goes to the extension
+ * too, which can answer that Settings and privacy is open, so it builds its rows without a tap
+ * (issue #224). A tap on its header leaves it open too, since the next build asks again. Whether the
+ * group starts open, which seeds its header's chevron and label, gets the same answer, so the header
+ * opens with it. If
+ * Facebook moved the fold, the rest of the patch goes on without it.
  *
  * The Muse card is a bookmark, not a group: right after its component reads whether the card was
  * dismissed, the answer and the bookmark go to the extension, which can answer yes instead. See
@@ -63,8 +73,9 @@ val hideMenuPromotionsPatch = bytecodePatch(
     name = "Hide Menu promotions",
     description = "Hides the Upgrades and Also from Meta sections and the Muse card in Facebook's Menu, so the " +
         "Menu has fewer ads for Meta's products. Settings, Help and your shortcuts stay. On by default. Turn it " +
-        "off in Hushfacebook settings > Menu. A switch there, off by default, also hides the Meta AI shortcut, and " +
-        "a list there hides the Menu tiles and Help and Settings rows you pick, such as Gaming or Orders and payments.",
+        "off in Hushfacebook settings > Menu. Switches there, off by default, also hide the Meta AI shortcut or the " +
+        "whole Help and support section and keep Settings and privacy open, and a list there hides the Menu tiles " +
+        "and Help and Settings rows you pick, such as Gaming or Orders and payments.",
     default = true,
 ) {
     category("Interface")
@@ -91,6 +102,22 @@ val hideMenuPromotionsPatch = bytecodePatch(
 
         val rows = rowListHooks(native)
         val nativeMethod = mutableClassDefBy(native.definingClass).findMutableMethodOf(native)
+        val fold = foldRead(native, nativeRead)
+        if (fold == null) {
+            patchLog.warning(
+                "$PATCH: ${native.definingClass}->${native.name} doesn't read whether its group is folded once, " +
+                    "from a state it casts, before its group. Settings and privacy builds folded as Facebook builds it.",
+            )
+        } else {
+            val start = startRead(native, nativeRead)
+            if (start == null) {
+                patchLog.warning(
+                    "$PATCH: ${native.definingClass}->${native.name} doesn't hand its header whether its group " +
+                        "starts open from one flag of its own. A Settings and privacy kept open shows a folded header.",
+                )
+            }
+            nativeMethod.askAboutFolding(nativeRead, fold, start)
+        }
         nativeMethod.buildNothingWhenHidden(nativeRead, children(native), HIDE_SECTION)
         nativeMethod.passRowListsThrough(rows)
         mutableClassDefBy(server.definingClass).findMutableMethodOf(server)
@@ -152,6 +179,41 @@ internal fun MutableMethod.buildNothingWhenHidden(read: GroupRead, list: Childre
             return-object v$answer
         """.trimIndent(),
         ExternalLabel("facebook", getInstruction(index)),
+    )
+}
+
+/**
+ * Right after the native section puts its group in a register, whether the group is folded and the
+ * group go to [SECTION_FOLDED], and its answer replaces the one the section read at [fold]. With a
+ * [start], the flag the header is seeded from, which says whether the group starts open, goes the
+ * same way turned around and comes back turned around again, so the header shows what the rows do.
+ * Nothing between the reads and the group writes those registers, which [foldRead] and [startRead]
+ * make sure of. The call's operands are 4-bit, so the two registers borrowed are free locals no
+ * higher than v15, and the moves name any register.
+ */
+internal fun MutableMethod.askAboutFolding(read: GroupRead, fold: FoldRead, start: StartRead? = null) {
+    val index = read.index + 1
+    val (folded, group) = freeLocalsAt(PATCH, index, 2)
+    // The start flag says whether the group starts open, so it's turned into a fold for the
+    // question and the answer is turned back.
+    val header = start?.let {
+        """
+            xor-int/lit8 v$folded, v${it.register}, 0x1
+            invoke-static { v$folded, v$group }, $SECTION_FOLDED
+            move-result v$folded
+            xor-int/lit8 v$folded, v$folded, 0x1
+            move/from16 v${it.register}, v$folded
+        """.trimIndent()
+    }.orEmpty()
+    addInstructions(
+        index,
+        """
+            move/from16 v$folded, v${fold.register}
+            move-object/from16 v$group, v${read.register}
+            invoke-static { v$folded, v$group }, $SECTION_FOLDED
+            move-result v$folded
+            move/from16 v${fold.register}, v$folded
+        """.trimIndent() + "\n" + header,
     )
 }
 

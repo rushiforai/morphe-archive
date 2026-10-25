@@ -13,8 +13,7 @@ private val WatchBannerToStringFingerprint = toStringFingerprint("WatchBannerUi(
 @Suppress("unused")
 val hidePartnerPromotionsPatch = bytecodePatch(
     name = "Hide partner promotions",
-    description = "Hides the \"Watch on\" banners that link to streaming partners. This also hides the " +
-        "links to HBO Max and discovery+ that open the event you are reading about.",
+    description = "Hides the \"Watch on\" streaming partner banners.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_EUROSPORT)

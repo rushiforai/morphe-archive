@@ -140,11 +140,12 @@ async function fetchReseamIndex(releaseUrl, env) {
     let next;
     try { next = new URL(location, current); }
     catch { throw new CatalogError("Reseam release asset redirect is invalid", 503); }
-    // GitHub and GitLab serve legitimate release downloads through these HTTPS
-    // object hosts. Never follow arbitrary redirects from a publisher's origin.
+    // Publishers serve native indexes through these HTTPS object hosts.
+    // Never follow arbitrary redirects from a publisher's origin.
     const trustedCdn = (origin.hostname === "github.com" &&
       ["release-assets.githubusercontent.com", "objects.githubusercontent.com"].includes(next.hostname)) ||
-      (origin.hostname === "gitlab.com" && next.hostname === "storage.googleapis.com");
+      (origin.hostname === "gitlab.com" && next.hostname === "storage.googleapis.com") ||
+      (origin.hostname === "api.reseam.app" && next.hostname === "cdn.reseam.app");
     if (!location || next.protocol !== "https:" || next.username || next.password ||
         next.hash || (next.origin !== origin.origin && (!trustedCdn || next.port)) ||
         next.href === current.href)
@@ -168,12 +169,14 @@ async function reseamReleaseIndex(bundle, env) {
   const tag = String(bundle.version ?? "");
   if (!/^[A-Za-z0-9][A-Za-z0-9._+\-]{0,127}$/.test(tag))
     throw new CatalogError("Unsupported release tag for Reseam native index",422);
-  // The release asset is built from a canonical, configured Git host and an
-  // encoded tag, never a URL provided by the API caller.
+  // Official native indexes moved from Git release assets to the Reseam API.
+  // Build every URL from the canonical source and tag, never caller-provided URLs.
   const root = source.href.replace(/\/$/, "");
-  const releaseUrl = root + (gitHosts[source.host] === "gitlab" ?
-    "/-/releases/" + encodeURIComponent(tag) + "/downloads/patches.json" :
-    "/releases/download/" + encodeURIComponent(tag) + "/patches.json");
+  const releaseUrl = root === "https://git.reseam.app/reseam/patches" ?
+    "https://api.reseam.app/patches/" + encodeURIComponent("v" + tag.replace(/^v/, "")) + "/patches.json" :
+    root + (gitHosts[source.host] === "gitlab" ?
+      "/-/releases/" + encodeURIComponent(tag) + "/downloads/patches.json" :
+      "/releases/download/" + encodeURIComponent(tag) + "/patches.json");
   let response;
   try { response = await fetchReseamIndex(releaseUrl, env); }
   catch { throw new CatalogError("Reseam native release index is temporarily unavailable",503); }

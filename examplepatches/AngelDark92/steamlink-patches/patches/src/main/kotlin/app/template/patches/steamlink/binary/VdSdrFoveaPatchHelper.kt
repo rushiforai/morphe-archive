@@ -48,6 +48,12 @@ internal val VD_SDR_FOVEA_LAYOUTS = listOf(
             VdSdrFoveaGuard(0xf1350, 504, "bf4365c4e77b5119f41653f53ca48c0594dd128862991be8e208e1141549e9a4"),
             VdSdrFoveaGuard(0xf1a50, 616, "d3ad75422bac1df96b5a647ef0c4fbdf34facf0800f0164c2eedfdfd0daac4d0"),
         )),
+    VdSdrFoveaLayout("2.0.24", "5002395", 2301432,
+        "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b", 0xa3ceb, 0x99a51,
+        listOf(
+            VdSdrFoveaGuard(0xf25a0, 504, "d5cc0e42e225f17baa7493436f0304542aaf8edee7316bc350b9d8e740b7025a"),
+            VdSdrFoveaGuard(0xf2ca0, 616, "eff4c2efcb12c806084d3cfaf1ffc0d50837e27c602ae6ed0285641942f94b88"),
+        )),
 )
 
 private val STOCK_MASKED_SUFFIX = (

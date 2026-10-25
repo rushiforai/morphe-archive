@@ -7,7 +7,24 @@ Patches for some apps I use myself.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/jzl1/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.1.0](https://github.com/jzl1/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 Network Signal Guru&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.8.8 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bundle QuickTest configuration](#bundle-quicktest-configuration) | Adds the stock QTRUN-signed configuration.xml and skips the native config-integrity mismatch gate, so the app can start without a fresh /cgi/report response. |  |
+| [Export AdvancedActivity (test only)](#export-advancedactivity-test-only) | Marks AdvancedActivity as exported for adb-based license-state verification. Disabled by default; not needed for normal use. |  |
+| [Unlock Ultimate](#unlock-ultimate) | Unlocks all Ultimate features and makes the app usable on a clean install by bundling a signed config and bypassing the native config-integrity gate. |  |
+
+</details>
+
 <details open>
 <summary>📦 analiti&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

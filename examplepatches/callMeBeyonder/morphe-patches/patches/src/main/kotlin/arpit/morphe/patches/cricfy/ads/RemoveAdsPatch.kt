@@ -7,6 +7,8 @@ import app.morphe.patcher.extensions.newLabel
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import arpit.morphe.patches.cricfy.shared.Constants.COMPATIBILITY_CRICFY_TV
+import arpit.morphe.patches.cricfy.shared.antiTamperPatch
+import arpit.morphe.patches.cricfy.shared.repairInvalidArrayPayloads
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
@@ -32,7 +34,30 @@ val removeAdsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_CRICFY_TV)
 
+    // Repackaging changes the APK signature, which the native config decryptor
+    // treats as tampering and answers with the still-encrypted blob. The app would
+    // then fail to parse its startup configuration.
+    dependsOn(antiTamperPatch)
+
     execute {
+        //
+        // 0 — repair the anti-tooling corruption of the app DEX.
+        //
+        // Every method of the two classes below ends with a dead-code `array-data`
+        // payload whose element width is invalid (3, 5, …, 19). dexlib2 validates the
+        // width as soon as a method implementation is materialized, so any fingerprint
+        // or edit touching these classes would fail with `Invalid element width: n`.
+        // The payloads are unreachable (no `fill-array-data` references them); swap
+        // them for minimal valid payloads before the fingerprints are resolved.
+        //
+        // `Lm7;` is the R8-renamed ad manager (pinned by compatibility 7.3); the
+        // suffix-matched main activity is fully spelled out for the same reason.
+        //
+        repairInvalidArrayPayloads(
+            "Lm7;",
+            "Lcom/android/vending/activities/MainActivity;",
+        )
+
         //
         // Target 1 — sponsor gates before a channel opens (Option B).
         //

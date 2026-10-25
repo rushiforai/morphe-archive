@@ -1,5 +1,5 @@
 #!/bin/sh
-# Boot the real Discord 349.9 bundle with a Venus runtime on the HBC98 VM, then run a probe script inside it
+# Boot the real Discord bundle with a Venus runtime on the HBC98 VM, then run a probe script inside it
 # (developer-only; nothing here ships). React Native's own initializer runs first (tests/hermes-startup.js), then
 # the probe, which can require Metro modules with metro(id) and, with --debug, read Venus internals through
 # globalThis.__venusDbg(). __ASSET_IDS__ in the probe expands to every AssetRegistry module ID.

@@ -25,9 +25,7 @@ private const val HELPER_METHOD_NAME = "morpheDisableTelemetry"
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Experimental: turns off P3A analytics and the usage ping on every start " +
-        "(overriding the in-app switches), stops crash report uploads and drops the " +
-        "install-referrer attribution code.",
+    description = "Disables usage analytics and crash reports.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_BRAVE_EXPERIMENTAL)

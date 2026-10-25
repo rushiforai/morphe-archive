@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -13,12 +13,12 @@ package app.morphe.patches.youtube.interaction.swipecontrols
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.misc.settings.preference.InputType
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.NonInteractivePreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
+import app.morphe.patches.youtube.layout.player.icons.copyPlayerIcons
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_34_or_greater
@@ -27,21 +27,21 @@ import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.shared.YouTubeMainActivityConstructorFingerprint
+import app.morphe.patches.youtube.video.audio.soundBoostPatch
 import app.morphe.patches.youtube.video.information.videoInformationPatch
-import app.morphe.util.ResourceGroup
-import app.morphe.util.copyResources
+import app.morphe.util.cloneMutable
 import app.morphe.util.insertLiteralOverride
 import app.morphe.util.transformMethods
 import app.morphe.util.traverseClassHierarchy
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 internal const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity;"
 
 private val swipeControlsResourcePatch = resourcePatch {
     dependsOn(
         settingsPatch,
-        versionCheckPatch
+        versionCheckPatch,
+        soundBoostPatch
     )
 
     execute {
@@ -88,9 +88,14 @@ private val swipeControlsResourcePatch = resourcePatch {
                 tag = "app.morphe.extension.shared.settings.preference.SeekBarPreference"
             ),
             NonInteractivePreference(
-                key = "morphe_swipe_volume_sensitivity",
+                key = "morphe_swipe_volume_distance",
                 tag = "app.morphe.extension.shared.settings.preference.SeekBarPreference"
             ),
+            ListPreference(
+                "morphe_swipe_volume_steps",
+                tag = "app.morphe.extension.youtube.settings.preference.SwipeVolumeStepsPreference"
+            ),
+            SwitchPreference("morphe_volume_boost", summary = true),
             NonInteractivePreference(
                 key = "morphe_swipe_speed_sensitivity",
                 tag = "app.morphe.extension.shared.settings.preference.SeekBarPreference"
@@ -126,21 +131,18 @@ private val swipeControlsResourcePatch = resourcePatch {
             TextPreference("morphe_swipe_threshold", inputType = InputType.NUMBER)
         )
 
-        copyResources(
+        copyPlayerIcons(
             "swipecontrols",
-            ResourceGroup(
-                "drawable",
-                "morphe_ic_sc_brightness_auto.xml",
-                "morphe_ic_sc_brightness_full.xml",
-                "morphe_ic_sc_brightness_high.xml",
-                "morphe_ic_sc_brightness_low.xml",
-                "morphe_ic_sc_brightness_medium.xml",
-                "morphe_ic_sc_volume_high.xml",
-                "morphe_ic_sc_volume_low.xml",
-                "morphe_ic_sc_volume_mute.xml",
-                "morphe_ic_sc_volume_normal.xml",
-                "morphe_ic_sc_speed.xml"
-            )
+            "morphe_ic_sc_brightness_auto",
+            "morphe_ic_sc_brightness_full",
+            "morphe_ic_sc_brightness_high",
+            "morphe_ic_sc_brightness_low",
+            "morphe_ic_sc_brightness_medium",
+            "morphe_ic_sc_volume_high",
+            "morphe_ic_sc_volume_low",
+            "morphe_ic_sc_volume_mute",
+            "morphe_ic_sc_volume_normal",
+            "morphe_ic_sc_speed"
         )
     }
 }
@@ -171,16 +173,7 @@ val swipeControlsPatch = bytecodePatch(
         traverseClassHierarchy(targetClass) {
             accessFlags = accessFlags and AccessFlags.FINAL.value.inv()
             transformMethods {
-                ImmutableMethod(
-                    definingClass,
-                    name,
-                    parameters,
-                    returnType,
-                    accessFlags and AccessFlags.FINAL.value.inv(),
-                    annotations,
-                    hiddenApiRestrictions,
-                    implementation,
-                ).toMutable()
+                cloneMutable(accessFlags = accessFlags and AccessFlags.FINAL.value.inv())
             }
         }
 

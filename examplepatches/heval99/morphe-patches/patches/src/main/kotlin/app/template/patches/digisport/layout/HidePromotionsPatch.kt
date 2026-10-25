@@ -12,8 +12,7 @@ private const val WIDGET_CROSS = "widgetCross"
 @Suppress("unused")
 val hidePromotionsPatch = bytecodePatch(
     name = "Hide promotions",
-    description = "Hides the cross-promotion articles from other RCS&RDS apps below articles " +
-        "and the \"Exclusive online · live\" bar on Home.",
+    description = "Hides cross-promotion articles and the live bar on Home.",
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

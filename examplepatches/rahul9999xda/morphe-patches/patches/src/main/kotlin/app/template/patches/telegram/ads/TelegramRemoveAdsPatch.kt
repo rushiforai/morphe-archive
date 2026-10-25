@@ -69,7 +69,7 @@ val telegramRemoveAdsPatch = bytecodePatch(
 
         videoAdsLoadFingerprint.method.addInstructions(0, "return-void")
 
-        // Plus Messenger 13.0.2.0 changed loadAds()V to loadAds(Activity, Cells.m3)V.
+        // Plus Messenger 13.0.3.0 declares loadAds(Activity, Cells.m3)V.
         // Keep the historical no-argument signature as a separate fallback for older Plus builds.
         listOf(
             PlusApplicationLoaderLoadAdsCurrentFingerprint.methodOrNull,

@@ -9,9 +9,11 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.downloads.reel.SIDEBAR
 import app.morphe.patches.facebook.downloads.reel.isSidebarBuilder
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -89,8 +91,9 @@ private fun Instruction.iteratorCall(name: String): Int? {
  */
 internal fun BytecodePatchContext.hideReelSaveButton() {
     val builders = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // A sidebar builder names SIDEBAR ([isSidebarBuilder]).
+    classDefForEachReferencing(strings = listOf(SIDEBAR)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         classDef.methods.filter { isSidebarBuilder(it, classDef.methods) }.forEach { builders += classDef.type to it }
     }
     val (owner, found) = builders.singleOrNull()

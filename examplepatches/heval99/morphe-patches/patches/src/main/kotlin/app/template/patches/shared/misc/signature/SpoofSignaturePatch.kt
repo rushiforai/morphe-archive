@@ -57,8 +57,7 @@ fun spoofSignaturePatch(
     certificateBase64: String,
     compatibility: Compatibility,
     default: Boolean = false,
-    description: String = "Makes the app report its original signing certificate to itself, so " +
-        "Firebase and Google APIs restricted to the original app keep working.",
+    description: String = "Fixes Google features that check the app's original signature.",
     dependencies: Set<Patch<*>> = emptySet(),
 ): BytecodePatch {
     // Fail at bundle load, not on the user's device, when the certificate is not a certificate.

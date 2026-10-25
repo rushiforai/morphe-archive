@@ -23,6 +23,7 @@ import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 public final class ChannelPageFlyoutFilter extends Filter {
 
     private static final byte[] CHANNEL_ID_PREFIX_BYTES = FlyoutUtils.getAsciiBytes("UC");
+    private static final int CHANNEL_ID_LENGTH = 24;
     private static final Pattern HANDLE_PATTERN = Pattern.compile("@[A-Za-z0-9._-]{3,30}");
     private static String flyoutChannelId = "";
     private static String flyoutHandle = "";
@@ -49,7 +50,7 @@ public final class ChannelPageFlyoutFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -69,7 +70,7 @@ public final class ChannelPageFlyoutFilter extends Filter {
             flyoutChannelId = new String(
                     buffer,
                     index,
-                    FlyoutUtils.CHANNEL_ID_LENGTH,
+                    CHANNEL_ID_LENGTH,
                     StandardCharsets.US_ASCII
             );
             Matcher handleMatcher = HANDLE_PATTERN.matcher(
@@ -94,7 +95,7 @@ public final class ChannelPageFlyoutFilter extends Filter {
      * @return True if it is a valid channel ID.
      */
     private static boolean isValidChannelId(byte[] buffer, int index) {
-        final int lastIndex = index + FlyoutUtils.CHANNEL_ID_LENGTH;
+        final int lastIndex = index + CHANNEL_ID_LENGTH;
         if (index < 0 || lastIndex > buffer.length) {
             return false;
         }

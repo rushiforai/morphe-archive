@@ -81,9 +81,10 @@ public final class MenuPanel {
         }
     }
 
-    /** Whether any switch of Hide Menu promotions has something to take out of the Menu. */
+    /** Whether any switch of Hide Menu promotions has something to change in the Menu. */
     static boolean anySwitchActs() {
         return Settings.HIDE_MENU_UPGRADES.get() || Settings.HIDE_MENU_ALSO_FROM_META.get()
+                || Settings.HIDE_MENU_HELP.get() || Settings.KEEP_MENU_SETTINGS_EXPANDED.get()
                 || Settings.HIDE_MENU_MUSE.get() || Settings.HIDE_MENU_META_AI.get()
                 || !MenuTiles.hiddenNow().isEmpty();
     }

@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -24,9 +25,11 @@ import com.ss.android.ugc.aweme.feed.model.AwemeStatistics;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -43,8 +46,13 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
  * Sorts the videos a profile or Liked grid has loaded (#180). The patch hands this the list
  * TikTok is about to give the grid's adapter, and the adapter keeps the list it gets back. TikTok
  * hands over its whole list again with each page, so a new page is sorted in with the rest and
- * nothing repeats. The list TikTok owns is never touched, which is how Original order, switching
- * the setting off and pausing Hushfeed bring TikTok's order back the next time a grid loads.
+ * nothing repeats.
+ *
+ * <p>TikTok's video page plays that same list, so as a cell opens its video the list gets the
+ * order the grid shows, and swiping goes on in the sorted order ({@link #beforeOpen}). From then
+ * on TikTok's own order is rebuilt from the copy kept before that write, with each later video
+ * added where TikTok put it, which is how Original order, switching the setting off and pausing
+ * Hushfeed still bring TikTok's order back.
  *
  * <p>Pinned videos keep their place at the front in the order TikTok has them. A video with no
  * value for the chosen order (no length, no counts, no date) goes after the ones that have one,
@@ -82,6 +90,10 @@ public final class GridSort {
     static final int LOAD_CAP = 300;
     /** The pause before asking for the next page, so a long profile isn't fetched in one burst. */
     static final long NEXT_PAGE_DELAY_MS = 400;
+    /** How many videos a page asks for, TikTok's own count when nothing was flung. */
+    static final int PAGE_SIZE = 18;
+    /** The source TikTok's footer names when it asks for a page. */
+    static final String PAGE_SOURCE = "load_more_bind_footer";
 
     static final String CHIP_TAG = "hushfeed_grid_sort_chip";
 
@@ -93,6 +105,12 @@ public final class GridSort {
     private static final Map<Object, Integer> LOADED = new WeakHashMap<>();
     /** Adapters whose next page was asked for and hasn't come in. */
     private static final Map<Object, Boolean> ASKED = new WeakHashMap<>();
+    /** Per adapter, the list object TikTok last handed over, which its video page plays. */
+    private static final Map<Object, List<?>> HANDED = new WeakHashMap<>();
+    /** Adapters whose handed list was given the grid's order, so it no longer holds TikTok's. */
+    private static final Map<Object, Boolean> REWRITTEN = new WeakHashMap<>();
+    /** Per grid fragment class, the field that holds its adapter. */
+    private static final Map<Class<?>, Field> ADAPTER_FIELDS = new WeakHashMap<>();
 
     private GridSort() {
     }
@@ -103,9 +121,10 @@ public final class GridSort {
      */
     public static List<?> data(Object adapter, List<?> list) {
         HookStatus.bound("profile grid sort", OFF.equals(Settings.PROFILE_GRID_SORT.get()) ? "order left" : "order sorted");
-        List<?> out = sorted(list);
+        List<?> order = adapter == null ? list : tiktokOrder(adapter, list);
+        List<?> out = sorted(order);
         if (adapter != null) {
-            remember(adapter, list);
+            remember(adapter, list, order);
             int size = list == null ? 0 : list.size();
             MAIN.post(() -> afterTikTok(adapter, 0, size));
         }
@@ -119,9 +138,10 @@ public final class GridSort {
      */
     public static List<?> page(Object adapter, List<?> list) {
         HookStatus.bound("profile grid sort", OFF.equals(Settings.PROFILE_GRID_SORT.get()) ? "order left" : "order sorted");
-        List<?> out = sorted(list);
+        List<?> order = adapter == null ? list : tiktokOrder(adapter, list);
+        List<?> out = sorted(order);
         if (adapter != null) {
-            int before = remember(adapter, list);
+            int before = remember(adapter, list, order);
             int size = list == null ? 0 : list.size();
             boolean moved = moved(list, out);
             MAIN.post(() -> {
@@ -170,23 +190,190 @@ public final class GridSort {
         if (wantsNextPage(order, 0, size, onScreen(grid))) askForNextPage(adapter);
     }
 
-    /** Notes the list TikTok handed over and returns how many videos the adapter held before it. */
-    private static int remember(Object adapter, List<?> list) {
+    /**
+     * Notes the list TikTok handed over and its own order of it, and returns how many videos the
+     * adapter held before it.
+     */
+    private static int remember(Object adapter, List<?> list, List<?> order) {
         synchronized (ORIGINALS) {
-            ORIGINALS.put(adapter, list);
+            ORIGINALS.put(adapter, order);
+            HANDED.put(adapter, list);
             Integer before = LOADED.put(adapter, list == null ? 0 : list.size());
             ASKED.remove(adapter);
             return before == null ? 0 : before;
         }
     }
 
+    /**
+     * TikTok's own order of the list it handed over. That's the list itself unless a video was
+     * opened from the sorted grid, which wrote the grid's order into it. Then the order is the
+     * one kept from before, without the videos that left, and the new ones after it as TikTok
+     * added them. With no order chosen, TikTok's order goes back into its list, so the grid and
+     * the video page share it again.
+     */
+    static List<?> tiktokOrder(Object adapter, List<?> list) {
+        List<?> earlier;
+        synchronized (ORIGINALS) {
+            if (!REWRITTEN.containsKey(adapter)) return list;
+            earlier = ORIGINALS.get(adapter);
+        }
+        List<Object> order = list == null ? null : rebuilt(earlier, list);
+        if (order == null) {
+            // A list with none of the earlier videos is a fresh load in TikTok's order.
+            synchronized (ORIGINALS) {
+                REWRITTEN.remove(adapter);
+            }
+            return list;
+        }
+        String chosen = Settings.PROFILE_GRID_SORT.get();
+        if ((OFF.equals(chosen) || comparator(chosen) == null) && follow(list, order)) {
+            synchronized (ORIGINALS) {
+                REWRITTEN.remove(adapter);
+            }
+            return list;
+        }
+        return order;
+    }
+
+    /**
+     * The videos of {@code earlier} still in {@code list}, in their earlier order, then the ones
+     * {@code list} added, in its order. Null when none of the earlier ones is left, or when
+     * {@code list} holds a video twice and no order would keep every entry.
+     */
+    static List<Object> rebuilt(List<?> earlier, List<?> list) {
+        if (earlier == null) return null;
+        Map<Object, Boolean> now = new IdentityHashMap<>();
+        for (Object item : list) now.put(item, Boolean.TRUE);
+        Map<Object, Boolean> placed = new IdentityHashMap<>();
+        List<Object> order = new ArrayList<>(list.size());
+        for (Object item : earlier) {
+            if (now.containsKey(item) && placed.put(item, Boolean.TRUE) == null) order.add(item);
+        }
+        if (order.isEmpty()) return null;
+        for (Object item : list) {
+            if (placed.put(item, Boolean.TRUE) == null) order.add(item);
+        }
+        return order.size() == list.size() ? order : null;
+    }
+
+    /**
+     * Called as a grid cell opens its video (#180), with the grid's fragment. TikTok's video page
+     * plays the fragment's own list, the one it handed the adapter, so swiping there went on in
+     * TikTok's order while the grid showed another. This writes the grid's order into that list
+     * first. A list that doesn't hold the same videos as the grid is left alone.
+     */
+    public static void beforeOpen(Object fragment) {
+        try {
+            Object adapter = adapterOf(fragment);
+            if (adapter == null) return;
+            List<?> handed;
+            synchronized (ORIGINALS) {
+                handed = HANDED.get(adapter);
+            }
+            Object shown = Reflect.readField(adapter, "mmItems");
+            if (handed == null || !(shown instanceof List) || shown == handed) return;
+            List<?> grid = (List<?>) shown;
+            if (sameOrder(handed, grid)) return;
+            List<Object> before = new ArrayList<>(handed);
+            if (!follow(handed, grid)) {
+                Logger.printDebug(() -> "Grid sort: the opened video's list doesn't hold the grid's videos, left as is");
+                return;
+            }
+            synchronized (ORIGINALS) {
+                if (ORIGINALS.get(adapter) == handed) ORIGINALS.put(adapter, before);
+                REWRITTEN.put(adapter, Boolean.TRUE);
+            }
+            Logger.printDebug(() -> "Grid sort: the video page follows the grid's order, " + grid.size() + " videos");
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not give the video page the grid's order", ex);
+        }
+    }
+
+    /**
+     * Puts {@code order} into {@code target} in place and says whether {@code target} now holds
+     * it. Only when both hold the same videos, each as often, so nothing is lost or repeated.
+     */
+    @SuppressWarnings("unchecked")
+    static boolean follow(List<?> target, List<?> order) {
+        if (target == null || order == null || target.size() != order.size()) return false;
+        if (sameOrder(target, order)) return true;
+        Map<Object, Integer> counts = new IdentityHashMap<>();
+        for (Object item : target) {
+            Integer count = counts.get(item);
+            counts.put(item, count == null ? 1 : count + 1);
+        }
+        for (Object item : order) {
+            Integer count = counts.get(item);
+            if (count == null || count == 0) return false;
+            counts.put(item, count - 1);
+        }
+        List<Object> copy = new ArrayList<>(order);
+        List<Object> writable = (List<Object>) target;
+        try {
+            for (int i = 0; i < copy.size(); i++) writable.set(i, copy.get(i));
+            return true;
+        } catch (RuntimeException ex) {
+            Logger.printDebug(() -> "Grid sort: TikTok's list can't be reordered (" + ex + ")");
+            return false;
+        }
+    }
+
+    private static boolean sameOrder(List<?> a, List<?> b) {
+        if (a.size() != b.size()) return false;
+        for (int i = 0; i < a.size(); i++) {
+            if (a.get(i) != b.get(i)) return false;
+        }
+        return true;
+    }
+
+    /** The adapter a grid fragment holds, found by the lists handed over, the field kept per class. */
+    private static Object adapterOf(Object fragment) {
+        if (fragment == null) return null;
+        Class<?> type = fragment.getClass();
+        Field known;
+        synchronized (ADAPTER_FIELDS) {
+            known = ADAPTER_FIELDS.get(type);
+        }
+        if (known != null) {
+            try {
+                return known.get(fragment);
+            } catch (IllegalAccessException ex) {
+                return null;
+            }
+        }
+        for (Class<?> at = type; at != null && at != Object.class; at = at.getSuperclass()) {
+            for (Field field : at.getDeclaredFields()) {
+                if (field.getType().isPrimitive() || Modifier.isStatic(field.getModifiers())) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(fragment);
+                    boolean adapter;
+                    synchronized (ORIGINALS) {
+                        adapter = value != null && HANDED.containsKey(value);
+                    }
+                    if (adapter) {
+                        synchronized (ADAPTER_FIELDS) {
+                            ADAPTER_FIELDS.put(type, field);
+                        }
+                        return value;
+                    }
+                } catch (Throwable ignored) {
+                    // A field this can't read isn't the adapter.
+                }
+            }
+        }
+        return null;
+    }
+
     private static void afterTikTok(Object adapter, int before, int size) {
         try {
             View grid = gridView(adapter);
             showChip(adapter, grid);
-            if (wantsNextPage(Settings.PROFILE_GRID_SORT.get(), before, size, onScreen(grid))) {
-                askForNextPage(adapter);
-            }
+            boolean shown = onScreen(grid);
+            boolean next = wantsNextPage(Settings.PROFILE_GRID_SORT.get(), before, size, shown);
+            Logger.printDebug(() -> "Grid sort: page " + before + " -> " + size
+                    + (grid == null ? ", no grid" : shown ? "" : ", off screen") + (next ? ", asking for more" : ""));
+            if (next) askForNextPage(adapter);
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not finish a sorted grid page", ex);
         }
@@ -200,7 +387,10 @@ public final class GridSort {
         MAIN.postDelayed(() -> loadMore(adapter), NEXT_PAGE_DELAY_MS);
     }
 
-    /** Asks the grid for its next page through the listener its own footer calls. */
+    /**
+     * Asks the grid for its next page, through TikTok's page loader where the patch found one and
+     * otherwise through the listener its own footer calls.
+     */
     private static void loadMore(Object adapter) {
         try {
             String order = Settings.PROFILE_GRID_SORT.get();
@@ -208,19 +398,40 @@ public final class GridSort {
                 synchronized (ORIGINALS) {
                     ASKED.remove(adapter);
                 }
+                Logger.printDebug(() -> "Grid sort: next page dropped, order " + order + " or the grid left the screen");
                 return;
             }
             Object listener = Reflect.invoke(adapter, "getLoadMoreListener");
             if (listener == null) listener = Reflect.readField(adapter, "mmLoadMoreListener");
+            if (listener != null && loadPage(listener, 0, PAGE_SIZE, PAGE_SOURCE)) {
+                Object loaderShown = listener;
+                Logger.printDebug(() -> "Grid sort: asked " + loaderShown.getClass().getName() + "'s page loader for the next page");
+                return;
+            }
             Method next = listener == null ? null : Reflect.method(listener.getClass(), "loadMore");
             if (next == null) {
                 Logger.printDebug(() -> "Grid sort: no load more listener on " + adapter.getClass().getName());
                 return;
             }
+            Object listenerShown = listener;
+            Logger.printDebug(() -> "Grid sort: asking " + listenerShown.getClass().getName() + " for the next page");
             next.invoke(listener);
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not load the next page of a sorted grid", ex);
         }
+    }
+
+    /**
+     * Asks the grid's fragment for its next page through TikTok's own page loader, and says
+     * whether it could. The footer's listener runs a reach-bottom check first that only loads
+     * within eight rows of the end, so on its own a sorted grid stopped after its third page. The
+     * patch replaces this body with the loader call, made only when {@code fragment} is a grid
+     * fragment, with TikTok's load-more message in {@code message}. The loader drops an ask while
+     * the same load is queued or running. Where the patch found no loader this stays false.
+     */
+    @SuppressWarnings("unused")
+    static boolean loadPage(Object fragment, int message, int count, String source) {
+        return false;
     }
 
     /** The RecyclerView the adapter is attached to, or null. */
@@ -273,10 +484,84 @@ public final class GridSort {
             int margin = SettingsUi.dp(context, 8);
             layout.setMargins(margin, margin, margin, margin);
             frame.addView(chip, layout);
+            followHeader(chip, grid);
         }
         chip.setText(L10n.t(LABELS[index]));
         // Set every time: the parent can outlive one adapter and get the next one.
         chip.setOnClickListener(view -> choose(adapter, view));
+        TextView placed = chip;
+        chip.post(() -> placeChip(placed, grid));
+    }
+
+    /**
+     * Keeps the chip under a full-width row at the top of the grid as the grid lays out and
+     * scrolls. The listener drops itself once the chip is taken away.
+     */
+    private static void followHeader(View chip, View grid) {
+        final class Follow implements ViewTreeObserver.OnScrollChangedListener, ViewTreeObserver.OnGlobalLayoutListener {
+            @Override
+            public void onScrollChanged() {
+                update();
+            }
+
+            @Override
+            public void onGlobalLayout() {
+                update();
+            }
+
+            private void update() {
+                if (chip.getParent() != null) {
+                    placeChip(chip, grid);
+                    return;
+                }
+                ViewTreeObserver observer = grid.getViewTreeObserver();
+                if (!observer.isAlive()) return;
+                observer.removeOnScrollChangedListener(this);
+                observer.removeOnGlobalLayoutListener(this);
+            }
+        }
+        Follow follow = new Follow();
+        ViewTreeObserver observer = grid.getViewTreeObserver();
+        observer.addOnScrollChangedListener(follow);
+        observer.addOnGlobalLayoutListener(follow);
+    }
+
+    private static void placeChip(View chip, View grid) {
+        try {
+            if (!(grid instanceof ViewGroup)) return;
+            ViewGroup rows = (ViewGroup) grid;
+            int count = rows.getChildCount();
+            int[] tops = new int[count];
+            int[] bottoms = new int[count];
+            int[] widths = new int[count];
+            for (int i = 0; i < count; i++) {
+                View row = rows.getChildAt(i);
+                tops[i] = row.getTop();
+                bottoms[i] = row.getBottom();
+                widths[i] = row.getWidth();
+            }
+            float y = grid.getTop() + chipOffset(grid.getWidth(), tops, bottoms, widths);
+            if (chip.getTranslationY() != y) chip.setTranslationY(y);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not place the grid sort chip", ex);
+        }
+    }
+
+    /**
+     * How far down the chip goes to clear the full-width rows at the top of the grid, such as the
+     * Liked tab's note about making liked videos public, which it covered: the bottom of the last
+     * row spanning the grid that starts at its top, or right under one that does. A row scrolled
+     * partly away pulls the chip up with it. Cells are narrower than the grid and never move it,
+     * and neither does a full-width footer further down.
+     */
+    static int chipOffset(int gridWidth, int[] tops, int[] bottoms, int[] widths) {
+        if (gridWidth <= 0) return 0;
+        int offset = 0;
+        for (int i = 0; i < tops.length; i++) {
+            if (widths[i] * 10 < gridWidth * 9 || bottoms[i] <= 0 || tops[i] > offset) continue;
+            offset = Math.max(offset, bottoms[i]);
+        }
+        return offset;
     }
 
     /** The orders as a list to pick from, the current one marked. */
@@ -421,6 +706,11 @@ public final class GridSort {
             ORIGINALS.clear();
             LOADED.clear();
             ASKED.clear();
+            HANDED.clear();
+            REWRITTEN.clear();
+        }
+        synchronized (ADAPTER_FIELDS) {
+            ADAPTER_FIELDS.clear();
         }
     }
 }

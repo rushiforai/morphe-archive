@@ -10,6 +10,7 @@ class PerformanceBoostPatchTest {
         val experimental = setOf(
             "2.0.20" to 5001712, "2.0.20" to 5001812,
             "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
+            "2.0.24" to 5002395,
         )
         assertEquals("OpenXR CPU and GPU BOOST (experimental)", performanceBoostPatch.name)
         assertFalse(performanceBoostPatch.default)

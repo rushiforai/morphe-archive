@@ -62,11 +62,37 @@ private object AuthorStitchSettingFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/**
+ * Whether a post may be added to your story. The answer is the server's share-to-story number
+ * compared with 2, and the story feed's Add to Story button reads it through this one extension
+ * function (#88).
+ */
+private object CanShareToStoryFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/AwemeExtKt;",
+    name = "canShareToStory",
+    returnType = "Z",
+    parameters = listOf(AWEME),
+)
+
+/**
+ * The creator's content reuse choice for a post. The share sheet's story check reads it before
+ * it offers Add to Story, in the action row and as your story's bubble in the Send to row, and
+ * never asks canShareToStory (#88). The model and its getter kept their names, and on every
+ * fixture that check is the getter's only reader, which DuetStitchCallersTest holds each build to.
+ */
+private object AllowAddingToStoryFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/InteractPermission;",
+    name = "getAllowAddingToStory",
+    returnType = "I",
+    parameters = emptyList(),
+)
+
 @Suppress("unused")
 val duetStitchPatch = bytecodePatch(
     name = "Allow Duet and Stitch",
     description = "Shows the Duet and Stitch buttons on videos whose creator turned them off, " +
-        "so you can still make one. TikTok may still refuse some videos or the upload. Starts " +
+        "so you can still make one, and Add to Story in the share sheet and on stories when the " +
+        "creator turned off content reuse. TikTok may still refuse some videos or the upload. Starts " +
         "off. Turn it on in Hushfeed settings > Share sheet.",
 ) {
     category("Downloads")
@@ -80,6 +106,8 @@ val duetStitchPatch = bytecodePatch(
             StitchSettingFingerprint to "setting",
             AuthorDuetSettingFingerprint to "authorSetting",
             AuthorStitchSettingFingerprint to "authorSetting",
+            CanShareToStoryFingerprint to "storyShareable",
+            AllowAddingToStoryFingerprint to "storyPermission",
         )) {
             fingerprint.method.apply {
                 // The value is taken as the getter hands it back, rather than the getter being

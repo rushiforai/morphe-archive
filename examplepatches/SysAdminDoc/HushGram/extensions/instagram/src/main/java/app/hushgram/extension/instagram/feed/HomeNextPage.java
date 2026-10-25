@@ -121,6 +121,10 @@ public final class HomeNextPage {
     @Nullable
     static volatile WeakReference<Object> holdFeed;
 
+    /** Why {@link #holdsEnd} last let an empty Home end, so the debug log names a reason once in a row. */
+    @Nullable
+    private static volatile String endedBecause;
+
     /** How many pages of Home's response that held items have been parsed. Tests clear it. */
     static volatile long pages;
 
@@ -496,7 +500,8 @@ public final class HomeNextPage {
      * Home ends, and the hold stays spent until a page keeps something or another feed is read, so a
      * Home whose pages bring nothing shows the card after one wait. A list that isn't For you's (or
      * its suggested posts while they show), a feed other than the latest build's, one with no next
-     * page, or anything it can't read ends Home as before. Never throws.
+     * page, or anything it can't read ends Home as before, and the debug log names which (#28).
+     * Never throws.
      */
     static boolean holdsEnd(@Nullable Object feed) {
         if (feed == null) return false;
@@ -507,28 +512,38 @@ public final class HomeNextPage {
                 holdSince = 0;
             }
             long since = holdSince;
-            if (since < 0) return false;
+            if (since < 0) return endsBecause("its wait already ran out");
             Build build = home;
-            Object adapter = build == null || build.feed() != feed ? null : build.adapter.get();
-            if (adapter == null || !asksFor(sources.apply(feed))) return false;
+            if (build == null) return endsBecause("no build of For you's list read its feed");
+            if (build.feed() != feed) return endsBecause("the latest build of For you's list read another feed");
+            Object adapter = build.adapter.get();
+            if (adapter == null) return endsBecause("the latest build's list is gone");
+            String source = sources.apply(feed);
+            if (!asksFor(source)) return endsBecause("its feed pages " + source + ", which isn't asked for");
             Object policy = policies.apply(adapter);
-            if (policy == null) return false;
+            if (policy == null) return endsBecause("no load more policy to ask");
             int busy = loading.applyAsInt(policy);
             long page = shortPage;
             boolean asking = page != 0 && page != decided
                     && (chain < CHAIN_CAP || (chain < END_CAP && ends.applyAsInt(adapter) == 1));
-            boolean coming = busy == 1 || (busy == 0 && more.applyAsInt(policy) == 1 && (waitingForOurs || asking));
+            int left = busy == 0 ? more.applyAsInt(policy) : -1;
+            boolean waiting = waitingForOurs;
+            boolean coming = busy == 1 || (left == 1 && (waiting || asking));
             long now = clock.getAsLong();
             long age = now - since;
             if (!coming || (since > 0 && (age < 0 || age > HOLD_NANOS))) {
                 if (since > 0) {
                     holdSince = -1;
                     Logger.printDebug(() -> "Home next page: no page filled the empty Home in time, so it ends");
+                } else {
+                    endsBecause("no page is on its way (loading " + busy + ", next page " + left + ", request waiting "
+                            + waiting + ", short page " + page + " waiting " + asking + ", " + chain + " asked in a row)");
                 }
                 return false;
             }
             if (since == 0) {
                 holdSince = now;
+                endedBecause = null;
                 HookStatus.counted(FamilyNames.FEED_SUGGESTIONS, HELD);
                 Logger.printDebug(() -> "Home next page: Home is empty with its next page on the way, so the loading row stays");
             }
@@ -537,6 +552,15 @@ public final class HomeNextPage {
             HookStatus.threw(FamilyNames.FEED_SUGGESTIONS, "empty Home hold", failure);
             return false;
         }
+    }
+
+    /** Logs [why] an empty Home ends rather than holds, unless it's the reason given last. Returns false. */
+    private static boolean endsBecause(String why) {
+        if (!why.equals(endedBecause)) {
+            endedBecause = why;
+            Logger.printDebug(() -> "Home next page: the empty Home ends, " + why);
+        }
+        return false;
     }
 
     /** Whether [source], a feed's paging source, is For you's. For you's first pages may name none. */

@@ -40,9 +40,8 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     // broken paths (the provider authorities themselves are all under com.shazam.android
     // and would rename fine).
     allowClone = false,
-    extraDescription = "Shazam's Sign in with Google needs it. Shazam's automatic sign-in attempts " +
-        "are skipped, because MicroG RE would show them as an account chooser; use the Sign in " +
-        "with Google button instead.",
+    // The automatic sign-in attempts are skipped (MicroG RE shows them as an account chooser).
+    extraDescription = "Sign in with the Sign in with Google button.",
     executeBlock = { skipSilentSignIn() },
 )
 

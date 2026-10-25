@@ -69,9 +69,7 @@ private fun MutableMethod.isStatic() = AccessFlags.STATIC.isSet(accessFlags)
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics, Crashlytics, Ophan, the push \"received\" beacon and " +
-        "the third-party tracking SDKs (Comscore, Nielsen, Adjust, Braze, Permutive). " +
-        "News, live blog and football alerts keep working; Braze marketing pushes and in-app messages stop.",
+    description = "Disables analytics, tracking and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_GUARDIAN)
 

@@ -399,9 +399,9 @@ internal val p2pRelayProfiles = listOf(
     // 47.5.3: another build without these files has renamed or moved them, and the strip must
     // refuse it.
     ResourceProfile("TikTok 47.5.3 split bundle", emptyList(), onlyVersion = "47.5.3"),
-    // PineDrama 47.4.3 (APKMirror's bundle, read on 2026-10-19) ships no relay library in its base
+    // PineDrama 47.5.3 (APKMirror's bundle, read on 2026-10-24) ships no relay library in its base
     // or any ABI split, so the strip has nothing to empty there either.
-    ResourceProfile("PineDrama 47.4.3", emptyList(), onlyVersion = "47.4.3"),
+    ResourceProfile("PineDrama 47.5.3", emptyList(), onlyVersion = "47.5.3"),
 )
 
 private val voiceTools = ResourceProfile(
@@ -441,7 +441,7 @@ internal val languageInventories = listOf(
         pathManifestSha256 = "38f412319f00a31a025e03095ea9bf4266b412c2322d2a6b0b4a031a073b0c08",
         contentManifestSha256 = setOf("4e43f40f655bd77faa64e8d0ec7c73908246415abf964a3a352c5d779c10d908"),
     ),
-    // The split bundle: 25 language splits and 102 files. PineDrama 47.4.3's bundle ships the same
+    // The split bundle: 25 language splits and 102 files. PineDrama 47.5.3's bundle ships the same
     // 25 languages under the same paths with its own text, so both builds' contents are reviewed.
     LanguageInventoryContract(
         directories = setOf(
@@ -451,7 +451,7 @@ internal val languageInventories = listOf(
         pathManifestSha256 = "33aad0753feebf540e226b415eecfc59323d40f7b52dfc70a06bd278e7acc9a6",
         contentManifestSha256 = setOf(
             "115bb6f14ca58f5af762c4368f1c18c48d371ffdf73fad8f8fc685293718dcb3",
-            "eb7104648e9a3f82e98097e7e90d8c5983488d9aad71b94b2668b11202322adc",
+            "bc1162803b462d2b856cb35e7f5130bd81aa7b1c29a071a9c264089182da3e05",
         ),
     ),
 )

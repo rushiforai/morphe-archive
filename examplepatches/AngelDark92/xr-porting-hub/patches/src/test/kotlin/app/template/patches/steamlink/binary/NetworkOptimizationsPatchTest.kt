@@ -21,6 +21,7 @@ class NetworkOptimizationsPatchTest {
         Base("2.0.21", "5001968", 2_234_048, 15_533_936),
         Base("2.0.22", "5002244", 2_251_920, 15_737_032),
         Base("2.0.23", "5002363", 2_292_008, 15_826_584),
+        Base("2.0.24", "5002395", 2_301_432, 15_929_432),
     )
 
     @Test
@@ -66,6 +67,17 @@ class NetworkOptimizationsPatchTest {
             decoded(base, "lib/arm64-v8a/libmain.so", base.mainSize), base.version, base.code)
         assertEquals("4d5ff6937d07747495b82a412592ce017d6bdadd54c8264e1e49ebb24b5aa72c", scene.sha256())
         assertEquals("17c1a4d91351190fcf2a996c1cb7673faac3bdde8aee70716cb07e295b950ade", main.sha256())
+    }
+
+    @Test
+    fun `frozen 5002395 output hashes are preserved`() {
+        val base = bases.single { it.code == "5002395" }
+        val scene = applyNetworkOptimizationsScene(
+            decoded(base, "lib/arm64-v8a/libvrlink_scene.so", base.sceneSize), base.version, base.code)
+        val main = applyNetworkOptimizationsMain(
+            decoded(base, "lib/arm64-v8a/libmain.so", base.mainSize), base.version, base.code)
+        assertEquals("8b71e6a72533935d7a5f4e1649c181fc627d1993809957ed8c1ee4232c3323fc", scene.sha256())
+        assertEquals("69f2c7789735e96322f8402fa44b1b118a0210df6c1477fa23bb6447dcc06075", main.sha256())
     }
 
     @Test

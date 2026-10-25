@@ -5,6 +5,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
@@ -13,20 +14,21 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BRAVE
+import app.template.patches.shared.addInstructionsAtControlFlowLabelChecked
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
-
-private const val ORIGIN_PREFERENCES_CLASS =
-    "Lorg/chromium/chrome/browser/settings/BraveOriginPreferences;"
 
 // SharedPreferences key prefix for feature disable flags written by the preference change
 // listener and read by the feature gatekeeper methods. Key: "brave_origin_off_<policyKey>",
@@ -37,7 +39,7 @@ private const val PREF_PREFIX = "brave_origin_off_"
 // before the binder runs. Ported from dh6k's EnableBraveOriginResourcePatch.
 private val braveOriginResourcePatch = resourcePatch(
     name = "Brave Origin Resource Defaults",
-    description = "Sets Origin preference switches to enabled by default.",
+    description = "Turns the Brave Origin switches on by default.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_BRAVE)
@@ -83,7 +85,7 @@ private val braveOriginResourcePatch = resourcePatch(
 @Suppress("unused")
 val braveOriginPatch = bytecodePatch(
     name = "Brave Origin",
-    description = "Unlocks Brave Origin and enables feature toggle controls.",
+    description = "Unlocks Brave Origin.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_BRAVE)
@@ -247,20 +249,49 @@ val braveOriginPatch = bytecodePatch(
             }
             .let { (it as ReferenceInstruction).reference as FieldReference }
 
-        val restartPromptFingerprint = Fingerprint(
-            strings = listOf("Failed to set policy value for "),
-            filters = listOf(
-                methodCall(
-                    definingClass = ORIGIN_PREFERENCES_CLASS,
-                    returnType = "V",
-                    parameters = emptyList(),
-                ),
-            ),
-        )
-        val restartPromptMethod = restartPromptFingerprint.instructionMatches
-            .first()
-            .getInstruction<ReferenceInstruction>()
-            .reference as MethodReference
+        // The restart snackbar: p5()V up to 1.97, R4(II)V since 1.98 (title and message string
+        // ids). R4 has other callers with other ids (the 1.98 "Ready to activate" snackbar), so
+        // the ids are read from this method's own call site, never hard-coded: they change per
+        // build.
+        val restartPromptInstructions = OriginRestartPromptFingerprint.originalMethod
+            .implementation!!.instructions.toList()
+        val restartPromptCalls = restartPromptInstructions.withIndex().filter { (_, instruction) ->
+            val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            call?.definingClass == ORIGIN_PREFERENCES_CLASS && call.returnType == "V"
+        }
+        val (restartPromptCallIndex, restartPromptCall) = restartPromptCalls.singleOrNull()
+            ?: throw PatchException(
+                "Expected one $ORIGIN_PREFERENCES_CLASS void call next to \"Failed to set policy " +
+                    "value for \", found ${restartPromptCalls.size}",
+            )
+        val restartPromptMethod = (restartPromptCall as ReferenceInstruction).reference as MethodReference
+        val restartPromptParameters = restartPromptMethod.parameterTypes.map(CharSequence::toString)
+        val restartPromptIds: List<Int> = when (restartPromptParameters) {
+            emptyList<String>() -> emptyList()
+            listOf("I", "I") -> {
+                // invoke-virtual {this, title, message}: each argument register must be loaded
+                // by one of the two literal loads right before the call.
+                val invoke = restartPromptCall as FiveRegisterInstruction
+                val loads = restartPromptInstructions
+                    .subList(maxOf(0, restartPromptCallIndex - 2), restartPromptCallIndex)
+                    .filterIsInstance<NarrowLiteralInstruction>()
+                listOf(invoke.registerD, invoke.registerE).map { register ->
+                    val id = loads.lastOrNull { (it as OneRegisterInstruction).registerA == register }
+                        ?.narrowLiteral
+                        ?: throw PatchException(
+                            "$restartPromptMethod: argument v$register is not loaded by a const " +
+                                "right before the restart-prompt call",
+                        )
+                    if (id ushr 24 != 0x7f) {
+                        throw PatchException("$restartPromptMethod: argument 0x${id.toString(16)} is not a resource id")
+                    }
+                    id
+                }
+            }
+            else -> throw PatchException(
+                "Unsupported restart-prompt shape $restartPromptMethod (expected ()V or (II)V)",
+            )
+        }
 
         // P3A and the usage ping have no Java gatekeeper (they are native services), so for
         // those two switches the listener also writes the native local-state pref they read.
@@ -371,12 +402,53 @@ val braveOriginPatch = bytecodePatch(
                     xor-int/lit8 v1, v1, 0x1
                     invoke-virtual {v2, v3, v1}, ${prefSetBoolean.definingClass}->${prefSetBoolean.name}(Ljava/lang/String;Z)V
                     :native_done
-                    invoke-virtual {p0}, ${restartPromptMethod.definingClass}->${restartPromptMethod.name}()V
+                    nop
                     :no_key
                     const/4 v0, 0x1
                     return v0
                 """,
             )
+
+            // The restart-prompt call goes where the nop marks :native_done. The ids need two
+            // free 4-bit locals there; a liveness check on the rewritten body finds them.
+            val callIndex = implementation!!.instructions.indexOfFirst { it.opcode == Opcode.NOP }
+            if (callIndex < 0) throw PatchException("$ORIGIN_PREFERENCES_CLASS listener: restart-prompt placeholder not found")
+            val restartPromptArguments = if (restartPromptIds.isEmpty()) {
+                emptyList()
+            } else {
+                // (Preference, Object)Z on an instance: the last three registers are p0..p2.
+                val registerCount = implementation!!.registerCount
+                val locals = registerCount - 3
+                val freeRegisters = try {
+                    getFreeRegisterProvider(
+                        callIndex,
+                        restartPromptIds.size,
+                        (locals until registerCount).toList(),
+                    ).let { provider ->
+                        restartPromptIds.map { provider.getFreeRegister4Bit() }
+                    }
+                } catch (e: Exception) {
+                    throw PatchException("$ORIGIN_PREFERENCES_CLASS listener has no free local for the restart-prompt ids", e)
+                }
+                if (freeRegisters.any { it !in 0 until minOf(locals, 16) } || freeRegisters.distinct().size != freeRegisters.size) {
+                    throw PatchException("$ORIGIN_PREFERENCES_CLASS listener: $freeRegisters are not distinct free 4-bit locals")
+                }
+                freeRegisters.zip(restartPromptIds)
+            }
+            val restartPromptSignature = "${restartPromptMethod.definingClass}->${restartPromptMethod.name}" +
+                "(${restartPromptParameters.joinToString("")})V"
+            addInstructionsAtControlFlowLabelChecked(
+                callIndex,
+                restartPromptArguments.joinToString("") { (register, id) -> "const v$register, $id\n" } +
+                    "invoke-virtual {${(listOf("p0") + restartPromptArguments.map { "v${it.first}" }).joinToString(", ")}}, " +
+                    restartPromptSignature,
+            )
+            // The nop's label moved to the first inserted instruction; drop the bare nop.
+            val nopIndex = callIndex + restartPromptArguments.size + 1
+            if (getInstruction(nopIndex).opcode != Opcode.NOP) {
+                throw PatchException("$ORIGIN_PREFERENCES_CLASS listener: restart-prompt placeholder moved")
+            }
+            removeInstruction(nopIndex)
         }
 
         // ── 8. Switch binder: retain listener assignment, skip native policy read ────

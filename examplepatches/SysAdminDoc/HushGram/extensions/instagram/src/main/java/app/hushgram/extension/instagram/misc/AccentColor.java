@@ -152,10 +152,14 @@ public final class AccentColor {
         }
     }
 
-    /** The color picked, or null for Instagram's own: switch off, blue picked, paused or not ready. */
+    /**
+     * The color picked, or null for Instagram's own: switch off, blue picked, paused or not ready, or
+     * Material You with no wallpaper palette to read.
+     */
     static AccentHue picked() {
         if (!Utils.settingsReady() || !Settings.ACCENT_COLOR.get()) return null;
         AccentHue hue = Settings.ACCENT_HUE.get();
+        if (hue == AccentHue.WALLPAPER && MaterialYou.shades() == null) return null;
         return hue == null || hue == AccentHue.BLUE ? null : hue;
     }
 
@@ -208,10 +212,19 @@ public final class AccentColor {
         }
     }
 
-    /** [color] as [hue]'s shade for the part it plays, with its own alpha, or [color] for no part. */
+    /**
+     * [color] as [hue]'s shade for the part it plays, with its own alpha, or [color] for no part, or
+     * when Material You's palette can't be read.
+     */
     static int swap(int color, AccentHue hue) {
+        Role role = role(color);
+        if (hue == AccentHue.WALLPAPER) {
+            int[] shades = MaterialYou.shades();
+            if (role == Role.NONE || shades == null) return color;
+            return (color & 0xff000000) | shades[role.ordinal() - 1];
+        }
         int rgb;
-        switch (role(color)) {
+        switch (role) {
             case FILL:
                 rgb = hue.fill;
                 break;

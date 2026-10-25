@@ -19,7 +19,7 @@ import app.template.patches.shared.misc.ads.failFlutterGmaPluginLoads
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes banner, native, interstitial, rewarded and app-open ads.",
+    description = "Removes all ads.",
 ) {
     compatibleWith(COMPATIBILITY_FOOTBALL433)
 

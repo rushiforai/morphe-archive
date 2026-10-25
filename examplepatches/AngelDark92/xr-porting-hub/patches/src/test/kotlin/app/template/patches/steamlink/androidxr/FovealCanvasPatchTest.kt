@@ -26,6 +26,7 @@ class FovealCanvasPatchTest {
         Base("2.0.21", "5001968", 2_234_048, listOf(0x1064e0, 0x106de8)),
         Base("2.0.22", "5002244", 2_251_920, listOf(0x107bf0, 0x10872c)),
         Base("2.0.23", "5002363", 2_292_008, listOf(0x10c1c4, 0x10cd00)),
+        Base("2.0.24", "5002395", 2_301_432, listOf(0x10d41c, 0x10df58)),
     )
 
     @Test
@@ -39,6 +40,7 @@ class FovealCanvasPatchTest {
             setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
                 "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
+                "2.0.24" to 5002395,
             ),
             targets.flatMap { target ->
                 target.versionCodes.orEmpty().values.map { target.version to it }
@@ -48,7 +50,8 @@ class FovealCanvasPatchTest {
             assertTrue(isFovealCanvasSteamLinkBuild(base.version, base.code), "${base.version}/${base.code}")
         }
         listOf("2.0.20" to "5001813", "2.0.20" to "5002363",
-            "2.0.23" to "5001712", "2.0.23" to "5002364").forEach { (version, code) ->
+            "2.0.23" to "5001712", "2.0.23" to "5002364",
+            "2.0.24" to "5002363").forEach { (version, code) ->
             assertFalse(isFovealCanvasSteamLinkBuild(version, code), "$version/$code")
         }
     }

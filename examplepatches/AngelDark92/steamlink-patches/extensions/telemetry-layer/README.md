@@ -1,8 +1,11 @@
 # Optional Codecs Support telemetry
 
 This component is installed only when the user turns on **Enable telemetry**
-inside **Codecs Support**. The option defaults to **false** on both existing
-targets: Steam Link **2.0.20/5001712** and **2.0.23/5002363**. Codec patch
+inside **Codecs Support**. The option defaults to **false** on the admitted
+targets Steam Link **2.0.20/5001712**, **2.0.20/5001812**, **2.0.21/5001968**,
+**2.0.22/5002244** and **2.0.23/5002363**. Steam Link **2.0.24/5002395** is not
+admitted yet: selecting telemetry on it fails closed instead of installing an
+empty ownership receipt. Codec patch
 recommendations and compatibility scopes are unchanged. There is no separate
 telemetry patch/category and no dependency that selects telemetry automatically.
 

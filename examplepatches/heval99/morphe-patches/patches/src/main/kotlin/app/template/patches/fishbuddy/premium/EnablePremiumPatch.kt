@@ -7,8 +7,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Forces User.hasPremium() to return true, unlocking premium " +
-            "features locked behind the RevenueCat subscription entitlement."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_FISHBUDDY)
 

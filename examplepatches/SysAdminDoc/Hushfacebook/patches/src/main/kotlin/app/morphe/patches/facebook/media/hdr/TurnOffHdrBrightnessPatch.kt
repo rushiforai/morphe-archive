@@ -19,6 +19,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -180,10 +181,12 @@ internal fun ownWindowCall(instruction: Instruction): String? {
 internal fun BytecodePatchContext.windowCallers(): Set<String> {
     val owners = mutableSetOf<String>()
     var colourModes = 0
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    val names = listOf(SET_COLOR_MODE, SET_HDR_HEADROOM, IS_HDR, MODE_HDR_TYPES, CAPABILITY_HDR_TYPES, CODEC_CONFIGURE)
+        .map { it.substringAfter("->").substringBefore('(') }
+    classDefForEachReferencing(names = names) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         val calls = classDef.methods.flatMap { method -> method.implementation?.instructions?.mapNotNull(::ownWindowCall).orEmpty() }
-        if (calls.isEmpty()) return@classDefForEach
+        if (calls.isEmpty()) return@classDefForEachReferencing
         owners += classDef.type
         colourModes += calls.count { it == OWN_SET_COLOR_MODE }
     }
@@ -242,8 +245,8 @@ internal fun builtSurfaceView(instruction: Instruction): Int? {
  */
 internal fun BytecodePatchContext.surfaceViewBuilders(): Set<String> {
     val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    classDefForEachReferencing(types = listOf(SURFACE_VIEW)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         if (classDef.methods.any { method -> method.implementation?.instructions?.any { builtSurfaceView(it) != null } == true }) {
             owners += classDef.type
         }

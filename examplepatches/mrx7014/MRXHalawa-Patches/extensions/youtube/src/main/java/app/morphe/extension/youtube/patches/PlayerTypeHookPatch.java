@@ -10,6 +10,12 @@ import app.morphe.extension.youtube.shared.VideoState;
 
 @SuppressWarnings("unused")
 public class PlayerTypeHookPatch {
+
+    /**
+     * Number of Shorts player views attached to a window. Only accessed on the main thread.
+     */
+    private static int attachedShortsPlayers;
+
     /**
      * Injection point.
      */
@@ -30,7 +36,7 @@ public class PlayerTypeHookPatch {
 
     /**
      * Injection point.
-     *
+     * <p>
      * Add a listener to the shorts player overlay View.
      * Triggered when a shorts player is attached or detached to Windows.
      *
@@ -40,12 +46,17 @@ public class PlayerTypeHookPatch {
         view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(@Nullable View v) {
+                attachedShortsPlayers++;
                 ShortsPlayerState.setOpen(true);
             }
 
             @Override
             public void onViewDetachedFromWindow(@Nullable View v) {
-                ShortsPlayerState.setOpen(false);
+                // More than one Shorts player can be attached at the same time,
+                // such as a Shorts live stream opened from the Shorts feed.
+                // The Shorts player is closed only when the last one is detached.
+                attachedShortsPlayers = Math.max(0, attachedShortsPlayers - 1);
+                ShortsPlayerState.setOpen(attachedShortsPlayers > 0);
             }
         });
     }

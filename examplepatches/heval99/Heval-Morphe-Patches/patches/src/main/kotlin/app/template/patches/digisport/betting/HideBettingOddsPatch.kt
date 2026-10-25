@@ -7,7 +7,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val hideBettingOddsPatch = bytecodePatch(
     name = "Hide betting odds",
-    description = "Hides the bookmaker odds block in soccer match rows.",
+    description = "Hides betting odds in match lists.",
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

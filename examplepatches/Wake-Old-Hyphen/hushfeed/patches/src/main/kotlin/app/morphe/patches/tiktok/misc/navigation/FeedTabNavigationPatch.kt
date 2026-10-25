@@ -15,6 +15,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -174,8 +175,8 @@ val feedTabNavigationPatch = bytecodePatch(
                 classDefByOrNull(it)
             }
         } catch (problem: PatchException) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[Feed tab navigation] Left out the bottom tab names on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[Feed tab navigation] Left out the bottom tab names on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
 

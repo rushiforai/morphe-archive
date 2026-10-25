@@ -22,6 +22,7 @@ import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.reels.prompts.findOverlayEnum
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -215,7 +216,7 @@ internal fun isCommentCardReader(method: Method): Boolean =
     AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.size == 1 &&
         method.returnType.startsWith("L") && method.implementation != null
 
-/** Finds all three anchors, each exactly once, in one pass over the app's classes. Changes nothing. */
+/** Finds all three anchors, each exactly once, in the app's classes. Changes nothing. */
 internal fun BytecodePatchContext.findAffiliateAnchors(): AffiliateAnchors {
     val overlay = findOverlayEnum()
     val eyebrow = enumConstant(overlay, AFFILIATE_EYEBROW) ?: refuse("${overlay.type} stores no $AFFILIATE_EYEBROW constant")
@@ -223,13 +224,18 @@ internal fun BytecodePatchContext.findAffiliateAnchors(): AffiliateAnchors {
     val reelChecks = mutableMapOf<String, MethodReference>()
     val footerIds = mutableMapOf<String, MethodReference>()
     val ctaFilters = mutableListOf<Method>()
+    // The footer check and the CTA filter by name, which reads code only where the name fits.
     classDefForEach { classDef: ClassDef ->
         if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
         for (method in classDef.methods) {
-            reelCardChecks(method, eyebrow).associateByTo(reelChecks) { it.toString() }
             if (isFooterHidden(method)) footerIdCalls(method).associateByTo(footerIds) { it.toString() }
             if (isCtaFilter(method)) ctaFilters += method
         }
+    }
+    // A reel card check reads the eyebrow off the overlay enum.
+    classDefForEachReferencing(types = listOf(overlay.type)) { classDef: ClassDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
+        for (method in classDef.methods) reelCardChecks(method, eyebrow).associateByTo(reelChecks) { it.toString() }
     }
     val reelCheck = reelChecks.values.singleOrNull() ?: refuse(
         "expected one Z predicate in front of adding $eyebrow, found ${reelChecks.keys.ifEmpty { setOf("none") }}",

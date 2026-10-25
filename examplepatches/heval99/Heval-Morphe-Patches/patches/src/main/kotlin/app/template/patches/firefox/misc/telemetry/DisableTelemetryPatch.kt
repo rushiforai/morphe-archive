@@ -49,9 +49,7 @@ internal const val NIMBUS = "Lorg/mozilla/experiments/nimbus/Nimbus;"
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Stops Glean telemetry uploads (including the pings that ignore the in-app switch), the daily " +
-        "usage ping, Adjust marketing attribution, Sentry and Socorro crash report uploads and Nimbus " +
-        "experiment downloads. Crashes still show the local crash screen.",
+    description = "Disables telemetry and crash report uploads.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

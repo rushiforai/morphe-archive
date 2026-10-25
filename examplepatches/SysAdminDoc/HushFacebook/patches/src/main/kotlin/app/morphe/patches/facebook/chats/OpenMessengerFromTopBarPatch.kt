@@ -26,6 +26,7 @@ import app.morphe.patches.facebook.notifications.TrayPost
 import app.morphe.patches.facebook.notifications.postNothingWhenBlocked
 import app.morphe.patches.facebook.notifications.trayPost
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -145,10 +146,12 @@ internal fun BytecodePatchContext.handoffTargets(): HandoffTargets {
         ?: throw PatchException("$ICON_PATCH: $NOTIFICATION_TYPE doesn't store a constant named $VOIP")
     val handlers = mutableListOf<ClassDef>()
     val parsers = mutableListOf<ClassDef>()
+    // The parser by its kept method names, which reads no code, then the handlers, which read the constant.
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
-        if (isRingParser(classDef)) parsers += classDef
-        if (claimsVoip(classDef, voip)) handlers += classDef
+        if (!classDef.type.startsWith(EXTENSION_PACKAGE) && isRingParser(classDef)) parsers += classDef
+    }
+    classDefForEachReferencing(types = listOf(voip.definingClass)) { classDef ->
+        if (!classDef.type.startsWith(EXTENSION_PACKAGE) && claimsVoip(classDef, voip)) handlers += classDef
     }
     if (handlers.isEmpty()) {
         throw PatchException("$ICON_PATCH: no push handler claims $VOIP pushes alone by reading $voip")

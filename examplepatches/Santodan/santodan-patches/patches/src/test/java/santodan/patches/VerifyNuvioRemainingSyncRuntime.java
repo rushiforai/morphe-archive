@@ -22,6 +22,9 @@ public final class VerifyNuvioRemainingSyncRuntime {
         sources.put("android.os.SystemClock", "package android.os; public class SystemClock { public static long elapsedRealtime(){return System.nanoTime()/1000000;} }");
         sources.put("android.util.Log", "package android.util; public class Log { public static int d(String t,String m){return 0;} public static int w(String t,String m){throw new AssertionError(m);} public static int e(String t,String m,Throwable e){throw new AssertionError(m,e);} }");
         sources.put("fixture.NextUp", "package fixture; public class NextUp { public String a=\"tt3981938\",c=\"Rage of Bahamut\"; public int h=2,i=8; public Integer x=2,y=7; }");
+        sources.put("fixture.Resume", "package fixture; public class Resume { public String getContentId(){return \"resume-id\";} public String getName(){return \"Undead Unluck\";} public Integer getSeason(){return 1;} public Integer getEpisode(){return 8;} }");
+        sources.put("fixture.Card", "package fixture; public class Card { public String r=\"Undead Unluck\"; }");
+        sources.put("fixture.Revision", "package fixture; public class Revision { public int value; public Integer getValue(){return value;} public void setValue(Integer v){value=v;} }");
         List<String> compile = new ArrayList<>(List.of("-classpath", System.getProperty("java.class.path"), "-d", dir.toString()));
         for (var entry : sources.entrySet()) {
             Path file = dir.resolve(entry.getKey().replace('.', '/') + ".java");
@@ -85,6 +88,28 @@ public final class VerifyNuvioRemainingSyncRuntime {
             counts.clear(); values.put("count_v4_tt3981938_seed", "[2, 8, 2, 7]");
             bridge.getMethod("register", Object.class).invoke(null, card);
             check(!counts.containsKey("tt3981938"), "Mismatched persistent seed restored a stale count");
+            // Aired metadata can precede quick-sync membership. Publish counts without
+            // another full provider sync or another card composition.
+            Field airedField=bridge.getDeclaredField("latestAiredById"); airedField.setAccessible(true);
+            airedField.set(null, Map.of("tt3981938", Set.of("1:1","1:2","1:3")));
+            bridge.getMethod("refreshWatchedHistory", Map.class).invoke(null, Map.of("tt3981938",Set.of("1:1","1:2")));
+            deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+            while(!Objects.equals(counts.get("tt3981938"),1)&&System.nanoTime()<deadline)Thread.sleep(20);
+            check(Objects.equals(counts.get("tt3981938"),1),"Restored startup history did not publish visible remaining count");
+            bridge.getMethod("refreshWatchedHistory", Map.class).invoke(null, Map.of("tt3981938",Set.of("1:1","1:2","1:3")));
+            deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+            while(!Objects.equals(counts.get("tt3981938"),0)&&System.nanoTime()<deadline)Thread.sleep(20);
+            check(Objects.equals(counts.get("tt3981938"),0),"Completed startup history retained a stale count");
+            Object revision=loader.loadClass("fixture.Revision").getConstructor().newInstance();
+            Field revisionField=bridge.getDeclaredField("revisionState");revisionField.setAccessible(true);revisionField.set(null,revision);
+            airedField.set(null,Map.of("resume-id",Set.of("1:7","1:8","1:9")));
+            bridge.getMethod("prepareBadge",Object.class).invoke(null,loader.loadClass("fixture.Card").getConstructor().newInstance());
+            bridge.getMethod("registerProgress",Object.class).invoke(null,loader.loadClass("fixture.Resume").getConstructor().newInstance());
+            check((int)revision.getClass().getField("value").get(revision)>0,"Late first-card registration did not invalidate composition");
+            bridge.getMethod("refreshWatchedHistory",Map.class).invoke(null,Map.of("resume-id",Set.of("1:7","1:8")));
+            deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+            while(!Objects.equals(counts.get("resume-id"),1)&&System.nanoTime()<deadline)Thread.sleep(20);
+            check(Objects.equals(counts.get("resume-id"),1),"Resume card required a native NextUpInfo/full sync to show its count");
         }
         System.out.println("PASS: stale request rejection, changed-seed invalidation, immediate retry and persistent seed validation");
     }

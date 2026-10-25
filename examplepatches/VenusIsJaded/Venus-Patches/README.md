@@ -1,16 +1,16 @@
 # Venus Patches
 
-Extra features and privacy options for Discord on Android, built into the app with **[Morphe](https://morphe.software)**. Everything works offline, except the few features that say they use a service (ReviewDB, Translate messages). Nothing is downloaded from the internet to run, and nothing is tracked.
+Extra features and privacy options for Discord on Android, built into the app with **[Morphe](https://morphe.software)**. Everything works offline, except the few features that say they use a service (ReviewDB, Translate messages, Fix link previews, Bring back Tenor GIFs). Nothing is downloaded from the internet to run, and nothing is tracked.
 
 [**Add to Morphe**](https://morphe.software/add-source?github=VenusIsJaded/Venus-Patches&name=Venus%20Patches) · [Downloads](https://github.com/VenusIsJaded/Venus-Patches/releases) · [What's new](CHANGELOG.md) · [Report a problem](https://github.com/VenusIsJaded/Venus-Patches/issues)
 
-**Works with:** Discord **349.9 - Stable** (the original APKM).
+**Works with:** Discord **350.8 - Stable** (the original APKM).
 
 ## Install
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases).
 2. Tap **[Add to Morphe](https://morphe.software/add-source?github=VenusIsJaded/Venus-Patches&name=Venus%20Patches)**. You can also add `https://github.com/VenusIsJaded/Venus-Patches` as a source.
-3. Choose the **original** Discord 349.9 APKM. Don't pick an APK you've already patched.
+3. Choose the **original** Discord 350.8 APKM. Don't pick an APK you've already patched.
 4. Every patch except **Custom branding** is selected for you, under **Features** and **Privacy**. Leave **Venus settings** on, then patch and install.
 5. Open **Discord Settings → Venus → Features** and turn on the ones you want. They all start off.
 
@@ -24,14 +24,16 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 
 | Group | Feature | What it does |
 | --- | --- | --- |
-| **Messages** | Keep deleted messages | Deleted messages stay in chat, outlined in red, and edits keep their history |
-| | Message highlights | Pick bar width and colors for replies, mentions and deleted messages |
-| | Translate messages | Messages in other languages show in yours, automatically or only the ones you pick |
+| **Messages** | Keep deleted messages | Deleted messages stay in chat, outlined in red, and edits keep their history. Pick their color, brightness and how many to keep |
+| | Message highlights | Pick bar width, plus the color and brightness of replies and mentions |
+| | Translate messages | Messages in other languages show in yours, automatically or only when you ask: a whole chat from a bar that appears when it has messages in another language, or one message from its menu. Translate into Discord's language, your phone's, or any of 70 others |
 | | Double-tap to reply | Double-tap a message to reply, or your own to edit it |
 | | Skip delete confirmation | Messages and link previews are removed with no "Are you sure?" |
 | | Jump to first message | A button to go straight to the start of a chat |
 | | Favourite any image or video | Star any image or video to keep it in your GIF favourites |
 | **Sending** | Send Nitro stickers and emojis as links | Sends Nitro emojis and stickers as links that show as the image |
+| | Bring back Tenor GIFs | Tenor GIFs show in Discord's own GIF picker again: search, trending and categories. Mix them with Discord's GIFs or use only Tenor. If Tenor doesn't answer, Discord's own GIFs show |
+| | Fix link previews | Links to X, Instagram, TikTok, Reddit, Bluesky, Threads, Facebook, pixiv and Bilibili show the post, with its picture or video. Pick the embed service per site (FxTwitter or vxTwitter, and so on), and share tracking like `?igsh=` is removed |
 | | Send audio as voice messages | Audio files are sent as real voice messages, with a waveform |
 | | Send long messages | Type past the character limit; long messages are sent in parts |
 | | Hide typing indicator | Others won't see when you're typing |
@@ -42,7 +44,7 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 | | Copy profile bios | Hold a bio to select and copy it |
 | | User and server reviews | Read and write reviews, from ReviewDB |
 | | User activity notifications | Shows a notice when chosen friends or users change status, start typing or send a message |
-| | Account switcher | Switch between up to 50 Discord accounts from the profile bar or Venus settings |
+| | Account switcher | Switch between up to 50 Discord accounts from the profile bar or Venus settings. Create a new account from Discord's Add account screen or the Account switcher page, without logging out |
 | **Servers** | Read all button | Marks servers, DMs or both as read in one tap |
 | | Show hidden channels | Channels you can't open appear with a lock. Only a tap opens their details menu, which you can turn off |
 | | Server info | Hold a server's icon to see live details: who's online, channels, roles, emojis, boost progress, the owner, your friends there, when it was made and when you joined |
@@ -51,12 +53,15 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 | | Use your phone's emojis | Your phone's emojis instead of Discord's |
 | | Hide the gift button | Removes the Nitro gift button from the message bar |
 | | Hide the call button | Removes Call from people's profiles |
+| | Hide extra buttons | Removes the Quests, Shop and Nitro buttons from your profile and Apps from the attach menu; you can also pick Polls and Photos. The rest close up, so the pill and the menu shrink with no gaps |
 | | Venus button on profile bar | A shortcut to Venus, next to the notifications bell |
 | | Unlock app icons | Use any Discord app icon in Settings without Nitro |
+| | Unlock Nitro themes | Use Discord's gradient themes in Settings > Appearance without Nitro. Only this phone sees them |
 | | Custom themes | Install Revenge and Vendetta color themes from a link, then pick one from a gallery that previews each in its own colors |
 | | Icon packs | Replace Discord's icons across the app with built-in community icon packs (Rosiecord Plumpy, Rosiecord Iconsax, MD3, Solar, Deco, Material Two Tone, Iconsax Bulk) or a custom icon pack link |
 | **Quests** | Complete Quests automatically | Finishes video, Play and timed Activity Quests in the background |
 | | Hide the Quests banner | Removes the Quest promotion above your profile bar |
+| | Complete badges automatically | **Risky, experimental:** the row is marked Risky and Experimental, and turning it on asks "Are you sure?" first. Plays real, detectable PC games in the background the way Discord for Windows reports them, toward your Hours Played and Unique Games Played badges, with each game's own art on your profile. Up to 3 games at once count up to 3 hours of game time every hour. Advanced Add hours now sends past sessions right away, behind a warning you confirm three times, because it can get an account suspended. Needs Discord's "Use data to personalize my Discord experience" on; progress can take a day or two to show |
 
 **In the background:** Play and Activity Quests keep going while Discord is in the background or the screen is off, like Discord for Windows running unfocused. Video Quests are reported at normal speed, and only while Discord is open, the same as Discord's own player. Leaving Discord pauses a video Quest, the background Quests go ahead in the meantime, and the video picks up where it stopped when you come back. New Quests are accepted while Discord is open.
 

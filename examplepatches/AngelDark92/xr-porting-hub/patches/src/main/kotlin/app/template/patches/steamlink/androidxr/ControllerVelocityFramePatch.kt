@@ -25,6 +25,7 @@ private data class ControllerVelocityFrameBuild(
 // world-to-local adapter is needed on that base.
 private val CONTROLLER_VELOCITY_FRAME_BUILDS = listOf(
     ControllerVelocityFrameBuild("2.0.23", 5002363, angularWorld = false),
+    ControllerVelocityFrameBuild("2.0.24", 5002395, angularWorld = false),
     ControllerVelocityFrameBuild("2.0.20", 5001712, angularWorld = true),
     ControllerVelocityFrameBuild("2.0.20", 5001812, angularWorld = true),
     ControllerVelocityFrameBuild("2.0.21", 5001968, angularWorld = true),

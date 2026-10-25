@@ -11,9 +11,9 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.addInstructions
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
+import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -21,7 +21,11 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/search/SearchSuggestions;"
 private const val PLUGGABLE_SPI = "Lcom/ss/android/ugc/aweme/framework/services/PluggableExtentionKt;"
-private val FEATURE_CHECK_PARAMETERS = listOf("Landroidx/fragment/app/Fragment;", "Ljava/lang/String;", "Z")
+/** TikTok's feature check takes (Fragment, String, Z); PineDrama 47.5.3's checkPluginInstalled takes the String alone. */
+private val FEATURE_CHECK_PARAMETERS = setOf(
+    listOf("Landroidx/fragment/app/Fragment;", "Ljava/lang/String;", "Z"),
+    listOf("Ljava/lang/String;"),
+)
 
 /** The two downloadable features the search rewards services live in. */
 internal val SEARCH_REWARDS_FEATURES = setOf("coin", "incentive")
@@ -63,14 +67,19 @@ internal fun searchRewardsGetter(method: Method): SearchRewardsGetter? {
 
     val checkIndex = instructions.indexOfFirst { instruction ->
         instruction.opcode == Opcode.INVOKE_VIRTUAL && instruction.getReference<MethodReference>()?.let {
-            it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == FEATURE_CHECK_PARAMETERS
+            it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) in FEATURE_CHECK_PARAMETERS
         } == true
     }
     if (checkIndex < 0 || instructions.getOrNull(checkIndex + 1)?.opcode != Opcode.MOVE_RESULT) return null
-    // The feature's name is the check's String argument, loaded just before it.
-    val keyRegister = (instructions[checkIndex] as FiveRegisterInstruction).registerE
+    // The feature's name is the check's String argument, loaded just before it. The receiver
+    // comes first and no parameter is wide, so it sits one register past its parameter's place.
+    val check = instructions[checkIndex]
+    val keyParameter = check.getReference<MethodReference>()!!.parameterTypes.map(CharSequence::toString)
+        .indexOf("Ljava/lang/String;")
+    val keyRegister = check.namedRegisters()[keyParameter + 1]
     val key = instructions.subList(0, checkIndex).lastOrNull {
-        it.opcode == Opcode.CONST_STRING && (it as OneRegisterInstruction).registerA == keyRegister
+        (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
+            (it as OneRegisterInstruction).registerA == keyRegister
     }?.getReference<StringReference>()?.string
     if (key !in SEARCH_REWARDS_FEATURES) return null
     return SearchRewardsGetter(placeholder, checkIndex + 1)

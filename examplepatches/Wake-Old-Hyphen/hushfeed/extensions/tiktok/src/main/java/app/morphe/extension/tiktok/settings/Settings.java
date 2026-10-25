@@ -301,11 +301,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting UNCAP_REFRESH_RATE =
             new BooleanSetting("uncap_refresh_rate", FALSE);
     /**
-     * Skips TikTok's brightness boost in the camera, editor and post screens (issue #200). The
-     * patch is in the default selection, so the switch starts off.
+     * Skips TikTok's brightness boost in the camera, editor and post screens, and the full
+     * brightness the cameras' front flash and fill light store (issue #200). The patch is in the
+     * default selection, so the switch starts off.
      */
     public static final BooleanSetting KEEP_CAMERA_BRIGHTNESS =
             new BooleanSetting("keep_camera_brightness", FALSE);
+    /**
+     * Tells the effect platform the phone is a Galaxy S24 Ultra, so effects the server turns down
+     * on older phones ("This effect doesn't work on this device") get another chance (issue #176).
+     */
+    public static final BooleanSetting REPORT_NEWER_PHONE_TO_EFFECTS =
+            new BooleanSetting("report_newer_phone_to_effects", FALSE);
     // The four Performance patches, in the default selection because each hook asks one of these
     // first. Off until the reader turns one on, and a paused build answers off. The splash, update
     // and traffic hooks act on TikTok's startup tasks, so they need a restart. The animated image
@@ -344,6 +351,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("launcher_shortcuts_removed", FALSE, false, false);
     public static final BooleanSetting ALLOW_DUET_AND_STITCH =
             new BooleanSetting("allow_duet_and_stitch", FALSE);
+    public static final BooleanSetting ALLOW_ADD_TO_STORY =
+            new BooleanSetting("allow_add_to_story", FALSE);
     public static final BooleanSetting HIDE_FOLLOWER_NOTIFICATIONS =
             new BooleanSetting("hide_follower_notifications", FALSE);
     /**
@@ -658,6 +667,11 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting LIVE_RECORD_QUALITY = new StringSetting("live_record_quality", "room");
     /**
+     * What a LIVE recording is made from (#37): "stream" saves the room's own video, "screen" records
+     * the phone's screen. Read as each recording starts, so no restart.
+     */
+    public static final StringSetting LIVE_RECORD_SOURCE = new StringSetting("live_record_source", "stream");
+    /**
      * Plays the audio TikTok mutes on a post whose sound was pulled; the Keep pulled sounds
      * patch. Read as each video starts, so no restart.
      */
@@ -913,6 +927,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting GLASS_TAB_LENS = new BooleanSetting(
             "glass_tab_lens", FALSE, false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
     /**
+     * With Liquid glass look on Android 12 and newer, blurs the strip of video behind the glass
+     * pill instead of drawing a frost over it (#231). The strip is read back from the player's
+     * surface a few times a second while the pill is on screen. Without a surface to read, the
+     * plain glass stays. Read on each layout.
+     */
+    public static final BooleanSetting GLASS_VIDEO_BLUR = new BooleanSetting(
+            "glass_video_blur", FALSE, false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
+    /**
      * Lets the main feed's video draw up under the status bar, with the clock over it (#145).
      * VideoOverlayHider collapses the spacer TikTok keeps above each video for the bar and
      * SeeThroughStatusBar clears the bar's color while the feed is in front; both go back when
@@ -1133,6 +1155,9 @@ public class Settings extends BaseSettings {
     // Enable voice comments, in the default selection with this off. A restart, since TikTok may
     // keep the answer for a comment box it has already built.
     public static final BooleanSetting ENABLE_VOICE_COMMENTS = new BooleanSetting("enable_voice_comments", FALSE, true);
+    // PineDrama's comment box gallery tab, which PineDrama turns off for everyone (#156). A
+    // restart, since the answer is kept per signed-in account.
+    public static final BooleanSetting PINEDRAMA_COMMENT_PHOTOS = new BooleanSetting("pinedrama_comment_photos", FALSE, true);
     public static final BooleanSetting KEEP_FAVORITES_TAB =
             new BooleanSetting("keep_favorites_tab", TRUE, true);
     /** The collections popup from holding the bookmark, dark when TikTok is (issue #142). */
@@ -1197,6 +1222,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_EXPORT = new BooleanSetting("comment_export", FALSE);
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
+    /** Drops bot comments that point to a bio, a link or a messenger, or bait follows (#187). */
+    public static final BooleanSetting HIDE_SPAM_COMMENTS = new BooleanSetting("hide_spam_comments", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
     /** Drops the reply TikTok opens under a comment before View replies is tapped (#193). */
     public static final BooleanSetting HIDE_COMMENT_REPLY_PREVIEWS = new BooleanSetting("hide_comment_reply_previews", FALSE);
@@ -1249,6 +1276,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting PROFILE_SHORTCUT_CATALOG = new StringSetting("profile_shortcut_catalog", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
+    /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */
+    public static final BooleanSetting ENABLE_THOUGHTS = new BooleanSetting("enable_thoughts", FALSE, true);
     // Popup labels (TikTok's own popup layer): the labels ticked in the checklist, and the ones
     // TikTok has tried to show on this phone, which the checklist offers.
     public static final StringSetting POPUP_LABEL_PICKS = new StringSetting("popup_label_picks", "");

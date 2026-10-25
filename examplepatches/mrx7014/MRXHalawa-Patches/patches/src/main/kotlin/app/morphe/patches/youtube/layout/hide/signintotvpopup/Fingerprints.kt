@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -12,11 +12,13 @@ package app.morphe.patches.youtube.layout.hide.signintotvpopup
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -37,8 +39,8 @@ internal object HandoffPromoCommandResolverFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("L", "Ljava/util/Map;"),
     strings = listOf(
-        "Unsupported RunCase: ",
-        "Unspecified PlaceholderType."
+        string("Unsupported RunCase: ", StringComparisonType.STARTS_WITH),
+        string("Unspecified PlaceholderType.")
     )
 )
 

@@ -25,6 +25,7 @@ import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -61,7 +62,8 @@ private const val PATCH = "Clean up Reels"
  * "Original audio" or a song, out of the same chip list the first switch filters, and has the row
  * the Reels tab draws it in on its own draw nothing (#200, see ReelAnchors.kt). A fourteenth, also
  * off, keeps a video that's slow to load from showing "This is taking a while. Try checking your
- * network connection." (#222, see ReelSlowConnection.kt). With Debug
+ * network connection." (#222, see ReelSlowConnection.kt). A fifteenth, also off, plays whole reels
+ * in the feed's Reels row instead of the short clip each tile repeats (#228, see FeedReelPreviews.kt). With Debug
  * logging on, it also reports whether a reel that ends
  * is on the player the Reels auto-advance controller holds (see ReelBinding.kt), with no switch.
  *
@@ -78,7 +80,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
         "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Save button, the speaker button or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, and stop the \"This is taking a while\" message when a video is slow to load. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Save button, the speaker button or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -113,6 +115,8 @@ val cleanUpReelsPatch = bytecodePatch(
         keepFeedVideosAlone()
         // #222: the "This is taking a while" message a stalled video posts.
         hideSlowConnectionMessage()
+        // #228: the clip each tile of the feed's Reels row plays, and where it stops.
+        playFeedReelsWhole()
         enableStatus("reelDeclutter")
     }
 }
@@ -213,7 +217,9 @@ private fun BytecodePatchContext.hideFollowButtons() {
     val getter = found.getter ?: throw PatchException("$PATCH: ${found.problem}")
 
     val readers = mutableListOf<Method>()
-    classDefForEach { classDef -> classDef.methods.filterTo(readers) { calls(it, getter) } }
+    classDefForEachReferencing(types = listOf(getter.definingClass)) { classDef ->
+        classDef.methods.filterTo(readers) { calls(it, getter) }
+    }
     followReaderProblem(readers, dumper)?.let { throw PatchException("$PATCH: $it") }
 
     val author = authorRow(readers, dumper)

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -40,7 +40,7 @@ public class LayoutReloadObserverPatch {
     private static final String VIDEO_ACTION_BAR_PREFIX = "video_action_bar.e";
     public static final AtomicBoolean isActionBarVisible = new AtomicBoolean(false);
 
-    public static void onLazilyConvertedElementLoaded(String identifier, List<Object> treeNodeResultList) {
+    public static void onLazilyConvertedElementLoaded(CharSequence identifier, List<Object> treeNodeResultList) {
         if (!Utils.startsWithAny(identifier, COMPACTIFY_VIDEO_ACTION_BAR_PREFIX, VIDEO_ACTION_BAR_PREFIX)) {
             return;
         }

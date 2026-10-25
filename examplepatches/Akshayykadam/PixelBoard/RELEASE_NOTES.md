@@ -1,48 +1,64 @@
-# PixelBoard Stable Release (v18.4.1-V7 / Patch v1.2.0)
+# PixelBoard Stable Release (v18.5.3-V1 / Patch v1.3.1)
 
 ## Summary
-PixelBoard v18.4.1-V7 (Patch Bundle v1.2.0) introduces Features Menu accessibility and TalkBack focus fixes, fused APK native split readiness verification for voice typing, automated clipboard screenshot observer synchronization, Sign-to-Text (ASL translation) camera integration, smart auto-correction with primary-key revert, and refined typing suggestions on top of Google's latest **Gboard v18.4.1 Release** (`18.4.1.985164140-release-arm64-v8a`).
+PixelBoard v18.5.3-V1 updates the base Google Keyboard to the official **Gboard v18.5.3 Release**, introduces **Extended Clipboard History Retention** (save copied clips up to 30 days or permanently), delivers a comprehensive **TalkBack accessibility overhaul**, adds complete **Arabic language support**, and introduces a built-in **in-app update checker** positioned conveniently right on the main Gboard settings screen.
 
 ---
 
-## What's New in This Release (v18.4.1-V7 / Patch v1.2.0)
+## What's New in v18.5.3
 
-### 1. Features Menu Accessibility & TalkBack Navigation ([#48](https://github.com/Akshayykadam/PixelBoard/issues/48))
-- **Screen Reader Announcements**: Resolved an issue where opening the features menu / "More options" (`AccessPointsPanel`, `AccessPointsPanelV2`, `AccessPointsPanelViewPage`) failed to notify TalkBack and accessibility services of window state changes.
-- **Automated Focus Traversal**: Sets accessibility pane title (`resolvePaneTitle`), dispatches `AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED`, and automatically shifts focus to the first accessible tool or keycap (`SoftKeyView` / button).
+- **Extended Clipboard History**: Save copied text and images for 1 hour, 24 hours, 7 days, 30 days, or permanently (Never).
+- **Upgraded Base to Gboard v18.5.3**: Rebased on Google's latest stable release with smoother typing performance.
+- **TalkBack Accessibility Overhaul**: Full screen reader optimization with clear labels, proper button roles, and audio cues.
+- **Arabic Language Support**: Added complete native Arabic (العربية) translation across all settings and AI features.
+- **Crash Fixes & Stability**: Resolved clipboard slider crashes, fixed settings layout issues, and improved battery efficiency.
+- **In-App Update Checker**: Easily check for new versions and download updates directly from GitHub inside the app.
+- **Emoji Recents & Frequent Toggle**: Restored the Recently Used emojis tab by default on Gboard 18.5+ with a setting to switch between Recent and Frequent emojis.
 
-### 2. Dictation JNI Readiness for Fused APKs & Offline Voice Typing ([#50](https://github.com/Akshayykadam/PixelBoard/issues/50))
-- **Fused Base APK Compatibility**: Direct JNI library loading verification (`NativeLibHelper.c("dictation_jni", false)`) prevents dictation readiness checks from failing on fused APKs that lack Play feature-split markers.
-- **Fused Target Hooks**: Added seamless bytecode patching for fused readiness target `slc` (`Lqeq;->e(Lqem;)Z`).
-- **Offline Language Pack Download Interception**: Resolved offline voice typing download failures (such as traditional Chinese `zh-TW`) by handling offline recognition pack URL resolution cleanly.
+---
 
-### 3. Clipboard & Screenshot Observer Synchronization ([#52](https://github.com/Akshayykadam/PixelBoard/issues/52))
-- **Foreground Screenshot Observer**: Added `ensureScreenshotObserver(handler)` calling `ClipboardDataHandler.q(true)` on `onStartInputView`, ensuring screenshot chips and clipboard items update immediately on display.
-- **XML Default Overrides**: Enforced `defaultValue = "true"` directly in `res/xml/setting_clipboard.xml` for `enable_screenshot_in_clipboard` and `pref_key_enable_clipboard`.
-- **Emoji Suggestions**: Unconditionally enables `pref_key_enable_emoji_suggestion` as default `true`.
+## Detailed Improvements
 
-### 4. Sign-to-Text (Signboard ASL Real-Time Translation)
-- **American Sign Language Camera Translation**: Enabled native camera gesture translation to convert American Sign Language into text on supported devices.
-- **Phenotype Flag Enforcement**: Activated `enable_signboard`, `signboard_prompt_manual_trigger`, `on_demand_feature_split`, `auto_show_signboard`, `signboard_auto_show_prompt`, `signboard_download`, `signboard_download_dialog`, `signboard_move_ap_prompt`, and `use_4c_in_signboard`.
+### 📋 Extended Clipboard History
+  - **Customizable Retention**: Choose to keep copied items for 1 hour, 24 hours, 7 days, 30 days, or Never (permanent).
+  - **Easy Access**: Configure your retention preference in native Gboard Settings > Clipboard or under PixelBoard Settings.
+  - **Safe Migration**: Automatically migrates previous clipboard settings without crashes or resetting your history.
 
-### 5. Smart Auto-Correction & Typing Refinements ([#52](https://github.com/Akshayykadam/PixelBoard/issues/52))
-- **Primary-Key Revert**: Enforced `auto_correct_with_replace_text = true` and `enable_revert_auto_correct_on_pk = true` (enables reverting auto-corrections via backspace/tap on physical and soft keyboards).
-- **Out-of-the-Box Auto-Correction**: Pre-seeds `pref_key_auto_correction = true` by default.
-- **Typo Protection**: Tuned `intended_oov_min_count` from `1L` to `2L` so mistyped words typed once (e.g. "olle") are not mistakenly learned into user vocabulary, allowing spacebar auto-correction to properly commit corrections.
+### 😊 Emoji Drawer Recents & Frequently Used Toggle
+  - **Recent Emoji Tab by Default**: Restored the recently used emoji tab on Gboard 18.5+, replacing the forced frequent emoji drawer.
+  - **Customizable Preference**: Switch between Recently used emojis and Frequently used emojis directly from PixelBoard Settings > Features.
 
-### 6. Version 1.2.0 Synchronization
-- **System-Wide Alignment**: Synchronized patch bundle version `1.2.0` across Gradle build properties, settings UI, preferences metadata, and bundle manifests.
+### ♿ TalkBack & Accessibility Overhaul ([#65](https://github.com/Akshayykadam/PixelBoard/pull/65), [#66](https://github.com/Akshayykadam/PixelBoard/pull/66), [#67](https://github.com/Akshayykadam/PixelBoard/pull/67))
+  - **Unified Row Controls**: Switches and radio options now announce as a single cohesive element instead of split stops.
+  - **Heading Navigation**: Screen readers can now navigate settings by section headers on Android 9+.
+  - **Accurate Preview Hints**: Test input fields now read typed characters instead of masking them.
+  - **Spoken Announcements**: Audio confirmation when restarting Gboard or encountering configuration alerts.
+
+### 🌐 Arabic Localization ([#53](https://github.com/Akshayykadam/PixelBoard/pull/53))
+  - **Complete Translation**: Fully localized strings across Advanced Settings, AI Writing Tools, and Rambler dictation into Arabic (`ar`).
+
+### 🛠️ Stability & Under-the-Hood Fixes
+  - **Gboard 18.5.3 Release**: Upgraded to base build `18.5.3.993608717-release-arm64-v8a`.
+  - **Slider Out-of-Bounds Fix**: Eliminated crashes caused by out-of-range slider preference values.
+  - **Battery Drain Resolution**: Fixed background `GoogleAsrService` persistence to conserve battery.
+  - **Autofill Compatibility**: Fixed inline password manager suggestion chips in keyboard text fields.
 
 ---
 
 ## Community & Acknowledgements
 
-A huge thank you to the community members whose testing, reproducible feedback, and bug reports directly helped identify and fix these issues:
-- **[@mohamedtechnology](https://github.com/mohamedtechnology)**: For reporting the TalkBack/screen reader dead zone in the features menu and providing the root cause analysis on window focus and `TYPE_WINDOW_STATE_CHANGED` ([#48](https://github.com/Akshayykadam/PixelBoard/issues/48)).
-- **[@andrewmatten](https://github.com/andrewmatten)**: For pinpointing the Gboard 18.4.1 native dictation split readiness gate in `slc.a()` and providing the verified bytecode patch for fused APKs on Pixel 8 Pro ([#50](https://github.com/Akshayykadam/PixelBoard/issues/50)).
-- **[@Benestinlinson](https://github.com/Benestinlinson)**: For extensive multi-hour testing of V6, diagnosing the spacebar auto-correction behavior and reporting the screenshot chip sync ([#52](https://github.com/Akshayykadam/PixelBoard/issues/52)).
+A huge thank you to the community contributors whose pull requests, testing, and feedback made this release possible:
 
-Your detailed reports, reproduction steps, and active testing make each release substantially more polished and reliable!
+| Contributor | Focus / Contribution |
+| :--- | :--- |
+| **Animesh Ahilya** ([@animeshahilya](https://github.com/animeshahilya)) | Complete TalkBack accessibility overhaul ([#65](https://github.com/Akshayykadam/PixelBoard/pull/65), [#66](https://github.com/Akshayykadam/PixelBoard/pull/66), [#67](https://github.com/Akshayykadam/PixelBoard/pull/67)) |
+| **AbdulAziz Hatem** ([@AbdulAziz-Hatem](https://github.com/AbdulAziz-Hatem)) | Full Arabic (`ar`) localization for settings & AI tools ([#53](https://github.com/Akshayykadam/PixelBoard/pull/53)) |
+| **Mohamed Technology** ([@mohamedtechnology](https://github.com/mohamedtechnology)) | TalkBack focus dead zone diagnosis & window focus testing ([#48](https://github.com/Akshayykadam/PixelBoard/issues/48)) |
+| **Andrew Matten** ([@andrewmatten](https://github.com/andrewmatten)) | Native dictation split readiness bytecode patch ([#50](https://github.com/Akshayykadam/PixelBoard/issues/50)) |
+| **Benestin** ([@Benestinlinson](https://github.com/Benestinlinson)) | Auto-correction testing & screenshot chip synchronization ([#52](https://github.com/Akshayykadam/PixelBoard/issues/52)) |
+| **Paolo Del Casale** ([@PaoloDelCasale](https://github.com/PaoloDelCasale)) | BatteryStats background persistence investigation ([#3](https://github.com/Akshayykadam/PixelBoard/issues/3)) |
+| **Alin Cornel** ([@alincornel](https://github.com/alincornel)) | Password manager inline autofill compatibility ([#24](https://github.com/Akshayykadam/PixelBoard/pull/24)) |
+| **JasonWu** | Foundational reverse-engineering research and Smali patches |
 
 ---
 
@@ -50,23 +66,23 @@ Your detailed reports, reproduction steps, and active testing make each release 
 
 | Package | Type | Size | Description |
 | :--- | :--- | :--- | :--- |
-| [**PixelBoard-18.4.1-V7.apk**](https://github.com/Akshayykadam/PixelBoard/releases/download/v18.4.1-Stable-V7/PixelBoard-18.4.1-V7.apk) | **Signed APK** *(Recommended)* | ~127 MB | **Ready to install.** Signed stable APK (v18.4.1 release base, versionCode 176027079, side-by-side coexistence). |
-| [**patches-1.2.0.mpp**](https://github.com/Akshayykadam/PixelBoard/releases/download/v18.4.1-Stable-V7/patches-1.2.0.mpp) | **Morphe Patch Bundle** | ~1.6 MB | Standalone patch file (v1.2.0) for [Morphe Manager](#option-3-patch-via-morphe-manager) to patch your own base APK. |
-| [**Stock Gboard v18.4.1**](https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-18-4-1-985164140-release/) | **Base APK** | ~67 MB | Official unmodified base APK from APKMirror *(only required if patching manually with Morphe)*. |
+| [**PixelBoard-1.3.1.apk**](https://github.com/Akshayykadam/PixelBoard/releases/download/1.3.1/PixelBoard-1.3.1.apk) | **Signed APK** *(Recommended)* | ~79 MB | **Ready to install.** Signed stable APK (v18.5.3 base, side-by-side coexistence). |
+| [**patches-1.3.1.mpp**](https://github.com/Akshayykadam/PixelBoard/releases/download/1.3.1/patches-1.3.1.mpp) | **Morphe Patch Bundle** | ~1.6 MB | Standalone patch file (v1.3.1) for Morphe Manager to patch your own base APK. |
+| [**Stock Gboard v18.5.3**](https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-18-5-3-993608717-release/) | **Base APK** | ~67 MB | Official unmodified base APK from APKMirror *(only needed if patching manually)*. |
 
 ---
 
 ## Installation
 
 ### Option 1: Direct APK Installation (Recommended)
-1. Download [**PixelBoard-18.4.1-V7.apk**](https://github.com/Akshayykadam/PixelBoard/releases/download/v18.4.1-Stable-V7/PixelBoard-18.4.1-V7.apk) directly to your Android device.
+1. Download [**PixelBoard-1.3.1.apk**](https://github.com/Akshayykadam/PixelBoard/releases/download/1.3.1/PixelBoard-1.3.1.apk) directly to your Android device.
 2. Tap the downloaded APK in your file manager or browser downloads.
-3. Allow installation from unknown sources if prompted, and complete installation (supports updating in-place over earlier builds).
+3. Allow installation from unknown sources if prompted, and complete installation.
 4. Enable PixelBoard in **Settings > System > Languages & input > On-screen keyboard**.
 
 ### Option 2: ADB Sideload
 ```bash
-adb install -r PixelBoard-18.4.1-V7.apk
+adb install -r PixelBoard-1.3.1.apk
 adb shell am force-stop com.akshaykadam.pixelboard
 ```
 
@@ -75,15 +91,17 @@ Add the custom patch source in Morphe Manager:
 ```text
 https://raw.githubusercontent.com/Akshayykadam/PixelBoard/main/patches-bundle.json
 ```
-Select stock Gboard [**v18.4.1.985164140-release-arm64-v8a**](https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-18-4-1-985164140-release/) (or `v18.3.1`) and apply patches.
+Select stock Gboard [**v18.5.3.993608717-release-arm64-v8a**](https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-18-5-3-993608717-release/) and apply patches.
 
 ---
 
 ## Compatibility
-- Target Package: `com.google.android.inputmethod.latin`
-- Target Versions:
-  - `18.4.1.985164140-release-arm64-v8a` (Primary Stable / Recommended)
-  - `18.3.1.977415014-release-arm64-v8a`
-- Architecture: `arm64-v8a`
-- Minimum Android Version: Android 10 (API 29)+
-- Standalone Coexistence: Supported (package `com.akshaykadam.pixelboard` installs alongside factory Gboard)
+
+| Specification | Details |
+| :--- | :--- |
+| **Base App** | Google Keyboard (`com.google.android.inputmethod.latin`) |
+| **Recommended Base Version** | `18.5.3.993608717-release-arm64-v8a` (APKMirror) |
+| **Also Supported** | `18.4.1`, `18.3.1`, `18.0.3` |
+| **Architecture** | `arm64-v8a` |
+| **Minimum Android Version** | Android 10 (API 29) or higher |
+| **Standalone Coexistence** | Supported (package `com.akshaykadam.pixelboard` installs alongside factory Gboard) |

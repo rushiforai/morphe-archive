@@ -1,6 +1,22 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2524
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
 package app.morphe.extension.shared.sponsorblock.requests;
 
 import static app.morphe.extension.shared.StringRef.str;
+import static app.morphe.extension.shared.requests.Requester.HTTP_STATUS_CODE_BAD_REQUEST;
+import static app.morphe.extension.shared.requests.Requester.HTTP_STATUS_CODE_CONFLICT;
+import static app.morphe.extension.shared.requests.Requester.HTTP_STATUS_CODE_FORBIDDEN;
+import static app.morphe.extension.shared.requests.Requester.HTTP_STATUS_CODE_NOT_FOUND;
+import static app.morphe.extension.shared.requests.Requester.HTTP_STATUS_CODE_SUCCESS;
+import static app.morphe.extension.shared.requests.Requester.HTTP_STATUS_CODE_TOO_MANY_REQUESTS;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -55,11 +71,6 @@ public class SBRequester {
      * HTTP response timeout.
      */
     private static final int TIMEOUT_HTTP_DEFAULT_MILLISECONDS = 10000;
-
-    /**
-     * Response code of a successful API call.
-     */
-    private static final int HTTP_STATUS_CODE_SUCCESS = 200;
 
     @Nullable
     private static volatile UserStats lastFetchedStats;
@@ -118,7 +129,7 @@ public class SBRequester {
                     return builder.toString();
                 });
                 runVipCheckInBackgroundIfNeeded();
-            } else if (responseCode == 404) {
+            } else if (responseCode == HTTP_STATUS_CODE_NOT_FOUND) {
                 // no segments are found.  a normal response
                 Logger.printDebug(() -> "No segments found for video: " + videoId);
             } else {
@@ -184,8 +195,14 @@ public class SBRequester {
         return segments.toArray(new SponsorSegment[0]);
     }
 
-    public static void submitSegments(String videoId, SegmentCategory category, SegmentSubmitAction action,
-                                      long startTime, long endTime, long videoLength) {
+    /**
+     * Submits a segment and shows the outcome to the user.
+     *
+     * @return If the segment is now stored on the server: it was accepted, or an identical
+     *         segment was already submitted.
+     */
+    public static boolean submitSegments(String videoId, SegmentCategory category, SegmentSubmitAction action,
+                                         long startTime, long endTime, long videoLength) {
         Utils.verifyOffMainThread();
 
         try {
@@ -205,15 +222,15 @@ public class SBRequester {
 
             if (responseCode == HTTP_STATUS_CODE_SUCCESS) {
                 Utils.showToastLong(str("morphe_sb_submit_succeeded"));
-                return;
+                return true;
             }
 
             String userErrorMessage = switch (responseCode) {
-                case 409 -> str("morphe_sb_submit_failed_duplicate");
-                case 403 -> str("morphe_sb_submit_failed_forbidden",
+                case HTTP_STATUS_CODE_CONFLICT -> str("morphe_sb_submit_failed_duplicate");
+                case HTTP_STATUS_CODE_FORBIDDEN -> str("morphe_sb_submit_failed_forbidden",
                         Requester.parseErrorStringAndDisconnect(connection));
-                case 429 -> str("morphe_sb_submit_failed_rate_limit");
-                case 400 -> str("morphe_sb_submit_failed_invalid",
+                case HTTP_STATUS_CODE_TOO_MANY_REQUESTS -> str("morphe_sb_submit_failed_rate_limit");
+                case HTTP_STATUS_CODE_BAD_REQUEST -> str("morphe_sb_submit_failed_invalid",
                         Requester.parseErrorStringAndDisconnect(connection));
                 default -> str("morphe_sb_submit_failed_unknown_error",
                         responseCode, connection.getResponseMessage());
@@ -222,6 +239,7 @@ public class SBRequester {
             // Message might be about the users account or an error too large to show in a toast.
             // Use a dialog instead.
             SponsorBlockApi.config().ui().showErrorDialog(userErrorMessage);
+            return responseCode == HTTP_STATUS_CODE_CONFLICT;
         } catch (SocketTimeoutException ex) {
             Logger.printDebug(() -> "Timeout", ex);
             Utils.showToastLong(str("morphe_sb_submit_failed_timeout"));
@@ -233,6 +251,7 @@ public class SBRequester {
         } finally {
             lastFetchedStats = null; // Fetch updated stats if needed.
         }
+        return false;
     }
 
     public static void sendSegmentSkippedViewedRequest(SponsorSegment segment) {
@@ -275,7 +294,7 @@ public class SBRequester {
                     case HTTP_STATUS_CODE_SUCCESS:
                         Logger.printDebug(() -> "Vote success for segment: " + segment);
                         return;
-                    case 403:
+                    case HTTP_STATUS_CODE_FORBIDDEN:
                         userMessage = str("morphe_sb_vote_failed_forbidden",
                                 Requester.parseErrorStringAndDisconnect(connection));
                         break;

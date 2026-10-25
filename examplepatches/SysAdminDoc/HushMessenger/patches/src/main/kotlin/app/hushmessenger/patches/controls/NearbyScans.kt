@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -125,15 +126,23 @@ private const val WIFI_INFO = "Landroid/net/wifi/WifiInfo;"
 private const val WEBRTC = "Lorg/webrtc/"
 
 /** Each read and the extension call that takes its answer. */
-private val WIFI_IDENTITY_FILTERS = mapOf(
-    "$WIFI_INFO->getSSID()Ljava/lang/String;" to "$SETTINGS->wifiName(Ljava/lang/String;)Ljava/lang/String;",
-    "$WIFI_INFO->getBSSID()Ljava/lang/String;" to "$SETTINGS->wifiBssid(Ljava/lang/String;)Ljava/lang/String;",
-)
+private fun Instruction.wifiIdentityFilter(): String? {
+    val call = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
+    if (call.definingClass != WIFI_INFO || call.returnType != "Ljava/lang/String;" || call.parameterTypes.isNotEmpty()) return null
+    return when (call.name) {
+        "getSSID" -> "$SETTINGS->wifiName(Ljava/lang/String;)Ljava/lang/String;"
+        "getBSSID" -> "$SETTINGS->wifiBssid(Ljava/lang/String;)Ljava/lang/String;"
+        else -> null
+    }
+}
 
 /** Where this method reads the network's name or BSSID. */
 private fun Method.wifiIdentityReads(): List<Int> {
-    val code = implementation?.instructions?.toList() ?: return emptyList()
-    return code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() in WIFI_IDENTITY_FILTERS }
+    val reads = mutableListOf<Int>()
+    implementation?.instructions?.forEachIndexed { index, instruction ->
+        if (instruction.wifiIdentityFilter() != null) reads.add(index)
+    }
+    return reads
 }
 
 /** True when the very next instruction keeps the read's answer, the one place a filter can take it. */
@@ -149,8 +158,22 @@ private fun Method.keepsEveryWifiIdentityRead(): Boolean {
  * read's answer isn't kept right away gets no hook at all, so the switch never claims more than it hides.
  */
 internal fun findWifiIdentityReads(classes: Iterable<ClassDef>): List<Method> {
-    val readers = classes.filterNot { it.type.startsWith(WEBRTC) }.flatMap { cls -> cls.methods.filter { it.wifiIdentityReads().isNotEmpty() } }
-    return if (readers.all { it.keepsEveryWifiIdentityRead() }) readers else emptyList()
+    val readers = mutableListOf<Method>()
+    for (cls in classes) {
+        if (cls.type.startsWith(WEBRTC)) continue
+        for (method in cls.methods) {
+            var reads = false
+            var pending = false
+            for (instruction in method.implementation?.instructions ?: continue) {
+                if (pending && instruction.opcode != Opcode.MOVE_RESULT_OBJECT) return emptyList()
+                pending = instruction.wifiIdentityFilter() != null
+                reads = reads || pending
+            }
+            if (pending) return emptyList()
+            if (reads) readers.add(method)
+        }
+    }
+    return readers
 }
 
 internal fun MutableMethod.validateWifiIdentity() {
@@ -168,7 +191,7 @@ internal fun MutableMethod.validateWifiIdentity() {
 internal fun MutableMethod.injectWifiIdentity() {
     validateWifiIdentity()
     for (read in wifiIdentityReads().asReversed()) {
-        val filter = WIFI_IDENTITY_FILTERS.getValue(getInstruction<ReferenceInstruction>(read).reference.toString())
+        val filter = requireNotNull(getInstruction<Instruction>(read).wifiIdentityFilter())
         val held = getInstruction<OneRegisterInstruction>(read + 1).registerA
         addInstructions(read + 2, """
             invoke-static/range {v$held .. v$held}, $filter

@@ -1,3 +1,11 @@
+## 1.0.0 (2026-10-24)
+
+### ✨ New Features
+
+* add HiPaint subscription unlock patch ([629aa4e](https://github.com/GoldRift/morphe-patches/commit/629aa4ee42ba49b698e0ec860eb811f4e22ae49c))
+* add strong app unlock pro patch ([03b67e4](https://github.com/GoldRift/morphe-patches/commit/03b67e4d4673b3cb1e7c88ff4b0c7ddfa2118e61))
+* added hipaint patch ([179ab8e](https://github.com/GoldRift/morphe-patches/commit/179ab8e236c923fa03f61246a6ce0fde66a80087))
+
 ## 1.0.0 (2026-10-13)
 
 ### ✨ New Features

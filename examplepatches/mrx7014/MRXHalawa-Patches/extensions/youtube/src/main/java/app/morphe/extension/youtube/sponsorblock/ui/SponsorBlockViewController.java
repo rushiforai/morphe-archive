@@ -190,8 +190,10 @@ public class SponsorBlockViewController {
     }
 
     public static void hideSkipSegmentButton() {
-        if (!Settings.SB_AUTO_HIDE_SKIP_BUTTON.get()) {
-            // Must retain segment for auto hide because skip button is shown when player overlay is active.
+        if (!Settings.SB_AUTO_HIDE_SKIP_BUTTON.get()
+                || !SegmentPlaybackController.currentlyInsideSkippableSegment()) {
+            // Must retain segment for auto hide while inside segment
+            // because skip button is shown when player overlay is active.
             skipSegment = null;
         }
         updateSkipButton(skipSponsorButtonRef.get(), null, false);
@@ -254,7 +256,7 @@ public class SponsorBlockViewController {
 
             NewSegmentLayout newSegmentLayout = newSegmentLayoutRef.get();
             setNewSegmentLayoutMargins(newSegmentLayout, isWatchFullScreen);
-            setViewVisibility(newSegmentLayoutRef.get(), newSegmentLayoutVisible);
+            setViewVisibility(newSegmentLayout, newSegmentLayoutVisible);
 
             SkipSponsorButton skipHighlightButton = skipHighlightButtonRef.get();
             setSkipButtonMargins(skipHighlightButton, isWatchFullScreen);
@@ -262,7 +264,7 @@ public class SponsorBlockViewController {
 
             SkipSponsorButton skipSponsorButton = skipSponsorButtonRef.get();
             setSkipButtonMargins(skipSponsorButton, isWatchFullScreen);
-            setViewVisibility(skipSponsorButton, skipSegment != null);
+            setViewVisibility(skipSponsorButton, skipSegment != null && SegmentPlaybackController.currentlyInsideSkippableSegment());
         } catch (Exception ex) {
             Logger.printException(() -> "playerTypeChanged failure", ex);
         }
@@ -282,7 +284,7 @@ public class SponsorBlockViewController {
                                          int defaultBottomMargin, int ctaBottomMargin) {
         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) view.getLayoutParams();
         if (params == null) {
-            Logger.printException(() -> "Unable to setNewSegmentLayoutMargins (params are null)");
+            Logger.printException(() -> "Unable to setLayoutMargins (params are null)");
             return;
         }
         params.bottomMargin = fullScreen ? ctaBottomMargin : defaultBottomMargin;

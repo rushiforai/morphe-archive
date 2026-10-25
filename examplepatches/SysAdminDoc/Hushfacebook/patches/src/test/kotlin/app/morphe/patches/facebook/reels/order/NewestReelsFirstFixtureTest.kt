@@ -110,7 +110,7 @@ class NewestReelsFirstFixtureTest {
                         val hook = code.subList(index - 12, index)
                         assertEquals("$name: ${maker.definingClass} hook shape", listOf(
                             Opcode.MOVE_OBJECT_FROM16, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC,
-                            Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT,
+                            Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
                             Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.NOP,
                         ), hook.drop(1).map { it.opcode })
                         val model = (hook[1] as TwoRegisterInstruction).registerA
@@ -121,7 +121,31 @@ class NewestReelsFirstFixtureTest {
                         assertEquals("$name: records", RECORDS, hook[4].call.toString())
                         assertSame("$name: a no goes to the return", hook[11],
                             (hook[6] as BuilderOffsetInstruction).target.location.instruction)
-                        assertEquals("$name: the edge getter", reads.edge, hook[7].call.toString())
+                        val edgeCall = hook[7].call!!
+                        val edgeReader = context.mutableClassDefBy(edgeCall.definingClass).methods.single {
+                            it.name == edgeCall.name && it.parameterTypes == edgeCall.parameterTypes
+                        }
+                        assertNotNull("$name: the added lazy edge read must have its own failure boundary",
+                            edgeReader.implementation)
+                        val edgeBody = edgeReader.implementation!!
+                        val getter = edgeBody.instructions.first { it.call.toString() == reads.edge }
+                        val address = edgeBody.instructions.takeWhile { it !== getter }.sumOf { it.codeUnits }
+                        assertTrue("$name: a throwing lazy edge escapes signal creation", edgeBody.tryBlocks.any {
+                            address >= it.startCodeAddress && address < it.startCodeAddress + it.codeUnitCount &&
+                                it.exceptionHandlers.any { handler -> handler.exceptionType == null || handler.exceptionType == "Ljava/lang/Throwable;" }
+                        })
+                        assertEquals("$name: only the optional getter is protected", listOf(reads.edge),
+                            edgeBody.instructions.filter { it.opcode == Opcode.INVOKE_INTERFACE }.map { it.call.toString() })
+                        val handler = edgeBody.tryBlocks.single().exceptionHandlers.single()
+                        val edgeCode = edgeBody.instructions.toList()
+                        assertEquals("$name: the handler returns no edge", listOf(
+                            Opcode.MOVE_EXCEPTION, Opcode.INVOKE_STATIC, Opcode.CONST_4, Opcode.RETURN_OBJECT,
+                        ), edgeCode.takeLast(4).map { it.opcode })
+                        assertEquals("$name: the failure is reported", EDGE_FAILED, edgeCode[4].call.toString())
+                        assertEquals("$name: the catch excludes native signal creation", edgeCode[0].codeUnits + edgeCode[1].codeUnits,
+                            edgeBody.tryBlocks.single().codeUnitCount)
+                        assertEquals("$name: the handler starts with move-exception",
+                            edgeCode.take(3).sumOf { it.codeUnits }, handler.handlerCodeAddress)
                         assertEquals("$name: the edge's model", listOf(model), hook[7].callRegisters())
                         assertEquals("$name: the signal copy", answer, (hook[9] as TwoRegisterInstruction).registerB)
                         assertEquals("$name: posted", POSTED, hook[10].call.toString())

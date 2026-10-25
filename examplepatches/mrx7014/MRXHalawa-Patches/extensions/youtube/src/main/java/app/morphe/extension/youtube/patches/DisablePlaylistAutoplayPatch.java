@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2628
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2628
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -16,6 +16,8 @@ public class DisablePlaylistAutoplayPatch {
      * Injection point.
      */
     public static boolean shouldSkipPlaylistAutoplay(Enum<?> navigationIntent) {
-        return Settings.DISABLE_PLAYLIST_AUTOPLAY.get() && "AUTOPLAY".equals(navigationIntent.name());
+        return Settings.DISABLE_PLAYLIST_AUTOPLAY.get() && "AUTOPLAY".equals(navigationIntent.name())
+                // The queue plays its next video instead, and its hook may run after this one.
+                && !LocalQueuePatch.hasQueuedVideos();
     }
 }

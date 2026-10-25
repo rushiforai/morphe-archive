@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -11,9 +11,8 @@ import static app.morphe.extension.shared.StringRef.str;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
@@ -53,6 +52,8 @@ import kotlin.Pair;
 
 @SuppressWarnings({"unused", "StaticFieldLeak"})
 public class PlaylistPatch {
+    private static final int PLAYLIST_LIST_MAX_HEIGHT_PERCENT = 50;
+
     private static final String checkFailedAuth = str("morphe_queue_manager_check_failed_auth");
     private static final String checkFailedPlaylistId = str("morphe_queue_manager_check_failed_playlist_id");
     private static final String checkFailedQueue = str("morphe_queue_manager_check_failed_queue");
@@ -162,19 +163,7 @@ public class PlaylistPatch {
 
     @SuppressLint("ResourceType")
     private static View createItemLayout(Context context, String title, int iconId) {
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(Dim.dp16, Dim.dp16, Dim.dp16, Dim.dp16);
-        row.setClickable(true);
-        row.setFocusable(true);
-
-        int[] attrs = {android.R.attr.selectableItemBackground};
-        Drawable ripple;
-        try (TypedArray typedArray = context.obtainStyledAttributes(attrs)) {
-            ripple = typedArray.getDrawable(0);
-        }
-        row.setBackground(ripple);
+        LinearLayout row = createRow(context);
 
         ImageView icon = new ImageView(context);
         icon.setImageResource(iconId);
@@ -187,12 +176,25 @@ public class PlaylistPatch {
         TextView text = new TextView(context);
         text.setText(title);
         text.setTextColor(ThemeUtils.getAppForegroundColor());
-        text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         text.setLayoutParams(textParams);
         row.addView(text);
 
+        return row;
+    }
+
+    private static LinearLayout createRow(Context context) {
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Dim.dp16, Dim.dp16, Dim.dp16, Dim.dp16);
+        row.setClickable(true);
+        row.setFocusable(true);
+
+        row.setBackgroundResource(ThemeUtils.getThemeResourceId(
+                context, android.R.attr.selectableItemBackground));
         return row;
     }
 
@@ -308,14 +310,8 @@ public class PlaylistPatch {
                         listContainer.addView(itemLayout);
                     }
 
-                    ScrollView scrollView = new ScrollView(context) {
-                        @Override
-                        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                            heightMeasureSpec = MeasureSpec.makeMeasureSpec(Dim.pctHeight(50), MeasureSpec.AT_MOST);
-                            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-                        }
-                    };
-                    scrollView.setVerticalScrollBarEnabled(false);
+                    ScrollView scrollView = SheetBottomDialog.createCappedScrollView(
+                            context, PLAYLIST_LIST_MAX_HEIGHT_PERCENT);
                     scrollView.addView(listContainer);
                     mainLayout.addView(scrollView);
 

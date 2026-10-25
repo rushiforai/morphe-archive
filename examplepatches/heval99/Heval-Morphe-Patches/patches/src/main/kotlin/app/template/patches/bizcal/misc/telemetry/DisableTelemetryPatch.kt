@@ -54,9 +54,7 @@ private val disableAnalyticsManifestPatch = resourcePatch {
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics (including automatic events), Crashlytics crash " +
-        "reporting, Fyber's crash handler and the sale promo push notifications. Remote Config " +
-        "keeps working."
+    description = "Disables analytics, crash reporting and sale promo notifications."
 ) {
     compatibleWith(COMPATIBILITY_BUSINESSCALENDAR)
 

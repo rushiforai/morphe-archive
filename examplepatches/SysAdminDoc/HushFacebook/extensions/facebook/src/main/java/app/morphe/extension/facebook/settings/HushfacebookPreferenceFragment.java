@@ -57,6 +57,7 @@ import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.HeaderText;
 import app.morphe.extension.facebook.menu.MenuTiles;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
@@ -78,6 +79,7 @@ import app.morphe.extension.facebook.settings.ValueRows.LockAfterRow;
 import app.morphe.extension.facebook.settings.ValueRows.SeenKeepRow;
 import app.morphe.extension.facebook.settings.ValueRows.AccentRow;
 import app.morphe.extension.facebook.settings.ValueRows.BackgroundRow;
+import app.morphe.extension.facebook.settings.ValueRows.HeaderTextRow;
 import app.morphe.extension.facebook.settings.ValueRows.ReactionCeilingRow;
 import app.morphe.extension.facebook.settings.ValueRows.TextSizeRow;
 import app.morphe.extension.facebook.settings.ValueRows.DownloadActionRow;
@@ -280,7 +282,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (SettingsBackupPreference.onResult(this, requestCode, resultCode, data)) return;
-        FontFilePreference.onResult(this, requestCode, resultCode, data);
+        if (FontFilePreference.onResult(this, requestCode, resultCode, data)) return;
+        HeaderPicturePreference.onResult(this, requestCode, resultCode, data);
     }
 
     /** Shows what the switches are saved as, after an import wrote them. */
@@ -1651,6 +1654,45 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             return false;
         });
         return row;
+    }
+
+    /**
+     * Home header text (#230): your own words at the top of Home in place of Facebook's logo, read
+     * as Facebook builds the header. What's saved is the text {@link HeaderText} shows: one line,
+     * trimmed, at most {@link HeaderText#MAX_LENGTH} characters.
+     */
+    static HeaderTextRow headerTextRow(Context context) {
+        HeaderTextRow row = new HeaderTextRow(context);
+        row.setKey(Settings.HEADER_TEXT.key);
+        String title = L10n.t("Home header text");
+        row.setTitle(title);
+        row.setDialogTitle(title);
+        row.setDialogMessage(L10n.f("Your own words at the top of Home instead of the Facebook logo, up to %1$d "
+                + "characters. They take Facebook's colors in light and dark mode. Leave it blank for Facebook's logo.",
+                HeaderText.MAX_LENGTH));
+        row.setPositiveButtonText(L10n.t("Save"));
+        // Android's own Cancel follows the activity's language, as the folder row's did.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        keepEditorInDialog(field, false);
+        field.setHint("Hushfacebook");
+        row.setText(Settings.HEADER_TEXT.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = HeaderText.clean(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the text as the header shows it in place of what was typed, as the folder row does.
+            ((HeaderTextRow) preference).setText(clean);
+            return false;
+        });
+        return row;
+    }
+
+    /** What the Home header text row says for [text], the words typed there. */
+    static String headerTextSummary(String text) {
+        String shown = HeaderText.clean(text);
+        if (shown.isEmpty()) return L10n.t("Facebook's logo stays at the top of Home. Type your own words to show them there.");
+        return L10n.f("The top of Home says %1$s. Restart Facebook to see the change.", L10n.isolate(shown));
     }
 
     /** What the Light background color row says for [text], the code typed there. One it refuses keeps Facebook's white. */

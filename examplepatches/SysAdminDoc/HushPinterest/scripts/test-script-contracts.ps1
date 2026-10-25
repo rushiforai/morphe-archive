@@ -5450,6 +5450,14 @@ try {
             "patch-for-device.ps1 did not build $build once, without -f: $($deviceRuns -join '; ')"
         Assert-True (-not (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $deviceApk) 'stock-base.apk'))) `
             "patch-for-device.ps1 left the base APK it read for $build behind."
+        $evidence = Get-Content -LiteralPath "$deviceApk.build.json" -Raw | ConvertFrom-Json
+        Assert-True ($evidence.schema -eq 1 -and $evidence.appVersion -ceq $build -and
+            $evidence.signedApkSha256 -ceq (Get-Sha256Hex -Path $deviceApk).ToLowerInvariant() -and
+            $evidence.bundleSha256 -ceq (Get-Sha256Hex -Path $releaseBundle).ToLowerInvariant() -and
+            $evidence.fixtureSha256 -ceq (Get-Sha256Hex -Path $fixturePaths[$build]).ToLowerInvariant() -and
+            $evidence.catalogSha256 -ceq (Get-Sha256Hex -Path (Join-Path $releaseRepo 'patches-list.json')).ToLowerInvariant() -and
+            (@($evidence.selectedPatches) -join "`n") -ceq ($releaseNames -join "`n")) `
+            'The checked device APK was not bound to its exact patch inputs and selection.'
         $checkedSelection = @([IO.File]::ReadAllLines((Join-Path $tools 'selected-patches.txt')))
         $expectedSelection = @($releaseNames) + @($dependencyNamesHere)
         Assert-True (($checkedSelection -join "`n") -ceq ($expectedSelection -join "`n")) `
@@ -5585,6 +5593,13 @@ try {
         '*explicit APK destination already exists*' 'A colliding explicit output was overwritten.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog) -and (Get-Sha256Hex -Path $explicitApk) -ceq $explicitHash) `
         'An explicit collision invoked the patcher or changed the previously verified APK.'
+    $orphanApk = Join-Path $releaseRoot 'orphan.apk'
+    [IO.File]::WriteAllText("$orphanApk.build.json", 'preexisting evidence')
+    Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion] -OutputApk $orphanApk } `
+        '*explicit build-evidence destination already exists*' 'A stale sidecar was overwritten.'
+    Assert-True (-not (Test-Path -LiteralPath $orphanApk) -and -not (Test-Path -LiteralPath $javaLog) -and
+        [IO.File]::ReadAllText("$orphanApk.build.json") -ceq 'preexisting evidence') `
+        'Sidecar collision left a new APK behind, ran the patcher, or changed old evidence.'
     Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$newerBuild] } "*$newerBuild, which the bundle does not declare*" `
         'patch-for-device.ps1 took a build the catalog does not declare.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'patch-for-device.ps1 started the CLI on an undeclared build.'

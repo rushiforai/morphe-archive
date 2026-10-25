@@ -1,3 +1,97 @@
+## Unreleased
+
+* **TikTok:** Service+ təmizlənməsi indi LIVE önizləməsinin ilk elementini TikTok-un göstərmə qaydasına uyğun yoxlayır (#94).
+
+## 0.79.0 (2026-10-24)
+
+* **TikTok:** PineDrama-da Hushfeed ayarları artıq TikTok əvəzinə PineDrama-nı yenidən başlatmağı deyir (#156).
+
+* **TikTok:** Yeni Spam şərhləri gizlədin açarı link, əlaqə və ya pulsuz izləyici təklif edən bot şərhlərini gizlədir. Öz şərhləriniz və yaradıcının şərhləri qalır (#187).
+
+* **TikTok:** Artıq izlədiyiniz videoları gizlədin baxılmış videoları yenidən For You-dan çıxarır (#172).
+
+* **TikTok:** AMOLED tünd mövzuda foto paylaşımının altındakı şərh paneli artıq qaradır (#171).
+
+* **TikTok:** İdxal edilmiş şriftdən istifadə edin artıq PineDrama-da işləyir və qalın mətn qalın qalır (#243).
+
+* **TikTok:** Feature Gate Lab-dakı Videoların üzərində sürüşən şərhlər hazır ayarı artıq yalnız TikTok-un aktivləşdirdiyi videolarda işlədiyini deyir (#98).
+
+* **TikTok:** PineDrama üçün yeni Allow photo comments yaması şərh qutusunun foto şərhlər barədə TikTok serverindən TikTok kimi soruşmasına imkan verir (#156).
+
+* **TikTok:** PineDrama 47.5.3-ə keçir. Daha altı yama artıq onun üzərində işləyir, beləliklə Morphe Manager onun üçün 95 yama təklif edir (#156).
+
+* **TikTok:** Yeni Effektlərə daha yeni telefon bildir açarı telefonunuzda işləmədiyini deyən effektlərə kömək edir (#176).
+
+* **TikTok:** PineDrama-nın saxlanılan stikerləri artıq ilk 100 əvəzinə saxladığınız bütün stikerləri göstərir (#214).
+
+* **TikTok:** Yeni LIVE yazısının mənbəyi seçimi LIVE-a baxarkən ekranınızı yaza bilir (#37).
+
+* **TikTok:** Yeni Panelin arxasındakı videonu bulanıqlaşdırın açarı Android 12 və daha yeni versiyalarda Maye şüşə görünüşü panelini buzlu edir (#231).
+
+* **TikTok:** Qaranlıq rejimdə tünd LIVE panelləri artıq LIVE otaqlarında qalan açıq hissələri də tündləşdirir (#159).
+
+* **TikTok:** Saxlanılan videolara təfərrüatlarını etiket kimi yazın artıq başlığı, yaradıcını, tarixi və linki saxlanılan videolara həqiqətən əlavə edir.
+
+* **TikTok:** TikTok-un Auto scroll düyməsini gizlədin planşetlərdə və açılmış qatlanan telefonlarda Auto scroll açarını da gizlədir (#234).
+
+* **TikTok:** README artıq telefonda 47.5.3 paketini, kompüterdə isə APK-nı yamalamağı deyir.
+
+* **TikTok:** Təmiz ekranı videolar arasında saxlayın söndürüləndə düymələr sürüşdürmə bitən kimi geri gəlir, sonradan sıçramır (#232).
+
+* **TikTok:** Şəffaf alt panel aktiv olanda başlıq və düymələr sürüşdürmədən sonra artıq tabların üstünə düşmür (#232).
+
+* **TikTok:** Uzun basmaqla Ekrandakı kadrı foto kimi saxlayın 47.5.3 üzərində yenidən işləyir.
+
+* **TikTok:** Lent reklamlarını silin For You-dakı kiçik Lemon8 kartını da silir.
+
+* **TikTok:** Süzülənlərin sayı və büdcə nişanı artıq Shop və Nearby tablarında görünmür.
+
+* **TikTok:** Qaranlıq rejimdə tünd LIVE panelləri aktiv olanda otağın izləyici reytinqi yenidən tünd açılır (#159).
+
+* **TikTok:** README kompüterdə hər şeyi yamalayanda morphe-desktop-a 2 GB yaddaş verməyi deyir (#220).
+
+* **TikTok:** İki dəfə toxunma Heç nə etməyin seçiləndə bir toxunuş videonu dərhal dayandırır və ya oynadır (#239).
+
+* **TikTok:** Yığım artıq Gradle 9.8.2 istifadə edir.
+
+* **TikTok:** README əlavə paketin etibar edə biləcəyi Hushfeed ayarlarının hissələrini sadalayır.
+
+* **TikTok:** Yeniliklər artıq yalnız ən son buraxılışları saxlayır, qalanı Full changelog bölməsindədir, bu da genişlənməni kiçildir.
+
+* **TikTok:** Cari tabda şüşə linza artıq hər dəfə növbəti taba sürüşür (#231).
+
+* **TikTok:** Avtomatik təmiz ekran aktiv olanda yenidən açdığınız axtarış nəticəsi yenə təmizlənir (#84).
+
+* **TikTok:** LIVE yazısının keyfiyyəti artıq Original, 1080p, 720p, 540p və 360p da təklif edir (#203).
+
+* **TikTok:** Yükləmə keyfiyyəti siyahısı 720p altında bitəndə videonun özünün daha yüksək H.264 və ya HEVC versiyasını da təklif edir (#240).
+
+* **TikTok:** Şərh yazanların haradan olduğunu göstərin ölkəni daha tez-tez tapır (#201).
+
+* **TikTok:** İzlənilənlər lentində ən yenilər əvvəl daha çox yüklənərkən videonuzun altındakı paylaşımları tarix sırası ilə saxlayır (#226).
+
+* **TikTok:** Profil və Bəyənilənlər şəbəkələri Əvvəlcə ən az baxılanlar və Əvvəlcə ən az bəyənilənlər ilə sıralana bilir, özü daha çox video yükləyir və küncündə sıralama düyməsi var (#180).
+
+* **TikTok:** Yeni Yaradıcı LIVE-dadırsa Hekayəni aç açarı şəklinə toxunanda əvvəlcə Hekayəsini açır (#233).
+
+* **TikTok:** Baxdığın LIVE-ları yaz aktiv olanda LIVE otağının Paylaş menyusunda LIVE yazısının keyfiyyəti sətri var (#203).
+
+* **TikTok:** Daha çox LIVE otağında keyfiyyət seçimi təklif et artıq oyun və futbol LIVE otaqlarını da əhatə edir (#37).
+
+* **TikTok:** Qaranlıq rejimdə LIVE otağındakı yeni video keyfiyyəti seçicisi yenidən oxunaqlıdır (#57).
+
+* **TikTok:** Telefonunuz açıq və tünd rejim arasında keçəndə LIVE otağı tünd qalır (#159).
+
+* **TikTok:** Yeni Hekayəyə əlavə etməyə yenə də icazə verin açarı yaradıcı məzmunun təkrar istifadəsini söndürəndə Hekayəyə əlavə et düyməsini geri qaytarır (#88).
+
+* **TikTok:** Region spoof dili və saat qurşağını uyğunlaşdıranda söhbətlərdəki tarix başlıqları hazır ayarın saat qurşağına uyğun olur (#184, #198).
+
+* **TikTok:** Yeni Thoughts-u aktivləşdirin açarı TikTok-un kənarda saxladığı hesablarda Thoughts-u göstərir (#186).
+
+* **TikTok:** Fotoları TikTok-un göndərdiyi kimi saxla artıq hərəkət etməyən stikerləri də əhatə edir (#229).
+
+* **TikTok:** Kamerada ekranın parlaqlığını saxlayın artıq ön işığı və doldurucu işığı da əhatə edir (#200).
+
 ## 0.78.0 (2026-10-22)
 
 * **TikTok:** Hushfeed TikTok 47.5.3-ə keçir, 47.4.3 isə çıxarılır. 47.5.3 APK-nı eyni imza açarı ilə yamalayın, giriş və ayarlarınız qalacaq. PineDrama 47.4.3-də qalır.

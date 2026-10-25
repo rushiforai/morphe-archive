@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -156,14 +156,14 @@ val hideRelatedVideosPatch = bytecodePatch(
 
                             if-eqz v0, :ignore
                             iget-object v0, p1, $contentsField
-                            invoke-interface { v0 }, ${immutableMethodRef.get()}
+                            invoke-interface { v0 }, ${immutableMethodRef.get()!!}
                             move-result v1
 
                             # Check if ProtoList is immutable or not.
                             if-nez v1, :ignore
                             
                             # If mutable, copy the ProtoList.
-                            invoke-static { v0 }, ${mutableCopyMethodRef.get()}
+                            invoke-static { v0 }, ${mutableCopyMethodRef.get()!!}
                             move-result-object v0
                             
                             invoke-interface { v0 }, Ljava/util/List;->iterator()Ljava/util/Iterator;

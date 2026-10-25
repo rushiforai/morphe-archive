@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -35,7 +35,7 @@ public abstract class SpanFilter {
     public final List<StringSpanFilterGroup> callbacks = new ArrayList<>();
 
     /**
-     * Adds callbacks to {@link #skip(String, SpannableString, Object, int, int, int, boolean, SpanType, StringSpanFilterGroup)}
+     * Adds callbacks to {@link #skip(String, CharSequence, SpannableString, Object, int, int, int, boolean, SpanType, StringSpanFilterGroup)}
      * if any of the groups are found.
      */
     protected final void addCallbacks(StringSpanFilterGroup... groups) {
@@ -59,8 +59,8 @@ public abstract class SpanFilter {
      *
      * @param matchedGroup The actual filter that matched.
      */
-    public boolean skip(String conversionContext, SpannableString spannableString, Object span, int start, int end,
-                 int flags, boolean isWord, SpanType spanType, StringSpanFilterGroup matchedGroup) {
+    public boolean skip(String identifier, CharSequence path, SpannableString spannableString, Object span, int start, int end,
+                        int flags, boolean isWord, SpanType spanType, StringSpanFilterGroup matchedGroup) {
         return true;
     }
 }

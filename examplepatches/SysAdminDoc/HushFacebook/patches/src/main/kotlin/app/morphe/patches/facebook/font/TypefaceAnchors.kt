@@ -128,7 +128,7 @@ internal val LAYOUT_CALLS = mapOf(
         "$OWN_FONT->make${BORING_MAKE}Landroid/text/TextUtils\$TruncateAt;I)$BORING_LAYOUT",
 )
 
-private val LAYOUT_OWNERS = LAYOUT_CALLS.keys.map { it.substringBefore("->") }.toSet()
+internal val LAYOUT_OWNERS = LAYOUT_CALLS.keys.map { it.substringBefore("->") }.toSet()
 
 /**
  * [instruction]'s whole reference as text when the class it names is one of [owners], else null.
@@ -152,7 +152,7 @@ internal fun layoutCall(instruction: Instruction): String? = when (instruction.o
     else -> null
 }
 
-private const val FONT_METRICS_INT = "Landroid/graphics/Paint\$FontMetricsInt;"
+internal const val FONT_METRICS_INT = "Landroid/graphics/Paint\$FontMetricsInt;"
 
 /**
  * The parameters of LineHeightSpan.chooseHeight, the framework method a line-height span fits each

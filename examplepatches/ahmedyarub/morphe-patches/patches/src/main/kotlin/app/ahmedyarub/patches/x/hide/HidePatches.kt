@@ -123,7 +123,7 @@ val removePremiumUpsellPatch = bytecodePatch(
 /** The alert model; GraphQL fragments of the same name exist outside com.x.models. */
 private object ShowAlertToStringFingerprint : Fingerprint(
     name = "toString",
-    strings = listOf("TimelineShowAlert("),
+    strings = listOf("TimelineShowAlert(alertType="),
     custom = { _, classDef -> classDef.type.startsWith("Lcom/x/models/") },
 )
 

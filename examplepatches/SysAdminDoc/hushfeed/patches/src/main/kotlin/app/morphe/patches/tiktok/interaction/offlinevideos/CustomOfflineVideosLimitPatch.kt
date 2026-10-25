@@ -13,6 +13,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
@@ -144,8 +145,8 @@ val customOfflineVideosLimitPatch = bytecodePatch(
         val lifetime = try {
             OfflineVideoLifetimeFingerprint.method.also { it.requireLocals(PATCH_NAME, 2) }
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[$PATCH_NAME] Left out Keep offline videos on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Keep offline videos on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
 
@@ -159,8 +160,8 @@ val customOfflineVideosLimitPatch = bytecodePatch(
                 DefaultEnableStateFingerprint.method.also { it.defaultEnableCleanupReturnIndex(PATCH_NAME) },
             )
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[$PATCH_NAME] Left out Keep offline videos through Auto adjust on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Keep offline videos through Auto adjust on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
 

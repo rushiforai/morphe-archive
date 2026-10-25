@@ -202,6 +202,25 @@ public class GridSortTest {
         assertEquals(-1, GridSort.indexOf("sideways"));
     }
 
+    @Test public void theChipClearsFullWidthRowsAtTheTopOfTheGridButNotCellsOrAFooter() {
+        int[] none = {};
+        assertEquals("an empty grid", 0, GridSort.chipOffset(1080, none, none, none));
+        assertEquals("cells only, as on a creator's grid", 0, GridSort.chipOffset(1080,
+                new int[] {0, 0, 0, 480}, new int[] {480, 480, 480, 960}, new int[] {358, 358, 358, 358}));
+        assertEquals("the Liked tab's privacy note", 113, GridSort.chipOffset(1080,
+                new int[] {0, 113, 113, 113}, new int[] {113, 593, 593, 593}, new int[] {1080, 358, 358, 358}));
+        assertEquals("two notes stacked", 160, GridSort.chipOffset(1080,
+                new int[] {0, 100, 160}, new int[] {100, 160, 640}, new int[] {1080, 1080, 358}));
+        assertEquals("a note scrolled partly away", 63, GridSort.chipOffset(1080,
+                new int[] {-50, 63}, new int[] {63, 543}, new int[] {1080, 358}));
+        assertEquals("a note scrolled out of sight", 0, GridSort.chipOffset(1080,
+                new int[] {-113, 0}, new int[] {0, 480}, new int[] {1080, 358}));
+        assertEquals("the loading footer under the cells", 0, GridSort.chipOffset(1080,
+                new int[] {0, 0, 480}, new int[] {480, 480, 560}, new int[] {358, 358, 1080}));
+        assertEquals("a grid not laid out yet", 0, GridSort.chipOffset(0,
+                new int[] {0}, new int[] {0}, new int[] {0}));
+    }
+
     @Test public void theNextPageIsWantedOnlyForARealOrderOnScreenUnderTheCapWhilePagesAddVideos() {
         assertTrue(GridSort.wantsNextPage("newest", 0, 30, true));
         assertTrue(GridSort.wantsNextPage("least_liked", 30, 60, true));

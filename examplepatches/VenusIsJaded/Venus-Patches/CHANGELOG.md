@@ -1,3 +1,40 @@
+## [1.18.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.17.0...v1.18.0) (2026-10-24)
+
+### 🚀 Updated App Support
+
+* **Discord:** Add support for `350.8 - Stable`, now the only supported version
+
+### ✨ New Features
+
+* **Discord - Translate messages:** Translate into any of 70 languages, not just Discord's or your phone's ([#79](https://github.com/VenusIsJaded/Venus-Patches/issues/79))
+* **Discord - Keep deleted messages:** Pick the color and brightness of kept messages, and type any limit next to the Keep up to presets
+* **Discord - Message highlights:** Choose how bright replies and mentions are, from presets or any value from 0 to 100%
+* **Discord:** Add `Bring back Tenor GIFs` patch: Tenor GIFs show in Discord's own GIF picker again, mixed with Discord's or on their own ([#83](https://github.com/VenusIsJaded/Venus-Patches/issues/83))
+* **Discord:** Add `Fix link previews` patch: links to X, Instagram, TikTok, Reddit, Bluesky, Threads, Facebook, pixiv and Bilibili show the post, through a service you pick per site ([#83](https://github.com/VenusIsJaded/Venus-Patches/issues/83))
+* **Discord:** Add `Complete badges automatically` patch: plays real detectable PC games in the background, up to 3 at once for up to 3x the game time, toward your Hours Played and Unique Games Played badges, with their real art on your profile. Its page explains when a game counts and when the badge updates, and an Advanced Add hours now option asks you to confirm three times. It's marked Risky and Experimental, and asks "Are you sure?" before it turns on ([#81](https://github.com/VenusIsJaded/Venus-Patches/issues/81))
+* **Discord:** Add `Hide extra buttons` patch: hide the Quests, Shop and Nitro buttons on your profile and the Apps, Polls or Photos buttons in the attach menu, with the rest closing up neatly ([#85](https://github.com/VenusIsJaded/Venus-Patches/issues/85))
+* **Discord - Translate messages:** Translate a whole chat from a bar that appears when it has messages in another language, kept until Discord restarts, and choose whether you ask from the bar, the message menu or both. The bar floats as a small pill under Discord's own banners, like the blue New messages bar, never on top of them ([#82](https://github.com/VenusIsJaded/Venus-Patches/issues/82))
+* **Discord:** Add `Unlock Nitro themes` patch: use Discord's gradient themes without Nitro, on your phone
+* **Discord - Account switcher:** Create a new account from Discord's Add account screen or the Account switcher page, without logging out ([#86](https://github.com/VenusIsJaded/Venus-Patches/issues/86))
+
+### 🐛 Bug Fixes
+
+* **Discord - Disable analytics:** Fixed blocking analytics also stopping Discord's session active state and time-spent session ID from being reported on the Gateway
+* **Discord - Message highlights:** Fixed messages that mention one of your roles not getting your custom mention color
+* **Discord - Translate messages:** Fixed Translate in the hold menu never saying a message was already in your language, and saying so for translations it dropped
+* **Discord - Custom themes:** Fixed a theme's background image only showing right after installing it, and missing from chat after Discord restarted ([#84](https://github.com/VenusIsJaded/Venus-Patches/issues/84))
+
+### 🔧 Improvements
+
+* **Discord - Message highlights:** The deleted messages color moved to Keep deleted messages, next to its new brightness option
+* **Discord - Translate messages:** The language list names each language in its own words and closes once you pick one
+* **Discord - Venus settings:** Previews just play: the Watch / Try it switch is gone, and pages whose description already says it all have no preview
+
+### ⚡ Performance Improvements
+
+* **Discord - Translate messages:** Skip rows nobody asked to translate before any other work, 1.44x faster per chat row
+* **Discord:** Discord starts faster: the startup bytecode prelude builds the Venus runtime in blocks instead of one oversized array, and the runtime is 28% smaller, and the code features only need later is no longer read at launch at all, making a cold boot about 1.2x faster than 1.17.0. Each feature's code is now set up the first time that feature runs, so getting Discord's screens ready after launch takes less work
+
 ## [1.17.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.16.1...v1.17.0) (2026-10-20)
 
 ### ✨ New Features

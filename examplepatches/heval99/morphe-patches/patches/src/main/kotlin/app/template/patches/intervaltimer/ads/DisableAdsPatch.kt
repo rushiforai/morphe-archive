@@ -22,7 +22,7 @@ private const val AD_FREE = 3
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables native and banner ads and hides the \"Remove ads\" upsell.",
+    description = "Removes all ads.",
 ) {
     compatibleWith(COMPATIBILITY_INTERVALTIMER)
 

@@ -17,6 +17,7 @@ import app.morphe.patches.facebook.search.PAGE_MODULES
 import app.morphe.patches.facebook.search.filterPageModulesFirst
 import app.morphe.patches.facebook.search.isPageConstructor
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -87,7 +88,8 @@ internal fun BytecodePatchContext.searchPages(): SearchPages {
 
     val builders = mutableListOf<Method>()
     val modules = mutableListOf<ClassDef>()
-    classDefForEach { classDef ->
+    // A page builder takes the search context, and the module keeps a field of the role.
+    classDefForEachReferencing(types = listOf(SEARCH_CONTEXT, role.type)) { classDef ->
         classDef.methods.filterTo(builders, ::isPageBuilder)
         if (isModuleClass(classDef, role.type)) modules += classDef
     }

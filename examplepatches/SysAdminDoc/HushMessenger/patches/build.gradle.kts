@@ -132,6 +132,18 @@ tasks.register<JavaExec>("inspectDex") {
     args(listOfNotNull(apkPath, target))
 }
 
+tasks.register<JavaExec>("benchmarkWifiIdentity") {
+    group = "verification"
+    description = "Compare Wi-Fi finder time, allocation and heap peaks on one exact stock APK."
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].output + sourceSets["main"].output + configurations["testRuntimeClasspath"]
+    mainClass.set("app.hushmessenger.patches.controls.WifiIdentityBenchmark")
+    maxHeapSize = "2g"
+    jvmArgs("-XX:ActiveProcessorCount=2")
+    args(providers.gradleProperty("apkPath").getOrElse(""))
+    workingDir(projectDir)
+}
+
 tasks.register<Exec>("verifyReleaseMetadata") {
     group = "verification"
     description = "Check the bundle hash and all public release versions before publication."

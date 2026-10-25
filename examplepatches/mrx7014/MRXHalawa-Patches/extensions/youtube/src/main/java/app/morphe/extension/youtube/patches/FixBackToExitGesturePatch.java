@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -37,9 +37,10 @@ public class FixBackToExitGesturePatch {
     private static volatile boolean isTopView = false;
 
     /**
+     * Injection point.
      * Handle the event after clicking the back button.
      */
-    public static void onBackPressed() {
+    public static void onBackInvoked() {
         Activity activity = Utils.getActivity();
 
         if (activity == null) {
@@ -54,7 +55,7 @@ public class FixBackToExitGesturePatch {
             if (now - lastTimeBackPressed < PRESSED_TIMEOUT_MILLISECONDS) {
                 // In the latest YouTube, there is an issue where the video pauses if 'onDestroy()' is called while the video is minimized,
                 // and then 'onCreate()' is called again (Unpatched YouTube issue).
-                // See: https://github.com/mrx7014/MRXHalawa-Patches/issues/279
+                // See: https://github.com/MorpheApp/morphe-patches/issues/279
                 // As a workaround for this issue, use 'moveTaskToBack()' instead of 'finish()'
                 // when the video is minimized to avoid the call to 'onDestroy()'.
                 if (PlayerType.getCurrent() == PlayerType.WATCH_WHILE_MINIMIZED && activity.moveTaskToBack(true)) {

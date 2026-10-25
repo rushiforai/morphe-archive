@@ -106,10 +106,31 @@ final class SeeThroughBottomBar {
      * only blur what it draws itself, never the video under it, so the glass is drawn rather than
      * blurred: a lighter tint than the plain pill, a frost and a sheen that are brightest at the
      * top, and a rim that catches the light along the top edge.
+     *
+     * <p>With Blur the video behind the bar (#231) the strip of video behind the pill is read
+     * back and drawn blurred under the tint, so the glass blurs the picture instead of only
+     * frosting it. Until a strip has been read, or where none can be, it is the plain glass.
      */
     static class GlassBackground extends FloatingBackground {
+        /** Null for the plain glass. */
+        final GlassVideoBlur blur;
+
         GlassBackground(float density) {
+            this(density, false);
+        }
+
+        GlassBackground(float density, boolean blurVideo) {
             super(new GlassPill(density), density);
+            blur = blurVideo ? new GlassVideoBlur(density, this) : null;
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Callback callback = getCallback();
+            if (blur != null && callback instanceof View) {
+                blur.drawBehind(canvas, (View) callback, getDrawable().getBounds());
+            }
+            super.draw(canvas);
         }
     }
 
@@ -242,7 +263,11 @@ final class SeeThroughBottomBar {
         private long lastDraw;
 
         GlassLensBackground(float density) {
-            super(density);
+            this(density, false);
+        }
+
+        GlassLensBackground(float density, boolean blurVideo) {
+            super(density, blurVideo);
             inset = LENS_INSET_DP * density;
             lensRim.setStyle(Paint.Style.STROKE);
             lensRim.setStrokeWidth(Math.max(1f, density));
@@ -436,6 +461,11 @@ final class SeeThroughBottomBar {
         return THEIRS;
     }
 
+    /** True for a glass background that blurs the video behind it. */
+    private static boolean blurs(Drawable background) {
+        return background instanceof GlassBackground && ((GlassBackground) background).blur != null;
+    }
+
     /** Bars whose background this class replaced, with the drawable each had. */
     private static final Map<View, Drawable> BACKGROUNDS = new WeakHashMap<>();
 
@@ -499,17 +529,24 @@ final class SeeThroughBottomBar {
 
     /** The same, with {@code lens} adding the glass lens that follows the selected tab (#231). */
     static void setBackgroundClear(View bar, boolean clear, boolean floating, boolean glass, boolean lens) {
+        setBackgroundClear(bar, clear, floating, glass, lens, false);
+    }
+
+    /** The same, with {@code blur} blurring the video behind the glass where the phone can (#231). */
+    static void setBackgroundClear(View bar, boolean clear, boolean floating, boolean glass, boolean lens,
+            boolean blur) {
         if (bar == null) return;
+        blur &= GlassVideoBlur.supported();
         Drawable current = bar.getBackground();
         int kind = kind(current);
         if (clear) {
             if (current == null) return;
             int wanted = !floating ? CLEAR : !glass ? FLOATING : lens ? GLASS_LENS : GLASS;
-            if (kind == wanted) return;
+            if (kind == wanted && (wanted < GLASS || blurs(current) == blur)) return;
             if (kind == THEIRS) BACKGROUNDS.put(bar, current);
             float density = bar.getResources().getDisplayMetrics().density;
-            bar.setBackground(wanted == GLASS_LENS ? new GlassLensBackground(density)
-                    : wanted == GLASS ? new GlassBackground(density)
+            bar.setBackground(wanted == GLASS_LENS ? new GlassLensBackground(density, blur)
+                    : wanted == GLASS ? new GlassBackground(density, blur)
                     : wanted == FLOATING ? new FloatingBackground(density)
                     : new ClearBackground());
             return;

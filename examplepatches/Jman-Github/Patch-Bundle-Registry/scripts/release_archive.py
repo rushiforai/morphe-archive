@@ -68,6 +68,17 @@ def reconcile_archive(root, inventory, release_sets):
             state.update(status="incomplete", error=f"{error}: {reason}" if reason else error)
             continue
         seen = set()
+        # API providers can replace Git release IDs with version-only records.
+        # Keep existing archive links and first-seen dates when tags still match.
+        known_tags = {}
+        for identity, record in archive["releases"].items():
+            if record.get("source_id") != source_id:
+                continue
+            tag = record.get("tag")
+            # A recreated Git release leaves an unavailable row with the same
+            # tag. Prefer the current row regardless of archive key ordering.
+            if tag not in known_tags or record.get("availability") == "available":
+                known_tags[tag] = identity
         for release in releases:
             # Authenticated API tokens can see drafts: never publish draft/private records.
             if release.get("draft") or release.get("upcoming_release"):
@@ -77,6 +88,8 @@ def reconcile_archive(root, inventory, release_sets):
             if upstream_id is None and not tag:
                 raise ValueError("Release has neither an upstream ID nor a tag")
             identity = stable_id(canonical, str(upstream_id) if upstream_id is not None else tag)
+            if upstream_id is None:
+                identity = known_tags.get(tag, identity)
             seen.add(identity)
             keys = (
                 "id",
@@ -133,7 +146,9 @@ def reconcile_archive(root, inventory, release_sets):
                 "id": identity,
                 "source_id": source_id,
                 "source_url": url,
-                "upstream_id": str(upstream_id) if upstream_id is not None else None,
+                "upstream_id": (
+                    str(upstream_id) if upstream_id is not None else previous.get("upstream_id")
+                ),
                 "name": release.get("name"),
                 "tag": tag,
                 "version": tag,

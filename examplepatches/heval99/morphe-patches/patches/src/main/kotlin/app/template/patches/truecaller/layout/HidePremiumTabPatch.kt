@@ -6,8 +6,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
 @Suppress("unused")
 val hidePremiumTabPatch = bytecodePatch(
     name = "Hide Premium tab",
-    description = "Removes the Premium tab from the bottom bar and the Premium entry from the " +
-        "Settings screen.",
+    description = "Hides the Premium tab and the Premium entry in settings.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

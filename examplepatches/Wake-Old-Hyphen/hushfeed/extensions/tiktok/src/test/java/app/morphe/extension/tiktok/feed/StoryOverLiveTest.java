@@ -171,6 +171,58 @@ public class StoryOverLiveTest {
         assertFalse(StoryOverLive.openStory(business, avatar));
     }
 
+    /** AvatarComponentView as the Inbox hands it over: a View that answers getCurrentActiveBusiness. */
+    public static final class Picture extends View {
+        private final Map<Business, Object> business;
+
+        Picture(Map<Business, Object> business) {
+            super(RuntimeEnvironment.getApplication());
+            this.business = business;
+        }
+
+        public Map<Business, Object> getCurrentActiveBusiness() {
+            return business;
+        }
+    }
+
+    /** A chat row keeps its LIVE in its own field, so the picture's map only has the Story. */
+    private Map<Business, Object> chatStory() {
+        Map<Business, Object> business = new EnumMap<>(Business.class);
+        business.put(Business.STORY, new UnseenStory(opener));
+        return business;
+    }
+
+    @Test public void offTheInboxTapIsLeftToTikTok() {
+        assertFalse(StoryOverLive.openChatStory(new Picture(chatStory())));
+        assertTrue(opener.taps.isEmpty());
+    }
+
+    @Test public void onTheInboxPictureOpensTheStoryThenTheLiveThenTheStoryAgain() {
+        Settings.OPEN_STORY_OVER_LIVE.save(true);
+        Picture picture = new Picture(chatStory());
+
+        assertTrue("the first tap opens the Story", StoryOverLive.openChatStory(picture));
+        assertEquals(1, opener.taps.size());
+        assertSame("with the picture that was tapped", picture, opener.taps.get(0));
+
+        assertFalse("the second tap goes to the LIVE", StoryOverLive.openChatStory(picture));
+        assertEquals(1, opener.taps.size());
+
+        assertTrue("and the third to the Story again", StoryOverLive.openChatStory(picture));
+        assertEquals(2, opener.taps.size());
+    }
+
+    @Test public void anInboxPictureWithoutAStoryOrAMapGoesToTheLive() {
+        Settings.OPEN_STORY_OVER_LIVE.save(true);
+        Map<Business, Object> noStory = new EnumMap<>(Business.class);
+        noStory.put(Business.PERSON, new UnseenStory(opener));
+        assertFalse("a story state under another key doesn't count", StoryOverLive.openChatStory(new Picture(noStory)));
+        assertFalse("no map", StoryOverLive.openChatStory(new Picture(null)));
+        assertFalse("a plain view has no map to read", StoryOverLive.openChatStory(avatar));
+        assertFalse("no view", StoryOverLive.openChatStory(null));
+        assertTrue(opener.taps.isEmpty());
+    }
+
     static final class Broken implements StoryController, View.OnClickListener {
         @Override public void onClick(View view) {
             throw new IllegalStateException("the story page is gone");

@@ -663,7 +663,7 @@ public final class Settings {
     public static void externalMediaResult(int requestCode, int resultCode, android.content.Intent data) {
         try {
             if (requestCode != CameraActivity.EXTERNAL_MEDIA_REQUEST || resultCode != android.app.Activity.RESULT_OK || data == null ||
-                data.getType() != null) return;
+                data.getType() != null || data.getBooleanExtra(GalleryPicker.RESULT_PREPARED, false)) return;
             android.net.Uri picked = data.getData();
             Context context = appContext;
             if (picked == null || context == null || !"content".equals(picked.getScheme()) || !wouldUse(GalleryPicker.KEY) ||

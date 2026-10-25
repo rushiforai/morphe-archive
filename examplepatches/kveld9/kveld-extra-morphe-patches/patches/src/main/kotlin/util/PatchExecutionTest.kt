@@ -597,6 +597,38 @@ fun main(args: Array<String>) {
         println("[INFO] allOptions: forced $forced boolean patch option(s) to true.")
     }
 
+    val patchOptionsProperty = System.getProperty("patchOptions")?.trim()
+    if (!patchOptionsProperty.isNullOrEmpty()) {
+        var applied = 0
+        patchOptionsProperty.split(",").forEach { entry ->
+            val separatorIndex = entry.indexOf('=')
+            if (separatorIndex <= 0) return@forEach
+            val optKey = entry.substring(0, separatorIndex).trim()
+            if (optKey.isEmpty()) return@forEach
+            val rawValue = entry.substring(separatorIndex + 1)
+            val optValue = if ((rawValue.startsWith("\"") && rawValue.endsWith("\"") && rawValue.length >= 2) ||
+                (rawValue.startsWith("'") && rawValue.endsWith("'") && rawValue.length >= 2)
+            ) {
+                rawValue.substring(1, rawValue.length - 1)
+            } else {
+                rawValue
+            }
+            targetPatches.forEach { patch ->
+                patch.options.values
+                    .filter { it.default !is Boolean && (it.default is String || it.type.toString().contains("String")) }
+                    .filter { it.name == optKey || it.key == optKey }
+                    .forEach { option ->
+                        try {
+                            patch.options[option.name] = optValue
+                            applied++
+                        } catch (_: Exception) {
+                        }
+                    }
+            }
+        }
+        println("[INFO] patchOptions: applied $applied string patch option(s).")
+    }
+
     println("Loaded ${targetPatches.size} patch(es) for ${targetApp.appName} from ${patchFiles.first().name}:")
     targetPatches.sortedBy { it.name }.forEach { println("  • ${it.name}") }
 

@@ -61,6 +61,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.aiCastEntranceEnabled
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.cameraBrightnessEnabled
+                || SettingsStatus.effectDeviceSpoofEnabled
                 || SettingsStatus.launcherShortcutsEnabled
                 || SettingsStatus.firstLaunchSetupEnabled
                 || SettingsStatus.screenCaptureEnabled
@@ -291,6 +292,16 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                         Settings.HIDE_PROFILE_THOUGHTS
                 ));
             }
+            if (SettingsStatus.thoughtsSwitchEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Turn on Thoughts",
+                        "Show Thoughts on profiles and in your inbox, and the prompt to share one, "
+                                + "for accounts TikTok hasn't turned them on for. TikTok's servers may "
+                                + "still refuse to post one. Restart TikTok to apply this.",
+                        Settings.ENABLE_THOUGHTS
+                ));
+            }
             if (SettingsStatus.profileMenuCellsEnabled) {
                 addPreference(new TogglePreference(
                         context,
@@ -343,6 +354,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
         // the store check on Privacy, under a heading of its own.
         if (SettingsStatus.screenCaptureEnabled || SettingsStatus.videoOverlaysEnabled
                 || SettingsStatus.refreshRateEnabled || SettingsStatus.cameraBrightnessEnabled
+                || SettingsStatus.effectDeviceSpoofEnabled
                 || SettingsStatus.launcherShortcutsEnabled || SettingsStatus.firstLaunchSetupEnabled
                 || SettingsStatus.storeIdentityEnabled || SettingsStatus.passkeySignInEnabled
                 || SettingsStatus.appLanguageEnabled) {
@@ -389,8 +401,19 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Keep the screen's brightness in the camera",
-                    "Stops TikTok from turning your screen brighter while you film, edit or post a video.",
+                    "Stops TikTok from turning your screen brighter while you film, edit or post a video. "
+                            + "The front flash still turns the screen white, but at your own brightness.",
                     Settings.KEEP_CAMERA_BRIGHTNESS
+            ));
+        }
+        if (SettingsStatus.effectDeviceSpoofEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Report a newer phone to effects",
+                    "Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. "
+                            + "This tells the effects server you have a Galaxy S24 Ultra instead. Sign-in and everything else "
+                            + "still see your real phone. An effect your phone really can't run may still fail or look wrong.",
+                    Settings.REPORT_NEWER_PHONE_TO_EFFECTS
             ));
         }
         if (SettingsStatus.launcherShortcutsEnabled) {

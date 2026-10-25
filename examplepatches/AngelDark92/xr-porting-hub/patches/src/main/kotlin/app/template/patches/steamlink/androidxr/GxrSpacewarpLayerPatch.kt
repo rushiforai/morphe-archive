@@ -58,9 +58,28 @@ internal const val GXR_SPACEWARP_VTS_GATE_5002244 = "gxr_spacewarp_vts_5002244.j
 internal const val GXR_SPACEWARP_VTS_GATE_5002244_SHA256 =
     "5726b255880eb6c2e748839699d9fdeb1acc0c0e58ef355af1429c15077f90ff"
 
+// The bundled layer embeds a per-base scene/VTS profile table, so a build without an
+// entry would load and silently stand down. Keep the exact supported set here until a
+// 2.0.24 layer profile and gate evidence exist.
+private val GXR_SPACEWARP_SUPPORTED_PAIRS = setOf(
+    "2.0.20" to "5001712",
+    "2.0.20" to "5001812",
+    "2.0.21" to "5001968",
+    "2.0.22" to "5002244",
+    "2.0.23" to "5002363",
+)
+
 internal fun isGxrSpacewarpSteamLinkBuild(versionName: String, versionCode: String): Boolean =
-    app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild(versionName, versionCode) ||
-        app.template.patches.shared.Constants.isNativeXrSteamLinkBuild(versionName, versionCode)
+    (versionName to versionCode) in GXR_SPACEWARP_SUPPORTED_PAIRS
+
+private val gxrSpacewarpCompatibilities =
+    COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.filter { compatibility ->
+        compatibility.targets.any { target ->
+            target.versionCodes?.values?.any { code ->
+                isGxrSpacewarpSteamLinkBuild(target.version.orEmpty(), code.toString())
+            } == true
+        }
+    }
 
 private fun spacewarpSha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
     .digest(bytes).joinToString("") { "%02x".format(it) }
@@ -289,11 +308,11 @@ internal fun installGxrSpacewarpResources(
 val gxrSpacewarpLayerPatch = rawResourcePatch(
     name = "GXR spacewarp layer (experimental)",
     description = "Synthesizes a frame when the stream misses a display tick; any failure stands down to stock. " +
-        buildLabel(COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL) + " Experimental; headset validation pending.",
+        buildLabel(gxrSpacewarpCompatibilities) + " Experimental; headset validation pending.",
     default = false,
 ) {
     category(PatchCategories.STREAMING_AND_NETWORK)
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.toTypedArray())
+    compatibleWith(*gxrSpacewarpCompatibilities.toTypedArray())
     execute {
         // Morphe executes dependencies recursively without rechecking compatibility.
         // Keep this build guard inside the mutation itself so an excluded APK stays untouched.

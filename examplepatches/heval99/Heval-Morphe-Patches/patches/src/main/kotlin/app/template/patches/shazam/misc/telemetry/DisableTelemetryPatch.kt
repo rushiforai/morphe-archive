@@ -21,7 +21,7 @@ private fun MutableMethod?.returnEarlyIfImplemented() =
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics event logging and Crashlytics crash reporting."
+    description = "Disables analytics and crash reporting."
 ) {
     compatibleWith(COMPATIBILITY_SHAZAM)
 

@@ -29,11 +29,7 @@ private fun Instruction.arguments(): List<Int>? = when (this) {
 @Suppress("unused")
 val disableContactUploadPatch = bytecodePatch(
     name = "Disable contact upload",
-    description = "Stops Truecaller from sending your saved contacts' numbers to its servers (chat " +
-        "contact discovery, friends' Premium status and the Call Assistant whitelist) and hides the " +
-        "contact editor's name suggestion upload. Contacts, dialer search and caller ID keep " +
-        "working. Truecaller Chat no longer finds which of your contacts use it, and with the Call " +
-        "Assistant your saved contacts are no longer whitelisted.",
+    description = "Stops uploading your contacts. Chat can no longer find which contacts use it.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

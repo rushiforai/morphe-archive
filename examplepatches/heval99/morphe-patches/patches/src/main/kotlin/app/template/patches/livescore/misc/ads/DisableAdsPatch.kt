@@ -7,9 +7,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Forces AdsRemovalSettings.areAdsDisabled() to return true, " +
-            "disabling banner, interstitial, MPU, hero placement, coverage " +
-            "sponsorship and announcement ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_LIVESCORE)
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 
 import com.google.protobuf.MessageLite;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,7 +48,7 @@ public final class VideoActionButtonsFilter extends Filter {
                 "yt_fill_experimental_spark",
                 "yt_fill_spark"
         ),
-        CHANNEL_PROFILE(false),
+        CHANNEL_PROFILE(Settings.HIDE_CHANNEL_PROFILE_BUTTON.get()),
         CLIP(Settings.HIDE_CLIP_BUTTON.get()),
         COMMENTS(
                 Settings.HIDE_COMMENTS_BUTTON.get(),
@@ -118,7 +119,7 @@ public final class VideoActionButtonsFilter extends Filter {
     }
 
     /**
-     * Whether to perform {@link #onLazilyConvertedElementLoaded(String, List)}.
+     * Whether to perform {@link #onLazilyConvertedElementLoaded(CharSequence, List)}.
      */
     private static final boolean HIDE_ACTION_BUTTON;
 
@@ -133,12 +134,23 @@ public final class VideoActionButtonsFilter extends Filter {
         HIDE_ACTION_BUTTON = hideActionButton;
     }
 
+    private static final int MAX_CACHED_VIDEOS = 10;
+
     /**
      * Caches a list of action buttons based on video ID.
      */
     @GuardedBy("itself")
     private static final Map<String, List<ActionButton>> actionButtonLookup =
-            Utils.createSizeRestrictedMap(10);
+            Utils.createSizeRestrictedMap(MAX_CACHED_VIDEOS);
+
+    /**
+     * Responses that have already been parsed.
+     * The app can load the same response again (such as when selecting a chapter),
+     * but other patches may have changed the response in place since it was first parsed.
+     * Serializing it again then fails, because its cached serialized size is no longer valid.
+     */
+    @GuardedBy("actionButtonLookup")
+    private static final List<WeakReference<MessageLite>> parsedResponses = new ArrayList<>();
 
     private static final String COMPACT_CHANNEL_BAR_PREFIX = "compact_channel_bar.e";
     private static final String COMPACTIFY_VIDEO_ACTION_BAR_PREFIX = "compactify_video_action_bar.e";
@@ -150,6 +162,7 @@ public final class VideoActionButtonsFilter extends Filter {
     private final StringFilterGroup actionBarGroup;
     private final StringFilterGroup likeSubscribeGlow;
     private final StringFilterGroup moreButton;
+    private final StringFilterGroup subscribeButton;
     private final StringFilterGroupList accessibilityGroupList = new StringFilterGroupList();
     private final ByteArrayFilterGroupList bufferGroupList = new ByteArrayFilterGroupList();
 
@@ -170,7 +183,12 @@ public final class VideoActionButtonsFilter extends Filter {
                 MORE_BUTTON_PATH
         );
 
-        addPathCallbacks(likeSubscribeGlow, moreButton);
+        subscribeButton = new StringFilterGroup(
+                Settings.HIDE_CHANNEL_PROFILE_SUBSCRIBE_BUTTON,
+                "|compact_channel_bar_animated_buttons.e"
+        );
+
+        addPathCallbacks(likeSubscribeGlow, moreButton, subscribeButton);
 
         //
         // All other action buttons.
@@ -207,7 +225,7 @@ public final class VideoActionButtonsFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -217,10 +235,13 @@ public final class VideoActionButtonsFilter extends Filter {
             return Utils.startsWithAny(path, COMPACT_CHANNEL_BAR_PREFIX, COMPACTIFY_VIDEO_ACTION_BAR_PREFIX, VIDEO_ACTION_BAR_PREFIX);
         } else if (matchedGroup == moreButton) {
             return true;
+        } else if (matchedGroup == subscribeButton) {
+            // Only the Subscribe and Join buttons next to the channel avatar in the action bar.
+            return Utils.startsWithAny(path, COMPACTIFY_VIDEO_ACTION_BAR_PREFIX, VIDEO_ACTION_BAR_PREFIX);
         } else if (matchedGroup == actionBarGroup) {
             if (Settings.HIDE_ACTION_BAR.get() || accessibilityGroupList.check(accessibility).isFiltered()) {
                 return true;
-            } else if (accessibility != null && accessibility.startsWith(ELEMENT_BUTTON_ID) && !path.contains(MORE_BUTTON_PATH)) {
+            } else if (accessibility != null && accessibility.startsWith(ELEMENT_BUTTON_ID) && !Utils.contains(path, MORE_BUTTON_PATH)) {
                 return bufferGroupList.check(buffer).isFiltered();
             }
             return false;
@@ -233,7 +254,7 @@ public final class VideoActionButtonsFilter extends Filter {
      * Injection point.
      * Called after {@link #onSingleColumnWatchNextResultsLoaded(MessageLite)}.
      */
-    public static void onLazilyConvertedElementLoaded(String identifier, List<Object> treeNodeResultList) {
+    public static void onLazilyConvertedElementLoaded(CharSequence identifier, List<Object> treeNodeResultList) {
         // Check if hide video action buttons is enabled.
         if (!HIDE_ACTION_BUTTON) {
             return;
@@ -270,6 +291,24 @@ public final class VideoActionButtonsFilter extends Filter {
         }
     }
 
+    @GuardedBy("actionButtonLookup")
+    private static boolean isResponseAlreadyParsed(MessageLite messageLite) {
+        parsedResponses.removeIf(ref -> ref.get() == null);
+        for (WeakReference<MessageLite> ref : parsedResponses) {
+            if (ref.get() == messageLite) {
+                return true;
+            }
+        }
+
+        // Keep the list as small as the action button lookup.
+        if (parsedResponses.size() >= MAX_CACHED_VIDEOS) {
+            parsedResponses.remove(0);
+        }
+        parsedResponses.add(new WeakReference<>(messageLite));
+
+        return false;
+    }
+
     /**
      * Injection point.
      * Invoke as soon as the endpoint response is received.
@@ -284,6 +323,10 @@ public final class VideoActionButtonsFilter extends Filter {
         }
         synchronized (actionButtonLookup) {
             try {
+                if (isResponseAlreadyParsed(messageLite)) {
+                    return;
+                }
+
                 var singleColumnWatchNextResults = SingleColumnWatchNextResults.parseFrom(messageLite.toByteArray());
                 var primaryResults = singleColumnWatchNextResults.getPrimaryResults();
                 var secondaryResults = primaryResults.getSecondaryResults();

@@ -449,6 +449,14 @@ Hide the Muse card	Muse kartını gizle
 The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	Muse kartı, Meta'nın yapay zekâ asistanı uygulamasının reklamı, Facebook menüsünün üstünden kalkar.
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	“Meta'dan diğerleri” bölümü, Meta'nın diğer uygulamalarına giden bağlantıları ve Meta cihazlarının reklamlarıyla birlikte Facebook menüsünden kalkar. Kendi kısayolların yerinde kalır.
+# context: switch title under Menu; Help and support is the name of a section in Facebook's own Menu
+Hide Help and support	“Yardım ve destek” bölümünü gizle
+# context: summary of that switch; Settings and privacy is Facebook's own Menu section
+The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	“Yardım ve destek” bölümü başlığıyla birlikte Facebook menüsünden kalkar. “Ayarlar ve gizlilik” yerinde kalır.
+# context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
+Keep Settings and privacy expanded	“Ayarlar ve gizlilik” açık kalsın
+# context: summary of that switch
+Settings and privacy in Facebook's Menu stays open, so its rows show without a tap.	“Ayarlar ve gizlilik” Facebook menüsünde açık kalır, böylece satırları dokunmadan görünür.
 # context: section title for the search settings, named like Facebook's own search
 Search	Arama
 # context: switch title under Search; Meta AI is Meta's assistant and keeps its name
@@ -797,6 +805,14 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	Kaydediliyor… İ
 Turn off double tap to like	Beğenmek için çift dokunmayı kapat
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Bir reel'e veya videoya çift dokunmak artık onu beğenmez ve kalp göstermez. Tek dokunuş ve Beğen düğmesi eskisi gibi çalışır.
+# context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
+Double tap to skip	Atlamak için çift dokun
+# context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
+A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	Bir reel'in veya videonun sol ya da sağ kenarına çift dokunmak 10 saniye geri ya da ileri atlar, 30 saniyeden kısa olanlarda 5 saniye. Ortaya çift dokunmak eskisi gibi çalışır.
+# context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
+Tap shows the controls	Dokunmak kontrolleri gösterir
+# context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
+A tap on a playing reel shows its controls while it keeps playing, and a second tap hides them. The button in the middle still pauses.	Oynatılan bir reel'e dokunmak, durdurmadan kontrollerini gösterir, ikinci bir dokunuş onları gizler. Ortadaki düğme yine duraklatır.
 Keep the reel speed	Reel hızını koru
 # context: summary of that switch
 A playback speed you pick in a reel's menu stays for the next reels, after a restart too, until you pick another. Off, every reel starts at normal speed.	Bir reel'in menüsünde seçtiğin oynatma hızı, başka bir hız seçene kadar sonraki reel'lerde kalır, yeniden başlatmadan sonra da. Kapalıyken her reel normal hızda başlar.
@@ -807,6 +823,10 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 Only on the right edge	Yalnızca sağ kenarda
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
 With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	Yukarıdaki anahtar açıkken bir reel yalnızca sağdaki üçte birine basılı tutarsan iki kat hızda oynar. Başka bir yere basılı tutarsan Facebook'un uzun basma menüsü açılır.
+# context: label of a switch under Hold a reel for 2x; a feed video is a video playing in Home's feed or in Watch, not a reel
+Hold a feed video for 2x	2x için akıştaki videoya basılı tut
+# context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
+Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Akışta veya Watch'ta bir videoya basılı tutmak, bırakana kadar onu iki kat hızda oynatır. Yukarıdaki anahtarlar olmadan da çalışır.
 Default playback quality	Varsayılan oynatma kalitesi
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Videoları, Reels'i ve hikayeleri aşağıdaki kalitede oynatın. Bir videonun kendi menüsünde seçilen kalite yine önceliklidir.
 Playback quality	Oynatma kalitesi
@@ -1142,6 +1162,12 @@ Save photo	Fotoğrafı kaydet
 Save all photos	Tüm fotoğrafları kaydet
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	Bu gönderinin fotoğrafları kaydedilemedi. Birazdan tekrar dene.
+# context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
+Save GIF	GIF'i kaydet
+# context: message after a tap on Save GIF when the save didn't start
+Couldn't save this GIF. Try again in a moment.	Bu GIF kaydedilemedi. Birazdan tekrar dene.
+# context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
+A GIF comment gets Save GIF when you long-press it.	Bir GIF yorumuna basılı tuttuğunda GIF'i kaydet çıkar.
 Couldn't save this story's photo. Try again in a moment.	Bu hikayenin fotoğrafı kaydedilemedi. Birazdan tekrar dene.
 Too many saves at once. Try again when one finishes.	Aynı anda çok fazla indirme var. Biri bitince tekrar dene.
 # context: settings switch under Block Instant Games ads that makes a game's rewarded ad count as watched
@@ -1813,6 +1839,10 @@ Takes the line with the reel's sound, "Original audio" or a song, off the bottom
 Hide the slow connection message	Yavaş bağlantı mesajını gizle
 # context: summary of that switch; "This is taking a while" is Facebook's own message, so use the wording Facebook shows in this language
 Stops the "This is taking a while" message about your network connection when a video or GIF is slow to load. It keeps loading as before.	Bir video veya GIF yavaş yüklenirken ağ bağlantınızla ilgili "Bu biraz zaman alıyor" mesajını durdurur. Yüklenmeye her zamanki gibi devam eder.
+# context: switch title under Reels and Watch; the Reels row is the strip of reel tiles Facebook shows between posts in the news feed, each tile playing a short clip of its reel over and over
+Play whole reels in the feed's Reels row	Akıştaki Reels satırında reels'leri baştan sona oynat
+# context: summary of that switch; a tile is one reel's box in that row
+The reels in your feed's Reels row play from the start and keep going, instead of repeating a second or two. Tiles drawn after a change pick it up.	Akışındaki Reels satırında reels'ler bir iki saniyeyi tekrarlamak yerine baştan başlar ve devam eder. Değişiklikten sonra yüklenen kutucuklar bunu uygular.
 # context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for dark mode's backgrounds; also its dialog's title
 Background color	Arka plan rengi
 # context: text in that row's dialog above the field; %1$s is the lightest gray code it takes, %2$s the color code the patch wrote, both like #0D1117; keep #RRGGBB and #0D1117 as they are
@@ -1849,3 +1879,51 @@ Light mode's backgrounds use %1$s. Restart Facebook to see the change.	Aydınlı
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be Facebook's own white.	Yamalı Facebook'unuz AMOLED siyah temayı içeriyorsa aydınlık modun arka planları Facebook'un kendi beyazı olacak.
 # context: import preview sentence: the file sets AMOLED's Light background color row; %1$s is a color code like #FFF8E7; "AMOLED black theme" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be %1$s.	Yamalı Facebook'unuz AMOLED siyah temayı içeriyorsa aydınlık modun arka planları %1$s olacak.
+# context: switch title under News feed, part of Hide suggested and promoted posts; "Related posts" is the heading Facebook shows over a list under a post
+Hide "Related posts" under posts	Gönderilerin altındaki "İlgili gönderiler" listesini gizle
+# context: summary of that switch; "Related posts" is that heading, and Meta AI writes the titles in the list
+Hides the "Related posts" list Facebook adds under some posts, with its titles written by Meta AI. The post and its comments stay.	Facebook'un bazı gönderilerin altına eklediği, başlıkları Meta AI tarafından yazılan "İlgili gönderiler" listesini gizler. Gönderi ve yorumları kalır.
+# context: title of the row on the Appearance page that takes your own words for the top of Home in place of Facebook's logo; also its dialog's title and the patch's name; Home is Facebook's home feed tab
+Home header text	Ana Sayfa başlık metni
+# context: message in that row's dialog; %1$d is the most characters allowed, 30
+Your own words at the top of Home instead of the Facebook logo, up to %1$d characters. They take Facebook's colors in light and dark mode. Leave it blank for Facebook's logo.	Facebook logosu yerine Ana Sayfa'nın üstünde kendi sözleriniz, en fazla %1$d karakter. Aydınlık ve karanlık modda Facebook'un renklerini alır. Facebook'un logosu için boş bırakın.
+# context: summary of that row while it's blank
+Facebook's logo stays at the top of Home. Type your own words to show them there.	Ana Sayfa'nın üstünde Facebook'un logosu kalır. Orada göstermek için kendi sözlerinizi yazın.
+# context: summary of that row; %1$s is the saved words
+The top of Home says %1$s. Restart Facebook to see the change.	Ana Sayfa'nın üstünde %1$s yazıyor. Değişikliği görmek için Facebook'u yeniden başlatın.
+# context: import preview sentence: the file sets the Home header text row back to blank
+The top of Home will show Facebook's own logo.	Ana Sayfa'nın üstünde Facebook'un kendi logosu görünecek.
+# context: import preview sentence: the file sets the Home header text row; %1$s is the saved words; "Home header text" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Home header text, the top of Home will say %1$s.	Yamalı Facebook'unuz Ana Sayfa başlık metnini içeriyorsa Ana Sayfa'nın üstünde %1$s yazacak.
+# context: settings row title: picks a picture of your own for the top of Home; pairs with the Home header text row
+Home header picture	Ana Sayfa başlık resmi
+# context: settings row title: takes the picked header picture away at once
+Remove the header picture	Başlık resmini kaldır
+# context: summary under Remove the header picture
+Puts your words or Facebook's logo back at the top of Home. Restart Facebook to see the change.	Ana Sayfa'nın üstüne sözlerini ya da Facebook'un logosunu geri koyar. Değişikliği görmek için Facebook'u yeniden başlat.
+# context: summary under Home header picture when nothing is picked
+No picture chosen. Choose one to show at the top of Home instead of Facebook's logo.	Resim seçilmedi. Ana Sayfa'nın üstünde Facebook'un logosu yerine göstermek için bir resim seç.
+# context: summary under Home header picture; %1$s is the picked file's name
+The saved copy of %1$s is missing. Choose the picture again.	%1$s dosyasının kayıtlı kopyası yok. Resmi tekrar seç.
+# context: summary under Home header picture; %1$s is the picked file's name
+Selected %1$s. It shows at the top of Home in place of your words and Facebook's logo.	%1$s seçildi. Ana Sayfa'nın üstünde sözlerinin ve Facebook'un logosunun yerine gösterilir.
+# context: summary under Home header picture while the picked picture is copied
+Copying the picture	Resim kopyalanıyor
+# context: toast after a picture is picked; %1$s is the picked file's name
+Selected %1$s. Restart Facebook to see it at the top of Home.	%1$s seçildi. Ana Sayfa'nın üstünde görmek için Facebook'u yeniden başlat.
+# context: toast when the picked file isn't a picture
+That isn't a picture Android can open. The top of Home didn't change.	Bu, Android'in açabildiği bir resim değil. Ana Sayfa'nın üstü değişmedi.
+# context: toast when the picked picture is too large; %1$d is the limit in megabytes
+That picture is over %1$d MB. The top of Home didn't change.	Bu resim %1$d MB'tan büyük. Ana Sayfa'nın üstü değişmedi.
+# context: toast when the picture's copy can't be written
+Couldn't save a copy of that picture. Check that the phone has room, then try again.	Bu resmin kopyası kaydedilemedi. Telefonda yer olduğunu kontrol et, sonra tekrar dene.
+# context: toast when the picked file can't be read
+Couldn't open that file. The top of Home didn't change.	Bu dosya açılamadı. Ana Sayfa'nın üstü değişmedi.
+# context: toast after Remove the header picture
+Header picture removed. Restart Facebook to see the change.	Başlık resmi kaldırıldı. Değişikliği görmek için Facebook'u yeniden başlat.
+# context: toast when Remove the header picture couldn't save
+Couldn't remove the header picture. Try again.	Başlık resmi kaldırılamadı. Tekrar dene.
+# context: toast when the app holding the picked picture stalls
+The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	O resmi tutan uygulama çok uzun sürüyor, bu yüzden Hushfacebook beklemeyi bıraktı. Ana Sayfa'nın üstü değişmedi.
+# context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
+The app holding the last picture still hasn't answered. Try again later.	Son resmi tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.

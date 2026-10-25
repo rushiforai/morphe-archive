@@ -124,6 +124,23 @@ public class SearchSettingsClarityTest {
         });
     }
 
+    /**
+     * #186. The Turn on Thoughts row says where Thoughts show up and that posting one is still
+     * TikTok's call. It needs both Thoughts gates, which a build can leave out while the bubble
+     * hider applies, so the hider's row stays without it.
+     */
+    @Test public void thoughtsRowSaysWhereAndThatPostingIsStillTikToksCall() {
+        assertRow("BEHAVIOR", "enable_thoughts", "Turn on Thoughts", "in your inbox");
+        assertRow("BEHAVIOR", "enable_thoughts", "Turn on Thoughts", "may still refuse to post one");
+        assertRow("BEHAVIOR", "enable_thoughts", "Turn on Thoughts", "Restart TikTok");
+
+        SettingsStatus.thoughtsSwitchEnabled = false;
+        onPage("BEHAVIOR", page -> {
+            assertNull("the Thoughts row outlived its gates", page.findPreference("enable_thoughts"));
+            assertNotNull("the bubble hider follows its own flag", page.findPreference("hide_profile_thoughts"));
+        });
+    }
+
     @Test public void sideMenuButtonRowNamesTheMenuAndNeedsTheToolbarCheck() {
         assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "TikTok Minis");
         assertRow("INTERFACE", "hide_feed_sidebar_button", "Hide the side menu button", "Restart TikTok");

@@ -10,6 +10,10 @@ internal const val MODERN_TONGUE_LIBRARY_SIZE_5002363 = 2_292_008
 internal const val MODERN_TONGUE_VADDR_5002363 = 0x141c6cL
 internal const val MODERN_TONGUE_STOCK_SHA256_5002363 =
     "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"
+internal const val MODERN_TONGUE_LIBRARY_SIZE_5002395 = 2_301_432
+internal const val MODERN_TONGUE_VADDR_5002395 = 0x1433acL
+internal const val MODERN_TONGUE_STOCK_SHA256_5002395 =
+    "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b"
 
 // Valve's native Android-XR mapper already translates face expressions 0..62 and preserves
 // standard FB2 TongueOut at slot 68. This final block currently zeros FB2 slots 63..67.
@@ -52,6 +56,11 @@ private val MODERN_TONGUE_LAYOUTS = listOf(
     ModernTongueLayout(
         "2.0.23", "5002363", MODERN_TONGUE_LIBRARY_SIZE_5002363,
         MODERN_TONGUE_VADDR_5002363, MODERN_TONGUE_STOCK_SHA256_5002363,
+        MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_REPLACEMENT,
+    ),
+    ModernTongueLayout(
+        "2.0.24", "5002395", MODERN_TONGUE_LIBRARY_SIZE_5002395,
+        MODERN_TONGUE_VADDR_5002395, MODERN_TONGUE_STOCK_SHA256_5002395,
         MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_REPLACEMENT,
     ),
 )

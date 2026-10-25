@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -34,7 +34,7 @@ public class TreeNodeElementPatch {
             }
             String firstElement = treeNodeResultList.get(0).toString();
             if (ELEMENT_IDENTIFIER_COMPONENT.equals(firstElement)) {
-                String path = contextInterface.patch_getPathBuilder().toString();
+                StringBuilder path = contextInterface.patch_getPathBuilder();
                 onComponentLoaded(path, treeNodeResultList);
             } else if (ELEMENT_IDENTIFIER_LAZILY.equals(firstElement)) {
                 String identifier = contextInterface.patch_getIdentifier();
@@ -47,11 +47,11 @@ public class TreeNodeElementPatch {
         }
     }
 
-    private static void onComponentLoaded(String path, List<Object> treeNodeResultList) {
+    private static void onComponentLoaded(CharSequence path, List<Object> treeNodeResultList) {
         // Code added during patching.
     }
 
-    private static void onLazilyConvertedElementLoaded(String identifier, List<Object> treeNodeResultList) {
+    private static void onLazilyConvertedElementLoaded(CharSequence identifier, List<Object> treeNodeResultList) {
         // Code added during patching.
     }
 }

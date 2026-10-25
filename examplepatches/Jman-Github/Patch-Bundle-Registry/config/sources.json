@@ -2309,5 +2309,50 @@
     "patches": "https://github.com/cosm1c-matcha/hris-apn",
     "integrations": false,
     "disabled": false
+  },
+  "sound-connect-patches": {
+    "patches": "https://github.com/Mouchoir/sound-connect-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "netease-ja": {
+    "patches": "https://github.com/sas-news/netease-ja",
+    "integrations": false,
+    "disabled": false
+  },
+  "ginarena-patch": {
+    "patches": "https://github.com/sagarkhansau19-svg/GinArena-patch",
+    "integrations": false,
+    "disabled": false
+  },
+  "xp-hero-patch": {
+    "patches": "https://github.com/monesys/xp-hero-patch",
+    "integrations": false,
+    "disabled": false
+  },
+  "buienradar-patches": {
+    "patches": "https://github.com/wouter075/buienradar-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "gaming-hub-morphe": {
+    "patches": "https://github.com/ratatabananana-bit/gaming-hub-morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "prisoner-custom-morphe": {
+    "patches": "https://github.com/Prisoner-24601/custom-morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "toidicakhia-morphe": {
+    "patches": "https://github.com/toidicakhia/morphe-app-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "pancake-patches": {
+    "patches": "https://github.com/Ikuradachi/pancake-patches",
+    "integrations": false,
+    "disabled": false
   }
 }

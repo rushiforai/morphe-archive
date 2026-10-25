@@ -43,7 +43,8 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Accent color's theme half (#8): the styles added for every attribute Instagram's styles set to one
- * of its blues, and AccentTheme.apply once Instagram's Prism overrides are on an activity's theme.
+ * of its blues, and AccentTheme.apply once Instagram's Prism overrides are on an activity's theme or its
+ * theme util has styled a context.
  */
 class AccentThemeTest {
     /** The patch's copies of AccentColor's blues and AccentHue's colors are the extension's own. */
@@ -53,7 +54,7 @@ class AccentThemeTest {
         val hues = Regex("""^\s+([A-Z]+)\((0x[0-9a-f]+|0), (0x[0-9a-f]+|0), (0x[0-9a-f]+|0)\)[,;]""", RegexOption.MULTILINE)
             .findAll(File(misc, "AccentHue.java").readText())
             .map { it.groupValues.drop(1) }
-            .filter { it[0] != "BLUE" }
+            .filter { it[0] != "BLUE" && it[0] != WALLPAPER }
             .map { (name, fill, light, dark) -> listOf(name, fill, light, dark) }
             .toList()
         assertEquals(
@@ -83,6 +84,65 @@ class AccentThemeTest {
         assertEquals(0x6430d5, purple.getValue(AccentRole.PRESSED))
         assertEquals(0x351971, purple.getValue(AccentRole.DIM))
         assertEquals(0xeee7fe, purple.getValue(AccentRole.PALE))
+        // Material You's system steps, in the Role order MaterialYou.java lists them.
+        val steps = Regex("""android\.R\.color\.system_accent1_(\d+),""")
+            .findAll(File(misc, "MaterialYou.java").readText()).map { it.groupValues[1].toInt() }.toList()
+        assertEquals(AccentRole.entries.map { WALLPAPER_STEPS.getValue(it) }, steps)
+        assertTrue("AccentHue lists the wallpaper", Regex("""^\s+$WALLPAPER\(0, 0, 0\);""", RegexOption.MULTILINE)
+            .containsMatchIn(File(misc, "AccentHue.java").readText()))
+    }
+
+    /**
+     * Material You (#187): each opaque shade gets a fallback color and the wallpaper's system color on
+     * Android 12, a palette style naming them, and a badge pair; a see-through shade gets nothing.
+     */
+    @Test
+    fun theWallpaperResourcesPointEachOpaqueShadeAtTheSystemPalette() {
+        val uses = setOf(
+            AccentUse("igds_color_link", AccentRole.LINK_ON_DARK, 0xff),
+            AccentUse("igds_color_link", AccentRole.LINK_ON_LIGHT, 0xff),
+            AccentUse("igds_color_primary_button_indigo", AccentRole.FILL, 0xff),
+            AccentUse("igds_color_selected_text_background", AccentRole.FILL, 0x4d),
+        )
+        val attrs = parse("<resources><attr name=\"$BADGE_ATTRIBUTE\" format=\"reference|color\" /></resources>")
+        val colors = parse("<resources />")
+        val colorsV31 = parse("<resources />")
+        val styles = parse("<resources />")
+
+        addAccentResources(uses, attrs, colors, styles)
+        addWallpaperResources(uses, attrs, colors, colorsV31, styles)
+
+        val fallback = colors.elements("color").associate { it.getAttribute("name") to it.textContent }
+        val system = colorsV31.elements("color").associate { it.getAttribute("name") to it.textContent }
+        assertEquals(
+            mapOf(
+                "hushgram_accent_wallpaper_fill_ff" to "@android:color/system_accent1_500",
+                "hushgram_accent_wallpaper_link_on_dark_ff" to "@android:color/system_accent1_200",
+                "hushgram_accent_wallpaper_link_on_light_ff" to "@android:color/system_accent1_600",
+                WALLPAPER_BADGE_COLOR to "@android:color/system_accent1_500",
+            ),
+            system,
+        )
+        assertEquals("#ff7f67be", fallback["hushgram_accent_wallpaper_fill_ff"])
+        assertEquals("#ffd0bcff", fallback["hushgram_accent_wallpaper_link_on_dark_ff"])
+        assertTrue("no see-through wallpaper shade", fallback.keys.none { it.startsWith("hushgram_accent_wallpaper_fill_4d") })
+        val added = styles.elements("style").associate { style ->
+            style.getAttribute("name") to style.elements("item").map { it.getAttribute("name") to it.textContent }
+        }
+        assertEquals(
+            listOf(
+                "hushgram_accent_fill_ff" to "@color/hushgram_accent_wallpaper_fill_ff",
+                "hushgram_accent_link_on_dark_ff" to "@color/hushgram_accent_wallpaper_link_on_dark_ff",
+                "hushgram_accent_link_on_light_ff" to "@color/hushgram_accent_wallpaper_link_on_light_ff",
+            ),
+            added[WALLPAPER_PALETTE_STYLE],
+        )
+        assertEquals(listOf(BADGE_ATTRIBUTE to "@color/$WALLPAPER_BADGE_COLOR"), added[WALLPAPER_BADGE_STYLE])
+
+        val again = assertThrows(PatchException::class.java) {
+            addWallpaperResources(uses, attrs, parse("<resources />"), colorsV31, parse("<resources />"))
+        }
+        assertTrue(again.message, again.message!!.contains("already have a hushgram_accent_wallpaper_fill_ff"))
     }
 
     /** A blue named through a color, a color naming another, or written out counts, with its alpha. Nothing else does. */
@@ -180,6 +240,32 @@ class AccentThemeTest {
 
         val again = assertThrows(PatchException::class.java) { addAccentResources(uses, attrs, parse("<resources />"), parse("<resources />")) }
         assertTrue(again.message, again.message!!.contains("already have a hushgram_accent_fill_4d"))
+        assertTrue("no badge styles without the badge attribute", added.keys.none { it.startsWith("HushGramAccentBadge_") })
+    }
+
+    /** With Instagram's badge attribute declared, each color gets a badge color at its fill and a style pointing the attribute at it (#315). */
+    @Test
+    fun theBadgeStylesPointTheBadgeAttributeAtEachFill() {
+        val uses = setOf(AccentUse("igds_color_link", AccentRole.LINK_ON_DARK, 0xff))
+        val attrs = parse("<resources><attr name=\"$BADGE_ATTRIBUTE\" format=\"reference|color\" /></resources>")
+        val colors = parse("<resources />")
+        val styles = parse("<resources />")
+
+        addAccentResources(uses, attrs, colors, styles)
+
+        val values = colors.elements("color").associate { it.getAttribute("name") to it.textContent }
+        assertEquals("#ff7638fa", values["hushgram_accent_purple_badge"])
+        assertEquals("#ff00838f", values["hushgram_accent_teal_badge"])
+        assertEquals(ACCENT_PALETTES.size * 2, values.size)
+        val badges = styles.elements("style").filter { it.getAttribute("name").startsWith("HushGramAccentBadge_") }
+            .associate { style -> style.getAttribute("name") to style.elements("item").map { it.getAttribute("name") to it.textContent } }
+        assertEquals(ACCENT_PALETTES.map { badgeStyle(it) }, badges.keys.toList())
+        assertEquals(listOf(BADGE_ATTRIBUTE to "@color/hushgram_accent_orange_badge"), badges["HushGramAccentBadge_ORANGE"])
+
+        val taken = parse("<resources><color name=\"hushgram_accent_red_badge\">#ff000000</color></resources>")
+        val fresh = parse("<resources><attr name=\"$BADGE_ATTRIBUTE\" format=\"reference|color\" /></resources>")
+        val again = assertThrows(PatchException::class.java) { addAccentResources(uses, fresh, taken, parse("<resources />")) }
+        assertTrue(again.message, again.message!!.contains("already have a hushgram_accent_red_badge"))
     }
 
     @Test
@@ -198,44 +284,52 @@ class AccentThemeTest {
      * the activity. Anything else refuses before a change.
      */
     @Test
-    fun everyReturnOfTheOverridesAppliesTheTheme() {
-        val context = PatchContexts.of(listOf(activity(), overrides(), extension()))
+    fun everyReturnOfTheOverridesAndTheUtilAppliesTheTheme() {
+        val context = PatchContexts.of(listOf(activity(), overrides(), util(), extension()))
         context.applyAccentTheme("igds_color_link android:textColorLink")
         assertApplied("stand-in", context.mutableClassDefBy(OVERRIDES).methods.single { it.name == "A04" }, returns = 2)
+        assertApplied("stand-in util", context.mutableClassDefBy(UTIL).methods.single { it.name == "A01" }, returns = 1)
         val written = context.mutableClassDefBy(ACCENT_THEME).methods.single { it.name == "attributes" }.code()
         assertEquals(listOf(Opcode.CONST_STRING, Opcode.RETURN_OBJECT), written.take(2).map { it.opcode })
         assertEquals("igds_color_link android:textColorLink", (written.first() as ReferenceInstruction).reference.toString())
 
         for ((case, classes) in listOf(
-            "no activity" to listOf(overrides(), extension()),
-            "no overrides class" to listOf(activity(), extension()),
-            "a setup applying two styles" to listOf(activity(secondStyle = true), overrides(), extension()),
-            "nothing called after the style" to listOf(activity(callsOverrides = false), overrides(), extension()),
-            "overrides applying one style" to listOf(activity(), overrides(styles = 1), extension()),
-            "overrides writing over the activity" to listOf(activity(), overrides(reuseContext = true), extension()),
-            "no hook in the extension" to listOf(activity(), overrides()),
-            "no stub in the extension" to listOf(activity(), overrides(), extension(stub = false)),
+            "no activity" to listOf(overrides(), util(), extension()),
+            "no overrides class" to listOf(activity(), util(), extension()),
+            "a setup applying two styles" to listOf(activity(secondStyle = true), overrides(), util(), extension()),
+            "nothing called after the style" to listOf(activity(callsOverrides = false), overrides(), util(), extension()),
+            "overrides applying one style" to listOf(activity(), overrides(styles = 1), util(), extension()),
+            "overrides writing over the activity" to listOf(activity(), overrides(reuseContext = true), util(), extension()),
+            "no theme util" to listOf(activity(), overrides(), extension()),
+            "a util applying no style" to listOf(activity(), overrides(), util(applies = false), extension()),
+            "two theme utils" to listOf(activity(), overrides(), util(), util(type = "Lfixture/ThemeUtil2;"), extension()),
+            "a util writing over the context" to listOf(activity(), overrides(), util(reuseContext = true), extension()),
+            "no hook in the extension" to listOf(activity(), overrides(), util()),
+            "no stub in the extension" to listOf(activity(), overrides(), util(), extension(stub = false)),
         )) {
             val failure = assertThrows(case, PatchException::class.java) { PatchContexts.of(classes).applyAccentTheme("igds_color_link") }
             assertTrue("$case: ${failure.message}", failure.message!!.startsWith("Accent color"))
         }
         for ((case, attributes) in listOf("no list" to "", "a quote in a name" to "igds_color_link\"")) {
-            val untouched = PatchContexts.of(listOf(activity(), overrides(), extension()))
+            val untouched = PatchContexts.of(listOf(activity(), overrides(), util(), extension()))
             val failure = assertThrows(case, PatchException::class.java) { untouched.applyAccentTheme(attributes) }
             assertTrue("$case: ${failure.message}", failure.message!!.startsWith("Accent color"))
             assertEquals("$case: the stub untouched", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT),
                 untouched.classDefBy(ACCENT_THEME).methods.single { it.name == "attributes" }.code().map { it.opcode })
         }
-        val stub = overrides(styles = 1)
-        val refused = PatchContexts.of(listOf(activity(), stub, extension()))
+        val stub = overrides()
+        val refused = PatchContexts.of(listOf(activity(), stub, util(reuseContext = true), extension()))
         assertThrows(PatchException::class.java) { refused.applyAccentTheme("igds_color_link") }
-        assertEquals(stub.methods.single().implementation!!.instructions.map { it.opcode },
+        assertEquals("the overrides untouched when the util refuses", stub.methods.single().implementation!!.instructions.map { it.opcode },
             refused.classDefBy(OVERRIDES).methods.single().implementation!!.instructions.map { it.opcode })
     }
 
-    /** Every build of 452: the setup and the overrides are found by their shape, and each return applies the theme. */
+    /**
+     * Every build of 452: the setup and the overrides are found by their shape, the theme util by the
+     * line it logs, and each of their returns applies the theme.
+     */
     @Test
-    fun everyBuildAppliesTheThemeAfterTheOverrides() {
+    fun everyBuildAppliesTheThemeAfterTheOverridesAndTheUtil() {
         val builds = builds()
         assertEquals("every build of Instagram ${Fixtures.VERSION} has a fixture", Fixtures.BUILDS, builds.size)
         for ((code, bundle) in builds) {
@@ -247,12 +341,17 @@ class AccentThemeTest {
             val called = setup.code().mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
                 .first { it.parameterTypes.map(Any::toString) == listOf(CONTEXT) && it.returnType == "V" }
             val holder = FixtureDex.classes(bundle, setOf(called.definingClass)).getValue(called.definingClass)
-            val context = PatchContexts.of(listOf(activity, holder, extension()))
+            val logging = FixtureDex.classesLoading(bundle, THEME_UTIL_FAILURE).filter { it.type != holder.type && it.type != activity.type }
+            val context = PatchContexts.of(listOf(activity, holder, extension()) + logging)
             val found = context.findThemeOverrides()
             assertEquals("$code: the overrides", "${called.definingClass}->${called.name}", "${found.definingClass}->${found.name}")
             val returns = found.code().count { it.opcode == Opcode.RETURN_VOID }
+            val util = context.findThemeUtil()
+            assertTrue("$code: the util is static, ${util.definingClass}->${util.name}", AccessFlags.STATIC.isSet(util.accessFlags))
+            val utilReturns = util.code().count { it.opcode == Opcode.RETURN_VOID }
             context.applyAccentTheme("igds_color_link")
             assertApplied(code, context.mutableClassDefBy(called.definingClass).methods.single { it.name == called.name && it.parameterTypes.size == 1 }, returns)
+            assertApplied("$code util", context.mutableClassDefBy(util.definingClass).methods.single { it.name == util.name && it.parameterTypes.size == 1 }, utilReturns)
         }
     }
 
@@ -297,6 +396,20 @@ class AccentThemeTest {
                     listOf("igds_color_link" to "?attr/hushgram_accent_link_on_dark_ff"),
                     style.elements("item").map { it.getAttribute("name") to it.textContent.trim() },
                 )
+                assertTrue("$code: the badge style", "style/${badgeStyle(ACCENT_PALETTES.first())}" in added)
+                val badge = parse(File(res, "values/styles.xml").readText()).elements("style")
+                    .single { it.getAttribute("name") == badgeStyle(ACCENT_PALETTES.first()) }
+                assertEquals(
+                    listOf(BADGE_ATTRIBUTE to "@color/hushgram_accent_purple_badge"),
+                    badge.elements("item").map { it.getAttribute("name") to it.textContent.trim() },
+                )
+                // Material You's palette survives the encode, its colors naming the system palette on Android 12.
+                assertTrue("$code: the wallpaper palette", "style/$WALLPAPER_PALETTE_STYLE" in added)
+                assertTrue("$code: the wallpaper badge", "style/$WALLPAPER_BADGE_STYLE" in added)
+                val system = parse(File(res, "values-v31/colors.xml").readText()).elements("color")
+                    .associate { it.getAttribute("name") to it.textContent.trim() }
+                assertEquals("$code: the wallpaper's fill", "@android:color/system_accent1_500", system["hushgram_accent_wallpaper_fill_ff"])
+                assertEquals("$code: the wallpaper's dark link", "@android:color/system_accent1_200", system["hushgram_accent_wallpaper_link_on_dark_ff"])
             }
         } finally {
             work.deleteRecursively()
@@ -364,6 +477,7 @@ class AccentThemeTest {
         const val CONTEXT = "Landroid/content/Context;"
         const val THEME = "Landroid/content/res/Resources\$Theme;"
         const val OVERRIDES = "Lfixture/ThemeOverrides;"
+        const val UTIL = "Lfixture/ThemeUtil;"
 
         /** IgFragmentActivity's theme setup: one style, then the overrides on a static instance. */
         fun activity(secondStyle: Boolean = false, callsOverrides: Boolean = true): ClassDef {
@@ -400,6 +514,27 @@ class AccentThemeTest {
                 appendLine("return-void")
             }
             return classOf(OVERRIDES, method(OVERRIDES, "A04", listOf(CONTEXT), 3, body, static = false))
+        }
+
+        /** Instagram's theme util: its styles onto the context's theme, or the line it logs, then one return a goto reaches. */
+        fun util(type: String = UTIL, applies: Boolean = true, reuseContext: Boolean = false): ClassDef {
+            val body = buildString {
+                appendLine("const/4 v2, 0x1")
+                appendLine("const v1, 0x7f1402a0")
+                appendLine("if-eqz v1, :missing")
+                if (reuseContext) appendLine("const/4 p0, 0x0")
+                appendLine("invoke-virtual { p0 }, $CONTEXT->getTheme()$THEME")
+                appendLine("move-result-object v0")
+                if (applies) appendLine("invoke-virtual { v0, v1, v2 }, $THEME->applyStyle(IZ)V")
+                appendLine("goto :done")
+                appendLine(":missing")
+                appendLine("const-string v0, \"IgThemeUtil\"")
+                appendLine("const-string v1, \"$THEME_UTIL_FAILURE\"")
+                appendLine("invoke-static { v0, v1 }, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I")
+                appendLine(":done")
+                appendLine("return-void")
+            }
+            return classOf(type, method(type, "A01", listOf(CONTEXT), 3, body, static = true))
         }
 
         /** AccentTheme's hook, and the attribute stub as javac and D8 leave `return null`. */

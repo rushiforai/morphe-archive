@@ -7,9 +7,11 @@ package app.hushgram.extension.instagram.misc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.util.TypedValue;
 
@@ -19,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.List;
@@ -61,6 +64,7 @@ public class AccentColorTest {
     public void prepare() {
         Settings.ACCENT_COLOR.resetToDefault();
         Settings.ACCENT_HUE.resetToDefault();
+        MaterialYou.reset();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -131,7 +135,7 @@ public class AccentColorTest {
     public void aSwappedColorComesBackAsItIs() {
         Settings.ACCENT_COLOR.save(true);
         for (AccentHue hue : AccentHue.values()) {
-            if (hue == AccentHue.BLUE) continue;
+            if (hue == AccentHue.BLUE || hue == AccentHue.WALLPAPER) continue;
             Settings.ACCENT_HUE.save(hue);
             for (int shade : new int[] {hue.fill, hue.pressed, hue.dim, hue.linkOnLight, hue.linkOnDark, hue.pale}) {
                 int color = 0xff000000 | shade;
@@ -221,6 +225,7 @@ public class AccentColorTest {
     public void eachColorPickedAndInstagramBlue() {
         Settings.ACCENT_COLOR.save(true);
         for (AccentHue hue : AccentHue.values()) {
+            if (hue == AccentHue.WALLPAPER) continue;
             Settings.ACCENT_HUE.save(hue);
             int swapped = AccentColor.color(INDIGO);
             if (hue == AccentHue.BLUE) {
@@ -234,6 +239,36 @@ public class AccentColorTest {
     }
 
     /**
+     * #187: Material You gives each part the wallpaper palette's tone, keeping the alpha. Before
+     * Android 12 there's no palette, so Instagram's blue goes through.
+     */
+    @Test
+    public void materialYouTakesTheWallpapersTones() {
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.WALLPAPER);
+        ColorStateList button = button();
+        if (!MaterialYou.available()) {
+            assertNull(AccentColor.picked());
+            assertEquals(BLUE, AccentColor.color(BLUE));
+            assertSame(button, AccentColor.list(button));
+            return;
+        }
+        Context context = RuntimeEnvironment.getApplication();
+        int fill = context.getColor(android.R.color.system_accent1_500) & 0xffffff;
+        int pressed = context.getColor(android.R.color.system_accent1_600) & 0xffffff;
+        assertEquals(0xff000000 | fill, AccentColor.color(BLUE));
+        assertEquals(0xff000000 | fill, AccentColor.color(INDIGO));
+        assertEquals("a see-through step keeps its alpha", 0x4d000000 | fill, AccentColor.color(0x4d0095f6));
+        assertEquals(0xff000000 | pressed, AccentColor.color(PRESSED));
+        assertEquals(context.getColor(android.R.color.system_accent1_800) | 0xff000000, AccentColor.color(DIM));
+        assertEquals(0xff000000 | pressed, AccentColor.color(LINK_LIGHT));
+        assertEquals(context.getColor(android.R.color.system_accent1_200) | 0xff000000, AccentColor.color(LINK_DARK));
+        assertEquals(context.getColor(android.R.color.system_accent1_50) | 0xff000000, AccentColor.color(PALE_BLUE));
+        assertEquals(PRISM_BLACK, AccentColor.color(PRISM_BLACK));
+        assertEquals(0xff000000 | pressed, AccentColor.list(button).getColorForState(PRESSED_STATE, 0));
+    }
+
+    /**
      * White text on each fill reads at least as well as on Instagram's own blue, and each link
      * shade reads well on its screen, white for a light one and Prism's black for a dark one.
      */
@@ -241,8 +276,9 @@ public class AccentColorTest {
     public void everyColorStaysReadable() {
         double stock = contrast(WHITE, BLUE);
         for (AccentHue hue : AccentHue.values()) {
-            if (hue == AccentHue.BLUE) continue;
-            assertTrue(hue + ": white on its fill", contrast(WHITE, 0xff000000 | hue.fill) >= 3.9);
+            // Material You's tones are the phone's, read as Instagram runs.
+            if (hue == AccentHue.BLUE || hue == AccentHue.WALLPAPER) continue;
+            assertTrue(hue + ": white on its fill",contrast(WHITE, 0xff000000 | hue.fill) >= 3.9);
             assertTrue(hue + ": white on its fill against stock", contrast(WHITE, 0xff000000 | hue.fill) > stock);
             assertTrue(hue + ": white on it held down", contrast(WHITE, 0xff000000 | hue.pressed) >= 3.9);
             assertTrue(hue + ": its link on white", contrast(WHITE, 0xff000000 | hue.linkOnLight) >= 5.0);

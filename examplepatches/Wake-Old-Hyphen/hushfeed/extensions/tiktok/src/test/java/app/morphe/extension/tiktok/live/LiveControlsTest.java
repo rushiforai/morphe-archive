@@ -404,6 +404,27 @@ public class LiveControlsTest {
         assertFalse("paused, the row was hidden", LiveControls.hideStaleServicePlus(showing, null));
     }
 
+    @Test public void aNullFirstServicePlusItemCannotKeepThePreviousLivesRow() {
+        Row showing = new Row(true);
+        assertTrue("native rendering returns without clearing a null first item",
+                LiveControls.hideStaleServicePlus(showing,
+                        new Preview(Collections.singletonList(null))));
+        List<Object> items = new ArrayList<>();
+        items.add(null);
+        items.add(new Object());
+        assertTrue("the native renderer only reads the first item",
+                LiveControls.hideStaleServicePlus(showing, new Preview(items)));
+        Collections.reverse(items);
+        assertFalse("a valid first item is left to the native renderer",
+                LiveControls.hideStaleServicePlus(showing, new Preview(items)));
+        Collections.reverse(items);
+        assertFalse("a hidden row needs no reset",
+                LiveControls.hideStaleServicePlus(new Row(false), new Preview(items)));
+        setPaused(true);
+        assertFalse("Pause leaves native handling in place",
+                LiveControls.hideStaleServicePlus(showing, new Preview(items)));
+    }
+
     /** Stands in for TikTok's Widget: only {@code isShowing} is read. */
     @SuppressWarnings("unused")
     private static final class Row {

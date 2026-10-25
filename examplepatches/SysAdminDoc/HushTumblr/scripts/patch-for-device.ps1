@@ -105,12 +105,17 @@ $Keystore = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSP
 . (Join-Path $PSScriptRoot 'common.ps1')
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+. (Join-Path $PSScriptRoot 'apk-provenance.ps1')
 $Java = Resolve-Java -Explicit $Java
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list found: $catalogPath" }
-try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
-catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
+$catalogHeld = Open-HeldFile -Path $catalogPath -What 'The device patch catalog'
+try {
+    $catalog = Get-Content -LiteralPath (Get-HeldPath $catalogHeld) -Raw | ConvertFrom-Json
+    $catalogDigest = Get-StreamSha256 $catalogHeld
+} catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
+finally { $catalogHeld.Dispose(); $catalogHeld = $null }
 $target = Get-PatchTarget -PatchList $catalog
 if (-not $Apk -and $env:HUSHTUMBLR_FIXTURE_DIR -and (Test-Path -LiteralPath $env:HUSHTUMBLR_FIXTURE_DIR -PathType Container)) {
     $Apk = (Get-ChildItem -LiteralPath $env:HUSHTUMBLR_FIXTURE_DIR `
@@ -150,6 +155,7 @@ $reservedHandle = $null
 $bundleHeld = $null
 $keystoreHeld = $null
 try {
+$catalogHeld = Open-HeldFile -Path $catalogPath -Sha256 $catalogDigest -What 'The device patch catalog'
 if ($OutputApk) {
     $reservedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputApk)
     if (-not (Test-Path -LiteralPath (Split-Path -Parent $reservedPath) -PathType Container)) {
@@ -507,6 +513,25 @@ if ($outputReservation) {
     $reservedHandle = Open-HeldFile -Path $reservedPath -Sha256 $copied -What 'The APK copied to -OutputApk'
     $out = Get-HeldPath -Stream $reservedHandle
 }
+$signedHandle = if ($reservedHandle) { $reservedHandle } else { $outHandle }
+$provenance = [ordered]@{
+    schema = 1
+    bundleSha256 = Get-StreamSha256 $bundleHeld
+    sourceSha256 = Get-HeldSourceSha256 -Merged $patchInput
+    inputIdentity = Get-HeldInputIdentity -Merged $patchInput
+    mergedApkSha256 = (Get-FileHash -LiteralPath $patchInput -Algorithm SHA256).Hash.ToLowerInvariant()
+    catalogSha256 = Get-StreamSha256 $catalogHeld
+    patches = @($names | Sort-Object)
+    options = @($Option | Sort-Object)
+    output = [ordered]@{
+        sha256 = Get-StreamSha256 $signedHandle
+        package = $patchedManifest.package
+        versionName = $patchedManifest.versionName
+        versionCode = [string]$patchedManifest.versionCode
+        signers = @($signedBy.Signers)
+    }
+}
+Write-HushApkProvenance -Path "$out.provenance.json" -Provenance $provenance
 $complete = $true
 Write-Host "[device] $out"
 Write-Output $out
@@ -527,7 +552,7 @@ try {
 } finally {
     if ($outputReservation) { $outputReservation.Dispose() }
     # Held until every reader is done, and a held file can't be deleted.
-    foreach ($held in @($outHandle, $resultHandle, $reservedHandle, $bundleHeld, $keystoreHeld)) { if ($null -ne $held) { $held.Dispose() } }
+    foreach ($held in @($outHandle, $resultHandle, $reservedHandle, $bundleHeld, $keystoreHeld, $catalogHeld)) { if ($null -ne $held) { $held.Dispose() } }
     Close-AppliedRecord -Record $recorded
     Close-MergedApk -Merged $patchInput
     # These are this run's paths only. A missing or replaced owner marker fails closed.

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -8,17 +8,21 @@
 package app.morphe.extension.youtube.videoplayer;
 
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
+import android.widget.ToggleButton;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch;
 import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTranslationPatch;
-import app.morphe.extension.youtube.patches.voiceovertranslation.VotBottomSheet;
+import app.morphe.extension.youtube.patches.voiceovertranslation.VOTBottomSheet;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings("unused")
@@ -40,16 +44,20 @@ public final class VoiceOverTranslationButton {
 
             ImageView button = PlayerOverlayButton.addButton(
                     controlsView,
-                    "morphe_yt_vot_bold",
+                    PlayerIcons.name("morphe_yt_vot"),
                     view -> {
                         VoiceOverTranslationPatch.toggleTranslation();
                         refreshActivatedState();
                     },
                     view -> {
-                        VotBottomSheet.show(view.getContext());
+                        VOTBottomSheet.show(view.getContext());
                         return true;
                     });
             overlayButtonRef = button != null ? new WeakReference<>(button) : null;
+            if (button != null) {
+                button.setContentDescription(ResourceUtils.getString("morphe_vot_screen_title"));
+                setToggleAccessibilityDelegate(button);
+            }
             refreshActivatedState();
         } catch (Exception ex) {
             Logger.printException(() -> "initializeButton failure", ex);
@@ -75,13 +83,35 @@ public final class VoiceOverTranslationButton {
                         refreshActivatedState();
                     },
                     view -> {
-                        VotBottomSheet.show(view.getContext());
+                        VOTBottomSheet.show(view.getContext());
                         return true;
                     });
+            View legacyButton = Utils.getChildViewByResourceName(controlsView, "morphe_vot_button");
+            if (legacyButton != null) {
+                setToggleAccessibilityDelegate(legacyButton);
+            }
             refreshActivatedState();
         } catch (Exception ex) {
             Logger.printException(() -> "initializeLegacyButton failure", ex);
         }
+    }
+
+    /**
+     * Exposes the button to accessibility services as a toggle,
+     * so screen readers announce whether translation is on or off.
+     */
+    private static void setToggleAccessibilityDelegate(View button) {
+        button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public void onInitializeAccessibilityNodeInfo(@NonNull View host, @NonNull AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(ToggleButton.class.getName());
+                info.setCheckable(true);
+                // setChecked(int) is API 36 only, the boolean version still works on every version.
+                info.setChecked(VoiceOverTranslationPatch.isSessionEnabled());
+            }
+        });
     }
 
     private static void refreshActivatedState() {

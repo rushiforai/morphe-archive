@@ -228,6 +228,23 @@ public class SeenVideoHistoryTest {
         assertFalse(SeenVideoHistory.shouldHide("42"));
     }
 
+    @Test public void aWarmUpLoadsTheHistoryBeforeAnyFeedRead() throws Exception {
+        insert("recent", System.currentTimeMillis());
+        resetLoadedMemory();
+
+        // With the switch off there is nothing to read ahead for.
+        Settings.HIDE_SEEN_VIDEOS.save(false);
+        SeenVideoHistory.warmUp();
+        drain();
+        assertFalse(((AtomicBoolean) field("LOAD_STARTED")).get());
+
+        // On, the feed fetch starts the read while the page is still on its way (#172).
+        Settings.HIDE_SEEN_VIDEOS.save(true);
+        SeenVideoHistory.warmUp();
+        drain();
+        assertTrue(((java.util.Map<?, ?>) field("SEEN")).containsKey("recent"));
+    }
+
     @Test public void initialFeedFilteringLoadsRetainedHistoryAndPrunesExpiredSqlRows() throws Exception {
         Settings.SEEN_VIDEO_RETENTION_DAYS.save(7);
         long now = System.currentTimeMillis();

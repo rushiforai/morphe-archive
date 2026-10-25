@@ -39,7 +39,7 @@ internal const val HIDDEN_STATUS_BAR = "Lapp/morphe/extension/facebook/navigatio
 internal const val TOP_INSET = "$HIDDEN_STATUS_BAR->topInset(Landroid/view/View;I)I"
 
 private const val WINDOW_FIND_VIEW = "Landroid/view/Window;->findViewById(I)Landroid/view/View;"
-private const val ANDROIDX_INSETS = "Landroidx/core/graphics/Insets;"
+internal const val ANDROIDX_INSETS = "Landroidx/core/graphics/Insets;"
 
 /** The system bar padding's parameters: the context, the content view, two switches and the four insets. */
 private val PADDING_PARAMETERS = listOf(

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2100
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2100
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -20,6 +20,7 @@ import android.util.LongSparseArray;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Locale;
 
 import app.morphe.extension.reddit.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -77,7 +78,7 @@ public final class CustomFontPatch {
 
             final int weight = weightFromPath(path);
             final boolean italic = (style & Typeface.ITALIC) != 0
-                    || (path != null && path.toLowerCase().contains("italic"));
+                    || (path != null && path.toLowerCase(Locale.ROOT).contains("italic"));
 
             final long key = ((long) weight << 1) | (italic ? 1L : 0L);
             Typeface cached = CACHE.get(key);
@@ -139,7 +140,7 @@ public final class CustomFontPatch {
             return 400;
         }
 
-        String lowerCasePath = path.toLowerCase();
+        String lowerCasePath = path.toLowerCase(Locale.ROOT);
         if (lowerCasePath.contains("black")) {
             return 900;
         }

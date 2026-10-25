@@ -10,9 +10,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_BUSINESSCALENDAR
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Turns off Business Calendar 2's ad-serving gate and the \"ads or Pro\" dialog, " +
-        "stops FairBid from starting, preloading or showing interstitials, and disables Facebook " +
-        "Audience Network's auto-initialization."
+    description = "Removes all ads and the \"ads or Pro\" dialog."
 ) {
     compatibleWith(COMPATIBILITY_BUSINESSCALENDAR)
 

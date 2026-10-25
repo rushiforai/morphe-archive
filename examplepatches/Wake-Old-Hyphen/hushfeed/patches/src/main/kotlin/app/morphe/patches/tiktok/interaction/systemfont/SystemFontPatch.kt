@@ -133,7 +133,10 @@ val systemFontPatch = bytecodePatch(
                 .forEach { method ->
                     mutableEngine.methods
                         .first { it.name == method.name && it.parameterTypes == method.parameterTypes }
-                        .systemizeReturns()
+                        .apply {
+                            recordAsked()
+                            systemizeReturns()
+                        }
                 }
         }
 
@@ -275,6 +278,22 @@ internal fun isFontEngine(classDef: ClassDef): Boolean {
 internal fun Method.engineShape(): String? {
     if (returnType != TYPEFACE) return null
     return parameterTypes.joinToString("").takeIf { it == VARIATION_SHAPE || it == ASSET_SHAPE }
+}
+
+/**
+ * Hands the extension the weight and slant the engine is asked for, before it builds anything.
+ * PineDrama ships without TikTok's font files, so its engine returns null, and an imported font
+ * then has only this to be built at (#243). The variable builder's weight and slant are its
+ * second and third parameters, and the asset loader's file name says the weight.
+ */
+private fun MutableMethod.recordAsked() {
+    val first = if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
+    val call = if (engineShape() == VARIATION_SHAPE) {
+        "invoke-static/range {p${first + 1} .. p${first + 2}}, $EXTENSION_CLASS_DESCRIPTOR->askedWeight(IZ)V"
+    } else {
+        "invoke-static/range {p$first .. p$first}, $EXTENSION_CLASS_DESCRIPTOR->askedFile(Ljava/lang/String;)V"
+    }
+    addInstruction(0, call)
 }
 
 /** Sends every returned Typeface through the extension, which swaps it when the switch is on. */

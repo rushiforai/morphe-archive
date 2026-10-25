@@ -35,8 +35,7 @@ private const val PREFS = "Landroid/content/SharedPreferences;"
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Turns on the app's own ad-free mode, which removes the banner and the " +
-        "full-screen video ad shown before the auto clicker starts."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_LUCKYCLICK)
 

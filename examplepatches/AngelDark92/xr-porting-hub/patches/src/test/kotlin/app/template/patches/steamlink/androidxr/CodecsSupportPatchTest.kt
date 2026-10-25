@@ -31,14 +31,17 @@ class CodecsSupportPatchTest {
             setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
                 "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
+                "2.0.24" to 5002395,
             ),
             targets,
         )
         listOf(
             "2.0.20" to "5001712", "2.0.20" to "5001812",
             "2.0.21" to "5001968", "2.0.22" to "5002244", "2.0.23" to "5002363",
+            "2.0.24" to "5002395",
         ).forEach { (version, code) -> assertTrue(isCodecsSupportSteamLinkBuild(version, code)) }
         listOf("2.0.20" to "5002363", "2.0.23" to "5002322",
+            "2.0.24" to "5002363",
             "2.0.23" to "5002296", "2.0.23" to "5002313",
             "2.0.23" to "5002318", "2.0.23" to "5002364").forEach { (version, code) ->
             assertFalse(isCodecsSupportSteamLinkBuild(version, code))
@@ -61,6 +64,7 @@ class CodecsSupportPatchTest {
         listOf(
             "2.0.20" to "5001712", "2.0.20" to "5001812",
             "2.0.21" to "5001968", "2.0.22" to "5002244", "2.0.23" to "5002363",
+            "2.0.24" to "5002395",
         ).forEach { (version, code) ->
             val original = originalScene(version, code)
             validateCodecsSupportScene(original, version, code)
@@ -224,6 +228,18 @@ class CodecsSupportPatchTest {
             assertEquals("stale helper", helperFile.readText())
         }
 
+    @Test
+    fun `telemetry option fails closed on a build without an admission profile`() =
+        withFixtureRoot("2.0.24", "5002395") { root ->
+            val scene = sceneFile(root).readBytes()
+            assertFailsWith<PatchException> {
+                installCodecsSupportResources(root, "2.0.24", "5002395", enableTelemetry = true)
+            }
+            assertContentEquals(scene, sceneFile(root).readBytes())
+            assertFalse(File(sceneFile(root).parentFile, CODECS_SUPPORT_LIBRARY).exists())
+            assertFalse(File(root, "assets/gxr-telemetry").exists())
+        }
+
     private fun payload(): Pair<ByteArray, ByteArray> {
         // Canonical payloads are tracked build inputs, so absence/tampering must fail CI.
         return projectionModeResource(CODECS_SUPPORT_LIBRARY) to
@@ -235,6 +251,7 @@ class CodecsSupportPatchTest {
         "2.0.20/5001812" -> listOf(0xfd1c0, 0xfdb64, 0xfd1b4)
         "2.0.21/5001968" -> listOf(0xf9168, 0xf9b0c, 0xf915c)
         "2.0.22/5002244" -> listOf(0xfa4a8, 0xfae4c, 0xfa49c)
+        "2.0.24/5002395" -> listOf(0xfe954, 0xff2f8, 0xfe948)
         else -> listOf(0xfd6fc, 0xfe0a0, 0xfd6f0)
     }
 

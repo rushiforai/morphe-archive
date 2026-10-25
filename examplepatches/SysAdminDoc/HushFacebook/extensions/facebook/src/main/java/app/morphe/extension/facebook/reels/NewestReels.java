@@ -81,6 +81,11 @@ public final class NewestReels {
         }
     }
 
+    /** Records an unavailable lazy edge without interrupting Facebook's signal creation. */
+    public static void edgeFailed(Throwable failure) {
+        HookStatus.threw(FAMILY, "reel edge", failure);
+    }
+
     /**
      * Injection point, as Facebook's ranker makes a reel's signal. Keeps the reel's posting time
      * when its feed is one of the Reels feeds. Never throws.

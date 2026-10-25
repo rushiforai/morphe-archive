@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -98,6 +99,36 @@ internal val ACCENT_PALETTES = listOf(
     AccentPalette("TEAL", 0x00838f, 0x00727c, 0x4dd0d9),
 )
 
+/**
+ * Material You (#187, #264), AccentHue.WALLPAPER: the step of Android 12's first accent family each
+ * part takes, as MaterialYou.java reads them (system_accent1_500 is tone 50).
+ */
+internal val WALLPAPER_STEPS: Map<AccentRole, Int> = mapOf(
+    AccentRole.FILL to 500, AccentRole.PRESSED to 600, AccentRole.DIM to 800,
+    AccentRole.LINK_ON_LIGHT to 600, AccentRole.LINK_ON_DARK to 200, AccentRole.PALE to 50,
+)
+
+/**
+ * The same tones of Material's own purple, for the default configuration. The extension offers the
+ * wallpaper only on Android 12 and newer, where values-v31 answers, so these never show.
+ */
+internal val WALLPAPER_FALLBACK: Map<AccentRole, Int> = mapOf(
+    AccentRole.FILL to 0x7f67be, AccentRole.PRESSED to 0x6750a4, AccentRole.DIM to 0x381e72,
+    AccentRole.LINK_ON_LIGHT to 0x6750a4, AccentRole.LINK_ON_DARK to 0xd0bcff, AccentRole.PALE to 0xf6edff,
+)
+
+internal const val WALLPAPER = "WALLPAPER"
+
+internal fun wallpaperColor(shade: String): String = "hushgram_accent_wallpaper_$shade"
+
+internal fun systemColor(role: AccentRole): String = "@android:color/system_accent1_${WALLPAPER_STEPS.getValue(role)}"
+
+internal const val WALLPAPER_PALETTE_STYLE = "HushGramAccentPalette_$WALLPAPER"
+
+internal const val WALLPAPER_BADGE_COLOR = "hushgram_accent_wallpaper_badge"
+
+internal const val WALLPAPER_BADGE_STYLE = "HushGramAccentBadge_$WALLPAPER"
+
 /** One theme attribute set to an accent blue somewhere in Instagram's styles, with the blue's alpha. */
 internal data class AccentUse(val attribute: String, val role: AccentRole, val alpha: Int) {
     val shade: String get() = shadeName(role, alpha)
@@ -113,6 +144,16 @@ internal fun paletteColor(palette: AccentPalette, shade: String): String =
     "hushgram_accent_${palette.name.lowercase(Locale.ROOT)}_$shade"
 
 internal fun paletteStyle(palette: AccentPalette): String = "HushGramAccentPalette_${palette.name}"
+
+/**
+ * The theme attribute Instagram's red badges read, the dots and counts on its icons (#315). The like
+ * heart and the red delete buttons read others, so pointing this one at the picked color leaves them red.
+ */
+internal const val BADGE_ATTRIBUTE = "igds_color_icon_badge"
+
+internal fun badgeColor(palette: AccentPalette): String = "hushgram_accent_${palette.name.lowercase(Locale.ROOT)}_badge"
+
+internal fun badgeStyle(palette: AccentPalette): String = "HushGramAccentBadge_${palette.name}"
 
 private fun Document.children(tag: String): List<Element> {
     val list = documentElement.getElementsByTagName(tag)
@@ -189,7 +230,9 @@ internal fun accentUses(styles: List<Document>, colors: Map<String, Set<Int>>): 
  * - an attribute for each shade the uses need (a part and an alpha), `hushgram_accent_fill_ff`;
  * - each color's value of each of those shades, `hushgram_accent_purple_fill_ff`;
  * - for each color, a style setting each shade attribute to that color's resource;
- * - for each use, a style setting its attribute to its shade attribute, `?attr/hushgram_accent_fill_ff`.
+ * - for each use, a style setting its attribute to its shade attribute, `?attr/hushgram_accent_fill_ff`;
+ * - when attrs.xml declares [BADGE_ATTRIBUTE], each color's fill as a badge color and a style setting
+ *   the attribute to it, `HushGramAccentBadge_PURPLE`, for Badges in the accent color (#315).
  *
  * The extension lays a color's style and the styles for whatever its theme's attributes hold onto the
  * theme. The shade attributes stand between them because a part and alpha is the same whatever color
@@ -201,9 +244,11 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
     val shades = uses.map { it.shade }.distinct().sorted()
     val taken = (attrs.children("attr") + colors.children("color") + styles.children("style"))
         .mapTo(HashSet()) { it.getAttribute("name") }
+    val badges = attrs.children("attr").any { it.getAttribute("name") == BADGE_ATTRIBUTE }
     val adding = shades.map(::shadeAttribute) +
         ACCENT_PALETTES.flatMap { palette -> shades.map { paletteColor(palette, it) } + paletteStyle(palette) } +
-        uses.map { it.style }
+        uses.map { it.style } +
+        (if (badges) ACCENT_PALETTES.flatMap { listOf(badgeColor(it), badgeStyle(it)) } else emptyList())
     adding.firstOrNull { it in taken }?.let { refuse("the resources already have a $it") }
 
     for (shade in shades) {
@@ -237,8 +282,81 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
             })
         })
     }
+    if (badges) {
+        for (palette in ACCENT_PALETTES) {
+            colors.documentElement.appendChild(colors.createElement("color").apply {
+                setAttribute("name", badgeColor(palette))
+                textContent = "#ff%06x".format(palette.shades.getValue(AccentRole.FILL))
+            })
+            styles.documentElement.appendChild(styles.createElement("style").apply {
+                setAttribute("name", badgeStyle(palette))
+                appendChild(styles.createElement("item").apply {
+                    setAttribute("name", BADGE_ATTRIBUTE)
+                    textContent = "@color/${badgeColor(palette)}"
+                })
+            })
+        }
+    }
     return uses.map { it.attribute }.distinct().joinToString(" ")
 }
+
+/**
+ * What the patch adds for Material You, after [addAccentResources] has declared the shade attributes:
+ *
+ * - for each opaque shade the uses need, a color at [WALLPAPER_FALLBACK] in the default
+ *   configuration and at the wallpaper's system color in [colorsV31], `hushgram_accent_wallpaper_fill_ff`;
+ * - a style setting each of those shade attributes to its color, [WALLPAPER_PALETTE_STYLE];
+ * - when attrs.xml declares [BADGE_ATTRIBUTE], a badge color at the fill and a style pointing the
+ *   attribute at it, for Badges in the accent color (#315).
+ *
+ * A see-through shade gets none: a plain color can't give a system color another alpha, and a color
+ * state list reads back as a file name to Instagram's own reads, so the extension leaves those
+ * attributes on Instagram's blue for its color hooks to swap. Refuses if any name it adds is there.
+ */
+internal fun addWallpaperResources(uses: Set<AccentUse>, attrs: Document, colors: Document, colorsV31: Document, styles: Document) {
+    val opaque = uses.filter { it.alpha == 0xff }.distinctBy { it.shade }.sortedBy { it.shade }
+    val taken = (colors.children("color") + colorsV31.children("color") + styles.children("style"))
+        .mapTo(HashSet()) { it.getAttribute("name") }
+    val badges = attrs.children("attr").any { it.getAttribute("name") == BADGE_ATTRIBUTE }
+    val adding = opaque.map { wallpaperColor(it.shade) } + WALLPAPER_PALETTE_STYLE +
+        (if (badges) listOf(WALLPAPER_BADGE_COLOR, WALLPAPER_BADGE_STYLE) else emptyList())
+    adding.firstOrNull { it in taken }?.let { refuse("the resources already have a $it") }
+
+    fun color(name: String, role: AccentRole) {
+        colors.documentElement.appendChild(colors.createElement("color").apply {
+            setAttribute("name", name)
+            textContent = "#ff%06x".format(WALLPAPER_FALLBACK.getValue(role))
+        })
+        colorsV31.documentElement.appendChild(colorsV31.createElement("color").apply {
+            setAttribute("name", name)
+            textContent = systemColor(role)
+        })
+    }
+
+    val style = styles.createElement("style").apply { setAttribute("name", WALLPAPER_PALETTE_STYLE) }
+    for (use in opaque) {
+        color(wallpaperColor(use.shade), use.role)
+        style.appendChild(styles.createElement("item").apply {
+            setAttribute("name", shadeAttribute(use.shade))
+            textContent = "@color/${wallpaperColor(use.shade)}"
+        })
+    }
+    styles.documentElement.appendChild(style)
+    if (badges) {
+        color(WALLPAPER_BADGE_COLOR, AccentRole.FILL)
+        styles.documentElement.appendChild(styles.createElement("style").apply {
+            setAttribute("name", WALLPAPER_BADGE_STYLE)
+            appendChild(styles.createElement("item").apply {
+                setAttribute("name", BADGE_ATTRIBUTE)
+                textContent = "@color/$WALLPAPER_BADGE_COLOR"
+            })
+        })
+    }
+}
+
+private const val COLORS_V31 = "res/values-v31/colors.xml"
+
+private const val EMPTY_RESOURCES = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n"
 
 /**
  * Reads every configuration's colors and styles, then adds the theme resources for each accent
@@ -257,9 +375,19 @@ internal fun ResourcePatchContext.addAccentTheme(): String {
     for (needed in listOf("igds_color_link", "igds_color_primary_button_indigo")) {
         if (uses.none { it.attribute == needed }) refuse("no style sets $needed to one of Instagram's blues")
     }
+    get(COLORS_V31, false).takeIf { !it.exists() }?.let { file ->
+        file.parentFile.mkdirs()
+        file.writeText(EMPTY_RESOURCES)
+    }
     return document("res/values/attrs.xml").use { attrs ->
         document("res/values/colors.xml").use { colors ->
-            document("res/values/styles.xml").use { styles -> addAccentResources(uses, attrs, colors, styles) }
+            document(COLORS_V31).use { colorsV31 ->
+                document("res/values/styles.xml").use { styles ->
+                    addAccentResources(uses, attrs, colors, styles).also {
+                        addWallpaperResources(uses, attrs, colors, colorsV31, styles)
+                    }
+                }
+            }
         }
     }
 }
@@ -316,18 +444,49 @@ internal fun BytecodePatchContext.findThemeOverrides(): MutableMethod {
     }
 }
 
+/** What Instagram's theme util logs when its style list isn't loaded yet. Nothing else in the app says it. */
+internal const val THEME_UTIL_FAILURE = "Failed to apply theme to Activity because theme provider not initialized"
+
 /**
- * Writes [attributes] into the extension's stub, then runs AccentTheme.apply with the activity at
- * each of the overrides' returns, once Instagram's styles are all on.
+ * Instagram's theme util: the static (Context)V laying its theme provider's styles onto a context's
+ * theme. It styles the activities, and also contexts of Instagram's own making, such as the
+ * ContextThemeWrapper the tab bar is inflated in off the main thread, which the overrides never reach
+ * (#315). Its class is found by the line it logs when the styles aren't loaded, held or asked of a
+ * string pool, and it's that class's one static (Context)V applying a style.
+ */
+internal fun BytecodePatchContext.findThemeUtil(): MutableMethod {
+    val found = classesLoadingString(THEME_UTIL_FAILURE).flatMap { type ->
+        type.methods.filter { method ->
+            AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
+                method.parameterTypes.map(Any::toString) == listOf(CONTEXT) && method.code().any { it.calls(THEME, "applyStyle") }
+        }
+    }
+    val util = found.singleOrNull()
+        ?: refuse("expected one static (Context)V applying a style beside \"$THEME_UTIL_FAILURE\", found ${found.size}")
+    val returns = util.code().indices.filter { util.code()[it].opcode == Opcode.RETURN_VOID }
+    if (returns.isEmpty()) refuse("${util.where()} never returns")
+    util.requireParameterIntact(PATCH, 0, returns)
+    return mutableClassDefBy(util.definingClass).methods.single {
+        it.name == util.name && it.parameterTypes.map(Any::toString) == listOf(CONTEXT) && it.returnType == "V"
+    }
+}
+
+/**
+ * Writes [attributes] into the extension's stub, then runs AccentTheme.apply with the context at each
+ * return of the overrides, once Instagram's styles are all on an activity, and of the theme util, for
+ * the contexts Instagram styles itself.
  */
 internal fun BytecodePatchContext.applyAccentTheme(attributes: String = requireAccentAttributes()) {
     val overrides = findThemeOverrides()
+    val util = findThemeUtil()
     val listed = requireAccentAttributes(attributes)
     mutableClassDefBy(ACCENT_THEME).methods.single { it.signature() == ATTRIBUTES_STUB }.returnEarly(listed)
-    val context = overrides.parameterRegisterNumber(0)
-    val returns = overrides.code().indices.filter { overrides.code()[it].opcode == Opcode.RETURN_VOID }
-    for (at in returns.asReversed()) {
-        overrides.addInstructionsAtControlFlowLabel(at, "invoke-static/range { v$context .. v$context }, $APPLY_THEME")
+    for (method in listOf(overrides, util)) {
+        val context = method.parameterRegisterNumber(0)
+        val returns = method.code().indices.filter { method.code()[it].opcode == Opcode.RETURN_VOID }
+        for (at in returns.asReversed()) {
+            method.addInstructionsAtControlFlowLabel(at, "invoke-static/range { v$context .. v$context }, $APPLY_THEME")
+        }
     }
 }
 

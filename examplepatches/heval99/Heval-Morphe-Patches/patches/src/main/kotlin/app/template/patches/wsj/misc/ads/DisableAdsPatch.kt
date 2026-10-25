@@ -48,8 +48,7 @@ private const val MUTABLE_STATE_FLOW = "Lkotlinx/coroutines/flow/MutableStateFlo
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the display and native ads from section fronts, articles and market " +
-        "pages, without leaving empty ad slots, and the pre-roll ads before videos."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_WSJ)
 

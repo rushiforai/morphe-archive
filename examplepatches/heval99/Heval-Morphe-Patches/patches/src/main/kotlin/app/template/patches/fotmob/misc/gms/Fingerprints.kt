@@ -7,10 +7,12 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-// The launch activity (MAIN/LAUNCHER, and the target of every app-icon alias). Its class is
-// declared in the manifest, so R8 keeps the name; onCreate(Bundle) is a framework override.
-internal object MainActivityWrapperOnCreateFingerprint : Fingerprint(
-    definingClass = "Lcom/fotmob/android/ui/MainActivityWrapper;",
+// The launch activity (the target of the MAIN/LAUNCHER alias and every app-icon alias). Its class
+// is declared in the manifest, so R8 keeps the name; onCreate(Bundle) is a framework override.
+// Until 238 the launcher was a MainActivityWrapper class; 239 removed it and made
+// .ui.MainActivityWrapper an activity-alias of MainActivity.
+internal object MainActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/fotmob/android/ui/MainActivity;",
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),

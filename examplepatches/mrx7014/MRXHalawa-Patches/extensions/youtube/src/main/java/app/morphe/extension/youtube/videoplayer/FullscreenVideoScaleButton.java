@@ -1,13 +1,11 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2616
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2616
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.extension.youtube.videoplayer;
-
-import static app.morphe.extension.shared.StringRef.str;
 
 import android.view.View;
 import android.widget.ImageView;
@@ -17,13 +15,12 @@ import androidx.annotation.Nullable;
 import java.lang.ref.WeakReference;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.ResourceType;
-import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch;
 import app.morphe.extension.youtube.patches.FullscreenVideoScalePatch;
 import app.morphe.extension.youtube.patches.FullscreenVideoScalePatch.VideoScaleMode;
+import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.PlayerType;
 
 @SuppressWarnings("unused")
 public class FullscreenVideoScaleButton {
@@ -43,12 +40,14 @@ public class FullscreenVideoScaleButton {
                 return;
             }
 
-            overlayButtonRef = new WeakReference<>(PlayerOverlayButton.addButton(
+            ImageView added = PlayerOverlayButton.addButton(
                     controlsView,
                     getIconName(Settings.FULLSCREEN_VIDEO_SCALE.get()),
+                    FullscreenVideoScaleButton::isOverlayButtonEnabled,
                     view -> cycleScaleMode(),
                     null
-            ));
+            );
+            overlayButtonRef = new WeakReference<>(added);
         } catch (Exception ex) {
             Logger.printException(() -> "initializeButton failure", ex);
         }
@@ -68,13 +67,27 @@ public class FullscreenVideoScaleButton {
                     "fullscreen_video_scale_button",
                     null,
                     Settings.FULLSCREEN_VIDEO_SCALE.get().iconBaseName,
-                    Settings.FULLSCREEN_VIDEO_SCALE_BUTTON,
+                    () -> isOverlayButtonEnabled()
+                            ? LegacyPlayerControlButton.ButtonVisibility.ENABLED
+                            : LegacyPlayerControlButton.ButtonVisibility.DISABLED,
                     view -> cycleScaleMode(),
                     null
             );
         } catch (Exception ex) {
             Logger.printException(() -> "initializeLegacyButton failure", ex);
         }
+    }
+
+    private static boolean isOverlayButtonEnabled() {
+        if (!Settings.FULLSCREEN_VIDEO_SCALE_BUTTON.get()) {
+            return false;
+        }
+        if (!Settings.FULLSCREEN_VIDEO_SCALE_BUTTON_FULLSCREEN_ONLY.get()) {
+            return true;
+        }
+        PlayerType type = PlayerType.getCurrent();
+        return type == PlayerType.WATCH_WHILE_FULLSCREEN
+                || type == PlayerType.WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN;
     }
 
     private static void cycleScaleMode() {
@@ -96,26 +109,19 @@ public class FullscreenVideoScaleButton {
     private static void updateButtonIcon(VideoScaleMode mode) {
         Utils.verifyOnMainThread();
 
+        final int icon = PlayerIcons.id(mode.iconBaseName);
+
         ImageView overlayButton = overlayButtonRef.get();
         if (overlayButton != null) {
-            overlayButton.setImageResource(ResourceUtils.getIdentifierOrThrow(
-                    ResourceType.DRAWABLE,
-                    getIconName(mode)
-            ));
+            overlayButton.setImageResource(icon);
         }
 
         if (legacy != null) {
-            legacy.setIcon(ResourceUtils.getIdentifierOrThrow(
-                    ResourceType.DRAWABLE,
-                    getIconName(mode)
-            ));
+            legacy.setIcon(icon);
         }
     }
 
     private static String getIconName(VideoScaleMode mode) {
-        String base = mode.iconBaseName;
-        return LegacyPlayerControlsPatch.RESTORE_OLD_PLAYER_BUTTONS
-                ? base
-                : base + "_bold";
+        return PlayerIcons.name(mode.iconBaseName);
     }
 }

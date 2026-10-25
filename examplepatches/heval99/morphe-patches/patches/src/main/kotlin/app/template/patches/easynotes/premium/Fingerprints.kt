@@ -1,6 +1,8 @@
 package app.template.patches.easynotes.premium
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 /**
  * Matches [notes.easy.android.mynotes.App.isVip].
@@ -12,12 +14,14 @@ import app.morphe.patcher.Fingerprint
  *
  * Resolved by the `"isVip "` string literal (note the trailing space) that is appended to the
  * Crashlytics message in this method's catch block. That literal occurs exactly once in the whole
- * APK, so the fingerprint is stable even though R8 is free to rename the method.
+ * APK, so the fingerprint is stable even though R8 is free to rename the method. It is a
+ * concatenation piece, so it is matched with CONTAINS, as patcher 1.8.0 matched raw `strings`
+ * (patcher 2.0 compares raw `strings` with the whole constant).
  */
 object AppIsVipFingerprint : Fingerprint(
-    strings = listOf("isVip "),
     returnType = "Z",
     parameters = emptyList(),
+    filters = listOf(string("isVip ", StringComparisonType.CONTAINS)),
 )
 
 /**

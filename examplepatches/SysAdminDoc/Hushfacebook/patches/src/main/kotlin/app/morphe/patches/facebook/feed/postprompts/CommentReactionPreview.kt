@@ -12,6 +12,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutab
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -155,13 +156,15 @@ internal fun BytecodePatchContext.tagCommentFaces(component: ClassDef, facepile:
     val callers = mutableListOf<FaceCaller>()
     val builders = mutableMapOf<String, List<Pair<Method, List<Pair<Int, Int>>>>>()
     val commentReturns = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE) || classDef.type == component.type) return@classDefForEach
+    // A face caller reads a field of the component and a builder constructs it. A method taking a
+    // comment names its type.
+    classDefForEachReferencing(types = listOf(component.type, GRAPHQL_COMMENT)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE) || classDef.type == component.type) return@classDefForEachReferencing
         for (method in classDef.methods) {
             faceCaller(method, factory, component.type)?.let { callers += it }
             if (takesComment(method)) commentReturns += method.returnType
         }
-        if (classDef.type == comment.type) return@classDefForEach
+        if (classDef.type == comment.type) return@classDefForEachReferencing
         val sites = classDef.methods.mapNotNull { method ->
             componentConstructions(method, component.type).takeIf { it.isNotEmpty() }?.let { method to it }
         }

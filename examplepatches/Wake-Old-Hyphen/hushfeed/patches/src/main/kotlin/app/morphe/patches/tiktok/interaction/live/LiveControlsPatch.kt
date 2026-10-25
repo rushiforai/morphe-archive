@@ -251,6 +251,22 @@ internal object LiveDefinitionListFingerprint : Fingerprint(
     parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
 )
 
+/** The newer LIVE quality picker, a room menu's Video quality on 47.5.3, real-named. */
+internal const val LIVE_TALENT_DEFINITION_DIALOG =
+    "Lcom/bytedance/android/livesdk/definition/talent/LiveTalentDefinitionSelectionDialog;"
+
+/**
+ * The newer picker's view being set up. Its rows sit on a fixed white card inside the dark sheet,
+ * and their text follows the room's theme, so in dark mode they read light on white (S22,
+ * 2026-10-24, #57).
+ */
+internal object LiveTalentDefinitionListFingerprint : Fingerprint(
+    definingClass = LIVE_TALENT_DEFINITION_DIALOG,
+    name = "onViewCreated",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
+)
+
 /**
  * Every return-object in [method], last first, with the register it returns. A return that
  * isn't a plain v0..v15 register, or a method whose `this` sits above v15, can't take the
@@ -1271,9 +1287,9 @@ private fun onlyReaches(method: Method, definition: Int, use: Int, register: Int
 
 /**
  * Hands each of the badge tile's backgrounds to the extension in place of TikTok's own call. While
- * Dark LIVE panels is on in dark mode, the extension lays a white copy of the tile's shape under
- * it, so the server's see-through art and text draw over white the way they do on the stock card.
- * The call takes the same two registers, so nothing else in the method moves.
+ * Dark LIVE panels is on in dark mode, the extension gives a solid light tile the dark fill and
+ * lays a see-through one over a dark copy of its shape, then lights the text over the tile. The
+ * call takes the same two registers, so nothing else in the method moves.
  */
 internal fun hookBadgeTiles(bind: MutableMethod) {
     val calls = badgeTileCalls(bind) ?: throw PatchException("LIVE controls: the profile card's badge tile wasn't found")
@@ -1283,6 +1299,44 @@ internal fun hookBadgeTiles(bind: MutableMethod) {
             at,
             "invoke-static {v${call.registerC}, v${call.registerD}}, " +
                 "$PANEL_THEME->badgeTile(Landroid/view/View;Landroid/graphics/drawable/Drawable;)V",
+        )
+    }
+}
+
+/** The host side of LIVE's share calls, real-named on 47.5.3. */
+internal const val LIVE_HOST_SHARE = "Lcom/ss/android/ugc/aweme/live/livehostimpl/LiveHostShare;"
+
+/**
+ * A viewer's long-press menu in a room (share, report and the rest) being built (#159): the
+ * plain dialog a video's long press opens, which the room shows as soon as this returns it.
+ * The menu isn't one of LIVE's themed panels, so nothing reached its window and its navigation
+ * bar stayed light under the dark menu (S22, 2026-10-24). Its share sheet controller gets a null
+ * dialog from both of TikTok's menus, so a hook reading that never saw a window.
+ */
+internal object LiveLongPressMenuFingerprint : Fingerprint(
+    definingClass = LIVE_HOST_SHARE,
+    name = "getLongPressShareDialog",
+    returnType = "Landroid/app/Dialog;",
+)
+
+/**
+ * Hands the menu each of the factory's returns gives the room to the extension first, on the
+ * return's own label and register, so nothing else in the factory moves.
+ */
+internal fun hookLongPressMenu(factory: MutableMethod) {
+    val body = factory.implementation ?: throw PatchException("LIVE controls: the long-press menu's factory has no body")
+    val returns = body.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }.reversed()
+    if (returns.isEmpty()) {
+        throw PatchException("LIVE controls: the long-press menu's factory doesn't return")
+    }
+    returns.forEach { (at, instruction) ->
+        val menu = (instruction as OneRegisterInstruction).registerA
+        if (menu > 15) {
+            throw PatchException("LIVE controls: the long-press menu's factory returns from v$menu")
+        }
+        factory.addInstructionsAtControlFlowLabel(
+            at,
+            "invoke-static {v$menu}, $PANEL_THEME->liveMenu(Landroid/app/Dialog;)V",
         )
     }
 }
@@ -1737,7 +1791,7 @@ val liveControlsPatch = bytecodePatch(
         "and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
 ) {
     category("Playback")
-    dependsOn(settingsPatch, sharedExtensionPatch, ownedShareActionsPatch)
+    dependsOn(settingsPatch, sharedExtensionPatch, ownedShareActionsPatch, screenRecordManifestPatch)
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
@@ -1847,15 +1901,20 @@ val liveControlsPatch = bytecodePatch(
         hookEventBox(LiveProfileEventFingerprint.method)
         // Its badge tiles carry server art and text drawn for the white card, the low levels'
         // tile see-through, so both went dark gray on the dark card (Login2, 2026-10-20). The
-        // extension lays a white copy of each tile's shape under it while the switch is on in
-        // dark mode.
+        // extension puts each tile on a dark copy of its shape while the switch is on in dark mode.
         hookBadgeTiles(LiveProfileBadgeFingerprint.method)
+        // A viewer's long-press menu is a plain dialog, so its navigation bar stayed light under
+        // the dark menu (S22, 2026-10-24). The factory the room gets it from hands it over.
+        hookLongPressMenu(LiveLongPressMenuFingerprint.method)
         // Its group chat row is the same kind of fixed white shape under text in the card theme's
         // colors (Login2, 2026-10-20), so the extension gives it the event box's fill.
         hookGroupChat(mutableClassDefBy(LiveProfileGroupChatFingerprint.method.definingClass).methods)
         // The older quality list's rows can read white on white in dark mode, switch or no
         // switch; the extension gives poorly contrasted text a readable color there.
         hookQualityList(LiveDefinitionListFingerprint.method)
+        // The newer picker puts its rows on a white card whose text follows the dark room, so
+        // the same check keeps them readable (#57).
+        hookQualityList(LiveTalentDefinitionListFingerprint.method)
 
         // The room page coming to the front: where the Record button goes and which room it records (#37).
         liveRoomField(classDefByOrNull(LIVE_PLAY_FRAGMENT)

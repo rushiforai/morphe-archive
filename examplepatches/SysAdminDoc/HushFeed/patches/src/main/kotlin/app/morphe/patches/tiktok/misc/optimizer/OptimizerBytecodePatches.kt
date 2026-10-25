@@ -74,7 +74,7 @@ internal fun installSplashAdSwitch() {
         TopViewPreloadTaskFingerprint.method,
         RealTimeSplashTaskFingerprint.method,
     )
-    fun reviewedBooleanMethods(classDescriptor: String, expectedCounts: List<Int>, boundary: String) =
+    fun reviewedBooleanMethods(classDescriptor: String, reviewedCounts: Set<List<Int>>, boundary: String) =
         patchContext.mutableClassDefBy(classDescriptor).methods.filter { method ->
             method.returnType == "Z" && method.parameterTypes.isEmpty() &&
                 AccessFlags.PUBLIC.isSet(method.accessFlags) && AccessFlags.FINAL.isSet(method.accessFlags)
@@ -82,7 +82,7 @@ internal fun installSplashAdSwitch() {
             val counts = methods.map {
                 it.implementationOrPatchException("Instant Launch & Splash Blocker").instructions.count()
             }.sorted()
-            if (counts != expectedCounts.sorted()) {
+            if (reviewedCounts.none { it.sorted() == counts }) {
                 throw PatchException(
                     "Instant Launch & Splash Blocker: $boundary has unreviewed Boolean method shapes: $counts.",
                 )
@@ -91,11 +91,12 @@ internal fun installSplashAdSwitch() {
 
     val fixedBooleanMethods = reviewedBooleanMethods(
         SPLASH_SETTING_DESCRIPTOR,
-        listOf(9, 11),
+        setOf(listOf(9, 11)),
         "SplashSettingServiceImpl",
     ) + reviewedBooleanMethods(
         REALTIME_SPLASH_DESCRIPTOR,
-        listOf(3),
+        // PineDrama 47.5.3 null-checks the flag's holder first: the same one static Boolean read.
+        setOf(listOf(3), listOf(4)),
         "RealTimeSplashManagerImpl",
     )
     val splashService = patchContext.mutableClassDefBy(SPLASH_SERVICE_DESCRIPTOR)

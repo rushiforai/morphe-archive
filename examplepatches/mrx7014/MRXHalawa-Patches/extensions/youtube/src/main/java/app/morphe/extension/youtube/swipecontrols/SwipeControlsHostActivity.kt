@@ -1,3 +1,13 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
 package app.morphe.extension.youtube.swipecontrols
 
 import android.app.Activity
@@ -171,7 +181,7 @@ class SwipeControlsHostActivity : Activity() {
         currentHost = WeakReference(this)
 
         // fix edge-to-edge display
-        // see: https://github.com/mrx7014/MRXHalawa-Patches/issues/658
+        // see: https://github.com/MorpheApp/morphe-patches/issues/658
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             val rootView = contentRoot.parent
             if (rootView is ViewGroup) {
@@ -236,7 +246,7 @@ class SwipeControlsHostActivity : Activity() {
      */
     private fun createAudioController() =
         if (config.enableVolumeControls) {
-            AudioVolumeController(this)
+            AudioVolumeController(this).takeIf { it.isAvailable }
         } else {
             null
         }

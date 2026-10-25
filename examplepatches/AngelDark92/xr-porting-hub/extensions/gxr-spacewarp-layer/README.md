@@ -1,7 +1,7 @@
 # gxr-spacewarp-layer (09-LAYER-B1b skeleton, 10-W2A bridge + estimator wiring)
 
 The **GXR spacewarp** capability for the Steam Link VR client (exact base
-`2.0.23/5002363`): asynchronous spacewarp in the VirtualDesktop sense — on a display
+`2.0.23/5002363`; not yet available for `2.0.24/5002395`): asynchronous spacewarp in the VirtualDesktop sense — on a display
 tick where no fresh decoded video frame arrived, extrapolate the projection content by
 warping the two most recent decoded frames with an on-device estimator (block-match
 motion vectors + pose-integrated extrapolation), while preserving the client's

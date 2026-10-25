@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -18,6 +18,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.misc.settings.preference.BasePreference
 import app.morphe.patches.shared.misc.settings.preference.InputType
@@ -26,6 +27,8 @@ import app.morphe.patches.shared.misc.settings.preference.NonInteractivePreferen
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
+import app.morphe.patches.youtube.layout.player.buttons.addPlayerBottomButton
+import app.morphe.patches.youtube.layout.player.buttons.playerOverlayButtonsHookPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_20_37_or_greater
@@ -33,10 +36,17 @@ import app.morphe.patches.youtube.misc.playservice.is_21_17_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_29_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_32_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_42_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.shared.PlayerTypeEnumFingerprint
+import app.morphe.patches.youtube.shared.openVideoIntentPatch
+import app.morphe.patches.youtube.shared.startVideoInformerPatch
+import app.morphe.patches.youtube.video.format.hookAdaptiveFormat
+import app.morphe.patches.youtube.video.format.videoFormatPatch
+import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneParameters
 import app.morphe.util.findFreeRegister
@@ -48,13 +58,20 @@ import app.morphe.util.insertLiteralOverride
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-internal const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/MiniplayerPatch;"
+private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/MiniplayerPatch;"
+internal const val MINIMAL_EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/MinimalMiniplayerPatch;"
+internal const val MINIMAL_BOUNDS_INTERFACE =
+    $$"Lapp/morphe/extension/youtube/patches/MinimalMiniplayerPatch$MiniplayerBoundsController;"
 
 @Suppress("unused")
 val miniplayerPatch = bytecodePatch(
@@ -65,7 +82,12 @@ val miniplayerPatch = bytecodePatch(
     dependsOn(
         sharedExtensionPatch,
         settingsPatch,
-        versionCheckPatch
+        startVideoInformerPatch,
+        versionCheckPatch,
+        playerOverlayButtonsHookPatch,
+        videoFormatPatch,
+        openVideoIntentPatch,
+        videoInformationPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -78,10 +100,11 @@ val miniplayerPatch = bytecodePatch(
             preferences += if (!is_21_29_or_greater) {
                 ListPreference("morphe_miniplayer_type")
             } else {
-                // TODO: Eventually remove this message
-                NonInteractivePreference(
+                // Only modern 4 is left, plus the minimal bar rebuilt on top of it.
+                ListPreference(
                     key = "morphe_miniplayer_type",
-                    summaryKey = "morphe_miniplayer_not_available_summary"
+                    entriesKey = "morphe_miniplayer_type_21_29_entries",
+                    entryValuesKey = "morphe_miniplayer_type_21_29_entry_values"
                 )
             }
         } else {
@@ -93,9 +116,10 @@ val miniplayerPatch = bytecodePatch(
         }
 
         preferences += SwitchPreference("morphe_miniplayer_disable_resuming", summary = true)
+        preferences += SwitchPreference("morphe_miniplayer_hide_title")
+        preferences += SwitchPreference("morphe_miniplayer_disable_rounded_corners")
         preferences += SwitchPreference("morphe_miniplayer_disable_drag_and_drop", summary = true)
         preferences += SwitchPreference("morphe_miniplayer_disable_horizontal_drag", summary = true)
-        preferences += SwitchPreference("morphe_miniplayer_disable_rounded_corners")
         if (!is_21_29_or_greater) {
             preferences += SwitchPreference("morphe_miniplayer_hide_overlay_buttons")
         }
@@ -168,22 +192,42 @@ val miniplayerPatch = bytecodePatch(
 
         // region Disable resuming miniplayer (Continue watching)
 
-        ShowMiniplayerCommandFingerprint.let {
-            it.method.apply {
-                val index = it.instructionMatches[1].index
-                val register = getInstruction<OneRegisterInstruction>(index).registerA
+        // Only skip the resume branch of the command. Other show miniplayer commands,
+        // such as "Play next in queue" from the feed when no video is open, still work.
+        if (is_21_42_or_greater) {
+            ShowMiniplayerCommandFingerprint to 1
+        } else {
+            ShowMiniplayerCommandLegacyFingerprint to 3
+        }.let { (fingerprint, matchIndex) ->
+            fingerprint.method.apply {
+                val index = fingerprint.instructionMatches[matchIndex].index + 1
+                val free = findFreeRegister(index)
 
-                addInstructions(
+                addInstructionsWithLabels(
                     index,
                     """
-                        invoke-static { v$register }, $EXTENSION_CLASS->disableResumingStartupMiniPlayer(Z)Z
-                        move-result v$register
+                        invoke-static {}, $EXTENSION_CLASS->disableResumingStartupMiniPlayer()Z
+                        move-result v$free
+                        if-eqz v$free, :show_resuming_miniplayer
+                        return-void
+                        :show_resuming_miniplayer
+                        nop
                     """
                 )
             }
         }
 
         // endregion
+
+        // Fix the fullscreen button tint when the minimal miniplayer type is selected.
+        // The minimal type forces a theme where ytOverlayButtonPrimary resolves to gray
+        // instead of white, making the fullscreen button appear gray instead of white.
+        if (!is_21_29_or_greater) {
+            addPlayerBottomButton(
+                extensionClass = EXTENSION_CLASS,
+                extensionMethod = "fixMinimalMiniplayerFullscreenButtonTint"
+            )
+        }
 
         // region Enable tablet miniplayer.
         // Parts of the YT code is removed in 20.37+ and the legacy player no longer works.
@@ -396,6 +440,24 @@ val miniplayerPatch = bytecodePatch(
 
         // endregion
 
+        // region Watch transition animation.
+
+        // While the player is maximized, the home is laid out below the status bar instead of
+        // behind it. The home is then laid out again when the minimize animation ends, and the
+        // feed is black until it is drawn again. Without the animation the layout is never
+        // changed, so the home keeps the layout of the minimized player.
+        getTopBarBehindStatusBarFingerprint(PlayerTypeEnumFingerprint.originalClassDef.type).let {
+            it.method.apply {
+                listOf(it.instructionMatches[1].index, it.instructionMatches[3].index)
+                    .sortedDescending().forEach { index ->
+                        val register = getInstruction<OneRegisterInstruction>(index).registerA
+                        addInstruction(index + 1, "const/16 v$register, 0x0")
+                    }
+            }
+        }
+
+        // endregion
+
         if (!is_21_30_or_greater) {
             MiniplayerModernConstructorFingerprint.insertMiniplayerFeatureFlagBooleanOverride(
                 MINIPLAYER_ANIMATED_EXPAND_FEATURE_KEY,
@@ -404,7 +466,7 @@ val miniplayerPatch = bytecodePatch(
         } else {
             MiniplayerAnimatedExpandFingerprint.let {
                 it.method.apply {
-                    val insertIndex = it.instructionMatches[1].index
+                    val insertIndex = it.instructionMatches.first().index
                     val labelIndex = it.instructionMatches.last().index
                     val free = findFreeRegister(insertIndex)
 
@@ -525,5 +587,131 @@ val miniplayerPatch = bytecodePatch(
         }
 
         // endregion
+
+        // region Minimal miniplayer.
+
+        MiniplayerControlsFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.last().index
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+
+                addInstruction(
+                    index + 1,
+                    "invoke-static { v$register }, $MINIMAL_EXTENSION_CLASS->" +
+                            "setLegacyControls(Landroid/view/ViewGroup;)V"
+                )
+            }
+        }
+
+        MiniplayerControlsVisibilityFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches[1].index
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+
+                addInstructions(
+                    index + 1,
+                    """
+                        invoke-static { v$register }, $MINIMAL_EXTENSION_CLASS->getLegacyControlsVisibility(I)I
+                        move-result v$register
+                    """
+                )
+            }
+        }
+
+        // Exposed so the bar shape can be applied on demand. Only this setter runs the
+        // pass that lays the player out, the plain one records the rect and nothing redraws.
+        MiniplayerHorizontalRepositionFingerprint.let { fingerprint ->
+            fingerprint.classDef.apply {
+                interfaces.add(MINIMAL_BOUNDS_INTERFACE)
+
+                val setBounds = ImmutableMethod(
+                    type,
+                    "patch_setBounds",
+                    listOf(ImmutableMethodParameter("Landroid/graphics/Rect;", null, "bounds")),
+                    "V",
+                    AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+                    null,
+                    null,
+                    MutableMethodImplementation(2)
+                ).toMutable()
+
+                setBounds.addInstructions(
+                    0,
+                    """
+                        invoke-virtual { p0, p1 }, ${fingerprint.method}
+                        return-void
+                    """
+                )
+
+                methods.add(setBounds)
+            }
+
+            fingerprint.method.addInstruction(
+                0,
+                "invoke-static { p0 }, $MINIMAL_EXTENSION_CLASS->" +
+                        "setBoundsController($MINIMAL_BOUNDS_INTERFACE)V"
+            )
+        }
+
+        // YouTube sets the action button icon together with its content description, which
+        // is the exact playback state at the moment it changes.
+        MiniplayerSetIconsFingerprint.let {
+            it.method.addInstruction(
+                it.instructionMatches.first().index + 1,
+                "invoke-static { p2 }, $MINIMAL_EXTENSION_CLASS->setPlaybackIcon(I)V"
+            )
+        }
+
+        // Only this method recalculates the rect the video is laid out with. Insert after
+        // the early return, so the unchanged rect is what gets compared.
+        MiniplayerHorizontalRepositionFingerprint.let {
+            it.method.apply {
+                addInstructionsAtControlFlowLabel(
+                    it.instructionMatches.first().index,
+                    """
+                        invoke-static { p1 }, $MINIMAL_EXTENSION_CLASS->getMinimalBarBounds(Landroid/graphics/Rect;)Landroid/graphics/Rect;
+                        move-result-object p1
+                    """
+                )
+            }
+        }
+
+        // Written on the rect itself rather than through its getter, because the field is
+        // also read directly, including while animating.
+        MiniplayerHorizontalRepositionFingerprint.method.apply {
+            findInstructionIndicesReversedOrThrow(
+                methodCall(
+                    opcode = Opcode.INVOKE_STATIC,
+                    parameters = listOf("F", "Landroid/graphics/Rect;", "Landroid/graphics/Rect;"),
+                    returnType = "V"
+                )
+            ).forEach { index ->
+                val videoRect = getInstruction<FiveRegisterInstruction>(index).registerE
+
+                addInstruction(
+                    index + 1,
+                    "invoke-static { v$videoRect }, $MINIMAL_EXTENSION_CLASS->" +
+                            "applyVideoRect(Landroid/graphics/Rect;)V"
+                )
+            }
+        }
+
+        // Must run after the offscreen handler hook above, which patches the same method
+        // and uses instruction indexes that inserting here would shift.
+        MiniplayerOffscreenHandlerFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static { p1, p2, p3, p4 }, $MINIMAL_EXTENSION_CLASS->getMiniplayerBounds(IIII)Landroid/graphics/Rect;
+                move-result-object v0
+                iget p1, v0, Landroid/graphics/Rect;->left:I
+                iget p2, v0, Landroid/graphics/Rect;->top:I
+                iget p3, v0, Landroid/graphics/Rect;->right:I
+                iget p4, v0, Landroid/graphics/Rect;->bottom:I
+            """
+        )
+
+        // endregion
+
+        hookAdaptiveFormat("$MINIMAL_EXTENSION_CLASS->setVideoAspectRatio")
     }
 }

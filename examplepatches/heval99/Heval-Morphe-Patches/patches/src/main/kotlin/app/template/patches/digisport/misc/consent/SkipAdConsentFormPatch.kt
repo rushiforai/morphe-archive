@@ -17,8 +17,7 @@ private const val ROOT_FIELD = "mboundView0"
 @Suppress("unused")
 val skipAdConsentFormPatch = bytecodePatch(
     name = "Skip ad consent form",
-    description = "Skips Google's ad consent form at startup and in the GDPR screens, and hides " +
-        "the then empty ad consent section in Settings. Use it together with Disable ads.",
+    description = "Skips the ad consent form.",
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

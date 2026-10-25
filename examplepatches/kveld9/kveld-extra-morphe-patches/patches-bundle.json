@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-22T22:49:34",
-  "description": "## [1.26.1](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.26.0...v1.26.1) (2026-10-22)\n\n### Bug Fixes\n\n* **capcut:** update target to 19.9.0 ([88f462c](https://github.com/kveld9/kveld-extra-morphe-patches/commit/88f462c9be2c187fa897f19b2b0014b545962ecc))\n* **hevy:** make billing stub fail loudly if Play library changes ([a1a4c41](https://github.com/kveld9/kveld-extra-morphe-patches/commit/a1a4c418c139f924314a8789c4f837f6c06745f2))\n* **hevy:** update in-app billing connection hook for 3.2.2 ([ffa11b5](https://github.com/kveld9/kveld-extra-morphe-patches/commit/ffa11b59f9088853d0169e0f95b7405ac518c9b7))\n* **hevy:** update supported version to 3.2.2 ([0ab1635](https://github.com/kveld9/kveld-extra-morphe-patches/commit/0ab163517f4c4a2d3335fae0966772410d8d4462))\n* **hevy:** update telemetry and tracking hooks for 3.2.2 ([7f86566](https://github.com/kveld9/kveld-extra-morphe-patches/commit/7f865661372850d91c9c916416c57dc6e84a9253))\n* **twitter:** support version 12.36.1-prod.01 ([4229ffb](https://github.com/kveld9/kveld-extra-morphe-patches/commit/4229ffb2c614be97bb206c04385b976de2dff53d))",
-  "download_url": "https://github.com/kveld9/kveld-extra-morphe-patches/releases/download/v1.26.1/patches-1.26.1.mpp",
+  "created_at": "2026-10-25T00:56:12",
+  "description": "## [1.27.1](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.27.0...v1.27.1) (2026-10-25)\n\n### Bug Fixes\n\n* **moovit:** scope lint suppressions on signing-info reflection ([7e6a399](https://github.com/kveld9/kveld-extra-morphe-patches/commit/7e6a399ee2aab2fd91dffc8ed72847a94fac7f53))\n* **moovit:** trim whitespace from mapsApiKey before injection ([0f10a0a](https://github.com/kveld9/kveld-extra-morphe-patches/commit/0f10a0a044507585a8ef573eca707ef407853e10))\n\n### Code Refactoring\n\n* **moovit:** derive package name from Application in extension helper ([090e557](https://github.com/kveld9/kveld-extra-morphe-patches/commit/090e557a9449408514d508e47a8a43fd51129204))",
+  "download_url": "https://github.com/kveld9/kveld-extra-morphe-patches/releases/download/v1.27.1/patches-1.27.1.mpp",
   "signature_download_url": "",
-  "version": "1.26.1"
+  "version": "1.27.1"
 }

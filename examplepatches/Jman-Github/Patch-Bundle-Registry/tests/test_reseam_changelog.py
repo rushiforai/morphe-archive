@@ -314,6 +314,10 @@ def test_discovery_writes_selected_reseam_notes_for_the_catalog(tmp_path, monkey
     from scripts import discover_releases as discovery
 
     inventory = configure(tmp_path)
+    # Exercise optional Git-asset enrichment on a third-party source; the
+    # official patches repository now uses its API descriptions directly.
+    third_party = "https://git.reseam.app/community/patches"
+    inventory["reseam"]["patches"] = third_party
     (tmp_path / "config/sources.json").write_text(json.dumps(inventory))
     monkeypatch.setattr(discovery, "PROJECT_ROOT", tmp_path)
     cache = tmp_path / "internal/cache"
@@ -326,13 +330,18 @@ def test_discovery_writes_selected_reseam_notes_for_the_catalog(tmp_path, monkey
     monkeypatch.setattr(discovery, "HTTP_SEMAPHORE", asyncio.Semaphore(6))
     monkeypatch.setattr(discovery, "_load_sources_sync", lambda: inventory)
     calls = []
+    third_party_asset = ASSET.replace(SOURCE, third_party)
 
     def handler(request):
         calls.append(str(request.url))
-        if str(request.url) == ASSET:
+        if str(request.url) == third_party_asset:
             return httpx.Response(200, json=document())
         if request.url.path.endswith("/releases"):
-            return httpx.Response(200, json=[release()])
+            row = release(asset=third_party_asset)
+            row["assets"][0]["browser_download_url"] = (
+                row["assets"][0]["browser_download_url"].replace(SOURCE, third_party)
+            )
+            return httpx.Response(200, json=[row])
         raise AssertionError(f"Unexpected request: {request.url}")
 
     monkeypatch.setattr(
@@ -347,8 +356,8 @@ def test_discovery_writes_selected_reseam_notes_for_the_catalog(tmp_path, monkey
     )
     assert raw["description"] == "- feat: release-specific notes"
     archived = json.loads((cache / "history/archive.json").read_text())
-    assert archived["releases"][stable_id(SOURCE, "123")]["changelog"] == raw["description"]
-    assert calls.count(ASSET) == 1
+    assert archived["releases"][stable_id(third_party, "123")]["changelog"] == raw["description"]
+    assert calls.count(third_party_asset) == 1
     historical = json.loads((cache / "history/sources.json").read_text())
     for settings in historical.values():
         historical_raw = json.loads((tmp_path / settings["cache_path"]).read_text())

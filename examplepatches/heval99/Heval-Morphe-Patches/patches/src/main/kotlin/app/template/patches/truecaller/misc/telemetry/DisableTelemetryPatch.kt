@@ -91,10 +91,7 @@ private fun BytecodePatchContext.forceReadsOf(
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Turns off the app start tracker, CleverTap (event tracking, its SDK start, " +
-        "profile refresh and CleverTap marketing pushes), AppsFlyer attribution, Firebase " +
-        "Analytics (including advertising ID collection), Crashlytics crash reports and Firebase " +
-        "Sessions.",
+    description = "Disables analytics, tracking and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

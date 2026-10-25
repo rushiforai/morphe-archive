@@ -10,12 +10,15 @@
 
 package app.morphe.patches.youtube.layout.hide.ambientmode
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import app.morphe.patcher.util.matchSingle
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
@@ -25,17 +28,14 @@ import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_02_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_03_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_43_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.util.findFieldFromToString
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
-import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -117,10 +117,12 @@ val ambientModePatch = bytecodePatch(
             }
         }
 
-        val intentActionFingerprints = mutableListOf(
-            IntentActionBroadcastReceiverFingerprint,
-            IntentActionSyntheticFingerprint
+        val intentActionFingerprints = mutableListOf<Fingerprint>(
+            IntentActionBroadcastReceiverFingerprint
         )
+        if (!is_21_43_or_greater) {
+            intentActionFingerprints += IntentActionSyntheticFingerprint
+        }
         if (is_21_02_or_greater) {
             intentActionFingerprints += IntentActionBroadcastReceiverAlternativeFingerprint
         }
@@ -141,8 +143,11 @@ val ambientModePatch = bytecodePatch(
                 }
             }
         }
-        if (is_21_03_or_greater) {
+
+        if (is_21_43_or_greater) {
             IntentActionSyntheticAlternativeFingerprint.method.hook()
+        } else if (is_21_03_or_greater) {
+            IntentActionSyntheticAlternativeLegacyFingerprint.method.hook()
         }
 
         //
@@ -152,7 +157,7 @@ val ambientModePatch = bytecodePatch(
 
         // Feature flags. 21.30+ inlines the flag lookups and must patch 4 places for each flag.
         // Each flag is on if ambient mode is not disabled.
-        AmbientModeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+        if (!is_21_43_or_greater) AmbientModeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
             val moveResultIndex = indexOfFirstInstructionOrThrow(index, Opcode.MOVE_RESULT)
             val register = getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
 
@@ -308,19 +313,19 @@ val ambientModePatch = bytecodePatch(
         //
         // Disable fullscreen ambient mode.
         //
-        SetFullScreenBackgroundColorFingerprint.method.apply {
-            val insertIndex = indexOfFirstInstructionReversedOrThrow {
-                getReference<MethodReference>()?.name == "setBackgroundColor"
-            }
-            val register = getInstruction<FiveRegisterInstruction>(insertIndex).registerD
+        SetFullScreenBackgroundColorFingerprint.let {
+            it.method.apply {
+                val insertIndex = it.instructionMatches.first().index
+                val register = getInstruction<FiveRegisterInstruction>(insertIndex).registerD
 
-            addInstructions(
-                insertIndex,
-                """
-                    invoke-static { v$register }, $EXTENSION_CLASS->getFullScreenBackgroundColor(I)I
-                    move-result v$register
-                """,
-            )
+                addInstructions(
+                    insertIndex,
+                    """
+                        invoke-static { v$register }, $EXTENSION_CLASS->getFullScreenBackgroundColor(I)I
+                        move-result v$register
+                    """
+                )
+            }
         }
     }
 }

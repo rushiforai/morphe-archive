@@ -16,6 +16,11 @@ installer-source spoof.
 
 ## Start here: creating or modifying a patch
 
+For Monet Launcher `com.klevico.monet` 1.0.97, see [Monet.md](docs/Monet.md).
+The exact-version and unrestricted experimental premium patches are alternatives;
+select only one. Both use the shared native evaluator for startup and refreshes.
+Run `verifyMonet` and `verifyMonetBundle`; other versions remain unverified.
+
 The bundle targets Morphe Patcher **2.0.0** / Desktop **1.19.0**. Read
 `docs/MorpheCompatibility.md` for compatibility constructors, form factors,
 on-demand resource extraction and exact Desktop import verification. Do not
@@ -160,16 +165,25 @@ retain the target contracts within its context window.
 ## NuvioTV launcher channels
 
 For APK updates from GitHub Releases, see `docs/NuvioApkUpdates.md`. The optional
-**NuvioTV - GitHub APK updates** patch redirects only the native updater's
-repository and six installed-release version constants. Set `releaseVersion`
-for each APK build; publish the signed APK as a Release asset with a matching
-semantic tag. Run `verifyNuvioApkUpdates` and `verifyNuvioBeta8Bundle`.
+**NuvioTV - GitHub APK updates** patch redirects the repository and seven
+installed-release version constants. Its default `releaseVersion` is generated
+from the bundle version; override only for a different APK tag, and reset stale
+saved options. The independent `nuvio-apk-updates` extension shares native
+download progress, falls back to GitHub asset size and routes foreground installs
+through Android's normal APK installer. Verify with `verifyNuvioUpdateFlow`,
+`verifyNuvioUpdateProgressRuntime` and `verifyNuvioUpdateUiRuntime`.
+Installer repairs suppress original DEX metadata and blocking
+receiver retries. Side-by-side also fixes both native FileProvider authorities.
+Run `verifyNuvioApkUpdates`, `verifyNuvioUpdateInstaller`,
+`verifyMorpheDesktopImport` and `verifyNuvioBeta8Bundle`.
 
 For source request priority and opt-in autoplay from a preferred installed add-on,
 see `docs/NuvioPreferredAddon.md`. The independent **NuvioTV - Preferred source
 add-on** patch shares the Streams settings group. Both settings are per profile;
 the native manual/resolved-session guards and playable-stream predicate remain
-authoritative. Verify original DEX roundtrip, runtime settings and profile behavior,
+authoritative. Active native binge-group preference, binge-only selection, and
+reuse retain priority over preferred autoplay, including null/waiting results.
+Verify original DEX roundtrip, runtime settings and profile behavior,
 shared-menu selections, and standalone/combined packaged bundles.
 
 For a visible current-session source label, see `docs/NuvioCurrentStream.md`.
@@ -182,7 +196,9 @@ and toggling, shared-menu selections, and standalone/combined packaged bundles.
 For optional IntroDB episode submissions, see `docs/NuvioIntroDb.md`. Settings has
 the enable switch and native API-key editor. A dedicated main-row button captures
 start/end positions on two presses and opens a native NuvioDialog. Validate beta.8
-player layout, native engine position helper and controls timer, then run the focused,
+player layout, native engine position helper and both controls-hide/pause-overlay
+timers. IntroDB review cancels standby and guards both schedulers until close,
+including the segment-type dropdown. Then run the focused,
 native runtime, shared-menu, and standalone/combined bundle verifiers.
 
 For playback button visibility, order and placement between the main row and More
@@ -203,6 +219,94 @@ For merged tracking progress, see `docs/NuvioMergedProgress.md`. Its automatic
 sync gate follows the root navigation flow and activity lifecycle, not stream-search
 pause signals. Main-service playback writes and service inclusion are configured
 in the Tracking progress submenu; verify standalone and combined bundles.
+Progress and next-up flows await only the lightweight profile CW cache on IO.
+Startup sync waits for Home and the native fully-drawn reporter. Quick startup
+restores lightweight CW/local playback and compact episode membership, finishes its
+visible pass, then attaches native progress/seed/readiness observers. Do not decode
+full WatchedItem history or read provider snapshots as a second phase of visible
+quick startup. Episode-detail progress uses cached merged membership plus current
+progress, materializing completed WatchProgress only for the requested show, off
+Main. It must not open native per-show flows, whose onStart launches independent
+tracker work. Membership changes must notify existing detail collectors.
+Observe later provider publications
+and coalesce a new reconciliation on Home, including updates received in Settings.
+These later updates are silent, not another visible startup sync. Home navigation
+alone must not mark data dirty; watch provider and local playback emissions instead.
+For beta.8 Trakt, playback readiness does not imply canonical history readiness:
+after initiating seed hydration, await ba.pc.a -> ba.jb.T within the provider
+deadline. Do not accept the initial optimistic-only seed list as complete history.
+The manual button (or an unvalidated/missing cache) uses USER_INITIATED refresh.
+Bound each provider's refresh/hydration/history reads to 45 seconds and retain the
+previous snapshot on failure. Home and Settings cancel actions must invalidate
+queued work as well as the active Job, suppress automatic restart, and allow retry.
+Provider failures must not abort subsequent services. Quick startup does not read
+providers; silent live reads have a 45-second bound and skip unready Trakt history. Manual
+history hydration is bounded to ten seconds within the overall provider deadline.
+Retain failed-source cached shows only where no successful source supplies fresh
+coverage, and report partial completion. Distinguish a native child cancellation
+with an active merge Job from user/lifecycle cancellation of the parent Job.
+Live observers must not collect full watched-model flows; live publication saves
+CW/compact membership, not full WatchedItem JSON. An all-unavailable remote pass
+must not republish a reduced snapshot or rewrite the cache. Five-second cold-read
+deadlines caused false unavailable reports on the box; do not restore them.
+Provider-only notifications must not replay local startup/cache work. Coalesce
+local-store dirtiness separately and skip unchanged snapshot writes. Live work
+must not mutate visible stage totals or refresh the terminal banner after clearing
+its live flag. Release merge-added provider observers during playback and reattach
+once on Home afterward; ordinary Home navigation does not start a sync.
+The native Home CW pipeline is separate from the merge worker. For beta.8 only,
+observe xa.s3.b's assigned i1 Job, pause it on player entry and restart the native
+loader once on Home without clearing cards. Cancel only this owned Job, not the
+whole ViewModel scope. Validate the exact loader fingerprint and Job assignment;
+the playback capture showed CW metadata traversal continuing after merge stopped.
+Full refresh waits for provider p() readiness before accepting empty snapshots.
+Cached sync reads per-profile `membership_v2` preferences: compressed dictionary,
+distinct episode/alias sets and references, plus full-history timestamp. Old JSON
+membership/full caches migrate once after Home; do not expand shared sets back
+into duplicate JSON arrays. The previous JSON split still took 65–83s to hydrate.
+Keep buffering between Data streams and GZIP: unbuffered NMC1 restoration still
+took 27s on the TV. Startup already uses saved timestamps for local deltas; native
+provider refresh accepts intent, not a uniform remote `since` argument.
+Quick startup must publish restored membership to remaining counts. The merge
+patch must not refresh library providers or take over native library syncing;
+leave that to Nuvio's Tracking settings. Cached resume cards need count registration
+before native NextUpInfo; first/late registration and overlapping counter updates
+must invalidate/recount. Keep quick membership readiness distinct from full model
+readiness so this does not restart the large badge metadata batch.
+Keep legacy history preferences lazy when there is nothing to migrate. Sync
+completion summaries include preparation time; local stages are timed in logs.
+The native updater host/banner now displays sync status; the custom Android-view
+overlay was removed. Keep native drawing/theme/animations and real-update priority.
+The sync close action remains visible during progress and uses explicit cancellation,
+not the native updater's timed auto-dismiss path. The quick-sync info callback must
+not be discarded by the native settings row's default-argument mask bit 32.
+For delivery, check Desktop's actual output path: it can write to `Apps/com.nuvio.tv/`
+while an older APK remains under `Apps/NuvioTV/`. Refresh the usual delivery copy
+and matching MPP, compare hashes and inspect packaged runtime markers. Equal APK
+sizes do not establish equal code. Do not infer an old MPP from an old device log.
+See NuvioNativeSyncBanner for guarded root/status hooks and the production banner
+runtime verifier for callback, preference/active-update, grouping and error checks.
+Do not restore episode membership or full history on the launch path: that
+experiment added 46–51 seconds before Home. Use the dedicated `startup_light`
+cache; migrate the older oversized startup file only after Home. Saved full watched
+history is a cancellable failure fallback; successful syncs read fresh provider
+history without hydrating the old large cache first. Manual sync requests survive
+automatic-worker cancellation and use native USER_INITIATED refresh. Preparation
+and refresh have separate time budgets; see `docs/NuvioBeta8.md` for the latest
+runtime checks and device-log findings.
+Legacy snapshots migrate by streaming past history fields in the post-Home worker.
+Keep full history in its separate preferences file: sharing settings XML with
+large snapshot strings makes even the first Boolean settings read load them.
+Legacy history moves after Home, with a durable copy before settings cleanup.
+The merge patch's unnamed startup resource dependency adds the native logo to
+beta.8's launch background. Preserve the original background and verify compiled
+merge-only/combined resources; paired startup logs measure runtime hook bodies.
+The full early splash now precedes MainActivity: original beta.8 uses six launcher
+Activity subclasses, converted to aliases of a lightweight non-exported entry.
+Keep component/icon state and native VIEW routes intact. Gate handoff on a drawn
+prepared frame and foreground lifecycle, and verify the side-by-side combination.
+Do not mark the startup placeholder snapshot ready or clear it before restoring;
+retain the current snapshot until a complete refresh can apply entry changes.
 
 NuvioTV patches target `com.nuvio.tv` `1.1.0-beta.8` only. See
 `docs/NuvioBeta8.md` for native contracts, input provenance, and verification.
@@ -325,7 +429,7 @@ the new original to inspect candidates; update the reviewed contract after
 proving changes. Run `:patches:verifyNuvioLatest` after building. Do not edit
 generated `NuvioNative.java`, guess ambiguous matches, or remove exact guards.
 
-The fourteen published NuvioTV patches target beta.8 (version code 1071).
+The sixteen published NuvioTV patches target beta.8 (version code 1071).
 Use verified beta.8 symbols directly. Read `docs/NuvioBeta8.md` for provenance,
 DEX contracts and verification commands. Important reflection contracts include
 `h1.h.t(Object):h1.r1`, `ba.a5.l(String,String,Integer,Integer,boolean):Flow`,
@@ -340,6 +444,11 @@ both native callbacks and availability. The new collection card has 63 registers
 use the beta.8 original and verifiers, retaining historical fixtures unchanged.
 
 Regenerate compatibility metadata with `:patches:generatePatchesList`.
+
+The independent, disabled-by-default startup track reselection patch guards
+ExoPlayer's missing playing period before seeking. Next-episode preload cooldowns
+survive pause/buffering for the same target. See `docs/NuvioBeta8.md` for the
+reviewed DEX contract and focused scheduler/guard verification tasks.
 
 ## Reddit 2026.37.0
 

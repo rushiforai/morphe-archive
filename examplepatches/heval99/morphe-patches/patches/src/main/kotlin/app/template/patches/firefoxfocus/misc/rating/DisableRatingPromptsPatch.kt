@@ -36,8 +36,7 @@ internal object ShowAppReviewFingerprint : Fingerprint(
 @Suppress("unused")
 val disableRatingPromptsPatch = bytecodePatch(
     name = "Disable rating prompts",
-    description = "Stops the Google Play rating request that opens after a few app starts, and the " +
-        "Play Store page it opens when that request fails.",
+    description = "Disables the rating prompt.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX_FOCUS)
 

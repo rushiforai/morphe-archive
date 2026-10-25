@@ -48,6 +48,8 @@ public class MenuPanelTest {
         PauseForTests.resume();
         Settings.HIDE_MENU_UPGRADES.resetToDefault();
         Settings.HIDE_MENU_ALSO_FROM_META.resetToDefault();
+        Settings.HIDE_MENU_HELP.resetToDefault();
+        Settings.KEEP_MENU_SETTINGS_EXPANDED.resetToDefault();
         Settings.HIDE_MENU_MUSE.resetToDefault();
         Settings.HIDE_MENU_META_AI.resetToDefault();
         Settings.HIDDEN_MENU_TILES.resetToDefault();
@@ -65,6 +67,8 @@ public class MenuPanelTest {
     private static void allSwitchesOff() {
         Settings.HIDE_MENU_UPGRADES.save(false);
         Settings.HIDE_MENU_ALSO_FROM_META.save(false);
+        Settings.HIDE_MENU_HELP.save(false);
+        Settings.KEEP_MENU_SETTINGS_EXPANDED.save(false);
         Settings.HIDE_MENU_MUSE.save(false);
         Settings.HIDE_MENU_META_AI.save(false);
         Settings.HIDDEN_MENU_TILES.save("");
@@ -102,6 +106,14 @@ public class MenuPanelTest {
         Settings.HIDE_MENU_ALSO_FROM_META.save(true);
         assertFalse(MenuPanel.bloksPanel(true));
         Settings.HIDE_MENU_ALSO_FROM_META.save(false);
+
+        Settings.HIDE_MENU_HELP.save(true);
+        assertFalse(MenuPanel.bloksPanel(true));
+        Settings.HIDE_MENU_HELP.save(false);
+
+        Settings.KEEP_MENU_SETTINGS_EXPANDED.save(true);
+        assertFalse(MenuPanel.bloksPanel(true));
+        Settings.KEEP_MENU_SETTINGS_EXPANDED.save(false);
 
         Settings.HIDE_MENU_MUSE.save(true);
         assertFalse(MenuPanel.bloksPanel(true));

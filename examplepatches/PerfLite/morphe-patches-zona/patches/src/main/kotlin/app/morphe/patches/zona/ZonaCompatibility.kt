@@ -16,6 +16,12 @@ val ZONA_COMPATIBILITY = Compatibility(
             versionCode = 1075,
             minSdk = 21,
             description = "APK: https://github.com/julay123/mobi.zona/releases",
-        )
+        ),
+        AppTarget(
+            version = "3.0.76",
+            versionCode = 1076,
+            minSdk = 21,
+            description = "APK: https://github.com/julay123/mobi.zona/releases",
+        ),
     ),
 )

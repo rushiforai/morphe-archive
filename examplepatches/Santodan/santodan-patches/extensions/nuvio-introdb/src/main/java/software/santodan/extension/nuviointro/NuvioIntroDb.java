@@ -41,9 +41,17 @@ public final class NuvioIntroDb {
         }
     }
     private NuvioIntroDb() {}
+    public static boolean holdControlsTimer(Object controller) {
+        Draft current = draft;
+        return foreground && current != null && current.review && !current.cancelled.get()
+            && current.controller.get() == controller;
+    }
     public static void resume(Activity activity) {
+        long started = System.nanoTime();
+        Log.d(TAG, "Startup begin: stage=introdb.activity thread=" + Thread.currentThread().getName());
         foreground = true; preferences = activity.getApplicationContext().getSharedPreferences("santodan_introdb", 0);
         Log.d(TAG, "Runtime ready; Anime Skip key editor, filmstrip stage icons, exact cancellation overload");
+        Log.d(TAG, "Startup end: stage=introdb.activity elapsedMs=" + (System.nanoTime() - started) / 1_000_000);
     }
     public static void pause(Activity activity) { foreground = false; Log.d(TAG, "Activity paused; clearing capture"); reset(); keyText = null; keyFocus = null; keyFocused = null; }
     private static SharedPreferences prefs() throws Exception {
@@ -72,7 +80,9 @@ public final class NuvioIntroDb {
             }
             Object controller = old.controller.get();
             if (foreground && old.review && controller != null) try {
-                IntroUi.method(controller.getClass().getClassLoader().loadClass(NuvioNative.PLAYER_TIMERS_NAME), "F", 1).invoke(null, controller);
+                Class<?> timers = controller.getClass().getClassLoader().loadClass(NuvioNative.PLAYER_TIMERS_NAME);
+                IntroUi.method(timers, "F", 1).invoke(null, controller);
+                IntroUi.method(timers, "H", 1).invoke(null, controller);
             } catch (Exception error) { Log.e(TAG, "Native controls timer restart failed", error); }
         }
         changed();
@@ -161,6 +171,9 @@ public final class NuvioIntroDb {
         current.review = true;
         Object controller = current.controller.get();
         if (controller == null) return;
+        // The full-screen pause overlay owns a separate job from controls hiding.
+        // Use its native cancellation route to clear both the job and visibility.
+        IntroUi.method(controller.getClass().getClassLoader().loadClass(NuvioNative.PLAYER_TIMERS_NAME), "i", 1).invoke(null, controller);
         Object job = IntroUi.field(controller, "T0");
         if (job != null) try {
             ClassLoader loader = controller.getClass().getClassLoader();

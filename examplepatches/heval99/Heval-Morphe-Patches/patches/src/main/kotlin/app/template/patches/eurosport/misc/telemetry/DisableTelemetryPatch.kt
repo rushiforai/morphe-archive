@@ -74,9 +74,7 @@ private val disableTelemetryManifestPatch = resourcePatch {
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Adobe Analytics, AppsFlyer, Apptentive, Chartbeat, Comscore, Crashlytics, Firebase " +
-        "Analytics, MediaMelon, Mux, New Relic, Permutive and Storyteller tracking. AppsFlyer deep links " +
-        "may stop opening the app on the right page. Push notifications keep working.",
+    description = "Disables analytics, tracking and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_EUROSPORT)
 

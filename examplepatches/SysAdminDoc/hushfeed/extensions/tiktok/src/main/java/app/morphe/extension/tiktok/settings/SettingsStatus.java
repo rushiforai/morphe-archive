@@ -122,6 +122,7 @@ public class SettingsStatus {
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
     public static boolean cameraBrightnessEnabled = false;
+    public static boolean effectDeviceSpoofEnabled = false;
     public static boolean launcherShortcutsEnabled = false;
     public static boolean firstLaunchSetupEnabled = false;
     public static boolean duetStitchEnabled = false;
@@ -504,6 +505,10 @@ public class SettingsStatus {
         cameraBrightnessEnabled = true;
     }
 
+    public static void enableEffectDeviceSpoof() {
+        effectDeviceSpoofEnabled = true;
+    }
+
     public static void enableLauncherShortcuts() {
         launcherShortcutsEnabled = true;
     }
@@ -738,6 +743,13 @@ public class SettingsStatus {
         voiceCommentsEnabled = true;
     }
 
+    /** Allow photo comments put its switch in front of PineDrama's comment gallery check (#156). */
+    public static boolean commentPhotosEnabled = false;
+
+    public static void enableCommentPhotos() {
+        commentPhotosEnabled = true;
+    }
+
     /** Skip passkey sign-in put its switch in front of TikTok's passkey support check. */
     public static boolean passkeySignInEnabled = false;
 
@@ -782,6 +794,8 @@ public class SettingsStatus {
     public static void enableCommentPublishDiagnostics() { commentPublishDiagnosticsEnabled = true; }
     public static boolean commentSendFixEnabled = false;
     public static void enableCommentSendFix() { commentSendFixEnabled = true; }
+    public static boolean savedStickersEnabled = false;
+    public static void enableSavedStickers() { savedStickersEnabled = true; }
     public static boolean followDiagnosticsEnabled = false;
     public static void enableFollowDiagnostics() { followDiagnosticsEnabled = true; }
     public static boolean repostDiagnosticsEnabled = false;

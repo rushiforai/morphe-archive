@@ -19,7 +19,7 @@ private fun BytecodePatchContext.single(fingerprint: Fingerprint, label: String)
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the Monefy Pro features."
+    description = "Unlocks Pro features."
 ) {
     compatibleWith(COMPATIBILITY_MONEFY)
 

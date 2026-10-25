@@ -48,11 +48,47 @@ public final class NuvioIntroDbPatch {
                 MutableMethod timer = require(new MutableClass(context.classDefBy(NuvioNative.PLAYER_TIMERS_TYPE)), NuvioNative.REF_PLAYER_TIMERS_F);
                 if (NuvioAiringSeriesPatch.instructions(timer).stream().filter(i -> NuvioPlaybackButtonsPatch.reference(i).equals(NuvioNative.REF_PLAYER_CONTROLLER_T0)).count() != 2)
                     throw new IllegalStateException("Native controls timer job changed");
+                validateTimer(timer);
+                validateTimer(require(new MutableClass(context.classDefBy(NuvioNative.PLAYER_TIMERS_TYPE)), PAUSE_TIMER));
+                MutableMethod cancelPause = require(new MutableClass(context.classDefBy(NuvioNative.PLAYER_TIMERS_TYPE)), CANCEL_PAUSE);
+                if ((cancelPause.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(cancelPause).equals(CANCEL_PAUSE_HASH))
+                    throw new IllegalStateException("IntroDB native pause-overlay cancellation changed");
                 hook(context.mutableClassDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE), context.mutableClassDefBy("Lcom/nuvio/tv/MainActivity;"));
+                hookTimer(context.mutableClassDefBy(NuvioNative.PLAYER_TIMERS_TYPE));
                 return Unit.INSTANCE;
             });
             return Unit.INSTANCE;
         });
+    }
+    static final String TIMER_HASH = "2dc60c1b34d8d705d26439ae9023168efdf5202294677accaf81709243a903c2";
+    static final String PAUSE_TIMER = NuvioNative.PLAYER_TIMERS_TYPE + "->H(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
+    static final String CANCEL_PAUSE = NuvioNative.PLAYER_TIMERS_TYPE + "->i(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
+    static final String PAUSE_TIMER_HASH = "b76be6ae82fd93134117ec8e09c5ac29e8020dda8ca70baacbe1b8334e8de01f";
+    static final String CANCEL_PAUSE_HASH = "c21ca3a08b0d550e3b295603e846af508348d412ec40c859ac1a12b6a8c7c6bc";
+    static final String HOLD_TIMER = EXT + "->holdControlsTimer(Ljava/lang/Object;)Z";
+    static void validateTimer(MutableMethod method) {
+        String hash = method.toString().equals(NuvioNative.REF_PLAYER_TIMERS_F) ? TIMER_HASH :
+            method.toString().equals(PAUSE_TIMER) ? PAUSE_TIMER_HASH : "";
+        if (hash.isEmpty() || (method.getAccessFlags() & 8) == 0 ||
+            method.getImplementation() == null || !method.getImplementation().getTryBlocks().isEmpty() ||
+            !NuvioPlaybackButtonsPatch.fingerprint(method).equals(hash))
+            throw new IllegalStateException("IntroDB controls timer changed or already patched");
+    }
+    static void hookTimer(MutableClass owner) {
+        var timers = List.of(require(owner, NuvioNative.REF_PLAYER_TIMERS_F), require(owner, PAUSE_TIMER));
+        timers.forEach(NuvioIntroDbPatch::validateTimer);
+        for (MutableMethod method : timers) hookTimerMethod(method);
+    }
+    private static void hookTimerMethod(MutableMethod method) {
+        var code = method.getImplementation();
+        var original = code.newLabelForIndex(0);
+        // v0 is a local overwritten at native entry; p0 remains the controller.
+        code.addInstruction(0, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
+            NuvioAnchors.parameter(method, 0), 1,
+            new ImmutableMethodReference(EXT, "holdControlsTimer", List.of("Ljava/lang/Object;"), "Z")));
+        code.addInstruction(1, new BuilderInstruction11x(Opcode.MOVE_RESULT, 0));
+        code.addInstruction(2, new BuilderInstruction21t(Opcode.IF_EQZ, 0, original));
+        code.addInstruction(3, new BuilderInstruction10x(Opcode.RETURN_VOID));
     }
     static final List<String> UI = List.of(
         NuvioPlaybackButtonsPatch.BUTTON, POSITION,

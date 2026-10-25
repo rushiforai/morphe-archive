@@ -15,6 +15,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.literalReads
 import com.android.tools.smali.dexlib2.Opcode
@@ -84,8 +85,9 @@ val bottomTabBarPatch = bytecodePatch(
         )
         val reads = mutableListOf<OverrideRead>()
         val paddings = mutableListOf<Method>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        // A read loads the key's field, and a system bar padding answers Insets.
+        classDefForEachReferencing(types = listOf(key.definingClass, ANDROIDX_INSETS)) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
             classDef.methods.forEach { method ->
                 reads += overrideReads(method, key)
                 if (takesSystemBarPadding(method)) paddings += method

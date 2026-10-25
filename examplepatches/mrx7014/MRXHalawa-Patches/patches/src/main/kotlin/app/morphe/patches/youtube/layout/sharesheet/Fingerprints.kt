@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -13,10 +13,16 @@ import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
-internal object ShareSheetPanelContentInitializationFingerprint : Fingerprint(
+/**
+ * Command resolver of the share endpoint.
+ * Builds and sends the `share/get_share_panel` request,
+ * whose response opens the in-app (Litho) share sheet.
+ */
+internal object ShareEndpointCommandFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("L", "Ljava/util/Map;"),
@@ -58,5 +64,31 @@ internal object ShareSheetPanelContentInitializationFingerprint : Fingerprint(
             smali = "Landroid/text/TextUtils;->isEmpty(Ljava/lang/CharSequence;)Z",
             location = MatchAfterImmediately(),
         )
+    )
+)
+
+/**
+ * Command resolver of the share entity service endpoint.
+ * Opens the share panel fragment, which sends the `share/get_share_panel` request.
+ */
+internal object ShareEntityEndpointCommandFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L", "Ljava/util/Map;"),
+    filters = listOf(
+        string("Command not in share entity endpoint proto.")
+    )
+)
+
+/**
+ * Action sheet controller method that handles `ShowActionSheetCommand`.
+ * The share button in flyout menus opens an empty action sheet (loading spinner)
+ * and then resolves the share endpoint to fill it.
+ */
+internal object ShowActionSheetCommandFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L", "L"),
+    filters = listOf(
+        string("ShowActionSheetCommand needs to provided.")
     )
 )

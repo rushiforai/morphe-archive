@@ -26,9 +26,7 @@ private val USAGE_PING_METHODS = setOf("submitPing", "requestDataDeletion")
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Stops the daily usage ping, even when its setting is turned on, and Nimbus " +
-        "experiment downloads. The other Glean telemetry is already off in Firefox Focus. Crash " +
-        "reports are still sent only when you choose to send them.",
+    description = "Disables the usage ping and experiments.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX_FOCUS)
 

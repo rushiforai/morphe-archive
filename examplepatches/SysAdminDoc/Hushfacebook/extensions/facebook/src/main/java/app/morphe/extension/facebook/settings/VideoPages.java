@@ -151,6 +151,10 @@ final class VideoPages {
                     L10n.t("A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. "
                             + "The Reels tab keeps scrolling. Off by default, since it hasn't been tried on a real "
                             + "account yet.")));
+            // Asked as each tile of the feed's Reels row is drawn, so a change shows on the next tiles.
+            reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
+                    L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "
+                            + "repeating a second or two. Tiles drawn after a change pick it up.")));
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
@@ -167,6 +171,18 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE,
                     L10n.t("A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like "
                             + "button work as before.")));
+        }
+        if (build.contains(PatchFamily.DOUBLE_TAP_SKIP)) {
+            // Read as each player is set up, so a change shows on the next reel or video.
+            reels.addPreference(toggle(context, Settings.DOUBLE_TAP_SKIP,
+                    L10n.t("A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, "
+                            + "or 5 on one under 30 seconds. A double tap in the middle works as before.")));
+        }
+        if (build.contains(PatchFamily.TAP_SHOWS_CONTROLS)) {
+            // Read on each tap, so a change shows on the next one.
+            reels.addPreference(toggle(context, Settings.TAP_SHOWS_CONTROLS,
+                    L10n.t("A tap on a playing reel shows its controls while it keeps playing, and a second tap hides "
+                            + "them. The button in the middle still pauses.")));
         }
         if (build.contains(PatchFamily.REEL_GESTURES)) {
             reels.addPreference(toggle(context, Settings.DOUBLE_TAP_OPENS_COMMENTS,
@@ -196,6 +212,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HOLD_REEL_RIGHT_EDGE,
                     L10n.t("With the switch above on, only a hold on the right third of a reel plays it at double "
                             + "speed. Hold anywhere else and Facebook's long-press menu opens.")));
+            reels.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_FOR_2X,
+                    L10n.t("Holding a video in the feed or in Watch plays it at double speed until you let go. It works "
+                            + "without the switches above.")));
         }
         if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
             reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS,
@@ -319,7 +338,8 @@ final class VideoPages {
             if (build.contains(PatchFamily.PHOTO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_PHOTOS,
                         L10n.t("Shows Save photo on every photo you open, even where saving is turned off, and saves the biggest "
-                                + "size. Off or paused, Facebook decides again.")));
+                                + "size. Off or paused, Facebook decides again.")
+                                + " " + L10n.t("A GIF comment gets Save GIF when you long-press it.")));
                 downloads.addPreference(toggle(context, Settings.POST_MENU_PHOTO_SAVE,
                         L10n.t("With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.")));
             }

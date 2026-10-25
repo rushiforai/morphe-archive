@@ -111,7 +111,7 @@ private fun BytecodePatchContext.failRewardedAdLoads() {
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, interstitial, native and rewarded ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_PIMUSICPLAYER)
 

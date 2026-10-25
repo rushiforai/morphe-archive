@@ -66,6 +66,12 @@ internal val CONTROLLER_POSE_TIME_SCENES = listOf(
         send = PoseTimeRegion(0xf4da4, 0x550, "5f738a5b1ffbba4ea6454c03ce4b65d2ddb2b8b8eead79ec0c03f39e478694d8"),
         clock = PoseTimeRegion(0x15cb78, 0x40, "815c82ab54e2b55ff23941b8896b58f5d3af5130335627540180c8fc102b23df"),
     ),
+    PoseTimeScene(
+        "2.0.24", 5002395,
+        state = PoseTimeRegion(0x108f88, 0xa9c, "4cda1b9020578b65a04c36e48e1d6240124ce9458007b6a7f09d712509c00a7b"),
+        send = PoseTimeRegion(0xf5ff4, 0x550, "4f30c94895e96d10ce06abc3a96f05892871894d8e893dd0eb7d3765a3db0bb4"),
+        clock = PoseTimeRegion(0x15e2b8, 0x40, "7279ef642ad5b65f5784bded4d9a42ef1f120796a2f2ac87fbe39f6fc62885d4"),
+    ),
 )
 
 // Layers that change where VRLink's controller poses come from or when they are predicted for;

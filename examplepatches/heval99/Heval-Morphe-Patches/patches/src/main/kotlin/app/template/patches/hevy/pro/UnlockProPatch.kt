@@ -71,9 +71,7 @@ private fun ByteArray.indexOf(pattern: ByteArray, start: Int, end: Int): Int {
 @Suppress("unused")
 val unlockProPatch = rawResourcePatch(
     name = "Unlock Pro",
-    description = "Unlocks Hevy Pro features that run on your device's workout data (unlimited " +
-        "routines, custom exercises, advanced stats and graphs). Pro features Hevy's servers " +
-        "provide, like cloud limits and Hevy Coach, can stay locked.",
+    description = "Unlocks Pro features. Server features like Hevy Coach stay locked.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_HEVY)

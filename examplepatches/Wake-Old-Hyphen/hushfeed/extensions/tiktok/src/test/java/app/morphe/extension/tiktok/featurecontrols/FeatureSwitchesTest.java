@@ -12,6 +12,7 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.ghostmode.GhostMode;
 import app.morphe.extension.tiktok.inbox.InboxControls;
+import app.morphe.extension.tiktok.profile.ThoughtsGate;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.telemetry.DisableTelemetryPatch;
 import org.junit.After;
@@ -45,7 +46,7 @@ public class FeatureSwitchesTest {
                 Settings.HIDE_FEED_FOLLOW_BUTTON, Settings.HIDE_FEED_SAVE_BUTTON,
                 Settings.HIDE_LIVE_ENTRANCE, Settings.HIDE_FEED_SEARCH_BUTTON,
                 Settings.HIDE_FEED_SIDEBAR_BUTTON, Settings.DISABLE_FEED_SIDEBAR_SWIPE,
-                Settings.OPEN_STORY_OVER_LIVE,
+                Settings.OPEN_STORY_OVER_LIVE, Settings.ENABLE_THOUGHTS,
                 Settings.HIDE_COMMENT_QUICK_REACTIONS, Settings.ENABLE_LONG_PRESS_SPEED_LOCK,
                 Settings.ENABLE_NON_PERSONALIZED_SEARCH, Settings.ENABLE_LIVE_SEARCH}) {
             setting.save(setting.defaultValue);
@@ -246,6 +247,24 @@ public class FeatureSwitchesTest {
         assertEquals("the key", "open_story_over_live", Settings.OPEN_STORY_OVER_LIVE.key);
         assertFalse("the switch starts off", Settings.OPEN_STORY_OVER_LIVE.defaultValue);
         assertFalse("changing it needs no restart", Settings.OPEN_STORY_OVER_LIVE.rebootApp);
+    }
+
+    /**
+     * #186: Turn on Thoughts starts off, so both of TikTok's Thoughts gates read TikTok's own
+     * values until the reader turns it on, and Pause hands them back. TikTok builds the bubble and
+     * the inbox row from the answer, so a change takes a restart.
+     */
+    @Test public void theThoughtsSwitchStartsOffNeedsARestartAndPauseHandsTheGatesBack() {
+        assertEquals("the key", "enable_thoughts", Settings.ENABLE_THOUGHTS.key);
+        assertFalse("the switch starts off", Settings.ENABLE_THOUGHTS.defaultValue);
+        assertTrue("changing it needs a restart", Settings.ENABLE_THOUGHTS.rebootApp);
+        assertFalse("off, TikTok answers", ThoughtsGate.isOn());
+
+        Settings.ENABLE_THOUGHTS.save(true);
+        assertTrue(ThoughtsGate.isOn());
+
+        PausedProcess.set(true);
+        assertFalse("Pause hands the gates back to TikTok", ThoughtsGate.isOn());
     }
 
     /**

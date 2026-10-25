@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
     val groups = listOf(HbcPrivacy.analytics, HbcPrivacy.telemetry, HbcPrivacy.crash)
     val natives = NativePrivacy.crash + NativePrivacy.telemetry + NativePrivacy.attribution + NativePrivacy.advertising
     check(natives.size == 137 && natives.distinct().size == natives.size)
-    check(groups.flatten().size == 104 && groups.flatten().map { it.offset }.distinct().size == 104)
+    check(groups.flatten().size == 105 && groups.flatten().map { it.offset }.distinct().size == 105)
     check(HbcPrivacy.resolvedPromise.last() == 6.toByte())
     // Cross-check every opcode constant against scripts/hbc/ops.txt (Hermes 250829098 BytecodeList.def)
     // so an opcode number typo like LoadParam=52 (DivN) instead of 137 can never pass build validation.
@@ -152,7 +152,7 @@ fun main(args: Array<String>) {
         check(regs.all { it in 0..2 || it == parameter }) { "Guard touches register outside v0-v2/p1: $regs" }
     }
     val calls = guard.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
-    check(calls.map { it.definingClass + "->" + it.name } == listOf("Lokhttp3/Interceptor\$Chain;->i", "Lokhttp3/Request;->a",
+    check(calls.map { it.definingClass + "->" + it.name } == listOf("Lokhttp3/Interceptor\$Chain;->h", "Lokhttp3/Request;->a",
         "Ljava/lang/String;->startsWith", "Lokhttp3/Interceptor\$Chain;->a"))
     for (call in calls.filter { it.definingClass != "Ljava/lang/String;" })
         check(methods.any { it.definingClass == call.definingClass && it.name == call.name && it.returnType == call.returnType &&
@@ -208,7 +208,8 @@ fun main(args: Array<String>) {
     }
     checkBranches(font, "Font guard"); checkBranches(interceptor, "User-Agent guard")
     // Pastelize reply text (#45): assembled on Discord's real reply preview text lambda (a detached fixture).
-    val replyMethod = methods.single { it.definingClass == REPLY_PREVIEW && it.name == "configureReply\$lambda\$9" }
+    val replyMethod = methods.single { it.definingClass == REPLY_PREVIEW && it.name.startsWith("configureReply\$lambda\$") &&
+        it.returnType == "Lkotlin/Unit;" && it.parameterTypes.map { p -> p.toString() } == listOf("Lcom/discord/chat/bridge/structurabletext/StructurableText;", REPLY_PREVIEW, BRIDGE_MESSAGE, "I") }
     val replyOriginal = replyMethod.implementation!!.instructions.map { it.opcode }
     val reply = MutableMethod(replyMethod)
     pastelReplyText(reply)

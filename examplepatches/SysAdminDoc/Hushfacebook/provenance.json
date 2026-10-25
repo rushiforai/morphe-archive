@@ -8,6 +8,13 @@
       "license": "GPL-3.0-only"
     },
     {
+      "paths": ["patches/src/main/kotlin/app/morphe/util/ReferenceIndex.kt"],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #216. One pass over the app's classes records which types, member names and strings each one names, so a patch's search visits only the classes that could match, in the order classDefForEach visits them. Classes a patch has changed are always visited."
+    },
+    {
       "paths": ["patches/src/main/kotlin/app/morphe/patches/facebook/shared/MobileConfigReads.kt"],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
@@ -650,6 +657,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/RelatedPosts.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Related posts list under a post's buttons. In Facebook 584 it is InlineRelatedPostsPlugin, a plugin of the socket that names itself FeedStoryBelowUFIFooterSocket, and the socket's static name table names it along with the Meta AI comment summary. The patch finds that table and the socket's per-plugin check the way Hide Meta AI comment summaries does, and goes first in the check with the plugin's name from the table. The extension answers no for the Related posts plugin while the switch is on, so the socket moves on to its next plugin."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postprompts/PostCounts.kt"
       ],
       "origin": "original",
@@ -912,6 +928,26 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/DoubleTapSkip.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/doubletapskip/DoubleTapSkipPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Double tap to skip, for issue #225, from Facebook 584. Facebook's players carry a double-tap skip of their own, a Kotlin lambda found by its kept captured names $edgeWidthPercent, $skipDuration and $videoDurationInMs and its invoke taking a MotionEvent and the view, which seeks on a double tap at the left or right edge only when one MobileConfig boolean is on. The patch takes that flag's id from the lambda's one read, finds every read of the id in the classes naming MobileConfigUnsafeContext (the lambda and the player builders that pick the skip and the edge from it), refuses when a load of the id isn't a read it knows, and hands each answer to the extension right after its move-result. The extension answers yes while its switch is on and Facebook's own answer otherwise."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/TapShowsControls.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/tapcontrols/TapShowsControlsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Tap shows the controls, for issue #225, from Facebook 584. Facebook's reel tap handler, found as the one method holding both the tap_to_show_player_control and reels_controls_tap_unmute log names, holds a dormant answer to a tap that shows the controls with a pause button and lets the reel play on, behind one config boolean Facebook ships off. The patch finds that boolean as the interface read guarded by an if-eqz and an if-ne landing on the same label, hands it to the extension after its move-result, and passes both of Facebook's waits before the controls hide (the unified player's int read in the handler, and the wide constant the controls' controller posts with its hide runnable next to announceControlsShowingForScreenReaders) through the extension too. The unified reel player skips posting any hide, through a static boolean check right before the handler's int read, so that check's answer goes through the extension as well. It refuses when a site isn't found exactly once or a branch lands inside it. The extension answers yes, a 3 second wait and no skip while its switch is on, and Facebook's own answers otherwise."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/ReelSpeed.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/KeepReelSpeedPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/ReelSpeedAnchors.kt"
@@ -924,13 +960,14 @@
     {
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/ReelHold.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/FeedVideoHold.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/reels/hold/HoldReelFor2xPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/reels/hold/ReelHoldAnchors.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: hold a reel for 2x, using the hold-to-speed-up Facebook's Reels controls already have behind server flags. The patch finds, in Facebook 577 and 580, the long-press handlers as the lambdas keeping $shouldDispatchLongPressEventDirectly and $immersiveFeedPlayerConfig and holding \"speed_up\", the release listeners as the lambdas keeping $isInLongPress2xPlaybackSpeed and that config, the speed-up flag as the one flag the handlers ask the config, the release flag as the one the listeners ask straight before it, the renders of FbShortsVideoControlComponent and FbShortsViewerOverlayComponent that make those lambdas, the edge check as the one method of its shape the handlers call, and FbFragmentActivity.dispatchTouchEvent. Each flag answer the handlers, the listeners and the renders take, and each answer of the edge check, goes through the extension, which says yes while the switch is on, the listeners' yes only until a lift they hear after a hold, which it tells from the touches it reads. The hold speed both speed-ups read goes through the extension too, which makes one no faster than normal 2x. FbGrootPlayer's speed setter hands the extension the player and the speed first thing and goes on with the speed it answers, and the extension's stub is filled with the player's speed getter, the one the listeners read, so a hold's lift puts back the speed the reel played at before the hold."
+      "changes": "Written for Hushfacebook: hold a reel for 2x, using the hold-to-speed-up Facebook's Reels controls already have behind server flags. The patch finds, in Facebook 577 and 580, the long-press handlers as the lambdas keeping $shouldDispatchLongPressEventDirectly and $immersiveFeedPlayerConfig and holding \"speed_up\", the release listeners as the lambdas keeping $isInLongPress2xPlaybackSpeed and that config, the speed-up flag as the one flag the handlers ask the config, the release flag as the one the listeners ask straight before it, the renders of FbShortsVideoControlComponent and FbShortsViewerOverlayComponent that make those lambdas, the edge check as the one method of its shape the handlers call, and FbFragmentActivity.dispatchTouchEvent. Each flag answer the handlers, the listeners and the renders take, and each answer of the edge check, goes through the extension, which says yes while the switch is on, the listeners' yes only until a lift they hear after a hold, which it tells from the touches it reads. The hold speed both speed-ups read goes through the extension too, which makes one no faster than normal 2x. FbGrootPlayer's speed setter hands the extension the player and the speed first thing and goes on with the speed it answers, and the extension's stub is filled with the player's speed getter, the one the listeners read, so a hold's lift puts back the speed the reel played at before the hold. Its second switch, Hold a feed video for 2x (issue #229), finds FbGrootPlayer's attach of its view in Facebook 584 by its attachPlayerViewInternal trace and the one ViewGroup field of the player it writes. The attach hands the extension the container and the player first thing, the touch dispatch hands it the activity and the event, and the extension's stubs are filled with that field and the speed setter, so a hold it times on a video playing in a feed list sets 2x and the lift puts back the speed before."
     },
     {
       "paths": [
@@ -1038,6 +1075,17 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/HeaderPicture.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/HeaderText.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/headertext/HomeHeaderTextPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook, for issue #230: Home header text. The hook sits at the same site Unlock app icons uses, right after the Home header's builder loads Facebook's stock wordmark, and hands the logo to HeaderText. That swaps the wordmark for a drawable that draws the saved words at the wordmark's height, in bold sans serif, through the color filter the header gives its wordmark, so the words follow Facebook's light and dark colors. A picture picked in the settings is shrunk to at most 1024 by 256 pixels with ImageDecoder, kept as a PNG in Facebook's files by HeaderPicture, and drawn at the wordmark's height in its own colors in place of the words. A pre-draw listener puts the words or the picture back when Facebook loads its wordmark again, and the picked app icon steps aside while there are either."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/AppLock.java"
       ],
       "origin": "original",
@@ -1120,10 +1168,12 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/CommentGif.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoFormat.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/MenuTop.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoMenuItem.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSave.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/CommentGifAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/DownloadPhotoPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSaveAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSizeAnchors.kt"
@@ -1131,7 +1181,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn. A save asks Meta's CDN for the biggest copy through the same resize call Facebook's own Save photo makes, and a picture the CDN sends as AVIF or WebP is written out as a JPEG."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn; and Save GIF in a GIF comment's long-press sheet, built with the sheet's own Save photo row builder and icon from the comment's animated image. A save asks Meta's CDN for the biggest copy through the same resize call Facebook's own Save photo makes, and a picture the CDN sends as AVIF or WebP is written out as a JPEG."
     },
     {
       "paths": [

@@ -60,8 +60,7 @@ private val GMA_LOADS = GMA_LOAD_HOOKS - GMA_BANNERS.toSet()
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Experimental, not yet tested on a device. Removes banner, native, sticky, interstitial and video preroll ads and the " +
-        "Taboola sponsored links under articles. Pro content stays server-side and is not unlocked."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_MONEYCONTROL)
 

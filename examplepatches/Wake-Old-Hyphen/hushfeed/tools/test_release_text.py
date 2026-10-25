@@ -366,7 +366,7 @@ class ReleaseTextTest(unittest.TestCase):
         self.cut_grouped_release()
         data = json.loads(catalog("1.1.0"))
         data["patches"][0]["compatibility"].append(
-            {"packageName": "com.ss.android.ttmd.video", "targets": [{"version": "1.0.0"}]})
+            {"name": "PineDrama", "packageName": "com.ss.android.ttmd.video", "targets": [{"version": "1.0.0"}]})
         self.write("patches-list.json", json.dumps(data))
         for name in ("readme.txt", "bundle.txt"):
             self.write(name, "x.\n")
@@ -374,11 +374,30 @@ class ReleaseTextTest(unittest.TestCase):
                          readme_summary=str(self.root / "readme.txt"), bundle_summary=str(self.root / "bundle.txt"),
                          device_line="", runtime=1, patch=1)
         description = json.loads(self.read("patches-bundle.json"))["description"]
-        self.assertIn("2 patches for global TikTok 1.1.0 (com.zhiliaoapp.musically)", description)
-        self.assertIn("applied to the supported APK", description)
-        self.assertIn("Hushfeed v0.2.0 contains 2 patches for TikTok 1.1.0. New in this one", self.read("README.md"))
+        self.assertIn("2 patches for global TikTok 1.1.0 (com.zhiliaoapp.musically) and PineDrama 1.0.0.", description)
+        self.assertIn("All 2 patches applied to the supported APK", description)
+        self.assertIn("Hushfeed v0.2.0 contains 2 patches for TikTok 1.1.0 and PineDrama 1.0.0. New in this one",
+                      self.read("README.md"))
 
-    def test_index_refuses_a_catalog_with_no_package_every_patch_declares(self):
+    def test_index_keeps_tiktok_as_the_target_beside_a_pinedrama_only_patch(self):
+        self.cut_grouped_release()
+        data = json.loads(catalog("1.1.0"))
+        data["patches"].append({"name": "C", "category": "Feed", "compatibility": [
+            {"name": "PineDrama", "packageName": "com.ss.android.ttmd.video", "targets": [{"version": "1.0.0"}]}]})
+        self.write("patches-list.json", json.dumps(data))
+        for name in ("readme.txt", "bundle.txt"):
+            self.write(name, "x.\n")
+        self.run_command(release_text.index, version="0.2.0", created="2026-10-09T17:03:42",
+                         readme_summary=str(self.root / "readme.txt"), bundle_summary=str(self.root / "bundle.txt"),
+                         device_line="", runtime=1, patch=1)
+        description = json.loads(self.read("patches-bundle.json"))["description"]
+        self.assertIn("3 patches for global TikTok 1.1.0 (com.zhiliaoapp.musically) and PineDrama 1.0.0.", description)
+        # The PineDrama-only patch never reaches the TikTok APK, so the applied count leaves it out.
+        self.assertIn("All 2 TikTok patches applied to the supported APK", description)
+        self.assertIn("Hushfeed v0.2.0 contains 3 patches for TikTok 1.1.0 and PineDrama 1.0.0. New in this one",
+                      self.read("README.md"))
+
+    def test_index_refuses_a_catalog_whose_two_packages_tie(self):
         self.cut_grouped_release()
         data = json.loads(catalog("1.1.0"))
         data["patches"][1]["compatibility"] = [{"packageName": "com.ss.android.ttmd.video", "targets": [{"version": "1.0.0"}]}]
@@ -390,7 +409,7 @@ class ReleaseTextTest(unittest.TestCase):
             self.run_command(release_text.index, version="0.2.0", created="2026-10-09T17:03:42",
                              readme_summary=str(self.root / "readme.txt"), bundle_summary=str(self.root / "bundle.txt"),
                              device_line="", runtime=1, patch=1)
-        self.assertIn("0 packages every patch declares", str(caught.exception))
+        self.assertIn("no one package the most patches declare", str(caught.exception))
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()})
 
     def index_with_install_steps(self, install: str) -> None:

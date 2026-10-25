@@ -1,3 +1,46 @@
+## [0.14.0](https://github.com/Santodan/santodan-patches/compare/v0.13.0...v0.14.0) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **NuvioTV:** correct update versions and installer fallback [skip ci] ([fafd816](https://github.com/Santodan/santodan-patches/commit/fafd816d0f2873069df5463c7459afe8d0a5bf03))
+* **nuviotv:** limit preferred add-ons to stream providers [skip ci] ([18bed6d](https://github.com/Santodan/santodan-patches/commit/18bed6dad9bd526d505db640df353ef5af5f6e4c))
+* **nuviotv:** reconcile cached progress and restore watched markers [skip ci] ([f38806f](https://github.com/Santodan/santodan-patches/commit/f38806f2b31668cc6db953494eefa93b7ac4804b))
+* **nuviotv:** respect native binge-group playback preferences [skip ci] ([d5e6524](https://github.com/Santodan/santodan-patches/commit/d5e65246ec5637d4d7695addc2b98d1193ffda93))
+* **nuviotv:** stabilize startup sync and remaining counts [skip ci] ([7a49ba6](https://github.com/Santodan/santodan-patches/commit/7a49ba6574ef2aa13d7dc2a50ba55d50ac98c8c8))
+* **nuviotv:** suspend standby during IntroDB segment review [skip ci] ([fc42f5e](https://github.com/Santodan/santodan-patches/commit/fc42f5ef97cd934b76a7877a15a173862c1a975f))
+* support Morphe Patcher 2.0 and repair v0.13.0 assets [skip ci] ([e0cd908](https://github.com/Santodan/santodan-patches/commit/e0cd90881dea3428d8b00889d21e0723787985d3))
+
+### ✨ New Features
+
+* **monet:** add 1.0.97 premium and experimental patches [skip ci] ([a16bb2b](https://github.com/Santodan/santodan-patches/commit/a16bb2b80bafe22d64ff66135cc7788a26a53b6c))
+* **nuviotv:** add startup track reselection guard [skip ci] ([0683d87](https://github.com/Santodan/santodan-patches/commit/0683d87f0cb6336f0fcffa2c12ea3a55f73e5cfd))
+
+### 🚀 Updated App Support
+
+* release pending patch updates ([4c9ac03](https://github.com/Santodan/santodan-patches/commit/4c9ac039d47ec86b7fcdda6ce53fba8c39499302))
+
+### NuvioTV update progress and installer fix (2026-10-24)
+
+* **nuviotv:** restore native download percentages using GitHub asset sizes when HTTP length is missing, and share background-transfer progress with foreground waiters.
+* **nuviotv:** use Android's normal APK installer for foreground installation progress, debounce repeated taps and retain native background/session fallback.
+* **nuviotv:** preserve automatic cleanup of private downloaded APKs after the matching release is installed; document the location and cleanup behavior.
+* **verification:** validate native DEX/register/branch contracts, runtime progress and installer behavior, Desktop import and standalone/combined APK output.
+* Update the existing v0.14.0 bundle and metadata assets manually, keeping the release version/tag unchanged and without running the workflow.
+
+## Unreleased
+
+### New patch
+
+* **nuviotv:** add the optional beta.8 startup track-reselection guard, preserving active-period seeks.
+
+### Fixes
+
+* **nuviotv:** read the correct playback state, retain preload cooldowns across pause/buffering and cache reflection used by playback controls.
+* **nuviotv:** defer merge work until Home, retain cached Continue Watching entries, validate provider readiness and apply local playback changes during quick startup sync.
+* **nuviotv:** reuse the native update-download banner for merge progress, elapsed time and errors; keep library refreshing under native Tracking settings.
+* **nuviotv:** restore compact episode membership and update remaining counts for resumed cards, late registration and overlapping count requests.
+* **verification:** cover the startup guard, native banner, cached history, count races and unchanged native library methods across standalone and combined beta.8 patches.
+
 ## [0.13.0](https://github.com/Santodan/santodan-patches/compare/v0.12.0...v0.13.0) (2026-10-22)
 
 ### 🐛 Bug Fixes

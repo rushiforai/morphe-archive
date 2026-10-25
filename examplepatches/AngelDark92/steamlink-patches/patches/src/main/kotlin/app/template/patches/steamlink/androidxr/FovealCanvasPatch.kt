@@ -75,6 +75,15 @@ private val FOVEAL_CANVAS_LAYOUTS = listOf(
             SceneFunction(0x10cd00, 3000, "986357756174710f0087b191157a11ee70104190360c6c17b466b951d8004884"),
         ),
     ),
+    FovealCanvasLayout(
+        versionName = "2.0.24",
+        versionCode = 5002395,
+        sceneSize = 2_301_432,
+        functions = listOf(
+            SceneFunction(0x10d41c, 692, "338fac4375cf3ea36bfaa31a4a9e6e358ff4f4fc88f2953e09c4b72a7bbb477d"),
+            SceneFunction(0x10df58, 3000, "d628c41334d5f9dfdc056ee436850824b5b6ac2023f990bc26f77a93f0703699"),
+        ),
+    ),
 )
 
 private fun fovealCanvasLayoutFor(versionName: String, versionCode: String): FovealCanvasLayout? =

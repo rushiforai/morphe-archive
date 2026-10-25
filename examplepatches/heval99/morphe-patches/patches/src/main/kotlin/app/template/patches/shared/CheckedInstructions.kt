@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -46,6 +47,18 @@ fun MutableMethod.addInstructionsWithLabelsChecked(
     vararg externalLabels: ExternalLabel,
 ) = checkedInsert("addInstructionsWithLabels", smaliInstructions) {
     addInstructionsWithLabels(index, smaliInstructions, *externalLabels)
+}
+
+/**
+ * Checked [addInstructionsAtControlFlowLabel]: inserts before the instruction at [index] and moves
+ * its labels to the first inserted instruction, so branches to [index] run the inserted code too.
+ */
+fun MutableMethod.addInstructionsAtControlFlowLabelChecked(
+    index: Int,
+    smaliInstructions: String,
+    vararg externalLabels: ExternalLabel,
+) = checkedInsert("addInstructionsAtControlFlowLabel", smaliInstructions) {
+    addInstructionsAtControlFlowLabel(index, smaliInstructions, *externalLabels)
 }
 
 /**

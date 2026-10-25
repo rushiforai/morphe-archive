@@ -29,9 +29,7 @@ private const val SAVED_MIN_HEIGHT = "morpheSavedMinHeight"
 @Suppress("unused")
 val hideMessagesTabPatch = bytecodePatch(
     name = "Hide Messages tab",
-    description = "Removes the Messages tab from the bottom bar and always opens Calls. SMS " +
-        "notifications still open their conversation. When Calls is the only tab left, the " +
-        "bottom bar shrinks to the height of the system navigation bar.",
+    description = "Hides the Messages tab from the bottom navigation bar.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

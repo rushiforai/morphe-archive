@@ -38,6 +38,10 @@ object CompatMirror {
         return ids(found)
     }
 
+    @Suppress("UNCHECKED_CAST")
+    fun wifiIdentityReads(classes: Iterable<ClassDef>): List<Method> =
+        static("wifiIdentityReads", List::class.java).invoke(null, classes.toList()) as List<Method>
+
     /** The same shape for the patch's own finder results. */
     fun ids(found: Map<String, List<Method>>): Map<String, List<String>> =
         found.filterValues { it.isNotEmpty() }.mapValues { (_, methods) -> methods.map(::id).sorted() }.toSortedMap()

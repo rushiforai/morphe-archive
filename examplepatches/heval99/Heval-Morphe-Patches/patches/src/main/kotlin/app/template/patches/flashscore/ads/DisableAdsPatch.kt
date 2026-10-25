@@ -62,8 +62,7 @@ private fun BytecodePatchContext.methods(relative: String): Set<MutableMethod> =
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables Google ads, in-app ad slots and video ads. " +
-        "Bookmaker strips and odds are hidden by Hide betting content."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_FLASHSCORE)
 

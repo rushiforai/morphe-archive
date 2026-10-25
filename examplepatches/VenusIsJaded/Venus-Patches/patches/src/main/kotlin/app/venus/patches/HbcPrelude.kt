@@ -8,13 +8,13 @@ import java.security.MessageDigest
 
 /** Single-load prelude for the SHA-256-pinned HBC98 asset. No rebundling or native JNI hooks. */
 internal object HbcPrelude {
-    // Pinned Discord 349.9 - Stable HBC98 bundle: function count, global function body and string IDs.
-    const val FUNCTION_COUNT = 155727
-    const val GLOBAL_OFFSET = 14525172
-    const val GLOBAL_SIZE = 598617
-    const val GLOBAL_SHA256 = "af80426e1719e4a64f9b72e36c7808cd0efbfb28395c683563d63e52bf447277"
-    const val JOIN_ID = 153
-    const val EVAL_ID = 34574
+    // Pinned Discord 350.8 - Stable HBC98 bundle: function count, global function body and string IDs.
+    const val FUNCTION_COUNT = 158673
+    const val GLOBAL_OFFSET = 14783912
+    const val GLOBAL_SIZE = 619373
+    const val GLOBAL_SHA256 = "a67c96b55c1e802c5a472a990ac5a97eb2b480f78067b63dd2f9fe4aec06aa70"
+    const val JOIN_ID = 152
+    const val EVAL_ID = 12199
     /** Longest existing string reused as one prelude piece; longer ones barely shorten the prelude. */
     const val MAX_PIECE = 64
     data class Result(val prefixSize: Int, val originalCodeSize: Int, val codeOffset: Int)
@@ -75,13 +75,23 @@ internal object HbcPrelude {
             val words = java.nio.ByteBuffer.wrap(entries).order(java.nio.ByteOrder.LITTLE_ENDIAN)
             val storageSize = intAt(60)
             val storageBytes = ByteArray(storageSize).also { raf.seek(storage); raf.readFully(it) }
-            val n = source.length
+            // The runtime's two lazily eval'd chunks are huge string literals that never run at boot, yet the boot-time
+            // eval had to scan them as part of the runtime's text. Build them as their own strings and pass them to the
+            // header as parameters (splitChunks), so that eval only scans the ~7 KB header.
+            val segments = splitChunks(source)
+            val segmentStart = IntArray(segments.size + 1)
+            for (s in segments.indices) segmentStart[s + 1] = segmentStart[s] + segments[s].length
+            val n = segmentStart[segments.size]
             val srcBytes = ByteArray(n)
-            for (i in 0 until n) {
-                val ch = source[i].code
+            var fill = 0
+            for (segment in segments) for (i in 0 until segment.length) {
+                val ch = segment[i].code
                 require(ch in 0..127) { "Bootstrap contains unsupported characters" }
-                srcBytes[i] = ch.toByte()
+                srcBytes[fill++] = ch.toByte()
             }
+            // A piece never crosses from one segment into the next.
+            val segmentEnd = IntArray(n)
+            for (s in segments.indices) for (i in segmentStart[s] until segmentStart[s + 1]) segmentEnd[i] = segmentStart[s + 1]
             val id1 = IntArray(128) { -1 }
             val id2 = IntArray(128 * 128) { -1 }
             val id3 = IntArray(128 * 128 * 128) { -1 }
@@ -169,16 +179,17 @@ internal object HbcPrelude {
                 var bestCost = Int.MAX_VALUE / 2
                 var bestLen = 0
                 var bestId = -1
+                val limit = segmentEnd[i]
                 val s1 = id1[c0]
                 if (s1 != -1) { bestCost = (if (s1 < 65536) 9 else 11) + cost[i + 1]; bestLen = 1; bestId = s1 }
-                if (i + 1 < n) {
+                if (i + 1 < limit) {
                     val c1 = srcBytes[i + 1].toInt()
                     val s2 = id2[(c0 shl 7) or c1]
                     if (s2 != -1) {
                         val sc = (if (s2 < 65536) 9 else 11) + cost[i + 2]
                         if (sc < bestCost) { bestCost = sc; bestLen = 2; bestId = s2 }
                     }
-                    if (i + 2 < n) {
+                    if (i + 2 < limit) {
                         val c2 = srcBytes[i + 2].toInt()
                         val s3 = id3[(c0 shl 14) or (c1 shl 7) or c2]
                         if (s3 != -1) {
@@ -189,7 +200,7 @@ internal object HbcPrelude {
                 }
                 var cur = 0
                 var len = 0
-                val maxLen = minOf(MAX_PIECE, n - i)
+                val maxLen = minOf(MAX_PIECE, limit - i)
                 while (len < maxLen) {
                     val ch = srcBytes[i + len]
                     var child = firstChild[cur]
@@ -212,18 +223,17 @@ internal object HbcPrelude {
                 nextLen[i] = bestLen
                 nextId[i] = bestId
             }
-            var partCount = 0
-            var position = 0
-            while (position < n) {
-                partCount++
-                position += nextLen[position]
+            // Pieces of each segment, in order.
+            val segmentParts = segments.indices.map { s ->
+                var count = 0
+                var position = segmentStart[s]
+                while (position < segmentStart[s + 1]) { count++; position += nextLen[position] }
+                val parts = IntArray(count)
+                position = segmentStart[s]
+                for (idx in 0 until count) { parts[idx] = nextId[position]; position += nextLen[position] }
+                parts
             }
-            val parts = IntArray(partCount)
-            position = 0
-            for (idx in 0 until partCount) {
-                parts[idx] = nextId[position]
-                position += nextLen[position]
-            }
+            val partCount = segmentParts.sumOf { it.size }
             val prefix = ByteArrayOutputStream(partCount * 11 + 64)
             fun emit(vararg bytes: Int) { for (byte in bytes) prefix.write(byte) }
             fun u32(value: Int) { for (shift in 0..24 step 8) prefix.write(value ushr shift) }
@@ -234,25 +244,50 @@ internal object HbcPrelude {
             // An array + join is linear-time and reuses existing literal strings. No string table changes.
             // DefineOwnInDenseArray / DefineOwnInDenseArrayL write directly to the pre-allocated dense
             // storage (0..65534) instead of going through JSObject::defineOwnProperty on every piece.
-            emit(61, 10) // GetGlobalObject r10
-            val initialCapacity = minOf(partCount, 65535)
-            emit(8, 11, initialCapacity and 255, initialCapacity ushr 8) // NewArray r11
-            for (index in 0 until partCount) {
-                string(12, parts[index])
-                if (index < 256) emit(90, 11, 12, index) // DefineOwnInDenseArray
-                else if (index < initialCapacity) emit(91, 11, 12, index and 255, index ushr 8) // DefineOwnInDenseArrayL
-                else { emit(89, 11, 12); u32(index) } // DefineOwnByIndexL
+            // The pieces go into blocks of at most 65535, each joined on its own, then the block strings are joined.
+            // NewArray's capacity and DefineOwnInDenseArrayL's index are 16-bit: one array for all ~380k pieces sent
+            // every piece past 65535 through DefineOwnByIndexL (generic defineOwnProperty, growing storage), the
+            // single biggest Venus cost of a cold boot (HBC98 VM, real 350.8 bundle).
+            // Builds one string into r11 from its pieces.
+            fun build(parts: IntArray) {
+                val blockCount = (parts.size + 65534) / 65535
+                require(blockCount in 1..256) { "Bootstrap too large for HBC98" }
+                emit(8, 14, blockCount and 255, blockCount ushr 8) // NewArray r14: one string per block
+                for (block in 0 until blockCount) {
+                    val first = block * 65535
+                    val size = minOf(65535, parts.size - first)
+                    emit(8, 11, size and 255, size ushr 8) // NewArray r11
+                    for (index in 0 until size) {
+                        string(12, parts[first + index])
+                        if (index < 256) emit(90, 11, 12, index) // DefineOwnInDenseArray
+                        else emit(91, 11, 12, index and 255, index ushr 8) // DefineOwnInDenseArrayL
+                    }
+                    // Cache slots are per function. Never reuse the original global's 0..24 caches.
+                    emit(69, 12, 11, reads, JOIN_ID and 255, JOIN_ID ushr 8) // GetById join
+                    string(13, 255) // empty delimiter
+                    emit(110, 11, 12, 11, 13) // Call2 join -> r11
+                    emit(90, 14, 11, block) // DefineOwnInDenseArray r14[block] = r11
+                }
+                emit(69, 12, 14, reads, JOIN_ID and 255, JOIN_ID ushr 8) // GetById join
+                string(13, 255)
+                emit(110, 11, 12, 14, 13) // Call2 join -> r11
             }
-            // Cache slots are per function. Never reuse the original global's 0..24 caches.
-            emit(69, 12, 11, reads, JOIN_ID and 255, JOIN_ID ushr 8) // GetById join
-            string(13, 255) // empty delimiter
-            emit(110, 11, 12, 11, 13) // Call2 join -> r11
+            emit(61, 10) // GetGlobalObject r10
+            // The chunks first, into r15 and r16: GC-visible registers the original global writes before it reads them,
+            // and both are cleared again below on the normal and the Catch path.
+            for (s in 1 until segments.size) {
+                build(segmentParts[s])
+                emit(16, 14 + s, 11) // Mov r15 / r16
+            }
+            build(segmentParts[0])
             emit(69, 12, 10, reads + 1, EVAL_ID and 255, EVAL_ID ushr 8) // GetById eval
-            emit(110, 13, 12, 10, 11) // indirect eval of the bundled IIFE
+            emit(110, 13, 12, 10, 11) // indirect eval of the header
+            if (segments.size == 3) emit(111, 13, 13, 10, 15, 16) // Call3: the header's function receives both chunks
             val end = prefix.size()
             emit(175); u32(7) // normal path skips Catch and falls into the original global code
             val handler = prefix.size()
             emit(119, 14) // Catch: fail open to Discord if local prelude evaluation fails
+            emit(147, 15); emit(147, 16) // LoadConstUndefined r15, r16 on both paths: the original global starts clean
             val prelude = prefix.toByteArray()
             // The only real ceiling: the relocated global function and the file must stay 32-bit addressable.
             require(prelude.size.toLong() + original.size < Int.MAX_VALUE) { "Bootstrap too large for HBC98" }
@@ -291,5 +326,58 @@ internal object HbcPrelude {
         }
         FileOutputStream(file, true).use { it.write(digest.digest()) }
         return result
+    }
+
+    /**
+     * Splits the compacted runtime into its eval'd header and the two lazily eval'd chunks (the string literals longer
+     * than [CHUNK_MIN] characters that scripts/build.py prints). The header becomes `(function($vc0,$vc1){...})` with
+     * each literal replaced by its parameter, whose value is exactly the string the literal stood for. Anything else
+     * (not two chunks, an escape this decoder doesn't know, a name already in use) keeps the runtime as one segment.
+     */
+    internal fun splitChunks(source: String): List<String> {
+        val whole = listOf(source)
+        if (source.contains("\$vc0") || source.contains("\$vc1")) return whole
+        val found = ArrayList<IntArray>()
+        var i = source.indexOf('"')
+        while (i >= 0) {
+            var k = i + 1
+            while (k < source.length && source[k] != '"') k += if (source[k] == '\\') 2 else 1
+            if (k >= source.length) return whole
+            if (k - i > CHUNK_MIN) found.add(intArrayOf(i, k + 1))
+            i = source.indexOf('"', k + 1)
+        }
+        if (found.size != 2) return whole
+        val chunks = found.map { decodeLiteral(source, it[0] + 1, it[1] - 1) ?: return whole }
+        val header = StringBuilder("(function(\$vc0,\$vc1){")
+        header.append(source, 0, found[0][0]).append("\$vc0")
+        header.append(source, found[0][1], found[1][0]).append("\$vc1")
+        header.append(source, found[1][1], source.length).append("\n})")
+        return listOf(header.toString(), chunks[0], chunks[1])
+    }
+    private const val CHUNK_MIN = 50000
+
+    /** A JSON-style string body (what JSON.stringify prints) to its value; null for anything else or non-ASCII. */
+    private fun decodeLiteral(source: String, start: Int, end: Int): String? {
+        val out = StringBuilder(end - start)
+        var i = start
+        while (i < end) {
+            val c = source[i]
+            if (c != '\\') { out.append(c); i++; continue }
+            if (i + 1 >= end) return null
+            when (source[i + 1]) {
+                '"' -> out.append('"'); '\\' -> out.append('\\'); '/' -> out.append('/')
+                'n' -> out.append('\n'); 't' -> out.append('\t'); 'r' -> out.append('\r')
+                'b' -> out.append('\b'); 'f' -> out.append('\u000c')
+                'u' -> {
+                    if (i + 6 > end) return null
+                    val code = source.substring(i + 2, i + 6).toIntOrNull(16) ?: return null
+                    out.append(code.toChar()); i += 6; continue
+                }
+                else -> return null
+            }
+            i += 2
+        }
+        for (k in 0 until out.length) if (out[k].code > 127) return null
+        return out.toString()
     }
 }

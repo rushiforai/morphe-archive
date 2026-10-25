@@ -15,7 +15,7 @@ internal const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Premium+ by reporting the lifetime and ad-free purchases as owned.",
+    description = "Unlocks Premium+ features.",
 ) {
     compatibleWith(COMPATIBILITY_SMARTWOD)
 

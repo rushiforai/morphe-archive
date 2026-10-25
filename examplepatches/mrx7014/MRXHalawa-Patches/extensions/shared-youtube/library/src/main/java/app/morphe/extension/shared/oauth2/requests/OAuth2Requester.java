@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -32,11 +32,6 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 
 public class OAuth2Requester {
-    /**
-     * Response code of a successful API call.
-     */
-    private static final int HTTP_STATUS_CODE_SUCCESS = 200;
-
     /**
      * Response code of a failed API call.
      */
@@ -213,7 +208,7 @@ public class OAuth2Requester {
 
                 final int responseCode = connection.getResponseCode();
 
-                if (responseCode == HTTP_STATUS_CODE_SUCCESS) {
+                if (responseCode == Requester.HTTP_STATUS_CODE_SUCCESS) {
                     ActivationCodeData fetchedActivationCodeData = new ActivationCodeData(Requester.parseJSONObjectAndDisconnect(connection));
                     Logger.printDebug(() -> "deviceCode: " + fetchedActivationCodeData);
                     lastFetchedActivationCodeData = fetchedActivationCodeData;
@@ -258,7 +253,7 @@ public class OAuth2Requester {
 
                 final int responseCode = connection.getResponseCode();
 
-                if (responseCode == HTTP_STATUS_CODE_SUCCESS) {
+                if (responseCode == Requester.HTTP_STATUS_CODE_SUCCESS) {
                     JSONObject json = Requester.parseJSONObjectAndDisconnect(connection);
                     String errorKey = "error";
                     if (json.has(errorKey)) {
@@ -311,7 +306,7 @@ public class OAuth2Requester {
 
             final int responseCode = connection.getResponseCode();
 
-            if (responseCode == HTTP_STATUS_CODE_SUCCESS) {
+            if (responseCode == Requester.HTTP_STATUS_CODE_SUCCESS) {
                 synchronized (OAuth2Requester.class) {
                     AccessTokenData fetchedAccessTokenData = new AccessTokenData(refreshToken,
                             Requester.parseJSONObjectAndDisconnect(connection));
@@ -361,7 +356,7 @@ public class OAuth2Requester {
 
             final int responseCode = connection.getResponseCode();
 
-            if (responseCode == HTTP_STATUS_CODE_SUCCESS) {
+            if (responseCode == Requester.HTTP_STATUS_CODE_SUCCESS) {
                 return true;
             }
             handleConnectionError(str("morphe_oauth2_connection_failure_status", responseCode), null);

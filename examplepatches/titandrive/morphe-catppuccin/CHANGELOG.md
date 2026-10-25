@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.8.0) (2026-10-24)
+
+### Features
+
+* **Immich:** Add Catppuccin Latte and Macchiato palettes for the verified 3.3.5 arm64 APK, with mauve selected tab icons and labels and a Mantle dark dock. Replaces existing palettes.
+* **Immich:** Add an optional custom TTF file picker for interface fonts while preserving icon glyphs.
+
 # [0.7.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.7.0) (2026-10-23)
 
 ### Features

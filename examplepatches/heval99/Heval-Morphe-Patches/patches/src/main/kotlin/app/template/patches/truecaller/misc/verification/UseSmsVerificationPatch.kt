@@ -13,9 +13,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 @Suppress("unused")
 val useSmsVerificationPatch = bytecodePatch(
     name = "Use SMS for verification codes",
-    description = "Reads the phone verification code from the SMS inbox instead of Google's SMS " +
-        "Retriever, for devices without Google Play services or with MicroG. Phone verification " +
-        "can still fail on modified builds, because Truecaller's servers check the app.",
+    description = "Reads the verification code from SMS. Verification can still fail on patched apps.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

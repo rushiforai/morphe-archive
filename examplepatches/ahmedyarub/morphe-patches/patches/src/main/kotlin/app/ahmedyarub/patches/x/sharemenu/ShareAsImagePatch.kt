@@ -33,7 +33,7 @@ private object ExternalAppInfoToStringFingerprint : Fingerprint(
 
 private object ShareCardSnapshotToStringFingerprint : Fingerprint(
     name = "toString",
-    strings = listOf("ShareCardSnapshot("),
+    strings = listOf("ShareCardSnapshot(image="),
 )
 
 /** Sends a rendered share card to Instagram Stories or Snapchat. */

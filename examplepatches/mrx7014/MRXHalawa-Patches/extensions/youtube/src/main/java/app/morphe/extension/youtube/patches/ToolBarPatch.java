@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -16,13 +16,22 @@ import app.morphe.extension.shared.Logger;
 
 @SuppressWarnings("unused")
 public class ToolBarPatch {
+    private static final ThreadLocal<String> pendingIconEnum = new ThreadLocal<>();
 
     /**
-     * Injection point.
+     * Injection point. Called immediately after YouTube resolves the menu icon enum.
      */
-    public static void hookToolBar(@Nullable Enum<?> iconEnum, ImageView imageView) {
-        if (iconEnum != null && imageView.getParent() instanceof View parentView) {
-            String enumName = iconEnum.name();
+    public static void setToolbarIconEnum(@Nullable Enum<?> iconEnum) {
+        pendingIconEnum.set(iconEnum == null ? null : iconEnum.name());
+    }
+
+    /**
+     * Injection point. Called immediately after YouTube loads the toolbar ImageView.
+     */
+    public static void setToolbarImageView(ImageView imageView) {
+        String enumName = pendingIconEnum.get();
+        pendingIconEnum.remove();
+        if (enumName != null && imageView.getParent() instanceof View parentView) {
             Logger.printDebug(() -> "enum: " + enumName);
             hookToolBar(enumName, parentView, imageView);
         }

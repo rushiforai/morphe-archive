@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -19,10 +19,13 @@ import com.google.android.libraries.youtube.rendering.ui.pivotbar.PivotBar;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import app.morphe.extension.shared.ByteTrieSearch;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
@@ -30,6 +33,8 @@ import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.patches.components.StringFilterGroupList;
+import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.youtube.patches.LayoutReloadObserverPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
@@ -77,6 +82,17 @@ public final class ShortsFilter extends Filter {
     private static WeakReference<View> bottomBarContainerRef = new WeakReference<>(null);
     private static WeakReference<PivotBar> pivotBarRef = new WeakReference<>(null);
 
+    /**
+     * Setting of the feed where each Shorts shelf was loaded, by the hash of the text of its buffer.
+     * <p>
+     * The feed behind the player is also reloaded while the player is open, such as when entering or exiting
+     * fullscreen. Some app versions also load the shelf header as a separate part of the shelf, and its buffer
+     * does not include the search page. The text of the buffer is the same every time the part is loaded,
+     * so the feed can still be identified.
+     */
+    private static final Map<Integer, BooleanSetting> shelfFeedSettings = Collections.synchronizedMap(
+            Utils.createSizeRestrictedMap(1000));
+
     private static final FrameLayout.LayoutParams zeroLayoutParams = new FrameLayout.LayoutParams(0, 0);
     private static FrameLayout.LayoutParams originalLayoutParams;
 
@@ -86,6 +102,7 @@ public final class ShortsFilter extends Filter {
     private final StringFilterGroup joinButton;
     private final StringFilterGroup reelCarousel;
     private final ByteArrayFilterGroupList reelCarouselBuffer = new ByteArrayFilterGroupList();
+    private final ByteArrayFilterGroup searchResultsBuffer;
     private final StringFilterGroup shelfHeaderIdentifier;
     private final StringFilterGroup shelfHeaderPath;
     private final StringFilterGroup shortsActionBar;
@@ -130,6 +147,12 @@ public final class ShortsFilter extends Filter {
         );
 
         addIdentifierCallbacks(shortsIdentifiers, channelProfile, shelfHeaderIdentifier);
+
+        searchResultsBuffer = new ByteArrayFilterGroup(
+                null,
+                // Search page of the endpoints of the Shorts, as a length-prefixed proto string.
+                new byte[]{0x32, 0x06, 's', 'e', 'a', 'r', 'c', 'h'}
+        );
 
         //
         // Path components.
@@ -442,7 +465,7 @@ public final class ShortsFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -464,14 +487,16 @@ public final class ShortsFilter extends Filter {
                 return !NavigationBar.isSearchBarActive();
             }
 
-            return shouldHideShortsFeedItems();
+            // Nested components of the element have their own buffer.
+            final boolean nestedComponent = Utils.indexOf(path, ".e", identifier.length()) >= 0;
+            return shouldHideShortsFeedItems(identifier, contextInterface, buffer, nestedComponent, !nestedComponent);
         }
 
         if (contentType == FilterContentType.PATH) {
             if (matchedGroup == subscribeButton || matchedGroup == joinButton || matchedGroup == autoDubbedLabel) {
                 // Selectively filter to avoid false positive filtering of other subscribe/join buttons.
-                return path.startsWith(REEL_CHANNEL_BAR_PATH) || path.startsWith(REEL_METAPANEL_PATH)
-                        || path.startsWith(REEL_PLAYER_OVERLAY_PATH);
+                return Utils.startsWith(path, REEL_CHANNEL_BAR_PATH) || Utils.startsWith(path, REEL_METAPANEL_PATH)
+                        || Utils.startsWith(path, REEL_PLAYER_OVERLAY_PATH);
             }
 
             if (matchedGroup == reelCarousel) {
@@ -479,15 +504,16 @@ public final class ShortsFilter extends Filter {
             }
 
             if (matchedGroup == shortsCompactFeedVideo) {
-                return shouldHideShortsFeedItems()
-                        // When a video is autoplaying in the feed, no new components are drawn on the screen.
-                        // Therefore, filtering is skipped when the current PlayerType is [INLINE_MINIMAL].
-                        && PlayerType.getCurrent() != PlayerType.INLINE_MINIMAL
+                // When a video is autoplaying in the feed, no new components are drawn on the screen.
+                // Therefore, filtering is skipped when the current PlayerType is [INLINE_MINIMAL].
+                return PlayerType.getCurrent() != PlayerType.INLINE_MINIMAL
                         // The litho path of the feed video is 'video_lockup_with_attachment.e'.
                         // It appears [shortsCompactFeedVideoBuffer] is used after 20 seconds during autoplay in the feed in YouTube 20.44.38.
                         // If the Shorts shelf is hidden on the Home feed, the video in the feed will be hidden after 20 seconds have passed since autoplay began in the feed.
-                        // See: https://github.com/mrx7014/MRXHalawa-Patches/issues/773.
-                        && shortsCompactFeedVideoBuffer.matches(buffer);
+                        // See: https://github.com/MorpheApp/morphe-patches/issues/773.
+                        && shortsCompactFeedVideoBuffer.matches(buffer)
+                        // Checked last, as only the Shorts are logged.
+                        && shouldHideShortsFeedItems(path, contextInterface, buffer, false, false);
             }
 
             if (matchedGroup == shelfHeaderPath) {
@@ -502,7 +528,7 @@ public final class ShortsFilter extends Filter {
                     return !NavigationBar.isSearchBarActive() && channelProfileShelfHeader.check(buffer).isFiltered();
                 }
 
-                return shouldHideShortsFeedItems();
+                return shouldHideShortsFeedItems(path, contextInterface, buffer, false, false);
             }
 
             // Video action buttons (comment, share, remix) have the same path.
@@ -515,7 +541,7 @@ public final class ShortsFilter extends Filter {
             }
 
             if (matchedGroup == useButtons) {
-                return path.contains("|button.e") && useButtonsBuffer.check(buffer).isFiltered();
+                return Utils.contains(path, "|button.e") && useButtonsBuffer.check(buffer).isFiltered();
             }
 
             if (matchedGroup == suggestedAction) {
@@ -535,7 +561,13 @@ public final class ShortsFilter extends Filter {
         return false;
     }
 
-    private boolean shouldHideShortsFeedItems() {
+    /**
+     * @param component       Identifier or path of the component, for the debug log.
+     * @param nestedComponent If the component is nested in the element, such as the thumbnail of a Shorts shelf.
+     * @param rootComponent   If the component is the element itself, or a part of it, such as the Shorts shelf header.
+     */
+    private boolean shouldHideShortsFeedItems(CharSequence component, ContextInterface contextInterface, byte[] buffer,
+                                              boolean nestedComponent, boolean rootComponent) {
         // Known issue if hide home is on but at least one other hide is off:
         //
         // Shorts suggestions will load in the background if a video is opened and
@@ -558,34 +590,120 @@ public final class ShortsFilter extends Filter {
 
         // Must check player type first, as search bar can be active behind the player.
         if (PlayerType.getCurrent().isMaximizedOrFullscreen() || LayoutReloadObserverPatch.isActionBarVisible.get()) {
-            return EngagementPanel.isDescription()
-                    ? hideVideoDescription // Player video description panel opened.
-                    : hideHome; // For now, consider Shorts under video player the same as the home feed.
+            if (nestedComponent) {
+                // Nested components are loaded only if the element is shown, and their buffers do not always
+                // include the search page, so the element is hidden or shown as a whole.
+                return logDecision(component, false, "player: nested component");
+            }
+            if (EngagementPanel.isDescription()) {
+                // Player video description panel opened.
+                return logDecision(component, hideVideoDescription, "player: description");
+            }
+            // The search results behind the player are also reloaded while the player is open,
+            // such as when entering or exiting fullscreen.
+            if (searchResultsBuffer.check(buffer).isFiltered()) {
+                return logDecision(component, hideSearch, "player: search results");
+            }
+            if (rootComponent) {
+                BooleanSetting feedSetting = shelfFeedSettings.get(getTextHash(buffer));
+                if (feedSetting != null) {
+                    return logDecision(component, feedSetting.get(), "player: remembered " + feedSetting.key);
+                }
+            }
+            // For now, consider Shorts under video player the same as the home feed.
+            return logDecision(component, hideHome, "player: home");
         }
 
         // Must check second, as search can be from any tab.
         if (NavigationBar.isSearchBarActive()) {
-            return hideSearch;
+            return hideShortsInFeed(component, "search", Settings.HIDE_SHORTS_SEARCH, buffer, rootComponent);
         }
 
         // Avoid checking navigation button status if all other Shorts should show.
         if (!hideHome && !hideSubscriptions && !hideHistory) {
-            return false;
+            return hideShortsInFeed(component, "others shown", Settings.HIDE_SHORTS_HOME, buffer, rootComponent);
         }
 
         // Check navigation absolutely last since the check may block this thread.
-        NavigationBar.NavigationButton selectedNavButton = NavigationBar.NavigationButton.getSelectedNavigationButton();
+        NavigationBar.NavigationButton selectedNavButton =
+                NavigationBar.NavigationButton.getSelectedNavigationButton(contextInterface);
         if (selectedNavButton == null) {
-            return hideHome; // Unknown tab, treat the same as home.
+            // Unknown tab, treat the same as home.
+            return hideShortsInFeed(component, "unknown tab", Settings.HIDE_SHORTS_HOME, buffer, rootComponent);
         }
 
         return switch (selectedNavButton) {
-            case HOME -> hideHome;
-            case SEARCH -> hideSearch;
-            case SUBSCRIPTIONS -> hideSubscriptions;
-            case LIBRARY -> hideHistory;
-            default -> false;
+            case HOME -> hideShortsInFeed(component, "home tab", Settings.HIDE_SHORTS_HOME, buffer, rootComponent);
+            case SEARCH -> hideShortsInFeed(component, "search tab", Settings.HIDE_SHORTS_SEARCH, buffer, rootComponent);
+            case SUBSCRIPTIONS -> hideShortsInFeed(component, "subscriptions tab",
+                    Settings.HIDE_SHORTS_SUBSCRIPTIONS, buffer, rootComponent);
+            case LIBRARY -> hideShortsInFeed(component, "library tab", Settings.HIDE_SHORTS_HISTORY, buffer, rootComponent);
+            default -> logDecision(component, false, "other tab: " + selectedNavButton);
         };
+    }
+
+    /**
+     * Saves the feed of the Shorts shelf, to use the same setting if the feed is reloaded behind the player.
+     *
+     * @return If the Shorts of the feed are hidden.
+     */
+    private static boolean hideShortsInFeed(CharSequence component, String feed, BooleanSetting feedSetting,
+                                            byte[] buffer, boolean rootComponent) {
+        if (rootComponent) {
+            // A shelf loaded in different feeds is treated the same as Shorts under the player.
+            shelfFeedSettings.merge(getTextHash(buffer), feedSetting,
+                    (previous, current) -> previous == current ? previous : Settings.HIDE_SHORTS_HOME);
+        }
+        return logDecision(component, feedSetting.get(), feed);
+    }
+
+    /**
+     * Logs why the Shorts of a feed are hidden or shown, to find the feeds where they are not hidden as expected.
+     *
+     * @return The decision.
+     */
+    private static boolean logDecision(CharSequence component, boolean hide, String reason) {
+        if (BaseSettings.DEBUG.get()) {
+            String message = "Shorts " + (hide ? "hidden" : "shown") + " (" + reason + ") player: "
+                    + PlayerType.getCurrent() + " search bar: " + NavigationBar.isSearchBarActive()
+                    + " component: " + component;
+            // The same element is filtered again on every layout, which would fill the log.
+            if (!message.equals(lastDecisionLog)) {
+                lastDecisionLog = message;
+                Logger.printDebug(() -> message);
+            }
+        }
+        return hide;
+    }
+
+    /**
+     * Last message of {@link #logDecision(CharSequence, boolean, String)}.
+     */
+    private static volatile String lastDecisionLog = "";
+
+    /**
+     * @return Hash of the ASCII strings of the buffer, as found by {@link BufferAsciiStrings}.
+     *         The other values of the buffer can change, such as after the screen is rotated.
+     */
+    private static int getTextHash(byte[] buffer) {
+        final int minimumAsciiStringLength = 4;
+        final int length = buffer.length;
+        int hash = 1;
+        int start = 0;
+
+        for (int end = 0; end <= length; end++) {
+            if (end == length || buffer[end] < 32 || buffer[end] > 126) {
+                if (end - start >= minimumAsciiStringLength) {
+                    for (int i = start; i < end; i++) {
+                        hash = 31 * hash + buffer[i];
+                    }
+                    hash = 31 * hash; // Delimiter between strings.
+                }
+                start = end + 1;
+            }
+        }
+
+        return hash;
     }
 
     /**

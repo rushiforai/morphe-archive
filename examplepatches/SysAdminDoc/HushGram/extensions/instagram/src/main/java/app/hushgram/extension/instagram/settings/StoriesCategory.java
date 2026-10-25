@@ -125,6 +125,13 @@ final class StoriesCategory {
                             + "highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the "
                             + "difference viewers see is small. Photo stories already go up larger than Instagram keeps.")));
         }
+        if (build.contains(PatchFamily.STORY_FONTS)) {
+            stories.add(toggle(context, Settings.STORY_FONTS, L10n.t("Your fonts in story text"),
+                    L10n.t("Adds the fonts below to the story text editor, after Instagram's own fonts, which all "
+                            + "stay. Pick one there like any other font.")));
+            stories.add(page.storyFontsRow(context));
+            stories.add(page.storyEmojiRow(context));
+        }
         if (!stories.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Stories"), SettingsIcons.STORIES,
                     L10n.t("Choose which stories you see and what people see you do."));

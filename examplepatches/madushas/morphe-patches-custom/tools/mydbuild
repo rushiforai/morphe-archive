@@ -43,12 +43,21 @@ echo "==> Bundle: $MPP"
 
 echo "==> Patching $IN"
 # "Fix SIM identifier access" is default-on since v0.5.1 (see SimAccessFixPatch.kt).
+# MYD_INSPECT=1 additionally enables the adb-reverse traffic-proxy patch (off by default).
+ENABLE_ARGS=()
+if [[ "${MYD_INSPECT:-0}" == "1" ]]; then
+  ENABLE_ARGS+=(-e "Inspect HTTPS traffic (adb reverse proxy)")
+  # Emulator reaches the host at 10.0.2.2; a physical phone needs the host's LAN IP.
+  ENABLE_ARGS+=(-O "Proxy host=${MYD_PROXY_HOST:-10.0.2.2}")
+  ENABLE_ARGS+=(-O "Proxy port=${MYD_PROXY_PORT:-8080}")
+fi
 java -jar "$HOME/tools/opt/morphe-desktop.jar" patch \
   --patches="$MPP" \
   --bytecode-mode FULL \
   -o "$OUT" \
   -r "$WORK/patch-result.json" \
   -f \
+  "${ENABLE_ARGS[@]}" \
   "$IN"
 
 echo "==> Output: $OUT"

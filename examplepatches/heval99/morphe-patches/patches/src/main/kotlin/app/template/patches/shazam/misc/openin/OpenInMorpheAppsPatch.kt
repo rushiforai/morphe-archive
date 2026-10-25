@@ -67,8 +67,7 @@ private val openInMorpheAppsManifestPatch = resourcePatch {
 @Suppress("unused")
 val openInMorpheAppsPatch = bytecodePatch(
     name = "Open in Morphe YouTube apps",
-    description = "Makes \"Open in YouTube Music\" and \"Open in YouTube\" open the Morphe-patched " +
-        "apps when they are installed, falling back to the stock apps otherwise.",
+    description = "Opens songs in the Morphe YouTube apps when installed.",
 ) {
     compatibleWith(COMPATIBILITY_SHAZAM)
 

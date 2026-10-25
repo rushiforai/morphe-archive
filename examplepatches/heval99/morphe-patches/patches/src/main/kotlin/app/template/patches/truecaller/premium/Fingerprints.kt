@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 internal const val PREMIUM_TIER_TYPE = "Lcom/truecaller/premium/data/tier/PremiumTierType;"
 internal const val PREMIUM_FEATURE = "Lcom/truecaller/premium/data/feature/PremiumFeature;"
 private const val PREMIUM_FEATURE_STATUS = "Lcom/truecaller/premium/data/feature/PremiumFeatureStatus;"
+private const val PREMIUM_LAUNCH_CONTEXT_STATIC = "Lcom/truecaller/premium/PremiumLaunchContext\$Static;"
 
 // Truecaller is R8-obfuscated apart from its model, enum and worker classes, so the anchors are
 // the premium SharedPreferences keys, the kept types in method signatures, and method shape.
@@ -94,6 +95,34 @@ internal object SubscriptionStatusWorkerFingerprint : Fingerprint(
     definingClass = "Lcom/truecaller/premium/PremiumSubscriptionStatusNotificationWorker;",
     name = "doWork",
     returnType = "Ljava/lang/Object;",
+)
+
+// The Premium tab's screen states (PremiumUserTabPaywallViewModel; alx / dlx in 26.41.5): Entitled
+// (the subscription management screen) and Paywall (the plans). Obfuscated classes; their
+// toStrings keep the state names.
+internal object PremiumTabEntitledStateToStringFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("Entitled(subscriptionFetchResult=", StringComparisonType.STARTS_WITH)),
+)
+
+internal object PremiumTabPaywallStateToStringFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("Paywall(subscriptionFetchResult=", StringComparisonType.STARTS_WITH)),
+)
+
+// The Premium tab view model's suspend state chooser (amx.L in 26.41.5): after the subscription
+// fetch it reads isPremium, then the "isSubscriptionOnHoldOrPaused" pref, then compares the launch
+// context with a kept PremiumLaunchContext.Static constant, and builds Entitled or Paywall. The patch
+// also requires both state types and the isPremium call in it.
+internal object PremiumTabScreenStateFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("L"),
+    filters = listOf(
+        string("isSubscriptionOnHoldOrPaused"),
+        fieldAccess(opcode = Opcode.SGET_OBJECT, type = PREMIUM_LAUNCH_CONTEXT_STATIC),
+    ),
 )
 
 // androidx.work ListenableWorker.Result.Success / Failure. R8 renames them, but their toString

@@ -4359,8 +4359,12 @@ public class CompatReport {
         return "Landroid/net/wifi/WifiManager;".equals(call.getDefiningClass()) && "getScanResults".equals(call.getName());
     }
 
-    static final Set<String> WIFI_IDENTITY_READS = Set.of(
-        "Landroid/net/wifi/WifiInfo;->getSSID()Ljava/lang/String;", "Landroid/net/wifi/WifiInfo;->getBSSID()Ljava/lang/String;");
+    static boolean readsWifiIdentity(Instruction instruction) {
+        return instruction instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference call &&
+            "Landroid/net/wifi/WifiInfo;".equals(call.getDefiningClass()) && call.getParameterTypes().isEmpty() &&
+            "Ljava/lang/String;".equals(call.getReturnType()) &&
+            ("getSSID".equals(call.getName()) || "getBSSID".equals(call.getName()));
+    }
 
     /**
      * wifi_identity: every method outside org.webrtc that reads the connected network's SSID or BSSID, taken only while
@@ -4371,13 +4375,16 @@ public class CompatReport {
         for (var cls : classes) {
             if (cls.getType().startsWith("Lorg/webrtc/")) continue;
             for (var method : cls.getMethods()) {
-                var code = instructions(method);
+                var implementation = method.getImplementation();
+                if (implementation == null) continue;
                 boolean reads = false;
-                for (int at = 0; at < code.size(); at++) {
-                    if (!(code.get(at) instanceof ReferenceInstruction ri && WIFI_IDENTITY_READS.contains(ri.getReference().toString()))) continue;
-                    reads = true;
-                    if (at + 1 >= code.size() || code.get(at + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return List.of();
+                boolean pending = false;
+                for (var instruction : implementation.getInstructions()) {
+                    if (pending && instruction.getOpcode() != Opcode.MOVE_RESULT_OBJECT) return List.of();
+                    pending = readsWifiIdentity(instruction);
+                    reads |= pending;
                 }
+                if (pending) return List.of();
                 if (reads) readers.add(method);
             }
         }

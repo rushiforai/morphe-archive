@@ -49,6 +49,7 @@ import app.morphe.extension.facebook.chats.MessengerIconForTests;
 import app.morphe.extension.facebook.chats.OriginalChatMediaForTests;
 import app.morphe.extension.facebook.composer.TagSuggestionsForTests;
 import app.morphe.extension.facebook.download.ClipboardLinkForTests;
+import app.morphe.extension.facebook.download.CommentGifForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
@@ -59,6 +60,7 @@ import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.feed.SeenPostsForTests;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
+import app.morphe.extension.facebook.feed.RelatedPosts;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.font.OwnFont;
@@ -86,6 +88,7 @@ import app.morphe.extension.facebook.misc.MetaUpsells;
 import app.morphe.extension.facebook.menu.MenuSettingsRow;
 import app.morphe.extension.facebook.misc.AnalyticsUploads;
 import app.morphe.extension.facebook.misc.AppIcons;
+import app.morphe.extension.facebook.misc.HeaderText;
 import app.morphe.extension.facebook.misc.ScreenshotDetection;
 import app.morphe.extension.facebook.misc.CarrierBanners;
 import app.morphe.extension.facebook.misc.Haptics;
@@ -102,6 +105,8 @@ import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
 import app.morphe.extension.facebook.profile.ProfileNotesForTests;
 import app.morphe.extension.facebook.reels.DoubleTapLike;
+import app.morphe.extension.facebook.reels.DoubleTapSkip;
+import app.morphe.extension.facebook.reels.FeedVideoHoldForTests;
 import app.morphe.extension.facebook.reels.ReelHold;
 import app.morphe.extension.facebook.reels.ReelHoldForTests;
 import app.morphe.extension.facebook.reels.ReelCleanMode;
@@ -109,6 +114,7 @@ import app.morphe.extension.facebook.reels.ReelDeclutter;
 import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
+import app.morphe.extension.facebook.reels.TapShowsControls;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.search.SearchHistory;
 import app.morphe.extension.facebook.stories.StoryAdvance;
@@ -248,6 +254,8 @@ public class ColdStartHooksTest {
         assertFalse("a Reels tab audio line drawn before the context came off", ReelDeclutter.hideAudioLine());
         assertFalse("a slow connection message posted before the context was held back",
                 ReelDeclutter.hideSlowConnectionMessage());
+        assertTrue("a feed Reels row tile lost its clip before the context came off", ReelDeclutter.allowsPreviewClip(true));
+        assertEquals("a feed Reels row tile lost its end before the context came off", 1000, ReelDeclutter.previewClipEnd(1000));
         Object searchBar = new Object();
         assertSame("a reel's search bar built before the context came off", searchBar,
                 ReelDeclutter.searchBarPart(searchBar));
@@ -259,6 +267,10 @@ public class ColdStartHooksTest {
         assertFalse("a reel made before the context started in Clean mode", ReelCleanMode.startClean(false));
         assertFalse("a batch of watched reels sent before the context was held back", SeenStateSendForTests.heldBack());
         assertFalse("a Reels rerank before the context put the newest first", NewestReelsForTests.putsTheNewestFirst());
+        assertFalse("a double-tap skip test read before the context was turned on", DoubleTapSkip.flag(false));
+        assertFalse("a reel tap read before the context showed the controls", TapShowsControls.showControls(false));
+        assertEquals("a controls wait read before the context was made longer", 1000L, TapShowsControls.hideDelay(1000L));
+        assertTrue("a unified player check read before the context lost its skip", TapShowsControls.skipHide(true));
         assertFalse("an analytics upload before the context was held back", AnalyticsUploads.holdXAnalyticsUpload());
         assertNull("a game's ad before the context was answered with no ad",
                 GameAds.heldPromise("{\"type\":\"loadadasync\",\"content\":{\"promiseID\":\"1\"}}"));
@@ -269,6 +281,12 @@ public class ColdStartHooksTest {
         assertFalse("the picker's benefit set before the context was answered yes", AppIcons.entitled(false));
         assertFalse("an app icon before the context was kept from the update reset",
                 AppIcons.keepsIcon(new ComponentName("com.facebook.katana", AppIcons.LAUNCHER)));
+        android.widget.ImageView earlyLogo = new android.widget.ImageView(app);
+        android.graphics.drawable.Drawable wordmark = new android.graphics.drawable.ColorDrawable(0xFF0866FF);
+        earlyLogo.setImageDrawable(wordmark);
+        HeaderText.dress(earlyLogo);
+        assertSame("a header built before the context lost Facebook's wordmark", wordmark, earlyLogo.getDrawable());
+        assertFalse("header text before the context kept the app icon out", HeaderText.replacesLogo());
         assertFalse("a picture-in-picture check before the context said yes", PictureInPictureForTests.allowsWithTheFeature());
         assertFalse("the Reels viewer's gate before the context said yes", PictureInPictureForTests.surfaceAllows());
         assertFalse("the Watch viewer's flag before the context said yes", PictureInPictureForTests.immersiveAllows());
@@ -312,6 +330,7 @@ public class ColdStartHooksTest {
             return true;
         });
         assertFalse("a lift's speed before the context was changed", ReelHoldForTests.putsBackTheSpeedBeforeAHold());
+        assertFalse("a finger on a feed video before the context started a hold", FeedVideoHoldForTests.startsTiming());
         assertFalse("stories viewed before the context were kept off their viewer lists", StorySeenForTests.holdsABatch());
         assertFalse("a marked story viewed before the context went out alone", StorySeenForTests.sendsOnlyTheMarked());
         assertFalse("a story viewed before the context got the Mark as seen button", StorySeenForTests.pointsTheButton());
@@ -322,6 +341,7 @@ public class ColdStartHooksTest {
         assertFalse(PlayerSourcesForTests.recordsAPlayer());
         assertFalse("a post menu built before the context got the video item", VideoMenuItemForTests.addsAnItem());
         assertFalse("a post menu built before the context got the photo item", PhotoMenuItemForTests.addsAnItem());
+        assertFalse("a comment sheet built before the context got Save GIF", CommentGifForTests.addsARow());
         assertFalse(PlayerSourcesForTests.recordsAVideoPlayer());
         assertFalse("a screen resumed before the context read the clipboard", ClipboardLinkForTests.readsTheClipboard());
         assertFalse("a start before the context asked Facebook for a tab", StartTabRouteForTests.routes());
@@ -338,6 +358,7 @@ public class ColdStartHooksTest {
                 DefaultCommentOrderForTests.picksInTheMenu());
         assertFalse("a comment summary held before the context said yes",
                 MetaAiSummaries.holds(MetaAiSummaries.SHEET_SUMMARY));
+        assertFalse("a Related posts list held before the context said yes", RelatedPosts.holds(RelatedPosts.PLUGIN));
         assertFalse("a comment box drawn before the context lost its GIF button",
                 CommentSheetOptions.holdsButton(CommentSheetOptions.GIF_BUTTON));
         assertFalse("a long press on Like before the context kept the reaction picker closed",
@@ -381,6 +402,8 @@ public class ColdStartHooksTest {
         assertFalse("a profile built before the context lost People you may know",
                 ProfileSuggestionsForTests.hidesTheCarousel());
         assertFalse("a Menu built before the context lost Also from Meta", MenuSectionsForTests.hidesServerAlsoFromMeta());
+        assertFalse("a Menu built before the context lost Help and support", MenuSectionsForTests.hidesHelp());
+        assertFalse("a Menu built before the context kept Settings and privacy open", MenuSectionsForTests.keepsSettingsOpen());
         assertTrue("a Menu list built before the context changed", MenuSettingsRow.withRow(Collections.emptyList()).isEmpty());
         assertTrue("an Edits flag read before the context lost its yes", MetaUpsells.editsHeader(true));
         assertTrue("a feed request made before the context stopped asking for the Edits pill", MetaUpsells.fetchEditsPill(true));

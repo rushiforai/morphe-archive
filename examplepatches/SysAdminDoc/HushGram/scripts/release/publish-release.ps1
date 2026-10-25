@@ -15,7 +15,7 @@
     tag on the commit checked out here, with the notes from step 6 and those four files.
 
 .EXAMPLE
-    scripts/release/publish-release.ps1 -Version 0.0.15 -Notes notes.md -Walk walk-receipt.json
+    scripts/release/publish-release.ps1 -Version 0.0.16 -Notes notes.md -Walk walk-receipt.json
 
 .NOTES
     Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram

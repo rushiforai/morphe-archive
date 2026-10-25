@@ -9,6 +9,9 @@ import javax.tools.ToolProvider
 fun main(args: Array<String>) {
     val root = Files.createTempDirectory(File(args[1]).apply { mkdirs() }.toPath(), "introdb-native-runtime-").toFile()
     val sources = mapOf(
+        "fixture.Overloads" to """package fixture; public class Overloads {
+            public void action(String value){} public void action(Integer value){}
+        }""",
         "software.santodan.extension.nuviobuttons.NuvioPlaybackButtons" to """package software.santodan.extension.nuviobuttons; public class NuvioPlaybackButtons {
             public static boolean collect; public static Object[] captured;
             public static boolean collectIntroDb(Object[] args){if(collect)captured=args;return collect;} }""",
@@ -146,11 +149,16 @@ fun main(args: Array<String>) {
         }""",
         "ab.j6" to """package ab;public class j6 {public boolean d;}""",
         "ab.mc" to """package ab;public class mc {
-            public Long position=0L;public int reads,timers;public kotlinx.coroutines.Job T0=new kotlinx.coroutines.Job();
+            public Long position=0L;public int reads,timers,pauseTimers;public boolean standby;public kotlinx.coroutines.Job T0=new kotlinx.coroutines.Job(),d4=new kotlinx.coroutines.Job();
             public kotlinx.coroutines.flow.StateFlow H0=new kotlinx.coroutines.flow.StateFlow(new ab.j6());
         }""",
         "ab.te" to """package ab;public class te {public static Long e(ab.mc c){c.reads++;return c.position;}}""",
-        "ab.zf" to """package ab;public class zf {public static void F(ab.mc c){c.timers++;c.T0=new kotlinx.coroutines.Job();}}""",
+        "ab.zf" to """package ab;public class zf {public static void F(ab.mc c){
+            if(software.santodan.extension.nuviointro.NuvioIntroDb.holdControlsTimer(c))return;
+            c.timers++;c.T0=new kotlinx.coroutines.Job();}
+            public static void H(ab.mc c){if(software.santodan.extension.nuviointro.NuvioIntroDb.holdControlsTimer(c))return;
+                c.pauseTimers++;c.d4=new kotlinx.coroutines.Job();}
+            public static void i(ab.mc c){if(c.d4!=null)c.d4.cancelled=true;c.d4=null;c.standby=false;}}""",
         "ab.qm" to """package ab;public class qm {public ab.mc Y=new ab.mc();}""",
         "ab.nm" to """package ab;public class nm {public Integer A0=2,B0=3;public String C0="tt12345:2:3",i="https://video.invalid/cut1";}""",
         "ab.cj" to """package ab;public class cj {public ab.qm c=new ab.qm();public ab.nm e=new ab.nm();public Object o=new Object();
@@ -184,17 +192,31 @@ fun main(args: Array<String>) {
                     settings();Ui.keyRow.invoke();settings();check(Ui.title.equals("IntroDB API key")&&Ui.actions.keySet().containsAll(java.util.List.of("Cancel","Clear","Save")));
                     fb.v.text.setValue("test-key");Ui.click("Save");
                     settings();check(Ui.keyStatus.equals("Configured"));Ui.toggle.invoke();settings();check(Ui.setting);
+                    var pendingStandby=owner.c.Y.d4;owner.c.Y.standby=true;
                     capture(owner);check(owner.c.Y.reads==2&&owner.c.Y.T0.cancelled);check(Ui.labels.contains("Start: 00:00:12.345")&&Ui.labels.contains("End: 00:00:23.456"));
+                    check(pendingStandby.cancelled&&owner.c.Y.d4==null&&!owner.c.Y.standby);
+                    check(NuvioIntroDb.holdControlsTimer(owner.c.Y));
+                    check(!NuvioIntroDb.holdControlsTimer(new ab.mc()));
+                    ab.zf.F(owner.c.Y);check(owner.c.Y.timers==0&&owner.c.Y.T0.cancelled);
+                    ab.zf.H(owner.c.Y);check(owner.c.Y.pauseTimers==0&&owner.c.Y.d4==null);
                     check(Ui.actionRows.get("Submit").equals(Ui.actionRows.get("Cancel")));
                     Ui.expand.invoke(true);render(owner);check(Ui.expanded&&Ui.title.equals("Submit segment to IntroDB"));
+                    ab.zf.F(owner.c.Y);check(owner.c.Y.timers==0&&owner.c.Y.T0.cancelled);
+                    ab.zf.H(owner.c.Y);check(owner.c.Y.pauseTimers==0&&owner.c.Y.d4==null);
                     Ui.expand.invoke(false);render(owner);check(!Ui.expanded&&Ui.title.equals("Submit segment to IntroDB"));
+                    check(NuvioIntroDb.holdControlsTimer(owner.c.Y));
                     Ui.expand.invoke(true);render(owner);Ui.select.invoke(new eb.d("outro","outro"));render(owner);check(!Ui.expanded&&Ui.labels.contains("Segment: outro"));
                     Ui.click("Submit");Ui.click("Submit");complete();render(owner);check(requests==1&&background&&payload.contains("\"start_ms\":12345")&&payload.contains("\"end_sec\":23.456"));
                     check(payload.contains("\"segment_type\":\"outro\"")&&!Ui.enabled.get("Submit"));Ui.click("Submit");check(requests==1);Ui.click("Close");check(owner.c.Y.timers==1);
+                    check(!NuvioIntroDb.holdControlsTimer(owner.c.Y));
+                    check(owner.c.Y.pauseTimers==1&&owner.c.Y.d4!=null);
                     capture(owner);response=401;Ui.click("Submit");complete();render(owner);check(Ui.labels.stream().anyMatch(x->x.contains("rejected the API key"))&&Ui.enabled.get("Submit"));
                     response=500;Ui.click("Submit");complete();render(owner);check(Ui.labels.stream().anyMatch(x->x.contains("HTTP 500")));
                     response=400;Ui.click("Submit");complete();render(owner);check(Ui.labels.stream().anyMatch(x->x.contains("intro duration out of range"))&&Ui.enabled.get("Submit"));
+                    int pauseRestarts=owner.c.Y.pauseTimers;
                     block=true;disconnected=false;entered=new CountDownLatch(1);Ui.click("Submit");check(entered.await(5,TimeUnit.SECONDS));NuvioIntroDb.pause(activity);complete();check(disconnected);
+                    check(owner.c.Y.pauseTimers==pauseRestarts);
+                    check(!NuvioIntroDb.holdControlsTimer(owner.c.Y));
                     NuvioIntroDb.resume(activity);render(owner);check(Ui.title==null&&Ui.buttonLabel.contains("mark start"));
                     Ui.button.invoke();render(owner);check(Ui.buttonLabel.contains("mark end"));owner.e.C0="tt12345:2:4";owner.e.B0=4;render(owner);check(Ui.buttonLabel.contains("mark start"));
                     Ui.button.invoke();owner.e.i="https://video.invalid/cut2";render(owner);check(Ui.buttonLabel.contains("mark start"));
@@ -223,6 +245,16 @@ fun main(args: Array<String>) {
     val compileClasspath = listOf(jsonJar, contractsJar).joinToString(File.pathSeparator) { File(it.toURI()).path }
     check(ToolProvider.getSystemJavaCompiler().run(null, null, null, "--release", "11", "-classpath", compileClasspath, "-d", output.path, *files.map { it.path }.toTypedArray()) == 0)
     URLClassLoader(arrayOf(output.toURI().toURL(), jsonJar, contractsJar), ClassLoader.getSystemClassLoader().parent).use {
+        val lookup = it.loadClass("software.santodan.extension.nuviointro.IntroUi")
+            .getDeclaredMethod("method", Class::class.java, String::class.java, Int::class.javaPrimitiveType)
+            .apply { isAccessible = true }
+        val composerType = it.loadClass("h1.k0")
+        val groupMethod = lookup.invoke(null, composerType, "d0", 1)
+        repeat(1_000) { check(lookup.invoke(null, composerType, "d0", 1) === groupMethod) }
+        check(runCatching { lookup.invoke(null, it.loadClass("fixture.Overloads"), "action", 1) }
+            .exceptionOrNull()?.cause is NoSuchMethodException)
+        check(runCatching { lookup.invoke(null, composerType, "missing", 0) }
+            .exceptionOrNull()?.cause is NoSuchMethodException)
         it.loadClass("fixture.Runner").getMethod("run").invoke(null)
     }
     println("PASS: Anime Skip single-line key editor and Cancel/Clear/Save, three distinct segment icons, exact cancellation overload with legacy overload trap, two-press review, native actions, timer lifecycle, HTTPS failures/cancellation, credential-safe logging and balanced Compose groups")

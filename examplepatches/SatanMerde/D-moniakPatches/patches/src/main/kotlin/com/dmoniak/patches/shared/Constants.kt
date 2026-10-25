@@ -590,7 +590,8 @@ object Constants {
         packageName = "com.snapbreak.silt",
         name = "Silt",
         description = "Silt: Oceanic Puzzle-Adventure by Snapbreak / Spiral Circus",
-        appIconColor = 0x1A2B3C
+        appIconColor = 0x1A2B3C,
+        targets = listOf(AppTarget("1.0.10"))
     )
 
     val COMPATIBILITY_MOISES = Compatibility(

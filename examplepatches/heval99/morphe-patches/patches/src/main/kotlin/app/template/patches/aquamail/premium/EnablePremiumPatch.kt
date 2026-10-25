@@ -115,7 +115,7 @@ private fun BytecodePatchContext.patchLicenseSnapshot() {
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the Pro/Premium features and lifts the free-version feature locks."
+    description = "Unlocks Pro features."
 ) {
     compatibleWith(COMPATIBILITY_AQUAMAIL)
 

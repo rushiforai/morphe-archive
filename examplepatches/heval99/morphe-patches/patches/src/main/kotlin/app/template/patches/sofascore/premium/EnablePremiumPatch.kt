@@ -7,9 +7,7 @@ import app.template.util.returnBoxedBooleanEarly
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Marks the account as premium in the app. Note: AI insights and other premium " +
-        "content are served by Sofascore's servers for paying accounts and are not unlocked; " +
-        "use \"Disable ads\" for an ad-free app."
+    description = "Unlocks premium features. AI insights stay locked."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 

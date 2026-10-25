@@ -24,6 +24,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -187,8 +188,9 @@ private fun BytecodePatchContext.hideReels() {
     val entries = tableEntries(holders.filter(::isStringTable), TRANSPARENCY_ATTRIBUTION)
     val resolve = { call: MethodReference -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
     if (entries.isNotEmpty()) {
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        // An asker calls one of the tables.
+        classDefForEachReferencing(types = entries.keys.map { it.substringBefore("->") }) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
             classDef.methods.filterTo(holders) { asksTableFor(it, entries) }
         }
     }
@@ -208,7 +210,8 @@ private fun BytecodePatchContext.hideReels() {
     // If it stops doing that, the flag may have moved, and a rule that guesses could hide the
     // wrong reels.
     var reads = false
-    classDefForEach { classDef ->
+    // The decision takes the attribution.
+    classDefForEachReferencing(types = listOf(attributionType)) { classDef ->
         if (!reads && classDef.methods.any { readsReelDetectedFlag(it, attributionType, modelType) }) reads = true
     }
     if (!reads) {

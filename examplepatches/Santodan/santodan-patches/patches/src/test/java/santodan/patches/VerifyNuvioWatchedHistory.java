@@ -29,6 +29,18 @@ public final class VerifyNuvioWatchedHistory {
         result = NuvioWatchedHistory.select(histories, Map.of("tt1", "Simkl"), ambiguous);
         if (result.containsKey("__ambiguous__") || result.containsKey("tmdb:other"))
             throw new AssertionError("Ambiguous siblings must not mark unrelated shows watched");
+        for (boolean selecting : List.of(false, true)) {
+            int[] checkpoints = {0};
+            Runnable stop = () -> {
+                if (++checkpoints[0] == 3) throw new java.util.concurrent.CancellationException();
+            };
+            boolean cancelled = false;
+            try {
+                if (selecting) NuvioWatchedHistory.select(histories, Map.of("tt1", "Simkl", "tt2", "Trakt"), aliases, stop);
+                else NuvioWatchedHistory.sources(histories, Map.of(), aliases, stop);
+            } catch (java.util.concurrent.CancellationException expected) { cancelled = true; }
+            if (!cancelled || checkpoints[0] != 3) throw new AssertionError("History projection ignored cancellation");
+        }
         System.out.println("PASS: coherent watched winners, carrier independence, alternate IDs, local-only shows, and unwatched winners");
     }
 }

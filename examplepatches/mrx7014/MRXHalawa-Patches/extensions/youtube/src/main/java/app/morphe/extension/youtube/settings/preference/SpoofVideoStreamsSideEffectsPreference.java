@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -110,8 +110,10 @@ public class SpoofVideoStreamsSideEffectsPreference extends Preference {
                     summary = str("morphe_spoof_video_streams_about_no_stable_volume")
                             + '\n' + str("morphe_spoof_video_streams_about_sign_in_to_vr_required");
             case VISIONOS_1_02, VISIONOS_1_03 ->
-                    summary = str("morphe_spoof_video_streams_about_no_stable_volume");
-            case TV_SABR, TV_DASH, TV_SIMPLY ->
+                    summary = str("morphe_spoof_video_streams_about_failure")
+                            + '\n' + str("morphe_spoof_video_streams_about_end_early")
+                            + '\n' + str("morphe_spoof_video_streams_about_no_stable_volume");
+            case TV_SABR, TV_SABR_WII_U, TV_DASH, TV_SIMPLY ->
                     summary = str("morphe_spoof_video_streams_about_js");
             default -> Logger.printException(() -> "Unknown client: " + clientType);
         }

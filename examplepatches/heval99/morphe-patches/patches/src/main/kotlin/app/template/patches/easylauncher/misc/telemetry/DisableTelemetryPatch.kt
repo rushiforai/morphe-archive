@@ -62,8 +62,7 @@ private val disableTelemetryManifestPatch = resourcePatch {
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics and Crashlytics, Amplitude, Braze, Singular and " +
-        "Rudderstack tracking. Push notifications keep working.",
+    description = "Disables analytics and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_EASYLAUNCHER)
 

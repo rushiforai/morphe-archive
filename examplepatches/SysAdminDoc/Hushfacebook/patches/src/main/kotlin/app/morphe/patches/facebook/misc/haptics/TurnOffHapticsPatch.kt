@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 
 /**
  * Holds back the haptics Facebook plays on its own taps and gestures. See HapticsAnchors.kt for
@@ -33,8 +34,9 @@ val turnOffHapticsPatch = bytecodePatch(
 
     execute {
         val owners = mutableSetOf<String>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        // A haptic call names its method.
+        classDefForEachReferencing(names = listOf("performHapticFeedback", "vibrate")) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
             if (classDef.methods.any(::playsHaptic)) owners += classDef.type
         }
         var views = 0

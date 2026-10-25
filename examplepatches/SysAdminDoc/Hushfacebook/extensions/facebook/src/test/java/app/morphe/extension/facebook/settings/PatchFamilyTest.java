@@ -431,11 +431,11 @@ public class PatchFamilyTest {
                         + "stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Longer music on photo stories, Pinch to zoom, Hide sponsored search results, "
                         + "Hide sponsored profile posts, Hide profile notes, Hide sponsored Marketplace listings, Block Instant Games "
                         + "ads, Hide affiliate product links, Clean up Reels, Hide reel interest prompts, Don't send "
-                        + "reel watch history, Newest reels first, Turn off double tap to like, Open comments with a gesture, Keep the reel speed, Hold a reel for 2x, "
+                        + "reel watch history, Newest reels first, Turn off double tap to like, Double tap to skip, Tap shows the controls, Open comments with a gesture, Keep the reel speed, Hold a reel for 2x, "
                         + "Default comment order, Hide Meta AI comment summaries, Comment sheet options, Open comments "
                         + "at full height, Tag suggestions only after @, Tap to play, Resume long videos, Frame step, Default playback quality, "
                         + "Picture-in-picture, Turn off HDR brightness, Skip silent parts, Keep feed videos muted, Keep the progress bar, Use the system font, "
-                        + "Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Unlock app icons, Open links in "
+                        + "Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Unlock app icons, Home header text, Open links in "
                         + "external browser, Sanitize sharing links, Stop update prompts, Download any story, "
                         + "Download any reel, Download any video, Download any photo, Open on a chosen tab, Following "
                         + "feed on Home, Marketplace only, Show View profile on Marketplace sellers, Hide the Reels "
@@ -454,11 +454,11 @@ public class PatchFamilyTest {
                         + "Hide suggested stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Longer music on photo stories, Pinch to zoom, Hide sponsored "
                         + "search results, Hide sponsored profile posts, Hide profile notes, Hide sponsored Marketplace listings, Block "
                         + "Instant Games ads, Hide affiliate product links, Clean up Reels, Hide reel interest "
-                        + "prompts, Don't send reel watch history, Newest reels first, Turn off double tap to like, Open comments with a gesture, Keep the reel speed, "
+                        + "prompts, Don't send reel watch history, Newest reels first, Turn off double tap to like, Double tap to skip, Tap shows the controls, Open comments with a gesture, Keep the reel speed, "
                         + "Hold a reel for 2x, Default comment order, Hide Meta AI comment summaries, Comment sheet "
                         + "options, Open comments at full height, Tag suggestions only after @, Tap to play, Resume long videos, Frame step, Default playback "
                         + "quality, Picture-in-picture, Turn off HDR brightness, Skip silent parts, Keep feed videos muted, Keep the progress bar, Use the "
-                        + "system font, Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Unlock app icons, Open "
+                        + "system font, Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Unlock app icons, Home header text, Open "
                         + "links in external browser, Sanitize sharing links, Stop update prompts, Download any "
                         + "story, Download any reel, Download any video, Download any photo, Open on a chosen tab, "
                         + "Following feed on Home, Marketplace only, Show View profile on Marketplace sellers, Hide "
@@ -471,7 +471,7 @@ public class PatchFamilyTest {
                         + "color, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's "
                         + "apps, Hushfacebook in the Menu"),
                 running);
-        // Clean up Reels has fourteen switches, all off to start, and the report names each one.
+        // Clean up Reels has fifteen switches, all off to start, and the report names each one.
         Settings.HIDE_REEL_FOLLOW_BUTTON.save(true);
         assertEquals("Clean up Reels: on (hushfacebook_hide_reel_chips=off, hushfacebook_hide_reel_follow_button=on, "
                         + "hushfacebook_hide_reel_social_footer=off, hushfacebook_hide_reel_threads_cards=off, "
@@ -479,7 +479,8 @@ public class PatchFamilyTest {
                         + "hushfacebook_original_audio=off, hushfacebook_hide_reel_search_pill=off, "
                         + "hushfacebook_hide_reel_counts=off, hushfacebook_hide_reel_save_button=off, "
                         + "hushfacebook_hide_reel_sound_button=off, hushfacebook_hide_reel_audio_line=off, "
-                        + "hushfacebook_hide_slow_connection_message=off, hushfacebook_feed_videos_alone=off)",
+                        + "hushfacebook_hide_slow_connection_message=off, hushfacebook_feed_videos_alone=off, "
+                        + "hushfacebook_play_feed_reels_whole=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DECLUTTER), false).get(0));
         // Share sheet items is set by its list, and its group switch is saved beside it.
         Settings.HIDE_SHARE_GROUP_BUTTONS.save(true);
@@ -517,11 +518,12 @@ public class PatchFamilyTest {
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.VIDEO_DOWNLOAD), false).get(0));
         Settings.DOWNLOAD_VIDEOS.resetToDefault();
         Settings.CLIPBOARD_DOWNLOAD.resetToDefault();
-        // The Menu's two groups, its Muse card and its Meta AI shortcut have a switch each, and the
-        // report names all four.
+        // The Menu's three groups, Settings and privacy's fold, its Muse card and its Meta AI shortcut
+        // have a switch each, and the report names all six.
         Settings.HIDE_MENU_ALSO_FROM_META.save(false);
         assertEquals("Hide Menu promotions: on (hushfacebook_hide_menu_upgrades=on, "
-                        + "hushfacebook_hide_menu_also_from_meta=off, hushfacebook_hide_menu_muse=on, "
+                        + "hushfacebook_hide_menu_also_from_meta=off, hushfacebook_hide_menu_help=off, "
+                        + "hushfacebook_keep_menu_settings_expanded=off, hushfacebook_hide_menu_muse=on, "
                         + "hushfacebook_hide_menu_meta_ai=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.MENU_PROMOTIONS), false).get(0));
         // Every notification switch starts off, so the patch reads off until one of them is turned on.

@@ -52,7 +52,7 @@ class ShazamSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "16.63.0-261008",
+            version = "16.64.0-261015",
             patchNames = setOf("Disable telemetry", "Open in Morphe YouTube apps", "Spoof signature", "GmsCore support"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -137,12 +137,13 @@ class ShazamSmokeTest {
             }
         }
 
-        // StreamingProvider (R8-renamed) is found the same way the patch finds it: by its toString.
+        // StreamingProvider (R8-renamed) is found the same way the patch finds it: by its toString
+        // string, matched by prefix.
         val provider = classes.singleOrNull { classDef ->
             classDef.methods.any { method ->
                 method.instructions().any { insn ->
-                    ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string ==
-                        STREAMING_PROVIDER_TO_STRING
+                    ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string
+                        ?.startsWith(STREAMING_PROVIDER_TO_STRING) == true
                 }
             }
         } ?: error("no single class contains \"$STREAMING_PROVIDER_TO_STRING\"")

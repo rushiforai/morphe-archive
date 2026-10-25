@@ -18,7 +18,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 // The app is R8-renamed almost everywhere, so its models are found through their data class
-// toString() output and the methods by shape. The comments name the 8.33.0 classes only.
+// toString() output and the methods by shape. R8 class names in the comments are only
+// examples, from the version named next to them.
 
 internal const val STRING = "Ljava/lang/String;"
 
@@ -97,12 +98,12 @@ internal fun constZero(register: Int) =
 
 /*
  * The remote per-SDK kill switch. The app config lists SdkConfig(sdk, enabled,
- * notAllowedCountries) entries (8.33.0: zzd), matched by enum name() against the server's
- * names (yzd: STORYTELLER, TEADS, GOOGLE_AD, ADOBE, APPSFLYER, CHARTBEAT, PERMUTIVE, MUX,
- * MEDIAMELON). They become a Map<Sdk, Boolean> (ch0) whose lookup answers false for a missing or
+ * notAllowedCountries) entries (8.34.1: kgj), matched by enum name() against the server's
+ * names (8.34.1: jgj; STORYTELLER, TEADS, GOOGLE_AD, ADOBE, APPSFLYER, CHARTBEAT, PERMUTIVE, MUX,
+ * MEDIAMELON). They become a Map<Sdk, Boolean> whose lookup answers false for a missing or
  * disabled SDK, and every SDK starts only when it answers true: the ad view factory returns a
  * 0x0 view for GOOGLE_AD / TEADS, and Adobe, Chartbeat, Permutive, Mux and MediaMelon do not
- * start. AppsFlyer has no reader in 8.33.0 and is listed for later builds. Storyteller (the
+ * start. AppsFlyer has no reader in 8.33.0 or 8.34.1 and is listed for later builds. Storyteller (the
  * Stories/Clips content) keeps the server value.
  */
 internal val AD_SDKS = setOf("GOOGLE_AD", "TEADS")

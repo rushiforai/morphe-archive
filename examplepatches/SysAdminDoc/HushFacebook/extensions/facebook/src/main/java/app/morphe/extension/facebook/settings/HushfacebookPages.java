@@ -40,6 +40,7 @@ import app.morphe.extension.facebook.settings.SettingsRows.BackupRow;
 import app.morphe.extension.facebook.settings.SettingsRows.ClearRow;
 import app.morphe.extension.facebook.settings.SettingsRows.ExportRow;
 import app.morphe.extension.facebook.settings.SettingsRows.FontRow;
+import app.morphe.extension.facebook.settings.SettingsRows.PictureRow;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.shared.L10n;
@@ -227,6 +228,16 @@ final class HushfacebookPages {
                             + "Unlock app icons and a pick other than the blue one. Restart Facebook to see the change."))
                     .needs(Settings.UNLOCK_APP_ICONS));
             appearance.addPreference(AppIconScreen.row(context));
+        }
+        if (build.contains(PatchFamily.HEADER_TEXT)) {
+            // Facebook builds the Home header once, so a change waits for a restart.
+            appearance.addPreference(HushfacebookPreferenceFragment.headerTextRow(context));
+            PictureRow picture = new PictureRow(page, context, HeaderPicturePreference.CHOOSE);
+            picture.wayBack = new PictureRow(page, context, HeaderPicturePreference.REMOVE);
+            // The Remove row goes in once, as Font file's way back does, so it keeps its place after a pick.
+            appearance.addPreference(picture);
+            appearance.addPreference(picture.wayBack);
+            picture.show();
         }
     }
 

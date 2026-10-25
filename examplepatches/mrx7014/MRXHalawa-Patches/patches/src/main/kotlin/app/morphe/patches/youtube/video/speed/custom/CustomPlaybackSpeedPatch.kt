@@ -1,7 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2282
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2282
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -22,7 +21,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
+import app.morphe.patches.shared.misc.litho.context.conversionContextPatch
 import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
 import app.morphe.patches.shared.misc.settings.preference.InputType
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
@@ -30,7 +29,6 @@ import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.textcomponent.hookSpannableString
 import app.morphe.patches.shared.misc.textcomponent.textComponentPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
-import app.morphe.patches.youtube.misc.litho.context.conversionContextPatch
 import app.morphe.patches.youtube.misc.litho.filter.lithoFilterPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_34_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_02_or_greater
@@ -47,11 +45,13 @@ import app.morphe.patches.youtube.video.speed.settingsMenuVideoSpeedGroup
 import app.morphe.util.ResourceGroup
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.copyResources
+import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
 import app.morphe.util.insertLiteralOverride
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -92,7 +92,6 @@ internal val customPlaybackSpeedPatch = bytecodePatch(
         textComponentPatch,
         recyclerViewTreeHookPatch,
         customPlaybackSpeedResourcePatch,
-        resourceMappingPatch
     )
 
     execute {
@@ -247,8 +246,7 @@ internal val customPlaybackSpeedPatch = bytecodePatch(
             val bottomSheetBuilderMethodCall : String
             AudioTrackOldBottomSheetFingerprint.instructionMatches.apply {
                 fun getMethodCall(offset: Int):String {
-                    val methodReference =
-                        this[offset].instruction.getReference<MethodReference>()!!
+                    val methodReference = this[offset].instruction.getReference<MethodReference>()!!
 
                     return methodReference.toString()
                         .replace(methodReference.definingClass, onItemClickClass)
@@ -348,10 +346,10 @@ internal val customPlaybackSpeedPatch = bytecodePatch(
         // region Custom tap and hold 2x speed.
 
         TapAndHoldSpeedFingerprint.let {
+            it.clearMatch()
             it.method.apply {
                 val speedIndex = it.instructionMatches.last().index
-                val speedRegister =
-                    getInstruction<OneRegisterInstruction>(speedIndex).registerA
+                val speedRegister = getInstruction<OneRegisterInstruction>(speedIndex).registerA
 
                 addInstructions(
                     speedIndex + 1,
@@ -379,6 +377,26 @@ internal val customPlaybackSpeedPatch = bytecodePatch(
             methodName = "onSeekEduOverlayLoaded",
             overrideSpan = true
         )
+
+        // endregion
+
+        // region Disable audio offload if audio pitch controls are enabled.
+
+        // With audio offload, the device hardware decodes the audio
+        // and usually does not support changing the pitch, so the selected pitch is ignored.
+        AudioOffloadEnabledFingerprint.method.apply {
+            findInstructionIndicesReversedOrThrow(Opcode.RETURN).forEach { index ->
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    """
+                        invoke-static { v$register }, $EXTENSION_CLASS->disableAudioOffload(Z)Z
+                        move-result v$register
+                    """
+                )
+            }
+        }
 
         // endregion
     }

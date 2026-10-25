@@ -7,8 +7,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_FLASHSCORE
 @Suppress("unused")
 val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update prompts",
-    description = "Hides the \"update available\" and \"update required\" dialogs. An old " +
-        "version may still stop working if Flashscore's servers drop support for it.",
+    description = "Disables the update prompts.",
 ) {
     compatibleWith(COMPATIBILITY_FLASHSCORE)
 

@@ -6642,6 +6642,11 @@ try {
         $said = @(& (Join-Path $PSScriptRoot 'patch-for-device.ps1') @keptDevice 6>&1 | ForEach-Object { "$_" })
     } finally { $env:HUSHTUMBLR_SIDELOAD_KEYSTORE_PASSWORD = $passwordBefore }
     $handed = [string]$said[-1]
+    $deviceProvenance = Get-Content -LiteralPath "$handed.provenance.json" -Raw | ConvertFrom-Json
+    Assert-True ($deviceProvenance.output.sha256 -ceq (Get-FileHash -LiteralPath $handed -Algorithm SHA256).Hash.ToLowerInvariant() -and
+        $deviceProvenance.sourceSha256 -ceq (Get-FileHash -LiteralPath $newestFixture -Algorithm SHA256).Hash.ToLowerInvariant() -and
+        $deviceProvenance.options.Count -eq 0 -and @($deviceProvenance.patches).Count -eq @($releaseCatalog.patches).Count) `
+        'A reused patch run did not bind its signed output and source in provenance.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog) -and -not (Test-Path -LiteralPath $resourceStock) -and
         (Test-Path -LiteralPath $handed -PathType Leaf) -and
         ($said -join "`n") -like '*passed every check in the gate run kept as*' -and
@@ -6809,6 +6814,9 @@ try {
     $keptDevice['NoReuse'] = $true
     Remove-Item -LiteralPath $javaLog, $apksignerLog, $resourceStock -Force -ErrorAction SilentlyContinue
     $said = @(& (Join-Path $PSScriptRoot 'patch-for-device.ps1') @keptDevice 6>&1 | ForEach-Object { "$_" })
+    $freshProvenance = Get-Content -LiteralPath "$($said[-1]).provenance.json" -Raw | ConvertFrom-Json
+    Assert-True ($freshProvenance.output.sha256 -ceq (Get-FileHash -LiteralPath $said[-1] -Algorithm SHA256).Hash.ToLowerInvariant()) `
+        'A fresh patch run did not bind its signed output in provenance.'
     Assert-True ((@(Get-Content -LiteralPath $javaLog) -join '; ') -eq "patch $newestFixture merged forced=0" -and
         -not (Test-Path -LiteralPath $apksignerLog)) `
         "patch-for-device.ps1 -NoReuse did not patch with the CLI: $(@(Get-Content -LiteralPath $javaLog -ErrorAction SilentlyContinue) -join '; ')"

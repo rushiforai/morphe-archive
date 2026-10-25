@@ -13,7 +13,11 @@
 
 function Get-PatchTarget {
     [CmdletBinding()]
-    param([Parameter(Mandatory = $true)][object]$PatchList)
+    param(
+        [Parameter(Mandatory = $true)][object]$PatchList,
+        # Another app the catalog declares (PineDrama), for a run on its APK. Empty means the bundle's target.
+        [string]$PackageName
+    )
 
     $patches = @($PatchList.patches)
     if ($patches.Count -eq 0) { throw 'patches-list.json contains no patches.' }
@@ -55,28 +59,53 @@ function Get-PatchTarget {
         }
     }
 
-    # The bundle's target is the package every patch declares. Another app built from the same code
-    # (PineDrama, #156) is declared only by the patches that apply to it, and is listed beside it.
+    # The bundle's target is the package the most patches declare. Another app built from the same
+    # code (PineDrama, #156) is declared by the patches that apply to it, a few of them its own
+    # (Allow photo comments), and is listed beside it. A tie names no target.
     $packages = @($targets.Keys | Sort-Object)
-    $everywhere = @($packages | Where-Object { $declaredBy[$_] -eq $patches.Count })
-    if ($everywhere.Count -ne 1) {
-        $found = if ($everywhere.Count -eq 0) { 'none' } else { $everywhere -join ', ' }
-        throw "Expected one package every patch declares, found $found among $($packages -join ', ')."
+    $most = ($packages | ForEach-Object { $declaredBy[$_] } | Measure-Object -Maximum).Maximum
+    $leading = @($packages | Where-Object { $declaredBy[$_] -eq $most })
+    if ($leading.Count -ne 1) {
+        throw "Expected one package the most patches declare, found a tie among $($leading -join ', ')."
     }
-    $packageName = $everywhere[0]
+    $chosen = $leading[0]
+    if (-not [string]::IsNullOrEmpty($PackageName)) {
+        if ($PackageName -cnotin $packages) { throw "No patch declares $PackageName." }
+        $chosen = $PackageName
+    }
     foreach ($package in $packages) {
         if ($versionSets[$package].Count -ne 1) {
             $sets = @($versionSets[$package].Keys | Sort-Object | ForEach-Object { "$($versionSets[$package][$_]) declares $_" })
             throw "Expected every patch to declare the same versions of ${package}: $($sets -join '; ')."
         }
     }
-    $versions = @($targets[$packageName] | Sort-Object -Unique | Sort-Object { [version]$_ })
+    $versions = @($targets[$chosen] | Sort-Object -Unique | Sort-Object { [version]$_ })
     return [pscustomobject]@{
-        PackageName = $packageName
+        PackageName = $chosen
         PackageVersions = $versions
         PackageVersion = $versions[-1]
-        OtherPackages = @($packages | Where-Object { $_ -ne $packageName })
+        OtherPackages = @($packages | Where-Object { $_ -ne $chosen })
     }
+}
+
+<#
+.SYNOPSIS
+    The names of the patches that declare a package, in catalog order. A run on the target's APK
+    selects these: a patch only another app declares (PineDrama's Allow photo comments, #156)
+    never applies to it, so the patcher leaves it out and a check expecting it would fail.
+#>
+function Get-PackagePatchNames {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][object]$PatchList,
+        [Parameter(Mandatory = $true)][string]$PackageName
+    )
+
+    return @($PatchList.patches | Where-Object {
+            $compatible = $_.PSObject.Properties['compatiblePackages']
+            $null -ne $compatible -and $null -ne $compatible.Value -and
+                $null -ne $compatible.Value.PSObject.Properties[$PackageName]
+        } | ForEach-Object { [string]$_.name })
 }
 
 <#

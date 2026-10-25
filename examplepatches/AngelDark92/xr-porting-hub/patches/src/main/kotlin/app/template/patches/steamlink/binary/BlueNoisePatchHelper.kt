@@ -22,6 +22,7 @@ private fun blueNoiseTarget(layout: BlueNoiseLayout, layer: BlueNoiseLayer): Blu
         "5001712" -> BlueNoiseTarget(0x9d23d, 29, 0xf1d28L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
         "5002244" -> BlueNoiseTarget(0x976e6, 29, 0xeeb44L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
         "5002363" -> BlueNoiseTarget(0x99013, 29, 0xf1c84L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
+        "5002395" -> BlueNoiseTarget(0x99a51, 29, 0xf2ed4L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
         else -> throw PatchException("Unknown background blue-noise layout")
     }
 

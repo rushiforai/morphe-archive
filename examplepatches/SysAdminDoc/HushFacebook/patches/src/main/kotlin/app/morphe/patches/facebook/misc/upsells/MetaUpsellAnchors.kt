@@ -23,6 +23,7 @@ import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.feed.tableStringAt
 import app.morphe.patches.facebook.shared.readsMobileConfig
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -322,8 +323,12 @@ internal fun BytecodePatchContext.hideMetaUpsells() {
     val labelAskers = mutableListOf<Pair<String, Method>>()
     val imagineAskers = mutableListOf<Pair<String, Method>>()
     val storyBuilders = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // Each finds a method naming one of these: the flags' class, a pill holder (the name itself or
+    // a table it's asked from), the label plugin and the two enums the constants are read from.
+    val named = listOf(LANDING_CONFIG, label.definingClass, composerImagine.definingClass, storyImagine.definingClass) +
+        pillHolders.keys
+    classDefForEachReferencing(types = named, strings = listOf(EDITS_PILL_PARAMETER)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         for (method in classDef.methods) {
             if (editsFlagReads(method, fields).isNotEmpty()) flagReaders += classDef.type to method
             if (editsPillGates(method, pillTable).isNotEmpty()) pillMethods += classDef.type to method

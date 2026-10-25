@@ -169,6 +169,9 @@ public final class PictureInPicture {
     /** Counted each time auto-enter goes off after an arming because the window opens only from the More menu. */
     static final String MENU_ONLY = "auto-enter kept off for the More menu";
 
+    /** Counted each time auto-enter goes off because the Hushfacebook settings show over the armed screen. */
+    static final String UNDER_SETTINGS = "auto-enter kept off under the settings";
+
     /** Counted each time the More sheet's Picture-in-picture row opened the window. */
     static final String FROM_MENU = "opened from the More menu";
 
@@ -210,6 +213,12 @@ public final class PictureInPicture {
 
     /** Whether the reel on screen has a shape the window doesn't take, so auto-enter stays off for it. */
     private static boolean unfit;
+
+    /**
+     * The screen the Hushfacebook settings show over while the switch is on, until they close. Its
+     * auto-enter stays off meanwhile, so leaving Facebook with the settings up doesn't float them.
+     */
+    private static WeakReference<Activity> underSettings = new WeakReference<>(null);
 
     /**
      * The arguments ReelsPipUtil last armed the window with, kept until it disarms, as Facebook
@@ -343,7 +352,7 @@ public final class PictureInPicture {
             arm(activity, player, arguments);
             if (activity != null) watch(activity.getApplication());
             // Facebook turns auto-enter on right after this hook, so it goes off again once the arming is done.
-            if (activity != null && menuOnly()) Utils.runOnMainThread(() -> keepForMenu(activity));
+            if (activity != null && (menuOnly() || underSettings(activity))) Utils.runOnMainThread(() -> keepForMenu(activity));
             PictureInPictureButton.sync();
             Logger.printDebug(() -> "Picture-in-picture: armed for player " + System.identityHashCode(player));
         } catch (Throwable failure) {
@@ -353,7 +362,8 @@ public final class PictureInPicture {
 
     /**
      * Turns auto-enter off on [screen] after Facebook armed it, while the window opens only from the
-     * More menu, unless it was disarmed or armed on another screen since, or the window is open.
+     * More menu or the settings show over it, unless it was disarmed or armed on another screen
+     * since, or the window is open.
      */
     static void keepForMenu(Activity screen) {
         try {
@@ -361,13 +371,67 @@ public final class PictureInPicture {
             synchronized (PictureInPicture.class) {
                 if (armedScreen.get() != screen) return;
             }
-            if (screen.isInPictureInPictureMode() || !menuOnly()) return;
-            autoEnter(screen, false);
-            HookStatus.bound(FAMILY, "More menu only");
-            HookStatus.counted(FAMILY, MENU_ONLY);
+            if (screen.isInPictureInPictureMode()) return;
+            if (menuOnly()) {
+                autoEnter(screen, false);
+                HookStatus.bound(FAMILY, "More menu only");
+                HookStatus.counted(FAMILY, MENU_ONLY);
+            } else if (underSettings(screen)) {
+                autoEnter(screen, false);
+                HookStatus.counted(FAMILY, UNDER_SETTINGS);
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "More menu only", failure);
         }
+    }
+
+    /**
+     * The Hushfacebook settings showing over [screen]. A reel playing under them kept the window
+     * armed, so pressing Home with the settings up floated the settings page in the window. With
+     * the switch on, auto-enter goes off on the screen until they close, and an arming meanwhile
+     * is kept off too ({@link #keepForMenu}).
+     */
+    public static void settingsShown(@Nullable Activity screen) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || screen == null || !on()) return;
+            synchronized (PictureInPicture.class) {
+                underSettings = new WeakReference<>(screen);
+                if (armedScreen.get() != screen) return;
+            }
+            if (screen.isInPictureInPictureMode()) return;
+            autoEnter(screen, false);
+            HookStatus.counted(FAMILY, UNDER_SETTINGS);
+            Logger.printDebug(() -> "Picture-in-picture: settings shown over the armed screen, auto-enter off");
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "settings shown", failure);
+        }
+    }
+
+    /**
+     * The settings closed. Auto-enter comes back on the screen they showed over as the reel on
+     * screen has it: on, unless a pause holds it, the reel doesn't fit the window, or the window was
+     * disarmed or armed on another screen since.
+     */
+    public static void settingsClosed() {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+            Activity screen;
+            synchronized (PictureInPicture.class) {
+                screen = underSettings.get();
+                underSettings = new WeakReference<>(null);
+                if (screen == null || armedScreen.get() != screen || held || unfit || current.get() == null) return;
+            }
+            if (screen.isFinishing() || screen.isDestroyed() || screen.isInPictureInPictureMode()) return;
+            autoEnter(screen, true);
+            Logger.printDebug(() -> "Picture-in-picture: settings closed, auto-enter back");
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "settings closed", failure);
+        }
+    }
+
+    /** Whether the settings show over [screen]. */
+    private static synchronized boolean underSettings(Activity screen) {
+        return screen != null && underSettings.get() == screen;
     }
 
     /**
@@ -1040,11 +1104,12 @@ public final class PictureInPicture {
 
     /**
      * Params with only auto-enter set change only auto-enter, as Facebook's own disarm relies on.
-     * While the window opens only from the More menu, it's always off.
+     * While the window opens only from the More menu, or the settings show over the screen, it's
+     * always off.
      */
     @RequiresApi(Build.VERSION_CODES.S)
     private static void autoEnter(Activity screen, boolean enabled) {
-        boolean answer = enabled && !menuOnly();
+        boolean answer = enabled && !menuOnly() && !underSettings(screen);
         screen.setPictureInPictureParams(new PictureInPictureParams.Builder().setAutoEnterEnabled(answer).build());
     }
 
@@ -1070,6 +1135,7 @@ public final class PictureInPicture {
             broughtBackAt = -BRING_BACK_GAP_MS;
             sentAwayAt = -SENT_AWAY_GAP_MS;
             floating = new WeakReference<>(null);
+            underSettings = new WeakReference<>(null);
         }
     }
 }

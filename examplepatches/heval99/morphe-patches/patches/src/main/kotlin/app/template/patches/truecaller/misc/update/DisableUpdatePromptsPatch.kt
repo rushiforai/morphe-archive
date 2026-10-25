@@ -7,8 +7,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update prompts",
-    description = "Stops the Google Play in-app update prompts and the app's own \"update " +
-        "required\" page, so the app does not block you from using the patched version.",
+    description = "Disables the update prompts.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

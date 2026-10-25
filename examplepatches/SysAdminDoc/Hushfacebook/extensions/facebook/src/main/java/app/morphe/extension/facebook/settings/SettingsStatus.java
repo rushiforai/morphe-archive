@@ -118,6 +118,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean doubleTapSkip() {
+        return false;
+    }
+
+    public static boolean tapShowsControls() {
+        return false;
+    }
+
     public static boolean reelGestures() {
         return false;
     }
@@ -215,6 +223,10 @@ public final class SettingsStatus {
     }
 
     public static boolean unlockAppIcons() {
+        return false;
+    }
+
+    public static boolean headerText() {
         return false;
     }
 

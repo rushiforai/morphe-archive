@@ -29,6 +29,8 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
@@ -73,7 +75,12 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>A trial reel, which Instagram shows to people who don't follow its poster, isn't on the
  * poster's profile at all, so the search could only give up (#225). When the reel's
  * {@code is_active_trial} reads true, {@link #opening} holds nothing and a toast says so. A reel
- * whose flag is false or can't be read is looked for as before.
+ * whose flag is false or can't be read is looked for as before. Only the poster's own Media
+ * carries that flag, so for anyone else the grid tells instead: a reel's id starts with a number
+ * that grows with the time it was posted, and a profile's grid runs newest first below the few
+ * reels pinned to its top. Once every tile on screen is older than the reel, and more of them
+ * than could be pinned, the grid has gone past where the reel would sit, so the search stops and
+ * a toast says the reel isn't on the profile, whether or not Find the reel was tapped yet.
  *
  * <p>Nothing is dragged and no end is waited for until the grid holds a tile Instagram named. A
  * profile can open straight on its Reels tab (451 does for some reels), and then the tab resumes
@@ -128,6 +135,8 @@ public final class ReelOrigin {
     static final String ENDED = "grid ended";
     static final String RAN_OUT = "screens ran out";
     static final String NO_TILES = "no named tiles";
+    /** Why a search gave up when the grid went past where the reel would sit, counted beside reel not found. */
+    static final String PASSED = "grid past the reel's date";
     /**
      * Counted when the Reels tab in the profile's screen is another profile's than the reel's author,
      * or a posts grid there is another than the first.
@@ -135,6 +144,8 @@ public final class ReelOrigin {
     static final String OTHER_PROFILE = "other profile's tab";
     /** Counted when the reel tapped is a trial reel, which isn't on the profile, so nothing is held. */
     static final String TRIAL = "trial reel, not looked for";
+    /** How many reels or posts Instagram pins to the top of a profile's grid at most, older ones as likely as not. */
+    static final int PINNED_MAX = 3;
 
     /** How long after the tap the profile's activity may take to be created. */
     static final long HOST_WINDOW_MS = 5000;
@@ -462,12 +473,16 @@ public final class ReelOrigin {
         private int endNamed;
         /** Whether the last drag left the grid where it was, though the grid said more lay below. */
         private boolean stuck;
+        /** The reel's own number, null when its id doesn't start with one, and the older tiles seen so far. */
+        private final String number;
+        private final Set<String> older = new HashSet<>();
 
         Look(Object tab, Method resumed, Field grid, String id, BooleanSupplier on, Activity screen, boolean going) {
             this.tab = new WeakReference<>(tab);
             this.resumed = resumed;
             this.grid = grid;
             this.id = id;
+            this.number = reelNumber(id);
             this.on = on;
             this.screen = new WeakReference<>(screen);
             this.going = going;
@@ -515,6 +530,10 @@ public final class ReelOrigin {
                         }
                     }
                     handler.postDelayed(this, WAIT_MS);
+                    return;
+                }
+                if (passed(list)) {
+                    giveUp(list, PASSED, L10n.t(list.getContext(), "That reel isn't on their profile. It might be a trial reel."));
                     return;
                 }
                 if (!going) {
@@ -646,16 +665,30 @@ public final class ReelOrigin {
         }
 
         /**
-         * Not found, for [why]: the grid goes back to where it was, a toast says so, and the id is
-         * dropped.
+         * Whether the grid has gone past where the reel would sit: every tile on screen is older than
+         * it, and more older ones have been seen than could be pinned above it.
          */
+        private boolean passed(ViewGroup list) {
+            if (number == null) return false;
+            int newer = sortTiles(list, number, older);
+            return newer == 0 && older.size() > PINNED_MAX;
+        }
+
         private void giveUp(ViewGroup list, String why) throws ReflectiveOperationException {
+            giveUp(list, why, L10n.t(list.getContext(), "Couldn't find the reel you came from"));
+        }
+
+        /**
+         * Not found, for [why]: the grid goes back to where it was, a toast reading [toast] says so,
+         * and the id is dropped.
+         */
+        private void giveUp(ViewGroup list, String why, String toast) throws ReflectiveOperationException {
             int back = started == 0 ? 0 : start - offset(list);
             if (back != 0) list.scrollBy(0, back);
             HookStatus.counted(FamilyNames.REEL_ORIGIN, NOT_FOUND);
             HookStatus.counted(FamilyNames.REEL_ORIGIN, why);
             forget();
-            Utils.showToastShort(L10n.t(list.getContext(), "Couldn't find the reel you came from"));
+            Utils.showToastShort(toast);
         }
 
         private boolean onScreen(ViewGroup list) {
@@ -703,6 +736,42 @@ public final class ReelOrigin {
         if (name.equals(id)) return true;
         String reel = reelNumber(id);
         return reel != null && reel.equals(reelNumber(name));
+    }
+
+    /**
+     * Sorts the tiles under [view] against the reel numbered [number]: the own numbers of those
+     * posted before it go into [older], and the count of those posted after it comes back. Instagram
+     * numbers a post by the time it went up, so a smaller number is an older post; a name that
+     * doesn't start with a number is neither.
+     */
+    static int sortTiles(View view, String number, Set<String> older) {
+        int newer = 0;
+        String name = view.getTransitionName();
+        String own = name == null || name.isEmpty() ? null : reelNumber(name);
+        if (own != null) {
+            if (olderThan(own, number)) {
+                older.add(own);
+            } else if (!own.equals(number)) {
+                newer++;
+            }
+        }
+        if (!(view instanceof ViewGroup)) return newer;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) newer += sortTiles(group.getChildAt(i), number, older);
+        return newer;
+    }
+
+    /** Whether the number [own] is smaller than [number], both digits only, of any length. */
+    static boolean olderThan(String own, String number) {
+        String a = stripZeros(own);
+        String b = stripZeros(number);
+        return a.length() != b.length() ? a.length() < b.length() : a.compareTo(b) < 0;
+    }
+
+    private static String stripZeros(String digits) {
+        int at = 0;
+        while (at < digits.length() - 1 && digits.charAt(at) == '0') at++;
+        return digits.substring(at);
     }
 
     /** The reel's own number at the start of [id], up to the author's, or null when it doesn't start with one. */

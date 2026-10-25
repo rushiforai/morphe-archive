@@ -22,6 +22,7 @@ import app.morphe.patches.facebook.misc.extension.requireStatusMethod
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -110,8 +111,9 @@ val dontSaveSearchHistoryPatch = bytecodePatch(
         val skip = skipRegister(save)
         val recentPut = recentListPut(save)
         val factories = mutableListOf<Pair<Method, FieldReference>>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        // An event factory reads the privacy context.
+        classDefForEachReferencing(types = listOf(PRIVACY_CONTEXT)) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
             for (candidate in classDef.methods) notLoggedEvent(candidate)?.let { factories += candidate to it }
         }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -10,15 +10,14 @@
 
 package app.morphe.extension.shared.spoof;
 
-import android.app.Activity;
-import android.app.Application;
+import static app.morphe.extension.shared.patches.AppCheckPatch.IS_YOUTUBE_MUSIC;
+
 import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,6 +25,7 @@ import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.DownloadMode;
 import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
@@ -62,25 +62,38 @@ public class SpoofVideoStreamsPatch {
     private static final String INTERNET_CONNECTION_CHECK_URI_STRING = "https://www.google.com/gen_204";
     private static final Uri INTERNET_CONNECTION_CHECK_URI = Uri.parse(INTERNET_CONNECTION_CHECK_URI_STRING);
 
-    private static final boolean SPOOF_VIDEO_STREAMS = isPatchIncluded() && SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get();
+    private static final boolean SPOOF_VIDEO_STREAMS = isPatchIncluded()
+            && SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get();
 
     @NonNull
     private static volatile Locale localeOverride = AppLanguage.DEFAULT.getLocale();
 
     private static volatile ClientType preferredClient = ClientType.VISIONOS_1_02;
 
-    private static WeakReference<Application> mainActivityRef = new WeakReference<>(null);
+    private static final String STREAM_URL_PATH = "/videoplayback";
+
+    private static final String STREAM_URL_HOST_SUFFIX = ".googlevideo.com";
 
     /**
-     * Injection point.
+     * Client name of the app itself, whose stream requests are left as they are.
      */
-    public static void setMainActivity(Activity activity) {
-        mainActivityRef = new WeakReference<>(activity.getApplication());
-    }
+    private static final String APP_CLIENT_NAME = IS_YOUTUBE_MUSIC ? "ANDROID_MUSIC" : "ANDROID";
 
-    public static Application getApplication() {
-        return mainActivityRef.get();
-    }
+    /**
+     * Largest byte range of a plain stream request. The server sends larger ranges at about playback speed.
+     */
+    private static final long MAX_STREAM_RANGE_LENGTH = 10 * 1024 * 1024;
+
+    /**
+     * If the last request built on the thread is of a shortened stream range.
+     */
+    private static final ThreadLocal<Boolean> streamRangeLimitedOnThread = ThreadLocal.withInitial(() -> false);
+
+    /**
+     * If the streams of the player responses created on this thread are kept.
+     * Used for videos that are saved, which use streams that the app can save instead of the playback streams.
+     */
+    private static final ThreadLocal<Boolean> keepStreamsOnThread = ThreadLocal.withInitial(() -> false);
 
     /**
      * @return If this patch was included during patching.
@@ -106,9 +119,9 @@ public class SpoofVideoStreamsPatch {
     public static void setClientsToUse(List<ClientType> availableClients, ClientType client) {
         preferredClient = Objects.requireNonNull(client);
 
-        if (SPOOF_VIDEO_STREAMS) {
-            StreamingDataRequest.setClientOrderToUse(availableClients, client);
+        StreamingDataRequest.setClientOrderToUse(availableClients, client);
 
+        if (SPOOF_VIDEO_STREAMS) {
             // Prefetch visitorId for default client.
             Utils.runOnBackgroundThread(() -> VisitorIdRequester.getVisitorId(client));
         }
@@ -116,6 +129,13 @@ public class SpoofVideoStreamsPatch {
 
     public static ClientType getPreferredClient() {
         return preferredClient;
+    }
+
+    /**
+     * @param keepStreams If the streams of the player responses created on the current thread are not overridden.
+     */
+    public static void setKeepStreamsOnThread(boolean keepStreams) {
+        keepStreamsOnThread.set(keepStreams);
     }
 
     public static boolean spoofingToClientWithNoMultiAudioStreams() {
@@ -349,6 +369,18 @@ public class SpoofVideoStreamsPatch {
     @Nullable
     public static byte[] getStreamingData(String videoId) {
         if (SPOOF_VIDEO_STREAMS) {
+            if (Boolean.TRUE.equals(keepStreamsOnThread.get())) {
+                Logger.printDebug(() -> "Keeping the streams of the player response: " + videoId);
+                return null;
+            }
+
+            // Without a connection the replacement streams cannot load,
+            // and a video that is saved plays with the streams of its own player response.
+            if (!Utils.isNetworkConnected()) {
+                Logger.printDebug(() -> "Not overriding streaming data (network is not connected): " + videoId);
+                return null;
+            }
+
             try {
                 StreamingDataRequest request = StreamingDataRequest.getRequestForVideoId(videoId);
                 if (request != null) {
@@ -442,6 +474,124 @@ public class SpoofVideoStreamsPatch {
         }
 
         return postData;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Called for every network request the app makes, before the request is built.
+     * The app requests streams with a POST body made for its own client. The plain stream urls of the
+     * other clients do not accept that body, and the server answers with an error or sends the stream slowly.
+     *
+     * @param url Url of the request.
+     * @return If the request is for a plain stream url of another client, and must be sent as a GET request without a body.
+     */
+    public static boolean isPlainStreamRequest(@Nullable String url) {
+        try {
+            // Saved videos use plain streams of other clients, even if spoofing is off.
+            if ((!SPOOF_VIDEO_STREAMS && SharedYouTubeSettings.DOWNLOAD_MODE.get() != DownloadMode.IN_APP)
+                    || url == null || !url.contains(STREAM_URL_PATH)) {
+                return false;
+            }
+
+            Uri uri = Uri.parse(url);
+            String host = uri.getHost();
+            if (host == null || !host.endsWith(STREAM_URL_HOST_SUFFIX) || !STREAM_URL_PATH.equals(uri.getPath())
+                    // Streams of server side adaptive bitrate (SABR) clients are not plain urls.
+                    || uri.getQueryParameter("sabr") != null) {
+                return false;
+            }
+
+            String clientName = uri.getQueryParameter("c");
+            if (clientName == null || APP_CLIENT_NAME.equals(clientName)) {
+                return false;
+            }
+            for (ClientType client : ClientType.values()) {
+                if (!client.requireSABR && client.clientName.equals(clientName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception ex) {
+            Logger.printException(() -> "isPlainStreamRequest failure", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Called for every network request the app makes, when the request is built.
+     * Saving a video requests the rest of a stream with a single range, but the server sends a large range
+     * at about playback speed. The range is shortened, and {@link #isLimitedStreamRangeFinished(long)}
+     * makes the app request the following range after this one ends.
+     * Ranges without an end are left as they are, because the app reads those until the stream ends.
+     *
+     * @param url Url of the request.
+     * @return The url to request.
+     */
+    @Nullable
+    public static String limitPlainStreamRange(@Nullable String url) {
+        try {
+            // A request is built and read on the same thread.
+            streamRangeLimitedOnThread.set(false);
+            if (url == null || !isPlainStreamRequest(url)) {
+                return url;
+            }
+
+            String range = Uri.parse(url).getQueryParameter("range");
+            if (range == null) {
+                return url;
+            }
+            final int separatorIndex = range.indexOf('-');
+            if (separatorIndex <= 0 || separatorIndex == range.length() - 1) {
+                return url;
+            }
+
+            final long start = Long.parseLong(range.substring(0, separatorIndex));
+            final long end = Long.parseLong(range.substring(separatorIndex + 1));
+            final long limitedEnd = start + MAX_STREAM_RANGE_LENGTH - 1;
+            if (end <= limitedEnd) {
+                return url;
+            }
+
+            String rangeParameter = "range=" + range;
+            final int rangeIndex = url.indexOf(rangeParameter);
+            final int rangeEndIndex = rangeIndex + rangeParameter.length();
+            if (rangeIndex <= 0 || (url.charAt(rangeIndex - 1) != '&' && url.charAt(rangeIndex - 1) != '?')
+                    || (rangeEndIndex < url.length() && url.charAt(rangeEndIndex) != '&')) {
+                return url;
+            }
+
+            String limitedRange = start + "-" + limitedEnd;
+            Logger.printDebug(() -> "Limiting stream range: " + range + " to: " + limitedRange);
+            streamRangeLimitedOnThread.set(true);
+            return url.substring(0, rangeIndex) + "range=" + limitedRange + url.substring(rangeEndIndex);
+        } catch (Exception ex) {
+            Logger.printException(() -> "limitPlainStreamRange failure", ex);
+            return url;
+        }
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Called when the response of a network request is read.
+     * A response of a shortened range ends before the requested range does, and the app takes that
+     * as the end of the stream. If this is true, the app pauses the transfer instead, and continues it
+     * from the last byte it got.
+     *
+     * @param remainingBytes Bytes of the response that are not read yet.
+     * @return If the response of a shortened range has ended, and the rest of the range must be requested.
+     */
+    public static boolean isLimitedStreamRangeFinished(long remainingBytes) {
+        if (remainingBytes != 0 || !streamRangeLimitedOnThread.get()) {
+            return false;
+        }
+
+        streamRangeLimitedOnThread.set(false);
+        Logger.printDebug(() -> "Requesting the rest of the shortened stream range");
+        return true;
     }
 
     /**

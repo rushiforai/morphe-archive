@@ -29,9 +29,7 @@ private fun Instruction.passes(register: Int): Boolean = when (this) {
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Turns off mParticle analytics (which also removes the Apptentive surveys and rating " +
-        "prompts), Datadog, comScore, Crashlytics crash reports, Branch attribution tracking, the Beam " +
-        "event reporting and the event forwarding to Braze.",
+    description = "Disables analytics, tracking and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_BLEACHER_REPORT)
 

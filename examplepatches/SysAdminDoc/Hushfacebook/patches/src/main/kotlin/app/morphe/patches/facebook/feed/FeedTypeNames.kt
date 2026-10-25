@@ -9,6 +9,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -178,8 +179,9 @@ internal fun BytecodePatchContext.methodsNaming(literal: String, wanted: (Method
     val found = holders.values.flatMapTo(mutableListOf()) { owner -> owner.methods.filter { wanted(it) && holdsString(it, literal) } }
     if (holders.values.none { owner -> owner.methods.any { isStringTable(it) && holdsString(it, literal) } }) return found
     val resolve: (MethodReference) -> Method? = { call -> holders[call.definingClass]?.let { resolveStatic(it, call) } }
-    classDefForEach { owner ->
-        if (owner.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    // A method without the literal names it only by calling a table, which [resolve] finds among the holders.
+    classDefForEachReferencing(types = holders.keys) { owner ->
+        if (owner.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         owner.methods.filterTo(found) { wanted(it) && !holdsString(it, literal) && namesString(it, literal, resolve) }
     }
     return found

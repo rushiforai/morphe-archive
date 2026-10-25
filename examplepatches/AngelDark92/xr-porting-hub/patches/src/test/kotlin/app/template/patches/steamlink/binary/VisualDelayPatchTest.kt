@@ -77,6 +77,39 @@ class VisualDelayPatchTest {
     }
 
     @Test
+    fun `5002395 requires exact metadata and rejects unexpected size`() {
+        val stock = syntheticElf(layout5002395)
+        val patched = patchVisualDelay(stock, 60, layout5002395.versionName, layout5002395.versionCode.toString())
+        assertFalse(stock.contentEquals(patched))
+        assertContentEquals(patched, patchVisualDelay(patched, 60, layout5002395.versionName, layout5002395.versionCode.toString()))
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.23", "5002395"))
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.24", "5002363"))
+        assertFailsWith<PatchException> {
+            patchVisualDelay(ByteArray(128), 60, "2.0.24", "5002395")
+        }
+    }
+
+    @Test
+    fun `5002395 timestamp transitions change only canonical trampoline body`() {
+        val stock = syntheticElf(layout5002395)
+        val cave = stock.size - 0x800
+        val offsets = listOf(0L, 1L, 60L, 1000L, 4000L)
+        for (from in offsets) {
+            val patched = patchVisualDelay(stock, from, "2.0.24", "5002395")
+            assertFalse(stock.contentEquals(patched))
+            for (to in offsets) {
+                val transitioned = patchVisualDelay(patched, to, "2.0.24", "5002395")
+                assertContentEquals(
+                    patchVisualDelay(stock, to, "2.0.24", "5002395"), transitioned,
+                    "$from -> $to",
+                )
+                assertContentEquals(patched.copyOfRange(0, cave + 4), transitioned.copyOfRange(0, cave + 4))
+                assertContentEquals(patched.copyOfRange(cave + 16, patched.size), transitioned.copyOfRange(cave + 16, transitioned.size))
+            }
+        }
+    }
+
+    @Test
     fun `5002363 timestamp transitions change only canonical trampoline body`() {
         val stock = syntheticElf(layout5002363)
         val cave = stock.size - 0x800
@@ -252,6 +285,7 @@ class VisualDelayPatchTest {
             Triple("2.0.21", "5001968", 2_234_048),
             Triple("2.0.22", "5002244", 2_251_920),
             Triple("2.0.23", "5002363", 2_292_008),
+            Triple("2.0.24", "5002395", 2_301_432),
         )
         bases.forEach { (version, code, size) ->
             val file = File("android-steamlinkvr-release-base-$version-$code/lib/arm64-v8a/libvrlink_scene.so")
@@ -283,7 +317,18 @@ class VisualDelayPatchTest {
             ),
         )
 
+        val layout5002395 = TestLayout(
+            5002395, "2.0.24", 2_301_432, 0x103174,
+            listOf(
+                Triple(0x1033e8, 28, false), Triple(0x1033ec, 32, false),
+                Triple(0x1033f0, 36, false), Triple(0x1033fc, 40, false),
+                Triple(0x103400, 44, false), Triple(0x10340c, 48, false),
+            ),
+        )
+
         val nativeLayouts = listOf(
+            layout5002363,
+            layout5002395,
             TestLayout(
                 5001712, "2.0.20",
                 2_221_072,

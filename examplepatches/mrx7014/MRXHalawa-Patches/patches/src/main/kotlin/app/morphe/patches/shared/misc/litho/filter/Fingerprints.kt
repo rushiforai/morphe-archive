@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -94,14 +94,12 @@ internal object ProtobufBufferReferenceFingerprint : Fingerprint(
 )
 
 internal object LithoThreadExecutorFingerprint : Fingerprint(
+    superclass = "Ljava/util/concurrent/ThreadPoolExecutor;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     parameters = listOf("I", "I", "I"),
     filters = listOf(
         literal(1L) // 1L = default thread timeout.
-    ),
-    custom = { _, classDef ->
-        classDef.superclass == "Ljava/util/concurrent/ThreadPoolExecutor;"
-    }
+    )
 )
 
 internal object LithoConverterBufferUpbFeatureFlagFingerprint : Fingerprint(

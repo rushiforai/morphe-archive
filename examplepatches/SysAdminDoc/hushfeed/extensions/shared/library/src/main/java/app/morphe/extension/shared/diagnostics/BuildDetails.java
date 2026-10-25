@@ -203,12 +203,12 @@ public final class BuildDetails {
         return names.equals(sorted);
     }
 
-    /** The builds the bundle declares: TikTok 47.5.3 and PineDrama 47.4.3 (#156), each under its own package. */
+    /** The builds the bundle declares: TikTok 47.5.3 and PineDrama 47.5.3 (#156), each under its own package. */
     private static boolean validTarget(Map<String, String> facts) {
         String name = facts.get("target_package"), version = facts.get("target_version"), code = facts.get("target_version_code");
         if (name.equals("unknown")) return version.equals("unknown") && code.equals("unknown");
         return oneOf(name + "/" + version + "=" + code,
-                "com.zhiliaoapp.musically/47.5.3=2024705030", "com.ss.android.ttmd.video/47.4.3=2024704030");
+                "com.zhiliaoapp.musically/47.5.3=2024705030", "com.ss.android.ttmd.video/47.5.3=2024705030");
     }
 
     private static boolean matches(String value, String pattern, int max) {

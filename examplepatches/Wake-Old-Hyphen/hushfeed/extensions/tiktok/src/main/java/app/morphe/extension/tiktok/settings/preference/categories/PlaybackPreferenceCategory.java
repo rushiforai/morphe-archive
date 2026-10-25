@@ -135,6 +135,13 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     .withNote("Same as the room records the quality you're watching. Highest records "
                             + "the best stream the room has, even while you watch it lower. A number records that "
                             + "quality, or the closest one the room has when it isn't offered."));
+            addPreference(new ChoicePreference(context, "LIVE recording source", Settings.LIVE_RECORD_SOURCE,
+                    app.morphe.extension.tiktok.live.LiveRecordSource.LABELS,
+                    app.morphe.extension.tiktok.live.LiveRecordSource.VALUES)
+                    .withNote("Stream only saves the room's own video, as before. Screen records what your "
+                            + "phone shows while you watch, with the sound the app plays when TikTok has the "
+                            + "microphone permission. Android asks you to allow screen recording each time, and "
+                            + "shows its own notice while it records."));
         }
         if (SettingsStatus.stopVideoLoopingEnabled) {
             addPreference(new TogglePreference(

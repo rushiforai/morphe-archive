@@ -40,7 +40,7 @@ private fun MutableMethod.callsAnyOf(targets: Set<String>): Boolean =
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
-    description = "Unlocks jetAudio Premium, all plugins and the ad unlocker."
+    description = "Unlocks premium features and plugins."
 ) {
     compatibleWith(COMPATIBILITY_JETAUDIO)
 

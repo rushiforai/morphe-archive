@@ -10,6 +10,7 @@ import app.morphe.util.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
@@ -143,8 +144,8 @@ val playbackSpeedPatch = bytecodePatch(
             ) { "Playback speed: the extension's nativeAweme stub is not static (Object)Aweme." }
             LiveSpeedSites(progress, liveSetter, liveAweme)
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[Playback speed] Left out the live speed change on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[Playback speed] Left out the live speed change on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
 

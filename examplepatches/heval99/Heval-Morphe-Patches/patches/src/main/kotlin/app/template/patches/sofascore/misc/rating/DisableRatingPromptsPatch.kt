@@ -13,7 +13,7 @@ internal const val ASK_REVIEW_KEY = "ask_review_v3"
 @Suppress("unused")
 val disableRatingPromptsPatch = bytecodePatch(
     name = "Disable rating prompts",
-    description = "Stops the in-app rating dialog that opens after repeated app starts.",
+    description = "Disables the rating prompt.",
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 

@@ -15,8 +15,11 @@ class StartupBoundaryTest {
             "2.0.21" to "5001968",
             "2.0.22" to "5002244",
         )
-        val versions = listOf("2.0.20", "2.0.21", "2.0.22", "2.0.23", "")
-        val builds = supported.map { it.second } + listOf("5001740", "5002296", "5002313", "5002318", "5002322", "5002323", "5002243", "unknown")
+        val versions = listOf("2.0.20", "2.0.21", "2.0.22", "2.0.23", "2.0.24", "")
+        val builds = supported.map { it.second } + listOf(
+            "5001740", "5002296", "5002313", "5002318", "5002322", "5002323",
+            "5002243", "5002395", "unknown",
+        )
         versions.forEach { version ->
             builds.forEach { build ->
                 assertEquals((version to build) in supported,

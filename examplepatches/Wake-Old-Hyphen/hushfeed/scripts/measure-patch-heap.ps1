@@ -70,11 +70,11 @@ if (-not (Test-Path -LiteralPath $apk -PathType Leaf)) { throw "APK not found: $
 
 try {
     $catalog = Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json
-    $all = @($catalog.patches | ForEach-Object { $_.name })
 } catch {
     throw "Could not read patches-list.json: $($_.Exception.Message)"
 }
 $target = Get-PatchTarget -PatchList $catalog
+$all = @(Get-PackagePatchNames -PatchList $catalog -PackageName $target.PackageName)
 if ($all.Count -eq 0) { throw 'No patches listed in patches-list.json.' }
 if (@($Cases).Count -eq 0) { throw 'Provide at least one case such as settings:640m.' }
 

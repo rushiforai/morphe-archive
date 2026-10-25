@@ -20,7 +20,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
-OWNER_REPO="madushas/pdb_patch"
+OWNER_REPO="madushas/morphe-patches-custom"
 
 MODE="${1:---check}"
 
@@ -120,7 +120,7 @@ if [[ "$MODE" == "--publish" ]]; then
   git push origin HEAD
   gh release create "v$VERSION" "$ASSET" \
     --repo "$OWNER_REPO" \
-    --title "Pdb Extras v$VERSION" \
+    --title "Morphe Patches (Pdb + MyDialog) v$VERSION" \
     --generate-notes
   echo "==> Released v$VERSION — refresh the source in Morphe Manager"
 else
@@ -129,7 +129,7 @@ else
 
     git push origin HEAD
     gh release create v$VERSION patches/build/libs/patches-$VERSION.mpp \\
-      --repo $OWNER_REPO --title "Pdb Extras v$VERSION" --generate-notes
+      --repo $OWNER_REPO --title "Morphe Patches (Pdb + MyDialog) v$VERSION" --generate-notes
 
     Then in Morphe Manager re-add / refresh:
     https://morphe.software/add-source?github=$OWNER_REPO

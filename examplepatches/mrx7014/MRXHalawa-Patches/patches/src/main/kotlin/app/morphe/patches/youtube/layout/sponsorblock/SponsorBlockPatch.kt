@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -17,7 +17,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.BasePreference
 import app.morphe.patches.shared.misc.settings.preference.InputType
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
@@ -26,6 +25,8 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceCategory
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
+import app.morphe.patches.shared.misc.settings.preference.screenInfoPreferenceCategory
+import app.morphe.patches.youtube.layout.player.icons.copyPlayerButtonIcons
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 import app.morphe.patches.youtube.misc.playercontrols.disableNewPlayerControlsFeatureFlag
@@ -42,17 +43,15 @@ import app.morphe.patches.youtube.video.information.onCreateHook
 import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.patches.youtube.video.information.videoTimeHook
 import app.morphe.patches.youtube.video.videoid.hookBackgroundPlayVideoId
+import app.morphe.patches.youtube.video.videoid.hookVideoId
 import app.morphe.patches.youtube.video.videoid.videoIdPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.copyResources
-import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val SB_PREFERENCES_PACKAGE = "app.morphe.extension.youtube.sponsorblock.preferences"
 private const val YOUTUBE_PREFERENCES_PACKAGE = "app.morphe.extension.youtube.settings.preference"
@@ -65,7 +64,6 @@ fun categoryPreference(settingKey: String): BasePreference =
 private val sponsorBlockResourcePatch = resourcePatch {
     dependsOn(
         settingsPatch,
-        resourceMappingPatch,
         legacyPlayerControlsPatch,
         addResourcesPatch
     )
@@ -165,12 +163,12 @@ private val sponsorBlockResourcePatch = resourcePatch {
                 preferences = emptySet(), // Preferences are added by custom class at runtime.
                 tag = "app.morphe.extension.youtube.sponsorblock.ui.SponsorBlockStatsPreferenceCategory"
             ),
-            PreferenceCategory(
+            screenInfoPreferenceCategory(
                 key = "morphe_sb_about",
-                sorting = PreferenceScreenPreference.Sorting.UNSORTED,
                 preferences = setOf(
                     NonInteractivePreference(
                         key = "morphe_sb_about_api",
+                        titleKey = null,
                         tag = "app.morphe.extension.shared.sponsorblock.ui.SponsorBlockAboutPreference",
                         selectable = true
                     )
@@ -178,35 +176,27 @@ private val sponsorBlockResourcePatch = resourcePatch {
             )
         )
 
-        arrayOf(
+        copyResources(
+            "sponsorblock",
             ResourceGroup(
                 "layout",
                 "morphe_sb_inline_sponsor_overlay.xml",
                 "morphe_sb_new_segment.xml",
                 "morphe_sb_skip_sponsor_button.xml"
-            ),
-            ResourceGroup(
-                "drawable",
-                "morphe_sb_adjust.xml",
-                "morphe_sb_adjust_bold.xml",
-                "morphe_sb_backward.xml",
-                "morphe_sb_backward_bold.xml",
-                "morphe_sb_compare.xml",
-                "morphe_sb_compare_bold.xml",
-                "morphe_sb_edit.xml",
-                "morphe_sb_edit_bold.xml",
-                "morphe_sb_forward.xml",
-                "morphe_sb_forward_bold.xml",
-                "morphe_sb_logo.xml",
-                "morphe_sb_logo_bold.xml",
-                "morphe_sb_publish.xml",
-                "morphe_sb_publish_bold.xml",
-                "morphe_sb_voting.xml",
-                "morphe_sb_voting_bold.xml"
             )
-        ).forEach { resourceGroup ->
-            copyResources("sponsorblock", resourceGroup)
-        }
+        )
+
+        copyPlayerButtonIcons(
+            "sponsorblock",
+            "morphe_sb_adjust",
+            "morphe_sb_backward",
+            "morphe_sb_compare",
+            "morphe_sb_edit",
+            "morphe_sb_forward",
+            "morphe_sb_logo",
+            "morphe_sb_publish",
+            "morphe_sb_voting"
+        )
 
         addTopControl(
             "sponsorblock",
@@ -232,7 +222,6 @@ val sponsorBlockPatch = bytecodePatch(
 ) {
     dependsOn(
         sharedExtensionPatch,
-        resourceMappingPatch,
         videoIdPatch,
         videoInformationPatch,
         playerTypeHookPatch,
@@ -254,19 +243,15 @@ val sponsorBlockPatch = bytecodePatch(
             EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS +
                     "->setCurrentVideoId(Ljava/lang/String;)V"
         )
+        // Some app versions do not reach the background play hook for regular playback.
+        hookVideoId(
+            EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS +
+                    "->setCurrentVideoId(Ljava/lang/String;)V"
+        )
 
         // Set seekbar draw rectangle.
-        val rectangleFieldName: FieldReference
-        RectangleFieldInvalidatorFingerprint.let {
-            it.method.apply {
-                val rectangleIndex = indexOfFirstInstructionReversedOrThrow(
-                    it.instructionMatches.first().index
-                ) {
-                    getReference<FieldReference>()?.type == "Landroid/graphics/Rect;"
-                }
-                rectangleFieldName = getInstruction<ReferenceInstruction>(rectangleIndex).reference as FieldReference
-            }
-        }
+        val rectangleFieldName = RectangleFieldInvalidatorFingerprint.instructionMatches.last()
+            .getInstruction<ReferenceInstruction>().reference as FieldReference
 
         // Seekbar drawing.
 
@@ -276,19 +261,9 @@ val sponsorBlockPatch = bytecodePatch(
         // class may have been modified by other patches
         SeekbarOnDrawFingerprint.let {
             it.method.apply {
-                // Set seekbar thickness.
-                val thicknessIndex = it.instructionMatches.last().index
-                val thicknessRegister = getInstruction<OneRegisterInstruction>(thicknessIndex).registerA
-                addInstruction(
-                    thicknessIndex + 1,
-                    "invoke-static { v$thicknessRegister }, " +
-                            "$EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS->setSeekbarThickness(I)V"
-                )
-
-                // Find the drawCircle call and draw the segment before it.
-                val drawCircleIndex = indexOfFirstInstructionReversedOrThrow {
-                    getReference<MethodReference>()?.name == "drawCircle"
-                }
+                // Draw the segment before the last drawCircle call. This is done before setting the
+                // thickness, because adding the thickness instruction changes the drawCircle index.
+                val drawCircleIndex = it.instructionMatches[2].index
                 val drawCircleInstruction = getInstruction<FiveRegisterInstruction>(drawCircleIndex)
                 val canvasInstanceRegister = drawCircleInstruction.registerC
                 val centerYRegister = drawCircleInstruction.registerE
@@ -298,6 +273,15 @@ val sponsorBlockPatch = bytecodePatch(
                     "invoke-static { v$canvasInstanceRegister, v$centerYRegister }, " +
                             "$EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS->" +
                             "drawSegmentTimeBars(Landroid/graphics/Canvas;F)V"
+                )
+
+                // Set seekbar thickness.
+                val thicknessIndex = it.instructionMatches[1].index
+                val thicknessRegister = getInstruction<OneRegisterInstruction>(thicknessIndex).registerA
+                addInstruction(
+                    thicknessIndex + 1,
+                    "invoke-static { v$thicknessRegister }, " +
+                            "$EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS->setSeekbarThickness(I)V"
                 )
 
                 // Set seekbar bounds.
@@ -337,6 +321,7 @@ val sponsorBlockPatch = bytecodePatch(
 
         // Initialize the SponsorBlock view.
         ControlsOverlayFingerprint.let {
+            it.clearMatch() // Parent fingerprint is shared and may have changed.
             it.method.apply {
                 val checkCastIndex = it.instructionMatches.last().index
                 val frameLayoutRegister = getInstruction<OneRegisterInstruction>(checkCastIndex).registerA

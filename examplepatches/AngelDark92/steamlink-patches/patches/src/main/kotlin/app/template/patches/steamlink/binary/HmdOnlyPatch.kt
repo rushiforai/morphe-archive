@@ -106,6 +106,24 @@ private val HMD_LAYOUTS = listOf(
             VelocityPatch(0x001021B4L, 48),
         ),
     ),
+    // Independently decoded 2.0.24/5002395: GetPose starts at 0x10310c; the
+    // timestamp load follows XRQGetTimeNow at 0x103174 and the six velocity
+    // stores remain at X19+28..48.
+    HmdLayout(
+        versionName = "2.0.24",
+        versionCode = 5002395,
+        fileSize = 2_301_432,
+        stockSha256 = "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b",
+        hookVaddr = 0x00103174L,
+        velocityPatches = listOf(
+            VelocityPatch(0x001033E8L, 28),
+            VelocityPatch(0x001033ECL, 32),
+            VelocityPatch(0x001033F0L, 36),
+            VelocityPatch(0x001033FCL, 40),
+            VelocityPatch(0x00103400L, 44),
+            VelocityPatch(0x0010340CL, 48),
+        ),
+    ),
 )
 
 private const val PT_LOAD = 1
@@ -341,7 +359,7 @@ internal fun patchVisualDelay(
         )
     }
     verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
-    val guardedTransitions = layout.versionCode in setOf(5001812, 5001968, 5002363)
+    val guardedTransitions = layout.versionCode in setOf(5001812, 5001968, 5002363, 5002395)
     if (guardedTransitions && offsetMs !in 0L..4000L) {
         throw PatchException("Visual Delay offset must be within 0..4000 ms")
     }

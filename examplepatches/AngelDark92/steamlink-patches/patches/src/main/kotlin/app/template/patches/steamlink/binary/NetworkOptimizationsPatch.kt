@@ -126,6 +126,23 @@ private val NETWORK_LAYOUTS = listOf(
         "003040f9ff360c942000805297ffff17",
         "003040f91f2003d52000805297ffff17",
         "E4 decoder flush removal")),
+    NetworkLayout("2.0.24", 5002395, 2_301_432, listOf(
+        Edit(0x1682a0,
+            "00faffd0610a40b900dc0a91e1cd0294682261f929008052f4031f2a0941313986000014e9ff9f5234008052",
+            "00faffd0610a40b900dc0a91e1cd02941f2003d51f2003d51f2003d51f2003d557000014e9ff9f5234008052",
+            "E1 retransmit-abort fallback"),
+        Edit(0x169044,
+            "f8038b1aff0200f91f1b0071562107b9",
+            "f8038b1aff0200f91f330071562107b9",
+            "E2 backtrack window"),
+        Edit(0x1772cc,
+            "4800a052809a40b9e80b00b9e3230091",
+            "0802a052809a40b9e80b00b9e3230091",
+            "E3 UDP send buffer"),
+    ), 15_929_432, Edit(0x903634,
+        "003040f99e3c0c942000805297ffff17",
+        "003040f91f2003d52000805297ffff17",
+        "E4 decoder flush removal")),
 )
 
 private fun ByteArray.matchesAt(offset: Int, pattern: ByteArray): Boolean =

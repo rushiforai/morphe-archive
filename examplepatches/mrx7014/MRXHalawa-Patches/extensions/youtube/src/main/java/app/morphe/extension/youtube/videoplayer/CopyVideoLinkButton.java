@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -36,7 +36,7 @@ public class CopyVideoLinkButton {
             }
 
             PlayerOverlayButton.addButton(controlsView,
-                    COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON ? "morphe_yt_copy_timestamp_bold" : "morphe_yt_copy_bold",
+                    PlayerIcons.name(COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON ? "morphe_yt_copy_timestamp" : "morphe_yt_copy"),
                     view -> copyLink(COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON),
                     view -> {
                         copyLink(!COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON);

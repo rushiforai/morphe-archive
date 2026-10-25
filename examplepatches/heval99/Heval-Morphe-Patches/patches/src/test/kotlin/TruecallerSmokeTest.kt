@@ -1,6 +1,11 @@
+import app.template.patches.truecaller.layout.CALL_LOG_NUMBER_SEPARATOR
+import app.template.patches.truecaller.layout.CALL_LOG_SUBTITLE_HELPER
+import app.template.patches.truecaller.shared.toStringFields
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Format
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -10,14 +15,20 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.util.ReferenceUtil
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.nio.ByteBuffer
+import java.util.zip.ZipFile
 
 private const val PKG = "com.truecaller"
 private const val TRUECALLER_INIT = "Lcom/truecaller/ui/TruecallerInit;"
@@ -84,7 +95,7 @@ class TruecallerSmokeTest {
     }
 
     @Test
-    fun `Truecaller patches unlock premium, remove ads, telemetry, contact upload, update prompts and optional UI, and route GMS to MicroG RE`() {
+    fun `Truecaller patches unlock premium, remove ads, telemetry, contact upload, update prompts, auto-launch, nags, promotions and optional UI, show caller numbers in the call log, and route GMS to MicroG RE`() {
         val root = repoRoot()
         val apk = File(root, "apks/truecaller/base.apk")
 
@@ -103,7 +114,7 @@ class TruecallerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.40.5",
+            version = "26.41.5",
             patchNames = setOf(
                 "Enable Premium",
                 "Disable ads",
@@ -121,6 +132,11 @@ class TruecallerSmokeTest {
                 "Hide Wear OS settings",
                 "Hide business media",
                 "Disable contact upload",
+                "Disable auto-launch",
+                "Disable nags",
+                "Hide promotions",
+                "Hide after-call screen for contacts",
+                "Show caller number in call log",
                 "GmsCore support",
                 "Spoof signature",
             ),
@@ -142,6 +158,7 @@ class TruecallerSmokeTest {
         assertFixT9ContactSearch(classes, byType)
         assertHideBusinessMedia(classes)
         assertDisableContactUpload(classes)
+        assertShowCallerNumber(classes, byType, apk)
         // onGetCredential tests isAvailableOnDevice(int) in this build, so the routing applies.
         assertGmsCoreSupport(classes, workDir, PKG, TRUECALLER_INIT, SIGNATURE_SHA1, expectCredentialRouting = true)
         assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
@@ -257,6 +274,43 @@ class TruecallerSmokeTest {
         val ret = writerInsns.getOrNull(1)
         check(ret?.opcode == Opcode.RETURN_OBJECT && (ret as OneRegisterInstruction).registerA == (unit as OneRegisterInstruction).registerA) {
             "${writerClass.type}.${writer.name} does not return Unit at once"
+        }
+
+        // 8. Premium tab (#77): the tab's state chooser (builds the Entitled and Paywall states, reads
+        // "isSubscriptionOnHoldOrPaused" and a PremiumLaunchContext.Static constant) overwrites its one
+        // isPremium result with false right after the move-result, before the branch that reads it,
+        // so the tab shows the plans. The isPremium getter itself stays forced true (step 2).
+        fun stateType(prefix: String) = classes.single { cls ->
+            cls.methods.any { m -> m.name == "toString" && m.strings().any { it.startsWith(prefix) } }
+        }.type
+        val states = listOf(stateType("Entitled(subscriptionFetchResult="), stateType("Paywall(subscriptionFetchResult="))
+        val (chooserClass, chooser) = classes.singleMethod("Premium tab state chooser") { _, m ->
+            m.returnType == "Ljava/lang/Object;" && m.parameterTypes.size == 1 && "isSubscriptionOnHoldOrPaused" in m.strings() &&
+                m.instructions().any {
+                    it.opcode == Opcode.SGET_OBJECT && it.field()?.type == "Lcom/truecaller/premium/PremiumLaunchContext\$Static;"
+                } &&
+                states.all { state ->
+                    m.instructions().any { it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == state }
+                }
+        }
+        val chooserLabel = "${chooserClass.type}.${chooser.name} (Premium tab state chooser)"
+        val chooserInsns = chooser.instructions()
+        val premiumReads = chooserInsns.indices.filter { index ->
+            chooserInsns[index].call()?.let { it.definingClass == store.type && it.name == isPremium.name && it.parameterTypes.isEmpty() } == true
+        }
+        check(premiumReads.size == 1) { "$chooserLabel reads isPremium ${premiumReads.size} times, expected 1" }
+        val read = premiumReads.single()
+        val premiumResult = chooserInsns[read + 1]
+        check(premiumResult.opcode == Opcode.MOVE_RESULT) { "$chooserLabel: no move-result after isPremium; got ${premiumResult.opcode}" }
+        val premiumRegister = (premiumResult as OneRegisterInstruction).registerA
+        val notPremium = chooserInsns.getOrNull(read + 2)
+        check(notPremium?.opcode == Opcode.CONST_16 && (notPremium as OneRegisterInstruction).registerA == premiumRegister &&
+            (notPremium as NarrowLiteralInstruction).narrowLiteral == 0) {
+            "$chooserLabel does not overwrite the isPremium result v$premiumRegister with false; got ${notPremium?.opcode}"
+        }
+        val decision = chooserInsns.getOrNull(read + 3)
+        check(decision?.opcode == Opcode.IF_EQZ && (decision as OneRegisterInstruction).registerA == premiumRegister) {
+            "$chooserLabel: the isPremium branch does not follow the forced false; got ${decision?.opcode}"
         }
     }
 
@@ -667,14 +721,13 @@ class TruecallerSmokeTest {
         // block per override, each falling through to the next and finally to the stock code.
         // Hide family button and Restore classic call log add one each, Disable ads five (incl. the
         // Offer Hub), Hide business media the seven verified business campaign toggles, Disable
-        // contact upload the Call Assistant number sync and the contact editor name suggestion.
+        // contact upload the Call Assistant number sync and the contact editor name suggestion,
+        // Disable auto-launch one, Disable nags nine, Hide promotions four and Hide after-call
+        // screen for contacts two.
         val (cls, resolver) = classes.singleMethod("feature toggle resolver") { _, m ->
             m.returnType == "Z" && m.params() == listOf("Ljava/lang/String;", FEATURE_STATE) &&
                 m.instructions().any { it.call()?.definingClass == "Landroid/content/SharedPreferences;" && it.call()?.name == "getBoolean" }
         }
-        val label = "${cls.type}.${resolver.name}(String, FeatureState)"
-        val insns = resolver.instructions()
-        val keyRegister = resolver.implementation!!.registerCount - 2 // this + key + state
         val expected = mapOf(
             "featureFamilyProtect" to 0,
             "featureCallLogRevamp" to 0,
@@ -692,7 +745,70 @@ class TruecallerSmokeTest {
             "featureBizVerifiedCampaignsDV3" to 0,
             "featureCallAssistantNumberSync" to 0,
             "featureContactEditorNameSuggestion" to 0,
+            "featureAutoAppLaunchPassive" to 0,
+            "featureDefaultDialerInterstitial" to 0,
+            "featureDefaultDialerPermanentSpace" to 0,
+            "featureNotificationsPermissionBanner" to 0,
+            "featureDOOABanner" to 0,
+            "featureDisableBatteryOptimizationBanner" to 0,
+            "featurePeriodicallyCheckPermissions" to 0,
+            "featureRatingsAndReviewsSurveys" to 0,
+            "featureBlockSurveyFlow" to 0,
+            "featureFeedbackSurvey" to 0,
+            "featurePersonalSafetyPromo" to 0,
+            "featureAcsWhoViewedMeBanner" to 0,
+            "featureReferralNavDrawer" to 0,
+            "featureRedeemPromo" to 0,
+            "featureShowACSAllIncoming" to 0,
+            "featureShowACSAllOutgoing" to 0,
         )
+        assertOverrideBlocks(cls, resolver, expected)
+        assertResolverReads(classes, cls, resolver, expected.keys)
+
+        // Hide promotions: the Firebase experiment resolver (same signature, asks an interface
+        // (String, Z)Z store, no SharedPreferences) answers true for the Who-viewed-me
+        // notification switch; it is still read there.
+        val (firebaseClass, firebase) = classes.singleMethod("Firebase toggle resolver") { _, m ->
+            m.returnType == "Z" && m.params() == listOf("Ljava/lang/String;", FEATURE_STATE) && m.implementation != null &&
+                m.instructions().any {
+                    it.opcode == Opcode.INVOKE_INTERFACE && it.call()?.returnType == "Z" &&
+                        it.call()?.parameterTypes?.map(CharSequence::toString) == listOf("Ljava/lang/String;", "Z")
+                } &&
+                m.instructions().none {
+                    it.call()?.definingClass == "Landroid/content/SharedPreferences;" ||
+                        ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Landroid/content/SharedPreferences;"
+                }
+        }
+        val firebaseExpected = mapOf("DisableWVMNotifications_65487" to 1)
+        assertOverrideBlocks(firebaseClass, firebase, firebaseExpected)
+        assertResolverReads(classes, firebaseClass, firebase, firebaseExpected.keys)
+    }
+
+    /** Some method other than the resolver loads each key and later calls the resolver with it. */
+    private fun assertResolverReads(classes: List<ClassDef>, cls: ClassDef, resolver: Method, keys: Set<String>) {
+        val label = "${cls.type}.${resolver.name}(String, FeatureState)"
+        fun Instruction.isResolverCall() = call()?.let {
+            it.definingClass == cls.type && it.name == resolver.name && it.returnType == "Z" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", FEATURE_STATE)
+        } == true
+        val callers = classes.methodsWhere { _, m -> m.implementation != null && m.instructions().any { it.isResolverCall() } }
+        for (key in keys) {
+            check(callers.any { (_, m) ->
+                val insns = m.instructions()
+                val load = insns.indexOfFirst { it.stringOrNull() == key }
+                load >= 0 && insns.drop(load + 1).any { it.isResolverCall() }
+            }) { "no method passes $key to $label" }
+        }
+    }
+
+    /**
+     * The [resolver] starts with exactly one "key.equals(p1) -> return value" block per entry of
+     * [expected], each falling through to the next and finally to the stock code.
+     */
+    private fun assertOverrideBlocks(cls: ClassDef, resolver: Method, expected: Map<String, Int>) {
+        val label = "${cls.type}.${resolver.name}(String, FeatureState)"
+        val insns = resolver.instructions()
+        val keyRegister = resolver.implementation!!.registerCount - 2 // this + key + state
         val overrides = mutableMapOf<String, Int>()
         for (block in expected.keys.indices) {
             val start = block * 6
@@ -891,6 +1007,207 @@ class TruecallerSmokeTest {
                     it.call()?.returnType == "Z" && it.call()?.parameterTypes?.map(CharSequence::toString) == listOf("Ljava/lang/String;", FEATURE_STATE)
                 }
             }.isNotEmpty()) { "no method reads $key through the toggle resolver" }
+        }
+    }
+
+    private fun assertShowCallerNumber(classes: List<ClassDef>, byType: Map<String, ClassDef>, apk: File) {
+        // 1. The source model (CallLogHistoryEntryData) and the row (HistoryEntry), mapped by their
+        // toString labels as the patch does.
+        val (sourceClass, sourceToString) = classes.singleMethod("CallLogHistoryEntryData.toString") { _, m ->
+            m.name == "toString" && m.parameterTypes.isEmpty() &&
+                m.strings().any { it.startsWith("CallLogHistoryEntryData(primaryHistoryEventId=") }
+        }
+        val sourceFields = toStringFields(sourceToString, sourceClass.type) { byType[it] }.groupBy({ it.first }, { it.second })
+        fun sourceField(name: String, type: String): FieldReference {
+            val fields = sourceFields[name].orEmpty().distinctBy { "${it.name}:${it.type}" }
+            check(fields.size == 1 && fields.single().type == type) { "${sourceClass.type}.toString prints $name from $fields, expected one $type" }
+            return fields.single()
+        }
+        val phonebookId = sourceField("phonebookId", "J")
+        val number = sourceField("normalisedNumber", "Ljava/lang/String;")
+        val countryCode = sourceField("countryCode", "Ljava/lang/String;")
+        val callerName = sourceField("name", "Ljava/lang/String;")
+        val isBlocked = sourceField("isBlocked", "Z")
+        sourceField("isSpam", "Z")
+        sourceField("spamScoreLabel", "Ljava/lang/String;")
+        sourceField("blockReasonLabel", "Ljava/lang/String;")
+
+        val (rowClass, rowToString) = classes.singleMethod("HistoryEntry.toString") { _, m ->
+            m.name == "toString" && m.parameterTypes.isEmpty() && m.strings().any { it.startsWith("HistoryEntry(id=") } &&
+                ", subtitleLabel=" in m.strings()
+        }
+        val rowFields = toStringFields(rowToString, rowClass.type) { byType[it] }.toMap()
+        val subtitle = rowFields["subtitleLabel"] ?: error("${rowClass.type}.toString prints no subtitleLabel")
+        val labelType = subtitle.type
+
+        // 2. The helper: morpheCallLogSubtitle(entry, label): label, public static on the mapper's class.
+        val (mapperClass, helper) = classes.singleMethod(CALL_LOG_SUBTITLE_HELPER) { _, m -> m.name == CALL_LOG_SUBTITLE_HELPER }
+        val label = "${mapperClass.type}.$CALL_LOG_SUBTITLE_HELPER"
+        check(helper.params() == listOf(sourceClass.type, labelType) && helper.returnType == labelType &&
+            AccessFlags.PUBLIC.isSet(helper.accessFlags) && AccessFlags.STATIC.isSet(helper.accessFlags)
+        ) { "$label has signature ${helper.params()} -> ${helper.returnType}" }
+        val insns = helper.instructions()
+        val p0 = helper.implementation!!.registerCount - 2
+        val p1 = p0 + 1
+        val keep = insns.lastIndex
+        check(insns[keep].opcode == Opcode.RETURN_OBJECT && (insns[keep] as OneRegisterInstruction).registerA == p1) {
+            "$label does not end with return-object p1"
+        }
+        // Each check reads its field from p0, and its first branch after the read keeps the label.
+        fun Instruction.reads(expected: FieldReference, opcode: Opcode) = this.opcode == opcode && field()?.let {
+            it.definingClass == expected.definingClass && it.name == expected.name && it.type == expected.type
+        } == true && (this as TwoRegisterInstruction).registerB == p0
+        fun firstBranchAfter(index: Int) = (index + 1..keep).first { insns[it].opcode.format in setOf(Format.Format21t, Format.Format22t) }
+        for ((field, opcode) in listOf(
+            phonebookId to Opcode.IGET_WIDE,
+            isBlocked to Opcode.IGET_BOOLEAN,
+            callerName to Opcode.IGET_OBJECT,
+            number to Opcode.IGET_OBJECT,
+        )) {
+            val read = insns.indexOfFirst { it.reads(field, opcode) }
+            check(read >= 0) { "$label does not read ${field.name}" }
+            check(insns.branchTarget(firstBranchAfter(read)) == keep) { "$label does not keep the label after reading ${field.name}" }
+        }
+        val phonebookRead = insns.indexOfFirst { it.reads(phonebookId, Opcode.IGET_WIDE) }
+        check(insns[phonebookRead + 2].opcode == Opcode.CMP_LONG && insns[firstBranchAfter(phonebookRead)].opcode == Opcode.IF_NEZ) {
+            "$label does not keep the label for phonebookId != 0"
+        }
+        // A blank name or number (TextUtils.getTrimmedLength == 0) keeps the label.
+        val trimmed = insns.indices.filter {
+            insns[it].call()?.let { c -> c.definingClass == "Landroid/text/TextUtils;" && c.name == "getTrimmedLength" } == true
+        }
+        check(trimmed.size == 2 && trimmed.all { insns[firstBranchAfter(it)].opcode == Opcode.IF_EQZ && insns.branchTarget(firstBranchAfter(it)) == keep }) {
+            "$label does not keep the label for a blank name or number"
+        }
+        // A label that is not the text label (a resource label: recording, video, WhatsApp, ...) is kept.
+        val instanceOf = insns.indices.singleOrNull { insns[it].opcode == Opcode.INSTANCE_OF } ?: error("$label has no single instance-of")
+        val textType = ((insns[instanceOf] as ReferenceInstruction).reference as TypeReference).type
+        check((insns[instanceOf] as TwoRegisterInstruction).registerB == p1 && insns[instanceOf + 1].opcode == Opcode.IF_EQZ &&
+            insns.branchTarget(instanceOf + 1) == keep
+        ) { "$label does not keep labels that are not $textType" }
+        val textClass = byType[textType] ?: error("$textType not found")
+        check(textClass.superclass == labelType && textClass.methods.any { m -> m.name == "toString" && m.strings().any { it.startsWith("Text(text=") } }) {
+            "$textType is not the text subtitle label (superclass ${textClass.superclass})"
+        }
+        // The number is formatted for the row's country and joined after " · ".
+        check(insns.any { it.reads(countryCode, Opcode.IGET_OBJECT) }) { "$label does not read ${countryCode.name}" }
+        check(insns.any { it.call()?.let { c -> c.definingClass == "Landroid/telephony/PhoneNumberUtils;" && c.name == "formatNumber" } == true }) {
+            "$label does not call PhoneNumberUtils.formatNumber"
+        }
+        check(insns.any { it.stringOrNull() == CALL_LOG_NUMBER_SEPARATOR }) { "$label does not join with \"$CALL_LOG_NUMBER_SEPARATOR\"" }
+        // The new text label is built and returned right before the keep exit.
+        val newText = insns[keep - 3]
+        val textInit = insns[keep - 2].call()
+        check(newText.opcode == Opcode.NEW_INSTANCE && ((newText as ReferenceInstruction).reference as TypeReference).type == textType &&
+            textInit?.definingClass == textType && textInit.name == "<init>" && textInit.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;") &&
+            insns[keep - 1].opcode == Opcode.RETURN_OBJECT
+        ) { "$label does not return a new $textType" }
+        // One catch-all for Exception over the whole body, handled by the keep exit.
+        val offsets = insns.runningFold(0) { offset, instruction -> offset + instruction.codeUnits }
+        val tryBlock = helper.implementation!!.tryBlocks.singleOrNull() ?: error("$label has no single try block")
+        val handler = tryBlock.exceptionHandlers.singleOrNull()
+        check(tryBlock.startCodeAddress == 0 && tryBlock.codeUnitCount == offsets[keep] &&
+            handler?.exceptionType == "Ljava/lang/Exception;" && handler.handlerCodeAddress == offsets[keep]
+        ) { "$label: the try block does not cover the body with an Exception handler at the keep exit" }
+
+        // 3. The mapper calls the helper once, before building the row: label = helper(entry, label).
+        val callers = classes.methodsWhere { _, m -> m.instructions().any { it.call()?.name == CALL_LOG_SUBTITLE_HELPER } }
+        val (callerClass, mapper) = callers.singleOrNull()
+            ?: error("expected one caller of $label, found ${callers.map { (c, m) -> "${c.type}.${m.name}" }}")
+        check(callerClass.type == mapperClass.type && mapper.params() == listOf("Ljava/util/List;")) { "$label is called from ${callerClass.type}.${mapper.name}" }
+        val where = "${mapperClass.type}.${mapper.name}(List)"
+        val minsns = mapper.instructions()
+        val call = minsns.indices.single { minsns[it].call()?.name == CALL_LOG_SUBTITLE_HELPER }
+        val construction = minsns.indices.single { minsns[it].call()?.let { c -> c.definingClass == rowClass.type && c.name == "<init>" } == true }
+        check(call < construction && minsns[construction].opcode == Opcode.INVOKE_DIRECT_RANGE) { "$where does not call $label before building the row" }
+        // The row constructor stores its subtitle parameter (a plain parameter register) into subtitleLabel.
+        val constructorParams = minsns[construction].call()!!.parameterTypes.map(CharSequence::toString)
+        val constructor = rowClass.method("<init>", constructorParams)
+        val widths = constructorParams.map { if (it == "J" || it == "D") 2 else 1 }
+        val firstParameter = constructor.implementation!!.registerCount - widths.sum()
+        val subtitleStore = constructor.instructions().single {
+            it.opcode == Opcode.IPUT_OBJECT && it.field()?.name == subtitle.name && it.field()?.definingClass == rowClass.type
+        }
+        val subtitleParam = widths.runningFold(firstParameter) { register, width -> register + width }
+            .indexOf((subtitleStore as TwoRegisterInstruction).registerA)
+        check(subtitleParam in constructorParams.indices && constructorParams[subtitleParam] == labelType) {
+            "${rowClass.type}.<init> does not take the subtitle label as a parameter"
+        }
+        val labelRegister = (minsns[construction] as RegisterRangeInstruction).startRegister + 1 + widths.take(subtitleParam).sum()
+        val entryCast = minsns.first { it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == sourceClass.type }
+        val entryRegister = (entryCast as OneRegisterInstruction).registerA
+
+        val (labelIn, entryIn, invoke, result, labelOut) = minsns.subList(call - 2, call + 3)
+        val scratchLabel = (labelIn as TwoRegisterInstruction).registerA
+        val scratchEntry = (entryIn as TwoRegisterInstruction).registerA
+        val helperCall = invoke.call()
+        check(labelIn.opcode == Opcode.MOVE_OBJECT_FROM16 && labelIn.registerB == labelRegister &&
+            entryIn.opcode == Opcode.MOVE_OBJECT_FROM16 && entryIn.registerB == entryRegister &&
+            invoke.opcode == Opcode.INVOKE_STATIC && helperCall?.definingClass == mapperClass.type &&
+            helperCall.parameterTypes.map(CharSequence::toString) == listOf(sourceClass.type, labelType) && helperCall.returnType == labelType &&
+            (invoke as FiveRegisterInstruction).registerCount == 2 && invoke.registerC == scratchEntry && invoke.registerD == scratchLabel &&
+            result.opcode == Opcode.MOVE_RESULT_OBJECT && (result as OneRegisterInstruction).registerA == scratchLabel &&
+            labelOut.opcode == Opcode.MOVE_OBJECT_FROM16 && (labelOut as TwoRegisterInstruction).registerA == labelRegister &&
+            labelOut.registerB == scratchLabel
+        ) {
+            "$where does not set v$labelRegister = $CALL_LOG_SUBTITLE_HELPER(v$entryRegister, v$labelRegister) through two scratch registers; " +
+                "got ${minsns.subList(call - 2, call + 3).map { it.opcode }}"
+        }
+        check((call + 3 until construction).none { minsns[it].opcode.setsRegister() && (minsns[it] as? OneRegisterInstruction)?.registerA == labelRegister }) {
+            "$where overwrites the label between $CALL_LOG_SUBTITLE_HELPER and the row"
+        }
+
+        // 4. Apart from those five instructions the mapper is unchanged, and every branch that went to
+        // the join now runs them first.
+        val stockMapper = ZipFile(apk).use { zip ->
+            zip.entries().toList().filter { Regex("classes\\d*\\.dex").matches(it.name) }.firstNotNullOfOrNull { entry ->
+                val bytes = zip.getInputStream(entry).use { it.readBytes() }
+                DexBackedDexFile(Opcodes.forApi(36), ByteBuffer.wrap(bytes)).classes.firstOrNull { it.type == mapperClass.type }
+            }
+        }?.methods?.single { it.name == mapper.name && it.params() == mapper.params() && it.returnType == mapper.returnType }
+            ?: error("stock ${mapperClass.type} not found")
+        val join = minsns.take(call - 2).count { it.opcode != Opcode.NOP }
+        val patched = mapper.normalizedInstructions()
+        val stock = stockMapper.normalizedInstructions { target -> if (target <= join) target else target + 5 }
+        check(stock.count { it.endsWith("-> $join") } >= 2) { "stock $where has fewer than two branches to the join" }
+        val expected = stock.take(join) + patched.subList(join, join + 5) + stock.drop(join)
+        check(patched == expected) {
+            val diff = patched.indices.firstOrNull { patched[it] != expected.getOrNull(it) }
+            "$where differs from stock beyond the five instructions inserted at $join; first difference at $diff: " +
+                "${diff?.let { patched[it] }} vs ${diff?.let { expected.getOrNull(it) }}"
+        }
+    }
+
+    /**
+     * Each non-NOP instruction as text: opcode (goto widths merged), registers, reference, literal and
+     * branch target as a non-NOP index, passed through [target].
+     */
+    private fun Method.normalizedInstructions(target: (Int) -> Int = { it }): List<String> {
+        val insns = instructions()
+        val offsets = insns.runningFold(0) { offset, instruction -> offset + instruction.codeUnits }
+        val indexAt = offsets.withIndex().associate { (index, offset) -> offset to index }
+        val kept = insns.indices.filter { insns[it].opcode != Opcode.NOP }
+        val rank = kept.withIndex().associate { (k, index) -> index to k }
+        val gotos = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+        return kept.map { index ->
+            val insn = insns[index]
+            buildString {
+                append(if (insn.opcode in gotos) "goto" else insn.opcode.toString())
+                when (insn) {
+                    is RegisterRangeInstruction -> append(" {v${insn.startRegister} +${insn.registerCount}}")
+                    is FiveRegisterInstruction -> append(
+                        listOf(insn.registerC, insn.registerD, insn.registerE, insn.registerF, insn.registerG)
+                            .take(insn.registerCount).joinToString(prefix = " {", postfix = "}"),
+                    )
+                    is ThreeRegisterInstruction -> append(" v${insn.registerA}, v${insn.registerB}, v${insn.registerC}")
+                    is TwoRegisterInstruction -> append(" v${insn.registerA}, v${insn.registerB}")
+                    is OneRegisterInstruction -> append(" v${insn.registerA}")
+                }
+                (insn as? ReferenceInstruction)?.let { append(" ").append(ReferenceUtil.getReferenceString(it.reference)) }
+                (insn as? WideLiteralInstruction)?.let { append(" #").append(it.wideLiteral) }
+                (insn as? SwitchPayload)?.let { append(" keys=").append(it.switchElements.map { element -> element.key }) }
+                if (insn is OffsetInstruction) append(" -> ").append(target(rank.getValue(indexAt.getValue(offsets[index] + insn.codeOffset))))
+            }
         }
     }
 }

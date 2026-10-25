@@ -18,7 +18,7 @@ import org.w3c.dom.Element
 @Suppress("unused")
 val disableTelemetryPatch = resourcePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics, advertising ID collection and Crashlytics reports.",
+    description = "Disables analytics and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_INTERVALTIMER)
 

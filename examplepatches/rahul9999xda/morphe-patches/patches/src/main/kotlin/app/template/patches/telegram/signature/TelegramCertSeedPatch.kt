@@ -1,7 +1,7 @@
 package app.template.patches.telegram.signature
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.cert.seedCert
 import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
 import app.template.patches.shared.installer.spoofInstallSourcePatch
@@ -51,23 +51,24 @@ private const val TELEGRAM_PLUS_CERT =
     "g4aVFsUDZQYetxKckGFZGAlyj8nAvN//dOCiRwGotx9cyiGW9JgzcmkvCMtygd2H" +
     "zD8QNQk9FL7V0YgakERbpd+xFQ=="
 
-internal val telegramCertSeedPatch = rawResourcePatch(default = false) {
+internal val telegramCertSeedPatch = resourcePatch(default = false) {
     execute {
-        // Seed only the cert that belongs to the package being patched.
-        // seedCert() uses last-write-wins for autoSha1, so calling both unconditionally
-        // meant patching web always ended up with Plus cert SHA-1 (49EBB9) as autoSha1
-        // — wrong value fed into spoofFirebaseCertHashPatch and getFingerprintHashForPackage.
-        //
-        // rawResourcePatch has no implicit packageName binding — read it from the manifest.
-        val pkg = Regex("""package="([^"]+)"""")
-            .find(get("AndroidManifest.xml").readText())
-            ?.groupValues?.get(1)
-            ?: "unknown"
+        // Read the decoded manifest through the resource-patch XML API. Reading the raw
+        // AndroidManifest.xml bytes as UTF-8 is not reliable for binary AXML manifests.
+        val pkg = document("AndroidManifest.xml").use { doc ->
+            (doc.getElementsByTagName("manifest").item(0) as org.w3c.dom.Element)
+                .getAttribute("package")
+        }
 
+        // Seed only the certificate that belongs to the package being patched. Calling both
+        // unconditionally would leave Plus's SHA-1 as the final value for Telegram Web.
         if (pkg == "org.telegram.plus") {
             seedCert(TELEGRAM_PLUS_CERT)
         } else {
-            seedCert(TELEGRAM_CERT)  // org.telegram.messenger + org.telegram.messenger.web
+            require(pkg == "org.telegram.messenger" || pkg == "org.telegram.messenger.web") {
+                "Unsupported package for Telegram certificate seed: '$pkg'"
+            }
+            seedCert(TELEGRAM_CERT)
         }
     }
 }

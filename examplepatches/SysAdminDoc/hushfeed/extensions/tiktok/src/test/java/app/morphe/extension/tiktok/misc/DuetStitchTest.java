@@ -101,4 +101,21 @@ public class DuetStitchTest {
             Settings.ALLOW_ADD_TO_STORY.save(false);
         }
     }
+
+    /** The share sheet's Add to Story goes by the creator's content reuse number, 0 being anyone. */
+    @Test public void theShareSheetsContentReuseCheckIsAnsweredOnlyWhenTheSwitchIsOn() {
+        try {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
+            for (int permission : new int[]{0, 1, 2, -1}) {
+                assertEquals(permission, DuetStitch.storyPermission(permission));
+            }
+
+            Settings.ALLOW_ADD_TO_STORY.save(true);
+            for (int permission : new int[]{0, 1, 2, -1}) {
+                assertEquals("the creator's " + permission + " was left standing", 0, DuetStitch.storyPermission(permission));
+            }
+        } finally {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
+        }
+    }
 }

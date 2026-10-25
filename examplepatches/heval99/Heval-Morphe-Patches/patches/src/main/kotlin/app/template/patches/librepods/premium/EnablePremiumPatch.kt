@@ -12,10 +12,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the 'Advanced device settings' features (Personalized Volume, Adaptive Audio, " +
-        "accessibility configs, hearing protection, etc.) that LibrePods gates behind the Play Store " +
-        "'Unlock advanced features' one-time purchase. The patch forces the premium entitlement " +
-        "(PlayBillingProvider's _isPremium StateFlow) to always be true."
+    description = "Unlocks the advanced device settings."
 ) {
     compatibleWith(COMPATIBILITY_LIBREPODS)
 

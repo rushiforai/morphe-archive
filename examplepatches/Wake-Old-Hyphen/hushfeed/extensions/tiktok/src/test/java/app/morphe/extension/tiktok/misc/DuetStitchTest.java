@@ -82,8 +82,40 @@ public class DuetStitchTest {
             PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
             new SharePreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("allow_duet_and_stitch"));
+            assertNotNull(screen.findPreference("allow_add_to_story"));
         } finally {
             SettingsStatus.duetStitchEnabled = false;
+        }
+    }
+
+    @Test public void addToStoryIsAnsweredOnlyWhenTheSwitchIsOn() {
+        try {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
+            assertEquals(0, DuetStitch.storyShareable(0));
+            assertEquals(1, DuetStitch.storyShareable(1));
+
+            Settings.ALLOW_ADD_TO_STORY.save(true);
+            assertEquals(1, DuetStitch.storyShareable(0));
+            assertEquals(1, DuetStitch.storyShareable(1));
+        } finally {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
+        }
+    }
+
+    /** The share sheet's Add to Story goes by the creator's content reuse number, 0 being anyone. */
+    @Test public void theShareSheetsContentReuseCheckIsAnsweredOnlyWhenTheSwitchIsOn() {
+        try {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
+            for (int permission : new int[]{0, 1, 2, -1}) {
+                assertEquals(permission, DuetStitch.storyPermission(permission));
+            }
+
+            Settings.ALLOW_ADD_TO_STORY.save(true);
+            for (int permission : new int[]{0, 1, 2, -1}) {
+                assertEquals("the creator's " + permission + " was left standing", 0, DuetStitch.storyPermission(permission));
+            }
+        } finally {
+            Settings.ALLOW_ADD_TO_STORY.save(false);
         }
     }
 }

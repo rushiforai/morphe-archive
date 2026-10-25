@@ -1,7 +1,7 @@
 # Controller pose time layer (2026-10-19)
 
 Source of `libgxr_controller_pose_time.so`, installed by the opt-in patch
-**Controller pose time (experimental)** for exact Steam Link 2.0.20/5001712 and 2.0.23/5002363
+**Controller pose time (experimental)** for exact Steam Link 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 and 2.0.24/5002395
 on Galaxy XR firmware I610UEU2AZF3. It is the APK form of the root **Steam Link Pose Time**
 module from [galaxyxr-modules](https://github.com/4uva4ek/galaxyxr-modules): same hooks and
 arithmetic, but loaded by Steam Link itself as an OpenXR API layer, without root or `ptrace`.
@@ -63,7 +63,8 @@ adb shell setprop debug.gxr.pose_time.lead_us 15000     # compensation override,
   only the 4 field bytes change, both hands, unmatched and disabled passthrough, and SHA-256
   vectors.
 - `profiles.py` checked the JUMP_SLOT targets and code hashes on installed patched scene
-  libraries of 5001712 and 5002363; the 5002363 `GetControllerState` hash equals the original's.
+  libraries of 5001712, 5001812, 5001968, 5002244, 5002363 and 5002395; the 5002363
+  and 5002395 `GetControllerState` hashes equal their originals.
 - Not yet run as an APK layer on a headset. The root module this is ported from was confirmed on
   the headset; it additionally required its own Velocity Frame runtime correction, which this
   layer does not.
@@ -71,7 +72,7 @@ adb shell setprop debug.gxr.pose_time.lead_us 15000     # compensation override,
 ## Build
 
 ```sh
-sdk="$ANDROID_HOME"; cmake="$sdk/cmake/3.22.1/bin"; ndk="$sdk/ndk/28.2.13676358"
+sdk="$ANDROID_HOME"; cmake="$sdk/cmake/3.22.1/bin"; ndk="$sdk/ndk/27.2.12479018"
 "$cmake/cmake" -S extensions/controller-pose-time-layer -B <short build dir> -G Ninja \
     -DCMAKE_MAKE_PROGRAM="$cmake/ninja" \
     -DCMAKE_TOOLCHAIN_FILE="$ndk/build/cmake/android.toolchain.cmake" \

@@ -7,7 +7,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val removeAdsPatch = bytecodePatch(
     name = "Remove ads",
-    description = "Unlocks the ad-free purchase."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_WUNDERGROUND)
 

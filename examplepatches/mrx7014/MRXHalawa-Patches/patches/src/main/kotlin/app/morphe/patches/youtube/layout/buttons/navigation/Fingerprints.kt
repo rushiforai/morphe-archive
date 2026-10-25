@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -11,19 +11,19 @@
 package app.morphe.patches.youtube.layout.buttons.navigation
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionFilter
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.OpcodesFilter
+import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.parametersMatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import app.morphe.patcher.string
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -69,12 +69,6 @@ internal object AnimatedNavigationTabsFeatureFlagFingerprint : Fingerprint(
     )
 )
 
-internal object CollapsingToolbarLayoutFeatureFlagFingerprint : Fingerprint(
-    filters = listOf(
-        literal(45736608L)
-    )
-)
-
 internal object AutoHideNavigationBarOnFeedScrollingFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
@@ -114,7 +108,7 @@ internal object AutoHideNavigationBarOnDismissMiniplayerFingerprint : Fingerprin
 )
 
 internal object PivotBarStyleFingerprint : Fingerprint(
-    definingClass = "/PivotBar;",
+    definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/pivotbar/PivotBar;",
     returnType = "V",
     parameters = listOf("L"),
     filters = OpcodesFilter.opcodesToFilters(
@@ -125,7 +119,7 @@ internal object PivotBarStyleFingerprint : Fingerprint(
 )
 
 internal object PivotBarChangedFingerprint : Fingerprint(
-    definingClass = "/PivotBar;",
+    definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/pivotbar/PivotBar;",
     name = "onConfigurationChanged",
     returnType = "V",
     filters = OpcodesFilter.opcodesToFilters(
@@ -134,104 +128,123 @@ internal object PivotBarChangedFingerprint : Fingerprint(
     )
 )
 
-/** Translucent navigation bar buttons feature flag. */
-internal val TRANSLUCENT_STATUS_BAR_FILTER = literal(45400535L)
-
-internal object TranslucentNavigationStatusBarFeatureFlagFingerprint : Fingerprint(
-    filters = listOf(
-        TRANSLUCENT_STATUS_BAR_FILTER
-    )
+/**
+ * Feature flags of the translucent navigation bar. 21.29 and older read each of them with a single
+ * accessor method, newer targets read them inline in many classes, sometimes more than once in
+ * the same method.
+ */
+internal val TRANSLUCENT_NAVIGATION_BAR_FEATURE_FLAGS = listOf(
+    45630927L, // Blurred, translucent background of the navigation bar.
+    45632194L, // Navigation bar also covers the system navigation buttons.
+    45631257L  // Feed laid out behind the navigation bar instead of above it.
 )
 
-internal fun translucentImmersiveFingerprint(filter: InstructionFilter) = object : Fingerprint(
-    classFingerprint = Fingerprint(
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-        parameters = listOf("Landroid/app/Activity;", "L"),
-        filters = listOf(
-            methodCall(
-                opcode = Opcode.INVOKE_STATIC,
-                smali = "Ljava/util/Collections;->newSetFromMap(Ljava/util/Map;)Ljava/util/Set;"
-            ),
-            filter
-        )
-    ),
-    filters = listOf(filter)
-) {}
-
-internal fun translucentCheckOnTextFingerprint(filter: InstructionFilter) = object : Fingerprint(
-    classFingerprint = Fingerprint(
-        accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-        parameters = listOf("Landroid/graphics/Rect;"),
-        returnType = "V",
-        filters = listOf(
-            filter,
-            methodCall(
-                opcode = Opcode.INVOKE_VIRTUAL,
-                smali = "Landroid/view/View;->onCheckIsTextEditor()Z"
-            )
-        )
-    ),
-    filters = listOf(filter)
-) {}
-
-internal fun translucentUpdateStatusBarFingerprint(filter: InstructionFilter) = object : Fingerprint(
-    classFingerprint = Fingerprint(
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-        name = "run",
-        parameters = listOf(),
-        returnType = "V",
-        filters = listOf(
-            filter,
-            methodCall(
-                opcode = Opcode.INVOKE_VIRTUAL,
-                smali = "Landroid/view/ViewGroup;->setFitsSystemWindows(Z)V"
-            ),
-            methodCall(
-                opcode = Opcode.INVOKE_VIRTUAL,
-                smali = "Lcom/google/android/apps/youtube/app/watchwhile/MainActivity;->getWindow()Landroid/view/Window;"
-            )
-        )
-    ),
-    filters = listOf(filter)
-) {}
-
-internal fun translucentYouTabFingerprint(filter: InstructionFilter) = object : Fingerprint(
-    classFingerprint = Fingerprint(
-        returnType = "Landroid/view/View;",
-        parameters = listOf(
-            "Landroid/view/LayoutInflater;",
-            "Landroid/view/ViewGroup;",
-            "Landroid/os/Bundle;"
-        ),
-        filters = listOf(
-            filter,
-            opcode(Opcode.MOVE_RESULT, MatchAfterWithin(15)),
-            string("instance_activated_text_color"),
-            string("instance_secondary_text_color")
-        )
-    ),
-    filters = listOf(filter)
-) {}
-
-
-/*
- * YouTube nav buttons.
- */
-
-internal object TranslucentNavigationButtonsFeatureFlagFingerprint : Fingerprint(
+internal object TranslucentNavigationBarFeatureFlagsFingerprint : Fingerprint(
     filters = listOf(
-        literal(45630927L) // Translucent navigation bar buttons feature flag.
+        anyInstruction(*TRANSLUCENT_NAVIGATION_BAR_FEATURE_FLAGS.map { literal(it) }.toTypedArray())
     )
 )
 
 /**
- * Device on screen back/home/recent buttons.
+ * Sets the bottom padding of the navigation bar to the bottom window inset, the room for
+ * the system navigation buttons when the bar is drawn behind them. The bar height also grows
+ * by the same value, which is first stored in a field of the bar.
  */
-internal object TranslucentNavigationButtonsSystemFeatureFlagFingerprint : Fingerprint(
+internal object NavigationBarBottomPaddingFingerprint : Fingerprint(
     filters = listOf(
-        literal(45632194L) // Translucent system buttons feature flag.
+        fieldAccess(
+            opcode = Opcode.IPUT,
+            definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/pivotbar/PivotBar;",
+            type = "I"
+        ),
+        methodCall(
+            definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/pivotbar/PivotBar;",
+            name = "setPadding",
+            location = MatchAfterWithin(10)
+        )
     )
 )
+
+/**
+ * Sets the bottom margin of the layout that holds the page and the navigation bar.
+ * With the keyboard open and a text field focused, the margin is the keyboard height,
+ * otherwise the bottom of the window insets.
+ */
+internal object PageBottomMarginFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/graphics/Rect;"),
+    filters = listOf(
+        methodCall(smali = "Landroid/view/View;->findFocus()Landroid/view/View;"),
+        methodCall(
+            smali = "Landroid/view/View;->onCheckIsTextEditor()Z",
+            location = MatchAfterWithin(5)
+        ),
+        fieldAccess(
+            opcode = Opcode.IGET,
+            definingClass = "Landroid/graphics/Rect;",
+            name = "bottom"
+        )
+    )
+)
+
+/**
+ * Sets the padding of a feed list. When the feed is laid out behind the navigation bar,
+ * the bottom padding holds the navigation bar height and the bottom window inset.
+ */
+internal object FeedListPaddingFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(),
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/support/v7/widget/RecyclerView;",
+            name = "setClipToPadding"
+        ),
+        methodCall(
+            definingClass = "Landroid/support/v7/widget/RecyclerView;",
+            name = "setPadding",
+            location = MatchAfterImmediately()
+        )
+    )
+)
+
+/**
+ * Draws the blurred background of the translucent navigation bar. If the canvas is hardware
+ * accelerated, a copy of the watch layout, with the player, is drawn into a blurred render node,
+ * then the bar color is drawn over it.
+ */
+internal object NavigationBarBlurDrawFingerprint : Fingerprint(
+    classFingerprint = Fingerprint(
+        filters = listOf(
+            string("frostedGlassRenderNode")
+        )
+    ),
+    name = "draw",
+    returnType = "V",
+    parameters = listOf("Landroid/graphics/Canvas;"),
+    filters = listOf(
+        methodCall(smali = "Landroid/graphics/Canvas;->isHardwareAccelerated()Z"),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
+        methodCall(smali = "Landroid/view/View;->draw(Landroid/graphics/Canvas;)V")
+    )
+)
+
+/**
+ * Applies the system navigation bar color of the app theme to the window.
+ */
+internal object SystemNavigationBarColorFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/content/res/TypedArray;"),
+    filters = listOf(
+        methodCall(smali = "Landroid/content/res/TypedArray;->getColor(II)I"),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+        methodCall(smali = "Landroid/view/Window;->getNavigationBarColor()I"),
+        methodCall(smali = "Landroid/view/Window;->setNavigationBarColor(I)V")
+    )
+)
+
+/*
+ * YouTube nav buttons.
+ */
 
 private object OldSearchButtonAccessibilityLabelFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -331,6 +344,49 @@ internal object PivotBarRendererListFingerprint : Fingerprint(
     )
 )
 
+/**
+ * Tabs of the browse response (singleColumnBrowseResultsRenderer).
+ * The tab protos are converted to tab items, that are cached in a field of the class.
+ */
+internal object BrowseResponseTabsFingerprint : Fingerprint(
+    interfaces = listOf("Landroid/os/Parcelable;"),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL, AccessFlags.DECLARED_SYNCHRONIZED),
+    returnType = "L",
+    parameters = listOf(),
+    filters = listOf(
+        literal(58173949L),
+        methodCall(name = "stream"),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            definingClass = "this"
+        )
+    )
+)
+
+/**
+ * Creates a navigation bar item proto with a browse endpoint.
+ * Parameters: browse id, label, icon type, icon only.
+ */
+internal object PivotBarItemProtoFactoryFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "L",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "L", "Z"),
+    filters = listOf(
+        literal(117501096L)
+    )
+)
+
+/**
+ * Navigation bar used before the guide response is loaded.
+ * The Subscriptions button is not added if the flag is enabled.
+ */
+internal object OfflineNavigationBarSubscriptionsFeatureFlagFingerprint : Fingerprint(
+    filters = listOf(
+        literal(45780222L),
+        string("FEsubscriptions")
+    )
+)
+
 internal object TopBarRendererPrimaryFilterFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
@@ -419,4 +475,20 @@ internal object SettingIntentFingerprint : Fingerprint(
             listOf()
         )
     }
+)
+
+internal object GetGeneratedRegistryFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS,
+    name = "getGeneratedRegistry",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC),
+    returnType = "Lcom/google/protobuf/ExtensionRegistryLite;",
+    parameters = listOf()
+)
+
+internal object ParseWithRegistryFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS,
+    name = "parseWithRegistry",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC),
+    returnType = "Lcom/google/protobuf/MessageLite;",
+    parameters = listOf("Lcom/google/protobuf/MessageLite;", "[B", "Lcom/google/protobuf/ExtensionRegistryLite;")
 )

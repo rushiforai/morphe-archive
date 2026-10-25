@@ -15,6 +15,11 @@ import app.template.patches.shared.Constants.COMPATIBILITY_OSMAND
 private const val HELPER = "Lnet/osmand/plus/inapp/InAppPurchaseHelper;"
 private const val HELPER_IMPL = "Lnet/osmand/plus/inapp/InAppPurchaseHelperImpl;"
 
+// Android Auto has its own gate: true for 10 days after install/update, then only for paid
+// builds or saved *_PURCHASED settings (filled after an inventory cycle). NavigationSession
+// shows RequestPurchaseScreen when it is false.
+private const val PURCHASE_UTILS = "Lnet/osmand/plus/inapp/InAppPurchaseUtils;"
+
 private val LOCAL_GATES = listOf(
     "isPurchasedLocalFullVersion",
     "isPurchasedLocalDeepContours",
@@ -24,7 +29,7 @@ private val LOCAL_GATES = listOf(
 )
 
 /**
- * The concrete boolean methods of [type] named in [names]. Every name must be found: both classes
+ * The concrete boolean methods of [type] named in [names]. Every name must be found: every class
  * and all getters are mandatory, so a rename or a moved method fails the patch instead of
  * leaving a gate unforced.
  */
@@ -40,7 +45,7 @@ private fun BytecodePatchContext.booleanMethods(type: String, names: Collection<
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks OsmAnd Pro, Maps+ and live updates."
+    description = "Unlocks OsmAnd Pro, Maps+ and Android Auto."
 ) {
     compatibleWith(COMPATIBILITY_OSMAND)
 
@@ -50,5 +55,8 @@ val enablePremiumPatch = bytecodePatch(
 
         // The cached local entitlements used by the feature gates.
         booleanMethods(HELPER_IMPL, LOCAL_GATES).forEach { it.returnEarly(true) }
+
+        // Android Auto stays available after the 10-day grace period.
+        booleanMethods(PURCHASE_UTILS, listOf("isAndroidAutoAvailable")).forEach { it.returnEarly(true) }
     }
 }

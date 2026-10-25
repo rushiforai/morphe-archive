@@ -32,6 +32,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import app.morphe.extension.facebook.media.PictureInPicture;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 
@@ -404,11 +405,13 @@ public final class SettingsDialog extends DialogFragment {
 
     /**
      * On a light page, dark status and navigation bar icons, which the window only takes once it
-     * has its decor.
+     * has its decor. And a reel playing under the page no longer floats it in the
+     * picture-in-picture window when the person leaves Facebook, until the page closes.
      */
     @Override
     public void onStart() {
         super.onStart();
+        PictureInPicture.settingsShown(getActivity());
         Dialog dialog = getDialog();
         Window window = dialog == null ? null : dialog.getWindow();
         if (colors == null || !colors.light || window == null) return;
@@ -431,6 +434,12 @@ public final class SettingsDialog extends DialogFragment {
         // Back key or a tap outside: the person closed it.
         SettingsEntry.onClosedByUser();
         super.onCancel(dialog);
+    }
+
+    @Override
+    public void onDismiss(android.content.DialogInterface dialog) {
+        PictureInPicture.settingsClosed();
+        super.onDismiss(dialog);
     }
 
     @Override

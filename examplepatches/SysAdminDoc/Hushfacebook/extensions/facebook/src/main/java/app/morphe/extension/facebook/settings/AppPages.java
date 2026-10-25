@@ -158,6 +158,11 @@ final class AppPages {
             menu.addPreference(toggle(context, Settings.HIDE_MENU_ALSO_FROM_META,
                     L10n.t("The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps "
                             + "and its ads for Meta's devices. Your own shortcuts stay.")));
+            menu.addPreference(toggle(context, Settings.HIDE_MENU_HELP,
+                    L10n.t("The Help and support section leaves Facebook's Menu, header and all. Settings and privacy "
+                            + "stays.")));
+            menu.addPreference(toggle(context, Settings.KEEP_MENU_SETTINGS_EXPANDED,
+                    L10n.t("Settings and privacy in Facebook's Menu stays open, so its rows show without a tap.")));
             menu.addPreference(toggle(context, Settings.HIDE_MENU_MUSE,
                     L10n.t("The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.")));
             menu.addPreference(toggle(context, Settings.HIDE_MENU_META_AI,

@@ -27,6 +27,7 @@ function Assert-True {
 $fixture = Join-Path ([System.IO.Path]::GetTempPath()) ("hushtumblr-device-fixture-" + [guid]::NewGuid().ToString('N') + '.apk')
 [System.IO.File]::WriteAllBytes($fixture, [byte[]](1..200 | ForEach-Object { $_ % 256 }))
 $fixtureSize = (Get-Item -LiteralPath $fixture).Length
+$fixtureHash = (Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash.ToLowerInvariant()
 $savedLeaseDirectory = $env:HUSHTUMBLR_DEVICE_LEASE_DIR
 $env:HUSHTUMBLR_DEVICE_LEASE_DIR = $fixture + '-leases'
 try {
@@ -37,7 +38,8 @@ try {
             [int]$CleanupThrowNumber = 0,
             # A parameter, so GetNewClosure captures it: the closure sees this function's own
             # variables, not the script's, once the suite runs nested inside the push gate.
-            [long]$Size = $fixtureSize
+            [long]$Size = $fixtureSize,
+            [string]$Digest = $fixtureHash
         )
 
         $state = [pscustomobject]@{
@@ -46,6 +48,7 @@ try {
                 [System.StringComparer]::Ordinal)
             CleanupCalls = 0
             Marker = $null
+            HashReads = 0
         }
         $invoker = {
             param([string]$Executable, [string[]]$Arguments)
@@ -68,6 +71,11 @@ try {
             } elseif ($operation -eq 'push') {
                 [void]$state.RemotePaths.Add($Arguments[4])
                 if ($FailureStage -eq 'push') { $exitCode = 11 }
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -ceq 'sha256sum') {
+                $state.HashReads++
+                $hash = if (($FailureStage -eq 'hash-before' -and $state.HashReads -eq 1) -or
+                    ($FailureStage -eq 'hash-after' -and $state.HashReads -eq 2)) { 'f' * 64 } else { $Digest }
+                $output = @("$hash  $($Arguments[4])")
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like '*&& mkdir -p*') {
                 $directory = ($Arguments[3] -split 'mkdir -p ', 2)[1]
                 [void]$state.RemotePaths.Add($directory)
@@ -146,6 +154,8 @@ try {
         rotated = "The log on SERIAL doesn't hold the start of the case run, so its verifier messages can't be counted. A busy log may have dropped it, or the phone may filter warnings out of its log. Retry when the phone is quieter."
         'short-read' = "dex2oat on case read a file of 5 bytes on SERIAL, not the $fixtureSize bytes pushed."
         unread = "dex2oat did not read case on SERIAL: Skipping non-existent dex file '/data/local/tmp/hushtumblr-verify-case.apk'"
+        'hash-before' = 'The pushed case APK digest changed before verification.'
+        'hash-after' = 'The pushed case APK digest changed after verification.'
     }
     foreach ($stage in $failures.Keys) {
         $fake = New-FakeAdb -FailureStage $stage
@@ -194,8 +204,20 @@ try {
         'A cleanup failure beside a primary failure produced no secondary diagnostic.'
 
     $success = New-FakeAdb
+    $evidence = @{}
     $tally = Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
-        -Local $fixture -Label 'case' -AdbInvoker $success.Invoker
+        -Local $fixture -Label 'case' -AdbInvoker $success.Invoker -Evidence $evidence
+    Assert-True ($evidence.completed -and $evidence.markerFound -and $evidence.localSha256 -ceq $fixtureHash -and
+        $evidence.remoteBeforeSha256 -ceq $fixtureHash -and $evidence.remoteAfterSha256 -ceq $fixtureHash -and
+        $evidence.readSize -eq $fixtureSize -and $success.State.HashReads -eq 2) 'Verifier completion lacks byte identity proof.'
+    Assert-True (@($success.State.Calls | Where-Object { $_ -like '*-Xmx1024m -j2;*' }).Count -eq 1) 'Verifier worker/heap bounds were lost.'
+    $evidencePath = "$fixture.evidence.json"
+    Write-HushVerifierEvidence -Path $evidencePath -Evidence $evidence
+    $writtenEvidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
+    Assert-True ($writtenEvidence.completed -and $writtenEvidence.localSha256 -ceq $fixtureHash) 'Verifier evidence did not survive serialization.'
+    $overwritten = $false
+    try { Write-HushVerifierEvidence -Path $evidencePath -Evidence @{}; $overwritten = $true } catch [IO.IOException] { }
+    Assert-True (-not $overwritten) 'A new verifier run overwrote old evidence.'
     Assert-True ($tally.Count -eq 2 -and $tally['Verification error in Lfixture/Host;'] -eq 2 -and
         $tally['VerifyError in Lfixture/Other;'] -eq 1) 'The successful fake verifier tally was wrong.'
     Assert-True ($success.State.Marker -match '^hushtumblr-verify-case-[0-9a-f]{32}$') `
@@ -488,6 +510,7 @@ try {
     }
 
 } finally {
+    [System.IO.File]::Delete("$fixture.evidence.json")
     [System.IO.File]::Delete($fixture)
     $leaseRoot = [IO.Path]::GetFullPath($env:HUSHTUMBLR_DEVICE_LEASE_DIR)
     if (-not $leaseRoot.StartsWith([IO.Path]::GetTempPath(), [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe lease fixture cleanup.' }

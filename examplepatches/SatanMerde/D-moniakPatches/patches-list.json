@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.52.1",
+  "version": "1.52.16",
   "patches": [
     {
       "name": "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
@@ -10955,8 +10955,37 @@
       "options": []
     },
     {
-      "name": "Unlock Full Game - Silt (Experimental)",
-      "description": "⚠️ [En cours de développement / Non testé] Unlocks the full game, all oceanic abyss chapters, and in-app purchase verification in Silt by neutralizing Google Play App Signing PairIP protection, Play Integrity remediation dialogs, and Google Play Billing. (Note: Silt requires the full XAPK/OBB bundle with UnityDataAssetPack to run).",
+      "name": "Unlock Full Game - Silt",
+      "description": "Unlocks the full game, all oceanic abyss chapters, and in-app purchase verification in Silt (v1.0.10). Automatically neutralizes PairIP native DRM in Google Play installations.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.snapbreak.silt",
+          "name": "Silt",
+          "description": "Silt: Oceanic Puzzle-Adventure by Snapbreak / Spiral Circus",
+          "apkFileType": null,
+          "appIconColor": "#1A2B3C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Full Game Bytecode - Silt",
+      "description": "Bytecode de-obfuscation and unlock engine for Silt",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -10970,7 +10999,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "1.0.10",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

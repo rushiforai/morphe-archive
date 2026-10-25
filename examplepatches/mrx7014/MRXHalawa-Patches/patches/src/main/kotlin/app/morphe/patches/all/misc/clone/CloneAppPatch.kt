@@ -1,13 +1,13 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original code hard forked from:
  * https://github.com/ReVanced/revanced-patches/blob/724e6d61b2ecd868c1a9a37d465a688e83a74799/patches/src/main/kotlin/app/revanced/patches/all/misc/packagename/ChangePackageNamePatch.kt
  *
  * File-Specific License Notice (GPLv3 Section 7 Terms)
  *
- * This file is part of the MRX Halawa Patches project and is licensed under
+ * This file is part of the Morphe project and is licensed under
  * the GNU General Public License version 3 (GPLv3), with the Additional
  * Terms under Section 7 described in the LICENSE file.
  *
@@ -26,6 +26,7 @@
 
 package app.morphe.patches.all.misc.clone
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
@@ -36,10 +37,11 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patches.util.resource.editText
+import app.morphe.patches.util.resource.transformStringResources
 import app.morphe.util.asSequence
 import app.morphe.util.findElementByAttributeValue
-import app.morphe.util.findInstructionIndicesReversed
-import app.morphe.util.findMutableMethodOf
+import app.morphe.util.matchAllMethodIndicesForEach
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import org.w3c.dom.Element
@@ -71,48 +73,34 @@ fun setOrGetFallbackPackageName(fallbackPackageName: String): String {
  * Selectively changes usage of Context.getPackageName() to the original package name.
  */
 context(patchContext: BytecodePatchContext)
-private fun applyGetPackageName(oldPackageName: String, vararg classesToChange: String) {
-    patchContext.classDefForEach { classDef ->
-        if (!classesToChange.any { classToChange ->
-                classDef.type.startsWith(classToChange)
-            }
-        ) return@classDefForEach
+private fun applyGetPackageName(oldPackageName: String, classToChange: String) {
+    val filter = methodCall(
+        opcode = Opcode.INVOKE_VIRTUAL,
+        smali = "Landroid/content/Context;->getPackageName()Ljava/lang/String;"
+    )
 
-        val mutableClass by lazy {
-            patchContext.mutableClassDefBy(classDef)
+    // Same code as morphe-patches-library matchAllMethodIndicesForEach()
+    // but copied here to make this patch more portable.
+    Fingerprint(
+        definingClass = classToChange,
+        filters = listOf(filter)
+    ).matchAllMethodIndicesForEach { index ->
+        val moveResultIndex = index + 1
+
+        // Ignore calls to getPackageName() that do not use the return value.
+        val returnInstruction = getInstruction(moveResultIndex)
+        if (returnInstruction.opcode != Opcode.MOVE_RESULT_OBJECT) {
+            return@matchAllMethodIndicesForEach
         }
 
-        classDef.methods.forEach { method ->
-            if (method.implementation == null) return@forEach
-
-            val mutableMethod by lazy {
-                mutableClass.findMutableMethodOf(method)
-            }
-
-            method.findInstructionIndicesReversed(
-                methodCall(
-                    opcode = Opcode.INVOKE_VIRTUAL,
-                    smali = "Landroid/content/Context;->getPackageName()Ljava/lang/String;"
-                )
-            ).forEach { index ->
-                val moveResultIndex = index + 1
-
-                // Ignore calls to getPackageName() that do not use the return value.
-                val returnInstruction = method.getInstruction(moveResultIndex)
-                if (returnInstruction.opcode != Opcode.MOVE_RESULT_OBJECT) {
-                    return@forEach
-                }
-
-                val register = (returnInstruction as OneRegisterInstruction).registerA
-                mutableMethod.replaceInstruction(
-                    moveResultIndex,
-                    """
-                        # Replace return-object with constant string
-                        const-string v$register, "$oldPackageName"
-                    """
-                )
-            }
-        }
+        val register = (returnInstruction as OneRegisterInstruction).registerA
+        replaceInstruction(
+            moveResultIndex,
+            """
+                # Replace return-object with constant string
+                const-string v$register, "$oldPackageName"
+            """
+        )
     }
 }
 
@@ -138,18 +126,18 @@ val cloneAppPatch = resourcePatch(
 
     val updatePermissionsOption = booleanOption(
         key = "updatePermissions",
-        default = false,
+        default = true,
         title = "Update permissions",
         description = "Update custom permissions declared by the app. " +
-            "Enabling this can fix installation conflicts, but this can also break features in certain apps.",
+            "Fixes installation conflicts, but can break features in certain apps.",
     )
 
     val updateProvidersOption = booleanOption(
         key = "updateProviders",
-        default = false,
+        default = true,
         title = "Update providers",
         description = "Update provider names declared by the app. " +
-            "Enabling this can fix installation conflicts, but this can also break features in certain apps.",
+            "Fixes installation conflicts, but can break features in certain apps.",
     )
 
     fun getReplacementPackageName(originalPackageName: String) : String {
@@ -273,18 +261,12 @@ val cloneAppPatch = resourcePatch(
         }
 
         if (providerStringResources.isNotEmpty()) {
-            document("res/values/strings.xml").use { document ->
-                val children = document.documentElement.childNodes
-                for (i in 0 until children.length) {
-                    val node = children.item(i) as? Element ?: continue
-
-                    if (node.getAttribute("name") in providerStringResources) {
-                        val authority = node.textContent
-                        node.textContent = if (authority.startsWith("$packageName.")) {
-                            authority.replaceFirst(packageName, newPackageName)
-                        } else {
-                            "${newPackageName}_$authority"
-                        }
+            this["res/values/strings.xml"].editText { text ->
+                text.transformStringResources(providerStringResources) { authority ->
+                    if (authority.startsWith("$packageName.")) {
+                        authority.replaceFirst(packageName, newPackageName)
+                    } else {
+                        "${newPackageName}_$authority"
                     }
                 }
             }

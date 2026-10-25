@@ -19,10 +19,12 @@ object Constants {
     )
     private val NATIVE_XR_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.23", 5002363),
+        SteamLinkBuild("2.0.24", 5002395),
     )
     private val FULL_FACEBRIDGE_STEAM_LINK_BUILDS = LEGACY_STEAM_LINK_BUILDS
     private val MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.23", 5002363),
+        SteamLinkBuild("2.0.24", 5002395),
     )
     private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
@@ -30,6 +32,7 @@ object Constants {
         SteamLinkBuild("2.0.21", 5001968),
         SteamLinkBuild("2.0.22", 5002244),
         SteamLinkBuild("2.0.23", 5002363),
+        SteamLinkBuild("2.0.24", 5002395),
     )
     private val TWO_PROJECTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),

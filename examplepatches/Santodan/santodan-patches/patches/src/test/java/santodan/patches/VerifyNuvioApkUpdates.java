@@ -37,7 +37,8 @@ public final class VerifyNuvioApkUpdates {
         var missing = copy(classes); missing.remove("Lkb/q;");
         rejected(() -> NuvioApkUpdates.apply(missing, "Santodan", "santodan-patches", "0.12.0"));
         NuvioApkUpdates.validate(Map.of("Lkb/j0;", missing.get("Lkb/j0;"), "Lkb/q0;", missing.get("Lkb/q0;"),
-            "Lkb/m0;", missing.get("Lkb/m0;"), "Lkb/k;", missing.get("Lkb/k;"), "Lkb/q;", classes.get("Lkb/q;")));
+            "Lkb/m0;", missing.get("Lkb/m0;"), "Lkb/k;", missing.get("Lkb/k;"), "Lkb/q;", classes.get("Lkb/q;"),
+            NuvioApkUpdates.JOB, classes.get(NuvioApkUpdates.JOB)));
         var changed = copy(classes);
         NuvioApkUpdates.validate(changed).get(6).getImplementation().replaceInstruction(0, new BuilderInstruction10x(Opcode.NOP));
         rejected(() -> NuvioApkUpdates.apply(changed, "Santodan", "santodan-patches", "0.12.0"));
@@ -50,6 +51,8 @@ public final class VerifyNuvioApkUpdates {
         NuvioApkUpdates.apply(patched, "Santodan", "santodan-patches", "0.12.0");
         rejected(() -> NuvioApkUpdates.apply(patched, "Santodan", "santodan-patches", "0.12.0"));
         if (args.length > 2) {
+            var published = copy(classes);
+            NuvioApkUpdates.apply(published, "Santodan", "santodan-patches", PatchBundleVersion.VERSION);
             Map<String, MutableClass> rebuilt = new HashMap<>();
             try (ZipFile zip = new ZipFile(args[2])) {
                 for (var entry : Collections.list(zip.entries())) if (entry.getName().matches("classes\\d*\\.dex"))
@@ -59,8 +62,9 @@ public final class VerifyNuvioApkUpdates {
                     }
             }
             check(rebuilt.size() == patched.size());
-            for (var expected : patched.values()) for (var before : expected.getMethods()) {
+            for (var expected : published.values()) for (var before : expected.getMethods()) {
                 var actual = rebuilt.get(expected.getType()).getMethods().stream().filter(m -> m.toString().equals(before.toString())).findFirst().orElseThrow();
+                if (expected.getType().equals("Lkb/q;") && actual.getName().equals("b")) NuvioUpdateFlowPatch.removeDownloadHook(actual);
                 check(NuvioPlaybackButtonsPatch.fingerprint(actual).equals(NuvioPlaybackButtonsPatch.fingerprint(before)));
             }
             System.out.println("PASS: final rebuilt APK contains all exact patched updater methods and preserved downloader/installer methods");
@@ -88,7 +92,7 @@ public final class VerifyNuvioApkUpdates {
             check(NuvioPlaybackButtonsPatch.fingerprint(after).equals(NuvioPlaybackButtonsPatch.fingerprint(before)));
             check(ImmutableMethodImplementation.of(after.getImplementation()).getTryBlocks().equals(ImmutableMethodImplementation.of(before.getImplementation()).getTryBlocks()));
         }
-        check(replacements == 8);
-        System.out.println("PASS: beta.8 original, atomic validation, missing/changed/ambiguous/duplicate rejection, eight constants only, DEX roundtrip");
+        check(replacements == 9);
+        System.out.println("PASS: beta.8 original, atomic validation, missing/changed/ambiguous/duplicate rejection, UI/background versions, nine constants only, DEX roundtrip");
     }
 }

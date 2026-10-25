@@ -27,6 +27,9 @@ class VdSdrFoveaPatchTest {
         DecodedBase("2.0.23", "5002363", 2292008,
             "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0",
             0xa31bb, 0x99013, 0xf1350, 0xf1a50),
+        DecodedBase("2.0.24", "5002395", 2301432,
+            "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b",
+            0xa3ceb, 0x99a51, 0xf25a0, 0xf2ca0),
     )
 
     private fun withDecoded(action: (DecodedBase, ByteArray) -> Unit) {

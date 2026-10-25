@@ -57,6 +57,12 @@ import app.morphe.extension.shared.settings.BaseSettings;
  *   <li>A video that keeps buffering has Facebook post a runnable that shows "This is taking a
  *       while. Try checking your network connection." {@link #hideSlowConnectionMessage} is asked
  *       first thing in it, and true makes it return before the message is built (#222).
+ *   <li>Each tile of the feed's Reels row plays a short clip of its reel that Facebook picks, and
+ *       a clip it can't use comes out as the first second, played over and over (#228).
+ *       {@link #allowsPreviewClip} is handed the last check before the tile asks for its clip, and
+ *       false takes Facebook's own path for a tile with no clip. {@link #previewClipEnd} is handed
+ *       the position the tile's player stops and loops at, and answers -1, the player's own
+ *       default, so the reel plays to its end.
  * </ul>
  *
  * <p>Every hook fails open: until the settings are ready, while Hushfacebook is paused, with a
@@ -107,6 +113,19 @@ public final class ReelDeclutter {
     /** Counted under its own name each time a video's slow connection message isn't shown. */
     static final String SLOW_ROUTE = "Slow connection message";
     static final String SLOW_MESSAGE = "slow connection message";
+
+    /**
+     * Counted under its own name for each tile of the feed's Reels row, as its end is handed in, and
+     * removed each time a tile that had an end plays its whole reel. The clip check is tallied as its
+     * own kind: Facebook asks it only while one of its server flags is on, and the end on every tile.
+     */
+    static final String PREVIEW_ROUTE = "Feed reel previews";
+    static final String PREVIEW_CLIP = "preview clip";
+    static final String PREVIEW_END = "clip end";
+    static final String PREVIEW_NO_END = "no end";
+
+    /** What the tile's player reads as no stop position: the default its settings builder starts with. */
+    static final int NO_END = -1;
 
     /** Counted under its own name each time a sidebar button's number is taken away. */
     static final String COUNTS_ROUTE = "Reel counts";
@@ -313,6 +332,54 @@ public final class ReelDeclutter {
             HookStatus.threw(FamilyNames.REEL_DECLUTTER, SLOW_MESSAGE, failure);
             Logger.printException(() -> "Slow connection message: could not read its switch", failure);
             return false;
+        }
+    }
+
+    /** Whether the feed's Reels row tiles play their whole reel: the switch, once the settings can be read. */
+    private static boolean playsFeedReelsWhole() {
+        return Utils.settingsReady() && Settings.PLAY_FEED_REELS_WHOLE.get();
+    }
+
+    /**
+     * Injection point, in the render of a tile of the feed's Reels row, handed the last check
+     * Facebook makes before it asks for the short clip the tile plays (#228). False takes Facebook's
+     * own path for a tile with no clip: no start partway in, no speed change, no seek back to the
+     * clip's start each loop. Never throws: anything going wrong answers what it was handed.
+     */
+    public static boolean allowsPreviewClip(boolean allowed) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            FeedFilterCounters.sawKind(PREVIEW_ROUTE, PREVIEW_CLIP);
+            if (!playsFeedReelsWhole()) return allowed;
+            logOnce(PREVIEW_CLIP, () -> "Feed reel previews: skipping the clip");
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, PREVIEW_CLIP, failure);
+            Logger.printException(() -> "Feed reel previews: could not read their switch", failure);
+            return allowed;
+        }
+    }
+
+    /**
+     * Injection point, in the same render, handed the position in milliseconds the tile's player
+     * stops and starts over at, before it's stored (#228). Answers {@link #NO_END} while the switch
+     * is on, so the reel plays to its end. Never throws: anything going wrong answers what it was handed.
+     */
+    public static int previewClipEnd(int endMs) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            FeedFilterCounters.sawList(PREVIEW_ROUTE, 1);
+            boolean hasEnd = endMs >= 0;
+            FeedFilterCounters.sawKind(PREVIEW_ROUTE, hasEnd ? PREVIEW_END : PREVIEW_NO_END);
+            if (!playsFeedReelsWhole()) return endMs;
+            if (hasEnd) {
+                FeedFilterCounters.removed(PREVIEW_ROUTE, 1, PREVIEW_END);
+                logOnce(PREVIEW_END, () -> "Feed reel previews: playing the whole reel, not stopping at " + endMs + " ms");
+            }
+            return NO_END;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, PREVIEW_CLIP, failure);
+            return endMs;
         }
     }
 

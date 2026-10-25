@@ -83,6 +83,17 @@ public final class VerifyNuvioBeta8 {
                 classes.put(c.getType(), new MutableClass(c));
         }
         verifyRuntimeSignatures();
+        field("Lxa/s3;", "i1", "Lkotlinx/coroutines/Job;");
+        field("Lba/pc;", "a", "Lba/jb;");
+        field("Lba/jb;", "T", "Z");
+        method("Lc/j;", "getFullyDrawnReporter", 0);
+        field("Lc/m;", "c", "Ljava/lang/Object;");
+        field("Lc/m;", "f", "Z");
+        field("Lc/m;", "g", "Ljava/util/ArrayList;");
+        if (owner("Lc/j;").getMethods().stream().filter(m -> m.getName().equals("getFullyDrawnReporter"))
+                .noneMatch(m -> m.getReturnType().equals("Lc/m;")))
+            throw new AssertionError("Home presentation reporter return type changed");
+        System.out.println("PASS: original beta.8 fully-drawn reporter and deferred startup contracts");
         String repository = "Lba/re;";
         String provider = "Lq9/z;";
         NuvioProviderLayout runtime = NuvioProviderLayout.forRepository(
@@ -141,6 +152,8 @@ public final class VerifyNuvioBeta8 {
         field(profileType, "f", "Lkotlinx/coroutines/flow/StateFlow;");
         String watchedModel = "Lcom/nuvio/tv/domain/model/WatchedItem;";
         method("Lcom/nuvio/tv/domain/model/WatchProgress;", "isCompleted$default", 4);
+        method("Lcom/nuvio/tv/domain/model/WatchProgress;", "<init>", 26);
+        field("Lcom/nuvio/tv/domain/model/WatchProgress;", "SOURCE_REMOTE_HISTORY", "Ljava/lang/String;");
         method(watchedModel, "<init>", 11);
         for (String getter : List.of("getContentId", "getContentType", "getTitle", "getSeason",
             "getEpisode", "getWatchedAt", "getPoster", "getReleaseInfo", "getTrackingProviderId",
@@ -180,6 +193,8 @@ public final class VerifyNuvioBeta8 {
         hook("hookRepository", owner(repository));
         if (newer) {
             verifyMergeHooks();
+            NuvioNativeSyncBanner.hookRoot(owner("Lq8/l;"));
+            NuvioNativeSyncBanner.hookBanner(owner("Lmb/a;"));
             NuvioMergedProgressPatch.hookNavigation(owner("Lq8/l;"));
             NuvioMergedProgressPatch.hookActivity(owner("Lcom/nuvio/tv/MainActivity;"));
             NuvioMergedProgressPatch.hookPlaybackScrobblers(owner("Lq9/h0;"));
@@ -310,7 +325,13 @@ public final class VerifyNuvioBeta8 {
             String playerState = "Lab/nm;";
             String nextInfo = "Lab/s4;";
             field(playerModel, "Y", playerController);
-            method(playerModel, "f", 0);
+            NuvioStreamPreloadPatch.validatePlayerState(owner(playerModel));
+            MutableClass wrongState = new MutableClass(owner(playerModel));
+            wrongState.getMethods().removeIf(m -> m.getName().equals("e") && m.getParameterTypes().isEmpty());
+            boolean missingStateRejected = false;
+            try { NuvioStreamPreloadPatch.validatePlayerState(wrongState); }
+            catch (IllegalStateException expected) { missingStateRejected = true; }
+            if (!missingStateRejected) throw new AssertionError("Missing player state accepted with void f() present");
             field(playerController, "F0", "Lkotlinx/coroutines/flow/StateFlow;");
             for (String name : List.of("a", "b", "c")) field(playerState, name, "Z");
             for (String name : List.of("g", "C0", "j1")) field(playerState, name, "Ljava/lang/String;");
@@ -426,6 +447,9 @@ public final class VerifyNuvioBeta8 {
     }
 
     private static void verifyMergeHooks() {
+        verifyMergeHook("Lxa/s3;", NuvioMergedProgressPatch::hookHomePipeline, "b");
+        verifyMergeHook("Lq8/l;", NuvioNativeSyncBanner::hookRoot, "invoke");
+        verifyMergeHook("Lmb/a;", NuvioNativeSyncBanner::hookBanner, "b");
         verifyMergeHook("Lq8/l;", NuvioMergedProgressPatch::hookNavigation, "invoke");
         verifyMergeHook("Lq9/h0;", NuvioMergedProgressPatch::hookPlaybackScrobblers, "a");
         verifyMergeHook("Lba/re;", NuvioMergedProgressPatch::hookLocalProgressWrites, "E");

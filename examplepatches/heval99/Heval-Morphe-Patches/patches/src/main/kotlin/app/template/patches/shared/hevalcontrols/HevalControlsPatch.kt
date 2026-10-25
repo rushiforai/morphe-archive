@@ -100,8 +100,7 @@ fun hevalControlsPatch(
 
     host.patch = bytecodePatch(
         name = "Heval Controls",
-        description = "Adds the Heval Controls screen, where supported features of this patch bundle can be " +
-            "turned on or off at runtime, with a global pause and a crash safe mode.",
+        description = "Adds a screen to turn supported features on or off.",
         default = default,
     ) {
         compatibleWith(compatibility)

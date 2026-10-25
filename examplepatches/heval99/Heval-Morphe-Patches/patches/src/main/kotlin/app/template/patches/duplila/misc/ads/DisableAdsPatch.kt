@@ -24,10 +24,7 @@ private val BANNER_VIEW_PARAMETERS = listOf(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner ad and skips the ad consent form, which otherwise closes " +
-        "the app for free users who refuse consent. Skipping the consent flow also removes the " +
-        "in-app privacy options entry and skips the app's Crashlytics setup, both of which run " +
-        "from that flow."
+    description = "Removes ads and the ad consent form."
 ) {
     compatibleWith(COMPATIBILITY_DUPLILA)
 

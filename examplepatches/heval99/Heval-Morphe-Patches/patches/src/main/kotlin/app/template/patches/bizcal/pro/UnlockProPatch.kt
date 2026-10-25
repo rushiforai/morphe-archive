@@ -9,8 +9,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_BUSINESSCALENDAR
 @Suppress("unused")
 val unlockProPatch = bytecodePatch(
     name = "Unlock Pro",
-    description = "Unlocks Business Calendar 2 Pro by forcing the app's own complete-pro and " +
-        "force-pro status to true. Billing is not touched."
+    description = "Unlocks Pro features."
 ) {
     compatibleWith(COMPATIBILITY_BUSINESSCALENDAR)
 

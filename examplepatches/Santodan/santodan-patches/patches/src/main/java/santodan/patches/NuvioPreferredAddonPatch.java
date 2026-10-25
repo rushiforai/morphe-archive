@@ -76,6 +76,8 @@ public final class NuvioPreferredAddonPatch {
         field(classes, "Lkotlin/jvm/internal/Ref$BooleanRef;", "element", "Z");
         for (String getter : List.of("getBaseUrl", "getDisplayName"))
             contract(classes, "Lcom/nuvio/tv/domain/model/Addon;", getter, List.of(), "Ljava/lang/String;", false);
+        contract(classes, "Lcom/nuvio/tv/domain/model/Addon;", "getResources", List.of(), "Ljava/util/List;", false);
+        contract(classes, "Lcom/nuvio/tv/domain/model/AddonResource;", "getName", List.of(), "Ljava/lang/String;", false);
         contract(classes, "Lcom/nuvio/tv/domain/model/AddonKt;", "enabledAddons", List.of("Ljava/util/List;"), "Ljava/util/List;", true);
         contract(classes, NuvioNative.ADDON_SELECTOR_TYPE, "b", List.of(STREAM), "Z", true);
         for (String owner : List.of(STREAM, "Lcom/nuvio/tv/domain/model/AddonStreams;"))
@@ -152,7 +154,9 @@ public final class NuvioPreferredAddonPatch {
         }
         var select = methods.get("select").getImplementation();
         var original = select.newLabelForIndex(0);
-        select.addInstruction(0, new BuilderInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0, ref("autoPlayEnabled", List.of(), "Z")));
+        select.addInstruction(0, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
+            NuvioAnchors.parameter(methods.get("select"), 7), 3,
+            ref("autoPlaySelectionEnabled", List.of("Ljava/lang/String;", "Z", "Z"), "Z")));
         select.addInstruction(1, new BuilderInstruction11x(Opcode.MOVE_RESULT, 0));
         select.addInstruction(2, new BuilderInstruction21t(Opcode.IF_EQZ, 0, original));
         select.addInstruction(3, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, NuvioAnchors.parameter(methods.get("select"), 0), 1,
@@ -187,14 +191,13 @@ public final class NuvioPreferredAddonPatch {
         var methods = loaderMethods(loader, selector);
         int[] selection = selectionAnchor(methods.get("apply"));
         int[] reuse = reuseAnchor(methods.get("load"));
-        // All native result branches converge here. Preserve manual selection and
-        // the native resolved-session flag, while overriding cached binge choices.
+        // Preserve native persisted binge choices, including unresolved results.
         var apply = methods.get("apply").getImplementation();
         int at = selection[0], result = selection[1];
         var branch = (BuilderInstruction21t) apply.getInstructions().get(at);
         var target = branch.getTarget();
-        apply.replaceInstruction(at, new BuilderInstruction35c(Opcode.INVOKE_STATIC, 4, result, selection[2], selection[3], selection[4], 0,
-            ref("choose", List.of("Ljava/lang/Object;", "Ljava/util/List;", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Ljava/lang/Object;")));
+        apply.replaceInstruction(at, new BuilderInstruction35c(Opcode.INVOKE_STATIC, 5, result, selection[2], selection[3], selection[4], selection[5],
+            ref("choose", List.of("Ljava/lang/Object;", "Ljava/util/List;", "Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/String;"), "Ljava/lang/Object;")));
         apply.addInstruction(at + 1, new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, result));
         apply.addInstruction(at + 2, new BuilderInstruction21c(Opcode.CHECK_CAST, result,
             new com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference(STREAM)));
@@ -218,9 +221,12 @@ public final class NuvioPreferredAddonPatch {
         int streams = ((RegisterRangeInstruction) body.get(call)).getStartRegister();
         int model = NuvioAnchors.fieldReceiver(body, NuvioNative.RESOLVED_SESSION_FIELD_REF, call);
         int manual = NuvioAnchors.fieldReceiver(body, NuvioNative.MANUAL_SELECTION_FIELD_REF, call);
-        for (int register : new int[]{result, streams, model, manual}) if (register > 15)
+        // f's argument 7 is the persisted binge group, retained in this register
+        // after the invocation; the exact method fingerprint validates its source.
+        int bingeGroup = streams + 7;
+        for (int register : new int[]{result, streams, model, manual, bingeGroup}) if (register > 15)
             throw new IllegalStateException("Preferred-source registers cannot encode invoke-static");
-        return new int[]{call + 2, result, streams, model, manual};
+        return new int[]{call + 2, result, streams, model, manual, bingeGroup};
     }
 
     static int[] reuseAnchor(MutableMethod method) {

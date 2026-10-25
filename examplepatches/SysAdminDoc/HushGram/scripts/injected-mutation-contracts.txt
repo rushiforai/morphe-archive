@@ -434,6 +434,14 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # launcher alias back on at start beside HushGram's, so the home screen shows two icons.
 no-call Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V outside Lapp/hushgram/extension/
 no-call Landroid/content/pm/PackageManager;->setComponentEnabledSettings(Ljava/util/List;)V outside Lapp/hushgram/extension/
+# Hide rows in Instagram's settings asks SettingsRows.hidden first thing in the two suspend methods
+# that turn a row model of Settings and activity into the row it draws (UiStateKt.A04 and A03 on
+# 452.1, the one with a title and a subtitle in front), and hands built each row they make. One
+# left out shows the rows of its kind whatever's picked, or never offers them in the list.
+once-call Lapp/hushgram/extension/instagram/misc/SettingsRows;->hidden(Ljava/lang/Object;)Z in static (LX/*;Lcom/instagram/settings2/core/session/SettingsSession;LX/*;LX/*;Z)Ljava/lang/Object; holding call\sto\s'resume'\sbefore\s'invoke'\swith\scoroutine UiState
+once-call Lapp/hushgram/extension/instagram/misc/SettingsRows;->hidden(Ljava/lang/Object;)Z in static (Lcom/instagram/settings2/core/model/FbtModel;Lcom/instagram/settings2/core/model/FbtModel;LX/*;Lcom/instagram/settings2/core/session/SettingsSession;LX/*;Ljava/lang/Boolean;LX/*;Z)Ljava/lang/Object; holding call\sto\s'resume'\sbefore\s'invoke'\swith\scoroutine
+once-call Lapp/hushgram/extension/instagram/misc/SettingsRows;->built(Ljava/lang/Object;)V in static (LX/*;Lcom/instagram/settings2/core/session/SettingsSession;LX/*;LX/*;Z)Ljava/lang/Object; holding call\sto\s'resume'\sbefore\s'invoke'\swith\scoroutine UiState
+once-call Lapp/hushgram/extension/instagram/misc/SettingsRows;->built(Ljava/lang/Object;)V in static (Lcom/instagram/settings2/core/model/FbtModel;Lcom/instagram/settings2/core/model/FbtModel;LX/*;Lcom/instagram/settings2/core/session/SettingsSession;LX/*;Ljava/lang/Boolean;LX/*;Z)Ljava/lang/Object; holding call\sto\s'resume'\sbefore\s'invoke'\swith\scoroutine
 # The settings patch also sends the call that gives Home's title view, which holds the Instagram
 # logo, its long press to SettingsEntry.setLogoLongClickListener, in the method that draws Home's
 # header from a state (MainFeedActionBar.A08 on 450, the method the Ghost mode button's rules below
@@ -814,6 +822,12 @@ once-call Lapp/hushgram/extension/instagram/feed/ProductTags;->indicator(I)I in 
 # "feed_timeline_older").
 once-call Lapp/hushgram/extension/instagram/feed/FeedInterest;->hide()Z in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V holding feed_timeline feed_timeline_older
 once-call Lapp/hushgram/extension/instagram/feed/FeedInterest;->hide()Z in instance (LX/*;LX/*;LX/*;)V pooled holding feed_timeline feed_timeline_older
+#
+# Reels ask the same question in their footer (#131), and the patch passes the reel's control through
+# FeedInterest.reelsControl once, right before the footer's use case stores it in the row's component.
+# That use case is the one instance method taking two Redex objects and answering one that holds the
+# getOnImpressionControl marker (07NV.A02 on 452, storing into 0E93.A0A).
+once-call Lapp/hushgram/extension/instagram/feed/FeedInterest;->reelsControl(Ljava/lang/Object;)Ljava/lang/Object; in instance (LX/*;LX/*;)LX/*; holding android_purge_26_q3_ClipsFullWidthFooterUseCase_getOnImpressionControl
 #
 # Start Home on Following passes every read of the two flags behind Instagram's For you and
 # Following picker through flag(), and the saved feed's getter passes the name it read through
@@ -1409,6 +1423,11 @@ shared-call Lapp/hushgram/extension/instagram/misc/AccentColor;->color(I)I in st
 shared-call Lapp/hushgram/extension/instagram/misc/AccentColor;->color(I)I in static (Landroid/content/Context;II)I holding LX/*;->*(Ljava/lang/Object;I)V Landroid/content/Context;->getColor(I)I LX/*;->*(Landroid/content/Context;II)I
 shared-call Lapp/hushgram/extension/instagram/misc/AccentColor;->color(I)I in static (Landroid/content/Context;II)I lacking static LX/*;->*(Ljava/lang/Object;*)V holding Landroid/content/Context;->getColor(I)I LX/*;->*(Landroid/content/Context;II)I
 once-call Lapp/hushgram/extension/instagram/misc/AccentColor;->value(ILandroid/util/TypedValue;)I in static (Landroid/content/Context;I)I holding Landroid/util/TypedValue;->data:I Landroid/content/res/Resources$Theme;->resolveAttribute(ILandroid/util/TypedValue;Z)Z LX/*;->*(Ljava/lang/Object;I)V
+# Accent color also lays the picked color's theme styles on at the return of Instagram's theme util
+# (02sA.A01 on 385811006, the static (Context)V holding the line below), which styles the theme
+# wrapper the tab bar inflates its buttons in off the main thread. Left out, the tab bar's dots and
+# counts stay red with Badges in the accent color on (#315). The util has one return.
+shared-call Lapp/hushgram/extension/instagram/misc/AccentTheme;->apply(Landroid/content/Context;)V in static (Landroid/content/Context;)V holding Failed\sto\sapply\stheme\sto\sActivity\sbecause\stheme\sprovider\snot\sinitialized
 # HushGram launch screen hands both of the main screen's answers on whether Instagram's own logo
 # animation follows Android's launch screen to LaunchScreen.instagramLogo, right after each is taken
 # in: the post-splash extra's read and the check before the logo inside Android's screen. On 452
@@ -2095,6 +2114,11 @@ start-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsAsked
 once-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsAsked(Landroid/app/Activity;Ljava/lang/Object;)V in static (Landroid/app/Activity;L*;Z)V calling static LX/*;->*(Landroid/app/Activity;)LX/*; holding LX/*;->*:Ljava/util/List; Ljava/util/List;->add(Ljava/lang/Object;)Z
 start-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsDropped(Landroid/app/Activity;Ljava/lang/Object;)V in static (Landroid/app/Activity;L*;)V holding LX/*;->*:Ljava/util/WeakHashMap; LX/*;->*:Ljava/util/List; Ljava/util/List;->remove(Ljava/lang/Object;)Z
 once-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsDropped(Landroid/app/Activity;Ljava/lang/Object;)V in static (Landroid/app/Activity;L*;)V holding LX/*;->*:Ljava/util/WeakHashMap; LX/*;->*:Ljava/util/List; Ljava/util/List;->remove(Ljava/lang/Object;)Z
+# Fill the screen (#288), under Full screen Reels: Instagram's reel crop decision (08JU.A02 on 452,
+# the one method naming both purge flags below) asks ReelFill.fill with the crop percentage right
+# after working it out, and returns true (fill) on a yes. Left out, reels close to the screen's shape
+# still letterbox with the bars hidden; twice or elsewhere, it isn't the check the patch wrote.
+once-call Lapp/hushgram/extension/instagram/reels/ReelFill;->fill(F)Z in instance (Lcom/instagram/clips/intf/ClipsViewerSource;Lcom/instagram/common/session/UserSession;LX/*;LX/*;Ljava/lang/Boolean;IIZZ)Z holding android_purge_26_q2_ClipsMediaResizingUtils_shouldCropDynamic android_purge_26_q2_ClipsMediaResizingUtils_getCropPercentage
 
 # Tap a feed video to pause it (#137) asks FeedTapPause.tapped first thing in the feed's tap handler,
 # the one instance (View, Media, five objects, int, boolean) void method that loads the handler's
@@ -2137,3 +2161,36 @@ once-call Lapp/hushgram/extension/instagram/feed/FeedTapPause;->opening(Ljava/la
 # patch wrote. HideCommentEmojiRowPatchTest checks the call, its register and the branch on all
 # the three 452 builds.
 once-call Lapp/hushgram/extension/instagram/feed/CommentEmojiRow;->hidesRow(I)Z holding replying_to_bar group_mention_banner
+# Story text fonts (#275) hands the story text editor's list of formats to StoryFonts.formats right
+# before the controller's private ()ArrayList returns it (08Z8.A04 on 452), the one such method in
+# the class that logs TextFormatController, so the picked files go after Instagram's own fonts. Left
+# out, the editor shows Instagram's fonts alone with the switch on; twice or elsewhere, a font shows
+# twice or not at all. StoryFontsHookTest finds the list in the four 452 builds.
+once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->formats(Ljava/util/List;)V in instance ()Ljava/util/ArrayList; pooled class-holding TextFormatController
+# The format made from a saved name (0EO0.A0E on 452), the one static (String) method that builds a
+# format through the ten argument builder, asks StoryFonts.named first and returns its answer when it
+# has one, so a sticker rebuilt from its IMPORT_FONT name keeps the picked font. Left out, a re-edited
+# sticker falls back to Instagram's font; later or twice, it isn't the guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->named(Ljava/lang/String;)Ljava/lang/Object; in static (Ljava/lang/String;)L*; holding LX/*;->*(Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Z)LX/*;
+once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->named(Ljava/lang/String;)Ljava/lang/Object; in static (Ljava/lang/String;)L*; holding LX/*;->*(Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Z)LX/*;
+# The editor's apply (0GIp.A03 on 452), the static (EditText, format) void method that styles the text
+# itself (its sibling 0GIp.A04 styles the hint), tells StoryFonts.applied first which format it puts
+# on, so the rebuild above knows the last picked font. Left out, a rebuilt sticker never gets the
+# picked font back; twice or elsewhere, it isn't the call the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->applied(Ljava/lang/Object;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
+once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->applied(Ljava/lang/Object;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
+# Right after it the same apply hands its text box to StoryEmoji.applied, which lays the picked emoji
+# font over each emoji and watches the text for more (#275). Left out, story emoji never change;
+# twice or elsewhere, it isn't the call the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->applied(Landroid/widget/EditText;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
+# The story text sticker (092h on 452), the drawable every story text editor makes, hands the text
+# its private (CharSequence, boolean) layout builder is given to StoryEmoji.drawing first and lays out
+# what comes back, so a finished sticker and the shared story get the picked emoji font (#275). Left
+# out, the sticker shows Instagram's emoji after Next; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->drawing(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; in instance (Ljava/lang/CharSequence;Z)Landroid/text/StaticLayout; holding Landroid/text/StaticLayout$Builder;->obtain(Ljava/lang/CharSequence;IILandroid/text/TextPaint;I)Landroid/text/StaticLayout$Builder; Landroid/text/StaticLayout$Builder;->setTextDirection(Landroid/text/TextDirectionHeuristic;)Landroid/text/StaticLayout$Builder;
+# Its subclass measuring each line (0WzZ.A09 on 452) hands the sticker's change to that line to the
+# same hook before laying it out, so each line is measured with the emoji it's drawn with.
+once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->drawing(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; in static (L*;Ljava/lang/CharSequence;)L*; holding Landroid/text/StaticLayout$Builder;->obtain(Ljava/lang/CharSequence;IILandroid/text/TextPaint;I)Landroid/text/StaticLayout$Builder; LX/*;->*(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; LX/*;->*(Landroid/text/StaticLayout$Builder;FF)Landroid/text/StaticLayout;
+# One sticker style below it (0Su2.A06 on 452) measures its placeholder and its last line the same way,
+# so that measure gets the hook too and the line keeps the width it's drawn at.
+once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->drawing(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; in instance (Landroid/text/Spannable;Lkotlin/jvm/functions/Function1;)L*; holding Landroid/text/StaticLayout$Builder;->obtain(Ljava/lang/CharSequence;IILandroid/text/TextPaint;I)Landroid/text/StaticLayout$Builder; LX/*;->*(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; LX/*;->*(Landroid/text/StaticLayout$Builder;FF)Landroid/text/StaticLayout;

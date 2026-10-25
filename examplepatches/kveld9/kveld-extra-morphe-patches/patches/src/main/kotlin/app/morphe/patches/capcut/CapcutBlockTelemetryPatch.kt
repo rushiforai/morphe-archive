@@ -47,6 +47,10 @@ private val capcutTelemetryResourcePatch = resourcePatch(
             "com.facebook.internal.FacebookInitProvider",
             "com.vungle.ads.VungleProvider",
             "com.bytedance.bdinstall.BDInstallProvider",
+            "com.bytedance.apm.battery.dao.MonitorContentProvider",
+            "com.bytedance.apm.util.MultiProcessSharedPreferences",
+            "com.facebook.ads.AudienceNetworkContentProvider",
+            "com.bytedance.android.sdk.ticketguard.TicketGuardProvider",
 
             // Services
             "com.google.android.gms.measurement.AppMeasurementService",
@@ -56,12 +60,24 @@ private val capcutTelemetryResourcePatch = resourcePatch(
             "com.applovin.impl.adview.activity.FullscreenAdService",
             "com.ss.android.message.log.LogService",
             "com.bytedance.sdk.openadsdk.multipro.aidl.BinderPoolService",
+            "com.bytedance.memory.upload.MemoryUploadService",
+            "com.google.android.gms.ads.AdService",
+            "com.bytedance.vega.ug.push.alive.instr.service.MainProcessService",
+            "com.bytedance.vega.ug.push.alive.instr.service.PushProcessService",
+            "com.bytedance.vega.ug.push.process.service.CrossProcessServiceForMain",
+            "com.bytedance.vega.ug.push.process.service.CrossProcessServiceForPush",
+            "com.bytedance.vega.ug.push.process.service.CrossProcessServiceForSmp",
+            "com.bytedance.vega.ug.push.process.service.MainProcessEventService",
 
             // Receivers
             "com.google.android.gms.measurement.AppMeasurementReceiver",
             "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver",
             "com.appsflyer.SingleInstallBroadcastReceiver",
             "com.bytedance.applog.collector.Collector",
+            "com.mbridge.msdk.foundation.same.broadcast.NetWorkChangeReceiver",
+            "com.bytedance.vega.ug.push.notification.NotificationButtonClickBroadcastReceiver",
+            "com.bytedance.vega.ug.push.notification.NotificationDeleteBroadcastReceiver",
+            "com.bytedance.vega.ug.appwidget.callback.AppWidgetInstallReceiver",
 
             // Activities
             "com.ss.android.deviceregister.AActivity",
@@ -260,7 +276,6 @@ private fun BytecodePatchContext.hookAppsFlyer(
                 val targetClass = ref.definingClass
                 if (targetClass != analyticsClassType &&
                     (targetClass.startsWith("Lcom/appsflyer/") ||
-                        targetClass.startsWith("Lcom/vega/") ||
                         targetClass.contains("AppsFlyer", ignoreCase = true))
                 ) {
                     hookAppsFlyerDelegate(ref, hookedMethods, hookedSignatures)
@@ -337,10 +352,55 @@ private fun BytecodePatchContext.hookAppLog(
     }
 }
 
+private fun BytecodePatchContext.hookDispatchersForClass(
+    classType: String,
+    prefix: String,
+    hookedMethods: MutableList<String>,
+    hookedSignatures: MutableSet<String>,
+) {
+    val classDef = classDefByOrNull(classType) ?: return
+    val mutableClass = mutableClassDefBy(classDef)
+    for (method in mutableClass.methods) {
+        val sig = "$classType->${method.name}${method.parameterTypes}"
+        if (sig !in hookedSignatures && isSafeVoidDispatcher(method)) {
+            method.addInstructions(0, "return-void")
+            hookedSignatures.add(sig)
+            hookedMethods.add("$prefix.${method.name}")
+        }
+    }
+}
+
+private fun BytecodePatchContext.hookTempStaticsInterceptor(
+    hookedMethods: MutableList<String>,
+    hookedSignatures: MutableSet<String>,
+) {
+    val tempStaticsClass = classDefByOrNull("Lcom/vega/launcher/network/interceptors/TempStaticsNetInterceptor;") ?: return
+    val mutableClass = mutableClassDefBy(tempStaticsClass)
+    val interceptMethod = mutableClass.methods.firstOrNull {
+        it.name == "intercept" && it.returnType == "Lcom/bytedance/retrofit2/SsResponse;"
+    } ?: return
+
+    val sig = "Lcom/vega/launcher/network/interceptors/TempStaticsNetInterceptor;->intercept"
+    if (sig in hookedSignatures) return
+
+    interceptMethod.addInstructions(
+        0,
+        """
+            invoke-interface {p1}, Lcom/bytedance/retrofit2/intercept/Interceptor${'$'}Chain;->request()Lcom/bytedance/retrofit2/client/Request;
+            move-result-object v0
+            invoke-interface {p1, v0}, Lcom/bytedance/retrofit2/intercept/Interceptor${'$'}Chain;->proceed(Lcom/bytedance/retrofit2/client/Request;)Lcom/bytedance/retrofit2/SsResponse;
+            move-result-object v0
+            return-object v0
+        """,
+    )
+    hookedSignatures.add(sig)
+    hookedMethods.add("TempStaticsNetInterceptor.intercept")
+}
+
 @Suppress("unused")
 val capcutBlockTelemetryPatch = bytecodePatch(
     name = "Block Telemetry & Trackers",
-    description = "Neutralizes Google AppMeasurement, AppsFlyer, and ByteDance AppLog event dispatchers.",
+    description = "Neutralizes Google AppMeasurement, AppsFlyer, ByteDance AppLog, APM/Slardar, Gecko, Pitaya, BDTuring, and UserGrowth event dispatchers.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_CAPCUT)
@@ -363,6 +423,30 @@ val capcutBlockTelemetryPatch = bytecodePatch(
 
         hookAppsFlyer(hookedMethods, hookedSignatures)
         hookAppLog(hookedMethods, hookedSignatures)
+
+        // APM & Slardar (mon.*, mon-va.byteoversea.com, mon.capcutapi.com, mon.isnssdk.com, mon.byteoversea.com)
+        hookDispatchersForClass("Lcom/bytedance/apm/ApmAgent;", "ApmAgent", hookedMethods, hookedSignatures)
+        hookDispatchersForClass("Lcom/bytedance/apm6/commonevent/CommonEventDeliverer;", "CommonEventDeliverer", hookedMethods, hookedSignatures)
+        hookDispatchersForClass("Lcom/bytedance/apm6/consumer/slardar/LogReporter;", "LogReporter", hookedMethods, hookedSignatures)
+
+        // CapCut high-level analytics & network telemetry (log.byteoversea.com, i.*)
+        hookDispatchersForClass("Lcom/vega/report/ReportManagerWrapper;", "ReportManagerWrapper", hookedMethods, hookedSignatures)
+        hookDispatchersForClass("Lcom/vega/report/Reporter;", "Reporter", hookedMethods, hookedSignatures)
+        hookTempStaticsInterceptor(hookedMethods, hookedSignatures)
+
+        // Gecko resource telemetry (gecko-sg.byteoversea.com, tt-gecko-sg.capcutapi.com)
+        hookDispatchersForClass("Lcom/bytedance/geckox/statistic/UploadStatistic;", "UploadStatistic", hookedMethods, hookedSignatures)
+
+        // Pitaya SDK telemetry (pitaya.tiktokv.com)
+        hookDispatchersForClass("Lcom/bytedance/pitaya/api/PitayaApplogProxy;", "PitayaApplogProxy", hookedMethods, hookedSignatures)
+        hookDispatchersForClass("Lcom/bytedance/pitaya/cep_engine/CepEngineManager;", "CepEngineManager", hookedMethods, hookedSignatures)
+
+        // BDTuring telemetry (vcs-sg.byteintl.com, vcs-sg.byteoversea.com, vcs-sg.tiktokv.com, vcs-va.byteoversea.com)
+        hookDispatchersForClass("Lcom/bytedance/bdturing/EventReport;", "EventReport", hookedMethods, hookedSignatures)
+        hookDispatchersForClass("Lcom/bytedance/bdturing/EventClient;", "EventClient", hookedMethods, hookedSignatures)
+
+        // User Growth telemetry (ug-sg.byteoversea.com)
+        hookDispatchersForClass("Lcom/bytedance/ug/cloud/HttpEventUploader;", "HttpEventUploader", hookedMethods, hookedSignatures)
 
         println("[Block Telemetry & Trackers] Neutralized ${hookedMethods.size} telemetry dispatch methods: ${hookedMethods.joinToString(", ")}.")
     }

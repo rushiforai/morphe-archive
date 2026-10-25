@@ -65,9 +65,7 @@ private fun Instruction.stringRef(): String? =
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Sentry crash and performance reports, UXCam session recording, " +
-        "Airship analytics and Branch attribution tracking. Push notifications and Branch deep links keep working; " +
-        "Airship in-app messages triggered by app events no longer show.",
+    description = "Disables analytics, session recording and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_FOOTBALL433_EXPERIMENTAL)
 

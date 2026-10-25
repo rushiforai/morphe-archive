@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -13,9 +13,9 @@ import android.content.Context;
 import android.preference.PreferenceScreen;
 
 import app.morphe.extension.reddit.patches.HideSidebarComponentsPatch;
-import app.morphe.extension.reddit.patches.VersionCheckPatch;
 import app.morphe.extension.reddit.settings.Settings;
 import app.morphe.extension.reddit.settings.preference.BooleanSettingPreference;
+import app.morphe.extension.shared.Utils;
 
 @SuppressWarnings("deprecation")
 public class SidebarPreferenceCategory extends ConditionalPreferenceCategory {
@@ -55,5 +55,6 @@ public class SidebarPreferenceCategory extends ConditionalPreferenceCategory {
             ));
         }
 
+        Utils.setPreferenceTitlesToMultiLine(this);
     }
 }

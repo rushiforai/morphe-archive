@@ -11,9 +11,7 @@ private const val CONTACT_TYPE = "Lcom/truecaller/enterpriseinfo/api/model/Conta
 @Suppress("unused")
 val hideBusinessMediaPatch = bytecodePatch(
     name = "Hide business media",
-    description = "Hides the brand images and promo video on business contact details, and the " +
-        "verified business campaign cards in contact details and on the in-call and after-call " +
-        "screens. The description, website and call, message, save and block buttons stay.",
+    description = "Hides brand images, videos and campaign cards on business contacts.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

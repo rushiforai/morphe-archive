@@ -80,8 +80,7 @@ private fun BytecodePatchContext.forceCollectionOff(type: String, name: String) 
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics, Crashlytics, Performance Monitoring and Piano " +
-        "(Cxense) page events. Push notifications keep working.",
+    description = "Disables analytics and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

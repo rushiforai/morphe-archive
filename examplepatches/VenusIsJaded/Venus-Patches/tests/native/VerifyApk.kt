@@ -21,7 +21,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 fun main(args: Array<String>) {
-    require(args.isNotEmpty()) { "Usage: VerifyApkKt patched.apk [signed]" }
+    require(args.isNotEmpty()) { "Usage: VerifyApkKt patched.apk [signed] [--some]   (--some: not every patch was selected)" }
     val apk = File(args[0])
     ZipFile(apk).use { zip ->
         val script = zip.getInputStream(zip.getEntry("assets/venus/bootstrap.js")).bufferedReader().readText()
@@ -31,8 +31,12 @@ fun main(args: Array<String>) {
         // The recorded revision must match the runtime that was actually injected.
         val revision = Regex("const revision\\s*=\\s*\"([^\"]+)\"").find(script)!!.groupValues[1]
         check("\"revision\":\"$revision\"" in metadata) { "injection.json revision does not match the runtime" }
-        for (feature in listOf("copyBios", "dashless", "favouriteAnything", "freeNitro", "noTyping", "quickDelete", "noDelete", "jumpToTop", "hiddenChannels", "pastelize", "platformIndicators", "reviewDB", "readAll", "quests", "systemFont", "systemEmoji", "hideGift", "hideQuestDock", "gestures", "hideCall", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "customThemes", "iconPacks", "messageHighlight", "serverInfo"))
-            check("$feature:true" in script) { "Missing selected feature: $feature" }
+        // Every feature the runtime knows is in the selection object; with every patch on, all of them are true.
+        // Read from the APK itself, so the list never goes stale when a feature is added.
+        val selection = Regex("const features\\s*=\\s*\\{([^}]*)\\}").find(script)!!.groupValues[1]
+        val chosen = selection.split(",").map { it.split(":") }.associate { it[0].trim() to it.getOrNull(1)?.trim() }
+        check(chosen.size >= 30 && chosen.values.all { it == "true" || it == "false" }) { "Malformed feature selection: $selection" }
+        if ("--some" !in args.drop(1)) check(chosen.values.all { it == "true" }) { "Not selected: ${chosen.filterValues { it != "true" }.keys}" }
         check("VenusRoot" !in script && "RN.Modal" !in script && "registerRoot" !in script)
         check("SETTING_RENDERER_CONFIG" in script && "VENUS_FREENITRO" in script)
         fun number(key: String) = Regex("\"$key\":([0-9]+)").find(metadata)!!.groupValues[1].toInt()
@@ -45,12 +49,18 @@ fun main(args: Array<String>) {
         check(header.getInt(large + 12) == number("prefixSize") + number("originalCodeSize"))
         check(hbc[large + 36].toInt() and 8 != 0 && hbc[large + 36].toInt() and 16 == 0)
         check(header.getInt(large + 40) == 1)
-        check(header.getInt(large + 44) == 0 && header.getInt(large + 48) == number("prefixSize") - 7)
-        check(header.getInt(large + 52) == number("prefixSize") - 2)
+        // The prelude ends: JmpLong +7 over Catch r14, then LoadConstUndefined r15 and r16 that both paths run, so the
+        // exception range ends at the jump and the handler is the Catch.
+        val prefix = number("prefixSize")
+        val tail = offset + prefix - 11
+        check(header.getInt(large + 44) == 0 && header.getInt(large + 48) == prefix - 11) { "Exception range doesn't end at the prelude's jump" }
+        check(header.getInt(large + 52) == prefix - 6) { "Exception handler isn't the prelude's Catch" }
+        check(hbc[tail].toInt() and 255 == 175 && ByteBuffer.wrap(hbc, tail + 1, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() == 7 &&
+            hbc[tail + 5].toInt() and 255 == 119 && hbc[tail + 7].toInt() and 255 == 147 && hbc[tail + 9].toInt() and 255 == 147) { "Prelude tail changed" }
         val hash = MessageDigest.getInstance("SHA-256")
         hash.update(hbc, offset + number("prefixSize"), number("originalCodeSize"))
         check(hash.digest().joinToString("") { "%02x".format(it) } ==
-            "af80426e1719e4a64f9b72e36c7808cd0efbfb28395c683563d63e52bf447277")
+            app.venus.patches.HbcPrelude.GLOBAL_SHA256) { "Discord's own global code changed under the prelude" }
         val footer = MessageDigest.getInstance("SHA-1")
         footer.update(hbc, 0, hbc.size - 20)
         check(footer.digest().contentEquals(hbc.copyOfRange(hbc.size - 20, hbc.size)))
@@ -199,7 +209,7 @@ fun main(args: Array<String>) {
         check(videoCalls.count { it.startsWith("Lapp/venus/") } == 1) { "getVideoDimensions has more than one Venus guard" }
         check(fontCalls.none { it == "Lapp/venus/emoji/SystemEmoji;" } && bridgeRefs.filterIsInstance<MethodReference>().none { it.definingClass == "Lapp/venus/emoji/SystemEmoji;" }) { "Emoji bridge must not share another FileModule method" }
     }
-    if (args.getOrNull(1) == "signed") {
+    if ("signed" in args.drop(1)) {
         val verification = ApkVerifier.Builder(apk).setMinCheckedPlatformVersion(26).build().verify()
         check(verification.isVerified) { "APK signature invalid: ${verification.errors}" }
         println("APK signing certificate and signature verified")

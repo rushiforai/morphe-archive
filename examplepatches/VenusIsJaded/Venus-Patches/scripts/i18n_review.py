@@ -19,7 +19,7 @@ PL = json.loads(subprocess.check_output(['node', os.path.join(ROOT, 'scripts/i18
 SOURCE = open(os.path.join(ROOT, 'patches/src/main/resources/venus/bootstrap.js'), encoding='utf-8').read()
 NAMES = set(re.findall(r':"([^"]+)"', re.search(r'const LANGUAGE_NAMES = \{([\s\S]*?)\};', SOURCE).group(1)))
 UNITS = ('second', 'minute', 'hour', 'day', 'month', 'year')
-CLDR = {'just now', '{time} ago', 'and'} | {k for k in PL if any(u in k for u in UNITS) and 'left' not in k} | {PL[k] for k in PL if any(u in k for u in UNITS) and 'left' not in k}
+CLDR = {'just now', '{time} ago', 'and', '{n} seconds ago', '{n} second ago'} | {f'{{n}} {u}s' for u in UNITS if u != 'second'} | {f'{{n}} {u}' for u in UNITS if u != 'second'}
 KEYS = [k for k in STRINGS if k not in NAMES and k not in CLDR]
 FORMS = {**{c: ['one', 'other'] for c in 'bg da de el es fi hu it nl no sv tr fr pt-BR hi'.split()},
          **{c: ['other'] for c in 'ja ko zh-CN zh-TW th vi id'.split()},

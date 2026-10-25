@@ -91,6 +91,45 @@ class DuetStitchCallersTest {
         val source = File(root, "app/morphe/patches/tiktok/interaction/duetstitch/DuetStitchPatch.kt").readText()
         assertTrue("canShareToStory is not answered",
             source.contains("CanShareToStoryFingerprint to \"storyShareable\""))
+        assertTrue("the share sheet's content reuse check is not answered",
+            source.contains("AllowAddingToStoryFingerprint to \"storyPermission\""))
+    }
+
+    /**
+     * The creator's content reuse choice is answered at its getter, which is only safe while the
+     * share sheet's story check is all that reads it: that check takes the post and whether it
+     * was opened from a story, and answers yes or no.
+     */
+    @Test
+    fun `the content reuse getter is read only by the share sheet's story check`() {
+        for (apk in Fixtures.apks()) {
+            val readers = mutableListOf<Pair<ClassDef, Method>>()
+            val seen = HashSet<String>()
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            for (entry in container.dexEntryNames) {
+                for (classDef in container.getEntry(entry)!!.dexFile.classes) {
+                    if (!seen.add(classDef.type)) continue
+                    for (method in classDef.methods) {
+                        val reads = method.implementation?.instructions?.any {
+                            (it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+                                it.getReference<MethodReference>()?.let { reference ->
+                                    reference.definingClass == INTERACT_PERMISSION && reference.name == "getAllowAddingToStory"
+                                } == true
+                        } == true
+                        if (reads) readers += classDef to method
+                    }
+                }
+            }
+            assertEquals("${apk.name}: ${readers.map(::label)}", 1, readers.size)
+            val method = readers.single().second
+            assertEquals("${apk.name}: return type", "Z", method.returnType)
+            assertEquals("${apk.name}: parameters", listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Z"),
+                method.parameterTypes.map { it.toString() })
+        }
+    }
+
+    private companion object {
+        const val INTERACT_PERMISSION = "Lcom/ss/android/ugc/aweme/feed/model/InteractPermission;"
     }
 
     private fun label(pair: Pair<ClassDef, Method>) = "${pair.first.type}->${pair.second.name}"

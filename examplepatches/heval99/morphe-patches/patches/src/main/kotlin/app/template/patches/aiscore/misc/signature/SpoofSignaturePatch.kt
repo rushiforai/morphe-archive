@@ -18,6 +18,5 @@ val spoofSignaturePatch = spoofSignaturePatch(
     certificateBase64 = AISCORE_CERTIFICATE,
     compatibility = COMPATIBILITY_AISCORE,
     default = true,
-    description = "Fixes push notifications (goal alerts) on patched builds by reporting AiScore's " +
-        "original signing certificate to Firebase.",
+    description = "Fixes push notifications (goal alerts).",
 )

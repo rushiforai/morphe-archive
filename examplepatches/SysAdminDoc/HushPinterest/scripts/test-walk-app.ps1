@@ -94,13 +94,22 @@ try {
     $bundleSha256 = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
     $started = [DateTimeOffset]::Parse('2026-10-22T00:00:00Z')
     $finished = $started.AddMinutes(6)
+    $catalogPath = if ($Root) { Join-Path $Root 'patches-list.json' } else { Join-Path (Split-Path -Parent $PSScriptRoot) 'patches-list.json' }
+    $catalogHash = (Get-FileHash -LiteralPath $catalogPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $firstPatch = (Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json).patches[0].name
 
     function New-WalkReceiptFile([string]$Name, [string]$Result, [bool]$Full, [int]$Screens, [int]$Crashes, [string]$Sha, [string[]]$Problems) {
+        $build = [ordered]@{
+            schema = 1; bundleSha256 = $Sha; fixtureSha256 = 'f' * 64; catalogSha256 = $catalogHash
+            packageName = 'com.pinterest'; appVersion = '14.41.0'; appVersionCode = '14418010'
+            selectedPatches = @($firstPatch); signedApkSha256 = '0' * 64
+            completed = $started.AddMinutes(-1).UtcDateTime.ToString('o')
+        }
         $receipt = New-WalkReceipt -Result $Result -Full $Full -Serial 'emulator-5554' -Device 'sdk_gphone64_x86_64' `
-            -AppVersion '14.41.0' -BundleSha256 $Sha -InstalledApkSha256 ('0' * 64) `
+            -AppVersion '14.41.0' -AppVersionCode '14418010' -Build $build -BundleSha256 $Sha -InstalledApkSha256 ('0' * 64) `
             -Started $started -Finished $finished -Screens $Screens -Crashes $Crashes -Problems $Problems
         $path = Join-Path $scratch $Name
-        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $receipt -Depth 4) + "`n")
+        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $receipt -Depth 8) + "`n")
         return $path
     }
 
@@ -119,6 +128,63 @@ try {
     $otherWalk = New-WalkReceiptFile 'other-bundle.json' 'PASS' $true 17 0 ('a' * 64) @()
     Assert-True (-not (Test-WalkReceipt -Path $otherWalk -BundlePath $bundle).Valid) `
         'A clean walk of a different bundle must not back this one.'
+
+    # The old positive fixture accepted unrelated installed APKs. Each mutation preserves the
+    # passing bundle hash and changes one other fact publication must hold to the build chain.
+    $mutations = [ordered]@{
+        legacy = { param($r) $r.schema = 1 }
+        unbound = { param($r) $r.build = $null }
+        oldInstall = { param($r) $r.installedApkSha256 = 'a' * 64 }
+        malformedHash = { param($r) $r.installedApkSha256 = 'not-an-apk-hash' }
+        missingHash = { param($r) $r.build.fixtureSha256 = '' }
+        newlineHash = { param($r) $r.build.fixtureSha256 = ('f' * 64) + "`n" }
+        newlineInstall = { param($r) $r.installedApkSha256 = ('0' * 64) + "`n"; $r.build.signedApkSha256 = $r.installedApkSha256 }
+        oldBuildBundle = { param($r) $r.build.bundleSha256 = 'a' * 64 }
+        oldCatalog = { param($r) $r.build.catalogSha256 = 'a' * 64 }
+        wrongVersion = { param($r) $r.appVersion = 'wrong-version' }
+        wrongCode = { param($r) $r.appVersionCode = '14418011' }
+        wrongBuildVersion = { param($r) $r.build.appVersion = '14.40.0' }
+        wrongPackage = { param($r) $r.build.packageName = 'example.other' }
+        noSelection = { param($r) $r.build.selectedPatches = @() }
+        unknownSelection = { param($r) $r.build.selectedPatches = @('Not a patch') }
+        duplicateSelection = { param($r) $r.build.selectedPatches = @($firstPatch, $firstPatch) }
+        stringSchema = { param($r) $r.build.schema = '1' }
+        badStart = { param($r) $r.started = 'invalid' }
+        badFinish = { param($r) $r.finished = 'invalid' }
+        noZone = { param($r) $r.started = '2026-10-22T00:00:00' }
+        newlineTime = { param($r) $r.started = "2026-10-22T00:00:00Z`n" }
+        ambiguousBuild = { param($r) $r.build.completed = '2026-10-21T23:59:00' }
+        reversed = { param($r) $r.finished = '2026-10-21T00:00:00Z' }
+        future = { param($r) $r.finished = [DateTimeOffset]::UtcNow.AddDays(1).ToString('o') }
+        lateBuild = { param($r) $r.build.completed = '2026-10-23T00:00:00Z' }
+        badBuildTime = { param($r) $r.build.completed = 'invalid' }
+        problems = { param($r) $r.problems = @('wrong destination') }
+        noProblemsList = { param($r) $r.problems = $null }
+        stringProblems = { param($r) $r.problems = '' }
+        bogusEmulator = { param($r) $r.serial = 'emulator-wrong' }
+        newlineSerial = { param($r) $r.serial = "emulator-5554`n" }
+        noDevice = { param($r) $r.device = '' }
+    }
+    foreach ($entry in $mutations.GetEnumerator()) {
+        $changed = Get-Content -LiteralPath $passWalk -Raw | ConvertFrom-Json
+        & $entry.Value $changed
+        $changedPath = Join-Path $scratch ($entry.Key + '.json')
+        [IO.File]::WriteAllText($changedPath, (ConvertTo-Json -InputObject $changed -Depth 8))
+        $verdict = Test-WalkReceipt -Path $changedPath -BundlePath $bundle -PatchList $catalogPath
+        Assert-True (-not $verdict.Valid) "The publish gate accepted $($entry.Key) evidence."
+    }
+    Assert-True (Test-WalkReceipt -Path $passWalk -BundlePath $bundle -PatchList $catalogPath).Valid `
+        'Negative cases must not poison a valid matching build/install chain.'
+    $preciseStart = $started.AddMilliseconds(900)
+    $preciseBuild = Get-Content -LiteralPath $passWalk -Raw | ConvertFrom-Json
+    $preciseBuild.build.completed = $started.AddMilliseconds(800).UtcDateTime.ToString('o')
+    $preciseReceipt = New-WalkReceipt -Result 'PASS' -Full $true -Serial 'emulator-5554' -Device 'sdk_gphone64_x86_64' `
+        -AppVersion '14.41.0' -AppVersionCode '14418010' -Build $preciseBuild.build -BundleSha256 $bundleSha256 `
+        -InstalledApkSha256 ('0' * 64) -Started $preciseStart -Finished $finished -Screens 17 -Crashes 0
+    $precisePath = Join-Path $scratch 'fractional.json'
+    [IO.File]::WriteAllText($precisePath, (ConvertTo-Json -InputObject $preciseReceipt -Depth 8))
+    Assert-True (Test-WalkReceipt -Path $precisePath -BundlePath $bundle -PatchList $catalogPath).Valid `
+        'A build completed in the same second before the walk is a valid chain.'
 
     Write-Host "[walk-app] $passed checks passed"
 } finally {

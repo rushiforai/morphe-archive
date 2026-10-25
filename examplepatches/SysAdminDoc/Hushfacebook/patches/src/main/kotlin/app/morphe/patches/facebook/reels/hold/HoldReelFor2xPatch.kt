@@ -19,6 +19,7 @@ import app.morphe.patches.facebook.media.taptoplay.MOTION_EVENT
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.media.taptoplay.touchDispatches
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -29,6 +30,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import java.util.WeakHashMap
 
 internal const val PATCH = "Hold a reel for 2x"
@@ -81,14 +83,17 @@ internal val reelLiftGuardPatch = bytecodePatch {
  *
  * The touch dispatch, the speed-up paths, the release listeners' flags and the speed setter come
  * from [reelLiftGuardPatch], which Keep the reel speed brings too; this patch adds the rest.
+ *
+ * Its second switch, Hold a feed video for 2x, times a hold on a video playing in a feed itself, since
+ * a feed video has no long press: see [applyFeedVideoHold].
  */
 @Suppress("unused")
 val holdReelFor2xPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Hold a reel for 2x",
     description = "Hold a reel to play it at double speed, and let go to go back to normal. Handy for skimming. " +
-        "The reel's more button still opens Facebook's long-press menu. Starts off. Turn it on in Hushfacebook " +
-        "settings > Reels and Watch.",
+        "The reel's more button still opens Facebook's long-press menu. A second switch does the same for videos " +
+        "playing in the feed and in Watch. Both start off. Turn them on in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, reelLiftGuardPatch)
@@ -98,9 +103,87 @@ val holdReelFor2xPatch = bytecodePatch(
         // The guard found every anchor, and checked every flag call's answer, before anything changed.
         val anchors = synchronized(foundAnchors) { foundAnchors[this] }
             ?: refuse("the release guard it depends on didn't run first")
+        val feed = findFeedVideoAnchors(anchors)
         applyReelHoldAnchors(anchors)
+        applyFeedVideoHold(anchors, feed)
         enableStatus("reelHold")
     }
+}
+
+/** What [findFeedVideoAnchors] found, for [applyFeedVideoHold]. */
+internal class FeedVideoAnchors(val attach: Method, val playerParameter: Int, val container: FieldReference)
+
+/**
+ * Hold a feed video for 2x's anchors: FbGrootPlayer's attach of its view, the one ViewGroup field of
+ * the player it writes, and the speed setter. The extension's stubs reach the field and the setter
+ * from outside Facebook's package, so both must be public.
+ */
+internal fun BytecodePatchContext.findFeedVideoAnchors(anchors: ReelHoldAnchors): FeedVideoAnchors {
+    val player = anchors.setter.definingClass
+    val attaches = classDefByStrings(ATTACH_VIEW_LOG, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { holder -> holder.methods.mapNotNull { m -> attachedPlayerParameter(m, player)?.let { m to it } } }
+    val (attach, playerParameter) = attaches.singleOrNull()
+        ?: refuse("expected one static attach holding \"$ATTACH_VIEW_LOG\" taking a ViewGroup and $player, found ${attaches.size}")
+    if (attach.localRegisterCount() < 2) refuse("the attach ${attach.name} has fewer than two locals to hand its arguments over in")
+    val written = containersWritten(attach, player)
+    val container = written.singleOrNull()
+        ?: refuse("expected the attach to write one ViewGroup field of $player, found ${written.map { it.name }}")
+    val field = classDefBy(player).fields.singleOrNull { it.name == container.name && it.type == container.type }
+        ?: refuse("$player declares no ${container.name}")
+    if (!AccessFlags.PUBLIC.isSet(field.accessFlags) || AccessFlags.STATIC.isSet(field.accessFlags)) {
+        refuse("$player's ${container.name} isn't a public instance field, so the extension can't read it")
+    }
+    if (!AccessFlags.PUBLIC.isSet(anchors.setter.accessFlags) || AccessFlags.STATIC.isSet(anchors.setter.accessFlags)) {
+        refuse("the speed setter ${anchors.setter.name} isn't a public instance method, so the extension can't call it")
+    }
+    return FeedVideoAnchors(attach, playerParameter, container)
+}
+
+/**
+ * First in the attach, the container and the player, read into its first two locals, which nothing
+ * has written at the method's start; first in the touch dispatch, the activity and the event, ahead
+ * of the guard's hook, so a hold that sped a video up turns the rest of its gesture into a cancel
+ * before Facebook sees it. The extension's playerView stub reads the container field and its
+ * setPlayerSpeed stub calls the setter, which the guard hooked, so a reel's hold still hears it.
+ */
+internal fun BytecodePatchContext.applyFeedVideoHold(anchors: ReelHoldAnchors, feed: FeedVideoAnchors) {
+    val player = anchors.setter.definingClass
+    val hold = mutableClassDefBy(FEED_VIDEO_HOLD)
+    fun stub(name: String, returnType: String, parameters: List<String>) = hold.methods.singleOrNull {
+        it.name == name && it.returnType == returnType && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(CharSequence::toString) == parameters
+    } ?: refuse("$FEED_VIDEO_HOLD has no static $returnType $name(${parameters.joinToString("")})")
+    val view = stub(PLAYER_VIEW_STUB, VIEW_GROUP, listOf("Ljava/lang/Object;"))
+    val speed = stub(SET_PLAYER_SPEED_STUB, "V", listOf("Ljava/lang/Object;", "F"))
+
+    val attach = mutableClassDefBy(feed.attach.definingClass).findMutableMethodOf(feed.attach)
+    attach.addInstructions(
+        0,
+        """
+            move-object/from16 v0, ${attach.parameterRegister(0)}
+            move-object/from16 v1, ${attach.parameterRegister(feed.playerParameter)}
+            invoke-static { v0, v1 }, $FEED_ATTACHED
+        """,
+    )
+    mutableClassDefBy(FRAGMENT_ACTIVITY).findMutableMethodOf(anchors.dispatch)
+        .addInstruction(0, "invoke-static/range { p0 .. p1 }, $FEED_TOUCH")
+    view.addInstructions(
+        0,
+        """
+            check-cast p0, $player
+            iget-object p0, p0, $player->${feed.container.name}:$VIEW_GROUP
+            return-object p0
+        """,
+    )
+    speed.addInstructions(
+        0,
+        """
+            check-cast p0, $player
+            invoke-virtual/range { p0 .. p1 }, $player->${anchors.setter.name}(F)V
+            return-void
+        """,
+    )
 }
 
 private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")

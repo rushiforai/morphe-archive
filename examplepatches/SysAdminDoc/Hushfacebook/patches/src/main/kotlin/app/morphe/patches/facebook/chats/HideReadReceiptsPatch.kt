@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 
 /**
  * Keeps Facebook from telling the sender that you've read a chat that opens inside Facebook. See
@@ -40,8 +41,9 @@ val hideReadReceiptsPatch = bytecodePatch(
 /** Puts the hook in Mailbox's one mark-read method. */
 internal fun BytecodePatchContext.hideReadReceipts() {
     val found = mutableListOf<Pair<String, String>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    // The mark-read holds its name.
+    classDefForEachReferencing(strings = listOf(MAILBOX_MARK_READ)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         classDef.methods.filter(::isMailboxMarkRead).forEach { found += classDef.type to it.name }
     }
     val (owner, name) = found.singleOrNull()

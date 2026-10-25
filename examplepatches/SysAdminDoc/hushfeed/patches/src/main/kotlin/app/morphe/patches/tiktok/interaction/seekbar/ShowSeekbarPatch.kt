@@ -14,6 +14,7 @@ import app.morphe.patches.tiktok.misc.absettings.hookAppAbIntBoundary
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
@@ -77,7 +78,7 @@ val showSeekbarPatch = bytecodePatch(
     category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok())
+    compatibleWith(*AppCompatibilities.tiktokAndPineDrama())
 
     execute {
         // Checked before the first write: the predicate's injection writes v0 and then falls
@@ -136,8 +137,8 @@ val showSeekbarPatch = bytecodePatch(
             val checked = try {
                 hooks()
             } catch (problem: Exception) {
-                if (packageMetadata.versionName in declaredVersions()) throw problem
-                println("[Show the progress bar] Left out $what on ${packageMetadata.versionName}: ${problem.message}")
+                if (packageMetadata.buildName in declaredVersions()) throw problem
+                println("[Show the progress bar] Left out $what on ${packageMetadata.buildName}: ${problem.message}")
                 return
             }
             checked.forEach { it() }
@@ -215,8 +216,8 @@ val showSeekbarThumbnailPatch = bytecodePatch(
             val check = previewCheckOf(seekbar)
             seekbar.methods.named(check.method).reportPreviewCheck(check.video)
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[Show the progress bar thumbnail] Left out the preview check line on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[Show the progress bar thumbnail] Left out the preview check line on ${packageMetadata.buildName}: ${problem.message}")
         }
     }
 }

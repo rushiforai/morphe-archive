@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -34,6 +35,7 @@ import org.junit.Test
  */
 class ReelsAdPoolTest {
     private val hold = "Lapp/morphe/extension/facebook/ads/ReelsAdFilter;->holdPoolAd()Z"
+    private val holdRow = "Lapp/morphe/extension/facebook/ads/ReelsAdFilter;->holdRowAd()Z"
 
     /**
      * The pool class and its two vends in each declared build, then by the bundle's ABI. On 583 the
@@ -71,11 +73,11 @@ class ReelsAdPoolTest {
     """
 
     /** The five instructions in front of Facebook's first: ask, read, skip to Facebook's code on no, else null. */
-    private fun MutableMethod.assertHeldFirst(where: String, before: Int) {
+    private fun MutableMethod.assertHeldFirst(where: String, before: Int, hook: String = hold) {
         val body = implementation!!.instructions.toList()
         assertEquals("$where: five added", before + 5, body.size)
         assertEquals("$where: the ask", Opcode.INVOKE_STATIC, body[0].opcode)
-        assertEquals("$where: the ask", hold, ((body[0] as ReferenceInstruction).reference as MethodReference).toString())
+        assertEquals("$where: the ask", hook, ((body[0] as ReferenceInstruction).reference as MethodReference).toString())
         assertEquals("$where: the answer", listOf(Opcode.MOVE_RESULT, 0), listOf(body[1].opcode, (body[1] as OneRegisterInstruction).registerA))
         assertEquals("$where: no hold", Opcode.IF_EQZ, body[2].opcode)
         assertSame("$where: no hold goes on with Facebook's first instruction", body[5],
@@ -102,6 +104,59 @@ class ReelsAdPoolTest {
                     val before = vend.implementation!!.instructions.size
                     vend.holdPoolAdFirst()
                     vend.assertHeldFirst("${bundle.name}: $pool->${vend.name}", before)
+                }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * The feed Reels row's pool (#216), its base, and which of the Reels pool's vends it overrides
+     * itself, by build and ABI. The rest get an override that calls the base.
+     */
+    private val rowPool = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to Triple("LX/5RW;", "LX/3T6;", setOf("A0V")),
+        ),
+    )
+
+    @Test
+    fun `the feed row's pool answers no ad first on every route the loader asks it by`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        assertEquals("the declared builds", rowPool.keys, versions)
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val context = PatchContexts.of(
+                    FixtureDex.classesHolding(bundle, POOL_NO_AD) + FixtureDex.classesHolding(bundle, FB_SHORTS_POOL))
+                val reelVends = with(context) { reelsAdPoolVends() }
+                val (pool, base, own) = rowPool.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+                    ?: throw AssertionError("${bundle.name} has no pin")
+                val vends = with(context) { fbShortsAdPoolVends(reelVends) }
+                assertEquals("${bundle.name}: the pool", setOf(pool), vends.map { it.definingClass }.toSet())
+                assertEquals("${bundle.name}: one per Reels pool vend", reelVends.map { it.name }, vends.map { it.name })
+
+                for (vend in vends.filterNot { it.name in own }) {
+                    // The added override: v0 for the answer, then this and the parameters, all passed on.
+                    val body = vend.implementation!!.instructions.toList()
+                    assertEquals("${bundle.name}: ${vend.name} calls the base", listOf(Opcode.INVOKE_SUPER_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+                        body.map { it.opcode })
+                    val call = (body[0] as ReferenceInstruction).reference as MethodReference
+                    assertEquals("${bundle.name}: ${vend.name} calls the base", base, call.definingClass)
+                    assertEquals("${bundle.name}: ${vend.name}'s base call", vend.name, call.name)
+                    assertEquals("${bundle.name}: ${vend.name}'s base call", vend.parameterTypes.map { it.toString() }, call.parameterTypes.map { it.toString() })
+                    val range = body[0] as Instruction3rc
+                    assertEquals("${bundle.name}: ${vend.name} passes this first", 1, range.startRegister)
+                    assertEquals("${bundle.name}: ${vend.name} passes every register", vend.implementation!!.registerCount - 1, range.registerCount)
+                    assertEquals("${bundle.name}: ${vend.name} answers what the base answers", listOf(0, 0),
+                        listOf((body[1] as OneRegisterInstruction).registerA, (body[2] as OneRegisterInstruction).registerA))
+                }
+
+                for (vend in vends) {
+                    val before = vend.implementation!!.instructions.size
+                    vend.holdPoolAdFirst(HOLD_ROW_AD)
+                    vend.assertHeldFirst("${bundle.name}: $pool->${vend.name}", before, holdRow)
                 }
                 checked += version
             }

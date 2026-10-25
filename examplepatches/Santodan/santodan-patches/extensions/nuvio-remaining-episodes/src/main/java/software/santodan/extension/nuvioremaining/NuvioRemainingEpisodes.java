@@ -55,6 +55,8 @@ public final class NuvioRemainingEpisodes {
     private static volatile Map<?, ?> latestWatchedById;
     private static volatile Object enabledState;
     private static volatile Object revisionState;
+    private static final Map<String, Long> VISIBLE_TITLES = new ConcurrentHashMap<>();
+    private static final AtomicBoolean COUNT_DIRTY = new AtomicBoolean();
 
     private NuvioRemainingEpisodes() {}
 
@@ -68,12 +70,39 @@ public final class NuvioRemainingEpisodes {
             int episode = ((Integer) field(nextUpInfo, "i").get(nextUpInfo)).intValue();
             Integer seedSeason = (Integer) field(nextUpInfo, "x").get(nextUpInfo);
             Integer seedEpisode = (Integer) field(nextUpInfo, "y").get(nextUpInfo);
+            registerSeed(id, title, season, episode, seedSeason, seedEpisode);
+        } catch (Throwable error) {
+            Log.e(TAG, "NextUpInfo registration failed", error);
+        }
+    }
+
+    /** Resuming cards can exist before native NextUpInfo is constructed. */
+    public static void registerProgress(Object progress) {
+        try {
+            Class<?> type = progress.getClass();
+            String id = (String) type.getMethod("getContentId").invoke(progress);
+            if (id == null) return;
+            Object season = type.getMethod("getSeason").invoke(progress);
+            Object episode = type.getMethod("getEpisode").invoke(progress);
+            if (!(season instanceof Integer) || !(episode instanceof Integer)) return;
+            synchronized (SEEDS) {
+                if (SEEDS.containsKey(id)) return; // Preserve richer native NextUpInfo.
+                registerSeed(id, (String) type.getMethod("getName").invoke(progress),
+                    (Integer) season, (Integer) episode, null, null);
+            }
+        } catch (Throwable error) { Log.e(TAG, "Cached progress registration failed", error); }
+    }
+
+    private static void registerSeed(String id, String title, int season, int episode, Integer seedSeason, Integer seedEpisode) {
+        try {
             if (id != null && title != null) {
                 TITLES.put(id, title);
                 Object[] seed = new Object[]{season, episode, seedSeason, seedEpisode};
                 boolean changed;
+                boolean first;
                 synchronized (SEEDS) {
                     Object[] previous = SEEDS.put(id, seed);
+                    first = previous == null;
                     changed = previous != null && !java.util.Arrays.equals(previous, seed);
                     if (changed) {
                         REMAINING.remove(id);
@@ -87,7 +116,9 @@ public final class NuvioRemainingEpisodes {
                 }
                 if (LOGGED.add("register:" + id)) Log.d(TAG, "registered id=" + id + " title=" + title
                     + " next=" + season + ':' + episode + " seed=" + seedSeason + ':' + seedEpisode);
-                if (changed) { bumpRevision(); requestCounts(); }
+                Long visible = VISIBLE_TITLES.get(title);
+                if (visible != null && android.os.SystemClock.elapsedRealtime() - visible < 30_000L) VISIBLE.put(id, visible);
+                if (first || changed) { bumpRevision(); requestCounts(); }
             }
         } catch (Throwable error) {
             Log.e(TAG, "NextUpInfo registration failed", error);
@@ -118,11 +149,21 @@ public final class NuvioRemainingEpisodes {
         }
     }
 
+    /** Startup membership can arrive after native aired metadata, without a full remote sync. */
+    public static void refreshWatchedHistory(Map<?, ?> watchedById) {
+        if (watchedById == null) return;
+        latestWatchedById = watchedById;
+        requestCounts();
+    }
+
     /** Coalesce native bulk updates; count only cards recently composed by Home. */
     private static void requestCounts() {
-        if (!enabled() || !COUNT_PENDING.compareAndSet(false, true)) return;
+        if (!enabled()) return;
+        COUNT_DIRTY.set(true);
+        if (!COUNT_PENDING.compareAndSet(false, true)) return;
         COUNTER.execute(() -> {
             try {
+              while (COUNT_DIRTY.getAndSet(false)) {
                 long now = android.os.SystemClock.elapsedRealtime();
                 for (Map.Entry<String, Long> entry : VISIBLE.entrySet()) {
                     if (!enabled()) return;
@@ -138,7 +179,11 @@ public final class NuvioRemainingEpisodes {
                             (Integer) seed[2], (Integer) seed[3]);
                     }
                 }
-            } finally { COUNT_PENDING.set(false); }
+              }
+            } finally {
+                COUNT_PENDING.set(false);
+                if (COUNT_DIRTY.get()) requestCounts();
+            }
         });
     }
 
@@ -182,6 +227,9 @@ public final class NuvioRemainingEpisodes {
             return;
         }
         if (title == null) return;
+        long seenAt = android.os.SystemClock.elapsedRealtime();
+        VISIBLE_TITLES.put(title, seenAt);
+        VISIBLE_TITLES.entrySet().removeIf(entry -> seenAt - entry.getValue() > 30_000L);
         Integer count = null;
         for (Map.Entry<String, String> entry : TITLES.entrySet()) {
             if (title.equals(entry.getValue())) {

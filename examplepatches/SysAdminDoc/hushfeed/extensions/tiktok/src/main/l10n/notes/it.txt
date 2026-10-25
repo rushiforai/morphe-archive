@@ -1,3 +1,97 @@
+## Unreleased
+
+* **TikTok:** La pulizia di Service+ ora controlla la prima voce dell'anteprima LIVE, come fa TikTok (#94).
+
+## 0.79.0 (2026-10-24)
+
+* **TikTok:** Su PineDrama, le impostazioni di Hushfeed ora dicono di riavviare PineDrama invece di TikTok (#156).
+
+* **TikTok:** Il nuovo interruttore Nascondi i commenti spam nasconde i commenti dei bot che offrono link, contatti o follower gratis. I tuoi commenti e quelli del creator restano (#187).
+
+* **TikTok:** Nascondi i video che hai già visto toglie di nuovo da For You i video già visti (#172).
+
+* **TikTok:** Con il tema scuro AMOLED, la barra dei commenti sotto un post di foto ora è nera (#171).
+
+* **TikTok:** Usa un carattere importato ora funziona su PineDrama, e il grassetto resta grassetto (#243).
+
+* **TikTok:** Il preset Commenti scorrevoli sui video del Feature Gate Lab ora ti avvisa che funziona solo sui video per cui TikTok l'ha attivato (#98).
+
+* **TikTok:** La nuova patch Allow photo comments per PineDrama fa chiedere alla casella dei commenti al server di TikTok dei commenti con foto, come fa TikTok (#156).
+
+* **TikTok:** PineDrama passa alla 47.5.3. Altre sei patch ora funzionano su PineDrama, quindi Morphe Manager ne offre 95 (#156).
+
+* **TikTok:** Il nuovo interruttore Segnala un telefono più recente agli effetti aiuta con gli effetti che dicono di non funzionare sul tuo telefono (#176).
+
+* **TikTok:** Gli sticker salvati di PineDrama ora mostrano tutti quelli che hai salvato invece dei primi 100 (#214).
+
+* **TikTok:** La nuova scelta Origine della registrazione LIVE può registrare lo schermo mentre guardi un LIVE (#37).
+
+* **TikTok:** Il nuovo interruttore Sfoca il video dietro la barra rende smerigliata la barra di Aspetto vetro liquido su Android 12 e versioni successive (#231).
+
+* **TikTok:** Pannelli LIVE scuri in modalità scura ora scurisce anche le parti chiare rimaste nelle stanze LIVE (#159).
+
+* **TikTok:** Aggiungi i dettagli ai video salvati come tag ora aggiunge davvero titolo, creator, data e link ai video salvati.
+
+* **TikTok:** Nascondi il pulsante Scorrimento automatico di TikTok nasconde anche l'interruttore Auto scroll su tablet e pieghevoli aperti (#234).
+
+* **TikTok:** Il README ora dice di patchare il bundle di 47.5.3 sul telefono e l'APK sul computer.
+
+* **TikTok:** Con Mantieni Vista pulita tra i video disattivato, i pulsanti tornano appena finisci lo scorrimento invece di comparire di colpo dopo (#232).
+
+* **TikTok:** Con Barra inferiore trasparente attiva, didascalia e pulsanti non scendono più sopra le schede dopo uno scorrimento (#232).
+
+* **TikTok:** La pressione prolungata con Salva il fotogramma sullo schermo come foto funziona di nuovo su 47.5.3.
+
+* **TikTok:** Rimuovi gli annunci dal feed toglie anche la scheda più piccola di Lemon8 in For You.
+
+* **TikTok:** Il conteggio dei filtrati e l'etichetta del budget non compaiono più nelle schede Shop e Nearby.
+
+* **TikTok:** Con Pannelli LIVE scuri in modalità scura attivo, la classifica degli spettatori di una stanza si apre di nuovo scura (#159).
+
+* **TikTok:** Il README dice di dare 2 GB di memoria a morphe-desktop quando patchi tutto su un computer (#220).
+
+* **TikTok:** Con Doppio tocco impostato su Non fare nulla, un tocco mette in pausa o riproduce subito (#239).
+
+* **TikTok:** La build passa a Gradle 9.8.2.
+
+* **TikTok:** Il README elenca le parti delle impostazioni di Hushfeed su cui un bundle aggiuntivo può contare.
+
+* **TikTok:** Novità tiene solo le versioni più recenti e Full changelog ha il resto, così l'estensione è più piccola.
+
+* **TikTok:** Lente di vetro sulla scheda attuale ora scivola ogni volta alla scheda successiva (#231).
+
+* **TikTok:** Con Vista pulita automatica attiva, un risultato di ricerca che riapri torna pulito (#84).
+
+* **TikTok:** Qualità di registrazione dei LIVE offre anche Original, 1080p, 720p, 540p e 360p (#203).
+
+* **TikTok:** Quando l'elenco delle qualità di download si ferma sotto i 720p, offre anche la versione H.264 o HEVC più alta del video stesso (#240).
+
+* **TikTok:** Mostra da dove viene chi commenta trova il paese più spesso (#201).
+
+* **TikTok:** Prima i più recenti in Seguiti mantiene in ordine di data i post sotto il tuo video mentre ne caricano altri (#226).
+
+* **TikTok:** Le griglie del profilo e dei Mi piace si possono ordinare con Prima i meno visti e Prima i meno piaciuti, caricano altri video da sole e hanno un pulsante di ordinamento nell'angolo (#180).
+
+* **TikTok:** Il nuovo interruttore Apri la storia quando qualcuno è in LIVE apre prima la sua storia quando tocchi la sua foto (#233).
+
+* **TikTok:** Con Registra i LIVE che guardi attivo, il menu Condividi di una stanza LIVE ha una riga Qualità di registrazione dei LIVE (#203).
+
+* **TikTok:** Offri la qualità LIVE in più stanze ora vale anche per le stanze LIVE di gaming e calcio (#37).
+
+* **TikTok:** In modalità scura, il nuovo selettore della qualità video in una stanza LIVE si legge di nuovo (#57).
+
+* **TikTok:** Una stanza LIVE resta scura quando il telefono passa tra chiaro e scuro (#159).
+
+* **TikTok:** Il nuovo interruttore Consenti comunque Aggiungi alla storia riporta Aggiungi alla storia quando un creator ha disattivato il riutilizzo dei contenuti (#88).
+
+* **TikTok:** Quando Region spoof adatta lingua e fuso orario, le intestazioni con la data nelle chat seguono il fuso orario del preset (#184, #198).
+
+* **TikTok:** Il nuovo interruttore Attiva Thoughts mostra Thoughts per gli account che TikTok ha lasciato fuori (#186).
+
+* **TikTok:** Mantieni le foto come le invia TikTok ora vale anche per gli sticker che non si muovono (#229).
+
+* **TikTok:** Mantieni la luminosità dello schermo nella fotocamera ora vale anche per il flash frontale e la luce di riempimento (#200).
+
 ## 0.78.0 (2026-10-22)
 
 * **TikTok:** Hushfeed passa a TikTok 47.5.3 e la 47.4.3 viene tolta. Applica le patch all'APK 47.5.3 con la stessa chiave di firma e accesso e impostazioni restano. PineDrama resta sulla 47.4.3.

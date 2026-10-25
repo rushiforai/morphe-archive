@@ -1,23 +1,22 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.extension.youtube.videoplayer;
 
+import android.animation.ValueAnimator;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
+import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Animatable2;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableWrapper;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,48 +34,56 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.patches.HidePlayerOverlayButtonsPatch;
-import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.settings.Settings;
 
 public class PlayerOverlayButton {
 
-    public static final int BUTTON_WIDTH = (int) ResourceUtils.getDimension("controls_overlay_action_button_size");
-
-    private static final int ICON_SHADOW_OFFSET_X;
-    private static final int ICON_SHADOW_OFFSET_Y;
-    private static final int ICON_SHADOW_BLUR_RADIUS;
-    private static final int ICON_SHADOW_COLOR;
-
-    static {
-        int offsetX = 0, offsetY = 0, blurRadius = 0, color = Color.TRANSPARENT;
-        try {
-            // The app has both integer and dimension versions of these. The player controls read
-            // the integers as raw pixels, while only the miniplayer reads the dimensions.
-            offsetX = ResourceUtils.getInteger("shadow_icon_offset_x");
-            offsetY = ResourceUtils.getInteger("shadow_icon_offset_y");
-            blurRadius = ResourceUtils.getInteger("shadow_icon_size");
-            color = Color.argb(ResourceUtils.getInteger("shadow_icon_alpha"), 0, 0, 0);
-        } catch (Exception ex) {
-            Logger.printException(() -> "Could not resolve player icon shadow resources", ex);
-        }
-        ICON_SHADOW_OFFSET_X = offsetX;
-        ICON_SHADOW_OFFSET_Y = offsetY;
-        ICON_SHADOW_BLUR_RADIUS = blurRadius;
-        ICON_SHADOW_COLOR = color;
+    public interface PlayerOverlayButtonIsEnabledInterface {
+        boolean isButtonCurrentlyEnabled();
     }
+
+    public static final int BUTTON_WIDTH = (int) ResourceUtils.getDimension(
+            "controls_overlay_action_button_size");
 
     /**
      * The app's own player icons carry a soft drop shadow, which is what keeps a white icon
      * readable over bright video once the circle behind it is made transparent.
      */
     private static final class ShadowedIconDrawable extends DrawableWrapper {
+        private static final int SHADOW_FADE_IN_DURATION = 200;
+
         @Nullable
         private Bitmap shadow;
+        private final Paint shadowPaint = new Paint();
+        @Nullable
+        private ValueAnimator shadowFade;
 
         ShadowedIconDrawable(Drawable icon) {
             super(icon);
+            // The shadow is left out while the icon animates, so it has to come back at the end.
+            if (icon instanceof Animatable2 animated) {
+                animated.registerAnimationCallback(new Animatable2.AnimationCallback() {
+                    @Override
+                    public void onAnimationEnd(Drawable drawable) {
+                        fadeInShadow();
+                    }
+                });
+            }
+        }
+
+        // Showing the whole shadow in one frame reads as a flicker.
+        private void fadeInShadow() {
+            if (shadowFade != null) {
+                shadowFade.cancel();
+            }
+            shadowFade = ValueAnimator.ofInt(0, 255);
+            shadowFade.setDuration(SHADOW_FADE_IN_DURATION);
+            shadowFade.addUpdateListener(animation -> {
+                shadowPaint.setAlpha((int) animation.getAnimatedValue());
+                invalidateSelf();
+            });
+            shadowFade.start();
         }
 
         @Override
@@ -87,12 +94,16 @@ public class PlayerOverlayButton {
 
         @Override
         public void draw(@NonNull Canvas canvas) {
-            if (shadow == null) {
-                buildShadow();
-            }
-            if (shadow != null) {
-                Rect bounds = getBounds();
-                canvas.drawBitmap(shadow, bounds.left, bounds.top, null);
+            // The shadow is a still image, so it would lag behind a rotating or scaling icon.
+            final boolean animating = getDrawable() instanceof Animatable animated && animated.isRunning();
+            if (!animating) {
+                if (shadow == null) {
+                    buildShadow();
+                }
+                if (shadow != null) {
+                    Rect bounds = getBounds();
+                    canvas.drawBitmap(shadow, bounds.left, bounds.top, shadowPaint);
+                }
             }
 
             super.draw(canvas);
@@ -103,37 +114,7 @@ public class PlayerOverlayButton {
             Rect bounds = getBounds();
             if (icon == null || bounds.isEmpty()) return;
 
-            final int width = bounds.width();
-            final int height = bounds.height();
-
-            try {
-                Bitmap rendered = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                // The wrapper draws the icon at the view bounds, so move it to the bitmap origin
-                // and put it back afterward.
-                Rect iconBounds = new Rect(icon.getBounds());
-                icon.setBounds(0, 0, width, height);
-                icon.draw(new Canvas(rendered));
-                icon.setBounds(iconBounds);
-
-                Bitmap mask = rendered.extractAlpha();
-                rendered.recycle();
-
-                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                paint.setColor(ICON_SHADOW_COLOR);
-                paint.setMaskFilter(new BlurMaskFilter(
-                        ICON_SHADOW_BLUR_RADIUS, BlurMaskFilter.Blur.NORMAL));
-
-                // Blurring at draw time into a bitmap the size of the icon keeps the shadow
-                // inside the icon box, the way the app builds its own player icon shadows.
-                Bitmap blurred = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                new Canvas(blurred).drawBitmap(
-                        mask, ICON_SHADOW_OFFSET_X, ICON_SHADOW_OFFSET_Y, paint);
-                mask.recycle();
-
-                shadow = blurred;
-            } catch (Exception ex) {
-                Logger.printException(() -> "Could not build player icon shadow", ex);
-            }
+            shadow = IconShadow.build(icon, bounds.width(), bounds.height());
         }
     }
 
@@ -142,7 +123,7 @@ public class PlayerOverlayButton {
      * which the mute and video scale buttons do when their state changes.
      */
     private static void applyIconShadow(View button) {
-        if (ICON_SHADOW_BLUR_RADIUS <= 0 || !(button instanceof ImageView imageView)) return;
+        if (!IconShadow.isAvailable() || !(button instanceof ImageView imageView)) return;
 
         Drawable icon = imageView.getDrawable();
         if (icon != null && !(icon instanceof ShadowedIconDrawable)) {
@@ -246,13 +227,18 @@ public class PlayerOverlayButton {
 
     private static class PlayerOverlayButtonController {
         private final WeakReference<View> buttonRef;
+        @Nullable
+        private final PlayerOverlayButtonIsEnabledInterface isEnabled;
         private final SetViewBackgroundInterface setBackground;
         // Track the ConstantState of the source background to detect real drawable changes.
         @Nullable
         private Drawable.ConstantState sourceBackgroundSnapshot;
 
-        private PlayerOverlayButtonController(View newButton, SetViewBackgroundInterface backgroundInterface) {
+        private PlayerOverlayButtonController(View newButton,
+                                              @Nullable PlayerOverlayButtonIsEnabledInterface enabledInterface,
+                                              SetViewBackgroundInterface backgroundInterface) {
             buttonRef = new WeakReference<>(newButton);
+            isEnabled = enabledInterface;
             setBackground = backgroundInterface;
 
             newButton.getViewTreeObserver().addOnPreDrawListener(() -> {
@@ -261,12 +247,36 @@ public class PlayerOverlayButton {
             });
         }
 
+        private boolean isEnabled() {
+            return isEnabled == null || isEnabled.isButtonCurrentlyEnabled();
+        }
+
+        private int getEnabledButtonIndex() {
+            int count = 0;
+            for (PlayerOverlayButtonController controller : buttonControllers) {
+                if (controller == this) {
+                    return count;
+                }
+                if (controller.isEnabled()) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         private void updateLayoutFromSourceButton() {
             View source = ytSourceButtonRef.get();
             View button = buttonRef.get();
             if (source == null || button == null) {
                 Logger.printException(() -> "Player buttons is null, source: " + source
                         + " button: " + button);
+                return;
+            }
+
+            if (!isEnabled()) {
+                if (button.getVisibility() != View.GONE) {
+                    button.setVisibility(View.GONE);
+                }
                 return;
             }
 
@@ -280,15 +290,24 @@ public class PlayerOverlayButton {
                     && sourcePaddingRight == button.getPaddingRight()
                     && sourcePaddingBottom == button.getPaddingBottom())
             ) {
-                //noinspection ExtractMethodRecommender
-                ViewGroup.LayoutParams layoutParams = source.getLayoutParams();
-                if (VersionCheckPatch.IS_21_15_OR_GREATER) {
-                    // Fullscreen button has a custom margin layout parameters class
-                    // and if used directly causes a broken layout with 21.15+
-                    // if quality and speed button are shown. Older app targets
-                    // must use the original layout otherwise app crashes with a cast exception.
-                    layoutParams = new ViewGroup.MarginLayoutParams(layoutParams);
+                ViewGroup.LayoutParams sourceLayoutParams = source.getLayoutParams();
+                // The parent requires its own LayoutParams type (ConstraintSet.clone() casts
+                // every child on 21.40+), but sharing the fullscreen button's instance breaks
+                // the layout, so the button's own instance is reused.
+                ViewGroup.LayoutParams layoutParams = button.getLayoutParams();
+                layoutParams.width = sourceLayoutParams.width;
+                layoutParams.height = sourceLayoutParams.height;
+
+                if (layoutParams instanceof ViewGroup.MarginLayoutParams buttonMargins
+                        && sourceLayoutParams instanceof ViewGroup.MarginLayoutParams sourceMargins) {
+                    buttonMargins.leftMargin = sourceMargins.leftMargin;
+                    buttonMargins.topMargin = sourceMargins.topMargin;
+                    buttonMargins.rightMargin = sourceMargins.rightMargin;
+                    buttonMargins.bottomMargin = sourceMargins.bottomMargin;
+                    buttonMargins.setMarginStart(sourceMargins.getMarginStart());
+                    buttonMargins.setMarginEnd(sourceMargins.getMarginEnd());
                 }
+
                 button.setLayoutParams(layoutParams);
                 button.setPadding(
                         sourcePaddingLeft,
@@ -298,12 +317,12 @@ public class PlayerOverlayButton {
                 );
             }
 
-            final int effectiveCustomButtons = Math.max(0, buttonControllers.size()
+            final int effectiveCustomButtons = Math.max(0, getNumberOfEnabledButtons()
                     - (HIDE_FULLSCREEN_BUTTON_ENABLED ? 1 : 0));
             final float spacingPercentage = getButtonWidthPercentage(effectiveCustomButtons, source);
 
             // Convert from 0 indexing to 1 indexing.
-            final int buttonNumber = buttonControllers.indexOf(this) + (HIDE_FULLSCREEN_BUTTON_ENABLED ? 0 : 1);
+            final int buttonNumber = getEnabledButtonIndex() + (HIDE_FULLSCREEN_BUTTON_ENABLED ? 0 : 1);
             final float xOffset = (int) (source.getX()
                     - (buttonNumber * (spacingPercentage * source.getWidth())));
 
@@ -459,10 +478,32 @@ public class PlayerOverlayButton {
                                       String drawableName,
                                       View.OnClickListener onClickListener,
                                       View.OnLongClickListener onLongClickListener) {
+        return addButton(sourceButton, drawableName, null, onClickListener, onLongClickListener);
+    }
+
+    /**
+     * Adds an icon button to the player overlay, positioned to the left of {@code sourceButton}.
+     * <p>
+     * On first call, resolves the chapter title and video heading containers so their end margins
+     * can be kept clear of overlay buttons on every subsequent pre-draw pass.
+     *
+     * @param sourceButton        the existing player button used as a position and style anchor.
+     * @param drawableName        resource name of the drawable to display inside the button.
+     * @param isEnabled           allows selectively showing/hiding the overlay button.
+     * @param onClickListener     invoked when the button is tapped.
+     * @param onLongClickListener invoked when the button is long-pressed.
+     */
+    @Nullable
+    public static ImageView addButton(View sourceButton,
+                                      String drawableName,
+                                      PlayerOverlayButtonIsEnabledInterface isEnabled,
+                                      View.OnClickListener onClickListener,
+                                      View.OnLongClickListener onLongClickListener) {
         return addButton(
                 sourceButton,
                 new ImageView(sourceButton.getContext()),
                 drawableName,
+                isEnabled,
                 onClickListener,
                 onLongClickListener
         );
@@ -486,6 +527,29 @@ public class PlayerOverlayButton {
                                                     String drawableName,
                                                     View.OnClickListener onClickListener,
                                                     View.OnLongClickListener onLongClickListener) {
+        return addButton(sourceButton, button, drawableName, null, onClickListener, onLongClickListener);
+    }
+
+    /**
+     * Adds a caller provided button to the player overlay, using the same layout, background
+     * and positioning as the built-in overlay buttons. Used for buttons that draw more than
+     * an icon, such as a progress indicator.
+     *
+     * @param sourceButton        the existing player button used as a position and style anchor.
+     * @param button              the button to add.
+     * @param drawableName        resource name of the drawable to display inside the button.
+     * @param isEnabled           allows selectively showing/hiding the overlay button.
+     * @param onClickListener     invoked when the button is tapped.
+     * @param onLongClickListener invoked when the button is long-pressed.
+     * @return the added button, or {@code null} if the button could not be added.
+     */
+    @Nullable
+    public static <T extends ImageView> T addButton(View sourceButton,
+                                                    T button,
+                                                    String drawableName,
+                                                    @Nullable PlayerOverlayButtonIsEnabledInterface isEnabled,
+                                                    View.OnClickListener onClickListener,
+                                                    View.OnLongClickListener onLongClickListener) {
         ViewGroup sourceButtonViewGroup = updateRefsFromSourceButton(sourceButton);
         if (sourceButtonViewGroup == null) return null;
 
@@ -494,11 +558,20 @@ public class PlayerOverlayButton {
         button.setImageResource(ResourceUtils.getIdentifierOrThrow(
                 ResourceType.DRAWABLE, drawableName)
         );
-        button.setOnClickListener(onClickListener);
-        button.setOnLongClickListener(onLongClickListener);
+        button.setOnClickListener(view -> {
+            if (onClickListener != null) {
+                onClickListener.onClick(view);
+            }
+            PlayerIcons.animate(button);
+        });
+        button.setOnLongClickListener(onLongClickListener == null ? null : view -> {
+            final boolean consumed = onLongClickListener.onLongClick(view);
+            PlayerIcons.animate(button);
+            return consumed;
+        });
         sourceButtonViewGroup.addView(button);
 
-        buttonControllers.add(new PlayerOverlayButtonController(button, button::setBackground));
+        buttonControllers.add(new PlayerOverlayButtonController(button, isEnabled, button::setBackground));
         return button;
     }
 
@@ -517,6 +590,26 @@ public class PlayerOverlayButton {
     public static TextView addButtonWithTextOverlay(View sourceButton,
                                                     View.OnClickListener onClickListener,
                                                     View.OnLongClickListener onLongClickListener) {
+        return addButtonWithTextOverlay(sourceButton, null, onClickListener, onLongClickListener);
+    }
+
+    /**
+     * Adds a text-only button to the player overlay, positioned to the left of {@code sourceButton}.
+     * <p>
+     * On first call, resolves the chapter title and video heading containers so their end margins
+     * can be kept clear of overlay buttons on every subsequent pre-draw pass.
+     *
+     * @param sourceButton        the existing player button used as a position and style anchor.
+     * @param isEnabled           allows selectively showing/hiding the overlay button.
+     * @param onClickListener     invoked when the button is tapped.
+     * @param onLongClickListener invoked when the button is long-pressed.
+     * @return the created {@link TextView}, or {@code null} if the button could not be added.
+     */
+    @Nullable
+    public static TextView addButtonWithTextOverlay(View sourceButton,
+                                                    @Nullable PlayerOverlayButtonIsEnabledInterface isEnabled,
+                                                    View.OnClickListener onClickListener,
+                                                    View.OnLongClickListener onLongClickListener) {
         ViewGroup sourceButtonViewGroup = updateRefsFromSourceButton(sourceButton);
         if (sourceButtonViewGroup == null) return null;
 
@@ -524,21 +617,18 @@ public class PlayerOverlayButton {
         TextView textOverlay = new TextView(sourceButton.getContext());
         textOverlay.setId(View.generateViewId());
         textOverlay.setGravity(Gravity.CENTER);
-        // Fixed size regardless of the system font-size setting, since the button has no room to grow.
-        textOverlay.setTextSize(TypedValue.COMPLEX_UNIT_PX, Dim.dp(14));
-        textOverlay.setTextColor(0xFFFFFFFF);
-        textOverlay.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        if (ICON_SHADOW_BLUR_RADIUS > 0) {
-            textOverlay.setShadowLayer(ICON_SHADOW_BLUR_RADIUS,
-                    ICON_SHADOW_OFFSET_X, ICON_SHADOW_OFFSET_Y, ICON_SHADOW_COLOR);
-        }
+        PlayerIcons.styleText(textOverlay);
         textOverlay.setOnClickListener(onClickListener);
         textOverlay.setOnLongClickListener(onLongClickListener);
         sourceButtonViewGroup.addView(textOverlay);
 
-        buttonControllers.add(new PlayerOverlayButtonController(textOverlay, textOverlay::setBackground));
+        buttonControllers.add(new PlayerOverlayButtonController(textOverlay, isEnabled, textOverlay::setBackground));
 
         return textOverlay;
+    }
+
+    private static int getNumberOfEnabledButtons() {
+        return (int) buttonControllers.stream().filter(PlayerOverlayButtonController::isEnabled).count();
     }
 
     /**
@@ -554,7 +644,7 @@ public class PlayerOverlayButton {
                 try {
                     styleSourceButtonBackground(controlsViewGroup);
 
-                    final int effectiveCustomButtons = Math.max(0, buttonControllers.size()
+                    final int effectiveCustomButtons = Math.max(0, getNumberOfEnabledButtons()
                             - (Settings.HIDE_FULLSCREEN_BUTTON.get() ? 1 : 0));
 
                     int buttonWidth = BUTTON_WIDTH;

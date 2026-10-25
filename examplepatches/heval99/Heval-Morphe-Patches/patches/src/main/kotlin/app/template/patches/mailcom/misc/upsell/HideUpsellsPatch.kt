@@ -26,8 +26,7 @@ internal object Swipe2UpsellEnabledByConfigFingerprint : Fingerprint(
 @Suppress("unused")
 val hideUpsellsPatch = bytecodePatch(
     name = "Hide upsells",
-    description = "Hides the upgrade offer that appears after swiping away ads. " +
-        "The upgrade entries in Settings and the side menu stay.",
+    description = "Hides the upgrade offer.",
 ) {
     compatibleWith(COMPATIBILITY_MAILCOM)
 

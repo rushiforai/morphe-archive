@@ -29,7 +29,7 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     // SHA-1 of the original signing certificate (CN=Christer Nordvik), read from the APKMirror
     // 238.17794.20261012 bundle's base APK (the merged APK's block no longer verifies).
     spoofedPackageSignature = "5546e6c4b0c1f31b9e5a953a89a8bb6f25a2ad6f",
-    mainActivityOnCreateFingerprint = MainActivityWrapperOnCreateFingerprint,
+    mainActivityOnCreateFingerprint = MainActivityOnCreateFingerprint,
     compatibility = COMPATIBILITY_FOTMOB,
     default = false,
     dependencies = setOf(spoofSignaturePatch),
@@ -37,9 +37,8 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     // under the package name, so the rename keeps them and the clone cannot be installed next
     // to the stock app; the dex also hard-codes content://com.fotmob.widget.* URIs.
     allowClone = false,
-    extraDescription = "FotMob's Sign in with Google needs it. FotMob's automatic sign-in at first " +
-        "start is skipped, because MicroG RE would show it as an account chooser; use the Sign in " +
-        "with Google button instead.",
+    // The automatic sign-in at first start is skipped (MicroG RE shows it as an account chooser).
+    extraDescription = "Sign in with the Sign in with Google button.",
     executeBlock = { skipOnboardingAutoSignIn() },
 )
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -19,8 +19,6 @@ import app.morphe.extension.reddit.settings.preference.categories.LayoutPreferen
 import app.morphe.extension.reddit.settings.preference.categories.MiscellaneousPreferenceCategory;
 import app.morphe.extension.reddit.settings.preference.categories.NavigationBarPreferenceCategory;
 import app.morphe.extension.reddit.settings.preference.categories.SidebarPreferenceCategory;
-import app.morphe.extension.shared.ResourceUtils;
-import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 
 /**
@@ -31,11 +29,6 @@ public class RedditPreferenceFragment extends AbstractPreferenceFragment {
 
     @Override
     protected void initialize() {
-        // Must use utils modified language context if language override is active.
-        if (!BaseSettings.MORPHE_LANGUAGE.isSetToDefault()) {
-            ResourceUtils.useActivityContextIfAvailable = false;
-        }
-
         Context context = getContext();
 
         PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
@@ -70,6 +63,8 @@ public class RedditPreferenceFragment extends AbstractPreferenceFragment {
 
         if (requestCode == CustomFontFilePreference.READ_FONT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             CustomFontFilePreference.handleActivityResult(getContext(), resultCode, data);
+        } else if (requestCode == DownloadLocationPreference.PICK_FOLDER_REQUEST_CODE) {
+            DownloadLocationPreference.handleActivityResult(resultCode, data);
         }
     }
 }

@@ -7,9 +7,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val hideSponsoredContentPatch = bytecodePatch(
     name = "Hide sponsored content",
-    description = "Removes sponsored links, sites, suggestions and articles from search and the " +
-        "news feed. The news feed is built from the sponsored article list, so it may show fewer " +
-        "posts or none at all.",
+    description = "Hides sponsored links and articles. The news feed may show few posts.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_EASYLAUNCHER)

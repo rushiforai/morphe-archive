@@ -1,7 +1,7 @@
 // Fills in, for every Venus language file, the texts the Unicode CLDR data (Node's Intl) already has right:
 // language names ("Translated from Spanish"), time units in their "... ago" form with every plural form, "ago",
 // and "and". A hand-made fix in scripts/i18n_overrides/<code>.json always wins.
-// Developer-only: node scripts/i18n_cldr.cjs   (after i18n_draft.py)
+// Developer-only: node scripts/i18n_cldr.cjs   (after hand-reviewed translations are loaded)
 const fs = require('node:fs'), path = require('node:path');
 const ROOT = path.join(__dirname, '..'), FOLDER = path.join(ROOT, 'patches/src/main/resources/venus/i18n');
 const source = fs.readFileSync(path.join(ROOT, 'patches/src/main/resources/venus/bootstrap.js'), 'utf8');

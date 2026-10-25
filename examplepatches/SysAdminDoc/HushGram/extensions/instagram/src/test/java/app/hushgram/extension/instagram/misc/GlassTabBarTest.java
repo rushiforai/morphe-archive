@@ -23,6 +23,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.SystemClock;
 import android.view.Gravity;
@@ -614,6 +616,59 @@ public class GlassTabBarTest {
             assertFalse(report, report.contains(GlassTabBar.COUNT_NAV_BEHIND));
             assertFalse(report, report.contains(GlassTabBar.COUNT_INSETS_AGAIN));
         }
+    }
+
+    /**
+     * #315: a tab badge's ring goes clear at the width it had, once as usual, then again only while the
+     * badge waits to redraw after Instagram strokes it in place, without asking for a frame. The drawable
+     * it shares a state with, another background and no background stay as they are.
+     */
+    @Test
+    @Config(sdk = 29)
+    public void aBadgesRingGoesClearAndStaysClearWhenInstagramStrokesItAgain() {
+        Context context = RuntimeEnvironment.getApplication();
+        AtomicInteger asked = new AtomicInteger();
+        View badge = new View(context) {
+            @Override public void invalidateDrawable(Drawable drawable) {
+                asked.incrementAndGet();
+                super.invalidateDrawable(drawable);
+            }
+        };
+        GradientDrawable shared = new GradientDrawable();
+        shared.setColor(Color.RED);
+        shared.setStroke(4, Color.WHITE);
+        Drawable dot = shared.getConstantState().newDrawable();
+        badge.setBackground(dot);
+        badge.layout(0, 0, 40, 40);
+        Canvas canvas = new Canvas(Bitmap.createBitmap(40, 40, Bitmap.Config.ARGB_8888));
+        badge.draw(canvas);
+        Set<Drawable> cleared = new HashSet<>();
+
+        assertTrue("a new ring is cleared", GlassTabBar.clearRing(badge, 4, cleared));
+        assertEquals(Color.TRANSPARENT, strokeColor(dot));
+        assertEquals("the ring keeps its width", 4, (int) ReflectionHelpers.getField(ReflectionHelpers.getField(dot, "mGradientState"), "mStrokeWidth"));
+        assertEquals("the shared state keeps its ring", Color.WHITE, strokeColor(shared));
+
+        badge.draw(canvas);
+        assertFalse("a badge with nothing to redraw is left alone", GlassTabBar.clearRing(badge, 4, cleared));
+
+        ((GradientDrawable) badge.getBackground()).setStroke(4, Color.WHITE);
+        assertTrue("Instagram's stroke asks for the redraw", badge.isDirty());
+        int before = asked.get();
+        assertFalse("a ring is counted once", GlassTabBar.clearRing(badge, 4, cleared));
+        assertEquals("cleared again before the redraw", Color.TRANSPARENT, strokeColor(dot));
+        assertEquals("without asking for a frame", before, asked.get());
+        assertSame("the badge still hears its drawable", badge, dot.getCallback());
+
+        View plain = new View(context);
+        plain.setBackground(new ColorDrawable(Color.RED));
+        assertFalse(GlassTabBar.clearRing(plain, 4, cleared));
+        assertFalse(GlassTabBar.clearRing(new View(context), 4, cleared));
+    }
+
+    private static int strokeColor(Drawable drawable) {
+        ColorStateList colors = ReflectionHelpers.getField(ReflectionHelpers.getField(drawable, "mGradientState"), "mStrokeColors");
+        return colors.getDefaultColor();
     }
 
     /** Only a floating pill is lifted, by its step's dp; Standard, no choice and a bar that doesn't float stay put. */

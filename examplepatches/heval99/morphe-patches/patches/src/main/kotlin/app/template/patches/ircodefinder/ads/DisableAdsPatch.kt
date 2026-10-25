@@ -21,7 +21,7 @@ private const val LINEAR_LAYOUT = "Landroid/widget/LinearLayout;"
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner and interstitial ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_IR_CODE_FINDER)
 

@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.misc.extension.requireLocals
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -116,8 +117,9 @@ private fun answersNull(code: List<Instruction>): Boolean {
  */
 internal fun BytecodePatchContext.linkHistoryFactories(): List<Method> {
     val found = LINK_HISTORY_WRITERS.associateWith { mutableListOf<Method>() }
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith("Lapp/morphe/")) return@classDefForEach
+    // A factory makes its writer.
+    classDefForEachReferencing(types = LINK_HISTORY_WRITERS) { classDef ->
+        if (classDef.type.startsWith("Lapp/morphe/")) return@classDefForEachReferencing
         for (method in classDef.methods) {
             for (writer in LINK_HISTORY_WRITERS) if (isWriterFactory(method, writer)) found.getValue(writer) += method
         }

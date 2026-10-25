@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/LuckyToShine/czyeru/compare/v1.7.7...v1.8.0) (2026-10-24)
+
+### ✨ New Features
+
+* **cinevi:** recolor accent to a purple gradient (Purple theme) ([ea946e2](https://github.com/LuckyToShine/czyeru/commit/ea946e2b6b6b437ea56766eefbc49b53478a70d7)), closes [#6600FF](https://github.com/LuckyToShine/czyeru/issues/6600FF) [#3A0099](https://github.com/LuckyToShine/czyeru/issues/3A0099)
+
 ## [1.7.7](https://github.com/LuckyToShine/czyeru/compare/v1.7.6...v1.7.7) (2026-10-23)
 
 ### 🚀 Updated App Support

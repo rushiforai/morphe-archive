@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -38,9 +38,9 @@ val fixRecycledBitmapPatch = bytecodePatch(
 
             replaceInstruction(
                 index,
-                $"invoke-static { $registers }, $EXTENSION_CLASS->putBitmap(" +
-                        "Landroid/media/MediaMetadata\$Builder;Ljava/lang/String;Landroid/graphics/Bitmap;)" +
-                        "Landroid/media/MediaMetadata\$Builder;"
+                "invoke-static { $registers }, $EXTENSION_CLASS->putBitmap(" +
+                        $$"Landroid/media/MediaMetadata$Builder;Ljava/lang/String;Landroid/graphics/Bitmap;)" +
+                        $$"Landroid/media/MediaMetadata$Builder;"
             )
         }
     }

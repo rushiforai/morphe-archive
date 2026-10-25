@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -28,7 +28,7 @@ public final class PrioritizeVideoQualityPatch {
      * These video formats are fixed by {@link VideoInformation#fixVideoQualityResolution(String, int)}.
      * <p>
      * If AVC is the only available video codec and only inconsistent values exist, SABR playback is not starting.
-     * See: <a href="https://github.com/mrx7014/MRXHalawa-Patches/issues/2713">morphe-patches#2713</a>.
+     * See: <a href="https://github.com/MorpheApp/morphe-patches/issues/2713">morphe-patches#2713</a>.
      */
     private static final List<Integer> AVAILABLE_FORMAT_HEIGHT = List.of(
             // YouTube mobile app does not support 4320p.

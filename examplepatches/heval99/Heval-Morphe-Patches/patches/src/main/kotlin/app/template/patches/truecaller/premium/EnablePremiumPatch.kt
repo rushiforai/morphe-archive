@@ -5,7 +5,12 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
+import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.builder.BuilderSwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -18,9 +23,7 @@ private val SERVER_BACKED_FEATURES = listOf("CALL_ASSISTANT", "FAMILY_SHARING")
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the Premium interface and the Premium features that are checked on " +
-        "the device. Features backed by Truecaller's servers (Call Assistant, family sharing, Who viewed / searched for me data, Identify AI, " +
-        "cloud call recording, fraud insurance, the verified badge) are reported as unavailable.",
+    description = "Unlocks premium features. Server features like Who viewed me stay locked.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 
@@ -135,5 +138,47 @@ val enablePremiumPatch = bytecodePatch(
                 return-object p0
             """,
         )
+
+        // 8. Premium tab (#77): with the forced isPremium (step 2) the tab's state chooser built the
+        // Entitled screen (subscription management), whose view model expects a real subscription
+        // and crashed on the server's FREE data. Only in that chooser the isPremium result reads
+        // false right after its move-result, so the tab builds the Paywall state (the plans) as on
+        // a stock free account. Every other isPremium reader keeps the forced true.
+        val entitled = PremiumTabEntitledStateToStringFingerprint.originalClassDef.type
+        val paywall = PremiumTabPaywallStateToStringFingerprint.originalClassDef.type
+        val isPremium = IsPremiumFingerprint.originalMethod
+        PremiumTabScreenStateFingerprint.method.apply {
+            val code = implementation!!
+            val instructions = code.instructions.toList()
+            for (state in listOf(entitled, paywall)) {
+                val builds = instructions.any {
+                    it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == state
+                }
+                if (!builds) throw PatchException("$definingClass.$name no longer builds the Premium tab state $state")
+            }
+            val calls = instructions.indices.filter { index ->
+                val call = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                call != null && call.definingClass == isPremium.definingClass && call.name == isPremium.name &&
+                    call.parameterTypes.isEmpty() && call.returnType == "Z"
+            }
+            val call = calls.singleOrNull()
+                ?: throw PatchException("$definingClass.$name calls isPremium ${calls.size} times, expected 1")
+            val moveResult = instructions.getOrNull(call + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT } as? OneRegisterInstruction
+                ?: throw PatchException("$definingClass.$name: no move-result after the isPremium call")
+            // The branch after the move-result carries the try block's end label, so the shared
+            // requireNoBranchTargetAt guard (any label) does not fit; a jump there would skip the insert.
+            val jumpTargets = instructions.flatMap { instruction ->
+                when (instruction) {
+                    is BuilderOffsetInstruction -> listOf(instruction.target)
+                    is BuilderSwitchPayload -> instruction.switchElements.map { it.target }
+                    else -> emptyList()
+                }
+            } + code.tryBlocks.flatMap { block -> block.exceptionHandlers.map { it.handler } }
+            if (jumpTargets.any { it.location.index == call + 2 }) {
+                throw PatchException("$definingClass.$name: the instruction after the isPremium move-result is a jump target")
+            }
+            // const/16 takes any register below 256.
+            addInstructionChecked(call + 2, "const/16 v${moveResult.registerA}, 0x0")
+        }
     }
 }

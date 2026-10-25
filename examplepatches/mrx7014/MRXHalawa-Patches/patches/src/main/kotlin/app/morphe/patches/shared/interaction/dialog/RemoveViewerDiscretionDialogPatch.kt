@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -66,13 +66,13 @@ internal fun removeViewerDiscretionDialogPatch(
                     smali = "Ljava/lang/Boolean;->booleanValue()Z"
                 ),
                 opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
-                opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterWithin(2)),
+                opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterWithin(4)),
                 opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
                 methodCall(
                     opcode = Opcode.INVOKE_DIRECT,
                     name = "<init>",
                     definingClass = AdultContentRunnableFingerprint.method.definingClass,
-                    location = MatchAfterWithin(3)
+                    location = MatchAfterWithin(5)
                 )
             )
         )

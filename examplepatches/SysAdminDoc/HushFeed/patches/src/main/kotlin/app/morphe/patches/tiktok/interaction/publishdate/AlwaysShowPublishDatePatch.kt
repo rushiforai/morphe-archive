@@ -16,6 +16,7 @@ import app.morphe.patches.tiktok.interaction.engagement.profileGridCountPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.util.ControlFlow
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
@@ -71,7 +72,7 @@ val alwaysShowPublishDatePatch = bytecodePatch(
             )
             showPostTimeForMainFeeds()
         }
-        hookGridSortOn(packageMetadata.versionName)
+        hookGridSortOn(packageMetadata.buildName)
     }
 }
 

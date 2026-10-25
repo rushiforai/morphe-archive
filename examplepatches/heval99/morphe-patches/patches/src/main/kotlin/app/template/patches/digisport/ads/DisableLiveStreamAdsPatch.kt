@@ -14,8 +14,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_DIGISPORT_EXPERIMENTA
 @Suppress("unused")
 val disableLiveStreamAdsPatch = bytecodePatch(
     name = "Disable live stream ads",
-    description = "Plays live channels from the plain stream instead of the Google DAI stream " +
-        "with inserted ads. Turn this off if a live channel stops playing."
+    description = "Removes ads from live channels. Turn off if a channel stops playing."
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT_EXPERIMENTAL)
 

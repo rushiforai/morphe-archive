@@ -28,9 +28,7 @@ private val CONDITIONAL_BRANCHES = setOf(
 @Suppress("unused")
 val restoreClassicCallLogPatch = bytecodePatch(
     name = "Restore classic call log",
-    description = "Experimental: turns off the redesigned call log, which brings back the classic " +
-        "call log and its \"Frequently called\" setting. Swipe right to call and swipe left for SMS " +
-        "stay available.",
+    description = "Experimental: restores the classic call log.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

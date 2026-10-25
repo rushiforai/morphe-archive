@@ -35,8 +35,7 @@ private val FEATURE_GETTERS = setOf(
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks 365Scores premium features (ad-free, tipster, plus, " +
-        "delayed notifications and notification sounds)."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_365SCORES)
 

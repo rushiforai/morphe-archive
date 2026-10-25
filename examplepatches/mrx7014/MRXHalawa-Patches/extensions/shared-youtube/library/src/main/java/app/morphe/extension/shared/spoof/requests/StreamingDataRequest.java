@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -40,6 +40,7 @@ import app.morphe.extension.shared.oauth2.requests.OAuth2Requester;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.PreferredClientCheck;
 import app.morphe.extension.shared.spoof.js.JavaScriptEngineSupport;
 import app.morphe.extension.shared.spoof.js.JavaScriptManager;
 import app.morphe.extension.shared.spoof.potoken.PoTokenManager;
@@ -61,10 +62,22 @@ public class StreamingDataRequest {
     private static volatile ClientType[] clientOrderToUse = ClientType.values();
 
     public static void setClientOrderToUse(List<ClientType> availableClients, ClientType preferredClient) {
+        List<ClientType> orderToUse = buildClientOrder(availableClients, preferredClient);
+
+        clientOrderToUse = orderToUse.toArray(new ClientType[0]);
+        Logger.printDebug(() -> "Available spoof clients: " + orderToUse);
+    }
+
+    private static List<ClientType> buildClientOrder(List<ClientType> availableClients,
+                                                     ClientType preferredClient) {
         Objects.requireNonNull(preferredClient);
 
         List<ClientType> orderToUse = new ArrayList<>(availableClients.size());
         orderToUse.add(preferredClient);
+        // YouTube serves each TV device separately, so another one can still play when the first is cut off.
+        if (preferredClient == ClientType.TV_SABR) {
+            orderToUse.add(ClientType.TV_SABR_WII_U);
+        }
 
         for (ClientType client : availableClients) {
             if (client.requireJS && !JavaScriptEngineSupport.supportsJavaScriptEngine()) {
@@ -77,8 +90,7 @@ public class StreamingDataRequest {
             }
         }
 
-        clientOrderToUse = orderToUse.toArray(new ClientType[0]);
-        Logger.printDebug(() -> "Available spoof clients: " + orderToUse);
+        return orderToUse;
     }
 
     private static final String AUTHORIZATION_HEADER = "Authorization"; // Available only to logged-in users.
@@ -107,6 +119,7 @@ public class StreamingDataRequest {
 
     private static volatile ClientType lastSpoofedClientType;
     private static volatile boolean fallbackWithTVDash;
+    private static volatile Map<String, String> lastPlayerHeaders = Collections.emptyMap();
 
     /**
      * Used only for stats for nerds to show VR sign-in was used.
@@ -174,16 +187,39 @@ public class StreamingDataRequest {
         return videoId;
     }
 
-    private StreamingDataRequest(String videoId, boolean isInline, Map<String, String> playerHeaders) {
+    private StreamingDataRequest(String videoId, boolean isInline, Map<String, String> playerHeaders,
+                                 boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload) {
         this.videoId = videoId;
         this.isInline = isInline;
         this.future = Utils.submitOnBackgroundThread(
-                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders));
+                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders, includeVideoDetails,
+                        clientOrder, isDownload));
     }
 
     public static void fetchRequest(String videoId, boolean isInline, Map<String, String> fetchHeaders) {
+        // Keep the latest player headers so downloads can resolve tracks that were never opened.
+        if (fetchHeaders != null && !fetchHeaders.isEmpty()) {
+            lastPlayerHeaders = fetchHeaders;
+        }
         // Always fetch, even if there is an existing request for the same video.
-        cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders));
+        cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders, false,
+                clientOrderToUse, false));
+    }
+
+    /**
+     * Resolves a video that the app never opened, using the latest player headers.
+     * Deliberately not cached, so downloads cannot evict the streams of videos being watched.
+     * <p>
+     * The clients are given by the caller instead of taken from the playback order, which stays at
+     * the enum default while spoofing is off and then begins with a SABR client that has no urls.
+     */
+    public static StreamingDataRequest fetchRequestForDownload(String videoId,
+                                                               List<ClientType> downloadClients,
+                                                               ClientType preferredClient) {
+        ClientType[] clientOrder = buildClientOrder(downloadClients, preferredClient)
+                .toArray(new ClientType[0]);
+        // The video details name the saved file, so the download asks for them as well.
+        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, true, clientOrder, true);
     }
 
     @Nullable
@@ -207,7 +243,8 @@ public class StreamingDataRequest {
     private static HttpURLConnection send(ClientType clientType,
                                           String videoId,
                                           String authorization,
-                                          boolean showErrorToasts) {
+                                          boolean showErrorToasts,
+                                          boolean includeVideoDetails) {
         Utils.verifyOffMainThread();
 
         Objects.requireNonNull(clientType);
@@ -217,7 +254,8 @@ public class StreamingDataRequest {
         final boolean authHeadersIncludes = Utils.isNotEmpty(authorization);
 
         try {
-            HttpURLConnection connection = PlayerRoutes.getPlayerResponseConnectionFromRoute(clientType);
+            HttpURLConnection connection =
+                    PlayerRoutes.getPlayerResponseConnectionFromRoute(clientType, includeVideoDetails);
             connection.setConnectTimeout(HTTP_TIMEOUT_MILLISECONDS);
             connection.setReadTimeout(HTTP_TIMEOUT_MILLISECONDS);
 
@@ -263,7 +301,7 @@ public class StreamingDataRequest {
 
             // Using the same visitorId across multiple clients increases the bot score.
             // To prevent this, each client uses a different visitorId.
-            // See: https://github.com/mrx7014/MRXHalawa-Patches/issues/2283.
+            // See: https://github.com/MorpheApp/morphe-patches/issues/2283.
             String visitorId = VisitorIdRequester.getVisitorId(clientType);
             if (Utils.isNotEmpty(visitorId)) {
                 connection.setRequestProperty(VISITOR_ID_HEADER, visitorId);
@@ -363,7 +401,7 @@ public class StreamingDataRequest {
             // TV SABR clients in live streams will be temporarily fallbacked to TV DASH clients.
             //
             // TODO: Override other playerConfigs such as exoPlayerConfig.
-            if (clientType.requireSABR && clientType == ClientType.TV_SABR
+            if ((clientType == ClientType.TV_SABR || clientType == ClientType.TV_SABR_WII_U)
                     && Utils.containsAny(streamingData.getServerAbrStreamingUrl(), "yt_live_broadcast", "yt_premiere_broadcast")) {
                 Logger.printDebug(() -> "Live stream detected, fallback to TV dash");
                 fallbackWithTVDash = true;
@@ -435,33 +473,46 @@ public class StreamingDataRequest {
         return false;
     }
 
-    private static StreamData fetch(String videoId, boolean isInline, Map<String, String> playerHeaders) {
+    private static StreamData fetch(String videoId, boolean isInline, Map<String, String> playerHeaders,
+                                    boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload) {
         final boolean debugEnabled = BaseSettings.DEBUG.get();
         final long fetchStartTime = System.currentTimeMillis();
         String authorization = playerHeaders.get(AUTHORIZATION_HEADER);
 
         // Retry with different client if empty response body is received.
         int i = 0;
-        for (ClientType clientType : clientOrderToUse) {
+        for (ClientType clientType : clientOrder) {
             if (skipClient(clientType)) {
                 continue;
             }
 
             // Show an error if the last client type fails, or if debug is enabled then show for all attempts.
-            final boolean showErrorToast = (++i == clientOrderToUse.length) || debugEnabled;
+            // A download reports its own failure, so it never adds a toast of its own here.
+            final boolean showErrorToast = ((++i == clientOrder.length) || debugEnabled) && !isDownload;
 
-            HttpURLConnection connection = send(clientType, videoId, authorization, showErrorToast);
+            if (clientType.requireJS) {
+                JavaScriptManager.warmUpInBackground();
+            }
+
+            HttpURLConnection connection =
+                    send(clientType, videoId, authorization, showErrorToast, includeVideoDetails);
             StreamData streamingData = buildPlayerResponseBuffer(clientType, connection, videoId, isInline);
 
-            if (clientType == ClientType.TV_SABR && fallbackWithTVDash) {
+            if ((clientType == ClientType.TV_SABR || clientType == ClientType.TV_SABR_WII_U) && fallbackWithTVDash) {
                 fallbackWithTVDash = false;
                 clientType = ClientType.TV_DASH;
-                HttpURLConnection fallBackConnection = send(clientType, videoId, authorization, showErrorToast);
+                HttpURLConnection fallBackConnection =
+                        send(clientType, videoId, authorization, showErrorToast, includeVideoDetails);
                 streamingData = buildPlayerResponseBuffer(clientType, fallBackConnection, videoId, isInline);
             }
 
             if (streamingData != null) {
-                lastSpoofedClientType = clientType;
+                // Stats for nerds describes what is playing, which a download never changes.
+                if (!isDownload) {
+                    lastSpoofedClientType = clientType;
+                    // The first attempt is with the default client.
+                    PreferredClientCheck.onStreamsFetched(videoId, i == 1, clientType);
+                }
 
                 if (clientType.requireJS) {
                     Logger.printDebug(() -> "End of fetch for JavaScript required client" +
@@ -475,10 +526,15 @@ public class StreamingDataRequest {
             }
         }
 
+        if (isDownload) {
+            Logger.printDebug(() -> "No client could resolve the download: " + videoId);
+            return null;
+        }
+
         lastSpoofedClientType = null;
         handleConnectionError(str("morphe_spoof_video_streams_no_clients_toast"), null, true);
 
-        ClientType preferredClient = clientOrderToUse[0];
+        ClientType preferredClient = clientOrder[0];
         if (!preferredClient.supportsOAuth2 && !SharedYouTubeSettings.OAUTH2_REFRESH_TOKEN.get().isBlank()) {
             handleConnectionError(str("morphe_spoof_video_streams_no_clients_suggest_vr_toast"), null, true);
         }

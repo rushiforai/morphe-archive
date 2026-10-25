@@ -11,12 +11,13 @@ import tarfile
 import tempfile
 import time
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from threading import BoundedSemaphore, Lock
 
 from scripts.catalog_records import encode
+from scripts.cloudflare_progress import Progress
 
 REFRESH_FILES = (
     "history.json",
@@ -83,7 +84,8 @@ class R2Reader:
                     code = response.get("Error", {}).get("Code")
                     status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
                     transient = (
-                        code in {
+                        code
+                        in {
                             "SlowDown",
                             "ServiceUnavailable",
                             "InternalError",
@@ -183,20 +185,40 @@ class BlobCache:
             self.remember(digest, body)
         return digest
 
-    def parallel(self, action, items):
-        with ThreadPoolExecutor(max_workers=self.workers) as pool:
-            return list(pool.map(action, items))
+    def parallel(self, action, items, operation="r2_transfer"):
+        items = list(items)
+        results = [None] * len(items)
+        with (
+            Progress(operation, len(items)) as progress,
+            ThreadPoolExecutor(max_workers=self.workers) as pool,
+        ):
+            futures = {pool.submit(action, item): index for index, item in enumerate(items)}
+            pending = set(futures)
+            try:
+                while pending:
+                    # This is a reporting interval, not an operation deadline.
+                    done, pending = wait(pending, timeout=10, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        results[futures[future]] = future.result()
+                    progress.update(len(items) - len(pending))
+            except BaseException:
+                for future in pending:
+                    future.cancel()
+                raise
+        return results
 
     def prefetch(self, digests, fresh=False):
         def fetch(digest):
             self.read(digest, fresh=fresh)
 
-        self.parallel(fetch, sorted(set(digests)))
+        self.parallel(fetch, sorted(set(digests)), operation="r2_verify" if fresh else "r2_read")
 
-    def upload_files(self, paths, known):
+    def upload_files(self, paths, known, expected=None):
         digests, unique = {}, {}
         for name, path in paths.items():
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            if expected is not None and name in expected and digest != expected[name]["sha256"]:
+                raise ValueError("Local catalog integrity mismatch")
             digests[name] = digest
             unique.setdefault(digest, path)
         self.add("duplicate_files_avoided", len(paths) - len(unique))
@@ -208,7 +230,11 @@ class BlobCache:
                 raise ValueError("Local catalog changed during upload")
             self.upload(body, known)
 
-        self.parallel(upload, unique.items())
+        # Every file was hashed above. Ready generations already verified known objects;
+        # only new objects need a second read to guard changes during upload.
+        missing = [(digest, path) for digest, path in unique.items() if digest not in known]
+        self.add("uploads_avoided", len(unique) - len(missing))
+        self.parallel(upload, missing, operation="r2_upload_snapshot")
         return digests
 
     def trim(self, maximum):

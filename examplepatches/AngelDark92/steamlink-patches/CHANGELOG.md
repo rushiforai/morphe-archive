@@ -1,3 +1,32 @@
+## [2.2.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.1.0...v2.2.0) (2026-10-24)
+
+### ✨ New Features
+
+* add Alpha-0 high-resolution trigger patch for Steam Link 2.0.20 ([c9eda0c](https://github.com/AngelDark92/xr-porting-hub/commit/c9eda0c735b230ca462be6db056a576f5511fd00))
+
+## [2.1.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.0.0...v2.1.0) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **spacewarp:** pin LF for the SHA-256 manifest resource ([344ec8f](https://github.com/AngelDark92/xr-porting-hub/commit/344ec8f282a17dd5612305986f411b767952cf05))
+* **steamlink:** pin canonical LF telemetry manifest hash ([93de117](https://github.com/AngelDark92/xr-porting-hub/commit/93de1170a0f628e9c70e05f8cd11b87eeab6127b))
+
+### ✨ New Features
+
+* support for 2.0.24 apk ([79d3c09](https://github.com/AngelDark92/xr-porting-hub/commit/79d3c097686d513caf2ab16bc23b681e636cc5e7))
+
+## [2.1.0-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.0.1-dev.1...v2.1.0-dev.1) (2026-10-24)
+
+### ✨ New Features
+
+* support for 2.0.24 apk ([79d3c09](https://github.com/AngelDark92/xr-porting-hub/commit/79d3c097686d513caf2ab16bc23b681e636cc5e7))
+
+## [2.0.1-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.0.0...v2.0.1-dev.1) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **steamlink:** pin canonical LF telemetry manifest hash ([93de117](https://github.com/AngelDark92/xr-porting-hub/commit/93de1170a0f628e9c70e05f8cd11b87eeab6127b))
+
 ## [2.0.0](https://github.com/AngelDark92/xr-porting-hub/compare/v1.32.1...v2.0.0) (2026-10-22)
 
 ### ⚠ BREAKING CHANGES

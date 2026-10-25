@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -10,14 +10,17 @@
 
 package app.morphe.extension.youtube.patches.components;
 
+import static app.morphe.extension.shared.StringRef.str;
+import static app.morphe.extension.shared.patches.TextComponentPatch.newSpanUsingStylingOfAnotherSpan;
+
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
-
-import androidx.annotation.NonNull;
 
 import java.util.List;
 
@@ -41,6 +44,11 @@ public class CommentsFilter extends Filter {
 
     private static final String CHIP_BAR_PATH_PREFIX = "chip_bar.e";
     private static final String COMMENT_COMPOSER_PATH = "comment_composer.e";
+    private static final String COMMENT_PATH = "|comment.e";
+    /**
+     * The button text is localized, and the component also holds other tri-state buttons.
+     */
+    private static final String TRANSLATE_BUTTON_ACCESSIBILITY_ID = "id.ui.comments.translate.button";
     private static final String VIDEO_LOCKUP_WITH_ATTACHMENT_PATH = "video_lockup_with_attachment.e";
     private static final String VIDEO_METADATA_CAROUSEL_PATH = "video_metadata_carousel.e";
     private static final int ID_LIVE_CHAT_ACTION_PANEL =
@@ -54,8 +62,14 @@ public class CommentsFilter extends Filter {
     private final ByteArrayFilterGroupList commentComposerButtonsGroupList = new ByteArrayFilterGroupList();
     private final StringFilterGroup comments;
     private final StringFilterGroup commentsFilterBar;
+    private final StringFilterGroup dislikeButton;
     private final StringFilterGroup emojiButton;
-    private final StringFilterGroup previewCommentDotsSelector;
+    private final StringFilterGroup commentCardsIndicator;
+    private final StringFilterGroup menuButton;
+    private final StringFilterGroup translateButton;
+
+    private static final CharSequence hiddenPreviewCommentCharSequence =
+            str("morphe_hide_comments_preview_comment_hidden");
 
     public CommentsFilter() {
         var channelGuidelines = new StringFilterGroup(
@@ -94,7 +108,8 @@ public class CommentsFilter extends Filter {
         comments = new StringFilterGroup(
                 null,
                 "video_metadata_carousel",
-                "_comments"
+                "_comments",
+                "teaser_carousel_with_controller"
         );
 
         var commentsByMembers = new StringFilterGroup(
@@ -115,6 +130,11 @@ public class CommentsFilter extends Filter {
                 CHIP_BAR_PATH_PREFIX
         );
 
+        var commentsZeroState = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_ZERO_STATE,
+                "comment_zero_state"
+        );
+
         var communityGuidelines = new StringFilterGroup(
                 Settings.HIDE_COMMENTS_COMMUNITY_GUIDELINES,
                 "community_guidelines",
@@ -131,6 +151,12 @@ public class CommentsFilter extends Filter {
                 "id.comment.quick_emoji.button"
         );
 
+        // Overflow buttons are also used outside of comments.
+        menuButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_MENU_BUTTON,
+                "overflow_button.e"
+        );
+
         var giftAnimationAndCards = new StringFilterGroup(
                 Settings.HIDE_COMMENTS_GIFT_ANIMATION_AND_CARDS,
                 "gift_overlay.e",
@@ -138,16 +164,15 @@ public class CommentsFilter extends Filter {
         );
 
         var previewComment = new StringFilterGroup(
-                Settings.HIDE_COMMENTS_PREVIEW_COMMENT,
-                "|carousel_item",
-                "comments_entry_point_teaser",
-                "comments_entry_point_simplebox"
+                Settings.MINIMAL_COMMENTS_BUTTON,
+                "|carousel_item.e"
         );
 
-        previewCommentDotsSelector = new StringFilterGroup(
-                Settings.HIDE_COMMENTS_PREVIEW_COMMENT,
+        commentCardsIndicator = new StringFilterGroup(
+                Settings.MINIMAL_COMMENTS_BUTTON,
                 VIDEO_METADATA_CAROUSEL_PATH
         );
+
 
         var thanksButton = new StringFilterGroup(
                 Settings.HIDE_COMMENTS_THANKS_BUTTON,
@@ -164,6 +189,16 @@ public class CommentsFilter extends Filter {
                 "live_viewer_leaderboard_chat_entry_point.e"
         );
 
+        dislikeButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_DISLIKE_BUTTON,
+                "engagement_dislike_button.e"
+        );
+
+        translateButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_TRANSLATE_BUTTON,
+                "tri_state_button.e"
+        );
+
         addPathCallbacks(
                 channelGuidelines,
                 chatSummary,
@@ -173,15 +208,19 @@ public class CommentsFilter extends Filter {
                 commentsByMembers,
                 commentsContexts,
                 commentsFilterBar,
+                commentsZeroState,
                 communityGuidelines,
                 createAShortButton,
+                dislikeButton,
                 emojiButton,
                 giftAnimationAndCards,
                 previewComment,
-                previewCommentDotsSelector,
+                commentCardsIndicator,
+                menuButton,
                 thanksButton,
                 timestampButton,
-                topFansButton
+                topFansButton,
+                translateButton
         );
     }
 
@@ -189,14 +228,14 @@ public class CommentsFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
                               FilterContentType contentType,
                               int contentIndex) {
         if (matchedGroup == comments) {
-            if (path.startsWith(VIDEO_LOCKUP_WITH_ATTACHMENT_PATH)) {
+            if (Utils.startsWith(path, VIDEO_LOCKUP_WITH_ATTACHMENT_PATH)) {
                 return Settings.HIDE_COMMENTS_SECTION_IN_HOME_FEED.get();
             }
             return Settings.HIDE_COMMENTS_SECTION.get();
@@ -213,12 +252,30 @@ public class CommentsFilter extends Filter {
             return commentComposerButtonsGroupList.check(buffer).isFiltered();
         }
 
+        if (matchedGroup == menuButton) {
+            return Utils.contains(path, COMMENT_PATH);
+        }
+
+        if (matchedGroup == dislikeButton) {
+            // Only the buttons of comments and replies.
+            return Utils.contains(path, COMMENT_PATH);
+        }
+
+        if (matchedGroup == translateButton) {
+            return accessibility.startsWith(TRANSLATE_BUTTON_ACCESSIBILITY_ID)
+                    && Utils.contains(path, COMMENT_PATH);
+        }
+
         if (matchedGroup == commentsFilterBar) {
             return Settings.HIDE_FILTER_BAR_IN_COMMENTS.get() && PlayerType.getCurrent().isMaximizedOrFullscreen();
         }
 
-        if (matchedGroup == previewCommentDotsSelector) {
-            return path.contains("carousel_header") && path.endsWith("|ContainerType|ContainerType|ContainerType|");
+        if (matchedGroup == commentCardsIndicator) {
+            return Utils.contains(path, "carousel_header") &&
+                            // Old action buttons layout.
+                            (Utils.endsWith(path, "|ContainerType|ContainerType|ContainerType|")
+                            // New action buttons layout.
+                            || Utils.contains(path, "|dot_indicator.e"));
         }
 
         return true;
@@ -227,11 +284,10 @@ public class CommentsFilter extends Filter {
     /**
      * Injection point.
      */
-    public static void hideCommentsFilterBarOptions(@NonNull String identifier,
-                                                    @NonNull List<Object> treeNodeResultList) {
+    public static void hideCommentsFilterBarOptions(CharSequence path, List<Object> treeNodeResultList) {
         try {
             if (Settings.HIDE_COMMENTS_FILTER_BAR_OPTIONS.get()
-                    && identifier.startsWith(CHIP_BAR_PATH_PREFIX)
+                    && Utils.startsWith(path, CHIP_BAR_PATH_PREFIX)
                     // Playlist sort button uses same components and must only filter if the player is opened.
                     && PlayerType.getCurrent().isMaximizedOrFullscreen()
             ) {
@@ -369,9 +425,25 @@ public class CommentsFilter extends Filter {
     /**
      * Injection point.
      */
+    public static void hideLiveChatScrollToBottomButton(View view) {
+        if (Settings.HIDE_COMMENTS_LIVE_CHAT_SCROLL_TO_BOTTOM_BUTTON.get() && view != null) {
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null) {
+                lp.width = 0;
+                lp.height = 0;
+                view.setLayoutParams(lp);
+            }
+
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
     public static byte[] onCommentsLoaded(byte[] bytes) {
-        if (Settings.HIDE_COMMENTS_CAROUSEL.get() && !commentsCarouselFilterStrings.isEmpty()) {
-            try {
+        try {
+            if (Settings.HIDE_COMMENTS_CAROUSEL.get() && !commentsCarouselFilterStrings.isEmpty()) {
                 var newElement = NewElement.parseFrom(bytes).toBuilder();
                 var identifier = newElement.getProperties().getIdentifierProperties().getIdentifier();
                 if (identifier != null && identifier.contains(VIDEO_METADATA_CAROUSEL_PATH)) {
@@ -428,11 +500,43 @@ public class CommentsFilter extends Filter {
                         }
                     }
                 }
-            } catch (Exception ex) {
-                Logger.printException(() -> "Failed to parse newElement", ex);
             }
+        } catch (Exception ex) {
+            Logger.printException(() -> "onCommentsLoaded failure", ex);
         }
 
         return bytes;
+    }
+
+    /**
+     * Called when a litho text component is created, and also when a Span is later reused
+     * (such as scrolling off and back on screen). Usually called off the main thread, and
+     * can be called several times for the same element.
+     *
+     * @param original Original char sequence created or reused by Litho.
+     * @return The original char sequence, or a replacement that contains the dislikes.
+     */
+    public static CharSequence onLithoTextLoaded(ContextInterface contextInterface,
+                                                 CharSequence original) {
+        try {
+            if (!Settings.HIDE_COMMENTS_PREVIEW_COMMENT.get()) {
+                return original;
+            }
+            StringBuilder pathBuilder = contextInterface.patch_getPathBuilder();
+            if (pathBuilder.indexOf("comments_entry_point_teaser.e") == -1
+                    && pathBuilder.indexOf("comments_entry_point_simplebox.e") == -1) {
+                return original;
+            }
+            Spanned originalSpanned = original instanceof Spanned spanned
+                    ? spanned
+                    : new SpannableString(original);
+
+            // Only the style of the entire comment is used, otherwise a timestamp of the comment
+            // is applied to the entire hidden text and tapping it seeks instead of opening the comments.
+            return newSpanUsingStylingOfAnotherSpan(originalSpanned, hiddenPreviewCommentCharSequence, true);
+        } catch (Exception ex) {
+            Logger.printException(() -> "onLithoTextLoaded failure", ex);
+        }
+        return original;
     }
 }

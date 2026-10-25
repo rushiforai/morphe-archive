@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2691
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2691
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -80,7 +80,6 @@ public class SettingsNamePreference extends CustomDialogListPreference {
 
         ListPreferenceArrayAdapter adapter = new ListPreferenceArrayAdapter(
                 context,
-                LAYOUT_MORPHE_CUSTOM_LIST_ITEM_CHECKED,
                 getEntries(),
                 entryValues,
                 selectedValue[0]

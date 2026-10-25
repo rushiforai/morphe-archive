@@ -11,12 +11,12 @@ import app.template.patches.shared.Constants.COMPATIBILITY_YAHOO_SPORTS
 @Suppress("unused")
 val hideBettingPromotionsPatch = bytecodePatch(
     name = "Hide betting promotions",
-    description = "Hides the sportsbook promotion banner."
+    description = "Hides sportsbook promotions."
 ) {
     compatibleWith(COMPATIBILITY_YAHOO_SPORTS)
 
     execute {
-        // Neither the sponsored-moments promotion nor the server bettingPromo banner is fetched.
+        // The server bettingPromo banner is never requested.
         BettingImageBannerBindFingerprint.method.returnEarly()
     }
 }

@@ -1,3 +1,94 @@
+## [1.52.16](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.15...v1.52.16) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** hook PlayAssetDeliveryUnityWrapper and sanitize libfmod to fix loading screen freeze ([d2df367](https://github.com/SatanMerde/D-moniakPatches/commit/d2df3671e6a466f28fa12bcd11c8f1ca8671f944))
+
+## [1.52.15](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.14...v1.52.15) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore official clean DRM-free native binaries to eliminate il2cpp_init crash ([40884c0](https://github.com/SatanMerde/D-moniakPatches/commit/40884c00e9125c5ede20afd87c00b74b30f439ca))
+
+## [1.52.14](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.13...v1.52.14) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** replace libpairipcore.so with dynamic GOT resolver engine ([f6380a9](https://github.com/SatanMerde/D-moniakPatches/commit/f6380a98a4bcd42734c48b5d8a9c5c99b43f50cc))
+
+## [1.52.13](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.12...v1.52.13) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** retain libpairipcore.so in DT_NEEDED to satisfy ExecuteProgram symbol ([82eb9ec](https://github.com/SatanMerde/D-moniakPatches/commit/82eb9ecad6fed4b142a9bfaa44afaa913580afa5))
+
+## [1.52.12](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.11...v1.52.12) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** patch libmain RTLD_NOW, sanitize DT_NEEDED, and zero init_array ([d8c8951](https://github.com/SatanMerde/D-moniakPatches/commit/d8c89518d03e329f11078e3d6f78a0ab06e99824))
+
+## [1.52.11](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.10...v1.52.11) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** fix bounds checks and strtabSz in native ELF stubbing ([4505242](https://github.com/SatanMerde/D-moniakPatches/commit/4505242760b517bb0b3f8960c07b070d6494f80b))
+
+## [1.52.10](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.9...v1.52.10) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore all 1511 PairIP obfuscated strings and GMS preconditions ([f8003d4](https://github.com/SatanMerde/D-moniakPatches/commit/f8003d4462a92560124b1177becf74f6e42c9610))
+
+## [1.52.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.8...v1.52.9) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore clean UnityPlayerActivity lifecycle to prevent PairIP reflection NPE ([a830a24](https://github.com/SatanMerde/D-moniakPatches/commit/a830a24b77b1d7ef1caa4e7790842cc23ca7bb0b))
+
+## [1.52.8](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.7...v1.52.8) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** neutralize Play Games appshortcuts background crash ([2bf3376](https://github.com/SatanMerde/D-moniakPatches/commit/2bf3376184b69a5a9fb5705933a3b4e59519f4c5))
+
+## [1.52.7](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.6...v1.52.7) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** retain PairIP classes as safe stubs to prevent NoClassDefFoundError ([26c6e16](https://github.com/SatanMerde/D-moniakPatches/commit/26c6e163d0cb489441b73a1f2ca4ecb3064e8684))
+
+## [1.52.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.5...v1.52.6) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** avoid ConcurrentModificationException when purging PairIP classes ([7789977](https://github.com/SatanMerde/D-moniakPatches/commit/778997737cde26ffdfad6b113660d24fa18ab778))
+
+## [1.52.5](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.4...v1.52.5) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** clean up compatibility description ([f46a1fd](https://github.com/SatanMerde/D-moniakPatches/commit/f46a1fd24a04feb68f9b321acf480f08c51c8e48))
+
+## [1.52.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.3...v1.52.4) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** correct BuilderInstruction35c register properties ([b275251](https://github.com/SatanMerde/D-moniakPatches/commit/b275251aa9366244187eca8cb0e57000581cbed7))
+* **silt:** restore PairIP strings, inline wrappers, and dynamically neutralize native DRM ([7577dab](https://github.com/SatanMerde/D-moniakPatches/commit/7577daba29d6779411e18a9eae78718a50e78c2b))
+
+## [1.52.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.2...v1.52.3) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** set target version to 1.0.10 and document decrypted base requirement ([90b538f](https://github.com/SatanMerde/D-moniakPatches/commit/90b538f52343ef41d4d724359bcf2256f7dc19a8))
+
+## [1.52.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.1...v1.52.2) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* finalize Silt DRM hooks and refine Shazam adblock logging ([617cece](https://github.com/SatanMerde/D-moniakPatches/commit/617cece9ed4c109f65ed51a1fd961101fc13a519))
+
 ## [1.52.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.0...v1.52.1) (2026-10-18)
 
 ### 🐛 Bug Fixes

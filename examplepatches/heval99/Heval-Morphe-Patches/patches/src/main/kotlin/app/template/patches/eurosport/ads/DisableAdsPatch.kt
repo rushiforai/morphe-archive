@@ -18,6 +18,8 @@ import app.template.patches.shared.Constants.COMPATIBILITY_EUROSPORT
 import app.template.patches.shared.addInstructionsChecked
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -40,22 +42,29 @@ private fun Instruction.passes(register: Int): Boolean = when (this) {
 }
 
 /**
- * The PlayerModel field toString() prints after "showAds=": the first boolean field read after
- * the instruction that consumes that string, and before the next string is loaded (so a helper
- * that took the flag along with the string fails loudly instead of picking the next field).
+ * PlayerMediaInfo's adsMetadata field: its only instance field of the [adsMetadata] type, and
+ * the field toString() prints after "adsMetadata=" (the first object field read after the
+ * instruction that consumes that string, before the next string is loaded). It must be final,
+ * so only PlayerMediaInfo's own constructors can write it.
  */
-private fun showAdsField(toString: MutableMethod, playerModel: String): FieldReference {
+private fun adsMetadataField(playerInfo: ClassDef, toString: MutableMethod, adsMetadata: String): Field {
+    val fields = playerInfo.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == adsMetadata }
+    val field = fields.singleOrNull()
+        ?: throw PatchException("PlayerMediaInfo has ${fields.size} $adsMetadata fields, expected one")
+    if (!AccessFlags.FINAL.isSet(field.accessFlags)) {
+        throw PatchException("PlayerMediaInfo.${field.name} is not final, so code outside its constructors may set it")
+    }
     val insns = toString.implementation!!.instructions.toList()
-    val label = insns.indexOfFirst { it.stringRef()?.contains("showAds=") == true }
+    val label = insns.indexOfFirst { it.stringRef()?.contains("adsMetadata=") == true }
     val register = (insns[label] as OneRegisterInstruction).registerA
     val consumer = (label + 1 until insns.size).firstOrNull { insns[it].passes(register) }
-        ?: throw PatchException("PlayerModel toString never uses its showAds= string")
-    for (insn in insns.drop(consumer + 1)) {
-        if (insn.stringRef() != null) break
-        val field = insn.fieldRef()
-        if (insn.opcode == Opcode.IGET_BOOLEAN && field?.definingClass == playerModel) return field
+        ?: throw PatchException("PlayerMediaInfo toString never uses its adsMetadata= string")
+    val printed = insns.drop(consumer + 1).takeWhile { it.stringRef() == null }
+        .firstOrNull { it.opcode == Opcode.IGET_OBJECT }?.fieldRef()
+    if (printed?.definingClass != playerInfo.type || printed.name != field.name || printed.type != adsMetadata) {
+        throw PatchException("PlayerMediaInfo toString prints $printed after adsMetadata=, not ${field.name}")
     }
-    throw PatchException("PlayerModel toString reads no boolean field right after showAds=")
+    return field
 }
 
 /** Every concrete StorytellerModule implementation in the app (through sub-interfaces too). */
@@ -78,9 +87,7 @@ private fun BytecodePatchContext.storytellerModules(): List<String> {
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner and in-feed ads, the ads in the Stories and Clips players and the " +
-        "pre-roll ads on free videos. Ads inserted into live and premium streams are part of the stream " +
-        "and stay.",
+    description = "Removes ads, including video pre-rolls on free videos.",
 ) {
     compatibleWith(COMPATIBILITY_EUROSPORT)
 
@@ -89,8 +96,8 @@ val disableAdsPatch = bytecodePatch(
         // 0x0 view instead of a Google Ad Manager or Teads slot.
         disableSdkConfigs(AD_SDKS)
 
-        // 2. The AdPlaceholderModel factory (8.33.0: static pjg.r(dm)) answers null, so the feed,
-        // article and match page builders add no ad slot. All five callers null-check it.
+        // 2. The AdPlaceholderModel factory (8.34.1: static efo.r(at)) answers null, so the feed,
+        // article and match page builders add no ad slot. All five callers handle null.
         val placeholder = single(AdPlaceholderToStringFingerprint, "AdPlaceholderModel toString").classDef.type
         val factory = singleStaticFactory(placeholder, "AdPlaceholderModel")
         val providerClasses = UnsupportedAdProviderFingerprint.matchAllOrNull().orEmpty().map { it.classDef.type }
@@ -102,18 +109,26 @@ val disableAdsPatch = bytecodePatch(
         }
         factory.method.returnNull()
 
-        // 3. PlayerModel's showAds is stored as false in every constructor, so free (VOD) videos
-        // get no ad parameters. The field is found through toString(); 8.33.0 stores p13.
-        val player = single(PlayerModelToStringFingerprint, "PlayerModel toString")
-        val showAds = showAdsField(player.method, player.classDef.type)
-        val playerConstructors = player.classDef.methods.filter { method ->
-            method.name == "<init>" && method.implementation?.instructions?.any {
-                it.opcode == Opcode.IPUT_BOOLEAN && it.fieldRef()?.let { ref -> ref.name == showAds.name && ref.definingClass == showAds.definingClass } == true
+        // 3. PlayerMediaInfo stores null as its adsMetadata in every constructor, so the player
+        // (VOD and live) gets no ad (IMA) parameters; its one reader (8.34.1: ck.M) skips the ad
+        // setup when the field is null. The field is found through its AdsMetadata type and
+        // toString(); 8.34.1 has one constructor, which stores p7.
+        val playerInfo = single(PlayerMediaInfoToStringFingerprint, "PlayerMediaInfo toString")
+        val adsMetadataType = single(AdsMetadataToStringFingerprint, "AdsMetadata toString").classDef.type
+        val adsMetadata = adsMetadataField(playerInfo.classDef, playerInfo.method, adsMetadataType)
+        val adsMetadataWriters = playerInfo.classDef.methods.filter { method ->
+            method.implementation?.instructions?.any {
+                it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.let { ref ->
+                    ref.definingClass == playerInfo.classDef.type && ref.name == adsMetadata.name
+                } == true
             } == true
         }
-        if (playerConstructors.isEmpty()) throw PatchException("No PlayerModel constructor stores ${showAds.name}")
-        playerConstructors.forEach { constructor ->
-            val (index, register) = constructor.singleStore(Opcode.IPUT_BOOLEAN, showAds.name, "Z")
+        if (adsMetadataWriters.isEmpty()) throw PatchException("No PlayerMediaInfo constructor stores ${adsMetadata.name}")
+        adsMetadataWriters.firstOrNull { it.name != "<init>" }?.let {
+            throw PatchException("PlayerMediaInfo.${it.name} stores ${adsMetadata.name} outside a constructor")
+        }
+        adsMetadataWriters.forEach { constructor ->
+            val (index, register) = constructor.singleStore(Opcode.IPUT_OBJECT, adsMetadata.name, adsMetadataType)
             constructor.insertBefore(index, constZero(register))
         }
 
@@ -182,7 +197,7 @@ val disableAdsPatch = bytecodePatch(
             """,
         )
 
-        // 7. Belt and braces for step 1: the app's Teads view (8.33.0: wkg.load) never creates
+        // 7. Belt and braces for step 1: the app's Teads view (8.34.1: aom.load) never creates
         // its TeadsAdPlacementMedia. Optional: a build without a Teads view needs nothing here.
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Ltv/teads/")) return@classDefForEach

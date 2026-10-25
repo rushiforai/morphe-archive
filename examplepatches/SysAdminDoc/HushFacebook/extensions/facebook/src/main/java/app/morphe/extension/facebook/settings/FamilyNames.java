@@ -54,6 +54,8 @@ public final class FamilyNames {
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
     public static final String NEWEST_REELS_FIRST = "Newest reels first";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
+    public static final String DOUBLE_TAP_SKIP = "Double tap to skip";
+    public static final String TAP_SHOWS_CONTROLS = "Tap shows the controls";
     public static final String REEL_GESTURES = "Open comments with a gesture";
     public static final String KEEP_REEL_SPEED = "Keep the reel speed";
     public static final String HOLD_REEL_FOR_2X = "Hold a reel for 2x";
@@ -78,6 +80,7 @@ public final class FamilyNames {
     public static final String CARRIER_BANNERS = "Hide carrier data banners";
     public static final String SCREEN_TRANSITIONS = "Turn off screen transitions";
     public static final String APP_ICONS = "Unlock app icons";
+    public static final String HEADER_TEXT = "Home header text";
     public static final String EXTERNAL_BROWSER = "Open links in external browser";
     public static final String SANITIZE_SHARING_LINKS = "Sanitize sharing links";
     public static final String UPDATE_PROMPTS = "Stop update prompts";

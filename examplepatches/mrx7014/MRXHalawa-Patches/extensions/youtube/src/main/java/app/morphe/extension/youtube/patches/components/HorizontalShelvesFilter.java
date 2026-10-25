@@ -1,12 +1,16 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.extension.youtube.patches.components;
 
+import java.util.Collections;
+import java.util.Set;
+
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
@@ -23,6 +27,16 @@ import app.morphe.extension.youtube.shared.ShortsPlayerState;
 
 @SuppressWarnings("unused")
 public final class HorizontalShelvesFilter extends Filter {
+    /**
+     * Identifiers of the shelves hidden outside the player.
+     * <p>
+     * The feed behind the player is also reloaded while the player is open,
+     * such as when entering or exiting fullscreen. These shelves are not under the player,
+     * and must stay hidden, otherwise they show again until the feed is scrolled.
+     */
+    private static final Set<String> hiddenShelfIdentifiers = Collections.synchronizedSet(
+            Collections.newSetFromMap(Utils.createSizeRestrictedMap(100)));
+
     private final ByteArrayFilterGroupList descriptionBuffers = new ByteArrayFilterGroupList();
     private final ByteArrayFilterGroupList generalBuffers = new ByteArrayFilterGroupList();
 
@@ -51,6 +65,15 @@ public final class HorizontalShelvesFilter extends Filter {
                         "shopping_item_card_list"
                 ),
                 new ByteArrayFilterGroup(
+                        Settings.HIDE_HISTORY_SHELF,
+                        // Browse id of the History page, opened by the shelf header.
+                        "FEhistory"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_MOVIES_SECTION,
+                        "movie_card.e"
+                ),
+                new ByteArrayFilterGroup(
                         Settings.HIDE_PLAYABLES,
                         "FEmini_app_destination"
                 ),
@@ -61,14 +84,27 @@ public final class HorizontalShelvesFilter extends Filter {
         );
     }
 
-    private boolean hideShelves(ContextInterface contextInterface) {
-        if (!Settings.HIDE_HORIZONTAL_SHELVES.get() || isPlayerOrDescription()) {
+    private boolean hideShelves(ContextInterface contextInterface, String identifier) {
+        if (!Settings.HIDE_HORIZONTAL_SHELVES.get()) {
             return false;
         }
-        return contextInterface.isHomeFeedOrRelatedVideo()
+        if (isPlayerOrDescription()) {
+            return identifier != null && hiddenShelfIdentifiers.contains(identifier);
+        }
+        final boolean hide = contextInterface.isHomeFeedOrRelatedVideo()
                 || NavigationBar.isSearchBarActive()
                 || NavigationBar.isBackButtonVisible()
                 || NavigationButton.getSelectedNavigationButton() != NavigationButton.LIBRARY;
+        if (identifier != null) {
+            // Shelves of different feeds can have the same identifier, such as the History shelf of
+            //  the 'You' tab, so the last feed where the shelf was loaded decides.
+            if (hide) {
+                hiddenShelfIdentifiers.add(identifier);
+            } else {
+                hiddenShelfIdentifiers.remove(identifier);
+            }
+        }
+        return hide;
     }
 
     private boolean isPlayerOrDescription() {
@@ -82,7 +118,7 @@ public final class HorizontalShelvesFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -99,6 +135,6 @@ public final class HorizontalShelvesFilter extends Filter {
                 return true;
             }
         }
-        return hideShelves(contextInterface);
+        return hideShelves(contextInterface, identifier);
     }
 }

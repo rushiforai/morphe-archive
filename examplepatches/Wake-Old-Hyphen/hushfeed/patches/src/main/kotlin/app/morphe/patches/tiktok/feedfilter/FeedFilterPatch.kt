@@ -22,6 +22,7 @@ import app.morphe.patches.tiktok.misc.navigation.MainNewIntentFingerprint
 import app.morphe.patches.tiktok.misc.navigation.writes
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.privacy.invokeSitesOf
 import app.morphe.patches.tiktok.shared.callThroughLocals
@@ -42,6 +43,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -53,6 +55,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/FeedItemsFilter;"
 private const val PROFILE_DETAIL_PANEL_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/detail/panel/ProfileDetailFragmentPanel;"
+private const val FOLLOWING_LATEST_FIRST_CLASS_DESCRIPTOR =
+    "Lapp/morphe/extension/tiktok/feedfilter/FollowingLatestFirst;"
 private const val TAKO_AI_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/TakoAiFilter;"
 private const val AI_CAST_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/AiCastFilter;"
 private const val CARD_FILTERS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/CardFilters;"
@@ -256,6 +260,9 @@ val feedFilterPatch = bytecodePatch(
             }
         }
 
+        FollowFeedRequestFingerprint.method.raiseFollowFeedFirstReadCount()
+        FollowingCacheRestoreFingerprint.method.skipSavedFollowingFirstVideo()
+
         listOf(
             ProfileRefreshResultFingerprint.method,
             ProfileLoadMoreResultFingerprint.method,
@@ -312,7 +319,7 @@ val feedFilterPatch = bytecodePatch(
         // (this cell, item). All three are required on a build the patch is declared for, where
         // a missing one would let the block back in without a word; a build the patch is forced
         // onto keeps the rest of the feed filter without them.
-        val declaredBuild = packageMetadata.versionName in declaredVersions()
+        val declaredBuild = packageMetadata.buildName in declaredVersions()
         fun lynxBind(fingerprint: Fingerprint) = if (declaredBuild) fingerprint.method else fingerprint.methodOrNull
         val holderBound = "invoke-static/range {p0 .. p2}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onHolderBound(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
         lynxBind(SearchLynxHolderBindFingerprint)?.addInstructions(0, holderBound)
@@ -1003,6 +1010,71 @@ val feedFilterPatch = bytecodePatch(
 }
 
 /** Refuses to skip a recommendation-card surface whose known insertion method merely drifted. */
+/**
+ * Latest first on Following (#226): TikTok writes the Following request's count as the literal 20
+ * in the helper that calls the API. Right before each call (GET and POST) the extension may swap in
+ * a larger count for the first read of a list, so the posts that decide slot 0 arrive together. The
+ * count is the fourth argument after the receiver: the follow request index, the cursor (a
+ * long), the level, then the count, so the cursor through the count are four consecutive registers
+ * of the range call and the hook can take them as one range.
+ */
+internal fun MutableMethod.raiseFollowFeedFirstReadCount() {
+    val instructions = implementationOrPatchException("Following first read").instructions.toList()
+    val calls = instructions.withIndex().filter { (_, instruction) ->
+        instruction.getReference<MethodReference>()?.let {
+            it.definingClass == "Lcom/ss/android/ugc/aweme/follow/api/FollowFeedApiV2;" &&
+                (it.name == "followFeedGet" || it.name == "followFeedPost")
+        } == true
+    }
+    if (calls.size != 2) {
+        throw PatchException("Following first read: ${calls.size} Following API calls, expected 2")
+    }
+    calls.asReversed().forEach { (index, call) ->
+        val range = call as? RegisterRangeInstruction
+            ?: throw PatchException("Following first read: the API call is not a range call")
+        val cursor = range.startRegister + 2
+        val count = range.startRegister + 5
+        val literal = instructions.subList(0, index).lastOrNull {
+            it is OneRegisterInstruction && it.registerA == count
+        }
+        if (literal !is NarrowLiteralInstruction || literal.narrowLiteral != 20) {
+            throw PatchException("Following first read: the count v$count is not the literal 20")
+        }
+        addInstructions(
+            index,
+            """
+                invoke-static/range { v$cursor .. v$count }, ${FOLLOWING_LATEST_FIRST_CLASS_DESCRIPTOR}->requestCount(JII)I
+                move-result v$count
+            """,
+        )
+    }
+}
+
+/**
+ * Latest first on Following (#226): on a cold start TikTok restores the Following list it saved
+ * last run and shows that list's first post as the first video, then loads the fresh list under
+ * it, so the saved post played first and the newest posts were sorted below it. While the switch
+ * is on the extension answers true and the hook hands the restore a null cache, which is the path
+ * TikTok takes when nothing was saved: it logs "no_cache" and the fresh read fills the feed.
+ */
+internal fun MutableMethod.skipSavedFollowingFirstVideo() {
+    requireLocals("Following saved first video", 1)
+    if (parameterTypes.firstOrNull()?.toString() != FOLLOWING_CACHE_DESCRIPTOR) {
+        throw PatchException("Following saved first video: $name does not take the saved cache first")
+    }
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $FOLLOWING_LATEST_FIRST_CLASS_DESCRIPTOR->skipSavedFirstVideo()Z
+            move-result v0
+            if-eqz v0, :morphe_keep_saved_following
+            const/4 v0, 0x0
+            move-object/from16 p1, v0
+        """,
+        ExternalLabel("morphe_keep_saved_following", getInstruction(0)),
+    )
+}
+
 internal fun selectRecUserCardInsertion(
     insertion: MutableMethod?,
     surfacePresent: Boolean,

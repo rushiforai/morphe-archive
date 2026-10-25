@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
@@ -22,6 +23,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.os.Looper;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -818,7 +820,7 @@ public class LivePanelThemeTest {
         assertEquals("without the patch", Color.WHITE, fill(paused));
     }
 
-    @Test public void aCardsBadgeTileGoesOverAWhiteCopyOfItsShapeInDarkModeWithTheSwitch() {
+    @Test public void aCardsBadgeTileGoesOverADarkCopyOfItsShapeInDarkModeWithTheSwitch() {
         // The low levels' tile on 47.4.3: a pale lavender at about a fifth of full strength.
         GradientDrawable tint = new GradientDrawable();
         tint.setColor(0x30CCD1F0);
@@ -834,10 +836,27 @@ public class LivePanelThemeTest {
         assertEquals(2, layers.getNumberOfLayers());
         assertEquals("the shape's padding counts once", LayerDrawable.PADDING_MODE_STACK, layers.getPaddingMode());
         GradientDrawable base = (GradientDrawable) layers.getDrawable(0);
-        assertEquals(Color.WHITE, base.getColor().getDefaultColor());
+        assertEquals(LivePanelTheme.DARK_FILL, base.getColor().getDefaultColor());
         assertEquals("the corners stay", 16f, base.getCornerRadius(), 0f);
         assertSame("the server's shape draws over it", tint, layers.getDrawable(1));
         assertEquals("the tile's own shape keeps its fill", 0x30CCD1F0, tint.getColor().getDefaultColor());
+
+        // A higher level's solid pink tile, which over white showed as a light block on the dark card.
+        GradientDrawable solid = new GradientDrawable();
+        solid.setColor(0xFFFFF1F3);
+        solid.setCornerRadius(12f);
+        View pinkTile = new View(dark);
+        LivePanelTheme.badgeTile(pinkTile, solid);
+        GradientDrawable shown = (GradientDrawable) pinkTile.getBackground();
+        assertNotSame("a copy, not the server's shape", solid, shown);
+        assertEquals("a solid tile takes the dark fill", LivePanelTheme.DARK_FILL, shown.getColor().getDefaultColor());
+        assertEquals(12f, shown.getCornerRadius(), 0f);
+        assertEquals("the server's shape keeps its fill", 0xFFFFF1F3, solid.getColor().getDefaultColor());
+        GradientDrawable fade = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{0xFFFFF1F3, 0xFFF1F3FF});
+        assertTrue("a light gradient", LivePanelTheme.lightShape(fade));
+        assertTrue("a see-through stop", !LivePanelTheme.lightShape(
+                new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{0xFFFFF1F3, 0x30F1F3FF})));
+        assertTrue("no fill at all", !LivePanelTheme.lightShape(new GradientDrawable()));
 
         View lightTile = new View(light);
         LivePanelTheme.badgeTile(lightTile, tint);
@@ -998,7 +1017,7 @@ public class LivePanelThemeTest {
         assertEquals(LivePanelTheme.DARK_TAB, strip.unselected.getColor());
     }
 
-    /** A plain LIVE sheet with a window, like the long-press menu: dark through its overlay, no fills of its own. */
+    /** A plain LIVE sheet with a window, like the gift sheet: dark through its overlay, no fills of its own. */
     public static final class MenuSheet extends LiveThemeAwareDialogFragment {
         public Dialog dialog;
 
@@ -1047,6 +1066,52 @@ public class LivePanelThemeTest {
         // TikTok's sheet puts the light bar back as it shows.
         bars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
         nextFrame(menu.dialog);
+        assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
+    }
+
+    @Test public void theLongPressMenusPlainDialogGetsADarkNavigationBar() {
+        Dialog stock = dialogWith(new FrameLayout(dark));
+        android.view.WindowInsetsController stockBars = stock.getWindow().getInsetsController();
+        stockBars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        LivePanelTheme.liveMenu(stock);
+        assertEquals("the switch starts off", LIGHT_BAR, stockBars.getSystemBarsAppearance() & LIGHT_BAR);
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        Dialog lightMenu = new Dialog(light);
+        lightMenu.setContentView(new FrameLayout(light));
+        lightMenu.show();
+        android.view.WindowInsetsController lightBars = lightMenu.getWindow().getInsetsController();
+        lightBars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        LivePanelTheme.liveMenu(lightMenu);
+        assertEquals("light mode", LIGHT_BAR, lightBars.getSystemBarsAppearance() & LIGHT_BAR);
+
+        Dialog menu = dialogWith(new FrameLayout(dark));
+        android.view.WindowInsetsController bars = menu.getWindow().getInsetsController();
+        bars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        LivePanelTheme.liveMenu(menu);
+        assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
+        // The menu sets its window up again as it shows.
+        bars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        nextFrame(menu);
+        assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
+        LivePanelTheme.liveMenu(null);
+    }
+
+    @Test public void theLongPressMenuIsDarkenedOnceItShowsNotBefore() {
+        Settings.DARK_LIVE_PANELS.save(true);
+        // TikTok hands the menu over before showing it, with no window views built yet.
+        Dialog menu = new Dialog(dark);
+        LivePanelTheme.liveMenu(menu);
+        assertNull("the window's views are left for the menu to build", menu.getWindow().peekDecorView());
+
+        menu.setContentView(new FrameLayout(dark));
+        menu.show();
+        android.view.WindowInsetsController bars = menu.getWindow().getInsetsController();
+        bars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(5));
+        assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
+        bars.setSystemBarsAppearance(LIGHT_BAR, LIGHT_BAR);
+        nextFrame(menu);
         assertEquals(0, bars.getSystemBarsAppearance() & LIGHT_BAR);
     }
 
@@ -1105,6 +1170,53 @@ public class LivePanelThemeTest {
         fan.setTextColor(0x66000000);
         nextFrame(lightPanel.dialog);
         assertEquals(0x66FFFFFF, fan.getCurrentTextColor());
+    }
+
+    @Test public void layeredFillsPicturelessCardsAndBadgeTilesGoDarkAndLightTheirText() {
+        android.widget.LinearLayout root = new android.widget.LinearLayout(dark);
+        root.setOrientation(android.widget.LinearLayout.VERTICAL);
+        // The fan club's FANS card: an image view with no picture, its background a see-through
+        // white layered over a clear shape, and its label in a sibling drawn after it.
+        FrameLayout card = new FrameLayout(dark);
+        android.widget.ImageView cardBackground = new android.widget.ImageView(dark);
+        GradientDrawable veil = new GradientDrawable();
+        veil.setColor(0xBFFFFFFF);
+        GradientDrawable clear = new GradientDrawable();
+        clear.setColor(Color.TRANSPARENT);
+        cardBackground.setBackground(new LayerDrawable(new Drawable[]{veil, clear}));
+        card.addView(cardBackground, new FrameLayout.LayoutParams(1080, 100));
+        TextView fans = text(dark, Color.BLACK);
+        card.addView(fans);
+        root.addView(card, new android.widget.LinearLayout.LayoutParams(1080, 100));
+        // A profile card badge: the server's art in an image view over its tile, its level text after it.
+        FrameLayout badge = new FrameLayout(dark);
+        android.widget.ImageView tile = new android.widget.ImageView(dark);
+        tile.setImageDrawable(new ColorDrawable(Color.RED));
+        badge.addView(tile, new FrameLayout.LayoutParams(300, 100));
+        TextView level = text(dark, 0x55161823);
+        badge.addView(level);
+        root.addView(badge, new android.widget.LinearLayout.LayoutParams(1080, 100));
+        // A photo on a white ground, which isn't a fill.
+        android.widget.ImageView photo = new android.widget.ImageView(dark);
+        photo.setImageDrawable(new ColorDrawable(Color.BLUE));
+        photo.setBackground(new ColorDrawable(Color.WHITE));
+        root.addView(photo, new android.widget.LinearLayout.LayoutParams(1080, 100));
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        GradientDrawable tint = new GradientDrawable();
+        tint.setColor(0x30CCD1F0);
+        LivePanelTheme.badgeTile(tile, tint);
+        ProfilePanel panel = new ProfilePanel();
+        panel.overlay = OVERLAY;
+        panel.dialog = dialogWith(root);
+        layOut(root);
+        LivePanelTheme.darkLivePanel(panel, LayoutInflater.from(dark));
+
+        assertEquals("the card's white layer", LivePanelTheme.DARK_FILL, veil.getColor().getDefaultColor());
+        assertEquals("its clear layer stays clear", Color.TRANSPARENT, clear.getColor().getDefaultColor());
+        assertEquals("the FANS label", Color.WHITE, fans.getCurrentTextColor());
+        assertEquals("the level text over the dark tile", 0x55FFFFFF, level.getCurrentTextColor());
+        assertEquals("a photo's ground", Color.WHITE, ((ColorDrawable) photo.getBackground()).getColor());
     }
 
     @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)

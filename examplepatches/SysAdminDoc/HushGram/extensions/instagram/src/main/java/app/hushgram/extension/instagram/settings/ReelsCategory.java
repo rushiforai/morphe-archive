@@ -154,6 +154,9 @@ final class ReelsCategory {
                     L10n.t("Hides the status bar and the navigation bar while Reels shows. Swipe in from the edge to "
                             + "bring them back for a moment. Back and the keyboard work as usual.")));
             reels.add(hiddenBarsRow(context));
+            reels.add(toggle(context, Settings.FILL_REEL_SCREEN, L10n.t("Fill the screen"),
+                    L10n.t("Reels that are nearly the screen's shape fill it, cut a little at the sides, instead of "
+                            + "showing black bars above and below. Square and wide videos still fit.")));
         }
         if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
             reels.add(toggle(context, Settings.KEEP_REEL_SPEED, L10n.t("Keep the reel speed"),

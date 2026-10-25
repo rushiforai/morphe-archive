@@ -550,6 +550,8 @@ Show poll results before voting	Mostrar resultados de encuestas antes de votar
 A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.	Una encuesta de comentarios muestra cuántos eligieron cada respuesta antes de que votes. Tocar una respuesta sigue votando.
 Hide comment popup ads	Ocultar los anuncios emergentes de los comentarios
 Hide comments made of an image or a sticker instead of words.	Ocultar los comentarios hechos con una imagen o un sticker en vez de con palabras.
+Hide spam comments	Ocultar comentarios de spam
+Hide comments that send you to a profile, a bio link, a website or a messenger, or offer free followers. Your own comments stay, and so do the creator's and the ones they pinned or liked.	Ocultar los comentarios que te mandan a un perfil, a un enlace en la bio, a una web o a una app de mensajería, o que ofrecen seguidores gratis. Tus propios comentarios se quedan, igual que los del creador y los que fijó o le gustaron.
 Hide comments that contain any of the words below, or that come from the accounts below.	Ocultar los comentarios que contengan cualquiera de las palabras de abajo, o que vengan de las cuentas de abajo.
 Hide controls after each video starts. Tap to restore them.	Ocultar los controles después de que empiece cada vído. Toca para recuperarlos.
 Hide conversations	Ocultar las conversaciones
@@ -657,7 +659,7 @@ Hushfeed can't read the creator pattern %1$s	Hushfeed no puede leer el patrón d
 Hushfeed hid a TikTok CAPTCHA. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed ocultó un CAPTCHA de TikTok. Desactiva Ocultar las ventanas de CAPTCHA si algo deja de funcionar.
 Hushfeed is active	Hushfeed está activo
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.	Muestra las opciones Dúo y Stitch aunque el creador las haya desactivado. TikTok aún puede rechazar el resultado.
-Shows Add to Story on a story whose creator turned off content reuse. TikTok may still refuse to post it.	Muestra Añadir a la historia en una historia cuyo creador desactivó la reutilización del contenido. TikTok aún puede rechazar la publicación.
+Shows Add to Story in the share sheet and on stories even when the creator turned off content reuse. TikTok may still refuse to post it.	Muestra Añadir a la historia en el menú de compartir y en las historias aunque el creador haya desactivado la reutilización del contenido. TikTok aún puede rechazar la publicación.
 Import finished	Importación finalizada
 Import loaded values	Importar los valores cargados
 Imported %1$d values	%1$d valores importados
@@ -1098,6 +1100,8 @@ Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	Evita que TikTok ralentice tu pantalla para igualar la tasa de fotogramas de cada video. En un teléfono de 90 o 120 Hz, esa petición hace que toda la app, el desplazamiento incluido, vaya más lenta.
 Keep the screen's brightness in the camera	Mantener el brillo de la pantalla en la cámara
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	Evita que TikTok suba el brillo de tu pantalla mientras grabas, editas o publicas un video. El flash frontal sigue poniendo la pantalla en blanco, pero con tu propio brillo.
+Report a newer phone to effects	Informar de un teléfono más nuevo a los efectos
+Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. This tells the effects server you have a Galaxy S24 Ultra instead. Sign-in and everything else still see your real phone. An effect your phone really can't run may still fail or look wrong.	Los efectos preguntan al servidor de TikTok si tu teléfono puede ejecutarlos, y algunos se rechazan en teléfonos más antiguos. Esto le dice al servidor de efectos que tienes un Galaxy S24 Ultra. El inicio de sesión y todo lo demás siguen viendo tu teléfono real. Un efecto que tu teléfono realmente no puede ejecutar puede seguir fallando o verse mal.
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	Evita que TikTok lea los sensores de movimiento y de brújula de tu teléfono. Las apps pueden usarlos para reconocer tu teléfono.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	Impide que TikTok lea lo que copiaste. Copiar un enlace desde TikTok sigue funcionando.
 Stop a long press on Like from opening TikTok's repost action.	Impedir que mantener pulsado Me gusta abra la acción de republicar de TikTok.
@@ -1656,7 +1660,7 @@ Take the story ring off profile pictures on the feed, in comments and on profile
 Remove the LIVE ring	Quitar el anillo de LIVE
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Quitar el anillo pulsante de LIVE de las fotos de perfil en el feed y en los comentarios. Al tocar la foto de alguien que está en directo se abre su perfil en vez del LIVE.
 Open the Story when a creator is LIVE	Abrir la historia cuando alguien está en LIVE
-When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.	Si alguien que está en LIVE también tiene una historia, al tocar su foto en su perfil se abre la historia. Toca la foto otra vez para unirte al LIVE.
+When a creator who's LIVE also has a Story, tapping their picture on their profile or on your chat with them in the Inbox opens the Story. Tap the picture again to join the LIVE.	Si alguien que está en LIVE también tiene una historia, al tocar su foto en su perfil o en tu chat en la Bandeja de entrada se abre la historia. Toca la foto otra vez para unirte al LIVE.
 Writing	Escribir
 Lift text length limits	Quitar los límites de longitud del texto
 Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Deja que los comentarios, las notas de reposts y tu biografía pasen del largo en el que se detiene la app de TikTok. Los servidores de TikTok aún pueden rechazar uno largo.
@@ -2151,6 +2155,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	Traducción automática del chat de LIVE
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	El botón Traducir comentarios de una sala LIVE también necesita una SIM japonesa. Activa Sustituir los datos de la SIM en los ajustes de Hushfeed > Región, pon País preestablecido de la SIM en Japan, NTT DOCOMO (44010) y reinicia TikTok.
+Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	Los comentarios solo se deslizan sobre los videos en los que TikTok los activó, así que la mayoría de los videos no cambia.
 
 Pick videos to save from profile grids	Elegir videos para guardar en las cuadrículas de perfil
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Pone un círculo en cada video de una cuadrícula de perfil, Me gusta o Favoritos. Elige hasta %1$s y toca Guardar para guardarlos uno tras otro, con un contador y Cancelar.
@@ -2289,3 +2294,5 @@ Open the room and tap Stop to save it.	Abre la sala y toca Detener para guardarl
 Screen recording wasn't allowed	No se permitió la grabación de pantalla
 Recording this LIVE's screen from now	Grabando la pantalla de este LIVE desde ahora
 Recording this LIVE's screen from now, without sound	Grabando la pantalla de este LIVE desde ahora, sin sonido
+Allow photo comments	Permitir comentarios con foto
+Show the gallery tab in the comment box, so you can add a photo to a comment like on TikTok. PineDrama turns it off for everyone. TikTok's server still decides whether your account can post one.	Muestra la pestaña de galería en el cuadro de comentarios para que puedas añadir una foto a un comentario como en TikTok. PineDrama la desactiva para todos. El servidor de TikTok sigue decidiendo si tu cuenta puede publicarla.

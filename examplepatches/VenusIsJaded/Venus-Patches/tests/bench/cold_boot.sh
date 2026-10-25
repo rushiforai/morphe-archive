@@ -1,9 +1,9 @@
 #!/bin/sh
-# End-to-end startup A/B on the real Discord 349.9 bundle: inject two compacted runtimes with HbcPrelude
+# End-to-end startup A/B on the real Discord bundle: inject two compacted runtimes with HbcPrelude
 # (through HbcPreludeTest), boot each on the HBC98 VM through React Native's own initializer
 # (tests/hermes-startup.js), and compare per-process user CPU over interleaved cold starts.
 #   sh tests/bench/cold_boot.sh <old compacted bootstrap.js> [new, default patches/build/bootstrap.js] [runs]
-# Needs: sh scripts/hbc/setup.sh <Discord.apkm>, the tools from scripts/build.py. Builds what else it needs.
+# Needs: sh scripts/hbc/setup.sh [Discord.apkm], the tools from scripts/build.py. Builds what else it needs.
 set -e
 cd "$(dirname "$0")/../.."
 OLD="$1"; NEW="${2:-patches/build/bootstrap.js}"; RUNS="${3:-25}"

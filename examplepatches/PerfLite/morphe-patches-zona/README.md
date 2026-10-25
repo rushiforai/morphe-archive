@@ -26,7 +26,7 @@
 
 | File / Файл | Description / Описание | Link / Ссылка |
 |---|---|---|
-| `patches-1.2.2.mpp` | Morphe patch bundle for FreeZona World · Бандл патчей Morphe для FreeZona World | [Download](https://github.com/PerfLite/morphe-patches-zona/releases/latest/download/patches-1.2.2.mpp) |
+| `patches-1.2.3.mpp` | Morphe patch bundle for FreeZona World · Бандл патчей Morphe для FreeZona World | [Download](https://github.com/PerfLite/morphe-patches-zona/releases/latest/download/patches-1.2.3.mpp) |
 
 > Older versions and changelogs: [Releases](https://github.com/PerfLite/morphe-patches-zona/releases) ·
 > Старые версии и список изменений: [Релизы](https://github.com/PerfLite/morphe-patches-zona/releases)
@@ -53,7 +53,7 @@ Add this repository URL to **Morphe** as a custom source (Settings → Sources �
 https://github.com/PerfLite/morphe-patches-zona
 ```
 
-> Target app: FreeZona World `3.0.75` (versionCode `1075`), available at [julay123/mobi.zona](https://github.com/julay123/mobi.zona/releases/latest).
+> Target app: FreeZona World `3.0.75` (1075) / `3.0.76` (1076), available at [julay123/mobi.zona](https://github.com/julay123/mobi.zona/releases/latest).
 
 ### Build
 
@@ -89,7 +89,7 @@ GPL-3.0 — see [LICENSE](LICENSE).
 https://github.com/PerfLite/morphe-patches-zona
 ```
 
-> Целевое приложение: FreeZona World `3.0.75` (versionCode `1075`), доступно в [julay123/mobi.zona](https://github.com/julay123/mobi.zona/releases/latest).
+> Целевое приложение: FreeZona World `3.0.75` (1075) / `3.0.76` (1076), доступно в [julay123/mobi.zona](https://github.com/julay123/mobi.zona/releases/latest).
 
 ### Сборка
 

@@ -1,17 +1,23 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.patches.reddit.misc.extension.hooks
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patches.all.misc.extension.ExtensionHook
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
 
-internal val redditActivityOnCreateHook = activityOnCreateExtensionHook(
-    activityClassType = "Lcom/reddit/launch/main/MainActivity;"
+internal object RedditActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/reddit/launch/main/MainActivity;",
+    name = "onCreate",
+    returnType = "V",
 )
+
+internal val redditActivityOnCreateHook = ExtensionHook(RedditActivityOnCreateFingerprint)
 
 internal val redditApplicationOnCreateHook = activityOnCreateExtensionHook(
     activityClassType = "Lcom/reddit/frontpage/FrontpageApplication;"

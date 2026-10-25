@@ -19,6 +19,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -140,7 +141,8 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
     val flagged = mutableSetOf<String>()
     val typed = mutableSetOf<String>()
     val helpers = mutableListOf<Method>()
-    classDefForEach { classDef ->
+    // A tree class implements a bucket interface, and a label helper answers the label enum.
+    classDefForEachReferencing(types = interfaces + label.type) { classDef ->
         for (call in calls) {
             if (call.definingClass in classDef.interfaces &&
                 classDef.methods.any { it.name == call.name && isTreeFlagReader(it, SUGGESTED_FLAG_FIELD) }

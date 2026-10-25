@@ -10,7 +10,7 @@ internal const val GECKO_RUNTIME_SETTINGS_BUILDER = "Lorg/mozilla/geckoview/Geck
 @Suppress("unused")
 val enableAboutConfigPatch = bytecodePatch(
     name = "Enable about:config",
-    description = "Opens about:config in release builds, where Firefox normally blocks it.",
+    description = "Enables about:config.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

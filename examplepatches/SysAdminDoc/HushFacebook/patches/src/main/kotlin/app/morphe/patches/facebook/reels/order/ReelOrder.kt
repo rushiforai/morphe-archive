@@ -5,7 +5,9 @@
 package app.morphe.patches.facebook.reels.order
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
@@ -13,6 +15,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -23,6 +26,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 /*
  * How Facebook picks the next reel in the Reels tab, on the 584 build.
@@ -65,6 +70,9 @@ internal const val RECORDS = "$NEWEST_REELS->records($OBJECT)Z"
 
 /** Keeps a signal's posting time: the FeedType, the edge, then the signal. */
 internal const val POSTED = "$NEWEST_REELS->posted($OBJECT$OBJECT$OBJECT)V"
+
+internal const val EDGE_HELPER = "hushfacebookReelEdge"
+internal const val EDGE_FAILED = "$NEWEST_REELS->edgeFailed(Ljava/lang/Throwable;)V"
 
 /** Reorders the rerank's list. */
 internal const val SORT = "$NEWEST_REELS->sort($LIST)V"
@@ -200,6 +208,33 @@ internal fun readableFrom(flags: Int, owner: String, reader: String): Boolean {
     return owner.substringBeforeLast('/') == reader.substringBeforeLast('/')
 }
 
+/** Reads only the optional edge. A lazy model may have no inflated edge yet (#234). */
+internal fun edgeHelper(owner: String, reads: SignalReads): MutableMethod = ImmutableMethod(
+    owner,
+    EDGE_HELPER,
+    listOf(ImmutableMethodParameter(reads.edge.substringBefore("->"), null, null)),
+    OBJECT,
+    AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+    null,
+    null,
+    MutableMethodImplementation(2),
+).toMutable().apply {
+    addInstructions(
+        0,
+        """
+            invoke-interface { p0 }, ${reads.edge}
+            move-result-object v0
+            return-object v0
+            move-exception v0
+            invoke-static { v0 }, $EDGE_FAILED
+            const/4 v0, 0x0
+            return-object v0
+        """,
+    )
+    val body = implementation!!
+    body.addCatch(body.newLabelForIndex(0), body.newLabelForIndex(2), body.newLabelForIndex(3))
+}
+
 /**
  * Hands each signal [this] returns to the extension, with its model's FeedType and edge, when
  * the extension says the feed is one it keeps. Three locals below the parameters do the work;
@@ -226,7 +261,7 @@ internal fun MutableMethod.recordAtReturns(reads: SignalReads) {
                 invoke-static { v$feed }, $RECORDS
                 move-result v$value
                 if-eqz v$value, :facebook
-                invoke-interface { v$model }, ${reads.edge}
+                invoke-static { v$model }, $definingClass->$EDGE_HELPER(${reads.edge.substringBefore("->")})$OBJECT
                 move-result-object v$value
                 move-object/from16 v$model, v$answer
                 invoke-static { v$feed, v$value, v$model }, $POSTED

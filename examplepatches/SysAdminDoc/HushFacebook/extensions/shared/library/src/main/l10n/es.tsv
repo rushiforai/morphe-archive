@@ -449,6 +449,14 @@ Hide the Muse card	Ocultar la tarjeta de Muse
 The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	La tarjeta de Muse, el anuncio de Meta para su app de agente de IA, desaparece de la parte superior del menú de Facebook.
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	La sección “También de Meta” desaparece del menú de Facebook, con sus enlaces a las otras apps de Meta y sus anuncios de dispositivos de Meta. Tus propios accesos directos se quedan.
+# context: switch title under Menu; Help and support is the name of a section in Facebook's own Menu
+Hide Help and support	Ocultar “Ayuda y soporte técnico”
+# context: summary of that switch; Settings and privacy is Facebook's own Menu section
+The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	La sección “Ayuda y soporte técnico” desaparece del menú de Facebook, con su encabezado. “Configuración y privacidad” se queda.
+# context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
+Keep Settings and privacy expanded	Mantener abierta “Configuración y privacidad”
+# context: summary of that switch
+Settings and privacy in Facebook's Menu stays open, so its rows show without a tap.	“Configuración y privacidad” se queda abierta en el menú de Facebook, así sus filas se ven sin tocar nada.
 # context: section title for the search settings, named like Facebook's own search
 Search	Búsqueda
 # context: switch title under Search; Meta AI is Meta's assistant and keeps its name
@@ -797,6 +805,14 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	Guardando… Para 
 Turn off double tap to like	Desactivar tocar dos veces para dar Me gusta
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar dos veces un reel o un vídeo ya no le da Me gusta ni muestra un corazón. Un toque y el botón Me gusta funcionan como antes.
+# context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
+Double tap to skip	Tocar dos veces para saltar
+# context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
+A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	Tocar dos veces el borde izquierdo o derecho de un reel o un vídeo retrocede o avanza 10 segundos, o 5 si dura menos de 30 segundos. Tocar dos veces en el centro funciona como antes.
+# context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
+Tap shows the controls	Tocar muestra los controles
+# context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
+A tap on a playing reel shows its controls while it keeps playing, and a second tap hides them. The button in the middle still pauses.	Tocar un reel que se está reproduciendo muestra sus controles sin detenerlo, y un segundo toque los oculta. El botón del centro sigue pausándolo.
 Keep the reel speed	Mantener la velocidad de los reels
 # context: summary of that switch
 A playback speed you pick in a reel's menu stays for the next reels, after a restart too, until you pick another. Off, every reel starts at normal speed.	La velocidad de reproducción que elijas en el menú de un reel se mantiene en los siguientes reels, también después de reiniciar, hasta que elijas otra. Desactivado, cada reel empieza a velocidad normal.
@@ -807,6 +823,10 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 Only on the right edge	Solo en el borde derecho
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
 With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	Con el interruptor de arriba activado, solo mantener pulsado el tercio derecho de un reel lo reproduce al doble de velocidad. Si lo mantienes pulsado en otro sitio, se abre el menú de pulsación larga de Facebook.
+# context: label of a switch under Hold a reel for 2x; a feed video is a video playing in Home's feed or in Watch, not a reel
+Hold a feed video for 2x	Mantener pulsado un vídeo del feed para 2x
+# context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
+Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Mantener pulsado un vídeo del feed o de Watch lo reproduce al doble de velocidad hasta que lo sueltes. Funciona sin los interruptores de arriba.
 Default playback quality	Calidad de reproducción predeterminada
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Reproduce vídeos, reels e historias en la calidad de abajo. Una calidad elegida en el menú de un vídeo sigue teniendo prioridad.
 Playback quality	Calidad de reproducción
@@ -1142,6 +1162,12 @@ Save photo	Guardar foto
 Save all photos	Guardar todas las fotos
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	No se pudieron guardar las fotos de esta publicación. Vuelve a intentarlo en un momento.
+# context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
+Save GIF	Guardar GIF
+# context: message after a tap on Save GIF when the save didn't start
+Couldn't save this GIF. Try again in a moment.	No se pudo guardar este GIF. Vuelve a intentarlo en un momento.
+# context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
+A GIF comment gets Save GIF when you long-press it.	Al mantener pulsado un comentario con GIF aparece Guardar GIF.
 Couldn't save this story's photo. Try again in a moment.	No se pudo guardar la foto de esta historia. Vuelve a intentarlo en un momento.
 Too many saves at once. Try again when one finishes.	Hay demasiadas descargas en curso. Vuelve a intentarlo cuando termine una.
 # context: settings switch under Block Instant Games ads that makes a game's rewarded ad count as watched
@@ -1813,6 +1839,10 @@ Takes the line with the reel's sound, "Original audio" or a song, off the bottom
 Hide the slow connection message	Ocultar el aviso de conexión lenta
 # context: summary of that switch; "This is taking a while" is Facebook's own message, so use the wording Facebook shows in this language
 Stops the "This is taking a while" message about your network connection when a video or GIF is slow to load. It keeps loading as before.	Quita el mensaje «Esto está tardando un poco» sobre tu conexión de red cuando un video o GIF tarda en cargar. Sigue cargando como siempre.
+# context: switch title under Reels and Watch; the Reels row is the strip of reel tiles Facebook shows between posts in the news feed, each tile playing a short clip of its reel over and over
+Play whole reels in the feed's Reels row	Reproducir reels completos en la fila de Reels del feed
+# context: summary of that switch; a tile is one reel's box in that row
+The reels in your feed's Reels row play from the start and keep going, instead of repeating a second or two. Tiles drawn after a change pick it up.	Los reels de la fila de Reels de tu feed se reproducen desde el principio y siguen, en lugar de repetir uno o dos segundos. Los recuadros que aparecen después de un cambio ya lo aplican.
 # context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for dark mode's backgrounds; also its dialog's title
 Background color	Color de fondo
 # context: text in that row's dialog above the field; %1$s is the lightest gray code it takes, %2$s the color code the patch wrote, both like #0D1117; keep #RRGGBB and #0D1117 as they are
@@ -1849,3 +1879,51 @@ Light mode's backgrounds use %1$s. Restart Facebook to see the change.	Los fondo
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be Facebook's own white.	Si tu Facebook parcheado incluye el tema negro AMOLED, los fondos del modo claro usarán el blanco de Facebook.
 # context: import preview sentence: the file sets AMOLED's Light background color row; %1$s is a color code like #FFF8E7; "AMOLED black theme" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be %1$s.	Si tu Facebook parcheado incluye el tema negro AMOLED, los fondos del modo claro serán %1$s.
+# context: switch title under News feed, part of Hide suggested and promoted posts; "Related posts" is the heading Facebook shows over a list under a post
+Hide "Related posts" under posts	Ocultar «Publicaciones relacionadas» debajo de las publicaciones
+# context: summary of that switch; "Related posts" is that heading, and Meta AI writes the titles in the list
+Hides the "Related posts" list Facebook adds under some posts, with its titles written by Meta AI. The post and its comments stay.	Oculta la lista «Publicaciones relacionadas» que Facebook añade debajo de algunas publicaciones, con títulos escritos por Meta AI. La publicación y sus comentarios se quedan.
+# context: title of the row on the Appearance page that takes your own words for the top of Home in place of Facebook's logo; also its dialog's title and the patch's name; Home is Facebook's home feed tab
+Home header text	Texto del encabezado de Inicio
+# context: message in that row's dialog; %1$d is the most characters allowed, 30
+Your own words at the top of Home instead of the Facebook logo, up to %1$d characters. They take Facebook's colors in light and dark mode. Leave it blank for Facebook's logo.	Tus propias palabras en la parte superior de Inicio en lugar del logo de Facebook, hasta %1$d caracteres. Usan los colores de Facebook en modo claro y oscuro. Déjalo en blanco para ver el logo de Facebook.
+# context: summary of that row while it's blank
+Facebook's logo stays at the top of Home. Type your own words to show them there.	El logo de Facebook se queda en la parte superior de Inicio. Escribe tus propias palabras para mostrarlas ahí.
+# context: summary of that row; %1$s is the saved words
+The top of Home says %1$s. Restart Facebook to see the change.	La parte superior de Inicio dice %1$s. Reinicia Facebook para ver el cambio.
+# context: import preview sentence: the file sets the Home header text row back to blank
+The top of Home will show Facebook's own logo.	La parte superior de Inicio mostrará el logo propio de Facebook.
+# context: import preview sentence: the file sets the Home header text row; %1$s is the saved words; "Home header text" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Home header text, the top of Home will say %1$s.	Si tu Facebook parcheado incluye Texto del encabezado de Inicio, la parte superior de Inicio dirá %1$s.
+# context: settings row title: picks a picture of your own for the top of Home; pairs with the Home header text row
+Home header picture	Imagen del encabezado de Inicio
+# context: settings row title: takes the picked header picture away at once
+Remove the header picture	Quitar la imagen del encabezado
+# context: summary under Remove the header picture
+Puts your words or Facebook's logo back at the top of Home. Restart Facebook to see the change.	Vuelve a poner tus palabras o el logo de Facebook en la parte superior de Inicio. Reinicia Facebook para ver el cambio.
+# context: summary under Home header picture when nothing is picked
+No picture chosen. Choose one to show at the top of Home instead of Facebook's logo.	No hay ninguna imagen elegida. Elige una para mostrarla en la parte superior de Inicio en lugar del logo de Facebook.
+# context: summary under Home header picture; %1$s is the picked file's name
+The saved copy of %1$s is missing. Choose the picture again.	Falta la copia guardada de %1$s. Elige la imagen de nuevo.
+# context: summary under Home header picture; %1$s is the picked file's name
+Selected %1$s. It shows at the top of Home in place of your words and Facebook's logo.	Seleccionado %1$s. Se muestra en la parte superior de Inicio en lugar de tus palabras y del logo de Facebook.
+# context: summary under Home header picture while the picked picture is copied
+Copying the picture	Copiando la imagen
+# context: toast after a picture is picked; %1$s is the picked file's name
+Selected %1$s. Restart Facebook to see it at the top of Home.	Seleccionado %1$s. Reinicia Facebook para verlo en la parte superior de Inicio.
+# context: toast when the picked file isn't a picture
+That isn't a picture Android can open. The top of Home didn't change.	Eso no es una imagen que Android pueda abrir. La parte superior de Inicio no cambió.
+# context: toast when the picked picture is too large; %1$d is the limit in megabytes
+That picture is over %1$d MB. The top of Home didn't change.	Esa imagen pesa más de %1$d MB. La parte superior de Inicio no cambió.
+# context: toast when the picture's copy can't be written
+Couldn't save a copy of that picture. Check that the phone has room, then try again.	No se pudo guardar una copia de esa imagen. Comprueba que el teléfono tenga espacio y vuelve a intentarlo.
+# context: toast when the picked file can't be read
+Couldn't open that file. The top of Home didn't change.	No se pudo abrir ese archivo. La parte superior de Inicio no cambió.
+# context: toast after Remove the header picture
+Header picture removed. Restart Facebook to see the change.	Imagen del encabezado quitada. Reinicia Facebook para ver el cambio.
+# context: toast when Remove the header picture couldn't save
+Couldn't remove the header picture. Try again.	No se pudo quitar la imagen del encabezado. Inténtalo de nuevo.
+# context: toast when the app holding the picked picture stalls
+The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	La app que guarda esa imagen tarda demasiado, así que Hushfacebook dejó de esperar. La parte superior de Inicio no cambió.
+# context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
+The app holding the last picture still hasn't answered. Try again later.	La app de la última imagen aún no ha respondido. Inténtalo más tarde.

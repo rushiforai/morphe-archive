@@ -55,7 +55,7 @@ val myDialogSimAccessFixPatch = bytecodePatch(
         m.addInstructions(
             0,
             """
-            invoke-virtual {p0}, Lnet/omobio/dialogsc/utils/NativeUtilsModule;->getReactApplicationContext()Landroid/content/Context;
+            invoke-virtual {p0}, Lnet/omobio/dialogsc/utils/NativeUtilsModule;->getReactApplicationContext()Lcom/facebook/react/bridge/ReactApplicationContext;
             move-result-object v0
             const-string v1, "phone"
             invoke-virtual {v0, v1}, Landroid/content/Context;->getSystemService(Ljava/lang/String;)Ljava/lang/Object;

@@ -4,6 +4,8 @@
 
 ### Changed and fixed
 
+- Gallery selections are checked off the UI thread before returning to the chat. A canceled, revoked or timed-out selection returns no media, and Report a problem includes a fixed gallery result category without file paths. Refs #94.
+- Patching now reports when discovery stages start and finish. The Wi-Fi scan reads method signatures directly instead of formatting every reference in Messenger, which cuts that scan's time and temporary allocations. Refs #93, #99, #100.
 - **Hide Meta AI** now reaches the search screen too. Tap the search bar and the box at the top used to say "Ask Meta AI or search" even with the switch on. Now it shows the plain search hint, like the bar on the Chats list. Search still finds people and chats the same way.
 - With **Slide chats in and out** on, a chat whose first frames come late no longer jumps partway in. That happened most on the first chat you open after starting Messenger. The chat now waits off screen until Messenger draws on time (a quarter second at most), then slides in from the edge. Going back works the same way.
 

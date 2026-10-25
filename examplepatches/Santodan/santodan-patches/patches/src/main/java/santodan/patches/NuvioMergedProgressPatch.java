@@ -29,6 +29,7 @@ public final class NuvioMergedProgressPatch {
                 builder.compatibleWith(new Compatibility(NuvioNative.PACKAGE_NAME, "NuvioTV", null, ApkFileType.APK,
                     null, null, NuvioLayout.targets(), app.morphe.patcher.patch.FormFactor.TV, false));
                 builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
+                builder.dependsOn(NuvioStartupResourcesKt.getNuvioStartupResourcesPatch());
                 builder.extendWith(NuvioMergedProgressPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
@@ -40,7 +41,9 @@ public final class NuvioMergedProgressPatch {
                     {
                         NuvioRemainingEpisodesPatch.hookCard(context.mutableClassDefBy(NuvioNative.HOME_CARD_TYPE),
                             NuvioNative.PROVIDER_BADGE_TYPE, EXT, "prepareProviderBadge", "renderProviderBadge");
+                        NuvioNativeSyncBanner.hook(context);
                         hookNavigation(context.mutableClassDefBy(NuvioNative.ROOT_NAVIGATION_TYPE));
+                        if (NuvioLayout.BETA8.equals(version)) hookHomePipeline(context.mutableClassDefBy("Lxa/s3;"));
                         hookActivity(context.mutableClassDefBy("Lcom/nuvio/tv/MainActivity;"));
                         hookPlaybackScrobblers(context.mutableClassDefBy(NuvioNative.SCROBBLER_REGISTRY_TYPE));
                         hookInlinedCutoff(context.mutableClassDefBy(NuvioNative.HOME_CUTOFF_TYPE));
@@ -81,6 +84,24 @@ public final class NuvioMergedProgressPatch {
             target.getImplementation().addInstruction(0, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
                 parameterStart(target), 1, method(EXT, entry.getValue(), List.of("Ljava/lang/Object;"), "V")));
         }
+    }
+
+    /** beta.8 loadContinueWatching: observe the assigned pipeline Job, preserving the native body. */
+    static void hookHomePipeline(MutableClass owner) {
+        MutableMethod target = unique(owner, "b", 1);
+        if (!owner.getType().equals("Lxa/s3;") ||
+            !com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(target.getAccessFlags()) ||
+            !target.getParameterTypes().equals(List.of(owner.getType())) ||
+            !target.getReturnType().equals("V") || target.getImplementation().getRegisterCount() != 14 ||
+            !NuvioPlaybackButtonsPatch.fingerprint(target).equals("c91895ea981a1f76696b7f0330b625787b3a08630e274a9e6bc53a2b2f6ddf81"))
+            throw unsupported("Home CW pipeline loader changed or already patched");
+        var ins = instructions(target);
+        if (ins.size() != 30 || ins.get(28).getOpcode() != Opcode.IPUT_OBJECT ||
+            !((ReferenceInstruction)ins.get(28)).getReference().toString().equals("Lxa/s3;->i1:Lkotlinx/coroutines/Job;") ||
+            ((TwoRegisterInstruction)ins.get(28)).getRegisterB() != 13 || ins.get(29).getOpcode() != Opcode.RETURN_VOID)
+            throw unsupported("Home CW pipeline Job assignment changed");
+        target.getImplementation().addInstruction(29, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 13, 1,
+            method(EXT, "homePipelineStarted", List.of("Ljava/lang/Object;"), "V")));
     }
 
     /** Both native progress-save routes persist locally; only the main tracker writes remotely. */

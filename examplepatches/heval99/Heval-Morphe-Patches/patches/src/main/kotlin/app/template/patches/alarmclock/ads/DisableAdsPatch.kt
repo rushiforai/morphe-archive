@@ -46,9 +46,7 @@ private fun BytecodePatchContext.shopEntitlementCheck(): MutableMethod {
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Turns on the ad-free entitlement so Alarm Clock Xtreme shows no banner, " +
-        "interstitial or consent ads. Only the ad-free feature is changed; the other shop " +
-        "features keep their purchase state."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_ALARMCLOCK)
 

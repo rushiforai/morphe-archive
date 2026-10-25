@@ -85,6 +85,10 @@ final class TabBarCategory {
                 glass.addPreference(toggle(context, Settings.CENTER_SCREEN_TITLES, L10n.t("Center titles on other screens"),
                         L10n.t("Puts the title in the middle of the bar at the top of other screens, like notifications, "
                                 + "as far as the buttons beside it allow. The buttons stay where they are.")));
+                glass.addPreference(toggle(context, Settings.TITLES_AT_START, L10n.t("Logo and titles at the start"),
+                        L10n.t("Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used "
+                                + "to show them. Turn it on if Instagram centers them for you. It wins over the centering "
+                                + "switches above. Restart Instagram to see the change on Home.")));
                 glass.addPreference(page.tabOrderRow(context));
                 glass.addPreference(startTabRow(context));
             }

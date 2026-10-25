@@ -187,12 +187,13 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
         }
         if (SettingsStatus.storyOverLiveEnabled) {
-            // #233. TikTok's profile picture opens the LIVE over a Story. With this on the Story
-            // comes first, and the next tap on the same picture still joins the LIVE.
+            // #233. TikTok's profile picture and Inbox chat picture open the LIVE over a Story.
+            // With this on the Story comes first, and the next tap on the same picture still
+            // joins the LIVE.
             addPreference(new TogglePreference(
                     context,
                     "Open the Story when a creator is LIVE",
-                    "When a creator who's LIVE also has a Story, tapping their picture on their profile opens the Story. Tap the picture again to join the LIVE.",
+                    "When a creator who's LIVE also has a Story, tapping their picture on their profile or on your chat with them in the Inbox opens the Story. Tap the picture again to join the LIVE.",
                     Settings.OPEN_STORY_OVER_LIVE
             ));
         }

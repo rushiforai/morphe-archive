@@ -67,6 +67,7 @@ class GxrSdlBridgeInputRoutingTest {
 
         val retainedBuilds = listOf(
             "2.0.23" to "5002363",
+            "2.0.24" to "5002395",
         )
         retainedBuilds.forEach { (versionName, versionCode) ->
             assertEquals(

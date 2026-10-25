@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2100
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2100
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -8,13 +8,14 @@ package app.morphe.patches.youtube.misc.chapters
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterLast
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -31,7 +32,8 @@ internal fun getTimelineMarkersArrayFingerprint(timelineMarkerClassName: String)
     returnType = "[$timelineMarkerClassName",
     parameters = listOf("L"),
     filters = listOf(
-        checkCast("[$timelineMarkerClassName")
+        checkCast("[$timelineMarkerClassName"),
+        opcode(Opcode.RETURN_OBJECT, location = MatchAfterLast())
     )
 ) {}
 

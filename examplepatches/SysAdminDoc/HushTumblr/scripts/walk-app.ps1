@@ -18,7 +18,8 @@
     Only a PASS backs a release.
 
     A screen is opened by its deep link (am start -W -a VIEW -d ... -p com.tumblr) and counts
-    when the start reports ok with Tumblr in front. The Hush settings open through
+    only when its activity, native UI markers and any required query match the declared route.
+    A launch result or foreground package alone proves no destination. The Hush settings open through
     APPLICATION_PREFERENCES, the intent Android's App info page sends. Settings has no intent for a
     single page, so each page is opened from the settings list: a fresh uiautomator dump, the row
     whose text is exactly the page's name, a tap on its centre, and a page counts when its title
@@ -34,8 +35,8 @@
     scripts/walk-app.ps1 -Serial emulator-5610
 
 .EXAMPLE
-    # Walk a build already patched from this bundle and installed (records its APK hash):
-    scripts/walk-app.ps1 -Serial <your phone's adb serial> -SkipPatch
+    # Walk an installed build, proving it matches a checked signed APK and its provenance:
+    scripts/walk-app.ps1 -Serial <your phone's adb serial> -SkipPatch -PatchedApk <signed.apk>
 
 .EXAMPLE
     # Over a build signed with Morphe's own key, whose password is in HUSHTUMBLR_SIDELOAD_KEY_PASSWORD:
@@ -45,8 +46,7 @@
 param(
     [string]$Serial,
     [string]$Package = 'com.tumblr',
-    # The patched screens to open, each a deep link. A link that won't open fails the walk rather
-    # than skipping it.
+    # The declared native routes to open. A reduced selection remains PARTIAL.
     [string[]]$Visit = @(
         'https://www.tumblr.com/explore',
         'https://www.tumblr.com/search/art',
@@ -58,9 +58,10 @@ param(
     [string[]]$SettingsPages = @('Feed', 'Posts', 'Interface', 'Privacy', 'Links', 'Notifications',
         "Tumblr's own settings", 'Updates', 'Pause, backup and diagnostics', 'About'),
     # Walk the app that's already installed instead of patching and installing a fresh one. The
-    # installed build must have been patched from the release bundle; the receipt still names the
-    # bundle's hash, so an install from any other build would make a receipt publish won't honor.
+    # installed build must match -PatchedApk and the provenance beside it, from this exact bundle.
     [switch]$SkipPatch,
+    [string]$PatchedApk,
+    [string]$CleanApk,
     # Leave the Hush settings pages out of the walk. Makes the walk PARTIAL, not a release walk.
     [switch]$SkipSettings,
     [ValidateRange(1, 30)][int]$SettleSeconds = 4,
@@ -101,10 +102,15 @@ function Resolve-WalkOutcome {
         [int]$Screens,
         [int]$Crashes,
         [string[]]$Problems = @(),
+        [object[]]$Routes = @(),
+        [string[]]$PatchNames = @(),
         [Parameter(Mandatory = $true)][bool]$Full
     )
     if ($Crashes -gt 0 -or @($Problems).Count -gt 0) { return 'FAIL' }
     if (-not $Full -or $Screens -lt 1) { return 'PARTIAL' }
+    $coverage = Test-WalkCoverage -Routes $Routes -PatchNames $PatchNames
+    if ($coverage.Invalid -or $Screens -ne @($Routes).Count) { return 'FAIL' }
+    if (-not $coverage.Complete) { return 'PARTIAL' }
     return 'PASS'
 }
 
@@ -136,12 +142,14 @@ function ConvertFrom-WalkDump {
     $document = [xml]$Xml
     foreach ($node in $document.SelectNodes('//node')) {
         $text = [string]$node.GetAttribute('text')
-        if (-not $text) { continue }
         if ($node.GetAttribute('bounds') -notmatch '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$') { continue }
+        $left = [int]$Matches[1]; $top = [int]$Matches[2]; $right = [int]$Matches[3]; $bottom = [int]$Matches[4]
+        if ($right -le $left -or $bottom -le $top) { continue }
         [pscustomobject]@{
             Text = $text; Package = [string]$node.GetAttribute('package')
-            X = [int](([int]$Matches[1] + [int]$Matches[3]) / 2); Y = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
-            Top = [int]$Matches[2]; Bottom = [int]$Matches[4]
+            ResourceId = [string]$node.GetAttribute('resource-id'); Description = [string]$node.GetAttribute('content-desc')
+            Selected = $node.GetAttribute('selected') -ceq 'true'; X = [int](($left + $right) / 2); Y = [int](($top + $bottom) / 2)
+            Top = $top; Bottom = $bottom
         }
     }
 }
@@ -181,15 +189,19 @@ function Get-WalkScreenKey {
 function Invoke-WalkApp {
     param(
         [string]$Serial, [string]$Package, [string[]]$Visit, [string[]]$SettingsPages,
-        [bool]$SkipPatch, [bool]$SkipSettings, [int]$SettleSeconds, [string]$OutDir,
+        [bool]$SkipPatch, [string]$PatchedApk, [string]$CleanApk, [bool]$SkipSettings, [int]$SettleSeconds, [string]$OutDir,
         [string]$Keystore, [string]$KeyAlias, [bool]$NoStorePassword, [string]$LeaseDirectory, [string]$ChatIdentity,
         [string]$Adb, [string]$Aapt2, [string]$Root
     )
     if (-not $Serial) { throw 'Name the device to walk with -Serial.' }
     if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
-    $Root = [IO.Path]::GetFullPath($Root)
-    $OutDir = [IO.Path]::GetFullPath($OutDir)
+    $Root = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Root)
+    $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
     New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
+    $lease = $null
+    $walkHandles = [Collections.Generic.List[IDisposable]]::new()
+    $runId = [guid]::NewGuid().ToString('N')
+    try {
 
     # The bundle publish will hash, named in the receipt so a walk of any other build can't stand in.
     $version = Get-BundleVersion -Root $Root
@@ -197,7 +209,10 @@ function Invoke-WalkApp {
     if (-not (Test-Path -LiteralPath $bundle -PathType Leaf)) {
         throw "No release bundle at $bundle. Build it first (:patches:generatePatchesList then :patches:buildAndroid, through the governor)."
     }
-    $bundleSha256 = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+    $heldBundle = Open-HeldFile -Path $bundle -What 'The walked bundle'
+    $walkHandles.Add($heldBundle)
+    $bundle = Get-HeldPath $heldBundle
+    $bundleSha256 = Get-StreamSha256 $heldBundle
     # Publish holds the receipt to the staged bundle, so a walk of any other build can't back it.
     # Saying so up front saves a walk that was meant for the release; a walk between releases,
     # with the last release's assets still staged, goes ahead.
@@ -218,6 +233,8 @@ function Invoke-WalkApp {
     if (-not $Adb) { throw 'No adb found. Put it on the PATH or pass -Adb.' }
     $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $Root
 
+    $installApk = $PatchedApk
+    if ($SkipPatch -and -not $installApk) { throw '-SkipPatch requires -PatchedApk and its .provenance.json from a checked patch run.' }
     if (-not $SkipPatch) {
         $patchArguments = @{ OutDir = (Join-Path $OutDir 'patch'); Root = $Root }
         if ($Keystore) { $patchArguments.Keystore = $Keystore }
@@ -230,11 +247,25 @@ function Invoke-WalkApp {
         $installApk = $installApk[-1]
     }
 
-    $lease = $null
+    $installApk = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($installApk)
+    $provenanceHandle = Open-HeldFile -Path "$installApk.provenance.json" -What 'The signed APK provenance'
+    $walkHandles.Add($provenanceHandle)
+    $provenance = Get-Content -LiteralPath (Get-HeldPath $provenanceHandle) -Raw | ConvertFrom-Json
+    Assert-HushApkProvenance -Provenance $provenance -BundleSha256 $bundleSha256 -CatalogPath (Join-Path $Root 'patches-list.json') -FullSelection
+    if ($Package -cne $provenance.output.package) { throw 'The walk package differs from the checked APK.' }
+    $apkHandle = Open-HeldFile -Path $installApk -Sha256 $provenance.output.sha256 -What 'The walked signed APK'
+    $walkHandles.Add($apkHandle)
+    $installApk = Get-HeldPath $apkHandle
+    $localManifest = Get-ApkManifestFacts -Apk $installApk -Aapt2 $Aapt2
+    Assert-HushApkIdentity -Expected $provenance.output -Actual ([pscustomobject]@{
+        sha256 = Get-StreamSha256 $apkHandle; package = $localManifest.package; versionName = $localManifest.versionName
+        versionCode = [string]$localManifest.versionCode; signers = @(Get-HushApkSigners -Apk $installApk -Aapt2 $Aapt2)
+    })
     $problems = [Collections.Generic.List[string]]::new()
+    $routes = [Collections.Generic.List[object]]::new()
+    $plan = @(Get-WalkPlan -PatchNames @($provenance.patches))
     $screens = 0
     $dumpPath = '/sdcard/hushtumblr-walk.xml'
-    try {
         $lease = Enter-HushDeviceLease -Adb $Adb -Serial $Serial -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity
         # Ownership is checked on every call. The device identity was bound when the lease was
         # taken and is checked again by the install and at the end.
@@ -250,12 +281,16 @@ function Invoke-WalkApp {
             [void](& $walkAdb @('shell', 'rm', '-f', $dumpPath))
             @(ConvertFrom-WalkDump $xml)
         }
-        $inFront = {
+        $readActivity = {
             # The resumed-activity line is named differently by Android version: mResumedActivity=
             # on older ones, topResumedActivity= and "ResumedActivity:" on API 36.
             $resumed = @((& $walkAdb @('shell', 'dumpsys', 'activity', 'activities')).Output |
                 Where-Object { $_ -match 'ResumedActivity' }) -join ' '
-            $resumed -match "\b$([regex]::Escape($Package))/"
+            $components = @([regex]::Matches($resumed, '\bcom\.tumblr/[A-Za-z0-9_.$]+') | ForEach-Object {
+                $_.Value.Replace('com.tumblr/com.tumblr.', 'com.tumblr/.')
+            } | Sort-Object -Unique)
+            if ($components.Count -eq 1) { return $components[0] }
+            return ''
         }
 
         [void](& $walkAdb @('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP'))
@@ -267,18 +302,45 @@ function Invoke-WalkApp {
         if (-not $SkipPatch) {
             Write-Host "[walk] installing $(Split-Path -Leaf $installApk) on $Serial"
             try {
-                Install-HushAndroidApk -Adb $Adb -Serial $Serial -PackageName $Package -Apk $installApk -Aapt2 $Aapt2 -Lease $lease
+                Install-HushAndroidApk -Adb $Adb -Serial $Serial -PackageName $Package -Apk $installApk -Aapt2 $Aapt2 -Lease $lease `
+                    -ExpectedIdentity $provenance.output
             } catch {
                 throw ("The build would not install on ${Serial}: $($_.Exception.Message) If the signer differs, patch with the key " +
                     'the installed app uses (-Keystore, -KeyAlias). The installed app and its data were left alone.')
             }
         }
+        $installedBefore = Get-HushInstalledApkIdentity -Adb $Adb -Lease $lease -PackageName $Package -Aapt2 $Aapt2
+        Assert-HushApkIdentity -Expected $provenance.output -Actual $installedBefore
+        $cleanSource = Resolve-WalkCleanSource -Explicit $CleanApk -Root $Root -Sha256 $provenance.sourceSha256
+        $sourceHandle = Open-HeldFile -Path $cleanSource -Sha256 $provenance.sourceSha256 -What 'The walked source APK'
+        $walkHandles.Add($sourceHandle)
+        $verifierPath = Join-Path $OutDir "device-verifier-$runId.json"
+        $global:LASTEXITCODE = -1
+        & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk (Get-HeldPath $sourceHandle) `
+            -PatchedApk $installApk -Bundle $bundle -SelectedPatchNames @($provenance.patches) `
+            -Serial $Serial -Adb $Adb -Aapt2 $Aapt2 -LeaseToken $lease.Token -LeaseDirectory (Split-Path -Parent $lease.Path) `
+            -ChatIdentity $ChatIdentity -DeviceEvidencePath $verifierPath -EvidenceRunId $runId `
+            -ExpectedSourceSha256 $provenance.sourceSha256 -ExpectedPatchedSha256 $provenance.output.sha256 `
+            -ReportPath (Join-Path $OutDir "injected-registers-$runId.txt")
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $verifierPath -PathType Leaf)) { throw 'The walked APK has no completed device verifier comparison.' }
+        $verifierHandle = Open-HeldFile -Path $verifierPath -What 'The walk device verifier evidence'
+        $walkHandles.Add($verifierHandle)
+        $verifier = Get-Content -LiteralPath (Get-HeldPath $verifierHandle) -Raw | ConvertFrom-Json
         $started = [DateTimeOffset]::UtcNow
+        Assert-WalkVerifierEvidence -Receipt ([pscustomobject]@{
+            runId = $runId; serial = $Serial; device = $lease.Identity.Model; deviceIdentity = $lease.Identity
+            emulator = $Serial.StartsWith('emulator-', [StringComparison]::Ordinal)
+            bundleSha256 = $bundleSha256; provenance = $provenance; verifier = $verifier
+        }) -WalkStarted $started
         $startedEpoch = [long]((& $walkAdb @('shell', 'date', '+%s')).Output -join '').Trim()
         [void](& $walkAdb @('shell', 'am', 'force-stop', $Package))
         $launch = & $walkAdb @('shell', 'am', 'start', '-W', '-n', "$Package/$WalkMainActivity")
         Start-Sleep -Seconds ($SettleSeconds * 2)
-        if (($launch.Output -join "`n") -match '(?m)^Status:\s*ok\s*$' -and (& $inFront)) {
+        $homeRoute = @($plan | Where-Object { $_.id -ceq 'native.home' })[0]
+        $homeObservation = Get-WalkObservation -Route $homeRoute -Nodes (& $readScreen) -Activity (& $readActivity)
+        $homePass = ($launch.Output -join "`n") -match '(?m)^Status:\s*ok\s*$' -and (Test-WalkDestination $homeRoute $homeObservation)
+        $routes.Add([ordered]@{ id = $homeRoute.id; status = if ($homePass) { 'PASS' } else { 'UNVERIFIED' }; observation = $homeObservation })
+        if ($homePass) {
             $screens++
             Write-Host '[walk] opened the home feed'
         } else {
@@ -286,15 +348,20 @@ function Invoke-WalkApp {
         }
 
         foreach ($link in $Visit) {
+            $definition = @($plan | Where-Object { $_.link -ceq $link })
+            if ($definition.Count -ne 1) { $problems.Add("$link is not in the declared walk plan"); continue }
+            $definition = $definition[0]
             $opened = & $walkAdb @('shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', "'$link'", '-p', $Package)
             Start-Sleep -Seconds $SettleSeconds
             $ok = ($opened.Output -join "`n") -match '(?m)^Status:\s*ok\s*$'
-            $front = & $inFront
-            if ($ok -and $front) {
+            $observation = Get-WalkObservation -Route $definition -Nodes (& $readScreen) -Activity (& $readActivity)
+            $destination = Test-WalkDestination $definition $observation
+            $routes.Add([ordered]@{ id = $definition.id; status = if ($ok -and $destination) { 'PASS' } else { 'UNVERIFIED' }; observation = $observation })
+            if ($ok -and $destination) {
                 $screens++
                 Write-Host "[walk] opened $link"
             } else {
-                $problems.Add("$link would not open (status ok: $ok, Tumblr in front: $front)")
+                $problems.Add("$($definition.id) destination was unverified (launch status: $ok, destination: $destination)")
                 Write-Host "[walk] $link would not open"
             }
         }
@@ -307,7 +374,11 @@ function Invoke-WalkApp {
             [void](& $walkAdb @('shell', 'am', 'start', '-W', '-a', 'android.intent.action.APPLICATION_PREFERENCES', '-p', $Package))
             Start-Sleep -Seconds $SettleSeconds
             $nodes = & $readScreen
-            if (-not (Find-WalkRow $nodes $WalkSettingsHome $Package)) {
+            $settingsRoute = @($plan | Where-Object { $_.id -ceq 'settings.home' })[0]
+            $settingsObservation = Get-WalkObservation -Route $settingsRoute -Nodes $nodes -Activity (& $readActivity)
+            $settingsPass = Test-WalkDestination $settingsRoute $settingsObservation
+            $routes.Add([ordered]@{ id = 'settings.home'; status = if ($settingsPass) { 'PASS' } else { 'UNVERIFIED' }; observation = $settingsObservation })
+            if (-not $settingsPass) {
                 $problems.Add('the Hush settings would not open from App info''s intent')
                 Write-Host '[walk] the Hush settings would not open'
             } else {
@@ -317,6 +388,9 @@ function Invoke-WalkApp {
                 $width = 720; $height = 1600
                 if ($size -match '(\d+)x(\d+)\s*$') { $width = [int]$Matches[1]; $height = [int]$Matches[2] }
                 foreach ($page in $SettingsPages) {
+                    $pageRoute = @($plan | Where-Object { $_.page -ceq $page })
+                    if ($pageRoute.Count -ne 1) { $problems.Add("$page is not in the declared settings plan"); continue }
+                    $pageRoute = $pageRoute[0]
                     $row = Find-WalkRow $nodes $page $Package
                     # A row that isn't on screen is looked for further down, then back up, one slow
                     # drag at a time (Get-WalkListSwipe), each followed by a fresh dump. The same
@@ -342,8 +416,10 @@ function Invoke-WalkApp {
                     [void](& $walkAdb @('shell', 'input', 'tap', [string]$row.X, [string]$row.Y))
                     Start-Sleep -Seconds 2
                     $nodes = & $readScreen
-                    $onPage = (Find-WalkRow $nodes $page $Package) -and -not (Find-WalkRow $nodes $WalkSettingsHome $Package)
-                    if ($onPage -and (& $inFront)) {
+                    $pageObservation = Get-WalkObservation -Route $pageRoute -Nodes $nodes -Activity (& $readActivity)
+                    $onPage = Test-WalkDestination $pageRoute $pageObservation
+                    $routes.Add([ordered]@{ id = $pageRoute.id; status = if ($onPage) { 'PASS' } else { 'UNVERIFIED' }; observation = $pageObservation })
+                    if ($onPage) {
                         $screens++
                         Write-Host "[walk] opened the settings page $page"
                     } else {
@@ -374,22 +450,24 @@ function Invoke-WalkApp {
         if (-not $alive) { $problems.Add('Tumblr was no longer running when the walk ended') }
 
         $identity = Confirm-HushLeasedDevice -Adb $Adb -Lease $lease
-        $appVersion = @((& $walkAdb @('shell', 'dumpsys', 'package', $Package)).Output |
-            Where-Object { $_ -match 'versionName=(.+)$' } | ForEach-Object { $Matches[1].Trim() } | Select-Object -First 1) -join ''
-        $apkPath = @((& $walkAdb @('shell', 'pm', 'path', $Package)).Output | Where-Object { $_ -like 'package:*base.apk' }) | Select-Object -First 1
-        $installedSha = ''
-        if ($apkPath) {
-            $installedSha = (((& $walkAdb @('shell', 'sha256sum', $apkPath.Substring(8).Trim())).Output -join '') -split '\s+')[0]
-        }
+        $installedAfter = $null
+        try {
+            $installedAfter = Get-HushInstalledApkIdentity -Adb $Adb -Lease $lease -PackageName $Package -Aapt2 $Aapt2
+            Assert-HushApkIdentity -Expected $provenance.output -Actual $installedAfter
+        } catch { $problems.Add("Installed APK identity changed or could not be verified: $($_.Exception.Message)") }
 
         $full = $full -and $problems.Count -eq 0
-        $result = Resolve-WalkOutcome -Screens $screens -Crashes $fatal.Count -Problems ([string[]]$problems) -Full $full
+        $result = Resolve-WalkOutcome -Screens $screens -Crashes $fatal.Count -Problems ([string[]]$problems) -Full $full `
+            -Routes @($routes) -PatchNames @($provenance.patches)
         $receipt = New-WalkReceipt -Result $result -Full $full -Serial $Serial -Device $identity.Model `
-            -AppVersion $appVersion -BundleSha256 $bundleSha256 -InstalledApkSha256 $installedSha `
+            -AppVersion $installedBefore.versionName -BundleSha256 $bundleSha256 -InstalledApkSha256 $installedBefore.sha256 `
+            -Provenance $provenance -InstalledBefore $installedBefore -InstalledAfter $installedAfter `
+            -Routes @($routes) `
+            -RunId $runId -DeviceIdentity $identity -Verifier $verifier `
             -Started $started -Finished ([DateTimeOffset]::UtcNow) -Screens $screens -Crashes $fatal.Count `
             -Problems ([string[]]$problems)
         $receiptPath = Join-Path $OutDir 'walk-receipt.json'
-        [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 4) + "`n")
+        [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 8) + "`n")
 
         Write-Host "[walk] receipt $receiptPath"
         foreach ($problem in $problems) { Write-Host "[walk]   $problem" }
@@ -398,12 +476,13 @@ function Invoke-WalkApp {
         return $receiptPath
     } finally {
         if ($lease) { Exit-HushDeviceLease $lease }
+        foreach ($handle in $walkHandles) { $handle.Dispose() }
     }
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
     $receiptPath = Invoke-WalkApp -Serial $Serial -Package $Package -Visit $Visit -SettingsPages $SettingsPages `
-        -SkipPatch:$SkipPatch -SkipSettings:$SkipSettings -SettleSeconds $SettleSeconds -OutDir $OutDir `
+        -SkipPatch:$SkipPatch -PatchedApk $PatchedApk -CleanApk $CleanApk -SkipSettings:$SkipSettings -SettleSeconds $SettleSeconds -OutDir $OutDir `
         -Keystore $Keystore -KeyAlias $KeyAlias -NoStorePassword:$NoStorePassword -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity `
         -Adb $Adb -Aapt2 $Aapt2 -Root $Root
     $walked = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json

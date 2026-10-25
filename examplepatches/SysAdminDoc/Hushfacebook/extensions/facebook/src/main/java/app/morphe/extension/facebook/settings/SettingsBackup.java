@@ -43,6 +43,7 @@ import app.morphe.extension.facebook.menu.MenuTiles;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.HeaderText;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.feed.ReactionCeiling;
@@ -126,6 +127,7 @@ public final class SettingsBackup {
             Settings.HIDE_FEED_FRIEND_REQUESTS,
             Settings.HIDE_FRIENDS_LOCATIONS,
             Settings.HIDE_NOTIFICATION_POST_FOOTER,
+            Settings.HIDE_RELATED_POSTS,
             Settings.HIDE_FIND_FRIENDS_CARD,
             Settings.HIDE_SEARCH_FOR_YOU,
             Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW,
@@ -194,6 +196,7 @@ public final class SettingsBackup {
             Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE,
             Settings.FEED_VIDEOS_ALONE,
+            Settings.PLAY_FEED_REELS_WHOLE,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
             Settings.NEWEST_REELS_FIRST,
             Settings.HOLD_ANALYTICS_UPLOADS,
@@ -211,6 +214,8 @@ public final class SettingsBackup {
             Settings.HIDE_READ_RECEIPTS,
             Settings.ORIGINAL_CHAT_MEDIA,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE,
+            Settings.DOUBLE_TAP_SKIP,
+            Settings.TAP_SHOWS_CONTROLS,
             Settings.DOUBLE_TAP_OPENS_COMMENTS,
             Settings.LONG_PRESS_OPENS_COMMENTS,
             Settings.KEEP_REEL_SPEED,
@@ -218,6 +223,7 @@ public final class SettingsBackup {
             Settings.SLOWER_REEL_SPEEDS,
             Settings.HOLD_REEL_FOR_2X,
             Settings.HOLD_REEL_RIGHT_EDGE,
+            Settings.HOLD_FEED_VIDEO_FOR_2X,
             Settings.DEFAULT_COMMENT_ORDER,
             Settings.HIDE_META_AI_SUMMARIES,
             Settings.LIKE_ONLY,
@@ -331,6 +337,8 @@ public final class SettingsBackup {
             Settings.LEAVE_CALLS_AND_CHATS_TO_MESSENGER,
             Settings.HIDE_MENU_UPGRADES,
             Settings.HIDE_MENU_ALSO_FROM_META,
+            Settings.HIDE_MENU_HELP,
+            Settings.KEEP_MENU_SETTINGS_EXPANDED,
             Settings.HIDE_MENU_MUSE,
             Settings.HIDE_MENU_META_AI,
             Settings.HIDE_EDITS_UPSELLS,
@@ -457,6 +465,12 @@ public final class SettingsBackup {
     static final StringSetting LIGHT_BACKGROUND = Settings.AMOLED_LIGHT_BACKGROUND;
 
     /**
+     * Home header text, held in a file as its row keeps it: blank, or one line {@link HeaderText}
+     * leaves as it is. Text written any other way refuses the whole file.
+     */
+    static final StringSetting HEADER_TEXT = Settings.HEADER_TEXT;
+
+    /**
      * The order comment sheets ask for, held in a file as its {@link CommentOrder#fileValue}.
      * Anything else refuses the whole file, as a tab does.
      */
@@ -532,7 +546,7 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, CEILING, SHARE_ITEMS, MENU_TILES, HOME_FEED, BACKGROUND, LIGHT_BACKGROUND, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, CEILING, SHARE_ITEMS, MENU_TILES, HOME_FEED, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
                     QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, TEXT_SIZE, ACCENT));
 
@@ -644,6 +658,7 @@ public final class SettingsBackup {
         private static final String HOME_FEED_NAME = "home_feed";
         private static final String BACKGROUND_NAME = "amoled_background";
         private static final String LIGHT_BACKGROUND_NAME = "amoled_light_background";
+        private static final String HEADER_TEXT_NAME = "header_text";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -737,6 +752,9 @@ public final class SettingsBackup {
         /** The Light background color the file holds, the same way. */
         @Nullable
         String lightBackground;
+        /** The Home header text the file holds, the same way. */
+        @Nullable
+        String headerText;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -957,6 +975,8 @@ public final class SettingsBackup {
             if (backgroundChange != null) changes.put(BACKGROUND, backgroundChange);
             String lightBackgroundChange = lightBackgroundChange();
             if (lightBackgroundChange != null) changes.put(LIGHT_BACKGROUND, lightBackgroundChange);
+            String headerTextChange = headerTextChange();
+            if (headerTextChange != null) changes.put(HEADER_TEXT, headerTextChange);
             SendLink.Action actionChange = actionChange();
             if (actionChange != null) changes.put(ACTION, actionChange);
             String appChange = appChange();
@@ -1165,6 +1185,13 @@ public final class SettingsBackup {
             return lightBackground.equals(LIGHT_BACKGROUND.savedValue()) ? null : lightBackground;
         }
 
+        /** The Home header text this file sets, or null when it names none or the one already set. */
+        @Nullable
+        String headerTextChange() {
+            if (headerText == null) return null;
+            return headerText.equals(HEADER_TEXT.savedValue()) ? null : headerText;
+        }
+
         /** The feed Home shows after this file, or null when it names none or the one already set. */
         @Nullable
         FeedsSubtab homeFeedChange() {
@@ -1215,6 +1242,7 @@ public final class SettingsBackup {
             if (homeFeed != null) state.putString(HOME_FEED_NAME, homeFeed.fileValue);
             if (background != null) state.putString(BACKGROUND_NAME, background);
             if (lightBackground != null) state.putString(LIGHT_BACKGROUND_NAME, lightBackground);
+            if (headerText != null) state.putString(HEADER_TEXT_NAME, headerText);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -1279,6 +1307,9 @@ public final class SettingsBackup {
             read.background = isBackground(background) ? (String) background : null;
             Object lightBackground = state.get(LIGHT_BACKGROUND_NAME);
             read.lightBackground = isLightBackground(lightBackground) ? (String) lightBackground : null;
+            Object headerText = state.get(HEADER_TEXT_NAME);
+            read.headerText = HeaderText.isClean(headerText instanceof String ? (String) headerText : null)
+                    ? (String) headerText : null;
             return read;
         }
     }
@@ -1350,6 +1381,7 @@ public final class SettingsBackup {
             switches.put(BACKGROUND.key, background == null ? "" : background);
             String lightBackground = AmoledLightBackground.stored(of(LIGHT_BACKGROUND));
             switches.put(LIGHT_BACKGROUND.key, lightBackground == null ? "" : lightBackground);
+            switches.put(HEADER_TEXT.key, HeaderText.clean(of(HEADER_TEXT)));
             return new JSONObject()
                     .put(FORMAT_NAME, FORMAT)
                     .put(SCHEMA_NAME, SCHEMA)
@@ -1476,6 +1508,7 @@ public final class SettingsBackup {
         FeedsSubtab homeFeed = null;
         String background = null;
         String lightBackground = null;
+        String headerText = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -1555,6 +1588,14 @@ public final class SettingsBackup {
                 Object value = values.opt(name);
                 if (!isLightBackground(value)) throw new Rejected(Reason.VALUE, "Not a Light background color: " + name);
                 lightBackground = (String) value;
+                continue;
+            }
+            if (HEADER_TEXT.key.equals(name)) {
+                Object value = values.opt(name);
+                if (!(value instanceof String) || !HeaderText.isClean((String) value)) {
+                    throw new Rejected(Reason.VALUE, "Not a Home header text: " + name);
+                }
+                headerText = (String) value;
                 continue;
             }
             if (ORDER.key.equals(name)) {
@@ -1699,6 +1740,7 @@ public final class SettingsBackup {
         read.homeFeed = homeFeed;
         read.background = background;
         read.lightBackground = lightBackground;
+        read.headerText = headerText;
         return read;
     }
 

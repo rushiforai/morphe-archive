@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -10,11 +10,11 @@ package app.morphe.patches.shared
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.StringComparisonType
-import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -53,21 +53,30 @@ internal object BoldIconsFeatureFlagFingerprint : Fingerprint(
 )
 
 internal object BuildInnerTubeProtoRequestUriFingerprint : Fingerprint(
+    returnType = $$"Landroid/net/Uri$Builder;",
     parameters = listOf(),
     filters = listOf(
         string("key"),
         string("asig"),
         checkCast("Ljava/lang/String;"),
         methodCall($$"Landroid/net/Uri$Builder;->appendQueryParameter(Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri$Builder;"),
-        anyInstruction(
-            // YT 21.20, YTM 9.18
-            methodCall($$"Landroid/net/Uri$Builder;->build()Landroid/net/Uri;"),
-            // YT 21.21+, YTM 9.19+
-            opcode(
-                opcode = Opcode.RETURN_OBJECT,
-                location = MatchAfterWithin(5)
-            )
+        opcode(
+            opcode = Opcode.RETURN_OBJECT,
+            location = MatchAfterWithin(5)
         )
+    )
+)
+
+internal object BuildInnerTubeProtoRequestUriLegacyFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(
+        string("key"),
+        string("asig"),
+        checkCast("Ljava/lang/String;"),
+        methodCall($$"Landroid/net/Uri$Builder;->appendQueryParameter(Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri$Builder;"),
+        // Must be last. Above appendQueryParameter can be inside a loop that is not always executed.
+        methodCall($$"Landroid/net/Uri$Builder;->build()Landroid/net/Uri;")
     )
 )
 
@@ -97,6 +106,20 @@ internal object FormatStreamModelToStringFingerprint : Fingerprint(
         ),
         string("FormatStream(itag="),
         string(" mimeType=")
+    )
+)
+
+internal object MediaSessionSetMetadataFingerprint : Fingerprint(
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            type = "Landroid/media/MediaMetadata;"
+        ),
+        methodCall(
+            definingClass = "Landroid/media/session/MediaSession;",
+            name = "setMetadata",
+            parameters = listOf("Landroid/media/MediaMetadata;")
+        )
     )
 )
 
@@ -131,6 +154,51 @@ internal object SpannableStringBuilderFingerprint : Fingerprint(
         string(
             "Failed to set PB Style Run Extension in TextComponentSpec.",
             comparison = StringComparisonType.STARTS_WITH
+        )
+    )
+)
+
+internal object TextComponentConstructorFingerprint : Fingerprint(
+    name = "<init>",
+    filters = listOf(
+        string("TextComponent")
+    )
+)
+
+internal object TextComponentLookupFingerprint : Fingerprint(
+    classFingerprint = TextComponentConstructorFingerprint,
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    returnType = "L",
+    parameters = listOf("L"),
+    filters = listOf(
+        string("…")
+    )
+)
+
+internal object TextComponentFeatureFlagFingerprint : Fingerprint(
+    filters = listOf(
+        literal(45675738L)
+    )
+)
+
+internal object LithoSpannableStringCreationFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L", "Ljava/lang/Object;", "L"),
+    filters = listOf(
+        newInstance(type = "Landroid/text/SpannableString;"),
+        methodCall(
+            smali = "Landroid/text/SpannableString;-><init>(Ljava/lang/CharSequence;)V",
+            location = MatchAfterWithin(5)
+        ),
+        methodCall(
+            smali = "Landroid/text/SpannableString;->getSpans(IILjava/lang/Class;)[Ljava/lang/Object;",
+            location = MatchAfterWithin(5)
+        ),
+
+        methodCall(
+            name = "addOnLayoutChangeListener",
+            parameters = listOf($$"Landroid/view/View$OnLayoutChangeListener;"),
         )
     )
 )

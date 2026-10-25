@@ -18,12 +18,15 @@ internal const val VIDEO_SHADER_SIZE = 1087
 internal const val VIDEO_LIBRARY_SIZE_5001712 = 2_221_072
 internal const val VIDEO_LIBRARY_SIZE_5002244 = 2_251_920
 internal const val VIDEO_LIBRARY_SIZE_5002363 = 2_292_008
+internal const val VIDEO_LIBRARY_SIZE_5002395 = 2_301_432
 private const val VIDEO_LIBRARY_SHA256_5001712 =
     "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"
 private const val VIDEO_LIBRARY_SHA256_5002244 =
     "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12"
 private const val VIDEO_LIBRARY_SHA256_5002363 =
     "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"
+private const val VIDEO_LIBRARY_SHA256_5002395 =
+    "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b"
 
 private val SRGB8_INSTRUCTION = byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52)
 private val RGB10_A2_INSTRUCTION = byteArrayOf(0x29, 0x0b, 0x90.toByte(), 0x52)
@@ -43,6 +46,7 @@ private val SWAPCHAIN_CONTEXT_AFTER = byteArrayOf(
 internal val SWAPCHAIN_FORMAT_OFFSETS_5001712 = intArrayOf(0x10a9c4, 0x10aa34)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002244 = intArrayOf(0x10826c, 0x1082dc, 0x10834c)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002363 = intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
+internal val SWAPCHAIN_FORMAT_OFFSETS_5002395 = intArrayOf(0x10da98, 0x10db08, 0x10db78)
 
 private data class VideoLibraryLayout(
     val versionName: String,
@@ -76,6 +80,13 @@ private val VIDEO_LIBRARY_LAYOUTS = listOf(
         VIDEO_LIBRARY_SIZE_5002363,
         VIDEO_LIBRARY_SHA256_5002363,
         SWAPCHAIN_FORMAT_OFFSETS_5002363,
+    ),
+    VideoLibraryLayout(
+        "2.0.24",
+        5002395,
+        VIDEO_LIBRARY_SIZE_5002395,
+        VIDEO_LIBRARY_SHA256_5002395,
+        SWAPCHAIN_FORMAT_OFFSETS_5002395,
     ),
 )
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -10,11 +10,13 @@
 
 package app.morphe.extension.youtube.shared;
 
-import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -32,6 +34,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.spoof.SpoofAppVersionPatch;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
@@ -95,6 +98,32 @@ public final class NavigationBar {
      */
     public static void searchBarResultsViewLoaded(View searchbarResults) {
         searchBarResultsRef = new WeakReference<>(searchbarResults);
+        isSearchBarAttached = searchbarResults.isAttachedToWindow();
+
+        searchbarResults.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(@NonNull View view) {
+                if (view == closingSearchBarResultsRef.get()) {
+                    // Search was not closed, or was opened again.
+                    closingSearchBarResultsRef = new WeakReference<>(null);
+                }
+                if (view == searchBarResultsRef.get()) {
+                    isSearchBarAttached = true;
+                }
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(@NonNull View view) {
+                if (view == closingSearchBarResultsRef.get()) {
+                    Logger.printDebug(() -> "Search bar closed");
+                    closingSearchBarResultsRef = new WeakReference<>(null);
+                }
+                if (view == searchBarResultsRef.get()) {
+                    // View#isShown() is still true while the detach listeners are called.
+                    isSearchBarAttached = false;
+                }
+            }
+        });
     }
 
     /**
@@ -120,7 +149,61 @@ public final class NavigationBar {
      */
     public static boolean isSearchBarActive() {
         View searchbarResults = searchBarResultsRef.get();
-        return searchbarResults != null && searchbarResults.isShown();
+        return searchbarResults != null
+                && searchbarResults != closingSearchBarResultsRef.get()
+                && isSearchBarAttached
+                && searchbarResults.isShown();
+    }
+
+    /**
+     * If the last loaded search bar is attached to the window.
+     */
+    private static volatile boolean isSearchBarAttached;
+
+    /**
+     * Search bar closed by the back button/gesture or by a navigation button.
+     * <p>
+     * Litho starts filtering the tab below the search before the search bar is detached,
+     * and without this the tab is filtered as search results. Waiting on the Litho thread
+     * for the detach is not possible, because the main thread can wait for the same Litho layout
+     * before it detaches the search bar.
+     * <p>
+     * Only this search bar is considered closed, so a search bar loaded again
+     * (such as going back to the previous search) is active as soon as it is shown.
+     * Cleared when this search bar is detached (closed) or attached again.
+     */
+    private static volatile WeakReference<View> closingSearchBarResultsRef = new WeakReference<>(null);
+
+    /**
+     * Safety limit if a closed search bar is still attached, so a search that was unexpectedly
+     * not closed is not filtered as the tab below it.
+     * Normally the search bar is detached after the exit animation (300-500ms).
+     */
+    private static final long SEARCH_BAR_CLOSING_TIMEOUT_MILLISECONDS = 5000;
+
+    /**
+     * Must be called on the main thread.
+     */
+    private static void setSearchBarClosingIfShown() {
+        View searchbarResults = searchBarResultsRef.get();
+        // Search is not shown if the player is maximized over it,
+        // and then the back button minimizes the player instead.
+        if (searchbarResults == null || !isSearchBarAttached || !searchbarResults.isShown()) {
+            return;
+        }
+
+        Logger.printDebug(() -> "Search bar closing");
+        closingSearchBarResultsRef = new WeakReference<>(searchbarResults);
+
+        Utils.runOnMainThreadDelayed(() -> {
+            if (closingSearchBarResultsRef.get() == searchbarResults) {
+                // Log as exception level, only if debug is enabled.
+                if (Settings.DEBUG.get()) {
+                    Logger.printException(() -> "Search bar was not closed");
+                }
+                closingSearchBarResultsRef = new WeakReference<>(null);
+            }
+        }, SEARCH_BAR_CLOSING_TIMEOUT_MILLISECONDS);
     }
 
     public static boolean isBackButtonVisible() {
@@ -222,6 +305,109 @@ public final class NavigationBar {
     }
 
     /**
+     * Navigation button the selected button was opened from, if the selected button was selected
+     * by tapping it. Going back from the root of a tab selects again the tab it was opened from.
+     * Accessed only on the main thread.
+     */
+    @Nullable
+    private static NavigationButton openedFromNavigationButton;
+
+    /**
+     * Navigation button tapped and not yet selected, and when it was tapped.
+     * Accessed only on the main thread.
+     */
+    @Nullable
+    private static NavigationButton tappedNavigationButton;
+    private static long tappedNavigationButtonTime;
+
+    /**
+     * Maximum time between tapping a navigation button and selecting it.
+     */
+    private static final long TAPPED_NAVIGATION_BUTTON_TIMEOUT_MILLISECONDS = 1000;
+
+    /**
+     * Navigation button selected again by going back from the root of the You tab,
+     * and when going back.
+     * <p>
+     * Litho filters the tab it goes back to before the navigation bar is updated (150-600ms later),
+     * also on the main thread, so the filters cannot wait for the navigation bar.
+     */
+    @Nullable
+    private static volatile NavigationButton goingBackNavigationButton;
+    private static volatile long goingBackTime;
+
+    /**
+     * If going back again cancelled {@link #goingBackNavigationButton}, as the tab it goes back to
+     * is then not known until the tab changes. Accessed only on the main thread.
+     */
+    private static boolean goingBackCancelled;
+
+    /**
+     * Maximum time going back to {@link #goingBackNavigationButton}, if going back does not change the tab.
+     */
+    private static final long GOING_BACK_TIMEOUT_MILLISECONDS = 1000;
+
+    /**
+     * Both back hooks can be called for the same back within this time.
+     */
+    private static final long SAME_BACK_EVENT_MILLISECONDS = 50;
+
+    /**
+     * Navigation button touched down, if the touch can be a tap on it.
+     * Accessed only on the main thread.
+     */
+    @Nullable
+    private static NavigationButton touchedNavigationButton;
+
+    /**
+     * Injection point.
+     * <p>
+     * Tapping a navigation tab while the search is on screen closes the search,
+     * but does not select the tab again if it is already selected.
+     */
+    public static void navigationBarTouched(MotionEvent event) {
+        try {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN -> touchedNavigationButton = getNavigationButtonAt(event);
+                case MotionEvent.ACTION_UP -> {
+                    NavigationButton button = getNavigationButtonAt(event);
+                    if (button != null && button == touchedNavigationButton) {
+                        tappedNavigationButton = button;
+                        tappedNavigationButtonTime = SystemClock.uptimeMillis();
+                        if (button.closesSearch()) {
+                            setSearchBarClosingIfShown();
+                        }
+                    }
+                    touchedNavigationButton = null;
+                }
+                case MotionEvent.ACTION_CANCEL -> touchedNavigationButton = null;
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "navigationBarTouched failure", ex);
+        }
+    }
+
+    @Nullable
+    private static NavigationButton getNavigationButtonAt(MotionEvent event) {
+        final float x = event.getRawX();
+        final float y = event.getRawY();
+        int[] location = new int[2];
+
+        for (Map.Entry<View, NavigationButton> entry : viewToButtonMap.entrySet()) {
+            View view = entry.getKey();
+            if (!view.isShown()) {
+                continue;
+            }
+            view.getLocationOnScreen(location);
+            if (x >= location[0] && x < location[0] + view.getWidth()
+                    && y >= location[1] && y < location[1] + view.getHeight()) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Last YT navigation enum loaded.  Not necessarily the active navigation tab.
      * Always accessed from the main thread.
      */
@@ -242,6 +428,12 @@ public final class NavigationBar {
      */
     public static void navigationTabLoaded(final View navigationButtonGroup) {
         try {
+            // The navigation bar can be created again, such as if the activity is created again.
+            openedFromNavigationButton = null;
+            tappedNavigationButton = null;
+            goingBackNavigationButton = null;
+            goingBackCancelled = false;
+
             String lastEnumName = lastYTNavigationEnumName;
 
             for (NavigationButton buttonType : NavigationButton.values()) {
@@ -299,6 +491,10 @@ public final class NavigationBar {
                 }
 
                 NavigationButton.selectedNavigationButton = null;
+                openedFromNavigationButton = null;
+                tappedNavigationButton = null;
+                goingBackNavigationButton = null;
+                goingBackCancelled = false;
 
                 if (oldButton != null) {
                     notifyNavigationButtonChangedListeners(null);
@@ -312,6 +508,14 @@ public final class NavigationBar {
             releaseNavButtonLatch();
 
             if (button != oldButton) {
+                openedFromNavigationButton = button == tappedNavigationButton
+                        && SystemClock.uptimeMillis() - tappedNavigationButtonTime <= TAPPED_NAVIGATION_BUTTON_TIMEOUT_MILLISECONDS
+                        ? oldButton
+                        : null;
+                tappedNavigationButton = null;
+                goingBackNavigationButton = null;
+                goingBackCancelled = false;
+
                 Logger.printDebug(() -> "Changed to navigation button: " + button);
                 notifyNavigationButtonChangedListeners(button);
             }
@@ -323,9 +527,94 @@ public final class NavigationBar {
     /**
      * Injection point.
      */
-    public static void onBackPressed(Activity activity) {
+    public static void onBackPressed() {
         Logger.printDebug(() -> "Back button pressed");
         createNavButtonLatch();
+        setGoingBackNavigationButton();
+        setSearchBarClosingIfShown();
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Predictive back gesture, which does not call {@link #onBackPressed()}.
+     */
+    public static void onBackInvoked() {
+        Logger.printDebug(() -> "Back invoked");
+        setGoingBackNavigationButton();
+        setSearchBarClosingIfShown();
+    }
+
+    /**
+     * Going back from the root of a tab selects again the tab it was opened from.
+     * Only the You tab is used, as its root shows only horizontal collections, and the tabs it is
+     * verified to select again: the Home and Subscriptions tabs. The Subscriptions feed is not used,
+     * as its elements cannot be told apart from the elements of the Home feed.
+     * <p>
+     * Going back does not change the tab if a page is opened in the tab (the toolbar shows the back button),
+     * if the search is on screen, or if a player is on screen (other than a video playing in the feed).
+     * <p>
+     * Must be called on the main thread, before the search bar is set as closing.
+     */
+    private static void setGoingBackNavigationButton() {
+        // A tab selected after going back is not selected by a tap.
+        tappedNavigationButton = null;
+
+        try {
+            final long now = SystemClock.uptimeMillis();
+            if (getGoingBackNavigationButton() != null) {
+                // Going back again before the navigation bar is updated goes back to a tab that is not known.
+                if (now - goingBackTime > SAME_BACK_EVENT_MILLISECONDS) {
+                    goingBackNavigationButton = null;
+                    goingBackCancelled = true;
+                }
+                return;
+            }
+            goingBackNavigationButton = null;
+            if (goingBackCancelled && now - goingBackTime <= GOING_BACK_TIMEOUT_MILLISECONDS) {
+                return;
+            }
+            goingBackCancelled = false;
+
+            NavigationButton selectedButton = NavigationButton.selectedNavigationButton;
+            NavigationButton openedFromButton = openedFromNavigationButton;
+            final boolean isVerifiedTab = openedFromButton == NavigationButton.HOME;
+            if (!isVerifiedTab) {
+                return;
+            }
+
+            AppCompatToolbarPatchInterface toolbar = toolbarResultsRef.get();
+            PlayerType playerType = PlayerType.getCurrent();
+            if (toolbar == null ||
+                    toolbar.patch_getNavigationIcon() != null ||
+                    // The search bar is set as closing by the back button, and both back hooks can be called.
+                    isSearchBarActive() ||
+                    closingSearchBarResultsRef.get() != null ||
+                    !(playerType.isNoneOrHidden()
+                            || playerType == PlayerType.WATCH_WHILE_MINIMIZED
+                            || playerType == PlayerType.INLINE_MINIMAL) ||
+                    ShortsPlayerState.isOpen()) {
+                return;
+            }
+
+            goingBackTime = now;
+            goingBackNavigationButton = openedFromButton;
+        } catch (Exception ex) {
+            goingBackNavigationButton = null;
+            Logger.printException(() -> "setGoingBackNavigationButton failure", ex);
+        }
+    }
+
+    /**
+     * @return The navigation button selected again by going back from the root of the "You" tab,
+     *         if the navigation bar is not yet updated, or null if not going back.
+     */
+    @Nullable
+    private static NavigationButton getGoingBackNavigationButton() {
+        NavigationButton button = goingBackNavigationButton;
+        return button != null && SystemClock.uptimeMillis() - goingBackTime <= GOING_BACK_TIMEOUT_MILLISECONDS
+                ? button
+                : null;
     }
 
     /** @noinspection EmptyMethod*/
@@ -372,6 +661,10 @@ public final class NavigationBar {
          * Only shown when 'Show Settings' is turned on.
          */
         SETTINGS("SETTINGS", "SETTINGS_CAIRO"),
+        /**
+         * Only shown when 'Show Series in navigation bar' is turned on.
+         */
+        SERIES("PLAYLISTS"),
         SUBSCRIPTIONS("PIVOT_SUBSCRIPTIONS", "TAB_SUBSCRIPTIONS_CAIRO"),
         /**
          * Notifications tab.  Only present when
@@ -403,6 +696,14 @@ public final class NavigationBar {
         private static volatile NavigationButton selectedNavigationButton;
 
         /**
+         * @return If tapping the button opens a tab, which closes the search if it is on screen.
+         */
+        boolean closesSearch() {
+            return this == HOME || this == SHORTS || this == SUBSCRIPTIONS
+                    || this == NOTIFICATIONS || this == SERIES || this == LIBRARY;
+        }
+
+        /**
          * This will return null only if the currently selected tab is unknown.
          * This scenario will only happen if the UI has different tabs due to an A/B user test
          * or YT abruptly changes the navigation layout for some other reason.
@@ -421,6 +722,27 @@ public final class NavigationBar {
         public static NavigationButton getSelectedNavigationButton() {
             waitForNavButtonLatchIfNeeded();
             return selectedNavigationButton;
+        }
+
+        /**
+         * Same as {@link #getSelectedNavigationButton()}, but while going back from the root of the
+         * You tab, the Litho elements that are not in a horizontal collection are of the tab it goes
+         * back to, as the elements of the root of the You tab are in horizontal collections.
+         *
+         * @param contextInterface Context of the filtered Litho element.
+         */
+        @Nullable
+        public static NavigationButton getSelectedNavigationButton(ContextInterface contextInterface) {
+            if (getGoingBackNavigationButton() != null && contextInterface.isHomeFeedOrRelatedVideo()) {
+                // The navigation bar can be updated while waiting for the back button latch.
+                waitForNavButtonLatchIfNeeded();
+                NavigationButton goingBackButton = getGoingBackNavigationButton();
+                if (goingBackButton != null) {
+                    return goingBackButton;
+                }
+            }
+
+            return getSelectedNavigationButton();
         }
 
         /**

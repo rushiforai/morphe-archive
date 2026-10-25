@@ -9,8 +9,9 @@ function Assert-Safety([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
 }
 function Assert-Refusal([scriptblock]$Action, [string]$Pattern) {
-    try { & $Action; throw 'Expected refusal did not happen.' }
-    catch { if ($_.Exception.Message -notlike $Pattern) { throw } }
+    try { & $Action }
+    catch { if ($_.Exception.Message -notlike $Pattern) { throw }; return }
+    throw 'Expected refusal did not happen.'
 }
 $work = Join-Path ([IO.Path]::GetTempPath()) ('hushtumblr-safety-' + [guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
@@ -18,7 +19,8 @@ $apk = Join-Path $work 'new.apk'
 [IO.File]::WriteAllBytes($apk, [byte[]](1, 2, 3))
 function New-SafetyAdb([bool]$Installed = $true, [string]$IdentitySerial = 'emulator-5998') {
     $state = [pscustomobject]@{ Calls = [Collections.Generic.List[string]]::new(); Marker = ''; Size = 3;
-        Avd = 'Fixture_API36'; Build = 'google/sdk/test'; PathReply = $null; InventoryReply = $null }
+        Avd = 'Fixture_API36'; Build = 'google/sdk/test'; PathReply = $null; InventoryReply = $null
+        HashReads = 0; HashFault = '' }
     $invoke = {
         param($Executable, [string[]]$Arguments)
         $line = $Arguments -join ' '
@@ -36,6 +38,17 @@ function New-SafetyAdb([bool]$Installed = $true, [string]$IdentitySerial = 'emul
             '* shell pm path com.tumblr' { if ($Installed) { 'package:/data/app/base.apk' } }
             '* shell pm list packages -u com.tumblr' { if ($Installed) { 'package:com.tumblr' } }
             '* pull *' { [IO.File]::WriteAllBytes($Arguments[4], [byte[]](1, 2, 3)); 'pulled' }
+            '* shell sha256sum /data/app/base.apk' {
+                $state.HashReads++
+                $digest = '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81'
+                if ($state.HashFault -eq 'malformed') { 'not a hash' }
+                elseif ($state.HashFault -eq 'changed' -and $state.HashReads -gt 1) { ('f' * 64) + '  /data/app/base.apk' }
+                elseif ($state.HashFault -eq 'different') { ('f' * 64) + '  /data/app/base.apk' }
+                else { "$digest  /data/app/base.apk" }
+            }
+            '* shell sha256sum /data/local/tmp/hushtumblr-verify-*.apk' {
+                '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81  ' + $Arguments[4]
+            }
             '* install *' { 'Success' }
             '* push *' { 'pushed' }
             '* shell log -p *' { $state.Marker = ($Arguments[3] -split ' ')[-1] }
@@ -107,10 +120,11 @@ try {
         -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $wrongIdentity.Invoker } '*identity*'
     Assert-Safety (-not (Test-Path -LiteralPath $lease.Path)) 'Identity failure leaked an owned lease.'
 
-    foreach ($case in @('same', 'fresh', 'wrong-signer', 'downgrade', 'missing-signer', 'wrong-package',
+    foreach ($case in @('same', 'verified', 'wrong-output', 'install-swapped', 'fresh', 'wrong-signer', 'downgrade', 'missing-signer', 'wrong-package',
             'fresh-exit-one', 'fresh-prefix', 'path-error', 'path-error-text', 'inventory-error', 'inventory-malformed', 'inventory-existing')) {
         $fresh = $case -in @('fresh', 'fresh-exit-one', 'fresh-prefix')
         $fake = New-SafetyAdb -Installed (-not $fresh)
+        if ($case -eq 'install-swapped') { $fake.State.HashFault = 'different' }
         if ($case -in @('fresh-exit-one', 'fresh-prefix', 'path-error', 'path-error-text', 'inventory-error', 'inventory-malformed', 'inventory-existing')) {
             $fake.State.PathReply = [pscustomobject]@{ ExitCode = if($case -eq 'path-error'){2}else{1};
                 Output = if($case -eq 'path-error-text'){@('Error: package manager unavailable')}else{@()} }
@@ -126,7 +140,7 @@ try {
             param($Path, $Aapt2)
             $installed = $Path -like '*installed*'
             [pscustomobject]@{ package = if ($case -eq 'wrong-package') { 'other.package' } else { 'com.tumblr' };
-                versionCode = if ($installed -and $case -eq 'downgrade') { '200' } else { '100' } }
+                versionName = '46.8.1.100'; versionCode = if ($installed -and $case -eq 'downgrade') { '200' } else { '100' } }
         }.GetNewClosure()
         $signers = {
             param($Path, $Aapt2)
@@ -134,19 +148,49 @@ try {
             if ($Path -like '*installed*' -and $case -eq 'wrong-signer') { return 'b' * 64 }
             'a' * 64
         }.GetNewClosure()
+        $expectedArguments = @{}
+        if ($case -in @('verified', 'wrong-output', 'install-swapped')) {
+            $expectedArguments.ExpectedIdentity = [pscustomobject]@{
+                sha256 = if ($case -eq 'wrong-output') { 'f' * 64 } else { (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant() }
+                package = 'com.tumblr'; versionName = '46.8.1.100'; versionCode = '100'; signers = @('a' * 64)
+            }
+        }
         $install = { Install-HushAndroidApk -Adb fake -Serial emulator-5998 -Apk $apk `
             -PackageName com.tumblr -Aapt2 fake -Lease $lease -AdbInvoker $fake.Invoker `
-            -ManifestReader $manifest -SignerReader $signers }
+            -ManifestReader $manifest -SignerReader $signers @expectedArguments }
         try {
-            if ($case -eq 'same' -or $fresh) { & $install }
-            else { Assert-Refusal $install '*refused*' }
+            if ($case -in @('same', 'verified') -or $fresh) { & $install }
+            else {
+                $expectedFailure = if ($case -eq 'install-swapped') { "*isn't what was written*" } else { '*refused*' }
+                Assert-Refusal $install $expectedFailure
+            }
             $installs = @($fake.State.Calls | Where-Object { $_ -like '* install *' })
-            Assert-Safety ($installs.Count -eq [int]($case -eq 'same' -or $fresh)) "$case installation count."
+            Assert-Safety ($installs.Count -eq [int]($case -in @('same', 'verified', 'install-swapped') -or $fresh)) "$case installation count."
             if ($fresh) {
                 Assert-Safety (@($fake.State.Calls | Where-Object { $_ -like '* shell pm list packages -u com.tumblr' }).Count -eq 1) `
                     "$case did not independently confirm package absence."
             }
             Assert-Safety (-not ($fake.State.Calls -match 'uninstall|clear|install .* -g|install .* -d')) 'Account or permissions were modified.'
+        } finally { Exit-HushDeviceLease $lease }
+    }
+
+    # The installed APK is read as bytes, not inferred from dumpsys or an install exit code.
+    foreach ($fault in @('', 'malformed', 'changed', 'different')) {
+        $fake = New-SafetyAdb
+        $fake.State.HashFault = $fault
+        $lease = Enter-HushDeviceLease -Adb fake -Serial emulator-5998 -Project HushTumblr `
+            -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $fake.Invoker
+        $read = { Get-HushInstalledApkIdentity -Adb fake -Lease $lease -PackageName com.tumblr -Aapt2 fake `
+            -AdbInvoker $fake.Invoker -ManifestReader { param($Path, $Tool)
+                [pscustomobject]@{ package = 'com.tumblr'; versionName = '46.8.1.100'; versionCode = '1460801100' }
+            } -SignerReader { param($Path, $Tool) 'a' * 64 } }
+        try {
+            if ($fault) { Assert-Refusal $read '*' }
+            else {
+                $seen = & $read
+                Assert-Safety ($seen.sha256 -ceq (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()) 'Installed proof named other bytes.'
+                Assert-Safety ($fake.State.HashReads -eq 2) 'Installed proof did not hash both sides of the pull.'
+            }
         } finally { Exit-HushDeviceLease $lease }
     }
 

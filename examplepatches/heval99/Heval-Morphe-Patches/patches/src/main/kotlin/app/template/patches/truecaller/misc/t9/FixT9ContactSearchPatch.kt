@@ -31,9 +31,7 @@ private const val INCREMENTAL_HELPER = "morpheRefreshT9Incremental"
 @Suppress("unused")
 val fixT9ContactSearchPatch = bytecodePatch(
     name = "Fix T9 contact search",
-    description = "Builds Truecaller's T9 dialer search index for new contacts each time the app " +
-        "opens, instead of waiting for the 12-hour background job. Helps when T9 finds no saved " +
-        "contacts after a fresh install.",
+    description = "Fixes T9 search not finding new contacts.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

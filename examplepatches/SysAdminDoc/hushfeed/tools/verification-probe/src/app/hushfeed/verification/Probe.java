@@ -700,6 +700,9 @@ public final class Probe extends Instrumentation {
                                 // creator with a story and can't see the drawable.
                                 + " storyStatus=" + (creator == null ? null : fieldValue(creator, "storyStatus"))
                                 + "/" + optional(creator, "getStoryStatus")
+                                // Whether the author is LIVE right now (a room id), yes or no:
+                                // with a story status it finds a creator for Story over LIVE.
+                                + " authorLive=" + authorLive(creator)
                                 // Whether TikTok serves it as separate video and audio (DASH),
                                 // the case a chosen-quality download muxes itself.
                                 + " dash=" + optional(video, "hasDashBitrate")
@@ -714,6 +717,10 @@ public final class Probe extends Instrumentation {
                                 + " following=" + (optional(creator, "getFollowStatus") instanceof Number
                                         ? ((Number) optional(creator, "getFollowStatus")).intValue() != 0 : "unknown")
                                 + " awemeType=" + awemeType
+                                // Whether it's a story, and the server's share-to-story number
+                                // (2 lets Add to Story show): finds a story for that switch.
+                                + " story=" + optional(aweme, "getIsTikTokStory")
+                                + " shareStory=" + optional(aweme, "getShareStoryStatus")
                                 + " ad=" + optional(aweme, "isAd")
                                 + " live=" + (liveId instanceof Number && ((Number) liveId).longValue() > 0)
                                 + " originalSound=" + originalSound
@@ -731,6 +738,10 @@ public final class Probe extends Instrumentation {
                                 + " authorStitch=" + optional(creator, "getStitchSetting")
                                 + " permDuet=" + optional(optional(aweme, "getInteractPermission"), "getDuet")
                                 + " permStitch=" + optional(optional(aweme, "getInteractPermission"), "getStitch")
+                                // The creator's content reuse choice for Add to Story in the share
+                                // sheet: 0 anyone. Allow Add to Story anyway answers everything as 0
+                                // while it is on, so read it with the switch off.
+                                + " permStory=" + optional(optional(aweme, "getInteractPermission"), "getAllowAddingToStory")
                                 // How long ago it was posted, in seconds, for checking an order
                                 // by date (Latest first on Following).
                                 + " postedAgo=" + postedAgo(optional(aweme, "getCreateTime"))
@@ -4634,6 +4645,14 @@ public final class Probe extends Instrumentation {
 
         private static boolean blank(Object value) {
             return value == null || String.valueOf(value).trim().isEmpty();
+        }
+
+        /** Whether the author has a LIVE room open, from the room id their model carries. */
+        private static Object authorLive(Object creator) {
+            if (creator == null) return "unknown";
+            Object room = optional(creator, "getRoomId");
+            if (!(room instanceof Number)) room = fieldValue(creator, "roomId");
+            return room instanceof Number ? ((Number) room).longValue() > 0 : "unknown";
         }
 
         /**

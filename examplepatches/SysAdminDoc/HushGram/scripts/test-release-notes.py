@@ -1,4 +1,4 @@
-"""Holds the release notes to Morphe Manager's changelog parser.
+"""Holds the bundle description to Morphe Manager's changelog parser, and the GitHub body to its layout.
 
 Manager draws the notes as cards (New, Fixes, Improvements) from the headings, scopes and version
 heading it reads. This ports the parts of its ChangelogParser that decide those (sections(),
@@ -228,7 +228,10 @@ class RefusalTests(unittest.TestCase):
 
     def test_refusals(self):
         cases = {
-            "bullet outside a heading": ("* **Instagram:** A new row.\n", "outside a type sub-heading"),
+            "bullet outside a heading": ("* **Instagram:** A summary.\n* **Instagram:** A new row.\n", "outside a type sub-heading"),
+            "tooling summary": ("* **Tooling:** A summary.\n" + self.SECTION,"only one **Instagram:** summary"),
+            "summary inside a version wrapper": ("\n### HushGram v1.0.0\n* **Instagram:** A summary.\n#### Features\n* **Instagram:** A row.\n",
+                                                 "outside a type sub-heading"),
             "unknown sub-heading": ("\n### Changes\n\n* **Instagram:** A row.\n", "unknown sub-heading"),
             "unscoped bullet": ("\n### Features\n\n* A new row.\n", "has no scope"),
             "unknown scope": ("\n### Features\n\n* **Docs:** A new row.\n", "unknown scope Docs"),
@@ -268,6 +271,85 @@ class RefusalTests(unittest.TestCase):
     def test_first_release_heading_has_no_compare_link(self):
         body, _ = notes.build_notes(self.SECTION, self.VALIDATION, "1.0.0", "2026-01-02", None)
         self.assertTrue(body.startswith("## 1.0.0 (2026-01-02)\n"))
+
+    def test_summary_stays_out_of_the_description(self):
+        body, carried = self.build("* **Instagram:** The summary.\n" + self.SECTION, {"Hide Meta AI"})
+        self.assertEqual(carried, 2)
+        self.assertNotIn("The summary.", body)
+        self.assertEqual(body, self.build(self.SECTION, {"Hide Meta AI"})[0])
+
+    def test_long_summary_and_dash(self):
+        for summary, said in ((words(121), "summary runs 121 words"), ("A summary - here.", "dash")):
+            with self.subTest(said), self.assertRaises(notes.NotesError) as error:
+                self.build("* **Instagram:** " + summary + "\n" + self.SECTION)
+            self.assertIn(said, str(error.exception))
+        self.build("* **Instagram:** " + words(120) + "\n" + self.SECTION)
+
+    def test_unreleased_takes_no_patch_scope(self):
+        found = notes.read_bullets(self.SECTION)
+        notes.check_scopes(found, {"Hide Meta AI"})
+        with self.assertRaises(notes.NotesError) as error:
+            notes.check_scopes(found, {"Hide Meta AI"}, patch_scopes=False)
+        self.assertIn("name the patch in the text", str(error.exception))
+
+
+class GitHubNotesTests(unittest.TestCase):
+    """The GitHub release body, laid out like Hushfacebook's."""
+    SECTION = ("* **Instagram:** The **summary** of it.\n\n### Improvements\n\n* **Tooling:** A script.\n"
+               "* **Instagram:** A clearer row.\n\n### Features\n\n* **Instagram:** `Hide Meta AI` has a new row.\n\n"
+               "### Bug Fixes\n\n* **Instagram - Hide Meta AI:** A fix.\n")
+    VALIDATION = "Validation: 1 runtime tests passed locally. All 1 patch tests passed too."
+
+    def build(self, section, summary=None, checked=None):
+        return notes.build_github_notes(section, self.VALIDATION, "452.1.0.53.64", "2.0.0", {"Hide Meta AI"},
+                                        summary, checked)
+
+    def test_layout(self):
+        body, carried = self.build(self.SECTION, checked="The walk passed.")
+        self.assertEqual(carried, 4)
+        self.assertEqual(body, "\n\n".join([
+            "The `summary` of it.",
+            "New in this release", "- `Hide Meta AI` has a new row.",
+            "Fixes", "- `Hide Meta AI`: A fix.",
+            "Other changes", "- A clearer row.",
+            "Behind the scenes", "- A script.",
+            f"The [changelog]({notes.REPO_URL}/blob/main/CHANGELOG.md) has every earlier release too.",
+            "How to update",
+            "1. Update Morphe Manager to 2.0.0 or newer, then refresh the HushGram source.\n"
+            f"2. Patch Instagram `452.1.0.53.64`. [Supported Instagram builds]({notes.REPO_URL}#supported-instagram-builds) "
+            "lists the builds that work.\n"
+            "3. Install over your current patched Instagram with the manager's existing signing key. Keep that key so "
+            "updates keep working.",
+            f"The `.mpp` download is a patch bundle, not an Instagram APK. [Installation instructions]({notes.REPO_URL}#install).",
+            "What was checked", "1 runtime tests passed locally. All 1 patch tests passed too.", "The walk passed.",
+        ]) + "\n")
+        self.assertNotIn("**", body)
+
+    def test_summary_from_a_file_when_the_section_has_none(self):
+        section = self.SECTION.split("\n", 1)[1]
+        body, _ = self.build(section, summary="A summary\nover two lines.\n")
+        self.assertTrue(body.startswith("A summary over two lines.\n\nNew in this release\n"))
+        for summary, said in ((None, "no **Instagram:** summary"), ("Too - dashed.", "dash")):
+            with self.subTest(said), self.assertRaises(notes.NotesError) as error:
+                self.build(section, summary=summary)
+            self.assertIn(said, str(error.exception))
+        with self.assertRaises(notes.NotesError) as error:
+            self.build(self.SECTION, summary="Another.")
+        self.assertIn("pick one", str(error.exception))
+
+    def test_newest_changelog_section(self):
+        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        newest = re.search(r"^## (\d+\.\d+\.\d+) \(", changelog, re.M).group(1)
+        section, _, _ = notes.read_section(changelog, newest)
+        summary = None if notes.read_summary(section) else "A summary."
+        body, carried = notes.build_github_notes(
+            section, "Validation: 1 runtime tests passed locally.", notes.read_target(ROOT / "patches-list.json"),
+            notes.read_manager_floor(ROOT / "gradle" / "libs.versions.toml"), notes.read_patches(ROOT / "patches-list.json"),
+            summary)
+        self.assertEqual(carried, sum(len(b) for b in notes.read_bullets(section).values()))
+        self.assertNotIn("**Instagram", body)
+        self.assertNotIn("**Tooling", body)
+        self.assertFalse([line for line in body.split("\n") if line.startswith("- Instagram")])
 
 
 if __name__ == "__main__":

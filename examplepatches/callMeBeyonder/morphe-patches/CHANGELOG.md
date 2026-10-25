@@ -1,3 +1,21 @@
+## [1.2.4](https://github.com/callMeBeyonder/morphe-patches/compare/v1.2.3...v1.2.4) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **cricfy:** bypass native anti-tamper gate on re-signed builds ([7adcd58](https://github.com/callMeBeyonder/morphe-patches/commit/7adcd58bac0c776bed187895a876e4d999dc7930))
+
+## [1.2.4-dev.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.2.3...v1.2.4-dev.1) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **cricfy:** bypass native anti-tamper gate on re-signed builds ([7adcd58](https://github.com/callMeBeyonder/morphe-patches/commit/7adcd58bac0c776bed187895a876e4d999dc7930))
+
+## [1.2.3](https://github.com/callMeBeyonder/morphe-patches/compare/v1.2.2...v1.2.3) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* repair CRICFy 7.3 dead-code array payloads on stock APKs ([0013e62](https://github.com/callMeBeyonder/morphe-patches/commit/0013e621f61aac7a799727a53eb348e63014576a))
+
 ## [1.2.2](https://github.com/callMeBeyonder/morphe-patches/compare/v1.2.1...v1.2.2) (2026-10-16)
 
 ### 🐛 Bug Fixes

@@ -54,10 +54,18 @@ private object WatermarkBusinessFunctionY2Fingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+private object EditConfigKFingerprint : Fingerprint(
+    definingClass = "Lcom/lemon/lv/editor/EditConfig;",
+    name = "k",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf(),
+)
+
 @Suppress("unused")
 val capcutRemoveWatermarkPatch = bytecodePatch(
     name = "Remove Watermark",
-    description = "Forces CapCut watermark-removal gates to allow export without watermark (WatermarkBusinessFunction).",
+    description = "Forces CapCut watermark-removal gates and default ending gate to allow export without watermark or outro.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_CAPCUT)
@@ -93,7 +101,8 @@ val capcutRemoveWatermarkPatch = bytecodePatch(
         forceTrue(WatermarkBusinessFunctionF4Fingerprint)
         forceTrue(WatermarkBusinessFunctionV4Fingerprint)
         forceFalse(WatermarkBusinessFunctionY2Fingerprint)
+        forceFalse(EditConfigKFingerprint)
 
-        println("[Remove Watermark] Applied $patched hooks -> watermark gates forced to allow removal.")
+        println("[Remove Watermark] Applied $patched hooks -> watermark and default ending gates forced to allow removal.")
     }
 }

@@ -25,10 +25,7 @@ internal const val KEEP_LOADED_HELPER = "morpheKeepContentProcessPriority"
 @Suppress("unused")
 val keepBackgroundTabsLoadedPatch = bytecodePatch(
     name = "Keep background tabs loaded",
-    description = "Experimental: keeps the content processes of background tabs at background priority instead " +
-        "of letting them drop to idle, so Android is less likely to kill them and tabs reload less often. " +
-        "Raises memory use, and cannot stop Android from killing the whole app. Shows the last screenshot " +
-        "of a tab while it reloads.",
+    description = "Experimental: keeps background tabs loaded so they reload less often. Uses more memory.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)

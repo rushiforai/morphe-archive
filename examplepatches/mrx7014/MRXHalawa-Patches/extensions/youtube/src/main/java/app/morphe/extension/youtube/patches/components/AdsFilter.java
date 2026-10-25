@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -146,7 +146,8 @@ public final class AdsFilter extends Filter {
 
         productCard = new StringFilterGroup(
                 Settings.HIDE_SHOPPING_LINKS,
-                "expandable_metadata.e"
+                "expandable_metadata.e",
+                "inline_expander"
         );
 
         productCardBuffer = new ByteArrayFilterGroup(
@@ -207,7 +208,7 @@ public final class AdsFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -226,7 +227,7 @@ public final class AdsFilter extends Filter {
         }
 
         if (matchedGroup == shortsPaidPromotionLabel) {
-            return path.contains("|button.e") && shortsPaidPromotionLabelBuffer.check(buffer).isFiltered();
+            return Utils.contains(path, "|button.e") && shortsPaidPromotionLabelBuffer.check(buffer).isFiltered();
         }
 
         return !exceptions.matches(path);

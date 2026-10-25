@@ -69,7 +69,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>A post whose author turned comments off has no Comment button, so its second footer button is
  * whatever follows Like there (Share or Send), which opens its own sheet and posts nothing. With the
  * switch off, with Hushfacebook paused or when anything in here fails, touches go through untouched.
- * A press on a Pinch to zoom copy that stays up is the zoom's, so it starts no timer.
+ * A press on a Pinch to zoom copy that stays up is the zoom's, so it starts no timer. A hold on a
+ * feed video is Hold a feed video for 2x's while that switch is on ({@link FeedVideoHold#takes}).
  *
  * <p>A held press left to Facebook counts why, and with Debug logging on logs the view under the
  * finger, so a phone's report says which check passed the hold over.
@@ -101,6 +102,7 @@ public final class PostLongPress {
     static final String ON_TEXT = "feed hold passed: its own long press, on text";
     static final String SCROLLER = "feed hold passed: in a scroller or pager";
     static final String ON_FOOTER = "feed hold passed: on or under the footer";
+    static final String ON_VIDEO = "feed hold passed: on a feed video the hold speeds up";
 
     /** The kept name of the list every feed is drawn in; Facebook's own lists extend it. */
     static final String LIST = "androidx.recyclerview.widget.RecyclerView";
@@ -195,6 +197,10 @@ public final class PostLongPress {
             // A call, a task switch or a dialog that took the window mid-press leaves it alone.
             if (!root.isAttachedToWindow() || !root.hasWindowFocus()) {
                 passed(LOST_FOCUS, root);
+                return;
+            }
+            if (FeedVideoHold.takes(root, Math.round(downX), Math.round(downY))) {
+                passed(ON_VIDEO, root);
                 return;
             }
             View row = rowAt(root, Math.round(downX), Math.round(downY));
@@ -543,7 +549,7 @@ public final class PostLongPress {
         return x >= at[0] && x < at[0] + view.getWidth() && y >= at[1] && y < at[1] + view.getHeight();
     }
 
-    private static boolean isScroller(View view) {
+    static boolean isScroller(View view) {
         return view instanceof ScrollView || view instanceof HorizontalScrollView || isNamed(view, PAGER);
     }
 

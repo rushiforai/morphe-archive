@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -14,6 +14,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_03_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -44,7 +46,9 @@ val disableShortsResumingOnStartupPatch = bytecodePatch(
         )
 
         if (is_21_03_or_greater) {
-            UserWasInShortsEvaluateFingerprint.let { fingerprint ->
+            (if (is_21_41_or_greater) UserWasInShortsEvaluateFingerprint
+            else if (is_21_30_or_greater) UserWasInShortsEvaluateLegacy2130Fingerprint
+            else UserWasInShortsEvaluateLegacy2103Fingerprint).let { fingerprint ->
                 fingerprint.method.apply {
                     val match = fingerprint.instructionMatches.first()
                     val instruction = match.instruction as RegisterRangeInstruction

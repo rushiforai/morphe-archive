@@ -17,11 +17,7 @@ private val MutableMethod.parameterList get() = parameterTypes.map(CharSequence:
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Hides banner and native ads and the ad slots in the call log and inbox, and " +
-        "turns off interstitial and app-open ads, so actions such as Click to WhatsApp run at once. " +
-        "Also turns off the remaining ad checks (including rewarded ads), the ad campaign and ad " +
-        "config syncs, the \"Explore Truecaller Premium\" row in the contacts list and the " +
-        "\"Recommended Offers\" (Offer Hub) entry.",
+    description = "Removes all ads.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

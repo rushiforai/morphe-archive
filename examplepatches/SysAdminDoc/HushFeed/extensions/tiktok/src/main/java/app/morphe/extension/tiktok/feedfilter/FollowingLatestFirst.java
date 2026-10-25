@@ -63,6 +63,24 @@ public final class FollowingLatestFirst {
         return count;
     }
 
+    /**
+     * Called as TikTok restores its saved Following list on a cold start. TikTok shows the first
+     * post it saved last time as the first video and loads the fresh list under it, so with the
+     * switch on that saved post played first and the newest posts were sorted below it (#226).
+     * True while the switch is on, and TikTok then takes the path it takes when nothing was saved:
+     * the first video comes from the fresh read, which is sorted before it plays. Paused, the
+     * switch answers off.
+     */
+    public static boolean skipSavedFirstVideo() {
+        try {
+            if (!enabled()) return false;
+            Logger.printDebug(() -> "Latest first on Following: left out TikTok's saved first video");
+            return true;
+        } catch (Throwable unknown) {
+            return false;
+        }
+    }
+
     /** Puts an order into TikTok's list. True when the list TikTok reads now holds it. */
     interface OrderWriter {
         boolean write(List order);

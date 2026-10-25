@@ -22,6 +22,7 @@ import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
 import app.morphe.util.RegisterLiveness
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -167,8 +168,9 @@ internal fun silenceApply(method: Method): SilenceApply? {
  */
 internal fun BytecodePatchContext.silenceApplies(): List<SilenceApply> {
     val applies = mutableListOf<SilenceApply>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    // A hand-off calls the listener's SILENCE_CHANGED.
+    classDefForEachReferencing(names = listOf(SILENCE_CHANGED)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         classDef.methods.forEach { method -> silenceApply(method)?.let(applies::add) }
     }
     if (applies.isEmpty()) throw PatchException("$PATCH: found no audio sink that hands its processor chain a skip-silence flag")

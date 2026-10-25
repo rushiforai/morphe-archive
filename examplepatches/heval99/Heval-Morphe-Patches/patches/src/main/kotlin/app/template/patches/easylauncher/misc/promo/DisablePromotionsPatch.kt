@@ -8,8 +8,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_EASYLAUNCHER
 @Suppress("unused")
 val disablePromotionsPatch = bytecodePatch(
     name = "Disable promotions",
-    description = "Hides the GetJar and SportsPass partner banners, tiles, search cards and " +
-        "suggestions, the \"Discover\" app offers card and the keyboard promotion notification.",
+    description = "Hides partner promotions and app offers.",
 ) {
     compatibleWith(COMPATIBILITY_EASYLAUNCHER)
 

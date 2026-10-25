@@ -16,6 +16,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -140,7 +141,7 @@ internal fun BytecodePatchContext.postMenu(): PostMenu {
     // the builder that fills the menu and shows it (580: a static method of the feed menu
     // helper that returns the sheet; 577: the same method under another Redex name).
     val sites = mutableListOf<Triple<String, Method, Int>>()
-    classDefForEach { classDef ->
+    classDefForEachReferencing(types = listOf(baseType)) { classDef ->
         classDef.methods.forEach { method ->
             method.instructionsOrEmpty().forEachIndexed { index, instruction ->
                 if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {

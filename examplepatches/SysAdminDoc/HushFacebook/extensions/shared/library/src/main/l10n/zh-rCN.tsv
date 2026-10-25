@@ -449,6 +449,14 @@ Hide the Muse card	隐藏 Muse 卡片
 The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	Muse 卡片（Meta 为其 AI 智能体应用做的广告）将从 Facebook 菜单顶部消失。
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	“Meta 旗下更多产品”部分将从 Facebook 菜单中消失，包括指向 Meta 其他应用的链接和 Meta 设备的广告。你自己的快捷方式保留。
+# context: switch title under Menu; Help and support is the name of a section in Facebook's own Menu
+Hide Help and support	隐藏“帮助和支持”
+# context: summary of that switch; Settings and privacy is Facebook's own Menu section
+The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	“帮助和支持”部分连同标题从 Facebook 菜单中消失。“设置和隐私”保留。
+# context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
+Keep Settings and privacy expanded	保持“设置和隐私”展开
+# context: summary of that switch
+Settings and privacy in Facebook's Menu stays open, so its rows show without a tap.	Facebook 菜单中的“设置和隐私”保持展开，无需点按即可看到其中各项。
 # context: section title for the search settings, named like Facebook's own search
 Search	搜索
 # context: switch title under Search; Meta AI is Meta's assistant and keeps its name
@@ -794,6 +802,14 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	正在保存……
 Turn off double tap to like	关闭双击点赞
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	双击 Reels 或视频不再点赞，也不会显示爱心。单击和“赞”按钮照常使用。
+# context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
+Double tap to skip	双击快进快退
+# context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
+A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	双击 Reels 或视频的左边缘或右边缘可后退或快进 10 秒，不到 30 秒的视频为 5 秒。双击中间照常使用。
+# context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
+Tap shows the controls	点按显示控件
+# context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
+A tap on a playing reel shows its controls while it keeps playing, and a second tap hides them. The button in the middle still pauses.	点按正在播放的 Reels 会显示控件且不会暂停，再点按一次即可隐藏。中间的按钮仍可暂停。
 Keep the reel speed	保持 Reels 播放速度
 # context: summary of that switch
 A playback speed you pick in a reel's menu stays for the next reels, after a restart too, until you pick another. Off, every reel starts at normal speed.	你在 Reels 菜单中选择的播放速度会保留给后面的 Reels，重启后也一样，直到你选择其他速度。关闭后，每个 Reels 都以正常速度开始。
@@ -804,6 +820,10 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 Only on the right edge	仅限右侧边缘
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
 With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	开启上面的开关后，只有按住 Reels 右侧三分之一才会以两倍速播放。按住其他位置则打开 Facebook 的长按菜单。
+# context: label of a switch under Hold a reel for 2x; a feed video is a video playing in Home's feed or in Watch, not a reel
+Hold a feed video for 2x	按住动态消息视频以 2 倍速播放
+# context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
+Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	按住动态消息或 Watch 中的视频会以两倍速播放，直到你松手。无需开启上面的开关。
 Default playback quality	默认播放画质
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	以下面的画质播放视频、Reels 和快拍。在视频自带菜单中选择的画质仍然优先。
 Playback quality	播放画质
@@ -1138,6 +1158,12 @@ Save photo	保存照片
 Save all photos	保存所有照片
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	无法保存此帖子的照片。请稍后重试。
+# context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
+Save GIF	保存 GIF
+# context: message after a tap on Save GIF when the save didn't start
+Couldn't save this GIF. Try again in a moment.	无法保存此 GIF。请稍后重试。
+# context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
+A GIF comment gets Save GIF when you long-press it.	长按 GIF 评论即可看到“保存 GIF”。
 Couldn't save this story's photo. Try again in a moment.	无法保存此快拍的照片。请稍后重试。
 Too many saves at once. Try again when one finishes.	同时保存的数量太多。请等其中一个完成后再试。
 # context: settings switch under Block Instant Games ads that makes a game's rewarded ad count as watched
@@ -1808,6 +1834,10 @@ Takes the line with the reel's sound, "Original audio" or a song, off the bottom
 Hide the slow connection message	隐藏网络连接慢的提示
 # context: summary of that switch; "This is taking a while" is Facebook's own message, so use the wording Facebook shows in this language
 Stops the "This is taking a while" message about your network connection when a video or GIF is slow to load. It keeps loading as before.	视频或 GIF 加载慢时，不再弹出“加载时间较长”这条关于网络连接的提示。内容照常继续加载。
+# context: switch title under Reels and Watch; the Reels row is the strip of reel tiles Facebook shows between posts in the news feed, each tile playing a short clip of its reel over and over
+Play whole reels in the feed's Reels row	在动态的 Reels 栏中完整播放 Reels
+# context: summary of that switch; a tile is one reel's box in that row
+The reels in your feed's Reels row play from the start and keep going, instead of repeating a second or two. Tiles drawn after a change pick it up.	动态中 Reels 栏里的 Reels 从头开始一直播放，不再反复播放一两秒。更改后新显示的卡片会生效。
 # context: title of the row on the Appearance page, with AMOLED in the build, that takes a color code for dark mode's backgrounds; also its dialog's title
 Background color	背景颜色
 # context: text in that row's dialog above the field; %1$s is the lightest gray code it takes, %2$s the color code the patch wrote, both like #0D1117; keep #RRGGBB and #0D1117 as they are
@@ -1844,3 +1874,51 @@ Light mode's backgrounds use %1$s. Restart Facebook to see the change.	浅色模
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be Facebook's own white.	如果你修补的 Facebook 包含“AMOLED 纯黑主题”，浅色模式背景将使用 Facebook 自带的白色。
 # context: import preview sentence: the file sets AMOLED's Light background color row; %1$s is a color code like #FFF8E7; "AMOLED black theme" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes the AMOLED black theme, light mode's backgrounds will be %1$s.	如果你修补的 Facebook 包含“AMOLED 纯黑主题”，浅色模式背景将变为 %1$s。
+# context: switch title under News feed, part of Hide suggested and promoted posts; "Related posts" is the heading Facebook shows over a list under a post
+Hide "Related posts" under posts	隐藏帖子下方的“相关帖子”
+# context: summary of that switch; "Related posts" is that heading, and Meta AI writes the titles in the list
+Hides the "Related posts" list Facebook adds under some posts, with its titles written by Meta AI. The post and its comments stay.	隐藏 Facebook 在部分帖子下方添加的“相关帖子”列表及其由 Meta AI 撰写的标题。帖子及其评论保留。
+# context: title of the row on the Appearance page that takes your own words for the top of Home in place of Facebook's logo; also its dialog's title and the patch's name; Home is Facebook's home feed tab
+Home header text	主页顶部文字
+# context: message in that row's dialog; %1$d is the most characters allowed, 30
+Your own words at the top of Home instead of the Facebook logo, up to %1$d characters. They take Facebook's colors in light and dark mode. Leave it blank for Facebook's logo.	在主页顶部显示你自己的文字来代替 Facebook 标志，最多 %1$d 个字符。文字会在浅色和深色模式下使用 Facebook 的颜色。留空则显示 Facebook 标志。
+# context: summary of that row while it's blank
+Facebook's logo stays at the top of Home. Type your own words to show them there.	主页顶部保留 Facebook 标志。输入你自己的文字即可显示在那里。
+# context: summary of that row; %1$s is the saved words
+The top of Home says %1$s. Restart Facebook to see the change.	主页顶部显示 %1$s。重启 Facebook 后可看到更改。
+# context: import preview sentence: the file sets the Home header text row back to blank
+The top of Home will show Facebook's own logo.	主页顶部将显示 Facebook 自己的标志。
+# context: import preview sentence: the file sets the Home header text row; %1$s is the saved words; "Home header text" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Home header text, the top of Home will say %1$s.	如果你修补的 Facebook 包含“主页顶部文字”，主页顶部将显示 %1$s。
+# context: settings row title: picks a picture of your own for the top of Home; pairs with the Home header text row
+Home header picture	主页顶部图片
+# context: settings row title: takes the picked header picture away at once
+Remove the header picture	移除顶部图片
+# context: summary under Remove the header picture
+Puts your words or Facebook's logo back at the top of Home. Restart Facebook to see the change.	在主页顶部恢复你的文字或 Facebook 标志。重启 Facebook 后可看到更改。
+# context: summary under Home header picture when nothing is picked
+No picture chosen. Choose one to show at the top of Home instead of Facebook's logo.	未选择图片。选择一张图片，在主页顶部代替 Facebook 标志显示。
+# context: summary under Home header picture; %1$s is the picked file's name
+The saved copy of %1$s is missing. Choose the picture again.	%1$s 的已保存副本丢失。请重新选择该图片。
+# context: summary under Home header picture; %1$s is the picked file's name
+Selected %1$s. It shows at the top of Home in place of your words and Facebook's logo.	已选择 %1$s。它会代替你的文字和 Facebook 标志显示在主页顶部。
+# context: summary under Home header picture while the picked picture is copied
+Copying the picture	正在复制图片
+# context: toast after a picture is picked; %1$s is the picked file's name
+Selected %1$s. Restart Facebook to see it at the top of Home.	已选择 %1$s。重启 Facebook 后可在主页顶部看到它。
+# context: toast when the picked file isn't a picture
+That isn't a picture Android can open. The top of Home didn't change.	这不是 Android 能打开的图片。主页顶部没有更改。
+# context: toast when the picked picture is too large; %1$d is the limit in megabytes
+That picture is over %1$d MB. The top of Home didn't change.	该图片超过 %1$d MB。主页顶部没有更改。
+# context: toast when the picture's copy can't be written
+Couldn't save a copy of that picture. Check that the phone has room, then try again.	无法保存该图片的副本。请确认手机有足够空间，然后重试。
+# context: toast when the picked file can't be read
+Couldn't open that file. The top of Home didn't change.	无法打开该文件。主页顶部没有更改。
+# context: toast after Remove the header picture
+Header picture removed. Restart Facebook to see the change.	顶部图片已移除。重启 Facebook 后可看到更改。
+# context: toast when Remove the header picture couldn't save
+Couldn't remove the header picture. Try again.	无法移除顶部图片。请重试。
+# context: toast when the app holding the picked picture stalls
+The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	持有该图片的应用响应太慢，Hushfacebook 已停止等待。主页顶部没有更改。
+# context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
+The app holding the last picture still hasn't answered. Try again later.	持有上一张图片的应用仍未响应。请稍后重试。

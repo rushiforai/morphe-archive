@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -34,6 +34,15 @@ public final class PlayerRoutes {
             "player" +
                     "?fields=responseContext.visitorData,playabilityStatus,streamingData,playerConfig" +
                     "&alt=proto"
+    ).compile();
+
+    /**
+     * Playback never needs the video details, so they are only asked for by downloads,
+     * which name the saved file after them.
+     */
+    private static final Route.CompiledRoute GET_PLAYER_STREAMING_DATA_WITH_DETAILS = new Route(
+            Route.Method.POST,
+            "player?alt=proto"
     ).compile();
 
     private static final Route.CompiledRoute GET_REEL_STREAMING_DATA = new Route(
@@ -144,11 +153,20 @@ public final class PlayerRoutes {
         return innerTubeBody.toString();
     }
 
-    @SuppressWarnings("SameParameterValue")
     static HttpURLConnection getPlayerResponseConnectionFromRoute(ClientType clientType) throws IOException {
-        Route.CompiledRoute route = clientType.usePlayerEndpoint
-                ? GET_PLAYER_STREAMING_DATA
-                : GET_REEL_STREAMING_DATA;
+        return getPlayerResponseConnectionFromRoute(clientType, false);
+    }
+
+    static HttpURLConnection getPlayerResponseConnectionFromRoute(ClientType clientType,
+                                                                  boolean includeVideoDetails) throws IOException {
+        Route.CompiledRoute route;
+        if (!clientType.usePlayerEndpoint) {
+            route = GET_REEL_STREAMING_DATA;
+        } else {
+            route = includeVideoDetails
+                    ? GET_PLAYER_STREAMING_DATA_WITH_DETAILS
+                    : GET_PLAYER_STREAMING_DATA;
+        }
         HttpURLConnection connection = Requester.getConnectionFromCompiledRoute(YT_API_URL, route);
 
         connection.setRequestProperty("Content-Type", "application/json");

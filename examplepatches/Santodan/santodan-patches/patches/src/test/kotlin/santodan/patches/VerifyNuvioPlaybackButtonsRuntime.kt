@@ -10,6 +10,9 @@ import software.santodan.extension.nuviobuttons.ButtonLayout
 fun main(args: Array<String>) {
     val root = Files.createTempDirectory(File(args[1]).apply { mkdirs() }.toPath(), "buttons-runtime-")
     val sources = mapOf(
+        "fixture.Overloads" to """package fixture; public class Overloads {
+            public void action(String value){} public void action(Integer value){}
+        }""",
         "android.view.KeyEvent" to """package android.view; public class KeyEvent {
             public static final int ACTION_DOWN=0,ACTION_UP=1,KEYCODE_BACK=4,KEYCODE_DPAD_UP=19,KEYCODE_DPAD_DOWN=20,
                 KEYCODE_DPAD_LEFT=21,KEYCODE_DPAD_RIGHT=22,KEYCODE_DPAD_CENTER=23,KEYCODE_ENTER=66,KEYCODE_NUMPAD_ENTER=160;
@@ -184,6 +187,14 @@ fun main(args: Array<String>) {
         val layout = runtime.getDeclaredField("layout").apply { isAccessible = true }
         val frames = runtime.getDeclaredField("frames").apply { isAccessible = true }.get(null) as ThreadLocal<*>
         val composer = player.getField("composer").get(null)
+        val lookup = runtime.getDeclaredMethod("method", Class::class.java, String::class.java, Int::class.javaPrimitiveType)
+            .apply { isAccessible = true }
+        val groupMethod = lookup.invoke(null, composer.javaClass, "d0", 1)
+        repeat(1_000) { check(lookup.invoke(null, composer.javaClass, "d0", 1) === groupMethod) }
+        check(runCatching { lookup.invoke(null, loader.loadClass("fixture.Overloads"), "action", 1) }
+            .exceptionOrNull()?.cause is NoSuchMethodException)
+        check(runCatching { lookup.invoke(null, composer.javaClass, "missing", 0) }
+            .exceptionOrNull()?.cause is NoSuchMethodException)
         fun rendered(): List<Array<*>> = (native.getField("rendered").get(null) as List<*>).map { it as Array<*> }
         fun run(): List<String> {
             player.getMethod("run").invoke(null)

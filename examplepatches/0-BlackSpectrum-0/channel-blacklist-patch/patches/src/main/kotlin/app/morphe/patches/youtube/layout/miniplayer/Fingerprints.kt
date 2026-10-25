@@ -91,10 +91,21 @@ internal object MiniplayerAnimatedExpandFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("I"),
     filters = listOf(
+        literal(45838209L),
         opcode(opcode = Opcode.IF_NE),
-        opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this",
+            type = "L",
+            location = MatchAfterImmediately()
+        ),
         opcode(opcode = Opcode.MOVE, location = MatchAfterWithin(7)),
-        opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately())
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this",
+            type = "L",
+            location = MatchAfterWithin(7)
+        )
     )
 )
 
@@ -427,7 +438,7 @@ internal object ShowMiniplayerCommandFingerprint: Fingerprint(
         ),
         opcode(
             opcode = Opcode.IF_EQZ,
-            location = MatchAfterImmediately()
+            location = MatchAfterWithin(10)
         )
     )
 )

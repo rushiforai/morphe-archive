@@ -21,9 +21,7 @@ internal const val CUSTOM_EXTENSION_COLLECTION = "$FEATURE_FLAGS->customExtensio
 @Suppress("unused")
 val unlockSecretSettingsPatch = bytecodePatch(
     name = "Unlock secret settings",
-    description = "Reveals the hidden debug menu without tapping the Firefox logo five times: Secret Settings, " +
-        "Install add-on from file, the custom add-on collection, Nimbus experiments, the Sync debug menu and " +
-        "Gecko logs.",
+    description = "Unlocks the hidden debug settings.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

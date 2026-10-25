@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -16,7 +16,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.util.AttributeSet;
 import android.util.Pair;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -28,11 +28,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.function.IntConsumer;
+
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.CustomDialog;
+import app.morphe.extension.shared.ui.Dim;
 
 /**
  * A custom ListPreference that uses a styled custom dialog with a custom checkmark indicator,
@@ -41,14 +44,9 @@ import app.morphe.extension.shared.ui.CustomDialog;
 @SuppressWarnings({"unused", "deprecation"})
 public class CustomDialogListPreference extends ListPreference {
 
-    public static final int ID_MORPHE_CHECK_ICON = ResourceUtils.getIdentifierOrThrow(
-            ResourceType.ID, "morphe_check_icon");
-    public static final int ID_MORPHE_CHECK_ICON_PLACEHOLDER = ResourceUtils.getIdentifierOrThrow(
-            ResourceType.ID, "morphe_check_icon_placeholder");
-    public static final int ID_MORPHE_ITEM_TEXT = ResourceUtils.getIdentifierOrThrow(
-            ResourceType.ID, "morphe_item_text");
-    public static final int LAYOUT_MORPHE_CUSTOM_LIST_ITEM_CHECKED = ResourceUtils.getIdentifierOrThrow(
-            ResourceType.LAYOUT, "morphe_custom_list_item_checked");
+    public static final int ID_MORPHE_CHECK_ICON = View.generateViewId();
+    public static final int ID_MORPHE_CHECK_ICON_PLACEHOLDER = View.generateViewId();
+    public static final int ID_MORPHE_ITEM_TEXT = View.generateViewId();
     public static final int DRAWABLE_CHECKMARK = ResourceUtils.getIdentifierOrThrow(
             ResourceType.DRAWABLE, "morphe_settings_custom_checkmark");
     public static final int DRAWABLE_CHECKMARK_BOLD = ResourceUtils.getIdentifierOrThrow(
@@ -107,6 +105,48 @@ public class CustomDialogListPreference extends ListPreference {
     }
 
     /**
+     * Creates a list row with a checkmark, a placeholder of the same size and a text.
+     * Find the children with {@link #ID_MORPHE_CHECK_ICON},
+     * {@link #ID_MORPHE_CHECK_ICON_PLACEHOLDER} and {@link #ID_MORPHE_ITEM_TEXT}.
+     */
+    public static LinearLayout createCheckedListItem(Context context) {
+        return createCheckedListItem(context, Dim.dp12, Dim.dp24);
+    }
+
+    static LinearLayout createCheckedListItem(Context context, int verticalPadding, int checkMarginEnd) {
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(Dim.dp16, verticalPadding, Dim.dp16, verticalPadding);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+
+        ImageView checkIcon = new ImageView(context);
+        checkIcon.setId(ID_MORPHE_CHECK_ICON);
+        checkIcon.setImageResource(Utils.appIsUsingBoldIcons() ? DRAWABLE_CHECKMARK_BOLD : DRAWABLE_CHECKMARK);
+        checkIcon.setVisibility(View.GONE);
+        row.addView(checkIcon, checkSizeParams(checkMarginEnd));
+
+        View placeholder = new View(context);
+        placeholder.setId(ID_MORPHE_CHECK_ICON_PLACEHOLDER);
+        placeholder.setVisibility(View.INVISIBLE);
+        row.addView(placeholder, checkSizeParams(checkMarginEnd));
+
+        TextView itemText = new TextView(context);
+        itemText.setId(ID_MORPHE_ITEM_TEXT);
+        ThemeUtils.setThemeTextStyle(itemText, android.R.attr.textAppearanceListItem,
+                android.R.attr.textColorPrimary);
+        row.addView(itemText, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        return row;
+    }
+
+    private static LinearLayout.LayoutParams checkSizeParams(int marginEnd) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(Dim.dp24, Dim.dp24);
+        params.setMarginEnd(marginEnd);
+        return params;
+    }
+
+    /**
      * Custom ArrayAdapter to handle checkmark visibility.
      */
     public static class ListPreferenceArrayAdapter extends ArrayAdapter<CharSequence> {
@@ -116,16 +156,14 @@ public class CustomDialogListPreference extends ListPreference {
             TextView itemText;
         }
 
-        final int layoutResourceId;
         final CharSequence[] entryValues;
         String selectedValue;
 
-        public ListPreferenceArrayAdapter(Context context, int resource,
+        public ListPreferenceArrayAdapter(Context context,
                                           CharSequence[] entries,
                                           CharSequence[] entryValues,
                                           String selectedValue) {
-            super(context, resource, entries);
-            this.layoutResourceId = resource;
+            super(context, 0, entries);
             this.entryValues = entryValues;
             this.selectedValue = selectedValue;
         }
@@ -137,16 +175,11 @@ public class CustomDialogListPreference extends ListPreference {
             SubViewDataContainer holder;
 
             if (view == null) {
-                LayoutInflater inflater = LayoutInflater.from(getContext());
-                view = inflater.inflate(layoutResourceId, parent, false);
+                view = createCheckedListItem(getContext());
                 holder = new SubViewDataContainer();
                 holder.placeholder = view.findViewById(ID_MORPHE_CHECK_ICON_PLACEHOLDER);
                 holder.itemText = view.findViewById(ID_MORPHE_ITEM_TEXT);
                 holder.checkIcon = view.findViewById(ID_MORPHE_CHECK_ICON);
-                holder.checkIcon.setImageResource(Utils.appIsUsingBoldIcons()
-                        ? DRAWABLE_CHECKMARK_BOLD
-                        : DRAWABLE_CHECKMARK
-                );
                 view.setTag(holder);
             } else {
                 holder = (SubViewDataContainer) view.getTag();
@@ -195,33 +228,32 @@ public class CustomDialogListPreference extends ListPreference {
         showDialog(null);
     }
 
-    @Override
-    protected void showDialog(Bundle state) {
-        Context context = getContext();
-
-        CharSequence[] entriesToShow = getEntriesForDialog();
-        CharSequence[] entryValues = getEntryValues();
-
+    /**
+     * Creates the styled single choice dialog without showing it, for any preference.
+     * Picking an entry passes its index to {@code onSelected} and dismisses the dialog.
+     */
+    public static Dialog createListDialog(Context context, String title,
+                                          CharSequence[] entries, CharSequence[] entryValues,
+                                          @Nullable String selectedValue, IntConsumer onSelected) {
         // Create ListView.
         ListView listView = new ListView(context);
         listView.setId(android.R.id.list);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        listView.setDividerHeight(0);
 
         // Create custom adapter for the ListView.
         ListPreferenceArrayAdapter adapter = new ListPreferenceArrayAdapter(
                 context,
-                LAYOUT_MORPHE_CUSTOM_LIST_ITEM_CHECKED,
-                entriesToShow,
+                entries,
                 entryValues,
-                getValue()
+                selectedValue
         );
         listView.setAdapter(adapter);
 
         // Set checked item.
-        String currentValue = getValue();
-        if (currentValue != null) {
+        if (selectedValue != null) {
             for (int i = 0, length = entryValues.length; i < length; i++) {
-                if (currentValue.equals(entryValues[i].toString())) {
+                if (selectedValue.equals(entryValues[i].toString())) {
                     listView.setItemChecked(i, true);
                     listView.setSelection(i);
                     break;
@@ -232,20 +264,18 @@ public class CustomDialogListPreference extends ListPreference {
         // Create the custom dialog without OK button.
         Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
                 context,
-                getTitle() != null ? getTitle().toString() : "",
+                title,
                 null,
                 null,
                 null,
                 null,
-                this::clearHighlightedEntriesForDialog, // Cancel button action.
+                () -> {}, // Cancel button action.
                 null,
                 null,
                 true
         );
 
         Dialog dialog = dialogPair.first;
-        // Add a listener to clear when the dialog is closed in any way.
-        dialog.setOnDismissListener(dialogInterface -> clearHighlightedEntriesForDialog());
 
         // Add the ListView to the main layout.
         LinearLayout mainLayout = dialogPair.second;
@@ -258,26 +288,41 @@ public class CustomDialogListPreference extends ListPreference {
 
         // Handle item click to select value and dismiss dialog.
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedValue = entryValues[position].toString();
-            if (callChangeListener(selectedValue)) {
-                setValue(selectedValue);
-
-                // Update summaries from the original entries (without highlighting).
-                if (staticSummary == null) {
-                    CharSequence[] originalEntries = getEntries();
-                    if (originalEntries != null && position < originalEntries.length) {
-                        setSummary(originalEntries[position]);
-                    }
-                }
-
-                adapter.setSelectedValue(selectedValue);
-                adapter.notifyDataSetChanged();
-            }
-
-            // Clear highlighted entries before closing.
-            clearHighlightedEntriesForDialog();
+            onSelected.accept(position);
             dialog.dismiss();
         });
+
+        return dialog;
+    }
+
+    @Override
+    protected void showDialog(Bundle state) {
+        CharSequence[] entryValues = getEntryValues();
+
+        Dialog dialog = createListDialog(
+                getContext(),
+                getTitle() != null ? getTitle().toString() : "",
+                getEntriesForDialog(),
+                entryValues,
+                getValue(),
+                position -> {
+                    String selectedValue = entryValues[position].toString();
+                    if (callChangeListener(selectedValue)) {
+                        setValue(selectedValue);
+
+                        // Update summaries from the original entries (without highlighting).
+                        if (staticSummary == null) {
+                            CharSequence[] originalEntries = getEntries();
+                            if (originalEntries != null && position < originalEntries.length) {
+                                setSummary(originalEntries[position]);
+                            }
+                        }
+                    }
+                }
+        );
+
+        // Add a listener to clear when the dialog is closed in any way.
+        dialog.setOnDismissListener(dialogInterface -> clearHighlightedEntriesForDialog());
 
         // Show the dialog.
         dialog.show();

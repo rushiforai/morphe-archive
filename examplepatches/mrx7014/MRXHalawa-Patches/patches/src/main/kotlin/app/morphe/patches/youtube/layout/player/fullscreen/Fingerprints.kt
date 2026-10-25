@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -10,7 +10,6 @@ package app.morphe.patches.youtube.layout.player.fullscreen
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
-import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
@@ -18,6 +17,9 @@ import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+
+internal const val NEXT_GEN_WATCH_LAYOUT_CLASS =
+    "Lcom/google/android/apps/youtube/app/watch/nextgenwatch/ui/NextGenWatchLayout;"
 
 /**
  * 19.46+
@@ -64,31 +66,39 @@ internal object PlayerDragGestureInitFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "I",
     parameters = listOf("I", "I", "I", "I"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.IGET_OBJECT,
-        Opcode.IF_EQZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.IGET,
-        Opcode.IF_NE,
-        Opcode.IGET,
-        Opcode.IF_NE,
-        Opcode.CONST_4,
-        Opcode.RETURN
-    ) + fieldAccess(
-        opcode = Opcode.IGET_OBJECT,
-        type = "/NextGenWatchLayout;",
-        location = MatchAfterImmediately()
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            type = NEXT_GEN_WATCH_LAYOUT_CLASS
+        )
     )
 )
 
 internal object YouTubePlayerOverlaysLayoutConstructorFingerprint : Fingerprint(
-    definingClass = "/YouTubePlayerOverlaysLayout;",
-    name = "<init>",
+    definingClass = "Lcom/google/android/apps/youtube/app/common/player/overlay/YouTubePlayerOverlaysLayout;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     returnType = "V",
     parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;"),
     filters = listOf(
         opcode(Opcode.RETURN_VOID)
+    )
+)
+
+/**
+ * The video view is a field of a superclass with an obfuscated name.
+ */
+internal object PlayerViewConstructorFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/libraries/youtube/player/ui/PlayerView;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;"),
+    filters = listOf(
+        string("videoView has already been set"),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            type = "Landroid/view/View;",
+            location = MatchAfterWithin(5)
+        )
     )
 )
 
@@ -129,13 +139,13 @@ internal object FullscreenGestureZoomFingerprint : Fingerprint (
  * it implements only OnScaleGestureListener and has both ScaleGestureDetector and GestureDetector fields.
  */
 internal object VideoZoomScaleBeginFingerprint : Fingerprint(
+    interfaces = listOf($$"Landroid/view/ScaleGestureDetector$OnScaleGestureListener;"),
     name = "onScaleBegin",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Landroid/view/ScaleGestureDetector;"),
     custom = { _, classDef ->
         classDef.interfaces.size == 1 &&
-            classDef.interfaces.contains($$"Landroid/view/ScaleGestureDetector$OnScaleGestureListener;") &&
             classDef.fields.any { it.type == "Landroid/view/ScaleGestureDetector;" } &&
             classDef.fields.any { it.type == "Landroid/view/GestureDetector;" }
     }

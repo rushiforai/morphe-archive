@@ -9,6 +9,7 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.SignedInUser;
+import app.morphe.extension.tiktok.seen.SeenVideoHistory;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import com.ss.android.ugc.aweme.feed.model.AwemeBizExtKt;
@@ -1359,10 +1360,12 @@ public final class FeedItemsFilter {
             forYou ? FOR_YOU_FILTERS : phase == FilterPhase.RESPONSE ? CONTENT_FILTERS : LATE_FOLLOW_FILTERS
         );
         // A list the main feed's own routes never handed over is one the reader opened, and the
-        // videos in it are the ones they chose to watch (#135).
-        if (owner instanceof FeedItemList && !isMainFeedList((FeedItemList) owner)) {
-            activeContentFilters.remove(SEEN_FILTER);
-        }
+        // videos in it are the ones they chose to watch (#135). A For You page reads the same
+        // way at first: TikTok's fetch reads it before fetchFeedList hands it over, so what that
+        // read keeps is not yet watched and stays open to Hide seen videos (#172).
+        boolean seenHeldBack = owner instanceof FeedItemList && !isMainFeedList((FeedItemList) owner)
+            && activeContentFilters.remove(SEEN_FILTER);
+        if (seenHeldBack) SeenVideoHistory.warmUp();
         List<IFilter> activeRangeFilters = getActiveFilters(RANGE_FILTERS);
         if (activeContentFilters.isEmpty() && activeRangeFilters.isEmpty()) {
             FeedCapture.noRules(source);
@@ -1565,6 +1568,7 @@ public final class FeedItemsFilter {
                 beforeSample,
                 sampleAids(resultList, extractor),
                 reasonCounts,
+                keptBefore.steady.size() + "/" + keptBefore.ever.size(),
                 System.nanoTime() - startNs
             );
         }
@@ -1582,7 +1586,7 @@ public final class FeedItemsFilter {
         FeedFilterFeedback.onBatchResult(source, initialSize, resultList.size(), reasonCounts,
                 System.currentTimeMillis());
         rememberProcessedList(listId, ListFingerprint.from(resultList, extractor), filterMask);
-        rememberKept(owner, driftMask, resultList, extractor);
+        rememberKept(owner, driftMask, resultList, extractor, !seenHeldBack);
 
         if (verbose && removed > 0 && shouldLogBatch()) {
             int removedFinal = removed;
@@ -1812,6 +1816,8 @@ public final class FeedItemsFilter {
      * on, and skips all of them; turning one of those on or off judges the list again by it.
      * {@code ever} holds everything kept under any rules and never meets Hide seen videos: hiding
      * a creator or a sound changes the rules too, and must not take the watched videos with it.
+     * A read that held Hide seen back only because the list wasn't handed over yet adds nothing
+     * to it, so {@code steady} can hold what {@code ever} doesn't (#172).
      */
     private static final class KeptBefore {
         static final KeptBefore NONE = new KeptBefore(null, "", Collections.emptySet(), Collections.emptySet());
@@ -1829,7 +1835,7 @@ public final class FeedItemsFilter {
         }
 
         boolean isEmpty() {
-            return ever.isEmpty();
+            return ever.isEmpty() && steady.isEmpty();
         }
     }
 
@@ -1843,7 +1849,9 @@ public final class FeedItemsFilter {
         }
     }
 
-    private static void rememberKept(Object owner, String driftMask, List kept, AwemeExtractor extractor) {
+    /** {@code seenJudged} is false when Hide seen was on but held back from this read. */
+    private static void rememberKept(Object owner, String driftMask, List kept, AwemeExtractor extractor,
+                                     boolean seenJudged) {
         if (owner == null) return;
         Set<String> now = new HashSet<>();
         for (Object container : new ArrayList(kept)) {
@@ -1854,9 +1862,10 @@ public final class FeedItemsFilter {
         int identity = System.identityHashCode(owner);
         synchronized (KEPT_BEFORE) {
             KeptBefore entry = KEPT_BEFORE.get(identity);
-            boolean same = entry != null && entry.owner.get() == owner && entry.ever.size() < KEPT_BEFORE_MAX_AIDS;
+            boolean same = entry != null && entry.owner.get() == owner
+                && Math.max(entry.ever.size(), entry.steady.size()) < KEPT_BEFORE_MAX_AIDS;
             Set<String> steady = new HashSet<>(now);
-            Set<String> ever = new HashSet<>(now);
+            Set<String> ever = seenJudged ? new HashSet<>(now) : new HashSet<>();
             if (same) {
                 ever.addAll(entry.ever);
                 if (entry.driftMask.equals(driftMask)) steady.addAll(entry.steady);
@@ -2169,6 +2178,7 @@ public final class FeedItemsFilter {
         String beforeSample,
         String afterSample,
         Map<String, Integer> reasonCounts,
+        String keptBefore,
         long elapsedNs
     ) {
         long elapsedMs = elapsedNs / 1_000_000L;
@@ -2194,6 +2204,8 @@ public final class FeedItemsFilter {
             + " rangeRejected=" + rangeRejected
             + " reasons=" + counts
             + " filters=\"" + filterMask + "\""
+            // What earlier reads kept, as steady/ever: ever is what Hide seen leaves alone (#172).
+            + " keptBefore=" + keptBefore
             + " before=\"" + beforeSample + "\""
             + " after=\"" + afterSample + "\""
             + " elapsedMs=" + elapsedMs);

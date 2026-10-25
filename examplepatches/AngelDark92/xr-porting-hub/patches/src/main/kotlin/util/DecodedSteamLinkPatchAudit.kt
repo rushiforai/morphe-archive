@@ -5,8 +5,7 @@ import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.Patch
-import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID
-import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_BUILD_ID
+import app.template.patches.steamlink.androidxr.androidSurfaceTriggerBuildIdForBuild
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_MANIFEST
 import app.template.patches.steamlink.androidxr.patchModernTongueTransport
 import app.template.patches.steamlink.androidxr.androidSurfaceTriggerResourceLibraryForBuild
@@ -38,7 +37,6 @@ import app.template.patches.steamlink.binary.microphoneInputPresetPatch
 import app.template.patches.steamlink.binary.oledCalibrationPatch
 import app.template.patches.steamlink.binary.patchNativeMicrophonePreset
 import app.template.patches.steamlink.binary.patchVisualDelay
-import app.template.patches.shared.Constants.isTwoProjectionSteamLinkBuild
 import app.template.patches.steamlink.identity.changePackageNamePatch
 import app.template.patches.steamlink.identity.deviceIdentityPatch
 import kotlinx.coroutines.flow.toList
@@ -506,11 +504,10 @@ private fun verifyHighResolutionZip(
         "${fixture.versionName}/${fixture.versionCode}: installed helper does not match " +
             expectedResourceName
     }
-    val expectedBuildId = if (isTwoProjectionSteamLinkBuild(fixture.versionName, fixture.versionCode)) {
-        ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID
-    } else {
-        ANDROID_SURFACE_TRIGGER_BUILD_ID
-    }
+    val expectedBuildId = androidSurfaceTriggerBuildIdForBuild(
+        fixture.versionName,
+        fixture.versionCode,
+    )
     installedHelper.requireEncodedString(expectedBuildId)
     apk.requireEntryBytes(
         "assets/openxr/1/api_layers/implicit.d/" + ANDROID_SURFACE_TRIGGER_MANIFEST,

@@ -21,7 +21,7 @@ internal object CanRequestInAppReviewFlowFingerprint : Fingerprint(
 @Suppress("unused")
 val disableRatingPromptsPatch = bytecodePatch(
     name = "Disable rating prompts",
-    description = "Stops the Google Play rating request that opens after a mail is sent.",
+    description = "Disables the rating prompt.",
 ) {
     compatibleWith(COMPATIBILITY_MAILCOM)
 

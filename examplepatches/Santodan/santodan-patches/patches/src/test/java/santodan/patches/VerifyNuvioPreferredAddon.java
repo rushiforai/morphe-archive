@@ -69,6 +69,15 @@ public final class VerifyNuvioPreferredAddon {
         }
         NuvioPreferredAddonPatch.hook(snapshot, selector);
         NuvioPreferredAddonPatch.hookLoader(loader, selector);
+        var selectionEntry = NuvioPreferredAddonPatch.methods(snapshot, selector).get("select");
+        var guard = (RegisterRangeInstruction) selectionEntry.getImplementation().getInstructions().get(0);
+        check(guard.getStartRegister() == NuvioAnchors.parameter(selectionEntry, 7) && guard.getRegisterCount() == 3);
+        check(NuvioPlaybackButtonsPatch.reference((Instruction) guard).contains("autoPlaySelectionEnabled(Ljava/lang/String;ZZ)Z"));
+        var applyBody = NuvioRemainingEpisodesPatch.instructions(NuvioPreferredAddonPatch.loaderMethods(loader, selector).get("apply"));
+        int choose = NuvioAnchors.unique(applyBody, i -> NuvioRemainingEpisodesPatch.calls(applyBody.get(i), NuvioPreferredAddonPatch.EXTENSION, "choose"), "binge-aware chooser");
+        var forwarded = (FiveRegisterInstruction) applyBody.get(choose);
+        check(forwarded.getRegisterCount() == 5 && forwarded.getRegisterG() == 10);
+        check(NuvioPlaybackButtonsPatch.reference(applyBody.get(choose)).contains("Ljava/lang/String;)Ljava/lang/Object;"));
         rejected(() -> NuvioPreferredAddonPatch.hookLoader(loader, selector));
         rejected(() -> NuvioPreferredAddonPatch.hook(snapshot, selector));
         MutableClass component = new MutableClass(classes.get("Lq8/e;"));

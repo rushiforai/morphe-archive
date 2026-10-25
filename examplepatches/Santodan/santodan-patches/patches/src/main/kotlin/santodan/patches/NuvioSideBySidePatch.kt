@@ -3,6 +3,7 @@ package santodan.patches
 import software.santodan.nuvio.NuvioNative
 
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -34,6 +35,16 @@ val nuvioSideBySideInstallationPatch = resourcePatch(
         description = "Name displayed by Android launchers for this installation.",
         required = true,
     ) { value -> value != null && value == value.trim() && value.isNotEmpty() && value.length <= 80 }
+
+    dependsOn(bytecodePatch(default = false) {
+        execute {
+            NuvioUpdateInstaller.renameProviders(
+                mutableClassDefBy(NuvioUpdateInstaller.INSTALL_ACTION),
+                mutableClassDefBy(NuvioUpdateInstaller.RECEIVER),
+                requireNotNull(packageName.value) + ".fileprovider",
+            )
+        }
+    })
 
     // Run after other selected resource patches so authorities they add are renamed too.
     finalize {

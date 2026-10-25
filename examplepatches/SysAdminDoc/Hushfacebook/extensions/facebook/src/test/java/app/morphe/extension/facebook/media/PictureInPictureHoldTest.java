@@ -37,6 +37,7 @@ import java.util.List;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.facebook.settings.SettingsDialog;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushfacebookPause;
@@ -46,8 +47,9 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * Picture-in-picture's hold: the reel on screen pausing turns auto-enter off, and a reel playing
  * turns it back on. The reel on screen is the player ReelsPipUtil armed the window for until
  * another starts, as a swipe does. A reel swiped away, a disarm, an open window, the switch off or
- * a pause leave Facebook's auto-enter alone, and Facebook's own arming ends a hold. And the viewer's
- * new view id: one a view on the screen holds is swapped for a free one.
+ * a pause leave Facebook's auto-enter alone, and Facebook's own arming ends a hold. The Hushfacebook
+ * settings hold it too, from showing over the armed screen until they close. And the viewer's new
+ * view id: one a view on the screen holds is swapped for a free one.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34)
@@ -166,6 +168,64 @@ public class PictureInPictureHoldTest {
         PictureInPicture.armed(screen, player, null);
         PictureInPicture.playerPlaying(player);
         assertEquals("a play after Facebook's arming set auto-enter again", Collections.singletonList(false), screen.autoEnter);
+    }
+
+    @Test
+    public void theSettingsKeepAutoEnterOffUntilTheyClose() {
+        // Pressing Home with the settings up over a playing reel floated the settings page in the window.
+        PictureInPicture.settingsShown(screen);
+        assertEquals("nothing armed yet", Collections.emptyList(), screen.autoEnter);
+        PictureInPicture.armed(screen, player, null);
+        shadowOf(Looper.getMainLooper()).idle();
+        PictureInPicture.playerPaused(player);
+        PictureInPicture.playerPlaying(player);
+        PictureInPicture.settingsClosed();
+        assertEquals("Facebook's arming, the pause and the play leave it off, closing turns it on",
+                Arrays.asList(false, false, false, true), screen.autoEnter);
+
+        PictureInPicture.settingsShown(screen);
+        PictureInPicture.playerPlaying(other);
+        PictureInPicture.settingsClosed();
+        assertEquals("shown over the armed screen, then the next reel, then closed",
+                Arrays.asList(false, false, false, true, false, true), screen.autoEnter);
+        assertTrue(statusLine(), statusLine().contains(PictureInPicture.UNDER_SETTINGS + " 2"));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation") // The settings page is a framework dialog fragment.
+    public void theSettingsPageHoldsAutoEnterFromShowingToClosing() {
+        PictureInPicture.armed(screen, player, null);
+        SettingsDialog page = new SettingsDialog();
+        page.show(screen.getFragmentManager(), "hushfacebook_settings");
+        screen.getFragmentManager().executePendingTransactions();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("the page showing", Collections.singletonList(false), screen.autoEnter);
+        page.dismiss();
+        screen.getFragmentManager().executePendingTransactions();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("the page closed", Arrays.asList(false, true), screen.autoEnter);
+    }
+
+    @Test
+    public void closingTheSettingsLeavesAPauseUnarmedScreenOrSwitchOffAlone() {
+        PictureInPicture.armed(screen, player, null);
+        PictureInPicture.settingsShown(screen);
+        PictureInPicture.playerPaused(player);
+        PictureInPicture.settingsClosed();
+        assertEquals("the paused reel stays held", Arrays.asList(false, false), screen.autoEnter);
+        PictureInPicture.playerPlaying(player);
+        assertEquals("its play turns it back on", Arrays.asList(false, false, true), screen.autoEnter);
+
+        PictureInPicture.disarmed();
+        PictureInPicture.settingsShown(screen);
+        PictureInPicture.settingsClosed();
+        Settings.PICTURE_IN_PICTURE.save(false);
+        PictureInPicture.armed(screen, player, null);
+        PictureInPicture.settingsShown(screen);
+        shadowOf(Looper.getMainLooper()).idle();
+        PictureInPicture.settingsClosed();
+        assertEquals("disarmed, or the switch off, the settings change nothing",
+                Arrays.asList(false, false, true), screen.autoEnter);
     }
 
     @Test

@@ -23,7 +23,7 @@
             return function () { return false; };
         }});
     };
-    // Original 349.9 global ends with __r(1), __r(2). Run only RN setup, not Discord's account/network code.
+    // Discord's original global ends with __r(1), __r(2). Run only RN setup, not Discord's account/network code.
     let metro;
     let ran = false;
     Object.defineProperty(g, "__r", {configurable: true,
@@ -35,7 +35,8 @@
                 if (typeof setup.default !== "function") throw Error("Missing original RN initializer");
                 setup.default();
                 ready = true;
-                if (!g.__venusPatches || g.__venusPatches.revision !== "1.17.0")
+                // Any release: the check is that Venus ran, not which version (a hardcoded one broke every version bump).
+                if (!g.__venusPatches || typeof g.__venusPatches.revision !== "string" || !g.__venusPatches.revision)
                     throw Error("Replacement prelude did not execute");
                 print("HBC98_REAL_RN_ENVIRONMENT_PASS");
             }

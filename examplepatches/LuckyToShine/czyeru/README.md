@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.7](https://github.com/LuckyToShine/czyeru/releases/tag/v1.7.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
+> **[v1.8.0](https://github.com/LuckyToShine/czyeru/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;59 patches total
 <details open>
 <summary>📦 Conexión Lince UVM&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -128,7 +128,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 Cinevi&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Cinevi&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -140,6 +140,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Custom loading video](#custom-loading-video) | Replaces the loading screen shown when a video starts with your own video. WebM (VP9 or AV1) or MP4 (H.265/HEVC). | • Video file<br>• Scaling<br>• Loop<br>• Mute<br>• Hide the original loading screen<br>• Background color<br>• Only accept WebM (VP9/AV1) and MP4 (H.265) |
 | [Disable ads](#disable-ads) | Removes ads (splash, banners, popups, interstitials and native ads). |  |
+| [Purple theme](#purple-theme) | Recolors the app's accent (selected tabs, buttons, highlights, progress) from the stock orange to a purple gradient. Does not change the layout of any screen. | • Accent color (gradient start)<br>• Accent color (gradient end) |
 
 </details>
 

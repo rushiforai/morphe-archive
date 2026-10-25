@@ -111,9 +111,7 @@ private class MaskFlagWrite(val objectRegister: Int) : Edit
 @Suppress("unused")
 val removeScreenshotRestrictionPatch = bytecodePatch(
     name = "Remove screenshot restriction",
-    description = "Allows screenshots and screen recording in apps that block them, by never " +
-        "setting the FLAG_SECURE window flag or a secure SurfaceView. Does not unprotect " +
-        "DRM-protected video.",
+    description = "Allows screenshots and screen recording in apps that block them.",
     default = false,
 ) {
     extendWith("extensions/screenshot.mpe")

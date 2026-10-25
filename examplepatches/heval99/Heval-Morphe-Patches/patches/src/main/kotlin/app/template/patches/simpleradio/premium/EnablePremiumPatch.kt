@@ -44,8 +44,7 @@ private fun MutableMethod.readsString(literal: String): Boolean =
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Simple Radio Premium (ad-free listening) by forcing the " +
-        "local subscription checks to true."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_SIMPLERADIO)
 

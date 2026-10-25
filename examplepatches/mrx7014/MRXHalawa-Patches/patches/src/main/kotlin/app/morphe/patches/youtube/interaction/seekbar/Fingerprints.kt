@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -19,9 +19,9 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import app.morphe.patcher.string
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
 import app.morphe.patches.shared.FormatStreamModelToStringFingerprint
 import app.morphe.patches.youtube.shared.SeekbarFingerprint
 import app.morphe.patches.youtube.shared.VideoStreamingDataToStringFingerprint
@@ -54,7 +54,7 @@ internal object AllowSwipingUpGestureFingerprint : Fingerprint(
 )
 
 internal object DisableFastForwardGestureFingerprint : Fingerprint(
-    definingClass = "/NextGenWatchLayout;",
+    definingClass = "Lcom/google/android/apps/youtube/app/watch/nextgenwatch/ui/NextGenWatchLayout;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
@@ -73,21 +73,20 @@ internal object OnTouchEventHandlerFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.PUBLIC),
     returnType = "Z",
     parameters = listOf("L"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_VIRTUAL, // nMethodReference
-        Opcode.RETURN,
-        Opcode.IGET_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.IF_EQZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.RETURN,
-        Opcode.INT_TO_FLOAT,
-        Opcode.INT_TO_FLOAT,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT,
-        Opcode.IF_EQZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.INVOKE_VIRTUAL, // oMethodReference
+    filters = listOf(
+        opcode(Opcode.INVOKE_VIRTUAL), // nMethodReference
+        // Skip over a return (21.41 and lower) or goto (21.42+).
+        opcode(Opcode.IGET_OBJECT, location = MatchAfterWithin(1)),
+        opcode(Opcode.IGET_BOOLEAN, location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        opcode(Opcode.INT_TO_FLOAT, location = MatchAfterWithin(1)),
+        opcode(Opcode.INT_TO_FLOAT, location = MatchAfterImmediately()),
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()), // oMethodReference
     )
 )
 
@@ -124,11 +123,12 @@ internal object SlideToSeekFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/view/View;", "F"),
     filters = listOf(
-        opcode(Opcode.INVOKE_VIRTUAL),
+        methodCall(
+            returnType = "Z",
+            parameters = listOf(),
+            location = MatchAfterWithin(10) // Match close to start of method.
+        ),
         opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
-        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
-        opcode(Opcode.GOTO_16, location = MatchAfterImmediately()),
-
         literal(67108864)
     )
 )
@@ -267,8 +267,11 @@ internal object SeekbarBigBoardsUpdateFingerprint : Fingerprint (
     parameters = listOf(),
     filters = listOf(
         literal(1),
-        opcode(opcode = Opcode.IF_NEZ, location = MatchAfterImmediately()),
-        opcode(opcode = Opcode.RETURN, location = MatchAfterImmediately())
+        opcode(opcode = Opcode.SGET_OBJECT),
+        opcode(opcode = Opcode.IF_EQ, location = MatchAfterImmediately()),
+        opcode(opcode = Opcode.SGET_OBJECT, location = MatchAfterImmediately()),
+        opcode(opcode = Opcode.IF_EQ, location = MatchAfterImmediately()),
+        opcode(opcode = Opcode.SGET_OBJECT, location = MatchAfterImmediately())
     )
 )
 

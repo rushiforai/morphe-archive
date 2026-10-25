@@ -1,3 +1,97 @@
+## Unreleased
+
+* **TikTok:** Die Service+-Bereinigung prüft jetzt den ersten Eintrag einer LIVE-Vorschau, so wie TikTok selbst (#94).
+
+## 0.79.0 (2026-10-24)
+
+* **TikTok:** Bei PineDrama sagen die Hushfeed-Einstellungen jetzt, dass du PineDrama neu starten sollst, nicht TikTok (#156).
+
+* **TikTok:** Der neue Schalter Spam-Kommentare ausblenden blendet Bot-Kommentare aus, die Links, Kontakte oder kostenlose Follower anbieten. Deine eigenen Kommentare und die des Creators bleiben (#187).
+
+* **TikTok:** Bereits gesehene Videos ausblenden nimmt gesehene Videos wieder aus For You heraus (#172).
+
+* **TikTok:** Mit dem AMOLED-Dunkelmodus ist die Kommentarleiste unter einem Fotobeitrag jetzt schwarz (#171).
+
+* **TikTok:** Importierte Schrift verwenden funktioniert jetzt bei PineDrama, und fetter Text bleibt fett (#243).
+
+* **TikTok:** Die Voreinstellung Laufende Kommentare über Videos im Feature Gate Lab sagt dir jetzt, dass sie nur bei Videos wirkt, für die TikTok sie eingeschaltet hat (#98).
+
+* **TikTok:** Der neue Patch Allow photo comments für PineDrama lässt das Kommentarfeld wie bei TikTok beim TikTok-Server nach Fotokommentaren fragen (#156).
+
+* **TikTok:** PineDrama wechselt zu 47.5.3. Sechs weitere Patches laufen jetzt darauf, damit bietet Morphe Manager 95 Patches dafür an (#156).
+
+* **TikTok:** Der neue Schalter Effekten ein neueres Telefon melden hilft bei Effekten, die sagen, dass sie auf deinem Telefon nicht funktionieren (#176).
+
+* **TikTok:** Die gespeicherten Sticker in PineDrama zeigen jetzt alle deine Sticker statt nur der ersten 100 (#214).
+
+* **TikTok:** Die neue Auswahl Quelle der LIVE-Aufnahme kann deinen Bildschirm aufnehmen, während du ein LIVE schaust (#37).
+
+* **TikTok:** Der neue Schalter Video hinter der Leiste unscharf machen lässt die Leiste des Liquid-Glass-Looks ab Android 12 milchig wirken (#231).
+
+* **TikTok:** Dunkle LIVE-Fenster im Dunkelmodus macht jetzt auch die hellen Reste in LIVE-Räumen dunkel (#159).
+
+* **TikTok:** Gespeicherte Videos mit ihren Details versehen schreibt Titel, Creator, Datum und Link jetzt wirklich in gespeicherte Videos.
+
+* **TikTok:** TikToks Auto-Scroll-Schaltfläche ausblenden blendet auch den Auto-Scroll-Schalter auf Tablets und aufgeklappten Foldables aus (#234).
+
+* **TikTok:** Die README sagt jetzt, dass du auf dem Telefon das Bundle von 47.5.3 patchst und am Computer die APK.
+
+* **TikTok:** Wenn Freie Ansicht über Videos hinweg behalten aus ist, kommen die Schaltflächen schon beim Ende des Wischens zurück, statt später aufzuspringen (#232).
+
+* **TikTok:** Mit Durchsichtige untere Leiste rutschen Beschreibung und Schaltflächen nach dem Wischen nicht mehr über die Tabs (#232).
+
+* **TikTok:** Langes Drücken mit Aktuelles Standbild als Foto speichern funktioniert auf 47.5.3 wieder.
+
+* **TikTok:** Werbung im Feed entfernen entfernt auch die kleinere Lemon8-Karte in For You.
+
+* **TikTok:** Die Filterzahl und das Budget-Label erscheinen nicht mehr auf den Tabs Shop und Nearby.
+
+* **TikTok:** Mit Dunkle LIVE-Fenster im Dunkelmodus öffnet sich die Zuschauerrangliste eines Raums wieder dunkel (#159).
+
+* **TikTok:** Die README sagt, dass morphe-desktop 2 GB Speicher braucht, wenn du am Computer alles patchst (#220).
+
+* **TikTok:** Wenn Doppeltippen auf Nichts tun steht, pausiert oder startet ein einfaches Tippen das Video sofort (#239).
+
+* **TikTok:** Der Build nutzt jetzt Gradle 9.8.2.
+
+* **TikTok:** Die README nennt die Teile der Hushfeed-Einstellungen, auf die sich ein Zusatz-Bundle verlassen kann.
+
+* **TikTok:** Neuigkeiten enthält nur noch die neuesten Versionen und Full changelog den Rest, dadurch wird die Erweiterung kleiner.
+
+* **TikTok:** Glaslinse auf dem aktuellen Tab gleitet jetzt jedes Mal zum nächsten Tab (#231).
+
+* **TikTok:** Mit Automatische freie Ansicht wird ein Suchergebnis, das du erneut öffnest, wieder frei (#84).
+
+* **TikTok:** Qualität von LIVE-Aufnahmen bietet jetzt auch Original, 1080p, 720p, 540p und 360p an (#203).
+
+* **TikTok:** Wenn die Download-Qualitäten unter 720p enden, gibt es jetzt auch die höhere H.264- oder HEVC-Fassung des Videos selbst (#240).
+
+* **TikTok:** Herkunftsland der Kommentierenden anzeigen findet öfter ein Land (#201).
+
+* **TikTok:** Neueste zuerst bei „Gefolgt“ hält die Beiträge unter deinem Video in Datumsreihenfolge, während mehr nachladen (#226).
+
+* **TikTok:** Profil- und Like-Raster lassen sich nach Am wenigsten gesehene zuerst und Am wenigsten gelikte zuerst sortieren, laden selbst mehr Videos nach und haben eine Sortiertaste in der Ecke (#180).
+
+* **TikTok:** Der neue Schalter Story öffnen, wenn jemand LIVE ist öffnet zuerst die Story, wenn du auf das Profilbild tippst (#233).
+
+* **TikTok:** Mit LIVEs aufnehmen, die du schaust hat das Teilen-Menü eines LIVE-Raums eine Zeile Qualität von LIVE-Aufnahmen (#203).
+
+* **TikTok:** LIVE-Qualität in mehr Räumen anbieten gilt jetzt auch für Gaming- und Fußball-LIVE-Räume (#37).
+
+* **TikTok:** Im Dunkelmodus ist die neuere Auswahl der Videoqualität in einem LIVE-Raum wieder lesbar (#57).
+
+* **TikTok:** Ein LIVE-Raum bleibt dunkel, wenn dein Telefon zwischen hell und dunkel wechselt (#159).
+
+* **TikTok:** Der neue Schalter Zur Story hinzufügen trotzdem erlauben bringt Zur Story hinzufügen zurück, wenn ein Creator die Wiederverwendung abgeschaltet hat (#88).
+
+* **TikTok:** Wenn Region spoof Sprache und Zeitzone anpasst, folgen die Datumszeilen im Chat der Zeitzone der Voreinstellung (#184, #198).
+
+* **TikTok:** Der neue Schalter Thoughts einschalten zeigt Thoughts auch für Konten, die TikTok ausgelassen hat (#186).
+
+* **TikTok:** Fotos so behalten, wie TikTok sie sendet gilt jetzt auch für Sticker, die sich nicht bewegen (#229).
+
+* **TikTok:** Bildschirmhelligkeit in der Kamera behalten gilt jetzt auch für den Frontblitz und das Fülllicht (#200).
+
 ## 0.78.0 (2026-10-22)
 
 * **TikTok:** Hushfeed wechselt zu TikTok 47.5.3, 47.4.3 fällt weg. Patche die APK von 47.5.3 mit demselben Signaturschlüssel, dann bleiben Login und Einstellungen erhalten. PineDrama bleibt bei 47.4.3.

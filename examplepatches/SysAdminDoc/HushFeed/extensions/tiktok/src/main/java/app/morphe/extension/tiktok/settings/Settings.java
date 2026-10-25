@@ -307,6 +307,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting KEEP_CAMERA_BRIGHTNESS =
             new BooleanSetting("keep_camera_brightness", FALSE);
+    /**
+     * Tells the effect platform the phone is a Galaxy S24 Ultra, so effects the server turns down
+     * on older phones ("This effect doesn't work on this device") get another chance (issue #176).
+     */
+    public static final BooleanSetting REPORT_NEWER_PHONE_TO_EFFECTS =
+            new BooleanSetting("report_newer_phone_to_effects", FALSE);
     // The four Performance patches, in the default selection because each hook asks one of these
     // first. Off until the reader turns one on, and a paused build answers off. The splash, update
     // and traffic hooks act on TikTok's startup tasks, so they need a restart. The animated image
@@ -1149,6 +1155,9 @@ public class Settings extends BaseSettings {
     // Enable voice comments, in the default selection with this off. A restart, since TikTok may
     // keep the answer for a comment box it has already built.
     public static final BooleanSetting ENABLE_VOICE_COMMENTS = new BooleanSetting("enable_voice_comments", FALSE, true);
+    // PineDrama's comment box gallery tab, which PineDrama turns off for everyone (#156). A
+    // restart, since the answer is kept per signed-in account.
+    public static final BooleanSetting PINEDRAMA_COMMENT_PHOTOS = new BooleanSetting("pinedrama_comment_photos", FALSE, true);
     public static final BooleanSetting KEEP_FAVORITES_TAB =
             new BooleanSetting("keep_favorites_tab", TRUE, true);
     /** The collections popup from holding the bookmark, dark when TikTok is (issue #142). */
@@ -1213,6 +1222,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_EXPORT = new BooleanSetting("comment_export", FALSE);
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
+    /** Drops bot comments that point to a bio, a link or a messenger, or bait follows (#187). */
+    public static final BooleanSetting HIDE_SPAM_COMMENTS = new BooleanSetting("hide_spam_comments", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
     /** Drops the reply TikTok opens under a comment before View replies is tapped (#193). */
     public static final BooleanSetting HIDE_COMMENT_REPLY_PREVIEWS = new BooleanSetting("hide_comment_reply_previews", FALSE);

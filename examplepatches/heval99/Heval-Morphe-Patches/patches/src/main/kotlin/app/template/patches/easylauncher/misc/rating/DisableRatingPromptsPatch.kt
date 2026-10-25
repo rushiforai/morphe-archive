@@ -7,7 +7,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_EASYLAUNCHER
 @Suppress("unused")
 val disableRatingPromptsPatch = bytecodePatch(
     name = "Disable rating prompts",
-    description = "Stops the app's feedback (sentiment) dialog and the Google Play review request.",
+    description = "Disables the rating prompts.",
 ) {
     compatibleWith(COMPATIBILITY_EASYLAUNCHER)
 

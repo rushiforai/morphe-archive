@@ -33,7 +33,7 @@ private const val MOBILE_ADS = "Lcom/google/android/gms/ads/MobileAds;"
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner ad at the bottom of the map and stops the ad SDK from starting."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_VESSELFINDER)
 

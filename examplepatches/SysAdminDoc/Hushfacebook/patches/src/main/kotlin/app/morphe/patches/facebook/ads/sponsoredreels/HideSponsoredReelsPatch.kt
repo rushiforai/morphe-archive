@@ -75,7 +75,16 @@ val hideSponsoredReelsPatch = bytecodePatch(
         // The Reels tab's story loader draws those ads from Facebook's ad pool one slot at a time,
         // and the pool marks each as used before a page holds it. Its vends answer no ad first:
         // see ReelsAdPool.kt.
-        reelsAdPoolVends().forEach { it.holdPoolAdFirst() }
+        val poolVends = reelsAdPoolVends()
+        poolVends.forEach { it.holdPoolAdFirst() }
+
+        // The Reels row in the News feed draws its ad tiles from a second pool, through the same
+        // two base methods (#216). A build that moved it keeps the rest: see ReelsAdPool.kt.
+        try {
+            fbShortsAdPoolVends(poolVends).forEach { it.holdPoolAdFirst(HOLD_ROW_AD) }
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without holding the ads in the feed's Reels row.")
+        }
 
         // A profile's or Page's Reels tab fetches its own ads through a query of its own, outside
         // the pool. It returns before sending it: see ProfileReelAds.kt.

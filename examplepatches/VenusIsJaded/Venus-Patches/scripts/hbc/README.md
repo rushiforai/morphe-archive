@@ -1,50 +1,37 @@
-# HBC98 inspection and porting helpers
+# Porting and inspection tools
 
-Developer-only tools for inspecting Discord's Hermes bytecode (`HBC98` / `hermes-v250829098.0.19`) and porting Venus Patches to a new Discord Android build. Nothing here is shipped in the `.mpp`.
+Developer-only tools for Discord's Hermes bytecode and for porting Venus to a new Discord build. Nothing here ships in
+the `.mpp`, and everything they write goes to `work/` (ignored by git). The porting checklist is in `AGENTS.md`.
 
-## Quick start (extracting a new Discord `.apkm`)
+| Tool | What it does |
+|---|---|
+| `setup.sh [Discord.apkm]` | Extracts `base.apk` and `index.android.bundle` into `work/new/` and indexes the bundle |
+| `find_apkm.py` | Prints the newest complete `.apkm` in `~/uploaded_files` (skips half-uploaded files) |
+| `port_check.py` | Prints the constants for `HbcPrelude.kt`/`HbcPrivacy.kt`, finds moved Metro modules and privacy targets, lists module IDs it doesn't check yet; exits 1 when anything needs attention. `--map` regenerates `module-map.md` |
+| `privacy_targets.py <bundle> --locate` | Regenerates the `Target(...)` lists in `HbcPrivacy.kt` |
+| `module-map.md` | Every Metro module Venus uses, generated from `BOOTSTRAP_MODULES` |
+| `hbc.py` | HBC98 reader, disassembler and module index (see below) |
+| `ops.txt` | HBC98 opcode table from Hermes' `BytecodeList.def`; `PrivacyTest.kt` checks the Kotlin constants against it |
+| `DexInspect.kt` | Lists DEX classes and methods matching a name (usage at its top) |
+| `color_tables.py` | Decodes Discord's color tables to `work/discord_colors.json` for `tests/theme_compat.cjs` |
+| `hermes_vm.sh`, `bench_setup.sh` | The checksum-pinned Hermes VM and everything benchmarks need |
+| `probe.sh`, `probe_runtime.py` | Boot the real bundle with the runtime and run a probe script inside it |
 
-```bash
-mkdir -p work/new
-unzip -p Discord.apkm base.apk > work/new/base.apk
-unzip -o work/new/base.apk assets/index.android.bundle -d work/new
-```
+Related: `scripts/verify_apk.sh` patches the APKM with every patch using the newest Morphe CLI
+(`scripts/morphe_cli.py`, prerelease or stable) and runs `tests/native/VerifyApk.kt`.
 
-## 1. Automated version-upgrade audit (`port_check.py`)
-
-Run `port_check.py` against the new bundle first:
-
-```bash
-python3 scripts/hbc/port_check.py work/new/assets/index.android.bundle
-```
-
-It prints:
-1. **Bundle & Global `#0` constants** ready to paste into `HbcPrivacy.kt` (`ORIGINAL_SHA256`) and `HbcPrelude.kt` (`FUNCTION_COUNT`, `GLOBAL_OFFSET`, `GLOBAL_SIZE`, `GLOBAL_SHA256`, `JOIN_ID`, `EVAL_ID`, `PROMISE_ID`, `RESOLVE_ID`, `EMPTY_ID`).
-2. **Bootstrap Metro module verification** across all 120 Metro modules hooked or demand-loaded by `bootstrap.js`. If any module ID shifted in the new Discord build, `port_check.py` automatically searches for its new ID by embedded `fileFinishedImporting` source path and exported identifier strings.
-3. **HbcPrivacy target verification** across all 104 pinned HBC98 functions (`analytics`, `telemetry`, `crash`), reporting any shifted function IDs along with auto-located candidates in the new bundle.
-
-## 2. Regenerating `HbcPrivacy.kt` target tables (`privacy_targets.py`)
-
-Once `port_check.py` shows the new function IDs (or using `--locate` to auto-resolve functions by `(module_path, function_name)`):
-
-```bash
-python3 scripts/hbc/privacy_targets.py work/new/assets/index.android.bundle --locate
-```
-
-This verifies that every target function has an expanded header (`flags & 0x20 != 0`) and no exception handler table (`flags & 0xc8 == 0`), and outputs the exact `Target(...)` Kotlin lists with compact header hex, body SHA-256, and expanded header SHA-256 for `HbcPrivacy.kt`.
-
-## 3. Interactive bundle inspection (`hbc.py`)
+## Inspecting the bundle
 
 ```bash
 python3 -c "
 import sys; sys.path.insert(0, 'scripts/hbc')
 from hbc import Bundle
 B = Bundle('work/new/assets/index.android.bundle')
-print(B.grep_path('UserStore'))
-print(B.show(1378))
-print('\n'.join(B.h.dis(B.h.func(B.modules[1378]))[:40]))
+print(B.grep_path('UserStore'))          # [(module id, source path)]
+print(B.show(B.grep_path('UserStore')[0][0]))
 "
 ```
 
-- `ops.txt` is the HBC98 opcode table, generated from Hermes' `BytecodeList.def` (tag `hermes-v250829098.0.19`).
-- `Bundle` maps Metro module IDs to factory function IDs (`B.modules`), dependency arrays (`B.deps`), source paths (`B.paths()`), referenced strings (`B.strs(mid, deep=True)`), exported property names (`B.exports(mid)`), and closure trees (`B.tree(mid)`).
+`Bundle` maps Metro module IDs to factory functions (`B.modules`), dependencies (`B.deps`), source paths (`B.paths()`),
+strings (`B.strs(mid, deep=True)`), exported names (`B.exports(mid)`), closure trees (`B.tree(mid)`), users of a module
+(`B.users(mid)`) and modules containing given strings (`B.find(...)`). `B.h.dis(B.h.func(fid))` disassembles a function.

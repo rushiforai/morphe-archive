@@ -4,13 +4,18 @@
  */
 package app.morphe.patches.facebook.menu
 
+import app.morphe.patches.facebook.ads.affiliate.writesRegister
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.layout.theme.branchTargets
+import app.morphe.util.literalReads
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -121,6 +126,76 @@ internal fun serverGroupRead(method: Method, isGroupEnum: (String) -> Boolean): 
     val read = reads.singleOrNull() ?: return null
     val field = (instructions[read] as ReferenceInstruction).reference as FieldReference
     return GroupRead(read, (instructions[read] as OneRegisterInstruction).registerA, field.type)
+}
+
+/** Where the native section reads whether its group is folded: the instruction and the register it goes to. */
+internal data class FoldRead(val index: Int, val register: Int)
+
+/**
+ * Whether the native section's group is folded: the one `iget-boolean` before [group] of a field of
+ * a class [method] casts to there, its own class aside, as long as nothing writes its register and
+ * no branch lands between it and [group]. On 584 that's the section's state (`LX/Nt0;`, cast from
+ * its component's state field) and its A01, which a tap on the header flips (issue #224). While
+ * it's set the section answers its header alone. Null unless there's exactly one.
+ */
+internal fun foldRead(method: Method, group: GroupRead): FoldRead? {
+    val instructions = method.instructionList()
+    val before = instructions.take(group.index)
+    val cast = before.filter { it.opcode == Opcode.CHECK_CAST }
+        .map { ((it as ReferenceInstruction).reference as TypeReference).type }
+        .toSet() - method.definingClass
+    val reads = before.indices.filter { index ->
+        val field = (before[index] as? ReferenceInstruction)?.reference as? FieldReference
+        before[index].opcode == Opcode.IGET_BOOLEAN && field != null && field.definingClass in cast
+    }
+    val read = reads.singleOrNull() ?: return null
+    val register = (instructions[read] as OneRegisterInstruction).registerA
+    val between = (read + 1)..group.index
+    if (between.any { writesRegister(instructions[it], register) }) return null
+    if (branchTargets(instructions).any { it in between }) return null
+    return FoldRead(read, register)
+}
+
+/** Where the native section reads whether its group starts open: the instruction and the register it goes to. */
+internal data class StartRead(val index: Int, val register: Int)
+
+/**
+ * Whether the native section's group starts open, which only its header goes by: the one
+ * `iget-boolean` before [group] of a field of [method]'s own class whose value is read once, after
+ * [group], by an `xor-int/lit8 vX, it, 0x1` that an `iput-boolean vX` right after stores into
+ * another class. The header takes that as whether it starts collapsed, seeds its chevron and its
+ * "Section is collapsed" label from it and flips them itself on a tap, so a fold kept open (issue
+ * #224) needs it too, or the header points down over open rows. On 584 that's `LX/Lmh;->A09`
+ * (the section's state starts folded when it's false), stored as the header's `LX/Lmm;->A07`. Null
+ * unless there's exactly one, nothing writes its register and no branch lands before [group].
+ */
+internal fun startRead(method: Method, group: GroupRead): StartRead? {
+    val instructions = method.instructionList()
+    val targets = branchTargets(instructions)
+    val starts = (0 until group.index).filter { read ->
+        val field = (instructions[read] as? ReferenceInstruction)?.reference as? FieldReference
+        if (instructions[read].opcode != Opcode.IGET_BOOLEAN || field?.definingClass != method.definingClass) {
+            return@filter false
+        }
+        val register = (instructions[read] as OneRegisterInstruction).registerA
+        val between = (read + 1)..group.index
+        if (between.any { writesRegister(instructions[it], register) || it in targets }) return@filter false
+        val use = method.literalReads(read).singleOrNull() ?: return@filter false
+        use > group.index && seedsAnother(method, instructions, use, register)
+    }
+    val read = starts.singleOrNull() ?: return null
+    return StartRead(read, (instructions[read] as OneRegisterInstruction).registerA)
+}
+
+/** Whether [index] negates [register] into a register the next instruction stores into a boolean of another class. */
+private fun seedsAnother(method: Method, instructions: List<Instruction>, index: Int, register: Int): Boolean {
+    val negate = instructions[index]
+    if (negate.opcode != Opcode.XOR_INT_LIT8 || (negate as TwoRegisterInstruction).registerB != register) return false
+    if ((negate as NarrowLiteralInstruction).narrowLiteral != 1) return false
+    val store = instructions.getOrNull(index + 1) ?: return false
+    val field = (store as? ReferenceInstruction)?.reference as? FieldReference ?: return false
+    return store.opcode == Opcode.IPUT_BOOLEAN && (store as TwoRegisterInstruction).registerA == negate.registerA &&
+        field.definingClass != method.definingClass
 }
 
 /**

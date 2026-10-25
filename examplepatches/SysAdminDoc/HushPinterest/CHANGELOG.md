@@ -2,6 +2,10 @@
 
 Every HushPinterest release, newest first.
 
+## Unreleased
+
+* **Tooling:** Release walks now bind the bundle, stock build and patch selection to the signed APK installed on the test device. Publish rejects missing or mismatched evidence, unsupported app versions, invalid times and reported problems. A survey of an installed app without matching build evidence stays diagnostic only.
+
 ## 0.0.13 (2026-10-23)
 
 * **Pinterest:** New GmsCore support patch, for phones that run microG-RE instead of Google Play services. Pinterest's Google sign-in and push notifications go through microG-RE, so Continue with Google opens microG-RE's sign-in. Before, it asked Play services and the account got turned down. It's left out of the default selection since without microG-RE those requests have nowhere to go. Pick it in Expert mode and Spoof signature for Google sign-in comes along with it. (#15)

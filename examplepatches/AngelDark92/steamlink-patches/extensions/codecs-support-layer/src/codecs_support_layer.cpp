@@ -23,7 +23,8 @@
 //      re-queue the same access unit, retire the old decoder, and translate
 //      every later handle. One-shot, fail-safe.
 //
-// Exact builds only (pinned anchors): 2.0.20/5001712 and 2.0.23/5002363.
+// Exact builds only (pinned anchors): 2.0.20/5001712, 2.0.20/5001812,
+// 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 and 2.0.24/5002395.
 // Build: see Build-Native.ps1. Nothing here runs unless the layer is loaded.
 
 #include <android/log.h>
@@ -62,7 +63,7 @@ using gxr::PatchAv1SeqHeaders;
 using gxr::Sniffed;
 
 constexpr const char* kLayerName = "XR_APILAYER_local_GalaxyXR_codecs_support";
-constexpr const char* kBuild = "codecs-support-v9-20261022";
+constexpr const char* kBuild = "codecs-support-v10-20261024";
 constexpr const char* kDisableEnv = "GXR_DISABLE_CODECS_SUPPORT";
 constexpr const char* kSceneSoname = "libvrlink_scene.so";
 constexpr const char* kMediaNdkSoname = "libmediandk.so";
@@ -117,8 +118,15 @@ const GotProfile kProfile5002363 = {
     {0x22f6b0, 0x22f6b8, 0x22f6c0, 0x22f6c8, 0x22f6e8, 0x22f6f0, 0x22f6f8,
      0x22f720, 0x22f728, 0x22f740, 0x22f748, 0x22f750, 0x22f7a0, 0x22f7b0, 0x22f7b8},
 };
+const GotProfile kProfile5002395 = {
+    "2.0.24/5002395", 0xfe954,
+    "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+    {0x231b58, 0x231b60, 0x231b68, 0x231b70, 0x231b90, 0x231b98, 0x231ba0,
+     0x231bc8, 0x231bd0, 0x231be8, 0x231bf0, 0x231bf8, 0x231c48, 0x231c58, 0x231c60},
+};
 const GotProfile* const kProfiles[] = {
     &kProfile5001712, &kProfile5001812, &kProfile5001968, &kProfile5002244, &kProfile5002363,
+    &kProfile5002395,
 };
 constexpr size_t kProfileCount = sizeof(kProfiles) / sizeof(kProfiles[0]);
 

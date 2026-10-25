@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.akshaykadam.pixelboard.extension.keyboard.GboardAiVoiceSettingsGroupFeature;
+import com.akshaykadam.pixelboard.extension.updater.PixelBoardUpdateFeature;
 
 public final class GboardPatchesSettingsFeatureRegistry {
     private static final String TAG = "PixelBoard";
@@ -26,6 +27,7 @@ public final class GboardPatchesSettingsFeatureRegistry {
         List<GboardPatchesSettingsContract.Feature> features =
                 new ArrayList<GboardPatchesSettingsContract.Feature>();
         addIfAvailable(context, features, new GboardAiVoiceSettingsGroupFeature(context));
+        addIfAvailable(context, features, new PixelBoardUpdateFeature(context));
         return Collections.unmodifiableList(features);
     }
 

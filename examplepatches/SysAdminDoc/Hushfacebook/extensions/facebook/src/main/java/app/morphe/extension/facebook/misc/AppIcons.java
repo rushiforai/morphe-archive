@@ -145,9 +145,11 @@ public final class AppIcons {
      * Replaces the home header's stock wordmark with the enabled alternate launcher icon, when both
      * Unlock app icons and Use the icon at the top of Home are on (#172). Facebook has already loaded
      * its wordmark when this runs, so the default icon, either switch off, Pause, and every failure
-     * leave that wordmark alone. Never throws.
+     * leave that wordmark alone. Home header text takes the header first when it has words. Never
+     * throws.
      */
     public static void dressLogo(@Nullable View logo) {
+        if (HeaderText.replacesLogo()) return;
         if (!unlock("header logo", Settings.USE_APP_ICON_IN_HEADER)) return;
         try {
             if (!(logo instanceof ImageView)) return;

@@ -7,8 +7,7 @@ import app.template.patches.truecaller.shared.overrideFeatureToggle
 @Suppress("unused")
 val hideFamilyButtonPatch = bytecodePatch(
     name = "Hide family button",
-    description = "Turns off Family Protect, which removes the family button at the top of the " +
-        "home screen and its onboarding and notifications.",
+    description = "Turns off Family Protection and hides its button.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

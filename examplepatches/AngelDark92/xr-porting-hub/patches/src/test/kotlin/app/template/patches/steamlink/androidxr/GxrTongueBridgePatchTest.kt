@@ -35,6 +35,28 @@ class GxrTongueBridgePatchTest {
     }
 
     @Test
+    fun `5002395 native tongue block is restricted and idempotent`() {
+        val stock = fixture(MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_LIBRARY_SIZE_5002395, MODERN_TONGUE_VADDR_5002395)
+        val patched = patchModernTongueTransport(stock, "2.0.24", "5002395")
+        val offset = MODERN_TONGUE_VADDR_5002395.toInt()
+        assertContentEquals(MODERN_TONGUE_REPLACEMENT, patched.copyOfRange(offset, offset + MODERN_TONGUE_REPLACEMENT.size))
+        assertContentEquals(stock.copyOfRange(0, offset), patched.copyOfRange(0, offset))
+        assertContentEquals(stock.copyOfRange(offset + 24, stock.size), patched.copyOfRange(offset + 24, patched.size))
+        assertContentEquals(patched, patchModernTongueTransport(patched, "2.0.24", "5002395"))
+        assertContentEquals(stock, patchModernTongueTransport(stock, "2.0.23", "5002395"))
+        assertContentEquals(stock, patchModernTongueTransport(stock, "2.0.24", "5002363"))
+    }
+
+    @Test
+    fun `5002395 rejects unexpected native block and size without mutation`() {
+        val malformed = fixture(ByteArray(24) { 0x55 }, MODERN_TONGUE_LIBRARY_SIZE_5002395, MODERN_TONGUE_VADDR_5002395)
+        val before = malformed.copyOf()
+        assertFailsWith<PatchException> { patchModernTongueTransport(malformed, "2.0.24", "5002395") }
+        assertContentEquals(before, malformed)
+        assertFailsWith<PatchException> { patchModernTongueTransport(ByteArray(64), "2.0.24", "5002395") }
+    }
+
+    @Test
     fun `5002363 rejects unexpected native block and size without mutation`() {
         val malformed = fixture(ByteArray(24) { 0x55 }, MODERN_TONGUE_LIBRARY_SIZE_5002363, MODERN_TONGUE_VADDR_5002363)
         val before = malformed.copyOf()

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original first edition code:
  * https://github.com/ReVanced/revanced-integrations/pull/584
@@ -13,9 +13,9 @@
  * https://github.com/ReVanced/revanced-integrations/commit/d8d2a852d3879060bd95cc43d66c7cf195e82b43
  * https://github.com/ReVanced/revanced-integrations/commit/2f2eeea5a722b6b7053eb2825d16fa37938b4e9e
  * https://github.com/ReVanced/revanced-integrations/commit/5314dd90d16dc8565331c4cddce114956d85a173
- * https://github.com/mrx7014/MRXHalawa-Patches/commit/f5371ca998c019609c2b5558b3408ab1fec065c8
- * https://github.com/mrx7014/MRXHalawa-Patches/commit/017eac71a3f9542b8ad6221e3600797d6b97fae4
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/1972
+ * https://github.com/MorpheApp/morphe-patches/commit/f5371ca998c019609c2b5558b3408ab1fec065c8
+ * https://github.com/MorpheApp/morphe-patches/commit/017eac71a3f9542b8ad6221e3600797d6b97fae4
+ * https://github.com/MorpheApp/morphe-patches/pull/1972
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -177,19 +177,22 @@ public abstract class BufferPhraseFilter extends Filter {
     protected abstract void reparseIfNeeded();
 
     /**
+     * @param contextInterface Context of the Litho element that is filtered.
      * @return whether filtering is active for the current feed / search context.
      * Only consulted when the matched group is {@link #startsWithFilter} or
      * {@link #containsFilter}. Extra path callbacks are assumed to be self-gated
      * by their own {@link app.morphe.extension.shared.settings.BooleanSetting}.
      */
-    protected abstract boolean isActiveForFeedContext();
+    protected abstract boolean isActiveForFeedContext(ContextInterface contextInterface);
 
     /**
+     * @param contextInterface Context of the Litho element that is filtered.
      * @return the matched phrase if the buffer contains a match, or {@code null} otherwise.
      * Called after the path-exception check has passed.
      */
     @Nullable
-    protected abstract String matchBuffer(byte[] buffer, StringFilterGroup matchedGroup);
+    protected abstract String matchBuffer(byte[] buffer, StringFilterGroup matchedGroup,
+                                          ContextInterface contextInterface);
 
     /**
      * Optional hook invoked when a hide is confirmed. Subclasses can override to record stats.
@@ -202,7 +205,7 @@ public abstract class BufferPhraseFilter extends Filter {
     public final boolean isFiltered(ContextInterface contextInterface,
                                     String identifier,
                                     String accessibility,
-                                    String path,
+                                    CharSequence path,
                                     byte[] buffer,
                                     BufferAsciiStrings asciiStrings,
                                     StringFilterGroup matchedGroup,
@@ -214,7 +217,7 @@ public abstract class BufferPhraseFilter extends Filter {
 
         reparseIfNeeded();
 
-        if (isBaseFeedGroup(matchedGroup) && !isActiveForFeedContextGuarded()) {
+        if (isBaseFeedGroup(matchedGroup) && !isActiveForFeedContextGuarded(contextInterface)) {
             return false;
         }
 
@@ -222,7 +225,7 @@ public abstract class BufferPhraseFilter extends Filter {
             return false; // Do not update statistics.
         }
 
-        String matched = matchBuffer(buffer, matchedGroup);
+        String matched = matchBuffer(buffer, matchedGroup, contextInterface);
         if (matched != null) {
             updateStats(true, matched);
             onHideConfirmed(matched);
@@ -238,10 +241,10 @@ public abstract class BufferPhraseFilter extends Filter {
     }
 
     /**
-     * Wraps {@link #isActiveForFeedContext()} with the shared backoff timer used by
+     * Wraps {@link #isActiveForFeedContext(ContextInterface)} with the shared backoff timer used by
      * broad-filter detection.
      */
-    private boolean isActiveForFeedContextGuarded() {
+    private boolean isActiveForFeedContextGuarded(ContextInterface contextInterface) {
         if (timeToResumeFiltering != 0) {
             if (System.currentTimeMillis() < timeToResumeFiltering) {
                 return false;
@@ -250,7 +253,7 @@ public abstract class BufferPhraseFilter extends Filter {
             filteredVideosPercentage = 0;
             Logger.printDebug(() -> "Resuming filtering: " + getClass().getSimpleName());
         }
-        return isActiveForFeedContext();
+        return isActiveForFeedContext(contextInterface);
     }
 
     private void updateStats(boolean videoWasHidden, @Nullable String matched) {
@@ -488,10 +491,10 @@ public abstract class BufferPhraseFilter extends Filter {
     }
 
     /** YouTube video IDs are 11 chars from the base64-url alphabet. */
-    public static final int VIDEO_ID_LENGTH = 11;
+    private static final int VIDEO_ID_LENGTH = 11;
 
     /** Byte sequence that precedes the video ID inside the buffer's thumbnail URL. */
-    public static final byte[] THUMBNAIL_URL_PREFIX =
+    private static final byte[] THUMBNAIL_URL_PREFIX =
             "https://i.ytimg.com/vi/".getBytes(StandardCharsets.US_ASCII);
 
     /**

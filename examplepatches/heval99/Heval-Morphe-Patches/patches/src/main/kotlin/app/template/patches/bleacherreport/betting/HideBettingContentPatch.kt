@@ -22,9 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 @Suppress("unused")
 val hideBettingContentPatch = bytecodePatch(
     name = "Hide betting content",
-    description = "Hides odds and betting content: the betting, odds, line and player prop blocks on game " +
-        "pages, the odds and trending bets modules in feeds, and the betting link and disclaimer on the " +
-        "Scores screen.",
+    description = "Hides odds and betting content.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_BLEACHER_REPORT)

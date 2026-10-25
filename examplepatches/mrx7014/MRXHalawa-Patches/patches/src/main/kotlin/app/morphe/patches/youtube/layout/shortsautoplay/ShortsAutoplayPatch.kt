@@ -1,20 +1,18 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.patches.youtube.layout.shortsautoplay
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_10_or_greater
@@ -24,7 +22,6 @@ import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
-import app.morphe.patches.youtube.shared.YouTubeActivityOnCreateFingerprint
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -47,7 +44,6 @@ val shortsAutoplayPatch = bytecodePatch(
     dependsOn(
         sharedExtensionPatch,
         settingsPatch,
-        resourceMappingPatch,
         versionCheckPatch,
     )
 
@@ -57,13 +53,6 @@ val shortsAutoplayPatch = bytecodePatch(
         PreferenceScreen.SHORTS.addPreferences(
             SwitchPreference("morphe_shorts_autoplay", summary = true),
             SwitchPreference("morphe_shorts_autoplay_background", summary = true)
-        )
-
-        // Main activity is used to check if app is in pip mode.
-        YouTubeActivityOnCreateFingerprint.method.addInstruction(
-            0,
-            "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->" +
-                    "setMainActivity(Landroid/app/Activity;)V",
         )
 
         var reelEnumClass : String
@@ -120,9 +109,9 @@ val shortsAutoplayPatch = bytecodePatch(
         // As of YouTube 20.09, Google has removed the code for 'Autoplay' and 'Pause' from this method.
         // Manually restore the removed 'Autoplay' code.
         // Variable names are only a rough guess of what these methods do.
-        val userActionMethodReference = ReelPlaybackFingerprint.instructionMatches[1]
+        val userActionMethodReference = ReelPlaybackLegacyFingerprint.instructionMatches[1]
             .getInstruction<ReferenceInstruction>().reference as MethodReference
-        val reelSequenceControllerMethodReference = ReelPlaybackFingerprint.instructionMatches[2]
+        val reelSequenceControllerMethodReference = ReelPlaybackLegacyFingerprint.instructionMatches[2]
             .getInstruction<ReferenceInstruction>().reference as MethodReference
 
         ReelPlaybackRepeatFingerprint.method.apply {
@@ -132,14 +121,10 @@ val shortsAutoplayPatch = bytecodePatch(
                         getReference<MethodReference>()?.definingClass == EXTENSION_CLASS
             } + 1
             val enumRegister = getInstruction<OneRegisterInstruction>(extensionReturnResultIndex).registerA
-            val getReelSequenceControllerIndex = indexOfFirstInstructionOrThrow {
-                val reference = getReference<FieldReference>()
-                opcode == Opcode.IGET_OBJECT &&
-                        reference?.definingClass == definingClass &&
-                        reference.type == reelSequenceControllerMethodReference.definingClass
-            }
-            val getReelSequenceControllerReference = getInstruction<ReferenceInstruction>(
-                getReelSequenceControllerIndex).reference
+            val getReelSequenceControllerReference = getInstanceFieldGetFingerprint(
+                reelSequenceControllerMethodReference.definingClass
+            ).match(ReelPlaybackRepeatFingerprint.originalMethod)
+                .instructionMatches.first().instruction.getReference<FieldReference>()!!
 
             // Add a helper method to avoid finding multiple free registers.
             // If enum is autoplay then method performs autoplay and returns null,

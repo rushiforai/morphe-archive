@@ -7,8 +7,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_LIBRERA
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables Librera's banner, interstitial and rewarded ads by reporting ads as " +
-        "switched off and the reward window as open, so the Google Mobile Ads SDK never starts."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_LIBRERA)
 

@@ -249,6 +249,15 @@ tasks {
         args(rootProject.projectDir.absolutePath)
     }
 
+    register<JavaExec>("auditSteamLink2395Native") {
+        group = "verification"
+        description = "Exercise exact 5002395 native helpers, option transitions and pinned scene contracts on decoded bytes"
+        dependsOn(classes)
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("util.SteamLink2395NativeAudit")
+        args(rootProject.projectDir.absolutePath)
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -10,14 +10,18 @@
 
 package app.morphe.extension.shared.settings.preference;
 
+import static app.morphe.extension.shared.StringRef.str;
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Insets;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
+import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -30,12 +34,21 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.BaseAppRefreshRatePatch;
+import app.morphe.extension.shared.patches.CustomFontPatch;
 import app.morphe.extension.shared.settings.BaseActivityHook;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.Dim;
 
 @SuppressWarnings({"deprecation", "RedundantSuppression"})
 public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CustomFontFilePreference.PICK_FONT_REQUEST_CODE && CustomFontPatch.isPatchIncluded()) {
+            CustomFontFilePreference.handleActivityResult(getContext(), resultCode, data);
+        }
+    }
 
     /**
      * Removes the list of preferences from this fragment, if they exist.
@@ -63,6 +76,8 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
             setPreferenceIconColor(childPreference);
 
             if (childPreference instanceof PreferenceScreen) {
+                ScreenInfoCategory screenInfo = removeScreenInfo((PreferenceScreen) childPreference);
+
                 // Recursively set sub preferences.
                 setPreferenceScreenToolbar((PreferenceScreen) childPreference);
 
@@ -93,10 +108,11 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
                                     Insets navInsets = insets.getInsets(WindowInsets.Type.navigationBars());
                                     Insets cutoutInsets = insets.getInsets(WindowInsets.Type.displayCutout());
 
-                                    // Apply padding for display cutout in landscape.
+                                    // Apply padding for display cutout in landscape,
+                                    // and in portrait if the status bar is hidden.
                                     int leftPadding = cutoutInsets.left;
                                     int rightPadding = cutoutInsets.right;
-                                    int topPadding = statusInsets.top;
+                                    int topPadding = Math.max(statusInsets.top, cutoutInsets.top);
                                     int bottomPadding = navInsets.bottom;
 
                                     v.setPadding(leftPadding, topPadding, rightPadding, bottomPadding);
@@ -107,6 +123,7 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
                             Toolbar toolbar = new Toolbar(childScreen.getContext());
                             toolbar.setTitle(childScreen.getTitle());
                             toolbar.setNavigationIcon(getBackButtonDrawable());
+                            toolbar.setNavigationContentDescription(str("morphe_settings_navigate_up"));
                             toolbar.setNavigationOnClickListener(view -> preferenceScreenDialog.dismiss());
 
                             toolbar.setTitleMargin(Dim.dp16, 0, Dim.dp16, 0);
@@ -116,6 +133,12 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
                             if (toolbarTextView != null) {
                                 toolbarTextView.setTextColor(ThemeUtils.getAppForegroundColor());
                                 toolbarTextView.setTextSize(20);
+                            }
+
+                            if (screenInfo != null) {
+                                addToolbarButton(toolbar, "morphe_settings_screen_00_about",
+                                        str("morphe_settings_screen_info_title"),
+                                        () -> screenInfo.showDialog(toolbar.getContext(), childScreen.getTitle()));
                             }
 
                             // Allow package-specific toolbar customization.
@@ -130,6 +153,52 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
                 );
             }
         }
+    }
+
+    @Nullable
+    private static ScreenInfoCategory removeScreenInfo(PreferenceScreen screen) {
+        for (int i = 0, count = screen.getPreferenceCount(); i < count; i++) {
+            Preference preference = screen.getPreference(i);
+            if (preference instanceof ScreenInfoCategory) {
+                // Removed before search collects the preferences, the text is only for the dialog.
+                screen.removePreference(preference);
+                return (ScreenInfoCategory) preference;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Adds an icon button to the toolbar, such as search or screen info.
+     *
+     * @param iconName Drawable name, the "_bold" variant is used with bold icons.
+     */
+    public static MenuItem addToolbarButton(Toolbar toolbar, String iconName,
+                                            CharSequence description, Runnable onClick) {
+        MenuItem item = toolbar.getMenu().add(description);
+        item.setIcon(getToolbarIconDrawable(iconName));
+        item.setContentDescription(description);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item.setOnMenuItemClickListener(menuItem -> {
+            onClick.run();
+            return true;
+        });
+        return item;
+    }
+
+    /**
+     * @return The icon, bold or not depending on the Morphe UI setting, and colored like
+     *         everything else Morphe draws. The drawable follows the text color of the platform,
+     *         which is not the foreground color of the app.
+     */
+    public static Drawable getToolbarIconDrawable(String iconName) {
+        Drawable icon = ResourceUtils.getDrawableOrThrow(
+                Utils.appIsUsingBoldIcons() ? iconName + "_bold" : iconName);
+
+        // Mutate, otherwise every user of the same drawable is colored as well.
+        Drawable mutated = icon.mutate();
+        mutated.setTint(ThemeUtils.getAppForegroundColor());
+        return mutated;
     }
 
     /**

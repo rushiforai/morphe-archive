@@ -4,7 +4,7 @@ Current target: **NuvioTV 1.1.0-beta.8 (1071)**. See [beta.8 contracts and verif
 
 
 The optional **NuvioTV - Submit segments to IntroDB** patch targets only
-`com.nuvio.tv` **1.1.0-beta.7**. Select it when patching the original app.
+`com.nuvio.tv` **1.1.0-beta.8**. Select it when patching the original app.
 It works alone and with playback button customization.
 
 ## Setup and playback
@@ -48,10 +48,51 @@ are not submitted. A missing API key opens a native message directing you to Set
 The native **NuvioDialog**, settings controls, key-entry Card/BasicTextField,
 anchored segment dropdown and dialog action buttons provide the app's theme and focus style.
 There are no platform AlertDialogs or key/enable fields in the playback dialog.
-Stream information keeps its original action. The controls hide timer is suspended
-while reviewing/submitting and restarted on close. Activity pause clears the draft
+Stream information keeps its original action. The controls hide timer and the
+full-screen pause/standby overlay timer are suspended while reviewing/submitting,
+including while the segment-type dropdown is expanded. Native interaction cannot
+rearm either timer until review closes. Both native schedulers resume on close;
+the pause overlay still follows Nuvio's enabled/paused/first-frame conditions.
+Activity pause clears the draft
 and cancels further request work. A controller/profile, episode or stream-cut change
 starts a fresh capture; no draft is saved to disk.
+
+### Beta.8 standby correction
+
+Cancelling only `Lab/mc;->T0:Job` stopped the controls-hide timer but left the
+separate `d4:Job` pause-overlay timer running. Opening review now invokes native
+`Lab/zf;->i(Lab/mc;)V` to cancel the pause job and clear its visible overlay.
+The unique static schedulers `F(Lab/mc;)V` (10 registers) and `H(Lab/mc;)V`
+(177 registers) receive an entry guard for the active foreground IntroDB draft's
+controller. The guard returns before scheduling while review is open, and falls
+through to the exact original method otherwise. Closing clears the draft before
+calling both native schedulers; activity pause does not restart them.
+
+These contracts are proven against `../OriginalApps/NuvioTV-1.1.0-beta8.apk`
+(`com.nuvio.tv`, `1.1.0-beta.8`, code 1071; SHA-256
+`7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8`).
+Exact native fingerprints reject changed or already-patched timer methods.
+The hooks use local `v0` and preserve controller parameters, register counts,
+native branches and exception boundaries. No playback pause/resume event is sent.
+
+Verification for this correction:
+
+```powershell
+.\build-local.ps1 :patches:buildAndroid :patches:verifyNuvioIntroDb :patches:verifyNuvioIntroDbRuntime :patches:verifyNuvioBeta8Bundle --offline
+.\build-local.ps1 :patches:verifyNuvioIntroDbApk :patches:verifyNuvioPlaybackApk -PnuvioPlaybackApk=../../Apps/NuvioTV/NuvioTV-1.1.0-beta.8-introdb-timer-signed.apk -PnuvioRequireStability=true --offline
+```
+
+Host runtime checks cover pending standby cancellation, both scheduler guards
+during review/dropdown use, controller isolation, restart on close, and no restart
+on activity pause. The original-DEX verifier rejects missing/changed/duplicate
+timer hooks, writes/reloads them, restores their exact original fingerprints, and
+checks the other timer-class methods are unchanged. The packaged standalone and
+combined checks include five IntroDB calls and unchanged original hierarchy findings.
+The bundle is `patches/build/libs/patches-0.13.0.mpp`; the all-sixteen-patch APK is
+`../Apps/NuvioTV/NuvioTV-1.1.0-beta.8-introdb-timer-signed.apk`.
+No device installation or testing was performed. On device, leave the segment-type
+dropdown open beyond the configured pause-overlay delay, then close review and
+confirm that native standby behavior resumes.
 
 ## Submission protocol
 

@@ -169,12 +169,55 @@ public class GlassVideoBlurTest {
         assertEquals("measured from the video's own corner",
                 new Rect(6, 1200, 570, 1277), GlassVideoBlur.sourceRect(new Rect(112, 2350, 1168, 2494), moved, 576, 1280));
 
-        assertNull("a pill hanging off the video",
+        assertNull("a pill hanging half off the video",
                 GlassVideoBlur.sourceRect(new Rect(12, 2300, 1068, 2500), video, 576, 1280));
+        assertEquals("a pill a few pixels past the edge reads the part over the video",
+                new Rect(6, 1200, 570, 1280), GlassVideoBlur.sourceRect(new Rect(12, 2250, 1068, 2404), video, 576, 1280));
+        assertNull("beside the video", GlassVideoBlur.sourceRect(new Rect(12, 2500, 1068, 2600), video, 576, 1280));
         assertNull(GlassVideoBlur.sourceRect(new Rect(), video, 576, 1280));
         assertNull(GlassVideoBlur.sourceRect(pill, new Rect(), 576, 1280));
         assertNull("no buffer yet", GlassVideoBlur.sourceRect(pill, video, 0, 1280));
         assertNull(GlassVideoBlur.sourceRect(null, video, 576, 1280));
+    }
+
+    /**
+     * The S22 on 47.5.3: TikTok's player view is 1107 by 1968 at y 74, scaled about 1.07 from its
+     * middle, so it draws down to y 2179 behind the bar at 2043. Its corner plus its unscaled size
+     * stopped at 2042 and the blur never read a frame.
+     */
+    @Test
+    public void theVideoIsMeasuredAsDrawnWithTikToksScale() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout cell = new FrameLayout(activity);
+            View player = new View(activity);
+            cell.addView(player, new FrameLayout.LayoutParams(1107, 1968));
+            activity.setContentView(cell, new FrameLayout.LayoutParams(1080, 2181));
+            cell.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(2181, View.MeasureSpec.EXACTLY));
+            cell.layout(0, 0, 1080, 2181);
+            player.layout(-13, 144, 1094, 2112);
+            player.setPivotX(553.5f);
+            player.setPivotY(984f);
+            player.setScaleX(1.07f);
+            player.setScaleY(1.07f);
+
+            Rect drawn = GlassVideoBlur.boundsInWindow(player);
+            Rect root = GlassVideoBlur.boundsInWindow(cell.getRootView());
+            Rect cellInWindow = GlassVideoBlur.boundsInWindow(cell);
+            assertEquals("the root is the window", 0, root.left);
+            drawn.offset(-cellInWindow.left, -cellInWindow.top);
+            assertEquals(new Rect(-52, 75, 1133, 2181), drawn);
+            assertTrue("the bar's pill sits over it",
+                    GlassVideoBlur.sourceRect(new Rect(40, 2050, 1040, 2165), drawn, 1080, 1920) != null);
+            assertNull("unscaled it looked off the video",
+                    GlassVideoBlur.sourceRect(new Rect(40, 2050, 1040, 2165), new Rect(-13, 144, 1094, 2112), 1080, 1920));
+
+            cell.scrollTo(0, 100);
+            Rect scrolled = GlassVideoBlur.boundsInWindow(player);
+            scrolled.offset(-cellInWindow.left, -cellInWindow.top);
+            assertEquals("a parent's scroll moves it", new Rect(-52, -25, 1133, 2081), scrolled);
+        }
     }
 
     @Test

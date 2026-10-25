@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -24,6 +24,10 @@ public final class SaveToWatchLaterPatch {
      * Use it only when it is guaranteed to be used in situations where the player is active.
      */
     private static volatile SaveToWatchLaterRequest saveToWatchLaterRequest;
+
+    public static boolean isPatchIncluded() {
+        return false; // Modified during patching.
+    }
 
     public static void saveVideo(String videoId) {
         // Prevent a new request until the previous (if exists) is not done.

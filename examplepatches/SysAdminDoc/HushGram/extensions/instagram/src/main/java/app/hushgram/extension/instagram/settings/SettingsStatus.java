@@ -84,6 +84,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyFonts() {
+        return false;
+    }
+
     public static boolean storyUploadQuality() {
         return false;
     }
@@ -199,6 +203,10 @@ public final class SettingsStatus {
     }
 
     public static boolean appIcon() {
+        return false;
+    }
+
+    public static boolean settingsRows() {
         return false;
     }
 

@@ -1,13 +1,12 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.extension.youtube.sponsorblock;
 
-import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
@@ -249,7 +248,6 @@ public final class YouTubeSponsorBlockConfig implements Configuration {
         @Override public void showSkipHighlightButton(@NonNull SponsorSegment segment) { SponsorBlockViewController.showSkipHighlightButton(segment); }
         @Override public void hideSkipHighlightButton()                                { SponsorBlockViewController.hideSkipHighlightButton(); }
         @Override public void hideAll()                                                { SponsorBlockViewController.hideAll(); }
-        @Override public @Nullable Context overlayContext()                            { return SponsorBlockViewController.getOverLaysViewGroupContext(); }
         @Override public void showErrorDialog(@NonNull String message)                 { SponsorBlockUtils.showErrorDialog(message); }
         @Override public void notifyNewSegmentPreviewed()                              { SponsorBlockUtils.setNewSponsorSegmentPreviewed(); }
         @Override public void clearUnsubmittedSegmentTimes()                           { SponsorBlockUtils.clearUnsubmittedSegmentTimes(); }

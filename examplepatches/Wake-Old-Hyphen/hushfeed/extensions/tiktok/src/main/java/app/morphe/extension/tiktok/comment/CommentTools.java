@@ -390,9 +390,10 @@ public final class CommentTools {
     public static void onCommentListLoaded(Object commentItemList) {
         boolean byWord = Settings.COMMENT_KEYWORD_FILTER.get();
         boolean media = Settings.HIDE_COMMENT_MEDIA.get();
+        boolean spam = Settings.HIDE_SPAM_COMMENTS.get();
         boolean polls = Settings.HIDE_COMMENT_POLLS.get();
         boolean previews = Settings.HIDE_COMMENT_REPLY_PREVIEWS.get();
-        if ((!byWord && !media && !polls && !previews) || commentItemList == null) {
+        if ((!byWord && !media && !spam && !polls && !previews) || commentItemList == null) {
             return;
         }
 
@@ -403,7 +404,7 @@ public final class CommentTools {
             if (previews) {
                 clearReplyPreviews(commentItemList);
             }
-            if (!byWord && !media) {
+            if (!byWord && !media && !spam) {
                 return;
             }
 
@@ -412,7 +413,7 @@ public final class CommentTools {
                             Settings.COMMENT_BLOCKED_KEYWORDS.get())
                     : List.of();
             List<String> users = byWord ? entries(Settings.COMMENT_BLOCKED_USERS.get()) : List.of();
-            if (keywords.isEmpty() && users.isEmpty() && !media) {
+            if (keywords.isEmpty() && users.isEmpty() && !media && !spam) {
                 return;
             }
 
@@ -423,9 +424,9 @@ public final class CommentTools {
 
             // Looked up once for the page, not once per comment: two reflective calls into
             // TikTok's account service.
-            String self = media ? signedInUserId() : null;
+            String self = media || spam ? signedInUserId() : null;
 
-            int removed = filterComments((List<?>) itemsObject, keywords, users, media, self);
+            int removed = filterComments((List<?>) itemsObject, keywords, users, media, spam, self);
             if (removed > 0) {
                 final int count = removed;
                 Logger.printDebug(() -> "Comment filter removed " + count + " comment(s)");
@@ -1032,7 +1033,7 @@ public final class CommentTools {
 
     private static int filterComments(List<?> comments,
             List<app.morphe.extension.tiktok.feedfilter.KeywordRules.Rule> keywords,
-            List<String> users, boolean media, String self) {
+            List<String> users, boolean media, boolean spam, String self) {
         int removed = 0;
         Iterator<?> iterator = comments.iterator();
         while (iterator.hasNext()) {
@@ -1041,7 +1042,7 @@ public final class CommentTools {
                 continue;
             }
 
-            if (matches(comment, keywords, users, media, self)) {
+            if (matches(comment, keywords, users, media, spam, self)) {
                 try {
                     iterator.remove();
                     removed++;
@@ -1054,7 +1055,7 @@ public final class CommentTools {
 
             Object replies = Reflect.property(comment, "getReplyComments", "replyComments");
             if (replies instanceof List) {
-                removed += filterComments((List<?>) replies, keywords, users, media, self);
+                removed += filterComments((List<?>) replies, keywords, users, media, spam, self);
             }
         }
         return removed;
@@ -1062,7 +1063,7 @@ public final class CommentTools {
 
     private static boolean matches(Object comment,
             List<app.morphe.extension.tiktok.feedfilter.KeywordRules.Rule> keywords,
-            List<String> users, boolean media, String self) {
+            List<String> users, boolean media, boolean spam, String self) {
         // Your own stickers and images stay. Hiding comments with pictures is about what other
         // people post, and having your own disappear from a thread you are in reads as the
         // comment having failed to send.
@@ -1073,6 +1074,11 @@ public final class CommentTools {
         String text = Reflect.string(comment, "getText", "text");
         // Plain phrases as before, plus "a" & "b" and "a" !& "b".
         if (app.morphe.extension.tiktok.feedfilter.KeywordRules.anyMatches(keywords, text)) {
+            return true;
+        }
+
+        if (spam && SpamComments.looksLikeSpam(text)
+                && !isVouchedFor(comment) && !isOwnComment(comment, self)) {
             return true;
         }
 
@@ -1095,6 +1101,17 @@ public final class CommentTools {
      * the model: the attached images, a sticker struct, and the post items a text-on-image
      * comment is built from.
      */
+    /**
+     * Whether TikTok shows this comment with the creator's backing: pinned or liked by them, or
+     * carrying a label, which is how the creator's own replies are marked. The spam filter keeps
+     * these, so a creator pointing to their own bio for part 2 still shows.
+     */
+    private static boolean isVouchedFor(Object comment) {
+        return Boolean.TRUE.equals(Reflect.property(comment, "isAuthorPin", "authorPin"))
+                || Boolean.TRUE.equals(Reflect.property(comment, "isAuthorDigged", "isAuthorDigged"))
+                || Reflect.string(comment, "getLabelText", "labelText") != null;
+    }
+
     /**
      * Whether this comment was written by the account that is signed in.
      *

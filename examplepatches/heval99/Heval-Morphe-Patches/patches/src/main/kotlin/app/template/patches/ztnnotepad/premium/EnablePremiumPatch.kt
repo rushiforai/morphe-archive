@@ -32,7 +32,7 @@ private fun BytecodePatchContext.booleanGetter(type: String, string: String? = n
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks #Notepad premium and hides the paywall and in-app ad slots."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_ZTNNOTEPAD)
 

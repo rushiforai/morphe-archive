@@ -74,6 +74,14 @@ public final class BuildNames {
     }
 
     /**
+     * The app the running package was patched from (see {@link #namedApp}), or null until the
+     * extension has a context.
+     */
+    public static String runningApp() {
+        return runningBuild() == null ? null : runningApp;
+    }
+
+    /**
      * The app whose names the running package resolves: the package the bundle patched when the
      * build asset names one, since a renamed copy keeps that app's resource table (#209), and the
      * running package when there's no record to go on.

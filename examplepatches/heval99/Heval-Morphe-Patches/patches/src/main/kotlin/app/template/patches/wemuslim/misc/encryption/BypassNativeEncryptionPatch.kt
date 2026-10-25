@@ -154,9 +154,7 @@ private fun BytecodePatchContext.patchNativeKeyCalls() {
 @Suppress("unused")
 val bypassNativeEncryptionPatch = bytecodePatch(
     name = "Fix native encryption check",
-    description = "Makes the app start after re-signing. The stock libagora-ey.so refuses to load in " +
-        "a re-signed build, so its storage-key getters are replaced with the values from the " +
-        "developer-signed APK. The library is never loaded.",
+    description = "Fixes the app not starting after patching.",
 ) {
     compatibleWith(COMPATIBILITY_WEMUSLIM)
 

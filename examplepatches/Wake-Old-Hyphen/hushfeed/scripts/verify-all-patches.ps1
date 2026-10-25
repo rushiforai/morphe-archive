@@ -72,11 +72,11 @@ if (-not (Test-Path -LiteralPath $DesktopJar -PathType Leaf)) { throw "Desktop C
 
 try {
     $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
-    $names = @($catalog.patches | ForEach-Object { $_.name })
 } catch {
     throw "Could not read patch list ${PatchList}: $($_.Exception.Message)"
 }
 $expectedTarget = Get-PatchTarget -PatchList $catalog
+$names = @(Get-PackagePatchNames -PatchList $catalog -PackageName $expectedTarget.PackageName)
 if ($names.Count -eq 0 -or @($names | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -ne 0) {
     throw "No valid patches listed in $PatchList."
 }

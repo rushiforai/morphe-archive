@@ -500,6 +500,36 @@ class LiveDarkPanelsAnchorsTest {
         }
     }
 
+    @Test
+    fun `each declared build hands the room's long-press menu to the extension before the room shows it`() {
+        Fixtures.forEachDeclared { apk ->
+            val classes = classes(apk)
+            val share = classes[LIVE_HOST_SHARE] ?: throw AssertionError("${apk.name}: no LIVE host share")
+            val factory = share.methods.filter { LiveLongPressMenuFingerprint.takes(it, share) }
+            assertEquals("${apk.name}: the menu's factory", 1, factory.size)
+
+            // The hook as the patch writes it: each returned menu goes to the extension first,
+            // from the return's own register, and nothing else in the factory moves.
+            val original = factory.single().implementation!!.instructions.toList()
+            val hooked = MutableMethod(factory.single())
+            hookLongPressMenu(hooked)
+            val code = hooked.implementation!!.instructions.toList()
+            val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+            assertTrue("${apk.name}: a return", returns.isNotEmpty())
+            assertEquals("${apk.name}: one call per return", original.size + returns.size, code.size)
+            returns.forEach { at ->
+                val hook = code[at - 1] as FiveRegisterInstruction
+                assertEquals("${apk.name}: the hook before the return", "liveMenu",
+                    ((hook as ReferenceInstruction).reference as MethodReference).name)
+                assertEquals("${apk.name}: the menu it returns", (code[at] as OneRegisterInstruction).registerA, hook.registerC)
+            }
+            assertEquals("${apk.name}", emptyList<BridgeTypeFlow.Problem>(), BridgeTypeFlow.check(hooked))
+        }
+        assertThrows(PatchException::class.java) {
+            hookLongPressMenu(badgeBind("nop"))
+        }
+    }
+
     /** A badge bind that reads its tile from [owner]'s lazy field and casts it to [cast], then runs [after]. */
     private fun badgeBind(
         after: String,
@@ -1071,21 +1101,26 @@ class LiveDarkPanelsAnchorsTest {
         generateSequence(type) { classes[it]?.superclass }.first { it !in classes }
 
     @Test
-    fun `each declared build keeps the quality list's view setup`() {
+    fun `each declared build keeps both quality lists' view setup`() {
         Fixtures.forEachDeclared { apk ->
             val classes = classes(apk)
-            val dialog = classes[LIVE_DEFINITION_DIALOG] ?: throw AssertionError("${apk.name}: $LIVE_DEFINITION_DIALOG is gone")
-            val found = dialog.methods.filter { LiveDefinitionListFingerprint.takes(it, dialog) }
-            assertEquals("${apk.name}: onViewCreated", 1, found.size)
-            // The view sits above v15 on 47.1.4, so the hook takes the range form; the inline
-            // compiler drops a four-bit call to a register that doesn't fit, silently.
-            val hooked = MutableMethod(found.single())
-            hookQualityList(hooked)
-            val first = hooked.implementation!!.instructions.first()
-            assertEquals("${apk.name}: the hook's call", Opcode.INVOKE_STATIC_RANGE, first.opcode)
-            val view = (first as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction).startRegister
-            assertEquals("${apk.name}: the hook reads the view", found.single().implementation!!.registerCount - 2, view)
-            assertEquals("readableQualityList", ((first as ReferenceInstruction).reference as MethodReference).name)
+            listOf(
+                LIVE_DEFINITION_DIALOG to LiveDefinitionListFingerprint,
+                LIVE_TALENT_DEFINITION_DIALOG to LiveTalentDefinitionListFingerprint,
+            ).forEach { (type, fingerprint) ->
+                val dialog = classes[type] ?: throw AssertionError("${apk.name}: $type is gone")
+                val found = dialog.methods.filter { fingerprint.takes(it, dialog) }
+                assertEquals("${apk.name}: $type onViewCreated", 1, found.size)
+                // The view sits above v15 on 47.1.4, so the hook takes the range form; the inline
+                // compiler drops a four-bit call to a register that doesn't fit, silently.
+                val hooked = MutableMethod(found.single())
+                hookQualityList(hooked)
+                val first = hooked.implementation!!.instructions.first()
+                assertEquals("${apk.name}: $type the hook's call", Opcode.INVOKE_STATIC_RANGE, first.opcode)
+                val view = (first as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction).startRegister
+                assertEquals("${apk.name}: $type the hook reads the view", found.single().implementation!!.registerCount - 2, view)
+                assertEquals("readableQualityList", ((first as ReferenceInstruction).reference as MethodReference).name)
+            }
         }
     }
 }

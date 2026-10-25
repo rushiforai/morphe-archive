@@ -85,12 +85,11 @@ val unlockPremiumPatch = bytecodePatch(
         parameters = emptyList()
     )
 
-    // Fallback if class names change: find by strings (video approach)
+    // Fallback: any short public ()Z in a class that references onetime_purchase
     val fallbackVipByStringFingerprint = Fingerprint(
         returnType = "Z",
         parameters = emptyList(),
         custom = { method, classDef ->
-            // Class must reference onetime_purchase somewhere
             val classHasSku = classDef.methods.any { m ->
                 m.implementation?.instructions?.any {
                     it.toString().contains("onetime_purchase")
@@ -99,7 +98,7 @@ val unlockPremiumPatch = bytecodePatch(
             if (!classHasSku) return@Fingerprint false
             // Prefer public short VIP getters (a / m) or any short ()Z
             method.name == "a" || method.name == "m" || (
-                (method.implementation?.instructions?.size ?: 99) <= 8 &&
+                (method.implementation?.instructions?.count() ?: 99) <= 8 &&
                     method.accessFlags and 0x1 != 0 // public
                 )
         }
@@ -113,7 +112,7 @@ val unlockPremiumPatch = bytecodePatch(
 
         var ok = 0
 
-        fun tryPatch(label: String, block: () -> Unit) {
+        fun tryPatch(block: () -> Unit) {
             try {
                 block()
                 ok++
@@ -123,43 +122,18 @@ val unlockPremiumPatch = bytecodePatch(
         }
 
         // Primary (5.7.1 exact)
-        tryPatch("a()Z") {
-            vipAFingerprint.method.addInstructions(0, retTrue)
-        }
-        tryPatch("m()Z") {
-            vipMFingerprint.method.addInstructions(0, retTrue)
-        }
-        tryPatch("L()Z storage") {
-            vipFromStorageFingerprint.method.addInstructions(0, retTrue)
-        }
-        tryPatch("N()Z sku") {
-            skuValidatorFingerprint.method.addInstructions(0, retTrue)
-        }
-        tryPatch("facade i()Z") {
-            facadeIFingerprint.method.addInstructions(0, retTrue)
-        }
-        tryPatch("facade h()Z") {
-            facadeHFingerprint.method.addInstructions(0, retTrue)
-        }
+        tryPatch { vipAFingerprint.method.addInstructions(0, retTrue) }
+        tryPatch { vipMFingerprint.method.addInstructions(0, retTrue) }
+        tryPatch { vipFromStorageFingerprint.method.addInstructions(0, retTrue) }
+        tryPatch { skuValidatorFingerprint.method.addInstructions(0, retTrue) }
+        tryPatch { facadeIFingerprint.method.addInstructions(0, retTrue) }
+        tryPatch { facadeHFingerprint.method.addInstructions(0, retTrue) }
 
-        // If definingClass names drifted, string-based fallback
+        // If definingClass names drifted, string-based fallback (single match only)
         if (ok < 2) {
             try {
-                val m = fallbackVipByStringFingerprint.method
-                m.addInstructions(0, retTrue)
+                fallbackVipByStringFingerprint.method.addInstructions(0, retTrue)
                 ok++
-            } catch (_: Exception) {
-            }
-            // Try matchAll for both a/m style
-            try {
-                fallbackVipByStringFingerprint.clearMatch()
-            } catch (_: Exception) {
-            }
-            try {
-                fallbackVipByStringFingerprint.matchAllOrNull()?.forEach { match ->
-                    match.method.addInstructions(0, retTrue)
-                    ok++
-                }
             } catch (_: Exception) {
             }
         }

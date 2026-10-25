@@ -10,7 +10,9 @@ import app.morphe.extension.tiktok.download.LiveRecorder;
 import org.json.JSONObject;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Finds what to record in a LIVE room the viewer is in: the stream address TikTok already gave
@@ -25,10 +27,17 @@ public final class LiveRoomStream {
     public static final class Pick {
         public final LiveRecorder.Target target;
         public final String problem;
+        /** The stream keys the room offered, in the order read, for the diagnostics line; empty when none were read. */
+        public final String offered;
 
         Pick(LiveRecorder.Target target, String problem) {
+            this(target, problem, "");
+        }
+
+        Pick(LiveRecorder.Target target, String problem, String offered) {
             this.target = target;
             this.problem = problem;
+            this.offered = offered;
         }
     }
 
@@ -52,10 +61,36 @@ public final class LiveRoomStream {
     }
 
     private static int rank(String quality) {
+        String base = base(quality);
         for (int i = 0; i < QUALITY_ORDER.length; i++) {
-            if (QUALITY_ORDER[i].equals(quality)) return i;
+            if (QUALITY_ORDER[i].equals(base)) return i;
         }
         return QUALITY_ORDER.length;
+    }
+
+    /**
+     * The quality a key names without the frame rate TikTok puts on some: "hd_60" is hd at 60
+     * fps. Read as unknown keys, a room's 60 fps streams lost to everything, so 1080p in a 1080p60
+     * room recorded the 720p30 one (S22, 2026-10-24).
+     */
+    static String base(String quality) {
+        int cut = quality == null ? -1 : quality.lastIndexOf('_');
+        if (cut <= 0 || cut == quality.length() - 1) return quality;
+        for (int i = cut + 1; i < quality.length(); i++) {
+            if (!Character.isDigit(quality.charAt(i))) return quality;
+        }
+        return quality.substring(0, cut);
+    }
+
+    /** The frame rate a key names, 0 when it names none. */
+    static int frameRate(String quality) {
+        String base = base(quality);
+        if (base == null || base.length() == quality.length()) return 0;
+        try {
+            return Integer.parseInt(quality.substring(base.length() + 1));
+        } catch (NumberFormatException tooLong) {
+            return 0;
+        }
     }
 
     /**
@@ -90,6 +125,7 @@ public final class LiveRoomStream {
                               String hlsUrl, String preferred, String creator, String roomId) {
         String[] best = new String[2]; // [quality, url] for flv
         String[] bestHls = new String[2];
+        Set<String> offered = new LinkedHashSet<>();
         if (streamDataJson != null && !streamDataJson.isEmpty()) {
             try {
                 JSONObject root = new JSONObject(streamDataJson);
@@ -102,8 +138,8 @@ public final class LiveRoomStream {
                         JSONObject entry = data.optJSONObject(quality);
                         if (entry != null) main = entry.optJSONObject("main");
                         if (main == null) continue;
-                        consider(best, quality, clean(main.optString("flv", null)), preferred);
-                        consider(bestHls, quality, clean(main.optString("hls", null)), preferred);
+                        consider(best, quality, clean(main.optString("flv", null)), preferred, offered);
+                        consider(bestHls, quality, clean(main.optString("hls", null)), preferred, offered);
                     }
                 }
             } catch (Throwable ignored) {
@@ -112,30 +148,45 @@ public final class LiveRoomStream {
         }
         if (flvMap != null) {
             for (Map.Entry<String, String> entry : flvMap.entrySet()) {
-                consider(best, entry.getKey(), clean(entry.getValue()), preferred);
+                consider(best, entry.getKey(), clean(entry.getValue()), preferred, offered);
             }
         }
         if (hlsMap != null) {
             for (Map.Entry<String, String> entry : hlsMap.entrySet()) {
-                consider(bestHls, entry.getKey(), clean(entry.getValue()), preferred);
+                consider(bestHls, entry.getKey(), clean(entry.getValue()), preferred, offered);
             }
         }
+        String keys = join(offered);
         if (best[1] != null) {
-            return new Pick(new LiveRecorder.Target(best[1], LiveRecorder.Transport.FLV, creator, roomId, best[0]), null);
+            return new Pick(new LiveRecorder.Target(best[1], LiveRecorder.Transport.FLV, creator, roomId, best[0]), null, keys);
         }
         if (bestHls[1] != null) {
-            return new Pick(new LiveRecorder.Target(bestHls[1], LiveRecorder.Transport.HLS, creator, roomId, bestHls[0]), null);
+            return new Pick(new LiveRecorder.Target(bestHls[1], LiveRecorder.Transport.HLS, creator, roomId, bestHls[0]), null, keys);
         }
         String single = clean(hlsUrl);
         if (single != null) {
-            return new Pick(new LiveRecorder.Target(single, LiveRecorder.Transport.HLS, creator, roomId, null), null);
+            return new Pick(new LiveRecorder.Target(single, LiveRecorder.Transport.HLS, creator, roomId, null), null, keys);
         }
-        return new Pick(null, "No stream address");
+        return new Pick(null, "No stream address", keys);
     }
 
-    /** Keeps the better of the current {@code best} and this one: the preferred quality wins, then rank. */
-    private static void consider(String[] best, String quality, String url, String preferred) {
+    private static String join(Set<String> keys) {
+        StringBuilder joined = new StringBuilder();
+        for (String key : keys) {
+            if (joined.length() > 0) joined.append(", ");
+            joined.append(key);
+        }
+        return joined.toString();
+    }
+
+    /**
+     * Keeps the better of the current {@code best} and this one: the preferred quality wins, then
+     * rank, then the higher frame rate (the lower for {@link #LOWEST}). Notes each key with an
+     * address in {@code offered}.
+     */
+    private static void consider(String[] best, String quality, String url, String preferred, Set<String> offered) {
         if (url == null || quality == null || "ao".equals(quality)) return;
+        offered.add(quality);
         if (best[1] == null || better(quality, best[0], preferred)) {
             best[0] = quality;
             best[1] = url;
@@ -151,25 +202,48 @@ public final class LiveRoomStream {
     }
 
     private static boolean better(String candidate, String current, String preferred) {
+        boolean faster = frameRate(candidate) > frameRate(current);
         if (preferred != null && preferred.startsWith(NEAREST)) {
             String preset = preferred.substring(NEAREST.length());
-            return distance(candidate, preset) < distance(current, preset);
+            int candidateDistance = distance(candidate, preset);
+            int currentDistance = distance(current, preset);
+            return candidateDistance != currentDistance ? candidateDistance < currentDistance : faster;
         }
         if (LOWEST.equals(preferred)) {
             // A key not in the order counts as the best, so a known small stream wins over it.
-            return lowness(candidate) > lowness(current);
+            int candidateLowness = lowness(candidate);
+            int currentLowness = lowness(current);
+            return candidateLowness != currentLowness
+                    ? candidateLowness > currentLowness
+                    : frameRate(candidate) < frameRate(current);
         }
         if (preferred != null) {
             boolean candidateIsIt = preferred.equals(candidate);
             boolean currentIsIt = preferred.equals(current);
             if (candidateIsIt != currentIsIt) return candidateIsIt;
         }
-        return rank(candidate) < rank(current);
+        int candidateRank = rank(candidate);
+        int currentRank = rank(current);
+        return candidateRank != currentRank ? candidateRank < currentRank : faster;
     }
 
     private static int lowness(String quality) {
         int rank = rank(quality);
         return rank == QUALITY_ORDER.length ? -1 : rank;
+    }
+
+    /** What to record when the screen is the source (#37): the room's creator and id, no stream address. */
+    public static Pick screenTarget(Object room) {
+        if (room == null) return new Pick(null, "No room");
+        try {
+            Object owner = Reflect.readField(room, "owner");
+            String creator = owner == null ? null : Reflect.string(owner, "getUsername", "username");
+            Object id = Reflect.readField(room, "idStr");
+            return new Pick(new LiveRecorder.Target(null, LiveRecorder.Transport.SCREEN, creator,
+                    id instanceof String ? (String) id : null, "screen"), null);
+        } catch (Throwable failure) {
+            return new Pick(null, "Unreadable room");
+        }
     }
 
     /** Reads the room off TikTok's room object. Never throws. */

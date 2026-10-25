@@ -1,3 +1,97 @@
+## Unreleased
+
+* **TikTok:** Pembersihan Service+ kini memeriksa entri pertama pratinjau LIVE, sesuai dengan cara TikTok menampilkannya (#94).
+
+## 0.79.0 (2026-10-24)
+
+* **TikTok:** Di PineDrama, pengaturan Hushfeed sekarang meminta kamu memulai ulang PineDrama, bukan TikTok (#156).
+
+* **TikTok:** Sakelar baru Sembunyikan komentar spam menyembunyikan komentar bot yang menawarkan tautan, kontak, atau pengikut gratis. Komentarmu sendiri dan komentar kreator tetap ada (#187).
+
+* **TikTok:** Sembunyikan video yang sudah kamu tonton kembali mengeluarkan video yang sudah ditonton dari For You (#172).
+
+* **TikTok:** Dengan tema gelap AMOLED, bilah komentar di bawah postingan foto sekarang hitam (#171).
+
+* **TikTok:** Gunakan font yang diimpor sekarang berfungsi di PineDrama, dan teks tebal tetap tebal (#243).
+
+* **TikTok:** Preset Komentar berjalan di atas video di Feature Gate Lab sekarang memberi tahu bahwa preset itu hanya berlaku pada video yang diaktifkan TikTok (#98).
+
+* **TikTok:** Patch baru Allow photo comments untuk PineDrama membuat kotak komentar menanyakan komentar foto ke server TikTok, seperti TikTok (#156).
+
+* **TikTok:** PineDrama pindah ke 47.5.3. Enam patch lagi sekarang berjalan di sana, jadi Morphe Manager menawarkan 95 patch untuknya (#156).
+
+* **TikTok:** Sakelar baru Laporkan ponsel lebih baru ke efek membantu efek yang bilang tidak bisa berjalan di ponselmu (#176).
+
+* **TikTok:** Stiker tersimpan di PineDrama sekarang menampilkan semua stiker yang kamu simpan, tidak hanya 100 yang pertama (#214).
+
+* **TikTok:** Pilihan baru Sumber rekaman LIVE bisa merekam layarmu saat kamu menonton LIVE (#37).
+
+* **TikTok:** Sakelar baru Buramkan video di belakang bilah membuat bilah Tampilan kaca cair tampak buram di Android 12 ke atas (#231).
+
+* **TikTok:** Panel LIVE gelap di mode gelap sekarang juga menggelapkan bagian terang yang tersisa di ruang LIVE (#159).
+
+* **TikTok:** Beri tag detail pada video yang disimpan sekarang benar-benar menambahkan judul, kreator, tanggal, dan tautan ke video yang disimpan.
+
+* **TikTok:** Sembunyikan tombol Auto scroll TikTok juga menyembunyikan sakelar Auto scroll di tablet dan ponsel lipat yang terbuka (#234).
+
+* **TikTok:** README sekarang menyarankan mem-patch bundle 47.5.3 di ponsel dan APK di komputer.
+
+* **TikTok:** Saat Pertahankan Tampilan bersih antar video mati, tombol muncul kembali begitu geseranmu selesai, tidak melompat masuk belakangan (#232).
+
+* **TikTok:** Dengan Bilah bawah transparan aktif, keterangan dan tombol tidak lagi turun menutupi tab setelah menggeser (#232).
+
+* **TikTok:** Tekan lama untuk Simpan bingkai di layar sebagai foto berfungsi lagi di 47.5.3.
+
+* **TikTok:** Hapus iklan di feed juga menghapus kartu Lemon8 yang lebih kecil di For You.
+
+* **TikTok:** Jumlah yang disaring dan label batas tidak lagi muncul di tab Shop dan Nearby.
+
+* **TikTok:** Dengan Panel LIVE gelap di mode gelap aktif, peringkat penonton di ruang LIVE terbuka gelap lagi (#159).
+
+* **TikTok:** README menyebutkan bahwa morphe-desktop perlu memori 2 GB saat kamu mem-patch semuanya di komputer (#220).
+
+* **TikTok:** Saat Ketuk dua kali diatur ke Tidak melakukan apa pun, sekali ketuk langsung menjeda atau memutar video (#239).
+
+* **TikTok:** Build sekarang memakai Gradle 9.8.2.
+
+* **TikTok:** README mencantumkan bagian pengaturan Hushfeed yang bisa diandalkan oleh bundle tambahan.
+
+* **TikTok:** Yang baru hanya memuat rilis terbaru dan sisanya ada di Full changelog, jadi ekstensinya lebih kecil.
+
+* **TikTok:** Lensa kaca di tab saat ini sekarang selalu meluncur ke tab berikutnya (#231).
+
+* **TikTok:** Dengan Tampilan bersih otomatis aktif, hasil pencarian yang kamu buka lagi menjadi bersih lagi (#84).
+
+* **TikTok:** Kualitas rekaman LIVE juga menawarkan Original, 1080p, 720p, 540p, dan 360p (#203).
+
+* **TikTok:** Saat daftar kualitas unduhan berhenti di bawah 720p, daftar itu juga menawarkan versi H.264 atau HEVC milik video itu yang lebih tinggi (#240).
+
+* **TikTok:** Tampilkan asal pengomentar lebih sering menemukan negaranya (#201).
+
+* **TikTok:** Terbaru dulu di Mengikuti menjaga postingan di bawah videomu tetap urut tanggal saat postingan lain dimuat (#226).
+
+* **TikTok:** Kisi profil dan Disukai bisa diurutkan dengan Paling sedikit ditonton dulu dan Paling sedikit disukai dulu, memuat lebih banyak video sendiri, dan punya tombol urutan di sudut (#180).
+
+* **TikTok:** Sakelar baru Buka cerita saat kreator sedang LIVE membuka ceritanya lebih dulu saat kamu mengetuk fotonya (#233).
+
+* **TikTok:** Dengan Rekam LIVE yang kamu tonton aktif, menu Bagikan di ruang LIVE punya baris Kualitas rekaman LIVE (#203).
+
+* **TikTok:** Tawarkan kualitas LIVE di lebih banyak ruang sekarang juga mencakup ruang LIVE game dan sepak bola (#37).
+
+* **TikTok:** Di mode gelap, pemilih kualitas video yang baru di ruang LIVE bisa dibaca lagi (#57).
+
+* **TikTok:** Ruang LIVE tetap gelap saat ponselmu beralih antara terang dan gelap (#159).
+
+* **TikTok:** Sakelar baru Tetap izinkan Tambahkan ke Cerita mengembalikan Tambahkan ke Cerita saat kreator mematikan penggunaan ulang konten (#88).
+
+* **TikTok:** Saat Region spoof menyesuaikan bahasa dan zona waktu, tanggal di chat mengikuti zona waktu preset (#184, #198).
+
+* **TikTok:** Sakelar baru Aktifkan Thoughts menampilkan Thoughts untuk akun yang tidak disertakan TikTok (#186).
+
+* **TikTok:** Simpan foto seperti yang dikirim TikTok sekarang juga berlaku untuk stiker yang tidak bergerak (#229).
+
+* **TikTok:** Pertahankan kecerahan layar di kamera sekarang juga berlaku untuk lampu kilat depan dan lampu pengisi (#200).
+
 ## 0.78.0 (2026-10-22)
 
 * **TikTok:** Hushfeed pindah ke TikTok 47.5.3 dan 47.4.3 tidak didukung lagi. Patch APK 47.5.3 dengan kunci tanda tangan yang sama, maka login dan pengaturanmu tetap ada. PineDrama tetap di 47.4.3.

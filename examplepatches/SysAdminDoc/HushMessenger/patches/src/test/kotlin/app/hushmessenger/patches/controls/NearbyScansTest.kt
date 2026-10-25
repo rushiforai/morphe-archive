@@ -8,11 +8,15 @@ import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.MethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.Reference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import java.nio.file.Files
 import java.nio.file.Path
@@ -249,6 +253,45 @@ class NearbyScansTest {
         // Calls pick their network through WebRTC's own monitor, so its read stays Messenger's.
         val webRtc = wifiReaderClass("Lorg/webrtc/NetworkMonitorAutoDetect\$WifiManagerDelegate;->getWifiSSID()Ljava/lang/String;", WIFI_NAME_BODY)
         assertEquals(setOf(SYNTHETIC_WIFI_NAME_READER, SYNTHETIC_WIFI_BSSID_READER), wifiFound(nearbyScansFixture() + webRtc))
+    }
+
+    @Test fun wifiDiscoveryNeverFormatsReferencesAndRequiresTheWholeMethodSignature() {
+        val unrelated = listOf(
+            WIFI_NAME.replace("WifiInfo;", "OtherInfo;"),
+            WIFI_NAME.replace("getSSID", "getSSIDExtra"),
+            WIFI_NAME.replace("()", "(I)"),
+            WIFI_NAME.replace("Ljava/lang/String;", "Ljava/lang/Object;"),
+        ).mapIndexed { index, call -> wifiReaderClass("LX/Unrelated$index;->read()V",
+            "const-string v1, \"unrelated\"\nconst/4 v0, 0x0\ninvoke-virtual {v0, v1}, $call\nmove-result-object v2\nreturn-void") }
+        val classes = (wifiReaders() + unrelated).map { cls ->
+            object : ClassDef by cls {
+                override fun getMethods(): Iterable<Method> = cls.methods.map { method ->
+                    object : Method by method {
+                        override fun getImplementation(): MethodImplementation? = method.implementation?.let { body ->
+                            object : MethodImplementation by body {
+                                override fun getInstructions(): Iterable<Instruction> = body.instructions.map { instruction ->
+                                    if (instruction !is ReferenceInstruction) instruction else {
+                                        val ref = instruction.reference
+                                        val unformatted = if (ref is MethodReference) object : MethodReference by ref {
+                                            override fun toString(): String = error("Discovery formatted a method reference")
+                                        } else object : Reference by ref {
+                                            override fun toString(): String = error("Discovery formatted an unrelated reference")
+                                        }
+                                        object : ReferenceInstruction by instruction {
+                                            override fun getReference(): Reference = unformatted
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assertEquals(setOf(SYNTHETIC_WIFI_NAME_READER, SYNTHETIC_WIFI_BSSID_READER),
+            findWifiIdentityReads(classes).map { it.hookId() }.toSet())
+        assertEquals(setOf(SYNTHETIC_WIFI_NAME_READER, SYNTHETIC_WIFI_BSSID_READER),
+            app.hushmessenger.patches.CompatMirror.wifiIdentityReads(classes).map { it.hookId() }.toSet())
     }
 
     // A read whose answer isn't kept on the spot can't be filtered, so the switch would leave that one as it is while

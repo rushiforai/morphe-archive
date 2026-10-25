@@ -8,7 +8,9 @@
 package app.morphe.patches.youtube.interaction.channelsearch
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchBeforeAnywhere
 import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.parametersMatch
@@ -30,7 +32,13 @@ internal object BrowseFragmentOnCreateViewFingerprint : Fingerprint(
         "Landroid/os/Bundle;"
     ),
     filters = listOf(
-        string("Browse Fragment was given a navigation endpoint without browse data.")
+        string("Browse Fragment was given a navigation endpoint without browse data."),
+        // The endpoint of the page is read before it is checked for browse data.
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this",
+            location = MatchBeforeAnywhere()
+        )
     )
 )
 
@@ -76,7 +84,24 @@ internal object SearchSubmitFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = listOf(
         anyInstruction(
-            methodCall( // 21.31+
+            methodCall( // 21.43+
+                parameters = listOf(
+                    "Ljava/lang/String;",
+                    "[B",
+                    "Ljava/lang/String;",
+                    "I",
+                    "L",
+                    "L",
+                    "Ljava/lang/String;",
+                    "Ljava/lang/String;",
+                    "Ljava/lang/String;",
+                    "Ljava/lang/String;",
+                    "Z",
+                    "Ljava/lang/String;",
+                ),
+                returnType = "V"
+            ),
+            methodCall( // 21.31 - 21.42
                 parameters = listOf(
                     "Ljava/lang/String;",
                     "[B",
@@ -110,7 +135,19 @@ internal object SearchSubmitFingerprint : Fingerprint(
         )
     ),
     custom = { method, _ ->
-        parametersMatch( // 21.31+
+        parametersMatch( // 21.43+
+            method.parameters,
+            listOf(
+                "Ljava/lang/String;",
+                "I",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Z",
+                "Ljava/lang/String;",
+            )
+        ) || parametersMatch( // 21.31 - 21.42
             method.parameters,
             listOf(
                 "Ljava/lang/String;",

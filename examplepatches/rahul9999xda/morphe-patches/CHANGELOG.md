@@ -1,3 +1,12 @@
+## [1.16.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.15.0...v1.16.0) (2026-10-25)
+### 🔧 Improvements
+
+* Maintenance release.
+
+## [1.16.0-dev1](https://github.com/rahul9999xda/morphe-patches/compare/v1.15.0...v1.16.0-dev1) (2026-10-25)
+### 🔧 Improvements
+
+* Maintenance release.
 ## [1.15.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.14.0...v1.15.0) (2026-10-21)
 ### 🐛 Bug Fixes
 

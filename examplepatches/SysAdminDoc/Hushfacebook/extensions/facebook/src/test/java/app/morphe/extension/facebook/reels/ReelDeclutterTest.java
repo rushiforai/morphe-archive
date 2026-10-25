@@ -71,6 +71,7 @@ public class ReelDeclutterTest {
         Settings.HIDE_REEL_SOUND_BUTTON.resetToDefault();
         Settings.HIDE_REEL_AUDIO_LINE.resetToDefault();
         Settings.HIDE_SLOW_CONNECTION_MESSAGE.resetToDefault();
+        Settings.PLAY_FEED_REELS_WHOLE.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         FeedFilterCounters.clear();
         HookStatus.clear();
@@ -235,6 +236,58 @@ public class ReelDeclutterTest {
         assertEquals(ReelDeclutter.SLOW_ROUTE + ": 5 lists, 5 items, 1 removed. Last reason: " + ReelDeclutter.SLOW_MESSAGE
                 + ". Removed: " + ReelDeclutter.SLOW_MESSAGE + " 1. Kinds: " + ReelDeclutter.SLOW_MESSAGE + " 5",
                 line(ReelDeclutter.SLOW_ROUTE));
+    }
+
+    /**
+     * A tile of the feed's Reels row (#228) keeps Facebook's clip and end until its switch is on, then
+     * skips the clip and plays to the end, and both come back paused, before the settings are ready
+     * and once the switch is off again. A check that already said no stays no either way.
+     */
+    @Test
+    public void feedReelTilesPlayWholeOnlyWithTheSwitchOn() {
+        assertFalse(Settings.PLAY_FEED_REELS_WHOLE.defaultValue);
+        assertFalse("asked as each tile is drawn, so no restart", Settings.PLAY_FEED_REELS_WHOLE.rebootApp);
+        assertTrue(ReelDeclutter.allowsPreviewClip(true));
+        assertFalse(ReelDeclutter.allowsPreviewClip(false));
+        assertEquals(1000, ReelDeclutter.previewClipEnd(1000));
+        Settings.PLAY_FEED_REELS_WHOLE.save(true);
+        assertFalse(ReelDeclutter.allowsPreviewClip(true));
+        assertFalse(ReelDeclutter.allowsPreviewClip(false));
+        assertEquals(ReelDeclutter.NO_END, ReelDeclutter.previewClipEnd(1000));
+        assertEquals(ReelDeclutter.NO_END, ReelDeclutter.previewClipEnd(4500));
+        assertEquals("a tile with no end isn't counted as changed", ReelDeclutter.NO_END,
+                ReelDeclutter.previewClipEnd(ReelDeclutter.NO_END));
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertTrue("the clip went while paused", ReelDeclutter.allowsPreviewClip(true));
+        assertEquals("the end went while paused", 1000, ReelDeclutter.previewClipEnd(1000));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertTrue("the clip went before the settings were ready", ReelDeclutter.allowsPreviewClip(true));
+            assertEquals("the end went before the settings were ready", 1000, ReelDeclutter.previewClipEnd(1000));
+        });
+        Settings.PLAY_FEED_REELS_WHOLE.save(false);
+        assertTrue("turning the switch off didn't bring the clip back", ReelDeclutter.allowsPreviewClip(true));
+        assertEquals(1000, ReelDeclutter.previewClipEnd(1000));
+        assertEquals("every tile counts at its end, the clip check only as a kind", ReelDeclutter.PREVIEW_ROUTE
+                + ": 7 lists, 7 items, 2 removed. Last reason: " + ReelDeclutter.PREVIEW_END
+                + ". Removed: " + ReelDeclutter.PREVIEW_END + " 2. Kinds: " + ReelDeclutter.PREVIEW_CLIP + " 7, "
+                + ReelDeclutter.PREVIEW_END + " 6, " + ReelDeclutter.PREVIEW_NO_END + " 1",
+                line(ReelDeclutter.PREVIEW_ROUTE));
+    }
+
+    /** A whole reel switch that can't be read keeps Facebook's clip and end, and the report names the hook. */
+    @Test
+    public void aFeedReelSwitchThatCantBeReadKeepsTheClip() {
+        SettingReadsForTests.breakReads(Settings.PLAY_FEED_REELS_WHOLE);
+        try {
+            assertTrue(ReelDeclutter.allowsPreviewClip(true));
+            assertFalse(ReelDeclutter.allowsPreviewClip(false));
+            assertEquals(1000, ReelDeclutter.previewClipEnd(1000));
+        } finally {
+            SettingReadsForTests.mend(Settings.PLAY_FEED_REELS_WHOLE);
+        }
+        assertTrue(HookStatus.missing(FamilyNames.REEL_DECLUTTER).toString(), HookStatus.missing(FamilyNames.REEL_DECLUTTER)
+                .contains("a working '" + ReelDeclutter.PREVIEW_CLIP + "' hook (it threw " + NullPointerException.class.getName() + ")"));
     }
 
     /** A slow connection message switch that can't be read shows the message, and the report names the hook. */

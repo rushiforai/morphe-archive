@@ -326,12 +326,12 @@ public final class LiveRecordChip {
         LiveRoomStream.Pick pick = LiveRoomStream.fromRoom(room,
                 LiveRoomStream.forRecording(Settings.LIVE_RECORD_QUALITY.get(), LiveControls.lastQualityPick()));
         if (pick.target == null) {
-            Logger.printInfo(() -> "LIVE record: no stream to record (" + pick.problem + ")");
+            Logger.printInfo(() -> "LIVE record: no stream to record (" + pick.problem + ", room offers [" + pick.offered + "])");
             Utils.showToastShort(L10n.t("Couldn't find this LIVE's stream to record. Leave the room and open it again."));
             return;
         }
         Logger.printInfo(() -> "LIVE record: " + pick.target.quality + " over " + pick.target.transport
-                + " (LIVE recording quality " + Settings.LIVE_RECORD_QUALITY.get() + ")");
+                + " (LIVE recording quality " + Settings.LIVE_RECORD_QUALITY.get() + ", room offers [" + pick.offered + "])");
         LiveRecorder started = LiveRecordingSaver.create(activity, pick.target, result ->
                 Utils.runOnMainThread(() -> onFinished(result)));
         recorder = started;

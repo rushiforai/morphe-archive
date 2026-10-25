@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -9,8 +9,8 @@ package app.morphe.patches.shared.ad
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -36,14 +36,12 @@ internal object LithoDialogBuilderFingerprint : Fingerprint(
 )
 
 private object CustomDialogOnBackPressedParentFingerprint : Fingerprint(
+    superclass = "Landroid/app/Dialog;",
     returnType = "V",
     parameters = listOf("L"),
     filters = listOf(
         methodCall("Landroid/app/Dialog;->onBackPressed()V")
-    ),
-    custom = { _, classDef ->
-        classDef.superclass == "Landroid/app/Dialog;"
-    }
+    )
 )
 
 internal object CustomDialogOnBackPressedFingerprint : Fingerprint(

@@ -16,7 +16,7 @@ private val RATING_SETTINGS = listOf("CAN_SHOW_RATING_BANNER", "CAN_SHOW_INAPP_R
 @Suppress("unused")
 val disableRatingPromptsPatch = bytecodePatch(
     name = "Disable rating prompts",
-    description = "Hides the rating banner and the in-app rating dialog.",
+    description = "Disables the rating prompts.",
 ) {
     compatibleWith(COMPATIBILITY_FLASHSCORE)
 

@@ -86,17 +86,19 @@ class ControllerGripHapticsPatchTest {
         val compatibilities = controllerGripHapticsPatch.compatibility.orEmpty()
         assertTrue(compatibilities.all { it.name == EXPERIMENTAL_COMPATIBILITY_NAME })
         assertEquals(
-            setOf(5001712, 5001812, 5001968, 5002244, 5002363),
+            setOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
             compatibilities.flatMap { it.targets }.flatMap { it.versionCodes!!.values }.toSet(),
         )
 
         listOf(
             "2.0.20" to "5001712", "2.0.20" to "5001812",
             "2.0.21" to "5001968", "2.0.22" to "5002244", "2.0.23" to "5002363",
+            "2.0.24" to "5002395",
         ).forEach { (version, versionCode) ->
                 assertTrue(isControllerGripHapticsBuild(version, versionCode), "$version/$versionCode")
             }
-        listOf("2.0.23" to "5002364", "2.0.19" to "5001712", "2.0.20" to "5002363")
+        listOf("2.0.23" to "5002364", "2.0.19" to "5001712", "2.0.20" to "5002363",
+            "2.0.24" to "5002363")
             .forEach { (version, versionCode) ->
                 assertFalse(isControllerGripHapticsBuild(version, versionCode), "$version/$versionCode")
             }

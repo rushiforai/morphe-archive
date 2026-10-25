@@ -37,7 +37,7 @@ private val AD_CLASSES = mapOf(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, interstitial, native, app-open and rewarded ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_SOUNDHOUND)
 

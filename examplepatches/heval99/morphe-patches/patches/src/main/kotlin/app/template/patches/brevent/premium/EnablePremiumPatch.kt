@@ -29,9 +29,7 @@ private fun Method.isBrefoilCountGetter(): Boolean =
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks all donation-gated settings, including dynamic GMS and suspend. " +
-        "Note: patched builds cannot validate genuine donation tokens, so the Brefoil count " +
-        "is forced; use the official build to have a real donation recognized.",
+    description = "Unlocks donation-only features.",
 ) {
     compatibleWith(COMPATIBILITY_BREVENT)
 

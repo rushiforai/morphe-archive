@@ -9,9 +9,12 @@ import android.view.KeyEvent;
 import android.view.ViewConfiguration;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Native actions and availability are collected only for the current composition, never retained. */
 public final class NuvioPlaybackButtons {
+    // Retain only reflection metadata, never a player, callback, or Composer instance.
+    private static final Map<Class<?>, Map<String, Method>> methods = new ConcurrentHashMap<>();
     private static volatile ButtonLayout layout;
     private static final ThreadLocal<Frame> frames = new ThreadLocal<>();
     private static Object menuState;
@@ -52,13 +55,19 @@ public final class NuvioPlaybackButtons {
         layout = value;
     }
     static Method method(Class<?> owner, String name, int count) throws Exception {
+        Map<String, Method> cache = methods.computeIfAbsent(owner, ignored -> new ConcurrentHashMap<>());
+        String key = name + ':' + count;
+        Method cached = cache.get(key);
+        if (cached != null) return cached;
         Method result = null;
         for (Method candidate : owner.getDeclaredMethods()) if (candidate.getName().equals(name) && candidate.getParameterCount() == count) {
             if (result != null) throw new NoSuchMethodException("Ambiguous " + owner.getName() + '.' + name);
             result = candidate;
         }
         if (result == null) throw new NoSuchMethodException(owner.getName() + '.' + name);
-        result.setAccessible(true); return result;
+        result.setAccessible(true);
+        Method previous = cache.putIfAbsent(key, result);
+        return previous == null ? result : previous;
     }
     private static void nativeButton(Object[] args) {
         invokeNative(args.length == 9 ? NuvioNative.NATIVE_REPORT_METHOD : NuvioNative.NATIVE_BUTTON_METHOD, args, args.length == 9 ? 7 : 10);

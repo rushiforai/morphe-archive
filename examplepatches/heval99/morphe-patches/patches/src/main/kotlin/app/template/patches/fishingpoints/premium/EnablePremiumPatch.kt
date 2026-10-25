@@ -21,7 +21,7 @@ private const val APP_CLASS = "Lcom/gregacucnik/fishingpoints/AppClass;"
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Fishing Points premium features and removes ads."
+    description = "Unlocks premium features and removes ads."
 ) {
     compatibleWith(COMPATIBILITY_FISHINGPOINTS)
 

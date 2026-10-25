@@ -38,8 +38,7 @@ private fun BytecodePatchContext.blockInAppMessaging() {
 @Suppress("unused")
 val blockMarketingPopupsPatch = bytecodePatch(
     name = "Block marketing popups",
-    description = "Blocks the server-configured promo dialog, Firebase In-App Messaging popups " +
-        "and in-app promo strips. Push notifications are not affected.",
+    description = "Blocks promo popups.",
 ) {
     compatibleWith(COMPATIBILITY_FLASHSCORE)
 

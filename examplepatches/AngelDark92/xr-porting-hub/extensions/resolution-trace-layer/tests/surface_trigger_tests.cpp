@@ -138,7 +138,8 @@ int main() {
     CHECK(layerPollEvent({}, &eventBuffer) == XR_SUCCESS);
     CHECK(state->triggerReady.load() && queued == 1);
     for (size_t i = 0; i < 4; ++i) {
-        CHECK(pixels[4*i] == 0 && pixels[4*i+1] == 0 && pixels[4*i+2] == 0 && pixels[4*i+3] == 1);
+        CHECK(pixels[4*i] == 0 && pixels[4*i+1] == 0 && pixels[4*i+2] == 0 &&
+              pixels[4*i+3] == kSurfaceAlpha);
     }
 
     const auto logsBeforeEmptyPoll = logs;

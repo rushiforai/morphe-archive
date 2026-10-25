@@ -28,8 +28,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val disableArticleLimitPatch = bytecodePatch(
     name = "Disable article limit",
-    description = "Removes the article limit wall, the warm-up prompt and the offline wall, and stops counting " +
-        "article views. The free sign-in prompt and the \"Support the Guardian\" button stay."
+    description = "Removes the article limit."
 ) {
     compatibleWith(COMPATIBILITY_GUARDIAN)
 

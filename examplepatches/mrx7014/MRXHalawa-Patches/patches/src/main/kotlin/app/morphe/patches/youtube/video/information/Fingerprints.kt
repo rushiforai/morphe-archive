@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -65,14 +65,36 @@ internal fun getChannelIdFingerprint(playerResponseType: String) = object : Fing
     returnType = "V",
     parameters = listOf("Ljava/lang/Object;"),
     filters = listOf(
+        // Is live stream.
         methodCall(
             definingClass = playerResponseType,
-            returnType = "Ljava/lang/String;"
+            returnType = "Z"
+        ),
+        // Channel id.
+        methodCall(
+            definingClass = playerResponseType,
+            returnType = "Ljava/lang/String;",
+            location = MatchAfterWithin(30)
         ),
         string(
             string = "com.google.android.apps.youtube.mdx.watch.LAST_MEALBAR_PROMOTED_LIVE_FEED_CHANNELS",
             location = MatchAfterWithin(20)
         )
+    )
+) {}
+
+internal fun getVideoTitleFingerprint(playerResponseType: String) = object : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(playerResponseType),
+    filters = listOf(
+        methodCall(
+            definingClass = playerResponseType,
+            returnType = "Ljava/lang/String;"
+        ),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        opcode(Opcode.IF_NEZ, MatchAfterImmediately()),
+        string("", location = MatchAfterImmediately())
     )
 ) {}
 
@@ -225,6 +247,7 @@ internal object PlaybackSpeedMenuSpeedChangedFingerprint : Fingerprint(
     returnType = "L",
     parameters = listOf("L"),
     filters = listOf(
+        opcode(Opcode.IF_EQZ),
         fieldAccess(opcode = Opcode.IGET, type = "F")
     )
 )
@@ -302,45 +325,5 @@ internal object SetVideoQualityFingerprint : Fingerprint(
             definingClass = "this",
             location = MatchAfterImmediately()
         ),
-    )
-)
-
-/**
- * Matches method {androidx.media3.exoplayer.ExoPlayerImpl.setPlaybackParameters(PlaybackParameters p1)}
- *
- * @param playbackParametersType The PlaybackParameters type, obtained from [PlaybackParametersToStringFingerprint].
- */
-internal fun getPlaybackParametersSetterFingerprint(playbackParametersType: String) = object : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf(playbackParametersType),
-    custom = { methodDef, classDef ->
-        methodDef.implementation != null
-            && classDef.interfaces.contains("Landroidx/media3/exoplayer/ExoPlayer;")
-    }
-) {}
-
-internal fun getExoPlayerImplFingerprint(playbackParametersType: String) = object : Fingerprint(
-    classFingerprint = getPlaybackParametersSetterFingerprint(playbackParametersType),
-    name = "<init>",
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            name = "<init>"
-        )
-    )
-) {}
-
-/**
- * Matches method {androidx.media3.common.PlaybackParameters}.toString()
- */
-internal object PlaybackParametersToStringFingerprint : Fingerprint(
-    name = "toString",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Ljava/lang/String;",
-    parameters = listOf(),
-    filters = listOf(
-        fieldAccess(definingClass = "this", opcode = Opcode.IGET, type = "F"),
-        string("PlaybackParameters(speed=%.2f, pitch=%.2f)")
     )
 )

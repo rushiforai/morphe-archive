@@ -10,7 +10,8 @@ import java.util.*;
 
 /** Beta.8 native updater: same-width constants only; coroutine/installer code stays native. */
 public final class NuvioApkUpdates {
-    public static final List<String> TYPES = List.of("Lkb/j0;", "Lkb/q0;", "Lkb/m0;", "Lkb/k;", "Lkb/q;");
+    static final String JOB = "Lcom/nuvio/tv/updater/UpdateJobService;";
+    public static final List<String> TYPES = List.of("Lkb/j0;", "Lkb/q0;", "Lkb/m0;", "Lkb/k;", "Lkb/q;", JOB);
     static final String APP_VERSION = "1.1.0-beta.8";
     static final class Contract {
         final String type, name, hash;
@@ -31,7 +32,8 @@ public final class NuvioApkUpdates {
         new Contract("Lkb/m0;", "invokeSuspend", "7def0f93422cc20060386be9f0eaf3daf149d4f7c82c3db62f4e290f7b990a5a", 1),
         new Contract("Lkb/k;", "a", "6d505efc1a8172a7d6aa744553a6b9604ce09effad077174c73a693f8a197c00", 1),
         new Contract("Lkb/q;", "a", "d26897cc81c3822d4052f611e96510d0582bee7b44f829912e0b9f560619eb25", 1),
-        new Contract("Lkb/q;", "d", "b70177cdb8ab1c0a1515e8ecc2d19968d2f0c2e9b2cb438820e31363f9c25741", 1));
+        new Contract("Lkb/q;", "d", "b70177cdb8ab1c0a1515e8ecc2d19968d2f0c2e9b2cb438820e31363f9c25741", 1),
+        new Contract(JOB, "a", "376bfbf4651aea2871060eea3e6970b7cf65b4aa3fcc71a36198c7b5de2ba90a", 1));
 
     public static boolean validVersion(String value) {
         return value.matches("(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?");
@@ -54,6 +56,10 @@ public final class NuvioApkUpdates {
                 c.type().equals("Lkb/m0;") ? "Ljava/lang/Object;" : c.type().equals("Lkb/k;") ? "" : "Lkotlin/coroutines/jvm/internal/ContinuationImpl;";
             String result = c.type().equals("Lkb/k;") ? "Lkb/l;" : c.type().equals("Lkb/q0;") && c.name().equals("b") ? "Ljava/lang/String;" : "Ljava/lang/Object;";
             boolean isStatic = c.type().equals("Lkb/q0;") || c.type().equals("Lkb/k;");
+            if (c.type().equals(JOB)) {
+                parameters = JOB + "Lcom/nuvio/tv/updater/UpdateJobService$a;Lkotlin/coroutines/jvm/internal/ContinuationImpl;";
+                isStatic = true;
+            }
             if (!method.toString().equals(c.type() + "->" + c.name() + "(" + parameters + ")" + result) ||
                 ((method.getAccessFlags() & 8) != 0) != isStatic)
                 throw new IllegalStateException("Incompatible native updater signature " + c);

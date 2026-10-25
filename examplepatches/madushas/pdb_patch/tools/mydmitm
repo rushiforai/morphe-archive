@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# tools/mydmitm — reproducible HTTPS MITM for MyDialog (net.omobio.dialogsc) on the rooted
+# Android 14 emulator (RootEmu / emulator-5554).
+#
+# Why this shape (see mydialog_patch/docs/DEVLOG.md 2026-10-25 entry):
+#   * emulator netsimd BLACK-HOLES 10.0.2.2:<port> — accepts TCP itself, never reaches the
+#     host. So all redirection goes to DEVICE LOOPBACK, then out through `adb reverse`.
+#   * Android 14 apps read CAs from the Conscrypt APEX, not just /system/etc/security/
+#     cacerts — both stores need the tmpfs overlay, the overlay DIR itself must be labeled
+#     u:object_r:system_file:s0 (else system_server crash-loops), and the framework must be
+#     restarted (`stop; start`) so Zygote inherits the APEX mount.
+#   * The app gates onboarding on /generate_204 returning 204 — the addon fakes it.
+#   * pm clear resets runtime permissions — re-grant after every clear (script does it).
+#
+# Usage:
+#   tools/mydmitm setup     # venv+mitmproxy if missing, CA, addon, start both mitmdumps
+#   tools/mydmitm device    # emulator-side: root, CA overlays, sysctl, iptables, adb reverse
+#   tools/mydmitm app       # pm clear + grant perms + launch MyDialog (first-launch flow)
+#   tools/mydmitm status    # what's running/listening/installed
+#   tools/mydmitm tailed    # tail -f the live JSONL flow capture
+#   tools/mydmitm stop      # kill mitmdumps, remove iptables rules + adb reverses
+#
+# After an EMULATOR REBOOT rerun: `setup` (if needed), `device`, then inside the emulator
+# the APEX overlay needs `stop; start` — `device` does this automatically.
+set -euo pipefail
+
+EMU="${EMU:-emulator-5554}"
+ADB="adb -s $EMU"
+BASE=/tmp/opencode
+VENV=$BASE/mitmenv
+CONF=$BASE/mitmconf
+CA=$CONF/mitmproxy-ca-cert.pem
+CAHASH=$BASE/c8750f0d.0          # subject_hash_old of the mitm CA
+FLOWS=$BASE/flows.jsonl
+PKG=net.omobio.dialogsc
+HERE="$(cd "$(dirname "$0")" && pwd)"
+
+MREV_LOG=$BASE/mitm2.log   # reverse-mode  :8443  (catches ALL device :443)
+MREG_LOG=$BASE/mitm3.log   # regular-mode  :8444  (catches app's proxied okhttp 10.0.2.2:8080)
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+do_setup() {
+  if [ ! -x "$VENV/bin/mitmdump" ]; then
+    python3 -m venv "$VENV"
+    "$VENV/bin/pip" -q install mitmproxy
+  fi
+  mkdir -p "$CONF"
+  # start once to generate the CA if missing
+  if [ ! -f "$CA" ]; then
+    "$VENV/bin/mitmdump" --set confdir="$CONF" -q & local p=$!; sleep 4; kill $p 2>/dev/null || true
+  fi
+  # device-side CA filename = subject_hash_old
+  openssl x509 -in "$CA" -noout -subject_hash_old | tr -d '\n' > "$BASE/cahash"
+  cp "$CA" "$BASE/$(cat "$BASE/cahash").0"
+  # NOTE: script assumes that hash is c8750f0d; if it differs, update $CAHASH above.
+  cp "$HERE/mydmitm_flows.py" "$BASE/dump_flows.py"
+  sed -i "s#^OUT = .*#OUT = \"$FLOWS\"#" "$BASE/dump_flows.py" 2>/dev/null || true
+  do_start_mitm
+}
+
+do_start_mitm() {
+  pkill -f 'mitmdump.*8443' 2>/dev/null || true
+  pkill -f 'mitmdump.*8444' 2>/dev/null || true
+  sleep 1
+  PYTHONUNBUFFERED=1 nohup "$VENV/bin/mitmdump" \
+    --mode reverse:https://selfcare.dialog.lk@8443 \
+    --set confdir="$CONF" --set block_global=false --set flow_detail=2 \
+    -s "$BASE/dump_flows.py" -w "$BASE/flows.mitm2" > "$MREV_LOG" 2>&1 &
+  PYTHONUNBUFFERED=1 nohup "$VENV/bin/mitmdump" \
+    --mode regular --listen-port 8444 \
+    --set confdir="$CONF" --set block_global=false --set flow_detail=2 \
+    -s "$BASE/dump_flows.py" > "$MREG_LOG" 2>&1 &
+  sleep 3
+  echo "mitmdump pids: $(pgrep -f 'mitmdump' | tr '\n' ' ')"
+}
+
+do_device() {
+  $ADB root >/dev/null 2>&1 || true; sleep 2
+  # --- CA overlays: system store AND Conscrypt APEX ---
+  $ADB push "$CAHASH" /data/local/tmp/ca.0 >/dev/null
+  $ADB shell '
+    set -e
+    for DST in /system/etc/security/cacerts /apex/com.android.conscrypt/cacerts; do
+      mkdir -p /data/local/tmp/ovl
+      cp $DST/* /data/local/tmp/ovl/ 2>/dev/null || true
+      cp /data/local/tmp/ca.0 /data/local/tmp/ovl/
+      chmod 644 /data/local/tmp/ovl/*
+      chcon u:object_r:system_file:s0 /data/local/tmp/ovl/*
+      mount -t tmpfs tmpfs $DST
+      cp /data/local/tmp/ovl/* $DST/
+      chcon u:object_r:system_file:s0 $DST/*   # files...
+      chcon u:object_r:system_file:s0 $DST     # ...AND the dir itself (else system_server loops)
+      rm -rf /data/local/tmp/ovl
+    done
+    # user store copy as well
+    mkdir -p /data/misc/user/0/cacerts-added
+    cp /data/local/tmp/ca.0 /data/misc/user/0/cacerts-added/
+    chown system:system /data/misc/user/0/cacerts-added/ca.0 2>/dev/null || true
+    chcon u:object_r:system_file:s0 /data/misc/user/0/cacerts-added/ca.0 2>/dev/null || true
+    echo "certs: $(ls /system/etc/security/cacerts | wc -l) / $(ls /apex/com.android.conscrypt/cacerts | wc -l)"
+  '
+  # framework restart so Zygote inherits the APEX overlay (required after each boot)
+  $ADB shell 'stop; sleep 2; start' >/dev/null; sleep 12; $ADB wait-for-device
+  # --- routing: loopback DNAT + route_localnet ---
+  $ADB shell '
+    sysctl -w net.ipv4.conf.all.route_localnet=1
+    for i in $(ip route | awk "/default/ {print \$5}"); do
+      sysctl -w net.ipv4.conf.$i.route_localnet=1
+    done
+    sysctl -w net.ipv4.conf.lo.route_localnet=1
+    iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 127.0.0.1:8080 2>/dev/null || true
+    iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 127.0.0.1:8080
+    iptables -t nat -D OUTPUT -p tcp -d 10.0.2.2 --dport 8080 -j DNAT --to-destination 127.0.0.1:8081 2>/dev/null || true
+    iptables -t nat -A OUTPUT -p tcp -d 10.0.2.2 --dport 8080 -j DNAT --to-destination 127.0.0.1:8081
+    iptables -t nat -L OUTPUT -n | tail -3
+  '
+  # --- adb reverse (always --no-rebind; plain re-add can fail) ---
+  $ADB reverse --remove-all >/dev/null 2>&1 || true
+  $ADB reverse --no-rebind tcp:8080 tcp:8443
+  $ADB reverse --no-rebind tcp:8081 tcp:8444
+  $ADB reverse --list
+  echo "device side ready"
+}
+
+do_app() {
+  $ADB shell pm clear $PKG >/dev/null
+  # pm clear wipes runtime permissions — re-grant the ones the first-launch flow needs
+  for p in android.permission.READ_PHONE_STATE android.permission.READ_PHONE_NUMBERS \
+           android.permission.READ_SMS android.permission.RECEIVE_SMS \
+           android.permission.ACCESS_FINE_LOCATION android.permission.CAMERA \
+           android.permission.READ_CONTACTS; do
+    $ADB shell pm grant $PKG $p 2>/dev/null || true
+  done
+  $ADB shell am start -n $PKG/.MainActivity >/dev/null
+  echo "launched — tap Allow on the notification dialog (~540,1279) within ~15s"
+}
+
+do_status() {
+  echo "== mitmdump =="; pgrep -af mitmdump | grep -v grep || echo "  not running"
+  echo "== listeners =="; ss -tlnp 2>/dev/null | grep -E ':(8443|8444)\b' || echo "  none"
+  echo "== adb reverse =="; $ADB reverse --list 2>/dev/null || true
+  echo "== device iptables =="; $ADB shell iptables -t nat -L OUTPUT -n 2>/dev/null | tail -3
+  echo "== app =="; $ADB shell pidof $PKG || echo "  not running"
+  echo "== flows =="; wc -l "$FLOWS" 2>/dev/null || echo "  no flows yet"
+}
+
+case "${1:-status}" in
+  setup)  do_setup ;;
+  device) do_device ;;
+  app)    do_app ;;
+  status) do_status ;;
+  tailed) tail -f "$FLOWS" ;;
+  stop)
+    pkill -f mitmdump 2>/dev/null || true
+    $ADB shell 'iptables -t nat -F OUTPUT' 2>/dev/null || true
+    $ADB reverse --remove-all 2>/dev/null || true
+    echo stopped ;;
+  *) echo "usage: $0 {setup|device|app|status|tailed|stop}"; exit 1 ;;
+esac

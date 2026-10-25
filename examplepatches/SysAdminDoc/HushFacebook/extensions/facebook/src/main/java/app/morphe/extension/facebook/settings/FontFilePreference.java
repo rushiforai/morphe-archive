@@ -360,6 +360,11 @@ public class FontFilePreference extends Preference implements ImmediateAction {
      * address. Only the name: the file's path and its provider stay out of the setting.
      */
     static String displayName(Context context, Uri uri, @Nullable CancellationSignal cancel) {
+        return displayName(context, uri, cancel, "font");
+    }
+
+    /** {@link #displayName(Context, Uri, CancellationSignal)}, with [fallback] when no name is left. */
+    static String displayName(Context context, Uri uri, @Nullable CancellationSignal cancel, String fallback) {
         String name = null;
         try (Cursor cursor = context.getContentResolver().query(uri,
                 new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null, cancel)) {
@@ -369,7 +374,7 @@ public class FontFilePreference extends Preference implements ImmediateAction {
             // address's own last part.
         }
         if (name == null || name.trim().isEmpty()) name = uri.getLastPathSegment();
-        return cleanName(name);
+        return cleanName(name, fallback);
     }
 
     /**
@@ -377,7 +382,12 @@ public class FontFilePreference extends Preference implements ImmediateAction {
      * {@link #MAX_NAME_LENGTH} characters, and "font" when nothing is left.
      */
     static String cleanName(@Nullable String name) {
-        if (name == null) return "font";
+        return cleanName(name, "font");
+    }
+
+    /** {@link #cleanName(String)}, with [fallback] when nothing is left. */
+    static String cleanName(@Nullable String name, String fallback) {
+        if (name == null) return fallback;
         StringBuilder clean = new StringBuilder();
         int kept = 0;
         for (int index = 0; index < name.length() && kept < MAX_NAME_LENGTH; ) {
@@ -392,7 +402,7 @@ public class FontFilePreference extends Preference implements ImmediateAction {
             kept++;
         }
         String trimmed = clean.toString().trim().replaceAll(" {2,}", " ");
-        return trimmed.isEmpty() ? "font" : trimmed;
+        return trimmed.isEmpty() ? fallback : trimmed;
     }
 
     /**

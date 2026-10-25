@@ -7,8 +7,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_DIGISPORT
 @Suppress("unused")
 val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update prompts",
-    description = "Stops the Play Store in-app update prompt. An old version may still stop " +
-        "working if Digi Sport's servers drop support for it.",
+    description = "Disables the in-app update prompt.",
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

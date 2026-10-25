@@ -10,8 +10,7 @@ import app.template.patches.transfermarkt.shared.webViewBlocklistExtensionPatch
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Blocks Google Analytics and Tag Manager, Adobe Analytics, INFOnline and m6r tracking, " +
-        "and hides the advertising ID from the web app.",
+    description = "Disables analytics and tracking.",
 ) {
     compatibleWith(COMPATIBILITY_TRANSFERMARKT)
 

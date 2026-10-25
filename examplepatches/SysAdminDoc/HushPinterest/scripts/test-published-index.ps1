@@ -189,13 +189,15 @@ try {
     Invoke-PublishGit @('config', '--local', 'core.autocrlf', 'true') | Out-Null
     Invoke-PublishGit @('init', '--bare', '--quiet') -Bare | Out-Null
     Invoke-PublishGit @('remote', 'add', 'origin', $global:PublishContract.Origin) | Out-Null
-    foreach ($name in @('common.ps1', 'walk-receipt.ps1', 'release/release-common.ps1', 'release/publish-release.ps1', 'release/release.ps1')) {
+    foreach ($name in @('common.ps1', 'patch-target.ps1', 'walk-receipt.ps1', 'release/release-common.ps1', 'release/publish-release.ps1', 'release/release.ps1')) {
         Set-PublishFile "scripts/$name" ([IO.File]::ReadAllText((Join-Path $PSScriptRoot $name)))
     }
     $publisher = Join-Path $global:PublishContract.Root 'scripts/release/publish-release.ps1'
     Set-PublishFile '.gitignore' "build/`nrelease-receipt-*.json`n"
     Set-PublishFile 'gradle.properties' "version = 0.0.6`n"
-    Set-PublishFile 'patches-list.json' '{"version":"v0.0.6"}'
+    $publishCatalog = Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'patches-list.json') -Raw | ConvertFrom-Json
+    $publishCatalog.version = 'v0.0.6'
+    Set-PublishFile 'patches-list.json' ($publishCatalog | ConvertTo-Json -Depth 20)
     Set-PublishFile 'patches-bundle.json' '{"version":"0.0.6"}'
     Set-PublishFile 'README.md' "The latest release is v0.0.6.`n"
     Set-PublishFile '.github/ISSUE_TEMPLATE/bug_report.yml' "version: 0.0.6`n"
@@ -230,7 +232,8 @@ Add-PublishEvent 'verify-index'
 '@
     $previous = Save-PublishCommit 'chore: the previous release'
     Set-PublishFile 'gradle.properties' "version = 0.0.7`n"
-    Set-PublishFile 'patches-list.json' '{"version":"v0.0.7"}'
+    $publishCatalog.version = 'v0.0.7'
+    Set-PublishFile 'patches-list.json' ($publishCatalog | ConvertTo-Json -Depth 20)
     $prepared = Save-PublishCommit 'release: prepare 0.0.7'
     Invoke-PublishGit @('tag', 'v0.0.7', $prepared) | Out-Null
     Invoke-PublishGit @('push', '--quiet', 'origin', 'HEAD:refs/heads/main', 'refs/tags/v0.0.7') | Out-Null
@@ -246,11 +249,20 @@ Add-PublishEvent 'verify-index'
     # The whole-app walk of that bundle, written the way the walk writes it. -Change bends one field.
     $walkPath = Join-Path $global:PublishContract.Root 'build/walk-receipt.json'
     function Write-PublishWalk([hashtable]$Change = @{}) {
+        $build = [ordered]@{
+            schema=1; bundleSha256=(Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash.ToLowerInvariant()
+            fixtureSha256='f' * 64
+            catalogSha256=(Get-FileHash -LiteralPath (Join-Path $global:PublishContract.Root 'patches-list.json')).Hash.ToLowerInvariant()
+            packageName='com.pinterest'; appVersion='14.41.0'; appVersionCode='14418010'
+            selectedPatches=@($publishCatalog.patches[0].name); signedApkSha256='4' * 64
+            completed='2026-10-21T15:59:00Z'
+        }
         $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' -AppVersion '14.41.0' `
+            -AppVersionCode '14418010' -Build $build `
             -BundleSha256 (Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash -InstalledApkSha256 ('4' * 64) `
             -Started '2026-10-21T16:00:00Z' -Finished '2026-10-21T16:30:00Z' -Screens 40 -Crashes 0
         foreach ($key in $Change.Keys) { $walk[$key] = $Change[$key] }
-        Set-PublishFile 'build/walk-receipt.json' ($walk | ConvertTo-Json -Depth 4)
+        Set-PublishFile 'build/walk-receipt.json' ($walk | ConvertTo-Json -Depth 8)
     }
     Write-PublishWalk
     $receipt = @{ release = @{ version = '0.0.7'; tag = 'v0.0.7'; commit = $prepared }
@@ -387,7 +399,13 @@ Add-PublishEvent 'verify-index'
             @(@{ device = 'Pixel 9' }, "*Pixel 9 isn't one of the release walk phones*"),
             @(@{ device = 'Pixel 9'; emulator = $true }, "*Pixel 9 isn't one of the release walk phones*"),
             @(@{ bundleSha256 = ('5' * 64) }, '*patched with bundle*and this one is*'),
-            @(@{ schema = 2 }, "*isn't schema 1*"))) {
+            @(@{ schema = 1 }, "*isn't schema 2*"),
+            @(@{ build = $null }, '*no versioned patch/build evidence*'),
+            @(@{ installedApkSha256 = 'not-an-apk-hash' }, '*malformed build/install hash*'),
+            @(@{ installedApkSha256 = ('6' * 64) }, '*installed APK does not match*'),
+            @(@{ appVersion = '14.40.0' }, '*app identity does not match*'),
+            @(@{ started = 'invalid' }, '*invalid started time*'),
+            @(@{ problems = @('wrong destination') }, '*walk has problems*'))) {
         Write-PublishWalk $badWalk[0]
         Assert-WalkRefused (Invoke-PublishCase) $badWalk[1]
     }

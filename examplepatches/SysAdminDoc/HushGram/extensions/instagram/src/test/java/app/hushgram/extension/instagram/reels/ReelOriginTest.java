@@ -580,6 +580,103 @@ public class ReelOriginTest {
         assertNull(ReelOrigin.heldForTests());
     }
 
+    /** Instagram numbers a post by when it went up, so a smaller number is an older post, at any length. */
+    @Test
+    public void aSmallerNumberIsAnOlderPost() {
+        assertTrue(ReelOrigin.olderThan("999", "1000"));
+        assertFalse(ReelOrigin.olderThan("1000", "999"));
+        assertFalse("the reel itself", ReelOrigin.olderThan("3100", "3100"));
+        assertTrue(ReelOrigin.olderThan("3456789012345678901", "3456789012345678902"));
+        assertTrue("past a long's range", ReelOrigin.olderThan("9456789012345678901", "13456789012345678901"));
+        assertTrue("leading zeros", ReelOrigin.olderThan("0999", "1000"));
+        assertFalse(ReelOrigin.olderThan("01000", "999"));
+    }
+
+    /**
+     * A screen of reels all older than the one tapped, more than could be pinned, is past where it
+     * would sit: a trial reel, which Instagram doesn't put on the profile, or one taken off it
+     * (#225). The search stops there with no drag and says the reel isn't on the profile.
+     */
+    @Test
+    public void aGridOfOlderReelsSaysTheReelIsNotOnTheProfile() {
+        ReelOrigin.opening(new Reel(REEL), ON);
+        openProfile(reels(30, 3000), null);
+        ReelOrigin.reelsTabResumed(new Tab(profile, grid, AUTHOR), ON);
+        idleSeconds(1);
+        assertTrue(shown.isEmpty());
+        assertTrue("nothing was dragged", grid.drags.isEmpty());
+        assertTrue("nothing was scrolled", grid.scrolls.isEmpty());
+        assertEquals("That reel isn't on their profile. It might be a trial reel.", ShadowToast.getTextOfLatestToast());
+        assertNull(ReelOrigin.heldForTests());
+        assertNull(ReelOrigin.buttonForTests());
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(ReelOrigin.NOT_FOUND + " 1"));
+        assertTrue("and why", report.contains(ReelOrigin.PASSED + " 1"));
+    }
+
+    /** With Wait for a tap on, a grid already past the reel says so instead of offering Find the reel for nothing. */
+    @Test
+    public void waitForATapSaysSoBeforeOfferingTheButton() {
+        ReelOrigin.opening(new Reel(REEL), ON);
+        openProfile(reels(30, 3000), null);
+        ReelOrigin.reelsTabResumed(new Tab(profile, grid, AUTHOR), ON, ON);
+        idleSeconds(1);
+        assertNull(ReelOrigin.buttonForTests());
+        assertEquals("only the grid on the screen", 1, content().getChildCount());
+        assertEquals("That reel isn't on their profile. It might be a trial reel.", ShadowToast.getTextOfLatestToast());
+        assertNull(ReelOrigin.heldForTests());
+        String report = HookStatus.report().toString();
+        assertFalse(report, report.contains(ReelOrigin.OFFERED));
+        assertTrue(report, report.contains(ReelOrigin.PASSED + " 1"));
+    }
+
+    /**
+     * Up to three reels pinned above the rest can be older than the reel, and an owner who moved
+     * reels around leaves older ones among newer ones, so neither ends the search while newer reels
+     * still show: it goes on and finds the reel further down.
+     */
+    @Test
+    public void pinnedAndMovedOlderReelsDoNotEndTheSearch() {
+        List<String> reels = new ArrayList<>(List.of("1000_7", "900_7", "800_7"));
+        reels.addAll(reels(9, 9000));
+        reels.set(7, "700_7");
+        reels.addAll(reels(12, 8000));
+        reels.set(20, REEL);
+        ReelOrigin.opening(new Reel(REEL), ON);
+        openProfile(reels, null);
+        ReelOrigin.reelsTabResumed(new Tab(profile, grid, AUTHOR), ON);
+        idleSeconds(5);
+        assertEquals(HookStatus.report().toString(), List.of(REEL), shown);
+        assertNull(ShadowToast.getTextOfLatestToast());
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(ReelOrigin.FOUND + " 1"));
+        assertFalse(report, report.contains(ReelOrigin.PASSED));
+    }
+
+    /**
+     * Dragged on through reels newer than the one tapped, the search stops once the grid reaches
+     * older ones, long before the grid's end, and the grid goes back to where it was.
+     */
+    @Test
+    public void theSearchStopsOnceTheGridPassesTheReelsDate() {
+        List<String> reels = reels(12, 9000);
+        reels.addAll(reels(30, 3000));
+        ReelOrigin.opening(new Reel(REEL), ON);
+        openProfile(reels, null);
+        ReelOrigin.reelsTabResumed(new Tab(profile, grid, AUTHOR), ON);
+        idleSeconds(10);
+        assertTrue(shown.isEmpty());
+        assertFalse("dragged through the newer reels", grid.drags.isEmpty());
+        assertTrue("stopped well before the grid's end", grid.drags.size() < 6);
+        assertEquals("then one scroll back", 1, grid.scrolls.size());
+        assertEquals("back at the top", 0, grid.firstRow());
+        assertEquals("That reel isn't on their profile. It might be a trial reel.", ShadowToast.getTextOfLatestToast());
+        assertNull(ReelOrigin.heldForTests());
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(ReelOrigin.PASSED + " 1"));
+        assertFalse(report, report.contains(ReelOrigin.ENDED));
+    }
+
     /**
      * A drag that ends at the end while Instagram is still busy loads nothing, and a drag there a
      * moment later does, so the search drags again at the end and finds the reel on the next page.

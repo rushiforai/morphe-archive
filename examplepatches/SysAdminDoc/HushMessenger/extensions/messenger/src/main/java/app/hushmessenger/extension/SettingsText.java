@@ -332,7 +332,7 @@ final class SettingsText {
         ENGLISH.put("camera_failed", "Can't open your camera app. Try again.");
         ENGLISH.put("camera_permission", "Allow the camera permission in Messenger's app info.");
         ENGLISH.put("gallery_missing", "No gallery app found that can pick photos.");
-        ENGLISH.put("gallery_failed", "Can't open your gallery app. Try again.");
+        ENGLISH.put("gallery_failed", "Your gallery couldn't finish the selection. Try again.");
         ENGLISH.put("message_log_clear", "Clear log");
         ENGLISH.put("message_log_close", "Close");
         ENGLISH.put("message_log_title", "Message log");

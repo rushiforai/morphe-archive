@@ -69,6 +69,8 @@ object NuvioLauncherChannels {
     }
 
     @JvmStatic fun registerComponent(component: Any) {
+        val startupStartedNanos = System.nanoTime()
+        Log.d(TAG, "Startup begin: stage=launcher.component thread=${Thread.currentThread().name}")
         try {
             if (profileJob != null || !publisher.supported()) return
             val manager = call(NuvioAccess.profileProvider(component)!!, "get")!!
@@ -104,6 +106,7 @@ object NuvioLauncherChannels {
                 revision.debounce(1500).collect { lock.withLock { publishLocked() } }
             }
         } catch (error: Exception) { Log.e(TAG, "Launcher registration failed", error) }
+        finally { Log.d(TAG, "Startup end: stage=launcher.component elapsedMs=${(System.nanoTime() - startupStartedNanos) / 1_000_000}") }
     }
 
     private fun requestPublish() { revision.value += 1 }

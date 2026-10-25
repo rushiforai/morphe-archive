@@ -1,13 +1,13 @@
 /**
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  * <p>
  * File-Specific License Notice (GPLv3 Section 7 Terms)
  * <p>
  * This file is part of the Morphe patches project and is licensed under
  * the GNU General Public License version 3 (GPLv3), with the Additional
  * Terms under Section 7 described in the Morphe patches
- * LICENSE file: https://github.com/mrx7014/MRXHalawa-Patches/blob/main/NOTICE
+ * LICENSE file: https://github.com/MorpheApp/morphe-patches/blob/main/NOTICE
  * <p>
  * https://www.gnu.org/licenses/gpl-3.0.html
  * <p>

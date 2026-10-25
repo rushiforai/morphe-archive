@@ -89,7 +89,7 @@ public final class StoreIdentity {
 
     /**
      * PineDrama's own signing certificate (CN=TikTok Drama) as DER, read off the APKMirror 47.1.4
-     * bundle and unchanged on 47.4.3. Its SHA-256 is the {@code e97ca0c8...f54e18} digest Morphe Manager holds a picked
+     * bundle and unchanged on 47.4.3 and 47.5.3. Its SHA-256 is the {@code e97ca0c8...f54e18} digest Morphe Manager holds a picked
      * PineDrama APK to. A patched PineDrama answers with this one, never TikTok's.
      */
     static final String PINEDRAMA_CERTIFICATE =

@@ -225,10 +225,10 @@ jobs:
           GIT_HOST_TOKENS: ${{ secrets.GIT_HOST_TOKENS }}
           GITHUB_PACKAGES_TOKEN: ${{ secrets.GH_PAT }}
         run: python -m scripts.run_catalog_refresh --cloudflare
-      - name: Validate before atomic publication
-        run: |
-          python scripts/validate_database.py
-          python -m scripts.cloudflare_catalog publish
+      - name: Validate catalog snapshot
+        run: python -u scripts/validate_database.py
+      - name: Publish catalog atomically
+        run: python -u -m scripts.cloudflare_catalog publish
       - name: Notify cloud catalog update
         if: always() && (steps.refresh.outcome == 'success' || steps.refresh.outcome == 'failure')
         continue-on-error: true

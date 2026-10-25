@@ -206,14 +206,14 @@ internal data class LogoDressSite(val stockLoad: Int, val logo: Int)
  * Facebook loads the stock wordmark a few instructions later. Dressing after that load keeps the
  * stock path intact and prevents it from immediately overwriting the picked icon.
  */
-internal fun logoDressSite(builder: Method): LogoDressSite {
+internal fun logoDressSite(builder: Method, patch: String = PATCH): LogoDressSite {
     val where = "${builder.definingClass}->${builder.name}"
     val implementation = builder.implementation
-        ?: throw PatchException("$PATCH: $where, the method building the Facebook logo, has no body")
+        ?: throw PatchException("$patch: $where, the method building the Facebook logo, has no body")
     if (!AccessFlags.STATIC.isSet(builder.accessFlags) ||
         builder.parameterTypes.map(Any::toString) != LOGO_BUILDER_PARAMETERS
     ) {
-        throw PatchException("$PATCH: $where no longer has the expected static logo-builder parameters")
+        throw PatchException("$patch: $where no longer has the expected static logo-builder parameters")
     }
     val builderArguments = (
         implementation.registerCount - LOGO_BUILDER_PARAMETERS.size until implementation.registerCount
@@ -224,16 +224,16 @@ internal fun logoDressSite(builder: Method): LogoDressSite {
         call?.signature() == LOGO_TOUCH_STAND_IN
     }
     val touch = touches.singleOrNull()
-        ?: throw PatchException("$PATCH: expected one settings touch stand-in in $where, found ${touches.size}")
+        ?: throw PatchException("$patch: expected one settings touch stand-in in $where, found ${touches.size}")
     val touchRegisters = code[touch].registers()
     if (touchRegisters.size != 2) {
-        throw PatchException("$PATCH: the settings touch stand-in in $where has ${touchRegisters.size} registers")
+        throw PatchException("$patch: the settings touch stand-in in $where has ${touchRegisters.size} registers")
     }
     val click = code.getOrNull(touch - 1)
     val clickCall = (click as? ReferenceInstruction)?.reference as? MethodReference
     val clickRegisters = click?.registers().orEmpty()
     if (clickCall?.signature() != LOGO_CLICK_CALL || clickRegisters.firstOrNull() != touchRegisters.first()) {
-        throw PatchException("$PATCH: the settings touch stand-in in $where no longer follows the logo's tap")
+        throw PatchException("$patch: the settings touch stand-in in $where no longer follows the logo's tap")
     }
 
     val stockLoads = ((touch + 1)..minOf(touch + 12, code.lastIndex)).filter { index ->
@@ -247,15 +247,15 @@ internal fun logoDressSite(builder: Method): LogoDressSite {
             registers.map { builder.objectOriginAt(index, it) } == builderArguments
     }
     val stockLoad = stockLoads.singleOrNull() ?: throw PatchException(
-        "$PATCH: expected one stock wordmark load after the logo's touch listener in $where, found ${stockLoads.size}",
+        "$patch: expected one stock wordmark load after the logo's touch listener in $where, found ${stockLoads.size}",
     )
     return LogoDressSite(stockLoad, touchRegisters.first())
 }
 
-/** Adds the picked app icon after Facebook has loaded the stock wordmark. */
-internal fun MutableMethod.dressLogoAfter(site: LogoDressSite) {
+/** Hands the logo to [call], the picked app icon by default, after Facebook has loaded the stock wordmark. */
+internal fun MutableMethod.dressLogoAfter(site: LogoDressSite, call: String = DRESS_LOGO) {
     addInstructions(
         site.stockLoad + 1,
-        "invoke-static/range { v${site.logo} .. v${site.logo} }, $DRESS_LOGO",
+        "invoke-static/range { v${site.logo} .. v${site.logo} }, $call",
     )
 }

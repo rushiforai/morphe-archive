@@ -24,19 +24,22 @@ Second \"item\" text"</string>
   <string name="morphe_settings_reset_color">Rengi sıfırla</string>
   <string name="morphe_settings_color_invalid">Geçersiz renk</string>
   <string name="morphe_settings_restart_title">Yeniden başlatma gerekli</string>
-  <string name="morphe_settings_restart_dialog_message">Bu değişikliğin etkili olması için uygulamayı yeniden başlatın.</string>
+  <string name="morphe_settings_restart_dialog_message">Bu değişikliğin etkili olması için uygulamayı yeniden başlatın</string>
   <string name="morphe_settings_restart">Yeniden başlat</string>
   <!-- String is also duplicated in Reddit import / export preference -->
   <string name="morphe_settings_import">İçe aktar</string>
   <string name="morphe_settings_import_copy">Kopyala</string>
   <string name="morphe_settings_import_reset">Morphe ayarları varsayılanlara sıfırlandı</string>
-  <string name="morphe_settings_import_success">%d ayar içe aktarıldı</string>
+  <string name="morphe_settings_import_success">%s ayar içe aktarıldı</string>
   <string name="morphe_settings_import_failure_parse">İçe aktarılamadı: %s</string>
+  <string name="morphe_settings_navigate_up">Yukarı git</string>
   <string name="morphe_settings_search_hint">Ayarları ara</string>
+  <string name="morphe_settings_screen_info_title">Hakkında</string>
   <string name="morphe_settings_search_no_results_title">\'%s\' için sonuç bulunamadı</string>
   <string name="morphe_settings_search_no_results_summary">Başka bir anahtar kelime deneyin</string>
   <string name="morphe_settings_search_recent_searches">Son aramalar</string>
   <string name="morphe_settings_search_remove_message">Arama geçmişinden kaldırılsın mı?</string>
+  <string name="morphe_settings_search_remove">Arama geçmişinden kaldırılsın mı</string>
   <string name="morphe_settings_search_clear_history">Arama geçmişini temizle</string>
   <string name="morphe_settings_search_clear_history_message">Tüm arama geçmişini temizlemek istediğinizden emin misiniz?</string>
   <string name="morphe_settings_search_tips_title">Arama İpuçları</string>
@@ -100,10 +103,9 @@ Yeni dilleri çevirmek veya mevcut çevirileri iyileştirmek için morphe.softwa
   <string name="morphe_debug_toast_on_error_title">Morphe hatası durumunda uyarı göster</string>
   <string name="morphe_debug_toast_on_error_user_dialog_message">"Hata bildirimlerini kapatmak, tüm Morphe hata bildirimlerini gizler.
 
-Beklenmedik olaylar hakkında bilgilendirilmeyeceksiniz."</string>
+Beklenmedik olaylar hakkında bilgilendirilmeyeceksiniz"</string>
   <string name="morphe_debug_export_logs_title">Hata ayıklama kayıtlarını dışa aktar</string>
   <string name="morphe_debug_export_logs_summary">Morphe hata ayıklama kayıtlarını dışa aktar</string>
-  <string name="morphe_debug_export_logs_file">Dosyaya aktar</string>
   <string name="morphe_debug_export_logs_success">Hata ayıklama kayıtları başarıyla dışa aktarıldı</string>
   <string name="morphe_debug_export_logs_failed">Hata ayıklama kayıtlarını dışa aktarma başarısız oldu</string>
   <string name="morphe_debug_logs_search_hint">Hata ayıklama günlüklerini ara…</string>
@@ -177,25 +179,31 @@ Davranış, aramanın daha önceki bir adımında ortadan kalktı; bu nedenle bi
   <!-- misc.gms.gmsCoreSupportResourcePatch -->
   <string name="microg_settings_summary">MicroG ayarlarını açın</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="gms_core_toast_not_installed_message">MicroG yüklenmemiş. Yükleyin.</string>
+  <string name="gms_core_toast_not_installed_message">MicroG yüklenmedi. Yükleyin</string>
   <string name="gms_core_dialog_title">Eylem gerekli</string>
-  <string name="gms_core_dialog_outdated_message">"MicroG v%1s sürümünüz güncel değil ve sorunlara neden olabilir.
+  <string name="gms_core_dialog_outdated_message">"MicroG v%1s sürümü güncel değil ve sorunlara neden olabilir.
 
-Lütfen MicroG'u en son sürüm olan v%2s sürümüne güncelleyin."</string>
+Lütfen MicroG'yi en son v%2s sürümüne güncelleyin"</string>
   <string name="gms_core_dialog_update_text">Güncelle</string>
   <string name="gms_core_dialog_ignore_text">Yoksay</string>
+  <string name="gms_core_dialog_conflict_message">"Yüklenen MicroG Morphe tarafından önerilmiyor:
+
+%1s
+
+Kaldırmak için dokunun, ardından bu uygulamayı yeniden açın ve MicroG RE yükleyin"</string>
+  <string name="gms_core_dialog_uninstall_text">Kaldır</string>
   <!-- "Don't kill my app" should be kept in English and not translated -->
-  <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG GmsCore'nin arka planda çalışma izni yok.
+  <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG'nin arka planda çalışma izni yok.
 
-Telefonunuz için \"Don't kill my app\" rehberini takip edin ve talimatları MicroG kurulumunuza uygulayın.
+Telefonunuz için \"Don't kill my app\" kılavuzunu takip edin ve talimatları MicroG kurulumunuza uygulayın.
 
-Bu, uygulamanın çalışması için gereklidir."</string>
+Bu, uygulamanın çalışması için gereklidir"</string>
   <string name="gms_core_dialog_open_website_text">Websitesini aç</string>
   <string name="gms_core_dialog_not_whitelisted_using_battery_optimizations_message">"Sorunları önlemek için MicroG pil optimizasyonu devre dışı bırakılmalıdır.
 
 MicroG için pil optimizasyonunu devre dışı bırakmak pil kullanımını olumsuz etkilemeyecektir.
 
-Devam düğmesine dokunun ve optimizasyon değişikliklerine izin verin."</string>
+Devam düğmesine dokunun ve optimizasyon değişikliklerine izin verin"</string>
   <string name="gms_core_dialog_continue_text">Devam et</string>
   <string name="morphe_gms_core_battery_optimization_dialog_title">MicroG pil optimizasyonu iletişim kutusunu göster</string>
   <string name="morphe_gms_core_battery_optimization_dialog_user_dialog_message">"Bunu devre dışı bırakmak MicroG pil optimizasyonu istemini gizleyecektir.
@@ -221,4 +229,7 @@ Pil optimizasyonu değiştirilmezse şu durumlarla karşılaşabilirsiniz:
 En sorunsuz deneyimi istiyorsanız, bunu &lt;b&gt;kaldırın&lt;/b&gt; ve önerilen ✅ &lt;b&gt;%2$s&lt;/b&gt; sürümünü yamalayın"</string>
   <string name="morphe_experimental_app_version_dialog_confirm">⚠️ Deneysel istiyorum</string>
   <string name="morphe_experimental_app_version_dialog_open_homepage">✅ Stabil istiyorum</string>
+  <!-- misc.crashlog.crashLogPatch -->
+  <string name="morphe_crash_log_saved_documents">Çökme günlüğü kullanıcı belgelerine kaydedildi: %s</string>
+  <string name="morphe_crash_log_saved">Çökme günlüğü kaydedildi: %s</string>
 </resources>

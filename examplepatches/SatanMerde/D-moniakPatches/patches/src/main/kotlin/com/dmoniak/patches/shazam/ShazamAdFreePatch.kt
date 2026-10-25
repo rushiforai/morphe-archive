@@ -2,7 +2,6 @@ package com.dmoniak.patches.shazam
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
-import com.dmoniak.patches.shared.AdBlockHelper.executeComprehensiveAdBlock
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_SHAZAM
 import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
@@ -138,7 +137,5 @@ fun BytecodePatchContext.executeShazamAdFreeLogic(logger: Logger) {
         }
     }
 
-    // Run standard generic ad blocking as well
-    val genericHooked = executeComprehensiveAdBlock(logger, "Shazam")
-    logger.info("[Shazam Ads] Total ad-blocking hooks applied: ${hooked + genericHooked}")
+    logger.info("[Shazam AdBlock] Total promo & ad-blocking hooks applied: $hooked")
 }

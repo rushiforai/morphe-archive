@@ -18,9 +18,7 @@ private const val PKG = "com.yahoo.mobile.client.android.sportacular"
 private const val SPORTS_AD_CARD_VIEW = "Lcom/yahoo/mobile/ysports/ui/card/media/ads/view/SportsAdCardView;"
 private const val SAPI_MEDIA_ITEM =
     "Lcom/verizondigitalmedia/mobile/client/android/sapiMediaItemProvider/data/SapiMediaItem;"
-private const val BANNER_CTRL =
-    "Lcom/yahoo/mobile/ysports/ui/card/bettingimagebanner/control/BettingImageBannerCtrl;"
-private const val PROMOTION_HELPER = "Lcom/yahoo/mobile/ysports/sportsbook/promotions/SportsbookPromotionHelper;"
+private const val CARD_CTRL = "Lcom/yahoo/mobile/ysports/common/ui/card/control/CardCtrl;"
 
 class YahooSportsSmokeTest {
 
@@ -49,7 +47,7 @@ class YahooSportsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "12.10.3",
+            version = "12.26.1",
             patchNames = setOf("Disable ads", "Hide betting promotions"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -116,14 +114,16 @@ class YahooSportsSmokeTest {
             "SapiMediaItem.getAdTagUri does not return null; second instruction is ${ret?.opcode}"
         )
 
-        // Hide betting promotions: BettingImageBannerCtrl's caller of
-        // shouldShowBettingImageBanner returns at once.
-        val bind = classes.byType(BANNER_CTRL).methods.singleOrNull { method ->
-            method.instructions().any {
-                val ref = it.methodRef()
-                ref?.definingClass == PROMOTION_HELPER && ref.name == "shouldShowBettingImageBanner"
-            }
-        } ?: error("BettingImageBannerCtrl has no single caller of shouldShowBettingImageBanner")
-        assertReturnsEarlyVoid(bind, label = "BettingImageBannerCtrl.${bind.name}(${bind.parameterTypes.joinToString()})")
+        // Hide betting promotions: the banner controller's CardCtrl data override, found like the
+        // patch finds it ((Object)V, the "placement" key and a CardCtrl call; 12.26.1:
+        // bettingimagebanner/control/a.M2), returns at once.
+        val bind = classes.flatMap { it.methods }.singleOrNull { method ->
+            method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;") &&
+                method.instructions().let { insns ->
+                    insns.any { it.stringRef() == "placement" } &&
+                        insns.any { it.methodRef()?.definingClass == CARD_CTRL }
+                }
+        } ?: error("no single (Object)V method with the \"placement\" key and a CardCtrl call")
+        assertReturnsEarlyVoid(bind, label = "${bind.definingClass}.${bind.name}(${bind.parameterTypes.joinToString()})")
     }
 }

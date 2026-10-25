@@ -128,31 +128,40 @@ def test_cleanup_matches_unbounded_sql_using_fixed_rowid_pages(
     memory, monkeypatch, statement, params
 ):
     monkeypatch.setattr(cloud, "D1_CLEANUP_BATCH_SIZE", 3)
+    monkeypatch.setattr(cloud, "D1_CLEANUP_SCAN_SIZE", 5)
     seed_versions(memory)
     expected = expected_cleanup(memory, statement, params)
+    predicate = statement.split(" WHERE ", 1)[1]
+    targets = [
+        row[0]
+        for row in memory.database.execute(
+            "SELECT rowid FROM catalog_records WHERE (" + predicate + ") ORDER BY rowid",  # noqa: S608
+            params,
+        )
+    ]
     calls = capture_sql(memory, monkeypatch)
     memory.cleanup_records(statement, params)
     assert record_versions(memory.database) == expected
 
-    pages = [[row[0] for row in ROW_VERSIONS[start:start + 3]]
-             for start in range(0, len(ROW_VERSIONS), 3)]
-    mutations = [(query, bindings) for query, bindings in calls
-                 if query == statement + RESTRICTION]
+    scanned_pages = [ROW_VERSIONS[start:start + 5] for start in range(0, len(ROW_VERSIONS), 5)]
+    matched_pages = [[row[0] for row in page if row[0] in targets] for page in scanned_pages]
+    pages = [page[start:start + 3] for page in matched_pages for start in range(0, len(page), 3)]
+    mutations = [(query, bindings) for query, bindings in calls if query == statement + RESTRICTION]
     assert [json.loads(bindings[-1]) for _, bindings in mutations] == pages
-    assert all(bindings[:-1] == list(params) and len(bindings) < 100
-               for _, bindings in mutations)
+    assert all(bindings[:-1] == list(params) and len(bindings) < 100 for _, bindings in mutations)
     selects = [(query, bindings) for query, bindings in calls
-               if query.startswith("SELECT rowid FROM catalog_records")]
+               if query.startswith("SELECT rowid")]
     assert selects == [
-        ("SELECT rowid FROM catalog_records ORDER BY rowid LIMIT ?", [3]),
-        *[("SELECT rowid FROM catalog_records WHERE rowid>? ORDER BY rowid LIMIT ?",
-           [page[-1], 3]) for page in pages],
+        ("SELECT rowid, (" + predicate + ") AS matches FROM catalog_records"  # noqa: S608
+         + " ORDER BY rowid LIMIT ?", [*params, 5]),
+        *[("SELECT rowid, (" + predicate + ") AS matches FROM catalog_records"  # noqa: S608
+           + " WHERE rowid>? ORDER BY rowid LIMIT ?", [*params, page[-1][0], 5])
+          for page in scanned_pages[:-1]],
     ]
     assert len(calls) == len(mutations) + len(selects)
     assert memory.transfers().metrics["d1_cleanup_batches"] == len(pages)
     plan = memory.sql("EXPLAIN QUERY PLAN " + mutations[0][0], mutations[0][1])
-    assert any("SEARCH catalog_records USING INTEGER PRIMARY KEY" in row["detail"]
-               for row in plan)
+    assert any("SEARCH catalog_records USING INTEGER PRIMARY KEY" in row["detail"] for row in plan)
     assert not any("SCAN catalog_records" in row["detail"] for row in plan)
 
 
@@ -161,8 +170,9 @@ def test_empty_cleanup_does_not_issue_mutations(memory, monkeypatch, statement, 
     calls = capture_sql(memory, monkeypatch)
     memory.cleanup_records(statement, params)
     assert calls == [
-        ("SELECT rowid FROM catalog_records ORDER BY rowid LIMIT ?",
-         [cloud.D1_CLEANUP_BATCH_SIZE])
+        ("SELECT rowid, (" + statement.split(" WHERE ", 1)[1]  # noqa: S608
+         + ") AS matches FROM catalog_records ORDER BY rowid LIMIT ?",
+         [*params, cloud.D1_CLEANUP_SCAN_SIZE])
     ]
     assert memory.transfers().metrics.get("d1_cleanup_batches", 0) == 0
 
@@ -191,6 +201,15 @@ def test_cleanup_retries_the_same_targets_after_an_uncertain_write(
     monkeypatch.setattr(cloud, "D1_CLEANUP_BATCH_SIZE", 3)
     seed_versions(memory)
     expected = expected_cleanup(memory, statement, params)
+    targets = [
+        row[0]
+        for row in memory.database.execute(
+            "SELECT rowid FROM catalog_records WHERE ("  # noqa: S608
+            + statement.split(" WHERE ", 1)[1]
+            + ") ORDER BY rowid",
+            params,
+        )
+    ]
     calls, failures, delays = [], [], []
     monkeypatch.setattr(cloud.time, "sleep", delays.append)
 
@@ -222,8 +241,7 @@ def test_cleanup_retries_the_same_targets_after_an_uncertain_write(
     index = failures[0]
     assert calls[index] == calls[index + 1]
     mutations = [payload for payload in calls if payload["sql"] == statement + RESTRICTION]
-    pages = [[row[0] for row in ROW_VERSIONS[start:start + 3]]
-             for start in range(0, len(ROW_VERSIONS), 3)]
+    pages = [targets[start : start + 3] for start in range(0, len(targets), 3)]
     repeated = json.loads(calls[index]["params"][-1])
     expected_pages = [page for page in pages for _ in range(2 if page == repeated else 1)]
     assert [json.loads(payload["params"][-1]) for payload in mutations] == expected_pages

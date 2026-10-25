@@ -30,7 +30,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Hyperion Premium features without a purchase or the Launcher Key app."
+    description = "Unlocks premium features."
 ) {
     compatibleWith(COMPATIBILITY_HYPERION)
 

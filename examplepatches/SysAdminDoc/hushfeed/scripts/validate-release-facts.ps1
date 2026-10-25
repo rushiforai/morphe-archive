@@ -991,7 +991,7 @@ function Test-ReleaseReceiptHere {
     $receiptTarget = Get-PatchTarget -PatchList $resolvedList.PatchList
 
     $receiptCheck = Test-ReleaseReceipt -Receipt $receiptDocument -ExpectedVersion $releaseVersion `
-        -ExpectedPatchNames @($resolvedList.PatchList.patches | ForEach-Object { [string]$_.name }) `
+        -ExpectedPatchNames @(Get-PackagePatchNames -PatchList $resolvedList.PatchList -PackageName $receiptTarget.PackageName) `
         -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
         -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
         -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersions @($receiptTarget.PackageVersions) `

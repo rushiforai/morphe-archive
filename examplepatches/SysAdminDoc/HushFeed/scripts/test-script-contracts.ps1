@@ -479,8 +479,28 @@ $splitApps = [pscustomobject]@{
         [pscustomobject]@{ name = 'other'; compatiblePackages = [pscustomobject]@{ 'com.example.drama' = @('1.0.0') } }
     )
 }
-Assert-Throws { Get-PatchTarget -PatchList $splitApps } '*one package every patch declares*' `
-    'A catalog with no package every patch declares was accepted.'
+Assert-Throws { Get-PatchTarget -PatchList $splitApps } '*one package the most patches declare*' `
+    'A catalog whose two packages tie was accepted.'
+$secondAppOwn = [pscustomobject]@{
+    patches = @(
+        [pscustomobject]@{ name = 'both apps'; compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('1.0.0'); 'com.example.drama' = @('1.0.0') } },
+        [pscustomobject]@{ name = 'main app'; compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('1.0.0') } },
+        [pscustomobject]@{ name = 'main app too'; compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('1.0.0') } },
+        [pscustomobject]@{ name = 'drama only'; compatiblePackages = [pscustomobject]@{ 'com.example.drama' = @('1.0.0') } }
+    )
+}
+$secondOwnTarget = Get-PatchTarget -PatchList $secondAppOwn
+Assert-True ($secondOwnTarget.PackageName -eq 'com.example.app' -and (@($secondOwnTarget.OtherPackages) -join ',') -eq 'com.example.drama') `
+    'A patch of the second app alone took the target away from the main app.'
+$dramaTarget = Get-PatchTarget -PatchList $secondAppOwn -PackageName 'com.example.drama'
+Assert-True ($dramaTarget.PackageName -eq 'com.example.drama' -and $dramaTarget.PackageVersion -eq '1.0.0' -and
+    (@($dramaTarget.OtherPackages) -join ',') -eq 'com.example.app') `
+    'A run asking for the second app was held to the main app.'
+Assert-Throws { Get-PatchTarget -PatchList $secondAppOwn -PackageName 'com.example.other' } '*No patch declares com.example.other*' `
+    'A run on an app no patch declares was accepted.'
+Assert-True ((@(Get-PackagePatchNames -PatchList $secondAppOwn -PackageName 'com.example.app') -join ',') -eq 'both apps,main app,main app too' -and
+    (@(Get-PackagePatchNames -PatchList $secondAppOwn -PackageName 'com.example.drama') -join ',') -eq 'both apps,drama only') `
+    'A run on one app selected a patch only the other app declares.'
 $unevenSecond = [pscustomobject]@{
     patches = @(
         [pscustomobject]@{ name = 'a'; compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('1.0.0'); 'com.example.drama' = @('1.0.0') } },
@@ -1526,7 +1546,7 @@ try {
     # And the release check hands the receipt that list, names and target both, rather than the
     # working one. A helper nothing calls would pass every case above.
     $factsSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'validate-release-facts.ps1') -Raw
-    Assert-True ($factsSource -match '-ExpectedPatchNames @\(\$resolvedList\.PatchList\.patches' -and
+    Assert-True ($factsSource -match '-ExpectedPatchNames @\(Get-PackagePatchNames -PatchList \$resolvedList\.PatchList -PackageName \$receiptTarget\.PackageName\)' -and
         $factsSource -match '\$receiptTarget = Get-PatchTarget -PatchList \$resolvedList\.PatchList' -and
         $factsSource -match '-ExpectedPackageName \$receiptTarget\.PackageName') `
         'validate-release-facts.ps1 no longer holds the receipt to the patch list its own commit carried.'

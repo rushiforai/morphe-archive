@@ -23,7 +23,8 @@ class BlueNoisePatchTest {
         assertTrue("inputDepth" !in blueNoisePatch.options.keys)
         assertEquals(setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
-                "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363),
+                "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
+                "2.0.24" to 5002395),
             blueNoisePatch.compatibility.orEmpty().flatMap { compatibility ->
                 assertEquals("Steam Link", compatibility.name)
                 compatibility.targets.map { target ->
@@ -73,6 +74,7 @@ class BlueNoisePatchTest {
             Triple("2.0.21", "5001968", 2_234_048),
             Triple("2.0.22", "5002244", 2_251_920),
             Triple("2.0.23", "5002363", 2_292_008),
+            Triple("2.0.24", "5002395", 2_301_432),
         )
         bases.forEach { (version, code, size) ->
             val file = java.io.File("android-steamlinkvr-release-base-$version-$code/lib/arm64-v8a/libvrlink_scene.so")

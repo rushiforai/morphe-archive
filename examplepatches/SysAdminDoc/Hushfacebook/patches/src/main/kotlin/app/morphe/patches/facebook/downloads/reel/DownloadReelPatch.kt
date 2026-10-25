@@ -36,6 +36,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.singleOrPatchException
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -82,7 +83,7 @@ private const val LIST_ADD = "$LIST->add(Ljava/lang/Object;)Z"
 private const val PATCH = "Download any reel"
 
 /** The name the sidebar component reports for itself, inside the method that builds it. */
-private const val SIDEBAR = "UDDSideBarComponent"
+internal const val SIDEBAR = "UDDSideBarComponent"
 
 /**
  * The other component Facebook draws a reel's buttons with. It builds them from a list the viewer's
@@ -183,7 +184,8 @@ val downloadReelPatch = bytecodePatch(
         val sidebars = mutableListOf<Pair<String, String>>()
         val otherRenders = mutableListOf<Pair<String, Method>>()
 
-        classDefForEach { classDef ->
+        // A sidebar builder names SIDEBAR ([isSidebarBuilder]).
+        classDefForEachReferencing(strings = listOf(OTHER_SIDEBAR, SIDEBAR)) { classDef ->
             classDef.methods.forEach { method ->
                 val list = method.instructions()
 
@@ -223,7 +225,7 @@ val downloadReelPatch = bytecodePatch(
             sidebarClass to sidebar
         } else {
             val renders = mutableListOf<Pair<String, Method>>()
-            classDefForEach { classDef ->
+            classDefForEachReferencing(types = listOf(sidebar.definingClass)) { classDef ->
                 classDef.methods.filter { rendersThrough(it, sidebar) }.forEach { renders += classDef.type to it }
             }
             renders.singleOrPatchException("$PATCH: the one render handing the scoped context to $sidebarClass->$sidebarName")
@@ -314,7 +316,7 @@ val downloadReelPatch = bytecodePatch(
         // looks like the one Facebook draws itself.
         var icon: FieldReference? = null
 
-        classDefForEach { classDef ->
+        classDefForEachReferencing(strings = listOf(DOWNLOAD_ROW)) { classDef ->
             classDef.methods.forEach { method ->
                 val list = method.instructions()
                 if (list.none { it.stringReference() == DOWNLOAD_ROW }) return@forEach

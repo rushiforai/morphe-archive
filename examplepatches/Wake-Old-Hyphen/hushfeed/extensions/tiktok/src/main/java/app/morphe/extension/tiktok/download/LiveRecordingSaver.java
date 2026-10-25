@@ -49,6 +49,27 @@ public final class LiveRecordingSaver {
         });
     }
 
+    /**
+     * Builds a recorder that records the phone's screen (#37). The recording is encoded into a work
+     * file as it goes and copied into the spool when it ends, so the recorder's limits, its notice
+     * and its Stop work as they do for a stream. {@code audio} adds the app's own sound.
+     */
+    public static LiveRecorder createScreen(Context context, LiveRecorder.Target target, boolean audio,
+                                            LiveRecorder.Listener listener) throws IOException {
+        Context app = context.getApplicationContext() == null ? context : context.getApplicationContext();
+        File spool = MediaCache.createTempFile(app,
+                LiveSpoolRecovery.spoolPrefix(target.creator, System.currentTimeMillis()), ".scr");
+        File work = MediaCache.createTempFile(app, "screen-work-", ".mp4");
+        LiveRecorder.Source source = new ScreenSource(app, work, app.getResources().getDisplayMetrics(), audio);
+        LiveRecorder.Finisher finisher = (file, wanted, startedAt) ->
+                publishMp4(app, file, wanted.creator, startedAt);
+        return new LiveRecorder(target, spool, source, finisher, result -> {
+            MediaCache.delete(spool);
+            MediaCache.delete(work);
+            listener.onFinished(result);
+        });
+    }
+
     private static LiveRecorder.Published finish(Context app, File spool, LiveRecorder.Target target, long startedAtMs)
             throws IOException {
         return publish(app, spool, target.transport == LiveRecorder.Transport.FLV, target.creator, startedAtMs);

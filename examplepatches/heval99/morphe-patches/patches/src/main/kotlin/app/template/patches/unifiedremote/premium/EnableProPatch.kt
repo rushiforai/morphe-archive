@@ -46,7 +46,7 @@ private fun MutableMethod.callsIntGetterOf(owner: String): Boolean =
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
-    description = "Unlocks Unified Remote Full by forcing the local license status check."
+    description = "Unlocks the full version."
 ) {
     compatibleWith(COMPATIBILITY_UNIFIEDREMOTE)
 

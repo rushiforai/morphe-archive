@@ -4,6 +4,7 @@
 #>
 
 . (Join-Path $PSScriptRoot 'device-lease.ps1')
+. (Join-Path $PSScriptRoot 'apk-provenance.ps1')
 
 function Get-HushApkSigners {
     param([string]$Apk, [string]$Aapt2)
@@ -27,6 +28,7 @@ function Install-HushAndroidApk {
         [Parameter(Mandatory = $true)][string]$Apk,
         [Parameter(Mandatory = $true)][string]$Aapt2,
         [Parameter(Mandatory = $true)]$Lease,
+        $ExpectedIdentity,
         [scriptblock]$AdbInvoker,
         [scriptblock]$SignerReader = { param($Path, $Tool) Get-HushApkSigners -Apk $Path -Aapt2 $Tool },
         [scriptblock]$ManifestReader = { param($Path, $Tool) Get-ApkManifestFacts -Apk $Path -Aapt2 $Tool }
@@ -38,6 +40,11 @@ function Install-HushAndroidApk {
     $newSigners = @(& $SignerReader $Apk $Aapt2 | Sort-Object -Unique)
     if ($new.package -cne $PackageName -or "$($new.versionCode)" -notmatch '^\d+$' -or $newSigners.Count -eq 0) {
         throw 'New APK package, version or signer evidence refused.'
+    }
+    if ($ExpectedIdentity) {
+        $actual = [pscustomobject]@{ sha256 = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
+            package = $new.package; versionName = $new.versionName; versionCode = [string]$new.versionCode; signers = @($newSigners) }
+        Assert-HushApkIdentity -Expected $ExpectedIdentity -Actual $actual
     }
     $paths = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker -Arguments @('shell', 'pm', 'path', $PackageName)
     $installed = @($paths.Output | Where-Object { $_ -like 'package:*' })
@@ -75,5 +82,52 @@ function Install-HushAndroidApk {
         $result = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker -Arguments @('install', '-r', $Apk)
         $result.Output | Out-Host
         if ($result.ExitCode -ne 0) { throw (Format-HushTumblrAdbFailure 'ADB install refused' $result) }
+        if ($ExpectedIdentity) {
+            $observed = Get-HushInstalledApkIdentity -Adb $Adb -Lease $Lease -PackageName $PackageName -Aapt2 $Aapt2 `
+                -AdbInvoker $AdbInvoker -ManifestReader $ManifestReader -SignerReader $SignerReader
+            Assert-HushApkIdentity -Expected $ExpectedIdentity -Actual $observed
+        }
     } finally { Remove-Item -LiteralPath $local -Force -ErrorAction SilentlyContinue }
+}
+
+function Get-HushInstalledApkIdentity {
+    param([Parameter(Mandatory)][string]$Adb, [Parameter(Mandatory)]$Lease,
+        [Parameter(Mandatory)][string]$PackageName, [Parameter(Mandatory)][string]$Aapt2,
+        [scriptblock]$AdbInvoker,
+        [scriptblock]$ManifestReader = { param($Path, $Tool) Get-ApkManifestFacts -Apk $Path -Aapt2 $Tool },
+        [scriptblock]$SignerReader = { param($Path, $Tool) Get-HushApkSigners -Apk $Path -Aapt2 $Tool })
+    if ($PackageName -cnotmatch '^[A-Za-z0-9_.]+$') { throw 'Installed package identity refused.' }
+    $paths = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker -Arguments @('shell', 'pm', 'path', $PackageName)
+    $entries = @($paths.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($paths.ExitCode -ne 0 -or $entries.Count -ne 1 -or $entries[0] -cnotmatch '^package:(/data/app/[A-Za-z0-9_~+=./-]+\.apk)$') {
+        throw 'Installed APK path or split identity refused.'
+    }
+    $remote = $Matches[1]
+    $readHash = {
+        $reply = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker -Arguments @('shell', 'sha256sum', $remote)
+        $lines = @($reply.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($reply.ExitCode -ne 0 -or $lines.Count -ne 1 -or $lines[0] -cnotmatch '^([0-9a-f]{64})\s+(.+)$' -or $Matches[2] -cne $remote) {
+            throw 'Installed APK digest read refused.'
+        }
+        return $Matches[1]
+    }
+    $local = Join-Path ([IO.Path]::GetTempPath()) ('hushtumblr-installed-proof-' + [guid]::NewGuid().ToString('N') + '.apk')
+    $held = $null
+    try {
+        $before = & $readHash
+        $pull = Invoke-HushLeasedAdb -Adb $Adb -Lease $Lease -Invoker $AdbInvoker -Arguments @('pull', $remote, $local)
+        if ($pull.ExitCode -ne 0) { throw (Format-HushTumblrAdbFailure 'Installed APK pull refused' $pull) }
+        $held = Open-HeldFile -Path $local -Sha256 $before -What 'The installed APK copy'
+        $manifest = & $ManifestReader (Get-HeldPath $held) $Aapt2
+        $signers = @(& $SignerReader (Get-HeldPath $held) $Aapt2)
+        if ((& $readHash) -cne $before) { throw 'Installed APK changed while reading. Verification refused.' }
+        $result = [ordered]@{ sha256 = $before; package = $manifest.package; versionName = $manifest.versionName
+            versionCode = [string]$manifest.versionCode; signers = @($signers) }
+        Assert-HushApkIdentity -Expected $result -Actual $result
+        if ($result.package -cne $PackageName) { throw 'Installed APK package refused.' }
+        return $result
+    } finally {
+        if ($held) { $held.Dispose() }
+        Remove-Item -LiteralPath $local -Force -ErrorAction SilentlyContinue
+    }
 }

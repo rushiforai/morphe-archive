@@ -22,6 +22,7 @@ import app.morphe.patches.tiktok.misc.navigation.MainNewIntentFingerprint
 import app.morphe.patches.tiktok.misc.navigation.writes
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.privacy.invokeSitesOf
 import app.morphe.patches.tiktok.shared.callThroughLocals
@@ -260,6 +261,7 @@ val feedFilterPatch = bytecodePatch(
         }
 
         FollowFeedRequestFingerprint.method.raiseFollowFeedFirstReadCount()
+        FollowingCacheRestoreFingerprint.method.skipSavedFollowingFirstVideo()
 
         listOf(
             ProfileRefreshResultFingerprint.method,
@@ -317,7 +319,7 @@ val feedFilterPatch = bytecodePatch(
         // (this cell, item). All three are required on a build the patch is declared for, where
         // a missing one would let the block back in without a word; a build the patch is forced
         // onto keeps the rest of the feed filter without them.
-        val declaredBuild = packageMetadata.versionName in declaredVersions()
+        val declaredBuild = packageMetadata.buildName in declaredVersions()
         fun lynxBind(fingerprint: Fingerprint) = if (declaredBuild) fingerprint.method else fingerprint.methodOrNull
         val holderBound = "invoke-static/range {p0 .. p2}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onHolderBound(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
         lynxBind(SearchLynxHolderBindFingerprint)?.addInstructions(0, holderBound)
@@ -1046,6 +1048,31 @@ internal fun MutableMethod.raiseFollowFeedFirstReadCount() {
             """,
         )
     }
+}
+
+/**
+ * Latest first on Following (#226): on a cold start TikTok restores the Following list it saved
+ * last run and shows that list's first post as the first video, then loads the fresh list under
+ * it, so the saved post played first and the newest posts were sorted below it. While the switch
+ * is on the extension answers true and the hook hands the restore a null cache, which is the path
+ * TikTok takes when nothing was saved: it logs "no_cache" and the fresh read fills the feed.
+ */
+internal fun MutableMethod.skipSavedFollowingFirstVideo() {
+    requireLocals("Following saved first video", 1)
+    if (parameterTypes.firstOrNull()?.toString() != FOLLOWING_CACHE_DESCRIPTOR) {
+        throw PatchException("Following saved first video: $name does not take the saved cache first")
+    }
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $FOLLOWING_LATEST_FIRST_CLASS_DESCRIPTOR->skipSavedFirstVideo()Z
+            move-result v0
+            if-eqz v0, :morphe_keep_saved_following
+            const/4 v0, 0x0
+            move-object/from16 p1, v0
+        """,
+        ExternalLabel("morphe_keep_saved_following", getInstruction(0)),
+    )
 }
 
 internal fun selectRecUserCardInsertion(

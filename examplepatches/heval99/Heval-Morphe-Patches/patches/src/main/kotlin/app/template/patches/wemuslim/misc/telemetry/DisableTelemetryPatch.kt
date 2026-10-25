@@ -75,7 +75,7 @@ private fun BytecodePatchContext.concrete(owner: ClassDef, vararg names: String)
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Firebase Analytics, Crashlytics reports and AppsFlyer and Adjust attribution.",
+    description = "Disables analytics and crash reporting.",
 ) {
     compatibleWith(COMPATIBILITY_WEMUSLIM)
 

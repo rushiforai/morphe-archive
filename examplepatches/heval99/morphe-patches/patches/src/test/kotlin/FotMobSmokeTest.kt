@@ -9,6 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -25,11 +26,21 @@ private const val PKG = "com.mobilefootie.wc2010"
 private const val STAFF_EMAIL = "norapps.as@"
 private const val NO_SUBSCRIPTION_TEXT = "No active subscriptions found"
 private const val MEMBERSHIP_ACTIVITY = "Lcom/fotmob/android/feature/billing/ui/MembershipActivity;"
-private const val MAIN_ACTIVITY_WRAPPER = "Lcom/fotmob/android/ui/MainActivityWrapper;"
+private const val MAIN_ACTIVITY = "Lcom/fotmob/android/ui/MainActivity;"
 private const val SIGNATURE_SHA1 = "5546e6c4b0c1f31b9e5a953a89a8bb6f25a2ad6f"
 private const val TYPE_NO_CREDENTIAL = "android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL"
 private const val NO_ACCOUNT_LOG = "Did not find any existing Google accounts already used for logging"
 private const val DISMISSED_LOG = "User seemingly dismissed the automatic Google sign-in prompt"
+private const val SANCTIONED_LOG = "Ads disabled: user is in sanctioned country"
+private const val APPSFLYER_LIB = "Lcom/appsflyer/AppsFlyerLib;"
+private val APPSFLYER_METHODS = setOf("start", "logEvent", "logSession", "logAdRevenue")
+private const val GMS_MEASUREMENT = "Lcom/google/android/gms/measurement/api/AppMeasurementSdk;"
+private const val ANALYTICS_DEACTIVATED_KEY = "firebase_analytics_collection_deactivated"
+private const val CRASHLYTICS_KEY = "firebase_crashlytics_collection_enabled"
+private const val ODDS_GATE_LOG = "User has disabled odds in settings"
+private const val RATING_APP_MESSAGE = "Lcom/fotmob/android/feature/appmessage/model/RatingAppMessage;"
+private const val PLUS_PROMO_CONFIG = "Lcom/fotmob/android/feature/billing/model/PlusPromoConfig;"
+private const val PLUS_PROMO_KEY = "fotmobplus_promo"
 
 class FotMobSmokeTest {
 
@@ -65,10 +76,14 @@ class FotMobSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "238.17794.20261012",
-            patchNames = setOf("Enable FotMob+", "GmsCore support", "Spoof signature"),
+            version = "239.17834.20261016",
+            patchNames = setOf(
+                "Disable ads", "Disable telemetry", "Enable FotMob+", "GmsCore support", "Spoof signature",
+                "Hide betting content", "Disable rating prompts", "Disable FotMob+ promo popup",
+            ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
+        val stock = originalClasses(apk)
 
         // The manager is R8-renamed every release, so find it the same way the patch does:
         // the class whose staff check contains the unique email string.
@@ -118,7 +133,7 @@ class FotMobSmokeTest {
         )
 
         // The picker is found like the patch does: the most-called MembershipActivity
-        // (I, composer)V method. Three entitlement branches call it in stock 238; now four.
+        // (I, composer)V method. Three entitlement branches call it in stock 238 and 239; now four.
         val pickerCalls = insns.filter { insn ->
             val ref = insn.methodRef()
             insn.opcode == Opcode.INVOKE_VIRTUAL && ref?.definingClass == MEMBERSHIP_ACTIVITY &&
@@ -140,13 +155,158 @@ class FotMobSmokeTest {
         assertEquals((endGroup as FiveRegisterInstruction).registerC, registers.registerE, "$label: picker composer register")
 
         // GmsCore support + Spoof signature (MicroG RE for Google sign-in, issue #64).
-        assertGmsCoreSupport(classes, workDir, PKG, MAIN_ACTIVITY_WRAPPER, SIGNATURE_SHA1, expectCredentialRouting = true)
+        assertGmsCoreSupport(classes, workDir, PKG, MAIN_ACTIVITY, SIGNATURE_SHA1, expectCredentialRouting = true)
         assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
 
         // GmsCore support also skips the onboarding auto sign-in: right after the request reads
         // google_server_client_id, it throws NoCredentialException inside the try block whose
         // NoCredentialException handler is the stock "no account found" path.
-        assertOnboardingAutoSignInSkipped(classes, originalClasses(apk))
+        assertOnboardingAutoSignInSkipped(classes, stock)
+
+        assertAdsDisabled(classes)
+        assertTelemetryDisabled(classes, stock)
+        assertBettingRatingAndPromoDisabled(classes)
+    }
+
+    // Hide betting content, Disable rating prompts, Disable FotMob+ promo popup: each target is
+    // found like its patch (log prefix, RatingAppMessage constructor call, PlusPromoConfig reader)
+    // and must now return its "nothing to show" value at index 0.
+    private fun assertBettingRatingAndPromoDisabled(classes: List<ClassDef>) {
+        val methods = classes.flatMap { it.methods }
+        fun Method.isContinuationShape() =
+            returnType == "Ljava/lang/Object;" && parameterTypes.size == 1 &&
+                parameterTypes.single().toString().startsWith("L")
+
+        val gates = methods.filter { m -> m.isContinuationShape() && m.instructions().any { it.stringStartsWith(ODDS_GATE_LOG) } }
+        assertEquals(1, gates.size, "odds gate candidates: ${gates.map { "${it.definingClass}.${it.name}" }}")
+        val gate = gates.single()
+        val gateInsns = gate.instructions()
+        val falseField = (gateInsns[0] as? ReferenceInstruction)?.reference as? FieldReference
+        assertTrue(
+            gateInsns[0].opcode == Opcode.SGET_OBJECT && falseField?.definingClass == "Ljava/lang/Boolean;" &&
+                falseField.name == "FALSE" && gateInsns[1].opcode == Opcode.RETURN_OBJECT &&
+                (gateInsns[0] as OneRegisterInstruction).registerA == (gateInsns[1] as OneRegisterInstruction).registerA,
+            "${gate.definingClass}.${gate.name} (odds gate) does not start with Boolean.FALSE + return-object; " +
+                "got ${gateInsns.take(2).map { it.opcode }}"
+        )
+
+        val producers = methods.filter { m ->
+            m.isContinuationShape() && m.instructions().any { insn ->
+                val ref = insn.methodRef()
+                insn.opcode == Opcode.INVOKE_DIRECT && ref?.definingClass == RATING_APP_MESSAGE && ref.name == "<init>"
+            }
+        }
+        assertEquals(1, producers.size, "RatingAppMessage producers: ${producers.map { "${it.definingClass}.${it.name}" }}")
+        assertReturnsNull(producers.single(), "RatingAppMessage producer")
+
+        val readers = methods.filter { m ->
+            m.returnType == PLUS_PROMO_CONFIG && m.parameterTypes.isEmpty() && AccessFlags.STATIC.isSet(m.accessFlags) &&
+                m.instructions().any { it.referencesString(PLUS_PROMO_KEY) }
+        }
+        assertEquals(1, readers.size, "PlusPromoConfig readers: ${readers.map { "${it.definingClass}.${it.name}" }}")
+        assertReturnsNull(readers.single(), "PlusPromoConfig reader")
+    }
+
+    private fun assertReturnsNull(method: Method, what: String) {
+        val insns = method.instructions()
+        assertTrue(
+            insns[0].opcode == Opcode.CONST_4 && (insns[0] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                insns[1].opcode == Opcode.RETURN_OBJECT &&
+                (insns[0] as OneRegisterInstruction).registerA == (insns[1] as OneRegisterInstruction).registerA,
+            "${method.definingClass}.${method.name} ($what) does not start with const/4 0 + return-object; " +
+                "got ${insns.take(2).map { it.opcode }}"
+        )
+    }
+
+    // Disable ads: shouldShowAds(), found like the patch by its no-arg boolean shape and the
+    // "Ads disabled: user is in sanctioned country" log prefix, returns false.
+    private fun assertAdsDisabled(classes: List<ClassDef>) {
+        val gates = classes.flatMap { it.methods }.filter { method ->
+            method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                method.instructions().any { it.stringStartsWith(SANCTIONED_LOG) }
+        }
+        assertEquals(1, gates.size, "shouldShowAds candidates: ${gates.map { "${it.definingClass}.${it.name}" }}")
+        val gate = gates.single()
+        assertForcedBoolean(gate, expected = false, label = "${gate.definingClass}.${gate.name} (shouldShowAds)")
+    }
+
+    private fun assertTelemetryDisabled(classes: List<ClassDef>, stock: List<ClassDef>) {
+        // AppsFlyer: the concrete AppsFlyerLib subclass's six sending entry points.
+        val appsFlyer = classes.single { it.superclass == APPSFLYER_LIB }
+        val appsFlyerMethods = appsFlyer.methods.filter {
+            it.name in APPSFLYER_METHODS && it.returnType == "V" && it.implementation != null
+        }
+        assertEquals(6, appsFlyerMethods.size, "AppsFlyer methods in ${appsFlyer.type}: ${appsFlyerMethods.map { it.name }}")
+        assertTrue(appsFlyerMethods.any { it.name == "start" }, "${appsFlyer.type} has no concrete start()")
+        for (method in appsFlyerMethods) {
+            assertReturnsEarlyVoid(method, label = "${appsFlyer.type}.${method.name}(${method.parameterTypes.joinToString()})")
+        }
+
+        // Firebase Analytics: the measurement SDK's logEvent entry point returns early.
+        val measurement = classes.single { it.type == GMS_MEASUREMENT }
+        assertReturnsEarlyVoid(
+            measurement.method("logEvent", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Landroid/os/Bundle;")),
+            label = "AppMeasurementSdk.logEvent(String, String, Bundle)",
+        )
+
+        // The single "firebase_analytics_collection_deactivated" read (R8-renamed config, found
+        // by the string like the patch) is overwritten with Boolean.TRUE after its move-result.
+        val readers = classes.flatMap { it.methods }.filter { m -> m.instructions().any { it.referencesString(ANALYTICS_DEACTIVATED_KEY) } }
+        assertEquals(1, readers.size, "$ANALYTICS_DEACTIVATED_KEY readers: ${readers.map { "${it.definingClass}.${it.name}" }}")
+        val reader = readers.single()
+        val readLabel = "${reader.definingClass}.${reader.name} ($ANALYTICS_DEACTIVATED_KEY)"
+        val readInsns = reader.instructions()
+        val keyIndex = readInsns.indexOfFirst { it.referencesString(ANALYTICS_DEACTIVATED_KEY) }
+        val keyRegister = (readInsns[keyIndex] as OneRegisterInstruction).registerA
+        val read = readInsns[keyIndex + 1]
+        val readRef = read.methodRef()
+        assertTrue(
+            read is FiveRegisterInstruction && read.registerCount == 2 && read.registerD == keyRegister &&
+                readRef?.returnType == "Ljava/lang/Boolean;" &&
+                readRef.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;"),
+            "$readLabel: the key is not read through a Boolean get(String); got ${read.opcode} $readRef"
+        )
+        val move = readInsns[keyIndex + 2]
+        val forced = readInsns[keyIndex + 3]
+        val forcedField = (forced as? ReferenceInstruction)?.reference as? FieldReference
+        assertTrue(
+            move.opcode == Opcode.MOVE_RESULT_OBJECT && forced.opcode == Opcode.SGET_OBJECT &&
+                forcedField?.definingClass == "Ljava/lang/Boolean;" && forcedField.name == "TRUE" &&
+                (forced as OneRegisterInstruction).registerA == (move as OneRegisterInstruction).registerA,
+            "$readLabel: the read is not overwritten with Boolean.TRUE; got ${readInsns.drop(keyIndex).take(4).map { it.opcode }}"
+        )
+
+        // Crashlytics: in the classes holding the collection-enabled key (found like the patch),
+        // exactly the synchronized no-arg boolean (the DataCollectionArbiter getter) returns
+        // false. Every other no-arg boolean there, such as the static SDK_INT check R8 merged
+        // into the other class, keeps its stock code.
+        fun List<ClassDef>.crashlyticsClasses() = filter { cls ->
+            cls.methods.any { m -> m.instructions().any { it.referencesString(CRASHLYTICS_KEY) } }
+        }
+        fun Method.isNoArgBoolean() = implementation != null && returnType == "Z" && parameterTypes.isEmpty()
+        fun Method.isSynchronized() =
+            AccessFlags.DECLARED_SYNCHRONIZED.isSet(accessFlags) || AccessFlags.SYNCHRONIZED.isSet(accessFlags)
+        val crashlytics = classes.crashlyticsClasses()
+        assertEquals(stock.crashlyticsClasses().map { it.type }.toSet(), crashlytics.map { it.type }.toSet(), "Crashlytics classes")
+        val arbiters = crashlytics.flatMap { it.methods }.filter { it.isNoArgBoolean() && it.isSynchronized() }
+        assertEquals(1, arbiters.size, "synchronized ()Z Crashlytics getters: ${arbiters.map { "${it.definingClass}.${it.name}" }}")
+        val arbiter = arbiters.single()
+        assertForcedBoolean(arbiter, expected = false, label = "${arbiter.definingClass}.${arbiter.name} (Crashlytics collection)")
+
+        val stockByType = stock.associateBy { it.type }
+        val untouched = crashlytics.flatMap { it.methods }.filter { it.isNoArgBoolean() && !it.isSynchronized() }
+        assertTrue(
+            untouched.any { AccessFlags.STATIC.isSet(it.accessFlags) && it.definingClass != arbiter.definingClass },
+            "no static ()Z found in the other Crashlytics class; got ${untouched.map { "${it.definingClass}.${it.name}" }}"
+        )
+        for (method in untouched) {
+            val stockMethod = stockByType.getValue(method.definingClass).methods.single { it.name == method.name && it.isNoArgBoolean() }
+            assertEquals(
+                stockMethod.instructions().map { it.opcode },
+                method.instructions().map { it.opcode },
+                "${method.definingClass}.${method.name}()Z (not the Crashlytics getter) was changed",
+            )
+        }
     }
 
     private fun assertOnboardingAutoSignInSkipped(classes: List<ClassDef>, stock: List<ClassDef>) {

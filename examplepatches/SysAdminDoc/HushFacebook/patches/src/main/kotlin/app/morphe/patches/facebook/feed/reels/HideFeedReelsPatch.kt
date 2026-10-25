@@ -23,6 +23,7 @@ import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.shared.FEED_STORY_CATEGORY
 import app.morphe.patches.facebook.shared.feedFunnelBody
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -159,14 +160,12 @@ private fun BytecodePatchContext.preEofInjector(): Method {
         "Expected one (GraphQLFeedUnitEdge)Z method holding \"$ADD_ELEMENT_AT_TAIL\", found ${adders.size}",
     )
 
-    // One walk over the whole APK finds both: the injectors by name, and every caller of the adder.
+    // The injectors by name, which reads no code, then every caller of the adder, which names its class.
     val injectors = mutableListOf<Method>()
     val callers = mutableListOf<Method>()
-    classDefForEach { classDef ->
-        for (method in classDef.methods) {
-            if (isPreEofInjector(method)) injectors += method
-            if (callsMethod(method, adder)) callers += method
-        }
+    classDefForEach { classDef -> classDef.methods.filterTo(injectors, ::isPreEofInjector) }
+    classDefForEachReferencing(types = listOf(adder.definingClass)) { classDef ->
+        classDef.methods.filterTo(callers) { callsMethod(it, adder) }
     }
     val injector = injectors.singleOrNull() ?: throw PatchException(
         "Expected one $PRE_EOF_INJECTOR_PREFIX*()V method, found " +

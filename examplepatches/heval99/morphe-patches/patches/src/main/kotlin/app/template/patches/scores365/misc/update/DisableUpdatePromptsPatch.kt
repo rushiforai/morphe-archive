@@ -17,8 +17,7 @@ private val UPDATE_EXTRAS = setOf("ForceUpdateDialog", "NewVersionPopup")
 @Suppress("unused")
 val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update prompts",
-    description = "Hides the \"This app is out of date\" screen and the new version popup, " +
-        "so the patched version keeps working."
+    description = "Disables the update prompts."
 ) {
     compatibleWith(COMPATIBILITY_365SCORES)
 

@@ -21,6 +21,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -39,6 +40,58 @@ internal object ProfileAvatarClickFingerprint : Fingerprint(
     strings = listOf("click_head", "c68718.d0"),
     custom = { method, _ -> storyOverLiveSite(method) != null },
 )
+
+private const val CHAT_ROW = "Lcom/ss/android/ugc/aweme/im/chatlist/impl/ui/viewholder/chatlistvo/NewChatListSingleChatVH;"
+
+/**
+ * The tap on a chat's picture in the Inbox (#233), an `onClick(View)` listener holding the chat
+ * row and its AvatarComponentView. When the row has a LIVE room id it opens the LIVE (the
+ * "c71313.d0" jump token, enter method "dm_head") before it ever asks the picture for a story.
+ */
+internal object InboxAvatarClickFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+    strings = listOf("c71313.d0", "dm_head"),
+    custom = { method, _ -> method.name == "onClick" && inboxStorySite(method) != null },
+)
+
+/** Where the Inbox hook goes: the LIVE branch's first instruction, the picture's load. */
+internal data class InboxStorySite(val index: Int, val picture: FieldReference, val register: Int, val listener: Int)
+
+/**
+ * The listener's load of its AvatarComponentView that opens the LIVE branch, right after the
+ * `if-eqz` on the LIVE room id the listener reads off the chat row. Null when the method isn't
+ * that shape.
+ */
+internal fun inboxStorySite(method: Method): InboxStorySite? {
+    if (AccessFlags.STATIC.isSet(method.accessFlags)) return null
+    val implementation = method.implementation ?: return null
+    val code = implementation.instructions.toList()
+    val listener = implementation.registerCount - 2
+    for (index in 0 until code.size - 2) {
+        val read = code[index]
+        if (read.opcode != Opcode.IGET_OBJECT) continue
+        val live = read.getReference<FieldReference>() ?: continue
+        if (live.definingClass != CHAT_ROW || live.type != "Ljava/lang/Long;") continue
+        val branch = code[index + 1]
+        if (branch.opcode != Opcode.IF_EQZ ||
+            (branch as OneRegisterInstruction).registerA != (read as TwoRegisterInstruction).registerA
+        ) {
+            continue
+        }
+        val load = code[index + 2]
+        val picture = load.getReference<FieldReference>() ?: return null
+        if (load.opcode != Opcode.IGET_OBJECT || picture.definingClass != method.definingClass ||
+            picture.type != AVATAR_COMPONENT_VIEW
+        ) {
+            return null
+        }
+        load as TwoRegisterInstruction
+        if (load.registerB != listener) return null
+        return InboxStorySite(index + 2, picture, load.registerA, listener)
+    }
+    return null
+}
 
 /** Where the hook goes: the LIVE key's load, and the map and scratch registers it uses. */
 internal data class StoryOverLiveSite(val index: Int, val map: Int, val scratch: Int, val view: Int)
@@ -95,8 +148,8 @@ private fun Instruction.writes(register: Int) = opcode.setsRegister() &&
     }
 
 /**
- * Hooks the profile picture's tap for the Story first switch (#233) and says whether the hook
- * went in. Required on a declared build, where the anchors test holds it, and left out with a
+ * Hooks the profile picture's tap, and the Inbox chat picture's, for the Story first switch (#233)
+ * and says whether the profile hook went in. Required on a declared build, where the anchors test holds it, and left out with a
  * note on any other, so a reworked profile there doesn't take the rings down with it. The row
  * shows only when the hook went in.
  */
@@ -109,19 +162,47 @@ internal fun BytecodePatchContext.hookStoryOverLiveOn(versionName: String): Bool
     return true
 }
 
-/** The hook alone, without the settings flag that shows the row, so a probe patch can run it. */
+/**
+ * The hooks alone, without the settings flag that shows the row, so a probe patch can run them.
+ * The profile picture's is the one the switch needs; the Inbox's goes in alongside it.
+ */
 internal fun BytecodePatchContext.hookStoryOverLive(versionName: String): Boolean {
-    val tap = if (versionName in declaredVersions()) {
-        ProfileAvatarClickFingerprint.method
-    } else {
-        ProfileAvatarClickFingerprint.methodOrNull
-    }
+    val declared = versionName in declaredVersions()
+    val tap = if (declared) ProfileAvatarClickFingerprint.method else ProfileAvatarClickFingerprint.methodOrNull
     if (tap == null) {
         println("[$STORY_OVER_LIVE_PATCH] Left out the Story first switch on $versionName: no profile picture tap found.")
         return false
     }
     tap.openStoryBeforeLive()
+    val chat = if (declared) InboxAvatarClickFingerprint.method else InboxAvatarClickFingerprint.methodOrNull
+    if (chat == null) {
+        println("[$STORY_OVER_LIVE_PATCH] The Story first switch leaves the Inbox to TikTok on $versionName: no Inbox picture tap found.")
+    } else {
+        chat.openChatStoryBeforeLive()
+    }
     return true
+}
+
+/**
+ * Asks StoryOverLive at the top of the Inbox picture's LIVE branch, with the picture the branch
+ * loads next. A yes means the Story opened and the tap returns; a no runs the branch as it was.
+ * The register is the one that load writes, so nothing live is overwritten.
+ */
+internal fun MutableMethod.openChatStoryBeforeLive() {
+    val site = inboxStorySite(this)
+        ?: throw PatchException("$STORY_OVER_LIVE_PATCH: the Inbox picture's LIVE open is gone.")
+    val picture = "${site.picture.definingClass}->${site.picture.name}:${site.picture.type}"
+    addInstructionsWithLabels(
+        site.index,
+        """
+            iget-object v${site.register}, v${site.listener}, $picture
+            invoke-static { v${site.register} }, $STORY_OVER_LIVE->openChatStory(Landroid/view/View;)Z
+            move-result v${site.register}
+            if-eqz v${site.register}, :stock
+            return-void
+        """,
+        ExternalLabel("stock", getInstruction(site.index)),
+    )
 }
 
 /**

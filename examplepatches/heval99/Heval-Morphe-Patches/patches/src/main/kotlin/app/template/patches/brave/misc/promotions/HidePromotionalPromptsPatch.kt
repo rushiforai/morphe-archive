@@ -49,9 +49,7 @@ private fun forcePrefRead(
 @Suppress("unused")
 val hidePromotionalPromptsPatch = bytecodePatch(
     name = "Hide promotional prompts",
-    description = "Experimental: stops the recurring \"Set Brave as default browser\" dialog, " +
-        "the \"Rate Brave\" dialog and card, retention and Rewards promo notifications, the " +
-        "search widget promo and the VPN card in Settings.",
+    description = "Hides the recurring default browser, rating and promo prompts.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_BRAVE_EXPERIMENTAL)
@@ -69,9 +67,13 @@ val hidePromotionalPromptsPatch = bytecodePatch(
 
         // ── 2. "Rate Brave" startup dialog and Brave News feed card ────────────────────────
         //  Settings > Rate Brave opens the dialog directly and keeps working.
+        //  The single parameter is matched as any object: R8 types it per build output
+        //  (Context in the 1.98.60 arm64 AAB / Bravearm64Universal; an obfuscated
+        //  ChromeTabbedActivity superclass in BraveMonox64, whose NTP layout field is typed
+        //  ChromeTabbedActivity). qa_force_rate_dialog is referenced by this method only.
         Fingerprint(
             returnType = "Z",
-            parameters = listOf("Landroid/content/Context;"),
+            parameters = listOf("L"),
             strings = listOf("qa_force_rate_dialog", "next_rate_date"),
         ).method.returnEarly(false)
 

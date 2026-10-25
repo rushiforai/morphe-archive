@@ -23,6 +23,7 @@ import app.morphe.patches.facebook.misc.extension.requireThisIntact
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
@@ -100,17 +101,20 @@ private val fontSiteScans = WeakHashMap<BytecodePatchContext, FontSites>()
 
 /**
  * The classes [hookDefaultTypefaces], [hookTextLayouts], [hookLineHeights] and [hookTextViews] go
- * through, found in one pass over every instruction of the app instead of one pass each (#216: the
- * four passes were 11% of a whole patch). None of the four writes what another looks for, so a pass
- * made as the first of them starts finds what each would have found on its own. Once per patch run.
+ * through, found in one walk over the classes naming what they read instead of one pass each over
+ * every instruction (#216: the four passes were 11% of a whole patch). None of the four writes what
+ * another looks for, so a walk made as the first of them starts finds what each would have found on
+ * its own. Once per patch run.
  */
 internal fun BytecodePatchContext.fontSites(): FontSites = fontSiteScans.getOrPut(this) {
     val defaults = mutableSetOf<String>()
     val layouts = mutableSetOf<String>()
     val lineHeights = mutableSetOf<String>()
     val textViews = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    // Each reads a member of Typeface, a text layout, FontMetricsInt, a text view or the inflater.
+    val owners = listOf(TYPEFACE, FONT_METRICS_INT, CREATE_VIEW.substringBefore("->")) + LAYOUT_OWNERS + FRAMEWORK_TEXT_VIEWS
+    classDefForEachReferencing(types = owners) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         for (method in classDef.methods) {
             val code = method.implementation?.instructions ?: continue
             val chooseHeight = isChooseHeight(method)

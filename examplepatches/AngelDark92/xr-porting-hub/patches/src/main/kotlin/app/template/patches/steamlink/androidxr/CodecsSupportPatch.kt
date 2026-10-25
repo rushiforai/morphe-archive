@@ -16,7 +16,7 @@ import java.security.MessageDigest
 internal const val CODECS_SUPPORT_LIBRARY = "libgxr_codecs_support.so"
 internal const val CODECS_SUPPORT_MANIFEST = "XR_APILAYER_local_GalaxyXR_codecs_support.json"
 internal const val CODECS_SUPPORT_LIBRARY_SHA256 =
-    "cfcce064493f266f36318b59ae7ee3147fbd56cf882121c4373facca4c4a4de6"
+    "4ad5e8b16c7cef480d9cb0ea0905fbbb823d534d986704402bf5bb48977f2e51"
 internal const val CODECS_SUPPORT_MANIFEST_SHA256 =
     "801f2a6cf8155486879339a7eb7b83b1554a537f517ba50b6406a5a98a96fec5"
 
@@ -57,6 +57,11 @@ private val codecsSupportScenePreconditions: Map<String, List<Triple<Int, Int, S
         Triple(0xfd6fc, 0x80, "f5c43c6aacb69e61c3f929f361612e1b91bb509803d2c14824b9601b3dd8c795"),
         Triple(0xfe0a0, 0x80, "e08a664f0fd116e2735f68ff8d10a0fcbc4eac8e216fd986beec191a078bddb4"),
         Triple(0xfd6f0, 0x40, "3a38bb855e0af4c544b8568414a9e022803a8c47e5a128b20126c84fb40c7eb3"),
+    ),
+    "2.0.24/5002395" to listOf(
+        Triple(0xfe954, 0x80, "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3"),
+        Triple(0xff2f8, 0x80, "49570c2a54e39d80d2f8bb61c190b9d8b821675a79a4d4c4bf5f94bfb7acde3a"),
+        Triple(0xfe948, 0x40, "51b57ce6a5c20fab3266923460c046f1247823cb95526252c61a92020f052464"),
     ),
 )
 
@@ -104,6 +109,12 @@ internal fun installCodecsSupportResources(
 ): Boolean {
     // Dependencies bypass Morphe compatibility. Excluded pairs must not even read files.
     if (!isCodecsSupportSteamLinkBuild(versionName, versionCode)) return false
+    if (enableTelemetry && !isTelemetrySteamLinkTarget(TELEMETRY_PACKAGE, versionName, versionCode)) {
+        throw PatchException(
+            "Telemetry is not available for Steam Link $versionName/$versionCode; " +
+                "turn Enable telemetry off.",
+        )
+    }
 
     val sceneFile = File(apkRoot, "lib/arm64-v8a/libvrlink_scene.so")
     if (!sceneFile.isFile) throw PatchException("Missing exact codecs support renderer library")

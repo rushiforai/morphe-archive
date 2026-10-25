@@ -231,7 +231,7 @@ class GalaxyXrVendorDriverPatchTest {
         assertEquals(
             setOf(
                 "2.0.20:5001712", "2.0.20:5001812", "2.0.21:5001968",
-                "2.0.22:5002244", "2.0.23:5002363",
+                "2.0.22:5002244", "2.0.23:5002363", "2.0.24:5002395",
             ),
             targets.flatMap { t -> t.versionCodes!!.values.map { "${t.version}:$it" } }.toSet(),
         )

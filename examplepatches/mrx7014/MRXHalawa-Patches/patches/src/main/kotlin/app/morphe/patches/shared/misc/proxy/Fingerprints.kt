@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -11,10 +11,10 @@ import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val CRONET_ENGINE_CLASS = "Lorg/chromium/net/CronetEngine;"
-internal const val CRONET_BUILDER_CLASS = "Lorg/chromium/net/CronetEngine\$Builder;"
+internal const val CRONET_BUILDER_CLASS = $$"Lorg/chromium/net/CronetEngine$Builder;"
 
 private const val PROXY_CLASS = "Lorg/chromium/net/Proxy;"
-private const val PROXY_HTTP_CONNECT_CALLBACK_CLASS = "Lorg/chromium/net/Proxy\$HttpConnectCallback;"
+private const val PROXY_HTTP_CONNECT_CALLBACK_CLASS = $$"Lorg/chromium/net/Proxy$HttpConnectCallback;"
 private const val PROXY_OPTIONS_CLASS = "Lorg/chromium/net/ProxyOptions;"
 
 internal object BuildExperimentalFingerprint : Fingerprint(

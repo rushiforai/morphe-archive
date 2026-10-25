@@ -104,8 +104,7 @@ private fun BytecodePatchContext.keepGone(type: String) {
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, interstitial, native/inline and app-open ads and hides " +
-            "the empty ad slots."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_ONECRICKET)
 

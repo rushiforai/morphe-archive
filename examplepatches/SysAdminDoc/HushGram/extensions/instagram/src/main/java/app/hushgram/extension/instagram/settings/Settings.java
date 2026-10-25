@@ -246,6 +246,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_stop_story_swipe_reply", FALSE);
 
     /**
+     * The font files picked in settings show up in the story text editor after Instagram's own fonts
+     * ({@link app.hushgram.extension.instagram.stories.StoryFonts}). Read each time the editor lists
+     * its fonts. Off to start, and turned on when a font is added.
+     */
+    public static final BooleanSetting STORY_FONTS =
+            new BooleanSetting("hushgram_story_fonts", FALSE);
+
+    /**
+     * Emoji in story text draw from an emoji font file picked in settings
+     * ({@link app.hushgram.extension.instagram.stories.StoryEmoji}). Read each time the story text
+     * changes. Off to start, and turned on only once a picked file loads as a font.
+     */
+    public static final BooleanSetting STORY_EMOJI =
+            new BooleanSetting("hushgram_story_emoji", FALSE);
+
+    /**
      * A video story is prepared the way Instagram prepares it with its own "Upload at highest quality"
      * setting on, at 1080p and 9 Mbps ({@link app.hushgram.extension.instagram.stories.StoryUploadQuality}). The server still
      * keeps story videos at 720p.
@@ -566,7 +582,8 @@ public class Settings extends BaseSettings {
 
     /**
      * The "Are you interested in this post?" bubble with Not interested and Interested buttons that
-     * Instagram adds under a post in Home's feed. Left out, never answered. Off to start.
+     * Instagram adds under a post in Home's feed and under a reel (#131). Left out, never answered.
+     * Off to start.
      */
     public static final BooleanSetting HIDE_FEED_INTEREST =
             new BooleanSetting("hushgram_hide_feed_interest", FALSE);
@@ -896,6 +913,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting FULL_SCREEN_REELS =
             new BooleanSetting("hushgram_full_screen_reels", FALSE);
 
+    /**
+     * Under {@link #FULL_SCREEN_REELS}: a reel whose shape is close to the screen's fills it, cut a
+     * little at the sides, instead of fitting with black bars above and below (#288,
+     * {@link app.hushgram.extension.instagram.reels.ReelFill}). Off to start.
+     */
+    public static final BooleanSetting FILL_REEL_SCREEN =
+            new BooleanSetting("hushgram_fill_reel_screen", FALSE, parent(FULL_SCREEN_REELS));
+
     /** The same on Home, while its tab is selected and Reels isn't showing. Off to start. */
     public static final BooleanSetting FULL_SCREEN_HOME =
             new BooleanSetting("hushgram_full_screen_home", FALSE);
@@ -1085,11 +1110,20 @@ public class Settings extends BaseSettings {
 
     /**
      * Under {@link #ACCENT_COLOR}: the color ({@link app.hushgram.extension.instagram.misc.AccentHue}).
-     * Starts on purple, and Instagram blue keeps the stock color. A change shows after a restart.
+     * Starts on purple, and Instagram blue keeps the stock color. Material You (#187) takes the
+     * wallpaper's colors on Android 12 and newer. A change shows after a restart.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.misc.AccentHue> ACCENT_HUE =
             new EnumSetting<>("hushgram_accent_hue",
                     app.hushgram.extension.instagram.misc.AccentHue.PURPLE, true, parent(ACCENT_COLOR));
+
+    /**
+     * Under {@link #ACCENT_COLOR}: Instagram's red badges, the dots and counts on its icons, take the
+     * picked color too (#315, {@link app.hushgram.extension.instagram.misc.AccentTheme}). A change shows
+     * after a restart. Off to start.
+     */
+    public static final BooleanSetting ACCENT_BADGES =
+            new BooleanSetting("hushgram_accent_badges", FALSE, true, parent(ACCENT_COLOR));
 
     /**
      * HushGram's logo on the screen Android shows while Instagram starts, on Android 13 and newer
@@ -1119,6 +1153,23 @@ public class Settings extends BaseSettings {
         // Changing the icon can take it off the home screen, so a pause leaves the pick where it is.
         Setting.keepWhenPaused(APP_ICON);
     }
+
+    /**
+     * The rows Instagram's own Settings and activity screen leaves out, as the names of Instagram's
+     * row ids with commas between ({@link app.hushgram.extension.instagram.misc.SettingsRows}, #235):
+     * ARCHIVE, CLOSE_FRIENDS and the like. Nothing named is the start, so every row shows. Read as
+     * the screen makes each row, so a change shows the next time it opens.
+     */
+    public static final StringSetting HIDDEN_SETTINGS_ROWS =
+            new StringSetting("hushgram_hidden_settings_rows", "");
+
+    /**
+     * The rows Instagram's settings screen has shown on this phone, a line each: the row's id name, a
+     * tab and its title as Instagram showed it. Fills in as that screen opens, so the list of rows to
+     * hide offers what this phone has. Not a switch, and left out of a backup.
+     */
+    public static final StringSetting SEEN_SETTINGS_ROWS =
+            new StringSetting("hushgram_seen_settings_rows", "", false, false);
 
     /**
      * Every notification Instagram posts joins one group with a count
@@ -1786,6 +1837,17 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting CENTER_SCREEN_TITLES =
             new BooleanSetting("hushgram_center_screen_titles", FALSE);
+
+    /**
+     * Instagram's logo on Home, the name on profiles and the titles of other screens sit at the start
+     * of their bars, for accounts whose newer layout centers them (#310). It wins over the three
+     * centering switches above. Home's part is set as the header draws
+     * ({@link app.hushgram.extension.instagram.reels.HomeLogo}), so a change takes a restart; the
+     * names and titles move after each layout
+     * ({@link app.hushgram.extension.instagram.profile.ProfileTitle}). Off to start.
+     */
+    public static final BooleanSetting TITLES_AT_START =
+            new BooleanSetting("hushgram_titles_at_start", FALSE, true);
 
     /**
      * The order the tab bar shows its tabs in, as the tab enum's names, comma separated, first tab

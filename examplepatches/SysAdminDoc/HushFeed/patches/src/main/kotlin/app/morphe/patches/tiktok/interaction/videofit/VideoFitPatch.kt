@@ -18,6 +18,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
@@ -208,7 +209,7 @@ val videoFitPatch = bytecodePatch(
             )
         }
 
-        hookPhotoSlides(packageMetadata.versionName)
+        hookPhotoSlides(packageMetadata.buildName)
 
         settingsStatus.addInstruction(
             0,

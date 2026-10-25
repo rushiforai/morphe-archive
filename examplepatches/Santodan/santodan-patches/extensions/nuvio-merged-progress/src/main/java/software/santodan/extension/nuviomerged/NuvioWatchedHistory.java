@@ -8,10 +8,17 @@ public final class NuvioWatchedHistory {
 
     public static Map<String, String> sources(Map<String, ? extends Map<String, ? extends Set<?>>> histories,
             Map<String, String> origins, Map<String, Set<String>> siblings) {
+        return sources(histories, origins, siblings, () -> {});
+    }
+
+    public static Map<String, String> sources(Map<String, ? extends Map<String, ? extends Set<?>>> histories,
+            Map<String, String> origins, Map<String, Set<String>> siblings, Runnable checkpoint) {
+        checkpoint.run();
         Map<String, String> result = new LinkedHashMap<>(origins);
         Set<String> ids = new LinkedHashSet<>();
         histories.values().forEach(history -> ids.addAll(history.keySet()));
         for (String id : ids) {
+            checkpoint.run();
             if (result.containsKey(id)) continue;
             String selected = null;
             Set<String> related = siblings.getOrDefault(id, Collections.emptySet());
@@ -35,8 +42,15 @@ public final class NuvioWatchedHistory {
 
     public static <T> Map<String, Set<T>> select(Map<String, ? extends Map<String, Set<T>>> histories,
             Map<String, String> sources, Map<String, Set<String>> siblings) {
+        return select(histories, sources, siblings, () -> {});
+    }
+
+    public static <T> Map<String, Set<T>> select(Map<String, ? extends Map<String, Set<T>>> histories,
+            Map<String, String> sources, Map<String, Set<String>> siblings, Runnable checkpoint) {
+        checkpoint.run();
         Map<String, Set<T>> result = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : sources.entrySet()) {
+            checkpoint.run();
             Map<String, Set<T>> history = histories.get(entry.getValue());
             if (history == null) continue;
             Set<T> episodes = history.get(entry.getKey());
@@ -49,6 +63,7 @@ public final class NuvioWatchedHistory {
         }
         // Include alternate catalog IDs so library/collection cards need no details visit.
         for (Map.Entry<String, Set<String>> entry : siblings.entrySet()) {
+            checkpoint.run();
             if (entry.getValue().contains("__ambiguous__")) continue;
             Set<T> episodes = result.get(entry.getKey());
             if (episodes == null) continue;

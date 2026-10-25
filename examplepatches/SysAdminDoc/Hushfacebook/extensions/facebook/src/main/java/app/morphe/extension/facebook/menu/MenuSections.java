@@ -27,9 +27,15 @@ import app.morphe.extension.shared.settings.BooleanSetting;
  * asks {@link #hideSection} in the first and {@link #hideServerSection} in the second as soon as
  * each knows its group, and a yes has the section build nothing.
  *
- * <p>Only those two groups can go, each by its own switch, and only by the enum's name, never by
- * a title on screen. It fails open: with a switch off, a pause, settings that aren't ready,
- * anything but an enum, or any failure in here, the section builds as Facebook built it.
+ * <p>Only those two groups and Help and support (HELP, issue #224) can go, each by its own switch,
+ * and only by the enum's name, never by a title on screen. It fails open: with a switch off, a
+ * pause, settings that aren't ready, anything but an enum, or any failure in here, the section
+ * builds as Facebook built it.
+ *
+ * <p>Right after that, the native section asks {@link #collapsed} whether the group is folded up
+ * under its header, which Facebook keeps in the section's own state and flips on each tap. Settings
+ * and privacy (SETTINGS) can be kept open by a switch (issue #224); every other group, and that one
+ * with the switch off, folds up as Facebook has it.
  */
 public final class MenuSections {
     /** The enum name of the Upgrades group. */
@@ -37,6 +43,12 @@ public final class MenuSections {
 
     /** The enum name of the Also from Meta group. */
     static final String ALSO_FROM_META = "PRODUCTS_FROM_FACEBOOK";
+
+    /** The enum name of the Help and support group. */
+    static final String HELP = "HELP";
+
+    /** The enum name of the Settings and privacy group. */
+    static final String SETTINGS = "SETTINGS";
 
     /** The counter route of the native sections: every group asked about, and the ones hidden. */
     static final String ROUTE = "Menu sections";
@@ -50,9 +62,13 @@ public final class MenuSections {
     /** What a hidden Also from Meta group is counted under. */
     static final String ALSO_FROM_META_HIDDEN = "Also from Meta";
 
-    /** The Hook status names of the two hooks. */
+    /** What a hidden Help and support group is counted under. */
+    static final String HELP_HIDDEN = "Help and support";
+
+    /** The Hook status names of the three hooks. */
     static final String NATIVE_HOOK = "Menu section";
     static final String SERVER_HOOK = "Menu server section";
+    static final String STATE_HOOK = "Menu section state";
 
     /** Distinct debug lines kept, so a Menu opened again and again doesn't fill the log. */
     private static final int MAX_LOGGED = 64;
@@ -79,6 +95,31 @@ public final class MenuSections {
         return decide(group, SERVER_HOOK, SERVER_ROUTE);
     }
 
+    /**
+     * Injection point, in the children builder of the section Facebook draws for a Menu group,
+     * right after it read the group. [collapsed] is the section's own state, true while the group
+     * is folded up under its header, and what comes back takes its place for this build. Settings
+     * and privacy comes back open while Keep Settings and privacy expanded is on, so its rows build
+     * under its header and a tap on the header can't fold them away. The same builder asks again
+     * with whether the group starts folded, which seeds its header's chevron and label, so the
+     * header opens with the rows. Never throws.
+     */
+    public static boolean collapsed(boolean collapsed, @Nullable Object group) {
+        try {
+            HookStatus.invoked(FamilyNames.MENU_PROMOTIONS);
+            if (!collapsed || !(group instanceof Enum)) return collapsed;
+            HookStatus.bound(FamilyNames.MENU_PROMOTIONS, STATE_HOOK);
+            if (!SETTINGS.equals(((Enum<?>) group).name())) return true;
+            // Ready first: Settings loads every switch, and it can't before the context is set.
+            boolean open = Utils.settingsReady() && Settings.KEEP_MENU_SETTINGS_EXPANDED.get();
+            log(STATE_HOOK, SETTINGS, open ? "kept open" : "left folded");
+            return !open;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.MENU_PROMOTIONS, STATE_HOOK, failure);
+            return collapsed;
+        }
+    }
+
     private static boolean decide(@Nullable Object group, String hook, String route) {
         try {
             HookStatus.invoked(FamilyNames.MENU_PROMOTIONS);
@@ -94,12 +135,14 @@ public final class MenuSections {
             String name = ((Enum<?>) group).name();
             FeedFilterCounters.sawList(route, 1);
             FeedFilterCounters.sawKind(route, name);
-            boolean upgrades = UPGRADES.equals(name);
-            if (!upgrades && !ALSO_FROM_META.equals(name)) return false;
-            // Ready first: Settings loads every switch, and it can't before the context is set.
-            boolean hide = Utils.settingsReady() && switchFor(name).get();
-            if (hide) FeedFilterCounters.removed(route, 1, upgrades ? UPGRADES_HIDDEN : ALSO_FROM_META_HIDDEN);
-            log(hook, name, hide);
+            // Ready first: switchFor loads Settings, which loads every switch, and it can't before
+            // the context is set.
+            if (!Utils.settingsReady()) return false;
+            BooleanSetting toggle = switchFor(name);
+            if (toggle == null) return false;
+            boolean hide = toggle.get();
+            if (hide) FeedFilterCounters.removed(route, 1, hiddenAs(name));
+            log(hook, name, hide ? "hidden" : "left in");
             return hide;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.MENU_PROMOTIONS, hook, failure);
@@ -112,12 +155,20 @@ public final class MenuSections {
     static BooleanSetting switchFor(String name) {
         if (UPGRADES.equals(name)) return Settings.HIDE_MENU_UPGRADES;
         if (ALSO_FROM_META.equals(name)) return Settings.HIDE_MENU_ALSO_FROM_META;
+        if (HELP.equals(name)) return Settings.HIDE_MENU_HELP;
         return null;
     }
 
+    /** The Menu title a hidden group named [name] is counted under. */
+    private static String hiddenAs(String name) {
+        if (UPGRADES.equals(name)) return UPGRADES_HIDDEN;
+        if (ALSO_FROM_META.equals(name)) return ALSO_FROM_META_HIDDEN;
+        return HELP_HIDDEN;
+    }
+
     /** One debug line per hook, group and answer, so the phone check can see what the Menu built. */
-    private static void log(String hook, String name, boolean hidden) {
-        String line = hook + ": " + name + (hidden ? " hidden" : " left in");
+    private static void log(String hook, String name, String answer) {
+        String line = hook + ": " + name + " " + answer;
         if (LOGGED.size() >= MAX_LOGGED || !LOGGED.add(line)) return;
         Logger.printDebug(() -> "Hide Menu promotions: " + line);
     }

@@ -100,7 +100,7 @@ val hideMetaAiCommentSummariesPatch = bytecodePatch(
     }
 }
 
-private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+private fun refuse(detail: String, patch: String = PATCH): Nothing = throw PatchException("$patch: $detail")
 
 /** `Lclass;->name(params)return`, the way a call names the method. A method of a class is one too. */
 internal fun MethodReference.descriptor() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
@@ -111,11 +111,16 @@ internal class PluginSocket(val table: Method, val check: Method)
 private fun BytecodePatchContext.holders(string: String) =
     classDefByStrings(string, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
 
-/** Finds the socket named [socket] whose name table names [plugin] and [alsoNamed]. */
-private fun BytecodePatchContext.pluginSocket(socket: String, plugin: String, alsoNamed: List<String> = emptyList()): PluginSocket {
-    val table = nameTable(holders(plugin), plugin, alsoNamed)
-    val owner = classDefByOrNull(table.definingClass) ?: refuse("${table.definingClass} isn't in this APK")
-    val check = socketCheck(table, owner, holders(socket).flatMap { methodsHolding(it, socket) })
+/** Finds the socket named [socket] whose name table names [plugin] and [alsoNamed]. [patch] names who refuses. */
+internal fun BytecodePatchContext.pluginSocket(
+    socket: String,
+    plugin: String,
+    alsoNamed: List<String> = emptyList(),
+    patch: String = PATCH,
+): PluginSocket {
+    val table = nameTable(holders(plugin), plugin, alsoNamed, patch)
+    val owner = classDefByOrNull(table.definingClass) ?: refuse("${table.definingClass} isn't in this APK", patch)
+    val check = socketCheck(table, owner, holders(socket).flatMap { methodsHolding(it, socket) }, patch)
     return PluginSocket(table, check)
 }
 
@@ -138,10 +143,15 @@ internal fun switchKeys(method: Method): List<Set<Int>> =
  * The one name table among [holders] that loads [plugin] and every name in [alsoNamed]. Refuses
  * unless there's exactly one.
  */
-internal fun nameTable(holders: List<ClassDef>, plugin: String, alsoNamed: List<String> = emptyList()): Method {
+internal fun nameTable(
+    holders: List<ClassDef>,
+    plugin: String,
+    alsoNamed: List<String> = emptyList(),
+    patch: String = PATCH,
+): Method {
     val tables = holders.flatMap { methodsHolding(it, plugin) }.filter(::isNameTable).distinctBy { it.descriptor() }
-    val table = tables.singleOrNull() ?: refuse("expected one name table naming $plugin, found ${tables.size}")
-    alsoNamed.firstOrNull { !holdsString(table, it) }?.let { refuse("${table.descriptor()} names $plugin but not $it") }
+    val table = tables.singleOrNull() ?: refuse("expected one name table naming $plugin, found ${tables.size}", patch)
+    alsoNamed.firstOrNull { !holdsString(table, it) }?.let { refuse("${table.descriptor()} names $plugin but not $it", patch) }
     return table
 }
 
@@ -156,11 +166,11 @@ private fun calls(method: Method): List<MethodReference> =
  * class, with an int last, that one of [sockets] calls along with [table], and with a switch over
  * the same plugin numbers as the table's. Refuses unless there's exactly one.
  */
-internal fun socketCheck(table: Method, owner: ClassDef, sockets: List<Method>): Method {
+internal fun socketCheck(table: Method, owner: ClassDef, sockets: List<Method>, patch: String = PATCH): Method {
     val tableCall = table.descriptor()
     val callers = sockets.filter { socket -> calls(socket).any { it.descriptor() == tableCall } }
-    if (callers.isEmpty()) refuse("no method naming its socket calls $tableCall")
-    val numbers = switchKeys(table).singleOrNull() ?: refuse("$tableCall has more than one switch")
+    if (callers.isEmpty()) refuse("no method naming its socket calls $tableCall", patch)
+    val numbers = switchKeys(table).singleOrNull() ?: refuse("$tableCall has more than one switch", patch)
     val called = callers.flatMap(::calls).filter { it.definingClass == owner.type }.map { it.descriptor() }.toSet()
     val checks = owner.methods.filter { method ->
         AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
@@ -169,6 +179,7 @@ internal fun socketCheck(table: Method, owner: ClassDef, sockets: List<Method>):
     }
     return checks.singleOrNull() ?: refuse(
         "expected one check of $tableCall's plugins, found ${checks.size}: ${checks.joinToString { it.name }}",
+        patch,
     )
 }
 

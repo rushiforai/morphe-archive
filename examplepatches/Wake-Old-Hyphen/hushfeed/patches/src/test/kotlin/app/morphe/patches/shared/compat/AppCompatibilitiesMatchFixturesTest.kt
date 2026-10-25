@@ -69,7 +69,7 @@ class AppCompatibilitiesMatchFixturesTest {
         assertEquals("declared TikTok codes", expected.values.toSet(), AppCompatibilities.TIKTOK_VERSION_CODES)
         assertEquals(
             "the codes the Play Store patch accepts",
-            expected.values.toSet() + AppCompatibilities.PINEDRAMA_4743_VERSION_CODE,
+            expected.values.toSet() + AppCompatibilities.PINEDRAMA_4753_VERSION_CODE,
             AppCompatibilities.DECLARED_VERSION_CODES,
         )
         for (target in targets) {
@@ -90,8 +90,8 @@ class AppCompatibilitiesMatchFixturesTest {
     }
 
     /**
-     * PineDrama (#156) is declared at its own newest build under its own key. Its 47.4.3 is built
-     * from TikTok's 47.4.3 code and carries that build's version code.
+     * PineDrama (#156) is declared at its own newest build under its own key. Its 47.5.3 is built
+     * from TikTok's 47.5.3 code and carries that build's version code.
      */
     @Test
     fun `PineDrama is declared at its newest build under its own key`() {
@@ -100,7 +100,7 @@ class AppCompatibilitiesMatchFixturesTest {
         assertEquals(setOf(AppCompatibilities.PINEDRAMA_SIGNER_SHA256), pineDrama.signatures)
         assertEquals(
             "PineDrama's targets",
-            listOf("47.4.3" to setOf(2024704030)),
+            listOf("47.5.3" to setOf(2024705030)),
             pineDrama.targets.map { it.version to it.versionCodes?.values?.toSet() },
         )
         assertEquals(listOf("TikTok", "PineDrama"), AppCompatibilities.tiktokAndPineDrama().map { it.name })

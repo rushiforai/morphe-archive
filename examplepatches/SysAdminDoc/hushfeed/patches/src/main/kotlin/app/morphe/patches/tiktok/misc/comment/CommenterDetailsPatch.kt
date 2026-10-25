@@ -214,13 +214,27 @@ internal data class NameColorSite(val writeIndex: Int, val viewRegister: Int, va
 private fun Instruction.calls(owner: String, name: String) =
     getReference<MethodReference>()?.let { it.definingClass == owner && it.name == name } == true
 
-/** TikTok's static helper that colours a text view and writes its text: (I, I, TextView, CharSequence)V. */
+/**
+ * TikTok's static helper that colours a text view and writes its text: (I, I, TextView, CharSequence)V.
+ * PineDrama 47.5.3's takes the view and the text first: (TextView, CharSequence, I, I)V.
+ */
+private val COLORED_TEXT_WRITE_SHAPES = setOf(
+    listOf("I", "I", TEXT_VIEW, CHAR_SEQUENCE),
+    listOf(TEXT_VIEW, CHAR_SEQUENCE, "I", "I"),
+)
+
 private fun Instruction.isColoredTextWrite() =
     (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) &&
         getReference<MethodReference>()?.let { reference ->
             reference.returnType == "V" &&
-                reference.parameterTypes.map(CharSequence::toString) == listOf("I", "I", TEXT_VIEW, CHAR_SEQUENCE)
+                reference.parameterTypes.map(CharSequence::toString) in COLORED_TEXT_WRITE_SHAPES
         } == true
+
+/** The register a colored text write hands over as [type]: the view or the text. No parameter is wide. */
+private fun Instruction.coloredWriteArgument(type: String): Int? {
+    val position = getReference<MethodReference>()?.parameterTypes?.map(CharSequence::toString)?.indexOf(type)
+    return position?.takeIf { it >= 0 }?.let { namedRegisters().getOrNull(it) }
+}
 
 private fun Instruction.isTextWrite() =
     opcode == Opcode.INVOKE_VIRTUAL &&
@@ -245,7 +259,7 @@ internal fun Method.isCommentNameWrite(): Boolean {
     val body = implementation ?: return false
     val name = body.registerCount - 1
     val helpers = body.instructions.filter { it.isColoredTextWrite() }
-    return helpers.size == 1 && helpers.single().namedRegisters().getOrNull(3) == name &&
+    return helpers.size == 1 && helpers.single().coloredWriteArgument(CHAR_SEQUENCE) == name &&
         body.instructions.none { writes(it, name) }
 }
 
@@ -260,7 +274,7 @@ internal fun Method.nameColorSite(): NameColorSite {
     val writes = instructions.indices.filter { instructions[it].isColoredTextWrite() }
     val call = writes.singleOrNull()
         ?: throw PatchException("$WHAT: expected one name write, found ${writes.size}.")
-    val view = instructions[call].namedRegisters().getOrNull(2)
+    val view = instructions[call].coloredWriteArgument(TEXT_VIEW)
         ?: throw PatchException("$WHAT: the name write names no view.")
     if (ControlFlow.of(this).normal[call] != listOf(call + 1) ||
         instructions.getOrNull(call + 1)?.opcode != Opcode.RETURN_VOID
@@ -311,9 +325,9 @@ internal fun Method.replyLabelSite(): ReplyLabelSite {
     val helpers = instructions.indices.filter { instructions[it].isColoredTextWrite() }
     val call = helpers.singleOrNull()
         ?: throw PatchException("$WHAT: expected one reply label write, found ${helpers.size}.")
-    val text = instructions[call].namedRegisters().getOrNull(3)
+    val text = instructions[call].coloredWriteArgument(CHAR_SEQUENCE)
         ?: throw PatchException("$WHAT: the reply label write names no text.")
-    val view = instructions[call].namedRegisters().getOrNull(2)
+    val view = instructions[call].coloredWriteArgument(TEXT_VIEW)
         ?: throw PatchException("$WHAT: the reply label write names no view.")
 
     val comment = body.registerCount - 1

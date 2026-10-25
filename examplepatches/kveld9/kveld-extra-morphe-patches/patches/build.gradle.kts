@@ -78,12 +78,16 @@ tasks {
         if (project.hasProperty("dexDigest")) {
             systemProperty("dexDigest", project.property("dexDigest").toString())
         }
+        if (project.hasProperty("patchOptions")) {
+            systemProperty("patchOptions", project.property("patchOptions").toString())
+        }
         System.getProperty("targetApp")?.let { systemProperty("targetApp", it) }
         System.getProperty("targetApk")?.let { systemProperty("targetApk", it) }
         System.getProperty("outputApk")?.let { systemProperty("outputApk", it) }
         System.getProperty("patchName")?.let { systemProperty("patchName", it) }
         System.getProperty("maxVersionCode")?.let { systemProperty("maxVersionCode", it) }
         System.getProperty("allOptions")?.let { systemProperty("allOptions", it) }
+        System.getProperty("patchOptions")?.let { systemProperty("patchOptions", it) }
         System.getProperty("allowVersionMismatch")?.let { systemProperty("allowVersionMismatch", it) }
         System.getProperty("slowPatchSeconds")?.let { systemProperty("slowPatchSeconds", it) }
         System.getProperty("dexDigest")?.let { systemProperty("dexDigest", it) }

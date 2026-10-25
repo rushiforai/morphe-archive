@@ -28,9 +28,7 @@ private fun Method.sameClassNoArgCalls(returnType: String): List<MethodReference
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the VIP interface and removes ads. Premium data the AiScore " +
-            "server delivers (e.g. predictions, dropping odds) is validated server-side and " +
-            "is not unlocked."
+    description = "Unlocks VIP features and removes ads. Server data like predictions stays locked."
 ) {
     compatibleWith(COMPATIBILITY_AISCORE)
 

@@ -94,9 +94,10 @@ public class SettingsLockPageTest {
             Preference lock = lockRow(page);
             tap(lock);
             ListView waits = latest().getListView();
-            assertEquals(3, waits.getAdapter().getCount());
+            assertEquals(5, waits.getAdapter().getCount());
             assertEquals("1 hour", String.valueOf(waits.getAdapter().getItem(0)));
             assertEquals("24 hours", String.valueOf(waits.getAdapter().getItem(2)));
+            assertEquals("72 hours", String.valueOf(waits.getAdapter().getItem(4)));
             pick(waits, 0);
             assertEquals(State.LOCKED, SettingsLock.state());
             assertEquals("Settings locked", ShadowToast.getTextOfLatestToast());
@@ -176,9 +177,9 @@ public class SettingsLockPageTest {
             page.showLock();
             tap(lockRow(page));
             ListView choices = latest().getListView();
-            assertEquals(4, choices.getAdapter().getCount());
-            assertEquals("Turn the lock off", String.valueOf(choices.getAdapter().getItem(3)));
-            pick(choices, 3);
+            assertEquals(6, choices.getAdapter().getCount());
+            assertEquals("Turn the lock off", String.valueOf(choices.getAdapter().getItem(5)));
+            pick(choices, 5);
             assertEquals(State.OFF, SettingsLock.state());
             assertEquals("Lock turned off", ShadowToast.getTextOfLatestToast());
             assertEquals("Lock these settings", String.valueOf(lockRow(page).getTitle()));
@@ -186,6 +187,40 @@ public class SettingsLockPageTest {
             phone.pass(SettingsLock.OPEN_MS);
             page.showLock();
             assertTrue(row(page, Settings.HIDE_REELS_TOP_BAR.key).isEnabled());
+        }
+    }
+
+    @Test public void aRunningWaitCanBeStoppedAndTheSettingsStayLocked() {
+        try (ActivityController<Activity> host = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(host);
+            assertTrue(SettingsLock.lock(72));
+            assertTrue(SettingsLock.ask());
+            phone.pass(60 * MINUTE);
+            page.showLock();
+            Preference lock = lockRow(page);
+            assertTrue(String.valueOf(lock.getSummary()), String.valueOf(lock.getSummary()).endsWith("Tap to stop the wait."));
+
+            // Keep waiting leaves the wait running.
+            tap(lock);
+            latest().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertEquals(State.WAITING, SettingsLock.state());
+
+            tap(lock);
+            AlertDialog asked = latest();
+            assertEquals("Stop the wait", String.valueOf(asked.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            asked.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertEquals(State.LOCKED, SettingsLock.state());
+            assertEquals("Wait stopped. These settings stay locked.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Ask to unlock", String.valueOf(lock.getTitle()));
+            assertFalse(row(page, Settings.HIDE_REELS_TOP_BAR.key).isEnabled());
+
+            // The 71 hours the stopped wait had left don't open anything.
+            phone.pass(72 * 60 * MINUTE);
+            page.showLock();
+            assertEquals(State.LOCKED, SettingsLock.state());
+            assertFalse(row(page, Settings.HIDE_REELS_TOP_BAR.key).isEnabled());
         }
     }
 

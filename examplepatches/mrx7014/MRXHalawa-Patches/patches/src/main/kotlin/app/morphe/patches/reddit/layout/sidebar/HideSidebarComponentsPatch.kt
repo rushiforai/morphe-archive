@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -62,7 +62,7 @@ val hideSidebarComponentsPatch = bytecodePatch(
                         MutableMethodImplementation(2),
                     ).toMutable().apply {
                         val headerItemField = fields.single { field ->
-                            field.type == "Lcom/reddit/screens/drawer/community/HeaderItem;"
+                            field.type == HEADER_ITEM_CLASS
                         }
 
                         addInstructionsWithLabels(

@@ -123,7 +123,7 @@ internal object NativePrivacy {
         Target("Lcom/discord/crash_reporting/CrashReporting;", "captureMessage", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lcom/discord/crash_reporting/CrashReporting\$ErrorLevel;"), "V", Result.VOID),
         Target("Lcom/discord/crash_reporting/CrashReporting;", "libdiscoreAddBreadcrumb", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"), "V", Result.VOID),
         Target("Lcom/discord/crash_reporting/CrashReporting;", "isDisabled", listOf(), "Z", Result.TRUE),
-        Target("Lio/sentry/android/core/d1;", "b", listOf("Landroid/content/Context;", "Lio/sentry/android/core/m0;", "Lio/sentry/c4;"), "V", Result.VOID),
+        Target("Lio/sentry/android/core/c1;", "b", listOf("Landroid/content/Context;", "Lio/sentry/android/core/l0;", "Lio/sentry/b4;"), "V", Result.VOID),
         Target("Lio/sentry/android/core/SentryInitProvider;", "onCreate", listOf(), "Z", Result.TRUE),
         Target("Lcom/discord/crash_reporting/NativeCrashReporting\$Companion;", "initNative", listOf("Z"), "V", Result.VOID),
         Target("Lio/sentry/react/RNSentryModule;", "initNativeSdk", listOf("Lcom/facebook/react/bridge/ReadableMap;", "Lcom/facebook/react/bridge/Promise;"), "V", Result.PROMISE_FALSE),
@@ -200,7 +200,7 @@ internal object NativePrivacy {
         Target("Lcom/discord/jank_stats/JankSessionRecorder;", "recordFrame", listOf("Z", "J"), "V", Result.VOID),
         Target("Lcom/discord/jank_stats/JankSessionRecorder;", "openSegment", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "V", Result.VOID),
         Target("Lcom/discord/jank_stats/JankSessionRecorder;", "openSegmentKeepingLabel", listOf("Ljava/lang/String;"), "V", Result.VOID),
-        Target("Lcom/discord/jank_stats/JankSessionRecorder;", "renameOpenSegment", listOf("Ljava/lang/String;"), "V", Result.VOID),
+        Target("Lcom/discord/jank_stats/JankSessionRecorder;", "nameOpenSegment", listOf("Ljava/lang/String;"), "V", Result.VOID),
         Target("Lcom/discord/jank_stats/JankSessionRecorder;", "renameAndSettleOpenSegment", listOf("Ljava/lang/String;"), "V", Result.VOID),
         Target("Lcom/discord/jank_stats/JankSessionRecorder;", "settleOpenSegment", listOf(), "V", Result.VOID),
         Target("Lcom/discord/jank_stats/JankSessionRecorder;", "onTrackingDisabled", listOf(), "V", Result.VOID),
@@ -230,7 +230,7 @@ internal object NativePrivacy {
         // The two places that actually ask Google Play services for the ID: Google's AdvertisingIdClient,
         // and AppsFlyer's own copy of it. AppsFlyer reads the ID itself, so this used to keep working
         // whenever Disable install attribution wasn't selected.
-        Target("Loe/a;", "a", listOf("Landroid/content/Context;"), "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;", Result.NO_AD_ID),
+        Target("Lse/a;", "a", listOf("Landroid/content/Context;"), "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;", Result.NO_AD_ID),
         Target("Lcom/appsflyer/internal/AFb1qSDK;", "AFAdRevenueData", listOf("Landroid/content/Context;"), "Lcom/appsflyer/internal/AFb1qSDK\$AFa1uSDK;", Result.NO_AD_ID),
     )
     val attribution = listOf(

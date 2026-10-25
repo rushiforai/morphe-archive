@@ -92,7 +92,7 @@ public class LaunchScreenSettingsTest {
         PreferenceGroup layout = row.getParent();
         String[] keys = new String[layout.getPreferenceCount()];
         for (int i = 0; i < keys.length; i++) keys[i] = layout.getPreference(i).getKey();
-        assertEquals(Arrays.asList(Settings.NOTO_EMOJI.key, Settings.ACCENT_COLOR.key, Settings.ACCENT_HUE.key,
+        assertEquals(Arrays.asList(Settings.NOTO_EMOJI.key, Settings.ACCENT_COLOR.key, Settings.ACCENT_HUE.key, Settings.ACCENT_BADGES.key,
                 Settings.LAUNCH_SCREEN.key), Arrays.asList(keys));
         assertFalse(row.isChecked());
         assertFalse(Settings.LAUNCH_SCREEN.get());

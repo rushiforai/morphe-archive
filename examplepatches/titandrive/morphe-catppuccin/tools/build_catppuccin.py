@@ -26,6 +26,10 @@ SOURCES = [
 ]
 SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/fastmail/CatppuccinFastmailPatch.kt')
 
+SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/immich/ImmichPatches.kt')
+if os.environ.get('CATPPUCCIN_IMMICH_TEST') == '1':
+    SOURCES.append(ROOT / 'test/immich/TestIdentityPatch.kt')
+
 SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/pocketcasts/PocketCastsPatches.kt')
 if os.environ.get('CATPPUCCIN_POCKETCASTS_TEST') == '1':
     SOURCES.append(ROOT / 'test/pocketcasts/TestIdentityPatch.kt')
@@ -53,7 +57,7 @@ if os.environ.get('CATPPUCCIN_ANKI_TEST') == '1':
 
 MORPHE_VERSION = '1.18.0'
 KOTLIN_VERSION = '2.3.21'
-BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.7.0')
+BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.8.0')
 
 
 def fetch(name, url):
@@ -199,11 +203,13 @@ def main():
         run(java, '-cp', d8, 'com.android.tools.r8.D8', '--release', '--min-api', '32',
             '--lib', android_jar, '--output', nyt_dex, nyt_jar)
     manifest = ('Manifest-Version: 1.0\nName: Morphe - Catppuccin\n'
-        f'Description: Catppuccin themes for Boost, Gboard, AnkiDroid, Todoist, Fastmail, and Pocket Casts\nVersion: {BUNDLE_VERSION}\n'
+        f'Description: Catppuccin themes for Boost, Gboard, AnkiDroid, Todoist, Fastmail, Pocket Casts, and Immich\nVersion: {BUNDLE_VERSION}\n'
         'Author: titandrive\nSource: https://github.com/titandrive/morphe-catppuccin\n'
         'License: GPL-3.0 with upstream NOTICE conditions\n\n')
     with zipfile.ZipFile(bundle, 'w', zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('META-INF/MANIFEST.MF', manifest)
+        for path in (ROOT / 'patches/src/main/resources/catppuccin/immich').glob('*.tsv'):
+            archive.write(path, 'catppuccin/immich/' + path.name)
         if pocket_dex:
             with zipfile.ZipFile(pocket_dex) as extension:
                 archive.writestr('catppuccin/pocketcasts.dex', extension.read('classes.dex'))

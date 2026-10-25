@@ -20,9 +20,6 @@ val spoofSignaturePatch = spoofSignaturePatch(
     certificateBase64 = SHAZAM_CERTIFICATE,
     compatibility = COMPATIBILITY_SHAZAM,
     default = true,
-    description = "Makes the app report its original signing certificate to itself, so Firebase " +
-        "and Google APIs restricted to the original app keep working. Also connects Shazam to " +
-        "Spotify through Spotify's login page in a browser tab instead of the Spotify app, which " +
-        "rejects the patched app.",
+    description = "Fixes Google features and the Spotify connection.",
     dependencies = setOf(spotifyLoginPatch),
 )

@@ -76,6 +76,12 @@ class FlashscoreSmokeTest {
     private fun Method.strings(): List<String> =
         instructions().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
 
+    // The fingerprints match concatenation pieces by prefix or with CONTAINS (patcher 2.0 compares
+    // raw `strings` with the whole constant), so the test finds the methods the same way.
+    private fun Method.hasStringStartingWith(prefix: String): Boolean = strings().any { it.startsWith(prefix) }
+
+    private fun Method.hasStringContaining(part: String): Boolean = strings().any { part in it }
+
     private fun Method.calls(definingClass: String, name: String): Boolean = instructions().any { insn ->
         val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
         ref?.definingClass == definingClass && ref.name == name
@@ -233,7 +239,7 @@ class FlashscoreSmokeTest {
         // AdvertZone's load entry point hides the slot, runs the (I)V collapse helper and returns.
         val advertZone = klass(ADVERT_ZONE)
         val zoneLoad = advertZone.methods.single {
-            it.returnType == "V" && it.parameterTypes.isEmpty() && "Unsupported ad provider: " in it.strings()
+            it.returnType == "V" && it.parameterTypes.isEmpty() && it.hasStringStartingWith("Unsupported ad provider: ")
         }
         val collapse = advertZone.methods.single {
             it.returnType == "V" && it.params() == listOf("I") &&
@@ -262,7 +268,7 @@ class FlashscoreSmokeTest {
 
         // Video ads: the media item's constructor nulls the VMAP response (p3) first.
         val videoMedia = classes.singleOrNull { cls ->
-            cls.methods.any { it.name == "toString" && ", vmapResponse=" in it.strings() }
+            cls.methods.any { it.name == "toString" && it.hasStringContaining(", vmapResponse=") }
         } ?: error("no single class with ', vmapResponse=' in toString\n$diagnostics")
         val videoInit = videoMedia.method(
             "<init>",
@@ -330,7 +336,8 @@ class FlashscoreSmokeTest {
 
         // Disable rating prompts: the settings getBool answers false for the two rating keys.
         val getBool = classes.flatMap { it.methods }.single {
-            it.returnType == "Z" && it.strings().containsAll(listOf("Undefined default value for ", " using getBool!"))
+            it.returnType == "Z" && it.hasStringStartingWith("Undefined default value for ") &&
+                it.hasStringContaining(" using getBool!")
         }
         val getBoolInsns = getBool.instructions()
         val nameCall = (getBoolInsns.firstOrNull() as? ReferenceInstruction)?.reference as? MethodReference
@@ -379,7 +386,7 @@ class FlashscoreSmokeTest {
 
         // Disable update prompts: the SOFT/HARD dialog method returns before building the dialog.
         val updateDialog = classes.flatMap { it.methods }.single {
-            it.returnType == "V" && "last_notify_" in it.strings() && it.calls("Landroid/app/Dialog;", "show")
+            it.returnType == "V" && it.hasStringStartingWith("last_notify_") && it.calls("Landroid/app/Dialog;", "show")
         }
         assertReturnsEarlyVoid(updateDialog, label = "update dialog ${updateDialog.definingClass}.${updateDialog.name}", diagnostics)
 
@@ -387,10 +394,10 @@ class FlashscoreSmokeTest {
 
         // Hide betting content: the remote-config value's get() returns the helper's result.
         val configValue = classes.singleOrNull { cls ->
-            cls.methods.any { it.name == "<init>" && "USER_PREFS_CONFIG_KEY-" in it.strings() }
+            cls.methods.any { it.name == "<init>" && it.hasStringStartingWith("USER_PREFS_CONFIG_KEY-") }
         } ?: error("no single class with 'USER_PREFS_CONFIG_KEY-' in a constructor\n$diagnostics")
         val keyType = configValue.methods.single {
-            it.name == "<init>" && "USER_PREFS_CONFIG_KEY-" in it.strings()
+            it.name == "<init>" && it.hasStringStartingWith("USER_PREFS_CONFIG_KEY-")
         }.params()[1]
         val configGet = configValue.methods.single {
             it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty() && it.implementation != null
@@ -511,7 +518,7 @@ class FlashscoreSmokeTest {
 
         // The sponsored and bonus strips are built with fresh empty lists.
         val sponsoredStrip = classes.singleOrNull { cls ->
-            cls.methods.any { it.name == "toString" && "SponsoredStripWidgetDTO(sponsoredItems=" in it.strings() }
+            cls.methods.any { it.name == "toString" && it.hasStringStartingWith("SponsoredStripWidgetDTO(sponsoredItems=") }
         } ?: error("no single SponsoredStripWidgetDTO class\n$diagnostics")
         val sponsoredInits = sponsoredStrip.methods.filter {
             it.name == "<init>" && it.parameterTypes.isNotEmpty() && it.params().all { type -> type == ARRAY_LIST }
@@ -544,7 +551,8 @@ class FlashscoreSmokeTest {
         // League pages: the header model's constructor passes its tab set through the helper first.
         val headerModel = classes.singleOrNull { cls ->
             cls.methods.any {
-                it.name == "toString" && it.strings().containsAll(listOf("LeagueDetailHeaderModel(tournamentId=", ", detailTabs="))
+                it.name == "toString" && it.hasStringStartingWith("LeagueDetailHeaderModel(tournamentId=") &&
+                    it.hasStringContaining(", detailTabs=")
             }
         } ?: error("no single LeagueDetailHeaderModel class\n$diagnostics")
         val headerInits = headerModel.methods.filter {
@@ -602,7 +610,8 @@ class FlashscoreSmokeTest {
         val summaryParams = classes.singleOrNull { cls ->
             cls.methods.any {
                 it.name == "toString" &&
-                    it.strings().containsAll(listOf("LeagueDetailSummaryScreenParams(tournamentId=", ", isAgeVerified="))
+                    it.hasStringStartingWith("LeagueDetailSummaryScreenParams(tournamentId=") &&
+                    ", isAgeVerified=" in it.strings()
             }
         } ?: error("no single LeagueDetailSummaryScreenParams class\n$diagnostics")
         val summaryToString = summaryParams.methods.single { it.name == "toString" }.instructions()

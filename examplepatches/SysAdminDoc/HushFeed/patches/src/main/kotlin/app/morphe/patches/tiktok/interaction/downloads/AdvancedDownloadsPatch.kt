@@ -26,6 +26,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.patches.tiktok.shared.shipsStories
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.numberOfParameterRegisters
@@ -280,7 +281,7 @@ val advancedDownloadsPatch = bytecodePatch(
         "Hushfeed settings > Downloads.",
 ) {
     category("Downloads")
-    compatibleWith(*AppCompatibilities.tiktok())
+    compatibleWith(*AppCompatibilities.tiktokAndPineDrama())
     // The grid cell's count, for the check mark on videos saved here. The native Report carrier,
     // for the share sheet's Save cover (#146).
     dependsOn(settingsPatch, sharedExtensionPatch, profileGridCountPatch, ownedShareActionsPatch)
@@ -351,22 +352,24 @@ val advancedDownloadsPatch = bytecodePatch(
             )
         }
 
-        StoryPlayAreaViewFingerprint.method.addInstruction(
-            0,
-            "invoke-static/range { p0 .. p1 }, ${EXTENSION}StoryDownloads;->" +
-                "attachPlayArea(Ljava/lang/Object;Landroid/view/View;)V",
-        )
-        requireStoryBindMethods(StoryPlayAreaBindFingerprint.matchAll().map { it.method })
-            .forEach { method ->
-                method.addInstruction(
-                    0,
-                    "invoke-static/range { p0 .. p2 }, ${EXTENSION}StoryDownloads;->" +
-                        "recordStory(Ljava/lang/Object;ILjava/lang/Object;)V",
-                )
-            }
+        if (shipsStories("Advanced downloads", "saving stories")) {
+            StoryPlayAreaViewFingerprint.method.addInstruction(
+                0,
+                "invoke-static/range { p0 .. p1 }, ${EXTENSION}StoryDownloads;->" +
+                    "attachPlayArea(Ljava/lang/Object;Landroid/view/View;)V",
+            )
+            requireStoryBindMethods(StoryPlayAreaBindFingerprint.matchAll().map { it.method })
+                .forEach { method ->
+                    method.addInstruction(
+                        0,
+                        "invoke-static/range { p0 .. p2 }, ${EXTENSION}StoryDownloads;->" +
+                            "recordStory(Ljava/lang/Object;ILjava/lang/Object;)V",
+                    )
+                }
 
-        resolveStoryLongPressTimer().interceptStoryLongPress()
-        hookStoryShareSave()
+            resolveStoryLongPressTimer().interceptStoryLongPress()
+            hookStoryShareSave()
+        }
         addOwnedShareAction(SHARE_SAVE_COVER)
         // The grid cell holder's bind, which the count hook above already found, for picking
         // several posts on a profile, Liked or Favorites grid and saving them in one run (#27).

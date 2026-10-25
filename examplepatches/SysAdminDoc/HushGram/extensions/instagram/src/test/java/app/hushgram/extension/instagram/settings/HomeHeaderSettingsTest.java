@@ -268,6 +268,39 @@ public class HomeHeaderSettingsTest {
         }
     }
 
+    /**
+     * Logo and titles at the start (#310) follows Center titles on other screens under Tab bar, starts
+     * off and asks for a restart, since Home's logo is placed as the header draws.
+     */
+    @Test public void theTitlesAtStartSwitchFollowsTheCenteringOnesAndStartsOff() throws Exception {
+        open();
+        assertNull(row(Settings.TITLES_AT_START.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.TITLES_AT_START.key));
+        controller.close();
+        controller = null;
+
+        open(PatchFamily.REELS_TAB);
+        SwitchPreference toggle = (SwitchPreference) row(Settings.TITLES_AT_START.key);
+        assertNotNull(toggle);
+        PreferenceGroup section = sectionOf(page.getPreferenceScreen(), toggle);
+        assertEquals("Tab bar", String.valueOf(section.getTitle()));
+        int titles = -1;
+        int start = -1;
+        for (int i = 0; i < section.getPreferenceCount(); i++) {
+            String key = section.getPreference(i).getKey();
+            if (Settings.CENTER_SCREEN_TITLES.key.equals(key)) titles = i;
+            if (Settings.TITLES_AT_START.key.equals(key)) start = i;
+        }
+        assertEquals("right after Center titles on other screens", titles + 1, start);
+        assertEquals("Logo and titles at the start", String.valueOf(toggle.getTitle()));
+        assertTrue(String.valueOf(toggle.getSummary()), String.valueOf(toggle.getSummary()).contains("It wins over the centering switches above."));
+        assertFalse(toggle.isChecked());
+        assertEquals(Boolean.FALSE, Settings.TITLES_AT_START.defaultValue);
+        assertTrue("Home's logo is placed as the header draws", Settings.TITLES_AT_START.rebootApp);
+        assertTrue(PatchFamily.REELS_TAB.switches.contains(Settings.TITLES_AT_START));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.TITLES_AT_START.key));
+    }
+
     @Test public void eachHeaderButtonHasASwitchUnderTabBarThatStartsOffAndAsksForARestart() throws Exception {
         open(PatchFamily.REELS_TAB);
         for (BooleanSetting setting : switches()) {

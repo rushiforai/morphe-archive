@@ -4,15 +4,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // Shared Instagram patch library (brosssh), published to GitHub Packages.
-        maven {
-            name = "InstagramPatchesLibrary"
-            url = uri("https://maven.pkg.github.com/brosssh/instagram-morphe-patches-library")
-            credentials {
-                username = providers.gradleProperty("gpr.user").getOrElse(System.getenv("GITHUB_ACTOR"))
-                password = providers.gradleProperty("gpr.key").getOrElse(System.getenv("GITHUB_TOKEN"))
-            }
-        }
         // Morphe shared patch library.
         maven {
             name = "MorpheRegistry"
@@ -47,7 +38,7 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.4"
+    id("app.morphe.patches") version "2.0.0"
 }
 
 settings {

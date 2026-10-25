@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -12,6 +12,7 @@ package app.morphe.extension.youtube.patches.components;
 
 import java.util.List;
 
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
@@ -23,6 +24,7 @@ import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.ShortsPlayerState;
 
 @SuppressWarnings("unused")
@@ -36,25 +38,85 @@ public final class PlayerFlyoutMenuComponentsFilter extends Filter {
         topFlyoutMenuVisible = false;
     }
 
-    public static final class HideAudioFlyoutMenuAvailability implements Setting.Availability {
+    public static final class HideAmbientModeFlyoutMenuAvailability implements Setting.Availability {
         @Override
         public boolean isAvailable() {
-            return !SpoofVideoStreamsPatch.spoofingToClientWithNoMultiAudioStreams();
+            return !Settings.DISABLE_AMBIENT_MODE.get() && !Settings.HIDE_SETTINGS_BUTTON.get();
         }
 
         @Override
         public List<Setting<?>> getParentSettings() {
-            return List.of(SharedYouTubeSettings.SPOOF_VIDEO_STREAMS);
+            return List.of(Settings.DISABLE_AMBIENT_MODE, Settings.HIDE_SETTINGS_BUTTON);
         }
     }
 
-    private final ByteArrayFilterGroup qualityMenuButtonPrimary = new ByteArrayFilterGroup(
-            null,
-            "overflow_menu_item.e"
-    );
-    private final ByteArrayFilterGroup qualityMenuButtonSecondary = new ByteArrayFilterGroup(
+    public static final class HideAudioTrackFlyoutMenuAvailability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            return !SpoofVideoStreamsPatch.spoofingToClientWithNoMultiAudioStreams()
+                    && !Settings.HIDE_SETTINGS_BUTTON.get();
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(SharedYouTubeSettings.SPOOF_VIDEO_STREAMS, Settings.HIDE_SETTINGS_BUTTON);
+        }
+    }
+
+    public static final class HideAudioTrackFlyoutMenuFooterAvailability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            return !Settings.HIDE_PLAYER_FLYOUT_AUDIO_TRACK.get()
+                    && !Settings.HIDE_SETTINGS_BUTTON.get()
+                    && !SpoofVideoStreamsPatch.spoofingToClientWithNoMultiAudioStreams();
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(
+                    Settings.HIDE_PLAYER_FLYOUT_AUDIO_TRACK,
+                    Settings.HIDE_SETTINGS_BUTTON,
+                    SharedYouTubeSettings.SPOOF_VIDEO_STREAMS
+            );
+        }
+    }
+
+    public static final class HideCaptionsFlyoutMenuHeaderFooterAvailability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            return !Settings.HIDE_PLAYER_FLYOUT_CAPTIONS.get() && !Settings.HIDE_SETTINGS_BUTTON.get();
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(Settings.HIDE_PLAYER_FLYOUT_CAPTIONS, Settings.HIDE_SETTINGS_BUTTON);
+        }
+    }
+
+    public static final class HideQualityFlyoutMenuHeaderFooterAvailability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            return !Settings.HIDE_PLAYER_FLYOUT_QUALITY.get() && !Settings.HIDE_SETTINGS_BUTTON.get();
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(Settings.HIDE_PLAYER_FLYOUT_QUALITY, Settings.HIDE_SETTINGS_BUTTON);
+        }
+    }
+
+    private final ByteArrayFilterGroup videoPlayerSettingsQualityButton = new ByteArrayFilterGroup(
             null,
             "quality_sheet_header.e"
+    );
+    private final ByteArrayFilterGroup shortsPlayerSettingsCaptionsButton = new ByteArrayFilterGroup(
+            null,
+            "closed_captions",
+            "closed_caption_" // 20.21
+    );
+    private final ByteArrayFilterGroup shortsPlayerSettingsAudioTrackButton = new ByteArrayFilterGroup(
+            null,
+            "audio_track_sheet_content.e"
     );
     private final StringFilterGroup audioTrackMenuFooter;
     private final StringFilterGroup divider;
@@ -173,7 +235,7 @@ public final class PlayerFlyoutMenuComponentsFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -184,13 +246,13 @@ public final class PlayerFlyoutMenuComponentsFilter extends Filter {
         }
 
         if (matchedGroup == divider) {
-            if (path.contains("captions_sheet_content.e")) {
+            if (Utils.contains(path, "captions_sheet_content.e")) {
                 return Settings.HIDE_PLAYER_FLYOUT_CAPTIONS_FOOTER.get();
             }
-            if (path.contains("quick_quality_sheet_content.e")) {
+            if (Utils.contains(path, "quick_quality_sheet_content.e")) {
                 return Settings.HIDE_PLAYER_FLYOUT_QUALITY_FOOTER.get();
             }
-            return path.contains("overflow_menu_item.e");
+            return Utils.contains(path, "overflow_menu_item.e");
         }
 
         if (matchedGroup == flyoutMenu) {
@@ -198,20 +260,28 @@ public final class PlayerFlyoutMenuComponentsFilter extends Filter {
                 return false; // Overflow menu is always the start of the path.
             }
 
-            // Shorts also use this player flyout panel
-            if (ShortsPlayerState.isOpen()) {
-                return false;
-            }
-
             // Verify that the open flyout menu is the first one and not the 'others'
             // one, by checking the filtering of its first button (quality menu).
-            if (qualityMenuButtonPrimary.check(buffer).isFiltered() &&
-                    qualityMenuButtonSecondary.check(buffer).isFiltered()) {
+            // The path already starts with the overflow menu item, while the buffer
+            // does not always contain it (20.21 keeps it in a separate buffer).
+            boolean videoPlayerFlyout = PlayerType.getCurrent().isMaximizedOrFullscreen()
+                    && videoPlayerSettingsQualityButton.check(buffer).isFiltered();
+            boolean shortsPlayerFlyout = ShortsPlayerState.isOpen()
+                    && shortsPlayerSettingsCaptionsButton.check(buffer).isFiltered();
+            if (videoPlayerFlyout || shortsPlayerFlyout) {
                 topFlyoutMenuVisible = true;
             }
 
+            // Shorts also use this player flyout panel
+            if (ShortsPlayerState.isOpen()) {
+                return (Settings.HIDE_SHORTS_FLYOUT_CAPTIONS.get()
+                        && shortsPlayerSettingsCaptionsButton.check(buffer).isFiltered())
+                        || (Settings.HIDE_SHORTS_FLYOUT_AUDIO_TRACK.get()
+                        && shortsPlayerSettingsAudioTrackButton.check(buffer).isFiltered());
+            }
+
             // 21.x+ fix.
-            if (VersionCheckPatch.IS_20_31_OR_GREATER && path.contains("bottom_sheet_list_option.e")) {
+            if (VersionCheckPatch.IS_20_31_OR_GREATER && Utils.contains(path, "bottom_sheet_list_option.e")) {
                 return false;
             }
 

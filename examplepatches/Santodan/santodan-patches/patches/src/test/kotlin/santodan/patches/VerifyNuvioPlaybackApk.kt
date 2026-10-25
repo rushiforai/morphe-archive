@@ -6,20 +6,31 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.net.URLClassLoader
 import java.util.zip.ZipFile
 
 /** Check the actual CLI-rebuilt APK, including its stripped/relocated DEX classes. */
 fun main(args: Array<String>) {
     val extension = args.getOrNull(4) ?: NuvioPlaybackButtonsPatch.EXTENSION
     val expectedHooks = args.getOrNull(5)?.toInt() ?: 17
+    val requireStability = args.getOrNull(6)?.toBoolean() ?: false
     val verifier = SdkDexVerifier(File(args[2]), null)
     val verify = SdkDexVerifier::class.java.getDeclaredMethod("verifyClassHierarchy", File::class.java).apply { isAccessible = true }
+    fun descriptor(type: Class<*>): String = when {
+        type.isArray -> type.name.replace('.', '/')
+        !type.isPrimitive -> "L${type.name.replace('.', '/')};"
+        else -> mapOf("void" to "V", "boolean" to "Z", "byte" to "B", "char" to "C", "short" to "S",
+            "int" to "I", "long" to "J", "float" to "F", "double" to "D").getValue(type.name)
+    }
+    val framework = URLClassLoader(arrayOf(File(args[2], "platforms/android-36/android.jar").toURI().toURL()),
+        ClassLoader.getSystemClassLoader().parent)
     val results = args.take(2).mapIndexed { index, path ->
         val directory = File(args[3], if (index == 0) "original" else "rebuilt").apply { mkdirs() }
         val definitions = mutableSetOf<String>()
         val calls = mutableSetOf<String>()
         val parents = mutableMapOf<String, String?>()
         var hooks = 0
+        var stabilityGuards = 0
         ZipFile(path).use { zip ->
             for (entry in zip.entries().asSequence().filter { it.name.matches(Regex("classes\\d*\\.dex")) }) {
                 val target = File(directory, entry.name)
@@ -29,6 +40,11 @@ fun main(args: Array<String>) {
                         parents[owner.type] = owner.superclass
                         if (index == 1) check(owner.type != "Lsoftware/santodan/nuvio/NuvioNative;")
                         for (method in owner.methods) {
+                            if (index == 1 && requireStability && owner.type == NuvioPlayerStabilityPatch.OWNER &&
+                                method.name == NuvioPlayerStabilityPatch.METHOD) {
+                                VerifyNuvioPlayerStability.verifyPatched(method)
+                                stabilityGuards++
+                            }
                             definitions += method.toString()
                             if (index == 1 && owner.type == NuvioAccessPatch.TYPE && method.name in NuvioAccessPatch.FIELDS) {
                                 val body = method.implementation!!.instructions.toList()
@@ -62,12 +78,30 @@ fun main(args: Array<String>) {
             }
         }
         if (index == 1) {
+            if (requireStability) check(stabilityGuards == 1) { "Startup seek guard is missing from the rebuilt APK" }
             check(NuvioAccessPatch.TYPE in parents) { "Shared direct native accessors are missing from the rebuilt APK" }
             check(hooks == expectedHooks) { "Rebuilt APK has $hooks hooks for $extension; expected $expectedHooks" }
-            val frameworkContext = "Lsoftware/santodan/extension/nuviolauncher/LauncherArtworkProvider;->getContext()Landroid/content/Context;"
-            check(calls.all { it in definitions || (it == frameworkContext &&
-                parents["Lsoftware/santodan/extension/nuviolauncher/LauncherArtworkProvider;"] == "Landroid/content/ContentProvider;") }) {
-                "Unresolved extension signatures: ${calls - definitions}"
+            fun resolves(call: String): Boolean {
+                if (call in definitions) return true
+                val signature = call.substringAfter("->")
+                var parent = parents[call.substringBefore("->")]
+                while (parent != null) {
+                    if ("$parent->$signature" in definitions) return true
+                    if (parent.startsWith("Landroid/")) {
+                        // DEX may name the extension subclass for inherited View/Activity APIs.
+                        // Resolve the exact signature against the SDK, rather than exempting a name.
+                        val type = framework.loadClass(parent.substring(1, parent.length - 1).replace('/', '.'))
+                        return type.methods.any { method ->
+                            method.name + method.parameterTypes.joinToString("", "(", ")", transform = ::descriptor) +
+                                descriptor(method.returnType) == signature
+                        }
+                    }
+                    parent = parents[parent]
+                }
+                return false
+            }
+            check(calls.all(::resolves)) {
+                "Unresolved extension signatures: ${calls.filterNot(::resolves)}"
             }
         }
         val report = try { verify.invoke(verifier, directory); "" }
@@ -76,5 +110,6 @@ fun main(args: Array<String>) {
             .map { it.replace(Regex("\\(classes\\d*\\.dex\\)"), "(DEX)").replace(Regex("\\s+"), " ").trim() }.sorted()
     }
     check(results[0] == results[1]) { "Rebuilt APK introduced cross-DEX findings: ${results[1] - results[0].toSet()}" }
+    framework.close()
     println("PASS: CLI-rebuilt APK has all $expectedHooks hooks for $extension, resolves extension signatures and introduces no cross-DEX findings (${results[0].size} original optional-library findings)")
 }

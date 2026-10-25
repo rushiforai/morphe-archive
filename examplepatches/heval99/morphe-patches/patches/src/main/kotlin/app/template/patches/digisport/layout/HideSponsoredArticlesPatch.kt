@@ -10,8 +10,7 @@ import app.template.patches.shared.addInstructionsWithLabelsChecked
 @Suppress("unused")
 val hideSponsoredArticlesPatch = bytecodePatch(
     name = "Hide sponsored articles",
-    description = "Hides sponsored articles in section listings and in the article widgets " +
-        "below an article.",
+    description = "Hides sponsored articles.",
 ) {
     compatibleWith(COMPATIBILITY_DIGISPORT)
 

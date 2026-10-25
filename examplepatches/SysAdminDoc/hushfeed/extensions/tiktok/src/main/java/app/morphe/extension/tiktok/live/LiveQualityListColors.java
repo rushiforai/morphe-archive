@@ -21,11 +21,12 @@ import android.view.ViewParent;
 import android.widget.TextView;
 
 /**
- * Keeps the text of the older LIVE Video quality list (LiveDefinitionSelectionDialog) readable
- * in dark mode. On the S25 (2026-10-14, AMOLED on, Dark LIVE panels on or off) its rows read
- * white on white: the list's rows and its text take their colors from different places, a white
- * row drawable in some layouts and the room's theme in others, so dark mode can pair two light
- * colors.
+ * Keeps the text of LIVE's Video quality lists readable in dark mode. On the S25 (2026-10-14,
+ * AMOLED on, Dark LIVE panels on or off) the older list's rows (LiveDefinitionSelectionDialog)
+ * read white on white: the list's rows and its text take their colors from different places, a
+ * white row drawable in some layouts and the room's theme in others, so dark mode can pair two
+ * light colors. The newer picker (LiveTalentDefinitionSelectionDialog) does the same with a fixed
+ * white card under its rows (S22, 2026-10-24).
  */
 @SuppressWarnings("unused")
 public final class LiveQualityListColors {

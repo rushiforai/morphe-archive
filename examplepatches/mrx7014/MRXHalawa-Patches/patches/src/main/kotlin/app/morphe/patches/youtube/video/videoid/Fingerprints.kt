@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -14,6 +14,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
@@ -57,13 +58,15 @@ internal object VideoIdBackgroundPlayFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("L"),
     filters = listOf(
-        methodCall(returnType = "Ljava/lang/String;"),
-        opcode(Opcode.MOVE_RESULT_OBJECT),
-        opcode(Opcode.IPUT_OBJECT),
+        methodCall(opcode = Opcode.INVOKE_INTERFACE, returnType = "Ljava/lang/String;"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            type = "Ljava/lang/String;",
+            location = MatchAfterImmediately()
+        ),
         opcode(Opcode.MONITOR_EXIT),
-        opcode(Opcode.RETURN_VOID),
-        opcode(Opcode.MONITOR_EXIT),
-        opcode(Opcode.RETURN_VOID)
+        opcode(Opcode.RETURN_VOID, location = MatchAfterImmediately())
     ),
     custom = { method, classDef ->
         method.implementation != null &&

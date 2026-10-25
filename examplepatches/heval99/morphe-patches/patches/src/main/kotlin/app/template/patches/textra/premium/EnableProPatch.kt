@@ -91,7 +91,7 @@ private fun MutableClass.getterTesting(state: Int): MutableMethod {
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
-    description = "Unlocks Textra Pro: removes ads and unlocks the paid features."
+    description = "Unlocks Pro features and removes ads."
 ) {
     compatibleWith(COMPATIBILITY_TEXTRA)
 

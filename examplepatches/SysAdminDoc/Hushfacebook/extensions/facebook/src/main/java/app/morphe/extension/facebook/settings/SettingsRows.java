@@ -290,6 +290,21 @@ final class SettingsRows {
         }
     }
 
+    /** Home header picture, which opens the picker, or Remove the header picture, which acts at once. */
+    static final class PictureRow extends HeaderPicturePreference {
+        PictureRow(HushfacebookPreferenceFragment page, Context context, int role) {
+            super(page, context, role);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+    }
+
     /** Export settings or Import settings. */
     static final class BackupRow extends SettingsBackupPreference {
         BackupRow(HushfacebookPreferenceFragment page, Context context, int action, String title, String summary) {

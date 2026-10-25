@@ -34,8 +34,16 @@ public final class NuvioPreferredAddon {
     private static List<?> addons() throws Exception {
         Object repository = provided(software.santodan.nuvio.NuvioAccess.streamProvider(component));
         List<?> installed = (List<?>) value(field(field(repository, "c"), "r"));
-        return (List<?>) Class.forName("com.nuvio.tv.domain.model.AddonKt")
+        List<?> enabled = (List<?>) Class.forName("com.nuvio.tv.domain.model.AddonKt")
             .getDeclaredMethod("enabledAddons", List.class).invoke(null, installed);
+        List<Object> sources = new ArrayList<>();
+        for (Object addon : enabled) if (supportsStreams(addon)) sources.add(addon);
+        return sources;
+    }
+    private static boolean supportsStreams(Object addon) throws Exception {
+        List<?> resources = (List<?>) addon.getClass().getMethod("getResources").invoke(addon);
+        for (Object resource : resources) if ("stream".equals(text(resource, "getName"))) return true;
+        return false;
     }
     private static SharedPreferences preferences(int profile) throws Exception {
         Application app = (Application) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
@@ -63,7 +71,7 @@ public final class NuvioPreferredAddon {
             String key = preferences(id).getString("addon", "");
             if (key.isEmpty()) return installed;
             List<Object> ordered = new ArrayList<>(installed.size());
-            for (Object addon : installed) if (key.equals(text(addon, "getBaseUrl"))) ordered.add(addon);
+            for (Object addon : installed) if (key.equals(text(addon, "getBaseUrl")) && supportsStreams(addon)) ordered.add(addon);
             if (ordered.isEmpty()) return installed;
             for (Object addon : installed) if (!key.equals(text(addon, "getBaseUrl"))) ordered.add(addon);
             return ordered;
@@ -100,11 +108,20 @@ public final class NuvioPreferredAddon {
         return null;
     }
     public static boolean autoPlayGate(boolean nativeValue) { return nativeValue || autoPlayEnabled(); }
-    public static boolean allowNativeReuse(boolean nativeValue) { return nativeValue && !autoPlayEnabled(); }
-    public static Object choose(Object nativeStream, List<?> streams, Object controller, Object resolved) {
+    public static boolean allowNativeReuse(boolean nativeValue) { return nativeValue; }
+    private static boolean hasBingeGroup(String group) { return group != null && !group.trim().isEmpty(); }
+    public static boolean autoPlaySelectionEnabled(String group, boolean preferGroup, boolean groupOnly) {
+        // Keep native source filters, matching, timeout and no-match fallback intact.
+        return !groupOnly && !(preferGroup && hasBingeGroup(group)) && autoPlayEnabled();
+    }
+    public static Object choose(Object nativeStream, List<?> streams, Object controller, Object resolved, String bingeGroup) {
         if (!autoPlayEnabled()) return nativeStream;
         try {
             if ((Boolean) field(controller, "t") || (Boolean) field(resolved, "element")) return null;
+            // The loader supplies a persisted group only when both native binge
+            // settings are enabled. A null native result must also remain null
+            // while the native loader waits or offers manual selection.
+            if (hasBingeGroup(bingeGroup)) return nativeStream;
             return select(streams);
         } catch (Exception error) { Log.e("SantodanPreferred", "Cannot resolve preferred selection", error); return null; }
     }
@@ -160,7 +177,7 @@ public final class NuvioPreferredAddon {
             set(revision, ((Number) get(revision)).intValue() + 1);
         });
         method(loader, NuvioNative.SETTINGS_ROWS_NAME, "m", 13).invoke(null, "Automatically play preferred add-on",
-            "Play its first playable stream when available. If none is available, choose a source manually.",
+            "Play its first playable stream when available. Native binge-group preferences and reuse still apply.",
             prefs.getBoolean("autoplay", false), toggle, null, noop, false, null, 0L, false, composer, 0, 1008);
         if (!(Boolean) get(dialog)) return;
         List<Object> options = new ArrayList<>();

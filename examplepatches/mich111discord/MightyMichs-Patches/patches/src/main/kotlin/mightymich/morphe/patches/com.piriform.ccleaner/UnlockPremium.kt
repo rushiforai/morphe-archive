@@ -32,7 +32,7 @@ val unlockPremiumPatch = bytecodePatch(
         custom = { method, _ ->
             val insns = method.implementation?.instructions ?: return@Fingerprint false
             // Short method: essentially just field get + return
-            insns.size <= 4 &&
+            insns.count() <= 4 &&
                 insns.any { it.toString().contains("iget-boolean") }
         }
     )

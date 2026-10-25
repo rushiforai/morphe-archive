@@ -196,6 +196,10 @@ diagnostics/steamlink-legacy-1812-1968/*
 !diagnostics/steamlink-legacy-1812-1968/README.md
 !diagnostics/steamlink-legacy-1812-1968/RETIRED-2026-10-21.md
 !diagnostics/steamlink-legacy-1812-1968/RESTORED-2026-10-22.md
+# Steam Link 2.0.24/5002395 adaptation evidence.
+!diagnostics/steamlink-5002395/
+diagnostics/steamlink-5002395/*
+!diagnostics/steamlink-5002395/*.md
 !diagnostics/steamlink-splash-safety/
 !diagnostics/steamlink-splash-safety/*.md
 

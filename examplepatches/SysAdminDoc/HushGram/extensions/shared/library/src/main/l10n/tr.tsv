@@ -31,11 +31,15 @@ Every switch but Debug logging acts as if it were off, and what was set when you
 Export diagnostic report	Tanılama raporunu dışa aktar
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
 Lock these settings	Bu ayarları kilitle
-Pick a wait of 1, 6 or 24 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1, 6 veya 24 saatlik bir bekleme seç. Kilitliyken, kilidi açmayı isteyip bekleme bitene kadar burada hiçbir şey değişmez.
+Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1 ile 72 saat arasında bir bekleme seç. Kilitliyken, kilidi açmayı isteyip bekleme bitene kadar burada hiçbir şey değişmez.
 Ask to unlock	Kilidi açmayı iste
 These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	Bu ayarlar kilitli. %1$s beklemeyi başlatmak için dokun, sonra 10 dakika açık kalırlar.
 Unlock asked	Kilit açma istendi
 These settings open at %1$s, for 10 minutes.	Bu ayarlar 10 dakikalığına şu saatte açılır: %1$s
+These settings open at %1$s, for 10 minutes. Tap to stop the wait.	Bu ayarlar 10 dakikalığına şu saatte açılır: %1$s. Beklemeyi durdurmak için dokun.
+Stop the wait	Beklemeyi durdur
+Keep waiting	Beklemeye devam et
+Wait stopped. These settings stay locked.	Bekleme durduruldu. Bu ayarlar kilitli kalır.
 Settings are open	Ayarlar açık
 They lock again at %1$s. Tap to lock them now or turn the lock off.	Şu saatte yeniden kilitlenir: %1$s. Şimdi kilitlemek veya kilidi kapatmak için dokun.
 # context: the wait of a settings lock when it is exactly one hour; %1$d is the number
@@ -534,6 +538,7 @@ Find the reel	Reel'i bul
 Stop looking	Aramayı durdur
 Couldn't find the reel you came from	Geldiğin reel bulunamadı
 That's a trial reel, so it isn't on their profile	Bu bir deneme reel'i, bu yüzden profilde yok
+That reel isn't on their profile. It might be a trial reel.	Bu reel profilde yok. Bir deneme reel'i olabilir.
 Clear saved copies now	Kayıtlı kopyaları şimdi temizle
 Clear the media cache	Medya önbelleğini temizle
 Couldn't clear the saved copies. Try again.	Kayıtlı kopyalar temizlenemedi. Tekrar dene.
@@ -736,6 +741,8 @@ Google's emoji everywhere	Her yerde Google emojileri
 # context: Layout switch; it turns Instagram's blue into a color picked in the row under it
 Accent color	Vurgu rengi
 Turns Instagram's blue, on Follow buttons, links and the like, into the color you pick below. Restart Instagram to see the change.	Instagram'ın Takip Et düğmelerinde, bağlantılarda ve benzeri yerlerdeki mavisini aşağıda seçtiğin renge çevirir. Değişikliği görmek için Instagram'ı yeniden başlat.
+Badges in the accent color	Rozetler vurgu renginde
+The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Yeni mesajlar ve bildirimler için kırmızı noktalar ve sayılar seçtiğin rengi alır. Değişikliği görmek için Instagram'ı yeniden başlat.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Renk
 Instagram blue	Instagram mavisi
@@ -746,6 +753,8 @@ Red	Kırmızı
 Orange	Turuncu
 Green	Yeşil
 Teal	Camgöbeği
+Material You	Material You
+Material You needs Android 12 or newer, so Instagram's blue stays.	Material You için Android 12 veya daha yenisi gerekiyor, bu yüzden Instagram mavisi kalıyor.
 # context: Layout switch; it puts HushGram's logo on the screen Android shows while Instagram starts
 HushGram launch screen	HushGram açılış ekranı
 Shows HushGram's logo instead of Instagram's on the screen you see while Instagram starts, on Android 13 and newer. It shows from the next start.	Instagram açılırken gördüğün ekranda Instagram'ın logosu yerine HushGram'ın logosunu gösterir. Android 13 ve sonrasında çalışır. Bir sonraki açılıştan itibaren görünür.
@@ -923,6 +932,8 @@ The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x t
 Zoomed photo	Yakınlaştırılmış fotoğraf
 Full screen Reels	Tam ekran Reels
 Hides the status bar and the navigation bar while Reels shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Reels görünürken durum çubuğunu ve gezinme çubuğunu gizler. Kısa süreliğine geri getirmek için kenardan içeri kaydır. Geri ve klavye her zamanki gibi çalışır.
+Fill the screen	Ekranı doldur
+Reels that are nearly the screen's shape fill it, cut a little at the sides, instead of showing black bars above and below. Square and wide videos still fit.	Ekranın şekline yakın Reels videoları, üstte ve altta siyah çubuklar göstermek yerine kenarlardan biraz kırpılarak ekranı doldurur. Kare ve geniş videolar yine sığdırılır.
 Full screen Home	Tam ekran Ana sayfa
 Hides the status bar and the navigation bar while Home shows. Swipe in from the edge to bring them back for a moment.	Ana sayfa görünürken durum çubuğunu ve gezinme çubuğunu gizler. Kısa süreliğine geri getirmek için kenardan içeri kaydır.
 Full screen Messages	Tam ekran Mesajlar
@@ -1222,3 +1233,26 @@ Instagram's own	Instagram'ın kendi simgesi
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Instagram'ın kendi simgesi. Ana ekrandaki ve uygulama çekmecesindeki simgeyi değiştirmek için başka birini seç.
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Instagram'dan çıktığında görünür. Simge ana ekrandan kaybolursa uygulama çekmecesinden yeniden ekle.
 the home screen icon you picked	seçtiğin ana ekran simgesi
+# context: Your fonts in story text switch under Stories and the Your story fonts row and dialog under it; the fonts are .ttf or .otf files picked from the phone, shown in Instagram's story text editor after its own
+Your fonts in story text	Hikaye metninde kendi yazı tiplerin
+Adds the fonts below to the story text editor, after Instagram's own fonts, which all stay. Pick one there like any other font.	Aşağıdaki yazı tiplerini hikaye metin düzenleyicisine, Instagram'ın kendi yazı tiplerinden sonra ekler. Onların hepsi yerinde kalır. Orada diğer yazı tipleri gibi birini seç.
+Your story fonts	Hikaye yazı tiplerin
+Add .ttf or .otf files from your phone. Uncheck one to take it out.	Telefonundan .ttf veya .otf dosyaları ekle. Çıkarmak için işaretini kaldır.
+No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor, after Instagram's fonts.	Henüz yazı tipi eklenmedi. Bir .ttf veya .otf dosyası ekle, hikaye metin düzenleyicisinde Instagram'ın yazı tiplerinden sonra görünür.
+Add a font file	Yazı tipi dosyası ekle
+Removed from your story fonts	Hikaye yazı tiplerinden çıkarıldı
+That file isn't a font HushGram can use. Nothing was added.	Bu dosya HushGram'ın kullanabileceği bir yazı tipi değil. Hiçbir şey eklenmedi.
+Added %1$s. Pick it in the story text editor, after Instagram's fonts.	%1$s eklendi. Hikaye metin düzenleyicisinde Instagram'ın yazı tiplerinden sonra onu seç.
+# context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
+Logo and titles at the start	Logo ve başlıklar başta
+Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Instagram logosunu ve her çubuğun başlığını, Instagram'ın eskiden gösterdiği gibi çubuğun başına koyar. Instagram bunları senin için ortalıyorsa aç. Yukarıdaki ortalama anahtarlarından önce gelir. Değişikliği Ana sayfada görmek için Instagram'ı yeniden başlat.
+# context: Emoji font in story text, a switch under Stories after Your story fonts; turning it on opens the phone's file picker for an emoji font file (.ttf), used only for emoji typed in Instagram's story text editor (#275)
+Emoji font in story text	Hikâye metninde emoji yazı tipi
+Emoji you type in story text draw from an emoji font file you pick. Turning it on asks for the file. Off, Instagram's emoji come back.	Hikâye metnine yazdığın emojiler, seçtiğin bir emoji yazı tipi dosyasından çizilir. Açınca dosyayı sorar. Kapalıyken Instagram'ın emojileri geri gelir.
+That file isn't a font HushGram can use. Story emoji haven't changed.	Bu dosya HushGram'ın kullanabileceği bir yazı tipi değil. Hikâye emojileri değişmedi.
+Emoji font saved. Emoji in story text draw in it.	Emoji yazı tipi kaydedildi. Hikâye metnindeki emojiler artık onunla çiziliyor.
+Rows in Instagram's settings	Instagram ayarlarındaki satırlar
+Every row of Instagram's Settings and activity shows. Untick the ones you don't use.	Instagram'ın Ayarlar ve hareketler ekranındaki tüm satırlar görünür. Kullanmadıklarının işaretini kaldır.
+%1$d row is left off Instagram's Settings and activity.	Instagram'ın Ayarlar ve hareketler ekranından %1$d satır kaldırıldı.
+%1$d rows are left off Instagram's Settings and activity.	Instagram'ın Ayarlar ve hareketler ekranından %1$d satır kaldırıldı.
+Open Settings and activity in Instagram once, then come back here. Its rows show up in this list to untick.	Instagram'da Ayarlar ve hareketler ekranını bir kez aç, sonra buraya dön. O ekranın satırları işaretini kaldırman için bu listede görünür.

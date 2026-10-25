@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2524
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2524
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -54,6 +54,15 @@ final class ThemeColorOverlay {
      * adds this to {@code res/values/overlayable.xml} and both names must stay identical.
      */
     private static final String OVERLAYABLE_NAME = "MorpheThemeColor";
+
+    /**
+     * If the app can register an overlay for itself. Android 14 added the API, but the system
+     * hands out the manager only if it considers the app new enough to use it for itself, and
+     * a build that gets that wrong leaves the app without one.
+     */
+    static boolean isAvailable(Context context) {
+        return context.getSystemService(OverlayManager.class) != null;
+    }
 
     /**
      * Gives every color resource of {@code colors} the color it is mapped to, in the overlay of one

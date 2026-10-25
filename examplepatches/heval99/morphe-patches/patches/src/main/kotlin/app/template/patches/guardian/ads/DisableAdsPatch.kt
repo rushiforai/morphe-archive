@@ -27,7 +27,7 @@ private val LOAD_AD_ERROR_INIT = listOf(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes ads from fronts and articles, and the swipe-in ad pages between articles."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_GUARDIAN)
 

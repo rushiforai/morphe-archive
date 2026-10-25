@@ -37,7 +37,7 @@ private fun BytecodePatchContext.adGateClass(): MutableClass {
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables the banner and full-screen ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_WIFIANALYZER)
 

@@ -51,6 +51,8 @@ public class MenuSectionsTest {
         PauseForTests.resume();
         Settings.HIDE_MENU_UPGRADES.resetToDefault();
         Settings.HIDE_MENU_ALSO_FROM_META.resetToDefault();
+        Settings.HIDE_MENU_HELP.resetToDefault();
+        Settings.KEEP_MENU_SETTINGS_EXPANDED.resetToDefault();
         MenuSectionsForTests.newProcess();
         FeedFilterCounters.clear();
         HookStatus.clear();
@@ -73,17 +75,72 @@ public class MenuSectionsTest {
         assertTrue(MenuSectionsForTests.hidesServerAlsoFromMeta());
     }
 
-    /** Settings, Help and support, Log out, the shortcuts and the rest are never the patch's to hide. */
+    /** Settings, Log out, the shortcuts and the rest are never the patch's to hide. */
     @Test
     public void everyOtherGroupBuildsAsFacebookBuiltIt() {
         for (Group group : Group.values()) {
-            if (group == Group.UPSELL || group == Group.PRODUCTS_FROM_FACEBOOK) continue;
+            if (group == Group.UPSELL || group == Group.PRODUCTS_FROM_FACEBOOK || group == Group.HELP) continue;
             assertFalse(group + " was hidden", MenuSections.hideSection(group));
             assertFalse(group + "'s server part was hidden", MenuSections.hideServerSection(group));
             assertNull(group + " has a switch", MenuSections.switchFor(group.name()));
         }
         assertSame(Settings.HIDE_MENU_UPGRADES, MenuSections.switchFor("UPSELL"));
         assertSame(Settings.HIDE_MENU_ALSO_FROM_META, MenuSections.switchFor("PRODUCTS_FROM_FACEBOOK"));
+        assertSame(Settings.HIDE_MENU_HELP, MenuSections.switchFor("HELP"));
+    }
+
+    /**
+     * Help and support stays until its own switch is on (issue #224), then both of its sections
+     * build nothing, it's counted under its Menu title, and it waits for a restart like the others.
+     */
+    @Test
+    public void helpAndSupportGoesOnlyByItsOwnSwitch() {
+        assertFalse("the Help and support switch starts off", Settings.HIDE_MENU_HELP.get());
+        assertFalse(MenuSections.hideSection(Group.HELP));
+        assertFalse(MenuSections.hideServerSection(Group.HELP));
+
+        Settings.HIDE_MENU_HELP.save(true);
+        assertTrue(MenuSections.hideSection(Group.HELP));
+        assertTrue(MenuSections.hideServerSection(Group.HELP));
+        assertFalse("Settings and privacy went with it", MenuSections.hideSection(Group.SETTINGS));
+        assertTrue("an open Menu keeps Help and support until Facebook restarts", Settings.HIDE_MENU_HELP.rebootApp);
+        // The native section was asked about Help and support twice, once with the switch off.
+        assertEquals(MenuSections.ROUTE + ": 3 lists, 3 items, 1 removed. Last reason: " + MenuSections.HELP_HIDDEN
+                        + ". Removed: " + MenuSections.HELP_HIDDEN + " 1. Kinds: HELP 2, SETTINGS 1",
+                line(FeedFilterCounters.report(), MenuSections.ROUTE));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("paused, Help and support comes back", MenuSections.hideSection(Group.HELP));
+    }
+
+    /**
+     * Settings and privacy folds up as Facebook has it until Keep Settings and privacy expanded is
+     * on, then it reads as open whatever its state says (issue #224). No other group, nothing but
+     * an enum, a pause or settings that aren't ready ever changes a group's own state.
+     */
+    @Test
+    public void onlySettingsAndPrivacyIsKeptOpenAndOnlyByItsSwitch() {
+        assertFalse("the switch starts off", Settings.KEEP_MENU_SETTINGS_EXPANDED.get());
+        assertTrue("off, a folded Settings and privacy stays folded", MenuSections.collapsed(true, Group.SETTINGS));
+        assertFalse(MenuSections.collapsed(false, Group.SETTINGS));
+
+        Settings.KEEP_MENU_SETTINGS_EXPANDED.save(true);
+        assertFalse("on, Settings and privacy is open", MenuSections.collapsed(true, Group.SETTINGS));
+        assertFalse(MenuSections.collapsed(false, Group.SETTINGS));
+        for (Group group : Group.values()) {
+            if (group == Group.SETTINGS) continue;
+            assertTrue(group + " was opened", MenuSections.collapsed(true, group));
+            assertFalse(group + " was folded", MenuSections.collapsed(false, group));
+        }
+        assertTrue("a title isn't a group", MenuSections.collapsed(true, "SETTINGS"));
+        assertTrue(MenuSections.collapsed(true, null));
+        assertTrue("an open Menu keeps its state until Facebook restarts", Settings.KEEP_MENU_SETTINGS_EXPANDED.rebootApp);
+
+        boolean[] collapsed = {false};
+        SettingsContextRule.withoutContext(() -> collapsed[0] = MenuSections.collapsed(true, Group.SETTINGS));
+        assertTrue("until the settings are ready, the state is Facebook's", collapsed[0]);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertTrue("paused, the state is Facebook's", MenuSections.collapsed(true, Group.SETTINGS));
     }
 
     /**

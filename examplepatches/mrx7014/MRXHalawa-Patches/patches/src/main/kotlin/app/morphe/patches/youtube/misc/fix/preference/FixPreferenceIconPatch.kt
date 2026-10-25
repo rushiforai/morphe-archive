@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -29,7 +29,7 @@ private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/FixPreferenceIconPatch;"
 
 /**
- * Fixes https://github.com/mrx7014/MRXHalawa-Patches/issues/1117.
+ * Fixes https://github.com/MorpheApp/morphe-patches/issues/1117.
  */
 internal val fixPreferenceIconPatch = bytecodePatch{
     dependsOn(

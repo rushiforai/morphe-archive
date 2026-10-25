@@ -82,7 +82,8 @@ $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $source -Trust
 if ($built -ne $true) { throw "The assets aren't ready: $built. Run release.ps1 -Stage build first." }
 # Nothing goes public until the whole app has been walked with this exact bundle.
 if (-not $Walk) { throw '-Walk names the walk-receipt.json a whole-app walk of this bundle left on a release phone or an emulator.' }
-$walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets "patches-$Version.mpp")
+$walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets "patches-$Version.mpp") `
+    -PatchList (Join-Path $Root 'patches-list.json')
 if (-not $walked.Valid) {
     throw ("The whole-app walk doesn't back patches-$Version.mpp, so nothing was published: $($walked.Reason). " +
         'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')

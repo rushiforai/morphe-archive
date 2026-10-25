@@ -201,12 +201,15 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.advancedDownloadsEnabled || SettingsStatus.downloadEnabled) {
             addPreference(new SectionHeadingPreference(context, "Photos and stickers"));
             addPreference(new TogglePreference(context, "Keep photos as TikTok sent them",
-                    "Saved photos, covers and story photos stay HEIF or WebP instead of becoming a JPEG. "
-                            + "Some galleries and computers can't open those.", Settings.KEEP_PHOTOS_AS_SENT));
+                    "Saved photos, covers, story photos and stickers that don't move are the exact "
+                            + "files TikTok sent, not a new JPEG or PNG. Some galleries and computers "
+                            + "can't open HEIF or WebP.", Settings.KEEP_PHOTOS_AS_SENT));
         }
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new TogglePreference(context, "Download original photos",
-                    "Save every photo in the post at full size as a JPEG, not as the screen shows it.", Settings.DOWNLOAD_ORIGINAL_PHOTOS));
+                    "Save every photo in the post at full size, not as the screen shows it. Each "
+                            + "one is a JPEG unless Keep photos as TikTok sent them is on.",
+                    Settings.DOWNLOAD_ORIGINAL_PHOTOS));
             addPreference(new TogglePreference(context, "Save photo posts as a video",
                     "On a one-photo post, Download video makes an MP4 with the post's sound and "
                             + "no TikTok logo or end card. On a post with several photos, "

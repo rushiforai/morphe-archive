@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -51,6 +51,11 @@ val featureFlagHookPatch = bytecodePatch(
     }
 }
 
+/**
+ * ## Important
+ * Hooked code must check if context is set or not, as this hook can be called before
+ * the main activity has launched.
+ */
 internal fun hookFeatureFlag(descriptor: String) = featureFlagMethod.get()!!.addInstructions(
     2,
     """

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -59,7 +59,7 @@ public final class SponsorBlockHelpers {
     }
 
     public static boolean isValidSBUserID(@NonNull String userID) {
-        return !userID.isEmpty() && userID.length() >= SB_PRIVATE_USER_ID_MINIMUM_LENGTH;
+        return userID.length() >= SB_PRIVATE_USER_ID_MINIMUM_LENGTH;
     }
 
     /**

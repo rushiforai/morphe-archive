@@ -355,6 +355,31 @@ public class ReelsAdFilterTest {
     }
 
     /**
+     * The feed's Reels row draws its ad tiles from a second pool (#216). Its vends ask on the same
+     * switch, counted apart, so a report tells which pool was asked.
+     */
+    @Test
+    public void theFeedRowPoolIsHeldOnTheSameSwitchAndCountedApart() {
+        HookStatus.clear();
+        try {
+            assertTrue(ReelsAdFilter.holdRowAd());
+            Settings.HIDE_SPONSORED_REELS.save(false);
+            assertFalse(ReelsAdFilter.holdRowAd());
+
+            String line = null;
+            for (String candidate : HookStatus.report()) {
+                if (candidate.startsWith("Hide sponsored reels:")) line = candidate;
+            }
+            assertNotNull(String.join("\n", HookStatus.report()), line);
+            assertTrue(line, line.contains("invoked 2"));
+            assertTrue(line, line.contains(ReelsAdFilter.ROW_POOL_HELD + " 1"));
+            assertFalse(line, line.contains(ReelsAdFilter.POOL_HELD + " "));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
      * A profile's Reels tab asks before it sends the query for its own ads. On, each ask is held and
      * counted; off, the query goes out as Facebook wrote it.
      */

@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -120,8 +121,9 @@ internal fun BytecodePatchContext.reactTextSpan(): String {
     } ?: throw PatchException("$REACT_TEXT_MANAGER implements no single (Spannable)V callback")
 
     val builders = mutableListOf<Method>()
-    classDefForEach { classDef: ClassDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // A builder takes the callback.
+    classDefForEachReferencing(types = listOf(callback)) { classDef: ClassDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         classDef.methods.filterTo(builders) { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == SPANNABLE &&
                 method.parameterTypes.any { it.toString() == callback }

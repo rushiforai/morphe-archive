@@ -75,8 +75,11 @@ object NuvioStreamPreload {
     }
 
     @JvmStatic fun registerComponent(value: Any) {
+        val started = System.nanoTime()
+        Log.d(TAG, "Startup begin: stage=streams.component thread=${Thread.currentThread().name}")
         component = value
         Log.d(TAG, "Stream preload runtime ready")
+        Log.d(TAG, "Startup end: stage=streams.component elapsedMs=${(System.nanoTime() - started) / 1_000_000}")
     }
 
     private suspend fun search(target: StreamPreloadQueue.Target, valid: () -> Boolean = { true }): Boolean {
@@ -154,7 +157,7 @@ object NuvioStreamPreload {
     @JvmStatic fun observeNextEpisode(model: Any) {
         try {
             @Suppress("UNCHECKED_CAST")
-            val flow = get(model, "f") as StateFlow<Any>
+            val flow = get(model, NuvioNative.PLAYER_STATE_METHOD) as StateFlow<Any>
             // Beta7 ub.q reads controller k8.T for the native request type.
             val requestType = field(field(model, "Y")!!, "T") as? String
             synchronized(nextObservers) {

@@ -31,7 +31,8 @@ private class RuntimePlayerState(@JvmField val C0: String, @JvmField val v1: Run
 private class RuntimePlayerController { @JvmField val T: String = "SERIES" }
 private class RuntimePlayerModel(private val flow: MutableStateFlow<RuntimePlayerState>) {
     @JvmField val Y = RuntimePlayerController()
-    fun f(): StateFlow<RuntimePlayerState> = flow
+    fun e(): StateFlow<RuntimePlayerState> = flow
+    fun f(): Unit = error("Void player action must never be invoked to read state")
 }
 private class RuntimePluginRequest(@JvmField val o: RuntimeRepository, @JvmField val p: String,
                                   @JvmField val q: String, @JvmField val r: Int?, @JvmField val s: Int?)

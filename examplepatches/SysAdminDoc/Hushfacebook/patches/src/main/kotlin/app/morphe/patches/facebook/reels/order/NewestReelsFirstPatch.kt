@@ -67,7 +67,10 @@ val newestReelsFirstPatch = bytecodePatch(
         }
 
         for ((maker, reads) in makers) {
-            mutableClassDefBy(maker.definingClass).findMutableMethodOf(maker).recordAtReturns(reads)
+            val owner = mutableClassDefBy(maker.definingClass)
+            if (owner.methods.any { it.name == EDGE_HELPER }) refuse("${owner.type} already has $EDGE_HELPER")
+            owner.methods.add(edgeHelper(owner.type, reads))
+            owner.findMutableMethodOf(maker).recordAtReturns(reads)
         }
         mutableClassDefBy(rerank.definingClass).findMutableMethodOf(rerank).sortAtReturns(list)
         enableStatus("newestReelsFirst")

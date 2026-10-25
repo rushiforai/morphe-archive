@@ -16,6 +16,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.requireLocals
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -138,8 +139,9 @@ internal fun BytecodePatchContext.hideSearchPill() {
         "$PATCH: expected one component naming $ELEVATED_CTA that renders $PIVOT_VIEW_TAG, found ${components.size}",
     )
     val builders = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE) || classDef.type == component.type) return@classDefForEach
+    // A builder makes the component.
+    classDefForEachReferencing(types = listOf(component.type)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE) || classDef.type == component.type) return@classDefForEachReferencing
         classDef.methods.filter { isPillBuilder(it, component.type) }.forEach { builders += classDef.type to it }
     }
     val (owner, builder) = builders.singleOrNull() ?: throw PatchException(

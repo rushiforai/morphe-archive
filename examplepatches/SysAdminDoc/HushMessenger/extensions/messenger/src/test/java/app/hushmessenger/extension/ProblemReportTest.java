@@ -16,6 +16,18 @@ public class ProblemReportTest {
             ProblemReport.patchedFrom("583.0.0.29.95|346611369|base", false), "samsung", "SM-S901U", "16", 36, false, false, on);
     }
 
+    @Test public void galleryDiagnosticsContainOnlyKnownCategories() {
+        for (String value : new String[] {"RESULT_REVOKED", "RESULT_INVALID", "COMPONENT_MISSING", "PICKER_MISSING", "LAUNCH_FAILED"}) {
+            ProblemReport.Facts facts = new ProblemReport.Facts("0.26.0", "584.0.0.49.98", 346814894L,
+                "584.0.0.49.98 (346814894, base mapping)", "maker", "model", "16", 36, false, false, List.of(), value);
+            assertTrue(ProblemReport.body(facts).contains("Gallery result: " + value + "\n"));
+        }
+        ProblemReport.Facts unsafe = new ProblemReport.Facts("0.26.0", "584.0.0.49.98", 346814894L, "known",
+            "maker", "model", "16", 36, false, false, List.of(), "content://private/account/path\nLAUNCH_FAILED");
+        assertFalse(ProblemReport.body(unsafe).contains("Gallery result:"));
+        assertFalse(ProblemReport.body(unsafe).contains("private"));
+    }
+
     private static String decoded(String url) throws Exception {
         assertTrue(url, url.startsWith(PREFIX));
         return URLDecoder.decode(url.substring(PREFIX.length()), "UTF-8");

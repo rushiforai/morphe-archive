@@ -75,10 +75,10 @@ if (-not $PatchList) { $PatchList = Join-Path $Root 'patches-list.json' }
 if (-not $OutputPath) { $OutputPath = Join-Path $Root "release-receipt-$releaseVersion.json" }
 
 $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
-$patchNames = @($catalog.patches | ForEach-Object { $_.name })
+$expectedTarget = Get-PatchTarget -PatchList $catalog
+$patchNames = @(Get-PackagePatchNames -PatchList $catalog -PackageName $expectedTarget.PackageName)
 if ($patchNames.Count -eq 0) { throw "No patches listed in $PatchList." }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $patchNames)
-$expectedTarget = Get-PatchTarget -PatchList $catalog
 
 $catalogText = Get-Content -LiteralPath (Join-Path $Root 'gradle/libs.versions.toml') -Raw
 $patcherMatch = [regex]::Match($catalogText, '(?m)^\s*morphe-patcher\s*=\s*"([^"]+)"')

@@ -209,7 +209,7 @@ def test_json_bulk_inserts_preserve_versions_and_are_idempotent(tmp_path, monkey
     data = cloud.encode({"name": 'Quotes " \n \u2603', "items": [1, None]}).decode()
     first = [("app", str(i), 1, data, "first") for i in range(435)]
     memory.insert_rows(first)
-    assert memory.inserts == 3
+    assert memory.inserts == 1
     assert memory.sql("SELECT COUNT(*) AS n FROM catalog_records")[0]["n"] == 435
     assert {row["data"] for row in memory.sql("SELECT data FROM catalog_records")} == {data}
     second = [("app", str(i), 2, data, "second") for i in range(435)]

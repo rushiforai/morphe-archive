@@ -27,7 +27,9 @@ public final class LiveRecorder {
     /** How the stream is pulled. */
     public enum Transport {
         FLV,
-        HLS
+        HLS,
+        /** The phone's screen, recorded rather than pulled (#37). */
+        SCREEN
     }
 
     /** Why a recording ended. */

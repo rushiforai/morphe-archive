@@ -24,6 +24,7 @@ import app.morphe.extension.shared.TrieSearch;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.patches.components.BufferPhraseFilter;
+import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.settings.Settings;
 
@@ -193,13 +194,13 @@ public final class BlockChannelsFilter extends BufferPhraseFilter {
     }
 
     @Override
-    protected boolean isActiveForFeedContext() {
+    protected boolean isActiveForFeedContext(ContextInterface contextInterface) {
         return Settings.BLOCK_CHANNELS.get();
     }
 
     @Override
     @Nullable
-    protected String matchBuffer(byte[] buffer, StringFilterGroup matchedGroup) {
+    protected String matchBuffer(byte[] buffer, StringFilterGroup matchedGroup, ContextInterface contextInterface) {
         ByteTrieSearch search = channelSearch;
         if (search == null) return null;
 

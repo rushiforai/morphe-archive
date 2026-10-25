@@ -110,11 +110,22 @@ final class NuvioStreamPreloadPatch {
     }
 
     static void hookPlayer(MutableClass owner) {
+        validatePlayerState(owner);
         if (NuvioNative.PLAYER_MODEL_TYPE.equals(owner.getType()) && owner.getFields().stream().filter(f ->
             f.getName().equals("Y") && f.getType().equals(NuvioNative.PLAYER_CONTROLLER_TYPE)).count() != 1)
             throw NuvioRemainingEpisodesPatch.unsupported("Beta7 native playback controller changed");
         hookReturn(NuvioRemainingEpisodesPatch.unique(owner, "<init>", 53), "observeNextEpisode");
         insert(NuvioRemainingEpisodesPatch.unique(owner, "onCleared", 0), 0, "stopNextEpisode");
+    }
+
+    /** A same-arity void action is not a player-state accessor (beta.8 f() changes controls). */
+    static void validatePlayerState(MutableClass owner) {
+        MutableMethod state = NuvioRemainingEpisodesPatch.unique(owner, NuvioNative.PLAYER_STATE_METHOD, 0);
+        if (!owner.getType().equals(NuvioNative.PLAYER_MODEL_TYPE)
+            || !state.getReturnType().equals("Lkotlinx/coroutines/flow/StateFlow;")
+            || (state.getAccessFlags() & 8) != 0 || state.getImplementation() == null
+            || !NuvioPlaybackButtonsPatch.fingerprint(state).equals(NuvioNative.HASH_PLAYER_STATE_BODY))
+            throw NuvioRemainingEpisodesPatch.unsupported("Native player-state accessor changed");
     }
 
     /** Substitute only this search's pause flow; never unpause the singleton repository. */

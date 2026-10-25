@@ -1,7 +1,10 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
 import app.morphe.extension.tiktok.feedfilter.CreatorExceptionsTest.Item;
@@ -263,6 +266,31 @@ public class FollowingLatestFirstTest {
     @Test
     public void offAsksForTikToksOwnCount() {
         assertEquals(20, FollowingLatestFirst.requestCount(0, 0, 20));
+    }
+
+    @Test
+    public void theSavedFirstVideoIsLeftOutOnlyWithTheSwitchOn() {
+        assertFalse(FollowingLatestFirst.skipSavedFirstVideo());
+
+        FollowingLatestFirst.resetForTests();
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        assertTrue(FollowingLatestFirst.skipSavedFirstVideo());
+    }
+
+    @Test
+    public void pausedKeepsTheSavedFirstVideo() {
+        Settings.FOLLOWING_LATEST_FIRST.save(true);
+        setPaused(true);
+        try {
+            assertFalse(FollowingLatestFirst.skipSavedFirstVideo());
+        } finally {
+            setPaused(false);
+        }
+    }
+
+    private static void setPaused(boolean paused) {
+        ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess",
+                ReflectionHelpers.ClassParameter.from(boolean.class, paused));
     }
 
     private static Item post(String aid, long ageSeconds) {

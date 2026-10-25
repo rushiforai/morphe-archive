@@ -104,6 +104,7 @@ val fullScreenBarsPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("fullScreenBars")
+        fillReelScreen()
         enableStatus("fullScreenBars")
     }
 }

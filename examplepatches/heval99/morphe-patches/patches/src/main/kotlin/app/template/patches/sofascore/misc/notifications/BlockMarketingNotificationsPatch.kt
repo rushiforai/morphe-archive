@@ -83,9 +83,7 @@ private fun BytecodePatchContext.keepGone(type: String) {
 @Suppress("unused")
 val blockMarketingNotificationsPatch = bytecodePatch(
     name = "Block marketing notifications",
-    description = "Blocks in-app promotional prompts, modals, promotion banners and Firebase " +
-        "In-App Messaging popups. Note: this only affects in-app promotions. Match-alert push " +
-        "delivery on re-signed builds needs \"GmsCore support\" with MicroG RE (issue #25)."
+    description = "Blocks promo popups and banners."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 

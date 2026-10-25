@@ -17,8 +17,7 @@ private const val BASE_ACTION_BAR_ACTIVITY = "Lcom/scores365/Design/Activities/B
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables Google Mobile Ads (AdMob) initialization and the app's own ad " +
-            "placements, removing banner, interstitial, rewarded, native and mediated ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_365SCORES)
 

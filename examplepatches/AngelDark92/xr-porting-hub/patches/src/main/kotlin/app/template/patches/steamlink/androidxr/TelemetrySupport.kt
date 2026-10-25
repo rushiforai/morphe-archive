@@ -27,7 +27,7 @@ internal val TELEMETRY_PAYLOAD_SHA256 = linkedMapOf(
     TELEMETRY_LIBRARY to "6420bc2ca1549f70e3a34f4725ae794b3dea0e98eda528f4b762dbaf5cc38b93",
     "libshadowhook.so" to "fc84287eac46e3bade2f7e07e3c9efdca005822e21191d6db5b8cb222d53e8a0",
     "libshadowhook_nothing.so" to "f2cc6a6f94d7361be915daafff1d25b7b3af34972e7308ac540982cfd608bd32",
-    TELEMETRY_MANIFEST to "fc99f5b12bd715d2e16845ddb3c44d9e36009b35c28450b21baf9ad0fda70140",
+    TELEMETRY_MANIFEST to "4c87b76c6a8b39240165ff0b29e60934a5057601c2d7494589d5d7a0aed930b8",
     "NOTICE.txt" to "63204388d1ac7b371e03223fb4910a04fdb41cd67d4f0e0a030d5249d811d7eb",
 )
 

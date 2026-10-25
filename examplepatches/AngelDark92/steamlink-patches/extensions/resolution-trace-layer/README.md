@@ -3,9 +3,11 @@
 The Surface-backed underside experiment is **retired** after the
 user reported "doesn't work" on 2026-09-03. Its option, code, build target and
 bundled helper are removed. No new capture was reviewed; no cause or GPU result is
-claimed. The existing terminal quad remains the recommended path, and both packaged
-helper binaries remain unchanged, including 2.0.20/5001712. Repatch a clean source
-with the current high-resolution patch to return to that path.
+claimed. The existing terminal quad remains the recommended path. The production alpha-1
+helpers remain unchanged for 5001712/5001812/5001968 and the 3-projection builds;
+the optional `Alpha-0 high-resolution trigger (experimental)` patch replaces the
+exact 5001712 helper only when selected. Repatch a clean source with the current
+high-resolution patch to return to that path.
 
 The actual-pixel **Android-Surface Fovea** experiment was also tried and retired
 on 2026-09-07 after the user reported "It's not working." Its code, target and
@@ -19,8 +21,12 @@ implementation and does not need membership changes. Repatch the APK using the u
 
 ## Behavior and scope
 
-- `libgxr_ast_5001712.so`: helper v1.2 for exact Steam Link 2.0.20/5001712
-  (2 native projections plus 1 quad), installed under the same `libgxr_ast.so` name.
+- `libgxr_ast_5001712.so`: production helper v1.2 for exact 2.0.20/5001712,
+  2.0.20/5001812 and 2.0.21/5001968 (2 native projections plus 1 alpha-1/255 quad).
+- `libgxr_ast_5001712_alpha0.so`: optional alpha-0 trial helper for exact
+  2.0.20/5001712 (2 native projections plus 1 fully transparent quad), installed
+  under the same `libgxr_ast.so` name only when the
+  `Alpha-0 high-resolution trigger (experimental)` patch is selected.
 - Other builds retain their existing guards. This update does not add compatibility.
 - Frame lookup uses a generation-validated non-owning thread-local cache. Its hits
   avoid both the map mutex and shared-pointer ownership RMWs. Session creation,
@@ -29,8 +35,10 @@ implementation and does not need membership changes. Repatch the APK using the u
   a frame. The generation check is not a concurrent memory reclamation algorithm.
 - Event processing retains shared ownership and reads event bytes only on
   `XR_SUCCESS`, never on `XR_EVENT_UNAVAILABLE` or errors.
-- The quad remains submitted on every eligible frame. Buffer content, size, alpha,
-  projection pointers/order, source formats, and GPU behavior are unchanged.
+- The quad remains submitted on every eligible frame. The optional alpha-0 patch
+  changes only the 2x2 buffer's alpha byte (0 instead of 1/255) on exact 5001712;
+  size, projection pointers/order, source formats, and GPU behavior are unchanged.
+  The alpha-1 payloads remain byte-identical.
 
 No speedup or new headset validation is claimed from local tests. In particular, a
 CPU change does not establish lower runtime GPU composition cost or improved 10-bit output.

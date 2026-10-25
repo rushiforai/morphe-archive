@@ -8,10 +8,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_EASYNOTES
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks the VIP-only fonts, note backgrounds, stickers and drawing tools. " +
-        "The app checks entitlement entirely locally — there is no license server — so forcing " +
-        "the App.isVip() gate to return true unlocks everything, and stays unlocked even though " +
-        "BillingManager resets the underlying purchase flags from Play on every startup."
+    description = "Unlocks VIP features."
 ) {
     compatibleWith(COMPATIBILITY_EASYNOTES)
 

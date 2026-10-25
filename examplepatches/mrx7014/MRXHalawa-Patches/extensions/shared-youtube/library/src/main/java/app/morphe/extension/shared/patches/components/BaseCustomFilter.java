@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -289,7 +289,7 @@ public abstract class BaseCustomFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
@@ -305,7 +305,7 @@ public abstract class BaseCustomFilter extends Filter {
 
         // Check for extra path components.
         for (String component : custom.extraPathComponents) {
-            if (!path.contains(component)) {
+            if (!Utils.contains(path, component)) {
                 return false;
             }
         }

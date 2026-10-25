@@ -32,7 +32,7 @@ private val MEASUREMENT_LOG_EVENT_PARAMETERS = listOf(
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables AppsFlyer event logging, app-logged Firebase Analytics events and Crashlytics exception reporting."
+    description = "Disables analytics and crash reporting."
 ) {
     compatibleWith(COMPATIBILITY_BOXBOX)
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -10,7 +10,6 @@ package app.morphe.patches.youtube.misc.spoof.appversion
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.spoof.appversion.baseSpoofAppVersionPatch
 import app.morphe.patches.youtube.misc.contexthook.Endpoint
@@ -20,6 +19,7 @@ import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_20_40_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_05_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_13_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -36,8 +36,14 @@ val spoofAppVersionPatch = baseSpoofAppVersionPatch(
     defaultTargetString = { "20.13.41" },
     preferenceScreen = PreferenceScreen.GENERAL,
     listPreference = {
-        if (is_20_40_or_greater) {
+        if (is_21_13_or_greater) {
             ListPreference("morphe_spoof_app_version_target")
+        } else if (is_20_40_or_greater) {
+            ListPreference(
+                key = "morphe_spoof_app_version_target",
+                entriesKey = "morphe_spoof_app_version_target_legacy_20_40_entries",
+                entryValuesKey = "morphe_spoof_app_version_target_legacy_20_40_entry_values"
+            )
         } else if (is_20_31_or_greater) {
             ListPreference(
                 key = "morphe_spoof_app_version_target",
@@ -54,8 +60,7 @@ val spoofAppVersionPatch = baseSpoofAppVersionPatch(
     },
     block = {
         dependsOn(
-            resourceMappingPatch,
-            sharedExtensionPatch,
+                sharedExtensionPatch,
             settingsPatch,
             versionCheckPatch,
             clientContextHookPatch
@@ -86,7 +91,7 @@ val spoofAppVersionPatch = baseSpoofAppVersionPatch(
 
         /**
          * Fix Shorts no overlay.
-         * See: https://github.com/mrx7014/MRXHalawa-Patches/issues/183.
+         * See: https://github.com/MorpheApp/morphe-patches/issues/183.
          */
         if (is_21_05_or_greater) {
             // YouTube 20.05+ has removed the code for the old Shorts overlay.

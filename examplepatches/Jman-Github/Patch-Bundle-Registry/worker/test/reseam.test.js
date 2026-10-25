@@ -169,3 +169,72 @@ test("legacy Reseam compact indexes support app filters and canonical responses"
     assert.equal(bundles.body.data[0].bundle_type, "Reseam");
   }
 });
+
+
+test("official Reseam Manager JSON uses the API native index for selected releases", async () => {
+  const original = fixture();
+  const source = { ...JSON.parse(original.bodies["sources.json"])[0],
+    url: "https://git.reseam.app/reseam/patches", host: "git.reseam.app",
+    namespace: "reseam", repo: "patches" };
+  const publisher = { name: "reseam-patches", public_key: "a".repeat(64) };
+  const stable = { ...original.bundle, version: "v0.45.0", bundle_type: "Reseam",
+    reseam_bundle: publisher };
+  const dev = { ...original.dev, version: "v0.46.0-dev.1", bundle_type: "Reseam",
+    reseam_bundle: publisher };
+  // Exercise a pinned historical version whose catalog version lacks the v prefix.
+  const historical = { ...stable, id: "e".repeat(24), legacy_id: 3, version: "0.34.0",
+    is_latest: false, channels: [] };
+  const state = fixture({ "sources.json": [source], "bundles.json": [stable, dev, historical],
+    ["bundles/" + stable.id + ".json"]: stable, ["bundles/" + dev.id + ".json"]: dev,
+    ["bundles/" + historical.id + ".json"]: historical });
+  let index;
+  let status = 200;
+  const requested = [];
+  state.env.RESEAM_RELEASE_FETCH = async (url, options) => {
+    requested.push(url);
+    assert.equal(options.redirect, "manual");
+    if (new URL(url).hostname === "api.reseam.app")
+      return Response.redirect(url.replace("api.reseam.app", "cdn.reseam.app"), 302);
+    return Response.json(index, { status });
+  };
+  for (const [selected, pinned] of [[stable, false], [dev, false], [historical, true]]) {
+    const tag = "v" + selected.version.replace(/^v/, "");
+    index = { bundle: publisher, releases: [{
+      version: tag.slice(1), created_at: selected.created_at, description: "Native notes",
+      download_url: "https://api.reseam.app/patches/" + tag + "/reseam-patches.reseam",
+      prerelease: selected.is_prerelease,
+      patches: [{ id: "original.patch.id", compatibility: { kind: "universal" } }]
+    }] };
+    const card = { bundleType: "Reseam", sourceUrl: source.url, version: selected.version,
+      isPrerelease: selected.is_prerelease };
+    const path = reseamNativeImportPath(card, pinned);
+    const result = await call(state, path);
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body, index);
+    assert.deepEqual(requested.slice(-2), [
+      "https://api.reseam.app/patches/" + tag + "/patches.json",
+      "https://cdn.reseam.app/patches/" + tag + "/patches.json"
+    ]);
+    index = { ...index, bundle: { ...publisher, public_key: "b".repeat(64) } };
+    assert.equal((await call(state, path)).status, 502);
+    index = { ...index, bundle: publisher,
+      releases: [{ ...index.releases[0], version: "9.9.9" }] };
+    assert.equal((await call(state, path)).status, 502);
+    status = 404;
+    assert.equal((await call(state, path)).status, 404);
+    status = 200;
+  }
+  const path = reseamNativeImportPath({ bundleType: "Reseam", sourceUrl: source.url,
+    version: stable.version, isPrerelease: false }, true);
+  for (const destination of ["https://untrusted.example/patches.json",
+    "http://cdn.reseam.app/patches.json", "https://cdn.reseam.app:8443/patches.json",
+    "https://user:secret@cdn.reseam.app/patches.json"]) {
+    const attempts = [];
+    state.env.RESEAM_RELEASE_FETCH = async url => {
+      attempts.push(url);
+      return Response.redirect(destination, 302);
+    };
+    assert.equal((await call(state, path)).status, 503);
+    assert.equal(attempts.length, 1);
+  }
+});

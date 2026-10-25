@@ -23,8 +23,7 @@ internal val SPONSORED_SETTINGS = listOf(
 @Suppress("unused")
 val hideSponsoredContentPatch = bytecodePatch(
     name = "Hide sponsored content",
-    description = "Hides the sponsored shortcuts on the home screen, sponsored stories and sponsored Firefox " +
-        "Suggest results in the address bar. Regular stories, shortcuts and suggestions stay.",
+    description = "Hides sponsored shortcuts, stories and suggestions.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

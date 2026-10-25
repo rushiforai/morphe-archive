@@ -8,9 +8,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Duplila Premium: no watermark, the higher mirroring resolution and " +
-        "the other premium-only actions. Premium is checked on the device only; the license " +
-        "check is disabled as well so the patched app starts."
+    description = "Unlocks Premium features."
 ) {
     compatibleWith(COMPATIBILITY_DUPLILA)
 

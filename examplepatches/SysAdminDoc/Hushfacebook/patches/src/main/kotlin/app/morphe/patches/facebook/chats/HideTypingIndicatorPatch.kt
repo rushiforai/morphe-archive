@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.shared.redexOriginalName
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 
 /**
  * Keeps Facebook from showing others that you're typing, in chats that open inside Facebook and in
@@ -42,12 +43,16 @@ val hideTypingIndicatorPatch = bytecodePatch(
 internal fun BytecodePatchContext.hideTypingIndicator() {
     val setters = mutableListOf<Pair<String, String>>()
     val runnables = mutableMapOf<String, MutableList<String>>()
+    // The send runnables by their kept name, which reads no code, then the setter, which holds its name.
+    val sends = setOf(CHAT_SEND_TYPING, COMMENT_SEND_TYPING)
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
-        when (val original = redexOriginalName(classDef)) {
-            CHAT_SEND_TYPING, COMMENT_SEND_TYPING -> runnables.getOrPut(original) { mutableListOf() } += classDef.type
-            else -> classDef.methods.filter(::isMailboxTypingSetter).forEach { setters += classDef.type to it.name }
-        }
+        val original = redexOriginalName(classDef) ?: return@classDefForEach
+        if (original in sends) runnables.getOrPut(original) { mutableListOf() } += classDef.type
+    }
+    classDefForEachReferencing(strings = listOf(MAILBOX_TYPING)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES) || redexOriginalName(classDef) in sends) return@classDefForEachReferencing
+        classDef.methods.filter(::isMailboxTypingSetter).forEach { setters += classDef.type to it.name }
     }
 
     val (owner, name) = setters.singleTypingTarget("Mailbox typing setter holding \"$MAILBOX_TYPING\"")

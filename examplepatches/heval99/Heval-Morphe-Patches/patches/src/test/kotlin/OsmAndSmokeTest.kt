@@ -6,6 +6,7 @@ import java.io.File
 private const val PKG = "net.osmand"
 private const val HELPER = "Lnet/osmand/plus/inapp/InAppPurchaseHelper;"
 private const val HELPER_IMPL = "Lnet/osmand/plus/inapp/InAppPurchaseHelperImpl;"
+private const val PURCHASE_UTILS = "Lnet/osmand/plus/inapp/InAppPurchaseUtils;"
 
 class OsmAndSmokeTest {
 
@@ -25,7 +26,7 @@ class OsmAndSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "5.4.10",
+            version = "5.4.11",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -48,5 +49,11 @@ class OsmAndSmokeTest {
         )) {
             assertForcedBoolean(gates.method(name), expected = true, label = "InAppPurchaseHelperImpl.$name()")
         }
+
+        // Android Auto's own gate (otherwise only open for 10 days after install/update).
+        assertForcedBoolean(
+            klass(PURCHASE_UTILS).method("isAndroidAutoAvailable", listOf("Lnet/osmand/plus/OsmandApplication;")),
+            expected = true, label = "InAppPurchaseUtils.isAndroidAutoAvailable(OsmandApplication)",
+        )
     }
 }

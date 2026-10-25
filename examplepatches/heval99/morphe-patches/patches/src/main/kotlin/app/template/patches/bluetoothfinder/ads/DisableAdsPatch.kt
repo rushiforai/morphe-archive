@@ -12,7 +12,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_BLUETOOTH_FINDER
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner and interstitial ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_BLUETOOTH_FINDER)
 

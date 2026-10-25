@@ -77,6 +77,22 @@ private object TemplateFeedCrackingInterceptFingerprint : Fingerprint(
     parameters = listOf("Lcom/bytedance/retrofit2/intercept/Interceptor${'$'}Chain;"),
 )
 
+private object PglSignatureCheckFingerprint : Fingerprint(
+    definingClass = "Lcom/pgl/ssdk/t;",
+    name = "g",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+private object PglSignatureValidateFingerprint : Fingerprint(
+    definingClass = "Lcom/pgl/ssdk/t;",
+    name = "d",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = listOf(),
+)
+
 @Suppress("unused")
 val capcutBypassSignaturePatch = bytecodePatch(
     name = "Bypass Signature Check",
@@ -157,6 +173,21 @@ val capcutBypassSignaturePatch = bytecodePatch(
         )
         patched++
 
-        println("[Bypass Signature Check] Applied $patched hooks -> APK signature spoofed to official, tamper gates disabled, cracking verdict persistence and security dialog render stubbed, template-feed cracking interceptor neutralized.")
+        PglSignatureCheckFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+        patched++
+
+        PglSignatureValidateFingerprint.method.addInstructions(
+            0,
+            "return-void",
+        )
+        patched++
+
+        println("[Bypass Signature Check] Applied $patched hooks -> APK signature spoofed to official, tamper gates disabled, cracking verdict persistence and security dialog render stubbed, template-feed cracking interceptor neutralized, PGL signature verification stubbed.")
     }
 }

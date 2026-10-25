@@ -82,8 +82,7 @@ private val disableWebAdsPatch = rawResourcePatch {
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes the banner, in-article and interstitial ads, the betting odds banners and the " +
-        "Outbrain recommendations.",
+    description = "Removes all ads.",
 ) {
     compatibleWith(COMPATIBILITY_TRANSFERMARKT)
 

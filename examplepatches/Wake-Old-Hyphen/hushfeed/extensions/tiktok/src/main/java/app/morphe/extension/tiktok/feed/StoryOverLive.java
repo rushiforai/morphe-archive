@@ -15,7 +15,8 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
- * Opens a creator's Story from the picture on their profile while they're LIVE (#233).
+ * Opens a creator's Story from the picture on their profile, or on their chat in the Inbox, while
+ * they're LIVE (#233).
  *
  * <p>That picture is an AvatarComponentView, which keeps what it shows in a map keyed by an enum
  * (LIVE, STORY and the rest). Its tap asks the map for LIVE first and only then for a story, so a
@@ -24,6 +25,9 @@ import app.morphe.extension.tiktok.settings.Settings;
  * the map's STORY entry holds TikTok's own story opener, the View.OnClickListener the picture
  * runs when no LIVE wins, and it's handed the tapped view. The next tap on the same picture is
  * left to TikTok, which opens the LIVE, so the LIVE stays one tap away.
+ *
+ * <p>A chat's picture in the Inbox works the same way through {@link #openChatStory}, except that
+ * its tap checks the chat row's LIVE room id instead of the map, so that's where the hook sits.
  *
  * <p>The enum and the story state are renamed every build, so both are found by what they hold:
  * the enum constants keep their names, and the state's opener is its one field that is a
@@ -47,19 +51,46 @@ public final class StoryOverLive {
             if (!Settings.OPEN_STORY_OVER_LIVE.get() || business == null || avatar == null) {
                 return false;
             }
-            boolean secondTap = storyOpenedFrom.get() == avatar;
-            View.OnClickListener opener = storyOpener(business);
-            if (!storyFirst(holds(business, LIVE), opener != null, secondTap)) {
-                if (secondTap) storyOpenedFrom = new WeakReference<>(null);
-                return false;
-            }
-            opener.onClick(avatar);
-            storyOpenedFrom = new WeakReference<>(avatar);
-            return true;
+            return open(business, avatar, holds(business, LIVE));
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not open the Story from the profile picture", ex);
             return false;
         }
+    }
+
+    /**
+     * Called by a chat's picture in the Inbox when the chat row says the creator is LIVE, right
+     * before TikTok opens the LIVE. That row keeps the LIVE in its own field rather than the
+     * picture's map, so the call itself means LIVE, and the map is read off the picture for its
+     * STORY entry. True means the Story opened and the LIVE open is skipped.
+     */
+    public static boolean openChatStory(View avatar) {
+        try {
+            if (!Settings.OPEN_STORY_OVER_LIVE.get() || avatar == null) return false;
+            Map<?, ?> business = business(avatar);
+            return business != null && open(business, avatar, true);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not open the Story from the Inbox", ex);
+            return false;
+        }
+    }
+
+    private static boolean open(Map<?, ?> business, View avatar, boolean live) throws IllegalAccessException {
+        boolean secondTap = storyOpenedFrom.get() == avatar;
+        View.OnClickListener opener = storyOpener(business);
+        if (!storyFirst(live, opener != null, secondTap)) {
+            if (secondTap) storyOpenedFrom = new WeakReference<>(null);
+            return false;
+        }
+        opener.onClick(avatar);
+        storyOpenedFrom = new WeakReference<>(avatar);
+        return true;
+    }
+
+    /** The picture's map of what it shows, from AvatarComponentView's getCurrentActiveBusiness. */
+    static Map<?, ?> business(View avatar) throws ReflectiveOperationException {
+        Object business = avatar.getClass().getMethod("getCurrentActiveBusiness").invoke(avatar);
+        return business instanceof Map ? (Map<?, ?>) business : null;
     }
 
     /**

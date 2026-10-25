@@ -1,11 +1,13 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2763
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2763
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.extension.youtube.patches.utils.requests;
+
+import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
@@ -99,7 +101,7 @@ public final class AiSListSubmitRequest {
                 Logger.printDebug(() -> "Owner profile url has no handle: " + profileUrl);
                 return null;
             }
-            String handle = profileUrl.substring(handleIndex);
+            String handle = Uri.decode(profileUrl.substring(handleIndex));
 
             return isValidHandle(handle) ? handle : null;
         } catch (Exception ex) {
@@ -155,15 +157,27 @@ public final class AiSListSubmitRequest {
      * Mirrors the field rules of the API, which no longer rejects malformed handles itself.
      */
     private static boolean isValidHandle(String handle) {
-        if (handle.length() < 4 || handle.length() > MAX_HANDLE_LENGTH) {
+        final int codePointCount = handle.codePointCount(0, handle.length());
+        if (codePointCount < 4 || codePointCount > MAX_HANDLE_LENGTH) {
             return false;
         }
 
-        for (int i = 1, length = handle.length(); i < length; i++) {
-            final char c = handle.charAt(i);
-            if (!Character.isLetterOrDigit(c) && c != '_' && c != '-' && c != '.') {
+        for (int i = 1; i < handle.length();) {
+            final int codePoint = handle.codePointAt(i);
+            final int type = Character.getType(codePoint);
+
+            if (!Character.isLetterOrDigit(codePoint)
+                    && type != Character.NON_SPACING_MARK
+                    && type != Character.COMBINING_SPACING_MARK
+                    && type != Character.ENCLOSING_MARK
+                    && codePoint != '_'
+                    && codePoint != '-'
+                    && codePoint != '.'
+                    && codePoint != '·') {
                 return false;
             }
+
+            i += Character.charCount(codePoint);
         }
 
         return true;

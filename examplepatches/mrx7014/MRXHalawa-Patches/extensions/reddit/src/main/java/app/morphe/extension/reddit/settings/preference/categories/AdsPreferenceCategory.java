@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -15,6 +15,7 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.reddit.patches.HideAdsPatch;
 import app.morphe.extension.reddit.settings.Settings;
 import app.morphe.extension.reddit.settings.preference.BooleanSettingPreference;
+import app.morphe.extension.shared.Utils;
 
 @SuppressWarnings("deprecation")
 public class AdsPreferenceCategory extends ConditionalPreferenceCategory {
@@ -38,5 +39,7 @@ public class AdsPreferenceCategory extends ConditionalPreferenceCategory {
                 context,
                 Settings.HIDE_POST_ADS
         ));
+
+        Utils.setPreferenceTitlesToMultiLine(this);
     }
 }

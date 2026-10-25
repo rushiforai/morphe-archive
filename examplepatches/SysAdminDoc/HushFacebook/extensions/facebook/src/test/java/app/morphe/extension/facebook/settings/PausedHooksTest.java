@@ -62,6 +62,7 @@ import app.morphe.extension.facebook.chats.OriginalChatMediaForTests;
 import app.morphe.extension.facebook.chats.ReadReceipts;
 import app.morphe.extension.facebook.chats.TypingIndicator;
 import app.morphe.extension.facebook.download.ClipboardLinkForTests;
+import app.morphe.extension.facebook.download.CommentGifForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PhotoSave;
@@ -85,6 +86,7 @@ import app.morphe.extension.facebook.feed.NotificationFooter;
 import app.morphe.extension.facebook.feed.PostDates;
 import app.morphe.extension.facebook.feed.PostPrompts;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
+import app.morphe.extension.facebook.feed.RelatedPosts;
 import app.morphe.extension.facebook.misc.AppLockForTests;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.font.OwnFont;
@@ -135,8 +137,10 @@ import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
 import app.morphe.extension.facebook.profile.ProfileNotesForTests;
 import app.morphe.extension.facebook.reels.DoubleTapLike;
+import app.morphe.extension.facebook.reels.DoubleTapSkip;
 import app.morphe.extension.facebook.reels.OriginalAudio;
 import app.morphe.extension.facebook.reels.ReelGesturesForTests;
+import app.morphe.extension.facebook.reels.FeedVideoHoldForTests;
 import app.morphe.extension.facebook.reels.ReelHold;
 import app.morphe.extension.facebook.reels.ReelHoldForTests;
 import app.morphe.extension.facebook.reels.FeedVideoAlone;
@@ -148,6 +152,7 @@ import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.ReelPrompts;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
+import app.morphe.extension.facebook.reels.TapShowsControls;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.search.PreSearchSectionsForTests;
 import app.morphe.extension.facebook.search.SearchHistory;
@@ -377,7 +382,9 @@ public class PausedHooksTest {
                 // The end of the feed is built without its Find friends card.
                 () -> FindFriendsCard.unit("card") == null,
                 // The search screen draws its For you section as an empty row.
-                PreSearchSectionsForTests::drawsForYouEmpty));
+                PreSearchSectionsForTests::drawsForYouEmpty,
+                // The socket under a post's buttons gets a no for the Related posts list.
+                () -> RelatedPosts.holds(RelatedPosts.PLUGIN)));
         // Each of the feed's two Stories tray adapters, and the composer row's, new to the hook,
         // counts no rows.
         probes.put(PatchFamily.STORIES_TRAY, Arrays.asList(
@@ -510,7 +517,9 @@ public class PausedHooksTest {
                 () -> ReelsAdFilter.holdsAdPill(
                         "com.facebook.feedback.comments.plugins.indicatorpill.reelsadsfloatingcta.ReelsAdsFloatingCtaPlugin"),
                 // A profile's Reels tab sends no query for its ads.
-                ReelsAdFilter::holdProfileReelAds));
+                ReelsAdFilter::holdProfileReelAds,
+                // The feed's Reels row gets no ad tile from its pool.
+                ReelsAdFilter::holdRowAd));
         // A search results page leaves its SEARCH_ADS module out.
         probes.put(PatchFamily.SPONSORED_SEARCH, Collections.singletonList(SearchAdFilterForTests::dropsAnAd));
         // A timeline story with sponsored data isn't drawn on a profile.
@@ -567,6 +576,9 @@ public class PausedHooksTest {
                 () -> !ReelDeclutter.showsSoundButton(true),
                 // And the footer's speaker, when the footer builds it.
                 () -> ReelDeclutter.soundButton(new Object()) == null,
+                // A tile of the feed's Reels row skips its clip and plays to the end.
+                () -> !ReelDeclutter.allowsPreviewClip(true),
+                () -> ReelDeclutter.previewClipEnd(1000) != 1000,
                 // A feed video's player asking for more right after the tap gets none.
                 () -> {
                     FeedVideoAlone.feedVideoTapped();
@@ -593,6 +605,13 @@ public class PausedHooksTest {
                 () -> DoubleTapLike.likeKey("reel") == null,
                 () -> DoubleTapLike.holdBackLike("DOUBLE_TAP"),
                 DoubleTapLike::holdBackTap));
+        // Facebook's double-tap skip test, read as off, is answered on.
+        probes.put(PatchFamily.DOUBLE_TAP_SKIP, Collections.singletonList(() -> DoubleTapSkip.flag(false)));
+        // A reel tap gets the controls in place of the pause, they stay up longer, and the unified player hides them.
+        probes.put(PatchFamily.TAP_SHOWS_CONTROLS, Arrays.asList(
+                () -> TapShowsControls.showControls(false),
+                () -> TapShowsControls.hideDelay(1000L) != 1000L,
+                () -> !TapShowsControls.skipHide(true)));
         // A double tap on a reel opens its comments in place of a like, a long press does too, and neither
         // a heart plays nor a like from a double tap is sent while the first switch is on.
         probes.put(PatchFamily.REEL_GESTURES, Arrays.asList(
@@ -615,7 +634,9 @@ public class PausedHooksTest {
                     ReelHold.held();
                     return ReelHold.release(false);
                 }),
-                ReelHoldForTests::putsBackTheSpeedBeforeAHold));
+                ReelHoldForTests::putsBackTheSpeedBeforeAHold,
+                // With Hold a feed video for 2x on, a finger down starts timing a hold.
+                FeedVideoHoldForTests::startsTiming));
         // A speed picked on a reel is set on the next reel the viewer starts, and one picked on a
         // feed video on the next feed video.
         probes.put(PatchFamily.KEEP_REEL_SPEED, Arrays.asList(ReelSpeedForTests::keepsAPickedSpeed,
@@ -688,10 +709,12 @@ public class PausedHooksTest {
                 VideoMenuItemForTests::addsTheOpenItem,
                 PlayerSourcesForTests::recordsAVideoPlayer,
                 ClipboardLinkForTests::readsTheClipboard));
-        // Every photo the viewer opens offers Save photo, and a photo post's menu gets Save photo.
+        // Every photo the viewer opens offers Save photo, a photo post's menu gets Save photo, and a
+        // GIF comment's sheet gets Save GIF.
         probes.put(PatchFamily.PHOTO_DOWNLOAD, Arrays.asList(
                 () -> PhotoSave.offersSave(false),
-                PhotoMenuItemForTests::addsAnItem));
+                PhotoMenuItemForTests::addsAnItem,
+                CommentGifForTests::addsARow));
         // A start from the launcher icon asks Facebook for the chosen tab.
         probes.put(PatchFamily.START_TAB, Collections.singletonList(StartTabRouteForTests::routes));
         // Home's request for its feed goes out for the most recent feed.
@@ -811,14 +834,17 @@ public class PausedHooksTest {
                 MessengerHandoffForTests::dropsARing,
                 MessengerHandoffForTests::dropsAMessage,
                 MessengerHandoffForTests::dropsAChatPush));
-        // The Menu's Upgrades and Also from Meta groups build nothing, in the section Facebook
-        // draws and in the one carrying what the server sends, and the side panel and the Menu page
-        // get Facebook's own Menu instead of the Bloks one.
+        // The Menu's Upgrades, Also from Meta and Help and support groups build nothing, in the
+        // section Facebook draws and in the one carrying what the server sends, Settings and privacy
+        // builds open, and the side panel and the Menu page get Facebook's own Menu instead of the
+        // Bloks one.
         probes.put(PatchFamily.MENU_PROMOTIONS, Arrays.asList(
                 MenuSectionsForTests::hidesUpgrades,
                 MenuSectionsForTests::hidesAlsoFromMeta,
                 MenuSectionsForTests::hidesServerUpgrades,
                 MenuSectionsForTests::hidesServerAlsoFromMeta,
+                MenuSectionsForTests::hidesHelp,
+                MenuSectionsForTests::keepsSettingsOpen,
                 () -> !MenuPanel.bloksPanel(true),
                 () -> !MenuPanel.bloksMenu(true)));
         // Edits' header flag and both shapes of its pill request, the Threads cross-posting

@@ -167,9 +167,8 @@ public class BuildDetailsTest {
         assertUnknown(record.replace("47.5.3", "47.4.3").replace("2024705030", "2024704030"));
         assertUnknown(record.replace("47.5.3", "47.1.4").replace("2024705030", "2024701040"));
         assertUnknown(record.replace("com.zhiliaoapp.musically", "com.ss.android.ttmd.video")
-                .replace("47.5.3", "47.1.4").replace("2024705030", "2024701040"));
-        // PineDrama (#156) stays on 47.4.3 under its own package while TikTok moved to 47.5.3, and another package is not declared.
-        assertUnknown(record.replace("com.zhiliaoapp.musically", "com.ss.android.ttmd.video"));
+                .replace("47.5.3", "47.4.3").replace("2024705030", "2024704030"));
+        // PineDrama (#156) shares TikTok's 47.5.3 version and code under its own package; another package is not declared.
         assertUnknown(record.replace("com.zhiliaoapp.musically", "com.example.other"));
     }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -37,6 +37,12 @@ public final class HidePlayerOverlayButtonsPatch {
 
     private static final boolean HIDE_AUTOPLAY_BUTTON_ENABLED = Settings.HIDE_AUTOPLAY_BUTTON.get();
     private static final Boolean HIDE_FULLSCREEN_BUTTON_ENABLED = Settings.HIDE_FULLSCREEN_BUTTON.get();
+
+    /**
+     * Container of the captions button of the inline player of the feed.
+     */
+    private static final int INLINE_CAPTIONS_BUTTON_CONTAINER_ID =
+            ResourceUtils.getIdentifier(ResourceType.ID, "caption_toggle_container");
 
     private static final int CONTROL_BUTTONS_BACKGROUND_OPACITY =
             SeekBarPreference.clampToRange(Settings.PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY);
@@ -92,7 +98,15 @@ public final class HidePlayerOverlayButtonsPatch {
     public static void hideCaptionsButton(ImageView imageView) {
         if (imageView == null) return;
 
-        imageView.setVisibility(Settings.HIDE_CAPTIONS_BUTTON.get() ? ImageView.GONE : ImageView.VISIBLE);
+        final boolean hide = Settings.HIDE_CAPTIONS_BUTTON.get();
+        imageView.setVisibility(hide ? ImageView.GONE : ImageView.VISIBLE);
+
+        // The inline player of the feed (feed autoplay) shows the button over a round background
+        // of its container, which would stay as an empty button.
+        if (hide && imageView.getParent() instanceof View container
+                && container.getId() == INLINE_CAPTIONS_BUTTON_CONTAINER_ID) {
+            container.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -185,6 +199,7 @@ public final class HidePlayerOverlayButtonsPatch {
             // Each button is an ImageView with a background set to another drawable.
             if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
                 forEachImageViewRecursive(rootView, imageView -> imageView.setBackground(null));
+                stylePillBackgrounds(rootView);
             } else if (CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED) {
                 forEachImageViewRecursive(rootView, imageView -> {
                     Drawable background = imageView.getBackground();
@@ -252,6 +267,12 @@ public final class HidePlayerOverlayButtonsPatch {
 
             Drawable background = pill.getBackground();
             if (background == null) return;
+
+            if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
+                pill.setBackground(null);
+                backgroundSnapshot = null;
+                return;
+            }
 
             // A null state cannot be tracked, so fall through and rely on mutate() being idempotent.
             Drawable.ConstantState state = background.getConstantState();

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -12,28 +12,28 @@ package app.morphe.extension.youtube.patches;
 
 import android.icu.text.NumberFormat;
 
-import java.util.Locale;
-
 import androidx.annotation.GuardedBy;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.ExoPlayerInterface;
 import app.morphe.extension.shared.patches.components.ContextInterface;
+import app.morphe.extension.youtube.patches.originaltitles.RestoreOriginalTitlesPatch;
+import app.morphe.extension.youtube.patches.playback.speed.RememberPlaybackSpeedPatch;
 import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTranslationPatch;
+import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.Event;
 import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.ShortsPlayerState;
 import app.morphe.extension.youtube.shared.VideoState;
-import app.morphe.extension.youtube.patches.playback.speed.RememberPlaybackSpeedPatch;
-import app.morphe.extension.youtube.settings.Settings;
 
 /**
  * Hooking class for the current playing video.
@@ -54,14 +54,6 @@ public final class VideoInformation {
     public interface PlaybackSpeedMenuInterface {
         // Method is added during patching.
         void patch_setSpeed(float speed);
-    }
-
-    /**
-     * Interface to use obfuscated methods.
-     */
-    public interface ExoPlayerImpl {
-        // Method is added during patching.
-        void patch_setPlaybackParameters(float speed, float pitch);
     }
 
     /**
@@ -118,18 +110,42 @@ public final class VideoInformation {
      */
     private static final String SHORTS_PLAYER_PARAMETERS = "8AEB";
 
-    private static WeakReference<PlaybackController> playerControllerRef = new WeakReference<>(null);
     private static WeakReference<PlaybackController> mdxPlayerDirectorRef = new WeakReference<>(null);
-    private static WeakReference<ExoPlayerImpl> exoPlayerImplRef = new WeakReference<>(null);
-    private static String channelId = "";
-    private static String channelName = "";
-    private static String videoId = "";
-    private static long videoLength = 0;
+    private static WeakReference<ExoPlayerInterface> exoPlayerImplRef = new WeakReference<>(null);
+
+    /**
+     * Information of the video loaded by one of the two players.
+     */
+    private static final class PlayerVideo {
+        WeakReference<PlaybackController> playerControllerRef = new WeakReference<>(null);
+        String channelId = "";
+        String channelName = "";
+        String videoTitle = "";
+        String videoId = "";
+        String playlistId = "";
+        long videoLength = 0;
+        /**
+         * If the video ID of the video started by the player controller has been set.
+         */
+        boolean videoIdSet;
+    }
+
+    private static final PlayerVideo regularPlayerVideo = new PlayerVideo();
+    private static final PlayerVideo shortsPlayerVideo = new PlayerVideo();
+
+    /**
+     * Controller of a video started while the Shorts player is open, until the player
+     * it belongs to is known.
+     */
+    @Nullable
+    private static WeakReference<PlaybackController> pendingPlayerControllerRef;
 
     private static volatile String playerResponsePlaylistId = "";
     private static volatile String playerResponseVideoId = "";
     private static volatile boolean playerResponseVideoIdIsShort;
     private static volatile boolean videoIdIsShort;
+    private static volatile boolean liveStream;
+    private static volatile String liveStreamVideoId = "";
 
     /**
      * The current playback speed.
@@ -158,6 +174,50 @@ public final class VideoInformation {
      */
     public static final Event<Float> onPlaybackAudioPitchChange = new Event<>();
 
+    /**
+     * The regular player and the Shorts player each keep their own video, so a Short opened while
+     * a regular video is minimized does not replace it once the Shorts player is closed.
+     * A Short opened in the regular player does not open the Shorts player, and a regular video
+     * opened from a Short is maximized above the Shorts player that is still open.
+     *
+     * @return The video of the Shorts player while it is open and in front, otherwise the video
+     *         of the regular player.
+     */
+    private static PlayerVideo getPlayerVideo() {
+        return ShortsPlayerState.isOpen() && !PlayerType.getCurrent().isMaximizedOrFullscreen()
+                ? shortsPlayerVideo
+                : regularPlayerVideo;
+    }
+
+    /**
+     * A regular video opened from a Short starts before the regular player is maximized,
+     * so a video started while the Shorts player is open is assigned to its player
+     * once the information of the video is set.
+     *
+     * @return The player video the information being set belongs to.
+     */
+    private static PlayerVideo getLoadingPlayerVideo() {
+        PlayerVideo playerVideo = getPlayerVideo();
+        if (pendingPlayerControllerRef != null) {
+            startPlayerVideo(playerVideo, pendingPlayerControllerRef);
+            pendingPlayerControllerRef = null;
+        }
+        return playerVideo;
+    }
+
+    private static void startPlayerVideo(
+            PlayerVideo playerVideo,
+            WeakReference<PlaybackController> playerControllerRef
+    ) {
+        playerVideo.playerControllerRef = playerControllerRef;
+        playerVideo.videoLength = 0;
+        playerVideo.channelId = "";
+        playerVideo.channelName = "";
+        playerVideo.videoTitle = "";
+        playerVideo.playlistId = "";
+        playerVideo.videoIdSet = false;
+    }
+
     private static boolean isPatchIncluded() {
         return false;  // Modified during patching.
     }
@@ -169,10 +229,6 @@ public final class VideoInformation {
     private static boolean isPlaybackAudioPitchLinked() {
         return isPlaybackAudioPitchEnabled() && !Settings.PLAYBACK_AUDIO_TIME_STRETCHING.get();
     }
-
-    private static int desiredVideoResolution = AUTOMATIC_VIDEO_QUALITY_VALUE;
-
-    private static boolean qualityNeedsUpdating;
 
     @GuardedBy("itself")
     private static final NumberFormat speedFormatter = NumberFormat.getNumberInstance();
@@ -233,15 +289,18 @@ public final class VideoInformation {
      *
      * @param playerController player controller object.
      */
-    public static void initialize(@NonNull PlaybackController playerController) {
+    public static void initialize(PlaybackController playerController) {
         try {
             Logger.printDebug(() -> "newVideoStarted");
 
-            playerControllerRef = new WeakReference<>(Objects.requireNonNull(playerController));
-            videoLength = 0;
-            channelId = "";
-            channelName = "";
-            String videoTitle = "";
+            WeakReference<PlaybackController> playerControllerRef =
+                    new WeakReference<>(Objects.requireNonNull(playerController));
+            if (ShortsPlayerState.isOpen()) {
+                pendingPlayerControllerRef = playerControllerRef;
+            } else {
+                pendingPlayerControllerRef = null;
+                startPlayerVideo(regularPlayerVideo, playerControllerRef);
+            }
             // playbackSpeed = DEFAULT_PLAYBACK_SPEED; // Captured at video start, interferes otherwise.
             playbackSpeedFormattedString = "";
             final float audioPitchOverride = RememberPlaybackSpeedPatch.getPlaybackAudioPitchOverride();
@@ -260,7 +319,6 @@ public final class VideoInformation {
                 playbackAudioPitchNeedsApplying = true;
             }
             playbackAudioPitchFormattedString = "";
-            desiredVideoResolution = AUTOMATIC_VIDEO_QUALITY_VALUE;
             currentQualities = null;
             currentQualityMenuInterface = null;
             setCurrentQuality(null);
@@ -285,21 +343,47 @@ public final class VideoInformation {
     /**
      * Injection point.
      *
-     * @param exoPlayerImpl instance that can set the playback parameters directly.
+     * @param exoPlayerInterface instance that can set the playback parameters directly.
      */
-    public static void initializeExoPlayerImpl(@NonNull ExoPlayerImpl exoPlayerImpl) {
+    public static void initializeExoPlayer(ExoPlayerInterface exoPlayerInterface) {
         try {
-            exoPlayerImplRef = new WeakReference<>(Objects.requireNonNull(exoPlayerImpl));
+            exoPlayerImplRef = new WeakReference<>(Objects.requireNonNull(exoPlayerInterface));
         } catch (Exception ex) {
-            Logger.printException(() -> "Failed to initialize ExoPlayer", ex);
+            Logger.printException(() -> "initializeExoPlayer failure", ex);
         }
+    }
+
+    /**
+     * Injection point.
+     *
+     * @param speed Playback speed the app is setting.
+     * @return Playback speed to use.
+     */
+    public static float overridePlaybackSpeed(float speed) {
+        // Shorts ignore changePlaybackSpeed(), so their speed is forced here instead.
+        return RememberPlaybackSpeedPatch.getPlaybackSpeedInShorts(speed);
+    }
+
+    /**
+     * Injection point.
+     *
+     * @param speed Playback speed the app is setting.
+     * @param pitch Playback pitch the app is setting.
+     * @return Playback pitch to use.
+     */
+    public static float overridePlaybackPitch(float speed, float pitch) {
+        // The app sets its own pitch every time the speed changes, which resets the selected pitch.
+        return isPlaybackAudioPitchEnabled()
+                ? playbackAudioPitch
+                : pitch;
     }
 
     /**
      * Injection point.
      */
     public static void setChannelId(String cId) {
-        channelId = cId != null ? cId : "";
+        String channelId = cId != null ? cId : "";
+        getLoadingPlayerVideo().channelId = channelId;
         Logger.printDebug(() -> "Extracted Channel ID: " + channelId);
         if (!channelId.isEmpty()) {
             onChannelIdChange.invoke(channelId);
@@ -310,13 +394,34 @@ public final class VideoInformation {
      * Injection point.
      */
     public static void setChannelName(String cName) {
-        channelName = cName != null ? cName : "";
+        String channelName = cName != null ? cName : "";
+        getLoadingPlayerVideo().channelName = channelName;
         Logger.printDebug(() -> "Extracted Channel Name: " + channelName);
     }
 
-    @NonNull
+    /**
+     * @return The channel name of the video of the player in front.
+     */
     public static String getChannelName() {
-        return channelName;
+        return getPlayerVideo().channelName;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void setVideoTitle(String title) {
+        String videoTitle = title != null ? title : "";
+        getLoadingPlayerVideo().videoTitle = videoTitle;
+        Logger.printDebug(() -> "Extracted Video Title: " + videoTitle);
+    }
+
+    /**
+     * @return The title of the video of the player in front,
+     *         or the title restored by {@link RestoreOriginalTitlesPatch} if enabled.
+     */
+    public static String getVideoTitle() {
+        PlayerVideo playerVideo = getPlayerVideo();
+        return RestoreOriginalTitlesPatch.getTitle(playerVideo.videoId, playerVideo.videoTitle);
     }
 
     /**
@@ -324,24 +429,31 @@ public final class VideoInformation {
      *
      * @param newlyLoadedVideoId ID of the current video
      */
-    public static void setVideoId(@NonNull String newlyLoadedVideoId) {
-        if (!videoId.equals(newlyLoadedVideoId)) {
+    public static void setVideoId(String newlyLoadedVideoId) {
+        PlayerVideo playerVideo = getLoadingPlayerVideo();
+        playerVideo.videoIdSet = true;
+        // The playlist ID hook is called after the video ID hook of the same player response,
+        // and is skipped for Shorts.
+        if (!playerResponseVideoIdIsShort && newlyLoadedVideoId.equals(playerResponseVideoId)) {
+            playerVideo.playlistId = playerResponsePlaylistId;
+        }
+        if (!playerVideo.videoId.equals(newlyLoadedVideoId)) {
             Logger.printDebug(() -> "New video ID: " + newlyLoadedVideoId);
-            videoId = newlyLoadedVideoId;
+            playerVideo.videoId = newlyLoadedVideoId;
         }
     }
 
     /**
      * @return If the player parameters are for a Short.
      */
-    public static boolean playerParametersAreShort(@NonNull String parameters) {
+    public static boolean playerParametersAreShort(String parameters) {
         return parameters.startsWith(SHORTS_PLAYER_PARAMETERS);
     }
 
     /**
      * Injection point.
      */
-    public static String newPlayerResponseSignature(@NonNull String signature, String videoId, boolean isShortAndOpeningOrPlaying) {
+    public static String newPlayerResponseSignature(String signature, String videoId, boolean isShortAndOpeningOrPlaying) {
         final boolean isShort = playerParametersAreShort(signature);
         playerResponseVideoIdIsShort = isShort;
         if (!isShort || isShortAndOpeningOrPlaying) {
@@ -376,7 +488,7 @@ public final class VideoInformation {
      *
      * @param videoId The ID of the last video loaded.
      */
-    public static void setPlayerResponseVideoId(@NonNull String videoId, boolean isShortAndOpeningOrPlaying) {
+    public static void setPlayerResponseVideoId(String videoId, boolean isShortAndOpeningOrPlaying) {
         if (!playerResponseVideoId.equals(videoId)) {
             Logger.printDebug(() -> "New player response video ID: " + videoId);
             playerResponseVideoId = videoId;
@@ -548,9 +660,20 @@ public final class VideoInformation {
      * @param length The length of the video in milliseconds.
      */
     public static void setVideoLength(final long length) {
-        if (videoLength != length) {
+        // The length is reset when a video starts, and the seekbar reports zero
+        // before the Shorts player opens.
+        if (length == 0) {
+            return;
+        }
+
+        // The seekbar also reports the length of the Short shown while the regular player
+        // is hidden, even right after the Shorts player is closed.
+        PlayerVideo playerVideo = PlayerType.getCurrent().isNoneOrHidden()
+                ? shortsPlayerVideo
+                : getPlayerVideo();
+        if (playerVideo.videoLength != length) {
             Logger.printDebug(() -> "Current video length: " + length);
-            videoLength = length;
+            playerVideo.videoLength = length;
         }
     }
 
@@ -584,7 +707,7 @@ public final class VideoInformation {
             Logger.printDebug(() -> "Seeking to: " + adjustedSeekTime);
 
             // Try regular playback controller first, and it will not succeed if casting.
-            PlaybackController controller = playerControllerRef.get();
+            PlaybackController controller = getPlayerVideo().playerControllerRef.get();
             if (controller == null) {
                 Logger.printDebug(() -> "Cannot seekTo because player controller is null");
             } else {
@@ -631,7 +754,7 @@ public final class VideoInformation {
 
             // 19.39+ does not have a boolean return type for relative seek.
             // But can call both methods, and it works correctly for both situations.
-            PlaybackController controller = playerControllerRef.get();
+            PlaybackController controller = getPlayerVideo().playerControllerRef.get();
             if (controller == null) {
                 Logger.printDebug(() -> "Cannot seek relative as player controller is null");
             } else {
@@ -659,37 +782,53 @@ public final class VideoInformation {
     }
 
     /**
-     * @return The channel ID of the current video.
+     * @return The channel ID of the video of the player in front.
      */
-    @NonNull
     public static String getChannelId() {
-        return channelId;
+        return getPlayerVideo().channelId;
     }
 
     /**
-     * ID of the last video opened. Includes Shorts.
+     * ID of the video of the player in front. Includes Shorts.
      *
      * @return The ID of the video, or an empty string if no videos have been opened yet.
      *         With 21.15+ this returns an empty string if no video is currently opened.
      */
-    @NonNull
     public static String getVideoId() {
-        return videoId;
+        return getPlayerVideo().videoId;
     }
 
     /**
-     * This is the playlistId of the player response, but since Shorts does not support playlists,
-     * it is the same as the current playlistId.
+     * The player response video ID changes with any video loaded in the background,
+     * such as the feed videos loaded while scrolling with the miniplayer open,
+     * so it is used only while the video of the player in front has not started yet.
      *
-     * @return The playlist id of the video.
+     * @return The ID of the video of the player in front, or the ID of the last
+     *         player response if that video is still starting.
      */
-    @NonNull
-    public static String getPlaylistId() {
-        return playerResponsePlaylistId;
+    public static String getStartingOrPlayingVideoId() {
+        PlayerVideo playerVideo = getPlayerVideo();
+        return playerVideo.videoIdSet || playerResponseVideoIdIsShort
+                ? playerVideo.videoId // Player response may be a Short in the feed.
+                : playerResponseVideoId;
     }
 
     /**
-     * Differs from {@link #videoId} as this is the video ID for the
+     * Like {@link #getStartingOrPlayingVideoId()}, the playlist ID of the player response is used
+     * only while the video of the player in front has not started yet.
+     *
+     * @return The playlist ID of the video of the player in front, or the playlist ID of the last
+     *         player response if that video is still starting.
+     */
+    public static String getPlaylistId() {
+        PlayerVideo playerVideo = getPlayerVideo();
+        return playerVideo.videoIdSet || playerResponseVideoIdIsShort
+                ? playerVideo.playlistId
+                : playerResponsePlaylistId;
+    }
+
+    /**
+     * Differs from {@link #getVideoId()} as this is the video ID for the
      * last player response received, which may not be the last video opened.
      * <p>
      * If Shorts are loading the background, this commonly will be
@@ -699,7 +838,6 @@ public final class VideoInformation {
      *
      * @return The ID of the last video loaded, or an empty string if no videos have been loaded yet.
      */
-    @NonNull
     public static String getPlayerResponseVideoId() {
         return playerResponseVideoId;
     }
@@ -721,6 +859,37 @@ public final class VideoInformation {
     }
 
     /**
+     * Injection point.
+     * Called when the player response of the current video is read.
+     *
+     * @param isLive If the current video is an ongoing live stream.
+     */
+    public static void setLiveStream(boolean isLive) {
+        // Remember which video the value is for, so a live video does not mark the following
+        // videos as live. The player response video ID is used because the video ID is
+        // not yet updated for the new video at this point.
+        final boolean wasLive = isLiveStream();
+        liveStreamVideoId = playerResponseVideoId;
+        liveStream = isLive;
+
+        final boolean nowLive = isLiveStream();
+        if (wasLive == nowLive) {
+            return;
+        }
+
+        Logger.printDebug(() -> "isLiveStream: " + nowLive);
+        RememberPlaybackSpeedPatch.onLiveStreamChanged(nowLive);
+        SkipLiveShortsPatch.onLiveStreamChanged(nowLive);
+    }
+
+    /**
+     * @return If the video that is currently loading is an ongoing live stream.
+     */
+    public static boolean isLiveStream() {
+        return liveStream && liveStreamVideoId.equals(playerResponseVideoId);
+    }
+
+    /**
      * @return The current playback speed.
      */
     public static float getPlaybackSpeed() {
@@ -735,21 +904,21 @@ public final class VideoInformation {
     }
 
     /**
-     * Length of the current video playing.  Includes Shorts.
+     * Length of the video of the player in front.  Includes Shorts.
      *
      * @return The length of the video in milliseconds.
      *         If the video is not yet loaded, or if the video is playing in the background with no video visible,
      *         then this returns zero.
      */
     public static long getVideoLength() {
-        return videoLength;
+        return getPlayerVideo().videoLength;
     }
 
     /**
      * @return The current non casting player time. Value is zero if casting.
      */
     private static long getPlayerVideoTime() {
-        PlaybackController controller = playerControllerRef.get();
+        PlaybackController controller = getPlayerVideo().playerControllerRef.get();
         return controller != null
                 ? controller.patch_getVideoTime()
                 : -1;
@@ -796,6 +965,7 @@ public final class VideoInformation {
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isAtEndOfVideo() {
+        final long videoLength = getVideoLength();
         return getVideoTime() >= videoLength && videoLength > 0;
     }
 
@@ -848,9 +1018,9 @@ public final class VideoInformation {
             return;
         }
 
-        ExoPlayerImpl exoPlayerImpl = exoPlayerImplRef.get();
-        if (exoPlayerImpl != null) {
-            exoPlayerImpl.patch_setPlaybackParameters(speed, pitch);
+        ExoPlayerInterface exoPlayerInterface = exoPlayerImplRef.get();
+        if (exoPlayerInterface != null) {
+            exoPlayerInterface.patch_setPlaybackParameters(speed, pitch);
             Logger.printDebug(() -> "Video playbackParameters changed, speed: " + speed + " pitch: " + pitch);
         } else {
             Logger.LogMessage logMessage = () -> "Debug: Cannot change speed parameters, menu interface is null";
@@ -872,27 +1042,25 @@ public final class VideoInformation {
     /**
      * Injection point.
      */
-    public static void onNativePlaybackSpeedPanelLoaded(Object context, CharSequence original) {
-        if (context instanceof ContextInterface contextInterface) {
-            try {
-                String identifier = contextInterface.patch_getIdentifier();
-                if (identifier == null || !identifier.startsWith("playback_rate_selector_menu_sheet.e")) {
-                    return;
-                }
-                String path = contextInterface.patch_getPathBuilder().toString();
-                if (!path.endsWith("|ContainerType|ContainerType|ContainerType|TextType|")) {
-                    return;
-                }
-                String text = Objects.toString(original);
-                if (text.length() == 5) {
-                    Matcher matcher = PLAYBACK_SPEED_PATTERN.matcher(text);
-                    if (matcher.matches()) {
-                        setPlaybackSpeedFormattedString(text, Float.parseFloat(text.substring(0, 4)));
-                    }
-                }
-            } catch (Exception ex) {
-                Logger.printException(() -> "onNativePlaybackSpeedPanelLoaded failed", ex);
+    public static void onNativePlaybackSpeedPanelLoaded(ContextInterface context, CharSequence original) {
+        try {
+            String identifier = context.patch_getIdentifier();
+            if (identifier == null || !identifier.startsWith("playback_rate_selector_menu_sheet.e")) {
+                return;
             }
+            StringBuilder path = context.patch_getPathBuilder();
+            if (!Utils.endsWith(path, "|ContainerType|ContainerType|ContainerType|TextType|")) {
+                return;
+            }
+            if (original.length() == 5) {
+                Matcher matcher = PLAYBACK_SPEED_PATTERN.matcher(original);
+                if (matcher.matches()) {
+                    String text = original.toString();
+                    setPlaybackSpeedFormattedString(text, Float.parseFloat(text.substring(0, 4)));
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "onNativePlaybackSpeedPanelLoaded failed", ex);
         }
     }
 
@@ -946,16 +1114,6 @@ public final class VideoInformation {
         changePlaybackSpeed(playbackSpeed);
     }
 
-    /**
-     * @param resolution The desired video quality resolution to use.
-     */
-    public static void setDesiredVideoResolution(int resolution) {
-        Utils.verifyOnMainThread();
-        Logger.printDebug(() -> "Setting desired video resolution: " + resolution);
-        desiredVideoResolution = resolution;
-        qualityNeedsUpdating = true;
-    }
-
     private static void setCurrentQuality(@Nullable VideoQualityInterface quality) {
         Utils.verifyOnMainThread();
         if (currentQuality != quality) {
@@ -982,16 +1140,19 @@ public final class VideoInformation {
      * Injection point. Fixes bad data used by YouTube.
      * Issue can be reproduced by selecting 480p quality on any Short,
      * and occasionally with random regular videos.
+     * <p>
+     * Only the resolution returned by {@link VideoQualityInterface#patch_getResolution()} is fixed.
+     * The quality object keeps the YouTube resolution, because the player and the SABR requests
+     * use it to match the stream formats. With a fixed resolution in the quality object,
+     * some VP9 streams restart in a loop when the quality is set.
      */
-    public static int fixVideoQualityResolution(String name, int quality) {
+    public static int fixVideoQualityResolution(@Nullable String name, int quality) {
         try {
-            if (!name.startsWith(Integer.toString(quality))) {
+            if (name != null && quality != AUTOMATIC_VIDEO_QUALITY_VALUE
+                    && !name.startsWith(Integer.toString(quality))) {
                 final int suffixIndex = name.indexOf('p');
                 if (suffixIndex > 0) {
-                    final int fixedQuality = Integer.parseInt(name.substring(0, suffixIndex));
-                    Logger.printDebug(() -> "Fixing wrong quality resolution from: " +
-                            name + "(" + quality + ") to: " + name + "(" + fixedQuality + ")");
-                    return fixedQuality;
+                    return Integer.parseInt(name.substring(0, suffixIndex));
                 }
             }
         } catch (Exception ex) {
@@ -1003,6 +1164,9 @@ public final class VideoInformation {
 
     /**
      * Injection point.
+     * <p>
+     * The default quality is used as the initial quality of the video, so the quality
+     * chosen by YouTube is always used and this only keeps the current qualities.
      *
      * @param qualities Video qualities available, ordered from largest to smallest, with index 0 being the 'automatic' value of -2
      * @param originalQualityIndex quality index to use, as chosen by YouTube
@@ -1012,66 +1176,15 @@ public final class VideoInformation {
             Utils.verifyOnMainThread();
             currentQualityMenuInterface = menu;
 
-            final boolean availableQualitiesChanged = (currentQualities == null)
-                    || !Arrays.equals(currentQualities, qualities);
-            if (availableQualitiesChanged) {
+            if (currentQualities == null || !Arrays.equals(currentQualities, qualities)) {
                 currentQualities = qualities;
                 Logger.printDebug(() -> "VideoQualities: " + Arrays.toString(currentQualities));
             }
 
             // On extremely slow internet connections the index can initially be -1
-            originalQualityIndex = Math.max(0, originalQualityIndex);
-
-            VideoQualityInterface updatedCurrentQuality = qualities[originalQualityIndex];
-            if (updatedCurrentQuality.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE
-                    && (currentQuality == null || currentQuality != updatedCurrentQuality)) {
+            VideoQualityInterface updatedCurrentQuality = qualities[Math.max(0, originalQualityIndex)];
+            if (updatedCurrentQuality.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE) {
                 setCurrentQuality(updatedCurrentQuality);
-            }
-
-            final int preferredQuality = desiredVideoResolution;
-            if (preferredQuality == AUTOMATIC_VIDEO_QUALITY_VALUE) {
-                return originalQualityIndex; // Nothing to do.
-            }
-
-            // After changing videos the qualities can initially be for the prior video.
-            // If the qualities have changed and the default is not auto then an update is needed.
-            if (qualityNeedsUpdating) {
-                qualityNeedsUpdating = false;
-            } else if (!availableQualitiesChanged) {
-                return originalQualityIndex;
-            }
-
-            // Find the highest quality that is equal to or less than the preferred.
-            int i = 0;
-            final int lastQualityIndex = qualities.length - 1;
-            for (VideoQualityInterface quality : qualities) {
-                final int qualityResolution = quality.patch_getResolution();
-                if ((qualityResolution != AUTOMATIC_VIDEO_QUALITY_VALUE && qualityResolution <= preferredQuality)
-                        // Use the lowest video quality if the default is lower than all available.
-                        || i == lastQualityIndex) {
-                    final boolean qualityNeedsChange = (i != originalQualityIndex);
-                    Logger.printDebug(() -> qualityNeedsChange
-                            ? "Changing video quality from: " + updatedCurrentQuality + " to: " + quality
-                            : "Video is already the preferred quality: " + quality
-                    );
-
-                    // On first load of a new regular video, if the video is already the desired
-                    // quality then the quality flyout will show 'Auto' (ie: Auto (720p)).
-                    //
-                    // To prevent user confusion, set the video index even if the quality is already
-                    // correct so the UI picker will not display "Auto".
-                    //
-                    // Only change Shorts quality if the quality actually needs to change, because
-                    // the "Auto" option is not shown in the flyout and setting the same quality
-                    // again can cause the Short to restart.
-                    if (qualityNeedsChange || !ShortsPlayerState.isOpen()) {
-                        changeQuality(quality);
-                        return i;
-                    }
-
-                    return originalQualityIndex;
-                }
-                i++;
             }
         } catch (Exception ex) {
             Logger.printException(() -> "setVideoQuality failure", ex);
@@ -1079,7 +1192,7 @@ public final class VideoInformation {
         return originalQualityIndex;
     }
 
-    public static boolean isPremiumVideoQuality(@NonNull VideoQualityInterface quality) {
+    public static boolean isPremiumVideoQuality(VideoQualityInterface quality) {
         String qualityName = quality.patch_getQualityName();
         return qualityName != null && qualityName.contains(VIDEO_QUALITY_PREMIUM_NAME);
     }

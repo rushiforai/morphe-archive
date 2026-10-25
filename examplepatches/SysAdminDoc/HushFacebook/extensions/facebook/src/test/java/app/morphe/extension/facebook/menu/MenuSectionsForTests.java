@@ -34,6 +34,16 @@ public final class MenuSectionsForTests {
         return MenuSections.hideServerSection(Group.PRODUCTS_FROM_FACEBOOK);
     }
 
+    /** True when the section Facebook draws for the Help and support group builds nothing. */
+    public static boolean hidesHelp() {
+        return MenuSections.hideSection(Group.HELP);
+    }
+
+    /** True when a folded Settings and privacy section builds as open. */
+    public static boolean keepsSettingsOpen() {
+        return !MenuSections.collapsed(true, Group.SETTINGS);
+    }
+
     /** Forgets the debug lines already written and the layout reads, as a new Facebook process would start without them. */
     public static void newProcess() {
         MenuSections.forgetLog();

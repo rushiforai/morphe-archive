@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.26.1",
+  "version": "1.27.1",
   "patches": [
     {
       "name": "AR Effects Slimmer",
@@ -112,7 +112,7 @@
     },
     {
       "name": "Block Telemetry & Trackers",
-      "description": "Neutralizes Google AppMeasurement, AppsFlyer, and ByteDance AppLog event dispatchers.",
+      "description": "Neutralizes Google AppMeasurement, AppsFlyer, ByteDance AppLog, APM/Slardar, Gecko, Pitaya, BDTuring, and UserGrowth event dispatchers.",
       "default": true,
       "dependencies": [
         "ResourcePatch"
@@ -757,10 +757,19 @@
         {
           "key": "mapsApiKey",
           "title": "Google Maps Platform API key",
-          "description": "Optional custom Google Maps Platform key. When omitted, built-in keys work automatically via signature spoofing.",
-          "required": false,
+          "description": "Personal Google Maps Platform API key. Required because the built-in key only works with the original signature.",
+          "required": true,
           "type": "kotlin.String",
           "default": null,
+          "values": null
+        },
+        {
+          "key": "forceGoogleMaps",
+          "title": "Force Google Maps engine",
+          "description": "Always use Google Maps instead of the region default map.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         }
       ]
@@ -918,6 +927,32 @@
       "options": []
     },
     {
+      "name": "Redirect API to v2 Boot",
+      "description": "Loads effects, feeds and templates where default endpoints are blocked by using official alternate endpoints.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.lemon.lvoverseas",
+          "name": "CapCut",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "19.9.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Download com.lemon.lvoverseas v19.9.0 (APK) arm64-v8a nodpi versionCode 19900002 from APKMirror"
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Remove Ads",
       "description": "Hides banner and inline ads and neutralizes ad unit ID lookups.",
       "default": true,
@@ -1049,7 +1084,7 @@
     },
     {
       "name": "Remove Watermark",
-      "description": "Forces CapCut watermark-removal gates to allow export without watermark (WatermarkBusinessFunction).",
+      "description": "Forces CapCut watermark-removal gates and default ending gate to allow export without watermark or outro.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [

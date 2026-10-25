@@ -127,7 +127,7 @@ class EurosportSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "8.33.0",
+            version = "8.34.1",
             patchNames = setOf("Disable ads", "Disable telemetry", "Hide partner promotions"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -190,25 +190,32 @@ class EurosportSmokeTest {
         )
         assertReturnsNull(factory, "AdPlaceholderModel factory (${factoryClass.type}->${factory.name})")
 
-        // Disable ads 3: PlayerModel's constructors load false into the showAds store's register.
-        val player = classes.byToString("PlayerModel(isLive=", "showAds=")
-        val playerToString = player.toStringMethod().instructions()
-        val showAdsString = playerToString.indexOfFirst { it.stringRef()?.contains("showAds=") == true }
-        val showAdsRegister = playerToString[showAdsString].register()!!
-        val consumer = (showAdsString + 1 until playerToString.size).first { playerToString[it].passes(showAdsRegister) }
-        val showAds = playerToString.drop(consumer + 1)
-            .takeWhile { it.stringRef() == null }
-            .first { it.opcode == Opcode.IGET_BOOLEAN && it.fieldRef()?.definingClass == player.type }
-            .fieldRef()!!.name
-        val playerConstructors = player.methods.filter { method ->
-            method.name == "<init>" && method.instructions().any { it.opcode == Opcode.IPUT_BOOLEAN && it.fieldRef()?.name == showAds }
+        // Disable ads 3: PlayerMediaInfo's constructors load null into the adsMetadata store's
+        // register, and nothing else in the class writes that field.
+        val playerInfo = classes.byToString("PlayerMediaInfo(id=", "adsMetadata=")
+        val adsMetadataType = classes.byToString("AdsMetadata(id=").type
+        val adsMetadata = playerInfo.fields.single { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == adsMetadataType }.name
+        val playerInfoToString = playerInfo.toStringMethod().instructions()
+        val adsMetadataString = playerInfoToString.indexOfFirst { it.stringRef()?.contains("adsMetadata=") == true }
+        val adsMetadataRegister = playerInfoToString[adsMetadataString].register()!!
+        val consumer = (adsMetadataString + 1 until playerInfoToString.size)
+            .first { playerInfoToString[it].passes(adsMetadataRegister) }
+        assertEquals(
+            adsMetadata,
+            playerInfoToString.drop(consumer + 1).takeWhile { it.stringRef() == null }
+                .first { it.opcode == Opcode.IGET_OBJECT }.fieldRef()?.name,
+            "PlayerMediaInfo toString does not print the $adsMetadataType field after adsMetadata="
+        )
+        val adsMetadataWriters = playerInfo.methods.filter { method ->
+            method.instructions().any { it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.name == adsMetadata }
         }
-        assertTrue(playerConstructors.isNotEmpty(), "no PlayerModel constructor stores $showAds")
-        playerConstructors.forEach { constructor ->
-            val (index, register) = constructor.store(Opcode.IPUT_BOOLEAN, showAds)
+        assertTrue(adsMetadataWriters.isNotEmpty(), "no PlayerMediaInfo constructor stores $adsMetadata")
+        adsMetadataWriters.forEach { writer ->
+            assertEquals("<init>", writer.name, "PlayerMediaInfo.${writer.name} stores $adsMetadata outside a constructor")
+            val (index, register) = writer.store(Opcode.IPUT_OBJECT, adsMetadata)
             assertTrue(
-                constructor.instructions()[index - 1].isConstZero(register),
-                "PlayerModel <init>(${constructor.params().size} args) does not load false into v$register before storing $showAds"
+                writer.instructions()[index - 1].isConstZero(register),
+                "PlayerMediaInfo <init>(${writer.params().size} args) does not load null into v$register before storing $adsMetadata"
             )
         }
 

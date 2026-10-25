@@ -1,6 +1,7 @@
 package app.template.patches.brave
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.AccessFlags
 
 // Brave keeps P3A and the usage ping switches in Chromium's native "local state" prefs. Java
@@ -17,6 +18,23 @@ internal const val STATS_REPORTING_ENABLED_PREF = "brave.stats.reporting_enabled
 internal const val WEB_DISCOVERY_ENABLED_PREF = "brave.web_discovery_enabled"
 internal const val BROWSER_CONTEXT_HANDLE = "Lorg/chromium/content_public/browser/BrowserContextHandle;"
 internal const val PROFILE = "Lorg/chromium/chrome/browser/profiles/Profile;"
+
+internal const val ORIGIN_PREFERENCES_CLASS =
+    "Lorg/chromium/chrome/browser/settings/BraveOriginPreferences;"
+
+// The policy-write callback (xk2.a(Z)V in 1.98.60): logs "Failed to set policy value for ..." on
+// failure, then shows the Origin restart snackbar. The snackbar method is p5()V up to 1.97 and
+// R4(II)V since 1.98 (title and message string ids loaded by `const` right before the call); the
+// patch accepts both shapes and checks there is exactly one Origin preferences void call.
+internal object OriginRestartPromptFingerprint : Fingerprint(
+    strings = listOf("Failed to set policy value for "),
+    filters = listOf(
+        methodCall(
+            definingClass = ORIGIN_PREFERENCES_CLASS,
+            returnType = "V",
+        ),
+    ),
+)
 
 // LocalStatePrefs.a(): the local state PrefService, or null until native prefs are loaded.
 internal object LocalStatePrefsGetterFingerprint : Fingerprint(

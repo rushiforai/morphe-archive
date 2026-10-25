@@ -25,8 +25,7 @@ private const val VIP_CARD_VIEW = "Lcom/fyxtech/muslim/about/module/main/VipCard
 @Suppress("unused")
 val hidePremiumBannersPatch = bytecodePatch(
     name = "Hide premium banners",
-    description = "Hides the membership card on the Me screen and the membership offer cards in " +
-        "the home feed.",
+    description = "Hides the membership banners.",
 ) {
     compatibleWith(COMPATIBILITY_WEMUSLIM)
 

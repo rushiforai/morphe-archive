@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 @Suppress("unused")
 val enableFullVersionPatch = bytecodePatch(
     name = "Enable Full Version",
-    description = "Bypasses the Play license check so the paid app runs as licensed."
+    description = "Unlocks the full version."
 ) {
     compatibleWith(COMPATIBILITY_TASKER)
 

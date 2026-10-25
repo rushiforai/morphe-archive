@@ -55,7 +55,7 @@ private val HOOKS = mapOf(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, interstitial, rewarded, app-open and native ads."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_SIMPLERADIO)
 

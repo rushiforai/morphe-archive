@@ -149,6 +149,19 @@ CATEGORIES_PATH = Path(__file__).with_name("app-categories.json")
 OTHER = {"name": "Other", "emoji": "📦"}
 
 
+def not_on_play():
+    """Packages with no Google Play listing (app-categories.json "notOnGooglePlay")."""
+    with open(CATEGORIES_PATH, encoding="utf-8") as f:
+        return set(json.load(f).get("notOnGooglePlay", []))
+
+
+def play_link(pkg, missing):
+    """Google Play listing link for the overview table, or a dash when the app is not on Play."""
+    if pkg in missing:
+        return "—"
+    return f"[Play](https://play.google.com/store/apps/details?id={pkg})"
+
+
 def load_categories():
     """Category list in display order, and package -> category index."""
     with open(CATEGORIES_PATH, encoding="utf-8") as f:
@@ -191,6 +204,7 @@ def category_title(category, count, noun):
 def build_content():
     """Build the generated patches section: per-category overview tables plus per-app details."""
     groups = group_apps()
+    missing_on_play = not_on_play()
     app_count = sum(len(pkgs) for _, pkgs in groups)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -210,8 +224,8 @@ def build_content():
             "",
             f"#### {category_title(category, len(pkgs), 'app')}",
             "",
-            "| | App | Patches | Latest verified | Type |",
-            "|:-:|---|---|---|:-:|",
+            "| | App | Patches | Latest verified | Type | Google Play |",
+            "|:-:|---|---|---|:-:|:-:|",
         ]
         for pkg in pkgs:
             entry = by_pkg[pkg]
@@ -226,7 +240,7 @@ def build_content():
                 latest += f" <sub>+{len(versions) - 1} older</sub>"
             lines.append(
                 f"| {swatch(color)} | **{cell(entry['name'])}** | {icons} {len(patches)} "
-                f"| {latest} | {apk_type or 'APK'} |"
+                f"| {latest} | {apk_type or 'APK'} | {play_link(pkg, missing_on_play)} |"
             )
 
     lines += ["", "### 🔍 Patch details"]

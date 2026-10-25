@@ -23,7 +23,6 @@ Second \"item\" text"</string>
   <string name="morphe_sb_voting_button_summary">Añade un botón para votar positivamente o negativamente los segmentos</string>
   <string name="morphe_sb_square_layout_title">Usar diseño cuadrado</string>
   <string name="morphe_sb_square_layout_summary">Utiliza esquinas cuadradas para los botones y controles de SponsorBlock</string>
-  <!-- Translations should match the language used in 'morphe_ryd_compact_layout_title'. -->
   <string name="morphe_sb_compact_skip_button_title">Usar botón compacto Omitir</string>
   <string name="morphe_sb_compact_skip_button_summary">Reduce el ancho del botón Omitir para ahorrar espacio</string>
   <string name="morphe_sb_auto_hide_skip_button_title">Ocultar automáticamente el botón Omitir</string>
@@ -90,7 +89,7 @@ Incluye tu ID de usuario privado. Compártela con cuidado"</string>
   <string name="morphe_sb_settings_export_failed">Error al exportar: %s</string>
   <string name="morphe_sb_settings_morphe_export_user_id_warning">"Tus ajustes contienen tu ID de usuario privado de SponsorBlock.
 
-Tu ID de usuario es como una contraseña y nunca debe compartirse."</string>
+Tu ID de usuario es como una contraseña y nunca debe compartirse"</string>
   <string name="morphe_sb_settings_morphe_export_user_id_warning_dismiss">No volver a mostrar</string>
   <string name="morphe_sb_diff_segments_title">Cambiar comportamiento de segmentos</string>
   <string name="morphe_sb_segments_sponsor">Patrocinador</string>
@@ -153,7 +152,7 @@ Tu ID de usuario es como una contraseña y nunca debe compartirse."</string>
   <string name="morphe_sb_skip_ignore">Desactivado</string>
   <string name="morphe_sb_submit_failed_invalid">No se puede enviar el segmento: %s</string>
   <string name="morphe_sb_submit_failed_timeout">SponsorBlock no está disponible temporalmente</string>
-  <string name="morphe_sb_submit_failed_unknown_error">No se puede enviar el segmento (estado: %1$d %2$s)</string>
+  <string name="morphe_sb_submit_failed_unknown_error">No se puede enviar el segmento (estado: %1$s %2$s)</string>
   <string name="morphe_sb_submit_failed_rate_limit">No se puede enviar el segmento. Límite de tasa excedido (demasiadas peticiones del mismo usuario o IP)</string>
   <string name="morphe_sb_submit_failed_forbidden">No se puede enviar el segmento: %s</string>
   <string name="morphe_sb_submit_failed_duplicate">"No se puede enviar el segmento.
@@ -161,10 +160,10 @@ Ya existe"</string>
   <string name="morphe_sb_submit_succeeded">Segmento enviado correctamente</string>
   <!-- Notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
   <string name="morphe_sb_sponsorblock_connection_failure_timeout">SponsorBlock no está disponible temporalmente (la API no responde)</string>
-  <string name="morphe_sb_sponsorblock_connection_failure_status">SponsorBlock no está disponible temporalmente (estado %d)</string>
+  <string name="morphe_sb_sponsorblock_connection_failure_status">SponsorBlock no está disponible temporalmente (estado %s)</string>
   <string name="morphe_sb_sponsorblock_connection_failure_generic">SponsorBlock no está disponible temporalmente</string>
   <string name="morphe_sb_vote_failed_timeout">No se puede votar por el segmento (la API no responde)</string>
-  <string name="morphe_sb_vote_failed_unknown_error">No se puede votar por el segmento (estado: %1$d %2$s)</string>
+  <string name="morphe_sb_vote_failed_unknown_error">No se puede votar por el segmento (estado: %1$s %2$s)</string>
   <string name="morphe_sb_vote_failed_forbidden">No se puede votar por el segmento: %s</string>
   <string name="morphe_sb_vote_upvote">Votar positivamente</string>
   <string name="morphe_sb_vote_downvote">Votar negativamente</string>
@@ -173,7 +172,7 @@ Ya existe"</string>
   <!-- A segment start and end time, such as "02:10 to 03:40". -->
   <string name="morphe_sb_vote_segment_time_to_from">De %1$s a %2$s</string>
   <string name="morphe_sb_new_segment_choose_category">Selecciona la categoría del segmento</string>
-  <string name="morphe_sb_new_segment_disabled_category">Categoría desactivada en ajustes. Actívala para poder enviarla.</string>
+  <string name="morphe_sb_new_segment_disabled_category">Categoría desactivada en ajustes. Actívala para poder enviarla</string>
   <string name="morphe_sb_new_segment_title">Nuevo segmento de SponsorBlock</string>
   <string name="morphe_sb_new_segment_mark_time_as_question">¿Marcar %s como el inicio o el final del nuevo segmento?</string>
   <string name="morphe_sb_new_segment_mark_start">Inicio</string>
@@ -212,7 +211,7 @@ Si no vas a enviar un destacado, pulsa Cancelar y marca la segunda ubicación."<
   <string name="morphe_sb_stats_sb_disabled">SponsorBlock está desactivado</string>
   <string name="morphe_sb_stats_username">Tu nombre de usuario: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Pulsa aquí para cambiar tu nombre de usuario</string>
-  <string name="morphe_sb_stats_username_change_unknown_error">No se puede cambiar el nombre de usuario: Estado: %1$d %2$s</string>
+  <string name="morphe_sb_stats_username_change_unknown_error">No se puede cambiar el nombre de usuario: Estado: %1$s %2$s</string>
   <string name="morphe_sb_stats_username_changed">Nombre de usuario cambiado correctamente</string>
   <string name="morphe_sb_stats_reputation">Tu reputación es de &lt;b&gt;%.2f&lt;/b&gt;</string>
   <string name="morphe_sb_stats_submissions">Has creado &lt;b&gt;%s&lt;/b&gt; segmentos</string>
@@ -229,8 +228,7 @@ Si no vas a enviar un destacado, pulsa Cancelar y marca la segunda ubicación."<
   <string name="morphe_sb_stats_saved_second_format">%s segundos</string>
   <string name="morphe_sb_color_opacity_label">Opacidad:</string>
   <string name="morphe_sb_color_dot_label">Color:</string>
-  <string name="morphe_sb_about_title">Acerca de</string>
-  <string name="morphe_sb_about_api_summary">"Los datos los proporciona la API de SponsorBlock.
+  <string name="morphe_sb_about_api_summary">"SponsorBlock es una base de datos colaborativa de segmentos de video, como patrocinios, intros, outros y recordatorios para suscribirse. Los segmentos son enviados y votados por la comunidad, y la base de datos es abierta y gratuita para descargar
 
-Pulsa aquí para abrir Sponsor.ajay.app y ver las descargas para otras plataformas"</string>
+El ID del video que ves se envía a la API de SponsorBlock para obtener sus segmentos"</string>
 </resources>

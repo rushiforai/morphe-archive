@@ -9,9 +9,10 @@ object InShotCompatibility {
         name = "InShot",
         packageName = "com.camerasideas.instashot",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFF5722,
+        appIconColor = 0xFF2558,
         targets = listOf(
-            AppTarget(version = "2.243.1555")
+            AppTarget(version = "2.214.1539"),
+            AppTarget(version = "2.243.1555"),
         )
     )
 }

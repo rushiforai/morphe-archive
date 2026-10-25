@@ -14,6 +14,16 @@ const src = fs.readFileSync(process.env.VENUS_RUNTIME_PATH || path.join(ROOT, 'p
 const TABLES = JSON.parse(fs.readFileSync(path.join(ROOT, 'work/discord_colors.json'), 'utf8'));
 const index = JSON.parse(fs.readFileSync(path.join(ROOT, 'work/themes/index.json'), 'utf8'));
 const SLOTS = Object.values(TABLES.themes);
+// Module IDs as bootstrap.js uses them, so this harness follows every Discord port by itself.
+const caseId = hook => +(new RegExp('case (\\d+): return features\\.customThemes \\? ' + hook).exec(src) || [])[1];
+const partId = name => +(new RegExp('\\b' + name + ':(?:\\w+ \\|\\| )?x\\((\\d+),').exec(src) || [])[1];
+const ID = {RawColors:caseId('hookRawColorsModule'), SemanticColors:caseId('hookSemanticColorsModule'),
+    SemanticColorExperiments:caseId('hookExperimentColorsModule'),
+    ThemeStore:+(/case (\d+): if \(\(features\.customThemes[^\n]*themeStore =/.exec(src) || [])[1],
+    ThemeContext:+(/case (\d+): return \(features\.customThemes \|\| features\.iconPacks\) \? hookCreateThemedContext/.exec(src) || [])[1],
+    SettingsRegistry:+(/case (\d+): exports\.SETTING_RENDERER_CONFIG = nativeRegistry/.exec(src) || [])[1],
+    toasts:partId('toasts'), TableRow:partId('TableRow'), TableRowGroup:partId('TableRowGroup'), TextInput:partId('TextInput')};
+for (const [name, id] of Object.entries(ID)) if (!id) throw new Error(`theme_compat: can't find ${name}'s module ID in bootstrap.js`);
 // Venus's own alias table, read from bootstrap.js so the report follows the code.
 const ALIASES = (0, eval)('(' + /const LEGACY_SEMANTIC_ALIASES = (\{[\s\S]*?\n    \});/.exec(src)[1] + ')');
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -40,13 +50,14 @@ function bootWith(tables) {
     // Venus recognizes React Native by View, Text and Modal.
     load({View:'View', Text:'Text', Image:'Image', Modal:'Modal', Pressable:'Pressable'}, 17);
     load({default:{getConstants:() => ({DocumentsDirPath:'/data'}), fileExists:async () => false, readFile:async () => '{}', writeFile:async () => {}, getSize:async () => 0}}, 1162);
-    load({_private:{RawColors:tables.raw}}, 591);
-    load({_private:{SemanticColors:tables.sem}}, 589);
-    load({_private:{SemanticColorExperiments:tables.exp}}, 590);
-    load({default:{emitChange(){}}}, 1193);
-    load({FALLBACK_THEME_CONTEXT_VALUE:{key:'{}'}, createThemedContext:c => Object.assign({}, c, {key:JSON.stringify(c)})}, 4593);
-    const modules = {591:{_private:{RawColors:tables.raw}}, 589:{_private:{SemanticColors:tables.sem}}, 590:{_private:{SemanticColorExperiments:tables.exp}},
-        4568:{default:{open(){}}}, 5993:{TableRow:'Row'}, 6074:{TableRowGroup:'Group'}, 6098:{TextInput:'Input'}};
+    load({_private:{RawColors:tables.raw}}, ID.RawColors);
+    load({_private:{SemanticColors:tables.sem}}, ID.SemanticColors);
+    load({_private:{SemanticColorExperiments:tables.exp}}, ID.SemanticColorExperiments);
+    load({default:{emitChange(){}}}, ID.ThemeStore);
+    load({FALLBACK_THEME_CONTEXT_VALUE:{key:'{}'}, createThemedContext:c => Object.assign({}, c, {key:JSON.stringify(c)})}, ID.ThemeContext);
+    const modules = {[ID.RawColors]:{_private:{RawColors:tables.raw}}, [ID.SemanticColors]:{_private:{SemanticColors:tables.sem}},
+        [ID.SemanticColorExperiments]:{_private:{SemanticColorExperiments:tables.exp}}, [ID.toasts]:{default:{open(){}}},
+        [ID.TableRow]:{TableRow:'Row'}, [ID.TableRowGroup]:{TableRowGroup:'Group'}, [ID.TextInput]:{TextInput:'Input'}};
     context.__r = id => modules[id] || null;
     return {context, api:context.__venusPatches, load, React};
 }
@@ -67,7 +78,7 @@ async function install(b, url, text) {
     b.api.setSetting('customThemes', true);
     let draft = url;
     b.React.useState = init => typeof init === 'string' ? [draft, v => { draft = v; }] : [init, () => {}];
-    const registry = b.load({SETTING_RENDERER_CONFIG:{ACCOUNT:{type:'route', IconComponent(){}}}}, 14409).SETTING_RENDERER_CONFIG;
+    const registry = b.load({SETTING_RENDERER_CONFIG:{ACCOUNT:{type:'route', IconComponent(){}}}}, ID.SettingsRegistry).SETTING_RENDERER_CONFIG;
     const page = () => pageNodes(registry.VENUS_CUSTOMTHEMES.screen.getComponent()());
     const button = page().find(n => n.props && n.props.accessibilityLabel === 'Install');
     if (!button) return {error:'no Install button (page did not render)', ms:0};
@@ -92,7 +103,7 @@ const hexOf = v => { const c = Array.isArray(v) ? v[0] : v; if (typeof c !== 'st
         const after = snapshot(tables);
         const dark = Object.keys(after).filter(k => k.endsWith(':' + SLOTS[0]) && after[k] !== base[k]);
         // A declared key is placed when one of its own targets (the token itself, or its aliases) now draws its
-        // color. Targets the theme also sets by their own 349.9 name are the theme's choice, not a miss. Keys with
+        // color. Targets the theme also sets by their own current name are the theme's choice, not a miss. Keys with
         // no target at all count as placed only if their color shows on some token (a plus/background rule).
         const declaredKeys = theme.semanticColors || {};
         const drawn = new Set(Object.keys(after).filter(k => k.endsWith(':' + SLOTS[0])).map(k => String(after[k]).split('@')[0].toLowerCase().slice(0, 7)));
@@ -104,7 +115,7 @@ const hexOf = v => { const c = Array.isArray(v) ? v[0] : v; if (typeof c !== 'st
             if (own.length) return !own.some(token => String(after[token + ':' + SLOTS[0]]).split('@')[0].toLowerCase().slice(0, 7) === h);
             return !drawn.has(h);
         }).map(([k]) => k);
-        // Revenge's false means "keep Discord's color for this slot": a theme key named after a 349.9 token must
+        // Revenge's false means "keep Discord's color for this slot": a theme key named after a current token must
         // leave those slots on Discord's own raw key
         // (which the theme's rawColors may still recolor, as in Revenge).
         const falseSlotsChanged = Object.entries(declaredKeys).filter(([k, v]) => k in TABLES.sem && Array.isArray(v))

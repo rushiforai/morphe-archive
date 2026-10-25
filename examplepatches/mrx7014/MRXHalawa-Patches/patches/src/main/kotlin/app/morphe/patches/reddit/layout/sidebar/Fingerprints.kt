@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -14,10 +14,12 @@ import app.morphe.patcher.parametersMatch
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
+internal const val HEADER_ITEM_CLASS = "Lcom/reddit/screens/drawer/community/HeaderItem;"
+
 private object CommunityDrawerBuilderParentFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = $$"Lcom/reddit/navdrawer/analytics/CommunityDrawerAnalytics$Section;",
-    parameters = listOf("Lcom/reddit/screens/drawer/community/HeaderItem;"),
+    parameters = listOf(HEADER_ITEM_CLASS),
     filters = listOf(
         methodCall("Ljava/lang/Enum;->ordinal()I"),
         fieldAccess($$"Lcom/reddit/navdrawer/analytics/CommunityDrawerAnalytics$Section;->" +

@@ -93,6 +93,33 @@ public class LiveRoomStreamTest {
         assertEquals("only the bottom exists", "ld", preset(room("ld"), "origin"));
     }
 
+    /** #203 on the S22 (2026-10-24): 1080p in a 1080p60 room recorded the 720p30 stream. */
+    @Test public void aRoomsSixtyFpsStreamsRankAsTheirQualityAndBeatThirty() {
+        String sixty = room("origin", "uhd_60", "hd_60", "hd", "sd", "ld");
+        assertEquals("1080p", "uhd_60", preset(sixty, "uhd"));
+        assertEquals("720p takes its 60 fps stream", "hd_60", preset(sixty, "hd"));
+        assertEquals("highest", "origin", LiveRoomStream.choose(sixty, null, null, null, null, null, null).target.quality);
+        assertEquals("the best without an original", "uhd_60",
+                LiveRoomStream.choose(room("hd", "uhd_60", "hd_60"), null, null, null, null, null, null).target.quality);
+        assertEquals("lowest takes the slower of two", "hd",
+                LiveRoomStream.choose(room("hd_60", "hd"), null, null, null, LiveRoomStream.LOWEST, null, null).target.quality);
+        assertEquals("the stream being watched, exactly", "hd",
+                LiveRoomStream.choose(sixty, null, null, null, "hd", null, null).target.quality);
+        assertEquals("a missing 1080p falls to 720p at 60", "hd_60", preset(room("origin", "hd_60", "hd", "ld"), "uhd"));
+
+        assertEquals("hd", LiveRoomStream.base("hd_60"));
+        assertEquals(60, LiveRoomStream.frameRate("hd_60"));
+        assertEquals("not a frame rate", "hd_x", LiveRoomStream.base("hd_x"));
+        assertEquals(0, LiveRoomStream.frameRate("hd"));
+        assertEquals("_60", LiveRoomStream.base("_60"));
+        assertEquals("hd_", LiveRoomStream.base("hd_"));
+        assertEquals(0, LiveRoomStream.frameRate("hd_99999999999"));
+        assertNull(LiveRoomStream.base(null));
+
+        assertEquals("the diagnostics line names what the room offered",
+                "origin, uhd_60, hd_60, hd, sd, ld", LiveRoomStream.choose(sixty, null, null, null, null, null, null).offered);
+    }
+
     @Test public void aPresetNeverRecordsAudioOnly() {
         assertEquals("ld", preset(room("ao", "ld"), "hd"));
         LiveRoomStream.Pick onlyAudio = LiveRoomStream.choose(room("ao"), null, null, null,

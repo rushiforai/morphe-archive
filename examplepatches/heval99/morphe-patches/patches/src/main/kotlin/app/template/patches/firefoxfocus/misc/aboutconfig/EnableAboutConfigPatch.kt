@@ -24,8 +24,7 @@ internal object GeckoRuntimeCreateFingerprint : Fingerprint(
 @Suppress("unused")
 val enableAboutConfigPatch = bytecodePatch(
     name = "Enable about:config",
-    description = "Enables about:config, the page for viewing and changing the browser engine's " +
-        "preferences. Type about:config in the address bar to open it.",
+    description = "Enables about:config.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX_FOCUS)
 

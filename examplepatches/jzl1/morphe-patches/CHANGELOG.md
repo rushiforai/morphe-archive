@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/jzl1/morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-24)
+
+### ✨ New Features
+
+* **NSG:** add patch for Network Signal Guru 4.8.8 ([111f382](https://github.com/jzl1/morphe-patches/commit/111f38295c319dd571d3f8171e5c74b292f01189))
+
 ## [1.0.1](https://github.com/jzl1/morphe-patches/compare/v1.0.0...v1.0.1) (2026-10-23)
 
 ### 🐛 Bug Fixes

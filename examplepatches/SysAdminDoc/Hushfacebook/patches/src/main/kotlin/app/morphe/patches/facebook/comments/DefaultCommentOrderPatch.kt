@@ -15,6 +15,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 
 /**
@@ -105,8 +106,9 @@ internal fun BytecodePatchContext.hookPostPage() {
             "${storyBuilder.name} reads the order from, from one of its parameters, found ${constructors.size}",
     )
     val builds = mutableListOf<PageBuild>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    // A page build calls the constructor.
+    classDefForEachReferencing(types = listOf(constructor.definingClass)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         classDef.methods.forEach { method -> pageBuildIn(method, constructor, parameter)?.let { builds += it } }
     }
     val build = builds.singleOrNull() ?: throw PatchException(

@@ -63,9 +63,7 @@ private fun BytecodePatchContext.methods(
 @Suppress("unused")
 val blockTelemetryPatch = bytecodePatch(
     name = "Block telemetry & trackers",
-    description = "Blocks Sentry crash reporting, Adjust and Branch attribution, Facebook app " +
-        "events and Amplitude ad-ID and legacy event uploads. Push notifications and purchases " +
-        "keep working.",
+    description = "Disables analytics, tracking and crash reporting.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_HEVY)

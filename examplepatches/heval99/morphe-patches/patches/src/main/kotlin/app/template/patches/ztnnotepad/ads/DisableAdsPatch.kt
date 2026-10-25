@@ -16,7 +16,7 @@ private const val CALLDORADO = "Lcom/calldorado/Calldorado;"
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Stops the bundled Calldorado ad SDK: no in-app ads and no after-call ad screen."
+    description = "Removes all ads, including the after-call ad screen."
 ) {
     compatibleWith(COMPATIBILITY_ZTNNOTEPAD)
 

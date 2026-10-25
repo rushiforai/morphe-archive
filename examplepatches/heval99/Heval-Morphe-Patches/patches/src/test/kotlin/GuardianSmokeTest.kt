@@ -272,7 +272,9 @@ class GuardianSmokeTest {
         val ophan = allMethods.filter { (_, method) ->
             method.returnType == "V" && method.implementation != null &&
                 method.parameterTypes.map(CharSequence::toString) == listOf(NATIVE_APP_SUBMISSION) &&
-                method.strings().containsAll(listOf("https://ophan.theguardian.com/mob", "Ophan submission failed"))
+                // The fingerprint matches the endpoint by prefix and the message exactly.
+                method.strings().any { it.startsWith("https://ophan.theguardian.com/mob") } &&
+                "Ophan submission failed" in method.strings()
         }
         val (ophanClass, ophanSubmit) = ophan.singleOrNull()
             ?: error("expected one Ophan uploader, found ${ophan.map { "${it.first.type}->${it.second.name}" }}")

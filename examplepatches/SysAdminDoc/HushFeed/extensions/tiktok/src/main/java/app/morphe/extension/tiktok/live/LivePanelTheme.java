@@ -110,6 +110,11 @@ public final class LivePanelTheme {
     private static final int LIGHT_NAVIGATION_BAR_FLAG = 0x10;
     private static final int SETTLE_TRIES = 5;
     private static final long SETTLE_DELAY_MS = 100;
+    /**
+     * How many times the long-press menu is looked for on screen, SETTLE_DELAY_MS apart: the room
+     * shows it right away, or after the dialog it's queued behind.
+     */
+    private static final int MENU_TRIES = 30;
     /** How deep the fill and ink walks go, past any real panel's tree. */
     private static final int MAX_TREE_DEPTH = 64;
     /** How far apart a gray ink's channels may be: TikTok's #161823 text is 13. */
@@ -128,6 +133,8 @@ public final class LivePanelTheme {
     private static final Map<View, Boolean> WATCHED = Collections.synchronizedMap(new WeakHashMap<>());
     /** Views, such as the profile card's label strip, that keep their light look on purpose. */
     private static final Map<View, Boolean> KEEP_LIGHT = Collections.synchronizedMap(new WeakHashMap<>());
+    /** The profile card's badge tiles, image views whose dark backgrounds the fill pass counts as fills. */
+    private static final Map<View, Boolean> BADGE_TILES = Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<ImageView, IconCheck> ICONS = Collections.synchronizedMap(new WeakHashMap<>());
     private static volatile boolean frameFailureLogged;
     private static volatile boolean overlayFailureLogged;
@@ -261,6 +268,58 @@ public final class LivePanelTheme {
         }
     }
 
+    /**
+     * Called with LIVE's long-press menu (share, report and the rest) as TikTok builds it for a
+     * room, just before the room shows it. The menu is a plain dialog, the same one a video's
+     * long press opens, not one of LIVE's themed panels, so nothing reached its window and its
+     * navigation bar stayed light under the dark menu (S22, 2026-10-24). While Dark LIVE panels
+     * is on in dark mode the bar is painted dark once the menu shows, and again before each
+     * frame, since the menu sets its window up again as it shows. The window's views are left
+     * alone until then: building them early would keep the menu from asking for its window
+     * features.
+     */
+    public static void liveMenu(android.app.Dialog dialog) {
+        liveMenu(dialog, 0);
+    }
+
+    private static void liveMenu(android.app.Dialog dialog, int attempt) {
+        try {
+            if (dialog == null || !LiveControls.darkLivePanels(dialog.getContext())) {
+                return;
+            }
+            Window window = dialog.getWindow();
+            if (window == null) {
+                return;
+            }
+            View root = window.peekDecorView();
+            if (root == null || !dialog.isShowing()) {
+                if (attempt < MENU_TRIES) {
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> liveMenu(dialog, attempt + 1),
+                            attempt == 0 ? 0 : SETTLE_DELAY_MS);
+                }
+                return;
+            }
+            darkNavigationBar(window);
+            if (WATCHED.put(root, Boolean.TRUE) != null) {
+                return;
+            }
+            Logger.printDebug(() -> "Darkened the LIVE menu's navigation bar");
+            root.getViewTreeObserver().addOnPreDrawListener(() -> {
+                try {
+                    darkNavigationBar(window);
+                } catch (Throwable failure) {
+                    if (!frameFailureLogged) {
+                        frameFailureLogged = true;
+                        Logger.printException(() -> "Could not keep the LIVE menu's navigation bar dark", failure);
+                    }
+                }
+                return true;
+            });
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not darken the LIVE menu's navigation bar", failure);
+        }
+    }
+
     /** True for the panels whose own fixed light fills get swapped, by their class names. */
     static boolean fillPanel(Class<?> type) {
         for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
@@ -322,7 +381,7 @@ public final class LivePanelTheme {
         if (view == null || KEEP_LIGHT.containsKey(view) || depth > MAX_TREE_DEPTH) {
             return;
         }
-        boolean dark = !(view instanceof ImageView) && darkBackground(view);
+        boolean dark = fillHolder(view) && darkBackground(view);
         dark |= darkCard(view);
         dark |= darkPaints(view);
         if (dark) {
@@ -336,13 +395,55 @@ public final class LivePanelTheme {
         }
     }
 
+    /**
+     * True for a view whose background is a fill: anything but an image, plus an image view
+     * showing no picture (the fan club's FANS card is one, S22 2026-10-24) and a badge tile.
+     */
+    private static boolean fillHolder(View view) {
+        return !(view instanceof ImageView) || ((ImageView) view).getDrawable() == null
+                || BADGE_TILES.containsKey(view);
+    }
+
     private static boolean lightFill(int color) {
         return Color.alpha(color) >= MIN_FILL_ALPHA && isLight(color);
     }
 
-    /** Swaps a light solid or gradient background; true when the view's background is the dark fill. */
+    /**
+     * Swaps a light solid or gradient background, or such layers of a layered one; true when the
+     * view's background is, or holds, the dark fill.
+     */
     private static boolean darkBackground(View view) {
         Drawable background = view.getBackground();
+        if (background instanceof LayerDrawable && !(background instanceof RippleDrawable)) {
+            LayerDrawable layers = (LayerDrawable) background;
+            boolean dark = false;
+            boolean changed = false;
+            for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+                Drawable layer = layers.getDrawable(i);
+                if (layer instanceof ColorDrawable) {
+                    int color = ((ColorDrawable) layer).getColor();
+                    if (lightFill(color)) {
+                        layer.mutate();
+                        ((ColorDrawable) layer).setColor(DARK_FILL);
+                        changed = true;
+                    }
+                    dark |= ((ColorDrawable) layer).getColor() == DARK_FILL;
+                } else if (layer instanceof GradientDrawable && Build.VERSION.SDK_INT >= 24) {
+                    ColorStateList colors = ((GradientDrawable) layer).getColor();
+                    if (colors != null && lightFill(colors.getDefaultColor())) {
+                        layer.mutate();
+                        ((GradientDrawable) layer).setColor(DARK_FILL);
+                        changed = true;
+                    }
+                    colors = ((GradientDrawable) layer).getColor();
+                    dark |= colors != null && colors.getDefaultColor() == DARK_FILL;
+                }
+            }
+            if (changed) {
+                view.invalidate();
+            }
+            return dark;
+        }
         if (background instanceof ColorDrawable) {
             int color = ((ColorDrawable) background).getColor();
             if (lightFill(color)) {
@@ -911,9 +1012,11 @@ public final class LivePanelTheme {
      * place of each setBackground TikTok gives a tile. The server draws a tile's art and text for
      * the white card and often see-through: the low levels' "Lv." tile is a pale lavender at
      * about a fifth of full strength with gray text at about a third, so on the dark card both
-     * went dark gray and the text sank into the tile (Login2, 2026-10-20). While Dark LIVE panels
-     * is on in dark mode, a white copy of the tile's own rounded shape goes under it, so the art
-     * draws over white the way it does on the stock card. A solid tile looks the same either way.
+     * went dark gray and the text sank into the tile (Login2, 2026-10-20). Laid over white, the
+     * tiles then showed as light blocks on the dark card (S22, 2026-10-24). While Dark LIVE panels
+     * is on in dark mode, a solid light tile takes the dark fill in its own shape, border kept, and
+     * a see-through one draws over a dark copy of its shape, so it tints the dark tile the way it
+     * tints the white one. The tile is marked so the fill pass lights the gray text over it.
      */
     public static void badgeTile(View tile, Drawable background) {
         Drawable shown = background;
@@ -921,20 +1024,46 @@ public final class LivePanelTheme {
             if (background instanceof GradientDrawable && LiveControls.darkLivePanels(tile.getContext())) {
                 Drawable.ConstantState shape = background.getConstantState();
                 if (shape != null) {
-                    // A copy with its own state, so the tile's shape keeps its fill and border.
+                    // Copies with their own state, so the tile's shape keeps its fill and border.
                     GradientDrawable base = (GradientDrawable) shape.newDrawable().mutate();
-                    base.setColor(Color.WHITE);
-                    base.setStroke(0, Color.TRANSPARENT);
-                    LayerDrawable layers = new LayerDrawable(new Drawable[]{base, background});
-                    // Both layers carry the shape's padding, which nesting would count twice.
-                    layers.setPaddingMode(LayerDrawable.PADDING_MODE_STACK);
-                    shown = layers;
+                    base.setColor(DARK_FILL);
+                    if (lightShape((GradientDrawable) background)) {
+                        shown = base;
+                    } else {
+                        base.setStroke(0, Color.TRANSPARENT);
+                        LayerDrawable layers = new LayerDrawable(new Drawable[]{base, background});
+                        // Both layers carry the shape's padding, which nesting would count twice.
+                        layers.setPaddingMode(LayerDrawable.PADDING_MODE_STACK);
+                        shown = layers;
+                    }
+                    BADGE_TILES.put(tile, Boolean.TRUE);
                 }
             }
         } catch (Throwable failure) {
-            Logger.printException(() -> "Could not lay a LIVE profile card badge over white", failure);
+            Logger.printException(() -> "Could not darken a LIVE profile card badge", failure);
         }
         tile.setBackground(shown);
+    }
+
+    /** True for a shape filled with a light, mostly opaque color or gradient. */
+    static boolean lightShape(GradientDrawable shape) {
+        if (Build.VERSION.SDK_INT < 24) {
+            return false;
+        }
+        ColorStateList color = shape.getColor();
+        if (color != null) {
+            return lightFill(color.getDefaultColor());
+        }
+        int[] stops = shape.getColors();
+        if (stops == null || stops.length == 0) {
+            return false;
+        }
+        for (int stop : stops) {
+            if (!lightFill(stop)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** True when a text in the box, at most a few levels down, is drawn in a light color. */

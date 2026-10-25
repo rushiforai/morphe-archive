@@ -583,6 +583,45 @@
   "notes": "TikTok decides the duet and stitch buttons from three values (the video's setting, the creator's setting, the permission block); the patch answers the first two. The probe's videoinfo prints them through the same getters, so the on state hides every 1. The converse (finding a friends-only video with the switch off, then seeing it open with the switch on) depends on a creator who closed it; swiping eight videos usually finds none, so the check proves only that nothing closed gets through, and the owed natural check is a known friends-only video: duetSetting=1 with the switch off, 0 with it on, and the Duet button present. Setting 2 (music or partnership) is left alone on purpose. Actually making a duet is never done here."
  },
  {
+  "name": "Allow photo comments",
+  "category": "Comments",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/comment/CommentPhotosPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/comment/CommentPhotos.java"
+  ],
+  "settings": [
+   {
+    "key": "pinedrama_comment_photos",
+    "default": false,
+    "type": "bool",
+    "row": "Allow photo comments",
+    "restart": true
+   }
+  ],
+  "surface": "comments",
+  "checks": [
+   {
+    "id": "stays-off-tiktok",
+    "what": "PineDrama only, so on TikTok the patch must not run: the shared extension still ships the switch's class, but the probe's registered switches list has no commentPhotos, and TikTok's own comment box is left as TikTok built it. (The PineDrama side was checked by hand on the S22, since this audit drives TikTok.)",
+    "steps": [
+     {
+      "apk": "dex-string",
+      "expect": "Lapp/morphe/extension/tiktok/comment/CommentPhotos;"
+     },
+     {
+      "probe": "report",
+      "expect": "registered_switches:",
+      "expectNot": "registered_switches:[^\\n]*\\bcommentPhotos\\b"
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "PineDrama only. The comment box asks DramaCommentAppDiffProtocol whether to build its gallery tab, handing it bit 1 of comment_photo_publish (read per signed-in account, default on); TikTok's protocol answers with that bit and PineDrama's always answers no. With the switch on the patch answers with the bit. Natural check: PineDrama, switch on, restart, open a drama's comments and tap the box: the gallery icon sits beside the emoji and @ icons; off it doesn't."
+ },
+ {
   "name": "Allow screenshots and Circle to Search",
   "category": "Downloads",
   "default": true,
@@ -2269,6 +2308,12 @@
     "default": false,
     "type": "bool",
     "row": "Hide picture comments"
+   },
+   {
+    "key": "hide_spam_comments",
+    "default": false,
+    "type": "bool",
+    "row": "Hide spam comments"
    },
    {
     "key": "hide_comment_polls",
@@ -9801,6 +9846,44 @@
   "notes": "Issue #200. The camera is a page inside SplashActivity, opened from the + tab, and Back doesn't close it (its X does). With the switch off, `dumpsys window windows` shows sbrt= on TikTok's window while the camera is open (0.39 on the S22 at system brightness 50: the phone's level plus TikTok's step, over 255); with it on there's no sbrt. The front flash and fill light (47.5.3: the record screen's fill light and front flash, the flash button's screen flash, the Tako AI camera's flash and the avatar camera's flash) store their own full brightness: with the switch off, flash on with the front camera shows sbrt=1.0, and with it on the white overlay still comes up while sbrt stays where it was. Opening the camera needs a tap the audit doesn't script, so the device check is by hand."
  },
  {
+  "name": "Report a newer phone to effects",
+  "category": "Interface",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/effectdevice/EffectDevicePatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/misc/EffectDeviceSpoof.java"
+  ],
+  "settings": [
+   {
+    "key": "report_newer_phone_to_effects",
+    "default": false,
+    "type": "bool",
+    "row": "Report a newer phone to effects"
+   }
+  ],
+  "surface": "other",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.effectDeviceSpoofEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "effectDeviceSpoofEnabled"
+      },
+      "expect": "\\beffectDeviceSpoofEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #176, an experiment. The effect platform sends Build.MODEL as device_type in two configs (EffectConfiguration and DownloadableModelConfig), and the server's API error 2003 (\"The current device is not supported\") is what shows \"This effect doesn't work on this device\". With the switch on the three build sites send SM-S928B instead. Whether the server's verdict moves is unproven: it may also key on the device id. Check on a phone that gets the message (a Redmi A3), with the switch on, by opening an effect that was refused."
+ },
+ {
   "name": "LIVE controls",
   "category": "Playback",
   "default": true,
@@ -10132,6 +10215,36 @@
    }
   ],
   "notes": "The effect (TikTok stops loading upcoming videos ahead of time, \"videos may take a moment longer to start\") has no stable on-screen sign; a data counter or the startwatch probe's first-frame delay on a cold cache would show it. The decision hook is PerformanceSwitches.limitBackgroundTraffic()."
+ },
+ {
+  "name": "Load all saved stickers",
+  "category": "Comments",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/comment/SavedStickersPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/comment/SavedStickers.java"
+  ],
+  "settings": [],
+  "surface": "comments",
+  "checks": [
+   {
+    "id": "injected",
+    "what": "The patched dex carries the saved stickers count seam and the patch registered itself. (The dex-string step shows the extension class is shipped; the registered-switch step is what shows the patch ran.)",
+    "steps": [
+     {
+      "apk": "dex-string",
+      "expect": "Lapp/morphe/extension/tiktok/comment/SavedStickers;"
+     },
+     {
+      "probe": "report",
+      "expect": "registered_switches:[^\\n]*\\bsavedStickers\\b"
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "The effect shows only on an account with more saved stickers than the server's first page (refreshCount, 100 by default): PineDrama's comment sticker panel never pages, so without the patch its Saved tab stops at 100. Natural check: with about 113 saved, a cold start's Saved tab ends on a row of 1 (113 cells) instead of a full row at 100."
  },
  {
   "name": "Location access governor",

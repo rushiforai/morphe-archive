@@ -79,8 +79,8 @@ public final class SharePreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Allow Add to Story anyway",
-                    "Shows Add to Story on a story whose creator turned off content reuse. "
-                            + "TikTok may still refuse to post it.",
+                    "Shows Add to Story in the share sheet and on stories even when the creator "
+                            + "turned off content reuse. TikTok may still refuse to post it.",
                     Settings.ALLOW_ADD_TO_STORY
             ));
         }

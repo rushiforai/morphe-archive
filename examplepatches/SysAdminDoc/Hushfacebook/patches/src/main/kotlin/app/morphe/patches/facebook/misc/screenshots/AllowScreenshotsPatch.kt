@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 
 /**
  * Lets screenshots and screen recordings show the screens Facebook marks secure. See
@@ -32,8 +33,9 @@ val allowScreenshotsPatch = bytecodePatch(
 
     execute {
         val owners = mutableSetOf<String>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        // A flags call names Window, a flags write LayoutParams.
+        classDefForEachReferencing(types = listOf(WINDOW, LAYOUT_PARAMS)) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
             if (classDef.methods.any(::setsWindowFlags)) owners += classDef.type
         }
         val sent = owners.sumOf { type -> mutableClassDefByOrNull(type)?.methods?.sumOf { it.allowScreenshots() } ?: 0 }

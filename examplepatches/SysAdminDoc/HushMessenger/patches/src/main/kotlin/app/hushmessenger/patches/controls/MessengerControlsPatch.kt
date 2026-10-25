@@ -75,9 +75,9 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
     execute {
         activeProfile = controlProfileFor(packageMetadata.versionCode)
         val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
-        classDefForEach { classes.add(it) }
-        communityInboxContract = findCommunityInbox(classes)
-        discoveredControls = findControls(classes, communityInboxContract)
+        patchStage("Read Messenger bytecode") { classDefForEach { classes.add(it) } }
+        communityInboxContract = patchStage("Find community routes") { findCommunityInbox(classes) }
+        discoveredControls = patchStage("Find runtime controls") { findControls(classes, communityInboxContract) }
         logoLongPressSites = findLogoLongPress(classes)
         menuTitleLongPressSites = findLogoLongPress(classes, MENU_TAB_TITLE)
         val nativeGate = discoveredControls["bubble_mode"].orEmpty().singleOrNull()

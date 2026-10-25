@@ -29,6 +29,7 @@ class DeviceIdentityPatchTest {
         )
         assertEquals(4, COMPATIBILITIES_STEAM_LINK_LEGACY.size)
         assertFalse(targets.any { it.second == 5002363 })
+        assertFalse(targets.any { it.second == 5002395 })
     }
 
     @Test

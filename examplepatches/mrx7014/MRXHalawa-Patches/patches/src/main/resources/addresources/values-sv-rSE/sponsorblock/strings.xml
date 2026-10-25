@@ -23,7 +23,6 @@ Second \"item\" text"</string>
   <string name="morphe_sb_voting_button_summary">Lägger till en knapp för att uppåtrösta eller nedåtrösta segment</string>
   <string name="morphe_sb_square_layout_title">Använd fyrkantig layout</string>
   <string name="morphe_sb_square_layout_summary">Använder fyrkantiga hörn för SponsorBlock-knappar och -kontroller</string>
-  <!-- Translations should match the language used in 'morphe_ryd_compact_layout_title'. -->
   <string name="morphe_sb_compact_skip_button_title">Använd kompakt överhoppningsknapp</string>
   <string name="morphe_sb_compact_skip_button_summary">Minskar bredden på överhoppningsknappen för att spara utrymme</string>
   <string name="morphe_sb_auto_hide_skip_button_title">Dölj Hoppa över-knappen automatiskt</string>
@@ -90,7 +89,7 @@ Detta inkluderar ditt privata användar-id. Se till att dela detta klokt"</strin
   <string name="morphe_sb_settings_export_failed">Det gick inte att exportera: %s</string>
   <string name="morphe_sb_settings_morphe_export_user_id_warning">"Dina inställningar innehåller ett privat användar-id för SponsorBlock.
 
-Ditt användar-id fungerar som ett lösenord och det bör aldrig delas."</string>
+Ditt användar-id fungerar som ett lösenord och det bör aldrig delas"</string>
   <string name="morphe_sb_settings_morphe_export_user_id_warning_dismiss">Visa inte igen</string>
   <string name="morphe_sb_diff_segments_title">Ändra beteende för segment</string>
   <string name="morphe_sb_segments_sponsor">Sponsor</string>
@@ -153,7 +152,7 @@ Ditt användar-id fungerar som ett lösenord och det bör aldrig delas."</string
   <string name="morphe_sb_skip_ignore">Inaktivera</string>
   <string name="morphe_sb_submit_failed_invalid">Det gick inte att skicka segment: %s</string>
   <string name="morphe_sb_submit_failed_timeout">SponsorBlock är tillfälligt nere</string>
-  <string name="morphe_sb_submit_failed_unknown_error">Det gick inte att skicka segment (status: %1$d %2$s)</string>
+  <string name="morphe_sb_submit_failed_unknown_error">Det gick inte att skicka segment (status: %1$s %2$s)</string>
   <string name="morphe_sb_submit_failed_rate_limit">Det gick inte att skicka segment. Frekvensbegränsad (för många från samma användare eller IP)</string>
   <string name="morphe_sb_submit_failed_forbidden">Det går inte att skicka segmentet: %s</string>
   <string name="morphe_sb_submit_failed_duplicate">"Det går inte att skicka segmentet.
@@ -161,10 +160,10 @@ Det finns redan"</string>
   <string name="morphe_sb_submit_succeeded">Segmentet har skickats</string>
   <!-- Notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
   <string name="morphe_sb_sponsorblock_connection_failure_timeout">SponsorBlock är inte tillgängligt just nu (API-tidsgräns nådd)</string>
-  <string name="morphe_sb_sponsorblock_connection_failure_status">SponsorBlock är inte tillgängligt just nu (status %d)</string>
+  <string name="morphe_sb_sponsorblock_connection_failure_status">SponsorBlock är inte tillgängligt just nu (status %s)</string>
   <string name="morphe_sb_sponsorblock_connection_failure_generic">SponsorBlock är inte tillgängligt just nu</string>
   <string name="morphe_sb_vote_failed_timeout">Det gick inte att rösta på segment (API-tidsgräns nådd)</string>
-  <string name="morphe_sb_vote_failed_unknown_error">Det gick inte att rösta på segment (status: %1$d %2$s)</string>
+  <string name="morphe_sb_vote_failed_unknown_error">Det gick inte att rösta på segment (status: %1$s %2$s)</string>
   <string name="morphe_sb_vote_failed_forbidden">Det gick inte att rösta på segment: %s</string>
   <string name="morphe_sb_vote_upvote">Upprösta</string>
   <string name="morphe_sb_vote_downvote">Nedrösta</string>
@@ -173,7 +172,7 @@ Det finns redan"</string>
   <!-- A segment start and end time, such as "02:10 to 03:40". -->
   <string name="morphe_sb_vote_segment_time_to_from">%1$s till %2$s</string>
   <string name="morphe_sb_new_segment_choose_category">Välj kategorin för segmentet</string>
-  <string name="morphe_sb_new_segment_disabled_category">Kategorin är inaktiverad i inställningarna. Aktivera kategorin för att skicka.</string>
+  <string name="morphe_sb_new_segment_disabled_category">Kategorin är inaktiverad i inställningarna. Aktivera kategorin för att skicka</string>
   <string name="morphe_sb_new_segment_title">Nytt SponsorBlock-segment</string>
   <string name="morphe_sb_new_segment_mark_time_as_question">Ange %s som starten eller slutet av ett nytt segment?</string>
   <string name="morphe_sb_new_segment_mark_start">Start</string>
@@ -212,7 +211,7 @@ Om du inte vill skicka in en höjdpunkt trycker du på Avbryt och markerar den a
   <string name="morphe_sb_stats_sb_disabled">SponsorBlock är inaktiverad</string>
   <string name="morphe_sb_stats_username">Ditt användarnamn: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Tryck här för att ändra ditt användarnamn</string>
-  <string name="morphe_sb_stats_username_change_unknown_error">Det gick inte att ändra användarnamn: Status: %1$d %2$s</string>
+  <string name="morphe_sb_stats_username_change_unknown_error">Det gick inte att ändra användarnamn: Status: %1$s %2$s</string>
   <string name="morphe_sb_stats_username_changed">Användarnamnet har ändrats</string>
   <string name="morphe_sb_stats_reputation">Ditt rykte är &lt;b&gt;%.2f&lt;/b&gt;</string>
   <string name="morphe_sb_stats_submissions">Du har skapat &lt;b&gt;%s&lt;/b&gt; segment</string>
@@ -229,8 +228,7 @@ Om du inte vill skicka in en höjdpunkt trycker du på Avbryt och markerar den a
   <string name="morphe_sb_stats_saved_second_format">%s sekunder</string>
   <string name="morphe_sb_color_opacity_label">Opacitet:</string>
   <string name="morphe_sb_color_dot_label">Färg:</string>
-  <string name="morphe_sb_about_title">Om</string>
-  <string name="morphe_sb_about_api_summary">"Data tillhandahålls av SponsorBlock-API:et
+  <string name="morphe_sb_about_api_summary">"SponsorBlock är en crowdsourcad databas över videosegment såsom sponsorer, intron, outron och påminnelser om att prenumerera. Segment skickas in och röstas på av communityn, och databasen är öppen och gratis att ladda ner
 
-Tryck här för att öppna Sponsor.ajay.app och se nedladdningar för andra plattformar"</string>
+ID-numret för videon du tittar på skickas till SponsorBlock API för att hämta dess segment"</string>
 </resources>

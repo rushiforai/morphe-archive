@@ -88,6 +88,9 @@ public final class ReelsAdFilter {
     /** What the diagnostic report counts each time the ad pool is held to no ad. */
     static final String POOL_HELD = "Reels ad pool held to no ad";
 
+    /** What the diagnostic report counts each time the ad pool of the feed's Reels row is held to no ad. */
+    static final String ROW_POOL_HELD = "Feed Reels row ad pool held to no ad";
+
     /** What the diagnostic report counts each time a profile's Reels tab is kept from fetching its ads. */
     static final String PROFILE_ADS_HELD = "Profile Reels ad query held";
 
@@ -113,6 +116,9 @@ public final class ReelsAdFilter {
 
     /** Whether the first hold of this process has been logged. */
     private static volatile boolean poolHoldLogged;
+
+    /** Whether the first hold of the feed's Reels row pool in this process has been logged. */
+    private static volatile boolean rowHoldLogged;
 
     /**
      * What an item counts as. The first two come off the page: an item of the ad class, and an item
@@ -319,6 +325,26 @@ public final class ReelsAdFilter {
             poolHoldLogged = true;
             Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
                     () -> "the Reels ad pool was asked for an ad and held to none");
+        }
+        return true;
+    }
+
+    /**
+     * Injection point, asked first thing in each vend of Facebook's other reel ad pool
+     * (FbShortsSponsoredPool), the one the Reels row in the News feed draws its ad tiles from
+     * (FbShortsIFUSponsoredPool, #216): true makes the vend answer null, its own answer when no slot
+     * is free, so the row takes the next organic reel and the ad stays in the pool unused. Off, or
+     * asked before the settings are ready, the pool works as Facebook wrote it. Never throws.
+     */
+    public static boolean holdRowAd() {
+        HookStatus.invoked(FamilyNames.SPONSORED_REELS);
+        if (!switchedOn()) return false;
+
+        HookStatus.counted(FamilyNames.SPONSORED_REELS, ROW_POOL_HELD);
+        if (!rowHoldLogged) {
+            rowHoldLogged = true;
+            Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
+                    () -> "the ad pool of the feed's Reels row was asked for an ad and held to none");
         }
         return true;
     }

@@ -97,9 +97,12 @@ import app.hushgram.extension.instagram.feed.HiddenAccounts;
 import app.hushgram.extension.instagram.feed.CornerSize;
 import app.hushgram.extension.instagram.feed.LikeAnimation;
 import app.hushgram.extension.instagram.misc.MediaCache;
+import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
+import app.hushgram.extension.instagram.stories.StoryEmoji;
+import app.hushgram.extension.instagram.stories.StoryFonts;
 import app.hushgram.extension.instagram.stories.StoryRingColor;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.stories.StoryTimeMode;
@@ -110,6 +113,7 @@ import app.hushgram.extension.instagram.misc.GlassHeight;
 import app.hushgram.extension.instagram.misc.GlassLift;
 import app.hushgram.extension.instagram.misc.GlassReelsHide;
 import app.hushgram.extension.instagram.misc.AccentHue;
+import app.hushgram.extension.instagram.misc.MaterialYou;
 import app.hushgram.extension.instagram.misc.AppIconChoice;
 import app.hushgram.extension.instagram.misc.FontChoice;
 import app.hushgram.extension.instagram.misc.Fonts;
@@ -193,6 +197,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String CHANGE_PIN_ROW = "hushgram_change_pin_row";
     static final String HIDDEN_ACCOUNTS_ROW = "hushgram_hidden_accounts_row";
     static final String HIDDEN_SOUNDS_ROW = "hushgram_hidden_sounds_row";
+    /** The row that lists the font files added for story text. */
+    static final String STORY_FONTS_ROW = "hushgram_story_fonts_row";
     static final String GHOST_PICKS_ROW = "hushgram_ghost_picks_row";
     private static final String SCREEN_KEY = "hushgram_settings_root";
     /** The keys of category page rows, stable across translations and installed patch combinations. */
@@ -215,6 +221,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int EXPORT_CONFIGURATION = 0x4847;
     private static final int IMPORT_CONFIGURATION = 0x4848;
     private static final int PICK_FONT = 0x484d;
+    private static final int PICK_STORY_FONT = 0x484e;
+    private static final int PICK_STORY_EMOJI = 0x484f;
     /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
     private static int documentSequence = PICK_FONT;
     private int documentRequest;
@@ -620,7 +628,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || HIDDEN_SOUNDS_ROW.equals(key));
                     belongs |= family == PatchFamily.ACCENT_COLOR && Settings.ACCENT_HUE.key.equals(key);
                     belongs |= family == PatchFamily.FONT && Settings.FONT.key.equals(key);
+                    belongs |= family == PatchFamily.STORY_FONTS && STORY_FONTS_ROW.equals(key);
                     belongs |= family == PatchFamily.APP_ICON && Settings.APP_ICON.key.equals(key);
+                    belongs |= family == PatchFamily.SETTINGS_ROWS && Settings.HIDDEN_SETTINGS_ROWS.key.equals(key);
                     belongs |= family == PatchFamily.SHARE_SHEET && Settings.HIDDEN_SHARE_SHEET_BUTTONS.key.equals(key);
                     belongs |= family == PatchFamily.PROFILE_TABS && (Settings.HIDDEN_PROFILE_TABS.key.equals(key)
                             || Settings.HIDDEN_OWN_PROFILE_TABS.key.equals(key));
@@ -1335,7 +1345,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 break;
             case WAITING:
                 row.setTitle(L10n.t("Unlock asked"));
-                row.setSummary(L10n.f("These settings open at %1$s, for 10 minutes.", lockTime(row.getContext())));
+                row.setSummary(L10n.f("These settings open at %1$s, for 10 minutes. Tap to stop the wait.",
+                        lockTime(row.getContext())));
                 break;
             case OPEN:
                 row.setTitle(L10n.t("Settings are open"));
@@ -1344,11 +1355,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 break;
             default:
                 row.setTitle(L10n.t("Lock these settings"));
-                row.setSummary(L10n.t("Pick a wait of 1, 6 or 24 hours. Locked, nothing here changes until you "
+                row.setSummary(L10n.t("Pick a wait from 1 to 72 hours. Locked, nothing here changes until you "
                         + "ask to unlock and the wait is over."));
         }
-        // Ask to unlock acts at once. Off or open, a tap opens the choice of waits.
-        row.actsAtOnce = state == SettingsLock.State.LOCKED || state == SettingsLock.State.WAITING;
+        // Ask to unlock acts at once. Otherwise a tap opens a choice: the waits, or stopping one.
+        row.actsAtOnce = state == SettingsLock.State.LOCKED;
     }
 
     /** A lock's wait in words: "1 hour", "6 hours". */
@@ -1377,16 +1388,28 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /**
      * A tap on the lock's row. Off or open, it offers the waits (and while open, turning the lock
-     * off). Locked, it starts the wait. Waiting, it says when the settings open.
+     * off). Locked, it starts the wait. Waiting, it says when the settings open and offers to stop
+     * the wait, which keeps them locked.
      */
     void tapLock() {
         Context context = getContext();
         if (context == null) return;
         SettingsLock.State state = SettingsLock.state();
-        if (state == SettingsLock.State.LOCKED || state == SettingsLock.State.WAITING) {
+        if (state == SettingsLock.State.LOCKED) {
             SettingsLock.ask();
             Utils.showToastLong(L10n.f("These settings open at %1$s, for 10 minutes.", lockTime(context)));
             showLock();
+            return;
+        }
+        if (state == SettingsLock.State.WAITING) {
+            show(new AlertDialog.Builder(themed(context))
+                    .setTitle(L10n.t("Unlock asked"))
+                    .setMessage(L10n.f("These settings open at %1$s, for 10 minutes.", lockTime(context)))
+                    .setPositiveButton(L10n.t("Stop the wait"), (shown, which) -> {
+                        if (SettingsLock.stopWait()) Utils.showToastLong(L10n.t("Wait stopped. These settings stay locked."));
+                        showLock();
+                    })
+                    .setNegativeButton(L10n.t("Keep waiting"), null));
             return;
         }
         boolean open = state == SettingsLock.State.OPEN;
@@ -1667,6 +1690,20 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (result == Activity.RESULT_OK) keepFont(data == null ? null : data.getData());
             return;
         }
+        if (request == PICK_STORY_FONT) {
+            documentRequest = 0;
+            documentCode = 0;
+            showConfiguration();
+            if (result == Activity.RESULT_OK) keepStoryFont(data == null ? null : data.getData());
+            return;
+        }
+        if (request == PICK_STORY_EMOJI) {
+            documentRequest = 0;
+            documentCode = 0;
+            showConfiguration();
+            if (result == Activity.RESULT_OK) keepStoryEmoji(data == null ? null : data.getData());
+            return;
+        }
         if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION) return;
         documentRequest = 0;
         documentCode = 0;
@@ -1696,16 +1733,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     /**
-     * Opens Android's file picker for a font file. Nothing changes until a file is picked and loads
-     * as a font.
+     * Opens Android's file picker for a font file, for [request]: the Font row's or Your story fonts'.
+     * Nothing changes until a file is picked and loads as a font.
      */
-    private void pickFont() {
+    private void pickFont(int request) {
         if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active()) return;
         if (documentSequence == Integer.MAX_VALUE) {
             Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
             return;
         }
-        documentRequest = PICK_FONT;
+        documentRequest = request;
         documentCode = ++documentSequence;
         showConfiguration();
         // Few file providers give .ttf and .otf a type, so the file itself is checked instead.
@@ -2813,6 +2850,161 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         show(builder.setPositiveButton(L10n.t("OK"), null));
     }
 
+    /** The row that opens the list of font files the story text editor shows after Instagram's own. */
+    Row storyFontsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(STORY_FONTS_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Your story fonts"));
+        row.setSummary(L10n.t("Add .ttf or .otf files from your phone. Uncheck one to take it out."));
+        row.setOnPreferenceClickListener(tapped -> {
+            showStoryFonts();
+            return true;
+        });
+        return row;
+    }
+
+    /**
+     * The font files added for story text, each with a check. The unchecked ones are taken out when
+     * OK is tapped, and Cancel keeps them all. Add a font file opens the file picker.
+     */
+    void showStoryFonts() {
+        Context context = getActivity();
+        if (context == null) return;
+        List<String> names = StoryFonts.names(context);
+        boolean[] keep = new boolean[names.size()];
+        Arrays.fill(keep, true);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Your story fonts"));
+        if (names.isEmpty()) {
+            builder.setMessage(L10n.t("No fonts added yet. Add a .ttf or .otf file and it shows up in the story "
+                    + "text editor, after Instagram's fonts."));
+        } else {
+            CharSequence[] shown = new CharSequence[names.size()];
+            for (int i = 0; i < shown.length; i++) shown[i] = L10n.isolate(names.get(i));
+            builder.setMultiChoiceItems(shown, keep, (dialog, which, checked) -> keep[which] = checked);
+        }
+        show(builder.setNeutralButton(L10n.t("Add a font file"), (dialog, which) -> pickFont(PICK_STORY_FONT))
+                .setNegativeButton(L10n.t("Cancel"), null)
+                .setPositiveButton(L10n.t("OK"), (dialog, which) -> {
+                    boolean removed = false;
+                    for (int i = 0; i < keep.length; i++) {
+                        if (!keep[i]) removed |= StoryFonts.remove(context, names.get(i));
+                    }
+                    if (removed) Utils.showToastShort(L10n.t("Removed from your story fonts"));
+                }));
+    }
+
+    /**
+     * Copies the picked file into Instagram's storage off the main thread if it loads as a font, then
+     * says so and shows the list again. A file that isn't a font adds nothing and says that instead.
+     */
+    private void keepStoryFont(@Nullable Uri uri) {
+        Context context = getContext();
+        if (context == null) return;
+        if (uri == null || !"content".equals(uri.getScheme())) {
+            storyFontKept(null);
+            return;
+        }
+        Context application = context.getApplicationContext();
+        if (!Utils.runOnBackgroundThread(() -> {
+            String name;
+            try (java.io.InputStream input = application.getContentResolver().openInputStream(uri)) {
+                name = input == null ? null : StoryFonts.add(application, input, shownName(application, uri));
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Story fonts: couldn't read the picked file", failure);
+                name = null;
+            }
+            String kept = name;
+            Utils.runOnMainThread(() -> storyFontKept(kept));
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
+        }
+    }
+
+    /** The name the file picker shows for [uri], or null when it gives none. */
+    @Nullable
+    static String shownName(Context context, Uri uri) {
+        try (android.database.Cursor row = context.getContentResolver().query(uri,
+                new String[] {android.provider.OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (row != null && row.moveToFirst() && !row.isNull(0)) return row.getString(0);
+        } catch (Exception failure) {
+            Logger.printInfo(() -> "Story fonts: the picker gave no file name", failure);
+        }
+        return null;
+    }
+
+    /**
+     * Says whether the picked file was added. Adding one turns Story text fonts on, since a font was
+     * just picked for it, and the list shows again either way.
+     */
+    private void storyFontKept(@Nullable String name) {
+        if (name == null) {
+            Utils.showToastLong(L10n.t("That file isn't a font HushGram can use. Nothing was added."));
+        } else {
+            Settings.STORY_FONTS.save(true);
+            Preference row = isAdded() ? findPreference(Settings.STORY_FONTS.key) : null;
+            if (row instanceof TwoStatePreference) ((TwoStatePreference) row).setChecked(true);
+            Utils.showToastLong(L10n.f("Added %1$s. Pick it in the story text editor, after Instagram's fonts.",
+                    L10n.isolate(name)));
+        }
+        if (isAdded()) showStoryFonts();
+    }
+
+    /**
+     * The switch for emoji in story text drawn from a font file (#275). Turning it on opens the file
+     * picker, and it shows on only once a picked file loads as a font. Off, Instagram's emoji return.
+     */
+    SwitchPreference storyEmojiRow(Context context) {
+        SwitchPreference row = toggle(context, Settings.STORY_EMOJI, L10n.t("Emoji font in story text"),
+                L10n.t("Emoji you type in story text draw from an emoji font file you pick. Turning it on asks for "
+                        + "the file. Off, Instagram's emoji come back."));
+        row.setOnPreferenceChangeListener((preference, value) -> {
+            if (!Boolean.TRUE.equals(value)) return true;
+            pickFont(PICK_STORY_EMOJI);
+            return false;
+        });
+        return row;
+    }
+
+    /**
+     * Copies the picked file into Instagram's storage off the main thread if it loads as a font, then
+     * turns story emoji on. A file that isn't a font changes nothing and says so.
+     */
+    private void keepStoryEmoji(@Nullable Uri uri) {
+        Context context = getContext();
+        if (context == null) return;
+        if (uri == null || !"content".equals(uri.getScheme())) {
+            storyEmojiKept(false);
+            return;
+        }
+        Context application = context.getApplicationContext();
+        if (!Utils.runOnBackgroundThread(() -> {
+            boolean kept;
+            try (java.io.InputStream input = application.getContentResolver().openInputStream(uri)) {
+                kept = input != null && StoryEmoji.store(application, input);
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Story emoji: couldn't read the picked file", failure);
+                kept = false;
+            }
+            boolean usable = kept;
+            Utils.runOnMainThread(() -> storyEmojiKept(usable));
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
+        }
+    }
+
+    /** Turns story emoji on once the picked file is kept, or says it isn't a font. */
+    private void storyEmojiKept(boolean kept) {
+        if (!kept) {
+            Utils.showToastLong(L10n.t("That file isn't a font HushGram can use. Story emoji haven't changed."));
+            return;
+        }
+        Settings.STORY_EMOJI.save(true);
+        Preference row = isAdded() ? findPreference(Settings.STORY_EMOJI.key) : null;
+        if (row instanceof TwoStatePreference) ((TwoStatePreference) row).setChecked(true);
+        Utils.showToastLong(L10n.t("Emoji font saved. Emoji in story text draw in it."));
+    }
+
     /**
      * A box to type a username in. Hide their posts adds it for the signed-in account and goes back
      * to the list; a name that can't be a username is turned down with a toast saying what one is.
@@ -3513,7 +3705,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setValue(Settings.FONT.savedValue().name());
         row.setOnPreferenceChangeListener((preference, value) -> {
             if (!FontChoice.FILE.name().equals(value)) return true;
-            pickFont();
+            pickFont(PICK_FONT);
             return false;
         });
         return row;
@@ -3545,19 +3737,23 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    /** The color Instagram's blue turns into. Its summary is the color chosen. */
+    /**
+     * The color Instagram's blue turns into. Its summary is the color chosen. Material You is offered
+     * on Android 12 and newer, which have a wallpaper palette.
+     */
     static AccentHueRow accentHueRow(Context context) {
         AccentHueRow row = new AccentHueRow(context);
         row.setKey(Settings.ACCENT_HUE.key);
         row.setTitle(L10n.t("Color"));
         row.setDialogTitle(L10n.t("Accent color"));
         row.setNegativeButtonText(L10n.t("Cancel"));
-        AccentHue[] hues = AccentHue.values();
-        CharSequence[] entries = new CharSequence[hues.length];
-        CharSequence[] values = new CharSequence[hues.length];
-        for (int i = 0; i < hues.length; i++) {
-            entries[i] = accentHueLabel(hues[i]);
-            values[i] = hues[i].name();
+        List<AccentHue> hues = new ArrayList<>(Arrays.asList(AccentHue.values()));
+        if (!MaterialYou.available()) hues.remove(AccentHue.WALLPAPER);
+        CharSequence[] entries = new CharSequence[hues.size()];
+        CharSequence[] values = new CharSequence[hues.size()];
+        for (int i = 0; i < hues.size(); i++) {
+            entries[i] = accentHueLabel(hues.get(i));
+            values[i] = hues.get(i).name();
         }
         row.setEntries(entries);
         row.setEntryValues(values);
@@ -3844,6 +4040,68 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         });
     }
 
+    /** The row that opens the list of rows on Instagram's own settings screen. Its summary says how many are left off. */
+    Row settingsRowsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(Settings.HIDDEN_SETTINGS_ROWS.key);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Rows in Instagram's settings"));
+        row.setSummary(settingsRowsSummary(Settings.HIDDEN_SETTINGS_ROWS.savedValue()));
+        row.setOnPreferenceClickListener(tapped -> {
+            showSettingsRows(row);
+            return true;
+        });
+        return row;
+    }
+
+    /** What the rows left off in [saved] mean, for the row's summary. */
+    static String settingsRowsSummary(String saved) {
+        int hidden = SettingsRows.parse(saved).size();
+        if (hidden == 0) return L10n.t("Every row of Instagram's Settings and activity shows. Untick the ones you don't use.");
+        return L10n.quantity(hidden, "%1$d row is left off Instagram's Settings and activity.",
+                "%1$d rows are left off Instagram's Settings and activity.", hidden);
+    }
+
+    /**
+     * The rows Instagram's Settings and activity has shown on this phone, each with a check, ticked
+     * while it shows, in Instagram's own words. A change saves at once and shows the next time that
+     * screen opens. Until the screen has opened once there's nothing to list, and the list says so.
+     */
+    void showSettingsRows(Row row) {
+        Context context = getActivity();
+        if (context == null) return;
+        List<String[]> rows = SettingsRows.offered();
+        Set<String> hidden = SettingsRows.parse(Settings.HIDDEN_SETTINGS_ROWS.savedValue());
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Rows in Instagram's settings"));
+        if (rows.isEmpty()) {
+            show(builder.setMessage(L10n.t("Open Settings and activity in Instagram once, then come back here. Its rows "
+                    + "show up in this list to untick.")).setPositiveButton(L10n.t("OK"), null));
+            return;
+        }
+        CharSequence[] names = new CharSequence[rows.size()];
+        boolean[] shown = new boolean[rows.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = rows.get(i)[1];
+            shown[i] = !hidden.contains(rows.get(i)[0]);
+        }
+        builder.setMultiChoiceItems(names, shown, (dialog, which, on) -> {
+            if (on) hidden.remove(rows.get(which)[0]);
+            else hidden.add(rows.get(which)[0]);
+            Settings.HIDDEN_SETTINGS_ROWS.save(SettingsRows.join(hidden));
+            row.setSummary(settingsRowsSummary(Settings.HIDDEN_SETTINGS_ROWS.savedValue()));
+        });
+        AlertDialog dialog = show(builder.setNeutralButton(L10n.t("Show all"), null)
+                .setPositiveButton(L10n.t("OK"), null));
+        if (dialog == null) return;
+        // A click listener of its own, so Show all ticks every row without closing the list.
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            hidden.clear();
+            Settings.HIDDEN_SETTINGS_ROWS.save("");
+            row.setSummary(settingsRowsSummary(""));
+            for (int i = 0; i < rows.size(); i++) dialog.getListView().setItemChecked(i, true);
+        });
+    }
+
     /** The row that opens the tab order list. Its summary names the order chosen. */
     Row tabOrderRow(Context context) {
         Row row = new Row(context);
@@ -3995,6 +4253,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Green");
             case TEAL:
                 return L10n.t("Teal");
+            case WALLPAPER:
+                return L10n.t("Material You");
             default:
                 return L10n.t("Instagram blue");
         }
@@ -5746,7 +6006,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             super(context);
         }
 
-        /** The summary is the color chosen. */
+        /** The summary is the color chosen, or why Material You can't be, on Android 11 and older. */
         @Override
         public void setValue(String value) {
             super.setValue(value);
@@ -5754,7 +6014,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (AccentHue candidate : AccentHue.values()) {
                 if (candidate.name().equals(value)) hue = candidate;
             }
-            setSummary(accentHueLabel(hue));
+            setSummary(hue == AccentHue.WALLPAPER && !MaterialYou.available()
+                    ? L10n.t("Material You needs Android 12 or newer, so Instagram's blue stays.")
+                    : accentHueLabel(hue));
         }
 
         @Override

@@ -196,10 +196,6 @@ patches/src/main/kotlin/app/morphe/patches/tiktok/misc/featuregatelab/FeatureGat
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/featuregatelab/FeatureGateLabPatch.kt|LJIIIIZZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/follow/FollowDiagnosticsPatch.kt|LIZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxQueryPublicationHooks.kt|LIZ
-patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxQueryRequestHooks.kt|LJII
-patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxQueryRequestHooks.kt|LJIIIIZZ
-patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxQueryRequestHooks.kt|LJIIIZ
-patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/Fingerprints.kt|LIZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/SettingsPatch.kt|LIZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/SettingsPatch.kt|LX/
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/SettingsPatch.kt|l0

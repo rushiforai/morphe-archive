@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -10,6 +10,7 @@
 
 package app.morphe.extension.youtube.patches.components;
 
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
@@ -27,6 +28,11 @@ public final class DescriptionComponentsFilter extends Filter {
 
     private static final String INFOCARDS_SECTION_PATH = "infocards_section.e";
 
+    private final StringFilterGroup askGeminiButton;
+    private final ByteArrayFilterGroup askGeminiButtonBuffer;
+    private final StringFilterGroup attributesSection;
+    private final ByteArrayFilterGroup attributesSectionBuffer;
+    private final ByteArrayFilterGroup podcastSectionBuffer;
     private final StringFilterGroup featuredSection;
     private final ByteArrayFilterGroupList featuredSectionGroupList = new ByteArrayFilterGroupList();
     private final StringFilterGroup hashtagSection;
@@ -47,10 +53,37 @@ public final class DescriptionComponentsFilter extends Filter {
                 "cell_expandable_metadata.e"
         );
 
+        attributesSection = new StringFilterGroup(
+                null,
+                "card.e"
+        );
+
+        attributesSectionBuffer = new ByteArrayFilterGroup(
+                Settings.HIDE_ATTRIBUTES_SECTION,
+                "album_hero_card",
+                "gaming_hero_card"
+        );
+
+        podcastSectionBuffer = new ByteArrayFilterGroup(
+                null,
+                "podcast_hero_card"
+        );
+
         final StringFilterGroup askSection = new StringFilterGroup(
                 Settings.HIDE_ASK_SECTION,
                 "input_composer_button.e",
                 "youchat_entrypoint.e"
+        );
+
+        // 'Ask Gemini' Play Store promo button inside the Ask about this video panel (chat_footer).
+        // Only match button paths so the chat_footer root (which holds the text input) is kept.
+        askGeminiButton = new StringFilterGroup(
+                null,
+                "chat_footer.e"
+        );
+        askGeminiButtonBuffer = new ByteArrayFilterGroup(
+                Settings.HIDE_ASK_GEMINI_BUTTON,
+                "com.google.android.apps.bard"
         );
 
         final StringFilterGroup correctionsSection = new StringFilterGroup(
@@ -202,6 +235,8 @@ public final class DescriptionComponentsFilter extends Filter {
 
         addPathCallbacks(
                 aiGeneratedVideoSummarySection,
+                attributesSection,
+                askGeminiButton,
                 askSection,
                 correctionsSection,
                 courseProgressSection,
@@ -225,17 +260,30 @@ public final class DescriptionComponentsFilter extends Filter {
     public boolean isFiltered(ContextInterface contextInterface,
                               String identifier,
                               String accessibility,
-                              String path,
+                              CharSequence path,
                               byte[] buffer,
                               BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup,
                               FilterContentType contentType,
                               int contentIndex) {
+        // Ask Gemini lives in the PAyouchat engagement panel, not the description panel.
+        if (matchedGroup == askGeminiButton) {
+            return Utils.contains(path, "button.e")
+                    && askGeminiButtonBuffer.check(buffer).isFiltered();
+        }
+
         // Immediately after the layout is refreshed, litho components are updated before the UI is drawn.
         // In this case, EngagementPanel.isDescription() cannot be used, and isActionBarVisible.get() should be used.
         if (!EngagementPanel.isDescription() && !(PlayerType.getCurrent().isMaximizedOrFullscreen() ||
                 LayoutReloadObserverPatch.isActionBarVisible.get() || ShortsPlayerState.isOpen())) {
             return false;
+        }
+
+        if (matchedGroup == attributesSection) {
+            return attributesSectionBuffer.check(buffer).isFiltered()
+                    || ((Settings.HIDE_EXPLORE_SECTION.get()
+                    || Settings.HIDE_EXPLORE_PODCAST_SECTION.get())
+                    && podcastSectionBuffer.check(buffer).isFiltered());
         }
 
         if (matchedGroup == featuredSection) {
@@ -247,7 +295,7 @@ public final class DescriptionComponentsFilter extends Filter {
         }
 
         if (matchedGroup == linksSection) {
-            return path.startsWith(INFOCARDS_SECTION_PATH) && path.contains("button.e");
+            return Utils.startsWith(path, INFOCARDS_SECTION_PATH) && Utils.contains(path, "button.e");
         }
 
         if (matchedGroup == macroMarkersCarousel) {
@@ -264,7 +312,7 @@ public final class DescriptionComponentsFilter extends Filter {
         }
 
         if (matchedGroup == subscribeButton) {
-            return path.startsWith(INFOCARDS_SECTION_PATH);
+            return Utils.startsWith(path, INFOCARDS_SECTION_PATH);
         }
 
         if (matchedGroup == videoDetails) {

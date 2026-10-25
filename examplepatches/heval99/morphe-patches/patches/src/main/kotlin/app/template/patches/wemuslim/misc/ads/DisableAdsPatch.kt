@@ -41,8 +41,7 @@ private const val GMA = "Lcom/google/android/gms/ads/"
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, native, interstitial and splash (app-open) ads and skips the " +
-        "splash ad wait. Opt-in rewarded ads keep working for make-up prayers and rewards.",
+    description = "Removes all ads. Opt-in rewarded ads keep working.",
 ) {
     compatibleWith(COMPATIBILITY_WEMUSLIM)
 

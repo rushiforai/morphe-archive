@@ -17,10 +17,7 @@ import app.template.patches.shared.misc.ads.neuterAdHooks
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Removes banner, interstitial, rewarded and app-open ads: every ad load is " +
-        "reported to the app as \"no ad available\", so screens that wait for an ad carry on " +
-        "without it. Also skips PairIP's Play license check that otherwise kills the app when it " +
-        "is not installed from Play. Playback and playlists are unchanged."
+    description = "Removes all ads and skips the Play license check."
 ) {
     compatibleWith(COMPATIBILITY_EXPERTPLAYER)
 

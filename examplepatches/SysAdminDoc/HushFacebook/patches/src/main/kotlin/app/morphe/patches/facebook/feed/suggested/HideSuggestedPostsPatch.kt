@@ -14,7 +14,8 @@
  * children builder. It also fills the two accessors the switch for posts from groups you're not in
  * reads: a story's group and that group's join state. On the search screen, before anything is
  * typed, it hands each row to the extension, which draws the For you section or People you may know
- * as an empty row while its search switch is on, and names every row for Debug logging.
+ * as an empty row while its search switch is on, and names every row for Debug logging. Under a
+ * post's buttons, it lets the extension leave out the Related posts list.
  */
 package app.morphe.patches.facebook.feed.suggested
 
@@ -207,6 +208,12 @@ val hideSuggestedPostsPatch = bytecodePatch(
             hookPreSearchSections()
         } catch (exception: PatchException) {
             patchLog.warning("${exception.message}, so For you and People you may know stay on the search screen.")
+        }
+        // The Related posts list under a post is a plugin of the socket under its buttons, not a feed unit (#231).
+        try {
+            hookRelatedPosts()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so Related posts stay under posts.")
         }
         enableStatus("suggestedPosts")
     }

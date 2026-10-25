@@ -9,7 +9,9 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -21,8 +23,11 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22b
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
@@ -188,6 +193,13 @@ class MenuSectionsShapesTest {
 
     private fun MutableMethod.at(index: Int) = implementation!!.instructions.elementAt(index)
 
+    /** An `xor-int/lit8` as its destination, its source and its literal. */
+    private fun notOf(instruction: Instruction): List<Int> {
+        assertEquals(Opcode.XOR_INT_LIT8, instruction.opcode)
+        val xor = instruction as TwoRegisterInstruction
+        return listOf(xor.registerA, xor.registerB, (instruction as NarrowLiteralInstruction).narrowLiteral)
+    }
+
     /** The instruction index a branch at [index] lands on. */
     private fun offsetTarget(method: MutableMethod, index: Int): Int {
         val instructions = method.implementation!!.instructions.toList()
@@ -261,6 +273,165 @@ class MenuSectionsShapesTest {
         // A no lands on the section's own list, built as before.
         assertEquals(Opcode.NEW_INSTANCE, server.at(8).opcode)
         assertEquals(8, offsetTarget(server, 3))
+    }
+
+    private val baseState = "Lfixture/BaseState;"
+    private val foldState = "Lfixture/FoldState;"
+    private val stateField = ImmutableFieldReference("Lfixture/Component;", "A03", baseState)
+    private val foldField = ImmutableFieldReference(foldState, "A01", "Z")
+    private val useFold = ImmutableMethodReference("Lfixture/Header;", "A00", listOf("Z", "Ljava/lang/Object;"), "V")
+
+    private fun foldBoolean(register: Int = 8) = ImmutableInstruction22c(Opcode.IGET_BOOLEAN, register, 1, foldField)
+
+    /**
+     * 584's shape: `this` into v2, its state cast to the fold state in v1, the fold into v8, the
+     * group into v3, then [extra] before the header takes both. [between] goes after the fold read.
+     */
+    private fun foldingSection(
+        between: List<Instruction> = emptyList(),
+        extra: List<Instruction> = emptyList(),
+        fold: Instruction = foldBoolean(),
+    ) = method(
+        listOf(
+            ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 2, 18),
+            ImmutableInstruction22c(Opcode.IGET_OBJECT, 1, 2, stateField),
+            ImmutableInstruction21c(Opcode.CHECK_CAST, 1, ImmutableTypeReference(foldState)),
+            fold,
+        ) + between + listOf(
+            ImmutableInstruction22c(Opcode.IGET_OBJECT, 6, 2, modelField),
+            invoke(Opcode.INVOKE_VIRTUAL, groupCall, 6),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 3),
+        ) + extra + listOf(
+            invoke(Opcode.INVOKE_STATIC, useFold, 8, 3),
+            newBuilder(13),
+            invoke(Opcode.INVOKE_DIRECT, builderInit, 13),
+            childrenOf(0, 13),
+            ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+        ),
+    )
+
+    private fun foldOf(method: Method) = foldRead(method, nativeGroupRead(method, isGroup)!!)
+
+    @Test
+    fun `the fold is the one boolean read before the group from a state the section casts`() {
+        assertEquals(FoldRead(3, 8), foldOf(foldingSection()))
+        // A boolean of the section's own class isn't its state, and a read after the group doesn't count.
+        val own = ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 9, 2, ImmutableFieldReference(section, "A08", "Z"))
+        assertEquals(FoldRead(3, 8), foldOf(foldingSection(between = listOf(own), extra = listOf(foldBoolean(9)))))
+        // Negative controls: two state reads, a state never cast, a register written before the group.
+        assertNull(foldOf(foldingSection(between = listOf(ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 9, 1,
+            ImmutableFieldReference(foldState, "A02", "Z"))))))
+        assertNull(foldOf(foldingSection(fold = ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 8, 1,
+            ImmutableFieldReference("Lfixture/Uncast;", "A01", "Z")))))
+        assertNull(foldOf(foldingSection(between = listOf(ImmutableInstruction11n(Opcode.CONST_4, 8, 0)))))
+        // A wide write into v7 takes v8 with it.
+        assertNull(foldOf(foldingSection(between = listOf(ImmutableInstruction22c(Opcode.IGET_WIDE, 7, 1,
+            ImmutableFieldReference(foldState, "A00", "J"))))))
+    }
+
+    @Test
+    fun `a branch landing between the fold and the group turns the fold down`() {
+        // if-nez v1 right after the fold read, landing past itself and the model read: on the group call.
+        val branch = ImmutableInstruction21t(Opcode.IF_NEZ, 1, 2 + 2)
+        assertNull(foldOf(foldingSection(between = listOf(branch))))
+        // A branch landing past the group, on the header's call, is fine.
+        val past = ImmutableInstruction21t(Opcode.IF_NEZ, 1, 2 + 2 + 3 + 1)
+        assertEquals(FoldRead(3, 8), foldOf(foldingSection(between = listOf(past))))
+    }
+
+    @Test
+    fun `the fold and the group go to the extension right after the group, and its answer replaces the fold`() {
+        val native = MutableMethod(foldingSection())
+        val read = nativeGroupRead(native, isGroup)!!
+        val own = native.implementation!!.instructions.count()
+        native.askAboutFolding(read, foldRead(native, read)!!)
+
+        // v0 and v1 are borrowed: the section writes v0 before reading it and never reads v1 again.
+        assertEquals(Opcode.MOVE_FROM16, native.at(7).opcode)
+        assertEquals(listOf(0, 8), (native.at(7) as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(Opcode.MOVE_OBJECT_FROM16, native.at(8).opcode)
+        assertEquals(listOf(1, 3), (native.at(8) as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(Opcode.INVOKE_STATIC, native.at(9).opcode)
+        val call = (native.at(9) as ReferenceInstruction).reference as MethodReference
+        assertEquals("Lapp/morphe/extension/facebook/menu/MenuSections;->collapsed(ZLjava/lang/Object;)Z",
+            "${call.definingClass}->${call.name}(${call.parameterTypes.joinToString("")})${call.returnType}")
+        assertEquals(listOf(0, 1), (native.at(9) as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals(Opcode.MOVE_RESULT, native.at(10).opcode)
+        assertEquals(0, (native.at(10) as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.MOVE_FROM16, native.at(11).opcode)
+        assertEquals(listOf(8, 0), (native.at(11) as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        // The section goes on with its own code, which now reads the extension's answer.
+        assertEquals(useFold, (native.at(12) as ReferenceInstruction).reference)
+        assertEquals(own + 5, native.implementation!!.instructions.count())
+    }
+
+    private val startField = ImmutableFieldReference(section, "A09", "Z")
+    private val headerField = ImmutableFieldReference("Lfixture/Header;", "A07", "Z")
+
+    private fun startBoolean(register: Int = 11, field: FieldReference = startField) =
+        ImmutableInstruction22c(Opcode.IGET_BOOLEAN, register, 2, field)
+
+    /** The header's seed: [from] negated into v10 and stored into the header in v4, as 584's `Lmm.A07 = !A09`. */
+    private fun seed(from: Int = 11, literal: Int = 1, field: FieldReference = headerField) = listOf(
+        ImmutableInstruction22b(Opcode.XOR_INT_LIT8, 10, from, literal),
+        ImmutableInstruction22c(Opcode.IPUT_BOOLEAN, 10, 4, field),
+    )
+
+    /**
+     * [foldingSection] with whether the group starts folded read into v11 at 4, after the fold, and
+     * seeded into the header after the group, at 8 and 9.
+     */
+    private fun startingSection(before: List<Instruction> = listOf(startBoolean()), after: List<Instruction> = seed()) =
+        foldingSection(between = before, extra = after)
+
+    private fun startOf(method: Method) = startRead(method, nativeGroupRead(method, isGroup)!!)
+
+    @Test
+    fun `the header's start is the one own flag read once, negated into another class after the group`() {
+        assertEquals(StartRead(4, 11), startOf(startingSection()))
+        // The fold, read from the state, is never the start.
+        assertNull(startOf(foldingSection()))
+        // Negative controls: another class's flag, a flag read again, one xor'd with anything but 1,
+        // one stored back into the section, one seeded before the group, one written over first,
+        // and two that both qualify.
+        assertNull(startOf(startingSection(before = listOf(startBoolean(field = ImmutableFieldReference("Lfixture/Other;", "A09", "Z"))))))
+        assertNull(startOf(startingSection(after = seed() + invoke(Opcode.INVOKE_STATIC, useFold, 11, 3))))
+        assertNull(startOf(startingSection(after = seed(literal = 2))))
+        assertNull(startOf(startingSection(after = seed(field = ImmutableFieldReference(section, "A07", "Z")))))
+        assertNull(startOf(startingSection(before = listOf(startBoolean()) + seed(), after = emptyList())))
+        assertNull(startOf(startingSection(before = listOf(startBoolean(), ImmutableInstruction11n(Opcode.CONST_4, 11, 0)))))
+        assertNull(startOf(startingSection(
+            before = listOf(startBoolean(), startBoolean(12, ImmutableFieldReference(section, "A0A", "Z"))),
+            after = seed() + seed(from = 12),
+        )))
+        // if-nez v1 right after the start read, landing on the group call.
+        assertNull(startOf(startingSection(before = listOf(startBoolean(), ImmutableInstruction21t(Opcode.IF_NEZ, 1, 2 + 2)))))
+    }
+
+    @Test
+    fun `with a start, the header's seed gets the extension's answer right after the fold does`() {
+        val native = MutableMethod(startingSection())
+        val read = nativeGroupRead(native, isGroup)!!
+        val own = native.implementation!!.instructions.count()
+        native.askAboutFolding(read, foldRead(native, read)!!, startRead(native, read)!!)
+
+        // The fold's five go in at 8 to 12, then the start's five, through the same borrowed v0 and v1.
+        // The start says whether the group starts open, so it's asked about turned around and the
+        // answer comes back turned around again.
+        assertEquals(listOf(8, 0), (native.at(12) as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(listOf(0, 11, 1), notOf(native.at(13)))
+        assertEquals(Opcode.INVOKE_STATIC, native.at(14).opcode)
+        val call = (native.at(14) as ReferenceInstruction).reference as MethodReference
+        assertEquals("collapsed", call.name)
+        assertEquals(listOf(0, 1), (native.at(14) as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals(Opcode.MOVE_RESULT, native.at(15).opcode)
+        assertEquals(0, (native.at(15) as OneRegisterInstruction).registerA)
+        assertEquals(listOf(0, 0, 1), notOf(native.at(16)))
+        assertEquals(Opcode.MOVE_FROM16, native.at(17).opcode)
+        assertEquals(listOf(11, 0), (native.at(17) as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        // The header's seed now negates the turned-back answer.
+        assertEquals(Opcode.XOR_INT_LIT8, native.at(18).opcode)
+        assertEquals(own + 10, native.implementation!!.instructions.count())
     }
 
     /**

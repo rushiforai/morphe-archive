@@ -95,11 +95,12 @@ try {
     $notesDir = Join-Path $scratch 'notes'
     $changelog = Join-Path $notesDir 'CHANGELOG.md'
     $goodChangelog = "# Changelog`n`n## Unreleased`n`n### Improvements`n`n* **Tooling:** A script change.`n`n### Features`n`n* **Instagram:** A patch change.`n`n" +
-        "## 0.0.2 (2026-10-01)`n`n### Improvements`n`n* **Tooling:** The tooling line.`n`n### Features`n`n* **Instagram:** First patch line.`n`n" +
+        "## 0.0.2 (2026-10-01)`n`n* **Instagram:** A short summary.`n`n### Improvements`n`n* **Tooling:** The tooling line.`n`n### Features`n`n* **Instagram:** First patch line.`n`n" +
         "* **Instagram - Hide Meta AI:** Second patch line,`n  carried on.`n`n## 0.0.1 (2026-09-01)`n`n### Features`n`n* **Instagram:** The first release.`n"
     Write-Text $changelog $goodChangelog
     # The builder checks each scoped bullet's patch against the catalog beside the CHANGELOG.
     Write-Text (Join-Path $notesDir 'patches-list.json') ([IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')))
+    Write-Text (Join-Path $notesDir 'libs.versions.toml') "[versions]`nmanager-floor = `"9.9.9`"`n"
     Write-Text (Join-Path $notesDir 'validation.md') 'Validation: 5 runtime tests passed locally. All 6 patch tests passed too.'
     $notesOut = Join-Path $notesDir 'notes.md'
     $descriptionOut = Join-Path $notesDir 'description.json'
@@ -107,16 +108,25 @@ try {
     function Invoke-Notes([string[]]$Extra) {
         Invoke-Python $notesTool '--changelog' $changelog @Extra
     }
-    $build = @('--version', '0.0.2', '--validation', (Join-Path $notesDir 'validation.md'), '--out', $notesOut, '--description-out', $descriptionOut)
+    $build = @('--version', '0.0.2', '--validation', (Join-Path $notesDir 'validation.md'), '--out', $notesOut, '--description-out', $descriptionOut, '--catalog', (Join-Path $notesDir 'libs.versions.toml'))
     $run = Invoke-Notes $build
     $notes = if (Test-Path -LiteralPath $notesOut) { [IO.File]::ReadAllText($notesOut) } else { '' }
     Assert-True ($run.Exit -eq 0 -and $run.Output -like '*3 CHANGELOG bullets*') "The notes builder refused a clean section: $($run.Output)"
     $heading = '## [0.0.2](https://github.com/SysAdminDoc/HushGram/compare/v0.0.1...v0.0.2) (2026-10-01)'
-    Assert-True ($notes -ceq ("$heading`n`n### Features`n`n* **Instagram:** First patch line.`n* **Instagram - Hide Meta AI:** Second patch line, carried on.`n`n" +
-            "### Improvements`n`n* **Tooling:** The tooling line.`n`n### Validation`n`nValidation: 5 runtime tests passed locally. All 6 patch tests passed too.`n")) `
-        "The notes aren't the version heading, the typed sections with every bullet once and the validation line: $notes"
+    $target = (Get-Content -Raw (Join-Path $notesDir 'patches-list.json') | ConvertFrom-Json).patches.compatiblePackages.'com.instagram.android' |
+        Sort-Object -Unique { [string]::Join('.', ($_ -split '\.' | ForEach-Object { $_.PadLeft(10, '0') })) } | Select-Object -Last 1
+    $repo = 'https://github.com/SysAdminDoc/HushGram'
+    $expected = (@('A short summary.', 'New in this release', '- First patch line.', '- `Hide Meta AI`: Second patch line, carried on.',
+            'Behind the scenes', '- The tooling line.', "The [changelog]($repo/blob/main/CHANGELOG.md) has every earlier release too.", 'How to update',
+            ("1. Update Morphe Manager to 9.9.9 or newer, then refresh the HushGram source.`n2. Patch Instagram ``$target``. [Supported Instagram builds]($repo#supported-instagram-builds) lists the builds that work.`n" +
+            "3. Install over your current patched Instagram with the manager's existing signing key. Keep that key so updates keep working."),
+            "The ``.mpp`` download is a patch bundle, not an Instagram APK. [Installation instructions]($repo#install).", 'What was checked',
+            '5 runtime tests passed locally. All 6 patch tests passed too.') -join "`n`n") + "`n"
+    Assert-True ($notes -ceq $expected) "The GitHub notes aren't Hushfacebook's layout with every bullet once: $notes"
     $description = if (Test-Path -LiteralPath $descriptionOut) { [IO.File]::ReadAllText($descriptionOut) | ConvertFrom-Json } else { '' }
-    Assert-True ($description -ceq $notes.TrimEnd("`n")) "The bundle description isn't the notes as a JSON string: $description"
+    Assert-True ($description -ceq ("$heading`n`n### Features`n`n* **Instagram:** First patch line.`n* **Instagram - Hide Meta AI:** Second patch line, carried on.`n`n" +
+            "### Improvements`n`n* **Tooling:** The tooling line.`n`n### Validation`n`nValidation: 5 runtime tests passed locally. All 6 patch tests passed too.")) `
+        "The bundle description isn't the version heading, the typed sections and the validation line: $description"
     $run = Invoke-Notes @('--check')
     Assert-True ($run.Exit -eq 0 -and $run.Output -like '*Unreleased: 2 bullets (1 Features, 1 Improvements)*') "The Unreleased check didn't pass: $($run.Output)"
     foreach ($case in @(

@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches/pull/2221
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2221
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -8,10 +8,10 @@
 package app.morphe.patches.youtube.layout.widesearchbar
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_31_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_42_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -31,7 +31,6 @@ val wideSearchBarPatch = bytecodePatch(
     dependsOn(
         sharedExtensionPatch,
         settingsPatch,
-        resourceMappingPatch,
         versionCheckPatch,
         toolBarHookPatch
     )
@@ -59,12 +58,20 @@ val wideSearchBarPatch = bytecodePatch(
 
         hookToolBar("$EXTENSION_CLASS->setSearchButtonView")
 
-        ActionbarRingoViewFingerprint.apply {
-            arrayOf(
-                instructionMatches[5],
-                instructionMatches[3],
-                instructionMatches[1]
-            ).forEach { match ->
+        (if (is_21_42_or_greater) ActionbarRingoViewFingerprint
+        else ActionbarRingoViewLegacyFingerprint).apply {
+            // Each return of the view. 21.42+ has a single return.
+            val returnMatches = if (is_21_42_or_greater) {
+                arrayOf(instructionMatches[3])
+            } else {
+                arrayOf(
+                    instructionMatches[5],
+                    instructionMatches[3],
+                    instructionMatches[1]
+                )
+            }
+
+            returnMatches.forEach { match ->
                 val index = match.index
                 val register = match.getInstruction<OneRegisterInstruction>().registerA
 

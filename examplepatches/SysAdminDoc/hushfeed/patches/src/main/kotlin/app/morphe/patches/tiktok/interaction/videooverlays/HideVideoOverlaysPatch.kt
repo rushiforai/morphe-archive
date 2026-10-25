@@ -17,6 +17,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.inbox.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.requireLocals
@@ -79,8 +80,8 @@ val hideVideoOverlaysPatch = bytecodePatch(
         val footnoteGate = try {
             FootnoteBannerGateFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) }
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[$PATCH_NAME] Left out Hide Footnotes on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Hide Footnotes on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
         // The music disc's two switches (#68), the same way: required where MusicDiscSpinAnchorsTest
@@ -104,8 +105,8 @@ val hideVideoOverlaysPatch = bytecodePatch(
                 },
             )
         } catch (problem: Exception) {
-            if (packageMetadata.versionName in declaredVersions()) throw problem
-            println("[$PATCH_NAME] Left out the music disc switches on ${packageMetadata.versionName}: ${problem.message}")
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out the music disc switches on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
         // A missing new control must not leave an otherwise failed patch partly applied.

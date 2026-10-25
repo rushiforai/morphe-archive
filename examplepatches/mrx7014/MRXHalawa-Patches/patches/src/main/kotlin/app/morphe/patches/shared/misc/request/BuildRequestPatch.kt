@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -22,7 +22,7 @@ internal val buildRequestPatch = bytecodePatch(
     description = "buildRequestPatch",
 ) {
     execute {
-        getBuildRequestFingerprint().let {
+        BuildRequestFingerprint.let {
             it.method.apply {
                 val builderMatch = it.instructionMatches.first()
                 builderIndex = builderMatch.index

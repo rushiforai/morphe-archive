@@ -38,7 +38,48 @@ public final class FollowingLatestFirst {
      */
     private static final int MAX_CURRENT = 1024;
 
+    /**
+     * Posts the first Following read asks for. TikTok asks for 20, and with a few hundred follows
+     * it then fills the list over several reads within a second, so a newer post can arrive after
+     * the video in slot 0 started playing. A larger first read brings the posts that decide slot
+     * 0 in together. Later pages keep TikTok's size.
+     */
+    static final int FIRST_READ_COUNT = 40;
+
     private FollowingLatestFirst() {}
+
+    /**
+     * The count for a Following request, from the request builder just before the call goes out.
+     * Only the first read (cursor 0) of a list is raised, and only with the switch on.
+     */
+    public static int requestCount(long cursor, int level, int count) {
+        try {
+            if (cursor == 0 && count > 0 && count < FIRST_READ_COUNT && enabled()) {
+                return FIRST_READ_COUNT;
+            }
+        } catch (Throwable unknown) {
+            // The request goes out with TikTok's own count.
+        }
+        return count;
+    }
+
+    /**
+     * Called as TikTok restores its saved Following list on a cold start. TikTok shows the first
+     * post it saved last time as the first video and loads the fresh list under it, so with the
+     * switch on that saved post played first and the newest posts were sorted below it (#226).
+     * True while the switch is on, and TikTok then takes the path it takes when nothing was saved:
+     * the first video comes from the fresh read, which is sorted before it plays. Paused, the
+     * switch answers off.
+     */
+    public static boolean skipSavedFirstVideo() {
+        try {
+            if (!enabled()) return false;
+            Logger.printDebug(() -> "Latest first on Following: left out TikTok's saved first video");
+            return true;
+        } catch (Throwable unknown) {
+            return false;
+        }
+    }
 
     /** Puts an order into TikTok's list. True when the list TikTok reads now holds it. */
     interface OrderWriter {

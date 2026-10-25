@@ -554,6 +554,20 @@ tasks.register("verifyAndroidBoundaries") {
                 "theSwitchIsUnderStoriesAfterDownloadAndStartsOff[28]", "theSwitchIsUnderStoriesAfterDownloadAndStartsOff[37]",
                 "aSavedSwitchAnswersOffWhilePaused[28]", "aSavedSwitchAnswersOffWhilePaused[37]",
                 "missingPatchHasNoSwitch[28]", "missingPatchHasNoSwitch[37]"),
+            "app.hushgram.extension.instagram.stories.StoryFontsTest" to listOf(
+                "offToStartLeavesTheList[28]", "offToStartLeavesTheList[37]",
+                "onAddsEachPickedFontAfterInstagrams[28]", "onAddsEachPickedFontAfterInstagrams[37]",
+                "nothingToAddLeavesTheList[28]", "nothingToAddLeavesTheList[37]",
+                "pausedLeavesTheList[28]", "pausedLeavesTheList[37]",
+                "beforeTheSettingsAreReadyItLeavesTheList[28]", "beforeTheSettingsAreReadyItLeavesTheList[37]",
+                "aThrowingStubLeavesTheListAndIsReported[28]", "aThrowingStubLeavesTheListAndIsReported[37]",
+                "aRebuildByNameGetsTheLastAppliedFontBack[28]", "aRebuildByNameGetsTheLastAppliedFontBack[37]",
+                "addingAndRemovingFiles[28]", "addingAndRemovingFiles[37]",
+                "cleanNames[28]", "cleanNames[37]",
+                "freeNames[28]", "freeNames[37]"),
+            "app.hushgram.extension.instagram.settings.StoryFontsSettingsTest" to listOf(
+                "theSwitchIsUnderStoriesAfterUploadQualityAndStartsOff[28]", "theSwitchIsUnderStoriesAfterUploadQualityAndStartsOff[37]",
+                "missingPatchHasNoRows[28]", "missingPatchHasNoRows[37]"),
             "app.hushgram.extension.instagram.feed.FeedSoundTest" to listOf(
                 "itStartsOffAndLeavesInstagramsOwnSoundAlone[28]", "itStartsOffAndLeavesInstagramsOwnSoundAlone[37]",
                 "onWithTheRingerOnAndTheVolumeUpTheFirstVideoStartsWithSound[28]", "onWithTheRingerOnAndTheVolumeUpTheFirstVideoStartsWithSound[37]",
@@ -659,7 +673,8 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.feed.FeedInterestTest" to listOf(
                 "withTheSwitchOnTheRowIsLeftOutAndEachOneCounted[28]", "withTheSwitchOnTheRowIsLeftOutAndEachOneCounted[37]",
                 "onlyTheQuestionSwitchTurnsItOn[28]", "onlyTheQuestionSwitchTurnsItOn[37]",
-                "offPausedAndUnreadyAddTheRowAndCountNothing[28]", "offPausedAndUnreadyAddTheRowAndCountNothing[37]"),
+                "offPausedAndUnreadyAddTheRowAndCountNothing[28]", "offPausedAndUnreadyAddTheRowAndCountNothing[37]",
+                "theReelsControlIsDroppedOnlyWithTheSwitchOn[28]", "theReelsControlIsDroppedOnlyWithTheSwitchOn[37]"),
             "app.hushgram.extension.instagram.settings.FeedInterestSettingsTest" to listOf(
                 "itIsUnderFeedAfterHideShoppingAndStartsOff[28]", "itIsUnderFeedAfterHideShoppingAndStartsOff[37]",
                 "withoutHideSuggestedPostsThereIsNoSwitch[28]", "withoutHideSuggestedPostsThereIsNoSwitch[37]"),
@@ -944,8 +959,8 @@ tasks.register("verifyAndroidBoundaries") {
                 "pausedReadsAsNothingPicked", "nothingThrowsIntoInstagram", "aDroppedTabIsCounted", "savedTextIsTidied"
             ).flatMap { listOf("$it[28]", "$it[37]") },
             "app.hushgram.extension.instagram.settings.ProfileTabsSettingsTest" to listOf(
-                "missingPatchHasNoTabsRow", "everyTabStartsTickedAndTheGridIsNotOffered", "aChangeSavesAtOnceByKey",
-                "aSavedChoiceShowsAndPauseKeepsIt"
+                "missingPatchHasNoTabsRows", "everyTabStartsTickedAndTheGridIsNotOffered",
+                "theOtherProfilesRowSavesItsOwnKey", "yourProfileRowSavesItsOwnKey", "aSavedChoiceShowsAndPauseKeepsIt"
             ).flatMap { listOf("$it[28]", "$it[37]") },
             "app.hushgram.extension.instagram.direct.MessageBoxTest" to listOf(
                 "nothingPickedShowsEveryButton", "aPickedButtonIsHiddenAndTheRestShow", "aHideStaysAHide",

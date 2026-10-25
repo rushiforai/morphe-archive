@@ -20,7 +20,6 @@ private object ExoPlayerLoadControlFingerprint : Fingerprint(
         methodCall(
             definingClass = "Landroidx/media3/exoplayer/c;",
             name = "<init>",
-            parameters = listOf("Le3/e;", "I", "I", "I", "I"),
             returnType = "V",
         ),
     ),

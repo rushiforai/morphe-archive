@@ -9,12 +9,14 @@ import re
 import ssl
 import time
 from collections import Counter
+from contextlib import contextmanager
 from pathlib import Path
 
 import httpx
 
 from scripts.catalog_reconciliation import reconcile_retained_records
 from scripts.catalog_records import catalog_records, encode, record_hash
+from scripts.cloudflare_progress import Progress
 from scripts.cloudflare_storage import (
     REFRESH_FILES,
     REFRESH_ROOT_FILES,
@@ -31,6 +33,8 @@ from scripts.source_policy import disabled_sources, source_channels
 
 ROOT = Path(__file__).resolve().parents[1]
 D1_CLEANUP_BATCH_SIZE = 1000
+D1_CLEANUP_SCAN_SIZE = 10_000
+D1_WRITE_BATCH_SIZE = 1000
 
 
 def merge_ids(*registries):
@@ -130,6 +134,29 @@ class Cloud:
             )
         return self._transfers
 
+    @contextmanager
+    def phase(self, name):
+        cache = self.transfers()
+        before = dict(cache.metrics)
+        progress = Progress(name)
+        try:
+            with progress:
+                yield
+        finally:
+            result = {
+                "phase": name,
+                "status": progress.status,
+                "elapsed_seconds": round(time.perf_counter() - progress.started, 3),
+                "metrics": {
+                    key: value - before.get(key, 0)
+                    for key, value in cache.metrics.items()
+                    if value != before.get(key, 0)
+                },
+            }
+            self.publication_metrics = getattr(self, "publication_metrics", {})
+            self.publication_metrics.setdefault("publication_phases", []).append(result)
+            print(json.dumps({"cloudflare_phase": result}), flush=True)
+
     def report(self, operation, started):
         cache = self.transfers()
         cache.trim(int(os.environ.get("CATALOG_OBJECT_CACHE_BYTES") or str(1024**3)))
@@ -205,27 +232,37 @@ class Cloud:
         return result[0].get("results", [])
 
     def cleanup_records(self, statement, params=()):
-        # Scan each rowid page once, even when matching versions are sparse.
-        # Fixed targets keep a retried DELETE/UPDATE from advancing to another batch.
+        # Evaluate the predicate in the projection so LIMIT bounds rows scanned,
+        # even when no records match. Only matching rows need write requests.
+        # Fixed targets keep retried mutations from advancing to another batch.
+        predicate = statement.split(" WHERE ", 1)[1]
         cursor = None
-        while True:
-            rows = self.sql(
-                "SELECT rowid FROM catalog_records ORDER BY rowid LIMIT ?"
-                if cursor is None
-                else "SELECT rowid FROM catalog_records WHERE rowid>? ORDER BY rowid LIMIT ?",
-                [D1_CLEANUP_BATCH_SIZE]
-                if cursor is None
-                else [cursor, D1_CLEANUP_BATCH_SIZE],
-            )
-            if not rows:
-                return
-            # Callers supply fixed SQL; record values remain bound parameters.
-            self.sql(
-                statement + " AND rowid IN (SELECT value FROM json_each(?))",  # noqa: S608
-                [*params, encode([row["rowid"] for row in rows]).decode()],
-            )
-            self.transfers().add("d1_cleanup_batches")
-            cursor = rows[-1]["rowid"]
+        completed = scanned = 0
+        with Progress("d1_cleanup") as progress:
+            while True:
+                rows = self.sql(
+                    "SELECT rowid, (" + predicate + ") AS matches FROM catalog_records"  # noqa: S608
+                    + (" WHERE rowid>?" if cursor is not None else "")
+                    + " ORDER BY rowid LIMIT ?",
+                    [*params, *([cursor] if cursor is not None else []), D1_CLEANUP_SCAN_SIZE],
+                )
+                if not rows:
+                    return
+                scanned += len(rows)
+                targets = [row["rowid"] for row in rows if row["matches"]]
+                for start in range(0, len(targets), D1_CLEANUP_BATCH_SIZE):
+                    batch = targets[start : start + D1_CLEANUP_BATCH_SIZE]
+                    self.sql(
+                        statement + " AND rowid IN (SELECT value FROM json_each(?))",  # noqa: S608
+                        [*params, encode(batch).decode()],
+                    )
+                    self.transfers().add("d1_cleanup_batches")
+                    completed += len(batch)
+                    progress.update(rows=completed, rows_scanned=scanned)
+                progress.update(rows=completed, rows_scanned=scanned)
+                cursor = rows[-1]["rowid"]
+                if len(rows) < D1_CLEANUP_SCAN_SIZE:
+                    return
 
     def put(self, key, body):
         for attempt in range(5):
@@ -450,150 +487,170 @@ class Cloud:
             temporary.replace(target)
 
     def publish(self, require_complete=True):
-        clean_inputs(ROOT)
-        manifest, records = catalog_records(ROOT)
-        configured, _ = configured_sources(ROOT)
-        inventory_complete = True
-        snapshot_sources = json.loads(
-            (ROOT / "database" / manifest["snapshot"] / "sources.json").read_bytes()
-        )
-        if any(row["url"].lower() not in configured for row in snapshot_sources):
-            raise ValueError("Catalog contains removed sources; rebuild before publication")
-        base_generation = manifest["generation"]
-        if require_complete:
-            inventory = source_channels(
-                json.loads((ROOT / "config/sources.json").read_text(encoding="utf-8")), ROOT
+        self.publication_metrics = {}
+        with self.phase("publish"):
+            return self._publish(require_complete)
+
+    def _publish(self, require_complete):
+        with self.phase("prepare_records"):
+            clean_inputs(ROOT)
+            manifest, records = catalog_records(ROOT)
+            configured, _ = configured_sources(ROOT)
+            inventory_complete = True
+            snapshot_sources = json.loads(
+                (ROOT / "database" / manifest["snapshot"] / "sources.json").read_bytes()
             )
-            required = {
-                normalize_source(row["patches"], ROOT).lower() for row in inventory.values()
-            } - disabled_sources(inventory, ROOT).keys()
-            states = {
-                key.lower(): row for (kind, key), row in records.items() if kind == "history_source"
-            }
-            issue_sources = {
-                normalize_source(row["source"], ROOT).lower()
-                for row in read_issues(ROOT)
-                if row["phase"] == "Release check"
-                and row.get("observed_at", "")
-                >= states.get(normalize_source(row["source"], ROOT).lower(), {}).get(
-                    "checked_at", "~"
+            if any(row["url"].lower() not in configured for row in snapshot_sources):
+                raise ValueError("Catalog contains removed sources; rebuild before publication")
+            base_generation = manifest["generation"]
+            if require_complete:
+                inventory = source_channels(
+                    json.loads((ROOT / "config/sources.json").read_text(encoding="utf-8")), ROOT
                 )
-            }
-            inventory_complete = all(
-                states.get(url, {}).get("status") == "complete" for url in required
-            )
-            if any(
-                not states.get(url, {}).get("configured")
-                or not states[url].get("required", True)
-                or (
-                    states[url].get("status") != "complete"
-                    and not (states[url].get("status") == "incomplete" and url in issue_sources)
-                )
-                for url in required
-            ):
-                raise ValueError("Historical reconciliation incomplete; publication refused")
-        active = self.active()
-        if active and not require_complete:
-            raise ValueError("Seed is only allowed for an empty catalog; use normal publication")
-        active_document = self.document(active) if active else None
-        if active_document and active_document.get("source_purge_pending"):
-            # A prior purge may have discarded generation rows before removing
-            # their record versions. Finish it before choosing or reusing a seq.
-            self.finish_source_purge(active_document)
-        tips = self.sql(
-            "SELECT * FROM catalog_generations WHERE status='ready' ORDER BY seq DESC LIMIT 1"
-        )
-        previous = (
-            active_document
-            if tips and active and tips[0]["seq"] == active["seq"]
-            else self.document(tips[0]) if tips else None
-        )
-        known = self.object_digests(previous) if previous else set()
-        previous_records = self.read_records(previous) if previous else []
-        removed = {
-            (row["data"].get("url") or row["data"].get("source_url") or row["key"]).lower()
-            for row in previous_records
-            if row["kind"] in ("source", "history_source")
-        } - configured
-        # A newly verified JVM inventory is authoritative for the same bundle ID.
-        # Historical retention must not resurrect exports now classified as helpers.
-        verified_inventories = {
-            key for (kind, key), row in records.items()
-            if kind == "bundle" and row.get("metadata_status") == "verified"
-        }
-        public_inventories = {
-            key for key in verified_inventories
-            if (
-                records["bundle", key].get("patch_completeness_version", 0) >= 4
-                or (
-                    records["bundle", key].get("bundle_type") == "Reseam"
-                    and records["bundle", key].get("patch_completeness_version", 0) >= 1
-                )
-            )
-        }
-        superseded_patches, superseded_associations = set(), set()
-        for item in previous_records:
-            key = (item["kind"], item["key"])
-            if key in records:
-                continue
-            if key[0] == "patch" and (
-                item["data"]["bundle_id"] in public_inventories or is_internal_patch(item["data"])
-            ):
-                superseded_patches.add(key[1])
-            elif key[0] == "patch_package":
-                patch = records.get(("patch", item["data"]["patch_id"]))
-                if patch is not None and patch["bundle_id"] in verified_inventories:
-                    superseded_associations.add(key[1])
-        # Retain upstream release deletions for configured (including disabled) sources.
-        # Removing the source itself is an explicit purge.
-        for item in previous_records:
-            key = (item["kind"], item["key"])
-            if key in records or key[0] == "refresh_jobs":
-                continue
-            row = item["data"]
-            if key[0] == "patch" and (key[1] in superseded_patches or is_internal_patch(row)):
-                continue
-            # Keep the new verified links, while retaining relationships for
-            # fallback patches and releases absent from the current snapshot.
-            if key[0] == "patch_package" and (
-                row["patch_id"] in superseded_patches or key[1] in superseded_associations
-            ):
-                continue
-            if key[0] == "source":
-                row = {**row, "enabled": False, "configured": False}
-            elif key[0] == "history_source":
-                row = {**row, "configured": False, "status": "removed"}
-            elif key[0] in ("bundle", "history_release"):
-                row = {**row, "is_latest": False, "availability": "unavailable", "channels": []}
-            records[key] = row
-        for item in previous_records:
-            key = (item["kind"], item["key"])
-            if key[0] == "history_release" and key in records:
-                for field in ("bundle_ids", "runtimes", "bundle_types"):
-                    records[key][field] = sorted(
-                        set(records[key].get(field, [])) | set(item["data"].get(field, []))
+                required = {
+                    normalize_source(row["patches"], ROOT).lower() for row in inventory.values()
+                } - disabled_sources(inventory, ROOT).keys()
+                states = {
+                    key.lower(): row
+                    for (kind, key), row in records.items()
+                    if kind == "history_source"
+                }
+                issue_sources = {
+                    normalize_source(row["source"], ROOT).lower()
+                    for row in read_issues(ROOT)
+                    if row["phase"] == "Release check"
+                    and row.get("observed_at", "")
+                    >= states.get(normalize_source(row["source"], ROOT).lower(), {}).get(
+                        "checked_at", "~"
                     )
-        records = filter_records(ROOT, reconcile_retained_records(records))
-        exported = [
-            {"kind": kind, "key": key, "data": row} for (kind, key), row in sorted(records.items())
-        ]
-        record_blocks = self.upload_records(exported, known)
-        record_digest = hashlib.sha256(encode(record_blocks)).hexdigest()
-        identity_digest = hashlib.sha256((ROOT / "database/ids.json").read_bytes()).hexdigest()
-        generation = hashlib.sha256(
-            encode([manifest["generation"], record_digest, identity_digest])
-        ).hexdigest()[:24]
-        existing = self.sql(
-            "SELECT * FROM catalog_generations WHERE generation=? AND status='ready'", [generation]
-        )
+                }
+                inventory_complete = all(
+                    states.get(url, {}).get("status") == "complete" for url in required
+                )
+                if any(
+                    not states.get(url, {}).get("configured")
+                    or not states[url].get("required", True)
+                    or (
+                        states[url].get("status") != "complete"
+                        and not (states[url].get("status") == "incomplete" and url in issue_sources)
+                    )
+                    for url in required
+                ):
+                    raise ValueError("Historical reconciliation incomplete; publication refused")
+        with self.phase("read_previous_generation"):
+            active = self.active()
+            if active and not require_complete:
+                raise ValueError(
+                    "Seed is only allowed for an empty catalog; use normal publication"
+                )
+            active_document = self.document(active) if active else None
+            if active_document and active_document.get("source_purge_pending"):
+                # A prior purge may have discarded generation rows before removing
+                # their record versions. Finish it before choosing or reusing a seq.
+                self.finish_source_purge(active_document)
+            tips = self.sql(
+                "SELECT * FROM catalog_generations WHERE status='ready' ORDER BY seq DESC LIMIT 1"
+            )
+            previous = (
+                active_document
+                if tips and active and tips[0]["seq"] == active["seq"]
+                else self.document(tips[0]) if tips else None
+            )
+            known = self.object_digests(previous) if previous else set()
+            previous_records = self.read_records(previous) if previous else []
+        with self.phase("reconcile_records"):
+            removed = {
+                (row["data"].get("url") or row["data"].get("source_url") or row["key"]).lower()
+                for row in previous_records
+                if row["kind"] in ("source", "history_source")
+            } - configured
+            # A newly verified JVM inventory is authoritative for the same bundle ID.
+            # Historical retention must not resurrect exports now classified as helpers.
+            verified_inventories = {
+                key
+                for (kind, key), row in records.items()
+                if kind == "bundle" and row.get("metadata_status") == "verified"
+            }
+            public_inventories = {
+                key
+                for key in verified_inventories
+                if (
+                    records["bundle", key].get("patch_completeness_version", 0) >= 4
+                    or (
+                        records["bundle", key].get("bundle_type") == "Reseam"
+                        and records["bundle", key].get("patch_completeness_version", 0) >= 1
+                    )
+                )
+            }
+            superseded_patches, superseded_associations = set(), set()
+            for item in previous_records:
+                key = (item["kind"], item["key"])
+                if key in records:
+                    continue
+                if key[0] == "patch" and (
+                    item["data"]["bundle_id"] in public_inventories
+                    or is_internal_patch(item["data"])
+                ):
+                    superseded_patches.add(key[1])
+                elif key[0] == "patch_package":
+                    patch = records.get(("patch", item["data"]["patch_id"]))
+                    if patch is not None and patch["bundle_id"] in verified_inventories:
+                        superseded_associations.add(key[1])
+            # Retain upstream release deletions for configured (including disabled) sources.
+            # Removing the source itself is an explicit purge.
+            for item in previous_records:
+                key = (item["kind"], item["key"])
+                if key in records or key[0] == "refresh_jobs":
+                    continue
+                row = item["data"]
+                if key[0] == "patch" and (key[1] in superseded_patches or is_internal_patch(row)):
+                    continue
+                # Keep the new verified links, while retaining relationships for
+                # fallback patches and releases absent from the current snapshot.
+                if key[0] == "patch_package" and (
+                    row["patch_id"] in superseded_patches or key[1] in superseded_associations
+                ):
+                    continue
+                if key[0] == "source":
+                    row = {**row, "enabled": False, "configured": False}
+                elif key[0] == "history_source":
+                    row = {**row, "configured": False, "status": "removed"}
+                elif key[0] in ("bundle", "history_release"):
+                    row = {**row, "is_latest": False, "availability": "unavailable", "channels": []}
+                records[key] = row
+            for item in previous_records:
+                key = (item["kind"], item["key"])
+                if key[0] == "history_release" and key in records:
+                    for field in ("bundle_ids", "runtimes", "bundle_types"):
+                        records[key][field] = sorted(
+                            set(records[key].get(field, [])) | set(item["data"].get(field, []))
+                        )
+            records = filter_records(ROOT, reconcile_retained_records(records))
+            exported = [
+                {"kind": kind, "key": key, "data": row}
+                for (kind, key), row in sorted(records.items())
+            ]
+        with self.phase("upload_record_blocks"):
+            record_blocks = self.upload_records(exported, known)
+            record_digest = hashlib.sha256(encode(record_blocks)).hexdigest()
+            identity_digest = hashlib.sha256((ROOT / "database/ids.json").read_bytes()).hexdigest()
+            generation = hashlib.sha256(
+                encode([manifest["generation"], record_digest, identity_digest])
+            ).hexdigest()[:24]
+            existing = self.sql(
+                "SELECT * FROM catalog_generations WHERE generation=? AND status='ready'",
+                [generation],
+            )
         if existing and active and active["generation"] == generation:
             self.finish_source_purge(active_document)
             self.prune("PRUNE", verify=False)
             print("Catalog unchanged; no D1 writes or repeated full verification")
             return
         if existing:
-            self.verify_document(self.document(existing[0]))
-            self.sql("UPDATE catalog_state SET active_seq=? WHERE id=1", [existing[0]["seq"]])
+            with self.phase("verify_existing_generation"):
+                self.verify_document(self.document(existing[0]))
+            with self.phase("activate_generation"):
+                self.sql("UPDATE catalog_state SET active_seq=? WHERE id=1", [existing[0]["seq"]])
             self.finish_source_purge(self.document(existing[0]))
             self.prune("PRUNE", verify=False)
             print("Reactivated verified existing generation")
@@ -601,104 +658,119 @@ class Cloud:
         if active and active["generation"] == generation:
             print("Catalog unchanged; no D1 writes")
             return
-        seq = int(
-            self.sql("SELECT COALESCE(MAX(seq),0)+1 AS next FROM catalog_generations")[0]["next"]
-        )
-        pending = self.sql("SELECT seq FROM catalog_generations WHERE status='staging'")
-        for row in pending:
-            abandoned = row["seq"]
-            self.cleanup_records("DELETE FROM catalog_records WHERE from_seq=?", [abandoned])
-            self.cleanup_records(
-                "UPDATE catalog_records SET to_seq=NULL WHERE to_seq=?", [abandoned]
+        with self.phase("recover_staging"):
+            seq = int(
+                self.sql("SELECT COALESCE(MAX(seq),0)+1 AS next FROM catalog_generations")[0][
+                    "next"
+                ]
             )
-            self.sql("DELETE FROM catalog_generations WHERE seq=?", [abandoned])
+            pending = self.sql("SELECT seq FROM catalog_generations WHERE status='staging'")
+            for row in pending:
+                abandoned = row["seq"]
+                self.cleanup_records("DELETE FROM catalog_records WHERE from_seq=?", [abandoned])
+                self.cleanup_records(
+                    "UPDATE catalog_records SET to_seq=NULL WHERE to_seq=?", [abandoned]
+                )
+                self.sql("DELETE FROM catalog_generations WHERE seq=?", [abandoned])
         base = ROOT / "database" / manifest["snapshot"]
         names = set(manifest["files"]) | {"history.json"}
         paths = {name: base / name for name in sorted(names)}
-        for name, path in paths.items():
-            if (
-                name in manifest["files"]
-                and hashlib.sha256(path.read_bytes()).hexdigest()
-                != manifest["files"][name]["sha256"]
-            ):
-                raise ValueError("Local catalog integrity mismatch")
-        files = self.transfers().upload_files(paths, known)
-        manifest = {**manifest, "generation": generation, "snapshot": "snapshots/" + generation}
-        manifest.pop("snapshot_ref", None)
-        document = {
-            "manifest": manifest,
-            "base_generation": base_generation,
-            "identity_digest": identity_digest,
-            "files": files,
-            "record_blocks": record_blocks,
-            "record_block_encoding": "gzip",
-            "record_objects": sorted({
-                hashlib.sha256(encode(item["data"])).hexdigest() for item in exported
-                if item["kind"] == "history_release" and len(encode(item["data"])) > 1_500_000
-            }),
-            "ids": self.blob((ROOT / "database/ids.json").read_bytes(), known),
-            "complete": require_complete and inventory_complete,
-            "source_purge_pending": bool(removed)
-            or (ROOT / "internal/cache/source-removals.json").exists()
-            or bool(previous and previous.get("source_purge_pending")),
-            "record_count": len(records),
-        }
-        document["refresh_inputs"] = self.blob(
-            self.refresh_archive(document, base, exported), known
-        )
-        manifest_key = "generations/" + generation + ".json"
-        self.put(manifest_key, encode(document))
-        self.sql(
-            "INSERT INTO catalog_generations(seq,generation,manifest_key,status)"
-            " VALUES(?,?,?,'staging') ON CONFLICT DO NOTHING",
-            [seq, generation, manifest_key],
-        )
-        pending_rows = []
-        prior = {
-            (item["kind"], item["key"]): record_hash(item["data"]) for item in previous_records
-        }
-        writes = 0
-        changed_kinds, metadata_only = Counter(), Counter()
-        previous_data = {(item["kind"], item["key"]): item["data"] for item in previous_records}
-        volatile = {"checked_at", "verified_at", "last_verified_at", "patch_refresh_attempted_at"}
-        for (kind, key), row in sorted(records.items()):
-            digest = record_hash(row)
-            if prior.get((kind, key)) == digest:
-                continue
-            body = self.storage_row(kind, row)
-            if len(body.encode()) > 1_900_000:
-                raise ValueError("Record exceeds D1 row budget; publication refused")
-            pending_rows.append((kind, key, seq, body, digest))
-            writes += 1
-            changed_kinds[kind] += 1
-            old = previous_data.get((kind, key))
-            if old is not None and {k: v for k, v in old.items() if k not in volatile} == {
-                k: v for k, v in row.items() if k not in volatile
-            }:
-                metadata_only[kind] += 1
+        with self.phase("upload_snapshot"):
+            files = self.transfers().upload_files(paths, known, expected=manifest["files"])
+        with self.phase("upload_generation_manifest"):
+            manifest = {**manifest, "generation": generation, "snapshot": "snapshots/" + generation}
+            manifest.pop("snapshot_ref", None)
+            document = {
+                "manifest": manifest,
+                "base_generation": base_generation,
+                "identity_digest": identity_digest,
+                "files": files,
+                "record_blocks": record_blocks,
+                "record_block_encoding": "gzip",
+                "record_objects": sorted(
+                    {
+                        hashlib.sha256(encode(item["data"])).hexdigest()
+                        for item in exported
+                        if item["kind"] == "history_release"
+                        and len(encode(item["data"])) > 1_500_000
+                    }
+                ),
+                "ids": self.blob((ROOT / "database/ids.json").read_bytes(), known),
+                "complete": require_complete and inventory_complete,
+                "source_purge_pending": bool(removed)
+                or (ROOT / "internal/cache/source-removals.json").exists()
+                or bool(previous and previous.get("source_purge_pending")),
+                "record_count": len(records),
+            }
+            document["refresh_inputs"] = self.blob(
+                self.refresh_archive(document, base, exported), known
+            )
+            manifest_key = "generations/" + generation + ".json"
+            self.put(manifest_key, encode(document))
+            self.sql(
+                "INSERT INTO catalog_generations(seq,generation,manifest_key,status)"
+                " VALUES(?,?,?,'staging') ON CONFLICT DO NOTHING",
+                [seq, generation, manifest_key],
+            )
+        with self.phase("diff_d1_records"):
+            pending_rows = []
+            prior = {
+                (item["kind"], item["key"]): record_hash(item["data"]) for item in previous_records
+            }
+            writes = 0
+            changed_kinds, metadata_only = Counter(), Counter()
+            previous_data = {(item["kind"], item["key"]): item["data"] for item in previous_records}
+            volatile = {
+                "checked_at",
+                "verified_at",
+                "last_verified_at",
+                "patch_refresh_attempted_at",
+            }
+            for (kind, key), row in sorted(records.items()):
+                digest = record_hash(row)
+                if prior.get((kind, key)) == digest:
+                    continue
+                body = self.storage_row(kind, row)
+                if len(body.encode()) > 1_900_000:
+                    raise ValueError("Record exceeds D1 row budget; publication refused")
+                pending_rows.append((kind, key, seq, body, digest))
+                writes += 1
+                changed_kinds[kind] += 1
+                old = previous_data.get((kind, key))
+                if old is not None and {k: v for k, v in old.items() if k not in volatile} == {
+                    k: v for k, v in row.items() if k not in volatile
+                }:
+                    metadata_only[kind] += 1
         # JSON input uses one binding; each inserted row still runs the version-closing trigger.
-        self.insert_rows(pending_rows)
-        self.publication_metrics = {
-            "changed_records_by_kind": dict(changed_kinds),
-            "timestamp_only_changes_by_kind": dict(metadata_only),
-        }
+        with self.phase("insert_d1_records"):
+            self.insert_rows(pending_rows)
+        self.publication_metrics.update(
+            {
+                "changed_records_by_kind": dict(changed_kinds),
+                "timestamp_only_changes_by_kind": dict(metadata_only),
+            }
+        )
         print(json.dumps(self.publication_metrics), flush=True)
-        self.expire_rows(seq, sorted(prior.keys() - records.keys()))
-        count = self.sql(
-            "SELECT COUNT(*) AS n FROM catalog_records WHERE from_seq<=?"
-            " AND (to_seq IS NULL OR to_seq>?)",
-            [seq, seq],
-        )[0]["n"]
-        if count != len(records):
-            raise ValueError("D1 staged row count mismatch")
+        with self.phase("expire_and_count_d1_records"):
+            self.expire_rows(seq, sorted(prior.keys() - records.keys()))
+            count = self.sql(
+                "SELECT COUNT(*) AS n FROM catalog_records WHERE from_seq<=?"
+                " AND (to_seq IS NULL OR to_seq>?)",
+                [seq, seq],
+            )[0]["n"]
+            if count != len(records):
+                raise ValueError("D1 staged row count mismatch")
         # Ready generations were verified before activation. Re-read only new blobs here;
         # the explicit verify/recovery operations still check every retained object.
-        previous_digests = self.object_digests(previous) if previous else set()
-        self.verify_document(document, skip_digests=previous_digests)
+        with self.phase("verify_new_objects"):
+            previous_digests = self.object_digests(previous) if previous else set()
+            self.verify_document(document, skip_digests=previous_digests)
         # Atomic activation. The workflow concurrency group is the single-writer lock.
-        self.sql("UPDATE catalog_generations SET status='ready' WHERE seq=?", [seq])
-        self.sql("UPDATE catalog_state SET active_seq=? WHERE id=1", [seq])
-        self.finish_source_purge(document)
+        with self.phase("activate_generation"):
+            self.sql("UPDATE catalog_generations SET status='ready' WHERE seq=?", [seq])
+            self.sql("UPDATE catalog_state SET active_seq=? WHERE id=1", [seq])
+        with self.phase("purge_removed_sources"):
+            self.finish_source_purge(document)
         self.prune("PRUNE", verify=False)
         print(json.dumps({"generation": generation, "records_changed": writes, "records": count}))
 
@@ -738,14 +810,18 @@ class Cloud:
 
         retained.update(retained_keys(self, ROOT))
         obsolete = []
-        for page in self.s3.get_paginator("list_objects_v2").paginate(Bucket=self.bucket):
-            for item in page.get("Contents", []):
-                key = item["Key"]
-                if (
-                    key.startswith(("objects/", "generations/", "checkpoints/"))
-                    and key not in retained
-                ):
-                    obsolete.append(key)
+        scanned = 0
+        with Progress("r2_list_source_purge") as progress:
+            for page in self.s3.get_paginator("list_objects_v2").paginate(Bucket=self.bucket):
+                for item in page.get("Contents", []):
+                    key = item["Key"]
+                    if (
+                        key.startswith(("objects/", "generations/", "checkpoints/"))
+                        and key not in retained
+                    ):
+                        obsolete.append(key)
+                scanned += len(page.get("Contents", []))
+                progress.update(objects_scanned=scanned)
 
         def delete(keys):
             result = self.s3.delete_objects(
@@ -761,7 +837,8 @@ class Cloud:
                 raise RuntimeError("R2 source purge could not delete all obsolete objects")
 
         self.transfers().parallel(
-            delete, [obsolete[start : start + 1000] for start in range(0, len(obsolete), 1000)]
+            delete, [obsolete[start : start + 1000] for start in range(0, len(obsolete), 1000)],
+            operation="r2_delete_source_purge",
         )
         # Last write is the durable completion marker; a later publish retries
         # interrupted cleanup even when the catalog contents are unchanged.
@@ -778,6 +855,7 @@ class Cloud:
         return self.transfers().parallel(
             lambda item: self.blob(gzip.compress(encode(item[1]), compresslevel=1, mtime=0), known),
             sorted(blocks.items()),
+            operation="r2_upload_records",
         )
 
     def read_records(self, document):
@@ -921,65 +999,82 @@ class Cloud:
         print("Rebuilt verified generation " + manifest["generation"])
 
     def insert_rows(self, rows):
-        batch, size = [], 2
+        with Progress("insert_rows", len(rows)) as progress:
+            batch, size = [], 2
+            completed = 0
 
-        def flush():
-            if not batch:
-                return
-            self.sql(
-                "INSERT INTO catalog_records(kind,record_key,from_seq,data,content_hash) "
-                "SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]'),"
-                "json_extract(value,'$[2]'),json_extract(value,'$[3]'),json_extract(value,'$[4]') "
-                "FROM json_each(?) WHERE 1 ON CONFLICT(kind,record_key,from_seq) DO NOTHING",
-                [encode(batch).decode()],
-            )
-            self.transfers().add("d1_insert_batches")
-
-        for row in rows:
-            length = len(encode(row)) + 1
-            if batch and (len(batch) >= 200 or size + length > 512_000):
-                flush()
-                batch, size = [], 2
-            if length > 512_000:
+            def flush():
+                nonlocal completed
+                if not batch:
+                    return
                 self.sql(
                     "INSERT INTO catalog_records(kind,record_key,from_seq,data,content_hash) "
-                    "VALUES(?,?,?,?,?) ON CONFLICT(kind,record_key,from_seq) DO NOTHING",
-                    row,
+                    "SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]'),"
+                    "json_extract(value,'$[2]'),json_extract(value,'$[3]'),"
+                    "json_extract(value,'$[4]') "
+                    "FROM json_each(?) WHERE 1 ON CONFLICT(kind,record_key,from_seq) DO NOTHING",
+                    [encode(batch).decode()],
                 )
                 self.transfers().add("d1_insert_batches")
-                continue
-            batch.append(row)
-            size += length
-        flush()
+                completed += len(batch)
+                progress.update(completed)
+
+            for row in rows:
+                length = len(encode(row)) + 1
+                if batch and (len(batch) >= D1_WRITE_BATCH_SIZE or size + length > 512_000):
+                    flush()
+                    batch, size = [], 2
+                if length > 512_000:
+                    self.sql(
+                        "INSERT INTO catalog_records(kind,record_key,from_seq,data,content_hash) "
+                        "VALUES(?,?,?,?,?) ON CONFLICT(kind,record_key,from_seq) DO NOTHING",
+                        row,
+                    )
+                    self.transfers().add("d1_insert_batches")
+                    completed += 1
+                    progress.update(completed)
+                    continue
+                batch.append(row)
+                size += length
+            flush()
 
     def expire_rows(self, seq, keys):
         if not keys:
             return
-        batch, size = [], 2
+        with Progress("expire_rows", len(keys)) as progress:
+            batch, size = [], 2
+            completed = 0
 
-        def flush():
-            if not batch:
-                return
-            self.sql(
-                "UPDATE catalog_records SET to_seq=? WHERE to_seq IS NULL AND "
-                "(kind, record_key) IN ("
-                "SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]') "
-                "FROM json_each(?)"
-                ")",
-                [seq, encode(batch).decode()],
-            )
-            self.transfers().add("d1_expire_batches")
+            def flush():
+                nonlocal completed
+                if not batch:
+                    return
+                self.sql(
+                    "UPDATE catalog_records SET to_seq=? WHERE to_seq IS NULL AND "
+                    "(kind, record_key) IN ("
+                    "SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]') "
+                    "FROM json_each(?)"
+                    ")",
+                    [seq, encode(batch).decode()],
+                )
+                self.transfers().add("d1_expire_batches")
+                completed += len(batch)
+                progress.update(completed)
 
-        for key in keys:
-            length = len(encode(key)) + 1
-            if batch and (len(batch) >= 200 or size + length > 512_000):
-                flush()
-                batch, size = [], 2
-            batch.append(key)
-            size += length
-        flush()
+            for key in keys:
+                length = len(encode(key)) + 1
+                if batch and (len(batch) >= D1_WRITE_BATCH_SIZE or size + length > 512_000):
+                    flush()
+                    batch, size = [], 2
+                batch.append(key)
+                size += length
+            flush()
 
     def prune(self, confirmation, *, verify=True):
+        with self.phase("retention"):
+            return self._prune(confirmation, verify=verify)
+
+    def _prune(self, confirmation, *, verify=True):
         retain = int(os.environ.get("CATALOG_RETENTION_GENERATIONS") or "8")
         if retain < 2:
             raise ValueError("CATALOG_RETENTION_GENERATIONS must be at least 2")
@@ -1016,13 +1111,17 @@ class Cloud:
 
         checkpoints = retained_keys(self, ROOT)
         orphaned = []
-        for page in self.s3.get_paginator("list_objects_v2").paginate(Bucket=self.bucket):
-            for item in page.get("Contents", []):
-                key = item["Key"]
-                if (key.startswith("objects/") and key[8:] not in objects) or (
-                    key.startswith("generations/") and key not in keys
-                ) or (key.startswith("checkpoints/") and key not in checkpoints):
-                    orphaned.append(key)
+        scanned = 0
+        with Progress("r2_list_retention") as progress:
+            for page in self.s3.get_paginator("list_objects_v2").paginate(Bucket=self.bucket):
+                for item in page.get("Contents", []):
+                    key = item["Key"]
+                    if (key.startswith("objects/") and key[8:] not in objects) or (
+                        key.startswith("generations/") and key not in keys
+                    ) or (key.startswith("checkpoints/") and key not in checkpoints):
+                        orphaned.append(key)
+                scanned += len(page.get("Contents", []))
+                progress.update(objects_scanned=scanned)
         print(json.dumps({"retained_generations": len(keys), "old_generations": len(obsolete),
                           "orphaned_objects": len(orphaned), "dry_run": confirmation != "PRUNE"}))
         if confirmation != "PRUNE":
@@ -1054,7 +1153,8 @@ class Cloud:
                 raise RuntimeError("R2 retention could not delete all obsolete objects")
 
         self.transfers().parallel(
-            delete, [orphaned[start:start + 1000] for start in range(0, len(orphaned), 1000)]
+            delete, [orphaned[start:start + 1000] for start in range(0, len(orphaned), 1000)],
+            operation="r2_delete_retention",
         )
 
     def provision(self):

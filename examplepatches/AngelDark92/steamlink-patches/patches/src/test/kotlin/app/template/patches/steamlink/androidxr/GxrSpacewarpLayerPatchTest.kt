@@ -39,9 +39,18 @@ class GxrSpacewarpLayerPatchTest {
             assertTrue(isGxrSpacewarpSteamLinkBuild(version, code), "$version/$code")
         }
         listOf("2.0.20" to "5002363", "2.0.23" to "5001712",
-            "2.0.23" to "5002322", "2.0.20" to "5001740").forEach { (version, code) ->
+            "2.0.23" to "5002322", "2.0.20" to "5001740",
+            "2.0.24" to "5002395").forEach { (version, code) ->
             assertFalse(isGxrSpacewarpSteamLinkBuild(version, code))
         }
+        assertFalse(
+            gxrSpacewarpLayerPatch.compatibility.orEmpty().any { compatibility ->
+                compatibility.targets.any { target ->
+                    target.versionCodes.orEmpty().values.contains(5002395)
+                }
+            },
+            "2.0.24 has no spacewarp profile yet",
+        )
         // Repo voice: the description states the fail-safe stand-down and the
         // experimental status; assert with contains-checks (credits may appended).
         val description = gxrSpacewarpLayerPatch.description.orEmpty()

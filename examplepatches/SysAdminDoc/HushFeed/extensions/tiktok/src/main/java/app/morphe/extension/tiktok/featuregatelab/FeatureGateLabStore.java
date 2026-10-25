@@ -631,9 +631,12 @@ public final class FeatureGateLabStore {
                     "feed_title_timestamp_trial:STRING:v3"),
             // Korea's one-line comments that scroll across a video (#98). Group 1 or 2 turns the
             // feature on once TikTok's own strategy switch allows it, and the landscape flag
-            // only counts after that. Each video still carries its own server flag for them.
+            // only counts after that. Each video still carries its own server flag for them
+            // (Aweme.isSupportDanmaku, read by DanmakuServiceImpl on 47.5.3), so the note says so:
+            // on the S22 a 30-minute landscape post showed no scrolling comments with both rules on.
             new Preset("scrolling_comments", "Scrolling comments on videos", CATALOG_BUILDS,
-                    "danmaku_exp:INT:1", "landscape_support_danmaku:INT:1"),
+                    "danmaku_exp:INT:1", "landscape_support_danmaku:INT:1")
+                    .note("Comments only scroll on videos TikTok has turned them on for, so most videos stay the same."),
             // Japan's LIVE chat auto-translate (#98). The audience setting is an INT in LIVE's own
             // settings, 0 by default. Anything above 0 counts as on for the audience, and above 1
             // also runs the buffered automatic translation, so 2 is the one that translates by

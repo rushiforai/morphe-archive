@@ -7,7 +7,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
-    description = "Unlocks the FairEmail pro features."
+    description = "Unlocks Pro features."
 ) {
     compatibleWith(COMPATIBILITY_FAIREMAIL)
 

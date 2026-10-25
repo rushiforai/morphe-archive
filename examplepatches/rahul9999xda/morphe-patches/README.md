@@ -47,7 +47,7 @@ Releases and test builds are produced through the repository's configured build 
 <!-- PATCHES_START -->
 ## 🩹 Patches list
 
-> [v1.15.0](https://github.com/rahul9999xda/morphe-patches/releases/tag/v1.15.0) · `main` · **16 patches total**
+> [v1.16.0](https://github.com/rahul9999xda/morphe-patches/releases/tag/v1.16.0) · `main` · **16 patches total**
 
 
 <details>
@@ -55,7 +55,7 @@ Releases and test builds are produced through the repository's configured build 
 
 🎯 **Supported versions:**
 
-`13.1.0`
+`13.1.1`
 
 ---
 
@@ -68,11 +68,11 @@ Releases and test builds are produced through the repository's configured build 
 | **Bypass content restrictions** | Allows saving and forwarding content from restricted channels, chats, and users. |
 | **Bypass integrity check** | Spoofs certificate fingerprint and SafetyNet results so login works on patched APK. |
 | **Disable auto-update** | Disables Telegram update availability, update-version storage and proxy sponsor-channel insertion. |
-| **Disable channel switching** | Disables the pull-down gesture that switches to the next unread channel when a stable target exists. |
+| **Disable channel switching** | Currently a compatibility-safe no-op: the channel-switch gesture target still needs a verified implementation. |
 | **Disable telemetry and analytics** | Disables Firebase Analytics and Crashlytics collection where bundled and blocks app telemetry logging entry points. |
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
-| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.0.3 and Plus 13.0.2.0 builds. |
+| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.0.3.0 builds. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
 | **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
 | **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |
@@ -85,7 +85,7 @@ Releases and test builds are produced through the repository's configured build 
 
 🎯 **Supported versions:**
 
-`13.0.2.0`
+`13.0.3.0`
 
 ---
 
@@ -98,11 +98,11 @@ Releases and test builds are produced through the repository's configured build 
 | **Bypass content restrictions** | Allows saving and forwarding content from restricted channels, chats, and users. |
 | **Bypass integrity check** | Spoofs certificate fingerprint and SafetyNet results so login works on patched APK. |
 | **Disable auto-update** | Disables Telegram update availability, update-version storage and proxy sponsor-channel insertion. |
-| **Disable channel switching** | Disables the pull-down gesture that switches to the next unread channel when a stable target exists. |
+| **Disable channel switching** | Currently a compatibility-safe no-op: the channel-switch gesture target still needs a verified implementation. |
 | **Disable telemetry and analytics** | Disables Firebase Analytics and Crashlytics collection where bundled and blocks app telemetry logging entry points. |
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
-| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.0.3 and Plus 13.0.2.0 builds. |
+| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.0.3.0 builds. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
 | **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
 | **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |
@@ -115,7 +115,7 @@ Releases and test builds are produced through the repository's configured build 
 
 🎯 **Supported versions:**
 
-`13.1.0`
+`13.1.1`
 
 ---
 
@@ -128,11 +128,11 @@ Releases and test builds are produced through the repository's configured build 
 | **Bypass content restrictions** | Allows saving and forwarding content from restricted channels, chats, and users. |
 | **Bypass integrity check** | Spoofs certificate fingerprint and SafetyNet results so login works on patched APK. |
 | **Disable auto-update** | Disables Telegram update availability, update-version storage and proxy sponsor-channel insertion. |
-| **Disable channel switching** | Disables the pull-down gesture that switches to the next unread channel when a stable target exists. |
+| **Disable channel switching** | Currently a compatibility-safe no-op: the channel-switch gesture target still needs a verified implementation. |
 | **Disable telemetry and analytics** | Disables Firebase Analytics and Crashlytics collection where bundled and blocks app telemetry logging entry points. |
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
-| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.0.3 and Plus 13.0.2.0 builds. |
+| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.0.3.0 builds. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
 | **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
 | **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |

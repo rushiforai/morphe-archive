@@ -18,6 +18,7 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 
 /** The extension call that adds Save photo to a post's menu once Facebook has filled it. */
 internal const val ADD_PHOTO_ITEM = "Lapp/morphe/extension/facebook/download/PhotoMenuItem;->add(" +
@@ -44,14 +45,17 @@ internal val SUBATTACHMENTS_FIELD = "subattachments".hashCode()
  * Download any video adds its item ([postMenu]): after Facebook fills the menu, the extension's
  * PhotoMenuItem adds the item when the post holds photos, saving the one photo, or each photo of a
  * multi-photo post's attachment one after another.
+ *
+ * A comment's long-press sheet gets Save GIF on a GIF comment, next to where Facebook puts Save
+ * photo on a photo one (#226, CommentGifAnchors.kt), behind the first switch.
  */
 @Suppress("unused")
 val downloadPhotoPatch = bytecodePatch(
     // The README table check reads this literal; PHOTO_PATCH carries the same text for the messages.
     name = "Download any photo",
     description = "Shows Save photo on every photo you open, even where the poster turned saving off, and saves " +
-        "the largest size so you get the best copy. On by default. Turn it off in Hushfacebook settings > " +
-        "Downloads.",
+        "the largest size so you get the best copy. A GIF comment gets Save GIF when you long-press it. On by " +
+        "default. Turn it off in Hushfacebook settings > Downloads.",
     default = true,
 ) {
     category("Downloads")
@@ -62,9 +66,11 @@ val downloadPhotoPatch = bytecodePatch(
         // The post menu's anchors are found before either hook goes in, so a build without one
         // fails whole instead of keeping the photo hooks with no switch in settings.
         val addPostMenuItem = postMenuPhotoItem()
+        val addCommentGifRow = commentSheetGifRow()
         unlockPhotoSave()
         fillCdnResize()
         addPostMenuItem()
+        addCommentGifRow()
         enableStatus("photoDownload")
     }
 }
@@ -89,8 +95,9 @@ internal fun BytecodePatchContext.postMenuPhotoItem(): () -> Unit {
 internal fun BytecodePatchContext.unlockPhotoSave() {
     val gated = mutableListOf<Pair<String, String>>()
     val actions = mutableListOf<Pair<String, String>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+    // A gate calls getBooleanValue, and the action answers the menu listener.
+    classDefForEachReferencing(types = listOf(MENU_LISTENER), names = listOf("getBooleanValue")) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         classDef.methods.forEach { method ->
             if (photoDownloadGates(method).isNotEmpty()) gated += classDef.type to method.name
             if (isSavePhotoAction(method)) actions += classDef.type to method.name

@@ -13,6 +13,7 @@ import app.morphe.patches.facebook.ads.affiliate.writesRegister
 import app.morphe.patches.facebook.comments.summaries.descriptor
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -81,8 +82,9 @@ internal fun BytecodePatchContext.hookOwnPostLink() {
         ?: refuse("${controller.type} has no one (String, String)String read of the /share/ links it keeps")
 
     val builders = mutableListOf<Method>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // A builder calls the read, which names its class.
+    classDefForEachReferencing(types = listOf(read.substringBefore("->"))) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         classDef.methods.filter { isShareLinkShape(it) && asks(it, read) }.forEach { builders += it }
     }
     val builder = builders.singleOrNull()

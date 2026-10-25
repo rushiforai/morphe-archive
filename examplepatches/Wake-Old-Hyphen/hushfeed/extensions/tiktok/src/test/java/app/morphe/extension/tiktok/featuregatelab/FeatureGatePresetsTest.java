@@ -120,6 +120,8 @@ public class FeatureGatePresetsTest {
     @Test public void aPresetsNoteLeadsItsPreview() throws Exception {
         JSONObject presets = FeatureGateLabStore.reviewedPresets().getJSONObject("47.5.3");
         assertTrue(presets.getJSONObject("live_translate").getString("note").contains("Japanese SIM"));
+        // Scrolling comments still need each video's own server flag, which no rule sets.
+        assertTrue(presets.getJSONObject("scrolling_comments").getString("note").contains("turned them on for"));
         assertFalse(presets.getJSONObject("see_translation").has("note"));
         Map<String, FeatureGateCatalog.Entry> everything = new LinkedHashMap<>();
         for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.5.3")) {

@@ -21,6 +21,7 @@ private const val PREF_SERVICE = "Lorg/chromium/components/prefs/PrefService;"
 private const val LOCAL_STATE_PREFS = "Lorg/chromium/chrome/browser/prefs/LocalStatePrefs;"
 private const val BRAVE_REFERRER = "Lorg/chromium/chrome/browser/referrer/BraveReferrer;"
 private const val NTP_BRIDGE = "Lorg/chromium/chrome/browser/ntp_background_images/NTPBackgroundImagesBridge;"
+private const val WALLPAPER = "Lorg/chromium/chrome/browser/ntp_background_images/model/Wallpaper;"
 private const val ADS_SIGNUP_DIALOG = "Lorg/chromium/chrome/browser/dialogs/BraveAdsSignupDialog;"
 private const val RETENTION_PUBLISHER =
     "Lorg/chromium/chrome/browser/notifications/retention/RetentionNotificationPublisher;"
@@ -56,7 +57,7 @@ class BraveSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.97.56",
+            version = "1.98.60",
             patchNames = setOf(
                 "Brave Origin",
                 "Disable telemetry",
@@ -178,6 +179,40 @@ class BraveSmokeTest {
             "Origin listener does not load the fragment's Profile for the web discovery pref",
         )
 
+        // The listener ends with the restart snackbar, called with the same arguments as in the
+        // policy-write callback: p5()V up to 1.97, R4(II)V (two string ids) since 1.98.
+        fun Instruction.isOriginVoidCall(): Boolean {
+            val ref = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+            return ref.definingClass == PREFS && ref.returnType == "V"
+        }
+        fun List<Instruction>.literalArguments(callIndex: Int): List<Int?> {
+            val call = this[callIndex] as FiveRegisterInstruction
+            val args = listOf(call.registerD, call.registerE, call.registerF).take(call.registerCount - 1)
+            return args.map { register ->
+                take(callIndex).lastOrNull { insn ->
+                    insn.opcode.setsRegister() && (insn as? OneRegisterInstruction)?.registerA == register
+                }.let { (it as? NarrowLiteralInstruction)?.narrowLiteral }
+            }
+        }
+        val callbackInsns = methodWithString("Failed to set policy value for ").instructions()
+        val callbackCall = callbackInsns.indices.single { callbackInsns[it].isOriginVoidCall() }
+        val restartPrompt = (callbackInsns[callbackCall] as ReferenceInstruction).reference as MethodReference
+        val expectedIds = callbackInsns.literalArguments(callbackCall)
+        val binderInsns = binder.instructions()
+        val binderCall = binderInsns.indices.singleOrNull { i ->
+            val ref = (binderInsns[i] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == restartPrompt.definingClass && ref.name == restartPrompt.name &&
+                ref.parameterTypes.map(CharSequence::toString) ==
+                restartPrompt.parameterTypes.map(CharSequence::toString)
+        }
+        assertTrue(
+            binderCall != null && expectedIds.none { it == null } &&
+                expectedIds.size == restartPrompt.parameterTypes.size &&
+                binderInsns.literalArguments(binderCall) == expectedIds &&
+                binderInsns.none { it.opcode == Opcode.NOP },
+            "Origin listener does not call $restartPrompt with the callback's ids $expectedIds",
+        )
+
         // ── Disable telemetry (experimental) ─────────────────────────────────────────────
         val localState = classes.firstOrNull { it.type == LOCAL_STATE_PREFS }
             ?: error("LocalStatePrefs not found")
@@ -239,9 +274,14 @@ class BraveSmokeTest {
         )
 
         // ── Disable ads (experimental) ───────────────────────────────────────────────────
+        // createBrandedWallpaper up to 1.97, createNewTabTakeoverWallpaper since 1.98: find it
+        // by shape like the patch, the bridge's only method returning a Wallpaper.
         val ntpBridge = classes.firstOrNull { it.type == NTP_BRIDGE }
             ?: error("NTPBackgroundImagesBridge not found")
-        assertReturnsNull(ntpBridge.method("createBrandedWallpaper"), "createBrandedWallpaper")
+        assertReturnsNull(
+            ntpBridge.methods.single { it.returnType == WALLPAPER },
+            "sponsored wallpaper factory",
+        )
 
         val adsSignup = classes.firstOrNull { it.type == ADS_SIGNUP_DIALOG }
             ?: error("BraveAdsSignupDialog not found")

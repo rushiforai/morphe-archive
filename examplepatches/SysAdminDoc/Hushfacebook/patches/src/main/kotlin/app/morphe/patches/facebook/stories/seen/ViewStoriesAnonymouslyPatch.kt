@@ -17,6 +17,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -78,8 +79,9 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
         // callers are where it's looked for.
         val callers = mutableListOf<ClassDef>()
         val startChecks = mutableListOf<Method>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+        // A caller names the sender's class, and the start check casts to StoryCard.
+        classDefForEachReferencing(types = listOf(sender.definingClass, STORY_CARD)) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
             if (callsSender(classDef, sender)) callers += classDef
             startCheck(classDef)?.let { startChecks += it }
         }

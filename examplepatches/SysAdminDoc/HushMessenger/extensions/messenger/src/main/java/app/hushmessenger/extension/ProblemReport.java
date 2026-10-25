@@ -54,9 +54,17 @@ final class ProblemReport {
         final int sdk;
         final boolean paused, safeMode;
         final List<String> controlsOn;
+        final String galleryOutcome;
 
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn) {
+            this(hushVersion, messengerVersion, messengerCode, patchedFrom, manufacturer, model, androidRelease, sdk,
+                paused, safeMode, controlsOn, "NOT_USED");
+        }
+
+        Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
+                String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
+                String galleryOutcome) {
             this.hushVersion = clean(hushVersion);
             this.messengerVersion = clean(messengerVersion);
             this.messengerCode = messengerCode;
@@ -70,6 +78,18 @@ final class ProblemReport {
             List<String> titles = new ArrayList<>();
             if (controlsOn != null) for (String title : controlsOn) if (!clean(title).isEmpty()) titles.add(clean(title));
             this.controlsOn = Collections.unmodifiableList(titles);
+            // Only fixed categories are included. Provider URIs and exception text never enter a report.
+            this.galleryOutcome = galleryCategory(galleryOutcome);
+        }
+    }
+
+    private static String galleryCategory(String value) {
+        if (value == null) return "NOT_USED";
+        switch (value) {
+            case "PICKER_MISSING": case "COMPONENT_MISSING": case "LAUNCH_FAILED": case "RESULT_INVALID":
+            case "RESULT_REVOKED": case "RESULT_TIMEOUT": case "RESULT_BUSY": case "CANCELED": case "SELECTED":
+                return value;
+            default: return "NOT_USED";
         }
     }
 
@@ -108,6 +128,7 @@ final class ProblemReport {
             .append("Phone: ").append(phoneLine(facts)).append('\n');
         if (facts.safeMode) body.append("Safe mode: on\n");
         if (facts.paused) body.append("Pause all changes: on\n");
+        if (!"NOT_USED".equals(facts.galleryOutcome)) body.append("Gallery result: ").append(facts.galleryOutcome).append('\n');
         return body.append(controlsLine(facts.controlsOn, shown)).append("\n\n")
             .append(WHAT_HAPPENED).append("\n\n\n").append(WHAT_EXPECTED).append("\n\n").toString();
     }

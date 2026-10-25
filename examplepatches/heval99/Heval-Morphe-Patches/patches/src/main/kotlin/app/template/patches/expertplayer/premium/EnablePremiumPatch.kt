@@ -7,9 +7,7 @@ import app.template.patches.shared.addInstructionsChecked
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Experimental: marks every RevenueCat entitlement as active on the Java side, " +
-        "which is what the app's Dart premium check reads. Server-side features (account sync, " +
-        "recordings, the always-current EPG) still depend on the Expert backend and are not changed.",
+    description = "Experimental: unlocks premium features. Server features stay locked.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_EXPERTPLAYER)

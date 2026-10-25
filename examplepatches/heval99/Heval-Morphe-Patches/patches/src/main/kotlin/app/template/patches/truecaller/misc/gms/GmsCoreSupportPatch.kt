@@ -28,5 +28,5 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     allowClone = false,
     // Truecaller's backup goes to the user's Google Drive through Google sign-in, so it only works
     // with this patch and MicroG RE; there is no client-side way around that.
-    extraDescription = "Truecaller's Google sign-in and Google Drive backup need it.",
+    extraDescription = "Needed for Google Drive backup.",
 )

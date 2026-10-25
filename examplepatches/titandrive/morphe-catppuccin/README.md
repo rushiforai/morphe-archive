@@ -1,6 +1,6 @@
 # Morphe - Catppuccin
 
-Catppuccin themes for Boost, Gboard, AnkiDroid, Todoist, Fastmail, and Pocket Casts, patched with [Morphe Manager](https://morphe.software/).
+Catppuccin themes for Boost, Gboard, AnkiDroid, Todoist, Fastmail, Pocket Casts, and Immich, patched with [Morphe Manager](https://morphe.software/).
 
 Add `titandrive/morphe-catppuccin` as a remote patch source in Morphe.
 
@@ -52,11 +52,17 @@ For a custom font, also select **Fastmail custom font**, open its options, and c
 
 ## Pocket Casts
 
-For **Pocket Casts 8.23-rc-1**, select **Pocket Casts themes** in Morphe. In **Profile → Settings → Appearance**, choose **Catppuccin Latte**, **Catppuccin Macchiato**, or **Radioactivity**. The original themes remain available.
+For **Pocket Casts 8.23-rc-1**, select **Pocket Casts themes** in Morphe. In **Profile → Settings → Appearance**, choose **Catppuccin Latte**, **Catppuccin Macchiato**, or **Radioactivity**. The original themes remain available. As a bonus, **Radioactivity** restores Pocket Casts’ original Fallout-inspired theme, removed from newer versions.
 
 Optionally select **Pocket Casts custom font**, open its options, and choose a **TTF file**. It applies to the interface and show notes. Repatch an original APK to change or remove the font.
 
 Use an original APK, not a previously patched copy. Keep the same Morphe signing key for subsequent updates; a patched APK has a different signature from the Play Store app.
+
+## Immich
+
+For **Immich 3.3.5 (arm64)**, select **Immich Catppuccin**. The app’s light and dark modes use **Latte** and **Macchiato**, with mauve selected tab icons and labels and a darker Mantle dock in dark mode. This replaces the existing palettes; it does not add theme picker entries. The patch checks the exact native binary and rejects other builds.
+
+Optionally select **Immich custom font**, open its options, and choose a **TTF file**. It replaces interface fonts while preserving icons. Repatch an original APK to change or remove the font. Keep the same Morphe signing key for updates.
 
 Build instructions and contribution notes are in [CONTRIBUTING.md](CONTRIBUTING.md).
 

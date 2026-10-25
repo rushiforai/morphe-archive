@@ -7,8 +7,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_MOONREADER
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables Moon+ Reader's banner, interstitial, exit and native ads " +
-        "by forcing the central ad gate to always report ads as disabled."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_MOONREADER)
 

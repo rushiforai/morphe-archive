@@ -21,7 +21,7 @@ public final class NuvioMergePolicy {
     }
     public synchronized long revision() { return revision; }
     public synchronized boolean current(long value, boolean manual) {
-        return revision == value && allowed(manual);
+        return allowed(manual) && (manual || revision == value);
     }
 
     public static <T> java.util.ArrayList<T> scrobblers(java.util.ArrayList<T> original,

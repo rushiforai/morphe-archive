@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -65,8 +66,9 @@ internal fun BytecodePatchContext.hookShareSheetItems() {
     val immutableList = classDefByOrNull(IMMUTABLE_LIST) ?: refuseShareHook("this Facebook build has no $IMMUTABLE_LIST")
     if (!definesImmutableCopy(immutableList)) refuseShareHook("$IMMUTABLE_LIST has no copyOf(Collection) here")
     val lists = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // A list loads the Threads constant, which names its enum.
+    classDefForEachReferencing(types = listOf(threads.definingClass)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         for (method in classDef.methods) {
             if (isShareItemList(method, threads)) lists += classDef.type to method
         }

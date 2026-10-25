@@ -1,6 +1,8 @@
 package app.template.patches.digisport.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 // Digi Sport's own code (ro.rcsrds.digisport.*) and its player library (ro.rcsrds.lib.player.*)
@@ -22,13 +24,18 @@ private val AD_SLOT_PARAMETERS = listOf("Landroid/view/ViewGroup;", UI_AD)
 // AdMobManager.loadAd(container, ad): the one public entry point for the in-app AdMob banners
 // (called from VHSectionAd). It posts a lambda that either re-attaches a cached AdView (putAd) or
 // builds a new one and loads it (requestAd). Its Intrinsics parameter names pin the overload.
+// They are matched with CONTAINS, as patcher 1.8.0 matched raw `strings`; patcher 2.0 would
+// require the whole string. Kotlin emits the null checks in parameter order (container, ad).
 internal object AdMobManagerLoadAdFingerprint : Fingerprint(
     definingClass = ADMOB_MANAGER,
     name = "loadAd",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = AD_SLOT_PARAMETERS,
-    strings = listOf("nContainer", "nAd"),
+    filters = listOf(
+        string("nContainer", StringComparisonType.CONTAINS),
+        string("nAd", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ -> method.implementation != null },
 )
 

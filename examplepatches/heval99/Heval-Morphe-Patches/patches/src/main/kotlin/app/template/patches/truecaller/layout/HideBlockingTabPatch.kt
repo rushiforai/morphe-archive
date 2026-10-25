@@ -6,7 +6,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
 @Suppress("unused")
 val hideBlockingTabPatch = bytecodePatch(
     name = "Hide Blocking tab",
-    description = "Removes the Blocking tab from the bottom bar. Spam blocking keeps working.",
+    description = "Hides the Blocking tab from the bottom navigation bar.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)

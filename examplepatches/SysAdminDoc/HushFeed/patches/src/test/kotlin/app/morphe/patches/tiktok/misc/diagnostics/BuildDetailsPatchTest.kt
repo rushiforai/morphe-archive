@@ -250,14 +250,14 @@ class BuildDetailsPatchTest {
         val accent = dependencies(accentColorPatch)
         assertTrue("Accent color has no metadata dependency", buildDetailsPatch in accent)
         assertTrue("Accent color lost the Lynx text hooks", sharedExtensionPatch in accent)
-        // AMOLED repaints one Compose palette builder in place (#152). That is bytecode, but it
-        // calls nothing of Hushfeed's, so the extension stays out of a build that only wants AMOLED.
+        // AMOLED repaints one Compose palette builder in place (#152), and since #171 it also paints
+        // the see-through comment bar under an opened post, which goes through the extension.
         val amoled = dependencies(amoledThemePatch)
         assertTrue("AMOLED has no metadata dependency", buildDetailsPatch in amoled)
-        val amoledBytecode = amoled.filterIsInstance<BytecodePatch>()
-        assertEquals("AMOLED's bytecode is the palette repaint alone", 1, amoledBytecode.size)
-        assertEquals(null, amoledBytecode.single().name)
-        assertTrue("AMOLED unexpectedly injects runtime hooks", sharedExtensionPatch !in amoled)
+        assertTrue("AMOLED lost the comment bar hook", sharedExtensionPatch in amoled)
+        val amoledOwn = amoled.filterIsInstance<BytecodePatch>().filter { it !in dependencies(sharedExtensionPatch) }
+        assertEquals("AMOLED's own bytecode is the palette repaint and the comment bar", 2, amoledOwn.size)
+        assertTrue(amoledOwn.all { it.name == null })
         // The core asset strip returns out of the content credential service's start before it
         // loads the emptied library (#211). Bytecode too, and just as free of Hushfeed's own code.
         val core = dependencies(coreAssetDebloatPatch)

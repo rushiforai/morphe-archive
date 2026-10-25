@@ -7,8 +7,9 @@
     of that exact bundle left (walk-receipt.ps1). This runs the walk: it patches Pinterest from the
     repo's release bundle with patch-for-device.ps1, installs it with the account-preserving
     installer, opens each patched screen and every Hush settings page, watches the crash buffer for
-    a Pinterest crash, and writes walk-receipt.json with New-WalkReceipt. The receipt names the
-    SHA-256 of the .mpp the walked APK was patched with, which is what publish holds it to. When
+    a Pinterest crash, and writes walk-receipt.json with New-WalkReceipt. The receipt binds the
+    checked patch run to the signed APK observed on the device. Publish also holds the bundle
+    and catalog hashes to the release. When
     the release build stage has already staged that bundle, the two have to be the same file.
 
     The result the walk writes:
@@ -34,8 +35,12 @@
     scripts/walk-app.ps1 -Serial emulator-5578
 
 .EXAMPLE
-    # Walk a build already patched from this bundle and installed (records its APK hash):
+    # Survey an installed build. Without build evidence this produces PARTIAL, never a release PASS:
     scripts/walk-app.ps1 -Serial <your phone's adb serial> -SkipPatch
+
+.EXAMPLE
+    # Walk an installed APK with the matching sidecar written by patch-for-device.ps1:
+    scripts/walk-app.ps1 -Serial <your phone's adb serial> -SkipPatch -BuildEvidence <signed.apk.build.json>
 #>
 [CmdletBinding()]
 param(
@@ -53,10 +58,10 @@ param(
     # The Hush settings pages, by the name each row shows in English. The walk opens every one.
     [string[]]$SettingsPages = @('Feed', 'Privacy', 'Pin actions', 'Interface', 'Links', 'Notifications',
         "Pinterest's own settings", 'Updates', 'Pause, backup and diagnostics', 'About'),
-    # Walk the app that's already installed instead of patching and installing a fresh one. The
-    # installed build must have been patched from the release bundle; the receipt still names the
-    # bundle's hash, so an install from any other build would make a receipt publish won't honor.
+    # An unbound installed build can be surveyed, but only matching build evidence permits a
+    # release walk. The sidecar comes from patch-for-device.ps1 after its checks pass.
     [switch]$SkipPatch,
+    [string]$BuildEvidence,
     # Leave the Hush settings pages out of the walk. Makes the walk PARTIAL, not a release walk.
     [switch]$SkipSettings,
     [ValidateRange(1, 30)][int]$SettleSeconds = 4,
@@ -152,6 +157,7 @@ function Invoke-WalkApp {
     param(
         [string]$Serial, [string]$Package, [string[]]$Visit, [string[]]$SettingsPages,
         [bool]$SkipPatch, [bool]$SkipSettings, [int]$SettleSeconds, [string]$OutDir,
+        [string]$BuildEvidence,
         [string]$Keystore, [string]$KeyAlias, [string]$LeaseDirectory, [string]$ChatIdentity,
         [string]$Adb, [string]$Aapt2, [string]$Root
     )
@@ -189,6 +195,7 @@ function Invoke-WalkApp {
     $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $Root
 
     if (-not $SkipPatch) {
+        if ($BuildEvidence) { throw '-BuildEvidence is only for a -SkipPatch walk.' }
         $patchArguments = @{ OutDir = (Join-Path $OutDir 'patch'); Root = $Root }
         if ($Keystore) { $patchArguments.Keystore = $Keystore }
         if ($KeyAlias) { $patchArguments.KeyAlias = $KeyAlias }
@@ -197,6 +204,15 @@ function Invoke-WalkApp {
         $installApk = @($patchOut | ForEach-Object { "$_" } | Where-Object { $_ -match '\.apk$' -and (Test-Path -LiteralPath $_ -PathType Leaf) })
         if ($installApk.Count -eq 0) { throw 'patch-for-device.ps1 handed back no signed APK, so there is nothing to walk.' }
         $installApk = $installApk[-1]
+        $BuildEvidence = "$installApk.build.json"
+    }
+    $build = $null
+    if ($BuildEvidence) {
+        $build = Get-Content -LiteralPath $BuildEvidence -Raw | ConvertFrom-Json
+        if (-not $SkipPatch -and $build.signedApkSha256 -cne
+            (Get-FileHash -LiteralPath $installApk -Algorithm SHA256).Hash.ToLowerInvariant()) {
+            throw 'The signed APK differs from its build evidence.'
+        }
     }
 
     $lease = $null
@@ -268,7 +284,7 @@ function Invoke-WalkApp {
             }
         }
 
-        $full = -not $SkipSettings
+        $full = -not $SkipSettings -and $null -ne $build
         if (-not $SkipSettings) {
             # Back to the home feed first: the settings open over the activity in front.
             [void](& $walkAdb @('shell', 'am', 'start', '-W', '-n', "$Package/$WalkMainActivity"))
@@ -336,8 +352,11 @@ function Invoke-WalkApp {
         if (-not $alive) { $problems.Add('Pinterest was no longer running when the walk ended') }
 
         $identity = Confirm-HushLeasedDevice -Adb $Adb -Lease $lease
-        $appVersion = @((& $walkAdb @('shell', 'dumpsys', 'package', $Package)).Output |
+        $packageLines = @((& $walkAdb @('shell', 'dumpsys', 'package', $Package)).Output)
+        $appVersion = @($packageLines |
             Where-Object { $_ -match 'versionName=(.+)$' } | ForEach-Object { $Matches[1].Trim() } | Select-Object -First 1) -join ''
+        $appVersionCode = @($packageLines | Where-Object { $_ -match '\bversionCode=(\d+)' } |
+            ForEach-Object { $Matches[1] } | Select-Object -First 1) -join ''
         $apkPath = @((& $walkAdb @('shell', 'pm', 'path', $Package)).Output | Where-Object { $_ -like 'package:*base.apk' }) | Select-Object -First 1
         $installedSha = ''
         if ($apkPath) {
@@ -347,11 +366,23 @@ function Invoke-WalkApp {
         $full = $full -and $problems.Count -eq 0
         $result = Resolve-WalkOutcome -Screens $screens -Crashes $fatal.Count -Problems ([string[]]$problems) -Full $full
         $receipt = New-WalkReceipt -Result $result -Full $full -Serial $Serial -Device $identity.Model `
-            -AppVersion $appVersion -BundleSha256 $bundleSha256 -InstalledApkSha256 $installedSha `
+            -AppVersion $appVersion -AppVersionCode $appVersionCode -Build $build `
+            -BundleSha256 $bundleSha256 -InstalledApkSha256 $installedSha `
             -Started $started -Finished ([DateTimeOffset]::UtcNow) -Screens $screens -Crashes $fatal.Count `
             -Problems ([string[]]$problems)
         $receiptPath = Join-Path $OutDir 'walk-receipt.json'
-        [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 4) + "`n")
+        [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 8) + "`n")
+        if ($result -eq 'PASS') {
+            $validated = Test-WalkReceipt -Path $receiptPath -BundlePath $bundle -PatchList (Join-Path $Root 'patches-list.json')
+            if (-not $validated.Valid) {
+                $problems.Add($validated.Reason)
+                $result = 'FAIL'
+                $receipt.result = $result
+                $receipt.full = $false
+                $receipt.problems = [string[]]$problems
+                [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 8) + "`n")
+            }
+        }
 
         Write-Host "[walk] receipt $receiptPath"
         foreach ($problem in $problems) { Write-Host "[walk]   $problem" }
@@ -365,7 +396,7 @@ function Invoke-WalkApp {
 
 if ($MyInvocation.InvocationName -ne '.') {
     $receiptPath = Invoke-WalkApp -Serial $Serial -Package $Package -Visit $Visit -SettingsPages $SettingsPages `
-        -SkipPatch:$SkipPatch -SkipSettings:$SkipSettings -SettleSeconds $SettleSeconds -OutDir $OutDir `
+        -SkipPatch:$SkipPatch -SkipSettings:$SkipSettings -BuildEvidence $BuildEvidence -SettleSeconds $SettleSeconds -OutDir $OutDir `
         -Keystore $Keystore -KeyAlias $KeyAlias -LeaseDirectory $LeaseDirectory -ChatIdentity $ChatIdentity `
         -Adb $Adb -Aapt2 $Aapt2 -Root $Root
     $walked = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json

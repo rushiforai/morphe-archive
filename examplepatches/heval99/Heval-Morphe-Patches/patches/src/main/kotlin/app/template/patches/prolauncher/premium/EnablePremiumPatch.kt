@@ -22,7 +22,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_PRO_LAUNCHER
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks Pro Launcher Pro features without a subscription."
+    description = "Unlocks Pro features."
 ) {
     compatibleWith(COMPATIBILITY_PRO_LAUNCHER)
 

@@ -297,3 +297,38 @@ internal fun speedGettersCalled(method: Method, player: String): List<MethodRefe
 /** Whether the instruction after the call at [index] in [method] takes its boolean answer. */
 internal fun answerTakenAt(method: Method, index: Int): Int? =
     (method.code.getOrNull(index + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT } as? OneRegisterInstruction)?.registerA
+
+/*
+ * Hold a feed video for 2x (issue #229), the second switch of Hold a reel for 2x. FbGrootPlayer
+ * attaches its view to a container in one static method holding [ATTACH_VIEW_LOG], taking the
+ * container first and the player as one other parameter (584: LX/55R;->A0O, the player third),
+ * and keeps the container in its one ViewGroup field, which the attach writes (584: A06). The
+ * extension's FeedVideoHold notes each player there, reads its container through that field to find
+ * the video under a hold, and sets its speed with the speed setter.
+ */
+
+internal const val FEED_VIDEO_HOLD = "$EXTENSION_PACKAGE/reels/FeedVideoHold;"
+internal const val FEED_TOUCH = "$FEED_VIDEO_HOLD->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V"
+internal const val FEED_ATTACHED = "$FEED_VIDEO_HOLD->attached(Landroid/view/ViewGroup;Ljava/lang/Object;)V"
+internal const val PLAYER_VIEW_STUB = "playerView"
+internal const val SET_PLAYER_SPEED_STUB = "setPlayerSpeed"
+internal const val ATTACH_VIEW_LOG = "FbGrootPlayer.attachPlayerViewInternal"
+internal const val VIEW_GROUP = "Landroid/view/ViewGroup;"
+
+/**
+ * When [method] is FbGrootPlayer's attach of its view, static, holding [ATTACH_VIEW_LOG], taking a
+ * ViewGroup first and [player] once: the index of the player's parameter. Otherwise null.
+ */
+internal fun attachedPlayerParameter(method: Method, player: String): Int? {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || !holdsString(method, ATTACH_VIEW_LOG)) return null
+    val parameters = method.parameters()
+    if (parameters.firstOrNull() != VIEW_GROUP) return null
+    return parameters.withIndex().filter { it.value == player }.singleOrNull()?.index
+}
+
+/** The ViewGroup fields of [player] that [method] writes: in the attach, the player's view container. */
+internal fun containersWritten(method: Method, player: String): List<FieldReference> =
+    method.code.filter { it.opcode == Opcode.IPUT_OBJECT }
+        .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
+        .filter { it.definingClass == player && it.type == VIEW_GROUP }
+        .distinctBy { it.toString() }

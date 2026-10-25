@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -15,11 +15,15 @@ import app.morphe.patches.shared.misc.settings.preference.NonInteractivePreferen
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.spoof.spoofVideoStreamsPatch
+import app.morphe.patches.youtube.misc.extension.hooks.YouTubeApplicationInitFingerprint
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_20_35_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_20_39_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_02_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_13_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_20_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -28,7 +32,15 @@ import app.morphe.patches.youtube.shared.YouTubeActivityOnCreateFingerprint
 
 val spoofVideoStreamsPatch = spoofVideoStreamsPatch(
     extensionClass = "Lapp/morphe/extension/youtube/patches/spoof/SpoofVideoStreamsPatch;",
-    mainActivityOnCreateFingerprint = YouTubeActivityOnCreateFingerprint,
+    mainActivityOnCreateFingerprints = listOf(
+        YouTubeActivityOnCreateFingerprint,
+        YouTubeApplicationInitFingerprint
+    ),
+    fixCronetOnesie = {
+        // 21.41 removed the stream config replacement flag,
+        // and the native player always sends the Onesie request.
+        is_21_41_or_greater
+    },
     fixMediaFetchHotConfigAlternative = {
         // In 20.14 the flag was merged with 20.03 start playback flag.
         false
@@ -45,6 +57,8 @@ val spoofVideoStreamsPatch = spoofVideoStreamsPatch(
         is_20_31_or_greater
     },
     restoreMissingCuepointMethod = { is_20_35_or_greater && !is_21_13_or_greater },
+    patchProtoRequest = { is_21_02_or_greater },
+    patchProtoRequestLegacy = { !is_21_20_or_greater },
 
     block = {
         compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -64,7 +78,11 @@ val spoofVideoStreamsPatch = spoofVideoStreamsPatch(
                 key = "morphe_spoof_video_streams_screen",
                 sorting = PreferenceScreenPreference.Sorting.UNSORTED,
                 preferences = setOf(
-                    SwitchPreference("morphe_spoof_video_streams", summary = true),
+                    SwitchPreference(
+                        key = "morphe_spoof_video_streams",
+                        titleKey = "morphe_spoof_video_streams_screen_title",
+                        summary = true
+                    ),
                     ListPreference("morphe_spoof_video_streams_client_type"),
                     NonInteractivePreference(
                         // Requires a key and title but the actual text is chosen at runtime.

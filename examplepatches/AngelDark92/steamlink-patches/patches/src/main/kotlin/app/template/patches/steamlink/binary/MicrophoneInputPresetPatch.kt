@@ -39,6 +39,9 @@ private val NATIVE_MICROPHONE_LAYOUTS = mapOf(
     // SHA-256: 628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0.
     // Symbol-derived QSVLClientAudioNdk::Init -> AAudioStreamBuilder_setInputPreset.
     "5002363" to NativeMicrophoneLayout(2_292_008, 0xF44C0),
+    // SHA-256: 5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b.
+    // Symbol-derived QSVLClientAudioNdk::Init -> AAudioStreamBuilder_setInputPreset.
+    "5002395" to NativeMicrophoneLayout(2_301_432, 0xF5710),
 )
 
 private fun hasExactMicrophoneLayout(version: String, code: String): Boolean =

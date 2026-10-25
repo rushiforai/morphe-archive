@@ -1,6 +1,7 @@
 package app.template.patches.steamlink.androidxr
 
 import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
+import app.template.patches.shared.PatchCategories
 import java.io.File
 import java.security.MessageDigest
 import kotlin.test.Test
@@ -136,10 +137,30 @@ class AndroidSurfaceTriggerResourceTest {
     }
 
     @Test
-    fun `5001712 alone selects the 2 projection helper resource`() {
+    fun `5001712 selects the production 2 projection helper unless the alpha0 patch is selected`() {
         assertEquals(
             ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY,
             androidSurfaceTriggerResourceLibraryForBuild("2.0.20", "5001712"),
+        )
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY,
+            androidSurfaceTriggerResourceLibraryForBuild("2.0.20", "5001812"),
+        )
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY,
+            androidSurfaceTriggerResourceLibraryForBuild("2.0.21", "5001968"),
+        )
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID,
+            androidSurfaceTriggerBuildIdForBuild("2.0.20", "5001712"),
+        )
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID,
+            androidSurfaceTriggerBuildIdForBuild("2.0.20", "5001812"),
+        )
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_BUILD_ID,
+            androidSurfaceTriggerBuildIdForBuild("2.0.23", "5002363"),
         )
         assertEquals(
             ANDROID_SURFACE_TRIGGER_LIBRARY,
@@ -150,9 +171,18 @@ class AndroidSurfaceTriggerResourceTest {
             androidSurfaceTriggerResourceLibraryForBuild("2.0.22", "5001712"),
         )
         assertTrue(isHighResolutionSteamLinkBuild("2.0.23", "5002363"))
+        assertTrue(isHighResolutionSteamLinkBuild("2.0.24", "5002395"))
         assertFalse(isHighResolutionSteamLinkBuild("2.0.22", "5002363"))
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_BUILD_ID,
+            androidSurfaceTriggerBuildIdForBuild("2.0.24", "5002395"),
+        )
         val modernResource = androidSurfaceTriggerResourceLibraryForBuild("2.0.23", "5002363")
         assertEquals(ANDROID_SURFACE_TRIGGER_LIBRARY, modernResource)
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_LIBRARY,
+            androidSurfaceTriggerResourceLibraryForBuild("2.0.24", "5002395"),
+        )
         assertContentEquals(
             projectionModeResource(modernResource),
             projectionModeResource(ANDROID_SURFACE_TRIGGER_LIBRARY),
@@ -229,6 +259,94 @@ class AndroidSurfaceTriggerResourceTest {
         ).forEach { invariant -> assertTrue(strings.contains(invariant), invariant) }
         assertFalse(strings.contains(ANDROID_SURFACE_TRIGGER_BUILD_ID))
         assertFalse(strings.contains("sourcePointer2"))
+    }
+
+    @Test
+    fun `alpha0 trigger is a default-off exact 5001712 experimental patch`() {
+        assertEquals("Alpha-0 high-resolution trigger (experimental)", xrAlpha0TriggerPatch.name)
+        assertFalse(xrAlpha0TriggerPatch.default)
+        assertEquals(PatchCategories.IMAGE_QUALITY, xrAlpha0TriggerPatch.category)
+        assertTrue(xrAlpha0TriggerPatch.dependencies.contains(xrGalaxyXrHighResolutionPatch))
+        assertTrue(isAlpha0SurfaceTriggerSteamLinkBuild("2.0.20", "5001712"))
+        assertFalse(isAlpha0SurfaceTriggerSteamLinkBuild("2.0.20", "5001812"))
+        assertFalse(isAlpha0SurfaceTriggerSteamLinkBuild("2.0.23", "5002363"))
+        assertEquals(
+            setOf(5001712),
+            xrAlpha0TriggerPatch.compatibility.orEmpty()
+                .flatMap { it.targets }
+                .flatMap { it.versionCodes.orEmpty().values }
+                .toSet(),
+        )
+    }
+
+    @Test
+    fun `5001712 alpha0 helper keeps the 2 to 3 layer payload with zero alpha`() {
+        val helper = requireNotNull(
+            javaClass.getResourceAsStream(
+                "/steamlink/androidxr/$ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_RESOURCE_LIBRARY",
+            ),
+        ).use { it.readBytes() }
+        assertContentEquals(byteArrayOf(0x7F, 0x45, 0x4C, 0x46), helper.copyOfRange(0, 4))
+        assertEquals(
+            "dac7be1ad94ab7f69396cb35a1c0881b07b38fbb40036824f738fed05b145d43",
+            MessageDigest.getInstance("SHA-256").digest(helper)
+                .joinToString("") { "%02x".format(it) },
+        )
+        val strings = helper.toString(Charsets.ISO_8859_1)
+        listOf(
+            ANDROID_SURFACE_TRIGGER_MODE,
+            ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_BUILD_ID,
+            "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1",
+            "surface_trigger_frame",
+            "surface_trigger_submission",
+        ).forEach { invariant -> assertTrue(strings.contains(invariant), invariant) }
+        assertFalse(strings.contains(ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID))
+        assertFalse(strings.contains(ANDROID_SURFACE_TRIGGER_BUILD_ID))
+        assertFalse(strings.contains("sourcePointer2"))
+
+        val source = source("extensions/resolution-trace-layer/src/android_surface_trigger_passthrough_layer.cpp")
+        assertTrue(source.contains("GXR_AST_TRIGGER_ALPHA"))
+        assertTrue(source.contains("row[x * 4 + 3] = kSurfaceAlpha"))
+    }
+
+    @Test
+    fun `alpha0 patch replaces only the installed helper after the high resolution install`() {
+        val root = File.createTempFile("gxr-alpha0-", "").apply {
+            delete()
+            mkdirs()
+        }
+        try {
+            val lib = File(root, "lib").apply { mkdirs() }
+            val layers = File(root, "assets/openxr/1/api_layers/implicit.d").apply { mkdirs() }
+            val requested = ProjectionModeResources(
+                ANDROID_SURFACE_TRIGGER_MODE,
+                ANDROID_SURFACE_TRIGGER_LIBRARY,
+                ANDROID_SURFACE_TRIGGER_MANIFEST,
+            )
+            installProjectionModeResources(
+                lib,
+                layers,
+                requested,
+                projectionModeResource(ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY),
+            )
+            assertContentEquals(
+                projectionModeResource(ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY),
+                File(lib, requested.library).readBytes(),
+            )
+            installProjectionModeResources(
+                lib,
+                layers,
+                requested,
+                projectionModeResource(ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_RESOURCE_LIBRARY),
+            )
+            assertContentEquals(
+                projectionModeResource(ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_RESOURCE_LIBRARY),
+                File(lib, requested.library).readBytes(),
+            )
+            assertTrue(File(layers, requireNotNull(requested.manifest)).isFile)
+        } finally {
+            root.deleteRecursively()
+        }
     }
 
     @Test

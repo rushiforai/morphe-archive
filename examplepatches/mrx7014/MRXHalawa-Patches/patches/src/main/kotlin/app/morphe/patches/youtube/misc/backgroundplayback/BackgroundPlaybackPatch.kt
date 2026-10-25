@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -13,10 +13,8 @@ package app.morphe.patches.youtube.misc.backgroundplayback
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.fix.bitmap.fixRecycledBitmapPatch
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
@@ -27,6 +25,7 @@ import app.morphe.patches.youtube.misc.playservice.is_20_29_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_20_49_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_15_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_21_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_23_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_36_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -37,13 +36,9 @@ import app.morphe.patches.youtube.video.information.onCreateHook
 import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.getMutableMethod
-import app.morphe.util.getReference
 import app.morphe.util.insertLiteralOverride
-import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/BackgroundPlaybackPatch;"
@@ -59,7 +54,6 @@ val backgroundPlaybackPatch = bytecodePatch(
         settingsPatch,
         versionCheckPatch,
         fixRecycledBitmapPatch,
-        resourceMappingPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -80,7 +74,7 @@ val backgroundPlaybackPatch = bytecodePatch(
             BackgroundPlaybackManagerFingerprint to "isBackgroundPlaybackAllowed",
             BackgroundPlaybackManagerShortsFingerprint to "isBackgroundShortsPlaybackAllowed",
         ).forEach { (fingerprint, integrationsMethod) ->
-            fingerprint.matchSingle().method.apply {
+            fingerprint.method.apply {
                 findInstructionIndicesReversedOrThrow(Opcode.RETURN).forEach { index ->
                     val register = getInstruction<OneRegisterInstruction>(index).registerA
 
@@ -128,14 +122,12 @@ val backgroundPlaybackPatch = bytecodePatch(
         }
 
         // Enable background playback option in YouTube settings
-        BackgroundPlaybackSettingsFingerprint.originalMethod.apply {
-            val booleanCalls = instructions.filter {
-                it.getReference<MethodReference>()?.returnType == "Z"
-            }
-
-            booleanCalls[1].getReference<MethodReference>()!!
-                .getMutableMethod().addBackgroundPlaybackIsPatchEnabledHook()
+        val backgroundPlaybackAllowedMatch = if (is_21_23_or_greater) {
+            BackgroundPlaybackSettingsFingerprint.instructionMatches.first()
+        } else {
+            BackgroundPlaybackSettingsLegacyFingerprint.instructionMatches[1]
         }
+        backgroundPlaybackAllowedMatch.getMethodCalled().addBackgroundPlaybackIsPatchEnabledHook()
 
         // Prevents playback from resuming if it was interrupted from the notification
         // and the app was subsequently brought to the foreground.

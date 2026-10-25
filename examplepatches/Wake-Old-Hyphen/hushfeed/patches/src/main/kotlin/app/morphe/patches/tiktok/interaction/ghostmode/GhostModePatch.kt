@@ -17,6 +17,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.guardAtEntry
+import app.morphe.patches.tiktok.shared.shipsStories
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 
@@ -160,8 +161,9 @@ val ghostModePatch = bytecodePatch(
             "invoke-static {}, $GHOST_MODE_EXTENSION->installed()V",
         )
 
-        listOf(
-            StoryViewReportFingerprint to "shouldBlockStoryView",
+        val stories = shipsStories("Ghost mode", "story views")
+        listOfNotNull(
+            (StoryViewReportFingerprint to "shouldBlockStoryView").takeIf { stories },
             ProfileViewReportFingerprint to "shouldBlockProfileView",
             TypingStatusSenderFingerprint to "shouldBlockTypingStatus",
         ).forEach { (fingerprint, guard) ->
@@ -197,6 +199,7 @@ val ghostModePatch = bytecodePatch(
         // The play report a story view also sends. The guard asks about the Aweme (p4) and lets
         // every feed video's report through; it returns before the report is built, so the
         // callback that stamps the story's consumption type never runs either.
+        if (!stories) return@execute
         val statsSenders = AwemeStatsSenderFingerprint.matchAllOrNull().orEmpty().map { it.method }
         if (statsSenders.size != 1) {
             throw PatchException("Ghost mode: expected one play report sender, found ${statsSenders.size}.")

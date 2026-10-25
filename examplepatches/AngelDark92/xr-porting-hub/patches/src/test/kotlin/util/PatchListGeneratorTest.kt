@@ -11,14 +11,14 @@ class PatchListGeneratorTest {
     fun `stable compatibility emits exact build target only`() {
         val latest = COMPATIBILITIES_STEAM_LINK.last()
         assertEquals(
-            listOf("2.0.23"),
+            listOf("2.0.24"),
             targetsForReleaseChannel(latest, ReleaseChannel.STABLE).map { it.version },
         )
         assertEquals(
-            listOf("2.0.23"),
+            listOf("2.0.24"),
             targetsForReleaseChannel(latest, ReleaseChannel.EXPERIMENTAL).map { it.version },
         )
-        assertEquals(5002363, latest.targets.single().versionCodes!!.values.toSet().single())
+        assertEquals(5002395, latest.targets.single().versionCodes!!.values.toSet().single())
     }
 
     @Test
@@ -31,14 +31,14 @@ class PatchListGeneratorTest {
             ).isEmpty(),
         )
         assertEquals(
-            listOf("2.0.23"),
+            listOf("2.0.24"),
             targetsForReleaseChannel(
                 experimental,
                 ReleaseChannel.EXPERIMENTAL,
             ).map { it.version },
         )
         assertEquals(
-            5002363,
+            5002395,
             experimental.targets.single().versionCodes!!.values.toSet().single(),
         )
     }

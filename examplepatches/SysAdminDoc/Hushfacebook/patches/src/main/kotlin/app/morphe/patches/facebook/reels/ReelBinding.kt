@@ -14,6 +14,7 @@ import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.patchLog
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -150,8 +151,9 @@ internal fun BytecodePatchContext.findReelBindingAnchors(): ReelBindingAnchors {
         ?: refuse("${controller.type} keeps no single ${read.field.type}")
 
     val writers = mutableListOf<Pair<ClassDef, Method>>()
-    classDefForEach { candidate ->
-        if (candidate.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // A writer puts the field, which names its class.
+    classDefForEachReferencing(types = listOf(field.definingClass)) { candidate ->
+        if (candidate.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         candidate.methods.filter { method ->
             method.name != "<init>" && method.implementation?.instructions?.any { writes(it, field) } == true
         }.mapTo(writers) { candidate to it }

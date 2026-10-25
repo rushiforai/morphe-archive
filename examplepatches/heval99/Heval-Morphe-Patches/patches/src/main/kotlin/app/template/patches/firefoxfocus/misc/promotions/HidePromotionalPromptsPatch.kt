@@ -17,8 +17,7 @@ private val PROMPT_DELEGATES = listOf("isCfrEnabled\$delegate", "isPromoteSearch
 @Suppress("unused")
 val hidePromotionalPromptsPatch = bytecodePatch(
     name = "Hide promotional prompts",
-    description = "Hides the search widget promotion that opens after erasing your history and the " +
-        "tip bubbles (\"Start browsing\", tracking protection, erase tabs, privacy settings).",
+    description = "Hides the search widget promo and tip bubbles.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX_FOCUS)
 

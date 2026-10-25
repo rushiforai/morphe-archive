@@ -47,9 +47,11 @@ class PatchCompatibilityMatrixTest {
 
     @Test
     fun `native build recommends its own set`() {
-        assertEquals(nativeRecommendedPatches, recommendedFor("2.0.23", 5002363).toSet())
+        listOf("2.0.23" to 5002363, "2.0.24" to 5002395).forEach { (version, code) ->
+            assertEquals(nativeRecommendedPatches, recommendedFor(version, code).toSet())
+            assertFalse(deviceIdentityPatch.supports(version, code))
+        }
         nativeRecommendedPatches.forEach { assertTrue(it.default, it.name) }
-        assertFalse(deviceIdentityPatch.supports("2.0.23", 5002363))
     }
 
     @Test
@@ -69,6 +71,9 @@ class PatchCompatibilityMatrixTest {
             "2.0.22" to 5002363,
             "2.0.23" to 5002322,
             "2.0.23" to 5002364,
+            "2.0.24" to 5002363,
+            "2.0.24" to 5002394,
+            "2.0.23" to 5002395,
         ).forEach { (version, versionCode) ->
             assertTrue(recommendedFor(version, versionCode).isEmpty(), "$version/$versionCode")
         }
@@ -100,7 +105,9 @@ class PatchCompatibilityMatrixTest {
             controllerVelocityFramePatch,
         )
         assertEquals(expected, allIndividualPatches.filter { it.supports("2.0.23", 5002363) }.toSet())
-        listOf("2.0.22" to 5002322, "2.0.22" to 5002363, "2.0.23" to 5002322, "2.0.23" to 5002364)
+        assertEquals(expected, allIndividualPatches.filter { it.supports("2.0.24", 5002395) }.toSet())
+        listOf("2.0.22" to 5002322, "2.0.22" to 5002363, "2.0.23" to 5002322, "2.0.23" to 5002364,
+            "2.0.24" to 5002363, "2.0.24" to 5002394)
             .forEach { (version, versionCode) ->
                 allIndividualPatches.forEach { patch ->
                     assertFalse(patch.supports(version, versionCode), "${patch.name}: $version/$versionCode")
@@ -136,7 +143,7 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `controller velocity is recommended on every supported build`() {
         listOf("2.0.20" to 5001712, "2.0.20" to 5001812, "2.0.21" to 5001968,
-            "2.0.22" to 5002244, "2.0.23" to 5002363).forEach { (version, code) ->
+            "2.0.22" to 5002244, "2.0.23" to 5002363, "2.0.24" to 5002395).forEach { (version, code) ->
             assertTrue(controllerVelocityFramePatch.supports(version, code), "$version/$code")
             assertTrue(controllerVelocityFramePatch.default)
         }

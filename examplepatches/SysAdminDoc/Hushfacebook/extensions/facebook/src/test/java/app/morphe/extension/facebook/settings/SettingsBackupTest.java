@@ -141,6 +141,9 @@ public class SettingsBackupTest {
         out.put("hushfacebook_font_source",
                 "it names the font file Use the system font draws in, whose copy only this install holds. A settings "
                         + "file can't carry the font itself, and the name alone would point at nothing on another phone.");
+        out.put("hushfacebook_header_picture",
+                "it names the picture at the top of Home, whose shrunk copy only this install holds. A settings file "
+                        + "can't carry the picture itself, and the name alone would point at nothing on another phone.");
         out.put("hushfacebook_seen_share_items",
                 "it records the share items this install's Facebook offered, which the hook writes, not a choice.");
         out.put("hushfacebook_seen_menu_tiles",
@@ -209,6 +212,7 @@ public class SettingsBackupTest {
         Settings.HIDDEN_MENU_TILES.resetToDefault();
         Settings.AMOLED_BACKGROUND.resetToDefault();
         Settings.AMOLED_LIGHT_BACKGROUND.resetToDefault();
+        Settings.HEADER_TEXT.resetToDefault();
         Settings.SEEN_MENU_TILES.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
@@ -253,7 +257,7 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
@@ -1105,6 +1109,64 @@ public class SettingsBackupTest {
         assertEquals("#FFF8E7", SettingsBackup.Snapshot.fromBundle(state).lightBackground);
         state.putString("amoled_light_background", "#fff8e7");
         assertNull(SettingsBackup.Snapshot.fromBundle(state).lightBackground);
+    }
+
+    /**
+     * Home header text (#230) goes out and comes back as its row keeps it, one trimmed line, and
+     * text written any other way refuses the whole file.
+     */
+    @Test
+    public void homeHeaderTextRoundTripsAsItsRowKeepsIt() throws Exception {
+        Settings.HEADER_TEXT.save("Matt's feed");
+        String file = SettingsBackup.create();
+        assertEquals("Matt's feed", new JSONObject(file).getJSONObject("settings").get(SettingsBackup.HEADER_TEXT.key));
+        Settings.HEADER_TEXT.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("Matt's feed", snapshot.headerTextChange());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("Matt's feed", Settings.HEADER_TEXT.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals(0, SettingsBackup.parse(file).changes().size());
+        assertEquals("If your patched Facebook includes Home header text, the top of Home will say Matt's feed.",
+                SettingsBackupPreference.headerTextSentence(snapshot.headerText)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
+        assertEquals("The top of Home will show Facebook's own logo.", SettingsBackupPreference.headerTextSentence(""));
+
+        // Text saved some other way goes out as the header shows it.
+        Settings.HEADER_TEXT.save("  Matt's \n feed ");
+        assertEquals("Matt's feed", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.HEADER_TEXT.key));
+        Settings.HEADER_TEXT.save("Matt's feed");
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{" Matt's feed", "Matt's feed ", "two\nlines", "tab\there",
+                "0123456789012345678901234567890", 5, true, JSONObject.NULL}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.HEADER_TEXT.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the header text " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject blank = new JSONObject(file);
+        blank.getJSONObject("settings").put(SettingsBackup.HEADER_TEXT.key, "");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(blank.toString())));
+        assertEquals("", Settings.HEADER_TEXT.savedValue());
+
+        Settings.HEADER_TEXT.save("Home");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.HEADER_TEXT.key);
+        SettingsBackup.apply(SettingsBackup.parse(older.toString()));
+        assertEquals("Home", Settings.HEADER_TEXT.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals("Matt's feed", SettingsBackup.Snapshot.fromBundle(state).headerText);
+        state.putString("header_text", " Matt's feed");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).headerText);
     }
 
     /**

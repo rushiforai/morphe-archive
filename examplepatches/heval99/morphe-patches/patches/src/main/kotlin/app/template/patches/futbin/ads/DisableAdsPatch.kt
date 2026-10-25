@@ -44,8 +44,7 @@ private fun BytecodePatchContext.gmaMethods(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables banner, interstitial, native, app-open and rewarded ads, and the squad " +
-        "builder's video ad panel."
+    description = "Removes all ads."
 ) {
     compatibleWith(COMPATIBILITY_FUTBIN)
 

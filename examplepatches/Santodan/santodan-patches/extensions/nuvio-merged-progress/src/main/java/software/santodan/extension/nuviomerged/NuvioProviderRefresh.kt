@@ -21,6 +21,64 @@ import kotlinx.coroutines.flow.merge
 
 /** Await the native refresh before sampling flows that can emit cached values immediately. */
 object NuvioProviderRefresh {
+    /** Observe small progress/seed/readiness projections, not every WatchedItem model. */
+    suspend fun observeProgress(provider: Any, progress: String, ready: String, changed: () -> Unit) =
+        observe(provider, listOf(progress, "f", ready), changed)
+    /** Playback readiness does not mean canonical watched-show history has loaded. */
+    suspend fun historyReady(loaded: () -> Boolean) {
+        while (!loaded()) kotlinx.coroutines.delay(25)
+    }
+    /** A cold provider may return placeholder empty lists before its disk hydration finishes. */
+    @Suppress("UNCHECKED_CAST")
+    suspend fun ready(provider: Any, accessor: String) {
+        val method = provider.javaClass.methods.single { it.name == accessor && it.parameterCount == 0 }
+        (method.invoke(provider) as Flow<Any?>).first { it == true }
+    }
+
+    /** Saved episode membership must not start a bulk metadata batch during startup. */
+    fun badgeCacheHit(nativeHit: Boolean, enabled: Boolean, ready: Boolean,
+                      playback: Boolean, retry: Boolean): Boolean = when {
+        !enabled -> nativeHit
+        !ready || playback -> true
+        retry -> false
+        else -> nativeHit
+    }
+
+    /** Move only cached snapshots; never discard the source before a durable copy. */
+    fun migrateSnapshots(legacy: Map<String, *>, contains: (String) -> Boolean,
+        store: (Map<String, String>) -> Boolean, remove: (Set<String>) -> Boolean): Boolean {
+        val snapshots = legacy.entries.filter { (key, value) ->
+            key.startsWith("snapshot_v2_") && value is String && value.startsWith("{")
+        }.associate { it.key to (it.value as String) }
+        if (snapshots.isEmpty()) return true
+        // A previous migration may have copied data but failed to remove its
+        // source. Never overwrite a newer destination with that stale source.
+        val missing = snapshots.filterKeys { !contains(it) }
+        if (!store(missing)) return false
+        return remove(snapshots.keys)
+    }
+
+    /** Proven beta.8 ComponentActivity/FullyDrawnReporter contract. */
+    fun afterPresentation(owner: Any, presented: () -> Unit) {
+        val reporter = owner.javaClass.getMethod("getFullyDrawnReporter").invoke(owner)
+        val type = reporter.javaClass
+        val lock = type.getDeclaredField("c").apply { isAccessible = true }.get(reporter)
+        synchronized(lock) {
+            if (type.getDeclaredField("f").apply { isAccessible = true }.getBoolean(reporter)) presented()
+            else {
+                @Suppress("UNCHECKED_CAST")
+                val callbacks = type.getDeclaredField("g").apply { isAccessible = true }.get(reporter) as MutableList<Any>
+                callbacks.add(presented)
+            }
+        }
+    }
+
+    /** Never expose the placeholder empty flow before disk hydration completes. */
+    fun hydratedSnapshot(merged: StateFlow<List<Any>>, prepare: suspend () -> Unit): Flow<List<Any>> = flow {
+        prepare()
+        emitAll(merged)
+    }
+
     /** Shared by the aggregate's progress and next-up readers. */
     fun retainedSnapshot(native: Flow<Any?>?, merged: StateFlow<List<Any>>,
         ready: StateFlow<Boolean>, allowNative: () -> Boolean): Flow<List<Any>> = flow {
@@ -55,12 +113,12 @@ object NuvioProviderRefresh {
         }
     }
 
-    suspend fun await(provider: Any, methodName: String) {
+    suspend fun await(provider: Any, methodName: String, manual: Boolean = false) {
         val method = provider.javaClass.methods.single {
             it.name == methodName && it.parameterCount == 2
         }
         val intent = requireNotNull(method.parameterTypes[0].enumConstants).single {
-            (it as Enum<*>).name == "AUTOMATIC"
+            (it as Enum<*>).name == if (manual) "USER_INITIATED" else "AUTOMATIC"
         }
         suspendCancellableCoroutine<Any?> { completion ->
             val result = method.invoke(provider, intent, NuvioSourceContinuation(completion))

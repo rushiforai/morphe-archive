@@ -28,3 +28,18 @@ object GetHasServerAdsFingerprint : Fingerprint(
     definingClass = USER_ACCOUNT_CLASS,
     name = "getHasServerAds",
 )
+
+internal const val RELEASE_APP_CLASS = "Lcom/sofascore/results/ReleaseApp;"
+
+/**
+ * ReleaseApp (the manifest Application class, unobfuscated) sets the Firebase consent mode in a
+ * no-arg void method holding the consent-type strings, then ends with
+ * `new Thread(new <runnable>(this, 1)).start()`; that thread sets the ad SDKs' consent and starts
+ * Mintegral, Unity, Moloco, Pangle, Equativ, Nimbus, AppHarbr and MobileAds.initialize.
+ */
+object AdSdkStartupFingerprint : Fingerprint(
+    definingClass = RELEASE_APP_CLASS,
+    returnType = "V",
+    parameters = listOf(),
+    strings = listOf("ad_personalization", "analytics_storage"),
+)

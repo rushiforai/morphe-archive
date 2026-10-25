@@ -1,6 +1,6 @@
 /*
- * Copyright 2026 MRX Halawa.
- * https://github.com/mrx7014/MRXHalawa-Patches
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -9,12 +9,25 @@ package app.morphe.patches.youtube.misc.fix.videoactionbar
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
-import app.morphe.patches.shared.BuildInnerTubeProtoRequestUriFingerprint
 import app.morphe.patches.youtube.shared.CLIENT_INFO_CLASS
 import com.android.tools.smali.dexlib2.Opcode
 
 internal object BuildInnerTubeProtoRequestBodyFingerprint : Fingerprint(
-    classFingerprint = BuildInnerTubeProtoRequestUriFingerprint,
+//    classFingerprint = BuildInnerTubeProtoRequestUriFingerprint,
+    parameters = listOf("L"),
+    returnType = "Lcom/google/protobuf/MessageLite;",
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            definingClass = CLIENT_INFO_CLASS
+        )
+    )
+)
+
+/**
+ * [BuildInnerTubeProtoRequestBodyFingerprint] of any request class.
+ */
+internal object InnerTubeRequestBodyFingerprint : Fingerprint(
     parameters = listOf("L"),
     returnType = "Lcom/google/protobuf/MessageLite;",
     filters = listOf(

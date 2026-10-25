@@ -18,7 +18,7 @@ import org.w3c.dom.Element
  */
 private val disableFacebookTelemetryResourcePatch = resourcePatch(
     name = "Disable Facebook telemetry",
-    description = "Disables Facebook auto-logged events and advertiser ID collection.",
+    description = "Disables Facebook event tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
@@ -54,8 +54,7 @@ private val disableFacebookTelemetryResourcePatch = resourcePatch(
 @Suppress("unused")
 val disableFacebookSdkPatch = bytecodePatch(
     name = "Disable Facebook SDK",
-    description = "Blocks Facebook Audience Network ads and disables Facebook " +
-        "event tracking while keeping Facebook Login working."
+    description = "Disables Facebook ads and tracking. Facebook login keeps working."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 
