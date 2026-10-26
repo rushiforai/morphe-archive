@@ -340,9 +340,12 @@ public final class ReleaseCheck {
             }
             if (System.nanoTime() - deadline > 0) return Answer.failed(Result.TIMEOUT, "the check ran out of time");
             try (Exchange exchange = transport.get(url, headers)) {
+                checkDeadline(deadline);
                 int status = exchange.status();
+                checkDeadline(deadline);
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
                     String location = exchange.header("Location");
+                    checkDeadline(deadline);
                     if (location == null || location.trim().isEmpty()) {
                         return Answer.failed(Result.HTTP_ERROR, "a redirect named no address");
                     }
@@ -353,17 +356,22 @@ public final class ReleaseCheck {
                     }
                     continue;
                 }
-                if (status == 429 || (status == 403 && rateLimited(exchange))) {
+                boolean limited = status == 429 || (status == 403 && rateLimited(exchange));
+                checkDeadline(deadline);
+                if (limited) {
                     return Answer.failed(Result.RATE_LIMITED, "GitHub answered " + status);
                 }
                 if (status != 200) return Answer.failed(Result.HTTP_ERROR, "GitHub answered " + status);
                 long announced = exchange.length();
+                checkDeadline(deadline);
                 if (announced > MAX_BODY_BYTES) {
                     return Answer.failed(Result.TOO_LARGE, "GitHub announced " + announced + " bytes");
                 }
                 byte[] body = read(exchange.body(), deadline);
                 if (body == null) return Answer.failed(Result.TOO_LARGE, "the answer ran past " + MAX_BODY_BYTES + " bytes");
-                return parse(body);
+                Answer answer = parse(body);
+                checkDeadline(deadline);
+                return answer;
             } catch (ReleaseTransport.Refused refused) {
                 return Answer.failed(Result.REFUSED, refused.getMessage());
             } catch (InterruptedIOException timeout) {
@@ -427,14 +435,20 @@ public final class ReleaseCheck {
         ByteArrayOutputStream out = new ByteArrayOutputStream(16 * 1024);
         byte[] buffer = new byte[8 * 1024];
         int total = 0;
-        int count;
-        while ((count = in.read(buffer)) != -1) {
+        while (true) {
+            checkDeadline(deadline);
+            int count = in.read(buffer);
+            checkDeadline(deadline);
+            if (count == -1) break;
             total += count;
             if (total > MAX_BODY_BYTES) return null;
             out.write(buffer, 0, count);
-            if (System.nanoTime() - deadline > 0) throw new InterruptedIOException("the check ran out of time");
         }
         return out.toByteArray();
+    }
+
+    private static void checkDeadline(long deadline) throws InterruptedIOException {
+        if (System.nanoTime() - deadline > 0) throw new InterruptedIOException("the check ran out of time");
     }
 
     // ---- The answer ----------------------------------------------------------------------------

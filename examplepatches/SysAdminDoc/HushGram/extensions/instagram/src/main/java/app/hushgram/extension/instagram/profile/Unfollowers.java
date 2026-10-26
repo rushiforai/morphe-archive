@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.function.BooleanSupplier;
 
 import app.hushgram.extension.instagram.feed.HiddenAccounts;
@@ -42,7 +43,7 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>Nothing is asked of Instagram for it. Each time Instagram builds the rows of a follow list from
  * the accounts it has loaded so far, the patch hands that list here ({@link FollowingList#ordered}).
  * It's only taken when it's your own Followers list, Instagram has no more of it to load, and it holds
- * about as many accounts as your profile's follower count says ({@link #full}). A list cut short,
+ * exactly as many distinct accounts as your profile's follower count says ({@link #full}). A list cut short,
  * still loading, filtered by a search or stopped by a failed page, is never taken, so it can't make
  * anyone look like they left. A list taken is compared with the last one taken for your account:
  * anyone missing from the new one is kept as a recent unfollower, with when it was first seen
@@ -70,7 +71,9 @@ public final class Unfollowers {
     private static final Object LOCK = new Object();
 
     /** The last list taken this run, by account, so a rebuild of the same rows isn't taken again. */
-    private static final Map<String, Long> taken = new HashMap<>();
+    private static final Map<String, String> taken = new HashMap<>();
+    private static final Map<String, Long> generations = new HashMap<>();
+    private static long nextGeneration;
 
     private Unfollowers() {
     }
@@ -187,15 +190,18 @@ public final class Unfollowers {
 
     /** What a list taken is handed to: written off the main thread on the phone, at once in tests. */
     interface Keeper {
-        void keep(String viewer, Map<String, String> followers, long when);
+        void keep(String viewer, Map<String, String> followers, long when, long generation);
     }
 
-    private static final Keeper STORED = (viewer, followers, when) -> {
+    static final Keeper STORED = (viewer, followers, when, generation) -> {
         Context context = Utils.getContext();
-        if (context == null) return;
+        if (context == null) {
+            forgetTaken(viewer, generation);
+            return;
+        }
         Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
-        if (!Utils.runOnBackgroundThread(() -> take(application, viewer, followers, when))) {
-            forgetTaken(viewer);
+        if (!Utils.runOnBackgroundThread(() -> take(application, viewer, followers, when, generation))) {
+            forgetTaken(viewer, generation);
         }
     };
 
@@ -233,11 +239,20 @@ public final class Unfollowers {
                 // A row that can't be told apart makes the whole list untrustworthy.
                 if (id == null || id.isEmpty()) return false;
                 String name = parts.username(user);
-                followers.put(id, name == null ? "" : name);
+                if (followers.put(id, name == null ? "" : name) != null) return false;
             }
-            if (!firstTake(viewer, followers)) return false;
-            keeper.keep(viewer, followers, now);
-            return true;
+            if (!viewer.equals(parts.viewer(binder)) || !viewer.equals(parts.owner(binder))
+                    || !Boolean.FALSE.equals(parts.hasMore(list))
+                    || !count.equals(parts.followerCount(account))) return false;
+            long generation = firstTake(viewer, followers);
+            if (generation == 0) return false;
+            try {
+                keeper.keep(viewer, Collections.unmodifiableMap(followers), now, generation);
+            } catch (Throwable failure) {
+                forgetTaken(viewer, generation);
+                throw failure;
+            }
+            return current(viewer, generation);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.FRIENDSHIP_STATUS, SEEN, failure);
             return false;
@@ -246,28 +261,50 @@ public final class Unfollowers {
 
     /**
      * Whether [loaded] accounts are your whole Followers list by your profile's [count] of them. It
-     * may lag behind a follow or an unfollow, and a few accounts can be counted that Instagram doesn't
-     * list, so up to one in twenty may be missing. Under twenty followers none may: there a search or
-     * a short list would list real followers as gone. No followers at all is a whole list of none.
+     * may lag or count accounts Instagram doesn't list. In either case, wait for the counts to agree
+     * rather than treating the discrepancy as departures. No followers is a whole list of none.
      */
     static boolean full(int loaded, int count) {
-        if (loaded < 0 || count < 0) return false;
-        return loaded >= count - count / 20;
+        return count >= 0 && loaded == count;
     }
 
     /** Whether [followers] isn't the list last taken for [viewer] in this run, and marks it taken. */
-    private static boolean firstTake(String viewer, Map<String, String> followers) {
-        long signature = followers.size();
-        for (String id : followers.keySet()) signature = signature * 31 + id.hashCode();
+    private static long firstTake(String viewer, Map<String, String> followers) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        for (String id : new TreeSet<>(followers.keySet())) {
+            for (String value : new String[]{id, followers.get(id)}) {
+                byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+                for (int shift = 24; shift >= 0; shift -= 8) digest.update((byte) (bytes.length >>> shift));
+                digest.update(bytes);
+            }
+        }
+        StringBuilder hex = new StringBuilder(64);
+        for (byte value : digest.digest()) {
+            hex.append(Character.forDigit((value >> 4) & 0xF, 16)).append(Character.forDigit(value & 0xF, 16));
+        }
+        String signature = hex.toString();
         synchronized (taken) {
-            Long last = taken.put(viewer, signature);
-            return last == null || last != signature;
+            if (signature.equals(taken.get(viewer))) return 0;
+            taken.put(viewer, signature);
+            long generation = ++nextGeneration;
+            generations.put(viewer, generation);
+            return generation;
         }
     }
 
-    private static void forgetTaken(String viewer) {
+    private static boolean current(String viewer, long generation) {
         synchronized (taken) {
-            taken.remove(viewer);
+            Long active = generations.get(viewer);
+            return active != null && active == generation;
+        }
+    }
+
+    private static void forgetTaken(String viewer, long generation) {
+        synchronized (taken) {
+            if (generation == 0 || current(viewer, generation)) {
+                taken.remove(viewer);
+                generations.remove(viewer);
+            }
         }
     }
 
@@ -275,6 +312,7 @@ public final class Unfollowers {
     static void forgetTaken() {
         synchronized (taken) {
             taken.clear();
+            generations.clear();
         }
     }
 
@@ -303,7 +341,18 @@ public final class Unfollowers {
 
     /** Compares the list taken with the one kept for [viewer], and keeps the result. Never throws. */
     public static void take(Context application, String viewer, Map<String, String> followers, long when) {
+        take(application, viewer, followers, when, 0);
+    }
+
+    private static void take(Context application, String viewer, Map<String, String> followers, long when, long generation) {
         synchronized (LOCK) {
+            if (generation != 0) {
+                if (!current(viewer, generation)) return;
+                if (!switchedOn()) {
+                    forgetTaken(viewer, generation);
+                    return;
+                }
+            }
             try {
                 Record before = read(file(application, hash(viewer)));
                 Record after = compare(before, followers, when);
@@ -312,7 +361,7 @@ public final class Unfollowers {
                 int listed = after.left.size();
                 Logger.printDebug(() -> "Recent unfollowers: took " + followers.size() + " followers, " + listed + " listed as gone");
             } catch (Throwable failure) {
-                forgetTaken(viewer);
+                forgetTaken(viewer, generation);
                 HookStatus.threw(FamilyNames.FRIENDSHIP_STATUS, SAVE, failure);
             }
         }

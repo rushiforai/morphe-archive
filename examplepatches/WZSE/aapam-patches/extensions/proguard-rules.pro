@@ -7,3 +7,9 @@
 -keep class ajstrick81.morphe.extension.primevideo.nativehook.NativeHookLoader {
     public static void load();
 }
+
+
+-keep class app.aapam.extension.cred.** {
+    public *;
+    public static *;
+}

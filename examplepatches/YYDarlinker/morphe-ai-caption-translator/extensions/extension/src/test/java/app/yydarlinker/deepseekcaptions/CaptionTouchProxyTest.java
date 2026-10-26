@@ -83,6 +83,7 @@ public class CaptionTouchProxyTest {
 
     @Before
     public void setUp() {
+        CaptionNativeProjection.ccState(CaptionIntentPolicy.ON);
         CaptionPlayerAuthority.resetForTests();
         a = Robolectric.buildActivity(Activity.class).setup().visible().get();
         content = new FrameLayout(a);

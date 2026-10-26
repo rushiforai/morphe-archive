@@ -37,6 +37,10 @@
   <a href="https://morphe.software/add-source?github=SatanMerde/D-moniakPatches">
     <img src="https://img.shields.io/badge/Morphe_Manager-Ajouter_la_source_%2F_Add_Source-007ACC?style=for-the-badge&logo=android" alt="Add Source to Morphe Manager">
   </a>
+  &nbsp;
+  <a href="https://discord.gg/pw9wNbDzMx">
+    <img src="https://img.shields.io/badge/Discord-Rejoindre_la_Communaut%C3%A9-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord Community">
+  </a>
 </p>
 
 ---
@@ -116,7 +120,7 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 ## 🩹 Liste des patchs / Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.52.16](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.52.16)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**462 patchs au total** (21 validés & fonctionnels • 441 expérimentaux)
+> **[v1.52.20](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.52.20)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**462 patchs au total** (21 validés & fonctionnels • 441 expérimentaux)
 
 ---
 

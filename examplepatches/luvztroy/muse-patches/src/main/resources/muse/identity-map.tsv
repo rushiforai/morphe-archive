@@ -1,0 +1,9 @@
+com.facebook.aura	com.facebook.aura.mcdebug
+com.facebook.aura.accesslibrary	com.facebook.aura.mcdebug.accesslibrary
+com.facebook.aura.permission.CROSS_PROCESS_BROADCAST_MANAGER	com.facebook.aura.mcdebug.permission.CROSS_PROCESS_BROADCAST_MANAGER
+com.facebook.aura.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION	com.facebook.aura.mcdebug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+com.facebook.aura.aura.fileprovider	com.facebook.aura.mcdebug.aura.fileprovider
+com.facebook.aura.androidx-startup	com.facebook.aura.mcdebug.androidx-startup
+com.facebook.aura.firebaseinitprovider	com.facebook.aura.mcdebug.firebaseinitprovider
+com.facebook.aura.provider.AccessLibraryContentProvider	com.facebook.aura.mcdebug.provider.AccessLibraryContentProvider
+com.facebook.aura.provider.phoneid	com.facebook.aura.mcdebug.provider.phoneid

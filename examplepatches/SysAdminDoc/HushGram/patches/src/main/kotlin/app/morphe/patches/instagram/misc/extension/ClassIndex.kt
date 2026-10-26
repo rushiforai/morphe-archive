@@ -196,27 +196,52 @@ internal fun BytecodePatchContext.typesMarked(vararg names: String): Set<String>
  * types of the classes loading it. A string ends in `_X` only when that part is X's own, so a name
  * reads one short list. Asking the patcher's string index for an ending tests each of the app's
  * 400,000 strings, once per name, and the Reels patches ask for dozens (#173). It holds strings,
- * plus the few classes it read last so the next ask knows where to start.
+ * plus the current class identities so a merge is read wherever it appears in the class list.
  */
-private class PurgeIndex {
+private class PurgeIndex(classes: List<ClassDef>) {
     private val byLastPart = HashMap<String, MutableList<Pair<String, String>>>()
-
-    /**
-     * The patcher's classes with strings this has read last, by identity: the end of the list when
-     * it was built, then every class read after that.
-     */
-    val read: MutableSet<ClassDef> = java.util.Collections.newSetFromMap(java.util.IdentityHashMap())
+    private val owned = java.util.IdentityHashMap<ClassDef, List<Pair<String, String>>>()
+    private val read = java.util.IdentityHashMap<ClassDef, Boolean>().apply {
+        classes.forEach { put(it, false) }
+    }
+    private var present = false
 
     fun add(classDef: ClassDef) {
+        val markers = ArrayList<Pair<String, String>>()
         for (method in classDef.methods) {
             for (instruction in method.implementation?.instructions ?: continue) {
                 if (instruction.opcode != Opcode.CONST_STRING && instruction.opcode != Opcode.CONST_STRING_JUMBO) continue
                 val string = ((instruction as ReferenceInstruction).reference as StringReference).string
                 if (string.startsWith("android_purge_")) {
-                    byLastPart.getOrPut(string.substringAfterLast('_')) { ArrayList(1) } += string to classDef.type
+                    val marker = string to classDef.type
+                    byLastPart.getOrPut(string.substringAfterLast('_')) { ArrayList(1) } += marker
+                    markers += marker
                 }
             }
         }
+        if (markers.isNotEmpty()) owned[classDef] = markers
+    }
+
+    /** Reuse the identity snapshot without reading unchanged classes or retaining retired ones. */
+    fun refresh(classes: List<ClassDef>) {
+        present = !present
+        val added = ArrayList<ClassDef>()
+        for (classDef in classes) {
+            if (read.put(classDef, present) == null) added += classDef
+        }
+        val previous = read.keys.iterator()
+        while (previous.hasNext()) {
+            val classDef = previous.next()
+            if (read[classDef] == present) continue
+            for (marker in owned.remove(classDef).orEmpty()) {
+                val part = marker.first.substringAfterLast('_')
+                val bucket = byLastPart.getValue(part)
+                bucket.remove(marker)
+                if (bucket.isEmpty()) byLastPart.remove(part)
+            }
+            previous.remove()
+        }
+        added.forEach(::add)
     }
 
     fun typesEnding(ending: String): List<String> =
@@ -227,29 +252,19 @@ private val purgeIndexes = java.util.WeakHashMap<BytecodePatchContext, PurgeInde
 
 /**
  * This context's [PurgeIndex]. The first ask reads the classes the patcher's string index names
- * for an android_purge_ string. The patcher indexes a class merged in later, an extension's, by
- * adding it to the end of its classes with strings, so each ask reads back from the end to the
- * last class it has read. Patcher 2.0 also drops a class a merge replaces from that list, which
- * keeps its length the same, so counting what was added would miss the replacement. A class made
- * mutable can come back as another object, which is why more than the list's last class is kept.
+ * for an android_purge_ string. Patcher 2.0.1 returns replacements at their original class-map
+ * positions, and classes can enter or leave its string-bearing list. Compare the current class
+ * identities on every ask, retire old marker entries, and read only new or replaced class bodies.
  */
 private fun BytecodePatchContext.purgeIndex(): PurgeIndex = synchronized(purgeIndexes) {
     val withStrings = getAllClassesWithStrings()
-    val index = purgeIndexes[this] ?: PurgeIndex().also { index ->
+    val index = purgeIndexes[this] ?: PurgeIndex(withStrings).also { index ->
         classDefByStrings("android_purge_", StringComparisonType.STARTS_WITH).forEach(index::add)
-        index.read += withStrings.takeLast(KEPT_FROM_THE_END)
         purgeIndexes[this] = index
     }
-    var from = withStrings.size
-    while (from > 0 && withStrings[from - 1] !in index.read) from--
-    for (classDef in withStrings.subList(from, withStrings.size)) {
-        index.add(classDef)
-        index.read += classDef
-    }
+    index.refresh(withStrings)
     index
 }
-
-private const val KEPT_FROM_THE_END = 32
 
 /** The classes outside the extension holding a method [fingerprint] matches, in the app's order. */
 private fun BytecodePatchContext.classesMatching(fingerprint: Fingerprint): List<ClassDef> =

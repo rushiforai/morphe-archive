@@ -19,3 +19,78 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Fossify issue analysis
+---------------------
+The Messages #929 patch was informed by FossifyOrg/Messages issue #929 and
+fatehiman's explanation/commit 44d2d3876088522785bb2f5d43b54226a6dce555.
+It independently adds the selected-thread cancellation pattern already used
+by Fossify; it does not incorporate the fork's broader lifecycle/sweep code.
+The File Manager patch was informed by FossifyOrg/File-Manager issue #513
+and the public Fossify Commons/File Manager source behavior. All patches
+remain GPL-3.0 under this repository's license.
+Messages lifecycle patches #927/#928 likewise acknowledge fatehiman's public
+issue analysis and reference implementation 44d2d3876088522785bb2f5d43b54226a6dce555.
+The implementation here uses synchronized per-Activity weak state, exact
+provider-message scoping and original notification fallback, without the
+fork's global notification sweep.
+
+Contacts #327 acknowledges jeremiepose's issue diagnosis of missing merged
+email/note display fields. Music Player #50 acknowledges the issue author
+and Aga-C, knuxyl and aicode8000's album-art analysis and reproduction.
+The focused implementations preserve source records and audio tags; the
+Opus picture reader is an independent bounded read-only implementation.
+
+Feeder #391
+------------
+The image-zoom patch targets Feeder 2.25.0 by Jonas Kalderstam and contributors,
+GPL-3.0: https://github.com/spacecowboy/Feeder . The native linked-image callback
+is preserved, and runtime bridge definitions refer to Feeder's shipped models,
+image loader and coroutine ABI. The separate viewer and focused acceptance
+fixtures are Penguin Patches code. No APK, signing key, Coil, Kotlin, Compose or
+other runtime library is embedded in the repository or Feeder extension payload.
+
+Kvaesitso #1504
+--------------
+The widget editor navigation/menu behavior and compile-only app signatures
+are derived from Kvaesitso v1.41.0 by MM2-0 and contributors, licensed under
+GPL-3.0-or-later (https://github.com/MM2-0/Kvaesitso). The Morphe extension
+reuses the app's existing editor, localized resources and gesture model.
+See docs/KVAESITSO.md for pinned source attribution.
+
+Fossify Clock #14
+----------------
+Alarm model signatures, native scheduling/receiver integration and behavior
+are based on Fossify Clock 1.6.0 by Fossify and contributors, licensed under
+GPL-3.0 (https://github.com/FossifyOrg/Clock), source commit
+4ecb9e33c51c0b2096af2379e7ac9dc17c3e07e6. The independent per-alarm upcoming
+notification runtime retains native ringing/snooze and native one-shot cleanup.
+See docs/CLOCK.md for provenance, compatibility and verification limits.
+
+Fossify Calendar #381
+--------------------
+The separate all-day reminder defaults integrate with Fossify Calendar 1.12.0
+by Fossify and contributors, licensed under GPL-3.0, source commit
+1a85738b3ec989334eb284724caafec6c5a50214
+(https://github.com/FossifyOrg/Calendar). The request and timed/all-day reminder
+examples are credited to rms-joe in issue #381. The independent Java runtime
+uses the app's existing reminder formatter, editor and save/scheduling path.
+See docs/CALENDAR_REMINDERS.md for behavior, provenance and test limits.
+
+Tasks.org #2838
+--------------
+Native editor, save/discard, task DAO, Compose rendering and navigation bindings
+are based on Tasks.org 15.13 by Alex Baker and contributors, GPL-3.0
+(https://github.com/tasks/tasks), source commit
+615094ce41e8aa7fc358113020878e432cc3b95f. The independent extension implements
+an explicit parent action as requested in issue #2838 and its discussion,
+while reusing shipped app implementations rather than bundling app libraries.
+See docs/TASKS.md for APK provenance, behavior and test limits.
+
+Infinity+ custom OAuth
+---------------------
+Targets Infinity by Docile Alligator and contributors. Diagnosis was informed by
+brealorg/breal-morphe-patches issue #257 and its 1.4.123 custom-client implementation,
+inherited from wchill/Patcheddit. Penguin's focused implementation uses the original
+Infinity app APIs directly and includes no Breal/Patcheddit runtime or shared
+client credentials. Source, provenance and acceptance limits: docs/INFINITY.md.

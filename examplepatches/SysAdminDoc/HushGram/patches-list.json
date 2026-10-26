@@ -1,5 +1,5 @@
 {
-  "version": "v0.0.16",
+  "version": "v0.0.17",
   "appNames": {
     "com.instagram.android": "Instagram"
   },
@@ -4001,7 +4001,7 @@
     },
     {
       "name": "Story text fonts",
-      "description": "Adds fonts you pick from your phone (.ttf or .otf files) to the story text editor, after Instagram's own fonts, and can draw the emoji in story text from an emoji font file you pick. Starts off. Set both up in HushGram settings > Stories.",
+      "description": "Adds fonts you pick from your phone (.ttf or .otf files) to the story text editor alongside Instagram's own fonts, and can draw the emoji in story text from an emoji font file you pick. Starts off. Set both up in HushGram settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [

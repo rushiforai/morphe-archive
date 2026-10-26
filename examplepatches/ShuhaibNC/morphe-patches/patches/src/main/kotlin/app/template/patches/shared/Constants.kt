@@ -80,6 +80,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = null,
+                isExperimental = true
             ),
             AppTarget(
                 version = "1.0.10-5",
@@ -97,6 +98,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = null,
+                isExperimental = true
             ),
             AppTarget(
                 version = "10.1.0",
@@ -112,9 +114,13 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = null,
+                isExperimental = true
             ),
             AppTarget(
                 version = "4.0.2",
+            ),
+            AppTarget(
+                version = "4.0.1",
             )
         )
     )
@@ -127,10 +133,20 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = null,
+                isExperimental = true
             ),
             AppTarget(
                 version = "8.0.527",
                 versionCode = 80527
+            ),
+            AppTarget(
+                version = "8.0.338",
+            ),
+            AppTarget(
+                version = "8.0.212",
+            ),
+            AppTarget(
+                version = "8.0.211",
             )
         )
     )
@@ -143,10 +159,20 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = null,
+                isExperimental = true
             ),
             AppTarget(
                 version = "7.3.13",
                 versionCode = 123
+            ),
+            AppTarget(
+                version = "7.3.14"
+            ),
+            AppTarget(
+                version = "7.4.0"
+            ),
+            AppTarget(
+                version = "7.4.2"
             )
         )
     )
@@ -185,6 +211,9 @@ object Constants {
             AppTarget(
                 version = "2.46.10897",
                 versionCode = 10897,
+            ),
+            AppTarget(
+                version = "2.46.10891"
             )
         )
     )
@@ -208,8 +237,7 @@ object Constants {
         appIconColor = 0x00C300,
         targets = listOf(
             AppTarget(
-                version = "6.1.3_1",
-                versionCode = 6131
+                version = null,
             )
         )
     )
@@ -262,6 +290,15 @@ object Constants {
             AppTarget(
                 version = "3.0.4",
                 versionCode = 311
+            ),
+            AppTarget(
+                version = "3.0.3",
+            ),
+            AppTarget(
+                version = "3.0.2",
+            ),
+            AppTarget(
+                version = "3.0.1",
             )
         )
     )
@@ -301,6 +338,32 @@ object Constants {
             AppTarget(
                 version = "3.38",
                 versionCode = 169
+            )
+        )
+    )
+
+    val MP3CUTTER_COMPATIBILITY = Compatibility(
+        name = "MP3 Cutter and Ringtone Maker",
+        packageName = "com.atomic.apps.ringtone.cutter",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xC02997,
+        targets = listOf(
+            AppTarget(
+                version = "4.1",
+                versionCode = 400001
+            )
+        )
+    )
+
+    val WHEREISMYTRAIN_COMPATIBILITY = Compatibility(
+        name = "Where is my Train",
+        packageName = "com.whereismytrain.android",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x03A9F4,
+        targets = listOf(
+            AppTarget(
+                version = "7.1.5.974952539",
+                versionCode = 2024017
             )
         )
     )

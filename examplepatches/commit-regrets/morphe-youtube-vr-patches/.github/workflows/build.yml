@@ -108,6 +108,11 @@ jobs:
       - name: Build
         run: ./gradlew buildAndroid --no-daemon
 
+      # The JUnit suite rides on buildAndroid (it depends on :patches:test). This is the other
+      # headless check: the upstream-version decision table, against the saved storefront page.
+      - name: Test the upstream version checker
+        run: node scripts/tests/UpstreamCheckTest.mjs
+
       # The half of the audit that needs no stock APK: every extension member a patch template names
       # must exist in the bundle's extension dex. The rest of scripts/audit-patched-apk.ps1 needs the
       # app's APK, which cannot live on a runner, so those checks stay local.

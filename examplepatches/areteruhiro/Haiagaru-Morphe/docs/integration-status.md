@@ -1,5 +1,35 @@
 # 主開発先と統合状況
 
+2026-10-25 追加タブ復帰時の黒画面対策候補（未公開・実機未確認）: 242で選択中のNativeToolFragmentのViewがGONEのまま残る状態を記録済みスクリーンショット/View階層で確認。ネイティブの選択ページ同期後にも選択Viewが隠れている場合、選択ViewをVISIBLEへ戻すフォールバックを追加。通常Lintを含む`:patches:buildAndroid`成功（89タスク、4分52秒）。`patches-1.12.1.mpp` SHA256 `0B1721BDAE126B9B3E8613247166BAEFF4273E14B8BBFEADE593A4093F6B84BE`を242元APKへ適用し、`resumefix242` APK生成・署名検証成功（SHA256 `51B9406EC93F060247B5AFB85B8E2411D0EFB5C6800FD4E5B06AECA4FA1E4B5E`）。XIG05は未接続で候補未導入、実機で修正後のスクリーンショット/復帰確認なし。現在ADBに見えるd5497008はAndroid 11の別端末のため未操作。00:46のnative SIGSEGVはFrida visibility診断中に発生しPC=0/未知1フレーム、因果未確定。00:57/01:04の終了はOS `LOW_MEMORY`（PSS 321/197MB）で、製品コード由来の例外と確認できていない。公開しない。
+
+2026-10-25 Hissi全文ワッチョイの直リンク調査: 過去のHissi切替コミットは日別一覧を走査する経路。既存のHissi URL形式へ全文ワッチョイを入れた公開ページ取得は404となり、ID用直リンクを全文ワッチョイ検索として流用しない。Hissiテンプレート走査経路を維持し、直接検索の追加は未実装。
+
+2026-10-24 必死チェッカー表示と走査間隔（未公開）: 結果画面を「レス／スレ／名前」のタブへ整理し、投稿・一覧の余白と区切り線を独自CSSで調整。必死チェッカー設定にHissi/Kyodemo別の走査間隔（1〜3600秒、初期3秒/10秒）を追加し、実行中の変更と同一ホスト並列走査へ適用。Android通常Lint build成功1分29秒。ホスト検査30項目はSharedPreferencesをstub化したモデル検査で、実UI操作・ネットワーク走査・端末画面確認は未実施。ダイジェスト・APK導入・公開なし。詳細docs/checker-ui-pacing-20261024.md。
+
+2026-10-24 ページ端/下部位置/設定感度（未公開）: 過去ログに最初/最後（総件数不明は最後無効）、下部フィルターrequired位置保持、242 MyLinearLayoutManagerの親クラスk探索、設定専用感度50〜200%を実装。最終通常Lint build成功4分52秒、242署名照合更新Success。ページ/距離モデル10・anchor純Java9成功。実一覧7項目は並行作業cached-wacchoi-toggle242.apk（実baseとSHA一致）でレス752/-492px維持を確認し直前候補と区別。先行試験失敗・プロセス更新あり、全条件完了とはしない。最終照合時点では5554予約のため操作停止。その後のユーザー指示で共有NG予約を解除し、下4桁検索トグルの最終UI確認に使用。docs/pages-filter-gestures-20261024.md。公開なし。
+
+2026-10-24 最新のユーザー指示: 共有NGの調査は後回しにし、「取得済みのスレから検索」の下4桁検索トグルを優先する。共有NG用のemulator-5554予約はこの指示により解除し、下4桁トグルの最終表示/切替検証に使用する。以前の共有NG優先承認・ANR/高負荷の記録はdocs/shared-ng-implementation.mdに保持。共有NGを修正済み/完了とは扱わず、他チャットの実際の停止を強制したとも扱わない。
+
+2026-10-24 エッヂ検索欄/次スレ起動（未公開）: hideSearchFormを直接切替/復帰する画面ボタン追加。次スレ候補の自package implicit掲示板URLをnative ResListActivityへ明示しRelatedThreadsも同様に変更。最終通常Lint build成功3分24秒、242適用/署名照合データ保持更新Success。端末内Intent解決6・検索欄モデル7成功、設定復元、crash空/ANRなし。報告端末実クリック/Compose実表示面積は未確認。191/226共通重複導入未実施。詳細eddi-next-thread-form-20261024.md。公開なし。
+
+2026-10-24 242サムネイル再表示の追加調査（未公開）: FRONTIER114と添付動画で報告、自然発生は未再現。取得済み同URLへのnative d(false)制御試験ではloaded true→false→trueを確認。requery開始とqueued decode開始の二段階の一時状態を抑えるFrida試作で画像保持成功。242限定の同2呼出しguardをパッチ化し通常Lint build成功、APK適用/最終回帰は継続中。stopDownloadUnknownFileSize OFFとの因果は未確定。詳細thumbnail-requery242-20261024.md。191固定フィルター・バックアップ残件を完了扱いにしていない。
+
+2026-10-24 242 devタブレット縦スクロール残像感（未公開）: ユーザー比較1.9.3正常→1.11.1発生。間に追加されたReadingPositionの各pre-drawでanchor反射/PackageManager/URL解析する経路を候補として、version取得のsession cacheと250ms inspection間隔、readingPositionRecovery初期true/再起動確認付きOFF設定を実装。通常Lint build成功3分29秒、端末fps/ON-OFF比較は未実施。60Hz固定コードは検索で見つからず、60Hz専用エミュレータで120fps回復を断言しない。別途242サムネイルpatch適用検査エラーが残り導入・公開なし。詳細tablet-scroll-regression-20261024.md。
+
+2026-10-24 エキスパート設定（未公開・途中）: 独立カテゴリと初期OFFのモード、既存設定リスナー/保存先を共有するカテゴリ選択式UIを追加。通常Activityと本体設定タブに入口、モード値の設定共有、通常カテゴリへ戻る際のView再生成を実装。全機能のruntime任意化は未完了であり既存設定集約と区別する。ThreadRefreshCachePatch等の常時バイトコード変更の監査・切替実装が残る。最終通常Lint build成功3分18秒、MPP B602D02C2A392B32274506E744570654D4CE873C3EF69B4B5A7199D0237C6373。ただし242適用は同時変更のThumbnailRebindPatchのautomatic requery reset検査で失敗、導入/新画面表示/モード副作用検査は未実施。公開/版名変更なし。docs/expert-settings-20261024.md。
+
+2026-10-24 固定下部フィルター再修正候補（未公開）: 報告版191を確認。native保存位置復元が初回measureで一覧高を参照するため、領域予約をglobal-layout後から初期化/再attach時へ前倒し。通常Lint build/署名照合データ保持導入191/242成功。191固定パネル23+初期予約10、242 native移動7+初期予約追試8成功。ただし新着実到着・DAT ON/OFFを含むnative開閉通し確認は未完了。追加native復元試験中に191/SystemUI/Launcher ANRがあり原因未断定、成功扱いせず試験設定を復元して191通常再起動。公開/版名変更なし。詳細pinned-first-layout-191-20261024.md。
+
+2026-10-24 ローカル自動バックアップ（未公開）: ON→OFF/保存先未選択の報告は原因未特定。同期保存・同一treeの別URI表記で管理記録保持・世代整理の重複/消失記録対応・削除失敗警告を追加。純Java24,016、通常Lint build成功、191検証アプリへ署名照合データ保持更新し上書き前後の設定保持/同tree保持5項目成功、元設定復元。実バックアップは作成/削除せず、利用者の設定消失/実providerでの超過は未再現。詳細local-auto-backup-check-20261024.md。続報の固定フィルター初回位置問題は別途調査中。
+
+2026-10-24 正式版1.12.1公開完了: 今回の修正7da6ae7のみをdevへcommit/pushし、masterへ通常merge a28fe67。並行作業のBoardAuthRules/ExternalBoardAuth/VerifyBoardAuthRulesは未コミットのまま保持して公開対象外。既存Release CI39983601471はRelease/Attest含めsuccess、生成b9f3117をdevへFF取得。Release https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.12.1 、draft=false/prerelease=false/latest。公開6資材digest全一致、MPP a78dade2ca167e4ddfc991c8e14338aa5d9b7d345fdfd3d5cca0298196d012ae、classes.dex確認。master/mainとdev pre JSONは1.12.1、dev stableのraw CDN初回旧値はmanager fresh取得でversionHash1.12.1。main/dev取得URLをfresh logcat確認、MorpheのプレON/登録先を保持しカード/詳細1.12.1を確認。created_at=2026-10-23T16:05:49（offset/Zなし）。謝辞ｵｲｺﾗﾐﾈｵ 様/Red Frame X 様、差分とライブラリ案内、実新着到着条件の未再現はRelease本文へ直接記載。公開MPPでの再適用は未実施、端末検証は直前候補。詳細thumbnail-pinned-menu-20261024.md。
+
+2026-10-24 未公開修正: 242の通常サムネイルbindから強制requeryを分離し、常時下部フィルターを実viewport予約へ変更。長押し下4桁NGの独立設定復活と191旧MenuのOFF除去も追加。通常Lint build成功、最終242へ同一署名データ保持更新、native DEX保持検査・NG設定17・固定パネル23・native移動7・実サムネイル5回同一画素確認成功。報告の実際の新着到着→開き直し条件は未再現で、viewport検査を完全解決確認とは扱わない。191/226導入・全popup回帰・長時間は未確認。公開なし。詳細thumbnail-pinned-menu-20261024.md。
+
+同日の追記: ユーザー希望によりブラウザ必須経路へ既存XPostPreviewTouchと同じ標準Custom Tabs session extraを付与し、対応ブラウザではアプリ内風画面・非対応では通常ブラウザにする。認証画面のWebView化や制限回避ではなくブラウザ自身が実行する方式。native Cookie/SessionIDは送らず別管理を明示。54項目host試験成功。Android buildはJava/R8/Lint処理後のpackageReleaseでmerged_java_res/.../base.jar欠落により失敗（並行作業のbuild変更あり、原因を断定しない）。最新Custom Tabs追記を含む最終build・端末UI検証・導入・公開は未実施で、成功扱いしない。
+
+2026-10-24 外部板のブラウザ必須投稿確認（未公開）: 実機730eae72の書き込みエラーを画面取得し、「計算による投稿確認」「専用ブラウザからは投稿出来ません」「通常のブラウザを使ってください」を確認。https://043044.xyz/krsw/ の公開ページにもJavaScript必須の記載あり。投稿POST・認証計算・Cookie/SessionID変更はしていない。BoardAuthRulesに計算確認の検出と明示的なブラウザ必須判定、クエリ/fragment除去・POST endpoint除外の遷移URLを追加。ExternalBoardAuthはこの場合のみ通常ブラウザの選択導線へ分岐し、従来のCookie連携認証とは区別する。下書き/認証tokenを送信せずnative identityも変更しない。host policy54項目成功、Android最終build進行中（build/board-browser-final-build.log）。新導線の端末UI確認・実際の認証/投稿・APK導入・公開は未実施。先行の242サムネイル/固定フィルターと下4桁NG分離の未コミット変更を保護している。
+
 2026-10-23 正式版1.12.0公開・更新確認完了: 44eb352のGIF/固定フィルターpopup修正と既存dev改善をmasterへ通常merge（1bb85c4）。既存Semantic Release CI39969080861でbuild/6資材upload/Release公開/CI生成ab1bb96/devへの反映まで完了。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.12.0 、draft=false/prerelease=false/latest。公開6資材をbuild/release-1.12.0-verifyへ取得しGitHub digest全件一致、Android MPP SHA256=e255784273e09f541798bad9c514c51c13e7c295edb1a17d9c60ceb16e1c6a49、classes.dex確認。日本語説明・任意ライブラリ案内・確認範囲・謝辞はRelease本文へ直接収録し、専用説明MDは追加していない。
 
 同CIの公開後backmergeがmainの既存merge履歴に対するrebase/non-fast-forwardで失敗、Attestは未実行。配布物のbuild/公開失敗とは区別する。mainへmasterを通常mergeし更新情報を反映（8cef24d）、既存.releasercのbackmergeStrategyをmergeへ変更（eefbb1c）しdev/master/mainへforceなしで同期。workflow_dispatchによる既存Release CI39970344986はRelease/no-new-releaseとVerify project compilesがsuccess、全体success。追加版や手動Release/タグ/asset/生成JSONは作っていない。これを元Releaseのprovenance発行済みとは扱わない。
@@ -336,3 +366,59 @@ Kotlin／JavaコンパイルとAndroid MPP生成成功（build/ui-migration-pack
 最終 build/advanced-ng-final-build.log 成功（3分4秒。既知のローカルLint FIR内部例外によりLint3工程を除外、恒久設定変更なし）。固定MPP build/advanced-ng-v2-verified.mpp SHA256 0E0CA6D419345D393FD59499F6945B8F6C5FD00037BE6280AC3DCE6B14FFDA92。563単体チェック合格。最終APK3版の適用・署名・emulator-5554への更新成功。実コントローラー59項目、ZZZSearchのabout:blank開閉／動画設定／小数入力9項目、復帰処理27項目に合格。226の復帰fixtureは一度Frida接続がタイムアウトし、検証用アプリ再起動後に9項目合格。実Compose入力欄のIME inputType=0x2002を確認。両APK検証スクリプトで3版のNGフックと復帰時の元命令保持に合格。新規アプリクラッシュ記録なし。実機導入と指定公開スレの通し確認は未実施。APK／署名記録はandroid-installations.md。公開結果は後記。
 
 2026-10-23 必死チェッカーのタブ表示見出し: 専用ビュワータブでは汎用の「戻る／投稿検索・結果」上部バーを出さず、ビュワー自身の「‹ 必死チェッカー · ChMateビュー」見出しを表示。hissi.org／Kyodemoの切替後も見出しが欠落しないよう統一。191版のビルド成功。実画面の見た目確認は未実施。XIG05（serial 730eae72）の既存「Haiagaru191 設定検証」へ同一パッケージ・同一署名で上書き導入し、データを保持。導入後base.apkと候補APKのSHA-256一致。
+
+2026-10-24 タブ見出し縮小候補（未公開）: 専用タブ見出し・×バーを既定16dp、範囲16〜20dpへ縮小し、エキスパート設定から通常カテゴリと重複するカテゴリ再掲を除去。通常Android build成功。XIG05 (`730eae72`) の242検証パッケージへ既存署名一致後にinstall -rでデータ保持更新、導入後pull APK SHA-256が候補と一致しTabletHomeActivity起動。実画面の縮小結果スクリーンショットは未確認。docs/android-installations.mdに詳細。
+
+2026-10-25 チェッカーバーの追加作業: XIG05へ23:59候補を署名照合install-r導入し、実ページで操作バーのドラッグ20/80dpと再起動後の高さ保持を確認。レス/スレ/名前バーも独立20〜80dp、つまみ非表示時は保存高固定を追加し、通常設定/ビューア調整/ドラッグの保存先を共通化してビルド中。ユーザーは広告・広告枠だけの超軽量構成をアプリ内プリセットとパッチ時構成の両方へ追加することも希望。エキスパートでクラッシュ防止以外の追加機能・修正を選べるようにする依頼は未完了であり、UI修正の導入成功とは区別して継続する。
+
+2026-10-25 続報・公開保留: Hissi/Kyodemoの操作バーとレス/スレ/名前バーの独立20〜80dp、つまみ表示OFFで高さ固定の242候補checker-bars-lock242.apkは署名照合install-r Success（APK SHA256 65D9A37BA1A9BAD98B87D76BE88C2DB3806B9F0163B8CC6845739587D5F2CDCC）。検索先切替バーも同仕様で追加実装し現在ビルド中。ユーザーは超軽量構成を次回プレへ延期し、今回は既存Release CIでプレ公開を希望。ただし他アプリから戻った追加タブの黒画面をbuild/tool-return-black-before.pngとtool-return-settings-settled.pngで確認し、未解決のため公開しない。Frida framework visibility hook中にSIGSEGVがあり、製品自然クラッシュと区別する。実機のライブ調査はユーザー操作と競合していたため、ユーザー回答「今は操作中なので後で」に従い00:52以降は実機操作を停止。修正完了/検証成功とは扱わない。
+
+Hissi過去履歴: 809245b（2026-10-19、5ch全文ワッチョイからHissiへ切替）と451d6f4（全文検索先切替とUI改善）をgit showで確認。両コミットは日別一覧走査へ遷移する実装で、現在コードにも残る。参照アプリの公開HissiAdapter/CheckerQuery/HissiRecentSearchでは、板/日付/IDからBase64で投稿者URLを作る方式を確認し、ワッチョイ全文専用の直接検索は見つからなかった。コード流用なし。ID検索への置換をワッチョイ全文検索の代替として黙って実装しない。直接全文検索経路の調査は継続。
+
+2026-10-25 公開前追試: 通常Lint付き最終build/prerelease-final-build.log成功（4m21s）。Mi Note10をユーザー許可で使用、専用242検証パッケージへデータ保持導入。検索タブ/複数タブの他アプリ復帰とプロセス終了後の復元、Part3本文と画像表示、新アプリcrashなしを確認。242 nativeタブfactoryレジスター/分岐/Fragment再基底化、cached検索wrapper、サムネイル2箇所のguard operandsを最終APKで検査。初回Verifierは他の既存setTextフックまで全クラス同一を要求して失敗したため、検査対象を今回のrequery2メソッドへ明示限定し成功。認証ポリシー54、保存件数24016、全文SLIP回帰も成功。黒画面は242のselected-page visibility再同期を追加しMi Note10で未再発、XIG05の固有状態/長時間利用は未確認。調査中SIGSEGVはframework全体Frida hookとの関連が疑われ、製品の自然クラッシュを修正したとは断言しない。広範なexpert/超軽量は次回、既存2項目のexpert UIのみ保持。共有NG別作業の9コミットは今回公開から除外する。
+
+2026-10-25 1.12.2-dev.1プレ公開完了: 既存Semantic Release CI 40152656554 success。公開Releaseはdraft=false/prerelease=true、タグ1.12.2-dev.1。MPP再取得SHA256 E59F2FCC0B0FD57D3769109E539F9E85AFC1E9DB61C4CADC72773129EC362376がGitHub digestと一致。JSON2点も再取得、created_at=2026-10-25T01:59:40（Zなし）。dev raw正式名/プレ名両方version1.12.2-dev.1。公式Latest1.12.1を維持。公開元42cfd45、CI生成75a0812。共有NG別作業9コミットを含めずdev上で再build成功（build/prerelease-dev-confirm.log、1m3s）。191元APKへの適用/署名成功、nativeタブとcached検索hook命令保持検査成功。端末UIは242共通確認を採用し191の重複操作省略。公開URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.12.2-dev.1 。
+
+次回の超軽量構成に着手。アプリ内プリセットは保存済み設定の復元を用意し、広告・枠除去以外の追加機能/常駐監視を停止する。パッチ時構成は単に全設定falseではなく、広告除去・再署名導入に必要な互換処理・クラッシュ回避だけを選別して組み込む。既存haiagaruBytecodePatchは機能hookと起動/署名対策が一体化しているため、冒頭の早期returnだけではクラッシュする。依存分離と対応版の起動確認が必要。今回のプレには未収録。次回公開も自動実施せず、実装/適用/端末検証後に扱う。
+
+2026-10-25 テンプレート板選択の追修正（未公開）: SearchComposeUiの板コード直接入力を独立Compose選択画面へ置換。Hissi板一覧取得/更新、名前・コード検索、複数Checkbox、全解除、保存/キャンセル。検索フォームのselectedBoardsとは別の下書きSetを使い、保存時のみテンプレートprefsを変更。取得連打の重複リクエストをboardListLoadingで抑止。全文検索先は自動/hissi.org/Kyodemo/両方に変更、両方は板別前回選択を使い画面上で切替（postsOnlyにも切替表示）。外部板の全文検索は5ch.io名前空間へ正規化、エッヂは従来Kyodemoを維持。対応するHissi板が存在しない場合の検索結果は保証しない。旧値3（毎回選択）は両方へ意味変更。通常Lint付きbuild/template-board-picker-build.log成功6m25s、再build確認中。端末への新候補適用・実UI確認・公開は未実施。ユーザーの先行の軽量構成/カード位置対策等の未コミット変更は保持。
+追記: 最終再build/template-board-picker-confirm.logも通常Lint付きBUILD SUCCESSFUL（39秒）。Java UP-TO-DATE、Kotlin再確認、最終MPP生成成功。端末未導入・未公開は変わらず。
+
+2026-10-25 広告だけの超軽量構成の準備（未公開）: パッチ時構成をextensions/chmate-ads-onlyへ分離し、通常拡張DEXではなく21,360 bytesの専用DEXを同じMPPへ同梱。広告除去と再署名/パッケージ変更の互換処理のみ接続。31クラス追加、検索/Compose/動画/表示位置監視などの混入を禁止するAPK検査を191/226/242で成功（許可された呼出238/268/266）。通常Haiagaruおよび依存する任意パッチとの併用はmarkerで拒否。専用構成のImage NG/VPN追加データは不要。242専用APK43,648,076 bytes、通常候補66,710,614 bytes（任意パッチ/フォント条件も異なるため純粋なランタイム性能比較ではない）。
+
+アプリ内プリセットに文字列置換、別保存先のワッチョイ長押し/レス操作、保存済み追加ツールバー項目のOFFを補完。退避情報は再適用で上書きせず、後から増えた対象キーだけ初回変更前に追加退避。元のキー不在も復元。絵文字補完を新しいexpertスイッチへ接続し、OFFで起動時のフォント読込/表示監視/行走査を停止（再起動反映）。既存の位置補完/カード保持/条件付き取得切替もプリセットでOFF。広範な非クラッシュ修正の全任意化は未完了。アプリ内プリセットは既存の全フックを除去する構成とは区別。
+
+通常Lint付きbuild/ads-only-isolated-runtime-build2.log成功3m43s、その後の最終再buildはPCコミットメモリ不足でdaemon停止。使用メモリを抑えて直列再build/ads-only-final-retry-build.log成功4m33s。最終MPP build/ads-only-final.mpp SHA256 0D5F46F7CD17DDD3B5321FD44C1ACA8DF85560F0A2B8A0098CBE5AB9E5FD556C。191/226専用候補と通常242設定確認候補はこのMPP。専用242は直前の専用runtime同一候補MPP（台帳参照）。
+
+Mi Note10に広告専用191/226/242をそれぞれ別パッケージで追加し起動プロセスを確認、242の初回案内/Home表示スクリーンショット確認。既存通常242は署名一致でデータ保持更新。広告プリセット適用/再適用/キー不在復元/追加キー退避/追加ツールバーOFFと正確な復元13項目合格、検証後は全保存先を元へ復元（build/ads-only-preset242-frida.log）。226専用runtimeで広告collapse/Activity content保護/空popup host保護/通常レス維持/null Intentの6項目合格（build/ads-only226-runtime-frida.log）。新規アプリFATALなし。本文/画像の通し操作・長時間利用・性能測定は未完了。URL付き起動コマンドは実行環境のポリシーで拒否され、成功扱いにしていない。公開操作なし。案内docs/ads-only-configuration.md。
+
+同時作業の242取得済み検索は通常242候補に含まれ、実native画面で下4桁チェックの表示位置、ON/OFF、手入力維持、Activity再作成後の状態/元query復帰の16項目合格（build/cached-wacchoi242-final-frida.log）。全文検索先routing検証はfixture側のConsumer実装/経路捕捉に問題があり未合格、検索先実動作の解決済みとは扱わない。
+
+2026-10-25 ローカル自動バックアップ保持件数の再調査（未公開）: 既存削除判定は作成済みファイルURIへgetTreeDocumentIdを要求し、plain /document/idを返す保存先では例外をUNVERIFIEDとして削除しない経路があった。LocalBackupDocumentsを追加し、選択フォルダの直接子一覧のdocument ID/名前と管理記録を照合、削除用URIは選択treeから組み直す。別authority/別フォルダ/手動ZIP/未管理ZIPは削除しない。記録内のplain/tree別名をcanonical化し、同一ファイルを複数件として最新世代まで消すことを防止。既に管理記録が失われたZIPの自動削除はしない。
+
+scripts/TestLocalBackupProvider.ps1によるAndroid documents API代替fixtureで13項目成功（8件から最新5件、削除URIのtree権限、異なるauthority/移動済み/手動/未管理の保護、権限拒否、削除失敗、URI別名）、既存保持ポリシー24016項目成功。build/local-backup-provider-tests.log。実際の利用者保存先の調査/ファイル削除は未実施。初回buildはPCコミットメモリ不足でdaemon停止、低メモリ設定で再build中（build/local-backup-retention-retry-build.log）。接続Mi Note10は途中切断、XIG05接続復帰。端末更新/公開は行っていない。
+
+2026-10-25 外部チェッカー連携（作業中/未公開）: ユーザーからIssue7の許可提示、APIで所有者の許可を確認。送信側main e5dd048のThreadOpener/ExternalThreadAppsを参照（流用なし）。Edge2hostのcanonical/short URL受信filterをOpenUrlActivityへ追加、短縮リンクのレス番号/範囲/query/fragment保持正規化、Hissi明示OpenUrl入口を追加。専用viewerパッチ設定OFF時にもHissi受信filterを残す。外部送信側「他のアプリ」からの動的URL検出向け、固定パッケージ宛の専用Haiagaru選択は受信側のみで解決できない。送信側変更/PRは未実施。ExternalCheckerLinksTest 20ケース成功。checker-handoff-compile.logでKotlin/Android Javaコンパイル確認中。前件backup保持はprovider13+policy24016成功だが最終Android build2回ともPCコミットメモリ不足でdaemon停止、端末導入/実データ削除なし。
+追記: build/checker-handoff-compile.log BUILD SUCCESSFUL（2m2s）、patches KotlinとAndroid Javaのコンパイル成功。LocalBackupDocuments/ExternalCheckerLinksの最終class生成確認。最終MPP生成・端末導入・外部送信側からの通し操作は未実施。
+
+2026-10-25 XIG05導入: checker-handoff-install-buildはLint中メモリ不足停止、生成済み最適化結果を再利用しchecker-handoff-install-retry.log通常Lint付きBUILD SUCCESSFUL 2m40s。最終MPPから通常242APK適用成功、署名照合データ保持更新Success。カスタムパッケージでEdge短縮URL/Hissi URLのVIEW解決を確認、PID12850起動。端末から実検索/バックアップ整理の通し確認は未完了、公開なし。詳細台帳参照。
+
+2026-10-25 1.12.2-dev.2プレ公開完了: ユーザー明示指示により軽量構成を先行公開。Semantic Release CI40166087786 success、source210fd3d/CI26ee2a1、draft=false/prerelease=true。公開MPP再取得SHA256 F852A6F96234DAD501485AE1148A8A2FD14EDD66D0F90C27AA8D303ECDF956C4がGitHub digestと一致、classes.dex/専用21,360byte MPE入り確認。公開JSON version1.12.2-dev.2、created_at2026-10-25T05:36:55（Zなし）、dev rawプレJSON確認。公式Latest1.12.1維持。未確認範囲はRelease説明へ明記。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.12.2-dev.2 。
+
+2026-10-25 公式昇格指示: 今回追加したチェッカーツールバー右端×のみ未コミット差分から除去、dev.2と同じコードへ復帰、XIG05も署名一致データ保持で戻した。ユーザーより完了後の公式Releaseを明示依頼。既存CIでmasterへ昇格する。軽量構成は検証用任意パッチとして残し、dev.2記載の未確認範囲を公式説明でも維持する。
+
+2026-10-25 エッヂ検索の戻る・上部操作の修正（公開前）: XIG05スクリーンショットで、native eddiタブ内に重複したタイトル/×ヘッダーとCompose検索画面を確認。検索の戻る/先頭ページからのスワイプをActivity.onBackPressedから元の×と同じcloseCurrentTabへ変更。eddiだけ重複ヘッダーを隠し、検索欄の開閉を上部バーの「戻る・エッヂ過去ログ検索・検索折/開・表示」へ移動。端末戻るキーも表示中eddiのcloseCurrentTabへ接続、API33以降の戻るcallbackは表示中のみ登録/破棄時解除。単独Activity側も同じcloseへBackHandlerで接続。ビルド・端末確認中。リモートmasterはb9f3117でdevの祖先、旧ローカルmaster ea548fbだけが別履歴。旧masterを保存したうえでorigin/masterから正式ブランチを作り直せば通常マージ可能。
+
+2026-10-25 動画長押し・復帰広告枠（公開前）: 動画上長押しの2倍速とnativeジェスチャーの競合を抑止し、離す/キャンセル/背景移行で元の速度へ復帰。速度ボタン長押しを1倍速リセットへ変更。停止中の速度変更で勝手に再生しないようMediaPlayerの再生状態を保持し、一時速度は画面再作成に保存しない。通常広告除去に識別済み広告のみのattach連動PreDraw監視と復帰時の既知広告再確認を追加。復帰後にSDKがview/空wrapperの可視性や高さを戻した際に描画前に再非表示、変更フレームだけキャンセル。screen host保護とhideAd設定を尊重し、毎フレームの全画面走査を行わない。SC-56F/Android16実端末では未再現。古い800MB/1CPUビルドは追加依頼後の旧ソースを最適化中だったため、そのビルドのdaemon PID39724だけ終了。1500MB/2CPUで追加分込みの通常Lint最終ビルドsearch-video-ad-final-build.logへ再実行。
+
+2026-10-25 動画追加操作と設定初期化（確認中）: ミュートはMediaPlayer/ExoPlayer個別の音量0/1で端末音量を変えず、画面再作成で状態保持。videoAutoplay初期trueを操作設定へ追加、OFFは初回の読み込み後も停止。コントロールバーの座標をsurface長押し/タップ/ネイティブgestureの検出対象から除外。「言語・基本設定」に初期設定へ戻すボタンと確認ダイアログを追加。既知の表示/操作設定キーと検索欄の表示設定、レス追加操作の設定を消してコード内初期値へ戻す。認証・履歴・登録NG規則・バックアップ保存先・ChMate標準設定を削除せず、反映には再起動確認を表示。通常Lint付きvideo-options-reset-final-build.log BUILD SUCCESSFUL 3m7s、MPPをbuild/search-video-ad-final.mppへ固定。
+
+2026-10-25 端末検証: 広告再表示fixture9項目、隔離設定領域での初期値リセット7項目、ローカルMP4実MediaPlayerでの動画12項目（自動再生OFF、ミュート切替、コントロール領域、長押し2倍速/解除、1倍リセット、停止維持、一時速度の保存抑制）合格。外部サンプルは準備タイムアウトのためローカルfixtureへ変更。実設定は復元済み。初回のeddiタブ起動でNativeToolTabSwipeLayout.dispatchKeyEventがandroid.app.Fragment.getArgumentsを参照してVerifyError（build/archive-back-initial-verifier-crash.log）。placeholder superclassを書換える対象外のクラスからの呼出が原因。既存の反射経路arguments(Object)へ統一し、直接getArgumentsを呼ばないisArchiveFragmentへ変更、通常Lint付きarchive-back-verifier-fix-build.logを実行中。これを直すまで未公開。
+
+2026-10-25 上部余白/戻る追修正（未公開）: XIG05でeddiタブ実画面の重複ヘッダー除去/折開切替を確認、初回VerifyErrorは解消。上余白はタブ内でもstandalone用insetsを適用していたためToolScreenUi.archiveへembedded=trueを渡し、TopAppBarのinsetsも0に変更。見出しは18sp/1行へ。旧候補はキーBACKが非フォーカスのpaneへ届かずアプリから出るため、TabletHomeActivity.dispatchKeyEventを独立3レジスタwrapperへ置換し、表示中eddiだけcloseCurrentTabへ。元メソッドはdelegateへ命令/レジスタをそのまま保持（継承時はsuperへ委譲）。新候補はarchive-final-back-build.logで通常Lint付きビルド中。
+
+2026-10-25 最終ビルド状況: 上部insets修正のみはarchive-top-insets-final-build.logで通常Lint付きBUILD SUCCESSFUL 3m30s。Activity BACK wrapper追加後の通常Lintビルドはarchive-final-back-build/retry-buildでdaemon消失、再試行時PC空きコミット約994MB。恒久Lint無効化はせずローカル生成だけLint3工程を除外、archive-final-local-lowmemory-build.log BUILD SUCCESSFUL 1m、111 tasks。固定MPP build/archive-top-back-final.mpp。通常Lintは公開前のCIで成功を要求する。
+
+2026-10-25 最終242確認: archive-top-back-final242署名一致データ保持更新Success。XIG05で上部空白除去、1行の「戻る・エッヂ過去ログ検索・検索折/開・表示」をスクリーンショット確認。画面内戻るで検索タブを閉じスレ本文へ戻ることをXML確認。PID28641新規crash bufferなし。VerifyArchiveBackHooksで242Activity wrapperが3レジスタ/元実装保持/元super委譲を確認。端末戻るキー試行中は端末の手動操作も入り、単独の通し操作の判定は保留。最終Frida再接続はptrace I/O errorで失敗、成功扱いにしない。通常Lint付きCI確認後に正式昇格する。
+
+2026-10-25 Release説明更新: ユーザー指示により1.12.1タグからの107ファイル/3実装修正コミットを確認し、dev.1の操作バー高さ/走査テンプレート/間隔/ページ端/フィルター/外部板ブラウザ案内も正式説明に追加。READMEの最新master d08b69a（API blob573bc4c）でPayPayがp2p01_lf6ELD8pvzLJGHxrへ更新されていることを確認、HTTP HEAD200。origin.fetchがdevのみだったためmasterを明示refspecで更新し、README更新を通常マージで保持。READMEの支援者6名と寄付案内、今回の報告者4名を既存.releaserc headerへ反映。CHANGELOG/メタデータは手編集なし。最終MPPから191/226のパッチ適用・署名にも成功、3版VerifyArchiveBackHooksで独立レジスタ/元実装保持を確認。191/226の今回最終候補の再インストール・端末通し確認は未実施。

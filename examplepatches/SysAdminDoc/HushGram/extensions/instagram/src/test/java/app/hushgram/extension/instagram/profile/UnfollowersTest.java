@@ -20,15 +20,20 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.BooleanSupplier;
 
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.PauseForTests;
@@ -81,7 +86,7 @@ public class UnfollowersTest {
     }
 
     private final List<Map<String, String>> kept = new ArrayList<>();
-    private final Unfollowers.Keeper keeper = (viewer, followers, when) -> kept.add(followers);
+    private final Unfollowers.Keeper keeper = (viewer, followers, when, generation) -> kept.add(followers);
     private Context context;
 
     @Before
@@ -95,7 +100,8 @@ public class UnfollowersTest {
     }
 
     @After
-    public void restore() {
+    public void restore() throws Exception {
+        Utils.awaitBackgroundTasksForTests();
         Unfollowers.clear(context);
         Settings.TRACK_UNFOLLOWERS.resetToDefault();
         BaseSettings.PAUSED.save(false);
@@ -171,17 +177,216 @@ public class UnfollowersTest {
         assertFalse(seen(users("ana", "bo", "cy"), noCount));
         assertTrue(kept.isEmpty());
 
-        assertTrue(Unfollowers.full(95, 100));
+        assertFalse(Unfollowers.full(95, 100));
         assertFalse(Unfollowers.full(94, 100));
-        assertTrue(Unfollowers.full(19, 20));
+        assertFalse(Unfollowers.full(19, 20));
         assertFalse(Unfollowers.full(18, 20));
         assertTrue(Unfollowers.full(10, 10));
         assertFalse(Unfollowers.full(9, 10));
         assertFalse(Unfollowers.full(1, 3));
         assertFalse(Unfollowers.full(0, 2));
-        assertTrue(Unfollowers.full(12, 10));
+        assertFalse(Unfollowers.full(12, 10));
         assertFalse(Unfollowers.full(-1, 10));
         assertFalse(Unfollowers.full(3, -1));
+    }
+
+    @Test
+    public void aTransientTerminalPageDoesNotCreateFalseUnfollowers() {
+        List<User> all = new ArrayList<>();
+        for (int i = 0; i < 1_157; i++) all.add(new User("id" + i, "user" + i));
+        FakeList list = new FakeList();
+        list.count = all.size();
+        Unfollowers.Keeper save = (viewer, followers, when, generation) -> Unfollowers.take(context, viewer, followers, when);
+        assertTrue(Unfollowers.seen(all, list, list, ON, save, 100));
+        assertFalse(Unfollowers.seen(all.subList(0, 1_150), list, list, ON, save, 200));
+        assertFalse(Unfollowers.seen(all, list, list, ON, save, 300));
+        assertTrue(Unfollowers.shown(context).left.isEmpty());
+
+        list.count = 1_156;
+        assertTrue(Unfollowers.seen(all.subList(0, 1_156), list, list, ON, save, 400));
+        assertEquals(1, Unfollowers.shown(context).left.size());
+        assertEquals("id1156", Unfollowers.shown(context).left.get(0).id);
+    }
+
+    @Test
+    public void aTerminalPageMustMatchTheNativeCountExactly() {
+        assertFalse(Unfollowers.full(95, 100));
+        assertFalse(Unfollowers.full(19, 20));
+        assertFalse(Unfollowers.full(12, 10));
+        assertTrue(Unfollowers.full(100, 100));
+        assertTrue(Unfollowers.full(0, 0));
+    }
+
+    @Test
+    public void duplicateIdsDoNotMakeAListComplete() {
+        FakeList list = new FakeList();
+        list.count = 2;
+        assertFalse(seen(Arrays.asList(new User("1", "ana"), new User("1", "ana")), list));
+        assertTrue(kept.isEmpty());
+    }
+
+    @Test
+    public void reorderingTheSameFollowersDoesNotTakeAnotherSnapshot() {
+        FakeList list = new FakeList();
+        list.count = 2;
+        assertTrue(seen(users("ana", "bo"), list));
+        List<User> reordered = users("ana", "bo");
+        java.util.Collections.reverse(reordered);
+        assertFalse(seen(reordered, list));
+        assertEquals(1, kept.size());
+    }
+
+    @Test
+    public void aThrowingKeeperLeavesTheSnapshotRetryable() {
+        FakeList list = new FakeList();
+        list.count = 2;
+        assertFalse(Unfollowers.seen(users("ana", "bo"), list, list, ON,
+                (viewer, followers, when, generation) -> { throw new IllegalStateException("save refused"); }, 100));
+        assertTrue(seen(users("ana", "bo"), list));
+        assertEquals(1, kept.size());
+    }
+
+    @Test
+    public void aMissingContextLeavesTheSnapshotRetryable() throws Exception {
+        FakeList list = new FakeList();
+        list.count = 2;
+        Field field = Utils.class.getDeclaredField("context");
+        field.setAccessible(true);
+        Object previous = field.get(null);
+        try {
+            field.set(null, null);
+            assertFalse(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 100));
+        } finally {
+            field.set(null, previous);
+        }
+        assertTrue(seen(users("ana", "bo"), list));
+    }
+
+    @Test
+    public void anOlderFailureCannotForgetANewerSnapshot() {
+        FakeList list = new FakeList();
+        list.count = 1;
+        assertFalse(Unfollowers.seen(users("ana"), list, list, ON, (viewer, followers, when, generation) -> {
+            assertTrue(seen(users("bo"), list));
+            throw new IllegalStateException("older save refused");
+        }, 100));
+        assertFalse(seen(users("bo"), list));
+        assertEquals(1, kept.size());
+    }
+
+    @Test
+    public void theLatestQueuedSnapshotWinsWithoutFalseDepartures() throws Exception {
+        Settings.TRACK_UNFOLLOWERS.save(true);
+        Unfollowers.take(context, ME, followers("2000", "ana", "2001", "bo", "2002", "cy"), 1);
+        whileWorkersHeld(() -> {
+            FakeList list = new FakeList();
+            list.count = 2;
+            assertTrue(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 100));
+            list.count = 3;
+            assertTrue(Unfollowers.seen(users("ana", "bo", "cy"), list, list, ON, Unfollowers.STORED, 200));
+        });
+        Unfollowers.Record record = Unfollowers.shown(context);
+        assertEquals(200, record.checked);
+        assertEquals(3, record.followers.size());
+        assertTrue(record.left.isEmpty());
+    }
+
+    @Test
+    public void clearingTheListInvalidatesQueuedSaves() throws Exception {
+        Settings.TRACK_UNFOLLOWERS.save(true);
+        whileWorkersHeld(() -> {
+            FakeList list = new FakeList();
+            list.count = 2;
+            assertTrue(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 100));
+            assertTrue(Unfollowers.clear(context));
+        });
+        assertEquals(0, Unfollowers.shown(context).checked);
+        assertFalse(Unfollowers.file(context, Unfollowers.hash(ME)).exists());
+    }
+
+    @Test
+    public void switchingOffBeforeAQueuedSavePreservesRetry() throws Exception {
+        Settings.TRACK_UNFOLLOWERS.save(true);
+        FakeList list = new FakeList();
+        list.count = 2;
+        whileWorkersHeld(() -> {
+            assertTrue(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 100));
+            Settings.TRACK_UNFOLLOWERS.save(false);
+        });
+        assertEquals(0, Unfollowers.shown(context).checked);
+        Settings.TRACK_UNFOLLOWERS.save(true);
+        assertTrue(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 200));
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals(200, Unfollowers.shown(context).checked);
+    }
+
+    @Test
+    public void queuedSnapshotsKeepTheirOwnAccount() throws Exception {
+        Settings.TRACK_UNFOLLOWERS.save(true);
+        whileWorkersHeld(() -> {
+            FakeList first = new FakeList();
+            first.count = 1;
+            FakeList second = new FakeList();
+            second.viewer = second.owner = "1002";
+            second.count = 1;
+            assertTrue(Unfollowers.seen(users("ana"), first, first, ON, Unfollowers.STORED, 100));
+            assertTrue(Unfollowers.seen(users("bo"), second, second, ON, Unfollowers.STORED, 200));
+        });
+        assertEquals("ana", Unfollowers.read(Unfollowers.file(context, Unfollowers.hash(ME))).followers.get("2000"));
+        assertEquals("bo", Unfollowers.read(Unfollowers.file(context, Unfollowers.hash("1002"))).followers.get("2000"));
+    }
+
+    @Test
+    public void aWriteFailureLeavesTheSameListRetryable() throws Exception {
+        Settings.TRACK_UNFOLLOWERS.save(true);
+        File folder = Unfollowers.file(context, "probe").getParentFile();
+        assertTrue(folder.createNewFile());
+        FakeList list = new FakeList();
+        list.count = 2;
+        try {
+            assertTrue(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 100));
+            Utils.awaitBackgroundTasksForTests();
+            assertEquals(0, Unfollowers.shown(context).checked);
+        } finally {
+            assertTrue(folder.delete());
+        }
+        assertTrue(Unfollowers.seen(users("ana", "bo"), list, list, ON, Unfollowers.STORED, 200));
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals(200, Unfollowers.shown(context).checked);
+    }
+
+    private void whileWorkersHeld(Runnable body) throws Exception {
+        Utils.awaitBackgroundTasksForTests();
+        Field field = Utils.class.getDeclaredField("backgroundThreadPool");
+        field.setAccessible(true);
+        ThreadPoolExecutor pool = (ThreadPoolExecutor) field.get(null);
+        int previousCoreSize = pool.getCorePoolSize();
+        int workers = pool.getMaximumPoolSize();
+        pool.setCorePoolSize(workers);
+        CountDownLatch started = new CountDownLatch(workers);
+        CountDownLatch release = new CountDownLatch(1);
+        try {
+            for (int i = 0; i < workers; i++) {
+                assertTrue(Utils.runOnBackgroundThread(() -> {
+                    started.countDown();
+                    try {
+                        if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("workers stayed blocked");
+                    } catch (InterruptedException failure) {
+                        Thread.currentThread().interrupt();
+                        throw new AssertionError(failure);
+                    }
+                }));
+            }
+            assertTrue(started.await(5, TimeUnit.SECONDS));
+            body.run();
+        } finally {
+            release.countDown();
+            try {
+                Utils.awaitBackgroundTasksForTests();
+            } finally {
+                pool.setCorePoolSize(previousCoreSize);
+            }
+        }
     }
 
     /** With no followers at all the empty list is whole, so the ones who were there before show as gone. */
@@ -202,6 +407,7 @@ public class UnfollowersTest {
         list.count = 2;
         assertTrue(seen(users("ana", "bo"), list));
         assertFalse(seen(users("ana", "bo"), list));
+        list.count = 3;
         assertTrue(seen(users("ana", "bo", "cy"), list));
         assertEquals(2, kept.size());
     }

@@ -60,6 +60,8 @@ public class DashJoinTest {
 
     private static final int PICTURES = 1_800;
     private static final int SOUNDS = 2_584;
+    private static final int PICTURE_SAMPLE_BYTES = 5_000;
+    private static final int SOUND_SAMPLE_BYTES = 370;
 
     private LocalServer server;
     private MediaUrlPolicy policy;
@@ -79,9 +81,11 @@ public class DashJoinTest {
             }
         };
         context = RuntimeEnvironment.getApplication();
-        byte[] body = mp4(1_000);
-        server.serve("/v.mp4", 200, "video/mp4", body, body.length);
-        server.serve("/a.mp4", 200, "audio/mp4", body, body.length);
+        // Back the extractor's declared samples with file bytes, including the ftyp marker.
+        byte[] pictures = mp4(24 + PICTURES * PICTURE_SAMPLE_BYTES);
+        byte[] sounds = mp4(24 + SOUNDS * SOUND_SAMPLE_BYTES);
+        server.serve("/v.mp4", 200, "video/mp4", pictures, pictures.length);
+        server.serve("/a.mp4", 200, "audio/mp4", sounds, sounds.length);
         video = new DashManifest.Track("video/mp4", "avc1.64001f", 1280, 720, 1_200_000, server.origin() + "/v.mp4");
         audio = new DashManifest.Track("audio/mp4", "mp4a.40.2", 0, 0, 128_000, server.origin() + "/a.mp4");
         Samples.reset();
@@ -482,7 +486,7 @@ public class DashJoinTest {
         @Implementation
         protected int readSampleData(ByteBuffer buffer, int offset) {
             if (!selected || at >= count()) return -1;
-            int size = picture ? 5_000 : 370;
+            int size = picture ? PICTURE_SAMPLE_BYTES : SOUND_SAMPLE_BYTES;
             buffer.position(offset);
             buffer.put(new byte[size]);
             return size;

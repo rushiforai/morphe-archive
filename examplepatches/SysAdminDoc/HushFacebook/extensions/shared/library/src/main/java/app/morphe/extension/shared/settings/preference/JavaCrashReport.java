@@ -177,14 +177,15 @@ public final class JavaCrashReport {
     }
 
     static String build(Context context, @Nullable Thread thread, Throwable throwable) {
+        long versionCode = Utils.getAppVersionCode();
+        String patchBuild = Utils.getPatchesBuildIdentity();
         StringBuilder report = new StringBuilder();
-        report.append("schema: 1\n")
-                .append("complete: true\n")
-                .append("timestamp_utc: ").append(Instant.ofEpochMilli(System.currentTimeMillis())).append('\n')
+        report.append("timestamp_utc: ").append(Instant.ofEpochMilli(System.currentTimeMillis())).append('\n')
                 .append("package: ").append(context.getPackageName()).append('\n')
                 .append("app_version: ").append(Utils.getAppVersionName()).append('\n')
                 .append("morphe_version: ").append(Utils.getPatchesReleaseVersion()).append('\n')
                 .append("android_api: ").append(Build.VERSION.SDK_INT).append('\n')
+                .append("abi: ").append(LogBufferManager.abiLine()).append('\n')
                 .append("process: ").append(Application.getProcessName()).append('\n')
                 .append("thread: ").append(thread == null ? "unknown" : thread.getName()).append('\n')
                 .append("exception: ").append(throwable.getClass().getName()).append('\n')
@@ -192,7 +193,12 @@ public final class JavaCrashReport {
         String recent = LogBufferManager.snapshotForCrash(RECENT_EVENTS_MAX_CHARS);
         if (!recent.isEmpty()) report.append("\n[RECENT EVENTS]\n").append(recent).append('\n');
         // Messages and log lines can carry addresses and ids: a download names what it couldn't reach.
-        return DiagnosticRedactor.redact(report.toString());
+        // These two values are a numeric package fact and a literal verified and embedded by the
+        // patcher. Prose redaction would mistake digit runs in valid hashes for content ids.
+        return "schema: 1\ncomplete: true\n"
+                + "app_version_code: " + (versionCode < 0 ? "unknown" : Long.toString(versionCode)) + '\n'
+                + "patch_build: " + (patchBuild == null || patchBuild.trim().isEmpty() ? "unknown" : patchBuild) + '\n'
+                + DiagnosticRedactor.redact(report.toString());
     }
 
     /** The whole trace, causes and suppressed ones included, as Java prints it. */

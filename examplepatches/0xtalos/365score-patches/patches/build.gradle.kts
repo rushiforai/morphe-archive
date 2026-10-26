@@ -1,10 +1,10 @@
 group = "0xtalos"
-version = "1.3.3"
+version = "1.4.0"
 
 patches {
     about {
         name = "Vibe Patches"
-        description = "Morphe patches for 365Scores"
+        description = "Morphe patches for 365Scores and HDO Box"
         source = "https://github.com/0xtalos/vibe-patches"
         author = "0xtalos"
         contact = "na"

@@ -267,6 +267,7 @@ public final class SettingsBackup {
             Settings.DOWNLOAD_STORIES,
             Settings.SAVE_STORY_PHOTOS,
             Settings.DOWNLOAD_REELS,
+            Settings.SHOW_REEL_DOWNLOAD_BUTTON,
             Settings.DOWNLOAD_VIDEOS,
             Settings.CLIPBOARD_DOWNLOAD,
             Settings.DOWNLOAD_PHOTOS,
@@ -984,6 +985,12 @@ public final class SettingsBackup {
             return changes;
         }
 
+        private boolean wordListsFit() {
+            return (hidden == null && kept == null) || PostWords.fits(
+                    hidden != null ? hidden : PostWords.clean(HIDDEN.savedValue()),
+                    kept != null ? kept : PostWords.clean(KEPT.savedValue()));
+        }
+
         /** How many switches this file changes, the number the preview and the toast give. */
         int switchChanges() {
             int count = 0;
@@ -1310,6 +1317,7 @@ public final class SettingsBackup {
             Object headerText = state.get(HEADER_TEXT_NAME);
             read.headerText = HeaderText.isClean(headerText instanceof String ? (String) headerText : null)
                     ? (String) headerText : null;
+            if (read.hidden != null && read.kept != null && !read.wordListsFit()) return null;
             return read;
         }
     }
@@ -1764,17 +1772,21 @@ public final class SettingsBackup {
      *                     worked for every one of them.
      */
     static int apply(Snapshot snapshot) throws ApplyFailed {
-        Map<Setting<?>, Object> changes = snapshot.changes();
-        if (changes.isEmpty()) return 0;
-        try {
-            StoriesSetting.finishMigration();
-            Setting.saveAll(changes);
-            return changes.size();
-        } catch (Setting.BatchFailed failed) {
-            throw new ApplyFailed(failed.restored, failed);
-        } catch (IOException | RuntimeException refused) {
-            // Refused before anything was written.
-            throw new ApplyFailed(true, refused);
+        synchronized (Setting.class) {
+            try {
+                // A preview can outlive an edit to the list its partial file leaves in place.
+                if (!snapshot.wordListsFit()) throw new IOException("Word lists past their shared room");
+                Map<Setting<?>, Object> changes = snapshot.changes();
+                if (changes.isEmpty()) return 0;
+                StoriesSetting.finishMigration();
+                Setting.saveAll(changes);
+                return changes.size();
+            } catch (Setting.BatchFailed failed) {
+                throw new ApplyFailed(failed.restored, failed);
+            } catch (IOException | RuntimeException refused) {
+                // Refused before anything was written.
+                throw new ApplyFailed(true, refused);
+            }
         }
     }
 }

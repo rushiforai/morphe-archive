@@ -72,7 +72,8 @@ public final class DeepSeekEnabledPreference extends AddonSwitchPreference {
 
     private void updateSummary() {
         DeepSeekConfig.ProviderSettings current = DeepSeekConfig.load(getContext());
-        if (!current.enabled) setSummary(CaptionStrings.get(getContext(), "message_7b7480271fa5"));
+        if (!current.readable) setSummary(CaptionStrings.get(getContext(), "config_unreadable"));
+        else if (!current.enabled) setSummary(CaptionStrings.get(getContext(), "message_7b7480271fa5"));
         else if (!current.hasCredential)
             setSummary(CaptionStrings.get(getContext(), "message_1cc3c4b0aab0"));
         else setSummary(CaptionStrings.get(getContext(), "message_2c107e436145"));

@@ -40,7 +40,7 @@ internal object InitializeFingerprint : Fingerprint(
 private object HandleIdentityFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
-        string(" identity="),
+        string("EUID"),
         string("handleIdentity: Adding ")
     )
 )

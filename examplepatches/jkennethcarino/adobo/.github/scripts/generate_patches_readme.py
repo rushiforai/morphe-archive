@@ -3,8 +3,9 @@
 Generate patches documentation section from patches-list.json and inject into README.md.
 
 This script parses patches-list.json and generates a formatted Markdown section
-containing patch information grouped by compatible packages. The generated content
-is then injected into README.md between <!-- PATCHES_START --> and <!-- PATCHES_END --> markers.
+containing patch information grouped by compatible package and form factor. The
+generated content is then injected into README.md between <!-- PATCHES_START -->
+and <!-- PATCHES_END --> markers.
 
 Spoiler sections (containing patch details) are expanded by default if:
   1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD).
@@ -32,11 +33,22 @@ AUTO_EXPAND_THRESHOLD = 20
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
 END_MARKER = "<!-- PATCHES_END -->"
 
+# Emoji and label suffix for each form factor. Mobile and unspecified use no suffix.
+FORM_FACTORS = {
+    "TV":         ("📺", "Android TV"),
+    "WEARABLE":   ("⌚", "Wear OS"),
+    "AUTOMOTIVE": ("🚗", "Android Automotive"),
+}
 
-def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
+def pkg_emoji(form_factor):
+    """Return the emoji for a form factor, or a standard package emoji."""
+    return FORM_FACTORS.get(form_factor, ("📦", None))[0]
 
+
+def pkg_label(name, form_factor):
+    """Return the app name, with the form factor appended if it is not mobile."""
+    suffix = FORM_FACTORS.get(form_factor, (None, None))[1]
+    return f"{name} ({suffix})" if suffix else name
 
 def patches_table(patches):
     """Generate a Markdown table of patches with metadata."""
@@ -72,25 +84,25 @@ def versions_table(targets):
     if not targets:
         return ""
 
-    cells = []
-    for t in targets:
-        version = t.get("version")
-        if version is None:
-            continue
+    # Keep only targets with a real version so the version and description
+    # rows stay aligned.
+    valid_targets = [t for t in targets if t.get("version") is not None]
 
+    if not valid_targets:
+        return ""
+
+    cells = []
+    for t in valid_targets:
+        version = t["version"]
         label = f"🧪&nbsp;{version}" if t.get("isExperimental") else version
         cells.append(label)
-
-    # Abort if all versions were None.
-    if not any(cells):
-        return ""
 
     header = "| " + " | ".join(cells) + " |"
     separator = "| " + " | ".join(":---:" for _ in cells) + " |"
     rows = [header, separator]
 
     # Include description row if any target has one.
-    descriptions = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
+    descriptions = [(t.get("description") or "").replace("\n", "<br>") for t in valid_targets]
     if any(descriptions):
         rows.append("| " + " | ".join(descriptions) + " |")
 
@@ -143,11 +155,11 @@ def build_content(by_pkg, universal, owner, repo, branch, expanded=False):
         f" ![Patches](https://img.shields.io/badge/dynamic/json?url={patches_url}&query=%24.patches.length&style=social&label=Patches)"
     ]
 
-    for pkg, entry in by_pkg.items():
+    for entry in by_pkg.values():
         patches = list(entry["patches"].values())
         label = f"{entry['emoji']} {entry['name']}"
         lines.append(
-            spoiler(label, len(patches), pkg, entry["targets"], patches_table(patches), expanded)
+            spoiler(label, len(patches), entry["package"], entry["targets"], patches_table(patches), expanded)
         )
         lines.append("")
 
@@ -185,10 +197,12 @@ def main():
     with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    # Parse patches and group by compatible package.
+    # Parse patches and group by compatible package and form factor.
     # JSON structure: compatiblePackages is a list of objects with:
-    #   { packageName, name, targets: [{ version, isExperimental, description }] }
+    #   { packageName, name, formFactor, targets: [{ version, isExperimental, description }] }
     # Patches without compatiblePackages are universal (apply to all packages).
+    # The same package name can be used by different apps for each form factor,
+    # so the grouping key includes both.
     by_pkg = {}
     universal = {}
 
@@ -203,20 +217,23 @@ def main():
         # Group patches by their compatible packages.
         for pkg_entry in cp:
             pkg = pkg_entry["packageName"]
-            pkg_label = pkg_entry.get("name") or pkg
+            form_factor = pkg_entry.get("formFactor")
+            key = (pkg, form_factor)
+            pkg_name = pkg_entry.get("name") or pkg
 
             # Initialize package group on first encounter.
-            if pkg not in by_pkg:
-                by_pkg[pkg] = {
-                    "name": pkg_label,
-                    "emoji": pkg_emoji(pkg),
+            if key not in by_pkg:
+                by_pkg[key] = {
+                    "package": pkg,
+                    "name": pkg_label(pkg_name, form_factor),
+                    "emoji": pkg_emoji(form_factor),
                     "patches": {},
                     "targets": pkg_entry.get("targets", []),
                 }
 
             # Avoid duplicate patches if they span multiple compatible packages.
-            if patch["name"] not in by_pkg[pkg]["patches"]:
-                by_pkg[pkg]["patches"][patch["name"]] = patch
+            if patch["name"] not in by_pkg[key]["patches"]:
+                by_pkg[key]["patches"][patch["name"]] = patch
 
     # Build content and prepare for injection into README.
     raw_ver = data["version"]

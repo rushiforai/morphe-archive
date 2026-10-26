@@ -1,0 +1,8 @@
+{
+  "apk_name": "com.taobao.taobao_10.66.30-862_minAPI21(arm64-v8a)(nodpi)_apkmirror.com(1).apk",
+  "apk_sha256": "3e709717a60fdeeb59354df60fb6cf279ffb023c01e095e16bccfbad75f683dd",
+  "apk_size": 77255755,
+  "version_assumed": "10.66.30",
+  "package_name": "com.taobao.taobao",
+  "state": "DEX accessors and enum inspected; patched APK not yet tested"
+}

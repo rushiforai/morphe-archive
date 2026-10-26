@@ -15,7 +15,7 @@ import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
-import app.template.patches.steamlink.androidxr.xrGalaxyXrHighResolutionPatch
+import app.template.patches.steamlink.androidxr.alpha0HighResolutionTriggerPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
@@ -69,7 +69,7 @@ private val legacySites = mapOf(
 )
 
 private val publicPatchesFor5002363: List<Patch<*>> = listOf(
-    gxrFacebridgePatch, xrGalaxyXrHighResolutionPatch,
+    gxrFacebridgePatch, alpha0HighResolutionTriggerPatch,
     microphoneInputPresetPatch, oledCalibrationPatch, unrestrictedBatteryUsagePatch, hmdOnlyPatch,
 )
 
@@ -82,7 +82,7 @@ private val publicPatchesFor5001712: List<Patch<*>> = listOf(
     forceLobbyPermissionStateGatePatch,
     forceStreamXrGatesPatch,
     gxrFacebridgePatch,
-    xrGalaxyXrHighResolutionPatch,
+    alpha0HighResolutionTriggerPatch,
     microphoneInputPresetPatch,
     oledCalibrationPatch,
     unrestrictedBatteryUsagePatch,
@@ -178,7 +178,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
             configurePublicAuditOptions(patch, base)
             executePatch(fixture, patch, File(patchDirectory, "temporary"), output)
             verifyPublicPatchOutput(output, patch, base)
-            if (patch == xrGalaxyXrHighResolutionPatch) {
+            if (patch == alpha0HighResolutionTriggerPatch) {
                 verifyStandaloneHighResolutionBoundary(fixture, output, base)
             }
             println("PASS ${base.versionName}/${base.versionCode} public patch output: $patchName: $output")
@@ -191,7 +191,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
             val caseDirectory = File(outputDirectory, "high-resolution-${fixture.versionCode}")
             val output = File(caseDirectory, "steamlink-${fixture.versionCode}-high-resolution-unsigned.apk")
             output.parentFile.mkdirs()
-            executePatch(input, xrGalaxyXrHighResolutionPatch, File(caseDirectory, "temporary"), output)
+            executePatch(input, alpha0HighResolutionTriggerPatch, File(caseDirectory, "temporary"), output)
             verifyHighResolutionOutput(output, fixture)
             verifyStandaloneHighResolutionBoundary(input, output, fixture)
             println("PASS ${fixture.versionName}/${fixture.versionCode} high-resolution output: $output")
@@ -295,7 +295,7 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>, fixture: H
                 manifest.requireEncodedString("android.permission.FACE_TRACKING")
             }
 
-            xrGalaxyXrHighResolutionPatch -> verifyHighResolutionZip(apk, fixture)
+            alpha0HighResolutionTriggerPatch -> verifyHighResolutionZip(apk, fixture)
 
             microphoneInputPresetPatch -> scene.requireBytesAt(sites.mic, "c1008052".hexBytes())
 
@@ -398,7 +398,7 @@ private fun verifyModernPublicOutput(
             }
         }
     } }
-    if (patch == xrGalaxyXrHighResolutionPatch) {
+    if (patch == alpha0HighResolutionTriggerPatch) {
         verifyHighResolutionOutput(output, fixture)
         verifyStandaloneHighResolutionBoundary(input, output, fixture)
     }

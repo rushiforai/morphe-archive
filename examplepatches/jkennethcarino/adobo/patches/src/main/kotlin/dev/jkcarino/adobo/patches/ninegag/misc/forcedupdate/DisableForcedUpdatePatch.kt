@@ -1,7 +1,7 @@
 package dev.jkcarino.adobo.patches.ninegag.misc.forcedupdate
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import dev.jkcarino.adobo.patches.ninegag.shared.COMPATIBILITY_NINEGAG
 
 @Suppress("unused")

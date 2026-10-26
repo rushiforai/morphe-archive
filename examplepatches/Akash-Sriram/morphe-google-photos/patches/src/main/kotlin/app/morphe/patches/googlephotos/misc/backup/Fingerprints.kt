@@ -5,6 +5,8 @@ import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private fun Method.referencesString(value: String) =
@@ -47,3 +49,54 @@ internal object BackupNotificationManagerFingerprint : Fingerprint(
     }
 )
 
+internal object BackupEligibilityQueryFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    strings = listOf(" OR backup_folders.bucket_id IS NOT NULL "),
+)
+
+internal object UploadStatusModelViewModelFingerprint : Fingerprint(
+    strings = listOf("UploadStatusModelViewModel"),
+)
+
+internal object CreateItemUpdateFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    custom = { method, _ ->
+        method.parameterTypes.size == 2 &&
+        method.parameterTypes[0] == "Ljava/lang/Object;" &&
+        method.implementation?.instructions?.any { inst ->
+            inst is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction && (
+                (inst.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference)?.type == "Lsll;" ||
+                (inst.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference)?.let { it.name == "f" && it.type.endsWith("slm;") } == true
+            )
+        } == true
+    }
+)
+
+internal object DeviceFoldersSettingsQueryFingerprint : Fingerprint(
+    returnType = "Landroid/database/Cursor;",
+    parameters = listOf("I"),
+    custom = { method, classDef ->
+        method.name == "a" &&
+        classDef.methods.any { it.referencesStringContaining("getNonCameraBuckets") }
+    }
+)
+
+internal object InCameraFolderFeatureFingerprint : Fingerprint(
+    returnType = "I",
+    parameters = emptyList(),
+    custom = { method, classDef ->
+        classDef.interfaces.any { it.endsWith("bypk;") } &&
+        classDef.fields.any { it.name == "a" && it.type == "Z" } &&
+        classDef.fields.any { it.name == "b" && it.type == "Ljava/lang/Integer;" } &&
+        method.name == "a"
+    }
+)
+
+internal object CreateItemButtonTextFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf("Lslm;", "Leky;"),
+)
+
+internal object AuraTabViewModelFingerprint : Fingerprint(
+    strings = listOf("AuraTabViewModel", "AURA_TAB_VIEW_MODEL_FETCH_MFT_STATUS"),
+)

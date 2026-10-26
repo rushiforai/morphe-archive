@@ -32,6 +32,7 @@ public final class VideoViewerSettings {
         body.setPadding(pad, pad, pad, pad);
         Switch brightness = toggle(body, activity, "左半分の上下スワイプで明るさ調整", prefs.getBoolean("videoSwipeBrightness", false));
         Switch volume = toggle(body, activity, "右半分の上下スワイプで音量調整", prefs.getBoolean("videoSwipeVolume", false));
+        Switch autoplay = toggle(body, activity, "動画を開いたら自動再生する", prefs.getBoolean("videoAutoplay", true));
         Switch doubleTap = toggle(body, activity, "左ダブルタップで巻き戻し／右ダブルタップで早送り", prefs.getBoolean("videoDoubleTapSeek", false));
         TextView label = new TextView(activity); label.setText("戻る／進む・ダブルタップで移動する秒数"); body.addView(label);
         Spinner seconds = new Spinner(activity);
@@ -49,6 +50,7 @@ public final class VideoViewerSettings {
         ScrollView scroll = new ScrollView(activity); scroll.addView(body);
         LiveSettings live=new LiveSettings(prefs,()->body.invalidate());
         live.toggle(brightness,"videoSwipeBrightness");live.toggle(volume,"videoSwipeVolume");
+        live.toggle(autoplay,"videoAutoplay");
         live.toggle(doubleTap,"videoDoubleTapSeek");live.toggle(youtube,"videoYoutubeEnabled");
         final int[] previous={seconds.getSelectedItemPosition()};
         seconds.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){

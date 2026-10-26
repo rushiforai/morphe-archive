@@ -2,7 +2,7 @@ package dev.jkcarino.adobo.patches.reddit.misc.homeredirect
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import dev.jkcarino.adobo.patches.reddit.misc.firebase.spoofCertificateHashPatch
 import dev.jkcarino.adobo.patches.reddit.shared.COMPATIBILITY_REDDIT
 

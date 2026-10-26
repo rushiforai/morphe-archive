@@ -1,9 +1,13 @@
 # Project skill guidance
 
-Repository-root and parent `AGENTS.md` apply to every skill here. This repository patches several apps (Steam Link VR, 4XVR) for the Galaxy XR headset; the root `AGENTS.md` app registry maps each app to its package, exact bases, source roots and extension payload, and per-app isolation rules live there too. When a skill
-builds, compiles, audits, or delegates work, all generated output, scratch and
-project caches must use `../builds/steamlink-patches/`, outside the repository.
-Use the [build layout](../diagnostics/build-layout/README.md): Gradle output is
-separate from retained fixture/tool/evidence inputs. Do not introduce local build
-paths in examples, helper scripts, or subagent prompts. Communication-only skills
-retain their existing behavior and inherit this requirement if they initiate work.
+Repository-root `AGENTS.md` is authoritative. The parent workspace `AGENTS.md` also
+applies. This repository patches several apps for the Galaxy XR headset; every app
+keeps its own package, exact bases, sources and extension payload.
+
+- Patch procedure: `.opencode/skills/morphe-patches/SKILL.md`.
+- Delegation: `.opencode/skills/cavecrew/SKILL.md`.
+- Build layout and retained inputs: `diagnostics/build-layout/README.md`.
+- Cleanup policy: `WORKSPACE_CLEANUP.md`.
+
+Do not add a supported-build table to this file. Read `AGENTS.md` for the output
+and cleanup contract.

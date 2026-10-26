@@ -40,6 +40,7 @@ import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -65,6 +66,7 @@ import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
@@ -904,9 +906,10 @@ public class SettingsBackupPreference extends Preference {
         Run run = start(IMPORT, L10n.t("Importing settings"));
         if (run == null) return;
         // The page shows what the store now holds rather than reading its own switches back into it.
-        AbstractPreferenceFragment.settingImportInProgress = true;
+        Map<Setting<?>, Object> before = new LinkedHashMap<>();
         boolean accepted = false;
         try {
+            before.putAll(AbstractPreferenceFragment.beginSettingsImport(snapshot.changes().keySet()));
             // Counted before the write, which makes every change match the store.
             String done = importedMessage(snapshot.switchChanges(), snapshot.folderChange(), snapshot.qualityChange(),
                     snapshot.fileNameChange(), snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(),
@@ -935,10 +938,13 @@ public class SettingsBackupPreference extends Preference {
                                     + "Check the switches on this screen."));
                 } finally {
                     Utils.runOnMainThread(() -> {
-                        AbstractPreferenceFragment.settingImportInProgress = false;
-                        finish(run);
                         HushfacebookPreferenceFragment current = latestPage.get();
-                        if (current != null && current.isAdded()) current.refreshSwitches();
+                        try {
+                            AbstractPreferenceFragment.finishSettingsImport(before, current);
+                        } finally {
+                            finish(run);
+                            if (current != null && current.isAdded()) current.refreshSwitches();
+                        }
                     });
                 }
             });
@@ -947,8 +953,11 @@ public class SettingsBackupPreference extends Preference {
         } finally {
             // This path has no wait that runs out, so nothing else would give the rows back.
             if (!accepted) {
-                AbstractPreferenceFragment.settingImportInProgress = false;
-                notStarted(run);
+                try {
+                    AbstractPreferenceFragment.finishSettingsImport(before, page);
+                } finally {
+                    notStarted(run);
+                }
             }
         }
     }

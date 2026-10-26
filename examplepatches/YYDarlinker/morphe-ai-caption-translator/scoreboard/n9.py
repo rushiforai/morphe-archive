@@ -12,7 +12,7 @@ from pathlib import Path
 
 import run
 
-DIAG = run.ROOT / "caption-diagnostics-1.3.5-20260929-155802.txt"
+DIAG = run.frozen_input("caption-diagnostics-1.3.5-20260929-155802.txt")
 DIAG_SHA256 = "13b1f29cdf6ea180dadb67bf91de6a7b085412fb132880d8cd07585cf5ac5171"
 RESULT = run.ROOT / "scoreboard/results/n9-evidence.json"
 CASES = {

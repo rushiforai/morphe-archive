@@ -5,6 +5,20 @@ LinkedIn patches for use with [Morphe](https://morphe.software), by **heyymichii
 Michii Patches is an independent project. It is not affiliated with, endorsed by, or part of the
 Morphe project or LinkedIn.
 
+## 🚧 Next Update
+
+The next Michii Patches update is in progress! 🎉
+
+I'm working on several improvements, including:
+
+- 🐛 **Bug fixes**: Fixing reported issues and improving existing patches.
+- 🎨 **Patch improvements**: Refining current patches and addressing compatibility issues.
+- 🧩 **More app patches**: Expanding Michii Patches with patches for other apps.
+
+I'm currently quite busy with my real-life work, so development may take a little longer than usual. I'll continue working on these improvements as time allows.
+
+Thanks for your patience, feedback, and support! ❤️
+
 ## ❓ About
 
 Michii Patches removes ads and clutter from LinkedIn and adds features the app does not have:

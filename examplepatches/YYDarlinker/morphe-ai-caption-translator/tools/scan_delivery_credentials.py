@@ -1,5 +1,6 @@
 """Known-value credential scan. Reports only file names/counts, never values."""
 from pathlib import Path
+from verify_current import long_path
 import argparse,io,json,os,zipfile
 
 def scan(paths):
@@ -15,9 +16,10 @@ def scan(paths):
                     info=archive.getinfo(name)
                     if info.file_size<=64*1024*1024:inspect(archive.read(name),label+'::'+name,depth+1)
     for path in paths:
-        candidates=list(path.rglob('*')) if path.is_dir() else [path]
-        for file in candidates:
-            if file.is_file() and file.stat().st_size<=64*1024*1024:inspect(file.read_bytes(),str(file))
+        readable_root=long_path(path)
+        candidates=[(p,str(path/p.relative_to(readable_root))) for p in readable_root.rglob('*')] if readable_root.is_dir() else [(readable_root,str(path))]
+        for readable,label in candidates:
+            if readable.is_file() and readable.stat().st_size<=64*1024*1024:inspect(readable.read_bytes(),label)
     return {'known_credential_values_scanned':len(values),'files_and_archive_entries':files,'matches':matches,'values_printed':False}
 
 if __name__=='__main__':

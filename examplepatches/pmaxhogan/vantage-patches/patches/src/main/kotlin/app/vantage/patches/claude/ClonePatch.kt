@@ -200,18 +200,30 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.renamePackage(newPacka
 
 // ---- label ----------------------------------------------------------------
 
+// The label string is found through the manifest, not by name: since Claude
+// 1.261023.20 the release build obfuscates resource names, so app_name decodes
+// as something like APKTOOL_RENAMED_0x7f1400d8.
 private fun app.morphe.patcher.patch.ResourcePatchContext.setAppLabel(label: String) {
+    val labelRef = document("AndroidManifest.xml").use { doc ->
+        val app = doc.getElementsByTagName("application").item(0) as? Element
+            ?: throw PatchException("manifest has no application element")
+        app.getAttribute("android:label")
+    }
+    val stringName = labelRef.removePrefix("@string/")
+    if (stringName == labelRef || stringName.isEmpty()) {
+        throw PatchException("application label is not a string resource: '$labelRef'")
+    }
     document("res/values/strings.xml").use { doc ->
         val strings = doc.getElementsByTagName("string")
         var found = false
         for (i in 0 until strings.length) {
             val el = strings.item(i) as Element
-            if (el.getAttribute("name") == "app_name") {
+            if (el.getAttribute("name") == stringName) {
                 el.textContent = label
                 found = true
             }
         }
-        if (!found) throw PatchException("res/values/strings.xml has no app_name string")
+        if (!found) throw PatchException("res/values/strings.xml has no $stringName string (the application label)")
     }
 }
 

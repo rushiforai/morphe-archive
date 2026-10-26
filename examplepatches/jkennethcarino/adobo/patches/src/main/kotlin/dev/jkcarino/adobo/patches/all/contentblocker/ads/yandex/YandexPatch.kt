@@ -5,8 +5,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
-import dev.jkcarino.adobo.util.filterMethods
 import dev.jkcarino.adobo.util.defaultReturnEarly
+import dev.jkcarino.adobo.util.filterMethods
 
 internal val disableYandexOption = booleanOption(
     key = "disableYandex",

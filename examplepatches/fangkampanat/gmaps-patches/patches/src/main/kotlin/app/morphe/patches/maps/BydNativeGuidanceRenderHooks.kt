@@ -203,8 +203,11 @@ internal fun BytecodePatchContext.resolveNativeGuidanceRender(arrivalType: Strin
         "icon level reads the exact calibrated integer used by the original percent formatter", dtoText)
     publicField(dtoLevel); publicField(dtoDisplay)
     val missingCode = declaration(dtoMissing).renderCode()
-    renderGuard(missingCode.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.IGET, Opcode.CONST,
+    // R8 may turn the true return into a goto to the shared false return (26.42).
+    renderGuard(missingCode.exitOpcodes() == listOf(Opcode.IGET_OBJECT, Opcode.IGET, Opcode.CONST,
         Opcode.IF_LT, Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) &&
+        (missingCode[7].opcode == Opcode.RETURN ||
+            missingCode.exitRegister(7) == (missingCode[6] as OneRegisterInstruction).registerA) &&
         missingCode[0].renderField().toString() == textCode[0].renderField().toString() &&
         missingCode[1].renderField().toString() == textCode[1].renderField().toString() &&
         (missingCode[2] as NarrowLiteralInstruction).narrowLiteral == -2147483647 &&
@@ -284,8 +287,9 @@ internal fun BytecodePatchContext.resolveNativeGuidanceRender(arrivalType: Strin
     val statePredicate = unique(view.methods.filter { method -> method.implementation != null && method.parameterTypes.isEmpty() &&
         method.returnType == "Z" && method.renderCode().any { it.renderField().toString() == missingEnum.toString() } }, "missing view state predicate")
     val sp = statePredicate.renderCode()
-    renderGuard(sp.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.SGET_OBJECT, Opcode.IF_NE,
+    renderGuard(sp.exitOpcodes() == listOf(Opcode.IGET_OBJECT, Opcode.SGET_OBJECT, Opcode.IF_NE,
         Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) &&
+        (sp[4].opcode == Opcode.RETURN || sp.exitRegister(4) == (sp[3] as OneRegisterInstruction).registerA) &&
         sp.first().renderField().toString() == stateField.toString() && sp.renderTarget(2) == 5 &&
         (sp[3] as NarrowLiteralInstruction).narrowLiteral == 1 && (sp[5] as NarrowLiteralInstruction).narrowLiteral == 0,
         "missing view predicate uses original native state", statePredicate)

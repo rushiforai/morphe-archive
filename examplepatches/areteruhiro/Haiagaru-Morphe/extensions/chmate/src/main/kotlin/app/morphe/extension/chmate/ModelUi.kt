@@ -3,6 +3,8 @@ package app.morphe.extension.chmate
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,10 +25,86 @@ import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.*
 
 /** Only archive-search controls opt in; settings and result rows retain their spacing. */
 internal val LocalArchiveControlLayout = staticCompositionLocalOf { 100 }
+
+/** Keep the actions in their own scrollable viewport; the grip resizes that viewport. */
+@OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable private fun CheckerToolbar(view: LinearLayout, revision: Int, modifier: Modifier, changed: () -> Unit) {
+    val providers = view.getTag(CheckerBarOptions.PROVIDERS_TAG) == true
+    ResizableCheckerBar(view, if (providers) CheckerBarOptions.PROVIDERS else CheckerBarOptions.ACTIONS, 32,
+        if (providers) "検索先切替バーの高さ" else "操作バーの高さ", modifier, changed) { height ->
+        val scroll = rememberScrollState()
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+            FlowRow(Modifier.fillMaxWidth().height(height.dp).verticalScroll(scroll),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                for (index in 0 until view.childCount) {
+                    val button = view.getChildAt(index) as? Button ?: continue
+                    if (button.visibility != View.VISIBLE) continue
+                    Box(Modifier.height(height.coerceAtMost(32f).dp).combinedClickable(
+                        enabled = button.isEnabled, role = Role.Button,
+                        onClick = { button.performClick(); changed() },
+                        onLongClick = if (button.isLongClickable) ({ button.performLongClick(); changed() }) else null
+                    ).padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                        Text(button.text.toString(), fontSize = 13.sp, maxLines = 1,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = if (button.isEnabled) 1f else .38f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable private fun ResizableCheckerBar(view: View, key: String, fallback: Int, label: String,
+    modifier: Modifier = Modifier, changed: () -> Unit, content: @Composable (Float) -> Unit) {
+    val prefs = remember(view) { view.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0) }
+    var height by remember(view, key) { mutableFloatStateOf(CheckerBarOptions.height(view.context, key, fallback).toFloat()) }
+    var handles by remember(view) { mutableStateOf(prefs.getBoolean(CheckerBarOptions.HANDLES, true)) }
+    var dragging by remember(view) { mutableStateOf(false) }
+    val density = LocalDensity.current.density
+    DisposableEffect(prefs, key) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, changedKey ->
+            if (changedKey == key && !dragging) height = CheckerBarOptions.height(view.context, key, fallback).toFloat()
+            if (changedKey == CheckerBarOptions.HANDLES) handles = prefs.getBoolean(CheckerBarOptions.HANDLES, true)
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    fun save(value: Float) {
+        val bounded = value.toInt().coerceIn(20, 80)
+        height = bounded.toFloat()
+        CheckerBarOptions.save(view.context, key, bounded)
+        if (key == CheckerBarOptions.ACTIONS) view.setTag(HissiMenuController.TOOLBAR_HEIGHT_TAG, bounded)
+        changed()
+    }
+    Column(modifier.fillMaxWidth()) {
+        content(height)
+        if (!handles) return@Column
+        val color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f)
+        Box(Modifier.fillMaxWidth().height(20.dp).semantics {
+            contentDescription = label
+            stateDescription = "${height.toInt()}dp。上下にドラッグして調整"
+            progressBarRangeInfo = ProgressBarRangeInfo(height, 20f..80f, 59)
+            setProgress { save(it); true }
+        }.pointerInput(view, key, density) {
+            var start = height
+            var delta = 0f
+            detectVerticalDragGestures(
+                onDragStart = { dragging = true; start = height; delta = 0f },
+                onDragEnd = { dragging = false; save(height) },
+                onDragCancel = { dragging = false; height = CheckerBarOptions.height(view.context, key, fallback).toFloat() },
+                onVerticalDrag = { event, amount ->
+                    event.consume(); delta += amount / density; height = (start + delta).coerceIn(20f, 80f)
+                })
+        }, contentAlignment = Alignment.Center) {
+            HorizontalDivider(Modifier.width(30.dp), thickness = 3.dp, color = color)
+        }
+    }
+}
 
 /** Observe legacy controllers without attaching their form widgets or replacing listeners. */
 @Composable internal fun rememberModelRevision(vararg roots: View?): Int {
@@ -48,6 +127,7 @@ private fun modelFingerprint(view: View?): Long {
     var value = System.identityHashCode(view).toLong()
     value = value * 31 + System.identityHashCode(view.getTag(0x48690b03))
     value = value * 31 + (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(HissiMenuController.RESULT_TABS_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.CONTROL_SCALE_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.RESULT_SCALE_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.REFRESH_ENABLED_TAG)?.hashCode() ?: 0)
@@ -83,7 +163,7 @@ internal fun weightedSurface(root: View?): Int? = if (root is LinearLayout)
     val index = weightedSurface(root) ?: return
     BoxWithConstraints(modifier) {
         val percent = if (root.getTag(HissiMenuController.CHECKER_LAYOUT_TAG) == true || root.context is HissiMenuActivity)
-            root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0).getInt("checkerHeaderPercent", 30).coerceIn(10, 60) else 30
+            root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0).getInt("checkerHeaderPercent", 20).coerceIn(10, 60) else 20
         val controlsHeight = maxHeight * (percent / 100f)
         Column(Modifier.fillMaxSize()) {
             if (index > 0) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)
@@ -117,6 +197,10 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 @Composable internal fun ModelContent(view: View, revision: Int = 0, modifier: Modifier = Modifier,
     insideScroll: Boolean = false, changed: () -> Unit = {}) {
     if (view.visibility != View.VISIBLE) return
+    if (view is LinearLayout && (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG) is Int || view.getTag(CheckerBarOptions.PROVIDERS_TAG) == true)) {
+        CheckerToolbar(view, revision, modifier, changed)
+        return
+    }
     if (view is ViewGroup && view.getTag(EddiArchiveSearchUi.RESULT_CARD_TAG) == true) {
         val ruleColor = MaterialTheme.colorScheme.outline.copy(alpha = .70f)
         val first = view.getTag(EddiArchiveSearchUi.RESULT_FIRST_TAG) == true
@@ -207,6 +291,29 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
         }
         is LinearLayout -> if (view.orientation == LinearLayout.HORIZONTAL &&
             (0 until view.childCount).all { (view.getChildAt(it) is Button && view.getChildAt(it) !is CompoundButton) || view.getChildAt(it).javaClass == View::class.java }) {
+            val resultTab = view.getTag(HissiMenuController.RESULT_TABS_TAG) as? Int
+            if (resultTab != null) {
+                val buttons = (0 until view.childCount).mapNotNull { view.getChildAt(it) as? Button }
+                if (buttons.isNotEmpty()) {
+                    ResizableCheckerBar(view, CheckerBarOptions.TABS, 40, "レス・スレ・名前バーの高さ", changed = changed) { height ->
+                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                            TabRow(selectedTabIndex = resultTab.coerceIn(buttons.indices),
+                                modifier = Modifier.height(height.dp),
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.primary) {
+                                buttons.forEachIndexed { index, button ->
+                                    Tab(selected = index == resultTab, enabled = button.isEnabled,
+                                        modifier = Modifier.height(height.dp),
+                                        onClick = { button.performClick(); changed() }) {
+                                        Text(button.text.toString(), fontSize = 13.sp, maxLines = 1)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return
+            }
             val scale = LocalArchiveControlLayout.current
             val compact = scale < 100
             val toolbarHeight = (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG) as? Int)?.coerceIn(32, 56)
@@ -287,32 +394,47 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 /** Bounded result viewport: do not nest it in ModelScreen's scrolling form. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun ArchiveSearchScreen(activity: android.app.Activity, root: LinearLayout,
-    back: () -> Unit = { @Suppress("DEPRECATION") activity.onBackPressed() }) {
+    back: () -> Unit = { activity.finish() },
+    showTopBar: Boolean = true, embedded: Boolean = false) {
     var localRevision by remember(root) { mutableIntStateOf(0) }
     val revision = rememberModelRevision(root) + localRevision
     val changed = { localRevision++; Unit }
     val appearance = (root.getChildAt(0) as LinearLayout).getChildAt(1) as Button
+    val searchVisibility = (root.getChildAt(0) as LinearLayout).getChildAt(2) as Button
+    val form = root.getChildAt(1) as LinearLayout
     val density = LocalDensity.current
     val controlScale = EddiArchiveSearchUi.clampTextScale(root.getTag(EddiArchiveSearchUi.CONTROL_SCALE_TAG) as? Int ?: 100)
     val resultScale = EddiArchiveSearchUi.clampTextScale(root.getTag(EddiArchiveSearchUi.RESULT_SCALE_TAG) as? Int ?: 100)
     val layoutScale = EddiArchiveSearchUi.clampControlLayout(root.getTag(EddiArchiveSearchUi.CONTROL_LAYOUT_TAG) as? Int ?: 100)
     val controlsDensity = Density(density.density, density.fontScale * controlScale / 100f)
     val resultsDensity = Density(density.density, density.fontScale * resultScale / 100f)
-    Scaffold(topBar = { CompositionLocalProvider(LocalDensity provides controlsDensity) { TopAppBar(title = { Text("エッヂ過去ログ検索") }, navigationIcon = {
+    if (!embedded && LocalOnBackPressedDispatcherOwner.current != null) {
+        BackHandler(enabled = LocalView.current.isShown) { back() }
+    }
+    Scaffold(contentWindowInsets = if (embedded) WindowInsets(0.dp) else ScaffoldDefaults.contentWindowInsets,
+        topBar = { if (showTopBar) CompositionLocalProvider(LocalDensity provides controlsDensity) { TopAppBar(
+        windowInsets = if (embedded) WindowInsets(0.dp) else TopAppBarDefaults.windowInsets,
+        title = { Text("エッヂ過去ログ検索", fontSize = 18.sp, maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }, navigationIcon = {
         TextButton(onClick = back) { Text("戻る") }
-    }, actions = { TextButton(onClick = { appearance.performClick(); changed() }) { Text(appearance.text.toString()) } }) } }) { insets ->
+    }, actions = {
+        TextButton(onClick = { searchVisibility.performClick(); changed() },
+            modifier = Modifier.semantics { contentDescription = searchVisibility.text.toString() }) { Text("検索折/開") }
+        TextButton(onClick = { appearance.performClick(); changed() }) { Text(appearance.text.toString()) }
+    }) } }) { insets ->
         BoxWithConstraints(Modifier.fillMaxSize().padding(insets).imePadding().padding(horizontal = 16.dp)) {
-            val formHeight = maxHeight * .40f
+            val formHeight = maxHeight * if (embedded) .30f else .40f
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy((8f * layoutScale / 100f).dp)) {
                 CompositionLocalProvider(LocalDensity provides controlsDensity, LocalArchiveControlLayout provides layoutScale) {
+                if (form.visibility == View.VISIBLE) {
                 Column(Modifier.fillMaxWidth().heightIn(max = formHeight).verticalScroll(rememberScrollState())) {
-                    val form = root.getChildAt(1) as LinearLayout
-                    if (form.visibility == View.VISIBLE) for (index in 0 until form.childCount) {
+                    for (index in 0 until form.childCount) {
                         // This form already owns vertical scrolling. Flatten the
                         // model's advanced-options ScrollView so focus relocation
                         // cannot make two nested scrollers fight on every keystroke.
                         ModelContent(form.getChildAt(index), revision, insideScroll = true, changed = changed)
                     }
+                }
                 }
                 Text((root.getChildAt(2) as TextView).text.toString(),
                     style = MaterialTheme.typography.bodySmall, maxLines = 2,
@@ -345,12 +467,14 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 /** Compose shell for controller-built tools, including asynchronous status and list changes. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun ModelScreen(activity: android.app.Activity, title: String, root: View,
-    back: () -> Unit = { @Suppress("DEPRECATION") activity.onBackPressed() }, showTopBar: Boolean = true) {
+    back: () -> Unit = { @Suppress("DEPRECATION") activity.onBackPressed() }, showTopBar: Boolean = true,
+    embedded: Boolean = false) {
     var localRevision by remember(root) { mutableIntStateOf(0) }
     val revision = rememberModelRevision(root) + localRevision
     if (root is ViewGroup) prepareNativeSurfaces(root)
     @Suppress("UNUSED_VARIABLE") val observed = revision
-    Scaffold(topBar = { if (showTopBar) TopAppBar(title = { Text(title) }, navigationIcon = {
+    Scaffold(contentWindowInsets = if (embedded) WindowInsets(0.dp) else ScaffoldDefaults.contentWindowInsets,
+        topBar = { if (showTopBar) TopAppBar(title = { Text(title) }, navigationIcon = {
         TextButton(onClick = back) { Text("戻る") }
     }) }) { insets ->
         val surfaceIndex = if (root is LinearLayout) (0 until root.childCount).firstOrNull {
@@ -362,7 +486,7 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
             BoxWithConstraints(Modifier.fillMaxSize().padding(insets).imePadding()) {
                 val checker = root.getTag(HissiMenuController.CHECKER_LAYOUT_TAG) == true
                 val percent = if (checker) root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0)
-                    .getInt("checkerHeaderPercent", 30).coerceIn(10, 60) else 35
+                    .getInt("checkerHeaderPercent", 20).coerceIn(10, 60) else 25
                 val controlsHeight = maxHeight * (percent / 100f)
                 Column(Modifier.fillMaxSize()) {
                     if (surfaceIndex > 0) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)

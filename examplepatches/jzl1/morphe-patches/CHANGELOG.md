@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/jzl1/morphe-patches/compare/v1.1.0...v1.1.1) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **analiti:** support disable telemetry on 2026.10.98884 ([0623a05](https://github.com/jzl1/morphe-patches/commit/0623a055cb018075f427b3265d6285eb65aace34))
+
 ## [1.1.0](https://github.com/jzl1/morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-24)
 
 ### ✨ New Features

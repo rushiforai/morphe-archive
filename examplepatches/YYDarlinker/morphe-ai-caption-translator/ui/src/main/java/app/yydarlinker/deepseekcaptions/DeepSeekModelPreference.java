@@ -95,7 +95,7 @@ public final class DeepSeekModelPreference extends ProfileEditorPreference {
 
     @Override
     String initialValue() {
-        return DeepSeekConfig.load(getContext()).model;
+        return DeepSeekConfig.model(getContext());
     }
 
     @Override
@@ -147,6 +147,11 @@ public final class DeepSeekModelPreference extends ProfileEditorPreference {
     }
 
     @Override
+    Object storedValue() {
+        return ApiProfiles.values(getContext()).getAll().get("model");
+    }
+
+    @Override
     void saved() {
         setState("model_saved", false);
     }
@@ -195,6 +200,10 @@ public final class DeepSeekModelPreference extends ProfileEditorPreference {
     private void showCachedOrFetch() {
         if (!bound()) return;
         DeepSeekConfig.ProviderSettings config = DeepSeekConfig.load(getContext());
+        if (!config.readable) {
+            setState("config_unreadable", true);
+            return;
+        }
         if (!config.hasCredential) {
             setState("model_hint_manual_only", false);
             return;
@@ -217,6 +226,10 @@ public final class DeepSeekModelPreference extends ProfileEditorPreference {
     private void fetchModels(boolean userInitiated) {
         if (!bound()) return;
         DeepSeekConfig.ProviderSettings config = DeepSeekConfig.load(getContext());
+        if (!config.readable) {
+            setState("config_unreadable", true);
+            return;
+        }
         if (!config.hasCredential) {
             setState("model_hint_key_first", true);
             return;

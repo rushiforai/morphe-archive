@@ -823,7 +823,8 @@ public class DownloadSettingsTest {
                     nameAt >= 0 && rows.get(nameAt) instanceof HushgramPreferenceFragment.FileNameRow);
             HushgramPreferenceFragment.FileNameRow name = (HushgramPreferenceFragment.FileNameRow) rows.get(nameAt);
             assertEquals("the file name row isn't next to the folder", indexOfKey(rows, Settings.SAVE_FOLDER.key) + 1, nameAt);
-            assertEquals("Video file name", String.valueOf(name.getTitle()));
+            assertEquals("Download file name", String.valueOf(name.getTitle()));
+            assertTrue(String.valueOf(name.getDialogMessage()).contains("{shortcode}"));
             // The photo prefix is HushGram's own, so the summary doesn't call it Instagram's.
             assertEquals("Videos are named " + L10n.isolate("IG_VID_{date}") + ". Photos are always named "
                     + L10n.isolate("IG_IMG_") + " followed by the date and time.", String.valueOf(name.getSummary()));
@@ -864,6 +865,13 @@ public class DownloadSettingsTest {
             ShadowLooper.idleMainLooper();
             assertEquals("IG_VID_{date}", name.getText());
             assertEquals("IG_VID_{date}", Settings.FILENAME_TEMPLATE.savedValue());
+
+            assertTrue(ok.onPreferenceChange(name, "{shortcode}"));
+            name.setText("{shortcode}");
+            ShadowLooper.idleMainLooper();
+            assertEquals("{shortcode}", Settings.FILENAME_TEMPLATE.savedValue());
+            assertEquals("Videos and photos use " + L10n.isolate("{shortcode}")
+                    + ". Unknown codes are left out.", name.getSummary().toString());
         }
     }
 
@@ -872,6 +880,8 @@ public class DownloadSettingsTest {
     public void theFileNameExampleIsThePipelinesNameAndCancelKeepsTheTemplate() {
         assertEquals("Example_123456.mp4",
                 HushgramPreferenceFragment.FileNameRow.previewName("Example_{video_id}", new java.util.Date(0)));
+        assertEquals("eJA.mp4",
+                HushgramPreferenceFragment.FileNameRow.previewName("{shortcode}", new java.util.Date(0)));
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushgramPreferenceFragment.FileNameRow name = (HushgramPreferenceFragment.FileNameRow)

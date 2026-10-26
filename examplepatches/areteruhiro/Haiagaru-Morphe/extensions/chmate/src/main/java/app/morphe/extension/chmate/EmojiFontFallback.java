@@ -28,6 +28,8 @@ import java.util.ArrayDeque;
 
 /** Uses the bundled emoji font only for emoji clusters missing from the device font. */
 final class EmojiFontFallback {
+    static final String ENABLED = "emojiFontFallbackEnabled";
+    private static volatile boolean enabled = true;
     private static final String FONT_ASSET = "haiagaru/NotoColorEmoji.ttf";
     private static volatile Typeface emojiTypeface;
     private static volatile boolean fontLoadFailed;
@@ -76,12 +78,16 @@ final class EmojiFontFallback {
 
     static synchronized void initialize(Context context) {
         if (context == null) return;
+        enabled = context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0).getBoolean(ENABLED, true);
+        if (!enabled) return;
         Context resolved = context.getApplicationContext();
         applicationContext = resolved == null ? context : resolved;
         loadConfiguration(applicationContext);
     }
 
     static synchronized void register(Application application) {
+        initialize(application);
+        if (!enabled) return;
         if (lifecycleRegistered) return;
         initialize(application);
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
@@ -145,6 +151,7 @@ final class EmojiFontFallback {
     }
 
     static void applyToRow(View view) {
+        if (view == null || !enabled) return;
         if (view instanceof TextView) {
             DirectBodySelection.prepare(view);
             XPostPreview.apply((TextView) view);
@@ -160,7 +167,7 @@ final class EmojiFontFallback {
 
     /** Called from ChMate's setText bridge, before a CharSequence reaches a TextView. */
     static CharSequence processText(CharSequence source) {
-        if (source == null || applicationContext == null || "off".equals(renderMode)) return source;
+        if (!enabled || source == null || applicationContext == null || "off".equals(renderMode)) return source;
         source = restoreExternalEmojiPlaceholders(source);
         if (!containsEmojiCandidate(source)) return source;
         Typeface fallback = getTypeface(applicationContext);

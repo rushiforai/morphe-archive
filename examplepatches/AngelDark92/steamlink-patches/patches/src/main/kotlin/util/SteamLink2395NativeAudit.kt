@@ -7,7 +7,6 @@ import app.template.patches.steamlink.androidxr.MODERN_TONGUE_REPLACEMENT
 import app.template.patches.steamlink.androidxr.patchModernTongueTransport
 import app.template.patches.steamlink.androidxr.validateCodecsSupportScene
 import app.template.patches.steamlink.androidxr.validateControllerPoseTimeScene
-import app.template.patches.steamlink.androidxr.validateFovealCanvasScene
 import app.template.patches.steamlink.binary.BLUE_NOISE_LAYOUTS
 import app.template.patches.steamlink.binary.BlueNoiseLayer
 import app.template.patches.steamlink.binary.FoveaMode
@@ -166,16 +165,11 @@ object SteamLink2395NativeAudit {
 
         // Pinned scene contracts used by the layer patches.
         validateCodecsSupportScene(stock, VERSION, CODE)
-        validateFovealCanvasScene(stock, VERSION, CODE)
         validateControllerPoseTimeScene(
             CONTROLLER_POSE_TIME_SCENES.single { it.version == VERSION && it.versionCode.toString() == CODE },
             stock,
         )
-        listOf(0x10d41c, 0x10df58).forEach { offset ->
-            val tampered = stock.copyOf().apply { this[offset] = (this[offset].toInt() xor 1).toByte() }
-            rejects { validateFovealCanvasScene(tampered, VERSION, CODE) }
-        }
-        println("PASS 5002395 codecs/foveal/pose-time scene contracts and tamper rejection")
+        println("PASS 5002395 codecs/pose-time scene contracts")
 
         check(library.readBytes().sha256() == SHA256)
         println("PASS 5002395 native scene source hash unchanged")

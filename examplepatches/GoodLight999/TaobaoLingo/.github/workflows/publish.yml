@@ -1,0 +1,134 @@
+name: Publish Morphe patch source
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'patches/**'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - '.github/workflows/publish.yml'
+
+concurrency:
+  group: taobaolingo-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+      - name: Build Morphe 2 patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle buildAndroid --no-daemon --stacktrace
+      - name: Validate MPP for Morphe Manager
+        id: bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          paths = list(Path('patches/build/libs').glob('*.mpp'))
+          assert len(paths) == 1, f'Expected exactly one .mpp, got {paths}'
+          path = paths[0]
+          with ZipFile(path) as archive:
+              assert archive.testzip() is None, 'Corrupt MPP'
+              names = set(archive.namelist())
+              assert 'classes.dex' in names, 'Missing Android patcher DEX'
+              assert 'META-INF/MANIFEST.MF' in names
+              manifest = archive.read('META-INF/MANIFEST.MF').decode('utf-8')
+              assert 'Patcher-Version: 2.0.0' in manifest
+              for filename in ('TaobaoLanguagePatchesKt.class',
+                               'JapanEnglishPickerPatchKt.class',
+                               'JapanEnglishServerPatchKt.class',
+                               'DinamicXEnglishLabelsPatchKt.class'):
+                  assert any(n.endswith(filename) for n in names), filename
+          Path('TaobaoLingo.mpp').write_bytes(path.read_bytes())
+          print('Validated', path, path.stat().st_size)
+          PY
+          sha256sum TaobaoLingo.mpp | tee TaobaoLingo.mpp.sha256
+      - name: Publish GitHub release and Morphe feed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="0.2.${{ github.run_number }}"
+          TAG="v${VERSION}"
+          cat > release-notes.md <<'EOF'
+          Experimental Taobao 10.66.30 patch bundle for Morphe Manager 2 / Patcher 2.
+
+          Includes (all experimental, disabled by default):
+          - Native DinamicX English labels: 108 exact-match Chinese UI strings (4 base hooks)
+          - Optional extended DinamicX subclass coverage (24 further TEXT-attribute hooks)
+          - Native English string resource lookups without protocol locale overrides
+          - Japanese region English picker (bundled fallback)
+          - Japanese region English picker (server locale model)
+
+          Real Taobao 10.66.30 APK: 595,518 original methods checked;
+          only four base DinamicX text hooks changed with STRIP_SAFE.
+          An independently validated separate extension affects exactly
+          24 additional subclass TEXT-attribute handlers (28 hooks combined,
+          0 unrelated method changes). APK v1/v2/v3 verification passed.
+          An Android 15 synthetic fixture confirms the four BASE hooks; the
+          extra subclass paths have NOT been Android runtime-tested.
+
+          IMPORTANT: Real Taobao UI English, Account, login, server and
+          anti-tamper functionality remain UNVERIFIED/UNFIXED. Do not treat
+          successful APK builds as live translation proof. Use STRIP_SAFE.
+          The two JP-picker experiments must be enabled together.
+          Repackaged APKs have a different signer than official Taobao.
+          No OCR/overlays or proprietary APK binaries are shipped.
+          EOF
+          gh release create "$TAG" TaobaoLingo.mpp TaobaoLingo.mpp.sha256 \
+            --target "${GITHUB_SHA}" --title "TaobaoLingo ${VERSION} — experimental" \
+            --notes-file release-notes.md --latest
+          python3 - "$VERSION" "$TAG" <<'PY'
+          import datetime
+          import json
+          import pathlib
+          import sys
+          version, tag = sys.argv[1:]
+          feed = {
+              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": "Experimental Taobao 10.66.30 native 108-label patches: 4 base hooks plus 24 optional subclass TEXT hooks, all opt-in. Real APK DEX verification passed; actual Taobao English UI, Account/login and server acceptance unverified.",
+              "download_url": "https://github.com/GoodLight999/TaobaoLingo/releases/download/" + tag + "/TaobaoLingo.mpp",
+              "version": version,
+          }
+          pathlib.Path("patches-bundle.json").write_text(
+              json.dumps(feed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+          )
+          print("Source feed: ", feed["download_url"])
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Base the metadata change on the newest main, preserving any newer source commits.
+          git fetch origin main
+          git checkout -B main origin/main
+          git add patches-bundle.json
+          git commit -m "chore: publish Morphe patch source ${VERSION}"
+          git push origin HEAD:main
+          # Verify the published asset and committed JSON feed through public GitHub API.
+          gh release view "$TAG" --json assets,tagName,url
+          curl --fail --location --retry 3 \
+            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/patches-bundle.json" \
+            | python3 -m json.tool

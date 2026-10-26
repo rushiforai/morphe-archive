@@ -85,7 +85,7 @@ public class SettingsVisualCaptureTest {
     /** Deterministic development preview metadata. These fixtures never represent an installed build. */
     @Implements(value = Utils.class, isInAndroidSdk = false)
     public static class CaptureMetadata {
-        @Implementation public static String getPatchesReleaseVersion() { return "0.0.16"; }
+        @Implementation public static String getPatchesReleaseVersion() { return "0.0.17"; }
         @Implementation public static String getAppVersionName() { return "452.1.0.53.64"; }
         @Implementation public static long getAppVersionCode() { return 385811006L; }
         @Implementation public static String getSourceBuildIdentity() { return "Development preview"; }
@@ -110,6 +110,7 @@ public class SettingsVisualCaptureTest {
         PatchFamily.inBuildForTests = null;
         Settings.CATEGORY_PAGES.resetToDefault();
         Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
+        Settings.DATE_SETTINGS_EXPORT.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         RuntimeEnvironment.setFontScale(1f);
@@ -185,6 +186,30 @@ public class SettingsVisualCaptureTest {
             assertTrue(page.closeCategory());
             settle();
         }
+    }
+
+    @Test public void shortcodeNameEditorRendersAtTwiceTheTextSize() throws Exception {
+        scale = "shortcode-extra-large";
+        RuntimeEnvironment.setFontScale(2f);
+        open();
+        openCategory("Downloads");
+        HushgramPreferenceFragment.FileNameRow row = (HushgramPreferenceFragment.FileNameRow)
+                page.findPreference(Settings.FILENAME_TEMPLATE.key);
+        row.setText("{shortcode}");
+        clickInList(row);
+        captureAlert("file-name-shortcode");
+    }
+
+    @Test public void datedBackupOptionRendersAtTwiceTheTextSize() throws Exception {
+        scale = "backup-date-extra-large";
+        RuntimeEnvironment.setFontScale(2f);
+        open();
+        openCategory("Settings backup");
+        Preference option = page.findPreference(Settings.DATE_SETTINGS_EXPORT.key);
+        assertNotNull(option);
+        clickInList(option);
+        assertTrue(Settings.DATE_SETTINGS_EXPORT.savedValue());
+        capturePage("backup-date-on", true);
     }
 
     @Test public void realChoiceInputGhostPauseAndNoticeStatesRender() throws Exception {

@@ -35,6 +35,8 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private float gifAspect;
     private Runnable unregisterBack;
     private Button speedButton;
+    private Button muteButton;
+    private boolean muted;
     private float playbackSpeed = 1f;
     private float speedBeforeHold = 1f;
     private boolean holdSpeedActive;
@@ -69,12 +71,14 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         Uri uri = getIntent().getData();
         if (uri == null || !XMediaAttachments.isVideo(uri.toString())) { finish(); return; }
         url = uri.toString();
+        playWhenReady = VideoViewerSettings.prefs(this).getBoolean("videoAutoplay",true);
         if (state != null) {
             position = state.getInt("position", 0);
             playWhenReady = state.getBoolean("playing", true);
             rotated = state.getBoolean("rotated", false);
             savePermissionPending = state.getBoolean("savePermissionPending", false);
             playbackSpeed = state.getFloat("playbackSpeed", 1f);
+            muted = state.getBoolean("muted", false);
         }
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.BLACK);
@@ -92,21 +96,15 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         speedButton.setContentDescription("再生速度");
         speedButton.setOnClickListener(v -> cyclePlaybackSpeed());
         speedButton.setOnLongClickListener(v -> {
-            beginHoldSpeed();
+            holdSpeedActive = false;
+            applyPlaybackSpeed(1f);
             return true;
         });
-        speedButton.setOnTouchListener((view, event) -> {
-            if (event.getActionMasked() == MotionEvent.ACTION_UP
-                    || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
-                if (holdSpeedActive) {
-                    holdSpeedActive = false;
-                    applyPlaybackSpeed(speedBeforeHold);
-                }
-            }
-            return false;
-        });
-        HaiagaruUi.bindRelease(speedButton, this::endHoldSpeed);
         toolbar.addView(speedButton);
+        muteButton=overlayButton(muted?"音声ON":"ミュート");
+        muteButton.setContentDescription(muted?"ミュートを解除":"ミュートする");
+        muteButton.setOnClickListener(v->{muted=!muted;applyMute();});
+        toolbar.addView(muteButton);
         more.setOnClickListener(this::showMenu); toolbar.addView(more);
         LinearLayout toolbarModel = toolbar;
         toolbar = new LinearLayout(this);
@@ -159,6 +157,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         video.setOnPreparedListener(player -> {
             prepared = true;
             mediaPlayer = player;
+            applyMute();
             // X's GIFs are silent MP4s. Preserve their repeating animation behavior.
             Uri source=Uri.parse(url);
             if("video.twimg.com".equalsIgnoreCase(source.getHost())&&source.getPath()!=null&&source.getPath().startsWith("/tweet_video/"))player.setLooping(true);
@@ -247,7 +246,9 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private void applyPlaybackSpeed(android.media.MediaPlayer player, float speed) {
         if (android.os.Build.VERSION.SDK_INT < 23) return;
         try {
+            boolean playing=player.isPlaying();
             player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
+            if(!playing)player.pause();
             playbackSpeed = speed;
             if (speedButton != null) {
                 speedButton.setText(speedLabel(speed));
@@ -259,10 +260,20 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
 
     void beginHoldSpeed() {
-        if (holdSpeedActive || !prepared || android.os.Build.VERSION.SDK_INT < 23) return;
+        if (holdSpeedActive || (!prepared && gifFallback==null) || android.os.Build.VERSION.SDK_INT < 23) return;
+        cancelNativeVideoGesture();
         speedBeforeHold = playbackSpeed;
         holdSpeedActive = true;
         applyPlaybackSpeed(2f);
+    }
+
+    boolean isHoldSpeedActive() { return holdSpeedActive; }
+
+    private void applyMute(){
+        float volume=muted?0f:1f;
+        if(mediaPlayer!=null)try{mediaPlayer.setVolume(volume,volume);}catch(IllegalStateException ignored){}
+        if(gifFallback!=null)gifFallback.setVolume(volume);
+        if(muteButton!=null){muteButton.setText(muted?"音声ON":"ミュート");muteButton.setContentDescription(muted?"ミュートを解除":"ミュートする");}
     }
 
     void endHoldSpeed() {
@@ -311,7 +322,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
                 }
             });
             gifFallback.setMediaItem(androidx.media3.common.MediaItem.fromUri(source));
-            gifFallback.seekTo(position);gifFallback.prepare();gifFallback.setPlayWhenReady(foreground);
+            gifFallback.seekTo(position);gifFallback.prepare();gifFallback.setPlayWhenReady(foreground&&playWhenReady);applyMute();
             toolbar.setVisibility(View.VISIBLE);setStatus("GIF動画を読み込み中…");return true;
         }catch(RuntimeException failure){android.util.Log.w("Haiagaru","Cannot initialize X GIF fallback",failure);closeGifFallback();return false;}
     }
@@ -363,6 +374,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
     boolean dispatchVideoTouch(MotionEvent event) { return super.dispatchTouchEvent(event); }
     boolean isVideoToolbarTouch(float x, float y) {
+        if(controls instanceof HaiagaruMediaController&&((HaiagaruMediaController)controls).containsControlTouch(x,y))return true;
         if (toolbar == null || toolbar.getVisibility() != View.VISIBLE) return false;
         int[] p = new int[2]; toolbar.getLocationOnScreen(p);
         return x >= p[0] && x < p[0] + toolbar.getWidth() && y >= p[1] && y < p[1] + toolbar.getHeight();
@@ -478,7 +490,8 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         if(gifFallback!=null)state.putInt("position",(int)gifFallback.getCurrentPosition());
         state.putBoolean("playing", prepared ? video.isPlaying() : playWhenReady);
         state.putBoolean("savePermissionPending", savePermissionPending);
-        state.putFloat("playbackSpeed", playbackSpeed);
+        state.putFloat("playbackSpeed", holdSpeedActive ? speedBeforeHold : playbackSpeed);
+        state.putBoolean("muted",muted);
         state.putBoolean("rotated", rotated); super.onSaveInstanceState(state);
     }
     @Override protected void onDestroy() {

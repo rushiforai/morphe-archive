@@ -356,6 +356,50 @@ public class ReleaseCheckTest {
     }
 
     @Test
+    public void eofAfterTheWholeDeadlineCannotReportASuccess() {
+        ReleaseCheck.deadlineMs = 250;
+        byte[] bytes = FakeGitHub.release("v0.2.0", null).getBytes(StandardCharsets.UTF_8);
+        Reply reply = Reply.streaming(() -> new ByteArrayInputStream(bytes) {
+            @Override
+            public synchronized int read(byte[] buffer, int offset, int length) {
+                int count = super.read(buffer, offset, length);
+                if (count == -1) waitPastCheckDeadline();
+                return count;
+            }
+        });
+        github.then(reply);
+
+        assertEquals("a delayed end of the body escaped the check's deadline", Result.TIMEOUT, fetch().result);
+
+        assertTrue(reply.bodyOpened());
+        assertTrue("the expired response stayed open", reply.closed());
+        assertEquals(1, github.asked.size());
+    }
+
+    @Test
+    public void headersAfterTheWholeDeadlineCannotReportAnHttpOutcome() {
+        ReleaseCheck.deadlineMs = 250;
+        Reply reply = Reply.status(503);
+        github.then(reply);
+        github.onRequest = ReleaseCheckTest::waitPastCheckDeadline;
+
+        assertEquals("late response headers escaped the check's deadline", Result.TIMEOUT, fetch().result);
+
+        assertFalse("an expired response opened its body", reply.bodyOpened());
+        assertTrue("the expired response stayed open", reply.closed());
+        assertEquals(1, github.asked.size());
+    }
+
+    private static void waitPastCheckDeadline() {
+        try {
+            Thread.sleep(ReleaseCheck.deadlineMs + 75);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError(interrupted);
+        }
+    }
+
+    @Test
     public void a403RateLimitIsKeptAndTheNextTryWaitsADay() {
         github.then(Reply.status(403).header("X-RateLimit-Remaining", "0").header("X-RateLimit-Reset", "1790003600"));
         ReleaseCheck.run(NOW);

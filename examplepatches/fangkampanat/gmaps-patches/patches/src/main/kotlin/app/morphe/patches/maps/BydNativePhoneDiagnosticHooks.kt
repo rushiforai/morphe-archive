@@ -38,7 +38,9 @@ private fun List<Instruction>.phoneTarget(index: Int): Int {
 }
 private fun Method.phoneShape(returns: Int) {
     val code = phoneCode()
-    phoneGuard(implementation!!.tryBlocks.isEmpty() && code.count { it.opcode == Opcode.RETURN_OBJECT } == returns &&
+    // R8 may merge the returns into one shared return reached by gotos (26.42).
+    phoneGuard(implementation!!.tryBlocks.isEmpty() && (code.count { it.opcode == Opcode.RETURN_OBJECT } == returns ||
+        code.mergedExitCount(Opcode.RETURN_OBJECT) == returns) &&
         code.none { it.opcode in setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA,
             Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD) } &&
         code.filter { it.opcode == Opcode.RETURN_OBJECT }.all { (it as OneRegisterInstruction).registerA <= 255 },

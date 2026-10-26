@@ -40,26 +40,25 @@ permissions:
 Review the requested change and its surrounding execution path like a release
 owner. Findings only: no edits, no praise, no scope creep.
 
-1. Read the workspace `AGENTS.md`, the nearest project `AGENTS.md`, and the
-   relevant project skill.
+1. Read the nearest `AGENTS.md`, then the matching skill.
 2. Inspect the changed path and every directly affected consumer.
 3. Prioritize concrete correctness defects:
-   - default/schema/migration parity;
-   - unsupported-base or ABI assumptions;
+   - default, schema or migration parity;
+   - unsupported base, package or ABI assumptions;
    - broken backup, rollback or error propagation;
    - stale hashes, paths or provenance;
-   - malformed JSON/XML/manifest/resource output;
+   - malformed JSON, XML, manifest or resource output;
    - missing packaging inputs, generators or CI consumers.
-4. For build changes, verify every producer and consumer uses the documented
-   external output root.
+4. For build changes, verify every producer and consumer uses
+   `../builds/steamlink-patches/`.
 5. Distinguish static inspection, fixture tests, compilation, CI and fresh runtime
    proof. Do not claim more than the evidence shows.
 
 Do not edit, run write-producing checks, deploy, install, use devices, restart
-SteamVR, commit, push or mutate GitHub. If no findings remain, say `No issues.`
-and list residual runtime risks that static review cannot cover.
+SteamVR, commit, push or mutate GitHub. If no findings remain, say `No issues.` and
+list residual runtime risks that static review cannot cover.
 
-Return actionable findings only:
+Return:
 
 ```
 path:line: <severity>: <problem>. <fix>.

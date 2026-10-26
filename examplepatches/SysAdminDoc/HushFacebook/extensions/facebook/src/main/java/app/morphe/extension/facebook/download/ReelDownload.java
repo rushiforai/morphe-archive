@@ -122,14 +122,15 @@ public final class ReelDownload implements Function1<Object, Object> {
      */
     static final String SIDEBAR_WITH_BUTTON = "UDD sidebar with Download";
     static final String SIDEBAR_SWITCH_OFF = "UDD sidebar without Download, switch off";
+    static final String SIDEBAR_HIDDEN = "UDD sidebar without Download, hidden";
     static final String SIDEBAR_PAUSED = "UDD sidebar without Download, paused";
     static final String SIDEBAR_NOT_READY = "UDD sidebar without Download, settings not ready";
     static final String OTHER_SIDEBAR = "FbShorts sidebar, which gets no Download";
 
     /**
      * Whether the sidebar Facebook is building for a reel gets the Download button. The patch asks
-     * before it builds the button, so off, paused, or before the settings are ready, the reel has
-     * only Facebook's own buttons and none of this patch's code runs in the sidebar. Each answer
+     * before it builds the button, so off, hidden, paused, or before the settings are ready, the reel
+     * has only Facebook's own buttons. Hiding this button leaves the More menu's download alone. Each answer
      * and its reason are counted in Hook status. Never throws: false is Facebook's own path.
      */
     public static boolean showsButton() {
@@ -139,9 +140,11 @@ public final class ReelDownload implements Function1<Object, Object> {
                 HookStatus.counted(FamilyNames.REEL_DOWNLOAD, SIDEBAR_NOT_READY);
                 return false;
             }
-            boolean shows = Settings.DOWNLOAD_REELS.get();
+            boolean enabled = Settings.DOWNLOAD_REELS.get();
+            boolean shows = enabled && Settings.SHOW_REEL_DOWNLOAD_BUTTON.get();
             HookStatus.counted(FamilyNames.REEL_DOWNLOAD, shows ? SIDEBAR_WITH_BUTTON
-                    : HushfacebookPause.isPaused() ? SIDEBAR_PAUSED : SIDEBAR_SWITCH_OFF);
+                    : HushfacebookPause.isPaused() ? SIDEBAR_PAUSED
+                    : enabled ? SIDEBAR_HIDDEN : SIDEBAR_SWITCH_OFF);
             return shows;
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.REEL_DOWNLOAD, "button switch", t);

@@ -1,0 +1,1 @@
+package android.content; public abstract class ContentResolver {public abstract android.database.Cursor query(android.net.Uri u,String[] p,String s,String[] a,String sort);public abstract boolean delete(android.net.Uri u);}

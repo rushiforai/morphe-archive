@@ -1,4 +1,4 @@
-package mightymich.morphe.patches.eset
+package mightymich.morphe.patches.com.eset.ems2.gp
 
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget

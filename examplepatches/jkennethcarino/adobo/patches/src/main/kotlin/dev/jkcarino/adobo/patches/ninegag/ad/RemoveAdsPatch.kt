@@ -3,8 +3,8 @@ package dev.jkcarino.adobo.patches.ninegag.ad
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.getReference
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import dev.jkcarino.adobo.patches.all.contentblocker.hosts.HostsBlocker

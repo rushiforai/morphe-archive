@@ -44,16 +44,18 @@ final class CaptionApplication extends TranslationRuntime.Host
         if (c == null) return;
         switch (action) {
             case ACTIVATE:
+                if (!CaptionSessionReconciler.displayAllowed(c)) break;
+                if (CaptionSessionReconciler.currentSelection() == null) break;
                 RebuildController.activate(c, value, false, true);
                 break;
             case PREWARM:
+                if (!CaptionSessionReconciler.displayAllowed(c)) break;
+                if (CaptionSessionReconciler.currentSelection() == null) break;
                 RebuildController.activate(c, value, false, false);
                 break;
             case DEACTIVATE:
-                // Only the display changes here. The three meanings are kept apart: a user off is
-                // the one kind that writes the session intent; a native reset keeps it and retires
-                // the application so the next tick can bring the session back; a teardown writes
-                // nothing at all.
+                // A CC off closes display permission; a model reset retires this application.
+                // Neither changes the persistent AI switch or language.
                 String offReason = value == null || value.isEmpty() ? "teardown" : value;
                 if ("user_off".equals(offReason))
                     CaptionSessionReconciler.onUserOff(c, offReason);
@@ -80,8 +82,10 @@ final class CaptionApplication extends TranslationRuntime.Host
                 }
                 break;
             case SOURCE:
-                // The hook already gave YouTube an empty track for this selection, so the chosen
-                // original or auto-generated captions are shown by the AI overlay, untranslated.
+                if (!CaptionSessionReconciler.displayAllowed(c)) break;
+                if (CaptionSessionReconciler.currentSelection() == null) break;
+                // The draw hook masks the native view in AI mode; this overlay shows the selected
+                // original or auto-generated captions without translation.
                 RebuildController.activate(c, value, true, true);
                 break;
             case PLAYER_TYPE:
@@ -125,7 +129,8 @@ final class CaptionApplication extends TranslationRuntime.Host
 
     @Override
     public String restoreTarget(String url) {
-        return CaptionSessionReconciler.restoreTarget(context, RebuildController.restore(url));
+        // A native source request must never regain an earlier translation target.
+        return url;
     }
 
     @Override
@@ -148,13 +153,14 @@ final class CaptionApplication extends TranslationRuntime.Host
     @Override
     TranslationSettings settings(Context c) {
         synchronized (ApiProfiles.LOCK) {
-            DeepSeekConfig.ProviderSettings p = DeepSeekConfig.load(c);
+            DeepSeekConfig.RequestSettings read = DeepSeekConfig.requestSettings(c);
+            DeepSeekConfig.ProviderSettings p = read.provider;
             return new TranslationSettings(
                     p.enabled,
                     p.baseUrl,
                     p.model,
                     p.prompt,
-                    SecureApiKey.load(c),
+                    read.apiKey,
                     p.preferenceProvenance);
         }
     }
@@ -186,18 +192,20 @@ final class CaptionApplication extends TranslationRuntime.Host
 
     @Override
     boolean selectionOn() {
-        CaptionSessionIntent intent = CaptionSessionIntent.load(context);
-        return intent.aiEnabled && intent.hasTarget();
+        return CaptionSessionReconciler.displayAllowed(context)
+                && CaptionSessionReconciler.currentSelection() != null;
     }
 
     @Override
     boolean translates() {
-        return CaptionSessionIntent.load(context).translates();
+        CaptionNativeProjection.Snapshot selected = CaptionSessionReconciler.currentSelection();
+        return selectionOn() && selected != null && selected.translated;
     }
 
     @Override
     String target() {
-        return CaptionSessionIntent.load(context).target();
+        CaptionNativeProjection.Snapshot selected = CaptionSessionReconciler.currentSelection();
+        return selected == null ? "" : selected.target();
     }
 
     @Override
@@ -236,12 +244,16 @@ final class CaptionApplication extends TranslationRuntime.Host
 
     @Override
     void sessionOpened() {
-        CaptionPlayerAuthority.setOwner(activity.get());
+        // Engine sessions are not player visits. The Activity/video/player hooks own this
+        // authority; opening AI must never reopen a player that YouTube actually closed.
     }
 
     @Override
     void stopped() {
-        CaptionPlayerAuthority.close();
+        // Core stop already revokes publication, clears the overlay and cancels its requests.
+        // CC/AI/language switches stop the engine while the real player keeps playing. Closing
+        // that player here destroys its valid type/epoch and deadlocks the next activation behind
+        // the Shorts-exit guard, even in an ordinary fullscreen video.
     }
 
     @Override

@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"निदान लोड हो रहा है…"</string>
     <string name="cap_planner_model" formatted="false">"स्रोत अर्थ तैयारी मॉडल (वैकल्पिक)"</string>
     <string name="cap_planner_model_hint" formatted="false">"खाली छोड़ने पर अनुवाद मॉडल का उपयोग होगा। उसी API URL और कुंजी का उपयोग करता है; दूसरा मॉडल अपने-आप नहीं चुनता।"</string>
+    <string name="cap_config_unreadable" formatted="false">"सहेजी गई सेटिंग पढ़ी नहीं जा सकी। संबंधित फ़ील्ड जाँचें; कोई डेटा नहीं बदला है।"</string>
+    <string name="cap_config_index_recovery" formatted="false">"प्रोफ़ाइल सूची पढ़ी नहीं जा सकी। कोई प्रोफ़ाइल नहीं बदली है। फिर पढ़ें या वापस जाएँ। बहाली के लिए क्षति से पहले के इस ऐप की मान्य प्रोफ़ाइल सेटिंग के बैकअप की आवश्यकता है; यह स्क्रीन सूची दोबारा नहीं बना सकती।"</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"फ़ील्ड सहेजी गई, लेकिन सेटिंग का समन्वयन विफल हुआ। फिर समन्वय करने के लिए यहाँ टैप करें।"</string>
+    <string name="cap_config_save_uncertain" formatted="false">"सहेजना विफल हुआ या पुष्टि नहीं हो सकी; वर्तमान मान जाँचें। ड्राफ़्ट सुरक्षित है। %1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"कार्रवाई विफल हुई या परिणाम की पुष्टि नहीं हो सकी। डेटा बदल सकता है; जाँचने के लिए सेटिंग फिर खोलें।"</string>
+    <string name="cap_config_origin_recovery" formatted="false">"मूल कुंजी का API पता अज्ञात है; सेटिंग नहीं बदली है। क्षति से पहले का मान्य बैकअप बहाल करें, या यह संपादन छोड़कर कुंजी स्पष्ट रूप से मिटाएँ और फिर सेटअप करें।"</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG पुरानी गणना श्रेणी है जिसमें HTTP विफलताएँ और सामग्री फ़िल्टर शामिल हैं। निर्णय समझने के लिए reason और दर्ज किए गए समाप्ति, फ़िल्टर व प्रतीक्षा के तथ्य देखें; अनुपस्थित तथ्य अज्ञात हैं। एक तार्किक बैच में कई HTTP प्रयास स्वीकार हो सकते हैं। प्रयासों की संख्या सर्वर प्राप्ति या बिलिंग की पुष्टि नहीं करती। प्रतिक्रिया, गुणवत्ता और कैश की गणना अलग है। इस श्रेणी में 429/503 भी हैं; अकेली श्रेणी का अर्थ कॉन्फ़िगरेशन त्रुटि या स्थायी रोक नहीं है।"</string>
 </resources>

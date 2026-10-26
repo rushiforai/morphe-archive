@@ -60,8 +60,8 @@ Lurk is tested on these APKMirror variants. Other variants of the same version m
 to install, so take these:
 
 - **Twitch 31.7.0**: the [arm64-v8a bundle, 480-640dpi, Android 10+](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-7-0-release/twitch-live-streaming-31-7-0-4-android-apk-download/).
-- **Kick 40.32.3**: the arm64-v8a bundle, 480-640dpi, Android 10+, on the
-  [40.32.3 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-32-3-release/)
+- **Kick 40.32.5**: the arm64-v8a bundle, 480-640dpi, Android 10+, on the
+  [40.32.5 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-32-5-release/)
   (not one of the two universal builds).
 - **Rumble 3.21.0**: the universal bundle (all four architectures, 120-640dpi, Android 8.0+) on the
   [3.21.0 release page](https://www.apkmirror.com/apk/rumble-inc/rumble/rumble-stream-watch-videos-3-21-0-release/).
@@ -144,14 +144,14 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide Shorts *(off)* | Removes Shorts from the bottom bar, Home, My Feed, channels, categories and search. Shorts links still open. |
 
 <!-- PATCHES_START -->
-> **[v1.14.3](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.14.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;127 patches total
+> **[v1.14.4](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.14.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;127 patches total
 <details>
 <summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;35 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 40.32.3 |
+| 40.32.5 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

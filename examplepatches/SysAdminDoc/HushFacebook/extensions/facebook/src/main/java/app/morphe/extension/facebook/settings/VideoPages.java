@@ -217,8 +217,10 @@ final class VideoPages {
                             + "without the switches above.")));
         }
         if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
-            reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS,
-                    L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.")));
+            reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS, null));
+            reels.addPreference(toggle(context, Settings.SHOW_REEL_DOWNLOAD_BUTTON,
+                    L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return."))
+                    .needs(Settings.DOWNLOAD_REELS));
         }
     }
 

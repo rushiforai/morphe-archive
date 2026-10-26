@@ -88,6 +88,7 @@ public final class Probe extends Instrumentation {
             throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Log.i(TAG, "newApplication " + className);
         Application application = super.newApplication(loader, className, context);
+        AutoAdvanceWatch.bootstrap(application, loader);
         listen(application);
         return application;
     }
@@ -1457,11 +1458,21 @@ public final class Probe extends Instrumentation {
                         String text = String.valueOf(loader.loadClass(
                                 "app.morphe.extension.shared.settings.preference.LogBufferManager")
                                 .getMethod("buildExportText").invoke(null));
-                        int pieces = 0;
-                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
-                            Log.i(TAG, "report[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        // ASCII frames preserve trailing newlines and cannot split a UTF-8 log entry.
+                        if (text.length() > 1_048_576) throw new IllegalStateException("report character bound");
+                        byte[] bytes = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                        if (bytes.length > 4_194_304) throw new IllegalStateException("report byte bound");
+                        String encoded = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+                        StringBuilder hash = new StringBuilder();
+                        for (byte value : java.security.MessageDigest.getInstance("SHA-256").digest(bytes)) {
+                            hash.append(Character.forDigit((value >>> 4) & 15, 16)).append(Character.forDigit(value & 15, 16));
                         }
-                        Log.i(TAG, "ok report " + text.length() + " chars in " + pieces + " pieces");
+                        int pieces = 0;
+                        for (int at = 0; at < encoded.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "report64[" + pieces + "] " + encoded.substring(at, Math.min(encoded.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok report " + text.length() + " chars in " + pieces
+                                + " pieces encoding=base64-utf8 bytes=" + bytes.length + " sha256=" + hash);
                         break;
                     }
                     case "get": {
@@ -2526,89 +2537,7 @@ public final class Probe extends Instrumentation {
                         break;
                     }
                     case "startwatch": {
-                        // How each video starts, for a stall after it begins (#150): samples the
-                        // feed player's position on the main thread every 50 ms for a while and
-                        // logs, per video, when it became current, when its position first moved,
-                        // every hold of 250 ms or more after that, every jump the position made
-                        // that playing doesn't explain, and every sample the main thread was late
-                        // for. Same holder and getter extras as playerspeed (47.5.3: -e holder
-                        // X.037e -e getter LJIILL). No id, caption or creator leaves.
-                        Method getter = loader.loadClass(required(intent, "holder"))
-                                .getDeclaredMethod(required(intent, "getter"));
-                        getter.setAccessible(true);
-                        Method current = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                .getMethod("getAweme");
-                        String secondsText = intent.getStringExtra("seconds");
-                        long until = android.os.SystemClock.uptimeMillis()
-                                + 1000L * (secondsText == null ? 25L : Long.parseLong(secondsText));
-                        long began = android.os.SystemClock.uptimeMillis();
-                        android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
-                        StringBuilder out = new StringBuilder();
-                        long[] state = {0L, -1L, -1L, -1L, -1L, 0L, 0L};
-                        // state: video identity, selected at, first move at, last position,
-                        // position unchanged since, last sample at, videos seen
-                        StringBuilder[] line = {null};
-                        Runnable sample = new Runnable() {
-                            @Override public void run() {
-                                long now = android.os.SystemClock.uptimeMillis();
-                                try {
-                                    if (state[5] > 0 && now - state[5] > 150 && line[0] != null) {
-                                        line[0].append(" late=").append(now - state[5]).append("ms@").append(now - began);
-                                    }
-                                    state[5] = now;
-                                    Object aweme = current.invoke(null);
-                                    long identity = aweme == null ? 0L : System.identityHashCode(aweme);
-                                    if (identity != state[0]) {
-                                        if (line[0] != null) out.append(line[0]).append('\n');
-                                        state[6]++;
-                                        line[0] = new StringBuilder("video ").append(state[6])
-                                                .append(" current@").append(now - began);
-                                        state[0] = identity;
-                                        state[1] = now;
-                                        state[2] = -1L;
-                                        state[3] = -1L;
-                                        state[4] = now;
-                                    }
-                                    Object player = getter.invoke(null);
-                                    if (player != null) {
-                                        Method position = player.getClass().getMethod("getCurrentPosition");
-                                        position.setAccessible(true);
-                                        long at = (Long) position.invoke(player);
-                                        if (state[3] >= 0 && at < state[3] && at < 500) {
-                                            // The next video starting over, or this one looping.
-                                            line[0].append(" restart@").append(now - began);
-                                            state[4] = now;
-                                        } else if (state[3] >= 0 && at != state[3]) {
-                                            if (state[2] < 0) {
-                                                state[2] = now;
-                                                line[0].append(" moved@").append(now - began)
-                                                        .append(" (+").append(now - state[1]).append(')');
-                                            } else if (now - state[4] >= 250) {
-                                                line[0].append(" held=").append(now - state[4]).append("ms@")
-                                                        .append(state[4] - began).append(" at ").append(state[3]);
-                                            }
-                                            long expected = now - state[4] + 150;
-                                            if (at < state[3] || at - state[3] > expected + 500) {
-                                                line[0].append(" jump ").append(state[3]).append("->").append(at)
-                                                        .append('@').append(now - began);
-                                            }
-                                            state[4] = now;
-                                        }
-                                        state[3] = at;
-                                    }
-                                } catch (Throwable error) {
-                                    if (line[0] != null) line[0].append(" err=").append(error.getClass().getSimpleName());
-                                }
-                                if (now < until) {
-                                    main.postDelayed(this, 50);
-                                } else {
-                                    if (line[0] != null) out.append(line[0]);
-                                    Log.i(TAG, "ok startwatch done\n" + out);
-                                }
-                            }
-                        };
-                        main.post(sample);
-                        Log.i(TAG, "ok startwatch until +" + (until - began) + "ms");
+                        AutoAdvanceWatch.start(loader, intent);
                         break;
                     }
                     case "holdslide": {

@@ -296,7 +296,7 @@ public final class L10n {
      * resource against the whole language list rather than the first entry alone, and reading
      * the table by hand has to do the same or a second choice language never shows.
      */
-    static List<String> tags(Context context) {
+    public static List<String> tags(Context context) {
         List<String> tags = new ArrayList<>(4);
         for (Locale locale : locales(context)) {
             String language = locale.getLanguage().toLowerCase(Locale.ROOT);

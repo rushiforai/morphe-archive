@@ -15,13 +15,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
@@ -29,6 +35,7 @@ import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.settings.Setting;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 
 /**
@@ -76,6 +83,17 @@ public final class Fonts {
     /** The chosen font for this process, null for Instagram's own, or {@link #UNREAD} until read. */
     private static final Object UNREAD = new Object();
     private static volatile Object chosen = UNREAD;
+    private static volatile boolean fileRestartPending;
+    private static final class ImportProcess {
+        static final String ID = UUID.randomUUID().toString();
+    }
+    private static long importSequence, importing;
+    private static final List<Runnable> importWatchers = new ArrayList<>();
+    private static final Map<File, Object> stagingLocks = new ConcurrentHashMap<>();
+    private static final Set<File> recoveredDirectories = ConcurrentHashMap.newKeySet();
+    private static final String TRANSACTION = ".font-transaction.tmp", PREVIOUS = ".font-previous.tmp";
+    private static final String WRITING = ".font-transaction-writing.tmp";
+    private static final int TRANSACTION_MAGIC = 0x48474631;
 
     /**
      * The picked file's size and time when it was read for this process, null before, without one, or
@@ -298,7 +316,7 @@ public final class Fonts {
         Context context = Utils.getContext();
         if (context == null) return null;
         File file = kept(context);
-        if (!file.isFile()) return null;
+        if (!readyForRead(file.getParentFile()) || !file.isFile()) return null;
         try {
             String mark = Long.toString(file.length(), 36) + "x" + Long.toString(file.lastModified(), 36);
             Typeface loaded = loader.load(file);
@@ -357,6 +375,55 @@ public final class Fonts {
         return keep(input, kept(context));
     }
 
+    /** The process that owns a pending picker; revisions from another process are not comparable. */
+    public static String importProcess() { return ImportProcess.ID; }
+
+    /** One font copy owns the process until its staged file has either landed or been removed. */
+    public static synchronized long beginImport() {
+        if (!Utils.isMainProcess() || importing != 0 || importSequence == Long.MAX_VALUE) return 0;
+        importing = ++importSequence;
+        notifyImports();
+        return importing;
+    }
+
+    public static synchronized boolean ownsImport(long token) { return token != 0 && importing == token; }
+
+    public static synchronized boolean importActive() { return importing != 0; }
+
+    public static synchronized void finishImport(long token) {
+        if (!ownsImport(token)) return;
+        importing = 0;
+        notifyImports();
+    }
+
+    public static synchronized void watchImports(Runnable watcher) {
+        if (!importWatchers.contains(watcher)) importWatchers.add(watcher);
+    }
+
+    public static synchronized void unwatchImports(Runnable watcher) { importWatchers.remove(watcher); }
+
+    private static void notifyImports() {
+        for (Runnable watcher : new ArrayList<>(importWatchers)) Utils.runOnMainThread(watcher);
+    }
+
+    /** A replacement file needs a restart even when the selected enum remains FILE. */
+    public static void fileInstalled() { fileRestartPending = true; }
+
+    public static boolean restartPending() {
+        return fileRestartPending && Settings.FONT.savedValue() == FontChoice.FILE;
+    }
+
+    /** Validates a font without touching the installed file. The caller still owns [input]. */
+    @Nullable
+    public static Prepared prepare(Context context, InputStream input) {
+        return prepare(input, kept(context).getParentFile());
+    }
+
+    /** Prepares the rollback copy without changing the installed font. Off the main thread. */
+    public static boolean prepareInstall(Context context, Prepared prepared) {
+        return prepared.prepareTarget(kept(context));
+    }
+
     /**
      * Copies [input] to [target] if it's a font that loads, the way {@link #store} keeps the picked
      * font, in place of any file there. Answers false, keeping what was there, for a file too big,
@@ -364,10 +431,24 @@ public final class Fonts {
      * files this way too. Off the main thread.
      */
     public static boolean keep(InputStream input, File target) {
-        File directory = target.getParentFile();
-        File temporary = new File(directory, target.getName() + ".tmp");
+        try (Prepared prepared = prepare(input, target.getParentFile())) {
+            if (prepared == null || !prepared.prepareTarget(target) || !prepared.install()) return false;
+            return prepared.accept();
+        }
+    }
+
+    /** The stage is unique, so even independent callers cannot share a partial file. */
+    @Nullable
+    public static Prepared prepare(InputStream input, File directory) {
+        if (!Utils.isMainProcess()) return null;
+        File temporary = null;
+        boolean ready = false;
         try {
             if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("Couldn't make " + directory.getName());
+            synchronized (stagingLocks.computeIfAbsent(directory, ignored -> new Object())) {
+                readyForRead(directory);
+                temporary = File.createTempFile("font-import-", ".tmp", directory);
+            }
             byte[] start = new byte[4];
             int read = 0;
             long total = 0;
@@ -375,24 +456,214 @@ public final class Fonts {
                 byte[] buffer = new byte[64 * 1024];
                 int count;
                 while ((count = input.read(buffer)) != -1) {
+                    if (count == 0) throw new IOException("The font provider returned no bytes");
                     total += count;
-                    if (total > MOST_BYTES) return false;
+                    if (total > MOST_BYTES) return null;
                     for (int i = 0; i < count && read < start.length; i++) start[read++] = buffer[i];
                     output.write(buffer, 0, count);
                 }
                 output.getFD().sync();
             }
-            if (read < start.length || !startsLikeAFont(start)) return false;
+            if (read < start.length || !startsLikeAFont(start)) return null;
             Typeface loaded = loader.load(temporary);
-            if (loaded == null) return false;
-            Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            return true;
+            if (loaded == null) return null;
+            ready = true;
+            return new Prepared(temporary);
         } catch (Exception failure) {
             Logger.printInfo(() -> "Font: the picked file wasn't kept", failure);
-            return false;
+            return null;
         } finally {
-            if (temporary.exists() && !temporary.delete()) Logger.printInfo(() -> "Font: couldn't remove the partial copy");
+            if (!ready) discard(temporary);
         }
+    }
+
+    /** A validated private stage. Closing an unaccepted installation restores its previous file. */
+    public static final class Prepared implements AutoCloseable {
+        private final File temporary;
+        @Nullable private File target, backup, journal;
+        private boolean installed, accepted;
+
+        private Prepared(File temporary) { this.temporary = temporary; }
+
+        /** Copies the previous file before final authorization, without moving it out of the way. */
+        public boolean prepareTarget(File destination) {
+            if (target != null || !temporary.getParentFile().equals(destination.getParentFile())) return false;
+            try {
+                File previous = new File(destination.getParentFile(), destination.getName() + PREVIOUS);
+                File transaction = new File(destination.getParentFile(), destination.getName() + TRANSACTION);
+                if (transaction.exists() || previous.exists()) return false;
+                if (destination.exists()) {
+                    backup = previous;
+                    Files.copy(destination.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+                target = destination;
+                return true;
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Font: couldn't prepare the previous file", failure);
+                return false;
+            }
+        }
+
+        /** A durable marker connects a live-file rename to the setting that makes it usable. */
+        public boolean recordSetting(Setting<?> setting, Object expected) {
+            if (target == null || installed || accepted) return false;
+            File writing = new File(target.getParentFile(), target.getName() + WRITING);
+            journal = new File(target.getParentFile(), target.getName() + TRANSACTION);
+            try {
+                try (FileOutputStream output = new FileOutputStream(writing);
+                     DataOutputStream data = new DataOutputStream(output)) {
+                    data.writeInt(TRANSACTION_MAGIC);
+                    data.writeUTF(target.getName());
+                    data.writeUTF(setting.key);
+                    data.writeUTF(expected.toString());
+                    data.writeBoolean(backup != null);
+                    data.flush();
+                    output.getFD().sync();
+                }
+                Files.move(writing.toPath(), journal.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+                return true;
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Font: couldn't record the prepared installation", failure);
+                discard(writing);
+                discard(journal);
+                journal = null;
+                return false;
+            }
+        }
+
+        /** The only live-file mutation. Call after the provider closes and final authorization passes. */
+        public boolean install() {
+            if (target == null || installed || accepted) return false;
+            installed = true;
+            try {
+                Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+                return true;
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Font: couldn't install the prepared file", failure);
+                return false;
+            }
+        }
+
+        /** Removing the pending marker is the commit point. A refused delete must still roll back. */
+        public boolean accept() {
+            try {
+                if (journal != null) Files.deleteIfExists(journal.toPath());
+                accepted = true;
+                return true;
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Font: couldn't commit the prepared file", failure);
+                return false;
+            }
+        }
+
+        public boolean rollback() {
+            if (!installed || accepted) return true;
+            File destination = target;
+            if (destination == null) return false;
+            try {
+                if (backup == null) Files.deleteIfExists(destination.toPath());
+                else restorePrevious(backup, destination);
+                installed = false;
+                return true;
+            } catch (Exception failure) {
+                Logger.printException(() -> "Font: couldn't restore the previous file", failure);
+                return false;
+            }
+        }
+
+        @Override public void close() {
+            if (!rollback()) return;
+            discard(temporary);
+            discard(journal);
+            if (journal == null || !journal.exists()) discard(backup);
+        }
+    }
+
+    /**
+     * Recover before the first read as well as the first import. Never recover a transaction owned
+     * by this process, or mutate files from a secondary process. An unresolved marker hides its
+     * directory until the main process can recover it.
+     */
+    public static boolean readyForRead(File directory) {
+        synchronized (stagingLocks.computeIfAbsent(directory, ignored -> new Object())) {
+            if (!recoveredDirectories.contains(directory)) {
+                if (Utils.isMainProcess()) recoverStages(directory);
+                recoveredDirectories.add(directory);
+            }
+            File[] pending = directory.listFiles((parent, name) -> name.endsWith(TRANSACTION));
+            return pending == null ? !directory.exists() : pending.length == 0;
+        }
+    }
+
+    private static void recoverStages(File directory) {
+        File[] files = directory.listFiles();
+        if (files == null) return;
+        for (File file : files) if (file.getName().endsWith(TRANSACTION)) recoverTransaction(file);
+        for (File file : files) {
+            if (!file.isFile()) continue;
+            String name = file.getName();
+            if (name.startsWith("font-import-") && name.endsWith(".tmp") || name.endsWith(WRITING)) discard(file);
+            else if (name.endsWith(PREVIOUS)) {
+                String target = name.substring(0, name.length() - PREVIOUS.length());
+                if (!new File(directory, target + TRANSACTION).exists()) discard(file);
+            }
+        }
+    }
+
+    /** An unknown marker is retained with its backup. It must never authorize deleting a live font. */
+    private static void recoverTransaction(File journal) {
+        String name, key, expected;
+        boolean hadPrevious;
+        try (DataInputStream input = new DataInputStream(new FileInputStream(journal))) {
+            if (input.readInt() != TRANSACTION_MAGIC) return;
+            name = input.readUTF();
+            key = input.readUTF();
+            expected = input.readUTF();
+            hadPrevious = input.readBoolean();
+            if (input.read() != -1 || name.isEmpty() || name.startsWith(".") || name.endsWith(".tmp")
+                    || name.indexOf('/') >= 0 || name.indexOf('\\') >= 0 || name.indexOf(':') >= 0
+                    || !new File(name).getName().equals(name)
+                    || !journal.getName().equals(name + TRANSACTION)) return;
+        } catch (Exception failure) {
+            Logger.printInfo(() -> "Font: couldn't read a previous installation", failure);
+            return;
+        }
+        try {
+            Setting<?> setting = key.equals(Settings.FONT.key) ? Settings.FONT
+                    : key.equals(Settings.STORY_FONTS.key) ? Settings.STORY_FONTS
+                    : key.equals(Settings.STORY_EMOJI.key) ? Settings.STORY_EMOJI : null;
+            if (setting == null) return;
+            if (!(setting == Settings.FONT ? FontChoice.FILE.name() : "true").equals(expected)) return;
+            File target = new File(journal.getParentFile(), name);
+            File previous = new File(journal.getParentFile(), name + PREVIOUS);
+            // FILE/true may predate the import, so the option cannot prove that this file committed.
+            // A crash before accepted cleanup can retain the old file even after the option saved.
+            // Preferences may have changed since then; recovery must never restore their old values.
+            if (previous.isFile()) restorePrevious(previous, target);
+            else if (!hadPrevious) Files.deleteIfExists(target.toPath());
+            else return;
+            discard(journal);
+            if (!journal.exists()) discard(previous);
+        } catch (Exception failure) {
+            Logger.printInfo(() -> "Font: couldn't recover a previous installation", failure);
+        }
+    }
+
+    private static void restorePrevious(File previous, File target) throws IOException {
+        File restored = File.createTempFile("font-import-", ".tmp", target.getParentFile());
+        try {
+            Files.copy(previous.toPath(), restored.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.move(restored.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            discard(restored);
+        }
+    }
+
+    private static void discard(@Nullable File file) {
+        if (file != null && file.exists() && !file.delete()) Logger.printInfo(() -> "Font: couldn't remove the partial copy");
     }
 
     /** TrueType (0x00010000 or 'true'), OpenType with CFF outlines ('OTTO') or a collection ('ttcf'). */
@@ -404,6 +675,13 @@ public final class Fonts {
     /** Takes back what this process read, for a test. */
     static void resetForTests() {
         chosen = UNREAD;
+        fileRestartPending = false;
+        synchronized (Fonts.class) {
+            importing = 0;
+            importWatchers.clear();
+        }
+        recoveredDirectories.clear();
+        stagingLocks.clear();
         fileMark = null;
         OURS.clear();
         WEIGHTS.clear();

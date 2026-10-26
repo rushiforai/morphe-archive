@@ -1,6 +1,7 @@
 package app.morphe.extension.facebook.download;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -57,6 +58,29 @@ public class StoryOverlayVideoTest {
         assertEquals("story_overlays".hashCode(), StoryOverlayVideo.STORY_OVERLAYS);
         assertEquals("fb_shorts_story".hashCode(), StoryOverlayVideo.FB_SHORTS_STORY);
         assertEquals("playlist".hashCode(), StoryOverlayVideo.PLAYLIST);
+    }
+
+    @Test
+    public void releasedVideoAndAttachmentMediaAreNotRead() {
+        TreeJNI video = new TreeJNI().with("playlist", MANIFEST).releasedTree();
+        TreeJNI media = new TreeJNI().with("playlist", MANIFEST).with("playable_url", CLIP).releasedTree();
+        TreeJNI reel = new TreeJNI()
+                .with("short_form_video_context", new TreeJNI().with("video", video))
+                .with("attachments", Collections.singletonList(new TreeJNI().with("media", media)));
+        assertNull(StoryOverlayVideo.in(new Card(story(new TreeJNI().with("fb_shorts_story", reel)))));
+        assertFalse(video.readAfterRelease);
+        assertFalse(media.readAfterRelease);
+    }
+
+    @Test
+    public void aLiveOverlayAddressStillWorksWhenItsNestedVideoWasReleased() {
+        TreeJNI video = new TreeJNI().with("playlist", MANIFEST).releasedTree();
+        TreeJNI reel = new TreeJNI().with("short_form_video_context", new TreeJNI().with("video", video));
+        StoryOverlayVideo found = StoryOverlayVideo.in(new Card(story(new TreeJNI()
+                .with("fb_shorts_story", reel).with("playable_url", CLIP))));
+        assertNotNull(found);
+        assertEquals(CLIP, found.url);
+        assertFalse(video.readAfterRelease);
     }
 
     @Test

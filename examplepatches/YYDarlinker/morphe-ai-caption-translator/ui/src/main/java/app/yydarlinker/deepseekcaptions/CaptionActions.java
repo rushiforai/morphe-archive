@@ -100,8 +100,7 @@ final class CaptionActions {
     }
 
     /**
-     * Stops the display because the user turned captions off. The session intent is written by the
-     * reconciler before this command; the command itself only ends the visible session.
+     * Records official CC off and stops the display, preserving the AI switch and language.
      */
     static void deactivateByUser() {
         command(Action.DEACTIVATE, "user_off");

@@ -1,0 +1,8 @@
+{
+  "config_url": "https://static-cdn.camscanner.com/camscanner-mo/static/config-DAocHWAW.js",
+  "config_sha256": "9597fe0381c43bd0235b59f2918d938e939897f54887bde5174b667c08e4796c",
+  "page_source": "function Vt(e,t){N=e||Nt||\"/\",t?t.device_fingerprint=localStorage.getItem(\"visitorId\")?localStorage.getItem(\"visitorId\"):\"\":t={device_fingerprint:localStorage.getItem(\"visitorId\")?localStorage.getItem(\"visitorId\"):\"\"},t.from||(t.from=he),t.from_part||(t.from_part=Xe),de?y.event_tracking({data:{type:\"page\",page_id:e,data:t},close_web:\"0\"}):Se({d:t?JSON.stringify(t):\"\",pi:N})}",
+  "page_sha256": "7a57034da2bcebb963ec05ff93a8a6fc7454142d4781fa6f0457908ea631822b",
+  "preload_source": "(u,p)=>{u=u||{};const g=Ct();p&&(p.actionId=i,ge[g]=p);const l=u.data||{};l.animation===1||l.animation===\"1\"||l.animation===!0?l.animation=\"1\":l.animation=\"0\";const I=u.close_web===1||u.close_web===\"1\"||u.close_web===!0?\"1\":\"0\",P={id:g,action:i,data:l,close_web:I};se(\"create--\".concat(i)),[\"save_img\",\"choose_single_image\"].includes(i)?U(\"api data::\"+JSON.stringify({id:P.id,action:P.action,close_web:P.close_web})):U(\"api data::\"+JSON.stringify(P)),r&&r(P)}",
+  "preload_sha256": "a5009214038cc7e1967d027ab23af72adefdf0084105ce25a88f868eeb9687e9"
+}

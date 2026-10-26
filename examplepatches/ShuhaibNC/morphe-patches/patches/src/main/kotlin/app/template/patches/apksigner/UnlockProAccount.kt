@@ -10,7 +10,7 @@ import app.template.patches.shared.clearBody
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
-    name = "APK Signer Unlock Pro",
+    name = "Unlock Pro",
     description = "Unlocks Pro and remove ads from APK Signer.",
     default = true
 ) {

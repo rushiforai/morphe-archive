@@ -47,25 +47,45 @@ def reconcile_archive(root, inventory, release_sets):
         if isinstance(settings, dict) and settings.get("patches"):
             url = normalize_source(settings["patches"], root)
             configured[url.lower()] = url
+    previous_releases = {k: dict(v) for k, v in archive["releases"].items()}
     for canonical, url in configured.items():
+        previous_state = dict(archive["sources"].get(canonical, {}))
         source_id = hashlib.sha256(canonical.encode()).hexdigest()[:16]
         state = archive["sources"].setdefault(canonical, {})
-        state.update(source_id=source_id, source_url=url, checked_at=now, configured=True)
-        state["required"] = not any(
+        state.update(source_id=source_id, source_url=url, configured=True)
+        required = not any(
             settings.get("disabled", False)
             for settings in inventory.values()
             if isinstance(settings, dict)
             and settings.get("patches")
             and normalize_source(settings["patches"], root).lower() == canonical
         )
-        if not state["required"]:
+        state["required"] = required
+        if not required:
             state.update(status="disabled", error="Explicitly disabled in sources.json")
+            if (
+                previous_state.get("status") == "disabled"
+                and previous_state.get("required") is False
+                and "checked_at" in previous_state
+            ):
+                state["checked_at"] = previous_state["checked_at"]
+            else:
+                state["checked_at"] = now
             continue
         releases = release_sets.get(canonical)
         if releases is None:
             reason = availability.get(canonical)
             error = "Complete upstream inventory unavailable"
-            state.update(status="incomplete", error=f"{error}: {reason}" if reason else error)
+            error_msg = f"{error}: {reason}" if reason else error
+            state.update(status="incomplete", error=error_msg)
+            if (
+                previous_state.get("status") == "incomplete"
+                and previous_state.get("error") == error_msg
+                and "checked_at" in previous_state
+            ):
+                state["checked_at"] = previous_state["checked_at"]
+            else:
+                state["checked_at"] = now
             continue
         seen = set()
         # API providers can replace Git release IDs with version-only records.
@@ -183,14 +203,36 @@ def reconcile_archive(root, inventory, release_sets):
                 }:
                     record["last_verified_at"] = previous.get("last_verified_at", now)
             archive["releases"][identity] = record
+        releases_changed = False
         for identity, record in archive["releases"].items():
-            if (
-                record["source_id"] == source_id
-                and identity not in seen
-                and record.get("availability") != "unavailable"
-            ):
-                record.update(availability="unavailable", last_verified_at=now)
-        state.update(status="complete", error=None, verified_at=now, upstream_count=len(seen))
+            if record["source_id"] == source_id:
+                if identity not in seen and record.get("availability") != "unavailable":
+                    record.update(availability="unavailable", last_verified_at=now)
+                    releases_changed = True
+                elif identity in seen:
+                    prev_rec = previous_releases.get(identity)
+                    if prev_rec is None:
+                        releases_changed = True
+                    else:
+                        ignored = {"first_seen_at", "last_verified_at"}
+                        if {k: v for k, v in record.items() if k not in ignored} != {
+                            k: v for k, v in prev_rec.items() if k not in ignored
+                        }:
+                            releases_changed = True
+        state.update(status="complete", error=None, upstream_count=len(seen))
+        if (
+            not releases_changed
+            and previous_state.get("status") == "complete"
+            and previous_state.get("error") is None
+            and previous_state.get("upstream_count") == len(seen)
+            and "checked_at" in previous_state
+            and "verified_at" in previous_state
+        ):
+            state["checked_at"] = previous_state["checked_at"]
+            state["verified_at"] = previous_state["verified_at"]
+        else:
+            state["checked_at"] = now
+            state["verified_at"] = now
     archive["sources"] = {key: row for key, row in archive["sources"].items() if key in configured}
     archive["releases"] = {
         key: row

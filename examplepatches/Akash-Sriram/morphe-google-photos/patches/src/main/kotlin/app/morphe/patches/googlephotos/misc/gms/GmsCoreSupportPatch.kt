@@ -360,6 +360,29 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
                 }
             }
         }
+
+        // 8) Bypass concurrent permission request crash guard (Cannot request permissions X when already requested Y)
+        val permCoordMethod = PermissionCoordinatorRequestPermissionsFingerprint.methodOrNull
+        if (permCoordMethod != null) {
+            val mutableClass = mutableClassDefBy(permCoordMethod.definingClass)
+            val mutableMethod = mutableClass.findMutableMethodOf(permCoordMethod)
+            val instructions = permCoordMethod.implementation?.instructions?.toList()
+            if (instructions != null) {
+                val sizeIndex = instructions.indexOfFirst {
+                    it.opcode == Opcode.INVOKE_VIRTUAL &&
+                        (it as? ReferenceInstruction)?.reference?.toString()?.contains("SparseArray;->size()I") == true
+                }
+                if (sizeIndex != -1) {
+                    val branchRel = instructions.drop(sizeIndex).indexOfFirst {
+                        it.opcode.name.startsWith("if-")
+                    }
+                    if (branchRel != -1) {
+                        val branchIndex = sizeIndex + branchRel
+                        mutableMethod.replaceInstruction(branchIndex, "nop")
+                    }
+                }
+            }
+        }
     },
     finalizeBlock = {
         if (PackageNameConfig.isPackageNameChangeEnabled) {

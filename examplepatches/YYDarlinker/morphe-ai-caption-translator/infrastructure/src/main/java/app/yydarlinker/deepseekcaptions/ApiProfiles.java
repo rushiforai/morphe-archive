@@ -42,6 +42,14 @@ final class ApiProfiles {
         /** Writes the edits; false if they are invalid and the profile must not change. */
         boolean flushProfile();
 
+        /** Whether the most recent flush committed a new value before returning. */
+        default boolean flushChanged() {
+            return false;
+        }
+
+        /** Persistence completed but a subsequent runtime notification failed. */
+        default void configurationRefreshFailed() {}
+
         void profileChanged();
     }
 
@@ -102,8 +110,15 @@ final class ApiProfiles {
 
     static String active(Context context) {
         synchronized (LOCK) {
-            return index(context).getString(ACTIVE, LEGACY);
+            String id = activeSnapshot(context);
+            if (!list(context).containsKey(id)) throw new ConfigRead.Failure();
+            return id;
         }
+    }
+
+    /** An atomic id read for diagnostic redaction; does not wait behind credential decryption. */
+    static String activeSnapshot(Context context) {
+        return ConfigRead.string(index(context), ACTIVE, LEGACY);
     }
 
     /** The store of one profile. */
@@ -119,9 +134,15 @@ final class ApiProfiles {
     /** The names of the profiles other than the first, by id. */
     private static JSONObject names(Context context) {
         try {
-            return new JSONObject(index(context).getString(NAMES, "{}"));
+            JSONObject result = new JSONObject(ConfigRead.string(index(context), NAMES, "{}"));
+            for (Iterator<String> ids = result.keys(); ids.hasNext(); ) {
+                String id = ids.next();
+                if (id.isEmpty() || !(result.get(id) instanceof String))
+                    throw new ConfigRead.Failure();
+            }
+            return result;
         } catch (JSONException invalid) {
-            throw new IllegalStateException("Invalid saved API profiles", invalid);
+            throw new ConfigRead.Failure();
         }
     }
 
@@ -137,7 +158,7 @@ final class ApiProfiles {
     static LinkedHashMap<String, String> list(Context context) {
         synchronized (LOCK) {
             LinkedHashMap<String, String> result = new LinkedHashMap<>();
-            if (!index(context).getBoolean(LEGACY_DELETED, false))
+            if (!ConfigRead.bool(index(context), LEGACY_DELETED, false))
                 result.put(LEGACY, CaptionStrings.get(context, "profile_default"));
             JSONObject names = names(context);
             for (Iterator<String> ids = names.keys(); ids.hasNext(); ) {
@@ -196,27 +217,79 @@ final class ApiProfiles {
     // ---- Switching ----
 
     static boolean flushCurrent() {
-        return flush(false);
+        return flush(false, true).accepted;
     }
 
     static boolean flushExceptKey() {
-        return flush(true);
+        return flush(true, true).accepted;
     }
 
-    /** Asks the editors to write their edits; stops at the first that refuses. */
-    private static boolean flush(boolean skipKey) {
+    private static final class FlushResult {
+        final boolean accepted, changed;
+
+        FlushResult(boolean accepted, boolean changed) {
+            this.accepted = accepted;
+            this.changed = changed;
+        }
+    }
+
+    /** Direct saves notify here; selection owns the one final notification on success. */
+    private static FlushResult flush(boolean skipKey, boolean notifySuccess) {
+        boolean changed = false;
+        Context refreshContext = null;
+        RuntimeException failure = null;
+        Error fatal = null;
+        boolean result = true;
+        List<Editor> live = liveEditors();
+        for (Editor editor : live) {
+            if (refreshContext == null && editor instanceof Preference)
+                refreshContext = ((Preference) editor).getContext();
+        }
         flushing = true;
         try {
-            for (Editor editor : liveEditors()) {
+            for (Editor editor : live) {
                 boolean keyField =
                         editor instanceof Preference
                                 && DeepSeekTextPreference.KEY_API_KEY.equals(
                                         ((Preference) editor).getKey());
-                if (!(skipKey && keyField) && !editor.flushProfile()) return false;
+                if (skipKey && keyField) continue;
+                boolean accepted;
+                try {
+                    accepted = editor.flushProfile();
+                } finally {
+                    changed |= editor.flushChanged();
+                }
+                if (!accepted) {
+                    result = false;
+                    break;
+                }
             }
-            return true;
+        } catch (RuntimeException error) {
+            failure = error;
+            result = false;
+        } catch (Error error) {
+            fatal = error;
+            result = false;
         } finally {
             flushing = false;
+        }
+        if (changed && (!result || notifySuccess))
+            refreshSavedConfiguration(refreshContext, fatal != null ? fatal : failure);
+        if (fatal != null) throw fatal;
+        if (failure != null) throw failure;
+        return new FlushResult(result, changed);
+    }
+
+    private static void refreshSavedConfiguration(Context context, Throwable original) {
+        try {
+            CaptionActions.refreshConfiguration(context);
+        } catch (RuntimeException | Error notification) {
+            for (Editor editor : liveEditors()) {
+                if (editor.flushChanged()) editor.configurationRefreshFailed();
+            }
+            // The saved data remains saved; preserve a preceding editor/switch failure as primary.
+            if (original == null) throw notification;
+            if (original != notification) original.addSuppressed(notification);
         }
     }
 
@@ -224,24 +297,64 @@ final class ApiProfiles {
     static boolean select(Context context, String id) {
         synchronized (LOCK) {
             if (!list(context).containsKey(id)) throw unknown();
-            if (id.equals(active(context))) return true;
+            // A valid index still allows an explicit selection when active itself is corrupt.
+            try {
+                if (id.equals(active(context))) return true;
+            } catch (ConfigRead.Failure unreadableActive) {
+                // Do not guess a replacement. The caller supplied this validated target.
+            }
         }
         // The edits are written while the old profile is still active.
-        if (!flushCurrent()) return false;
-        synchronized (LOCK) {
-            index(context).edit().putString(ACTIVE, id).apply();
+        FlushResult saved = flush(false, false);
+        if (!saved.accepted) return false;
+        boolean selected = false;
+        Throwable failure = null;
+        try {
+            try {
+                synchronized (LOCK) {
+                    index(context).edit().putString(ACTIVE, id).apply();
+                }
+            } catch (RuntimeException | Error writeFailure) {
+                // apply can notify a listener after changing the in-process value. Revoke the old
+                // binding if that happened, without claiming disk persistence or swallowing failure.
+                try {
+                    selected = id.equals(active(context));
+                    if (selected) profileChanged(context);
+                } catch (RuntimeException | Error rebindFailure) {
+                    if (writeFailure != rebindFailure) writeFailure.addSuppressed(rebindFailure);
+                }
+                throw writeFailure;
+            }
+            selected = true;
+            profileChanged(context);
+        } catch (RuntimeException | Error error) {
+            failure = error;
+            throw error;
+        } finally {
+            // Even a failed switch/rebind must not swallow fields already saved by this flush.
+            if (saved.changed || selected) refreshSavedConfiguration(context, failure);
         }
-        changed(context);
         return true;
     }
 
     static void changed(Context context) {
+        Throwable failure = null;
+        try {
+            profileChanged(context);
+        } catch (RuntimeException | Error error) {
+            failure = error;
+            throw error;
+        } finally {
+            refreshSavedConfiguration(context, failure);
+        }
+    }
+
+    private static void profileChanged(Context context) {
         synchronized (LOCK) {
             revision++;
         }
         for (Editor editor : liveEditors()) editor.profileChanged();
         DeepSeekModelPreference.onCredentialsChanged(context);
-        CaptionActions.refreshConfiguration(context);
     }
 
     // ---- Removing ----
@@ -251,7 +364,9 @@ final class ApiProfiles {
      * store with them, so only its own entries are removed.
      */
     static void delete(Context context, String id) {
-        boolean wasActive;
+        boolean wasActive = false, attempted = false;
+        Throwable failure = null;
+        try {
         synchronized (LOCK) {
             LinkedHashMap<String, String> saved = list(context);
             if (!saved.containsKey(id)) throw unknown();
@@ -261,6 +376,7 @@ final class ApiProfiles {
             saved.remove(id);
             JSONObject names = names(context);
             names.remove(id);
+            attempted = true;
             saveNames(
                     context,
                     names,
@@ -273,17 +389,48 @@ final class ApiProfiles {
             else store.clear();
             store.apply();
         }
-        // The edits of a deleted profile must not be written back into it.
-        if (wasActive) changed(context);
+        } catch (RuntimeException | Error error) {
+            failure = error;
+            throw error;
+        } finally {
+            if (wasActive && attempted) {
+                try {
+                    // Partial deletion must also revoke the removed active profile. No repair or
+                    // cleanup of the remaining stores is attempted here.
+                    if (!id.equals(activeSnapshot(context))) changed(context);
+                } catch (RuntimeException | Error notification) {
+                    if (failure == null) throw notification;
+                    if (failure != notification) failure.addSuppressed(notification);
+                }
+            }
+        }
     }
 
     /** Forgets the key of one profile. */
     static void clearKey(Context context, String id) {
+        boolean wasActive = false, existed = false, cleared = false;
+        Throwable failure = null;
+        try {
         synchronized (LOCK) {
             // A confirmation that is out of date must not touch another profile.
             if (!list(context).containsKey(id)) return;
+            wasActive = id.equals(active(context));
+            existed = SecureApiKey.hasStoredEntries(context, id);
             SecureApiKey.clear(context, id);
+            cleared = true;
         }
-        if (id.equals(active(context))) changed(context);
+        } catch (RuntimeException | Error error) {
+            failure = error;
+            throw error;
+        } finally {
+            if (wasActive && (cleared || (existed && !SecureApiKey.hasStoredEntries(context, id)))) {
+                try {
+                    changed(context);
+                } catch (RuntimeException | Error notification) {
+                    if (failure == null) throw notification;
+                    if (failure != notification) failure.addSuppressed(notification);
+                }
+            }
+        }
     }
 }

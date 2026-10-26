@@ -1,0 +1,51 @@
+name: Export Android patch toolchain (no proprietary APK)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/toolchain-export.yml']
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4
+      - name: Download Morphe Desktop stable and Android SDK signing tools
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/export/android/lib"
+          gh release download v1.19.0 --repo MorpheApp/morphe-desktop \
+            --pattern '*-all.jar' --dir "$RUNNER_TEMP/export"
+          test -s "$(find "$RUNNER_TEMP/export" -name '*-all.jar' -print -quit)"
+          sdkmanager --install 'build-tools;35.0.0'
+          cp "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" "$RUNNER_TEMP/export/android/"
+          cp "$ANDROID_SDK_ROOT/build-tools/35.0.0/lib/apksigner.jar" "$RUNNER_TEMP/export/android/lib/"
+          cp "$ANDROID_SDK_ROOT/build-tools/35.0.0/zipalign" "$RUNNER_TEMP/export/android/"
+          chmod +x "$RUNNER_TEMP/export/android/"{apksigner,zipalign}
+          mkdir -p "$RUNNER_TEMP/export/verification/tests" "$RUNNER_TEMP/export/verification/scripts"
+          cp tests/VerifyDinamicXNativeLabels.java tests/AnalyzeDinamicXRoutes.java "$RUNNER_TEMP/export/verification/tests/"
+          cp scripts/triage_apk_variants.py scripts/inspect_native_elf.py \
+            scripts/inspect_mytaobao_templates.py \
+            "$RUNNER_TEMP/export/verification/scripts/"
+          git rev-parse HEAD > "$RUNNER_TEMP/export/verification/source-commit.txt"
+          java -version
+          "$RUNNER_TEMP/export/android/apksigner" --version || true
+          sha256sum "$RUNNER_TEMP/export/"*-all.jar "$RUNNER_TEMP/export/android/apksigner" "$RUNNER_TEMP/export/android/lib/apksigner.jar" "$RUNNER_TEMP/export/android/zipalign" \
+            | tee "$RUNNER_TEMP/export/checksums.txt"
+      - name: Export verified open-source toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: taobaolingo-tools-morphe119-sdk35
+          path: ${{ runner.temp }}/export/
+          if-no-files-found: error
+          retention-days: 1

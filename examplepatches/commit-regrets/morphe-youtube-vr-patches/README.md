@@ -6,7 +6,7 @@ Patches for YouTube VR (Meta Quest / Horizon OS), for use with
 ## ❓ About
 
 Patches for the YouTube VR app for Meta Quest (`com.google.android.apps.youtube.vr.oculus`), pinned to
-**1.88.10**. R8 reassigns every name per release, so a store update needs re-fingerprinting and an
+**1.89.09** and **1.88.10**. R8 reassigns every name per release, so a store update needs re-fingerprinting and an
 unlisted version is *skipped*, not failed — see [docs/VERSIONING.md](docs/VERSIONING.md) and
 [docs/FINGERPRINTS.md](docs/FINGERPRINTS.md).
 
@@ -138,15 +138,15 @@ override the patch options, which stay the defaults. The streaming spoof and the
 rather than a switch.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.27.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.27.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.28.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.28.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 YouTube VR&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.88.10 |
-| :---: |
+| 1.89.09 | 1.88.10 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -179,7 +179,7 @@ rather than a switch.
 | **[REA](https://github.com/morluto/rea)** *(optional)* | reverse-engineering toolkit: device integration and APK/JADX analysis | `PATH` |
 | **`gh`** *(optional)* | checking CI runs and releases | `PATH` |
 
-You also need a **stock YouTube VR 1.88.10 APK** as the input; this repository does not ship one, and
+You also need a **stock YouTube VR 1.89.09 or 1.88.10 APK** as the input; this repository does not ship one, and
 the build's first run needs network access to resolve the patcher dependency. The headset-only recipes
 (wireless adb, capturing the screen without wearing it) are in [AGENTS.md](AGENTS.md#device-access),
 along with one honest caveat: `rea capture-adb-screen` did not work in this environment, so the
@@ -187,7 +187,13 @@ screenshots this repository's notes refer to came from plain `adb`.
 
 ### 🛠️ Building locally
 
-- Run `./gradlew buildAndroid`
+- Run `./gradlew buildAndroid` — this also runs Spotless, detekt and the JUnit suite in
+  `patches/src/test` (the SponsorBlock decision logic, the settings-XML restructure against both
+  patcher hosts' layouts, the log gate).
+- Before pushing, run the headless patch-run gate against every stock APK in `apk/`:
+  `pwsh -NoProfile -File scripts/check-apk.ps1`. It patches each APK with the current bundle
+  (no device, no install) and fails on any patch failure or audit finding — this is how a
+  fingerprint that no longer matches shows up in minutes instead of at install time.
 - The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
 - Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop) like any other patch bundle.
 

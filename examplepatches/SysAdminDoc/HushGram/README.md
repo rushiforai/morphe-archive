@@ -1,11 +1,11 @@
 ![HushGram. Keep the moments. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.16-E1306C" alt="Version 0.0.16">
+  <img src="https://img.shields.io/badge/version-0.0.17-E1306C" alt="Version 0.0.17">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-452.1.0.53.64-E1306C" alt="Instagram 452.1.0.53.64">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.0.0%2B-8A2BE2" alt="For Morphe Manager 2.0.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.2.0%2B-8A2BE2" alt="For Morphe Manager 2.2.0 or newer">
 </p>
 
 <p align="center">
@@ -26,13 +26,15 @@ Most switches start off, so a freshly patched Instagram looks like Instagram unt
 
 The latest release is [v0.0.16](https://github.com/SysAdminDoc/HushGram/releases/tag/v0.0.16), with 117 patches. Add it to Morphe Manager with [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram).
 
+The source on main is HushGram v0.0.17. It hasn't been released yet.
+
 What changed in each version is in the [changelog](CHANGELOG.md).
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.0.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.2.0 or newer.
 2. Add HushGram as a patch source by opening [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram) on your phone. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushGram`. Use HushGram as your only Instagram source, since mixing in another one can stop patching.
 3. Get Instagram 452.1.0.53.64 from APKMirror. Take [the bundle labelled (arm64-v8a) (480-640dpi) (Android 9.0+), build 385811006](https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-452-1-0-53-64-release/). The version's other builds work too (see [Supported Instagram builds](#supported-instagram-builds)).
 4. Uninstall the Instagram you got from the Play Store. The patched app is signed with your own key, so Android won't install it over Meta's. Uninstalling signs you out, so have your password and two-factor codes ready. On a rooted phone, Manager's Root Mount can lay HushGram over the Play Store app instead, and you stay signed in.
@@ -186,7 +188,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Tap to play` | Makes videos, reels and stories wait for your tap instead of starting by themselves, like Instagram does when it saves mobile data. A choice under the switch can leave Reels out or hold only Reels. Starts off. Turn it on in HushGram settings > Playback. | Included |
 | `Turn off double tap to like` | Stops a double tap on a post or reel from liking it, and the heart doesn't show. The Like button still works. Separate switches cover posts, reels, comments and chat messages. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Upload stories at full quality` | Sends the video stories you post at 1080p and a higher bitrate, as Instagram does with its own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so viewers see a small difference. Starts off. Turn it on in HushGram settings > Stories. | Included |
-| `Story text fonts` | Adds fonts you pick from your phone (.ttf or .otf files) to the story text editor, after Instagram's own fonts, and can draw the emoji in story text from an emoji font file you pick. Starts off. Set both up in HushGram settings > Stories. | Included |
+| `Story text fonts` | Adds fonts you pick from your phone (.ttf or .otf files) to the story text editor alongside Instagram's own fonts, and can draw the emoji in story text from an emoji font file you pick. Starts off. Set both up in HushGram settings > Stories. | Included |
 | `Turn off HDR brightness boosts` | Stops HDR photos and reels from making the screen brighter than everything else. Starts off. Turn it on in HushGram settings > Playback. | Included |
 | `View DM photos and videos anonymously` | Holds back the Opened notice for view once photos and videos in messages, so the sender doesn't see you opened them. Ghost mode turns it on too. Starts off. Turn it on in HushGram settings > Ads and privacy. | Opt-in |
 | `Spoof location` | Tells Instagram your phone is at a place you pick, for the location sticker, nearby places and maps. Photos keep their own places. You need to pick a place too. Starts off. Turn it on in HushGram settings > Ads and privacy. | Included |
@@ -194,6 +196,10 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `View stories anonymously` | Keeps you off the viewer list of the stories you watch. Replying or reacting still shows you. An optional Mark as seen button lets you choose. Ghost mode turns it on too. Starts off. Turn it on in HushGram settings > Stories. | Included |
 
 The patches with a switch keep it in `HushGram settings`, so Morphe Manager includes that patch whenever any of them is picked. Seven work as soon as they're patched in, with no switch: HushGram settings, Restore trust on re-signed builds, Remove the advertising ID, Start on x86 devices, Change version code, Install next to Instagram and Pure black dark mode. **Set when you patched**, near the bottom of HushGram settings, lists the ones your build has.
+
+Recent unfollowers only updates after your own Followers list loads completely and matches the account's follower count. If the counts disagree, your previous saved list stays. It doesn't make extra requests to fill the gap.
+
+Watched-story sorting leaves your own story and Instagram's special tray entries in place. It moves ordinary watched story rings behind unseen ones when View stories anonymously and Gray out stories you've watched are both on.
 
 ## Settings
 
@@ -216,7 +222,9 @@ A few rows to know about:
 - **Pause** turns off every feature a switch controls, all at once, without losing your choices. It's the quickest way to tell whether HushGram is behind a problem. Patch-time changes like the removed advertising ID stay in.
 - **Ghost mode**, at the top of Ads and privacy, turns the seven switches that keep what you do to yourself on or off together. Each keeps its own switch too. Pressing and holding New message at the top of your inbox does the same.
 - **Downloads** go to Movies and Pictures, each in an Instagram folder unless you name another, and voice messages to Recordings (Music before Android 12). **Skip what's already saved** remembers your newest 15,000 saves so the same post isn't saved twice.
+- **Download file name** accepts `{shortcode}` for the post's code from its link. Including it applies the template to photos too. Stories and saves without a known post leave that token out.
 - **Settings backup** exports your choices to a JSON file and brings them back later, on this install or another. Accounts, signing keys and playback history aren't included.
+- **Date in backup file names**, under Settings backup, adds the current date and time to the suggested export name. It starts off.
 - **Pause and diagnostics** copies a quick report or saves the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it. A source build also shows an `hg1:` build identity under Version in About and in the report.
 
 If Instagram crashes within a minute of starting three times in a row, HushGram pauses itself and the status card says why. Turn it back on once you've patched again or left out the patch at fault.
@@ -230,7 +238,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - **Package conflict or App not installed.** Android won't replace an app with one signed by a different key. Update with the key the installed build used, or uninstall the differently signed app first. That deletes its data, so make sure you can sign in again.
 - **Unsupported Version.** Manager can only be told one build per kind of phone, so it says this for every 452.1.0.53.64 build except 385811006. The other builds in [Supported Instagram builds](#supported-instagram-builds) patch the same way. Any other version may work, but nobody has checked it.
 - **Patching stops on one patch.** Check that you're patching a supported build, and if several patch sources are enabled, try HushGram alone. If it still stops, open an issue naming the patch, your Manager version and the error.
-- **Patching runs out of memory.** Instagram is big, and patching it takes about 1 GB of memory. If Manager stops with an out of memory error, turn on **Use embedded VM** in Manager's settings and patch again.
+- **Patching runs out of memory.** Turn on **Use embedded VM** in Manager's settings and patch again. Instagram's DEX index and resource table can exceed a 256 MB heap before HushGram's patches run. Desktop 1.19.1 passed with a 512 MB heap. That desktop result hasn't been verified on Android.
 - **Instagram won't stay open long enough to reach settings.** Create an empty file named `hushgram-safe-mode` in `Android/data/com.instagram.android/files` (a computer or a file manager can reach it). HushGram starts paused until you delete it.
 - **The Play Store keeps offering an Instagram update.** Open Instagram's page in the Play Store, tap the three dots at the top right and untick **Enable auto update**. **Change version code** stops the offers for good on a standard install, but read its warning in [Patches](#patches) first.
 - **Slow right after a Root Mount install.** Android's compiled copy of Instagram was made from Meta's code, so it runs Instagram uncompiled until it's compiled again. Run this in a root shell (`adb shell` then `su`, or Termux with `su`), reopen Instagram, and run it again whenever you mount a new HushGram build:
@@ -258,10 +266,12 @@ For something that's broken, use the [bug form](https://github.com/SysAdminDoc/H
 | arm64-v8a builds | `385811006` (the one Manager is told about) |
 | armeabi-v7a builds | `385811005`, for older 32-bit phones |
 | x86 and x86_64 builds | `385811007` (x86) and `385811008` (x86_64), for emulators and Intel phones |
-| Minimum Android version | Android 9 (API 28) for arm64-v8a and x86_64, Android 8 (API 26) for armeabi-v7a and x86 |
+| Minimum Android version | Android 9 (API 28) for every ABI |
 | Where to get it | [APKMirror](https://www.apkmirror.com/apk/instagram/instagram-instagram/) |
 
 Other Instagram versions haven't been checked. Meta can publish different APKs under one version name, so go by the build number too.
+
+Patching raises the minimum to Android 9 for the two 32-bit builds, which Instagram ships with an Android 8 minimum. HushGram's settings use Android 9 APIs.
 
 Meta signs genuine Instagram builds with one of two certificates, and Morphe Manager warns before it patches an APK signed with any other key. To check a file yourself, run `apksigner verify --print-certs` (from Android's build tools) on the base APK and look for one of these certificate SHA-256 digests:
 
@@ -292,7 +302,7 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 
 ## Building from source
 
-You need JDK 17 or newer and the Android SDK. The Morphe patcher comes from GitHub Packages, so you also need a GitHub token with `read:packages`. The build runs on Gradle 9.8.2, Android Gradle Plugin 9.1.0 and Kotlin 2.4.20, with Morphe patcher 2.0.0.
+You need JDK 17 or newer and the Android SDK. The Morphe patcher comes from GitHub Packages, so you also need a GitHub token with `read:packages`. The build runs on Gradle 9.8.2, Android Gradle Plugin 9.1.0 and Kotlin 2.4.20, with Morphe patcher 2.0.1. Use Morphe Desktop 1.19.1 or newer for local patch checks.
 
 ```bash
 export GITHUB_ACTOR=<your GitHub user>
@@ -324,6 +334,8 @@ When a patch depends on how Instagram behaves on its own, compare against the or
 ### Translating HushGram
 
 Translations live in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`, with the English text as the lookup key. `scripts/crowdin-l10n.py` prepares review worksheets, `scripts/sync-l10n.py import` brings a reviewed file back, and `scripts/gen-l10n.py` regenerates the class the extension carries. They need Python 3.12 or newer. The [translation guide](docs/translations.md) has the whole workflow and the review rules.
+
+The tables cover German, Spanish, Indonesian, Italian, Korean, Brazilian Portuguese, Turkish and Traditional Chinese (Taiwan). JhouHank contributed the Traditional Chinese table in [#313](https://github.com/SysAdminDoc/HushGram/pull/313). Traditional Chinese script preferences and Hong Kong or Macao locales use its Taiwan wording. Explicit Simplified Chinese keeps the existing fallback.
 
 ## Where the patches come from
 

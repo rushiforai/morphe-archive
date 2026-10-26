@@ -37,7 +37,7 @@
 所以改完一定要跑：
 
 ```bash
-./gradlew verifyAgainstApk -Papk=JPTT_3.9.2.apk
+./gradlew verifyAgainstApk -Papk=JPTT_3.9.4.apk
 ```
 
 它會像 Manager 一樣把 bundle 套到 APK 上（不簽章、不安裝），每個 patch 印 ok 或 FAILED，
@@ -68,13 +68,15 @@
 
 ## 取得 APK
 
-APK 不進版控（`*.apk` 已被 ignore）。從裝了 JPTT 的手機撈：
+APK 不進版控（`*.apk`、`*.apks`、`*.xapk` 都已被 ignore）。從裝了 JPTT 的手機撈：
 
 ```bash
-adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.2.apk
+adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.4.apk
 ```
 
 只需要 `base.apk`，其他 split 只有 native library、圖片資源和語系，patch 用不到。
+APKPure 的 XAPK 裡的 `com.joshua.jptt.apk` 就是同一個 `base.apk`（作者簽章和 Play 的
+source stamp 都在），解出來用也可以。
 手機上的 JPTT 一更新，舊版就撈不回來了。要換到新版之前，舊版最好先留著，新版有問題時才能比對；
 換過去之後就可以刪了。
 

@@ -1,0 +1,1 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.pengusto.patches.contacts.tests"><uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/><application/><instrumentation android:name="io.github.pengusto.patches.tests.MergedProbe" android:targetPackage="org.fossify.contacts"/></manifest>

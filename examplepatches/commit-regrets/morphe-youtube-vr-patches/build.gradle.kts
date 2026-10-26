@@ -10,7 +10,7 @@ plugins {
 spotless {
     ratchetFrom("origin/main")
     kotlin {
-        target("patches/src/main/kotlin/**/*.kt")
+        target("patches/src/main/kotlin/**/*.kt", "patches/src/test/kotlin/**/*.kt")
         ktlint()
     }
     java {
@@ -34,5 +34,8 @@ detekt {
 project(":patches") {
     tasks.named("buildAndroid") {
         dependsOn(rootProject.tasks.named("spotlessCheck"), rootProject.tasks.named("detekt"))
+        // The CI gate and the local loop both run buildAndroid, so the JUnit suite rides on it
+        // rather than needing its own invocation to be remembered.
+        dependsOn(":patches:test")
     }
 }

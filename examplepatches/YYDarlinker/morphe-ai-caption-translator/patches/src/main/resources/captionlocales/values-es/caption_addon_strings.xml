@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"Cargando diagnóstico…"</string>
     <string name="cap_planner_model" formatted="false">"Modelo de preparación del significado de origen (opcional)"</string>
     <string name="cap_planner_model_hint" formatted="false">"Dejar vacío para usar el modelo de traducción. Utiliza la misma URL de API y clave; no elige otro modelo automáticamente."</string>
+    <string name="cap_config_unreadable" formatted="false">"No se puede leer la configuración guardada. Revise los campos afectados; no se ha cambiado ningún dato."</string>
+    <string name="cap_config_index_recovery" formatted="false">"No se puede leer la lista de perfiles. No se ha cambiado ningún perfil. Reintente o vuelva atrás. La recuperación requiere una copia válida de los ajustes de perfiles de esta aplicación anterior al daño; esta pantalla no puede reconstruir la lista."</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"Campo guardado; falló la sincronización. Toque aquí para reintentar la sincronización."</string>
+    <string name="cap_config_save_uncertain" formatted="false">"Falló el guardado o no se pudo confirmar; revise el valor actual. Se conserva el borrador. %1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"La operación falló o no se pudo confirmar el resultado. Los datos pueden haber cambiado; vuelva a abrir los ajustes para comprobarlo."</string>
+    <string name="cap_config_origin_recovery" formatted="false">"Se desconoce la dirección API de la clave original; no se cambió la configuración. Restaure una copia válida anterior al daño o descarte esta edición y borre la clave explícitamente antes de volver a configurar."</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG es una categoría histórica de recuento para fallos HTTP y filtrado de contenido. Consulte reason y los datos registrados de parada, filtro y espera; los datos ausentes son desconocidos. Un lote lógico puede admitir varios intentos HTTP. Su número no confirma la recepción del servidor ni la facturación. Respuestas, calidad y caché se cuentan por separado. La categoría incluye 429/503 y por sí sola no indica un error de configuración ni una parada permanente."</string>
 </resources>

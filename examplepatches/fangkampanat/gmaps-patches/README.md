@@ -2,23 +2,23 @@
 
 # Google Maps for MicroG-RE
 
-Patch Google Maps with [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) and use it with [MicroG-RE 7.2.1](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.1). This is the only supported provider for the current patch.
+Patch Google Maps with [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) and use it with [MicroG-RE 7.2.2](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.2). This is the only supported provider for the current patch.
 
-Our Maps sign-in and location fixes were merged upstream in [MicroG-RE PR #272](https://github.com/MorpheApp/MicroG-RE/pull/272) and are included in 7.2.1. We now use the official provider; the separate BYD fork is no longer maintained.
+Our Maps sign-in and location fixes were merged upstream in [MicroG-RE PR #272](https://github.com/MorpheApp/MicroG-RE/pull/272) and are included since 7.2.1. We now use the official provider; the separate BYD fork is no longer maintained.
 
 This repository provides `.mpp` patch bundles. Supply a clean Google Maps APK to patch.
 
 ## Patches list
 
 <!-- PATCHES_START -->
-[v1.4.0](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.0) · 2 patches
+[v1.4.1](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.1) · 2 patches
 
 Eligible versions: Any version.
 
 | Patch | Description | Options |
 | --- | --- | --- |
-| BYD native battery experiment | Experimental: sends this BYD's battery and road-load model to Google through Maps' native EV route requests. Starts from the car's own average consumption, learns slowly from BMS energy/distance, and adds in-app vehicle settings. Native hooks inspected on Maps 26.41. Targets BYD DiLink 3; DiLink 5 unverified. | • Arrival battery during navigation |
-| Google Maps for MicroG-RE | Connects supported Google Maps builds to MicroG-RE 7.2.1, skips the uncertified-device screen, and prefers synthesized navigation speech with early Google TTS startup and the existing audio fallback. |  |
+| BYD native battery experiment | Experimental: sends this BYD's battery and road-load model to Google through Maps' native EV route requests. Starts from the car's own average consumption, learns slowly from BMS energy/distance, and adds in-app vehicle settings. Native hooks inspected on Maps 26.41 and 26.42. Targets BYD DiLink 3; DiLink 5 unverified. | • Arrival battery during navigation |
+| Google Maps for MicroG-RE | Connects supported Google Maps builds to MicroG-RE 7.2.2, skips the uncertified-device screen, avoids a crash when a location-settings dialog cannot open, and prefers synthesized navigation speech with early Google TTS startup and the existing audio fallback. |  |
 
 <!-- PATCHES_END -->
 
@@ -33,19 +33,20 @@ The patch accepts any Google Maps version. It stops if required hooks cannot be 
 
 ## Tested devices and apps
 
-The latest tested Maps version is `26.41.04.993332563`, patched with bundle `1.4.0` in Morphe Desktop `1.19.0`, using official MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`.
+The latest tested Maps version is `26.42.01.997557324`, patched with bundle `1.4.1` in Morphe Desktop `1.19.1`, using official MicroG-RE `7.2.2`.
 
 | Device | Results |
 |---|---|
-| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Static checks and in-car testing passed. |
+| Android 16 phone / 4 KiB pages | Bundle `1.4.1`: sign-in, use without an account, online maps, search, place details, routing, and Thai and English voice guidance passed. |
+| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Bundle `1.4.0` on Maps `26.41.04.993332563` with MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`: static checks and in-car testing passed. |
 
-Phone use with this provider, 16 KiB devices, English-script street-name maneuvers, automatic voice timing while driving, and Timeline recording and backup are outside the verified scope.
+16 KiB devices, English-script street-name maneuvers, automatic voice timing while driving, and Timeline recording and backup are outside the verified scope.
 
 ## Install MicroG-RE
 
 Use the official MorpheApp release listed below. Older patch releases retain their original provider requirements.
 
-1. Download `microg-7.2.1-icon-arm64-v8a.apk` from [MicroG-RE 7.2.1](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.1).
+1. Download `microg-7.2.2-icon-arm64-v8a.apk` from [MicroG-RE 7.2.2](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.2). MicroG-RE 7.2.1 updates to it in place (same signing key).
 2. If Android rejects an update from another provider because the signing key differs, uninstall that provider first. This removes its accounts and settings, so you will need to sign in again. **Keep official Google Play services installed.**
 3. Install MicroG-RE. On BYD, complete the setup below before signing in. On other devices, grant the requested permissions, allow background activity and sign in.
 4. Check Maps and your Morphe media apps. Compatible existing YouTube and YouTube Music APKs do not need to be patched again just to switch providers.
@@ -117,7 +118,7 @@ Enable **Google Maps for MicroG-RE** and **BYD native battery experiment** when 
 
 Battery capacity is measured automatically above 50% SOC. Changes saved during navigation apply after it ends.
 
-The patch is inspected on Maps `26.41.04.993332563` and tested on a BYD Dolphin, DiLink 3.0. On other Maps versions patching may stop; disable this patch there. Other BYD models and DiLink 5.0 are untested.
+The patch is inspected on Maps `26.41.04.993332563` and `26.42.01.997557324`. It was tested in a BYD Dolphin, DiLink 3.0 on `26.41.04.993332563`; `26.42.01.997557324` is untested in a car. On other Maps versions patching may stop; disable this patch there. Other BYD models and DiLink 5.0 are untested.
 
 ## Troubleshooting
 

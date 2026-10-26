@@ -1044,6 +1044,8 @@ Save photo in post menus	Salvar foto no menu das publicações
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	Com Salvar qualquer foto ativado, uma publicação com fotos também mostra Salvar foto no menu de três pontos. Se tiver várias, cada uma é salva, uma depois da outra.
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	Salvar foto
+# context: primary save row for a Story that reshares a Reel
+Save video	Salvar vídeo
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	Salvar todas as fotos
 # context: short message shown when the photos of a post could not start saving

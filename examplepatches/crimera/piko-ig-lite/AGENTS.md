@@ -10,8 +10,8 @@ Workspace-level rules (search safety, patch performance, build and dependency in
 
 ## Build and patch testing
 
-- Build the patch bundle from the current checkout before patch testing: `./gradlew :patches:build --no-daemon`.
-- Run patch tests through `./patch-ig-cli.sh`, not a direct Morphe CLI invocation. It needs the local patcher runner (`(cd ../morphe-patcher && ./gradlew :cli:installDist)`). Pass the exact APK explicitly, for example `./patch-ig-cli.sh apks/449.0.0.52.84.apk` (the script's default is an older target); the output goes to `~/Downloads/piko-ig-lite-patched-cli.apk` unless `OUTPUT_APK` is set.
+- Run patch tests through `./patch-ig.sh <exact-apk-or-apkm>`. It rebuilds the current MPP and uses Morphe Desktop v1.19.1 at `../piko/morphe-desktop-1.19.1-all.jar` (`MORPHE_CLI_JAR` can override the path). Output defaults to `~/Downloads/piko-ig-lite-452.1.0.53.64-patched.apk`; set `OUTPUT_APK` to override it.
+- Pass `--force` only for resilience tests on undeclared versions. This does not add support; only `COMPATIBILITY_INSTAGRAM` declares supported versions.
 - Do not patch with a stale MPP or mix artifacts from different source revisions. Confirm the script's output path and `Patched APK:` line before testing.
 - Do not pass `--install` or otherwise control a device unless the user explicitly requests it; ask the user to launch and exercise the patched app.
 - Before handing off a resolver change run `./gradlew :patches:lintResolvers :patches:checkExtensionDescriptors --no-daemon`.

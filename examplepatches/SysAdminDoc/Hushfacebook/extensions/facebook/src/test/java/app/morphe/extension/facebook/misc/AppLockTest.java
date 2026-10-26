@@ -20,6 +20,7 @@ import android.app.Dialog;
 import android.app.KeyguardManager;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.graphics.Color;
 import android.hardware.biometrics.BiometricPrompt;
 import android.view.KeyEvent;
 import android.view.View;
@@ -188,6 +189,20 @@ public class AppLockTest {
         asked.get(0).answer.unlocked();
         assertFalse(AppLock.covered(activity));
         assertFalse(AppLock.covering());
+    }
+
+    @Test
+    public void theUnlockButtonUsesTheLockScreensTheme() {
+        Settings.APP_LOCK.save(true);
+        Activity activity = screen();
+        activity.setTheme(android.R.style.Theme_Material_Light_NoActionBar);
+        front(activity);
+        Button unlock = button(ShadowDialog.getLatestDialog().getWindow().getDecorView());
+        assertNotNull(unlock);
+        double contrastOnBlack = (Color.luminance(unlock.getCurrentTextColor()) + 0.05) / 0.05;
+        assertTrue("the light host's button text is unreadable on the black lock screen", contrastOnBlack >= 4.5);
+        assertTrue("the retry target is shorter than 48 dp", unlock.getMinimumHeight() >=
+                Math.round(48 * activity.getResources().getDisplayMetrics().density));
     }
 
     /** The cover's text for a screen reader: a window name, a heading, and the reason read out when it changes. */
@@ -523,6 +538,94 @@ public class AppLockTest {
         assertEquals(second, asked.get(1).activity);
         asked.get(1).answer.unlocked();
         assertFalse(AppLock.covered(second));
+    }
+
+    @Test
+    public void aRetiredQueuedAskCannotClearTheCurrentPromptsOwnership() {
+        Settings.APP_LOCK.save(true);
+        Activity first = screen();
+        Activity second = screen();
+        AppLock.started(first);
+        AppLock.resumed(first);
+        first.finish();
+        AppLock.stopped(first);
+        AppLock.destroyed(first);
+        AppLock.started(second);
+        AppLock.resumed(second);
+
+        ShadowLooper.idleMainLooper();
+
+        assertEquals("a finishing screen still asked", 1, asked.size());
+        assertSame(second, asked.get(0).activity);
+        AppLock.resumed(second);
+        ShadowLooper.idleMainLooper();
+        assertEquals("the retired runnable cleared the current prompt's ownership", 1, asked.size());
+        assertTrue(AppLock.covered(second));
+    }
+
+    @Test
+    public void aDestroyedScreensCancellationCannotReplaceTheCurrentPrompt() {
+        Settings.APP_LOCK.save(true);
+        Activity first = screen();
+        Activity second = screen();
+        front(first);
+        AppLock.Answer retired = asked.get(0).answer;
+        AppLock.stopped(first);
+        AppLock.destroyed(first);
+        front(second);
+        assertEquals(2, asked.size());
+
+        retired.refused(AppLock.CALLED_OFF, null);
+        AppLock.resumed(second);
+        ShadowLooper.idleMainLooper();
+
+        assertEquals("the old cancellation started another prompt", 2, asked.size());
+        assertTrue(AppLock.covered(second));
+        asked.get(1).answer.unlocked();
+        assertFalse("the current prompt could no longer unlock", AppLock.covered(second));
+    }
+
+    @Test
+    public void aRetiredRefusalCannotOverwriteTheCurrentCoversFeedback() {
+        Settings.APP_LOCK.save(true);
+        Activity first = screen();
+        Activity second = screen();
+        front(first);
+        AppLock.Answer retired = asked.get(0).answer;
+        AppLock.stopped(first);
+        AppLock.destroyed(first);
+        front(second);
+        Dialog current = ShadowDialog.getLatestDialog();
+
+        retired.refused(BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED, "Retired prompt refusal");
+
+        List<TextView> visible = new ArrayList<>();
+        texts(current.getWindow().getDecorView(), visible);
+        for (TextView text : visible) {
+            assertFalse("the old prompt replaced the new cover's feedback",
+                    String.valueOf(text.getText()).contains("Retired prompt refusal"));
+        }
+        assertTrue(AppLock.covered(second));
+        asked.get(1).answer.unlocked();
+        assertFalse(AppLock.covered(second));
+    }
+
+    @Test
+    public void retryingUnlockRetiresTheEarlierPromptsCancellation() {
+        Settings.APP_LOCK.save(true);
+        Activity activity = screen();
+        front(activity);
+        AppLock.Answer retired = asked.get(0).answer;
+        button(ShadowDialog.getLatestDialog().getWindow().getDecorView()).performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals(2, asked.size());
+
+        retired.refused(AppLock.CALLED_OFF, null);
+        AppLock.resumed(activity);
+        ShadowLooper.idleMainLooper();
+
+        assertEquals("the superseded attempt cleared the retry's ownership", 2, asked.size());
+        assertTrue(AppLock.covered(activity));
     }
 
     @Test

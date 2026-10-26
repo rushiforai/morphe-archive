@@ -18,7 +18,7 @@ Acceptance criteria:
 
 ## Implemented scope and verification
 
-First patch covers the event editor only, not agenda/widget/notification summaries. Resources wrap the existing editor; an onResume hook attaches the native preview. The source editor text is never replaced by rendering.
+The patch covers the event editor plus day and agenda list summaries, not widget/notification summaries. Resources wrap the existing editor; an onResume hook attaches the native preview. Two narrowly validated hooks render only description getter results inside the release APK’s merged list-row binder. Model getters, locations and the source editor remain unchanged. Unsupported bytecode fails patch application.
 
 On the official 1.12.0 APK in isolated Android 15 ARM64 emulator:
 - MPP build and application/rebuilding passed.

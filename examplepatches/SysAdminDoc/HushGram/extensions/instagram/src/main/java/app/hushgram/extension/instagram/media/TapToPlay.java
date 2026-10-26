@@ -527,7 +527,7 @@ public final class TapToPlay {
         boolean armed = ARMED.contains(player);
         long sinceTap = TapClock.msSinceTap(now);
         boolean covered = tapCovers(sinceTap, now, armed);
-        boolean scrolled = player != null && !armed && autoScrollCovers(now);
+        boolean scrolled = inReels && player != null && !armed && autoScrollCovers(now);
         boolean allowed = armed || covered || scrolled;
         if (allowed && !armed) ARMED.add(player, now);
         if (allowed) HELD.remove(player);

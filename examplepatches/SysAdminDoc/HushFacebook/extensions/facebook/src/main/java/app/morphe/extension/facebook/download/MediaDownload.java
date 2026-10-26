@@ -383,8 +383,10 @@ public final class MediaDownload {
         try {
             Thread chain = thread(() -> {
                 Reservation pending = first;
+                AtomicBoolean batchCancelled = new AtomicBoolean();
                 try {
                     for (int i : usable) {
+                        if (batchCancelled.get()) return;
                         try {
                             PostDetails known = i < details.size() ? details.get(i) : PostDetails.NONE;
                             if (pending == null) pending = awaitReservation();
@@ -392,7 +394,7 @@ public final class MediaDownload {
                             Job job = fileJob(safe, urls.get(i), Downloader.Kind.IMAGE);
                             Reservation owned = pending;
                             pending = null;
-                            startReserved(safe, false, known, job, owned).join();
+                            startReserved(safe, false, known, job, owned, batchCancelled).join();
                         } catch (InterruptedException stop) {
                             Thread.currentThread().interrupt();
                             return;
@@ -1144,11 +1146,11 @@ public final class MediaDownload {
     /** As above, naming the video from whatever of the post [details] holds and the file name asks for. */
     static Thread start(Context application, boolean video, PostDetails details, Job job) {
         Reservation reservation = reserveNow();
-        return reservation == null ? null : startReserved(application, video, details, job, reservation);
+        return reservation == null ? null : startReserved(application, video, details, job, reservation, null);
     }
 
     private static Thread startReserved(Context application, boolean video, PostDetails details, Job job,
-            Reservation reservation) {
+            Reservation reservation, AtomicBoolean batchCancelled) {
         // Until the worker runs, whatever throws here gives back the slot and the save it began, or
         // enough such failures would block every save.
         SaveControl.Save begun = null;
@@ -1208,6 +1210,7 @@ public final class MediaDownload {
                     try {
                         save.end();
                     } finally {
+                        if (batchCancelled != null && save.cancelled()) batchCancelled.set(true);
                         reservation.close();
                     }
                 }
@@ -1225,6 +1228,7 @@ public final class MediaDownload {
                 try {
                     if (begun != null) begun.end();
                 } finally {
+                    if (batchCancelled != null && begun != null && begun.cancelled()) batchCancelled.set(true);
                     reservation.close();
                 }
             }

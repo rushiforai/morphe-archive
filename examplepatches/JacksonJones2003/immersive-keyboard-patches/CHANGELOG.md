@@ -1,3 +1,15 @@
+## [1.14.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.13.1...v1.14.0) (2026-10-25)
+
+### ✨ New Features
+
+* Soften the glass rim and touch light on dark glass and strengthen the rim on light glass ([4e966b8](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/4e966b8f202b98568d143d8275c080fb0083ebe3))
+
+## [1.14.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.13.1...v1.14.0-dev.1) (2026-10-25)
+
+### ✨ New Features
+
+* Soften the glass rim and touch light on dark glass and strengthen the rim on light glass ([4e966b8](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/4e966b8f202b98568d143d8275c080fb0083ebe3))
+
 ## [1.13.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.13.0...v1.13.1) (2026-10-24)
 
 ### 🐛 Bug Fixes

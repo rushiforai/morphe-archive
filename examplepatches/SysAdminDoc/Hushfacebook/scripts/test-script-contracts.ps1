@@ -2061,6 +2061,18 @@ try {
             'CVSS:3.1/AV:n/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:u/C:H/I:H/A:H')) {
         Assert-True ($null -eq (Get-Cvss3BaseScore -Vector $unscored)) "$unscored was given a CVSS 3 score."
     }
+    foreach ($malformed in @(
+            'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H/C:N/I:N/A:N',
+            'CVSS:3.1/C:N/I:N/A:N/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+            'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H/E:H/E:U',
+            'CVSS:3.1/av:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+            'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H/unknown:H',
+            'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H/E:invalid')) {
+        Assert-True ($null -eq (Get-Cvss3BaseScore -Vector $malformed)) "A malformed vector was scored: $malformed"
+        $unrated = Get-AdvisorySeverity -Advisory ([pscustomobject]@{
+            database_specific = @{}; severity = @([pscustomobject]@{ type = 'CVSS_V3'; score = $malformed }) })
+        Assert-True ($unrated.Serious -and $unrated.Level -eq 'UNRATED') 'A malformed vector bypassed the advisory gate.'
+    }
 
     # How serious each recorded advisory is: OSV's label and the vector's score, whichever is worse,
     # and unrated when neither can be read.
@@ -4997,6 +5009,19 @@ try {
     # A path that is simply not there is nothing to do, not a failure.
     Remove-GeneratedPath -Path (Join-Path $work 'never-existed') -Root $work
 
+    # A link in an ancestor must not turn a generated path into a path outside this run.
+    $outsideTree = Join-Path $commonRoot 'outside-tree'
+    $outsideRun = Join-Path $outsideTree 'fixture-apply'
+    New-Item -ItemType Directory -Path $outsideRun -Force | Out-Null
+    $keepThroughLink = Join-Path $outsideRun 'keep.txt'
+    Set-Content -LiteralPath $keepThroughLink -Value 'keep' -Encoding ASCII
+    $linkedBuild = Join-Path $work 'build'
+    New-Item -ItemType Junction -Path $linkedBuild -Target $outsideTree | Out-Null
+    try {
+        Remove-GeneratedPath -Path (Join-Path $linkedBuild 'fixture-apply') -Root $work -WarningAction SilentlyContinue
+        Assert-True (Test-Path -LiteralPath $keepThroughLink) 'Generated cleanup followed a linked ancestor outside its root.'
+    } finally { Remove-TreeWithoutFollowingLinks -Path $linkedBuild }
+
     # The version read. -LiteralPath is the difference that had already drifted, so the fixture
     # directory carries the bracket that makes a wildcard read find nothing.
     $bracketRoot = Join-Path $commonRoot 'repo [1]'
@@ -5600,7 +5625,7 @@ try {
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
-        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
+        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0" & set "VALIDATED=0"',
         'shift',
         'shift',
         'rem patch-for-device.ps1 hands the CLI one argument file, a quoted value a line with',
@@ -5627,10 +5652,12 @@ try {
         'if "!PREV!"=="-o" set "OUT=!V!"',
         'if "!PREV!"=="-r" set "RESULT=!V!"',
         'if "!V!"=="-f" set "FORCED=1"',
+        'if "!V!"=="--validate" set "VALIDATED=1"',
         'set "PREV=!V!"',
         'set "LAST=!V!"',
         'exit /b 0',
         ':run',
+        '>>"!HERE!validation.log" echo !VALIDATED!',
         'rem A merged APK names the bundle it came from, whose report and patched manifest these are.',
         'set "SRC=!LAST!"',
         'set "VIA="',
@@ -5833,6 +5860,9 @@ try {
     } catch {
         throw "build-release-receipt.ps1 refused a run of every declared build: $($_.Exception.Message)"
     }
+    $validationLog = Join-Path $tools 'validation.log'
+    Assert-True (@(Get-Content -LiteralPath $validationLog | Where-Object { $_ -ne '1' }).Count -eq 0) `
+        'A fresh release receipt patched without validating fingerprint uniqueness.'
     # Every merge and patch run in one job of the build queue (the stand-in at the top).
     $seen = @(Read-QueueLog)
     Assert-True (($seen -join '|') -eq 'hushfacebook receipt') `
@@ -6084,7 +6114,8 @@ try {
         $stamp = Get-Content -LiteralPath (Join-Path $keptDir 'stamp.json') -Raw | ConvertFrom-Json
         Assert-True ($stamp.bundleSha256 -ceq (Get-Sha256Hex -Path $releaseBundle) -and $stamp.apkSha256 -ceq (Get-Sha256Hex -Path $fixture) -and
             $stamp.patchListSha256 -ceq $listHash -and $stamp.desktopJarSha256 -ceq (Get-Sha256Hex -Path $stubJar) -and
-            $stamp.versionName -ceq $build -and $stamp.forced -eq $forcedHere -and $stamp.merged -eq $true -and $stamp.schema -eq 2 -and
+            $stamp.versionName -ceq $build -and $stamp.forced -eq $forcedHere -and $stamp.merged -eq $true -and $stamp.schema -eq 3 -and
+            $stamp.validated -is [bool] -and $stamp.validated -eq $true -and
             $stamp.patchedSha256 -ceq (Get-Sha256Hex -Path (Join-Path $keptDir 'patched.apk')) -and
             $stamp.resultSha256 -ceq (Get-Sha256Hex -Path (Join-Path $keptDir 'result.json')) -and
             $stamp.mergedSha256 -ceq (Get-Sha256Hex -Path (Join-Path $keptDir 'stock-merged.apk'))) `
@@ -6130,6 +6161,12 @@ try {
         $older | ConvertTo-Json -Depth 4
     }
     $staleStamps = @(
+        @{ Name = 'unvalidated schema 2'; Text = ($stampText -replace '"schema":\s*3', '"schema": 2'); Said = '*older stamp*' },
+        @{ Name = 'a text schema'; Text = ($stampText -replace '"schema":\s*3', '"schema": "3"'); Said = '*older stamp*' },
+        @{ Name = 'a fractional schema'; Text = ($stampText -replace '"schema":\s*3', '"schema": 3.5'); Said = '*older stamp*' },
+        @{ Name = 'no validation mode'; Text = (Get-StampWithout 'validated'); Said = '*without fingerprint validation*' },
+        @{ Name = 'validation disabled'; Text = ($stampText -replace '"validated":\s*true', '"validated": false'); Said = '*without fingerprint validation*' },
+        @{ Name = 'a text validation flag'; Text = ($stampText -replace '"validated":\s*true', '"validated": "true"'); Said = '*without fingerprint validation*' },
         @{ Name = 'another bundle'; Text = $stampText.Replace((Get-Sha256Hex -Path $releaseBundle), ('0' * 64)); Said = '*made with another bundle*' },
         @{ Name = 'no stamp'; Text = $null; Said = '*kept no run of*' },
         @{ Name = 'no merge'; Text = ($stampText -replace '"merged":\s*true', '"merged": false'); Said = '*made with another bundle*' },
@@ -6605,6 +6642,48 @@ try {
         Assert-True (-not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-base.apk'))) `
             "patch-for-device.ps1 left the base APK it read for $build behind."
     }
+    # A second invocation can arrive while the first waits for the build queue. It must
+    # neither overwrite the first argument file nor remove its temporary/output files.
+    $overlapQueue = Join-Path $tools 'overlap-queue.ps1'
+    $overlapResult = Join-Path $tools 'overlap-result.txt'
+    $overlapArguments = @{
+        Root = $releaseRepo; DesktopJar = $stubJar; Java = $stubJava; Aapt2 = $stubAapt2;
+        OutDir = $deviceOut; Apk = $fixturePaths[$releaseTarget.PackageVersion]
+    } | ConvertTo-Json -Compress
+    $overlapBody = @'
+function Invoke-InBuildQueue {
+    param([string]$Label, [scriptblock]$ScriptBlock)
+    if (-not $global:hushDeviceOverlapStarted) {
+        $global:hushDeviceOverlapStarted = $true
+        $parsed = 'OVERLAP_ARGUMENTS' | ConvertFrom-Json
+        $second = @{}
+        foreach ($property in $parsed.PSObject.Properties) { $second[$property.Name] = $property.Value }
+        try {
+            & 'DEVICE_SCRIPT' @second 6> $null
+            [IO.File]::WriteAllText('OVERLAP_RESULT', 'second ran')
+        } catch { [IO.File]::WriteAllText('OVERLAP_RESULT', $_.Exception.Message) }
+    }
+    & $ScriptBlock | Out-Host
+    return $LASTEXITCODE
+}
+'@
+    $overlapBody = $overlapBody.Replace('OVERLAP_ARGUMENTS', $overlapArguments.Replace("'", "''")).
+        Replace('DEVICE_SCRIPT', (Join-Path $PSScriptRoot 'patch-for-device.ps1').Replace("'", "''")).
+        Replace('OVERLAP_RESULT', $overlapResult.Replace("'", "''"))
+    [IO.File]::WriteAllText($overlapQueue, $overlapBody)
+    $savedDeviceQueue = $env:BUILD_QUEUE_SCRIPT
+    try {
+        $env:BUILD_QUEUE_SCRIPT = $overlapQueue
+        $global:hushDeviceOverlapStarted = $false
+        Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion]
+        Assert-True ((Get-Content -LiteralPath $overlapResult -Raw) -like '*already using the output directory*') `
+            'An overlapping device build was allowed to replace the active run.'
+        Assert-True (@(Get-Content -LiteralPath $javaLog).Count -eq 1 -and (Test-Path -LiteralPath $deviceApk)) `
+            'The original device build lost its argument file or output to an overlapping run.'
+    } finally {
+        $env:BUILD_QUEUE_SCRIPT = $savedDeviceQueue
+        Remove-Variable -Name hushDeviceOverlapStarted -Scope Global -ErrorAction SilentlyContinue
+    }
     $savedFixtureDir = $env:HUSHFACEBOOK_FIXTURE_DIR
     try {
         $env:HUSHFACEBOOK_FIXTURE_DIR = $fixtures
@@ -6627,6 +6706,7 @@ try {
             @{ Options = @{ 'No such patch' = @('appName=HushBook') }; Pattern = "*No patch named 'No such patch' in this build to give options to*" },
             @{ Options = @{ $firstPatchHere = @('no equals sign') }; Pattern = "*The option 'no equals sign' for*isn't key=value*" })) {
         Remove-Item -LiteralPath $javaLog -Force -ErrorAction SilentlyContinue
+        $beforeInvalidOptions = Get-Sha256Hex -Path $deviceApk
         Assert-Throws {
             Use-StampedBundle {
                 & (Join-Path $PSScriptRoot 'patch-for-device.ps1') -Root $releaseRepo -DesktopJar $stubJar -Java $stubJava `
@@ -6635,6 +6715,8 @@ try {
             }
         } $badOptions.Pattern 'patch-for-device.ps1 took patch options it should have refused.'
         Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'patch-for-device.ps1 started the CLI with patch options it should have refused.'
+        Assert-True ((Test-Path -LiteralPath $deviceApk) -and (Get-Sha256Hex -Path $deviceApk) -ceq $beforeInvalidOptions) `
+            'Invalid patch options deleted the previous signed device build.'
     }
     # An option goes after its own patch's -e. The CLI gives an -O to the -e before it, so one put
     # in front landed on the patch listed before, and App name never reached Hushfacebook settings.
@@ -7949,6 +8031,7 @@ try {
     $flowLog = Join-Path $releaseFlow 'flow.log'
     $flowFails = Join-Path $releaseFlow 'fail.txt'
     $flowTamper = $null
+    $flowGitHub = @{ Release = $null; DownloadsToInterrupt = 0; PublishedAssets = (Join-Path $releaseFlow 'published-assets') }
     New-Item -ItemType Directory -Path (Join-Path $flowRepo 'scripts/release') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'common.ps1') -Destination (Join-Path $flowRepo 'scripts')
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'patch-target.ps1') -Destination (Join-Path $flowRepo 'scripts')
@@ -8048,18 +8131,55 @@ try {
         if ($call[3] -eq 'github-notes') { Set-Content -LiteralPath $call[[array]::IndexOf($call, '--out') + 1] -Value 'notes' -Encoding ASCII }
     }
     function gh {
-        $call = @($args | ForEach-Object { [string]$_ })
+        # Native gh receives each element of a trailing argument array separately. A function
+        # receives the array itself, so flatten it before reading or copying the uploaded files.
+        $call = @(foreach ($argument in $args) { foreach ($value in @($argument)) { [string]$value } })
         Add-Content -LiteralPath $flowLog -Value ('gh ' + ($call -join ' '))
         $global:LASTEXITCODE = 0
         $what = "$($call[0]) $($call[1])"
         if ((Get-Content -LiteralPath $flowFails -ErrorAction SilentlyContinue) -eq $what) { $global:LASTEXITCODE = 1; return }
+        if ($what -eq 'release create') {
+            if ($null -ne $flowGitHub.Release) {
+                $global:LASTEXITCODE = 1
+                'HTTP 422: Validation Failed (already_exists)'
+                return
+            }
+            New-Item -ItemType Directory -Force -Path $flowGitHub.PublishedAssets | Out-Null
+            foreach ($argument in $call) {
+                if (-not (Test-Path -LiteralPath $argument -PathType Leaf)) { continue }
+                $name = Split-Path -Leaf $argument
+                if ($name -notlike 'patches-*' -and $name -notlike 'release-receipt-*' -and $name -cne 'SHA256SUMS.txt') { continue }
+                Copy-Item -LiteralPath $argument -Destination $flowGitHub.PublishedAssets
+            }
+            $flowGitHub.Release = [pscustomobject]@{
+                tagName = $call[2]; isDraft = $false; publishedAt = '2026-10-09T21:03:04Z'
+                assets = @(Get-ChildItem -LiteralPath $flowGitHub.PublishedAssets -File | ForEach-Object {
+                    [pscustomobject]@{ name = $_.Name; size = $_.Length; state = 'uploaded' }
+                })
+            }
+        }
         if ($what -eq 'release download') {
+            if ($flowGitHub.DownloadsToInterrupt -gt 0) {
+                $flowGitHub.DownloadsToInterrupt--
+                $global:LASTEXITCODE = 1
+                'download interrupted'
+                return
+            }
+            if ($null -eq $flowGitHub.Release -or $flowGitHub.Release.isDraft) { $global:LASTEXITCODE = 1; return }
             $into = $call[[array]::IndexOf($call, '-D') + 1]
             New-Item -ItemType Directory -Force -Path $into | Out-Null
-            Get-ChildItem -LiteralPath $flowAssets -File | Copy-Item -Destination $into
+            Get-ChildItem -LiteralPath $flowGitHub.PublishedAssets -File | Copy-Item -Destination $into
             if ($flowTamper) { Set-Content -LiteralPath (Join-Path $into $flowTamper) -Value 'tampered' -Encoding ASCII }
         }
-        if ($what -eq 'release view') { '2026-10-09T21:03:04Z' }
+        if ($what -eq 'release view') {
+            if ($null -eq $flowGitHub.Release) {
+                $global:LASTEXITCODE = 1
+                'release not found'
+                return
+            }
+            if ($call -contains '--jq') { $flowGitHub.Release.publishedAt }
+            else { $flowGitHub.Release | ConvertTo-Json -Depth 5 -Compress }
+        }
         if ($what -eq 'repo view') { 'Hushfacebook v1.2.2: 1 patches for Facebook 581.0.0.45.58 with Morphe.' }
     }
     & git init --quiet --bare $flowOrigin
@@ -8459,7 +8579,7 @@ try {
     # An emulator walks for a release as well as a phone does.
     Write-FlowWalk @{ serial = 'emulator-5554'; device = 'Hushfacebook_API36'; emulator = $true }
     & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked -Walk $flowWalk -Verifier $flowVerifier 6> $null 3> $null
-    $flow = @(Read-FlowLog)
+    $flow = @(Read-FlowLog | Where-Object { $_ -notlike 'gh release view *' })
     Assert-True ($flow.Count -eq 4 -and $flow[0] -like ("staged version=1.2.3 commit=$flowHead swap=refused folder=* files=patches-1.2.3.cdx.json," +
             'patches-1.2.3.mpp,patches-1.2.3.tooling.json,release-receipt-1.2.3.json,SHA256SUMS.txt') -and
         $flow[1] -like "py * github-notes --version 1.2.3 --checked $flowChecked --out *notes.md" -and
@@ -8481,6 +8601,45 @@ try {
     Assert-True (-not (Test-Path -LiteralPath $downloadedTo)) 'Publish left the downloaded copy behind.'
     Assert-True ((& git -C $flowOrigin rev-parse 'v1.2.3^{commit}') -eq (& git -C $flowRepo rev-parse HEAD)) `
         'Publish did not push a v1.2.3 tag on the source commit.'
+
+    # A release exists as soon as create returns, even when the following download is interrupted.
+    # Its assets are the upload's own snapshot, never fresh copies of the current staging folder.
+    $flowGitHub.Release = $null
+    Remove-Item -LiteralPath $flowGitHub.PublishedAssets -Recurse -Force
+    $flowGitHub.DownloadsToInterrupt = 1
+    Assert-Throws { & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked -Walk $flowWalk -Verifier $flowVerifier 6> $null 3> $null } `
+        '*The download back did not pass*' 'The interrupted verification was reported as a completed publish.'
+    Assert-True ($null -ne $flowGitHub.Release -and -not $flowGitHub.Release.isDraft) 'The fake lost the release created before verification failed.'
+    $interrupted = @(Read-FlowLog)
+    Assert-True (@($interrupted | Where-Object { $_ -like 'gh release create *' }).Count -eq 1) 'The interrupted publish did not create its release exactly once.'
+    $publishedHashes = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $flowGitHub.PublishedAssets -File) {
+        $publishedHashes[$file.Name] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+    }
+    & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked -Walk $flowWalk -Verifier $flowVerifier 6> $null 3> $null
+    $retried = @(Read-FlowLog)
+    Assert-True (@($retried | Where-Object { $_ -like 'gh release create *' -or $_ -like 'gh release upload *' -or $_ -like 'gh release edit *' }).Count -eq 0) `
+        'Retry tried to create or change the release that was already published.'
+    Assert-True (@($retried | Where-Object { $_ -like 'gh release view *' }).Count -gt 0 -and
+        @($retried | Where-Object { $_ -like 'gh release download *' }).Count -eq 1) 'Retry did not inspect and verify the existing release.'
+    foreach ($file in Get-ChildItem -LiteralPath $flowGitHub.PublishedAssets -File) {
+        Assert-True ((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash -ceq $publishedHashes[$file.Name]) `
+            "Retry replaced the already-published $($file.Name)."
+    }
+    Set-Content -LiteralPath $flowFails -Value 'release view' -Encoding ASCII
+    try {
+        Assert-Throws { & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked -Walk $flowWalk -Verifier $flowVerifier 6> $null 3> $null } `
+            '*could not check whether*' 'An unreadable release was treated as a missing one.'
+        Assert-True (@(Read-FlowLog | Where-Object { $_ -like 'gh release create *' -or $_ -like 'gh release upload *' -or $_ -like 'gh release edit *' }).Count -eq 0) `
+            'A release lookup failure allowed publication changes.'
+    } finally { Remove-Item -LiteralPath $flowFails -Force }
+    $flowGitHub.Release.isDraft = $true
+    try {
+        Assert-Throws { & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked -Walk $flowWalk -Verifier $flowVerifier 6> $null 3> $null } `
+            '*draft*' 'An existing draft was treated as the published release.'
+        Assert-True (@(Read-FlowLog | Where-Object { $_ -like 'gh release create *' -or $_ -like 'gh release upload *' -or $_ -like 'gh release edit *' }).Count -eq 0) `
+            'The draft refusal changed the release.'
+    } finally { $flowGitHub.Release.isDraft = $false }
     $flowTamper = 'patches-1.2.3.mpp'
     Assert-Throws { & $flowScript -Stage publish -Version 1.2.3 -Checked $flowChecked -Walk $flowWalk -Verifier $flowVerifier 6> $null 3> $null } '*hosted patches-1.2.3.mpp differs*' `
         'Publish passed a release whose hosted bundle is not the one it built.'

@@ -35,6 +35,31 @@ fun main(args:Array<String>){
     } }
     println("HOST_HOOKS=$hostHooks")
     if(flags["aiInstalled"]==1L) {
+        val application=classes.getValue("Lapp/yydarlinker/deepseekcaptions/CaptionApplication;")
+        for(name in listOf("stopped","sessionOpened")) {
+            val callbacks=application.methods.single { it.name==name }.implementation!!.instructions
+                .filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }
+            check(callbacks.none { it.definingClass=="Lapp/yydarlinker/deepseekcaptions/CaptionPlayerAuthority;" }) {
+                "Engine lifecycle must not close/reopen the actual player authority: $name"
+            }
+        }
+        println("N73_ENGINE_PLAYER_LIFECYCLE_PASS callbacks=2")
+        val shorts=classes.getValue("Lapp/morphe/extension/youtube/shared/ShortsPlayerState\$Companion;")
+        val setter=shorts.methods.single { it.name=="setOpen" && it.parameterTypes.map { p->p.toString() }==listOf("Z") }
+        val code=setter.implementation!!.instructions.toList()
+        val returns=code.indices.filter { code[it].opcode==com.android.tools.smali.dexlib2.Opcode.RETURN_VOID }
+        check(returns.isNotEmpty())
+        for(index in returns){
+            val call=(code.getOrNull(index-1) as? ReferenceInstruction)?.reference as? MethodReference
+            check(call?.definingClass=="Lapp/yydarlinker/deepseekcaptions/CaptionQuickToggle;" && call.name=="onShortsStateChanged"){
+                "Every official Shorts setter return must notify the caption lifecycle"
+            }
+        }
+        val quick=classes.getValue("Lapp/yydarlinker/deepseekcaptions/CaptionQuickToggle;")
+        val read=quick.methods.single { it.name=="shortsOpen" }.implementation!!.instructions.filterIsInstance<ReferenceInstruction>()
+            .mapNotNull { it.reference as? MethodReference }
+        check(read.any { it.definingClass=="Lapp/morphe/extension/youtube/shared/ShortsPlayerState;" && it.name=="isOpen" })
+        println("N72_SHORTS_LIFECYCLE_PASS returns=${returns.size} official_state_read=true")
         val v2=classes.getValue("Lapp/yydarlinker/deepseekcaptions/DeepSeekCaptionHookV2;")
         val outer=v2.methods.single { it.name=="onPlayerType" }
         val outerCalls=outer.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }

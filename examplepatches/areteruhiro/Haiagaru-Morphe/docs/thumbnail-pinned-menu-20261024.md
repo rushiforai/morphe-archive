@@ -1,5 +1,16 @@
 # 2026-10-24 サムネイル・常時下部フィルター・下4桁NG（未公開）
 
+追記: 正式版1.12.1で公開済み。以下の「未公開」「公開なし」は作業時点の記録。
+
+## 公開結果
+
+- 7da6ae7をdevへpush、a28fe67でmasterへ通常merge。別作業の外部認証3ファイルは未コミットのまま保持し公開せず。主開発先はdev、CI生成b9f3117までFF取得。
+- 既存Semantic Release CI39983601471は全体success、Release/Attestともsuccess。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.12.1 はdraft=false/prerelease=false/latest。
+- build/release-1.12.1-verifyへ公開6資材を取得、GitHub digest全件一致、Android MPPのclasses.dex確認。MPP SHA256=a78dade2ca167e4ddfc991c8e14338aa5d9b7d345fdfd3d5cca0298196d012ae。
+- 公開説明に差分・ライブラリZIP案内・確認範囲・ｵｲｺﾗﾐﾈｵ 様/Red Frame X 様の謝辞。UA変更や機種名を含めず、専用の公開説明MDは追加していない。
+- master/mainのJSON各2本とdev preは1.12.1、created_at=2026-10-23T16:05:49（Z/offsetなし）。dev stable raw初回はCDN旧1.12.0だったが、その後のmanager fresh logcatでmain/dev取得とversionHash1.12.1を確認。emulator-5554の登録先main・プレONを維持しカード/詳細とも1.12.1。
+- 公開MPPからのAPK再生成・再導入は未実施。端末検証は直前候補であり、報告された実新着到着条件は未再現のまま、Release本文にも明記。
+
 ## 修正
 
 - 242の通常setImageLinksからsetImageLinks2へ渡すrequery=trueを専用bridgeでfalseへ変更。nativeは再bind時にsetImageUrl(null)を行っており、その消去を通常表示から分離する。明示的な再取得用setImageLinks2自体は変更しない。全画像のダウンロード禁止やキャッシュ消去はしない。

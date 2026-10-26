@@ -61,15 +61,18 @@ try {
                 $directory = ($Arguments[3] -split 'mkdir -p ', 2)[1]
                 [void]$state.RemotePaths.Add($directory)
                 if ($FailureStage -eq 'setup') { $exitCode = 12 }
-            } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-c') {
-                throw "the verifier cleared the log of a shared device: $line"
+            } elseif ($operation -eq 'logcat') {
+                throw "Host-side logcat can wait for a disconnected device: $line"
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'log -t HushfacebookVerify *') {
                 $state.Mark = $Arguments[3].Substring('log -t HushfacebookVerify '.Length)
                 if ($FailureStage -eq 'mark') { $exitCode = 13 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'dex2oat64*') {
                 $read = if ($FailureStage -eq 'short-read') { 5 } else { $Size }
                 $output = if ($FailureStage -eq 'dex2oat') { @('exit=14', "size=$read") } else { @('exit=0', "size=$read") }
-            } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-d') {
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -ceq 'logcat') {
+                if ($Arguments.Count -ne 5 -or $Arguments[4] -cne '-d') {
+                    throw "The verifier must read exactly shell logcat -d: $line"
+                }
                 # Another run on the same device: its mark, a verifier line and a missing file, all
                 # before this run's mark. A tally that counts them is wrong, and one that reads the
                 # missing file refuses a good run.
@@ -87,6 +90,9 @@ try {
                     throw 'fake ADB threw while reading logcat'
                 } elseif ($FailureStage -eq 'log-read') {
                     $exitCode = 15
+                } elseif ($FailureStage -eq 'offline-log') {
+                    $exitCode = 1
+                    $output = @('error: device offline')
                 } elseif ($FailureStage -eq 'unread') {
                     $output = $older + $marked +
                         @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushfacebook-verify-case.apk'")
@@ -107,7 +113,10 @@ try {
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'rm -rf *') {
                 $state.CleanupCalls++
                 $path = $Arguments[3].Substring('rm -rf '.Length)
-                if ($CleanupThrowNumber -eq $state.CleanupCalls) {
+                if ($FailureStage -eq 'offline-log') {
+                    $exitCode = 1
+                    $output = @('error: device offline')
+                } elseif ($CleanupThrowNumber -eq $state.CleanupCalls) {
                     throw "fake ADB threw while removing $path"
                 } elseif ($CleanupFailureNumber -eq $state.CleanupCalls) {
                     $exitCode = 91
@@ -159,6 +168,26 @@ try {
         Assert-BothCleanupCalls -State $fake.State -Context $stage
         Assert-True ($fake.State.RemotePaths.Count -eq 0) "$stage left fake remote files behind."
     }
+
+    # A host logcat read can wait for a disconnected transport instead of returning an error.
+    # The shell read returns promptly; cleanup is attempted even while the device stays offline.
+    $offline = New-FakeAdb -FailureStage 'offline-log'
+    $warnings = @()
+    $caught = $null
+    try {
+        [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
+            -Local $fixture -Label 'case' -AdbInvoker $offline.Invoker -WarningVariable warnings)
+    } catch {
+        $caught = $_
+    }
+    Assert-True ($caught.Exception.Message -eq 'Could not read logcat on SERIAL after verifying case (ADB exit 1). Output: error: device offline') `
+        'A disconnected log read did not preserve its transport error.'
+    Assert-True (@($offline.State.Calls | Where-Object { $_ -ceq '-s SERIAL shell logcat -d' }).Count -eq 1) `
+        'The offline log read did not use the exact serial-scoped shell command.'
+    Assert-BothCleanupCalls -State $offline.State -Context 'offline log retrieval'
+    Assert-True ($offline.State.RemotePaths.Count -eq 2 -and
+        (($warnings | ForEach-Object { "$_" }) -join "`n") -match 'cleanup also failed') `
+        'Offline cleanup failures were hidden or claimed to remove the remote files.'
 
     $thrownFailure = New-FakeAdb -FailureStage 'log-read-throw'
     $caught = $null

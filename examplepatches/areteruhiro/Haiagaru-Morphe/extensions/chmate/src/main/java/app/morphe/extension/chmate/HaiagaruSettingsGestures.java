@@ -14,6 +14,11 @@ import java.util.Arrays;
 
 /** Routes ChMate's assigned navigation gestures to the Haiagaru settings dialog. */
 final class HaiagaruSettingsGestures {
+    static final String SENSITIVITY = "settingsGestureSensitivity";
+    static int gestureDistance(int nativeLength, int percent) {
+        int sensitivity = Math.max(50, Math.min(200, percent));
+        return Math.max(1, (int) Math.min(Integer.MAX_VALUE, Math.max(1L, nativeLength) * 100L / sensitivity));
+    }
     private final Activity activity;
     private final View surface;
     private final Runnable backAction, topAction, bottomAction;
@@ -90,7 +95,8 @@ final class HaiagaruSettingsGestures {
                 float x = event.getRawX(), y = event.getRawY();
                 if (x < location[0] || x >= location[0] + surface.getWidth()
                         || y < location[1] || y >= location[1] + surface.getHeight()) return false;
-                distance.invoke(recognizer, preferences.getInt("gestureLength", 100));
+                int percent = SettingsProfiles.prefs(activity).getInt(SENSITIVITY, 100);
+                distance.invoke(recognizer, gestureDistance(preferences.getInt("gestureLength", 100), percent));
                 tracking = true;
             }
             if (!tracking) return false;

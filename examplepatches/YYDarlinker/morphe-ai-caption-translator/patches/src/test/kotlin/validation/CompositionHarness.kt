@@ -100,7 +100,10 @@ fun main(args:Array<String>){
         check((hooks["onNativeTrackApplied"]?:0)==1){"Shared automatic/manual caption dispatcher must be hooked"}
         check((hooks["onNativeSelectionWithReason"]?:0)==0 && (hooks["onNativeSelection"]?:0)==0){"Obsolete manual-only hooks must not duplicate capture"}
 
-        if(ai){check((hooks["onMenu"]?:0)==1);check((hooks["observeMenuPath"]?:0)==1)}
+        if(ai){
+            check((hooks["onMenu"]?:0)==1);check((hooks["observeMenuPath"]?:0)==1)
+            check((hooks["onShortsStateChanged"]?:0)>0){"Official Shorts close must reach display authority"}
+        }
         output.resolve("structure.txt").writeText("features=$expected\nhooks=$hooks\n")
         output.resolve("selection.txt").writeText(names.joinToString("\n"))
         if(values["dex-only"]=="true")serializeDexSnapshot()

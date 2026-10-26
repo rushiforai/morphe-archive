@@ -944,6 +944,10 @@ public final class GlassTabBar {
         navTaken = 0;
         sheetRoom = 0;
         navGiven = 0;
+        for (WeakReference<Glass> held : new java.util.ArrayList<>(applied.values())) {
+            Glass glass = held.get();
+            if (glass != null) glass.pill.cancelCatchUp();
+        }
     }
 
     static void diagnose(String what, @Nullable Throwable failure) {
@@ -2125,6 +2129,10 @@ public final class GlassTabBar {
          */
         private void recordUnder() {
             if (!blurWanted) return;
+            if (HushgramPause.isPaused()) {
+                pill.cancelCatchUp();
+                return;
+            }
             try {
                 if (scrollHide == null || !scrollHide.isOffScreen()) pill.recordIfDue();
                 else pill.recordIfSurfaceAppeared();
@@ -2142,7 +2150,7 @@ public final class GlassTabBar {
             HookStatus.threw(FamilyNames.GLASS_TAB_BAR, what, failure);
             diagnose(what + " failed", failure);
             if (tries.failed(SystemClock.uptimeMillis())) HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_BLUR_RESTED);
-            else pill.retrySoon();
+            pill.retrySoon();
         }
 
         /** The tab Instagram marks selected, or null. */
@@ -2220,6 +2228,11 @@ public final class GlassTabBar {
 
             PillDrawable() {
                 stroke.setStyle(Paint.Style.STROKE);
+                WeakReference<PillDrawable> held = new WeakReference<>(this);
+                catchUp = () -> {
+                    PillDrawable current = held.get();
+                    if (current != null) current.catchUp();
+                };
             }
 
             @Override public void draw(@NonNull Canvas canvas) {
@@ -2501,18 +2514,28 @@ public final class GlassTabBar {
 
             private long lastRecorded;
             private boolean catchUpPending;
-            private final Runnable catchUp = () -> {
-                catchUpPending = false;
-                if (!bar.isAttachedToWindow() || tries.resting(SystemClock.uptimeMillis())) return;
-                recordBackdrop();
-                bar.invalidate();
-            };
+            /** A real frame permits at most three automatic captures, including one after a rest. */
+            private int catchUpsLeft = BLUR_TRIES;
+            private final Runnable catchUp;
 
-            /** Records again shortly after a recording failed, so the blur comes back on a screen that's gone still. */
+            private void catchUp() {
+                catchUpPending = false;
+                if (!bar.isAttachedToWindow() || HushgramPause.isPaused() || catchUpsLeft <= 0) return;
+                if (tries.resting(SystemClock.uptimeMillis())) {
+                    retrySoon();
+                    return;
+                }
+                catchUpsLeft--;
+                recordBackdrop();
+                // A permanent failure must not request frames that renew its own retry budget.
+                if (recorded) bar.invalidate();
+            }
+
+            /** One bounded recovery chain, with a single wake at the end of any failure rest. */
             void retrySoon() {
-                if (catchUpPending) return;
+                if (catchUpPending || catchUpsLeft <= 0 || !bar.isAttachedToWindow() || HushgramPause.isPaused()) return;
                 catchUpPending = true;
-                bar.postDelayed(catchUp, RECORD_EVERY_MS);
+                bar.postDelayed(catchUp, Math.max(RECORD_EVERY_MS, tries.waitLeft(SystemClock.uptimeMillis())));
             }
 
             /** Drops a catch-up still waiting, so the next frame can arrange a new one. */
@@ -2524,6 +2547,7 @@ public final class GlassTabBar {
             /** Drops a waiting catch-up and lets go of the recorded backdrop and the views it left out. */
             void discard() {
                 cancelCatchUp();
+                catchUpsLeft = 0;
                 RenderNode backdrop = node;
                 node = null;
                 recorded = false;
@@ -2579,6 +2603,7 @@ public final class GlassTabBar {
 
             /** Records the backdrop if it's been long enough and this frame isn't late, or arranges to once it can. */
             void recordIfDue() {
+                catchUpsLeft = BLUR_TRIES;
                 long now = SystemClock.uptimeMillis();
                 long since = now - lastRecorded;
                 // The animation clock holds the frame's start while it lays out and draws, so this is how far in we are.
@@ -2602,6 +2627,7 @@ public final class GlassTabBar {
 
             void recordIfSurfaceAppeared() {
                 if (!surfaceAppeared()) return;
+                catchUpsLeft = BLUR_TRIES;
                 lastRecorded = SystemClock.uptimeMillis();
                 recordBackdrop();
             }
@@ -2635,6 +2661,10 @@ public final class GlassTabBar {
              */
             void recordBackdrop() {
                 if (drawingBackdrop || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+                if (!bar.isAttachedToWindow() || HushgramPause.isPaused()) {
+                    cancelCatchUp();
+                    return;
+                }
                 if (tries.resting(SystemClock.uptimeMillis())) return;
                 if (!(bar.getParent() instanceof ViewGroup) || !pillBounds(area)) return;
                 ViewGroup parent = (ViewGroup) bar.getParent();
@@ -2679,10 +2709,11 @@ public final class GlassTabBar {
                     float x0 = bar.getLeft() + area.left - pad;
                     float top = backdropSource(source, floating, scale, x0, bar.getTop(), bar.getY() + area.top, pad, tall);
                     Canvas recording = backdrop.beginRecording(width, height);
+                    boolean found;
                     try {
                         recording.concat(source);
                         recording.clipRect(x0, top, x0 + wide, top + tall);
-                        boolean found = surfacePaths(parent, barIndex, leftOut);
+                        found = surfacePaths(parent, barIndex, leftOut);
                         if (found && !hadSurfaces) HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_VIDEO_LEFT_OUT);
                         hadSurfaces = found;
                         // A Reels viewer stops above a floating pill and is left out, so the glass never
@@ -2691,8 +2722,6 @@ public final class GlassTabBar {
                         for (View viewer : viewers) {
                             if (viewer != null) leaveOut(viewer, parent, leftOut, skipped);
                         }
-                        if (found) askFrames(parent, top, tall);
-                        else videoCopied = false;
                         frames.keepOnly(leftOut);
                         for (int i = 0; i < barIndex; i++) {
                             View sibling = parent.getChildAt(i);
@@ -2704,6 +2733,9 @@ public final class GlassTabBar {
                     }
                     recorded = true;
                     tries.worked();
+                    // A landed video copy requests a frame, so only successful recordings may ask for one.
+                    if (found) askFrames(parent, top, tall);
+                    else videoCopied = false;
                     report("backdrop recorded under " + barIndex + " views: pill " + Math.round(area.width()) + "x"
                             + Math.round(area.height()) + " as " + width + "x" + height);
                 } catch (Throwable failure) {
@@ -2745,6 +2777,10 @@ public final class GlassTabBar {
         /** Whether the blur rests at [now], drawing the plain tint and recording nothing. */
         boolean resting(long now) {
             return now < restUntil;
+        }
+
+        long waitLeft(long now) {
+            return resting(now) ? restUntil - now : 0;
         }
 
         /** A recording failed at [now]. Says whether that was one too many in a row and the blur rests. */

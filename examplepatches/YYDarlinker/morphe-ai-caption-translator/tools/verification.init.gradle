@@ -1,0 +1,45 @@
+// Receipt from THIS Gradle invocation: evaluated task paths, outcomes and report locations.
+import groovy.json.JsonOutput
+def receiptPath = gradle.startParameter.projectProperties['verification.receipt']
+if (!receiptPath) throw new GradleException('verification.receipt is required')
+def receipt = [tasks: [:]]
+def requiredTests = [':translation-core:testDebugUnitTest', ':extensions:extension:testDebugUnitTest']
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    receipt.gradle_version = gradle.gradleVersion
+    receipt.java_version = System.getProperty('java.version')
+    receipt.version = root.version.toString()
+    receipt.build_id = root.providers.gradleProperty('captionBuildId').get()
+    receipt.paths = [
+        mpp: new File(root.project(':patches').layout.buildDirectory.get().asFile, "libs/patches-${root.version}.mpp").absolutePath,
+        mpe: new File(root.project(':extensions:extension').layout.buildDirectory.get().asFile, 'morphe/extensions/extension.mpe').absolutePath,
+        core_classes: new File(root.project(':translation-core').layout.buildDirectory.get().asFile, 'intermediates/javac/debug/compileDebugJavaWithJavac/classes').absolutePath,
+        ui_apk: new File(root.project(':ui-preview').layout.buildDirectory.get().asFile, 'outputs/apk/debug/ui-preview-debug.apk').absolutePath
+    ]
+    requiredTests.each { taskPath ->
+        def t = root.tasks.getByPath(taskPath)
+        if (root.providers.gradleProperty('verification.rerunTests').getOrElse('false') == 'true') {
+            t.outputs.upToDateWhen { false }
+        }
+    }
+}
+gradle.taskGraph.afterTask { t, state ->
+        def row = [executed: state.executed, skipped: state.skipped, skip_message: state.skipMessage,
+                   up_to_date: state.upToDate, did_work: state.didWork, failure: state.failure != null]
+        if (requiredTests.contains(t.path)) {
+            row.xml = t.reports.junitXml.outputLocation.get().asFile.absolutePath
+            row.html = t.reports.html.outputLocation.get().asFile.absolutePath
+        }
+        receipt.tasks[t.path] = row
+}
+gradle.buildFinished { result ->
+    receipt.success = result.failure == null
+    receipt.artifact_hashes = [:]
+    receipt.paths?.each { key, value ->
+        def file = new File(value)
+        if (file.isFile()) receipt.artifact_hashes[key] = java.security.MessageDigest.getInstance('SHA-256').digest(file.bytes).encodeHex().toString()
+    }
+    def dst = new File(receiptPath)
+    dst.parentFile.mkdirs()
+    dst.text = JsonOutput.prettyPrint(JsonOutput.toJson(receipt))
+}

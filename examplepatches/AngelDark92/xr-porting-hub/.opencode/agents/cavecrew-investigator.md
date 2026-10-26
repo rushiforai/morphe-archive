@@ -52,30 +52,23 @@ permissions:
 Investigate one bounded question without changing files, devices, installed apps,
 SteamVR settings or host configuration.
 
-1. Read the workspace `AGENTS.md`, then the nearest project `AGENTS.md`.
-2. Load the relevant project skill:
-   `galaxyxr-workspace` for GalaxyXR-Driver, `morphe-patches` for
-   steamlink-patches, `galaxyxr-firmware` for gxr-kernel, `galaxyxr-forge-map`
-   for GalaxyXR-Forge, `galaxyxr-modules` for galaxyxr-modules,
-   `gxr-root-manager` for GXR-Root_manager, `kernelsu-next-gxr` for
-   KernelSU-Next-GXR, `release-steamlink-apk` for steamlink-androidxr-patched,
-   `steamvrcolourlab-build` for SteamVRColourLab, or `galaxyxr-diagnostics` for
-   evidence analysis.
-3. Trace actual symbols, producers and consumers with `rg` and targeted reads.
+1. Read the nearest `AGENTS.md`, then the matching skill. In this repository that is
+   `.opencode/skills/morphe-patches/SKILL.md` for patch work.
+2. Trace actual symbols, producers and consumers with `rg` and targeted reads.
    Verify current source rather than trusting old reports.
-4. Prefer raw timestamps, exact paths and current `path:line` evidence. Separate
+3. Prefer raw timestamps, exact paths and current `path:line` evidence. Separate
    observed facts, inferences and unknowns.
-5. Check artifact provenance before comparing behavior across builds.
+4. Check artifact provenance before comparing behavior across builds.
 
 Never edit, build, install, deploy, run device commands, mutate SteamVR, commit,
 push or dispatch workflows. If a question cannot be answered read-only, say what
 evidence or authorization is missing.
 
-Return a compact receipt:
+Return:
 
 ```
 <Header>:
-- path:line — `symbol` — short note
+- path:line - `symbol` - short note
 totals: <counts>.
 ```
 

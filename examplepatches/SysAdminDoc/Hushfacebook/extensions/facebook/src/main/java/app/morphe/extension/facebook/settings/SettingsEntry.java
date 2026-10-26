@@ -37,6 +37,8 @@ import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.morphe.extension.shared.L10n;
@@ -108,6 +110,7 @@ public final class SettingsEntry {
     private static volatile boolean callbacksRegistered;
     /** The activity the screen was last shown over, while the person hasn't closed it. */
     private static WeakReference<Activity> host;
+    private static final Map<Activity, WeakReference<SettingsDialog>> opening = new WeakHashMap<>();
     private static volatile boolean closedByUser;
     /** The long label last pushed, or found already on the shortcut, in this process. */
     private static volatile String publishedLabel;
@@ -765,6 +768,7 @@ public final class SettingsEntry {
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
         @Override
         public void onActivityDestroyed(Activity activity) {
+            opening.remove(activity);
             TextSize.destroyed(activity);
             SavedFileActions.onPaused(activity);
             if (SettingsStatus.storySeen()) StorySeenButton.activityDestroyed(activity);
@@ -827,20 +831,30 @@ public final class SettingsEntry {
             FragmentManager fragments = activity.getFragmentManager();
             Fragment shown = fragments.findFragmentByTag(DIALOG_TAG);
             if (shown != null) {
+                opening.remove(activity);
                 // Already up: a notification's button still takes it to the row it names.
                 if (shown instanceof SettingsDialog) ((SettingsDialog) shown).showRequestedSetting();
                 return true;
             }
+            WeakReference<SettingsDialog> pending = opening.get(activity);
+            if (pending != null && pending.get() != null) return true;
             if (fragments.isStateSaved()) {
                 Logger.printInfo(() -> "Settings wait: " + name + " has saved its state");
                 return false;
             }
             closedByUser = false;
-            SettingsDialog.onPage(requestedPage).show(fragments, DIALOG_TAG);
+            SettingsDialog dialog = SettingsDialog.onPage(requestedPage);
+            opening.put(activity, new WeakReference<>(dialog));
+            dialog.show(fragments, DIALOG_TAG);
+            Utils.runOnMainThread(() -> {
+                WeakReference<SettingsDialog> queued = opening.get(activity);
+                if (queued != null && queued.get() == dialog) opening.remove(activity);
+            });
             host = new WeakReference<>(activity);
             Logger.printInfo(() -> "Settings opened over " + name);
             return true;
         } catch (Exception ex) {
+            opening.remove(activity);
             Logger.printException(() -> "Could not open the Hushfacebook settings over " + name, ex);
             return false;
         }

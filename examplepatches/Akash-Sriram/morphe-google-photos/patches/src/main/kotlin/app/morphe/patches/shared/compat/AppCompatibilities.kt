@@ -12,7 +12,7 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFC3F3C,
         targets = listOf(
-            AppTarget("7.97.0.997578476"),
+            AppTarget("7.98.0.1001971222"),
         ),
     )
 }

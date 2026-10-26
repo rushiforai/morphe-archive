@@ -1,0 +1,118 @@
+name: Real APK offline three-variant matrix
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - diagnostics/real-apk-runtime-gates-20261025
+    paths:
+      - '.github/workflows/real-apk-matrix.yml'
+      - 'scripts/reproduce_real_apk_safe.sh'
+      - 'scripts/triage_apk_variants.py'
+      - 'tests/VerifyDinamicXNativeLabels.java'
+      - 'patches/**'
+
+concurrency:
+  group: real-apk-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SOURCE_APK_SHA256: 3e709717a60fdeeb59354df60fb6cf279ffb023c01e095e16bccfbad75f683dd
+      ENC_URL: https://drive.usercontent.google.com/download?id=1b-O-9qAmKk7shhoFIJEfOqevw0uKAmJg&export=download&confirm=t
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+
+      - name: Fetch exact original APK without publishing it
+        env:
+          APK_PASSWORD: ${{ secrets.APK_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$APK_PASSWORD" || { echo "::error::APK_PASSWORD unavailable"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/private"
+          curl --fail -sSL --retry 3 -o "$RUNNER_TEMP/private/source.enc" "$ENC_URL"
+          printf '%s' "$APK_PASSWORD" > "$RUNNER_TEMP/private/password"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+            -in "$RUNNER_TEMP/private/source.enc" \
+            -out "$RUNNER_TEMP/private/original.apk" \
+            -pass file:"$RUNNER_TEMP/private/password"
+          rm -f "$RUNNER_TEMP/private/password" "$RUNNER_TEMP/private/source.enc"
+          echo "$SOURCE_APK_SHA256  $RUNNER_TEMP/private/original.apk" | sha256sum --check
+          echo 'Source identity verified; original APK stays in runner temp.'
+
+      - name: Build production Morphe 2 MPP
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle buildAndroid --no-daemon --stacktrace
+
+      - name: Download Patcher 2 compatible Desktop 1.19.0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/desktop"
+          gh release download v1.19.0 --repo MorpheApp/morphe-desktop \
+            --pattern '*-all.jar' --dir "$RUNNER_TEMP/desktop"
+          test -s "$(find "$RUNNER_TEMP/desktop" -name '*-all.jar' -print -quit)"
+          test -s "$(find patches/build/libs -name '*.mpp' -print -quit)"
+
+      - name: Build and independently verify exact original/control/patched matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          export PATH="$JAVA_HOME/bin:$BT:$PATH"
+          command -v java
+          java -version
+          command -v javac
+          javac -version
+          JAR="$(find "$RUNNER_TEMP/desktop" -name '*-all.jar' -print -quit)"
+          MPP="$(find patches/build/libs -name '*.mpp' -print -quit)"
+          mkdir -p "$RUNNER_TEMP/private/report"
+          bash scripts/reproduce_real_apk_safe.sh \
+            "$RUNNER_TEMP/private/original.apk" "$JAR" "$MPP" \
+            "$RUNNER_TEMP/private/report"
+          # Only hashes, safe signature metadata, and bytecode reports are archived.
+          mkdir -p out/real-apk-matrix
+          for f in triage.json triage.md hashes.txt native-dex-verified.log \
+                   native-callpaths.md control-signature.log native-signature.log; do
+            cp "$RUNNER_TEMP/private/report/$f" "out/real-apk-matrix/$f"
+          done
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('out/real-apk-matrix/triage.json').read_text())
+          assert r['original_hash_matches_studied_version']
+          assert not r['comparisons']['original -> resigned_only']['non_signature_changes']
+          assert not r['comparisons']['original -> patched']['native_library_changes']
+          print('PASS: source hash, zero-patch content, unchanged native libraries')
+          print('NOT TESTED: ARM64 startup, Account, login, or visible Taobao English')
+          PY
+
+      - name: Retain forensic evidence (never APKs or signing keys)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-apk-matrix-evidence
+          path: out/real-apk-matrix/
+          if-no-files-found: warn
+          retention-days: 14

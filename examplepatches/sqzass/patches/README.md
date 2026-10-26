@@ -17,9 +17,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/sqzass/patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.8.2](https://github.com/sqzass/patches/releases/tag/v1.8.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;37 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -36,6 +36,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Change package name (dex)](#change-package-name-dex) | Rewrites matching package string constants in dex code and can report the original package to the app. | • Original Package Name<br>• New Package Name<br>• Rewrite Dex Strings<br>• Hook getPackageName |
 | [Cross-signal location consistency](#cross-signal-location-consistency) | Returns no Wi-Fi scan or cell tower data so location cross-checks against Wi-Fi fingerprints and cell IDs cannot contradict the spoofed position. | • Suppress Wi-Fi Scans<br>• Suppress Cell Info |
 | [Custom app name](#custom-app-name) | Replaces the application label shown in the launcher with a custom name. | • App Name<br>• Override Activity Labels |
+| [Custom font](#custom-font) | Injects a custom TTF/OTF/WOFF2 font file into the app and rewrites every android:fontFamily and app:fontFamily attribute across resource XMLs to use it. Requested in https://github.com/sqzass/patches/issues/5. | • Font File Path<br>• Rewrite Font Attributes<br>• Set Application-level Font |
 | [DexGuard string decrypt hook](#dexguard-string-decrypt-hook) | Experimental, apply last: detects likely string decryptor methods and forces their results to empty so obfuscated string flows stay non-null. Server-driven or native decryptors are not covered. | • Log Only<br>• Force Empty Strings |
 | [Disable Play Protect hooks](#disable-play-protect-hooks) | Strips APK-side verify hooks: removes package verification intent filters and verifier roles. Play Protect verdicts computed inside Google Play services cannot be changed from the app. | • Strip Verification Filters<br>• Strip Verifier Roles |
 | [Disable analytics collection](#disable-analytics-collection) | Disables Firebase Analytics, Crashlytics, and Performance Monitoring data collection. | • Disable Firebase Analytics<br>• Disable Crashlytics<br>• Disable Performance Monitoring |

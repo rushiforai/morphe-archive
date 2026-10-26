@@ -210,13 +210,15 @@ final class ProfilePictureViewer {
     static final class Watch implements Downloader.Progress {
         private volatile boolean cancelled;
         private Runnable close;
+        private boolean closeQueued;
 
         @Override public void transferred(long done, long total) {
         }
 
         @Override public synchronized void reading(Runnable close) {
             this.close = close;
-            if (cancelled) Utils.runOnBackgroundThread(close);
+            closeQueued = false;
+            if (cancelled) closeConnection();
         }
 
         @Override public boolean cancelled() {
@@ -226,7 +228,17 @@ final class ProfilePictureViewer {
         /** Off the main thread, since closing a connection can touch the network. */
         synchronized void cancel() {
             cancelled = true;
-            if (close != null) Utils.runOnBackgroundThread(close);
+            closeConnection();
+        }
+
+        private void closeConnection() {
+            if (close == null || closeQueued) return;
+            closeQueued = true;
+            if (!ConnectionClose.closeAsync(close)) {
+                closeQueued = false;
+                HookStatus.threw(FamilyNames.PROFILE_PICTURE, "close profile picture connection",
+                        new java.util.concurrent.RejectedExecutionException("Connection close queue is full"));
+            }
         }
     }
 

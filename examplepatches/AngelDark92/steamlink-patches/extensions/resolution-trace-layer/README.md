@@ -3,10 +3,10 @@
 The Surface-backed underside experiment is **retired** after the
 user reported "doesn't work" on 2026-09-03. Its option, code, build target and
 bundled helper are removed. No new capture was reviewed; no cause or GPU result is
-claimed. The existing terminal quad remains the recommended path. The production alpha-1
-helpers remain unchanged for 5001712/5001812/5001968 and the 3-projection builds;
-the optional `Alpha-0 high-resolution trigger (experimental)` patch replaces the
-exact 5001712 helper only when selected. Repatch a clean source with the current
+claimed. The existing terminal quad remains the recommended path. Both production
+helpers are now alpha 0: `libgxr_ast_5001712.so` for 5001712/5001812/5001968 and
+`libgxr_ast.so` for 5002244/5002363/5002395. The 2x2 quad is fully transparent and
+is still submitted on every eligible frame. Repatch a clean source with the current
 high-resolution patch to return to that path.
 
 The actual-pixel **Android-Surface Fovea** experiment was also tried and retired
@@ -14,19 +14,19 @@ on 2026-09-07 after the user reported "It's not working." Its code, target and
 helper are removed; no runtime failure cause is inferred. See the
 [historical record](../../diagnostics/steamlink-surface-fovea/README.md).
 
-The existing high-resolution patch installs this shared API layer. The recommended
-set already depends on that patch; it does not contain separate copies of its
-implementation and does not need membership changes. Repatch the APK using the updated
+The **Alpha-0 high-resolution trigger** patch installs this shared API layer. The
+recommended set already depends on that patch; it does not contain separate copies of
+its implementation and does not need membership changes. Repatch the APK using the updated
 `.mpp` to receive the new native library; existing installed APKs do not update themselves.
 
 ## Behavior and scope
 
-- `libgxr_ast_5001712.so`: production helper v1.2 for exact 2.0.20/5001712,
-  2.0.20/5001812 and 2.0.21/5001968 (2 native projections plus 1 alpha-1/255 quad).
-- `libgxr_ast_5001712_alpha0.so`: optional alpha-0 trial helper for exact
-  2.0.20/5001712 (2 native projections plus 1 fully transparent quad), installed
-  under the same `libgxr_ast.so` name only when the
-  `Alpha-0 high-resolution trigger (experimental)` patch is selected.
+- `libgxr_ast_5001712.so`: 2-projection alpha-0 helper for exact 2.0.20/5001712,
+  2.0.20/5001812 and 2.0.21/5001968 (2 native projections plus 1 fully transparent
+  quad), installed under the standard `libgxr_ast.so` name.
+- `libgxr_ast.so`: 3-projection alpha-0 helper for exact 2.0.22/5002244,
+  2.0.23/5002363 and 2.0.24/5002395 (3 native projections plus 1 fully transparent
+  quad).
 - Other builds retain their existing guards. This update does not add compatibility.
 - Frame lookup uses a generation-validated non-owning thread-local cache. Its hits
   avoid both the map mutex and shared-pointer ownership RMWs. Session creation,
@@ -35,10 +35,8 @@ implementation and does not need membership changes. Repatch the APK using the u
   a frame. The generation check is not a concurrent memory reclamation algorithm.
 - Event processing retains shared ownership and reads event bytes only on
   `XR_SUCCESS`, never on `XR_EVENT_UNAVAILABLE` or errors.
-- The quad remains submitted on every eligible frame. The optional alpha-0 patch
-  changes only the 2x2 buffer's alpha byte (0 instead of 1/255) on exact 5001712;
-  size, projection pointers/order, source formats, and GPU behavior are unchanged.
-  The alpha-1 payloads remain byte-identical.
+- The quad remains submitted on every eligible frame. Both helpers write alpha byte
+  0; size, projection pointers/order, source formats, and GPU behavior are unchanged.
 
 No speedup or new headset validation is claimed from local tests. In particular, a
 CPU change does not establish lower runtime GPU composition cost or improved 10-bit output.

@@ -19,6 +19,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
@@ -38,6 +40,8 @@ public class JavaCrashReportTest {
 
     @Before
     public void start() {
+        IdentityUtils.code = 475817393L;
+        IdentityUtils.identity = "unknown";
         context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
         BaseSettings.DEBUG_LOG_FILTERS.save("all");
@@ -47,8 +51,86 @@ public class JavaCrashReportTest {
 
     @After
     public void finish() {
+        IdentityUtils.code = 475817393L;
+        IdentityUtils.identity = "unknown";
         LogBufferManager.clearLogBuffer();
         JavaCrashReport.resetForTests();
+    }
+
+    @Implements(Utils.class)
+    public static class IdentityUtils {
+        static long code = 475817393L;
+        static String identity = "unknown";
+        @Implementation public static long getAppVersionCode() { return code; }
+        @Implementation public static String getAppVersionName() { return "584.0.0.51.56"; }
+        @Implementation public static String getPatchesReleaseVersion() { return "same-release"; }
+        @Implementation public static String getPatchesBuildIdentity() { return identity; }
+    }
+
+    @Test
+    @Config(shadows = IdentityUtils.class)
+    public void aStandaloneCrashDistinguishesSourceBuildsWithTheSameReleaseName() {
+        String nativeDir = context.getApplicationInfo().nativeLibraryDir;
+        context.getApplicationInfo().nativeLibraryDir = "/data/app/test/lib/arm64";
+        try {
+            for (String source : new String[]{"a", "b"}) {
+                IdentityUtils.identity = "sha256=" + source.repeat(64) + "; source=clean:" + source.repeat(40)
+                        + "; tree=" + source.repeat(40) + "; inputs=" + source.repeat(64);
+                String report = JavaCrashReport.build(context, Thread.currentThread(), new IllegalStateException("startup"));
+                assertTrue(report, report.contains("app_version: 584.0.0.51.56\n"));
+                assertTrue(report, report.contains("app_version_code: 475817393\n"));
+                assertTrue(report, report.contains("abi: app arm64, process "));
+                assertTrue(report, report.contains("morphe_version: same-release\n"));
+                assertTrue(report, report.contains("patch_build: " + IdentityUtils.identity + "\n"));
+                assertTrue(report, report.contains("android_api: 30\n"));
+            }
+        } finally {
+            context.getApplicationInfo().nativeLibraryDir = nativeDir;
+        }
+    }
+
+    @Test
+    @Config(shadows = IdentityUtils.class)
+    public void numericRunsInVerifiedBuildHashesSurviveWhileCrashContentIsRedacted() {
+        String sha = "a" + "12345678901234567890" + "b".repeat(43);
+        String commit = "c" + "123456789012345" + "d".repeat(24);
+        String inputs = "e" + "1234567890123456" + "f".repeat(47);
+        IdentityUtils.identity = "sha256=" + sha + "; source=dirty:" + commit + "; tree=" + commit + "; inputs=" + inputs;
+        String report = JavaCrashReport.build(context, null,
+                new IllegalStateException("post_id=12345678901234567890 https://example.com/private"));
+        assertTrue(report, report.contains("patch_build: " + IdentityUtils.identity + "\n"));
+        assertFalse(report, report.contains("post_id=12345678901234567890"));
+        assertFalse(report, report.contains("example.com/private"));
+    }
+
+    @Test
+    @Config(shadows = IdentityUtils.class)
+    public void aLongVersionCodeIsMetadataRatherThanAContentId() {
+        IdentityUtils.code = Long.MAX_VALUE;
+        String report = JavaCrashReport.build(context, null, new IllegalStateException("post_id=" + Long.MAX_VALUE));
+        assertTrue(report, report.contains("app_version_code: " + Long.MAX_VALUE + "\n"));
+        assertFalse(report, report.contains("post_id=" + Long.MAX_VALUE));
+    }
+
+    @Test
+    @Config(shadows = IdentityUtils.class)
+    public void unavailableCrashIdentityIsExplicitAndDoesNotLoseTheTrace() {
+        IdentityUtils.code = -1;
+        String nativeDir = context.getApplicationInfo().nativeLibraryDir;
+        context.getApplicationInfo().nativeLibraryDir = null;
+        try {
+            for (String missing : new String[]{null, "", " "}) {
+                IdentityUtils.identity = missing;
+                String report = JavaCrashReport.build(context, null, new IllegalStateException("startup"));
+                assertTrue(report, report.contains("app_version_code: unknown\n"));
+                assertTrue(report, report.contains("abi: app unknown, process "));
+                assertTrue(report, report.contains("patch_build: unknown\n"));
+                assertTrue(report, report.contains("java.lang.IllegalStateException: startup"));
+                assertTrue(report, report.contains("thread: unknown\n"));
+            }
+        } finally {
+            context.getApplicationInfo().nativeLibraryDir = nativeDir;
+        }
     }
 
     @Test

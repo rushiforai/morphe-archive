@@ -1,7 +1,9 @@
 package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.util.findFreeRegister
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -41,9 +43,27 @@ internal fun BytecodePatchContext.patchThreadRefreshValidators(version: String) 
             ref.name == spec.third.second && ref.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/String;")
     }
     check(etagHeader.size == 1) { "$version DAT If-None-Match call changed: $etagHeader" }
-    // Both calls discard their result. NOP preserves all original registers and
-    // branches; only the two request validators are omitted.
-    for (index in listOf(modifiedSince.single(), etagHeader.single()).sortedDescending())
-        method.replaceInstruction(index, "nop")
-    println("$version DAT refresh: omit stale conditional validators, keep Range requests")
+    // Preserve the native conditional request when the user disables the
+    // expert option. When enabled, skip only these validators; Range/partial
+    // DAT requests and the rest of the downloader remain native.
+    val targets = listOf(modifiedSince.single(), etagHeader.single()).sortedDescending()
+    for (index in targets) {
+        val original = method.implementation!!.instructions[index]
+        val after = method.implementation!!.instructions.getOrNull(index + 1)
+            ?: error("$version DAT validator has no continuation: $index")
+        val register = method.findFreeRegister(index)
+        val suffix = index.toString()
+        method.addInstructionsWithLabels(
+            index,
+            """
+                invoke-static {}, Lapp/morphe/extension/chmate/ThreadRefreshOptions;->skipConditionalHeaders()Z
+                move-result v$register
+                if-eqz v$register, :haiagaru_keep_validator_$suffix
+                goto :haiagaru_skip_validator_$suffix
+            """.trimIndent(),
+            ExternalLabel("haiagaru_keep_validator_$suffix", original),
+            ExternalLabel("haiagaru_skip_validator_$suffix", after),
+        )
+    }
+    println("$version DAT refresh: conditional validators controlled by expert setting; Range requests retained")
 }

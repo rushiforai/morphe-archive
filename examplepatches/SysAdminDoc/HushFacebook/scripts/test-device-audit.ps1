@@ -6,8 +6,8 @@ $auditAst = [System.Management.Automation.Language.Parser]::ParseFile($auditPath
 if ($parseErrors.Count) { throw ($parseErrors -join "`n") }
 $testFunctions = @('Assert-AuditLease', 'Assert-AuditSteps', 'Assert-AuditForeground', 'Invoke-Adb',
     'Get-AuditLocales', 'Get-AuditNightMode', 'Restore-AuditState', 'Format-Shell',
-    'New-AuditBaseline', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
-    'Test-AuditReelViewer', 'Get-AuditReelProof', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'Resolve-AuditStateBefore')
+    'New-AuditBaseline', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
+    'Test-AuditReelViewer', 'Get-AuditReelProof', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
 foreach ($functionName in $testFunctions) {
     $definition = $auditAst.Find({ param($node)
         $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $functionName
@@ -51,6 +51,16 @@ function Invoke-FakeAdb {
     $script:adbCalls.Add($command)
     $global:LASTEXITCODE = 0
     if ($script:disconnected) { throw 'Mock disconnect' }
+    if ($command -like '*logcat -b crash -d -v epoch') {
+        if ($script:offlineCrashRead) {
+            # Host logcat waits for a missing transport. Model its wait response without hanging the suite.
+            if ($args[2] -ceq 'logcat') { return '- waiting for device -' }
+            $global:LASTEXITCODE = 1
+            return 'error: device offline'
+        }
+        if ($script:failCrashRead) { throw 'Mock crash-buffer failure' }
+        return $script:crashBuffer
+    }
     if ($command -like '* pull */applied.json *') {
         $snapshot = if ($script:wrongSnapshot) { '{"wrong":true}' }
             elseif ($null -ne $script:deviceSwitches) { New-TestBackup $script:deviceSwitches }
@@ -69,7 +79,15 @@ function Invoke-FakeAdb {
     if ($command -like '* pull */before.json *' -and $script:orphanBackup) { [IO.File]::WriteAllText([string]$args[-1], $script:orphanBackup) }
     if ($command -like '*cat */import.txt*') { return 'applied 4' }
     if ($command -like '*dumpsys activity activities') { return $script:foreground }
-    if ($command -like '*dumpsys activity top') { return $script:topDump }
+    if ($command -like '*dumpsys activity top') {
+        if (-not $script:simulateGlobalTimeout) { return $script:topDump }
+        return @('  ACTIVITY com.other.gallery/.ImageQuickView 30d65d pid=2364 userId=0',
+            '  SERVICE activity DUMP TIMEOUT 10000ms')
+    }
+    if ($command -ceq "-s $Serial shell dumpsys activity '$script:topComponent'") {
+        if ($script:changeWindowDuringTop) { $script:focusedWindow = "mCurrentFocus=Window{changed u0 $Package/$Package.Main}" }
+        return $script:topDump
+    }
     if ($command -like '*dumpsys input_method') { return $script:imeState }
     if ($command -like '*dumpsys window') {
         if ($script:changeOwnWindowAfterDump -and $null -ne $script:postDumpFocusReads) {
@@ -82,6 +100,9 @@ function Invoke-FakeAdb {
         if ($script:takeFocusOnDump) { $script:focusedWindow = 'mCurrentFocus=Window{2 u0 NotificationShade}' }
         if ($script:changeOwnWindowAfterDump) { $script:postDumpFocusReads = 0 }
         return $script:uiDump
+    }
+    if ($script:uiDumpAfterDownSwipe -and $command -ceq "-s $Serial shell input swipe $swipeX $swipeTo $swipeX $swipeFrom 300") {
+        $script:uiDump = $script:uiDumpAfterDownSwipe
     }
     if ($command -like '*query-activities*') { return $script:launcherQuery }
     if ($command -match "cmd locale set-app-locales .* --locales '([^']*)'$") { $script:actualLocale = $Matches[1] }
@@ -104,6 +125,26 @@ function Write-TestLease([string]$Owner = $testToken, [double]$Minutes = 25) {
 }
 
 try {
+    # A stock install and its clone can run on one device. A crash in the clone is not a crash
+    # in the package being audited, but that package's colon-named processes still belong to it.
+    foreach ($scriptPath in @($auditPath, (Join-Path $PSScriptRoot 'phone-smoke.ps1'))) {
+        $sourceAst = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$null)
+        $selectFatal = $sourceAst.Find({ param($node)
+            $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+                $node.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+                $node.Left.VariablePath.UserPath -ceq 'fatal'
+        }, $true)
+        if (-not $selectFatal) { throw "No package crash selection in $scriptPath" }
+        $crashes = @(
+            '1730000000.100 1000 1000 E AndroidRuntime: Process: com.facebook.katana, PID: 1000',
+            '1730000000.200 1001 1001 E AndroidRuntime: Process: com.facebook.katana:push, PID: 1001',
+            '1730000000.300 1002 1002 E AndroidRuntime: Process: com.facebook.katana.morphe, PID: 1002',
+            '1730000000.400 1003 1003 E AndroidRuntime: Process: com.facebook.katanax, PID: 1003')
+        . ([scriptblock]::Create($selectFatal.Extent.Text))
+        Assert-That ($fatal.Count -eq 2 -and $fatal[0] -ceq $crashes[0] -and $fatal[1] -ceq $crashes[1]) `
+            "$(Split-Path -Leaf $scriptPath) attributed another package's crash to Facebook."
+    }
+
     Assert-Throws { Invoke-Adb shell input keyevent KEYCODE_WAKEUP } 'Missing token permitted a wake.'
     [IO.File]::WriteAllText($LeaseTokenFile, $testToken)
     Assert-Throws { & $auditPath -Serial $Serial -ExpectedDevice 'Audit_AVD' -OutDir $testRoot -LeaseDirectory $LeaseDirectory -LeaseTokenFile $LeaseTokenFile } 'An occupied output folder was accepted.'
@@ -242,6 +283,44 @@ try {
     Assert-That (-not (Test-AuditReelViewer (New-TopDump -ParentName 'GoneFragment{123abc}') "$Package/.Main")) 'A reel viewer with no parent header passed.'
     Assert-That (-not (Test-AuditReelViewer (New-TopDump -ReelHeader 'OtherFragment{77} (aa id=0x1)') "$Package/.Main")) 'A reel viewer only listed passed.'
     Assert-That (-not (Test-AuditReelViewer @((New-TopDump) + (New-TopDump)) "$Package/.Main")) 'A screen listed twice passed.'
+    Assert-That (Test-AuditReelViewer @((New-TopDump -Resumed 'false') + (New-TopDump)) "$Package/.Main") 'A paused instance hid the uniquely resumed reel of the same component.'
+    Assert-That (-not (Test-AuditReelViewer @((New-TopDump -Resumed 'false') + (New-TopDump -ReelHeader 'OtherFragment{77} (aa id=0x1)')) "$Package/.Main")) 'A paused reel behind the resumed Menu proved the destination.'
+    $nestedResume = ((New-TopDump -Resumed 'false') -join "`n").Replace('mCreated=true mResumed=false', 'mCreated=true mResumed=true')
+    Assert-That (-not (Test-AuditReelViewer @($nestedResume) "$Package/.Main")) 'A fragment manager resume flag overrode the activity state.'
+    $doubleState = ((New-TopDump) -join "`n").Replace('      mResumed=true', "      mResumed=true`n      mResumed=true")
+    Assert-That (-not (Test-AuditReelViewer @($doubleState) "$Package/.Main")) 'Conflicting or duplicate activity state lines proved a destination.'
+    $notRunning = @('TASK 10433:com.facebook.katana id=7700 userId=0', "  ACTIVITY $Package/.Main old pid=(not running)")
+    Assert-That (Test-AuditReelViewer @($notRunning + (New-TopDump)) "$Package/.Main") 'A retained nonrunning record hid the resumed reel.'
+    $nonrunningWithIds = @('TASK 10433:com.facebook.katana id=7700 userId=0', "  ACTIVITY $Package/.Main old pid=(not running) userId=0 uid=10588 displayId=0(type=INTERNAL)")
+    Assert-That (Test-AuditReelViewer @($nonrunningWithIds + (New-TopDump)) "$Package/.Main") 'User or display IDs on a nonrunning record hid the resumed reel.'
+    Assert-That (-not (Test-AuditReelViewer $notRunning "$Package/.Main")) 'A nonrunning record proved a reel.'
+    Assert-That (-not (Test-AuditReelViewer @((($notRunning -join "`n").Replace('pid=(not running)', 'pid=123')) + (New-TopDump)) "$Package/.Main")) 'A running record without client state was ignored.'
+    $contradictoryClient = ((New-TopDump) -join "`n").Replace('pid=18012 userId=0', 'pid=(not running)')
+    Assert-That (-not (Test-AuditReelViewer @($contradictoryClient) "$Package/.Main")) 'A nonrunning record with contradictory resumed client state passed.'
+    # Other apps can stall the global top dump before Facebook's client is reached.
+    $foregroundBeforeTop = $script:foreground
+    $windowBeforeTop = $script:focusedWindow
+    try {
+        $script:simulateGlobalTimeout = $true
+        foreach ($component in @("$Package/.Main", "$Package/.immersiveactivity.ImmersiveActivity")) {
+            $script:topComponent = $component
+            $script:foreground = "topResumedActivity=ActivityRecord{1 u0 $component t1}"
+            $script:focusedWindow = "mCurrentFocus=Window{1 u0 $component}"
+            $script:topDump = ((New-TopDump) -join "`n").Replace("$Package/.Main", $component)
+            $script:adbCalls.Clear()
+            Assert-That (Get-AuditReelProof) 'The current reel was lost behind another app in an unscoped activity dump.'
+            Assert-That (@($script:adbCalls | Where-Object { $_ -ceq "-s $Serial shell dumpsys activity '$component'" }).Count -eq 1) 'Reel proof did not request the exact resumed component.'
+            Assert-That (@($script:adbCalls | Where-Object { $_ -like '*dumpsys activity *' -and $_ -notlike '*dumpsys activity activities' -and $_ -cne "-s $Serial shell dumpsys activity '$component'" }).Count -eq 0) 'Reel proof requested a global, package-wide or fixed-launcher client dump.'
+        }
+        $script:changeWindowDuringTop = $true
+        Assert-That (-not (Get-AuditReelProof)) 'Reel proof survived a changed input window while its client dump ran.'
+    } finally {
+        $script:foreground = $foregroundBeforeTop
+        $script:focusedWindow = $windowBeforeTop
+        $script:changeWindowDuringTop = $false
+        $script:simulateGlobalTimeout = $false
+        $script:topComponent = "$Package/.Main"
+    }
     $script:topDump = (New-TopDump) -join "`n"
     $inputReel = $true
     $script:adbCalls.Clear()
@@ -601,12 +680,81 @@ try {
     function Get-SettingsPages { return 'News feed' }
     function Close-Settings { }
     function Get-ScreenText { return $script:screenText }
-    function Save-Screenshot([string]$Path) { }
+    function Save-Screenshot([string]$Path) {
+        if ($script:crashOnScreenshot) {
+            $script:crashBuffer += '1730000001.100 1000 1000 E AndroidRuntime: Process: com.facebook.katana, PID: 1000'
+            $script:crashOnScreenshot = $false
+        }
+    }
     $SettleSeconds = 0
     $translationTables = Join-Path $PSScriptRoot '..\extensions\shared\library\src\main\l10n'
     $Entry = "$Package/.LoginActivity"
     $Extra = 'app.morphe.extension.facebook'
     $swipeX = 10; $swipeFrom = 20; $swipeTo = 5
+    # A route swipe can leave Menu's row above the phone's permitted tap area.
+    function New-TapDump([string[]]$Bounds) {
+        $nodes = foreach ($box in $Bounds) {
+            "<node package=`"$Package`" content-desc=`"Settings and privacy`" clickable=`"true`" bounds=`"$box`" />"
+        }
+        return "<?xml version=`"1.0`"?><hierarchy>$($nodes -join '')</hierarchy>"
+    }
+    $tapDumpBefore = $script:uiDump
+    $inputLabelBefore = $inputNodeLabel
+    $MinimumTapY = 600
+    $lowBounds = '[0,360][1080,488]'
+    $safeBounds = '[0,1546][1080,1674]'
+    $downSwipe = "-s $Serial shell input swipe $swipeX $swipeTo $swipeX $swipeFrom 300"
+    try {
+        $script:uiDump = New-TapDump @($lowBounds)
+        $script:uiDumpAfterDownSwipe = New-TapDump @($safeBounds)
+        $script:adbCalls.Clear()
+        $found = Find-AuditTapNode 'Settings and privacy'
+        Assert-That ($null -ne $found -and $found.bounds -ceq $safeBounds) 'The navigation row was not freshly selected below the minimum tap Y after moving down.'
+        $commands = @($script:adbCalls)
+        $moveAt = [Array]::IndexOf($commands, $downSwipe)
+        Assert-That (@($commands | Where-Object { $_ -like '* input *' }).Count -eq 1 -and $moveAt -ge 0) 'Moving an unsafe row did not use exactly one permitted downward swipe.'
+        Assert-That ($moveAt -ge 0 -and @($commands | Select-Object -Skip ($moveAt + 1) | Where-Object { $_ -like '*uiautomator dump*' }).Count -ge 1) 'Moving the row did not collect a fresh UI dump before returning it.'
+        if ($null -ne $found -and $found.bounds -match '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$') {
+            $inputNodeLabel = 'Settings and privacy'
+            Invoke-Adb shell input tap ([int](([int]$Matches[1] + [int]$Matches[3]) / 2)) ([int](([int]$Matches[2] + [int]$Matches[4]) / 2)) | Out-Null
+        }
+        Assert-That (@($script:adbCalls | Where-Object { $_ -like '* input tap *' }).Count -eq 1 -and
+            @($script:adbCalls | Where-Object { $_ -like '* input tap 540 1610' }).Count -eq 1) 'The caller tapped the old unsafe row instead of the newly selected row.'
+
+        $script:uiDumpAfterDownSwipe = $null
+        $script:uiDump = New-TapDump @($lowBounds)
+        $script:adbCalls.Clear()
+        $found = Find-AuditTapNode 'Settings and privacy'
+        Assert-That ($null -eq $found) 'A row that remained above the minimum tap Y was returned to the tap caller.'
+        Assert-That (@($script:adbCalls | Where-Object { $_ -ceq $downSwipe }).Count -eq 5 -and
+            @($script:adbCalls | Where-Object { $_ -like '* input *' }).Count -eq 5) 'An immovable unsafe row did not stop after five downward swipes without a tap.'
+
+        foreach ($allowed in @(@{ Minimum = 0; Bounds = $lowBounds }, @{ Minimum = 600; Bounds = '[0,540][1080,660]' })) {
+            $MinimumTapY = $allowed.Minimum
+            $script:uiDump = New-TapDump @($allowed.Bounds)
+            $script:adbCalls.Clear()
+            $found = Find-AuditTapNode 'Settings and privacy'
+            Assert-That ($null -ne $found -and $found.bounds -ceq $allowed.Bounds) "A row meeting the minimum tap Y $MinimumTapY was refused."
+            Assert-That (@($script:adbCalls | Where-Object { $_ -like '* input *' }).Count -eq 0 -and
+                @($script:adbCalls | Where-Object { $_ -like '*uiautomator dump*' }).Count -eq 1) "A row meeting the minimum tap Y $MinimumTapY caused an unnecessary swipe."
+        }
+
+        $MinimumTapY = 600
+        foreach ($badBounds in @(@('invalid'), @($safeBounds, '[0,1000][1080,1128]'))) {
+            $script:uiDump = New-TapDump @($lowBounds)
+            $script:uiDumpAfterDownSwipe = New-TapDump $badBounds
+            $script:adbCalls.Clear()
+            $found = Find-AuditTapNode 'Settings and privacy'
+            Assert-That ($null -eq $found) 'An invalid or ambiguous replacement row was accepted after repositioning.'
+            Assert-That (@($script:adbCalls | Where-Object { $_ -ceq $downSwipe }).Count -eq 5 -and
+                @($script:adbCalls | Where-Object { $_ -like '* input *' }).Count -eq 5) 'Invalid or ambiguous replacement rows did not remain bounded and untapped.'
+        }
+    } finally {
+        $MinimumTapY = 0
+        $script:uiDumpAfterDownSwipe = $null
+        $script:uiDump = $tapDumpBefore
+        $inputNodeLabel = $inputLabelBefore
+    }
     # The launcher entry: default, alternate icon, none and several.
     $realStart = ($auditAst.Find({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Start-Facebook' }, $true)).Extent.Text.Replace('function Start-Facebook', 'function Start-FacebookReal')
     . ([scriptblock]::Create($realStart))
@@ -633,7 +781,7 @@ try {
         $script:adbCalls.Clear()
         Start-FacebookReal
         try { Get-Report (Join-Path $OutDir 'report-launcher.txt') | Out-Null } catch { }
-        $script:pageAck = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"de-DE"}'
+        $script:pageAck = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
         $script:screenText = @('Newsfeed')
         Save-SettingsPages 'dark' | Out-Null
         $starts = @($script:adbCalls | Where-Object { $_ -like '*am start*' -and $_ -notlike '*android.intent.action.VIEW*' })
@@ -654,19 +802,90 @@ try {
     $Entry = "$Package/.LoginActivity"
     $script:foreground = "topResumedActivity=ActivityRecord{1 u0 $Package/.Main t1}"
     $script:screenText = @('Newsfeed')
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"de-DE"}'
+    $script:pageAck = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
+    $script:crashBuffer = @('1729999999.100 1000 1000 E AndroidRuntime: Process: com.facebook.katana, PID: 1000')
+    Assert-That ((Get-AuditCrashes -SinceEpoch 1730000000).Fatal.Count -eq 0) 'An old crash entered the current audit.'
+    $script:crashOnScreenshot = $true
     Assert-That (@(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Proved translated page was rejected.'
-    $script:pageAck = '{"schema":2,"route":"Playback","title":"Newsfeed","locale":"de-DE"}'
+    $lateCrashes = Get-AuditCrashes -SinceEpoch 1730000000
+    Assert-That ($lateCrashes.Fatal.Count -eq 1 -and $lateCrashes.Fatal[0] -like '1730000001.*') `
+        'A crash recorded during the settings pass was missing from the final collection.'
+    $script:failCrashRead = $true
+    try { Assert-Throws { Get-AuditCrashes -SinceEpoch 1730000000 } 'A failed final crash-buffer read returned an empty successful result.' }
+    finally { $script:failCrashRead = $false }
+    $script:offlineCrashRead = $true
+    try {
+        foreach ($scriptPath in @($auditPath, (Join-Path $PSScriptRoot 'phone-smoke.ps1'))) {
+            $sourceAst = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$null)
+            $readCrashes = $sourceAst.Find({ param($node)
+                $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+                    $node.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+                    $node.Left.VariablePath.UserPath -ceq 'crashes'
+            }, $true)
+            if (-not $readCrashes) { throw "No crash-buffer read in $scriptPath" }
+            $offlineError = ''
+            try { . ([scriptblock]::Create($readCrashes.Extent.Text)) }
+            catch { $offlineError = $_.Exception.Message }
+            Assert-That ($offlineError -like '*device offline*') `
+                "$(Split-Path -Leaf $scriptPath) didn't fail promptly on a disconnected crash-read transport."
+        }
+    } finally { $script:offlineCrashRead = $false }
+    $script:pageAck = '{"schema":2,"route":"Playback","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Wrong localized page was accepted.'
     $script:screenText = @('News feed')
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"en-US"}'
+    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"en-US","localeTags":["en-rus","en"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'An English page passed a requested German pass.'
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"de-DE"}'
+    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"de-DE","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'An English title under German configuration passed.'
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed"}'
+    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'A missing effective locale passed a localized pass.'
     $script:pageAck = ''
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Missing page acknowledgement passed.'
+    # The configuration's primary locale and the runtime's translation lookup order are independent.
+    $actualTranslationTables = $translationTables
+    $translationTables = Join-Path $testRoot 'fallback-translations'
+    New-Item -ItemType Directory -Path $translationTables | Out-Null
+    [IO.File]::WriteAllText((Join-Path $translationTables 'de.tsv'), "News feed`tNewsfeed`n")
+    try {
+        foreach ($case in @(
+            @{ Name = 'base'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'regional'; Requested = 'ar-SA'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar-SA","localeTags":["ar-rsa","ar"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'german-secondary'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["ar","de-rde","de"]}'; Text = 'Newsfeed'; Opened = $true },
+            @{ Name = 'english-before-german'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","en-rus","en","de"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'unknown-secondary'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","zz-rzz","zz"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'wrong-secondary-title'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","de-rde","de"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'wrong-english-priority'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["ar","en-rus","en","de"]}'; Text = 'Newsfeed'; Opened = $false },
+            @{ Name = 'missing-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar"}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'null-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":null}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'scalar-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":"ar"}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'empty-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":[]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'nonscalar-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar",{"tag":"de"}]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'malformed-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","not a tag"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'foreign-first'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["de-rde","de","ar"]}'; Text = 'Newsfeed'; Opened = $false },
+            @{ Name = 'wrong-locale'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"en-US","localeTags":["en-rus","en"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'missing-locale'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","localeTags":["ar"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'wrong-route'; Requested = 'ar'; Ack = '{"schema":2,"route":"Playback","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'wrong-title'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Playback","locale":"ar","localeTags":["ar"]}'; Text = 'Playback'; Opened = $false },
+            @{ Name = 'wrong-visible-title'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'Playback'; Opened = $false },
+            @{ Name = 'missing-ack'; Requested = 'ar'; Ack = ''; Text = 'News feed'; Opened = $false }
+        )) {
+            $script:screenText = @($case.Text)
+            $script:pageAck = $case.Ack
+            $fallbackPages = @()
+            $fallbackError = $null
+            try { $fallbackPages = @(Save-SettingsPages "dark-ar-$($case.Name)" $case.Requested) }
+            catch { $fallbackError = $_.Exception.Message }
+            Assert-That ($null -eq $fallbackError -and $fallbackPages.Count -eq 1 -and $fallbackPages[0].Opened -eq $case.Opened) `
+                "Arabic runtime-locale case $($case.Name) did not validate the actual page (error: $fallbackError)."
+        }
+        [IO.File]::WriteAllText((Join-Path $translationTables 'ar.tsv'), "News feed`t`n")
+        $script:screenText = @('News feed')
+        $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","de-rde","de"]}'
+        Assert-That (@(Save-SettingsPages 'dark-ar-empty-row' 'ar')[0].Opened) 'An empty translation row refused the English fallback title under Arabic configuration.'
+    } finally {
+        $translationTables = $actualTranslationTables
+        $script:pageAck = ''
+    }
     $script:screenText = @()
     Assert-Throws { Save-SettingsPages 'dark-de' } 'Empty UI nodes passed.'
 } finally {

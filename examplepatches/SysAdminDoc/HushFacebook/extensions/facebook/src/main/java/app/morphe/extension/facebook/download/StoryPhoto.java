@@ -66,6 +66,17 @@ public final class StoryPhoto {
     private StoryPhoto() {
     }
 
+    /** The primary Save item's custom title, preserving Facebook's when no override is needed. */
+    public static String saveTitle(Object card, String original) {
+        try {
+            if (!Utils.settingsReady() || !Settings.DOWNLOAD_STORIES.get()) return original;
+            return StoryOverlayVideo.in(card) == null ? original : L10n.t("Save video");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu save title", failure);
+            return original;
+        }
+    }
+
     /**
      * The address of the photo [card]'s Story was made from, when its node holds
      * {@link #MADE_FROM_PHOTO} and its media holds both a video and that photo. Null for a video

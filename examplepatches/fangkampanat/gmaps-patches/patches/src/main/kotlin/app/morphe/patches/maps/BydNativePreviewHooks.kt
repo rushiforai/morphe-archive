@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.*
+import java.util.logging.Logger
 
 private const val EXT = "Lapp/morphe/extension/maps/patches/BydNativeBatteryPatch;"
 private fun Instruction.field() = getReference<FieldReference>()
@@ -53,9 +54,9 @@ internal data class NativePreviewInsert(val method: MutableMethod, val index: In
 
 internal class NativePreviewPlan internal constructor(
     val getter: MutableMethod, val schema: String, val cloneSchema: String,
-    val startupGate: MethodReference, val trackingGate: MethodReference,
+    val startupGate: MethodReference?, val trackingGate: MethodReference,
     private val inserts: List<NativePreviewInsert>, private val entryRegister: Int,
-    private val startupAggregate: MutableMethod,
+    private val startupAggregate: MutableMethod, private val sharedAggregateReturn: Boolean,
 ) {
     fun inject() {
         inserts.groupBy { it.method }.forEach { (method, changes) ->
@@ -76,8 +77,9 @@ internal class NativePreviewPlan internal constructor(
         val bridge = aggregateBody.indices.single { aggregateBody[it].call()?.toString() ==
             "$EXT->queryUnselectedInitialProvider()Ljava/lang/Object;" }
         val branch = bridge - 4
+        // Shared-return layout: the branch still targets the provider path's return just before the bridge.
         guard(branch >= 0 && aggregateBody[branch].opcode == Opcode.IF_EQZ &&
-            aggregateBody.target(branch) == bridge + 3 &&
+            aggregateBody.target(branch) == (if (sharedAggregateReturn) bridge - 1 else bridge + 3) &&
             aggregateBody[bridge - 1].opcode == Opcode.RETURN_OBJECT &&
             aggregateBody[bridge + 3].opcode == Opcode.RETURN_OBJECT,
             "only original no-provider branch targets startup null return", startupAggregate)
@@ -128,9 +130,16 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
     }), "initial preview battery input")!!
     val getCode = getter.code()
     val p0 = getter.receiver()
+    // R8 may merge the three returns (26.42): cached and field values jump to the default's return.
+    val returned = (getCode.last() as? OneRegisterInstruction)?.registerA
+    val mergedGetter = getCode.count { it.opcode == Opcode.RETURN } == 1 &&
+        (getCode.getOrNull(getCode.lastIndex - 1) as? OneRegisterInstruction)?.registerA == returned &&
+        getCode.indices.filter { getCode[it].opcode == Opcode.GOTO }.let { jumps -> jumps.size == 2 &&
+            jumps.all { getCode.target(it) == getCode.lastIndex &&
+                (getCode.getOrNull(it - 1) as? OneRegisterInstruction)?.registerA == returned } }
     guard(getCode.size == 14 && getCode.last().opcode == Opcode.RETURN &&
         (getCode[getCode.lastIndex - 1] as? NarrowLiteralInstruction)?.narrowLiteral == 90 &&
-        getCode.count { it.opcode == Opcode.RETURN } == 3 && getCode.first().opcode == Opcode.IGET_OBJECT,
+        (getCode.count { it.opcode == Opcode.RETURN } == 3 || mergedGetter) && getCode.first().opcode == Opcode.IGET_OBJECT,
         "optional/cached/default-90 getter", getter)
     val scratch = (getCode.first() as TwoRegisterInstruction).registerA
     guard((getCode.first() as TwoRegisterInstruction).registerB == p0 && scratch != p0 && scratch <= 255,
@@ -258,8 +267,13 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
     val cc = clone.code()
     val source = cc.indices.single { cc[it].opcode == Opcode.IGET_OBJECT && cc[it].field()?.type == plan.modelField.type }
     val sourceReg = (cc[source] as TwoRegisterInstruction).registerA
+    // R8 may turn the copy's return into a goto to the shared null return (26.42). Each exit then
+    // gets its own probe: the goto is not a branch target, so every path runs exactly one.
+    val cloneExits = cc.indices.filter { cc.exitAt(it)?.opcode == Opcode.RETURN_OBJECT }
+    val mergedClone = cc.count { it.opcode == Opcode.RETURN_OBJECT } == 1 &&
+        cloneExits == listOf(cc.lastIndex - 2, cc.lastIndex) && cc.lastIndex - 2 !in clone.incomingTargets()
     guard(cc[source + 1].call()?.name == "toBuilder" && cc[source + 1].invokeRegisters() == listOf(sourceReg) &&
-        cc.count { it.opcode == Opcode.RETURN_OBJECT } == 2, "published clone source/returns", clone)
+        (cc.count { it.opcode == Opcode.RETURN_OBJECT } == 2 || mergedClone), "published clone source/returns", clone)
     val cloneInput = clone.implementation!!.registerCount - 3
     guard(source == 2 && cc[0].opcode == Opcode.IF_EQZ && cc[1].opcode == Opcode.IF_EQZ &&
         (cc[0] as OneRegisterInstruction).registerA == cloneInput &&
@@ -414,26 +428,44 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
             if (body.size == 4) guard(body[3].opcode == Opcode.RETURN_OBJECT &&
                 (body[3] as OneRegisterInstruction).registerA == result, "pure provider query returns exact clone", method)
             else {
+                // R8 may share one return (26.42): only the null check reaches a move of the null
+                // constant into the returned register; the instruction before it never falls through.
+                val nullConstant = (body[3] as? OneRegisterInstruction)?.registerA
+                val sharedNullExit = body[4].opcode == Opcode.IF_EQZ && body.target(4) == body.lastIndex - 1 &&
+                    body[body.lastIndex - 1].opcode == Opcode.MOVE_OBJECT &&
+                    (body[body.lastIndex - 1] as TwoRegisterInstruction).registerB == nullConstant &&
+                    (body[body.lastIndex - 1] as TwoRegisterInstruction).registerA ==
+                        (body.last() as? OneRegisterInstruction)?.registerA &&
+                    body[body.lastIndex - 2].opcode in setOf(Opcode.THROW, Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) &&
+                    body.indices.filter { body[it] is OffsetInstruction && body.target(it) == body.lastIndex - 1 } == listOf(4)
                 guard(body[3].opcode == Opcode.CONST_4 && (body[3] as WideLiteralInstruction).wideLiteral == 0L &&
                     body[4].opcode == Opcode.IF_EQZ && (body[4] as OneRegisterInstruction).registerA == result &&
-                    body.target(4) == body.lastIndex && body.last().opcode == Opcode.RETURN_OBJECT &&
-                    (body.last() as OneRegisterInstruction).registerA == (body[3] as OneRegisterInstruction).registerA,
+                    (body.target(4) == body.lastIndex || sharedNullExit) && body.last().opcode == Opcode.RETURN_OBJECT &&
+                    (sharedNullExit || (body.last() as OneRegisterInstruction).registerA == nullConstant),
                     "provider null result exits without post-processing", method)
                 proveNonNullDerivatives(method, 5, result)
             }
         } else {
+            // R8 may store the chosen provider's result in the null register and share one return (26.42).
+            val merged = body.size == 23
+            val nullRegister = (body.getOrNull(5) as? OneRegisterInstruction)?.registerA
             guard(body.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE,
                 Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT, Opcode.CONST_4,
                 Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.MOVE_OBJECT,
                 Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_INTERFACE,
                 Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.GOTO, Opcode.MOVE_OBJECT, Opcode.CHECK_CAST,
-                Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT,
-                Opcode.RETURN_OBJECT) && body[20].call()?.toString() == query.toString() &&
+                Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT) +
+                List(if (merged) 1 else 2) { Opcode.RETURN_OBJECT } && body[20].call()?.toString() == query.toString() &&
                 body[20].invokeRegisters() == listOf((body[18] as OneRegisterInstruction).registerA) &&
-                (body[21] as OneRegisterInstruction).registerA == (body[22] as OneRegisterInstruction).registerA &&
                 body[5].opcode == Opcode.CONST_4 && (body[5] as WideLiteralInstruction).wideLiteral == 0L &&
-                (body[23] as OneRegisterInstruction).registerA == (body[5] as OneRegisterInstruction).registerA &&
-                body.target(6) == 17 && body.target(15) == 3 && body.target(16) == 18 && body.target(19) == 23,
+                body.target(6) == 17 && body.target(15) == 3 && body.target(16) == 18 && if (merged) {
+                    (body[21] as OneRegisterInstruction).registerA == nullRegister &&
+                        (body[22] as OneRegisterInstruction).registerA == nullRegister && body.target(19) == 22 &&
+                        body.indices.filter { body[it].opcode.setsRegister() &&
+                            (body[it] as? OneRegisterInstruction)?.registerA == nullRegister } == listOf(5, 21)
+                } else (body[21] as OneRegisterInstruction).registerA == (body[22] as OneRegisterInstruction).registerA &&
+                    (body[23] as OneRegisterInstruction).registerA == (body[5] as OneRegisterInstruction).registerA &&
+                    body.target(19) == 23,
                 "aggregator synchronously returns its chosen provider result or null without a query", method)
             val list = body[0] as TwoRegisterInstruction
             val iterator = (body[2] as OneRegisterInstruction).registerA
@@ -518,13 +550,28 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
                 call.parameterTypes.last() == "Ljava/util/concurrent/Executor;" } == true }
     }), "live battery tracker startup")!!
     val sc = startup.code()
-    val startCall = sc.indices.single { index -> index > 0 && sc[index].call()?.definingClass == gateInterface &&
+    val startCall = sc.indices.singleOrNull { index -> index > 0 && sc[index].call()?.definingClass == gateInterface &&
         sc[index].call()?.returnType == "Z" && sc[index - 1].opcode == Opcode.IGET_OBJECT &&
         sc[index - 1].field()?.definingClass == tracker.definingClass }
-    val startGate = sc[startCall].call()!!
-    guard(sc[startCall + 1].opcode == Opcode.MOVE_RESULT && sc[startCall + 2].opcode == Opcode.IF_NEZ &&
+    val startGate = startCall?.let { sc[it].call()!! }
+    if (startCall != null) guard(sc[startCall + 1].opcode == Opcode.MOVE_RESULT && sc[startCall + 2].opcode == Opcode.IF_NEZ &&
         (sc[startCall + 1] as OneRegisterInstruction).registerA == (sc[startCall + 2] as OneRegisterInstruction).registerA,
         "startup gate operand", startup)
+    else {
+        // 26.42 removed the startup gate. Prove the tracker block registers its progress listener
+        // with no gate call and no branch from its entry; only the tracking gate remains.
+        val castAt = sc.indices.singleOrNull { sc[it].opcode == Opcode.CHECK_CAST &&
+            sc[it].getReference<TypeReference>()?.type == tracker.definingClass }
+        val registerAt = sc.indices.singleOrNull { sc[it].call()?.let { call -> call.definingClass == progressBus &&
+            call.returnType == "V" && call.parameterTypes.size == 2 &&
+            call.parameterTypes.last() == "Ljava/util/concurrent/Executor;" } == true }
+        val entry = castAt?.let { at -> startup.incomingTargets().filter { it <= at }.maxOrNull() }
+        guard(castAt != null && registerAt != null && entry != null && castAt < registerAt &&
+            sc.subList(entry, registerAt + 1).none { it is OffsetInstruction || it.call()?.definingClass == gateInterface ||
+                it.opcode in setOf(Opcode.RETURN_VOID, Opcode.THROW) } &&
+            sc.getOrNull(registerAt + 1)?.opcode == Opcode.RETURN_VOID,
+            "ungated tracker startup registers its progress listener unconditionally", startup)
+    }
     val gateImpls = mutableListOf<String>()
     classDefForEach { if (gateInterface in it.interfaces) gateImpls.add(it.type) }
     guard(gateImpls.size == 1, "unique UI gate implementation", gateInterface)
@@ -533,7 +580,7 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
     val gateCtor = gates.methods.single { it.name == "<init>" }
     guard(gateCtor.code().last().opcode == Opcode.RETURN_VOID && gateCtor.code().count { it.opcode == Opcode.RETURN_VOID } == 1,
         "gate constructor exit", gateCtor)
-    listOf(startGate, trackCall).forEach { call -> guard(classDefBy(gateInterface).methods.any {
+    listOfNotNull(startGate, trackCall).forEach { call -> guard(classDefBy(gateInterface).methods.any {
         it.toString() == call.toString() && AccessFlags.PUBLIC.isSet(it.accessFlags) }, "public UI gate method", call) }
     guard(trackerCtor.code().last().opcode == Opcode.RETURN_VOID, "tracker constructor exit", trackerCtor)
 
@@ -547,7 +594,16 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
     val aggregateBody = aggregate.code()
     call(aggregate, 1, (aggregateBody[0] as TwoRegisterInstruction).registerA, "captureInitialProviders")
     val emptyResult = (aggregateBody.last() as OneRegisterInstruction).registerA
-    insert(aggregate, aggregateBody.lastIndex, """
+    // With one shared return the provider result also flows through it, so the bridge gets its
+    // own return after it; inject() then sends only the no-provider branch there.
+    val mergedAggregate = aggregateBody.size == 23
+    if (mergedAggregate) insert(aggregate, aggregateBody.size, """
+        invoke-static { }, $EXT->queryUnselectedInitialProvider()Ljava/lang/Object;
+        move-result-object v$emptyResult
+        check-cast v$emptyResult, ${plan.modelField.type}
+        return-object v$emptyResult
+    """, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST, Opcode.RETURN_OBJECT)
+    else insert(aggregate, aggregateBody.lastIndex, """
         invoke-static { }, $EXT->queryUnselectedInitialProvider()Ljava/lang/Object;
         move-result-object v$emptyResult
         check-cast v$emptyResult, ${plan.modelField.type}
@@ -585,8 +641,8 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
     call(initial, initialStore + 1, initialReg, "onInitialRequestModel")
     call(clone, source + 1, sourceReg, "onCopyInput")
     call(plan.publisher, publishAt, envelopeReg, "onProviderEnvelope")
-    cc.indices.filter { cc[it].opcode == Opcode.RETURN_OBJECT }.forEach {
-        call(clone, it, (cc[it] as OneRegisterInstruction).registerA, "onPublishedModel")
+    cloneExits.forEach {
+        call(clone, it, (cc.exitAt(it) as OneRegisterInstruction).registerA, "onPublishedModel")
     }
     // Maps' demo-setting collector is the only native-model writer outside its owner. It clears
     // the slot our registration seeded and republishes; re-seed only after that same-object call.
@@ -610,21 +666,30 @@ internal fun BytecodePatchContext.resolveNativePreview(plan: NativeBatteryPlan, 
             cw[index].opcode == Opcode.CHECK_CAST && cw[index].getReference<TypeReference>()?.type == owner.type &&
                 (cw[index] as OneRegisterInstruction).registerA == register } &&
         clearPublish.opcode == Opcode.INVOKE_VIRTUAL && clearPublish.call()?.toString() == plan.publisher.toString() &&
-        cw[clearStore + 3].opcode in listOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) &&
-        clearDef.incomingTargets().none { it in (clearStore - 1)..(clearStore + 3) },
+        (cw[clearStore + 3].opcode in listOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) &&
+            clearDef.incomingTargets().none { it in (clearStore - 1)..(clearStore + 3) } ||
+            // 26.42 falls through into the monitor exit that the null check also targets. The probe
+            // inserted before it leaves that label on the exit, so only the clear path runs it.
+            cw[clearStore + 3].opcode == Opcode.MONITOR_EXIT &&
+                clearDef.incomingTargets().none { it in (clearStore - 1)..(clearStore + 2) }),
         "external writer stores then republishes the same native owner", clearDef)
     call(mutable(clearDef), clearStore + 3, clearReceiver!!, "onNativeModelCleared")
     insert(mutable(gateCtor), gateCtor.code().lastIndex,
         "invoke-static/range { p0 .. p0 }, $EXT->registerGates(Ljava/lang/Object;)V", Opcode.INVOKE_STATIC_RANGE)
     insert(mutable(trackerCtor), trackerCtor.code().lastIndex,
         "invoke-static/range { p0 .. p0 }, $EXT->registerTracker(Ljava/lang/Object;)V", Opcode.INVOKE_STATIC_RANGE)
-    val startReg = (sc[startCall + 1] as OneRegisterInstruction).registerA
-    insert(startup, startCall + 2,
-        "invoke-static/range { v$startReg .. v$startReg }, $EXT->onTrackerStart(Z)V", Opcode.INVOKE_STATIC_RANGE)
+    if (startCall != null) {
+        val startReg = (sc[startCall + 1] as OneRegisterInstruction).registerA
+        insert(startup, startCall + 2,
+            "invoke-static/range { v$startReg .. v$startReg }, $EXT->onTrackerStart(Z)V", Opcode.INVOKE_STATIC_RANGE)
+    } else Logger.getLogger("app.morphe.patches.maps.BydNativeBatteryPatch").info(
+        "Native preview: $startup has no startup gate; only the tracking gate $trackCall is observed and widened")
+    // The extension ABI needs a callable startup member; without a startup gate it reads the tracking gate.
     val schema = listOf(battery.name, current.name, capacity.name, number.name).joinToString(",") + ";" +
         listOf(provider.removePrefix("L").removeSuffix(";").replace('/', '.'), query.name,
-            gateInterface.removePrefix("L").removeSuffix(";").replace('/', '.'), startGate.name, trackCall.name).joinToString(",")
+            gateInterface.removePrefix("L").removeSuffix(";").replace('/', '.'), (startGate ?: trackCall).name,
+            trackCall.name).joinToString(",")
     val cloneSchema = listOf(clone.definingClass.removePrefix("L").removeSuffix(";").replace('/', '.'),
         cloneApi.name, envelope.removePrefix("L").removeSuffix(";").replace('/', '.')).joinToString(",")
-    return NativePreviewPlan(getter, schema, cloneSchema, startGate, trackCall, inserts, scratch, aggregate)
+    return NativePreviewPlan(getter, schema, cloneSchema, startGate, trackCall, inserts, scratch, aggregate, mergedAggregate)
 }

@@ -20,7 +20,7 @@ if(NOT EXISTS "${OPENXR_SDK_SOURCE_DIR}/include/openxr/openxr.h")
     message(FATAL_ERROR "Set OPENXR_SDK_SOURCE_DIR to the bundled OpenXR-SDK 1.1.61 checkout")
 endif()
 
-function(add_gxr_surface_trigger_target target output_name source_projection_count trigger_alpha)
+function(add_gxr_surface_trigger_target target output_name source_projection_count)
     add_library(${target} SHARED
         src/android_surface_trigger_passthrough_layer.cpp
     )
@@ -31,7 +31,6 @@ function(add_gxr_surface_trigger_target target output_name source_projection_cou
         XR_USE_PLATFORM_ANDROID
         NDEBUG
         GXR_AST_SOURCE_PROJECTION_COUNT=${source_projection_count}
-        GXR_AST_TRIGGER_ALPHA=${trigger_alpha}
     )
     target_compile_options(${target} PRIVATE
         -O2
@@ -56,29 +55,18 @@ function(add_gxr_surface_trigger_target target output_name source_projection_cou
     endif()
 endfunction()
 
-# Shipping helper: keep the validated terminal 2x2 quad on every eligible frame.
+# Shipping 3-projection helper for 5002244/5002363/5002395. The terminal 2x2
+# quad is fully transparent and is submitted on every eligible frame.
 add_gxr_surface_trigger_target(
     gxr_android_surface_trigger_passthrough_v1
     gxr_ast
     3
-    1
 )
 
-# Exact Steam Link 2.0.20/5001712 helper: Valve submits 2 projection layers.
+# Shipping 2-projection helper for 5001712/5001812/5001968. Valve submits two
+# projection layers; the terminal 2x2 quad is fully transparent.
 add_gxr_surface_trigger_target(
     gxr_android_surface_trigger_passthrough_5001712_v1
     gxr_ast_5001712
     2
-    1
-)
-
-# Exact 2.0.20/5001712 alpha-0 trial. Keep the same 2-to-3 layer topology and
-# submitted Surface, but clear the quad's alpha byte so it cannot darken the
-# centre of view. Select this payload only for (2.0.20, 5001712) until the
-# headset run proves the high-resolution compositor path still engages.
-add_gxr_surface_trigger_target(
-    gxr_android_surface_trigger_passthrough_5001712_alpha0_v1
-    gxr_ast_5001712_alpha0
-    2
-    0
 )

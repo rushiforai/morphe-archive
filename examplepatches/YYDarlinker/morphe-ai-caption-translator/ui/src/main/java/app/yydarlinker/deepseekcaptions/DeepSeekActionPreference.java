@@ -53,11 +53,22 @@ public final class DeepSeekActionPreference extends CaptionSettingPreference {
     }
 
     private void testApi() {
+        try {
         if (!ApiProfiles.flushCurrent()) {
             toast(CaptionStrings.get(getContext(), "profile_invalid_edits"));
             return;
         }
+        } catch (RuntimeException notificationFailure) {
+            // The flush may already have saved fields. Their inline state keeps that fact;
+            // this action stops before starting a connection or claiming a rollback.
+            toast(CaptionStrings.get(getContext(), "config_operation_uncertain"));
+            return;
+        }
         DeepSeekConfig.ProviderSettings config = DeepSeekConfig.load(getContext());
+        if (!config.readable) {
+            toast(CaptionStrings.get(getContext(), "config_unreadable"));
+            return;
+        }
         if (!config.hasCredential) {
             toast(CaptionStrings.get(getContext(), "enter_key"));
             return;

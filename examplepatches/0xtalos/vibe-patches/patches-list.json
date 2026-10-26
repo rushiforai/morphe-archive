@@ -1,6 +1,7 @@
 {
-  "version": "v1.3.3",
+  "version": "v1.4.0",
   "appNames": {
+    "com.hdoapp.hdo_box": "HDO Box",
     "com.scores365": "365Scores"
   },
   "patches": [
@@ -84,6 +85,34 @@
     },
     {
       "name": "Disable analytics",
+      "description": "Disables Firebase Analytics collection, automatic screen reporting and advertising id collection, and prevents the app from re-enabling them.",
+      "use": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.hdoapp.hdo_box": [
+          "4.4.7"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "HDO Box",
+          "packageName": "com.hdoapp.hdo_box",
+          "description": null,
+          "appIconColor": 14726264,
+          "targets": [
+            {
+              "version": "4.4.7",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable analytics",
       "description": "Removes analytics and tracking (Firebase Analytics) from 365Score.",
       "use": true,
       "dependencies": [],
@@ -110,8 +139,8 @@
     },
     {
       "name": "GmsCore support",
-      "description": "Makes Google sign-in and Google APIs work in the patched app by using MicroG RE instead of Google Play services. Requires MicroG RE to be installed.",
-      "use": false,
+      "description": "Makes Google sign-in and Google APIs work by routing them to MicroG RE instead of Google Play services. Requires MicroG RE (app.revanced.android.gms) and a Google account added in it.",
+      "use": true,
       "dependencies": [
         "ResourcePatch",
         "BytecodePatch"
@@ -130,6 +159,58 @@
           "targets": [
             {
               "version": "14.9.7",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove ads",
+      "description": "Removes Unity Ads by answering the app's ad plugin locally, so no ad is ever initialized, loaded or displayed.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.hdoapp.hdo_box": [
+          "4.4.7"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "HDO Box",
+          "packageName": "com.hdoapp.hdo_box",
+          "description": null,
+          "appIconColor": 14726264,
+          "targets": [
+            {
+              "version": "4.4.7",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove tracking permissions",
+      "description": "Removes the advertising id (AD_ID) and Privacy Sandbox (AdServices) permissions.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.hdoapp.hdo_box": [
+          "4.4.7"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "HDO Box",
+          "packageName": "com.hdoapp.hdo_box",
+          "description": null,
+          "appIconColor": 14726264,
+          "targets": [
+            {
+              "version": "4.4.7",
               "experimental": false
             }
           ]

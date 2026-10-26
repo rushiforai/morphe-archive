@@ -185,7 +185,8 @@ internal fun BytecodePatchContext.resolveNativeGuidanceEta(summaryType: String):
     etaGuard(code[sizeStart].opcode == Opcode.IGET && code[sizeStart].etaField()?.let {
         it.definingClass == type && it.type == "F" } == true &&
         code[fixedSuper].etaCall()?.toString() == "${view.superclass}->onMeasure(II)V" &&
-        args(fixedSuper) == listOf(receiver, width, height) && code[fixedSuper + 1].opcode == Opcode.RETURN_VOID &&
+        // R8 may end the exact-size super call with a goto to the shared return-void (26.42).
+        args(fixedSuper) == listOf(receiver, width, height) && code.exitAt(fixedSuper + 1)?.opcode == Opcode.RETURN_VOID &&
         code.indices.single { code[it].etaCall()?.toString() ==
             "Landroid/text/Layout;->getDesiredWidth(Ljava/lang/CharSequence;Landroid/text/TextPaint;)F" } > sizeStart &&
         code.subList(sizeStart, callbackAt).filter { it.opcode == Opcode.IGET && it.etaField()?.definingClass == type }

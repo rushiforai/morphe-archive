@@ -29,7 +29,7 @@ val bydNativeBatteryPatch = bytecodePatch(
     name = "BYD native battery experiment",
     description = "Experimental: sends this BYD's battery and road-load model to Google through Maps' " +
         "native EV route requests. Starts from the car's own average consumption, learns slowly from " +
-        "BMS energy/distance, and adds in-app vehicle settings. Native hooks inspected on Maps 26.41. " +
+        "BMS energy/distance, and adds in-app vehicle settings. Native hooks inspected on Maps 26.41 and 26.42. " +
         "Targets BYD DiLink 3; DiLink 5 unverified.",
     default = false,
 ) {

@@ -89,6 +89,8 @@ public final class NativeCaptionBridge {
         final WeakReference<Object> manager, track;
         final Object origin;
         final int reason;
+        boolean pendingHandoff;
+        boolean committed;
 
         Selection(String video, Object manager, Object track, Object origin, int reason) {
             this.video = video;
@@ -126,6 +128,11 @@ public final class NativeCaptionBridge {
         return origin instanceof Enum<?> && PREFERRED_TRACK.equals(((Enum<?>) origin).name());
     }
 
+    /** The language menu uses PREFERRED_TRACK; direct native CC clicks use DEFAULT / reason 1. */
+    private static boolean isExplicit(Selection selection) {
+        return isPreferred(selection.origin) || (selection.committed && selection.reason == 1);
+    }
+
     private static String videoOf(Object track) {
         return CaptionUrls.videoId(url(track));
     }
@@ -142,7 +149,9 @@ public final class NativeCaptionBridge {
                 && drawObserved.compareAndSet(false, true))
             mark(
                     "NATIVE_DRAW_HOOK_CONNECTED",
-                    "build=n30;official=1.45.0;presentation=n29-presentation-v3;"
+                    "build=" + app.yydarlinker.extension.BuildConfig.CAPTION_BUILD_ID
+                            + ";official=unknown;official_source=runtime_unverified;"
+                            + "presentation=n29-presentation-v3;"
                             + "hook=SubtitleWindowView.draw");
         // The switch is the user's single answer: AI on means the native subtitle view must never
         // paint, even during the seconds before the engine has its first translated event. Waiting
@@ -324,13 +333,13 @@ public final class NativeCaptionBridge {
             Object origin,
             int reason,
             String modelOwner) {
-        // Forced-caption fallback can make the committed track non-null even after explicit Off.
-        // Preserve that user intent; automatic null/default events still use the actual track.
-        boolean explicitOff = isPreferred(origin) && isOff(requested);
+        // Forced-caption fallback can keep a committed track even when CC selected Off. Neither
+        // automatic initialization nor an explicit Off may use that track to grant CC permission.
+        boolean requestedOff = isOff(requested);
         observe(
                 manager,
                 Event.selection(
-                        explicitOff ? null : committed,
+                        requestedOff ? null : committed,
                         origin,
                         reason,
                         modelOwner == null ? "" : modelOwner.trim()),
@@ -392,18 +401,24 @@ public final class NativeCaptionBridge {
             if (!off && !isSourceTrack(track)) return;
 
             value = new Selection(video, manager, track, event.origin, event.reason);
+            value.committed = applied;
+            // The app port may still contain the departed id after Shorts closes. A newly
+            // committed track for that same id then belongs to the pending visit, not the old one.
+            value.pendingHandoff = !video.equals(visibleVideo);
             if (applied) markApplied(value, code, current);
             selections.remove(video);
             selections.put(video, value);
             while (selections.size() > MAX_SELECTIONS)
                 selections.remove(selections.keySet().iterator().next());
-            if (!current.isEmpty() && !current.equals(video)) {
+            if (!video.equals(visibleVideo) || (!current.isEmpty() && !current.equals(video))) {
                 mark("NATIVE_SELECTION_BACKGROUND", "visible_state_preserved");
                 return;
             }
         }
         publishSourceCatalog(manager);
-        boolean explicit = isPreferred(event.origin);
+        boolean explicit = isExplicit(value);
+        if (value.committed && value.reason == 1)
+            mark("NATIVE_CC_COMMAND", "video=" + value.video + ";state=" + (value.off ? 0 : 1));
         CaptionNativeProjection.selection(
                 value.video,
                 value.language,
@@ -411,12 +426,12 @@ public final class NativeCaptionBridge {
                 value.off,
                 value.translated,
                 explicit,
-                epoch);
+                epoch, value.committed);
         CaptionSessionReconciler.onNativeSelection(context, epoch, explicit);
     }
 
     private static void markApplied(Selection value, String code, String current) {
-        boolean foreground = value.video.equals(current);
+        boolean foreground = value.video.equals(current) && value.video.equals(visibleVideo);
         mark(
                 "NATIVE_TRACK_APPLIED",
                 "owner=caption_model;foreground="
@@ -446,12 +461,47 @@ public final class NativeCaptionBridge {
 
     // ---- Switching videos ----
 
+    static void onShortsClosed() {
+        synchronized (SELECTION_LOCK) {
+            // Re-entering the same Short is a new visit, even if its video id is reused.
+            visibleVideo = "";
+            CaptionNativeProjection.beginVideo("");
+        }
+    }
+
     static void onVideoId(String video) {
         video = video == null ? "" : video.trim();
         synchronized (SELECTION_LOCK) {
             if (video.equals(visibleVideo)) return;
             visibleVideo = video;
+            CaptionNativeProjection.beginVideo(video);
+            // Consume an incoming committed selection once when its video becomes foreground.
+            // A previously foreground/manual selection is never eligible for this handoff.
+            Selection early = selections.get(video);
+            if (early != null && early.pendingHandoff) {
+                early.pendingHandoff = false;
+                Object manager = early.manager.get();
+                if (manager != null && video.equals(modelVideo(manager))
+                        && (early.off || early.track.get() != null)) {
+                    publishSourceCatalog(manager);
+                    CaptionNativeProjection.selection(video, early.language, early.selectedUrl,
+                            early.off, early.translated, isExplicit(early),
+                            CaptionPlayerAuthority.ownerEpoch(), early.committed);
+                    if (isExplicit(early)) CaptionNativeProjection.ccState(
+                            early.off ? CaptionIntentPolicy.OFF : CaptionIntentPolicy.ON);
+                    mark("NATIVE_SELECTION_HANDOFF", "video=" + video + ";target="
+                            + CaptionNativeProjection.snapshot().target() + ";authority=player");
+                }
+            }
             mark("VIDEO_SWITCHED", "video=" + video);
+        }
+    }
+
+    static void resetForTests() {
+        synchronized (SELECTION_LOCK) {
+            selections.clear();
+            lastTrackListMark = visibleVideo = "";
+            switchingManager = null;
         }
     }
 

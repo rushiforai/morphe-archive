@@ -2194,3 +2194,6 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->drawing(Ljava/l
 # One sticker style below it (0Su2.A06 on 452) measures its placeholder and its last line the same way,
 # so that measure gets the hook too and the line keeps the width it's drawn at.
 once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->drawing(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; in instance (Landroid/text/Spannable;Lkotlin/jvm/functions/Function1;)L*; holding Landroid/text/StaticLayout$Builder;->obtain(Ljava/lang/CharSequence;IILandroid/text/TextPaint;I)Landroid/text/StaticLayout$Builder; LX/*;->*(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; LX/*;->*(Landroid/text/StaticLayout$Builder;FF)Landroid/text/StaticLayout;
+
+# Feed Subscribe has a native eligibility branch inside the header, without a Subscribe view id.
+once-call Lapp/hushgram/extension/instagram/feed/FeedFollowButton;->showSubscribe(I)Z holding null\scannot\sbe\scast\sto\snon-null\stype\sinstagram.features.feed.ui.rows.mediaheader.domain.uicontract.MediaHeaderUiState

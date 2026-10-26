@@ -50,6 +50,10 @@ private const val PHOTO_TITLE = "Lapp/morphe/extension/facebook/download/StoryPh
 /** The extension call that remembers a Save photo item, so a tap on it saves the photo. */
 private const val PHOTO_OFFERED = "Lapp/morphe/extension/facebook/download/StoryPhoto;->offered(Ljava/lang/Object;)V"
 
+private const val SAVE_TITLE = "Lapp/morphe/extension/facebook/download/StoryPhoto;->" +
+    "saveTitle(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;"
+private const val SAVE_TITLE_HELPER = "hushfacebookStorySaveTitle"
+
 /** The extension call that answers the menu's "can this story be saved": the switch, or Facebook's own. */
 private const val OFFERS_SAVE = "Lapp/morphe/extension/facebook/download/MediaDownload;->offersSave(Z)Z"
 
@@ -218,6 +222,7 @@ val downloadStoryPatch = bytecodePatch(
             ExternalLabel("original", handler.getInstruction(0)),
         )
 
+        action.methods.add(addStorySaveTitle(builder, action, storyCardField))
         addSavePhotoItem(builder, action, storyCardField)
 
         // #38: Save photo on a story asks Meta's CDN for the photo at its full size, as Save photo
@@ -348,6 +353,35 @@ internal fun addSavePhotoItem(builder: MutableMethod, action: ClassDef, storyCar
         """,
         ExternalLabel("menu_done", builder.getInstruction(site.addIndex + 1)),
     )
+}
+
+/** Overrides only the primary item's optional title, before its original constructor reads it. */
+internal fun addStorySaveTitle(builder: MutableMethod, action: ClassDef, storyCardField: String): MutableMethod {
+    check(action.methods.none { it.name == SAVE_TITLE_HELPER }) { "${action.type}: save-title helper already exists" }
+    val site = saveItemSite(builder, action)
+    // Read the action's card in its own class, where a private field remains accessible. The
+    // builder can call the public bridge without borrowing the item's uninitialized register.
+    val helper = ImmutableMethod(
+        action.type, SAVE_TITLE_HELPER,
+        listOf(ImmutableMethodParameter(action.type, null, null), ImmutableMethodParameter("Ljava/lang/String;", null, null)),
+        "Ljava/lang/String;", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+        MutableMethodImplementation(3),
+    ).toMutable().apply {
+        addInstructions(0, """
+            if-nez p0, :has_action
+            return-object p1
+            :has_action
+            iget-object v0, p0, ${action.type}->$storyCardField:$STORY_CARD
+            invoke-static { v0, p1 }, $SAVE_TITLE
+            move-result-object v0
+            return-object v0
+        """)
+    }
+    builder.addInstructions(site.addIndex - 1, """
+        invoke-static { v${site.actionRegister}, v${site.titleRegister} }, ${action.type}->$SAVE_TITLE_HELPER(${action.type}Ljava/lang/String;)Ljava/lang/String;
+        move-result-object v${site.titleRegister}
+    """)
+    return helper
 }
 
 /**

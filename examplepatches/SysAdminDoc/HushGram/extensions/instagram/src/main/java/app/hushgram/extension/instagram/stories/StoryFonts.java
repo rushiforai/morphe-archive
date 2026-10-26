@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 import app.hushgram.extension.instagram.misc.Fonts;
 import app.hushgram.extension.instagram.settings.FamilyNames;
@@ -27,12 +28,14 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
 
 /**
  * Helper for the "Story text fonts" patch: font files picked in HushGram settings show up in the
- * story text editor's row of fonts, after Instagram's own, which all stay (#275).
+ * story text editor's row of fonts, after Instagram's free fonts, which all stay (#275).
  *
  * <p>Instagram already draws story text in a font file for its own import route (a format named
  * IMPORT_FONT that carries the file's path). The patch fills {@link #importedFont} with the same
  * steps Instagram's import takes, and hands the editor's list of formats to {@link #formats} each
- * time it's built, which appends one such format per picked file. Picking one in the editor draws
+ * time it's built, which inserts one such format per picked file before Instagram's paid fonts.
+ * The editor treats every position from its first paid font onward as paid, so appending after
+ * that section wrongly opens a Plus offer for a local file (#325). Picking one in the editor draws
  * the text and the finished sticker in that file, the way Instagram's own import does. The editor
  * labels it with the file's name, since the import's own label is Instagram's default font's.
  *
@@ -68,6 +71,9 @@ public final class StoryFonts {
     /** Makes a format for a font file's path, as {@link #importedFont} does. Tests stand in. */
     static volatile Function<String, Object> formatFor = path -> importedFont(path, label(path));
 
+    /** Instagram's classification of one native format: 0 free, 1 paid, -1 unknown. Tests stand in. */
+    static volatile ToIntFunction<Object> premiumOf = StoryFonts::nativePremium;
+
     /** The formats made this process, by path, so the editor sees the same one each time. */
     private static final Map<String, Object> FORMATS = new ConcurrentHashMap<>();
 
@@ -84,7 +90,9 @@ public final class StoryFonts {
 
     /**
      * Injected before the story text editor answers its list of formats. Adds a format for each
-     * picked font file to the end of [list], skipping one already there. Never throws.
+     * picked font file before the first native paid font, skipping one already there. Instagram's
+     * formats keep their order and their subscription checks. An unreadable boundary adds nothing.
+     * Never throws.
      */
     @SuppressWarnings("unchecked")
     public static void formats(List<?> list) {
@@ -93,11 +101,20 @@ public final class StoryFonts {
             if (list == null || !on()) return;
             Context context = Utils.getContext();
             if (context == null) return;
+            int insert = list.size();
+            for (int index = 0; index < list.size(); index++) {
+                int premium = premiumOf.applyAsInt(list.get(index));
+                if (premium == 1) {
+                    insert = index;
+                    break;
+                }
+                if (premium != 0) return;
+            }
             boolean added = false;
             for (String path : paths(context)) {
                 Object format = format(path);
                 if (format == null || list.contains(format)) continue;
-                ((List<Object>) list).add(format);
+                ((List<Object>) list).add(insert++, format);
                 added = true;
             }
             if (added) HookStatus.counted(FamilyNames.STORY_FONTS, ADDED);
@@ -148,6 +165,14 @@ public final class StoryFonts {
         return null;
     }
 
+    /**
+     * Instagram's own paid-font predicate applied to this format's native name. The patch writes
+     * the body. Unknown as built, so the list stays native until its boundary can be read.
+     */
+    public static int nativePremium(Object format) {
+        return -1;
+    }
+
     /** What the editor calls the font kept at [path]: its file's name without the extension. */
     static String label(String path) {
         String name = new File(path).getName();
@@ -179,6 +204,7 @@ public final class StoryFonts {
 
     /** The kept files' paths, listed once until a font is added or taken out. */
     static List<String> paths(Context context) {
+        if (!Fonts.readyForRead(directory(context))) return Collections.emptyList();
         List<String> known = paths;
         if (known != null) return known;
         List<String> listed = new ArrayList<>();
@@ -190,7 +216,9 @@ public final class StoryFonts {
 
     /** The kept font files, sorted by name, leaving out a copy still being made. */
     static List<File> files(Context context) {
-        File[] all = directory(context).listFiles();
+        File directory = directory(context);
+        if (!Fonts.readyForRead(directory)) return Collections.emptyList();
+        File[] all = directory.listFiles();
         if (all == null) return Collections.emptyList();
         List<File> kept = new ArrayList<>();
         for (File file : all) {
@@ -217,13 +245,29 @@ public final class StoryFonts {
      * that isn't a font HushGram can use, keeping nothing. Off the main thread.
      */
     @Nullable
-    public static String add(Context context, InputStream input, @Nullable String shown) {
+    public static synchronized String add(Context context, InputStream input, @Nullable String shown) {
         File directory = directory(context);
         String name = freeName(directory, cleanName(shown));
         if (!Fonts.keep(input, new File(directory, name))) return null;
         paths = null;
         return name;
     }
+
+    /** A private stage, still absent from the story editor and the saved-font list. */
+    @Nullable
+    public static Fonts.Prepared prepare(Context context, InputStream input) {
+        return Fonts.prepare(input, directory(context));
+    }
+
+    /** Keep this class locked until the prepared installation is accepted or rolled back. */
+    @Nullable
+    public static String prepareInstall(Context context, Fonts.Prepared prepared, @Nullable String shown) {
+        File directory = directory(context);
+        String name = freeName(directory, cleanName(shown));
+        return prepared.prepareTarget(new File(directory, name)) ? name : null;
+    }
+
+    public static void installed() { paths = null; }
 
     /** Takes out the kept font called [name]. Answers whether it's gone. */
     public static boolean remove(Context context, String name) {
@@ -279,5 +323,6 @@ public final class StoryFonts {
         paths = null;
         lastApplied = null;
         formatFor = path -> importedFont(path, label(path));
+        premiumOf = StoryFonts::nativePremium;
     }
 }

@@ -21,12 +21,32 @@ successful run. So:
 
 | declared as | meaning |
 |---|---|
-| `AppTarget(version = SUPPORTED_APP_VERSION, description = "Verified: …")` | every fingerprint was re-derived against that build; the patches are expected to work. `SUPPORTED_APP_VERSION` (top of `Constants.kt`) is the single source the Spoof app version option default follows |
+| `AppTarget(version = "X.Y.Z", description = "Verified: …")` | every fingerprint was re-derived against that build; the patches are expected to work. `SUPPORTED_APP_VERSION` (top of `Constants.kt`) is the single source the Spoof app version option default follows and must name the newest normal target |
 | `AppTarget(version = "X", isExperimental = true, description = "Untested: …")` | nobody has re-derived the fingerprints for that build. The patches are *attempted*; some are expected to fail. This is the honest "try it, it is not guaranteed" channel, and it shows up in Morphe Manager |
 | not listed at all | skipped silently — see above |
 
 Never list an untested version as a normal target: that is how a user ends up with a silently
 half-patched app.
+
+## Which versions are supported, and for how long
+
+The support policy is **the latest two normal targets**, each carrying a `// Kept: <reason>`
+comment directly above its `AppTarget(` — the same discipline as the official Morphe bundle, which
+keeps only the versions that still earn their place and annotates each with why. A version is kept
+while the store can still serve it to headsets that have not updated (dropping it strands users who
+cannot force-update); it is dropped when a third version is added, in the same change.
+
+Two guards keep the policy honest instead of aspirational, and both fire on a violation:
+
+- `SupportedVersionsPolicyTest` (run by every build) asserts the count, the `Kept:` comment above
+  each normal target, and that `SUPPORTED_APP_VERSION` names the newest of them.
+- `scripts/check-apk.ps1` patches every APK on the list, so a stale target that the fingerprints
+  no longer match fails visibly instead of rotting.
+
+The `Kept:` comment must sit **above** the `AppTarget(` line, never inside the parens: the upstream
+checker's regex (`AppTarget\s*\(\s*version`) cannot cross a comment line, so a comment inside the
+parens would hide the target from it — which is exactly why `SupportedVersionsPolicyTest` reads the
+file the same way that checker does.
 
 ## Trying a version that is not listed
 

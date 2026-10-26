@@ -121,7 +121,13 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             top = { scope.launch { list.animateScrollToItem(0) }; Unit }
             bottom = { scope.launch { list.animateScrollToItem((list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)) }; Unit }
         }
-        LaunchedEffect(selected) { list.scrollToItem(0) }
+        LaunchedEffect(selected) {
+            // Rebuild editors on navigation, so a toggle changed in the expert
+            // projection cannot leave its ordinary-category control stale.
+            bodies.clear()
+            list.scrollToItem(0)
+            revision++
+        }
         LaunchedEffect(query, invalidation) {
             if (query.isBlank()) { matches = emptyList(); searching = false; return@LaunchedEffect }
             if (query != indexedQuery) { searching = true; delay(200) }
@@ -243,4 +249,5 @@ private fun settingsGroups() = listOf(
     SettingsGroup("history", "履歴・コピーした文章", "History and copied text", "閲覧・書き込みの履歴と保存件数", "Browsing, posting and retention", "↶", listOf("HISTORY")),
     SettingsGroup("backup", "バックアップ・機種変更", "Backup and transfer", "ローカル保存・復元・MEGA同期・データ移行", "Local backups, restore, MEGA sync and transfer", "↓", listOf("BACKUP")),
     SettingsGroup("system", "アプリ・通信", "App and network", "言語・広告・接続・外部板の認証", "Language, ads, connections and board sign-in", "⚙", listOf("GENERAL", "ADVANCED")),
+    SettingsGroup("expert", "エキスパート設定", "Expert settings", "個別の動作を細かく切り替える", "Control additional behaviors individually", "⚙", listOf("EXPERT")),
 )

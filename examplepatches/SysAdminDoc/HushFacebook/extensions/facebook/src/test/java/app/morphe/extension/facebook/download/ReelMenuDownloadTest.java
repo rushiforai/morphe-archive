@@ -50,6 +50,7 @@ public class ReelMenuDownloadTest {
         HookStatus.clear();
         PauseForTests.resume();
         Settings.DOWNLOAD_REELS.resetToDefault();
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.resetToDefault();
     }
 
     private static Object reel() {
@@ -95,6 +96,27 @@ public class ReelMenuDownloadTest {
         assertFalse(line, line.contains(ReelMenuDownload.ROW_ADDED));
     }
 
+    @Test
+    public void menuOnlyKeepsTheRowAndStillObeysTheMainSwitchAndPause() {
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(false);
+        assertFalse(ReelDownload.showsButton());
+        assertNotNull("hiding the sidebar also hid Download from More", row(reel()));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertNull("Pause left the menu download active", row(reel()));
+        assertFalse(ReelDownload.showsButton());
+        assertFalse("Pause changed the saved sidebar choice", Settings.SHOW_REEL_DOWNLOAD_BUTTON.savedValue());
+        PauseForTests.resume();
+        assertNotNull(row(reel()));
+        assertFalse(ReelDownload.showsButton());
+
+        Settings.DOWNLOAD_REELS.save(false);
+        assertNull("the main switch no longer disables the menu", row(reel()));
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(true);
+        assertFalse("the sidebar option enabled downloads by itself", ReelDownload.showsButton());
+        assertNull(row(reel()));
+    }
+
     /** Facebook found no player state for the reel: no row, and nothing counted as added. */
     @Test
     public void noPlayerStateMeansNoRow() {
@@ -103,7 +125,9 @@ public class ReelMenuDownloadTest {
     }
 
     @Test
-    public void eachTapOfTheRowSavesOnce() throws Exception {
+    public void eachTapOfTheMenuOnlyRowSavesOnce() throws Exception {
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(false);
+        assertFalse(ReelDownload.showsButton());
         AtomicInteger saves = new AtomicInteger();
         MediaDownload.detailsForTests = details -> saves.incrementAndGet();
         // Every Meta name answers a private address, so each save stops before it connects.

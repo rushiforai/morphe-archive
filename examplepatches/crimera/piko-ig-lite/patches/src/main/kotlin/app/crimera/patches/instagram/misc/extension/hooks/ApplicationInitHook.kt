@@ -9,7 +9,7 @@ package app.crimera.patches.instagram.misc.extension.hooks
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patches.all.misc.extension.ExtensionHook
-import app.morphe.util.registersUsed
+import app.morphe.patcher.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 

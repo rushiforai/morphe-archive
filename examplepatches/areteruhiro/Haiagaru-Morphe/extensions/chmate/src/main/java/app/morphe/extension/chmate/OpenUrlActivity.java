@@ -26,7 +26,14 @@ public final class OpenUrlActivity extends Activity {
             }
 
             Intent target = new Intent(Intent.ACTION_VIEW, uri);
-            target.setClassName(this, isThreadUrl(uri) ? THREAD_ACTIVITY : BOARD_ACTIVITY);
+            if ("hissi.org".equalsIgnoreCase(uri.getHost())
+                    && uri.getPath()!=null && uri.getPath().startsWith("/read.php/")) {
+                target.setClass(this,HissiMenuActivity.class);
+            } else {
+                uri=normalizeEdge(uri);
+                target.setData(uri);
+                target.setClassName(this, isThreadUrl(uri) ? THREAD_ACTIVITY : BOARD_ACTIVITY);
+            }
             if (incoming.getBooleanExtra("haiagaru.archive.return", false)) {
                 target.putExtra("forwardTabletHome", false);
             }
@@ -40,6 +47,10 @@ public final class OpenUrlActivity extends Activity {
 
     private static boolean isWebScheme(String scheme) {
         return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+    }
+
+    static Uri normalizeEdge(Uri uri) {
+        return Uri.parse(ExternalCheckerLinks.normalizeEdge(uri.toString()));
     }
 
     private static boolean isThreadUrl(Uri uri) {

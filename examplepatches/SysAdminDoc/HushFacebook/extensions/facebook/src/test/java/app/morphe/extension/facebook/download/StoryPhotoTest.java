@@ -127,4 +127,14 @@ public class StoryPhotoTest {
         assertNull(StoryPhoto.originalOf(new Card(story(), media)));
         assertFalse(media.readAfterRelease);
     }
+
+    @Test
+    public void aReleasedPhotoChildIsNeverRead() {
+        TreeJNI released = image(PHOTO).releasedTree();
+        TreeJNI media = new TreeJNI().with("playable_url", VIDEO).with("stories_photo_uri", released);
+
+        assertNull(StoryPhoto.originalOf(new Card(story(), media)));
+        assertNull(StoryPhoto.photoOf(new Card(crossPost(), media), true));
+        assertFalse("the live media's released photo was read", released.readAfterRelease);
+    }
 }

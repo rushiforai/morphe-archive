@@ -93,6 +93,8 @@ public class HushfacebookPreferenceFragmentTest {
         ScreenColors.shown = null;
         PauseForTests.resume();
         BaseSettings.SAFE_MODE.resetToDefault();
+        Settings.DOWNLOAD_REELS.resetToDefault();
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.resetToDefault();
         Settings.SAVE_FOLDER.resetToDefault();
         Settings.SAVE_TO.resetToDefault();
         Settings.VIDEO_SUBFOLDER.resetToDefault();
@@ -110,6 +112,58 @@ public class HushfacebookPreferenceFragmentTest {
     public void everyRowHasATitleAndLightText() {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             assertReadable(rowsOf(controller));
+        }
+    }
+
+    @Test
+    public void theLastSettingsEntryStaysDisabledWhenThePageInitializes() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.MENU_SETTINGS_ROW);
+        List<BooleanSetting> ways = Arrays.asList(Settings.SETTINGS_SHORTCUT,
+                Settings.SETTINGS_LOGO_PRESS, Settings.SETTINGS_MENU_ROW);
+        try {
+            for (BooleanSetting last : ways) {
+                for (BooleanSetting way : ways) way.save(way == last);
+                try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                    HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+                    SwitchPreference row = (SwitchPreference) page.findPreference(last.key);
+                    assertTrue(last.key, row.isChecked());
+                    assertFalse(last.key + " can be switched off after initialization", row.isEnabled());
+                    assertEquals("The last way into these settings stays on.", String.valueOf(row.getSummary()));
+                }
+            }
+        } finally {
+            for (BooleanSetting way : ways) way.resetToDefault();
+        }
+    }
+
+    @Test
+    public void anUnrelatedChangeKeepsTheLastSettingsEntryDisabled() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.MENU_SETTINGS_ROW, PatchFamily.SPONSORED_POSTS);
+        Settings.SETTINGS_SHORTCUT.save(true);
+        Settings.SETTINGS_LOGO_PRESS.save(true);
+        Settings.SETTINGS_MENU_ROW.save(true);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            for (BooleanSetting way : Arrays.asList(Settings.SETTINGS_SHORTCUT, Settings.SETTINGS_LOGO_PRESS)) {
+                SwitchPreference row = (SwitchPreference) page.findPreference(way.key);
+                assertNotNull(row.getOnPreferenceChangeListener());
+                assertTrue(row.getOnPreferenceChangeListener().onPreferenceChange(row, false));
+                row.setChecked(false);
+            }
+            ShadowLooper.idleMainLooper();
+            SwitchPreference last = (SwitchPreference) page.findPreference(Settings.SETTINGS_MENU_ROW.key);
+            assertFalse("the normal entry callbacks did not protect the last way in", last.isEnabled());
+
+            SwitchPreference unrelated = (SwitchPreference) page.findPreference(Settings.HIDE_SPONSORED_POSTS.key);
+            unrelated.setChecked(!unrelated.isChecked());
+            ShadowLooper.idleMainLooper();
+            assertTrue(last.isChecked());
+            assertFalse("an unrelated preference change enabled the last way in", last.isEnabled());
+        } finally {
+            Settings.SETTINGS_SHORTCUT.resetToDefault();
+            Settings.SETTINGS_LOGO_PRESS.resetToDefault();
+            Settings.SETTINGS_MENU_ROW.resetToDefault();
+            Settings.HIDE_SPONSORED_POSTS.resetToDefault();
         }
     }
 
@@ -546,6 +600,45 @@ public class HushfacebookPreferenceFragmentTest {
             }
             assertEquals("DOWNLOAD", to.getValue());
             assertEquals("Videos and photos go to " + L10n.isolate("Download/Clips") + ".", String.valueOf(folder.getSummary()));
+        }
+    }
+
+    @Test
+    public void theReelSidebarChoiceIsIndependentAndFollowsTheDownloadSwitch() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            int mainAt = indexOfKey(rows, Settings.DOWNLOAD_REELS.key);
+            int buttonAt = indexOfKey(rows, Settings.SHOW_REEL_DOWNLOAD_BUTTON.key);
+            assertTrue("no overall reel Download switch", mainAt >= 0);
+            assertEquals("the sidebar choice is not beside its parent", mainAt + 1, buttonAt);
+            SwitchPreference main = (SwitchPreference) rows.get(mainAt);
+            SwitchPreference button = (SwitchPreference) rows.get(buttonAt);
+            assertEquals("Download", String.valueOf(main.getTitle()));
+            assertEquals("Download button on reels", String.valueOf(button.getTitle()));
+            assertTrue(main.isChecked());
+            assertTrue("the existing sidebar layout changed by default", button.isChecked());
+
+            button.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertFalse(Settings.SHOW_REEL_DOWNLOAD_BUTTON.savedValue());
+            assertTrue("the sidebar choice changed the overall switch", Settings.DOWNLOAD_REELS.savedValue());
+
+            main.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertFalse("the sidebar choice is usable without downloads", button.isEnabled());
+            assertTrue(String.valueOf(button.getSummary()), String.valueOf(button.getSummary()).contains(
+                    L10n.f("Turn on %1$s to use this.", L10n.isolate("Download"))));
+            main.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(button.isEnabled());
+            assertFalse("re-enabling downloads forgot menu-only", Settings.SHOW_REEL_DOWNLOAD_BUTTON.savedValue());
+        }
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            SwitchPreference button = (SwitchPreference) rows.get(indexOfKey(rows, Settings.SHOW_REEL_DOWNLOAD_BUTTON.key));
+            assertFalse("a new page forgot the sidebar choice", button.isChecked());
+            assertTrue(button.isEnabled());
         }
     }
 

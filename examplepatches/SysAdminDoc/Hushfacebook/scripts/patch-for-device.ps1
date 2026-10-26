@@ -61,6 +61,16 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 # The argument file is written with [IO.File], which reads a relative path against the process
 # directory, while java is handed the same path from PowerShell's location. Absolute, they agree.
 $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
+New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
+try {
+    $outputLock = [IO.File]::Open((Join-Path $OutDir '.patch-for-device.lock'),
+        [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+} catch [IO.IOException] {
+    throw "Another build is already using the output directory $OutDir, or its lock cannot be opened: $($_.Exception.Message)"
+}
+# Hold the directory from APK extraction through validation/install. A queued run
+# must not replace another run's argument file, result or temporary files.
+try {
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
@@ -135,7 +145,6 @@ New-Item -ItemType Directory -Force $OutDir | Out-Null
 $out = Join-Path $OutDir "hushfacebook-$version-signed.apk"
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
-if (Test-Path $out) { Remove-Item $out -Force }
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
 foreach ($optioned in $PatchOptions.Keys) {
@@ -167,6 +176,8 @@ $argumentFileLines = @($arguments | ForEach-Object {
     $argumentFileLines,
     (New-Object System.Text.UTF8Encoding($false)))
 try {
+    # Invalid options and argument files leave the previous signed build intact.
+    if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Force }
     # In a slot of the machine's build queue when there is one (Invoke-HeavyJob), which hands back
     # the CLI's exit code and nothing else.
     Invoke-HeavyJob -Label "device $(Split-Path -Leaf $Apk)" -ScriptBlock {
@@ -217,3 +228,6 @@ Write-Host "[device] installing on $Serial"
 & $adb -s $Serial install -r -g $out | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
 & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+} finally {
+    $outputLock.Dispose()
+}

@@ -248,6 +248,9 @@ public final class Haiagaru {
     private Haiagaru() {
     }
 
+    /** Build marker set only by the isolated ads-only patch. */
+    public static boolean adsOnlyBuild() { return false; }
+
     /** Makes ChMate's distributed integrity calculations see its original certificate. */
     @SuppressWarnings("deprecation")
     public static synchronized void installSignatureSpoof() {
@@ -451,6 +454,8 @@ public final class Haiagaru {
                         @Override public void onActivityStarted(Activity activity) { }
                         @Override public void onActivityResumed(Activity activity) {
                             resumedActivity = new WeakReference<>(activity);
+                            View decor=activity.getWindow().peekDecorView();
+                            if(decor!=null&&shouldHideAds())hideRememberedAdViews(decor);
                             NativeToolTabs.resumed(activity);
                             ExternalBoardAuth.resumed(activity);
                             NativeRestore191.onActivityResumed(activity);
@@ -1465,6 +1470,7 @@ public final class Haiagaru {
     }
 
     public static boolean shouldHideAds(Context context) {
+        if(adsOnlyBuild())return true;
         if (context != null) {
             Context resolvedContext = context.getApplicationContext();
             applicationContext = resolvedContext == null ? context : resolvedContext;
@@ -3038,7 +3044,7 @@ public final class Haiagaru {
 
     public static void hideAdView(View view) {
         if (view == null || !shouldHideAds()) return;
-
+        watchAdVisibility(view);
         safeCollapseAdView(view);
         safePostCollapseAdView(view, 0);
         safePostCollapseAdView(view, 300);
@@ -3056,7 +3062,7 @@ public final class Haiagaru {
         // This adapter hook runs for every bound response, including when ad
         // hiding is disabled. Keep emoji fallback independent of that setting.
         try {
-            EmojiFontFallback.applyToRow(view);
+            if(!adsOnlyBuild())EmojiFontFallback.applyToRow(view);
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to apply emoji font fallback", error);
         }
@@ -3224,9 +3230,9 @@ public final class Haiagaru {
         // The image viewer is added later to an initially empty Fragment host.
         // Never turn that host (or the Activity content root) into an ad spacer.
         if (AdContainerSafety.isScreenHost(view.getClass(), view.getId())) return;
-        view.setVisibility(View.GONE);
+        if(view.getVisibility()!=View.GONE)view.setVisibility(View.GONE);
         ViewGroup.LayoutParams params = view.getLayoutParams();
-        if (params != null) {
+        if (params != null && params.height != 0) {
             params.height = 0;
             view.setLayoutParams(params);
         }
@@ -3237,6 +3243,50 @@ public final class Haiagaru {
             collapseAdView(view);
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to collapse ChMate ad view", error);
+        }
+    }
+
+    /** Re-hide an identified ad before a resumed SDK can draw its restored slot. */
+    private static void watchAdVisibility(View view) {
+        if(AdContainerSafety.isScreenHost(view.getClass(),view.getId()))return;
+        final int tag=0x48690b28;
+        if(view.getTag(tag) instanceof AdVisibilityWatch)return;
+        AdVisibilityWatch watch=new AdVisibilityWatch(view);
+        view.setTag(tag,watch);view.addOnAttachStateChangeListener(watch);
+        if(view.isAttachedToWindow())watch.onViewAttachedToWindow(view);
+    }
+
+    private static final class AdVisibilityWatch implements View.OnAttachStateChangeListener, android.view.ViewTreeObserver.OnPreDrawListener {
+        final java.lang.ref.WeakReference<View> target;
+        android.view.ViewTreeObserver observer;
+        boolean measured;
+        AdVisibilityWatch(View view){target=new java.lang.ref.WeakReference<>(view);measured=view.getHeight()>0;}
+        @Override public void onViewAttachedToWindow(View view){
+            if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);
+            observer=view.getViewTreeObserver();observer.addOnPreDrawListener(this);
+        }
+        @Override public void onViewDetachedFromWindow(View view){
+            if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);
+            observer=null;
+        }
+        @Override public boolean onPreDraw(){
+            View view=target.get();
+            if(view==null||!shouldHideAds()||AdContainerSafety.isScreenHost(view.getClass(),view.getId()))return true;
+            measured|=view.getHeight()>0;
+            long before=layoutStamp(view);
+            safeCollapseAdView(view);
+            // A previously measured ad may remain GONE while its wrapper is expanded on resume.
+            if(measured)try{collapseAdContainer(view,true);}catch(RuntimeException error){Log.w(LOG_TAG,"Unable to collapse resumed ad container",error);}
+            return before==layoutStamp(view);
+        }
+        private static long layoutStamp(View view){
+            long stamp=1;
+            for(int depth=0;view!=null&&depth<5;depth++){
+                stamp=stamp*31+view.getVisibility();
+                stamp=stamp*31+(view.getLayoutParams()==null?-3:view.getLayoutParams().height);
+                view=view.getParent() instanceof View?(View)view.getParent():null;
+            }
+            return stamp;
         }
     }
 
@@ -3398,6 +3448,7 @@ public final class Haiagaru {
     /** Existing preference writers, rendered by the Compose settings catalog. */
     public static LinearLayout settingsCategory(Activity activity, String category) {
         switch (category) {
+            case "EXPERT": return ExpertSettings.create(activity);
             case "GENERAL": return settingsGENERAL(activity);
             case "DISPLAY": return settingsDISPLAY(activity);
             case "POSTING": return settingsPOSTING(activity);
@@ -3474,6 +3525,15 @@ public final class Haiagaru {
                 text("タブレットの追加画面をホーム側のタブで開く", "Open extra tablet screens in HOME tabs"),
                 preferences.getBoolean(NativeToolTabs.KEY, false));
         live.toggle(nativeTabs, NativeToolTabs.KEY);
+        EditText gestureSensitivity = addTextField(layout, activity,
+                text("Haiagaru設定内のジェスチャー感度（50〜200%）", "Settings gesture sensitivity (50–200%)"),
+                Integer.toString(preferences.getInt(HaiagaruSettingsGestures.SENSITIVITY, 100)));
+        gestureSensitivity.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        TextView gestureHelp = new TextView(activity);
+        gestureHelp.setText(text("100%はChMateの設定と同じ距離です。大きくすると短いスワイプで反応します。設定画面だけに適用し、次の操作から反映します。",
+                "100% uses ChMate's gesture distance. Higher values need a shorter swipe. Applies only inside settings, from the next gesture."));
+        layout.addView(gestureHelp);
+        live.number(gestureSensitivity, HaiagaruSettingsGestures.SENSITIVITY, 50, 200);
         Switch nativeSettingsTab = addSwitch(layout, activity,
                 text("タブ表示する画面：Haiagaru設定", "Tab screen: Haiagaru settings"),
                 preferences.getBoolean(NativeToolTabs.SETTINGS_KEY, true));
@@ -3491,10 +3551,10 @@ public final class Haiagaru {
         Switch nativeFullTab = addSwitch(layout, activity,text("タブ表示する画面：ワッチョイ全文検索", "Tab screen: Full Wacchoi search"),preferences.getBoolean(NativeToolTabs.FULL_KEY,true));
         live.toggle(nativeFullTab,NativeToolTabs.FULL_KEY);
         EditText toolTabHeight = addTextField(layout, activity,
-                text("専用画面タブの見出し・×バーの高さ（dp・32〜64）", "Tool tab title and close bar height (dp, 32–64)"),
+                text("専用画面タブの見出しバーの高さ（dp・48〜80）", "Tool tab header height (dp, 48–80)"),
                 Integer.toString(NativeToolTabs.headerHeightDp(activity)));
         toolTabHeight.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        live.number(toolTabHeight, NativeToolTabs.HEADER_HEIGHT_KEY, 32, 64);
+        live.number(toolTabHeight, NativeToolTabs.HEADER_HEIGHT_KEY, 48, 80);
         TextView nativeTabsHelp = new TextView(activity);
         nativeTabsHelp.setText(text("オンはホーム側、オフはスレ側のタブ列に追加します。各「タブ表示する画面」をオフにした画面は別画面で開きます。「画面を新しいタブに追加」の手動追加も同じ追加先を使います。変更は次に開く画面から反映され、既存のタブは自動では移動しません。",
                 "On adds screens to HOME tabs; off adds them to thread tabs. Individual screen switches control automatic tab opening. Manual additions use the same pane selection. Existing tabs are not moved."));
@@ -3528,6 +3588,11 @@ public final class Haiagaru {
 
         live.choice(settingsLanguage, () -> preferences.edit().putString("settingsLanguage", SettingsLanguage.value(settingsLanguage.getSelectedItemPosition())).apply());
         live.toggle(hideAd, "hideAd");
+        LightweightSetup.controls(activity,layout);
+        Button resetSettings=new Button(activity);
+        resetSettings.setText(text("Haiagaruの設定を初期設定に戻す","Reset Haiagaru settings to defaults"));
+        resetSettings.setOnClickListener(v->SettingsProfiles.confirmReset(activity));
+        layout.addView(resetSettings);
         return layout;
     }
 
@@ -3556,6 +3621,14 @@ public final class Haiagaru {
         Switch directCopyAnchors = addSwitch(layout, activity,
                 text("長押しコピー中も >>番号の長押し操作を優先", "Keep native >>anchor long presses while copying"),
                 preferences.getBoolean("directCopyAnchors", true));
+        Switch readingRecovery = addSwitch(layout, activity,
+                text("更新・画面切替時の読書位置を補助保存する", "Keep extra reading-position recovery"),
+                preferences.getBoolean(ReadingPosition.ENABLED, true));
+        TextView readingRecoveryHelp = new TextView(activity);
+        readingRecoveryHelp.setText(text("ChMate標準とは別の位置保存です。スレ切替が重い場合の切り分けにオフにできます。変更には再起動が必要です。標準の既読位置や保存済みログは削除しません。",
+                "Additional position recovery, separate from ChMate. Disable to diagnose slow thread switching. Restart required; native read positions and logs are kept."));
+        layout.addView(readingRecoveryHelp);
+        live.toggle(readingRecovery, ReadingPosition.ENABLED);
         Button importThemes = new Button(activity);
         importThemes.setText(text("自作テーマをファイル／フォルダから取り込み・削除", "Import / delete custom themes from files / folder"));
         importThemes.setOnClickListener(view -> activity.startActivity(new Intent(activity, ThemeImportActivity.class)));
@@ -3938,6 +4011,13 @@ public final class Haiagaru {
                 },
                 preferences.getInt(HISSI_CHECKER_MODE_KEY, 0)
         );
+        Spinner fullSearchProvider=addSpinner(layout,activity,"ワッチョイで検索の必死チェッカー",
+                new String[]{"自動（5ch・外部板はhissi.org／エッヂはKyodemo）","hissi.orgを使用","Kyodemoを使用","両方（画面上で切り替え）"},
+                preferences.getInt(HissiScanTemplate.PROVIDER,0));
+        live.choice(fullSearchProvider,HissiScanTemplate.PROVIDER);
+        Switch templateEnabled=addSwitch(layout,activity,"Hissiのワッチョイ検索（全文・上／下4桁）にテンプレートを使う",
+                preferences.getBoolean(HissiScanTemplate.ENABLED,true));
+        live.toggle(templateEnabled,HissiScanTemplate.ENABLED);
         Switch dedicatedViewerEnabled = addSwitch(
                 layout,
                 activity,
@@ -3946,6 +4026,17 @@ public final class Haiagaru {
                 preferences.getBoolean(DEDICATED_VIEWER_ENABLED_KEY, true)
         );
 
+        EditText hissiInterval = addTextField(layout, activity, "Hissiの走査間隔（秒・1〜3600）",
+                Integer.toString(hissiScanIntervalSeconds()));
+        hissiInterval.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        live.number(hissiInterval, SearchRequestPacing.HISSI_INTERVAL_KEY, 1, SearchRequestPacing.MAX_INTERVAL_SECONDS);
+        EditText kyodemoInterval = addTextField(layout, activity, "Kyodemoの走査間隔（秒・1〜3600）",
+                Integer.toString(kyodemoScanIntervalSeconds()));
+        kyodemoInterval.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        live.number(kyodemoInterval, SearchRequestPacing.KYODEMO_INTERVAL_KEY, 1, SearchRequestPacing.MAX_INTERVAL_SECONDS);
+        TextView intervalHelp = new TextView(activity);
+        intervalHelp.setText("初期値はHissiが3秒、Kyodemoが10秒です。間隔を短くすると相手サイトへの負荷が増え、アクセス制限や一時的な利用停止につながる場合があります。同じ接続先への並列走査もこの間隔を共有し、変更は実行中の走査にも反映されます。混雑・アクセス制限時は停止します。");
+        layout.addView(intervalHelp);
         Spinner hissiViewerTheme = addSpinner(
                 layout,
                 activity,
@@ -3966,15 +4057,23 @@ public final class Haiagaru {
                 viewerTextZoomIndex(preferences.getInt(HISSI_VIEWER_TEXT_ZOOM_KEY, 100))
         );
         addHissiViewerToolbarButtonControl(activity, layout, preferences);
-        EditText checkerHeader=addTextField(layout,activity,"チェッカー上部パネルの最大高さ（画面の10〜60%）",Integer.toString(preferences.getInt("checkerHeaderPercent",30)));
+        EditText checkerHeader=addTextField(layout,activity,"チェッカー上部パネルの最大高さ（画面の10〜60%）",Integer.toString(preferences.getInt("checkerHeaderPercent",20)));
         checkerHeader.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
         live.number(checkerHeader,"checkerHeaderPercent",10,60);
         EditText checkerSpacing=addTextField(layout,activity,"必死チェッカーのレス上下余白（dp・0〜20）",Integer.toString(preferences.getInt("hissiViewerResponseSpacingDp",7)));
         checkerSpacing.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
         live.number(checkerSpacing,"hissiViewerResponseSpacingDp",0,20);
-        EditText checkerToolbarHeight=addTextField(layout,activity,"必死チェッカー上部ツールバーの高さ（dp・32〜56）",Integer.toString(preferences.getInt("hissiViewerToolbarHeightDp",40)));
+        EditText checkerToolbarHeight=addTextField(layout,activity,"Hissi／Kyodemoの上部操作バーの高さ（dp・20〜80、下中央のつまみでも調整）",Integer.toString(hissiViewerToolbarHeightDp()));
         checkerToolbarHeight.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        live.number(checkerToolbarHeight,"hissiViewerToolbarHeightDp",32,56);
+        live.number(checkerToolbarHeight,"hissiViewerToolbarHeightDp",20,80);
+        EditText checkerTabsHeight=addTextField(layout,activity,"必死チェッカーのレス・スレ・名前バーの高さ（dp・20〜80）",Integer.toString(CheckerBarOptions.height(activity,CheckerBarOptions.TABS,40)));
+        checkerTabsHeight.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        live.number(checkerTabsHeight,CheckerBarOptions.TABS,20,80);
+        EditText checkerProvidersHeight=addTextField(layout,activity,"Hissi／Kyodemo検索先切替バーの高さ（dp・20〜80）",Integer.toString(CheckerBarOptions.height(activity,CheckerBarOptions.PROVIDERS,32)));
+        checkerProvidersHeight.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        live.number(checkerProvidersHeight,CheckerBarOptions.PROVIDERS,20,80);
+        Switch checkerHandles=addSwitch(layout,activity,"Hissi／Kyodemoの高さ調整つまみを表示（オフで高さを固定）",preferences.getBoolean(CheckerBarOptions.HANDLES,true));
+        live.toggle(checkerHandles,CheckerBarOptions.HANDLES);
         Switch hissiViewerFullscreen = addSwitch(
                 layout,
                 activity,
@@ -4169,9 +4268,39 @@ public final class Haiagaru {
                 text("Webサイトのリンクカードを表示（追加通信あり）", "Show website link cards (network access)"), siteCardsEnabled());
         Switch siteImages = addSwitch(layout, activity,
                 text("サイトカードにサムネイルを表示", "Show thumbnails in website cards"), siteCardImages());
+        EditText siteCardLimit = addTextField(layout, activity,
+                text("1レスあたりのリンクカード上限（1〜20件）", "Maximum link cards per response (1–20)"),
+                Integer.toString(siteCardMaxPerResponse()));
+        siteCardLimit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        LiveSettings.watch(siteCardLimit, () -> {
+            try {
+                int value = Integer.parseInt(siteCardLimit.getText().toString().trim());
+                if (value < 1 || value > 20) throw new NumberFormatException();
+                siteCardLimit.setError(null);
+                preferences.edit().putInt(SiteCards.MAX_PER_RESPONSE_KEY, value).apply();
+                SiteCards.changed();
+            } catch (NumberFormatException invalid) {
+                siteCardLimit.setError("1〜20件");
+            }
+        });
+        EditText siteCardRetention = addTextField(layout, activity,
+                text("リンクカード情報の保持時間（1〜168時間）", "Link card metadata retention (1–168 hours)"),
+                Integer.toString(siteCardCacheHours()));
+        siteCardRetention.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        LiveSettings.watch(siteCardRetention, () -> {
+            try {
+                int value = Integer.parseInt(siteCardRetention.getText().toString().trim());
+                if (value < 1 || value > 168) throw new NumberFormatException();
+                siteCardRetention.setError(null);
+                preferences.edit().putInt(SiteCards.CACHE_HOURS_KEY, value).apply();
+                SiteCards.changed();
+            } catch (NumberFormatException invalid) {
+                siteCardRetention.setError("1〜168時間");
+            }
+        });
         TextView siteHelp = new TextView(activity);
-        siteHelp.setText(text("YahooニュースなどのURLから、サイト共通のタイトル・説明・画像情報を取得します。対応サイトは追加設定なしで表示できます。取得できないURLは元のリンクを残します。1レス最大2件、取得済みの情報は24時間保存します。",
-                "Uses shared page metadata for titles, summaries and images, including Yahoo News. Compatible sites work without individual setup. Unavailable previews keep the original link. Up to two cards per response; metadata is cached for 24 hours."));
+        siteHelp.setText(text("YahooニュースなどのURLから、サイト共通のタイトル・説明・画像情報を取得します。対応サイトは追加設定なしで表示できます。取得できないURLは元のリンクを残します。上で1レスあたりの最大件数と取得済み情報の保存時間を設定できます。",
+                "Uses shared page metadata for titles, summaries and images, including Yahoo News. Compatible sites work without individual setup. Unavailable previews keep the original link. Set the per-response limit and metadata retention above."));
         layout.addView(siteHelp);
         siteCards.setOnCheckedChangeListener((v,on)->{preferences.edit().putBoolean("siteCardsEnabled",on).apply();SiteCards.changed();});
         siteImages.setOnCheckedChangeListener((v,on)->{preferences.edit().putBoolean("siteCardImages",on).apply();SiteCards.changed();});
@@ -5247,6 +5376,17 @@ public final class Haiagaru {
     static boolean siteCardsEnabled() {
         SharedPreferences prefs = preferencesOrNull();return prefs != null && prefs.getBoolean("siteCardsEnabled", false);
     }
+    static int siteCardMaxPerResponse() {
+        SharedPreferences prefs = preferencesOrNull();
+        int value = prefs == null ? 2 : prefs.getInt(SiteCards.MAX_PER_RESPONSE_KEY, 2);
+        return Math.max(1, Math.min(20, value));
+    }
+    static int siteCardCacheHours() {
+        SharedPreferences prefs = preferencesOrNull();
+        int value = prefs == null ? 24 : prefs.getInt(SiteCards.CACHE_HOURS_KEY, 24);
+        return Math.max(1, Math.min(168, value));
+    }
+    static long siteCardCacheDurationMillis() { return siteCardCacheHours() * 60L * 60L * 1000L; }
     static boolean siteCardImages() {
         SharedPreferences prefs = preferencesOrNull();return prefs == null || prefs.getBoolean("siteCardImages", true);
     }
@@ -5575,6 +5715,18 @@ public final class Haiagaru {
         return prefs != null && prefs.getBoolean("hissiViewerCompactHeader", false);
     }
 
+    public static int hissiScanIntervalSeconds() {
+        SharedPreferences prefs = preferencesOrNull();
+        return SearchRequestPacing.clampSeconds(prefs == null ? 3
+                : prefs.getInt(SearchRequestPacing.HISSI_INTERVAL_KEY, 3));
+    }
+
+    public static int kyodemoScanIntervalSeconds() {
+        SharedPreferences prefs = preferencesOrNull();
+        return SearchRequestPacing.clampSeconds(prefs == null ? 10
+                : prefs.getInt(SearchRequestPacing.KYODEMO_INTERVAL_KEY, 10));
+    }
+
     public static int hissiViewerResponseSpacingDp() {
         SharedPreferences prefs = preferencesOrNull();
         int value = prefs == null ? 7 : prefs.getInt("hissiViewerResponseSpacingDp", 7);
@@ -5589,14 +5741,14 @@ public final class Haiagaru {
 
     public static int hissiViewerToolbarHeightDp() {
         SharedPreferences prefs = preferencesOrNull();
-        int value = prefs == null ? 40 : prefs.getInt("hissiViewerToolbarHeightDp", 40);
-        return Math.max(32, Math.min(56, value));
+        int value = prefs == null ? 32 : prefs.getInt("hissiViewerToolbarHeightDp", 32);
+        return Math.max(20, Math.min(80, value));
     }
 
     public static void setHissiViewerToolbarHeightDp(int value) {
         SharedPreferences prefs = preferencesOrNull();
         if (prefs != null) prefs.edit().putInt("hissiViewerToolbarHeightDp",
-                Math.max(32, Math.min(56, value))).apply();
+                Math.max(20, Math.min(80, value))).apply();
     }
 
     public static int hissiViewerSwipeHistory() {

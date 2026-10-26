@@ -20,6 +20,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Map;
 
 import app.morphe.extension.facebook.media.RecentlyWatched.Entry;
 import app.morphe.extension.facebook.media.ResumePlaybackForTests.Params;
@@ -30,6 +33,8 @@ import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushfacebookPause;
+import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.PauseForTests;
 
 /**
@@ -270,6 +275,83 @@ public class RecentlyWatchedTest {
         RecentlyWatched.clear();
         assertTrue(RecentlyWatched.entries().isEmpty());
         assertFalse(RecentlyWatchedForTests.store().contains(WatchedList.KEY));
+    }
+
+    private static void runWrites(Deque<Runnable> writes) {
+        Runnable write;
+        while ((write = writes.poll()) != null) write.run();
+    }
+
+    @Test
+    public void clearDiscardsQueuedStoriesAndOlderVideoChecks() {
+        Deque<Runnable> writes = new ArrayDeque<>();
+        RecentlyWatched.writer = writes::add;
+        RecentlyWatched.storyViewed("old story", "bucket", null);
+        Player video = started("old video", true, 0);
+        RecentlyWatched.clear();
+        playedTo(video, 3_000);
+        runWrites(writes);
+        assertTrue(RecentlyWatched.entries().isEmpty());
+        assertTrue(new WatchedList(RecentlyWatchedForTests.store()).newestFirst().isEmpty());
+        assertFalse(RecentlyWatchedForTests.store().contains(WatchedList.KEY));
+
+        RecentlyWatched.storyViewed("new story", "bucket", null);
+        runWrites(writes);
+        assertEquals("new story", entries().get(0).id);
+    }
+
+    @Test
+    public void turningRecordingOffThenOnDiscardsAlreadyQueuedWork() {
+        Deque<Runnable> writes = new ArrayDeque<>();
+        RecentlyWatched.writer = writes::add;
+        RecentlyWatched.storyViewed("old story", "bucket", null);
+        Player video = started("old video", true, 0);
+        Settings.RECENTLY_WATCHED.save(false);
+        Settings.RECENTLY_WATCHED.save(true);
+        playedTo(video, 3_000);
+        runWrites(writes);
+        assertTrue(entries().isEmpty());
+        RecentlyWatched.storyViewed("new story", "bucket", null);
+        runWrites(writes);
+        assertEquals("new story", entries().get(0).id);
+    }
+
+    @Test
+    public void aBatchRecordingChangeAlsoInvalidatesQueuedWork() throws Exception {
+        Deque<Runnable> writes = new ArrayDeque<>();
+        RecentlyWatched.writer = writes::add;
+        RecentlyWatched.storyViewed("old story", "bucket", null);
+        Player video = started("old video", false, 0);
+        Setting.saveAll(Map.of(Settings.RECENTLY_WATCHED, false));
+        Setting.saveAll(Map.of(Settings.RECENTLY_WATCHED, true));
+        playedTo(video, 3_000);
+        runWrites(writes);
+        assertTrue(entries().isEmpty());
+    }
+
+    @Test
+    public void aPreferenceBindingChangeAlsoInvalidatesQueuedWork() {
+        Deque<Runnable> writes = new ArrayDeque<>();
+        RecentlyWatched.writer = writes::add;
+        RecentlyWatched.storyViewed("old story", "bucket", null);
+        Player video = started("old video", false, 0);
+        BooleanSetting.privateSetValue(Settings.RECENTLY_WATCHED, false);
+        BooleanSetting.privateSetValue(Settings.RECENTLY_WATCHED, true);
+        playedTo(video, 3_000);
+        runWrites(writes);
+        assertTrue(entries().isEmpty());
+    }
+
+    @Test
+    public void savingTheSameRecordingValueDoesNotDiscardANewWatch() throws Exception {
+        Deque<Runnable> writes = new ArrayDeque<>();
+        RecentlyWatched.writer = writes::add;
+        RecentlyWatched.storyViewed("current story", "bucket", null);
+        Settings.RECENTLY_WATCHED.save(true);
+        Setting.saveAll(Map.of(Settings.RECENTLY_WATCHED, true));
+        BooleanSetting.privateSetValue(Settings.RECENTLY_WATCHED, true);
+        runWrites(writes);
+        assertEquals("current story", entries().get(0).id);
     }
 
     @Test

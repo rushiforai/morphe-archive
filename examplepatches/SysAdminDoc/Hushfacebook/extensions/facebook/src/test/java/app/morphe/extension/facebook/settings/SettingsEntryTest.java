@@ -5,11 +5,13 @@
 package app.morphe.extension.facebook.settings;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Intent;
 import android.preference.Preference;
 import android.view.View;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.facebook.menu.MenuSettingsRow;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.preference.ReopenSettingsAfterRestart;
 
@@ -429,6 +432,40 @@ public class SettingsEntryTest {
      * login screen, so the replacement is already in front when the request comes back, and it
      * never resumes again to pick it up. On a phone that left the request pending until it expired.
      */
+    @Test public void repeatedDirectOpensBeforeTheFragmentCommitKeepOneSettingsDialog() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            assertTrue(SettingsEntry.open(activity));
+            assertTrue(SettingsEntry.open(activity));
+
+            assertOneSettingsDialog(activity);
+        }
+    }
+
+    @Test public void repeatedMenuTapsBeforeTheFragmentCommitKeepOneSettingsDialog() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            View menuRow = new View(activity);
+            assertTrue(MenuSettingsRow.onTap(menuRow, MenuSettingsRow.ROW_ID));
+            assertTrue(MenuSettingsRow.onTap(menuRow, MenuSettingsRow.ROW_ID));
+
+            assertOneSettingsDialog(activity);
+        }
+    }
+
+    private static void assertOneSettingsDialog(Activity activity) {
+        activity.getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        int count = 0;
+        for (Fragment fragment : activity.getFragmentManager().getFragments()) {
+            if (fragment instanceof SettingsDialog) count++;
+        }
+        assertEquals("the two requests stacked settings screens", 1, count);
+        assertNotNull(dialogOver(activity));
+    }
+
     @Test public void theScreenFollowsItsHostToAReplacementAlreadyInFront() {
         ActivityController<Activity> login = openedOverNewActivity();
 

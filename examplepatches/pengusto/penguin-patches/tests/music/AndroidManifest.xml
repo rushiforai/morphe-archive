@@ -1,0 +1,1 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.pengusto.patches.music.tests"><uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/><application/><instrumentation android:name="io.github.pengusto.patches.tests.ArtworkProbe" android:targetPackage="org.fossify.musicplayer"/></manifest>

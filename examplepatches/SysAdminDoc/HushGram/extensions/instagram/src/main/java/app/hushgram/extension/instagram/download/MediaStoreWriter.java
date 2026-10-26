@@ -386,15 +386,17 @@ final class MediaStoreWriter implements Downloader.Sink {
             // As a photo is named, so the saved recordings sort by the time they were saved.
             return AUDIO_PREFIX + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(now) + suffix;
         }
-        if (video) {
+        String template = FileNameTemplate.current();
+        if (video || FileNameTemplate.usesShortcode(template)) {
             // The person's template, read here, per file, and cleaned where it's read. As it
             // ships it's IG_VID_ and the date and time.
-            String template = FileNameTemplate.current();
             reportMissingTokens(template);
-            String name = FileNameTemplate.videoName(template, now, details) + suffix;
+            String name = (video ? FileNameTemplate.videoName(template, now, details)
+                    : FileNameTemplate.photoName(template, now, details, false)) + suffix;
             if (!inSaveFolder(collection, name)) return name;
             // MediaStore would number it, up to (31), and then refuse the save.
-            String taken = FileNameTemplate.takenVideoName(template, now, details);
+            String taken = video ? FileNameTemplate.takenVideoName(template, now, details)
+                    : FileNameTemplate.photoName(template, now, details, true);
             if (taken == null) return name;
             Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
                     () -> "the file name was already in the save folder, so the time of the save went on the end");
@@ -460,9 +462,11 @@ final class MediaStoreWriter implements Downloader.Sink {
         if (FileNameTemplate.usesVideoId(template) && !details.hasVideoId()) missing.add("the video id");
         if (FileNameTemplate.usesOwner(template) && !details.hasOwner()) missing.add("the poster");
         if (FileNameTemplate.usesPosted(template) && !details.hasPosted()) missing.add("the post date");
+        if (FileNameTemplate.usesShortcode(template) && !details.hasShortcode()) missing.add("the post shortcode");
         if (missing.isEmpty()) return;
 
-        boolean apart = FileNameTemplate.keepsApart(template, details.hasVideoId(), details.hasOwner(), details.hasPosted());
+        boolean apart = FileNameTemplate.keepsApart(template, details.hasVideoId(), details.hasOwner(), details.hasPosted(),
+                details.hasShortcode());
         String asked = missing.size() == 1 ? missing.get(0)
             : String.join(", ", missing.subList(0, missing.size() - 1)) + " and " + missing.get(missing.size() - 1);
         String has = missing.size() == 1 ? "none" : missing.size() == 2 ? "neither" : "none of them";

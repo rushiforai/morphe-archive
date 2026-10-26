@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"Đang tải chẩn đoán…"</string>
     <string name="cap_planner_model" formatted="false">"Mô hình chuẩn bị nghĩa nguồn (tùy chọn)"</string>
     <string name="cap_planner_model_hint" formatted="false">"Để trống để dùng mô hình dịch. Dùng cùng URL API và khóa; không tự chọn mô hình khác."</string>
+    <string name="cap_config_unreadable" formatted="false">"Không thể đọc cấu hình đã lưu. Hãy kiểm tra các trường liên quan; không có dữ liệu nào bị thay đổi."</string>
+    <string name="cap_config_index_recovery" formatted="false">"Không thể đọc danh sách hồ sơ. Không có hồ sơ nào bị thay đổi. Hãy đọc lại hoặc quay về. Cần bản sao lưu cài đặt hồ sơ hợp lệ của ứng dụng này từ trước khi hỏng để khôi phục; màn hình này không thể dựng lại danh sách."</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"Đã lưu trường nhưng đồng bộ thất bại. Nhấn vào đây để thử đồng bộ lại."</string>
+    <string name="cap_config_save_uncertain" formatted="false">"Lưu thất bại hoặc chưa thể xác nhận; hãy kiểm tra giá trị hiện tại. Bản nháp được giữ lại. %1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"Thao tác thất bại hoặc chưa thể xác nhận kết quả. Dữ liệu có thể đã thay đổi; mở lại cài đặt để kiểm tra."</string>
+    <string name="cap_config_origin_recovery" formatted="false">"Không xác định được địa chỉ API của khóa gốc; cấu hình chưa bị thay đổi. Khôi phục bản sao lưu hợp lệ từ trước khi hỏng, hoặc bỏ chỉnh sửa này rồi chủ động xóa khóa trước khi cấu hình lại."</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG là nhóm thống kê cũ cho lỗi HTTP và lọc nội dung. Xem reason cùng dữ kiện dừng, lọc và chờ đã ghi; dữ kiện thiếu là chưa biết. Một lô logic có thể cho phép nhiều lần thử HTTP. Số lần thử không xác nhận máy chủ đã nhận hay tính phí. Phản hồi, chất lượng và bộ nhớ đệm được đếm riêng. Nhóm này gồm cả 429/503 và tự nó không có nghĩa là lỗi cấu hình hay dừng vĩnh viễn."</string>
 </resources>

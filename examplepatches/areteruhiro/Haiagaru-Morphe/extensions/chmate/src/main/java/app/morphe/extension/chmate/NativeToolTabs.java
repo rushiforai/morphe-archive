@@ -12,8 +12,22 @@ import java.lang.reflect.*;
 public final class NativeToolTabs {
     public static final String KEY="nativeToolTabs";
     public static final String HEADER_HEIGHT_KEY="nativeToolTabHeaderHeightDp";
+    public static boolean dispatchArchiveBack(Activity activity,android.view.KeyEvent event){
+        if(event==null||event.getKeyCode()!=android.view.KeyEvent.KEYCODE_BACK)return false;
+        View root=activity.getWindow().peekDecorView();
+        return root!=null&&dispatchArchiveBack(root,event);
+    }
+    private static boolean dispatchArchiveBack(View view,android.view.KeyEvent event){
+        if(!view.isShown())return false;
+        if(view instanceof NativeToolTabSwipeLayout&&((NativeToolTabSwipeLayout)view).closeArchiveOnBack(event))return true;
+        if(view instanceof android.view.ViewGroup){
+            android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=group.getChildCount()-1;i>=0;i--)if(dispatchArchiveBack(group.getChildAt(i),event))return true;
+        }
+        return false;
+    }
     static int headerHeightDp(android.content.Context context){
-        return Math.max(32,Math.min(64,context.getSharedPreferences(WacchoiSearchOptions.PREFS,0)
+        return Math.max(48,Math.min(80,context.getSharedPreferences(WacchoiSearchOptions.PREFS,0)
                 .getInt(HEADER_HEIGHT_KEY,48)));
     }
     public static final String SETTINGS_KEY="nativeToolTabSettings", EDDI_KEY="nativeToolTabEddi";
@@ -127,6 +141,9 @@ public final class NativeToolTabs {
         if(!supported()||!tablet(activity)||!java.util.Arrays.asList("settings","eddi","search","checker","hissi","wacchoi").contains(tool))return false;
         boolean home=enabled(activity);
         Bundle args=new Bundle();args.putString("_data",PREFIX+tool+(home?"?pane=home":"?pane=thread"));
+        // Native pages compare the URL. Distinct search requests must not select
+        // an older tab whose serialized launch/form still contains the previous query.
+        if(launch!=null&&!"settings".equals(tool))args.putString("_data",args.getString("_data")+"&request="+java.util.UUID.randomUUID());
         args.putString(Intent.EXTRA_TITLE,"settings".equals(tool)?"Haiagaru設定":"eddi".equals(tool)?"エッヂ過去ログ検索":"search".equals(tool)?"投稿を探す":"checker".equals(tool)?"投稿検索・結果":"hissi".equals(tool)?"必死チェッカーもどき":"ワッチョイ全文検索");
         if(launch!=null)try{args.putString(Intent.EXTRA_TEXT,new org.json.JSONObject().put("launch",launch.toUri(Intent.URI_INTENT_SCHEME)).toString());}catch(org.json.JSONException error){throw new IllegalArgumentException(error);}
         try{
@@ -207,6 +224,46 @@ public final class NativeToolTabs {
     static boolean isSelectedThreadTool(Activity activity,Object fragment){
         try{return threadSelection(activity,fragment)!=null;}
         catch(Exception error){android.util.Log.w("Haiagaru","Could not resolve tool swipe pane",error);return false;}
+    }
+    /** Reapply 242's native selected-page visibility after returning from another window. */
+    static void restoreToolVisibility(View child){
+        if(child==null||!child.isAttachedToWindow())return;
+        if(android.os.Looper.myLooper()!=android.os.Looper.getMainLooper()){
+            child.post(()->restoreToolVisibility(child));return;
+        }
+        android.content.Context context=child.getContext();
+        try{
+            if(!"0.8.10.242 dev".equals(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName))return;
+            android.view.ViewParent parent=child.getParent();
+            while(parent!=null&&!(parent instanceof View
+                    &&"jp.syoboi.a2chMate.view.EfficientTabContainer".equals(parent.getClass().getName())))
+                parent=parent.getParent();
+            if(parent==null)return;
+            Object adapter=tabField(parent,"e");if(adapter==null)return;
+            int current=(Integer)tabField(parent,"c");
+            java.util.List<?> pages=(java.util.List<?>)tabField(adapter,"d");
+            if(current<0||current>=pages.size())return;
+            Object page=pages.get(current);if(!marker(pageArgs(page)))return;
+            Object fragment=tabField(page,"d");if(!(fragment instanceof NativeToolFragment))return;
+            View selected=(View)fragment.getClass().getMethod("getView").invoke(fragment);
+            if(selected==null)return;
+            if(selected.getVisibility()!=View.VISIBLE){
+                try{
+                    Method sync=adapter.getClass().getDeclaredMethod("a",page.getClass());sync.setAccessible(true);sync.invoke(adapter,page);
+                }catch(Exception syncError){
+                    android.util.Log.w("Haiagaru","Could not resync selected tool page",syncError);
+                }
+                // The adapter may skip an unchanged current-page index after the
+                // Activity's state has been restored. Keep the selected fragment
+                // visible even if its siblings were correctly hidden by the pager.
+                if(selected.getVisibility()!=View.VISIBLE){
+                    selected.setVisibility(View.VISIBLE);
+                    android.util.Log.w("Haiagaru","Restored selected tool page visibility: "+tool(pageArgs(page)));
+                }
+            }
+            if(parent instanceof View)((View)parent).requestLayout();
+            selected.requestLayout();selected.invalidate();
+        }catch(Exception error){android.util.Log.w("Haiagaru","Could not restore selected tool visibility",error);}
     }
     /** Called after touch dispatch; native selection updates both the tab strip and the pager. */
     static boolean moveThreadTool(Activity activity,Object fragment,int offset){
@@ -296,7 +353,12 @@ public final class NativeToolTabs {
         return null;
     }
     static boolean marker(Bundle args){return tool(args)!=null;}
-    private static String tool(Bundle args){String value=args==null?null:args.getString("_data");for(String name:new String[]{"settings","eddi","search","checker","hissi","wacchoi"})if((PREFIX+name).equals(value)||(PREFIX+name+"?pane=home").equals(value)||(PREFIX+name+"?pane=thread").equals(value))return name;return null;}
+    static String tool(Bundle args){
+        String value=args==null?null:args.getString("_data");if(value==null)return null;
+        Uri uri=Uri.parse(value);if(!"haiagaru-tool".equals(uri.getScheme())||uri.getUserInfo()!=null)return null;
+        for(String name:new String[]{"settings","eddi","search","checker","hissi","wacchoi"})if(name.equals(uri.getHost()))return name;
+        return null;
+    }
     // Several tabs share the Activity state transaction: never retain a full 120KB result per tab.
     static String compactState(String value){
         if(value==null||value.length()<=8192)return value;
@@ -317,6 +379,9 @@ public final class NativeToolTabs {
         try{return (Bundle)fragment.getClass().getMethod("getArguments").invoke(fragment);}
         catch(Exception error){throw new IllegalStateException("Native tool arguments unavailable",error);}
     }
+    static boolean isArchiveFragment(Object fragment){
+        return fragment instanceof NativeToolFragment&&"eddi".equals(tool(arguments(fragment)));
+    }
     abstract static class Content {
         final View view;
         Content(View view){this.view=view;}
@@ -331,9 +396,10 @@ public final class NativeToolTabs {
         if("eddi".equals(tool(args))){
             Bundle state=restored==null?new Bundle():new Bundle(restored);
             if(!state.containsKey(EddiArchiveSearchUi.STATE_KEY)&&args.containsKey(Intent.EXTRA_TEXT))state.putString(EddiArchiveSearchUi.STATE_KEY,args.getString(Intent.EXTRA_TEXT));
-            EddiArchiveSearchUi ui=EddiArchiveSearchUi.embed(activity,Uri.parse("https://eddiarchive3rd.boy.jp/"),url->openThread(activity,url),state,()->back(activity));
+            Runnable close=()->{if(!closeCurrentTab(activity,fragment))Toast.makeText(activity,"この画面のタブを閉じられませんでした",Toast.LENGTH_SHORT).show();};
+            EddiArchiveSearchUi ui=EddiArchiveSearchUi.embed(activity,Uri.parse("https://eddiarchive3rd.boy.jp/"),url->openThread(activity,url),state,close);
             ui.onStateSaved=value->args.putString(Intent.EXTRA_TEXT,compactState(value));
-            Content content=new Content(ToolScreenUi.archive(activity,ui.rootView(),()->back(activity))){
+            Content content=new Content(ToolScreenUi.archive(activity,ui.rootView(),close,true,true)){
                 @Override void save(Bundle out){Bundle temporary=new Bundle();ui.saveState(temporary);String value=compactState(temporary.getString(EddiArchiveSearchUi.STATE_KEY));if(value!=null)out.putString(EddiArchiveSearchUi.STATE_KEY,value);}
                 @Override void close(){ui.saveState(null);ui.dispose();}
             };
@@ -393,9 +459,12 @@ public final class NativeToolTabs {
                 if(!("http".equals(uri.getScheme())||"https".equals(uri.getScheme()))||!allowedHost){address.setError("hissi".equals(tool)?"hissi.org のURLを入力してください":"必死チェッカーまたはKyodemoのURLを入力してください");return;}
                 create(new Intent(Intent.ACTION_VIEW,uri),null);controller.resume();});
             if("hissi".equals(tool)){
-                TextView heading=new TextView(activity);heading.setText("必死チェッカー · ChMateビュー");heading.setTextSize(18);form.addView(heading,0);
+                Button heading=new Button(activity);heading.setText("‹ 必死チェッカー · ChMateビュー");heading.setTextSize(18);heading.setOnClickListener(v->closeTab());form.addView(heading,0);
                 render(ToolScreenUi.model(activity,"",form,this::closeTab,false));
-            }else render(ToolScreenUi.model(activity,"",form,this::closeTab,false));
+            }else{
+                Button heading=new Button(activity);heading.setText("‹ 投稿検索・結果");heading.setOnClickListener(v->closeTab());form.addView(heading,0);
+                render(ToolScreenUi.model(activity,"",form,this::closeTab,false));
+            }
         }
         @Override void resume(){if(controller!=null)controller.resume();}
         @Override void pause(){if(controller!=null)controller.pause();}
@@ -425,8 +494,8 @@ public final class NativeToolTabs {
         private static final String SELECTED="haiagaru.native.settings.category";
         final Activity activity;final Bundle args;final LinearLayout root,body;final TextView title;final ScrollView scroll;final FrameLayout categoryHost;final Object fragment;
         String selected;
-        final String[] ids={"DISPLAY","SOCIAL","CHECKER","ARCHIVE","POSTING","UPLOAD","MEDIA","NG","HISTORY","BACKUP","GENERAL","ADVANCED"};
-        final String[] labels={"画面と操作","リンクカード・X","IDチェッカー","過去ログ・保存レス","書き込む","画像・動画の投稿","画像・動画の表示","NG・ミュート","履歴","バックアップ","基本設定","通信・外部板"};
+        final String[] ids={"DISPLAY","SOCIAL","CHECKER","ARCHIVE","POSTING","UPLOAD","MEDIA","NG","HISTORY","BACKUP","GENERAL","ADVANCED","EXPERT"};
+        final String[] labels={"画面と操作","リンクカード・X","IDチェッカー","過去ログ・保存レス","書き込む","画像・動画の投稿","画像・動画の表示","NG・ミュート","履歴","バックアップ","基本設定","通信・外部板","エキスパート設定"};
         SettingsContent(Activity activity,Bundle args,Bundle restored,Object fragment){
             super(new LinearLayout(activity));this.activity=activity;this.args=args;this.fragment=fragment;root=(LinearLayout)view;root.setOrientation(1);
             int padding=(int)(12*activity.getResources().getDisplayMetrics().density);root.setPadding(padding,padding,padding,padding);

@@ -53,9 +53,21 @@ function Remove-GeneratedPath {
     )
     try {
         $safe = Resolve-WithinRoot -Path $Path -Root $Root
+        $rootPath = [IO.Path]::GetFullPath($Root).TrimEnd('\')
+        # The leaf can be removed as a link. An ancestor link would make even a
+        # nonrecursive leaf deletion reach outside this run's directory.
+        $parent = [IO.Path]::GetDirectoryName($safe)
+        while ($parent.Length -gt $rootPath.Length) {
+            try { $attributes = [IO.File]::GetAttributes($parent) }
+            catch [IO.FileNotFoundException], [IO.DirectoryNotFoundException] { $attributes = 0 }
+            if ($attributes -band [IO.FileAttributes]::ReparsePoint) {
+                throw "Refusing to remove a generated path through a linked ancestor: $parent"
+            }
+            $parent = [IO.Path]::GetDirectoryName($parent)
+        }
         if (-not (Test-Path -LiteralPath $safe)) { return }
         if ($NoRecurse) { Remove-Item -LiteralPath $safe -Force -ErrorAction Stop }
-        else { Remove-Item -LiteralPath $safe -Recurse -Force -ErrorAction Stop }
+        else { Remove-TreeWithoutFollowingLinks -Path $safe }
     } catch {
         Write-Warning "Could not remove generated path: $($_.Exception.Message)"
     }

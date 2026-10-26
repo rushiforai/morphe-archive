@@ -329,6 +329,19 @@ public final class L10n {
             // A second region of a language already listed still counts: with Portugal's
             // Portuguese first and Brazil's second, the Brazilian table is the one that answers.
             String country = locale.getCountry();
+            if (language.equals("zh")) {
+                String script = locale.getScript();
+                boolean traditionalRegion = country.equalsIgnoreCase("TW") || country.equalsIgnoreCase("HK")
+                        || country.equalsIgnoreCase("MO");
+                // An explicit script wins over the region: zh-Hant-CN is Traditional, while
+                // zh-Hans-TW must not pick Taiwan's table. Bare zh, CN and SG keep their fallback.
+                if (script.equalsIgnoreCase("Hant") || (script.isEmpty() && traditionalRegion)) {
+                    if (!tags.contains("zh-rtw")) tags.add("zh-rtw");
+                } else if (script.equalsIgnoreCase("Hans")) {
+                    if (!tags.contains(language)) tags.add(language);
+                    continue;
+                }
+            }
             if (country != null && !country.isEmpty()) {
                 String regional = language + "-r" + country.toLowerCase(Locale.ROOT);
                 if (!tags.contains(regional)) tags.add(regional);

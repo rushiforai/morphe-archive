@@ -1,3 +1,18 @@
+# [1.44.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.43.0...v1.44.0) (2026-10-26)
+
+
+### Features
+
+* **fawesome:** disable the "New version Available" update prompt (19.7) ([64ffa83](https://github.com/ajstrick81/morphe-androidtv-patches/commit/64ffa830292cf75ce38e055e9430531d5c9a67f7)), closes [#257](https://github.com/ajstrick81/morphe-androidtv-patches/issues/257) [#257](https://github.com/ajstrick81/morphe-androidtv-patches/issues/257)
+* **fawesome:** extend update-prompt disable to 20.1 (R8-obfuscated rewrite) ([57ebd6a](https://github.com/ajstrick81/morphe-androidtv-patches/commit/57ebd6a8815eaa49165808c968467133d370c797)), closes [#257](https://github.com/ajstrick81/morphe-androidtv-patches/issues/257)
+
+# [1.43.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.42.3...v1.43.0) (2026-10-25)
+
+
+### Features
+
+* **netflix:** support 13.2.1 build 27207 (experimental) ([676e203](https://github.com/ajstrick81/morphe-androidtv-patches/commit/676e20399bea8f240113c075269a654820c42533)), closes [212/#232](https://github.com/ajstrick81/morphe-androidtv-patches/issues/232)
+
 ## [1.42.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.42.2...v1.42.3) (2026-10-23)
 
 

@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"جارٍ تحميل التشخيص…"</string>
     <string name="cap_planner_model" formatted="false">"نموذج إعداد معنى المصدر (اختياري)"</string>
     <string name="cap_planner_model_hint" formatted="false">"اتركه فارغًا لاستخدام نموذج الترجمة. يستخدم عنوان API والمفتاح نفسيهما ولا يختار نموذجًا آخر تلقائيًا."</string>
+    <string name="cap_config_unreadable" formatted="false">"تعذرت قراءة الإعدادات المحفوظة. تحقق من الحقول المتأثرة؛ لم تتغير أي بيانات."</string>
+    <string name="cap_config_index_recovery" formatted="false">"تعذرت قراءة قائمة الملفات الشخصية. لم تتغير أي ملفات. أعد القراءة أو ارجع. تتطلب الاستعادة نسخة احتياطية صالحة لإعدادات الملفات في هذا التطبيق من قبل التلف؛ لا يمكن لهذه الشاشة إعادة إنشاء القائمة."</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"تم حفظ الحقل، لكن فشلت مزامنة الإعدادات. اضغط هنا لإعادة المزامنة."</string>
+    <string name="cap_config_save_uncertain" formatted="false">"فشل الحفظ أو تعذر تأكيده؛ تحقق من القيمة الحالية. تم الاحتفاظ بالمسودة. %1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"فشلت العملية أو تعذر تأكيد نتيجتها. ربما تغيرت البيانات؛ أعد فتح الإعدادات للتحقق."</string>
+    <string name="cap_config_origin_recovery" formatted="false">"عنوان API للمفتاح الأصلي غير معروف؛ لم تتغير الإعدادات. استعد نسخة احتياطية صالحة من قبل التلف، أو تجاهل هذا التعديل وامسح المفتاح صراحةً قبل إعادة الإعداد."</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG فئة عدّ قديمة تشمل إخفاقات HTTP وتصفية المحتوى. لفهم القرار، راجع reason ووقائع الإيقاف والتصفية والانتظار المسجلة؛ الوقائع غير المسجلة غير معروفة. قد تسمح دفعة منطقية واحدة بعدة محاولات HTTP. لا يؤكد عددها استلام الخادم أو الفوترة. تُعدّ الاستجابات والجودة وذاكرة التخزين المؤقت بشكل منفصل. تشمل الفئة 429/503، ولا تعني وحدها خطأ في الإعداد أو توقفًا دائمًا."</string>
 </resources>

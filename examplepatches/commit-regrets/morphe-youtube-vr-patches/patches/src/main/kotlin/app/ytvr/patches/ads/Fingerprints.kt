@@ -141,15 +141,31 @@ object CuePointListFingerprint : Fingerprint(
  * obfuscated name is written into the bytecode.
  */
 object AdSlotAccessorFingerprint : Fingerprint(
-    definingClass = "Lmgn;",
-    name = "c",
-    parameters = listOf("Lzjp;"),
-    returnType = "Lvmo;",
+    custom = { method, _ ->
+        val params = method.parameterTypes.map { it.toString() }
+        val is18810 = method.definingClass == "Lmgn;" &&
+            method.name == "c" &&
+            params == listOf("Lzjp;") &&
+            method.returnType == "Lvmo;"
+        val is18909 = method.definingClass == "Lmht;" &&
+            method.name == "k" &&
+            params == listOf("Lzmj;") &&
+            method.returnType == "Lvpr;"
+        is18810 || is18909
+    },
 )
 
 object AdSlotTypedAccessorFingerprint : Fingerprint(
-    definingClass = "Lmgn;",
-    name = "d",
-    parameters = listOf("Lzjp;", "Ljava/util/List;"),
-    returnType = "Lvmo;",
+    custom = { method, _ ->
+        val params = method.parameterTypes.map { it.toString() }
+        val is18810 = method.definingClass == "Lmgn;" &&
+            method.name == "d" &&
+            params == listOf("Lzjp;", "Ljava/util/List;") &&
+            method.returnType == "Lvmo;"
+        val is18909 = method.definingClass == "Lmht;" &&
+            method.name == "l" &&
+            params == listOf("Lzmj;", "Ljava/util/List;") &&
+            method.returnType == "Lvpr;"
+        is18810 || is18909
+    },
 )

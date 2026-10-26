@@ -13,7 +13,6 @@ import android.content.Context;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -133,8 +132,7 @@ public final class MediaSave {
             this.video = video;
             this.renditions = Collections.unmodifiableList(usable(renditions));
             this.manifest = video ? manifest : null;
-            this.details = details == null ? PostDetails.NONE : PostDetails.of(details.videoId, details.owner,
-                    details.posted == null ? null : new Date(details.posted.getTime())).onPage(details.page);
+            this.details = details == null ? PostDetails.NONE : details.snapshot();
         }
     }
 
@@ -332,6 +330,7 @@ public final class MediaSave {
                         saved++;
                         if (result.lower) lower++;
                         DownloadHistory.record(application, key, writer, page.details);
+                        if (!page.video) PostMetadata.tag(application, writer, page.details);
                     } else if (result.status == Downloader.Status.CANCELLED) {
                         skipped += snapshot.size() - index;
                         cancelled = true;

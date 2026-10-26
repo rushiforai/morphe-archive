@@ -24,7 +24,24 @@ try:
         release_date,
     )
     from scripts.release_history import release_is_prerelease
-    from scripts.reseam_api import GIT_RELEASES_URL, HISTORY_URL, release_inventory
+    from scripts.reseam_api import (
+        GIT_RELEASES_URL as RESEAM_GIT_RELEASES_URL,
+    )
+    from scripts.reseam_api import (
+        HISTORY_URL as RESEAM_HISTORY_URL,
+    )
+    from scripts.reseam_api import (
+        release_inventory as reseam_release_inventory,
+    )
+    from scripts.revanced_api import (
+        GIT_RELEASES_URL as REVANCED_GIT_RELEASES_URL,
+    )
+    from scripts.revanced_api import (
+        HISTORY_URL as REVANCED_HISTORY_URL,
+    )
+    from scripts.revanced_api import (
+        release_inventory as revanced_release_inventory,
+    )
 except ModuleNotFoundError:
     from git_hosts import auth_headers, endpoint, hosts, normalize_source
     from release_assets import (
@@ -35,7 +52,28 @@ except ModuleNotFoundError:
         release_date,
     )
     from release_history import release_is_prerelease
-    from reseam_api import GIT_RELEASES_URL, HISTORY_URL, release_inventory
+    from reseam_api import (
+        GIT_RELEASES_URL as RESEAM_GIT_RELEASES_URL,
+    )
+    from reseam_api import (
+        HISTORY_URL as RESEAM_HISTORY_URL,
+    )
+    from reseam_api import (
+        release_inventory as reseam_release_inventory,
+    )
+    from revanced_api import (
+        GIT_RELEASES_URL as REVANCED_GIT_RELEASES_URL,
+    )
+    from revanced_api import (
+        HISTORY_URL as REVANCED_HISTORY_URL,
+    )
+    from revanced_api import (
+        release_inventory as revanced_release_inventory,
+    )
+
+GIT_RELEASES_URL = RESEAM_GIT_RELEASES_URL
+HISTORY_URL = RESEAM_HISTORY_URL
+release_inventory = reseam_release_inventory
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CACHE_DIR = PROJECT_ROOT / "internal/cache"
@@ -302,9 +340,13 @@ def _validate_release_page(page):
 
 
 async def _fetch_releases(client: AsyncClient, api_url: str) -> list[dict[str, Any]]:
-    reseam_api = api_url == GIT_RELEASES_URL
+    reseam_api = api_url == RESEAM_GIT_RELEASES_URL
     if reseam_api:
-        api_url = HISTORY_URL
+        api_url = RESEAM_HISTORY_URL
+    revanced_api = api_url.lower() == REVANCED_GIT_RELEASES_URL.lower()
+    if revanced_api:
+        api_url = REVANCED_HISTORY_URL
+    custom_api = reseam_api or revanced_api
     releases = []
     next_url = api_url
     visited = set()
@@ -316,10 +358,10 @@ async def _fetch_releases(client: AsyncClient, api_url: str) -> list[dict[str, A
         page_budget = int(os.environ.get("HISTORY_MAX_PAGES", "0"))
         if page_budget and len(visited) > page_budget:
             raise ValueError("Historical inventory incomplete: configured page budget reached")
-        # The public Reseam API must never receive Git-host credentials.
+        # The public Reseam and ReVanced APIs must never receive Git-host credentials.
         headers = (
             {"Accept": "application/json", "User-Agent": GITHUB_HEADERS["User-Agent"]}
-            if reseam_api else _headers_for_url(next_url)
+            if custom_api else _headers_for_url(next_url)
         )
         cached = RELEASE_CACHE.get(next_url)
         if cached and cached["etag"]:
@@ -327,7 +369,7 @@ async def _fetch_releases(client: AsyncClient, api_url: str) -> list[dict[str, A
         from urllib.parse import urlparse
 
         request_url = next_url
-        if not reseam_api and not urlparse(next_url).query:
+        if not custom_api and not urlparse(next_url).query:
             from urllib.parse import urlencode
 
             kind = hosts().get(
@@ -342,18 +384,23 @@ async def _fetch_releases(client: AsyncClient, api_url: str) -> list[dict[str, A
             _validate_release_page(page)
             following = cached.get("next_url")
         else:
-            page = release_inventory(response.json()) if reseam_api else response.json()
+            if reseam_api:
+                page = reseam_release_inventory(response.json())
+            elif revanced_api:
+                page = revanced_release_inventory(response.json())
+            else:
+                page = response.json()
             _validate_release_page(page)
-            following = None if reseam_api else response.links.get("next", {}).get("url")
+            following = None if custom_api else response.links.get("next", {}).get("url")
             # GitLab can also paginate using X-Next-Page.
-            if not reseam_api and not following and response.headers.get("x-next-page"):
+            if not custom_api and not following and response.headers.get("x-next-page"):
                 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
                 parts = urlsplit(request_url)
                 query = dict(parse_qsl(parts.query))
                 query["page"] = response.headers["x-next-page"]
                 following = urlunsplit(parts._replace(query=urlencode(query)))
-            if not reseam_api and not following and len(page) == 100:
+            if not custom_api and not following and len(page) == 100:
                 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
                 parts = urlsplit(request_url)

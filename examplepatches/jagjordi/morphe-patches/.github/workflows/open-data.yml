@@ -1,0 +1,33 @@
+name: Open data bundle
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build aircraft database and FIR boundaries
+        run: python3 open-data/build_data.py --out-dir dist --cache-dir cache --refresh
+
+      - name: Publish rolling prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="Rolling data bundle for the Flightradar24 \"Open data for premium fields\" patch, rebuilt on $(date -u +%Y-%m-%dT%H:%M:%SZ). Sources: OpenSky Network aircraft database, wiedehopf/tar1090-db, VATSpy Data Project. Kept as a prerelease so it never becomes the latest patch release."
+          if ! gh release view open-data --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create open-data --repo "$GITHUB_REPOSITORY" --prerelease --title "Open data bundle" --notes "$NOTES" --target "$GITHUB_SHA"
+          fi
+          gh release upload open-data dist/aircraft.db.gz dist/firs.json.gz dist/countries.json --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit open-data --repo "$GITHUB_REPOSITORY" --prerelease --notes "$NOTES"

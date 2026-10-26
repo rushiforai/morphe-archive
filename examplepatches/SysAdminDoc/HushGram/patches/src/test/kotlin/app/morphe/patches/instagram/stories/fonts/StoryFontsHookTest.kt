@@ -61,6 +61,8 @@ class StoryFontsHookTest {
     private val descriptionId = "$format->descriptionId:Ljava/lang/Integer;"
     private val labelText = "$format->labelText:$string"
     private val descriptionText = "$format->descriptionText:$string"
+    private val premiumName = "$format->name:$string"
+    private val premiumCheck = "$formats->premium($string)Z"
 
     /** The hooks the patch writes and the stub it fills are in the StoryFonts the bundle ships, public and static. */
     @Test
@@ -68,7 +70,8 @@ class StoryFontsHookTest {
         val declared = ExtensionDex.classDef(STORY_FONTS).methods
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
-        for (hook in listOf(FORMATS, NAMED, APPLIED, "$STORY_FONTS->$IMPORTED_FONT(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;")) {
+        for (hook in listOf(FORMATS, NAMED, APPLIED, "$STORY_FONTS->$IMPORTED_FONT(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+            "$STORY_FONTS->$NATIVE_PREMIUM(Ljava/lang/Object;)I")) {
             assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
         }
         val emoji = ExtensionDex.classDef(STORY_EMOJI).methods
@@ -88,6 +91,8 @@ class StoryFontsHookTest {
     @Test
     fun theStubAndTheHooksGoIn() {
         val context = PatchContexts.of(classes())
+        val originalBoundary = context.method("$controller->rows()V").code().map { it.opcode to it.referenceText() }
+        val originalPredicate = context.method(premiumCheck).code().map { it.opcode to it.referenceText() }
 
         context.addStoryFonts()
 
@@ -98,6 +103,11 @@ class StoryFontsHookTest {
         assertEquals(mask, stub.filterIsInstance<NarrowLiteralInstruction>().last().narrowLiteral)
         assertEquals(Opcode.RETURN_OBJECT, stub.last().opcode)
         assertNamesTheFile(context, stub, listOf(labelId, descriptionId, labelText, descriptionText), "the stub")
+        assertPremiumReader(context, premiumName, premiumCheck)
+        assertEquals("the native boundary is not changed", originalBoundary,
+            context.method("$controller->rows()V").code().map { it.opcode to it.referenceText() })
+        assertEquals("the native predicate is not changed", originalPredicate,
+            context.method(premiumCheck).code().map { it.opcode to it.referenceText() })
 
         val listed = context.method(list).code()
         val returns = listed.indices.filter { listed[it].opcode == Opcode.RETURN_OBJECT }
@@ -160,6 +170,9 @@ class StoryFontsHookTest {
             classes(labels = false) to "expected the editor to show the current font's name from one string id, found 0",
             classes(labelTexts = 2) to "expected the editor to show the current font's name from one text, found 2",
             classes(descriptions = false) to "expected the editor's fonts to read one more string id for a screen reader, found 0",
+            classes(paidChecks = false) to "expected one native paid-font predicate and list boundary, found 0",
+            classes(premiumPublic = false) to "the native paid-font name and predicate are not public",
+            classes(premiumNamePublic = false) to "the native paid-font name and predicate are not public",
         )
         for ((classes, expected) in cases) {
             val context = PatchContexts.of(classes)
@@ -232,6 +245,7 @@ class StoryFontsHookTest {
         val stub = context.mutableClassDefBy(STORY_FONTS).methods.single { it.name == IMPORTED_FONT }.code()
         assertEquals("$label: the stub", listOf(found.named.toString(), found.copy.toString()), stub.mapNotNull { it.call()?.toString() })
         assertNamesTheFile(context, stub, found.labels.map { it.toString() }, label)
+        assertPremiumReader(context, found.premium.name.toString(), found.premium.check.toString())
         val listed = context.method(found.list.toString()).code()
         val returns = listed.indices.filter { listed[it].opcode == Opcode.RETURN_OBJECT }
         assertTrue("$label: the list returns", returns.isNotEmpty())
@@ -259,6 +273,15 @@ class StoryFontsHookTest {
             assertEquals("$label: ${line.method}'s changed line", changed, (measured[at + 1] as RegisterRangeInstruction).startRegister)
             assertEquals("$label: ${line.method} measures what comes back", changed, (measured[at + 2] as OneRegisterInstruction).registerA)
         }
+    }
+
+    private fun assertPremiumReader(context: BytecodePatchContext, name: String, check: String) {
+        val code = context.mutableClassDefBy(STORY_FONTS).methods.single { it.name == NATIVE_PREMIUM }.code()
+        assertEquals("only reads Instagram's existing paid-font decision", listOf(check), code.mapNotNull { it.call()?.toString() })
+        assertEquals(name, code.single { it.opcode == Opcode.IGET_OBJECT }.field().toString())
+        assertEquals(Opcode.INSTANCE_OF, code.first().opcode)
+        assertEquals("unrecognized models remain unknown", -1, code.filterIsInstance<NarrowLiteralInstruction>().single().narrowLiteral)
+        assertTrue("no native format field is written", code.none { it.opcode.name.startsWith("iput") })
     }
 
     /**
@@ -304,6 +327,9 @@ class StoryFontsHookTest {
         drawable: Boolean = true,
         changes: Int = 1,
         lineChanged: Boolean = true,
+        paidChecks: Boolean = true,
+        premiumPublic: Boolean = true,
+        premiumNamePublic: Boolean = true,
     ): List<ClassDef> {
         val public = AccessFlags.PUBLIC.value
         val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
@@ -330,7 +356,8 @@ class StoryFontsHookTest {
         val hidden = AccessFlags.PRIVATE.value or AccessFlags.FINAL.value
         val formatFields = listOf("name" to string, "labelId" to "Ljava/lang/Integer;", "descriptionId" to "Ljava/lang/Integer;",
             "labelText" to string, "descriptionText" to string, "other" to string)
-            .map { (name, type) -> ImmutableField(format, name, type, hidden, null, null, null) }
+            .map { (name, type) -> ImmutableField(format, name, type,
+                if (name == "name" && premiumNamePublic) public or AccessFlags.FINAL.value else hidden, null, null, null) }
         val formatClass = ImmutableClassDef(format, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
             formatFields, listOf(
                 method(format, "copy", listOf("Lfixture/Look;", "Lfixture/Kind;", format, string, string, string, string, string, "I"), format, 1, copyFlags,
@@ -341,6 +368,8 @@ class StoryFontsHookTest {
             method(formats, "byName", listOf(string), format, 1, static, "const/4 v0, 0x0\nreturn-object v0"),
             method(formats, "byName2", listOf(string), format, 1, static, "const/4 v0, 0x0\nreturn-object v0"),
             method(formats, "saved", listOf(format, "Z"), string, 1, static, "const/4 v0, 0x0\nreturn-object v0"),
+            method(formats, "premium", listOf(string), "Z", 1, if (premiumPublic) static else AccessFlags.STATIC.value,
+                "const/4 v0, 0x0\nreturn v0"),
         ))
         val kindClass = ImmutableClassDef(kindType, public, "Ljava/lang/Object;", listOf("Lfixture/Kind;"), null, null,
             listOf(ImmutableField(kindType, "A00", kindType, if (kindPublic) static else AccessFlags.STATIC.value, null, null, null)), emptyList())
@@ -359,6 +388,39 @@ class StoryFontsHookTest {
         }
         val listFlags = if (listPrivate) AccessFlags.PRIVATE.value or AccessFlags.FINAL.value else AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
         val controllerMethods = listOf(
+            method(controller, "rows", emptyList(), "V", 4, public, if (paidChecks) """
+                invoke-direct {p0}, $list
+                move-result-object v0
+                invoke-interface {v0}, Ljava/util/List;->iterator()Ljava/util/Iterator;
+                move-result-object v1
+                const/4 v2, 0x0
+                :loop
+                invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+                move-result v0
+                if-eqz v0, :none
+                invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+                move-result-object v3
+                check-cast v3, $format
+                iget-object v0, v3, $premiumName
+                invoke-static {v0}, $premiumCheck
+                move-result v0
+                if-eqz v0, :boundary
+                nop
+                :boundary
+                iget-object v0, v3, $premiumName
+                invoke-static {v0}, $premiumCheck
+                move-result v0
+                if-nez v0, :found
+                add-int/lit8 v2, v2, 0x1
+                goto :loop
+                :none
+                const/4 v2, -0x1
+                :found
+                invoke-static {v2}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+                move-result-object v0
+                iput-object v0, p0, $controller->paidStart:Ljava/lang/Integer;
+                return-void
+            """ else "return-void"),
             method(controller, "current", emptyList(), format, 2, public, """
                 invoke-direct {v2}, $list
                 move-result-object v0
@@ -445,7 +507,9 @@ class StoryFontsHookTest {
                 return-object v0
             """),
         ))
-        return importers + listOf(formatClass, formatsClass, kindClass, classDef(controller, controllerMethods), applyClass) +
+        val controllerClass = ImmutableClassDef(controller, public or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
+            listOf(ImmutableField(controller, "paidStart", "Ljava/lang/Integer;", AccessFlags.PRIVATE.value, null, null, null)), controllerMethods)
+        return importers + listOf(formatClass, formatsClass, kindClass, controllerClass, applyClass) +
             stickerClasses + lineClass + ExtensionDex.classDef(STORY_FONTS)
     }
 

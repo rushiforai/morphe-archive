@@ -375,9 +375,19 @@ public class StorageScanner {
         try (Cursor c = db.rawQuery("PRAGMA temp_store = MEMORY", null)) { if (c != null) c.moveToFirst(); } catch (Throwable ignored) {}
     }
 
+    private static final java.util.Set<String> sArchiveCheckedAccounts = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+
     public static void ensureArchiveSyncTriggers(SQLiteDatabase db) {
         if (db == null || !hasTable(db, "remote_media") || !hasTable(db, "media") || !hasTable(db, "collections")) return;
         try {
+            boolean hasTrigger = false;
+            try (Cursor c = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='trg_main_library_sync' LIMIT 1", null)) {
+                if (c != null && c.moveToFirst()) {
+                    hasTrigger = true;
+                }
+            } catch (Throwable ignored) {}
+            if (hasTrigger) return;
+
             db.execSQL("DROP TRIGGER IF EXISTS trg_main_archive;");
             db.execSQL("DROP TRIGGER IF EXISTS trg_album_insert_archive;");
             db.execSQL("DROP TRIGGER IF EXISTS trg_album_update_archive;");
@@ -463,6 +473,7 @@ public class StorageScanner {
 
     public static void ensureArchiveConsistency(AccountInfo account) {
         if (account == null || account.dbPath == null) return;
+        if (!sArchiveCheckedAccounts.add(account.dbPath)) return;
         File dbFile = new File(account.dbPath);
         if (!dbFile.exists()) return;
         new Thread(() -> {
@@ -471,32 +482,38 @@ public class StorageScanner {
                 db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
                 ensureArchiveSyncTriggers(db);
                 if (hasTable(db, "remote_media") && hasTable(db, "media") && hasTable(db, "collections")) {
-                    db.execSQL("UPDATE remote_media SET is_archived = ( " +
-                            "    SELECT is_archived FROM remote_media rm2 " +
-                            "    WHERE rm2.dedup_key = remote_media.dedup_key " +
-                            "      AND rm2.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
-                            "    LIMIT 1 " +
-                            ") " +
-                            "WHERE collection_id IN (SELECT collection_media_key FROM collections) " +
-                            "  AND EXISTS ( " +
-                            "    SELECT 1 FROM remote_media rm2 " +
-                            "    WHERE rm2.dedup_key = remote_media.dedup_key " +
-                            "      AND rm2.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
-                            "      AND rm2.is_archived != remote_media.is_archived " +
-                            ");");
+                    db.beginTransactionNonExclusive();
+                    try {
+                        db.execSQL("UPDATE remote_media SET is_archived = ( " +
+                                "    SELECT is_archived FROM remote_media rm2 " +
+                                "    WHERE rm2.dedup_key = remote_media.dedup_key " +
+                                "      AND rm2.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
+                                "    LIMIT 1 " +
+                                ") " +
+                                "WHERE collection_id IN (SELECT collection_media_key FROM collections) " +
+                                "  AND EXISTS ( " +
+                                "    SELECT 1 FROM remote_media rm2 " +
+                                "    WHERE rm2.dedup_key = remote_media.dedup_key " +
+                                "      AND rm2.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
+                                "      AND rm2.is_archived != remote_media.is_archived " +
+                                ");");
 
-                    db.execSQL("UPDATE media SET is_archived = ( " +
-                            "    SELECT is_archived FROM remote_media " +
-                            "    WHERE remote_media.dedup_key = media.dedup_key " +
-                            "      AND remote_media.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
-                            "    LIMIT 1 " +
-                            ") " +
-                            "WHERE EXISTS ( " +
-                            "    SELECT 1 FROM remote_media " +
-                            "    WHERE remote_media.dedup_key = media.dedup_key " +
-                            "      AND remote_media.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
-                            "      AND remote_media.is_archived != media.is_archived " +
-                            ");");
+                        db.execSQL("UPDATE media SET is_archived = ( " +
+                                "    SELECT is_archived FROM remote_media " +
+                                "    WHERE remote_media.dedup_key = media.dedup_key " +
+                                "      AND remote_media.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
+                                "    LIMIT 1 " +
+                                ") " +
+                                "WHERE EXISTS ( " +
+                                "    SELECT 1 FROM remote_media " +
+                                "    WHERE remote_media.dedup_key = media.dedup_key " +
+                                "      AND remote_media.collection_id NOT IN (SELECT collection_media_key FROM collections) " +
+                                "      AND remote_media.is_archived != media.is_archived " +
+                                ");");
+                        db.setTransactionSuccessful();
+                    } finally {
+                        db.endTransaction();
+                    }
                 }
             } catch (Throwable ignored) {
             } finally {
@@ -515,7 +532,7 @@ public class StorageScanner {
 
         SQLiteDatabase db = null;
         try {
-            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
             tuneDatabasePerformance(db);
             Map<String, AlbumInfo> albumMap = new LinkedHashMap<>();
 
@@ -608,7 +625,7 @@ public class StorageScanner {
 
         SQLiteDatabase db = null;
         try {
-            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
             tuneDatabasePerformance(db);
             String targetTable = "remote_media";
             if (crit.source == SourceType.SHARED) {
@@ -1232,7 +1249,7 @@ public class StorageScanner {
         } catch (Throwable t) {
             Logger.printInfo(() -> "Could not resolve builder from AddMediaToAlbumTask: " + t.getMessage());
         }
-        for (String name : new String[]{"otz", "orn", "ovo", "mtl", "mqw"}) {
+        for (String name : ToolkitMappings.ADD_MEDIA_TO_ALBUM_BUILDER_CLASSES) {
             Class<?> found = ReflectionCache.findClassOrNull(name);
             if (found != null) {
                 sAddMediaToAlbumBuilderClass = found;
@@ -1246,8 +1263,37 @@ public class StorageScanner {
     private static volatile Method sTaskRunnerAsyncMethod = null;
     private static volatile boolean sTaskRunnerResolved = false;
 
+    private static boolean tryBindTaskRunner(Class<?> clazz, Class<?> taskBase) {
+        if (clazz == null) return false;
+        Method syncM = null;
+        Method asyncM = null;
+        for (Method m : clazz.getMethods()) {
+            if (java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                Class<?>[] p = m.getParameterTypes();
+                if (p.length == 2 && Context.class.isAssignableFrom(p[0]) &&
+                    (taskBase == null || p[1].isAssignableFrom(taskBase) || taskBase.isAssignableFrom(p[1]))) {
+                    if (m.getReturnType() != void.class && syncM == null) {
+                        m.setAccessible(true);
+                        syncM = m;
+                    } else if (m.getReturnType() == void.class && asyncM == null) {
+                        m.setAccessible(true);
+                        asyncM = m;
+                    }
+                }
+            }
+        }
+        if (syncM != null) {
+            sTaskRunnerSyncMethod = syncM;
+            if (asyncM != null) {
+                sTaskRunnerAsyncMethod = asyncM;
+            }
+            return true;
+        }
+        return false;
+    }
+
     public static synchronized void resolveTaskRunner() {
-        if (sTaskRunnerResolved) return;
+        if (sTaskRunnerResolved && sTaskRunnerSyncMethod != null) return;
         sTaskRunnerResolved = true;
         try {
             Class<?> taskBase = null;
@@ -1255,38 +1301,45 @@ public class StorageScanner {
                 taskBase = ReflectionCache.findClass("com.google.android.apps.photos.actionqueue.ActionWrapper").getSuperclass();
             } catch (Throwable ignored) {}
 
-            String[] candidateRunners = new String[]{
-                "cbsq", // 7.97.0 (52547221 arm64)
-                "cagl", // 7.97.0 (52547203 universal)
-                "cant", // 7.97.0 (52547233 universal)
-                "bxue"  // 7.96.0
-            };
-
-            for (String name : candidateRunners) {
+            for (String name : ToolkitMappings.TASK_RUNNER_CLASSES) {
                 Class<?> clazz = ReflectionCache.findClassOrNull(name);
-                if (clazz != null) {
-                    for (Method m : clazz.getMethods()) {
+                if (clazz != null && tryBindTaskRunner(clazz, taskBase)) {
+                    final String resolvedName = name;
+                    Logger.printInfo(() -> "Resolved TaskRunner via candidate: " + resolvedName);
+                    return;
+                }
+            }
+
+            // Dynamic discovery via UpdateFolderStatusTask (references TaskRunner in static helper)
+            try {
+                Class<?> updateTask = ReflectionCache.findClassOrNull("com.google.android.apps.photos.folderstatus.mixin.UpdateFolderStatusTask");
+                if (updateTask != null) {
+                    for (Method m : updateTask.getDeclaredMethods()) {
                         if (java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
                             Class<?>[] p = m.getParameterTypes();
-                            if (p.length == 2 && Context.class.isAssignableFrom(p[0]) &&
-                                (taskBase == null || p[1].isAssignableFrom(taskBase) || taskBase.isAssignableFrom(p[1]))) {
-                                if (m.getReturnType() != void.class && sTaskRunnerSyncMethod == null) {
-                                    m.setAccessible(true);
-                                    sTaskRunnerSyncMethod = m;
-                                } else if (m.getReturnType() == void.class && sTaskRunnerAsyncMethod == null) {
-                                    m.setAccessible(true);
-                                    sTaskRunnerAsyncMethod = m;
-                                }
+                            if (p.length >= 1 && tryBindTaskRunner(p[0], taskBase)) {
+                                Logger.printInfo(() -> "Dynamically resolved TaskRunner via UpdateFolderStatusTask: " + p[0].getName());
+                                return;
                             }
                         }
                     }
-                    if (sTaskRunnerSyncMethod != null) {
-                        final String resolvedName = name;
-                        Logger.printInfo(() -> "Resolved TaskRunner via: " + resolvedName);
-                        break;
+                }
+            } catch (Throwable tDyn) {
+                Logger.printInfo(() -> "Dynamic TaskRunner discovery error: " + tDyn.getMessage());
+            }
+
+            // Dynamic discovery via AlbumActivity
+            try {
+                Class<?> albumAct = ReflectionCache.findClassOrNull("com.google.android.apps.photos.envelope.AlbumActivity");
+                if (albumAct != null) {
+                    for (Field f : albumAct.getDeclaredFields()) {
+                        if (tryBindTaskRunner(f.getType(), taskBase)) {
+                            Logger.printInfo(() -> "Dynamically resolved TaskRunner via AlbumActivity field " + f.getName() + ": " + f.getType().getName());
+                            return;
+                        }
                     }
                 }
-            }
+            } catch (Throwable ignored) {}
         } catch (Throwable t) {
             Logger.printException(() -> "Error resolving TaskRunner", t);
         }
@@ -1341,6 +1394,40 @@ public class StorageScanner {
             return (Bundle) m.invoke(result);
         } catch (Throwable ignored) {}
         return null;
+    }
+
+    public static Object getServiceLocator(Context context, Class<?> serviceClass) {
+        if (context == null || serviceClass == null) return null;
+        for (String slName : ToolkitMappings.SERVICE_LOCATOR_CLASSES) {
+            try {
+                Class<?> slClass = ReflectionCache.findClassOrNull(slName);
+                if (slClass != null) {
+                    Method m = ReflectionCache.getMethod(slClass, ToolkitMappings.SERVICE_LOCATOR_METHOD, Context.class, Class.class);
+                    if (m != null) {
+                        Object res = m.invoke(null, context, serviceClass);
+                        if (res != null) return res;
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
+    public static void flushActionQueue(Context context, int accountId, long actionId) {
+        if (context == null || actionId <= 0) return;
+        for (String flusherName : ToolkitMappings.ACTION_FLUSHER_CLASSES) {
+            try {
+                Class<?> flusherClass = ReflectionCache.findClassOrNull(flusherName);
+                if (flusherClass != null) {
+                    Constructor<?> ctor = flusherClass.getConstructor(int.class, long.class);
+                    Object inst = ctor.newInstance(accountId, actionId);
+                    Method m = flusherClass.getMethod("a", Context.class);
+                    m.invoke(inst, context);
+                    Logger.printInfo(() -> "ActionQueue flushed via " + flusherName + " for actionId=" + actionId);
+                    return;
+                }
+            } catch (Throwable ignored) {}
+        }
     }
 
     public static Object resolveMediaKey(String key) {
@@ -1478,7 +1565,11 @@ public class StorageScanner {
                                 Logger.printInfo(() -> "Method 1 AddMediaToAlbumTask error: status=" + statusCode + ", msg=" + msg + ", exc=" + exc);
                             } catch (Throwable ignored) {}
                         }
+                    } else {
+                        Logger.printInfo(() -> "Method 1 AddMediaToAlbumTask: runTaskSync returned null");
                     }
+                } else {
+                    Logger.printInfo(() -> "Method 1 AddMediaToAlbumTask: builder.a() returned null");
                 }
             } catch (Throwable tMethod1) {
                 Logger.printException(() -> "Method 1 AddMediaToAlbumTask failed, falling back to Method 2", tMethod1);
@@ -1491,11 +1582,15 @@ public class StorageScanner {
                 try {
                     Class<?> bemfClass = ReflectionCache.findClassOrNull("bemf");
                     if (bemfClass != null) {
-                        Constructor<?> bemfCtor = bemfClass.getConstructor(long.class);
-                        Object builder = bemfCtor.newInstance(System.currentTimeMillis());
+                        Constructor<?> bemfCtor = null;
+                        try {
+                            bemfCtor = bemfClass.getConstructor(long.class);
+                        } catch (Throwable ignored) {}
+                        if (bemfCtor != null) {
+                            Object builder = bemfCtor.newInstance(System.currentTimeMillis());
 
-                        Field fX = bemfClass.getField("x");
-                        fX.setInt(builder, 4); // 4 = ENVELOPE_TYPE_ALBUM_EMPTY (required by adwr.e)
+                            Field fX = bemfClass.getField("x");
+                            fX.setInt(builder, 4); // 4 = ENVELOPE_TYPE_ALBUM_EMPTY (required by adwr.e)
 
                         Field fG = bemfClass.getField("g");
                         fG.set(builder, title);
@@ -1537,6 +1632,7 @@ public class StorageScanner {
                             if (mediaKeys != null && !mediaKeys.isEmpty()) {
                                 totalAdded = addMediaToCloudAlbum(context, accountId, createdKey, mediaKeys);
                             }
+                        }
                         }
                     }
                 } catch (Throwable tMethodB) {
@@ -1604,12 +1700,7 @@ public class StorageScanner {
                     Bundle bundle = getTaskResultBundle(res);
                     long actionId = bundle != null ? bundle.getLong("LocalResult__action_id", -1L) : -1L;
                     if (actionId != -1L) {
-                        Class<?> aokqClass = Class.forName("aokq");
-                        Constructor<?> aokqCtor = aokqClass.getConstructor(int.class, long.class);
-                        Object aokqInst = aokqCtor.newInstance(accountId, actionId);
-                        Method aMethod = aokqClass.getMethod("a", Context.class);
-                        aMethod.invoke(aokqInst, context);
-                        Logger.printInfo(() -> "Successfully flushed title mutation via aokq!");
+                        flushActionQueue(context, accountId, actionId);
                         ok = true;
                     }
                 }
@@ -1627,10 +1718,8 @@ public class StorageScanner {
                 Constructor<?> mmsCtor = mmsClass.getConstructor(ahnvClass, String.class, int.class);
                 Object mmsRpc = mmsCtor.newInstance(ahnvInst, title, 2);
 
-                Class<?> bzoqClass = Class.forName("bzoq");
                 Class<?> cetrClass = Class.forName("cetr");
-                Method getServiceMethod = bzoqClass.getMethod("e", Context.class, Class.class);
-                Object cetrInst = getServiceMethod.invoke(null, context, cetrClass);
+                Object cetrInst = getServiceLocator(context, cetrClass);
                 if (cetrInst != null) {
                     Class<?> ceupClass = Class.forName("ceup");
                     Method bMethod = cetrClass.getMethod("b", Integer.class, ceupClass);
@@ -1774,7 +1863,7 @@ public class StorageScanner {
                 Logger.printInfo(() -> "Adding chunk of " + chunk.size() + " items to cloud album " + envelopeMediaKey + " for account " + accountId);
 
                 Class<?> lamwaClass = null;
-                for (String name : new String[]{"aphh", "apfz", "apjt", "amwa"}) {
+                for (String name : ToolkitMappings.ADD_MEDIA_TO_ENVELOPE_BUILDER_CLASSES) {
                     lamwaClass = ReflectionCache.findClassOrNull(name);
                     if (lamwaClass != null) break;
                 }
@@ -1858,7 +1947,7 @@ public class StorageScanner {
             try {
                 File f = context.getDatabasePath("gphotos" + accountId + ".db");
                 if (f != null && f.exists()) {
-                    SQLiteDatabase checkDb = SQLiteDatabase.openDatabase(f.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+                    SQLiteDatabase checkDb = SQLiteDatabase.openDatabase(f.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
                     try (Cursor c = checkDb.rawQuery("SELECT owner_actor_id, viewer_actor_id FROM envelopes WHERE media_key = ? LIMIT 1", new String[]{albumMediaKey})) {
                         if (c != null && c.moveToFirst()) {
                             isSharedEnvelope = true;
@@ -2045,13 +2134,7 @@ public class StorageScanner {
     private static Object createMediaCollectionForKeys(int accountId, List<String> mediaKeys) {
         if (mediaKeys == null || mediaKeys.isEmpty()) return null;
         // 1. Static factory f(int accountId, List mediaKeys)
-        String[][] factoryClasses = new String[][]{
-            {"pyk", "f"},    // 7.97.0 (52547221 arm64)
-            {"pvv", "f"},    // 7.97.0 (52547203 univ)
-            {"pzv", "f"},    // 7.97.0 (52547233 univ)
-            {"num", "f"}     // 7.96.0
-        };
-        for (String[] pair : factoryClasses) {
+        for (String[] pair : ToolkitMappings.KEYS_COLLECTION_FACTORIES) {
             try {
                 Class<?> clazz = ReflectionCache.findClassOrNull(pair[0]);
                 if (clazz != null) {
@@ -2063,9 +2146,8 @@ public class StorageScanner {
             } catch (Throwable ignored) {}
         }
 
-        // 2. Builder classes (pyj, pvu, pzu, nul)
-        String[] builderClasses = new String[]{"pyj", "pvu", "pzu", "nul"};
-        for (String bName : builderClasses) {
+        // 2. Builder classes
+        for (String bName : ToolkitMappings.KEYS_COLLECTION_BUILDERS) {
             try {
                 Class<?> bClass = ReflectionCache.findClassOrNull(bName);
                 if (bClass != null) {
@@ -2101,7 +2183,7 @@ public class StorageScanner {
 
     private static synchronized void resolveCoreLoader() {
         if (sCoreLoaderResolved) return;
-        for (String name : new String[]{"yul", "yxq", "zap", "wrl"}) {
+        for (String name : ToolkitMappings.CORE_MEDIA_LOADER_CLASSES) {
             Class<?> c = ReflectionCache.findClassOrNull(name);
             if (c != null && isValidCoreLoader(c)) {
                 sCoreMediaLoaderClass = c;
@@ -2209,12 +2291,7 @@ public class StorageScanner {
         try {
             Class<?> wqaClass = null;
             Class<?> wqbClass = null;
-            String[][] builderPairs = new String[][]{
-                {"yta", "ytc"},
-                {"yyq", "yyr"},
-                {"wqa", "wqb"}
-            };
-            for (String[] pair : builderPairs) {
+            for (String[] pair : ToolkitMappings.FEATURES_REQUEST_PAIRS) {
                 Class<?> b = ReflectionCache.findClassOrNull(pair[0]);
                 Class<?> r = ReflectionCache.findClassOrNull(pair[1]);
                 if (b != null && r != null) {
@@ -2229,6 +2306,27 @@ public class StorageScanner {
             Constructor<?> wqaCtor = wqaClass.getConstructor(boolean.class);
             Object builder = wqaCtor.newInstance(true);
             Method dMethod = wqaClass.getMethod("d", wqbClass);
+
+            // Add DedupKeyFeature and RemoteMediaKeyFeature directly to builder
+            try {
+                Method bMethod = wqaClass.getMethod("b", Class.class);
+                for (String featName : ToolkitMappings.DEDUP_KEY_FEATURE_CLASSES) {
+                    Class<?> fc = ReflectionCache.findClassOrNull(featName);
+                    if (fc != null) {
+                        bMethod.invoke(builder, fc);
+                        break;
+                    }
+                }
+                for (String featName : ToolkitMappings.REMOTE_MEDIA_KEY_FEATURE_CLASSES) {
+                    Class<?> fc = ReflectionCache.findClassOrNull(featName);
+                    if (fc != null) {
+                        bMethod.invoke(builder, fc);
+                        break;
+                    }
+                }
+            } catch (Throwable tFeat) {
+                Logger.printInfo(() -> "Could not add direct feature classes: " + tFeat.getMessage());
+            }
 
             // 1. Core Trash Features: neb.a (contains zon, bams, Axdq, Laflw)
             try {
@@ -2273,14 +2371,17 @@ public class StorageScanner {
                 }
             }
 
-            // 5. Archive Features: psu.a (contains zon, Lakka)
-            try {
-                Class<?> psuClass = Class.forName("psu");
-                Field f = psuClass.getField("a");
-                Object fVal = f.get(null);
-                if (fVal != null) dMethod.invoke(builder, fVal);
-            } catch (Throwable t) {
-                Logger.printInfo(() -> "psu.a not resolved: " + t.getMessage());
+            // 5. Archive Features
+            for (String psuCandidate : ToolkitMappings.ARCHIVE_SERVICE_CLASSES) {
+                try {
+                    Class<?> psuClass = Class.forName(psuCandidate);
+                    Field f = psuClass.getField("a");
+                    Object fVal = f.get(null);
+                    if (fVal != null) {
+                        dMethod.invoke(builder, fVal);
+                        break;
+                    }
+                } catch (Throwable ignored) {}
             }
 
             // 6. Core Mars Features: ajbk.b (contains bams, Lakka, Laflw, Lrkz, Lzon, Lankt)
@@ -2425,7 +2526,7 @@ public class StorageScanner {
 
                 // Self-healing: clear trash_timestamp on items marked as archived
                 try {
-                    SQLiteDatabase healDb = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+                    SQLiteDatabase healDb = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
                     try {
                         healDb.execSQL("UPDATE remote_media SET trash_timestamp = 0 WHERE is_archived = 1 AND trash_timestamp > 0;");
                         if (hasTable(healDb, "media")) {
@@ -2444,6 +2545,12 @@ public class StorageScanner {
                                 healDb.execSQL("UPDATE media SET is_archived = 1 WHERE (is_archived IS NULL OR is_archived = 0) AND dedup_key IN (SELECT dedup_key FROM remote_media WHERE is_archived = 1);");
                             }
                         }
+                        // Self-healing: purge ghost local media rows from media table where local file no longer exists in local_media
+                        if (hasTable(healDb, "media") && hasTable(healDb, "local_media")) {
+                            healDb.execSQL("DELETE FROM media WHERE has_local = 1 AND dedup_key NOT IN (SELECT dedup_key FROM local_media);");
+                            // Self-healing: resync in_camera_folder state from local_media to media table so non-camera items never linger in home feed
+                            healDb.execSQL("UPDATE media SET in_camera_folder = (SELECT l.in_camera_folder FROM local_media l WHERE l.dedup_key = media.dedup_key) WHERE has_local = 1 AND dedup_key IN (SELECT dedup_key FROM local_media) AND in_camera_folder != (SELECT l.in_camera_folder FROM local_media l WHERE l.dedup_key = media.dedup_key);");
+                        }
                     } finally {
                         healDb.close();
                     }
@@ -2451,7 +2558,7 @@ public class StorageScanner {
                     Logger.printInfo(() -> "Heal query skipped: " + tHeal.getMessage());
                 }
 
-                db = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+                db = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
                 if (!hasTable(db, "remote_media")) return;
 
                 List<MediaItem> pendingItems = new ArrayList<>();
@@ -2556,7 +2663,14 @@ public class StorageScanner {
                     List<String> chunkDedupKeys = new ArrayList<>(uniqueChunkDedupKeys);
 
                     if (!chunkMediaKeys.isEmpty() || !chunkDedupKeys.isEmpty()) {
-                        Class<?> bjirClass = Class.forName("bjir");
+                        Class<?> bjirClass = null;
+                        for (String cand : ToolkitMappings.MOVE_TO_TRASH_ACTION_CLASSES) {
+                            bjirClass = ReflectionCache.findClassOrNull(cand);
+                            if (bjirClass != null) break;
+                        }
+                        if (bjirClass == null) {
+                            throw new ClassNotFoundException("MoveToTrashAction class not found");
+                        }
                         Class<?> cjizClass = Class.forName("cjiz");
                         Class<?> romClass = Class.forName("rom");
                         Method romMethod = romClass.getMethod("b", Context.class);
@@ -2621,6 +2735,13 @@ public class StorageScanner {
         try {
             Object feat = getMediaFeature(media, zonClass);
             if (feat != null) {
+                try {
+                    Method aM = ReflectionCache.getMethodOrNull(feat.getClass(), "a");
+                    if (aM != null && aM.getReturnType() == String.class) {
+                        String s = (String) aM.invoke(feat);
+                        if (s != null && !s.isEmpty()) return s;
+                    }
+                } catch (Throwable ignored) {}
                 Field af = ReflectionCache.getDeclaredField(feat.getClass(), "a");
                 Object opt = af.get(feat);
                 if (opt != null) {
@@ -2654,13 +2775,17 @@ public class StorageScanner {
             Object feat = getMediaFeature(media, bamsClass);
             if (feat != null) {
                 Field af = ReflectionCache.getDeclaredField(feat.getClass(), "a");
-                List<?> keys = (List<?>) af.get(feat);
-                if (keys != null) {
-                    for (Object k : keys) {
+                Object val = af.get(feat);
+                if (val instanceof List) {
+                    for (Object k : (List<?>) val) {
                         if (k != null) {
                             res.add(k.toString());
                         }
                     }
+                } else if (val instanceof String) {
+                    res.add((String) val);
+                } else if (val != null) {
+                    res.add(val.toString());
                 }
             }
         } catch (Throwable ignored) {}
@@ -2668,14 +2793,16 @@ public class StorageScanner {
     }
 
     private static Object createTrashMediaCollection(int accountId) {
-        String[] trashClasses = new String[]{
-            "bnew", // 7.97.0 (52547221 arm64)
-            "blvo", // 7.97.0 (52547203 univ)
-            "bmcu", // 7.97.0 (52547233 univ)
-            "bjjo", // 7.97.0 alternate
-            "bjjq"  // 7.96.0 fallback
-        };
-        for (String tName : trashClasses) {
+        try {
+            Class<?> fClass = ReflectionCache.findClassOrNull(ToolkitMappings.TRASH_FACTORY_CLASS);
+            if (fClass != null) {
+                Method m = fClass.getMethod(ToolkitMappings.TRASH_FACTORY_METHOD, int.class);
+                Object coll = m.invoke(null, accountId);
+                if (coll != null) return coll;
+            }
+        } catch (Throwable ignored) {}
+
+        for (String tName : ToolkitMappings.TRASH_COLLECTION_CLASSES) {
             try {
                 Class<?> tClass = ReflectionCache.findClassOrNull(tName);
                 if (tClass != null) {
@@ -2686,6 +2813,11 @@ public class StorageScanner {
                     } catch (Throwable ignored) {}
                     try {
                         Method m = tClass.getMethod("a", int.class);
+                        Object coll = m.invoke(null, accountId);
+                        if (coll != null) return coll;
+                    } catch (Throwable ignored) {}
+                    try {
+                        Method m = tClass.getMethod("b", int.class);
                         Object coll = m.invoke(null, accountId);
                         if (coll != null) return coll;
                     } catch (Throwable ignored) {}
@@ -2712,12 +2844,12 @@ public class StorageScanner {
 
             Log.i("morphe: StorageScanner", "syncCloudTrashToLocalDb: Loaded " + allTrashMedia.size() + " items from trash collection");
 
-            String[] zonCandidates = new String[] {"zon", "zoi", "zog", "zkr"};
+            String[] zonCandidates = ToolkitMappings.DEDUP_KEY_FEATURE_CLASSES;
             Class<?> zonClass = null;
             for (String zc : zonCandidates) {
                 try { zonClass = Class.forName(zc); break; } catch (Throwable ignored) {}
             }
-            String[] bamsCandidates = new String[] {"bams", "bamo", "bamk", "azxs"};
+            String[] bamsCandidates = ToolkitMappings.REMOTE_MEDIA_KEY_FEATURE_CLASSES;
             Class<?> bamsClass = null;
             for (String bc : bamsCandidates) {
                 try { bamsClass = Class.forName(bc); break; } catch (Throwable ignored) {}
@@ -2737,7 +2869,7 @@ public class StorageScanner {
             File dbf = new File(account.dbPath);
             if (!dbf.exists()) return;
 
-            SQLiteDatabase db = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+            SQLiteDatabase db = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
             try {
                 db.beginTransaction();
                 long now = System.currentTimeMillis();
@@ -2802,12 +2934,12 @@ public class StorageScanner {
                 }
             }
 
-            String[] zonCandidates = new String[] {"zon", "zoi", "zog", "zkr"};
+            String[] zonCandidates = ToolkitMappings.DEDUP_KEY_FEATURE_CLASSES;
             Class<?> zonClass = null;
             for (String zc : zonCandidates) {
                 try { zonClass = Class.forName(zc); break; } catch (Throwable ignored) {}
             }
-            String[] bamsCandidates = new String[] {"bams", "bamo", "bamk", "azxs"};
+            String[] bamsCandidates = ToolkitMappings.REMOTE_MEDIA_KEY_FEATURE_CLASSES;
             Class<?> bamsClass = null;
             for (String bc : bamsCandidates) {
                 try { bamsClass = Class.forName(bc); break; } catch (Throwable ignored) {}
@@ -2911,9 +3043,7 @@ public class StorageScanner {
                     if (!chunkSuccess) {
                         try {
                             Class<?> bjimClass = Class.forName("bjim");
-                            Class<?> bzoqClass = Class.forName("bzoq");
-                            Method eMethod = bzoqClass.getMethod("e", Context.class, Class.class);
-                            Object bjimImpl = eMethod.invoke(null, context, bjimClass);
+                            Object bjimImpl = getServiceLocator(context, bjimClass);
 
                             Class<?> cjizClass = Class.forName("cjiz");
                             Class<?> romClass = Class.forName("rom");
@@ -2998,19 +3128,22 @@ public class StorageScanner {
                         }
                     } catch (Throwable tTask) {
                         Log.w("morphe: StorageScanner", "Error running MediaUndoActionTask chunk " + chunkIndex + ": " + tTask.getMessage());
-                        // Fallback: direct psu.a invocation
-                        try {
-                            Class<?> psuClass = Class.forName("psu");
-                            Class<?> bzoqClass = Class.forName("bzoq");
-                            Method eMethod = bzoqClass.getMethod("e", Context.class, Class.class);
-                            Object psuInst = eMethod.invoke(null, context, psuClass);
-                            if (psuInst != null) {
-                                Method aMethod = psuClass.getMethod("a", int.class, List.class, boolean.class, int.class);
-                                Object res = aMethod.invoke(psuInst, accountId, coreItems, archive, 2);
-                                if (res != null) chunkSuccess = true;
+                        // Fallback: direct archive service invocation (rsr.a / psu.a)
+                        for (String psuCandidate : ToolkitMappings.ARCHIVE_SERVICE_CLASSES) {
+                            try {
+                                Class<?> psuClass = Class.forName(psuCandidate);
+                                Object psuInst = getServiceLocator(context, psuClass);
+                                if (psuInst != null) {
+                                    Method aMethod = psuClass.getMethod("a", int.class, List.class, boolean.class, int.class);
+                                    Object res = aMethod.invoke(psuInst, accountId, coreItems, archive, 2);
+                                    if (res != null) {
+                                        chunkSuccess = true;
+                                        break;
+                                    }
+                                }
+                            } catch (Throwable tPsu) {
+                                Log.w("morphe: StorageScanner", "Error in " + psuCandidate + ".a fallback: " + tPsu.getMessage());
                             }
-                        } catch (Throwable tPsu) {
-                            Log.w("morphe: StorageScanner", "Error in psu.a fallback: " + tPsu.getMessage());
                         }
                     }
                 }
@@ -3018,7 +3151,16 @@ public class StorageScanner {
                 // 2. Dispatch online mutation RPC and ActionQueue via psz
                 if (!chunkRemoteKeys.isEmpty()) {
                     try {
-                        Class<?> psyClass = Class.forName("psy");
+                        Class<?> psyClass = null;
+                        for (String psyCandidate : ToolkitMappings.ARCHIVE_BUILDER_CLASSES) {
+                            try {
+                                psyClass = Class.forName(psyCandidate);
+                                if (psyClass != null) break;
+                            } catch (Throwable ignored) {}
+                        }
+                        if (psyClass == null) {
+                            throw new ClassNotFoundException("Archive builder class not found");
+                        }
                         Object builder = psyClass.getConstructor().newInstance();
                         Method dMethod = psyClass.getMethod("d", int.class);
                         dMethod.invoke(builder, accountId);
@@ -3046,7 +3188,7 @@ public class StorageScanner {
                             Log.w("morphe: StorageScanner", "Error invoking psz.h RPC chunk " + chunkIndex + ": " + tRpc.getMessage());
                         }
 
-                        // Enqueue via ActionWrapper & flush with aokq
+                        // Enqueue via ActionWrapper & flush with flusher
                         try {
                             Class<?> wrapperClass = Class.forName("com.google.android.apps.photos.actionqueue.ActionWrapper");
                             Class<?> ltyClass = Class.forName("lty");
@@ -3059,17 +3201,13 @@ public class StorageScanner {
                                 Bundle bundle = getTaskResultBundle(res);
                                 long actionId = bundle != null ? bundle.getLong("LocalResult__action_id", -1L) : -1L;
                                 if (actionId != -1L) {
-                                    Class<?> aokqClass = Class.forName("aokq");
-                                    Constructor<?> aokqCtor = aokqClass.getConstructor(int.class, long.class);
-                                    Object aokqInst = aokqCtor.newInstance(accountId, actionId);
-                                    Method aMethod = aokqClass.getMethod("a", Context.class);
-                                    aMethod.invoke(aokqInst, context);
+                                    flushActionQueue(context, accountId, actionId);
                                     chunkSuccess = true;
-                                    Log.i("morphe: StorageScanner", "ActionQueue flushed via aokq chunk " + chunkIndex + "/" + totalChunks);
+                                    Log.i("morphe: StorageScanner", "ActionQueue flushed chunk " + chunkIndex + "/" + totalChunks);
                                 }
                             }
                         } catch (Throwable tQueue) {
-                            Log.w("morphe: StorageScanner", "Error in ActionWrapper/aokq chunk " + chunkIndex + ": " + tQueue.getMessage());
+                            Log.w("morphe: StorageScanner", "Error in ActionWrapper/flusher chunk " + chunkIndex + ": " + tQueue.getMessage());
                         }
                     } catch (Throwable tPsz) {
                         Log.w("morphe: StorageScanner", "Error constructing psz chunk " + chunkIndex + ": " + tPsz.getMessage());
@@ -3307,12 +3445,7 @@ public class StorageScanner {
     private static List<?> loadDirectMarsMedia(Context context, int accountId, List<MediaItem> items) {
         List<Object> matched = new ArrayList<>();
         try {
-            String[] marsCollClasses = new String[] {
-                "alsd", // 7.97.0 (52547221 arm64)
-                "alqt", // 7.97.0 (52547203 univ)
-                "alww", // 7.97.0 (52547233 univ)
-                "ajhx"  // 7.96.0 (52511175 nodpi)
-            };
+            String[] marsCollClasses = ToolkitMappings.MARS_COLLECTION_CLASSES;
             Object marsColl = null;
             for (String cn : marsCollClasses) {
                 try {
@@ -3339,7 +3472,7 @@ public class StorageScanner {
                             if (mi.dedupKey != null && !mi.dedupKey.isEmpty()) targetKeys.add(mi.dedupKey);
                             if (mi.mediaKey != null && !mi.mediaKey.isEmpty()) targetKeys.add(mi.mediaKey);
                         }
-                        String[] zonCandidates = new String[] {"zon", "zoi", "zog", "zkr"};
+                        String[] zonCandidates = ToolkitMappings.DEDUP_KEY_FEATURE_CLASSES;
                         Class<?> zonClass = null;
                         for (String zc : zonCandidates) {
                             try { zonClass = Class.forName(zc); break; } catch (Throwable ignored) {}
@@ -3413,12 +3546,7 @@ public class StorageScanner {
                 String taskName = "com.google." + "android.apps.photos.mars.actionhandler.impl.MarsMoveHandlerImpl.MarsRemoveTask";
 
                 Object task = null;
-                String[][] configs = new String[][] {
-                    {"odi", "bdft", "ms", "stk", "s"}, // 7.97.0 arm64 (52547221)
-                    {"oax", "bbzi", "ms", "sgz", "n"}, // 7.97.0 univ (52547203)
-                    {"ofl", "bcdu", "ms", "tfb", "p"}, // 7.97.0 univ (52547233)
-                    {"mbj", "azlk", "mu", "rga", "l"}  // 7.96.0 nodpi (52511175)
-                };
+                String[][] configs = ToolkitMappings.MARS_REMOVE_CONFIGS;
 
                 for (String[] cfg : configs) {
                     try {
@@ -3508,9 +3636,8 @@ public class StorageScanner {
                 // Fallback to direct ajac.a if rga.l did not complete
                 if (!chunkSuccess) {
                     try {
-                        Class<?> bzoqClass = Class.forName("bzoq");
                         Class<?> ajacClass = Class.forName("ajac");
-                        Object ajac = bzoqClass.getMethod("e", Context.class, Class.class).invoke(null, context, ajacClass);
+                        Object ajac = getServiceLocator(context, ajacClass);
                         if (ajac != null) {
                             Method aMethod = ajacClass.getMethod("a", int.class, Collection.class, java.util.concurrent.Executor.class);
                             java.util.concurrent.Executor directExecutor = Runnable::run;
@@ -3718,7 +3845,7 @@ public class StorageScanner {
             try {
                 File dbf = context.getDatabasePath("gphotos" + accountId + ".db");
                 if (dbf != null && dbf.exists()) {
-                    try (SQLiteDatabase db = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY)) {
+                    try (SQLiteDatabase db = SQLiteDatabase.openDatabase(dbf.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING)) {
                         if (hasTable(db, "remote_locked_media")) {
                             long count = DatabaseUtils.queryNumEntries(db, "remote_locked_media");
                             if (count > 0) return true;
@@ -3960,35 +4087,29 @@ public class StorageScanner {
                     Object collection = createAlbumCollection(context, accountId, albumMediaKey);
                     Object task = null;
 
-                    // Try 1: osi.c(int accountId, camh collection, List coreItems) [Google Photos 7.97]
+                    // Strategy 1: Static task factory via ToolkitMappings.PRIVATE_ALBUM_REMOVE_CLASSES (omn.a / osi.c / iyo.r)
                     if (collection != null) {
-                        try {
-                            Class<?> osiClass = Class.forName("osi");
-                            for (Method m : osiClass.getMethods()) {
-                                if ("c".equals(m.getName()) && m.getParameterTypes().length == 3 && m.getParameterTypes()[0] == int.class) {
-                                    task = m.invoke(null, accountId, collection, coreItems);
-                                    Log.i("morphe: StorageScanner", "Created RemoveMediaFromPrivateAlbumTask via osi.c: " + task);
-                                    break;
+                        for (String rClassCandidate : ToolkitMappings.PRIVATE_ALBUM_REMOVE_CLASSES) {
+                            try {
+                                Class<?> rClazz = ReflectionCache.findClassOrNull(rClassCandidate);
+                                if (rClazz != null) {
+                                    for (Method m : rClazz.getMethods()) {
+                                        if (java.lang.reflect.Modifier.isStatic(m.getModifiers()) &&
+                                            m.getParameterTypes().length == 3 &&
+                                            m.getParameterTypes()[0] == int.class &&
+                                            (m.getParameterTypes()[2] == List.class || m.getParameterTypes()[2] == Collection.class)) {
+                                            task = m.invoke(null, accountId, collection, coreItems);
+                                            if (task != null) {
+                                                Log.i("morphe: StorageScanner", "Created RemoveMediaFromPrivateAlbumTask via " + rClassCandidate + "." + m.getName() + ": " + task);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (task != null) break;
                                 }
+                            } catch (Throwable tRemove) {
+                                Log.w("morphe: StorageScanner", rClassCandidate + " reflection failed: " + tRemove.getMessage());
                             }
-                        } catch (Throwable tOsi) {
-                            Log.w("morphe: StorageScanner", "osi.c reflection failed: " + tOsi.getMessage());
-                        }
-                    }
-
-                    // Try 2: iyo.r(int accountId, bwpg collection, List coreItems) [Google Photos 7.96]
-                    if (task == null && collection != null) {
-                        try {
-                            Class<?> iyoClass = Class.forName("iyo");
-                            for (Method m : iyoClass.getMethods()) {
-                                if ("r".equals(m.getName()) && m.getParameterTypes().length == 3 && m.getParameterTypes()[0] == int.class) {
-                                    task = m.invoke(null, accountId, collection, coreItems);
-                                    Log.i("morphe: StorageScanner", "Created RemoveMediaFromPrivateAlbumTask via iyo.r: " + task);
-                                    break;
-                                }
-                            }
-                        } catch (Throwable tIyo) {
-                            Log.w("morphe: StorageScanner", "iyo.r reflection failed: " + tIyo.getMessage());
                         }
                     }
 
@@ -5093,7 +5214,7 @@ public class StorageScanner {
         if (!dbFile.exists()) return null;
         SQLiteDatabase db = null;
         try {
-            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
+            db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
             if (hasTable(db, "local_media")) {
                 String pathCol = null;
                 if (hasColumn(db, "local_media", "filepath")) pathCol = "filepath";

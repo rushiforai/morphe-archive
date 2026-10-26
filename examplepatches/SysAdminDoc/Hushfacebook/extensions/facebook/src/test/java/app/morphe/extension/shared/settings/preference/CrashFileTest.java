@@ -107,6 +107,9 @@ public class CrashFileTest {
         String file = body(1);
         assertEquals("the file isn't the report's crash section", LogBufferManager.readCrashReport(context), file);
         assertTrue(file, file.contains("app_version: ") && file.contains("morphe_version: "));
+        assertTrue(file, file.contains("app_version_code: "));
+        assertTrue(file, file.contains("abi: app "));
+        assertTrue(file, file.contains("patch_build: unknown\n"));
         assertTrue(file, file.contains("Caused by: java.lang.NullPointerException: inner cause"));
         assertFalse("the address went in as it was: " + file, file.contains("example.com/private"));
     }

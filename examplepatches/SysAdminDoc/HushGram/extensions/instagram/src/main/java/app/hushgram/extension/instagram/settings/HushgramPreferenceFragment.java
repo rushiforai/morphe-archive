@@ -63,6 +63,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.text.NumberFormat;
+import java.lang.ref.WeakReference;
 import java.text.Normalizer;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -77,6 +78,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -132,6 +134,7 @@ import app.hushgram.extension.instagram.reels.TabOrder;
 import app.hushgram.extension.instagram.download.DownloadHistory;
 import app.hushgram.extension.instagram.profile.Unfollowers;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
+import app.hushgram.extension.instagram.download.PostDetails;
 import app.hushgram.extension.instagram.download.HoldFingers;
 import app.hushgram.extension.instagram.download.HoldTime;
 import app.hushgram.extension.instagram.download.ReelSoundButton;
@@ -227,6 +230,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static int documentSequence = PICK_FONT;
     private int documentRequest;
     private int documentCode;
+    private long fontRequestRevision = -1;
     @Nullable private String configurationExportToken;
     private boolean changingConfiguration;
     /** Last operation's receipt lasts for this process, including closing/reopening settings. */
@@ -234,6 +238,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable Row exportConfiguration;
     @Nullable ExportRow exportDiagnostics;
     private final Runnable exportChanges = this::showConfiguration;
+    private final Runnable fontChanges = () -> {
+        if (getView() == null || !isAdded()) return;
+        updateUIToSettingValues();
+        showConfiguration();
+        showRestart();
+    };
     @Nullable Row importConfiguration;
     @Nullable Row undoConfiguration;
     /** Lock these settings (#301), and the rows it greyed out while the settings are locked. */
@@ -289,6 +299,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** The page's dialogs that may still be on screen, which would outlive it. */
     private final List<Dialog> shownDialogs = new ArrayList<>();
+    private final Set<Dialog> mutatingDialogs = new HashSet<>();
+    private static final Map<Preference, WeakReference<HushgramPreferenceFragment>> mutationOwners = new WeakHashMap<>();
+    private static WeakReference<HushgramPreferenceFragment> newPinOwner = new WeakReference<>(null);
 
     /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
     @Nullable
@@ -314,6 +327,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             documentRequest = state.getInt("hushgram_document_request", 0);
             // Older saved pages used the operation itself as their Android request code.
             documentCode = state.getInt("hushgram_document_code", documentRequest);
+            fontRequestRevision = state.getLong("hushgram_font_revision", -1);
+            if (isFontRequest(documentRequest) && !Fonts.importProcess().equals(state.getString("hushgram_font_process"))) {
+                fontRequestRevision = fontSetting(documentRequest).savedRevision();
+            }
             documentSequence = Math.max(documentSequence,
                     Math.max(documentCode, state.getInt("hushgram_document_sequence", 0)));
             configurationExportToken = state.getString("hushgram_configuration_export");
@@ -342,6 +359,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         super.onSaveInstanceState(state);
         state.putInt("hushgram_document_request", documentRequest);
         state.putInt("hushgram_document_code", documentCode);
+        state.putLong("hushgram_font_revision", fontRequestRevision);
+        state.putString("hushgram_font_process", Fonts.importProcess());
         state.putInt("hushgram_document_sequence", documentSequence);
         state.putString("hushgram_configuration_export", configurationExportToken);
         Row category = categoryRows.get(openCategory);
@@ -396,6 +415,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         showRestart();
         ExportStatus.CONFIGURATION.watch(exportChanges);
         ExportStatus.DIAGNOSTICS.watch(exportChanges);
+        Fonts.watchImports(fontChanges);
         SaveControl.watch(saves);
         SaveLeftovers.showInterrupted(getContext());
         showSaves();
@@ -408,6 +428,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onPause() {
         ExportStatus.CONFIGURATION.unwatch(exportChanges);
         ExportStatus.DIAGNOSTICS.unwatch(exportChanges);
+        Fonts.unwatchImports(fontChanges);
         SaveControl.unwatch(saves);
         undoRefresh.removeCallbacks(refreshUndo);
         lockRefresh.removeCallbacks(lockTick);
@@ -421,6 +442,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         lockRefresh.removeCallbacks(lockTick);
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
+        mutatingDialogs.clear();
+        Fonts.unwatchImports(fontChanges);
+        if (newPinOwner.get() == this) PinLock.closeNew();
         clearPositions = null;
         exportDiagnostics = null;
         exportConfiguration = importConfiguration = undoConfiguration = null;
@@ -469,6 +493,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         viewToggle.setPersistent(false);
         viewToggle.setOnPreferenceClickListener(tapped -> {
             Preference own = findPreference(Settings.CATEGORY_PAGES.key);
+            if (own == null ? !allowMutation() : !allowMutation(own, true)) return true;
             if (own instanceof TwoStatePreference) {
                 ((TwoStatePreference) own).setChecked(!Settings.CATEGORY_PAGES.savedValue());
             } else {
@@ -583,6 +608,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Preference row = group.getPreference(j);
                 rows.add(row);
                 String key = row.getKey();
+                mutationOwners.put(row, new WeakReference<>(this));
+                Preference.OnPreferenceChangeListener change = row.getOnPreferenceChangeListener();
+                row.setOnPreferenceChangeListener((preference, value) -> allowMutation(preference, false)
+                        && (change == null || change.onPreferenceChange(preference, value)));
                 StringBuilder aliases = new StringBuilder(
                         row == ghostMode || row == ghostPicks || row == ghostTab ? "ghost mode " : "");
                 for (BooleanSetting setting : ghostSwitches) {
@@ -943,6 +972,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Buttons in the message box"));
         builder.setMultiChoiceItems(labels, shown, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                setChecked((AlertDialog) dialog, which, !hidden.contains(names.get(which)));
+                return;
+            }
             if (on) hidden.remove(names.get(which));
             else hidden.add(names.get(which));
             Settings.HIDDEN_MESSAGE_BOX_BUTTONS.save(MessageBox.join(hidden));
@@ -953,6 +986,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (dialog == null) return;
         // A click listener of its own, so Show all ticks every button without closing the list.
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            if (!allowMutation(row, true)) return;
             hidden.clear();
             Settings.HIDDEN_MESSAGE_BOX_BUTTONS.save("");
             row.setSummary(messageBoxSummary(""));
@@ -1041,6 +1075,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(profileTabsTitle(own));
         builder.setMultiChoiceItems(names, checked, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                setChecked((AlertDialog) dialog, which, !hidden.contains(keys.get(which)));
+                return;
+            }
             if (on) hidden.remove(keys.get(which));
             else hidden.add(keys.get(which));
             if (own) ProfileTabs.saveOwn(hidden);
@@ -1083,6 +1121,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Switches Ghost mode turns"));
         builder.setMultiChoiceItems(names, checked, (dialog, which, on) -> {
             String key = switches.get(which).key;
+            if (!allowMutation()) {
+                setChecked((AlertDialog) dialog, which, picked.contains(key));
+                return;
+            }
             if (!on && picked.size() == 1 && picked.contains(key)) {
                 checked[which] = true;
                 setChecked((AlertDialog) dialog, which, true);
@@ -1298,6 +1340,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (lockHolds) {
                 for (Preference row : everyRow()) holdLocked(row);
                 holdLocked(quickSetups);
+                closeMutatingDialogs();
             } else if (!lockedRows.isEmpty()) {
                 for (Preference row : lockedRows) row.setEnabled(true);
                 lockedRows.clear();
@@ -1333,6 +1376,82 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (BaseSettings.PAUSED.key.equals(key) && BaseSettings.PAUSED.savedValue()) return false;
         List<Preference> aboutRows = about == null ? null : searchableRows.get(about);
         return aboutRows == null || !aboutRows.contains(row);
+    }
+
+    @Nullable
+    private static HushgramPreferenceFragment mutationOwner(Preference row) {
+        WeakReference<HushgramPreferenceFragment> reference = mutationOwners.get(row);
+        return reference == null ? null : reference.get();
+    }
+
+    /** Native Save may already be posted when its page closes. An approval received later may not. */
+    private static boolean allowMutation(Preference row, boolean needsLivePage) {
+        HushgramPreferenceFragment owner = mutationOwner(row);
+        if (needsLivePage && mutationOwners.containsKey(row)
+                && (owner == null || !owner.isAdded() || owner.getView() == null
+                || owner.getActivity() == null || owner.getActivity().isFinishing()
+                || owner.getActivity().isDestroyed() || !owner.everyRow().contains(row))) return false;
+        boolean exempt = owner != null ? !owner.lockable(row)
+                : BaseSettings.DEBUG.key.equals(row.getKey())
+                || (BaseSettings.PAUSED.key.equals(row.getKey()) && BaseSettings.PAUSED.savedValue());
+        if (!SettingsLock.locked() || exempt) return true;
+        sayLocked();
+        if (owner != null) Utils.runOnMainThread(() -> {
+            if (owner.getView() != null) owner.showLock();
+        });
+        return false;
+    }
+
+    private boolean allowMutation() {
+        if (!SettingsLock.locked()) return true;
+        sayLocked();
+        Utils.runOnMainThread(() -> { if (getView() != null) showLock(); });
+        return false;
+    }
+
+    /** Read-only policy for the final worker transaction, after every provider stream closed. */
+    private static boolean asyncChangesAllowed() {
+        return !SettingsLock.locked() && !MessagesLock.locked();
+    }
+
+    private static String heldMessage() {
+        return SettingsLock.locked() ? L10n.t("These settings are locked. Ask to unlock first.")
+                : L10n.t("HushGram settings are locked");
+    }
+
+    /** A deferred callback must save successfully before it presents a new value. */
+    private static <T> boolean saveDeferred(Preference row, Setting<T> setting, T value) {
+        if (!allowMutation(row, true)) return false;
+        Object before = setting.savedValue();
+        AbstractPreferenceFragment.noteRunningValue(setting, before);
+        boolean saved = setting.save(value);
+        boolean persistent = row.isPersistent();
+        row.setPersistent(false);
+        try {
+            if (row instanceof TwoStatePreference) ((TwoStatePreference) row).setChecked(Boolean.TRUE.equals(setting.savedValue()));
+            else if (row instanceof ListPreference) ((ListPreference) row).setValue(setting.savedValue().toString());
+        } finally {
+            row.setPersistent(persistent);
+        }
+        if (!saved) Utils.showToastShort(L10n.t("The setting couldn't finish updating. Its saved value is shown."));
+        else {
+            HushgramPreferenceFragment owner = mutationOwner(row);
+            if (owner != null) owner.noteRestartPending(setting, before);
+        }
+        return saved;
+    }
+
+    private static void promptNewPin(Preference row, Activity activity, Consumer<Boolean> done) {
+        HushgramPreferenceFragment owner = mutationOwner(row);
+        if (!allowMutation(row, true)) {
+            done.accept(false);
+            return;
+        }
+        newPinOwner = new WeakReference<>(owner);
+        PinLock.promptNew(activity, () -> allowMutation(row, true), saved -> {
+            if (newPinOwner.get() == owner) newPinOwner = new WeakReference<>(null);
+            done.accept(saved);
+        });
     }
 
     /** What Lock these settings says in each of the lock's states. */
@@ -1396,8 +1515,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (context == null) return;
         SettingsLock.State state = SettingsLock.state();
         if (state == SettingsLock.State.LOCKED) {
-            SettingsLock.ask();
-            Utils.showToastLong(L10n.f("These settings open at %1$s, for 10 minutes.", lockTime(context)));
+            if (SettingsLock.ask()) Utils.showToastLong(L10n.f("These settings open at %1$s, for 10 minutes.", lockTime(context)));
+            else changeFailed();
             showLock();
             return;
         }
@@ -1407,9 +1526,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     .setMessage(L10n.f("These settings open at %1$s, for 10 minutes.", lockTime(context)))
                     .setPositiveButton(L10n.t("Stop the wait"), (shown, which) -> {
                         if (SettingsLock.stopWait()) Utils.showToastLong(L10n.t("Wait stopped. These settings stay locked."));
+                        else changeFailed();
                         showLock();
                     })
-                    .setNegativeButton(L10n.t("Keep waiting"), null));
+                    .setNegativeButton(L10n.t("Keep waiting"), null), false);
             return;
         }
         boolean open = state == SettingsLock.State.OPEN;
@@ -1422,17 +1542,23 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 .setItems(names, (shown, which) -> {
                     if (which < waits.length) {
                         if (SettingsLock.lock(waits[which])) Utils.showToastLong(L10n.t("Settings locked"));
+                        else if (SettingsLock.locked()) sayLocked();
+                        else changeFailed();
                     } else if (SettingsLock.off()) {
                         Utils.showToastLong(L10n.t("Lock turned off"));
-                    }
+                    } else changeFailed();
                     showLock();
                 })
-                .setNegativeButton(L10n.t("Cancel"), null));
+                .setNegativeButton(L10n.t("Cancel"), null), false);
     }
 
     /** Says why a change didn't happen while the settings are locked. */
     private static void sayLocked() {
         Utils.showToastLong(L10n.t("These settings are locked. Ask to unlock first."));
+    }
+
+    private static void changeFailed() {
+        Utils.showToastLong(L10n.t("The setting couldn't finish updating. Its saved value is shown."));
     }
 
     /**
@@ -1542,7 +1668,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         CharSequence[] names = {L10n.t("Quiet"), L10n.t("Privacy"), L10n.t("Back to defaults")};
         CharSequence[] details = {
                 L10n.t("Hides ads, suggested accounts and posts, surveys and promotions."),
-                L10n.t("Hides your seen receipts, typing and active status. Allows screenshots and stops link tracking and usage reports."),
+                L10n.t("Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm."),
                 L10n.t("Puts every switch back the way it started. Your locks stay as they are.")};
         AlertDialog dialog = show(new AlertDialog.Builder(themed(context))
                 .setTitle(L10n.t("Quick setups"))
@@ -1611,7 +1737,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     void showConfiguration() {
-        boolean busy = changingConfiguration || documentRequest != 0 || ExportStatus.CONFIGURATION.active();
+        refreshFontRows();
+        boolean busy = changingConfiguration || documentRequest != 0 || ExportStatus.CONFIGURATION.active() || Fonts.importActive();
         if (exportConfiguration != null) {
             exportConfiguration.setEnabled(!busy);
             ExportStatus.State state = ExportStatus.CONFIGURATION.state();
@@ -1646,6 +1773,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         filterSettings();
     }
 
+    private void refreshFontRows() {
+        boolean busy = Fonts.importActive() || documentRequest != 0;
+        for (String key : new String[]{Settings.FONT.key, Settings.STORY_FONTS.key, Settings.STORY_EMOJI.key, STORY_FONTS_ROW}) {
+            Preference row = findPreference(key);
+            if (row == null) continue;
+            Setting<?> setting = Setting.getSettingFromPath(key);
+            if (setting == null) row.setEnabled(!busy);
+            else updatePreferenceAvailability(row, setting);
+            if (busy) row.setEnabled(false);
+            holdLocked(row);
+        }
+    }
+
     void pickConfiguration(boolean importing) {
         if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active()) return;
         if (importing && SettingsLock.locked()) {
@@ -1665,12 +1805,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         showConfiguration();
         Intent picker = new Intent(importing ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
-        if (!importing) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-settings.json");
+        if (!importing) picker.putExtra(Intent.EXTRA_TITLE,
+                ConfigurationBackup.fileName(new Date(), Settings.DATE_SETTINGS_EXPORT.savedValue()));
         try {
             startActivityForResult(picker, documentCode);
         } catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
             documentCode = 0;
+            fontRequestRevision = -1;
             if (!importing) ExportStatus.CONFIGURATION.finish(configurationExportToken,
                     L10n.t("This phone has no file picker. Your settings haven't changed."));
             showConfiguration();
@@ -1683,25 +1825,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         super.onActivityResult(code, result, data);
         if (code != documentCode) return;
         int request = documentRequest;
-        if (request == PICK_FONT) {
+        if (isFontRequest(request)) {
+            long revision = fontRequestRevision;
             documentRequest = 0;
             documentCode = 0;
+            fontRequestRevision = -1;
             showConfiguration();
-            if (result == Activity.RESULT_OK) keepFont(data == null ? null : data.getData());
-            return;
-        }
-        if (request == PICK_STORY_FONT) {
-            documentRequest = 0;
-            documentCode = 0;
-            showConfiguration();
-            if (result == Activity.RESULT_OK) keepStoryFont(data == null ? null : data.getData());
-            return;
-        }
-        if (request == PICK_STORY_EMOJI) {
-            documentRequest = 0;
-            documentCode = 0;
-            showConfiguration();
-            if (result == Activity.RESULT_OK) keepStoryEmoji(data == null ? null : data.getData());
+            if (result == Activity.RESULT_OK) keepPickedFont(request, data == null ? null : data.getData(), revision);
             return;
         }
         if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION) return;
@@ -1737,11 +1867,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * Nothing changes until a file is picked and loads as a font.
      */
     private void pickFont(int request) {
-        if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active()) return;
+        if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active() || Fonts.importActive()) return;
+        if (!allowMutation()) return;
         if (documentSequence == Integer.MAX_VALUE) {
             Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
             return;
         }
+        fontRequestRevision = fontSetting(request).savedRevision();
         documentRequest = request;
         documentCode = ++documentSequence;
         showConfiguration();
@@ -1752,55 +1884,164 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         } catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
             documentCode = 0;
+            fontRequestRevision = -1;
             showConfiguration();
             Utils.showToastLong(L10n.t("This phone has no file picker. Your settings haven't changed."));
         }
     }
 
-    /**
-     * Copies the picked file into Instagram's storage off the main thread if it loads as a font,
-     * then chooses it. A file that isn't a font changes nothing and says so in one toast.
-     */
-    private void keepFont(@Nullable Uri uri) {
+    private static boolean isFontRequest(int request) {
+        return request == PICK_FONT || request == PICK_STORY_FONT || request == PICK_STORY_EMOJI;
+    }
+
+    private static Setting<?> fontSetting(int request) {
+        return request == PICK_FONT ? Settings.FONT : request == PICK_STORY_FONT ? Settings.STORY_FONTS : Settings.STORY_EMOJI;
+    }
+
+    private enum FontVerdict { SAVED, INVALID, HELD, STALE, SAVE_FAILED }
+
+    private static final class FontResult {
+        final int request;
+        final FontVerdict verdict;
+        @Nullable final String name;
+
+        FontResult(int request, FontVerdict verdict, @Nullable String name) {
+            this.request = request;
+            this.verdict = verdict;
+            this.name = name;
+        }
+    }
+
+    /** The provider owns no live file. Its successful close precedes every installation. */
+    private void keepPickedFont(int request, @Nullable Uri uri, long revision) {
         Context context = getContext();
-        if (context == null) return;
+        if (context == null || !allowMutation()) return;
         if (uri == null || !"content".equals(uri.getScheme())) {
-            Utils.showToastLong(L10n.t("That file isn't a font HushGram can use. Your font hasn't changed."));
+            fontFinished(new FontResult(request, FontVerdict.INVALID, null));
             return;
         }
-        Context application = context.getApplicationContext();
+        if (MessagesLock.locked()) {
+            Activity activity = getActivity();
+            if (activity != null) MessagesLock.confirmThen(activity, () -> keepPickedFont(request, uri, revision));
+            return;
+        }
+        long token = Fonts.beginImport();
+        if (token == 0) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
+            return;
+        }
+        Context application = context.getApplicationContext() == null ? context : context.getApplicationContext();
+        long expectedRevision = revision < 0 ? fontSetting(request).savedRevision() : revision;
+        showConfiguration();
         if (!Utils.runOnBackgroundThread(() -> {
-            boolean kept;
-            try (java.io.InputStream input = application.getContentResolver().openInputStream(uri)) {
-                kept = input != null && Fonts.store(application, input);
+            Fonts.Prepared prepared = null;
+            FontResult result;
+            try {
+                String shown = null;
+                try (java.io.InputStream input = application.getContentResolver().openInputStream(uri)) {
+                    if (input != null) {
+                        prepared = request == PICK_FONT ? Fonts.prepare(application, input)
+                                : request == PICK_STORY_FONT ? StoryFonts.prepare(application, input)
+                                : StoryEmoji.prepare(application, input);
+                        if (request == PICK_STORY_FONT) shown = shownName(application, uri);
+                    }
+                }
+                result = prepared == null ? new FontResult(request, FontVerdict.INVALID, null)
+                        : installPickedFont(application, request, token, expectedRevision, prepared, shown);
             } catch (Exception failure) {
-                Logger.printInfo(() -> "Font: couldn't read the picked file", failure);
-                kept = false;
+                Logger.printInfo(() -> "Font: couldn't finish reading the picked file", failure);
+                result = new FontResult(request, FontVerdict.INVALID, null);
+            } finally {
+                if (prepared != null) prepared.close();
+                Fonts.finishImport(token);
             }
-            boolean usable = kept;
-            Utils.runOnMainThread(() -> fontKept(usable));
+            FontResult finished = result;
+            Utils.runOnMainThread(() -> fontFinished(finished));
         })) {
+            Fonts.finishImport(token);
+            showConfiguration();
             Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
         }
     }
 
-    /**
-     * Chooses the kept file. Through the row when it's on screen, so the restart prompt shows as it
-     * does for any choice. A new file for a file already chosen only needs the restart.
-     */
-    private void fontKept(boolean kept) {
-        if (!kept) {
-            Utils.showToastLong(L10n.t("That file isn't a font HushGram can use. Your font hasn't changed."));
-            return;
+    private static FontResult installPickedFont(Context context, int request, long token, long revision,
+                                                Fonts.Prepared prepared, @Nullable String shown) {
+        if (!asyncChangesAllowed()) return new FontResult(request, FontVerdict.HELD, null);
+        if (request == PICK_STORY_FONT) {
+            synchronized (StoryFonts.class) {
+                String name = StoryFonts.prepareInstall(context, prepared, shown);
+                return name == null ? new FontResult(request, FontVerdict.INVALID, null)
+                        : commitPickedFont(request, token, revision, prepared, name);
+            }
         }
-        boolean chosen = Settings.FONT.savedValue() == FontChoice.FILE;
-        Preference row = isAdded() ? findPreference(Settings.FONT.key) : null;
-        if (!chosen && row instanceof FontRow) {
-            ((FontRow) row).setValue(FontChoice.FILE.name());
-            return;
+        boolean ready = request == PICK_FONT ? Fonts.prepareInstall(context, prepared)
+                : StoryEmoji.prepareInstall(context, prepared);
+        return ready ? commitPickedFont(request, token, revision, prepared, null)
+                : new FontResult(request, FontVerdict.INVALID, null);
+    }
+
+    /** Authorization and the setting revision are read again at the actual transaction boundary. */
+    private static FontResult commitPickedFont(int request, long token, long revision,
+                                               Fonts.Prepared prepared, @Nullable String name) {
+        synchronized (Setting.class) {
+            if (!asyncChangesAllowed()) return new FontResult(request, FontVerdict.HELD, null);
+            Setting<?> setting = fontSetting(request);
+            if (!Fonts.ownsImport(token) || setting.savedRevision() != revision) {
+                return new FontResult(request, FontVerdict.STALE, null);
+            }
+            if (!prepared.recordSetting(setting, request == PICK_FONT ? FontChoice.FILE : true)) {
+                return new FontResult(request, FontVerdict.SAVE_FAILED, null);
+            }
+            if (!prepared.install()) {
+                prepared.rollback();
+                return new FontResult(request, FontVerdict.SAVE_FAILED, null);
+            }
+            Object before = setting.savedValue();
+            AbstractPreferenceFragment.noteRunningValue(setting, before);
+            boolean saved = request == PICK_FONT ? Settings.FONT.save(FontChoice.FILE)
+                    : request == PICK_STORY_FONT ? Settings.STORY_FONTS.save(true) : Settings.STORY_EMOJI.save(true);
+            if (!saved) {
+                prepared.rollback();
+                return new FontResult(request, FontVerdict.SAVE_FAILED, null);
+            }
+            if (!prepared.accept()) {
+                if (prepared.rollback()) {
+                    // This live transaction still owns Setting.class; no later choice can be lost.
+                    boolean restored = request == PICK_FONT ? Settings.FONT.save((FontChoice) before)
+                            : request == PICK_STORY_FONT ? Settings.STORY_FONTS.save((Boolean) before)
+                            : Settings.STORY_EMOJI.save((Boolean) before);
+                    if (!restored) Logger.printException(() -> "Font: couldn't restore the previous choice");
+                }
+                return new FontResult(request, FontVerdict.SAVE_FAILED, null);
+            }
+            if (request == PICK_FONT) Fonts.fileInstalled();
+            else if (request == PICK_STORY_FONT) StoryFonts.installed();
+            return new FontResult(request, FontVerdict.SAVED, name);
         }
-        if (!chosen) Settings.FONT.save(FontChoice.FILE);
-        Utils.showToastLong(L10n.t("Font saved. Restart Instagram to see it."));
+    }
+
+    private void fontFinished(FontResult result) {
+        if (result.verdict == FontVerdict.HELD) Utils.showToastLong(heldMessage());
+        else if (result.verdict == FontVerdict.STALE || result.verdict == FontVerdict.SAVE_FAILED) {
+            Utils.showToastShort(L10n.t("The setting couldn't finish updating. Its saved value is shown."));
+        } else if (result.verdict == FontVerdict.INVALID) {
+            Utils.showToastLong(result.request == PICK_FONT
+                    ? L10n.t("That file isn't a font HushGram can use. Your font hasn't changed.")
+                    : result.request == PICK_STORY_FONT
+                    ? L10n.t("That file isn't a font HushGram can use. Nothing was added.")
+                    : L10n.t("That file isn't a font HushGram can use. Story emoji haven't changed."));
+        } else if (result.request == PICK_FONT) {
+            Utils.showToastLong(L10n.t("Font saved. Restart Instagram to see it."));
+        } else if (result.request == PICK_STORY_FONT) {
+            Utils.showToastLong(L10n.f("Added %1$s. Pick it in the story text editor alongside Instagram's fonts.",
+                    L10n.isolate(result.name)));
+            if (isAdded() && getView() != null && !Fonts.importActive() && documentRequest == 0 && asyncChangesAllowed()) showStoryFonts();
+        } else Utils.showToastLong(L10n.t("Emoji font saved. Emoji in story text draw in it."));
+        if (getView() != null && isAdded()) {
+            updateUIToSettingValues();
+            showConfiguration();
+            showRestart();
+        }
     }
 
     void exportConfiguration(Uri uri) {
@@ -1866,7 +2107,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (!Utils.runOnBackgroundThread(() -> {
             try {
                 ConfigurationBackup.Result result;
-                if (undo) result = ConfigurationBackup.undo(token);
+                if (undo) result = ConfigurationBackup.undo(token, HushgramPreferenceFragment::asyncChangesAllowed);
                 else {
                     byte[] bytes;
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
@@ -1874,7 +2115,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     }
                     // A provider can fail while closing. Finish all document I/O before values
                     // change, so the failure verdict can truthfully say nothing was applied.
-                    result = ConfigurationBackup.restore(bytes);
+                    result = ConfigurationBackup.restore(bytes, HushgramPreferenceFragment::asyncChangesAllowed);
                 }
                 if (result == null) showImportFeedback(L10n.t("Undo has expired."));
                 else {
@@ -1889,6 +2130,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         showImportFeedback(owed ? message + " " + L10n.t("Restart Instagram to apply these choices.") : message);
                     });
                 }
+            } catch (ConfigurationBackup.Held held) {
+                showImportFeedback(heldMessage());
             } catch (Setting.BatchFailed failure) {
                 showImportFeedback(failure.restored
                         ? L10n.t("Couldn't save the settings. The previous values were restored.")
@@ -1979,7 +2222,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Disk commits run on the existing worker, with immediate feedback and no confirmation. */
     private void changePositions(long token) {
-        if (changingPositions) return;
+        if (changingPositions || !allowMutation()) return;
         // Honor the action the row offered. An expired Undo must never become another clear
         // while its delayed refresh is still waiting on the main thread.
         boolean undo = token != 0;
@@ -1987,6 +2230,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         showClearPositions();
         if (!Utils.runOnBackgroundThread(() -> {
             try {
+                if (!asyncChangesAllowed()) {
+                    Utils.showToastLong(heldMessage());
+                    return;
+                }
                 if (undo) {
                     boolean restored = ResumePlayback.undoHistory(token);
                     Utils.showToastShort(restored ? L10n.t("Remembered playback positions restored.")
@@ -2368,6 +2615,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * Instagram comes back with the screen open on this page.
      */
     void restartNow() {
+        if (Fonts.importActive()) {
+            Utils.showToastLong(L10n.t("A save or an export is still running. Restart once it's done."));
+            return;
+        }
         Activity activity = getActivity();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         switch (RestartNow.restart(activity, currentPage())) {
@@ -2421,7 +2672,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (context == null) return false;
         boolean pausedNext = HushgramPause.pausesNextStart(context);
         if (pausedNext != HushgramPause.isPaused()) return true;
-        return !pausedNext && RestartNow.owed();
+        return !pausedNext && (RestartNow.owed() || Fonts.restartPending());
     }
 
     /**
@@ -2503,12 +2754,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (PinLock.protects()) {
                 // With a PIN, turning a lock off always asks it, and with nothing to ask it stays on.
                 if (activity != null) {
-                    MessagesLock.confirmPinThen(activity, () -> ((SwitchPreference) preference).setChecked(false));
+                    MessagesLock.confirmPinThen(activity, () -> saveDeferred(preference, setting, false));
                 }
                 return false;
             }
             if (!MessagesLock.locked() || activity == null) return true;
-            MessagesLock.confirmThen(activity, () -> ((SwitchPreference) preference).setChecked(false));
+            MessagesLock.confirmThen(activity, () -> saveDeferred(preference, setting, false));
             return false;
         });
         return row;
@@ -2541,7 +2792,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             LockDelayRow delayRow = (LockDelayRow) preference;
             if (target.millis <= LockDelayRow.delayOf(delayRow.getValue()).millis || !PinLock.protects()) return true;
             Activity activity = activityOf(preference.getContext());
-            if (activity != null) MessagesLock.confirmPinThen(activity, () -> delayRow.setValue(target.name()));
+            if (activity != null) MessagesLock.confirmPinThen(activity, () -> saveDeferred(delayRow, Settings.LOCK_AGAIN, target));
             return false;
         });
         return row;
@@ -2567,12 +2818,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             UnlockWith target = UnlockWith.PIN.name().equals(value) ? UnlockWith.PIN : UnlockWith.PHONE_LOCK;
             UnlockWithRow unlockRow = (UnlockWithRow) preference;
             Runnable change = () -> {
+                if (!allowMutation(unlockRow, true)) return;
                 if (target == UnlockWith.PIN && !PinLock.isSet()) {
-                    PinLock.promptNew(activity, saved -> {
-                        if (saved) unlockRow.setValue(target.name());
+                    promptNewPin(unlockRow, activity, saved -> {
+                        if (saved) saveDeferred(unlockRow, Settings.UNLOCK_WITH, target);
                     });
                 } else {
-                    unlockRow.setValue(target.name());
+                    saveDeferred(unlockRow, Settings.UNLOCK_WITH, target);
                 }
             };
             MessagesLock.confirmPinThen(activity, change);
@@ -2591,7 +2843,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setOnPreferenceClickListener(tapped -> {
             Activity activity = activityOf(tapped.getContext());
             if (activity == null) return true;
-            Runnable prompt = () -> PinLock.promptNew(activity, saved -> {
+            Runnable prompt = () -> promptNewPin(row, activity, saved -> {
                 if (saved) Utils.showToastShort(L10n.t("PIN saved."));
             });
             // Changing the PIN asks the current one; with no PIN yet there's nothing to ask.
@@ -2660,6 +2912,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     private void lockChat(AlertDialog dialog, String account, ChatLocks.Chat chat, int position, boolean lock) {
+        if (!allowMutation()) {
+            setChecked(dialog, position, !lock);
+            return;
+        }
         if (lock) {
             if (!ChatLocks.add(account, chat.id, chat.name)) {
                 notSaved(dialog, position, false);
@@ -2670,6 +2926,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return;
         }
         Runnable unlock = () -> {
+            if (!allowMutation()) {
+                setChecked(dialog, position, true);
+                return;
+            }
             if (!ChatLocks.remove(account, chat.id)) {
                 notSaved(dialog, position, true);
                 return;
@@ -2732,6 +2992,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 hidden[i] = !offer;
             }
             builder.setMultiChoiceItems(names, hidden, (dialog, which, checked) -> {
+                if (!allowMutation()) {
+                    setChecked((AlertDialog) dialog, which, !checked);
+                    return;
+                }
                 ChatLocks.Chat chat = chats.get(which);
                 if (checked) {
                     if (!HiddenChats.add(account, chat.id, chat.name)) {
@@ -2787,6 +3051,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 hidden[i] = true;
             }
             builder.setMultiChoiceItems(shown, hidden, (dialog, which, checked) -> {
+                if (!allowMutation()) {
+                    setChecked((AlertDialog) dialog, which, !checked);
+                    return;
+                }
                 String name = names.get(which);
                 if (checked) {
                     HiddenAccounts.add(name);
@@ -2836,6 +3104,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 hidden[i] = true;
             }
             builder.setMultiChoiceItems(shown, hidden, (dialog, which, checked) -> {
+                if (!allowMutation()) {
+                    setChecked((AlertDialog) dialog, which, !checked);
+                    return;
+                }
                 HiddenSounds.Sound sound = sounds.get(which);
                 String name = L10n.isolate(ReelSoundButton.label(context, sound));
                 if (checked) {
@@ -2850,7 +3122,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         show(builder.setPositiveButton(L10n.t("OK"), null));
     }
 
-    /** The row that opens the list of font files the story text editor shows after Instagram's own. */
+    /** The row that opens the list of font files the story text editor shows alongside Instagram's own. */
     Row storyFontsRow(Context context) {
         Row row = new Row(context);
         row.setKey(STORY_FONTS_ROW);
@@ -2877,7 +3149,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Your story fonts"));
         if (names.isEmpty()) {
             builder.setMessage(L10n.t("No fonts added yet. Add a .ttf or .otf file and it shows up in the story "
-                    + "text editor, after Instagram's fonts."));
+                    + "text editor alongside Instagram's fonts."));
         } else {
             CharSequence[] shown = new CharSequence[names.size()];
             for (int i = 0; i < shown.length; i++) shown[i] = L10n.isolate(names.get(i));
@@ -2886,39 +3158,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         show(builder.setNeutralButton(L10n.t("Add a font file"), (dialog, which) -> pickFont(PICK_STORY_FONT))
                 .setNegativeButton(L10n.t("Cancel"), null)
                 .setPositiveButton(L10n.t("OK"), (dialog, which) -> {
+                    if (!allowMutation()) return;
                     boolean removed = false;
                     for (int i = 0; i < keep.length; i++) {
                         if (!keep[i]) removed |= StoryFonts.remove(context, names.get(i));
                     }
                     if (removed) Utils.showToastShort(L10n.t("Removed from your story fonts"));
                 }));
-    }
-
-    /**
-     * Copies the picked file into Instagram's storage off the main thread if it loads as a font, then
-     * says so and shows the list again. A file that isn't a font adds nothing and says that instead.
-     */
-    private void keepStoryFont(@Nullable Uri uri) {
-        Context context = getContext();
-        if (context == null) return;
-        if (uri == null || !"content".equals(uri.getScheme())) {
-            storyFontKept(null);
-            return;
-        }
-        Context application = context.getApplicationContext();
-        if (!Utils.runOnBackgroundThread(() -> {
-            String name;
-            try (java.io.InputStream input = application.getContentResolver().openInputStream(uri)) {
-                name = input == null ? null : StoryFonts.add(application, input, shownName(application, uri));
-            } catch (Exception failure) {
-                Logger.printInfo(() -> "Story fonts: couldn't read the picked file", failure);
-                name = null;
-            }
-            String kept = name;
-            Utils.runOnMainThread(() -> storyFontKept(kept));
-        })) {
-            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
-        }
     }
 
     /** The name the file picker shows for [uri], or null when it gives none. */
@@ -2931,23 +3177,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             Logger.printInfo(() -> "Story fonts: the picker gave no file name", failure);
         }
         return null;
-    }
-
-    /**
-     * Says whether the picked file was added. Adding one turns Story text fonts on, since a font was
-     * just picked for it, and the list shows again either way.
-     */
-    private void storyFontKept(@Nullable String name) {
-        if (name == null) {
-            Utils.showToastLong(L10n.t("That file isn't a font HushGram can use. Nothing was added."));
-        } else {
-            Settings.STORY_FONTS.save(true);
-            Preference row = isAdded() ? findPreference(Settings.STORY_FONTS.key) : null;
-            if (row instanceof TwoStatePreference) ((TwoStatePreference) row).setChecked(true);
-            Utils.showToastLong(L10n.f("Added %1$s. Pick it in the story text editor, after Instagram's fonts.",
-                    L10n.isolate(name)));
-        }
-        if (isAdded()) showStoryFonts();
     }
 
     /**
@@ -2964,45 +3193,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return false;
         });
         return row;
-    }
-
-    /**
-     * Copies the picked file into Instagram's storage off the main thread if it loads as a font, then
-     * turns story emoji on. A file that isn't a font changes nothing and says so.
-     */
-    private void keepStoryEmoji(@Nullable Uri uri) {
-        Context context = getContext();
-        if (context == null) return;
-        if (uri == null || !"content".equals(uri.getScheme())) {
-            storyEmojiKept(false);
-            return;
-        }
-        Context application = context.getApplicationContext();
-        if (!Utils.runOnBackgroundThread(() -> {
-            boolean kept;
-            try (java.io.InputStream input = application.getContentResolver().openInputStream(uri)) {
-                kept = input != null && StoryEmoji.store(application, input);
-            } catch (Exception failure) {
-                Logger.printInfo(() -> "Story emoji: couldn't read the picked file", failure);
-                kept = false;
-            }
-            boolean usable = kept;
-            Utils.runOnMainThread(() -> storyEmojiKept(usable));
-        })) {
-            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
-        }
-    }
-
-    /** Turns story emoji on once the picked file is kept, or says it isn't a font. */
-    private void storyEmojiKept(boolean kept) {
-        if (!kept) {
-            Utils.showToastLong(L10n.t("That file isn't a font HushGram can use. Story emoji haven't changed."));
-            return;
-        }
-        Settings.STORY_EMOJI.save(true);
-        Preference row = isAdded() ? findPreference(Settings.STORY_EMOJI.key) : null;
-        if (row instanceof TwoStatePreference) ((TwoStatePreference) row).setChecked(true);
-        Utils.showToastLong(L10n.t("Emoji font saved. Emoji in story text draw in it."));
     }
 
     /**
@@ -3026,6 +3216,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 .setTitle(L10n.t("Add a username"))
                 .setView(box)
                 .setPositiveButton(L10n.t("Hide their posts"), (shown, which) -> {
+                    if (!allowMutation()) return;
                     String name = HiddenAccounts.add(field.getText().toString());
                     if (name == null) {
                         Utils.showToastShort(L10n.t("A username is up to 30 letters, numbers, dots and underscores"));
@@ -3286,8 +3477,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      */
     /** Clear now: empties the media cache off the main thread, then shows what it freed on the row. */
     static void clearMediaCache(Preference row) {
+        if (!allowMutation(row, true)) return;
         Context context = row.getContext();
         if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
             long freed = MediaCache.clearNow(context);
             String size = L10n.isolate(Formatter.formatShortFileSize(context, freed));
             String shown = MediaCache.videosWaiting(context)
@@ -3353,8 +3549,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * takes it off the screen, and it came back still naming everyone (S22, 2026-10-15).
      */
     static void clearUnfollowers(Preference row, Preference list) {
+        if (!allowMutation(row, true)) return;
         Context context = row.getContext();
         if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
             boolean cleared = Unfollowers.clear(context);
             Utils.runOnMainThread(() -> {
                 if (cleared) {
@@ -3371,8 +3572,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Forgets every save Skip what's already saved remembers, off the main thread, and says so. */
     static void clearDownloadHistory(Preference row) {
+        if (!allowMutation(row, true)) return;
         Context context = row.getContext();
         if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
             boolean cleared = DownloadHistory.clear(context);
             Utils.runOnMainThread(() -> {
                 if (cleared) Utils.showToastShort(L10n.t("Download history cleared."));
@@ -4023,6 +4229,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Buttons on the share sheet"));
         builder.setMultiChoiceItems(names, shown, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                setChecked((AlertDialog) dialog, which, !hidden.contains(actions.get(which)));
+                return;
+            }
             if (on) hidden.remove(actions.get(which));
             else hidden.add(actions.get(which));
             Settings.HIDDEN_SHARE_SHEET_BUTTONS.save(ShareSheetActions.join(hidden));
@@ -4033,6 +4243,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (dialog == null) return;
         // A click listener of its own, so Show all ticks every button without closing the list.
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            if (!allowMutation(row, true)) return;
             hidden.clear();
             Settings.HIDDEN_SHARE_SHEET_BUTTONS.save("");
             row.setSummary(shareSheetButtonsSummary(""));
@@ -4085,6 +4296,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             shown[i] = !hidden.contains(rows.get(i)[0]);
         }
         builder.setMultiChoiceItems(names, shown, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                setChecked((AlertDialog) dialog, which, !hidden.contains(rows.get(which)[0]));
+                return;
+            }
             if (on) hidden.remove(rows.get(which)[0]);
             else hidden.add(rows.get(which)[0]);
             Settings.HIDDEN_SETTINGS_ROWS.save(SettingsRows.join(hidden));
@@ -4095,6 +4310,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (dialog == null) return;
         // A click listener of its own, so Show all ticks every row without closing the list.
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            if (!allowMutation(row, true)) return;
             hidden.clear();
             Settings.HIDDEN_SETTINGS_ROWS.save("");
             row.setSummary(settingsRowsSummary(""));
@@ -4169,6 +4385,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 .setNeutralButton(L10n.t("Reset"), null)
                 .setNegativeButton(L10n.t("Cancel"), null)
                 .setPositiveButton(L10n.t("OK"), (shown, which) -> {
+                    if (!allowMutation(row, true)) return;
                     AbstractPreferenceFragment.restartNoteOnce(context,
                             () -> TabPicker.save(TabPicker.orderOf(list), TabPicker.tickedOf(list), reset[0]));
                     row.setSummary(tabOrderSummary(Settings.TAB_ORDER.savedValue()));
@@ -4552,6 +4769,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     protected void updatePreferenceAvailability(Preference preference, Setting<?> setting) {
         super.updatePreferenceAvailability(preference, setting);
+        if ((setting == Settings.FONT || setting == Settings.STORY_FONTS || setting == Settings.STORY_EMOJI)
+                && (Fonts.importActive() || documentRequest != 0)) preference.setEnabled(false);
         if (resumingFromOverview && setting == BaseSettings.PAUSED) preference.setEnabled(false);
         if (setting == Settings.SETTINGS_SHORTCUT || setting == Settings.SETTINGS_LOGO_PRESS
                 || setting == Settings.HIDE_MENU_ROW) {
@@ -4806,8 +5025,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static FileNameRow fileNameRow(Context context) {
         FileNameRow row = new FileNameRow(context);
         row.setKey(Settings.FILENAME_TEMPLATE.key);
-        row.setTitle(L10n.t("Video file name"));
-        row.setDialogTitle(L10n.t("Video file name"));
+        row.setTitle(L10n.t("Download file name"));
+        row.setDialogTitle(L10n.t("Download file name"));
         row.setDialogMessage(L10n.f("%1$s becomes the date and time of the save, %2$s the video's number on "
                         + "Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is "
                         + "left out, and a name with none of these gets the date added. When the name is already in "
@@ -4815,7 +5034,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         + "Leave it blank to use the default, %5$s.",
                 L10n.isolate(FileNameTemplate.DATE), L10n.isolate(FileNameTemplate.VIDEO_ID),
                 L10n.isolate(FileNameTemplate.OWNER), L10n.isolate(FileNameTemplate.POSTED),
-                L10n.isolate(FileNameTemplate.DEFAULT)));
+                L10n.isolate(FileNameTemplate.DEFAULT)) + " "
+                + L10n.f("%1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.",
+                L10n.isolate(FileNameTemplate.SHORTCODE)));
         row.setPositiveButtonText(L10n.t("Save"));
         // Android's own Cancel follows the activity's language, as the folder row's did.
         row.setNegativeButtonText(L10n.t("Cancel"));
@@ -4835,12 +5056,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /**
-     * "Videos are named IG_VID_{date}. Photos are always named IG_IMG_ followed by the date and
-     * time." for [template]. The photo prefix is HushGram's, not Instagram's, so it isn't called
-     * Instagram's own naming.
-     */
+    /** The current template's media types, with the default photo name when it doesn't opt photos in. */
     static String fileNameSummary(String template) {
+        if (FileNameTemplate.usesShortcode(template)) {
+            return L10n.f("Videos and photos use %1$s. Unknown codes are left out.", L10n.isolate(template));
+        }
         return L10n.f("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
                 L10n.isolate(template), L10n.isolate(FileNameTemplate.PHOTO_PREFIX));
     }
@@ -4875,9 +5095,21 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     void closeDialogs() {
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
+        mutatingDialogs.clear();
         PinLock.closeNew();
         PreferenceScreen screen = getPreferenceScreen();
         if (screen != null) closeRowDialogs(screen);
+    }
+
+    private void closeMutatingDialogs() {
+        for (Dialog dialog : new ArrayList<>(mutatingDialogs)) dialog.dismiss();
+        mutatingDialogs.clear();
+        PinLock.closeNew();
+        for (Preference row : everyRow()) {
+            if (!lockable(row) || !(row instanceof DialogPreference)) continue;
+            Dialog dialog = ((DialogPreference) row).getDialog();
+            if (dialog != null && dialog.isShowing()) dialog.dismiss();
+        }
     }
 
     private static void closeRowDialogs(PreferenceGroup group) {
@@ -4896,12 +5128,21 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      */
     @Nullable
     private AlertDialog show(AlertDialog.Builder builder) {
+        return show(builder, true);
+    }
+
+    @Nullable
+    private AlertDialog show(AlertDialog.Builder builder, boolean mutating) {
         Activity activity = getActivity();
         if (getView() == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return null;
         AlertDialog dialog = builder.show();
         ScreenColors.dialog(dialog);
         shownDialogs.add(dialog);
-        dialog.setOnDismissListener(shownDialogs::remove);
+        if (mutating) mutatingDialogs.add(dialog);
+        dialog.setOnDismissListener(shown -> {
+            shownDialogs.remove(dialog);
+            mutatingDialogs.remove(dialog);
+        });
         return dialog;
     }
 
@@ -5490,7 +5731,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
 
         static String previewName(String text, java.util.Date when) {
-            return FileNameTemplate.videoName(FileNameTemplate.sanitize(text), when, "123456") + ".mp4";
+            return FileNameTemplate.videoName(FileNameTemplate.sanitize(text), when,
+                    PostDetails.of("123456").withPostId("123456")) + ".mp4";
         }
 
         @Override protected View onCreateDialogView() {
@@ -5504,7 +5746,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (field.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) field.getParent()).removeView(field);
             content.addView(field, new android.widget.LinearLayout.LayoutParams(-1, -2));
             TextView label = new TextView(context);
-            label.setText(L10n.t("Example without post details"));
+            label.setText(L10n.t("Example file name"));
             label.setTextSize(12);
             label.setTextColor(colors.summary);
             label.setPadding(0, pad, 0, pad / 4);
@@ -6820,7 +7062,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         show(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Licenses"))
                 .setView(scroll)
-                .setPositiveButton(L10n.t("OK"), null));
+                .setPositiveButton(L10n.t("OK"), null), false);
     }
 
     @Override

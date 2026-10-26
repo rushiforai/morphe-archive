@@ -21,8 +21,14 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-DIAG = ROOT / "caption-diagnostics-1.3.5-20260927-084217.txt"
-SRT = ROOT / "China's Military Modernisation Speedrun - Budgets, Industry, and Purchasing Power Parity [mH5TlcMo_m4].en.srt"
+
+def frozen_input(name: str) -> Path:
+    """Private frozen inputs are explicit; an override never falls back to root copies."""
+    directory = os.environ.get("CAPTION_FROZEN_INPUT_DIR")
+    return (Path(directory).expanduser().resolve() if directory else ROOT) / name
+
+DIAG = frozen_input("caption-diagnostics-1.3.5-20260927-084217.txt")
+SRT = frozen_input("China's Military Modernisation Speedrun - Budgets, Industry, and Purchasing Power Parity [mH5TlcMo_m4].en.srt")
 RESULT = ROOT / "scoreboard/results/frozen-baseline.json"
 HASHES = {
     "diagnostics": "32c570274b9e13bb00c2185b6b0374acf14b94b5d59e6f16a5374258006fe764",

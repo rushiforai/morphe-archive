@@ -164,12 +164,12 @@ Choose a folder name under Movies and Pictures. Invalid characters become unders
 Save	Guardar
 Folder name	Nombre de carpeta
 Folder set to %1$s.	Carpeta establecida en %1$s.
-Video file name	Nombre de archivo de los videos
+Download file name	Nombre de archivo de descargas
 %1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s se convierte en la fecha y la hora del guardado, %2$s en el número del video en Instagram, %3$s en quien lo publicó y %4$s en el día en que se publicó. Lo que el guardado no sabe se omite, y a un nombre sin ninguno de ellos se le añade la fecha. Si el nombre ya está en la carpeta, se le añade al final la hora del guardado. Los caracteres no válidos se convierten en guiones bajos. Déjalo vacío para usar el nombre predeterminado, %5$s.
 File name	Nombre de archivo
 File name set to %1$s.	Nombre de archivo establecido en %1$s.
 Videos go to %1$s and photos to %2$s.	Los videos van a %1$s y las fotos a %2$s.
-Example without post details	Ejemplo sin datos de la publicación
+Example file name	Nombre de archivo de ejemplo
 Cancel saving this video	Cancelar el guardado de este video
 Cancel saving this photo	Cancelar el guardado de esta foto
 Download on reels	Descargar en los reels
@@ -477,6 +477,7 @@ On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider s
 Full size covers	Portadas a tamaño completo
 Reel covers and grid pictures come at full size, so Download cover saves a picked cover at full size too. Grids use a lot more data. Restart Instagram to see the change.	Las portadas de reels y las fotos de la cuadrícula llegan a tamaño completo, así que Descargar portada guarda una portada elegida a tamaño completo también. Las cuadrículas gastan muchos más datos. Reinicia Instagram para ver el cambio.
 Stop swiping between tabs	Desactivar deslizar entre pestañas
+%d notification	%d notificación
 %d notifications	%d notificaciones
 1 hour	1 hora
 1 minute	1 minuto
@@ -1055,7 +1056,7 @@ Privacy	Privacidad
 # context: a Quick setups choice that puts every switch back the way it started
 Back to defaults	Volver a los valores predeterminados
 Hides ads, suggested accounts and posts, surveys and promotions.	Oculta anuncios, cuentas y publicaciones sugeridas, encuestas y promociones.
-Hides your seen receipts, typing and active status. Allows screenshots and stops link tracking and usage reports.	Oculta tus confirmaciones de visto, cuándo escribes y tu estado de actividad. Permite capturas de pantalla y detiene el rastreo de enlaces y los informes de uso.
+Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	Oculta tus confirmaciones de visto, cuándo escribes y tu estado de actividad. Permite capturas de pantalla y limpia los enlaces compartidos. Detiene la alarma de subida de datos de análisis.
 Puts every switch back the way it started. Your locks stay as they are.	Devuelve todos los interruptores a como estaban al principio. Tus bloqueos se quedan como están.
 # context: toast after a Quick setups choice changed exactly one switch
 Changed %1$d setting	Se cambió %1$d ajuste
@@ -1235,14 +1236,14 @@ Instagram's own. Pick another to change the icon on your home screen and in the 
 the home screen icon you picked	el icono de la pantalla de inicio que elegiste
 # context: Your fonts in story text switch under Stories and the Your story fonts row and dialog under it; the fonts are .ttf or .otf files picked from the phone, shown in Instagram's story text editor after its own
 Your fonts in story text	Tus fuentes en el texto de historias
-Adds the fonts below to the story text editor, after Instagram's own fonts, which all stay. Pick one there like any other font.	Añade las fuentes de abajo al editor de texto de historias, después de las fuentes de Instagram, que se quedan todas. Elige una ahí como cualquier otra fuente.
+Adds the fonts below to the story text editor alongside Instagram's own fonts, which all stay. Pick one there like any other font.	Añade las fuentes de abajo al editor de texto de historias junto a las de Instagram, que se conservan todas. Elige una ahí como cualquier otra fuente.
 Your story fonts	Tus fuentes de historias
 Add .ttf or .otf files from your phone. Uncheck one to take it out.	Añade archivos .ttf u .otf desde tu teléfono. Desmarca uno para quitarlo.
-No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor, after Instagram's fonts.	Todavía no has añadido fuentes. Añade un archivo .ttf u .otf y aparecerá en el editor de texto de historias, después de las fuentes de Instagram.
+No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor alongside Instagram's fonts.	Todavía no has añadido fuentes. Añade un archivo .ttf u .otf y aparecerá en el editor de texto de historias junto a las fuentes de Instagram.
 Add a font file	Añadir un archivo de fuente
 Removed from your story fonts	Quitada de tus fuentes de historias
 That file isn't a font HushGram can use. Nothing was added.	Ese archivo no es una fuente que HushGram pueda usar. No se añadió nada.
-Added %1$s. Pick it in the story text editor, after Instagram's fonts.	Se añadió %1$s. Elígela en el editor de texto de historias, después de las fuentes de Instagram.
+Added %1$s. Pick it in the story text editor alongside Instagram's fonts.	Se añadió %1$s. Elígela en el editor de texto de historias junto a las fuentes de Instagram.
 # context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
 Logo and titles at the start	Logo y títulos al principio
 Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Pone el logo de Instagram y el título de cada barra al principio de la barra, donde Instagram los mostraba antes. Actívalo si Instagram te los centra. Tiene prioridad sobre los interruptores de centrar de arriba. Reinicia Instagram para ver el cambio en Inicio.
@@ -1256,3 +1257,7 @@ Every row of Instagram's Settings and activity shows. Untick the ones you don't 
 %1$d row is left off Instagram's Settings and activity.	Se quitó %1$d fila de Configuración y actividad de Instagram.
 %1$d rows are left off Instagram's Settings and activity.	Se quitaron %1$d filas de Configuración y actividad de Instagram.
 Open Settings and activity in Instagram once, then come back here. Its rows show up in this list to untick.	Abre Configuración y actividad en Instagram una vez y luego vuelve aquí. Sus filas aparecerán en esta lista para desmarcarlas.
+Date in backup file names	Fecha en los nombres de las copias
+Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	Añade la fecha y hora actuales al exportar los ajustes. Desactivado mantiene HushGram-settings.json.
+%1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s es el código corto de la publicación. Se omite en historias y publicaciones desconocidas. Al usarlo, la plantilla también nombra las fotos.
+Videos and photos use %1$s. Unknown codes are left out.	Los videos y las fotos usan %1$s. Los códigos desconocidos se omiten.

@@ -111,7 +111,8 @@ public class ConfigurationBackupTest {
         original.edit().putString("private-session", "secret-token").commit();
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
         JSONObject values = new JSONObject(new String(ConfigurationBackup.export(), StandardCharsets.UTF_8)).getJSONObject("settings");
-        assertEquals(8, values.length());
+        assertEquals(9, values.length());
+        assertFalse(values.getJSONObject(Settings.DATE_SETTINGS_EXPORT.key).getBoolean("value"));
         assertTrue(values.getJSONObject(Settings.HIDE_ADS.key).getBoolean("value"));
         assertTrue(values.has(BaseSettings.DEBUG.key));
         assertEquals("OFF", values.getJSONObject(Settings.NAVIGATION_SETTINGS_TARGET.key).getString("value"));
@@ -148,6 +149,18 @@ public class ConfigurationBackupTest {
         assertEquals("Trip_{date}", Settings.FILENAME_TEMPLATE.savedValue());
         assertEquals("HIGHEST", original.getString(Settings.PLAYBACK_QUALITY.key, ""));
         assertTrue(ConfigurationBackup.canUndo());
+    }
+
+    @Test public void shortcodeTemplatesImportAndRoundTripWithoutAnAddedDate() throws Exception {
+        ConfigurationBackup.Result imported = ConfigurationBackup.restore(file(
+                entry(Settings.FILENAME_TEMPLATE.key, "string", "{shortcode}")));
+        assertEquals(1, imported.applied);
+        assertEquals(0, imported.skipped);
+        assertEquals("{shortcode}", Settings.FILENAME_TEMPLATE.savedValue());
+        byte[] exported = ConfigurationBackup.export();
+        Settings.FILENAME_TEMPLATE.save("Old_{date}");
+        assertEquals(0, ConfigurationBackup.restore(exported).skipped);
+        assertEquals("{shortcode}", Settings.FILENAME_TEMPLATE.savedValue());
     }
 
     @Test public void unknownAndAbsentFamilyKeysSkipWithoutChangingThemOrPause() throws Exception {

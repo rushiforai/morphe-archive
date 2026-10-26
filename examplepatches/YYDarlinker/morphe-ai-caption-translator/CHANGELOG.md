@@ -1,3 +1,10 @@
+## [1.5.8](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.7...v1.5.8) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* harden caption ownership, retries, configuration and cache recovery ([18b4b7e](https://github.com/YYDarlinker/morphe-ai-caption-translator/commit/18b4b7e98ad5e760da67b1f1f4020c4f2a30271d))
+* release AI caption translator 1.5.8 ([#8](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues/8)) ([09d5384](https://github.com/YYDarlinker/morphe-ai-caption-translator/commit/09d5384059b0962f733ec8a2ce1e411fa1a1bcde))
+
 ## [1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.6...v1.5.7) (2026-10-24)
 
 - Returning to the same video with AI captions left on now restores them automatically; no manual off/on toggle is needed.

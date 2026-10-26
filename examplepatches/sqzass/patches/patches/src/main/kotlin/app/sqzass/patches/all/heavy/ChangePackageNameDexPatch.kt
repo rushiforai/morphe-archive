@@ -48,9 +48,6 @@ private fun isPackageNameGetter(instruction: Instruction): Boolean {
         reference.returnType == "Ljava/lang/String;"
 }
 
-// ponytail: the original package is supplied via option because resource and
-// bytecode patches cannot share state; the manager UI fills it from the
-// manifest package before renaming.
 @Suppress("unused")
 val changePackageNameDexPatch = bytecodePatch(
     name = "Change package name (dex)",
@@ -65,8 +62,8 @@ val changePackageNameDexPatch = bytecodePatch(
     hookPackageNameOption()
 
     execute {
-        val oldPackage = oldPackageOption.value?.takeIf { it.isNotBlank() } ?: return@execute
-        val newPackage = dexNewPackageOption.value?.takeIf { it.isNotBlank() } ?: return@execute
+        val oldPackage = oldPackageOption.value?.takeIf { it.isNotBlank() } ?: packageMetadata.packageName
+        val newPackage = dexNewPackageOption.value?.takeIf { it.isNotBlank() } ?: newPackageOption.value?.takeIf { it.isNotBlank() } ?: return@execute
         if (rewriteDexStringsOption.value != true && hookPackageNameOption.value != true) {
             logger.info("Dex rewrite and getPackageName hook are off.")
             return@execute
@@ -84,18 +81,25 @@ val changePackageNameDexPatch = bytecodePatch(
         ) { instructions ->
             var count = 0
             if (rewriteDexStringsOption.value == true) {
-                for (index in instructions.indices) {
-                    if (instructions[index] !is ReferenceInstruction) continue
-                    val payload = constStringLoad(instructions[index]) ?: continue
+                for (index in instructions.indices.reversed()) {
+                    val instruction = instructions.getOrNull(index) ?: continue
+                    if (instruction !is ReferenceInstruction) continue
+                    val payload = constStringLoad(instruction) ?: continue
                     if (oldPackage !in payload) continue
-                    val register = (instructions[index] as? OneRegisterInstruction)?.registerA ?: continue
-                    replaceInstruction(index, "const-string v$register, \"${payload.replace(oldPackage, newPackage)}\"")
+                    val register = (instruction as? OneRegisterInstruction)?.registerA ?: continue
+                    val escaped = payload.replace(oldPackage, newPackage)
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r")
+                    replaceInstruction(index, "const-string v$register, \"$escaped\"")
                     count++
                 }
             }
             if (hookPackageNameOption.value == true) {
-                for (index in instructions.indices) {
-                    if (isPackageNameGetter(instructions[index]) &&
+                for (index in instructions.indices.reversed()) {
+                    val instruction = instructions.getOrNull(index) ?: continue
+                    if (isPackageNameGetter(instruction) &&
                         forceInvokeResult(instructions, index) { register -> "const-string v$register, \"$oldPackage\"" }
                     ) {
                         count++

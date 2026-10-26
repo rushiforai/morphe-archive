@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import argparse
 from datetime import datetime
 import os
 import re
@@ -50,8 +51,13 @@ def validate_text_files() -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('version', nargs='?', default='')
+    parser.add_argument('--mode', choices=('release', 'published'), default='release',
+                        help='published checks online metadata internally; release also matches source version')
+    args = parser.parse_args()
     validate_text_files()
-    expected = normalize_version(sys.argv[1]) if len(sys.argv) > 1 else ""
+    expected = normalize_version(args.version)
     bundle = load_json("patches-bundle.json")
     patch_list = load_json("patches-list.json")
 
@@ -80,7 +86,7 @@ def main() -> None:
 
     list_version = normalize_version(patch_list.get("version"))
     gradle = gradle_version()
-    if list_version != version or gradle != version:
+    if list_version != version or args.mode == 'release' and gradle != version:
         fail(
             "version mismatch: "
             f"bundle={version!r}, patches-list={list_version!r}, gradle={gradle!r}"
@@ -130,7 +136,7 @@ def main() -> None:
     if download_url != expected_url:
         fail(f"download_url must be {expected_url!r}; got {download_url!r}")
 
-    print(f"Morphe metadata OK: {version} @ {timestamp}")
+    print(f"Morphe metadata OK ({args.mode}): {version} @ {timestamp}")
 
 
 if __name__ == "__main__":

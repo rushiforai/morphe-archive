@@ -86,7 +86,7 @@ val commentIndentColorPatch = bytecodePatch(
         }
 
         CommentIndentDrawInvokeFingerprint.method.apply {
-            val extensionClass = CommentIndentColorPatchFingerprint.definingClass
+            val extensionClass = CommentIndentColorPatchFingerprint.method.definingClass
             val drawLineIndex =
                 CommentIndentDrawInvokeFingerprint.instructionMatches.last().index
 

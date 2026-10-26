@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.*
+import java.util.logging.Logger
 
 private const val PREVIEW_DIAG = "Lapp/morphe/extension/maps/patches/BydNativeBatteryDiagnostics;"
 private fun Instruction.pdCall() = getReference<MethodReference>()
@@ -168,8 +169,17 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
     val calculateAt = initialCode.indices.single { initialCode[it].pdCall()?.toString() == summary.toString() }
     val battery = initialCode.firstOrNull()?.pdField()
         ?: throw PatchException("Missing initial preview battery field")
-    pdGuard(initialCode.count { it.opcode == Opcode.RETURN_OBJECT } == 2 &&
-        routeArrival.pdCode().size == 13 && routeArrival.pdCode().count { it.opcode == Opcode.RETURN_OBJECT } == 1 &&
+    // 26.42 R8 casts the supplied value straight to the route (no wrapper getter, 13 -> 10 instructions).
+    val rc = routeArrival.pdCode()
+    val directRoute = rc.size == 10 && rc[3].opcode == Opcode.CHECK_CAST &&
+        rc[3].getReference<TypeReference>()?.type == route && rc[7].pdCall()?.toString() == perLeg.toString() &&
+        rc[7].invokeRegisters()?.getOrNull(1) == (rc[3] as OneRegisterInstruction).registerA &&
+        rc[8].opcode == Opcode.MOVE_RESULT_OBJECT && rc[9].opcode == Opcode.RETURN_OBJECT &&
+        (rc[8] as OneRegisterInstruction).registerA == (rc[9] as OneRegisterInstruction).registerA
+    // R8 may also merge the two initial returns into one shared return (26.42).
+    pdGuard((initialCode.count { it.opcode == Opcode.RETURN_OBJECT } == 2 ||
+        initialCode.mergedExitCount(Opcode.RETURN_OBJECT) == 2) &&
+        (rc.size == 13 || directRoute) && rc.count { it.opcode == Opcode.RETURN_OBJECT } == 1 &&
         initialCode[0].opcode == Opcode.IGET_OBJECT && battery.definingClass == initialArrival.definingClass &&
         (initialCode[0] as TwoRegisterInstruction).registerB == ip &&
         classDefBy(plan.modelField.type).fields.count { it.type == battery.type && !AccessFlags.STATIC.isSet(it.accessFlags) } == 1 &&
@@ -183,9 +193,9 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
         initialCode[initialCode.pdTarget(1)].pdField()?.type == arrival &&
         initialCode[calculateAt].opcode == Opcode.INVOKE_VIRTUAL_RANGE &&
         initialCode[calculateAt + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-        initialCode[calculateAt + 2].opcode == Opcode.RETURN_OBJECT &&
+        initialCode.exitAt(calculateAt + 2)?.opcode == Opcode.RETURN_OBJECT &&
         (initialCode[calculateAt + 1] as OneRegisterInstruction).registerA ==
-            (initialCode[calculateAt + 2] as OneRegisterInstruction).registerA,
+            (initialCode.exitAt(calculateAt + 2) as OneRegisterInstruction).registerA,
         "typed model battery/presence and original preview calculation exits", initialArrival)
     val inputs = initialCode[calculateAt].invokeRegisters()!!
     val calcOwnerAt = initialCode.indices.singleOrNull { initialCode[it].opcode == Opcode.IGET_OBJECT &&
@@ -271,7 +281,7 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
     fun sharedVisibilityFlow(method: Method): Boolean {
         if (method.implementation == null || AccessFlags.STATIC.isSet(method.accessFlags)) return false
         val code = method.pdCode()
-        if (code.map { it.opcode } != sharedVisibilityOpcodes || method.implementation!!.tryBlocks.isNotEmpty()) return false
+        if (code.exitOpcodes() != sharedVisibilityOpcodes || method.implementation!!.tryBlocks.isNotEmpty()) return false
         val owner = method.pdReceiver()
         val infoReg = (code[6] as OneRegisterInstruction).registerA
         return listOf(2, 9, 17).all { code.pdTarget(it) == 20 } &&
@@ -297,7 +307,7 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
             code[15].pdCall()?.toString() == "Ljava/lang/Boolean;->booleanValue()Z" &&
             code[15].invokeRegisters() == listOf((code[14] as OneRegisterInstruction).registerA) &&
             (code[17] as OneRegisterInstruction).registerA == (code[16] as OneRegisterInstruction).registerA &&
-            (code[19] as OneRegisterInstruction).registerA == (code[18] as OneRegisterInstruction).registerA &&
+            code.exitRegister(19) == (code[18] as OneRegisterInstruction).registerA &&
             (code[21] as OneRegisterInstruction).registerA == (code[20] as OneRegisterInstruction).registerA
     }
     val visibility = uniqueMapsHook(Fingerprint(returnType = "Z", parameters = emptyList(), custom = { method, cls ->
@@ -307,7 +317,7 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
             method.implementation!!.instructions.any { it.pdCall()?.returnType == viewApi } && sharedVisibilityFlow(method)
     }), "preview arrival slot visibility")!!
     val vc = visibility.pdCode()
-    pdGuard(sharedVisibilityFlow(visibility) && visibility.implementation!!.tryBlocks.isEmpty() && vc.map { it.opcode } == sharedVisibilityOpcodes &&
+    pdGuard(sharedVisibilityFlow(visibility) && visibility.implementation!!.tryBlocks.isEmpty() && vc.exitOpcodes() == sharedVisibilityOpcodes &&
         listOf(2, 9, 17).all { vc.pdTarget(it) == 20 } &&
         (vc[18] as NarrowLiteralInstruction).narrowLiteral == 1 &&
         (vc[20] as NarrowLiteralInstruction).narrowLiteral == 0,
@@ -329,7 +339,7 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
         vc[15].pdCall()?.toString() == "Ljava/lang/Boolean;->booleanValue()Z" &&
         (vc[17] as OneRegisterInstruction).registerA == suppressionReg &&
         listOf(owner, infoReg, layoutReg, suppressionReg).all { it <= 255 } &&
-        (vc[19] as OneRegisterInstruction).registerA == (vc[18] as OneRegisterInstruction).registerA &&
+        vc.exitRegister(19) == (vc[18] as OneRegisterInstruction).registerA &&
         (vc[21] as OneRegisterInstruction).registerA == (vc[20] as OneRegisterInstruction).registerA,
         "executed layout/arrival/suppression operands", visibility)
     val inserts = listOf(
@@ -344,7 +354,7 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
     fun simpleVisibilityFlow(method: Method): Boolean {
         if (method.implementation == null || AccessFlags.STATIC.isSet(method.accessFlags)) return false
         val code = method.pdCode()
-        if (code.map { it.opcode } != simpleVisibilityOpcodes || method.implementation!!.tryBlocks.isNotEmpty()) return false
+        if (code.exitOpcodes() != simpleVisibilityOpcodes || method.implementation!!.tryBlocks.isNotEmpty()) return false
         val owner = method.pdReceiver()
         val viewReg = (code[1] as OneRegisterInstruction).registerA
         val infoReg = (code[3] as OneRegisterInstruction).registerA
@@ -356,9 +366,9 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
             (code[6] as OneRegisterInstruction).registerA == (code[5] as OneRegisterInstruction).registerA &&
             code.pdTarget(6) == 9 && (code[7] as NarrowLiteralInstruction).narrowLiteral == 1 &&
             (code[9] as NarrowLiteralInstruction).narrowLiteral == 0 &&
-            (code[8] as OneRegisterInstruction).registerA == (code[7] as OneRegisterInstruction).registerA &&
+            code.exitRegister(8) == (code[7] as OneRegisterInstruction).registerA &&
             (code[10] as OneRegisterInstruction).registerA == (code[9] as OneRegisterInstruction).registerA &&
-            listOf(owner, viewReg, infoReg, (code[8] as OneRegisterInstruction).registerA,
+            listOf(owner, viewReg, infoReg, code.exitRegister(8),
                 (code[10] as OneRegisterInstruction).registerA).all { it <= 255 }
     }
     val simpleVisibility = uniqueMapsHook(Fingerprint(returnType = "Z", parameters = emptyList(), custom = { method, cls ->
@@ -381,15 +391,19 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
     val fc = fuelBinding.pdCode()
     val fuelAt = fc.indices.single { fc[it].opcode == Opcode.IGET_OBJECT && fc[it].pdField()?.toString() == fuelText.toString() }
     val fuelReg = (fc[fuelAt] as TwoRegisterInstruction).registerA
+    // R8 may send the null case to the binding's shared return (26.42). Every other case ends
+    // there too, so that empty-text exit cannot be probed alone; only the text exit is observed.
+    val emptyExit = if (fc.getOrNull(fuelAt - 1)?.opcode == Opcode.IF_EQZ) fc.pdTarget(fuelAt - 1) else -1
+    val sharedEmptyExit = emptyExit > fuelAt + 2
     pdGuard(fc[fuelAt - 2].opcode == Opcode.CHECK_CAST &&
         fc[fuelAt - 2].getReference<TypeReference>()?.type == fuelType &&
-        fc[fuelAt - 1].opcode == Opcode.IF_EQZ && fc.pdTarget(fuelAt - 1) == fuelAt + 2 &&
+        fc[fuelAt - 1].opcode == Opcode.IF_EQZ && (emptyExit == fuelAt + 2 || sharedEmptyExit) &&
         (fc[fuelAt - 1] as OneRegisterInstruction).registerA == (fc[fuelAt] as TwoRegisterInstruction).registerB &&
         fc[fuelAt + 1].opcode == Opcode.RETURN_OBJECT &&
         (fc[fuelAt + 1] as OneRegisterInstruction).registerA == fuelReg &&
-        fc[fuelAt + 2].opcode == Opcode.RETURN_OBJECT &&
+        fc[emptyExit].opcode == Opcode.RETURN_OBJECT &&
         fc.any { it.opcode == Opcode.CONST_STRING && it.getReference<StringReference>()?.string == "" &&
-            (it as OneRegisterInstruction).registerA == (fc[fuelAt + 2] as OneRegisterInstruction).registerA },
+            (it as OneRegisterInstruction).registerA == (fc[emptyExit] as OneRegisterInstruction).registerA },
         "fuel binding nullable branch and actual text exits", fuelBinding)
     val percentText = classDefBy(info).fields.singleOrNull { it.type == "Ljava/lang/CharSequence;" }
         ?: throw PatchException("Missing unique arrival percent text field")
@@ -406,22 +420,28 @@ internal fun BytecodePatchContext.resolveNativePreviewDiagnostics(plan: NativeBa
         bc[batteryAt - 2].pdCall()?.definingClass == viewApi && bc[batteryAt - 2].pdCall()?.returnType == info &&
         bc[batteryAt - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
         (bc[batteryAt - 1] as OneRegisterInstruction).registerA == batteryRead.registerB &&
-        bc[batteryAt + 1].opcode == Opcode.IF_NEZ && bc.pdTarget(batteryAt + 1) == batteryAt + 3 &&
+        // R8 may send the present text to the binding's shared return of the same register (26.42).
+        bc[batteryAt + 1].opcode == Opcode.IF_NEZ && (bc.pdTarget(batteryAt + 1) == batteryAt + 3 ||
+            bc[bc.pdTarget(batteryAt + 1)].let { it.opcode == Opcode.RETURN_OBJECT &&
+                (it as OneRegisterInstruction).registerA == batteryRead.registerA }) &&
         (bc[batteryAt + 1] as OneRegisterInstruction).registerA == batteryRead.registerA &&
         bc[batteryAt + 2].opcode == Opcode.CONST_STRING &&
         bc[batteryAt + 2].getReference<StringReference>()?.string == "" &&
         bc[batteryAt + 3].opcode == Opcode.RETURN_OBJECT &&
         (bc[batteryAt + 3] as OneRegisterInstruction).registerA == batteryRead.registerA,
         "existing info getter, percent read and empty fallback", batteryBinding)
-    val bindings = listOf(
+    val bindings = listOfNotNull(
         PreviewBindingProbe(fuelBinding, fuelAt + 1, "onFuelText", fuelReg, "return-object v$fuelReg", Opcode.RETURN_OBJECT),
-        PreviewBindingProbe(fuelBinding, fuelAt + 2, "onFuelText", (fc[fuelAt + 2] as OneRegisterInstruction).registerA,
+        if (sharedEmptyExit) null else PreviewBindingProbe(fuelBinding, fuelAt + 2, "onFuelText",
+            (fc[fuelAt + 2] as OneRegisterInstruction).registerA,
             "return-object v${(fc[fuelAt + 2] as OneRegisterInstruction).registerA}", Opcode.RETURN_OBJECT),
         PreviewBindingProbe(batteryBinding, batteryAt, "onBatteryTextInfo", batteryRead.registerB,
             "iget-object v${batteryRead.registerA}, v${batteryRead.registerB}, $percentText", Opcode.IGET_OBJECT),
     )
     pdGuard(bindings.all { it.register <= 255 } && batteryRead.registerA <= 15 && batteryRead.registerB <= 15,
         "content probe invoke/read register bounds", batteryBinding)
+    if (sharedEmptyExit) Logger.getLogger("app.morphe.patches.maps.BydNativeBatteryPatch").info(
+        "Preview diagnostics: fuel null case ends at the shared return of $fuelBinding; empty fuel text is not logged")
     return NativePreviewDiagnosticPlan(listOf(initialArrival, routeArrival, infoGetter, visibility, simpleVisibility, fuelBinding, batteryBinding),
         listOf(initialArrival, routeArrival), infoGetter,
         listOf(PreviewVisibilityProbe(visibility, inserts), PreviewVisibilityProbe(simpleVisibility, simpleInserts)), bindings)

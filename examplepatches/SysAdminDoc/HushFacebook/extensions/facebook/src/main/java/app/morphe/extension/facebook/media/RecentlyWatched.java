@@ -136,6 +136,8 @@ public final class RecentlyWatched {
     static volatile WatchedList listForTests;
 
     private static final Object LIST_LOCK = new Object();
+    /** Clear and recording changes retire every event captured before them. Guarded by LIST_LOCK. */
+    private static long generation;
     @Nullable
     private static WatchedList list;
 
@@ -147,6 +149,13 @@ public final class RecentlyWatched {
         return Utils.settingsReady() && Settings.RECENTLY_WATCHED.get();
     }
 
+    /** From every live recording-setting write path, including imports and preference binding. */
+    public static void recordingChanged() {
+        synchronized (LIST_LOCK) {
+            generation++;
+        }
+    }
+
     // ------------------------------------------------------------------ what the hooks hand over
 
     /**
@@ -155,7 +164,12 @@ public final class RecentlyWatched {
      */
     static void started(@Nullable Object player) {
         try {
-            if (player == null || !keeping()) return;
+            if (player == null) return;
+            final long observedGeneration;
+            synchronized (LIST_LOCK) {
+                if (!keeping()) return;
+                observedGeneration = generation;
+            }
             ResumePlayback.Facts facts = ResumePlayback.facts(player);
             if (facts == null || facts.ad || facts.gif || facts.audioOnly) return;
             String kind = facts.reel ? REEL : VIDEO;
@@ -163,7 +177,7 @@ public final class RecentlyWatched {
             int length = facts.durationMs;
             int startedAt = ResumePlayback.access.position(player);
             WeakReference<Object> held = new WeakReference<>(player);
-            timer.after(WATCHED_AFTER_MS, () -> stillPlaying(held, kind, videoId, length, startedAt));
+            timer.after(WATCHED_AFTER_MS, () -> stillPlaying(held, kind, videoId, length, startedAt, observedGeneration));
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, PLAYER_HOOK, failure);
         }
@@ -174,8 +188,12 @@ public final class RecentlyWatched {
      * or wrapped around to an earlier point the way a looping reel does. A position the patch
      * can't read counts as played on. Never throws.
      */
-    static void stillPlaying(WeakReference<Object> held, String kind, String videoId, int length, int startedAt) {
+    static void stillPlaying(WeakReference<Object> held, String kind, String videoId, int length, int startedAt,
+                             long observedGeneration) {
         try {
+            synchronized (LIST_LOCK) {
+                if (generation != observedGeneration || !keeping()) return;
+            }
             Object player = held.get();
             if (player == null || !keeping()) return;
             ResumePlayback.Facts facts = ResumePlayback.facts(player);
@@ -183,7 +201,7 @@ public final class RecentlyWatched {
             int now = ResumePlayback.access.position(player);
             boolean known = now != ResumePlayback.NOT_PATCHED_TIME && startedAt != ResumePlayback.NOT_PATCHED_TIME;
             if (known && now >= startedAt && now - startedAt < MIN_PLAYED_MS) return;
-            keep(new Entry(kind, videoId, null, null, null, System.currentTimeMillis(), Math.max(0, length)));
+            keep(new Entry(kind, videoId, null, null, null, System.currentTimeMillis(), Math.max(0, length)), observedGeneration);
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, PLAYER_HOOK, failure);
         }
@@ -195,8 +213,13 @@ public final class RecentlyWatched {
      */
     public static void storyViewed(@Nullable String storyId, @Nullable String bucketId, @Nullable Object card) {
         try {
-            if (storyId == null || storyId.isEmpty() || bucketId == null || bucketId.isEmpty() || !keeping()) return;
-            keep(new Entry(STORY, storyId, posterOf(card), null, bucketId, System.currentTimeMillis(), 0));
+            if (storyId == null || storyId.isEmpty() || bucketId == null || bucketId.isEmpty()) return;
+            final long observedGeneration;
+            synchronized (LIST_LOCK) {
+                if (!keeping()) return;
+                observedGeneration = generation;
+            }
+            keep(new Entry(STORY, storyId, posterOf(card), null, bucketId, System.currentTimeMillis(), 0), observedGeneration);
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, STORY_HOOK, failure);
         }
@@ -214,12 +237,16 @@ public final class RecentlyWatched {
         }
     }
 
-    private static void keep(Entry entry) {
+    private static void keep(Entry entry, long observedGeneration) {
         writer.execute(() -> {
             try {
-                WatchedList kept = list();
-                if (kept == null) return;
-                boolean added = kept.add(entry);
+                final boolean added;
+                synchronized (LIST_LOCK) {
+                    if (generation != observedGeneration || !keeping()) return;
+                    WatchedList kept = list();
+                    if (kept == null) return;
+                    added = kept.add(entry);
+                }
                 HookStatus.counted(FAMILY, KEPT);
                 Logger.printDebug(() -> "Recently watched: " + (added ? "added a " : "moved up a ") + entry.kind);
             } catch (Throwable failure) {
@@ -238,8 +265,11 @@ public final class RecentlyWatched {
 
     /** Forgets every entry. */
     public static void clear() {
-        WatchedList kept = list();
-        if (kept != null) kept.clear();
+        synchronized (LIST_LOCK) {
+            generation++;
+            WatchedList kept = list();
+            if (kept != null) kept.clear();
+        }
         Logger.printDebug(() -> "Recently watched: cleared");
     }
 
@@ -265,6 +295,7 @@ public final class RecentlyWatched {
     /** Puts the app's own timer, writer and list back. */
     static void forget() {
         synchronized (LIST_LOCK) {
+            generation++;
             list = null;
         }
         listForTests = null;

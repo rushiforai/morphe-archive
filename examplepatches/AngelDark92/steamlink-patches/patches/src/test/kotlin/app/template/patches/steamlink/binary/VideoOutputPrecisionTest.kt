@@ -347,7 +347,7 @@ class VideoOutputPrecisionTest {
 
     @Test
     fun `oled patched bytes pass the high-resolution retired hook guard on every layout`() {
-        // The recommended set executes xrGalaxyXrHighResolutionPatch and oledCalibrationPatch
+        // The recommended set executes alpha0HighResolutionTriggerPatch and oledCalibrationPatch
         // together. Its only interaction with libvrlink_scene.so is this read-only guard, so the
         // OLED mutation (shader + format sites) must never trip it, in any option combination.
         val stockText = "ordinary guarded scene mutation".toByteArray()

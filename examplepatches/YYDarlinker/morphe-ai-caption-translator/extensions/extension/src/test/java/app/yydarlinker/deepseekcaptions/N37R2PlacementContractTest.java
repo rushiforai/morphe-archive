@@ -18,7 +18,7 @@ public class N37R2PlacementContractTest {
  @After public void done(){h.done();CaptionPlayerAuthority.resetForTests();}
  void layout(){h.awaitPreparedCaption();host.measure(1073743104,1073742824);host.layout(0,0,1280,1000);host.getViewTreeObserver().dispatchOnPreDraw();host.measure(1073743104,1073742824);host.layout(0,0,1280,1000);}
  void show(String value,String lang,String id){CaptionOverlay.showEvent(value,()->true,id,1000,61000,2000,CaptionLanguageContext.explicit("en",lang).renderSpec);layout();}
- void center()throws Exception{FrameLayout a=h.anchor();assertTrue(Math.abs(a.getLeft()+a.getTranslationX()+a.getWidth()/2f-host.getScrollX()-N39UiGeometryFixture.bounds.exactCenterX())<=1);}
+ void center()throws Exception{FrameLayout a=h.anchor();assertTrue(Math.abs(a.getLeft()+a.getTranslationX()+a.getWidth()/2f-host.getScrollX()-(N39UiGeometryFixture.shorts?(host.getPaddingLeft()+host.getWidth()-host.getPaddingRight())/2f:N39UiGeometryFixture.bounds.exactCenterX()))<=1);}
  @Test public void exactHalfPixelRoundingAndOffCenterRectangle(){assertEquals(74,CaptionHorizontalPlacement.physicalLeft(new Rect(71,0,672,300),596));assertEquals(71,CaptionHorizontalPlacement.physicalLeft(new Rect(71,0,672,300),601));}
  @Test public void paddingScrollLogicalMarginsAndStaleTranslationAreReplaced()throws Exception{
   show("Short caption","en","old");FrameLayout a=h.anchor();FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)a.getLayoutParams();p.setMarginStart(201);p.setMarginEnd(143);p.gravity=Gravity.RIGHT|Gravity.TOP;p.rightMargin=101;a.setLayoutParams(p);a.setTranslationX(137);a.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);host.setPadding(17,0,31,0);host.scrollTo(9,0);

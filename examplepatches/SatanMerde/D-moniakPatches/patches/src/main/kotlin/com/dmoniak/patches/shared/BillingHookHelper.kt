@@ -110,6 +110,38 @@ object BillingHookHelper {
                     }
                 }
 
+                // 4b. Hook BillingClient.startConnection(BillingClientStateListener) -> immediately fire onBillingSetupFinished(OK)
+                if (isBillingSdk && !isStatic && mName == "startConnection" && retType == "V" && pTypes.size == 1 &&
+                    pTypes[0].toString() == "Lcom/android/billingclient/api/BillingClientStateListener;"
+                ) {
+                    try {
+                        replaceMethod(
+                            method = method,
+                            registerCount = 4,
+                            smaliCode = """
+                            if-eqz p1, :cond_null
+                            :try_start
+                            invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
+                            move-result-object v0
+                            const/4 v1, 0x0
+                            invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
+                            move-result-object v0
+                            invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
+                            move-result-object v0
+                            invoke-interface {p1, v0}, Lcom/android/billingclient/api/BillingClientStateListener;->onBillingSetupFinished(Lcom/android/billingclient/api/BillingResult;)V
+                            :try_end
+                            .catch Ljava/lang/Throwable; {:try_start .. :try_end} :cond_null
+                            :cond_null
+                            return-void
+                            """.trimIndent()
+                        )
+                        hookedPoints++
+                        logger.info("[$targetName Billing] Hooked ${classDef.type}->startConnection -> onBillingSetupFinished(OK)")
+                    } catch (e: Exception) {
+                        logger.fine("[$targetName Billing] Failed startConnection hook: ${e.message}")
+                    }
+                }
+
                 // 5. Local billing manager purchase checks (isPurchased, isSubscribed, hasPurchased)
                 if (isLocalBilling && !isStatic && retType == "Z" && (
                     mNameLower == "ispurchased" ||

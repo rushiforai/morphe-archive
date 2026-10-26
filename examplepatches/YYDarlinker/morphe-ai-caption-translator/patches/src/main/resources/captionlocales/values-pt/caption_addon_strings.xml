@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"Carregando diagnóstico…"</string>
     <string name="cap_planner_model" formatted="false">"Modelo de preparação do significado de origem (opcional)"</string>
     <string name="cap_planner_model_hint" formatted="false">"Deixe em branco para usar o modelo de tradução. Usa a mesma URL da API e chave; não seleciona outro modelo automaticamente."</string>
+    <string name="cap_config_unreadable" formatted="false">"Não foi possível ler a configuração salva. Verifique os campos afetados; nenhum dado foi alterado."</string>
+    <string name="cap_config_index_recovery" formatted="false">"Não foi possível ler a lista de perfis. Nenhum perfil foi alterado. Tente ler novamente ou volte. A recuperação exige um backup válido das configurações de perfis deste aplicativo anterior ao dano; esta tela não pode reconstruir a lista."</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"Campo salvo; falha na sincronização. Toque aqui para tentar sincronizar novamente."</string>
+    <string name="cap_config_save_uncertain" formatted="false">"Falha ao salvar ou confirmação indisponível; verifique o valor atual. O rascunho foi mantido. %1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"A operação falhou ou o resultado não pôde ser confirmado. Os dados podem ter mudado; reabra as configurações para verificar."</string>
+    <string name="cap_config_origin_recovery" formatted="false">"O endereço da API da chave original é desconhecido; a configuração não mudou. Restaure um backup válido anterior ao dano ou descarte esta edição e apague a chave explicitamente antes de configurar novamente."</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG é uma categoria histórica de contagem para falhas HTTP e filtragem de conteúdo. Consulte reason e os fatos registrados de parada, filtro e espera; fatos ausentes são desconhecidos. Um lote lógico pode admitir várias tentativas HTTP. A contagem não confirma recebimento pelo servidor nem cobrança. Respostas, qualidade e cache são contados separadamente. A categoria inclui 429/503 e, por si só, não indica erro de configuração nem parada permanente."</string>
 </resources>

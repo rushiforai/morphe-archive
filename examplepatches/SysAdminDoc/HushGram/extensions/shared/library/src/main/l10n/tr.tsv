@@ -164,12 +164,12 @@ Choose a folder name under Movies and Pictures. Invalid characters become unders
 Save	Kaydet
 Folder name	Klasör adı
 Folder set to %1$s.	Klasör %1$s olarak ayarlandı.
-Video file name	Video dosya adı
+Download file name	İndirme dosyası adı
 %1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s kaydetme tarihine ve saatine, %2$s videonun Instagram'daki numarasına, %3$s paylaşan kişinin adına, %4$s ise paylaşıldığı güne dönüşür. Kaydederken bilinmeyenler dışarıda bırakılır ve bunların hiçbirini içermeyen bir ada tarih eklenir. Ad klasörde zaten varsa sonuna kaydetme saati eklenir. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %5$s adını kullanmak için boş bırak.
 File name	Dosya adı
 File name set to %1$s.	Dosya adı %1$s olarak ayarlandı.
 Videos go to %1$s and photos to %2$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne kaydedilir.
-Example without post details	Gönderi ayrıntıları olmadan örnek
+Example file name	Örnek dosya adı
 Cancel saving this video	Bu videonun kaydedilmesini iptal et
 Cancel saving this photo	Bu fotoğrafın kaydedilmesini iptal et
 Download on reels	Reels'te indir
@@ -477,6 +477,7 @@ On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider s
 Full size covers	Tam boyutlu kapaklar
 Reel covers and grid pictures come at full size, so Download cover saves a picked cover at full size too. Grids use a lot more data. Restart Instagram to see the change.	Reels kapakları ve ızgara resimleri tam boyutta gelir, böylece Kapağı indir seçilen kapağı da tam boyutta kaydeder. Izgaralar çok daha fazla veri kullanır. Değişikliği görmek için Instagram'ı yeniden başlat.
 Stop swiping between tabs	Sekmeler arasında kaydırmayı durdur
+%d notification	%d bildirim
 %d notifications	%d bildirim
 1 hour	1 saat
 1 minute	1 dakika
@@ -1055,7 +1056,7 @@ Privacy	Gizlilik
 # context: a Quick setups choice that puts every switch back the way it started
 Back to defaults	Varsayılanlara dön
 Hides ads, suggested accounts and posts, surveys and promotions.	Reklamları, önerilen hesapları ve gönderileri, anketleri ve tanıtımları gizler.
-Hides your seen receipts, typing and active status. Allows screenshots and stops link tracking and usage reports.	Görüldü bilgini, yazıyor göstergesini ve etkinlik durumunu gizler. Ekran görüntülerine izin verir, bağlantı takibini ve kullanım raporlarını durdurur.
+Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	Görüldü bilgini, yazıyor göstergesini ve etkinlik durumunu gizler. Ekran görüntülerine izin verir ve paylaşılan bağlantıları temizler. Analiz verilerini yükleme alarmını durdurur.
 Puts every switch back the way it started. Your locks stay as they are.	Tüm anahtarları başlangıçtaki hâline döndürür. Kilitlerin olduğu gibi kalır.
 # context: toast after a Quick setups choice changed exactly one switch
 Changed %1$d setting	%1$d ayar değiştirildi
@@ -1235,14 +1236,14 @@ Instagram's own. Pick another to change the icon on your home screen and in the 
 the home screen icon you picked	seçtiğin ana ekran simgesi
 # context: Your fonts in story text switch under Stories and the Your story fonts row and dialog under it; the fonts are .ttf or .otf files picked from the phone, shown in Instagram's story text editor after its own
 Your fonts in story text	Hikaye metninde kendi yazı tiplerin
-Adds the fonts below to the story text editor, after Instagram's own fonts, which all stay. Pick one there like any other font.	Aşağıdaki yazı tiplerini hikaye metin düzenleyicisine, Instagram'ın kendi yazı tiplerinden sonra ekler. Onların hepsi yerinde kalır. Orada diğer yazı tipleri gibi birini seç.
+Adds the fonts below to the story text editor alongside Instagram's own fonts, which all stay. Pick one there like any other font.	Aşağıdaki yazı tiplerini hikaye metin düzenleyicisine Instagram'ın kendi yazı tipleriyle birlikte ekler. Onların hepsi yerinde kalır. Orada diğer yazı tipleri gibi birini seç.
 Your story fonts	Hikaye yazı tiplerin
 Add .ttf or .otf files from your phone. Uncheck one to take it out.	Telefonundan .ttf veya .otf dosyaları ekle. Çıkarmak için işaretini kaldır.
-No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor, after Instagram's fonts.	Henüz yazı tipi eklenmedi. Bir .ttf veya .otf dosyası ekle, hikaye metin düzenleyicisinde Instagram'ın yazı tiplerinden sonra görünür.
+No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor alongside Instagram's fonts.	Henüz yazı tipi eklenmedi. Bir .ttf veya .otf dosyası ekle, hikaye metin düzenleyicisinde Instagram'ın yazı tipleriyle birlikte görünür.
 Add a font file	Yazı tipi dosyası ekle
 Removed from your story fonts	Hikaye yazı tiplerinden çıkarıldı
 That file isn't a font HushGram can use. Nothing was added.	Bu dosya HushGram'ın kullanabileceği bir yazı tipi değil. Hiçbir şey eklenmedi.
-Added %1$s. Pick it in the story text editor, after Instagram's fonts.	%1$s eklendi. Hikaye metin düzenleyicisinde Instagram'ın yazı tiplerinden sonra onu seç.
+Added %1$s. Pick it in the story text editor alongside Instagram's fonts.	%1$s eklendi. Hikaye metin düzenleyicisinde Instagram'ın yazı tipleriyle birlikte onu seç.
 # context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
 Logo and titles at the start	Logo ve başlıklar başta
 Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Instagram logosunu ve her çubuğun başlığını, Instagram'ın eskiden gösterdiği gibi çubuğun başına koyar. Instagram bunları senin için ortalıyorsa aç. Yukarıdaki ortalama anahtarlarından önce gelir. Değişikliği Ana sayfada görmek için Instagram'ı yeniden başlat.
@@ -1256,3 +1257,7 @@ Every row of Instagram's Settings and activity shows. Untick the ones you don't 
 %1$d row is left off Instagram's Settings and activity.	Instagram'ın Ayarlar ve hareketler ekranından %1$d satır kaldırıldı.
 %1$d rows are left off Instagram's Settings and activity.	Instagram'ın Ayarlar ve hareketler ekranından %1$d satır kaldırıldı.
 Open Settings and activity in Instagram once, then come back here. Its rows show up in this list to untick.	Instagram'da Ayarlar ve hareketler ekranını bir kez aç, sonra buraya dön. O ekranın satırları işaretini kaldırman için bu listede görünür.
+Date in backup file names	Yedek dosyası adlarında tarih
+Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	Ayarları dışa aktarırken geçerli tarih ve saati ekler. Kapalıyken HushGram-settings.json korunur.
+%1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s gönderinin kısa kodudur. Hikâyelerde ve bilinmeyen gönderilerde boş bırakılır. Bu alan kullanıldığında şablon fotoğrafları da adlandırır.
+Videos and photos use %1$s. Unknown codes are left out.	Videolar ve fotoğraflar %1$s kullanır. Bilinmeyen kodlar atlanır.

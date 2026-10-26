@@ -51,7 +51,7 @@ internal const val SAVE_PHOTO_ACTION = "newSavePhotoAction"
 internal val CAN_VIEWER_DOWNLOAD = "can_viewer_download".hashCode()
 
 private const val TREE = "Lcom/facebook/graphservice/tree/TreeJNI;"
-private const val VIDEO_TYPE = "Video"
+internal const val VIDEO_TYPE = "Video"
 
 /** How far past the `if-eqz` the "Video" test may sit. Every build has it three instructions on. */
 private const val VIDEO_TEST_REACH = 5

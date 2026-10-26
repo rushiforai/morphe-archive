@@ -85,3 +85,15 @@ tasks.register<JavaExec>("auditComposition") {
     maxHeapSize="4G"
     providers.gradleProperty("composition.apk").orNull?.let { args(it) }
 }
+
+// Opt-in resource contracts against the settings patch loaded from the specified frozen MPP.
+tasks.register<JavaExec>("verifyCaptionSettingsResources") {
+    dependsOn(tasks.named("testClasses"))
+    workingDir = rootProject.projectDir
+    classpath = sourceSets["test"].runtimeClasspath - sourceSets["main"].output
+    mainClass.set("validation.CaptionSettingsResourceTest")
+    maxHeapSize = "2G"
+    listOf("input", "addon", "output", "expect").forEach { key ->
+        providers.gradleProperty("captionResources.$key").orNull?.let { args("--$key", it) }
+    }
+}

@@ -85,7 +85,7 @@ private val manifestPatch = resourcePatch {
 @Suppress("unused")
 val googleMapsMicroGPatch = bytecodePatch(
     name = "Google Maps for MicroG-RE",
-    description = "Connects supported Google Maps builds to MicroG-RE 7.2.1, skips the uncertified-device screen, and prefers synthesized navigation speech with early Google TTS startup and the existing audio fallback.",
+    description = "Connects supported Google Maps builds to MicroG-RE 7.2.2, skips the uncertified-device screen, avoids a crash when a location-settings dialog cannot open, and prefers synthesized navigation speech with early Google TTS startup and the existing audio fallback.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -101,6 +101,9 @@ val googleMapsMicroGPatch = bytecodePatch(
         patchBydNavigationAudio()
         patchNavigationTts()
         patchDeviceComplianceCheck()
+        patchGmsResolutionStart()
+        patchMapsIdentityHeaders()
+        patchMapsSignatureSpoof()
         injectExtensionContext()
         injectGmsCoreCheck()
         injectNavigationTtsWarmup()

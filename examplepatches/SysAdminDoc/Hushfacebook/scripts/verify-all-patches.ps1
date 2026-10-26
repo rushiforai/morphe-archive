@@ -195,9 +195,9 @@ $verdict = @{ ExitCode = 1 }
 $keepStamp = $null
 if ($KeepIn) {
     $keepStamp = [ordered]@{
-        # 2: the stamp also names the kept outputs by SHA-256 (patchedSha256, resultSha256 and,
-        # for a merge, mergedSha256). A receipt reads no stamp without them.
-        schema           = 2
+        # 3: exact output hashes and the fingerprint validation mode belong to this run.
+        schema           = 3
+        validated        = $true
         bundleSha256     = Get-Sha256Hex -Path $Bundle
         apkSha256        = Get-Sha256Hex -Path $Apk
         patchListSha256  = Get-Sha256Hex -Path $PatchList
@@ -221,7 +221,7 @@ try {
         if ($patchInput -eq $mergedApk) { Write-Host "[verify] merged $(Split-Path -Leaf $Apk) into one APK for the CLI" }
         $enable = @()
         foreach ($name in $names) { $enable += '-e'; $enable += $name }
-        $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+        $arguments = @('patch', '--validate', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
             '-o', $out, '-t', $temp, '-r', $result)
         if ($forced) { $arguments += '-f' }
         $arguments = $arguments + $enable + @($patchInput)
@@ -241,7 +241,7 @@ try {
         # the build lacks there, and still applies.
         $cliOutput | ForEach-Object {
             $line = [string]$_
-            if ($line -match 'SEVERE|ERROR|WARNING|Exception|result saved|Saved to') { Write-Host "[verify] $line" }
+            if ($line -match 'SEVERE|ERROR|WARNING|Exception|result saved|Saved to|Fingerprint took \d+ ms to resolve:') { Write-Host "[verify] $line" }
         }
 
         $report = $null

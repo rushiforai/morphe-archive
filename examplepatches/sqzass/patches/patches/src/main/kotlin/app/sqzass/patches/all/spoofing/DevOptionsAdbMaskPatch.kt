@@ -22,8 +22,6 @@ private val SYSTEM_PROPERTY_RESULTS = mapOf(
     "service.adb.root" to "0",
 )
 
-// ponytail: reflection-based SystemProperties.get and Settings reads through
-// helper wrappers are missed; upgrade path is hooking Method.invoke call sites.
 private fun isSettingsRead(instruction: Instruction): Boolean {
     val reference = methodReferenceOf(instruction) ?: return false
     return reference.definingClass.startsWith("Landroid/provider/Settings$") &&
@@ -121,7 +119,7 @@ val devOptionsAdbMaskPatch = bytecodePatch(
                         instructions,
                         { constStringLoad(it) == key },
                         ::isSystemPropertiesGet,
-                    )) {
+                    ).sortedDescending()) {
                         if (forceInvokeResult(instructions, index) { register ->
                                 "const-string v$register, \"$result\""
                             }

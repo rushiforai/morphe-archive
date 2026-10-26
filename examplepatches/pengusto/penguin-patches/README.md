@@ -10,11 +10,11 @@
 
 Read a calendar invitation without wading through HTML. Keep a nested favorite pointing to the folder you renamed. See the cover embedded in the track that's actually playing.
 
-Penguin Patches is a personal collection of focused Android patches, compatible with Morphe Manager. It is for Android users comfortable patching an original APK and managing backups and signing keys. The current catalogue targets Fossify apps, Kvaesitso, Tasks.org and Feeder. Independent project; not affiliated with Morphe or Fossify.
+Penguin Patches is a personal collection of focused Android patches, compatible with Morphe Manager. It is for Android users comfortable patching an original APK and managing backups and signing keys. The current catalogue targets Fossify apps, Kvaesitso, Tasks.org, Feeder and Infinity+ for Reddit. Independent project; not affiliated with Morphe, Fossify, Reddit or Infinity.
 
-**Pre-release software:** [v1.0.0-dev.7](https://github.com/pengusto/penguin-patches/releases/tag/v1.0.0-dev.7) contains 12 patches for nine apps. Verification is documented on isolated Android 15 ARM64 emulators; physical devices and on-device Morphe Manager execution remain unverified. This README describes the published pre-release catalogue from `dev`. Patch sources on `main` still reflect the earlier reviewed snapshot; use `dev` to build the current collection.
+**Early-stage software:** The [generated catalogue](#generated-patch-catalogue) lists the current release and every exact tested app version. Verification is documented on isolated Android 15 ARM64 emulators; physical devices and on-device Morphe Manager execution remain unverified. Stable releases come from `main`; `dev` carries pre-releases of upcoming changes.
 
-[Add to Morphe](https://morphe.software/add-source?github=pengusto/penguin-patches) · [Patch details](#the-fixes) · [Build from source](#development) · [Verification evidence](https://github.com/pengusto/penguin-patches/blob/dev/docs/VERIFICATION.md)
+[Add to Morphe](https://morphe.software/add-source?github=pengusto/penguin-patches) · [Patch details](#the-fixes) · [Build from source](#development) · [Verification evidence](docs/VERIFICATION.md)
 
 ## The fixes
 
@@ -22,16 +22,17 @@ Use only the exact original APK version listed here. Each linked guide records t
 
 | Original app | What changes | Guide |
 | --- | --- | --- |
-| Fossify Calendar **1.12.0** | Readable HTML descriptions in the editor and day/agenda lists, with explicit source editing | [Calendar](https://github.com/pengusto/penguin-patches/blob/dev/docs/CALENDAR.md) |
-| Fossify Messages **1.10.1** | Three selectable fixes for read notifications and foreground/background conversation handling | [Messages](https://github.com/pengusto/penguin-patches/blob/dev/docs/MESSAGES.md) |
-| Fossify File Manager **1.6.2** | Keep nested favorite paths consistent with folder renames and selected deletion cleanup | [File Manager](https://github.com/pengusto/penguin-patches/blob/dev/docs/FILE_MANAGER.md) |
-| Fossify Contacts **1.6.0** | Show emails and notes from merged contacts without rewriting source records | [Contacts](https://github.com/pengusto/penguin-patches/blob/dev/docs/CONTACTS.md) |
-| Fossify Music Player **1.8.4** | Prefer each track's embedded cover, retaining the original artwork fallback | [Music Player](https://github.com/pengusto/penguin-patches/blob/dev/docs/MUSIC.md) |
-| Kvaesitso **1.41.0** | Restore widget editing from the search menu when the Edit button is hidden | [Kvaesitso](https://github.com/pengusto/penguin-patches/blob/dev/docs/KVAESITSO.md) |
-| Fossify Clock **1.6.0** | Choose 1–1440 minutes of advance notice, with independent notifications and skip actions for each alarm | [Clock](https://github.com/pengusto/penguin-patches/blob/dev/docs/CLOCK.md) |
-| Fossify Calendar **1.12.0** | Separate all-day reminder defaults and retain manual draft values per event mode | [All-day reminders](https://github.com/pengusto/penguin-patches/blob/dev/docs/CALENDAR_REMINDERS.md) |
-| Tasks.org **15.13**, project GitHub F-Droid APK | Open the immediate parent task, with Save / Discard / Cancel for edited drafts | [Tasks.org](https://github.com/pengusto/penguin-patches/blob/dev/docs/TASKS.md) |
-| Feeder **2.25.0**, project GitHub F-Droid APK | Open article images in a separate viewer with pinch, pan and double-tap; choose image or link for linked images | [Feeder](https://github.com/pengusto/penguin-patches/blob/dev/docs/FEEDER.md) |
+| Fossify Calendar **1.12.0** | Readable HTML descriptions in the editor and day/agenda lists, with explicit source editing | [Calendar](docs/CALENDAR.md) |
+| Fossify Messages **1.10.1** | Three selectable fixes for read notifications and foreground/background conversation handling | [Messages](docs/MESSAGES.md) |
+| Fossify File Manager **1.6.2** | Keep nested favorite paths consistent with folder renames and selected deletion cleanup | [File Manager](docs/FILE_MANAGER.md) |
+| Fossify Contacts **1.6.0** | Show emails and notes from merged contacts without rewriting source records | [Contacts](docs/CONTACTS.md) |
+| Fossify Music Player **1.8.4** | Prefer each track's embedded cover, retaining the original artwork fallback | [Music Player](docs/MUSIC.md) |
+| Kvaesitso **1.41.0** | Restore widget editing from the search menu when the Edit button is hidden | [Kvaesitso](docs/KVAESITSO.md) |
+| Fossify Clock **1.6.0** | Choose 1–1440 minutes of advance notice, with independent notifications and skip actions for each alarm | [Clock](docs/CLOCK.md) |
+| Fossify Calendar **1.12.0** | Separate all-day reminder defaults and retain manual draft values per event mode | [All-day reminders](docs/CALENDAR_REMINDERS.md) |
+| Tasks.org **15.13**, project GitHub F-Droid APK | Open the immediate parent task, with Save / Discard / Cancel for edited drafts | [Tasks.org](docs/TASKS.md) |
+| Feeder **2.25.0**, project GitHub F-Droid APK | Open article images in a separate viewer with pinch, pan and double-tap; choose image or link for linked images | [Feeder](docs/FEEDER.md) |
+| Infinity+ **8.3.4** | Sign in with your own Reddit OAuth client, without the subscription gate | [Infinity+](docs/INFINITY.md) |
 
 ### Readable Calendar descriptions
 
@@ -47,7 +48,7 @@ Keep an incoming message unread when its conversation Activity is in the backgro
 
 ### Avoid notifications for visible conversations
 
-Check the visible conversation before posting a notification. Other conversations and paused Activities retain the original notification path. The three Messages patches can be selected separately; see the [Messages guide](https://github.com/pengusto/penguin-patches/blob/dev/docs/MESSAGES.md) for lifecycle and provider-write limits.
+Check the visible conversation before posting a notification. Other conversations and paused Activities retain the original notification path. The three Messages patches can be selected separately; see the [Messages guide](docs/MESSAGES.md) for lifecycle and provider-write limits.
 
 ### Keep favorites consistent after folder rename or removal
 
@@ -66,29 +67,33 @@ Read the current file's embedded artwork before shared album art. MP3 and Opus f
 
 ### Restore widget editing from the search menu
 
-When Kvaesitso's Edit button is hidden, choose **Edit widgets** from the search-bar menu to open its existing editor. The current widget page takes priority. Visible Edit buttons retain the original menu, and absent widget destinations do not gain an unusable action. See the [Kvaesitso guide](https://github.com/pengusto/penguin-patches/blob/dev/docs/KVAESITSO.md).
+When Kvaesitso's Edit button is hidden, choose **Edit widgets** from the search-bar menu to open its existing editor. The current widget page takes priority. Visible Edit buttons retain the original menu, and absent widget destinations do not gain an unusable action. See the [Kvaesitso guide](docs/KVAESITSO.md).
 
 ### Choose upcoming alarm notification time
 
-Set **Upcoming alarm notice (minutes)** in Morphe before patching: **1–1440**, default **120**. Each Clock alarm keeps its own notice, timestamp and skip action; skipping one occurrence retains other alarms. Native ringing and snooze remain in use. The option is configured at patch time; see [Clock behavior and limits](https://github.com/pengusto/penguin-patches/blob/dev/docs/CLOCK.md).
+Set **Upcoming alarm notice (minutes)** in Morphe before patching: **1–1440**, default **120**. Each Clock alarm keeps its own notice, timestamp and skip action; skipping one occurrence retains other alarms. Native ringing and snooze remain in use. The option is configured at patch time; see [Clock behavior and limits](docs/CLOCK.md).
 
 ### Separate all-day reminder defaults
 
-In Calendar's **Settings → New events**, disable **Use the last event's reminders as the default for new events** to expose three separate all-day defaults. Fresh all-day drafts initially use **12 hours before**; timed defaults retain their values. Manual reminders survive switching draft modes and restoration. Existing events retain their reminders. Both Calendar patches can be selected together; see [all-day reminder settings](https://github.com/pengusto/penguin-patches/blob/dev/docs/CALENDAR_REMINDERS.md).
+In Calendar's **Settings → New events**, disable **Use the last event's reminders as the default for new events** to expose three separate all-day defaults. Fresh all-day drafts initially use **12 hours before**; timed defaults retain their values. Manual reminders survive switching draft modes and restoration. Existing events retain their reminders. Both Calendar patches can be selected together; see [all-day reminder settings](docs/CALENDAR_REMINDERS.md).
 
 ### Navigate to the parent task
 
-Tasks.org's editor gains an up-arrow for an existing task with a valid parent. Changed drafts offer **Save / Discard / Cancel** before navigation, using the native save path. The current list/filter and native Back behavior are retained. See the [Tasks.org guide](https://github.com/pengusto/penguin-patches/blob/dev/docs/TASKS.md).
+Tasks.org's editor gains an up-arrow for an existing task with a valid parent. Changed drafts offer **Save / Discard / Cancel** before navigation, using the native save path. The current list/filter and native Back behavior are retained. See the [Tasks.org guide](docs/TASKS.md).
 
 ### Zoom article images
 
-Tap a Feeder article-body image or large reader header image to open a separate viewer. Pinch, drag and double-tap to inspect details, or use the zoom/reset buttons. Linked images offer **View image / Open link**. The patch reuses Feeder's image loader, cache and network policy. Only the project's GitHub F-Droid-flavor **2.25.0** APK is tested; Play and independently built F-Droid.org APKs are excluded. See [Feeder provenance, screenshots and test limits](https://github.com/pengusto/penguin-patches/blob/dev/docs/FEEDER.md).
+Tap a Feeder article-body image or large reader header image to open a separate viewer. Pinch, drag and double-tap to inspect details, or use the zoom/reset buttons. Linked images offer **View image / Open link**. The patch reuses Feeder's image loader, cache and network policy. Only the project's GitHub F-Droid-flavor **2.25.0** APK is tested; Play and independently built F-Droid.org APKs are excluded. See [Feeder provenance, screenshots and test limits](docs/FEEDER.md).
+
+### Configure custom OAuth for Infinity+
+
+Opt-in and standalone: apply it alone to the original Infinity+ 8.3.4 APK. Supply your Reddit client ID, its registered redirect URI and an API user-agent; login and token exchange then use them consistently and the subscription gate stays closed. Signing stays with your Morphe key, so keep that key for updates. Emulator login is verified; Morphe Manager on a phone and long-term token renewal are not yet. See the [Infinity+ guide](docs/INFINITY.md).
 
 ## Patch an app
 
 1. Read the app's guide above and verify its **original official APK version and SHA-256**. Use the official upstream release asset specified in the guide, not a Pengusto source-fork build. Do not force an unknown version.
 2. **Verify backups before migration.** These patches retain the official package IDs. A patched APK signed with a different certificate cannot update an official installation in place. Each guide explains its data and migration risks; do not uninstall an existing app merely to bypass a signature conflict.
-3. [Add Penguin Patches to Morphe](https://morphe.software/add-source?github=pengusto/penguin-patches), or scan the source QR code below. Enable pre-releases for this source in Morphe Manager.
+3. [Add Penguin Patches to Morphe](https://morphe.software/add-source?github=pengusto/penguin-patches), or scan the source QR code below. Morphe Manager then follows stable releases; enable pre-releases for this source only to try changes from `dev` early.
 4. Select the matching original APK and the desired patches, then patch and sign with Morphe Manager. Back up the Morphe signing key and retain it for future updates. Do not install emulator test APKs.
 5. Check the patched behavior with disposable data before relying on it. Emulator evidence does not establish phone, account-sync or carrier acceptance.
 
@@ -106,7 +111,7 @@ cd penguin-patches
 ./gradlew :patches:buildAndroid
 ```
 
-Patch declarations live in `patches/`; Android runtime helpers live in `extensions/extension/`; app-specific build modules keep their packaged runtimes isolated. Follow [AGENTS.md](https://github.com/pengusto/penguin-patches/blob/dev/AGENTS.md), work from `dev`, and submit changes for review. Native regression instructions are in [tests/README.md](https://github.com/pengusto/penguin-patches/blob/dev/tests/README.md); they require an isolated emulator and disposable signing certificate. A successful build alone does not establish app compatibility.
+Patch declarations live in `patches/`; Android runtime helpers live in `extensions/extension/`; app-specific build modules keep their packaged runtimes isolated. Follow [AGENTS.md](AGENTS.md), work from `dev`, and submit changes for review. Native regression instructions are in [tests/README.md](tests/README.md); they require an isolated emulator and disposable signing certificate. A successful build alone does not establish app compatibility.
 
 The template's release workflow is **manual only**. Patch metadata, the catalogue below and changelogs are generated by the release pipeline; do not edit them manually.
 
@@ -116,7 +121,7 @@ The app guides distinguish patched official APK checks from separately tested so
 
 Physical-device acceptance, mobile Morphe Manager execution and app-specific sync, storage or carrier scenarios remain open as described in each guide. Only the declared APK versions are supported.
 
-For a reproducible problem, [open an issue](https://github.com/pengusto/penguin-patches/issues/new/choose) with the original app version, selected patches, Android/Morphe versions and minimal steps. Remove personal contacts, messages, calendar data and signing material from reports.
+For a reproducible problem, [open an issue](https://github.com/pengusto/penguin-patches/issues/new/choose) with the original app version, selected patches, Android/Morphe versions and minimal steps. Remove personal contacts, messages, calendar data, Reddit account names, OAuth codes or tokens and signing material from reports.
 
 ## License and provenance
 
@@ -126,10 +131,10 @@ Repository code is distributed under [GPL-3.0](LICENSE), with the additional pro
 
 [NOTICE](NOTICE) and the app guides credit upstream app source behavior, issue authors and reference implementations. Preserve those credits when redistributing derived work. The repository license does not transfer ownership of upstream app or Morphe branding, third-party app assets or APKs; original APKs come from their respective upstream releases. The source QR represents a URL, while linked UI captures document the upstream app and patched behavior with synthetic fixtures.
 
-## Published pre-release catalogue
+## Generated patch catalogue
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.7](https://github.com/pengusto/penguin-patches/releases/tag/v1.0.0-dev.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.0.1](https://github.com/pengusto/penguin-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -159,6 +164,21 @@ Repository code is distributed under [GPL-3.0](LICENSE), with the additional pro
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Choose upcoming alarm notification time](#choose-upcoming-alarm-notification-time) | Choose the advance notice in Morphe, with separate notifications and skip actions for each alarm occurrence. Keeps native ringing times and alarm definitions. | • Upcoming alarm notice (minutes) |
+
+</details>
+
+<details open>
+<summary>📦 Infinity+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.3.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Configure custom OAuth for Infinity+](#configure-custom-oauth-for-infinity) | Use a configured Reddit OAuth client consistently through login and token exchange in Infinity+ 8.3.4, without the app subscription gate. | • OAuth client ID<br>• Registered redirect URI<br>• API user agent |
 
 </details>
 

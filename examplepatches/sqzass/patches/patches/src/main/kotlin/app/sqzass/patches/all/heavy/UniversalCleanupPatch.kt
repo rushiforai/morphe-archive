@@ -88,9 +88,35 @@ val universalCleanupPatch = resourcePatch(
                 ?.filter { it.isNotEmpty() }
                 ?.toSet()
                 .orEmpty() + "en"
+
+            fun isLocaleQualifier(qualifier: String): Boolean =
+                qualifier.startsWith("b+", ignoreCase = true) ||
+                    Regex("^[a-zA-Z]{2,3}(-r[a-zA-Z]{2})?$").matches(qualifier)
+
+            fun localeOf(qualifier: String): String =
+                if (qualifier.startsWith("b+", ignoreCase = true)) {
+                    qualifier.substring(2).substringBefore('+').lowercase()
+                } else {
+                    qualifier.substringBefore('-').lowercase()
+                }
+
+            val resDir = get("res")
+            if (resDir.exists()) {
+                resDir.listFiles { f -> f.isDirectory }?.forEach { dir ->
+                    if (dir.name.startsWith("values-")) {
+                        val qualifier = dir.name.removePrefix("values-")
+                        if (isLocaleQualifier(qualifier) && localeOf(qualifier) !in keep) {
+                            delete("res/${dir.name}")
+                            locales++
+                        }
+                    }
+                }
+            }
+
             val entries = listApkEntries("res/").filter { entry ->
                 val segment = entry.removePrefix("res/").substringBefore('/')
-                segment.startsWith("values-") && segment.removePrefix("values-").lowercase() !in keep
+                val qualifier = segment.substringAfter('-', "")
+                qualifier.isNotEmpty() && isLocaleQualifier(qualifier) && localeOf(qualifier) !in keep
             }
             for (path in entries) {
                 delete(path)

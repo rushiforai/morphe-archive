@@ -1183,6 +1183,15 @@ function Test-ReleaseReceipt {
         foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta) {
             $produced.Add($entry)
         }
+        if (@($ApprovedManifestDelta) -ccontains 'min-sdk 28') {
+            $stockMinimum = $target.source.PSObject.Properties['minSdkVersion']
+            if (-not $stockMinimum -or ($stockMinimum.Value -isnot [int] -and $stockMinimum.Value -isnot [long]) -or
+                $stockMinimum.Value -lt 1) {
+                return Fail "The receipt has no verified vendor minimum Android API for $label."
+            }
+            try { Assert-HushgramRuntimeFloor -Manifest $target -Stock $target.source }
+            catch { return Fail "The receipt has an invalid runtime floor for ${label}: $($_.Exception.Message)" }
+        }
     }
     # Every declared version, not just one of them. With two declared, a receipt that ran only
     # the newest still found one declared target, and the release would claim a build nothing
@@ -1207,7 +1216,7 @@ function Test-ReleaseReceipt {
     }
     $seenEntries = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]@($produced), [System.StringComparer]::Ordinal)
-    $stale = @($approvedEntries | Where-Object { -not $seenEntries.Contains($_) })
+    $stale = @($approvedEntries | Where-Object { $_ -cne 'min-sdk 28' -and -not $seenEntries.Contains($_) })
     if ($stale.Count -gt 0) {
         return Fail ('The manifest delta allowlist approves changes no patch makes any more: ' +
             ($stale -join ', '))

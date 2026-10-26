@@ -141,6 +141,25 @@ public class PhotoSaveTest {
         assertNull(PhotoSave.largest(null));
     }
 
+    @Test
+    public void releasedImageChildrenAreSkippedWithoutLosingALiveFallback() {
+        TreeJNI released = image(HIGH, 4000, 3000).releasedTree();
+        TreeJNI photo = photo().with("imageHigh", released).with("image", image(MEDIUM, 960, 720));
+
+        assertEquals(MEDIUM, PhotoSave.largest(photo));
+        assertEquals(MEDIUM, PhotoSave.saveAddress(photo));
+        assertEquals("imageHigh none, image 960x720, imageMedium none, imageLow none", PhotoSave.sizes(photo));
+        assertFalse("the released image's URI or size was read", released.readAfterRelease);
+    }
+
+    @Test
+    public void aReleasedFullSizeImageIsNeverRead() {
+        TreeJNI released = image(HIGH, 4000, 3000).releasedTree();
+
+        assertNull(PhotoSave.fullSize(released));
+        assertFalse("the released full-size image was read", released.readAfterRelease);
+    }
+
     /** Facebook's own save asks its modifier for a bigger copy; ours asks it for the most the CDN serves. */
     @Test
     public void theSaveAsksFacebooksModifierForTheMostTheCdnServes() {

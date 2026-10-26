@@ -144,7 +144,8 @@ public final class AuditMode {
         try {
             write(new File(folder, "page.json"), new JSONObject().put("schema", 2)
                     .put("route", route).put("title", title.toString())
-                    .put("locale", L10n.locale(context).toLanguageTag()).toString());
+                    .put("locale", L10n.locale(context).toLanguageTag())
+                    .put("localeTags", new JSONArray(L10n.tags(context))).toString());
         } catch (Throwable failure) {
             Logger.printException(() -> "Audit: could not record the displayed page", failure);
         }

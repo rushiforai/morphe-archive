@@ -41,15 +41,17 @@ final class CaptionDiagnostics {
             CaptionDiagnosticsWriter.enqueue(context, stage, detail, credential, mergeKey);
     }
 
-    /** For callers that only have a context; it resolves the credential, so not for playback. */
-    static synchronized void mark(Context context, String stage, String detail) {
-        if (context != null) mark(context, stage, detail, SecureApiKey.credentialRef(context));
+    /** Legacy/context callers also enqueue without decrypting on playback or animation threads. */
+    static void mark(Context context, String stage, String detail) {
+        if (context != null)
+            CaptionDiagnosticsWriter.enqueueStored(
+                    context, stage, detail, SecureApiKey.captureCredential(context));
     }
 
     /**
-     * Stages the report must never lose to repeated display noise: the request lifecycle,
+     * Stages protected from repeated display noise by their own bounded lane: the request lifecycle,
      * structural rejection, source repair, cancellation, the first caption shown, owner recovery
-     * and every error.
+     * and every error. A full decision lane can still drop records; queue counters disclose it.
      */
     static boolean isDecision(String stage) {
         return stage.startsWith("REBUILD_")
@@ -159,7 +161,8 @@ final class CaptionDiagnostics {
 
     /** The three header lines: engine, mode and the state of the display text debug. */
     private static String header(Context context, boolean localized) {
-        boolean translates = CaptionSessionIntent.load(context).translates();
+        CaptionNativeProjection.Snapshot selected = CaptionSessionReconciler.currentSelection();
+        boolean translates = DeepSeekConfig.enabled(context) && selected != null && selected.translated;
         boolean debug = DeepSeekConfig.displayTextDebugEnabled(context);
         if (!localized) {
             return "Engine: Event rebuild / "
@@ -194,6 +197,11 @@ final class CaptionDiagnostics {
             String audit = TokenCostAudit.uiText(context, localized);
             String header = header(context, localized);
             StringBuilder text = new StringBuilder(header).append("\n");
+            text.append(localized
+                            ? CaptionStrings.get(context, "diagnostics_failure_accounting")
+                            : CaptionTextResolver.string(context, Locale.ENGLISH,
+                                    "diagnostics_failure_accounting"))
+                    .append("\n");
             if (latest == null || latest[0].isEmpty()) {
                 text.append(
                         localized
@@ -289,7 +297,16 @@ final class CaptionDiagnostics {
                 + CaptionEngineIdentity.ID
                 + "; build="
                 + app.yydarlinker.extension.BuildConfig.CAPTION_BUILD_ID
-                + "; official=1.45.0; presentation=n29-presentation-v3;"
+                // No reliable on-device reader identifies the selected MPP/Patcher. Keep the
+                // legacy field, but do not turn a build expectation into a runtime assertion.
+                + "; official=unknown; official_source=runtime_unverified;"
+                + " patcher=unknown; patcher_source=runtime_unverified;"
+                + " build_expected_official=1.48.0; build_expected_patcher=2.0.0;"
+                + " composition=unverified;"
+                + " core_source=github.com/YYDarlinker/morphe-ai-caption-translator"
+                + "@ac65fe803ec2b11821b1131040f807922a2b8505;"
+                + " core_adaptation=local; core_provenance=docs/core-provenance.json;"
+                + " presentation=n29-presentation-v3;"
                 + " presentation_revision=n37-consistent-observation-v1; exported_at="
                 + System.currentTimeMillis()
                 + "; completeness=bounded_not_guaranteed; history_records="

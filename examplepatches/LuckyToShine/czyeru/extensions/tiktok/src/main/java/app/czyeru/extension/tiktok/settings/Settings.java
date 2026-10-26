@@ -21,15 +21,15 @@ import app.czyeru.extension.tiktok.sharesheet.VideoActionOptions;
 
 public class Settings extends BaseSettings {
     public static final BooleanSetting REMOVE_ADS = new BooleanSetting("remove_ads", TRUE, true);
-    public static final BooleanSetting HIDE_LIVE = new BooleanSetting("hide_live", FALSE, true);
-    public static final BooleanSetting HIDE_SHOP = new BooleanSetting("hide_shop", FALSE, true);
+    public static final BooleanSetting HIDE_LIVE = new BooleanSetting("hide_live", TRUE, true);
+    public static final BooleanSetting HIDE_SHOP = new BooleanSetting("hide_shop", TRUE, true);
     public static final BooleanSetting HIDE_STORY = new BooleanSetting("hide_story", FALSE, true);
     public static final BooleanSetting HIDE_IMAGE = new BooleanSetting("hide_image", FALSE, true);
     public static final BooleanSetting HIDE_AI_CONTENT = new BooleanSetting("hide_ai_content", FALSE);
     public static final BooleanSetting HIDE_ALTERNATE_FOR_YOU_BATCHES =
             new BooleanSetting("hide_alternate_for_you_batches", FALSE);
     public static final BooleanSetting HIDE_CAPTCHA_POPUPS = new BooleanSetting("hide_captcha_popups", FALSE, true);
-    public static final BooleanSetting HIDE_HOMEPAGE_COIN = new BooleanSetting("hide_homepage_coin", FALSE, true);
+    public static final BooleanSetting HIDE_HOMEPAGE_COIN = new BooleanSetting("hide_homepage_coin", TRUE, true);
     public static final StringSetting MIN_MAX_VIEWS = new StringSetting("min_max_views", "0-" + Long.MAX_VALUE, true);
     public static final StringSetting MIN_MAX_LIKES = new StringSetting("min_max_likes", "0-" + Long.MAX_VALUE, true);
     public static final BooleanSetting FILTER_OFFLINE_FALLBACK_VIDEOS = new BooleanSetting(
@@ -129,7 +129,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting STOP_VIDEO_LOOPING = new BooleanSetting("stop_video_looping", FALSE, true);
     public static final BooleanSetting RESUME_VIDEO_AFTER_SCROLL = new BooleanSetting(
             "resume_video_after_scroll",
-            TRUE,
+            FALSE,
             true
     );
     public static final BooleanSetting OPEN_EXTERNAL_LINKS = new BooleanSetting("open_external_links", TRUE);

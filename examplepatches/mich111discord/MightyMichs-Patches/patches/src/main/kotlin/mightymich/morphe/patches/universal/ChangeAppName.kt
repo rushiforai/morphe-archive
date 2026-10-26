@@ -5,51 +5,37 @@ import app.morphe.patcher.patch.stringOption
 import org.w3c.dom.Element
 
 /**
- * Universal: change the launcher label (app name).
+ * Universal: override app label in AndroidManifest / strings if present.
  */
 @Suppress("unused")
 val changeAppNamePatch = resourcePatch(
     name = "Change app name",
-    description = "Changes the app name shown under the launcher icon.",
+    description = "Sets a custom application label (best-effort).",
     default = false
 ) {
     val appName by stringOption(
-        name = "App name",
         key = "appName",
-        default = null,
-        description = "New launcher label. Required when this patch is enabled."
+        default = "Patched App",
+        title = "App name",
+        description = "Display name shown under the launcher icon."
     )
 
     execute {
         val name = appName?.trim().orEmpty()
         if (name.isEmpty()) return@execute
 
-        // Prefer strings.xml app_name / application label
+        // Try strings.xml app_name
         try {
             document("res/values/strings.xml").use { document ->
                 val nodes = document.getElementsByTagName("string")
                 for (i in 0 until nodes.length) {
                     val el = nodes.item(i) as? Element ?: continue
-                    val n = el.getAttribute("name")
-                    if (n == "app_name" || n == "appName" || n == "application_name") {
+                    if (el.getAttribute("name") == "app_name") {
                         el.textContent = name
                     }
                 }
             }
         } catch (_: Exception) {
-            // some apps omit standard strings
-        }
-
-        document("AndroidManifest.xml").use { document ->
-            val appNodes = document.getElementsByTagName("application")
-            if (appNodes.length > 0) {
-                val app = appNodes.item(0) as Element
-                // Only set literal label if not a @string reference we already fixed
-                val label = app.getAttribute("android:label")
-                if (label.isNullOrEmpty() || !label.startsWith("@")) {
-                    app.setAttribute("android:label", name)
-                }
-            }
         }
     }
 }

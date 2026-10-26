@@ -41,7 +41,7 @@ public class N37R2CenterMatrixTest {
     h.a.getResources().getDisplayMetrics().widthPixels=scene.equals("fullscreen")?1280:800;
     h.a.getResources().getDisplayMetrics().heightPixels=scene.equals("fullscreen")?720:1000;
   }
-  void layout(){h.awaitPreparedCaption();host.measure(View.MeasureSpec.makeMeasureSpec(1280,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));host.layout(0,0,1280,1000);}
+  void layout(){h.awaitPreparedCaption();host.measure(View.MeasureSpec.makeMeasureSpec(1280,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));host.layout(0,0,1280,1000);host.getViewTreeObserver().dispatchOnPreDraw();}
   String[] samples(){
     if(target.equals("ar"))return new String[]{"字幕 النص", "السطر الأول\nالسطر الثاني",String.join(" ",Collections.nCopies(20,"تظل الترجمة في وسط الفيديو")),"في 2026 العدد 42 و API 3.5!"};
     if(target.equals("ja"))return new String[]{"字幕です", "最初の行\n二番目の行",String.join("",Collections.nCopies(20,"字幕は動画の中央です。")),"2026年、API 3.5は42件です。"};
@@ -54,7 +54,8 @@ public class N37R2CenterMatrixTest {
       CaptionOverlay.showEvent(value,()->true,"matrix:"+kind,1000,61000,2000,CaptionLanguageContext.explicit("en",target).renderSpec);
       layout();FrameLayout outer=h.anchor();TextView text=h.text();Rect video=N39UiGeometryFixture.bounds;
       float center=outer.getLeft()+outer.getTranslationX()+outer.getWidth()/2f-host.getScrollX();
-      float error=center-video.exactCenterX();
+      float expected=scene.equals("shorts")?(host.getPaddingLeft()+host.getWidth()-host.getPaddingRight())/2f:video.exactCenterX();
+      float error=center-expected;
       ledger.add("app="+app+";target="+target+";scene="+scene+";shape="+kind+";root_direction="+host.getLayoutDirection()+";outer_direction="+outer.getLayoutDirection()+";text_direction="+text.getTextDirection()+";gravity="+((FrameLayout.LayoutParams)outer.getLayoutParams()).gravity+";video="+video+";actual_center="+center+";error="+error);
       assertEquals(View.VISIBLE,outer.getVisibility());
       assertTrue("physical center error "+error,Math.abs(error)<=1f);

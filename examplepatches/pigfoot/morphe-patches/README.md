@@ -27,7 +27,26 @@ The original app display name is preserved. Phone startup and live bus updates s
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.1.0](https://github.com/pigfoot/morphe-patches/releases/tag/v0.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v0.2.1](https://github.com/pigfoot/morphe-patches/releases/tag/v0.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+<details open>
+<summary>📦 CamScanner&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.26.5.2609160000 | 7.27.0.2609220000 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [CamScanner disable ads](#camscanner-disable-ads) | Suppress qualified ad entry points with reviewed manifest cleanup. Rewarded videos are blocked by default; an explicit 7.27.0-only lottery skip experiment can forward the original task/code flow without video. Server grants are not guaranteed or overridden. | • Rewarded videos |
+| [CamScanner local premium features](#camscanner-local-premium-features) | Experimental local account-status features. Does not unlock server credits or cloud quotas. | • Folder limit |
+| [CamScanner offline mode](#camscanner-offline-mode) | Revoke all app INTERNET declarations. Includes ad suppression; preserves real platform connectivity. External apps/services and offline error flows require device testing. |  |
+| [CamScanner reduce telemetry and app logging](#camscanner-reduce-telemetry-and-app-logging) | Suppress qualified Firebase Analytics/Crashlytics/Performance/Sessions and app network/cache/local logging. Preserve unrelated Firebase services. Not a guarantee of zero telemetry. |  |
+| [CamScanner restore trust on re-signed builds](#camscanner-restore-trust-on-re-signed-builds) | Required compatibility for supported re-signed standard/Shizuku installs: preserve original request signing and recover exact obsolete/error-only API Center caches. No diagnostic overlays. No forced host, global signature spoofing, authentication-result changes or INTERNET grant. Root mount is not qualified. |  |
+
+</details>
+
 <details open>
 <summary>📦 台灣鐵道通&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -83,3 +102,34 @@ Do not manually edit generated metadata or rewrite release tags. The initial v0.
 ## License
 
 [GNU General Public License v3.0](LICENSE). Build/release scaffolding and patch-list generation derive from the [Morphe template](https://github.com/MorpheApp/morphe-patches-template).
+
+## CamScanner support
+
+Supports pristine full APKM **7.26.5.2609160000 (72651)** and
+**7.27.0.2609220000 (72701)**. Preserve original modules, OCR assets and identity;
+update with the same local signing key without clearing data.
+The two qualified app targets are non-experimental in Manager and do not require
+source experimental-version mode. This does not broaden supported versions; the
+optional lottery skip experiment remains independently restricted to online 72701.
+
+| Patch | Default / scope |
+| --- | --- |
+| CamScanner restore trust on re-signed builds | Required for standard/Shizuku; mount unavailable. Narrow native signing compatibility and API Center cache recovery, not certificate/auth-result spoofing. |
+| CamScanner local premium features | Recommended; local feature status only, not a server subscription or credit grant. Folder limit remains original by default. |
+| CamScanner reduce telemetry and app logging | Recommended; qualified Firebase/app/local logging suppression, not a zero-telemetry guarantee. |
+| CamScanner disable ads | Optional. Rewarded videos are blocked by default; explicit online 72701-only lottery video skipping is independently guarded. |
+| CamScanner offline mode | Optional. Includes ads/core and removes all app INTERNET declarations; incompatible with lottery skipping. |
+
+For online ad support, select the recommendation set and leave ads/offline off.
+Premium and privacy remain independently deselectable. No scanner initialization
+patch, diagnostic option, overlay, native observer or cloud Word fix is shipped.
+The retired `inspect-lottery` value fails option validation; use `block` or
+`skip-lottery`. Desktop CLI may warn and continue with default `block`, rather
+than aborting the command.
+The ordinary skip profile includes the phone-accepted dispatch-label correction
+and silent scoped initialization protection. An observed reward receipt is not a
+promise that every account/request will receive a server grant.
+
+See the [implementation contract](docs/camscanner-implementation.md),
+[lottery skip contract and regression](docs/camscanner-reward-video-experiment.md),
+and [independent version-porting workflow](docs/camscanner-version-porting.md).

@@ -158,17 +158,9 @@ final class CaptionOverlay {
     private static int stableTextWidth, stableTextLines;
     private static long nextPageAt;
 
-    /**
-     * The glyph height actually painted. The size law's target can step in one frame when the video
-     * rectangle is a layout inset rather than an animation; the painted value moves to the new
-     * target linearly over {@link #GLYPH_TRANSITION_NANOS} on the frame clock.
-     */
-    private static float displayedGlyphPx;
-
-    private static float glyphFromPx, glyphToPx;
-    private static long glyphStartNanos = -1;
-    private static boolean glyphPending, glyphFrameScheduled;
-    private static final long GLYPH_TRANSITION_NANOS = 180_000_000L;
+    /** Numeric painted-size state; this View adapter owns only frame scheduling and drawing. */
+    private static final CaptionGlyphTransition glyphTransition = new CaptionGlyphTransition();
+    private static boolean glyphFrameScheduled;
 
     /** Size tier and text-debug flag, resolved once per content commit. */
     private static int presentationTier = -1;
@@ -294,7 +286,9 @@ final class CaptionOverlay {
     }
 
     private static boolean blocked() {
-        return suppressed() || guardedExpansion();
+        return CaptionNativeProjection.ccState() != CaptionIntentPolicy.ON
+                || CaptionPlayerAuthority.shortsExitBlocked()
+                || suppressed() || guardedExpansion();
     }
 
     private static boolean nothingPending() {
@@ -585,6 +579,10 @@ final class CaptionOverlay {
         CaptionPlayerAuthority.onNotification(type);
         main(
                 () -> {
+                    if (nothingPending() && !anchorVisible()) {
+                        CaptionSurface.invalidateGeometry();
+                        return;
+                    }
                     final long applyStarted = SystemClock.uptimeMillis();
                     int state = CaptionPlayerAuthority.state();
                     if (state == CaptionPlayerAuthority.COMPACT
@@ -663,7 +661,7 @@ final class CaptionOverlay {
 
     /** One render on the next frame; an authoritative transition supersedes a queued one. */
     static void requestPlayerRender() {
-        if (blocked() || nothingPending()) return;
+        if (nothingPending() || blocked()) return;
         if (playerRenderTask != null) invalidatePlayerRender();
         Activity owner = activityRef.get();
         if (!usable(owner)) return;
@@ -821,7 +819,7 @@ final class CaptionOverlay {
             TextView text = textRef.get();
             horizontalPlacement = new CaptionHorizontalPlacement(host, anchor, text);
             host.getViewTreeObserver().addOnPreDrawListener(WATCH);
-            Rect current = CaptionSurface.currentVideoBounds(host);
+            Rect current = captionVideoBounds(host);
             if (current == null) current = CaptionSurface.refreshedVideoBounds(host);
             if (text != null && current != null && boxWidth > 0)
                 placeVisibleText(a, host, anchor, text, current, boxWidth);
@@ -1107,7 +1105,7 @@ final class CaptionOverlay {
         contentWidth = applied;
         Rect placement =
                 videoGeometry.isEmpty()
-                        ? CaptionSurface.currentVideoBounds(hostRef.get())
+                        ? captionVideoBounds(hostRef.get())
                         : new Rect(videoGeometry);
         if (placement == null) placement = new Rect(previous);
         int planWidth = budget.width + text.getPaddingLeft() + text.getPaddingRight();
@@ -1135,6 +1133,19 @@ final class CaptionOverlay {
         scheduleNextPage(at);
     }
 
+    /** Shorts captions may use the side bars above the comments, not just the scaled video image. */
+    private static Rect captionVideoBounds(View host) {
+        return captionVideoBounds(CaptionSurface.currentVideoBounds(host), host);
+    }
+
+    private static Rect captionVideoBounds(Rect image, View host) {
+        if (image == null || host == null || !CaptionSurface.isShorts() || host.getWidth() <= 0)
+            return image;
+        int left = host.getPaddingLeft();
+        int right = host.getWidth() - host.getPaddingRight();
+        return right > left ? new Rect(left, image.top, right, image.bottom) : image;
+    }
+
     // ---- Geometry clock ----
 
     private static void noteGeometry(Rect video) {
@@ -1144,7 +1155,15 @@ final class CaptionOverlay {
     /** Reads the cached video rectangle and moves the existing box; only on layout/motion. */
     private static void geometryFrame() {
         Activity a = activityRef.get();
-        if (a == null || blocked() || nothingPending()) return;
+        if (a == null) return;
+        if (nothingPending() && !anchorVisible()) return;
+        if (blocked()) {
+            // Permission can disappear when Shorts detaches without a further time/type callback.
+            // Returning alone leaves the last painted TextView on the Activity indefinitely.
+            if (anchorVisible()) CaptionOverlay.denyDisplay(CaptionPlayerAuthority.ownerEpoch());
+            return;
+        }
+        if (nothingPending()) return;
         FrameLayout host = hostRef.get(), anchor = anchorRef.get();
         TextView text = textRef.get();
         if (host == null
@@ -1152,7 +1171,7 @@ final class CaptionOverlay {
                 || text == null
                 || !anchorVisible()
                 || host.getWidth() <= 0) return;
-        Rect video = CaptionSurface.currentVideoBounds(host);
+        Rect video = captionVideoBounds(host);
         if (video == null || video.width() < 50 || video.height() < 50) return;
         noteGeometry(video);
         if (updatePresentationClass(video)) {
@@ -1281,7 +1300,7 @@ final class CaptionOverlay {
         }
         // Placement is in the anchor's own parent coordinates. Reading the video against any
         // other container (a stale hostRef) shifts the box by that container's inset.
-        Rect video = CaptionSurface.currentVideoBounds(parent);
+        Rect video = captionVideoBounds(parent);
         if (video == null || video.isEmpty()) return;
         if (!computeTarget(a, video, boxWidth, boxHeight, video.width() > video.height())) return;
         CaptionHorizontalPlacement.translate(parent, anchor, nextLeft, nextTop);
@@ -1481,7 +1500,7 @@ final class CaptionOverlay {
         // layout has been committed yet, so keep the existing "skip, do not set scale" semantics.
         float glyphLocalPx = layoutGlyphInkPx;
         if (!(glyphLocalPx > 0f)) return;
-        // The painted size follows displayedGlyphPx, not the instantaneous law target: a layout
+        // The painted size follows the displayed glyph, not the instantaneous law target: a layout
         // inset can move the target by tens of percent in one frame, and the box must not jump.
         noteGlyphTarget(glyphPx);
         // While a new plan is being prepared the committed text can still be wider than the video.
@@ -1495,7 +1514,7 @@ final class CaptionOverlay {
                 && contentWidth > 0
                 && videoWidth > 0
                 && videoWidth < contentWidth) fit = videoWidth / (float) contentWidth;
-        float scale = captionScale(displayedGlyphPx, glyphLocalPx, anchorScale) * fit;
+        float scale = captionScale(glyphTransition.displayedPx(), glyphLocalPx, anchorScale) * fit;
         if (!(scale > 0f) || Float.isNaN(scale) || Float.isInfinite(scale)) return;
         if (Math.abs(text.getScaleX() - scale) > .002f
                 || Math.abs(text.getScaleY() - scale) > .002f) {
@@ -1508,61 +1527,19 @@ final class CaptionOverlay {
 
     /**
      * Sets the target of the painted glyph. A change inside 2% is followed directly; a larger one
-     * starts one linear transition of {@link #GLYPH_TRANSITION_NANOS}. Starting a transition only
+     * starts one linear transition of 180 ms. Starting a transition only
      * records a frame callback; the value itself is advanced by {@link #advanceDisplayedGlyph} on
      * frame times, never by a timer.
      */
     private static void noteGlyphTarget(float target) {
-        if (!(target > 0f)) return;
-        if (!(displayedGlyphPx > 0f)) {
-            displayedGlyphPx = target;
-            glyphStartNanos = -1;
-            glyphPending = false;
-            return;
-        }
-        if (Math.abs(target - displayedGlyphPx) / displayedGlyphPx <= .02f) {
-            displayedGlyphPx = target;
-            glyphStartNanos = -1;
-            glyphPending = false;
-            return;
-        }
-        // A transition already heading to this target (within the same 2% band) is not restarted:
-        // a stationary step must reach its endpoint, not be re-armed by every pre-draw.
-        if (glyphStartNanos >= 0
-                && Math.abs(target - glyphToPx) <= .02f * Math.abs(glyphToPx)) {
-            scheduleGlyphFrame();
-            return;
-        }
-        glyphFromPx = displayedGlyphPx;
-        glyphToPx = target;
-        glyphStartNanos = -1;
-        glyphPending = true;
-        scheduleGlyphFrame();
+        if (glyphTransition.noteTarget(target)) scheduleGlyphFrame();
     }
 
-    /**
-     * Advances the painted glyph by real frame time. The first frame after a step starts the clock
-     * and paints the old value; each later frame interpolates linearly; at 180 ms the target is
-     * exact. Returns true while a later frame is needed.
-     */
+    /** Advances numerical state, retaining Android callback coalescing in this adapter. */
     static boolean advanceDisplayedGlyph(long frameTimeNanos) {
-        if (glyphStartNanos < 0) {
-            if (!glyphPending) return false;
-            glyphStartNanos = frameTimeNanos;
-            glyphFromPx = displayedGlyphPx;
-            glyphPending = false;
-        }
-        float progress =
-                (frameTimeNanos - glyphStartNanos) / (float) GLYPH_TRANSITION_NANOS;
-        if (progress >= 1f) {
-            displayedGlyphPx = glyphToPx;
-            glyphStartNanos = -1;
-            return false;
-        }
-        displayedGlyphPx =
-                glyphFromPx + (glyphToPx - glyphFromPx) * Math.max(0f, progress);
-        scheduleGlyphFrame();
-        return true;
+        boolean needsFrame = glyphTransition.advance(frameTimeNanos);
+        if (needsFrame) scheduleGlyphFrame();
+        return needsFrame;
     }
 
     private static void scheduleGlyphFrame() {
@@ -1573,7 +1550,7 @@ final class CaptionOverlay {
 
     /** The painted glyph height, for the frame-clock tests and diagnostics. */
     static float displayedGlyphPx() {
-        return displayedGlyphPx;
+        return glyphTransition.displayedPx();
     }
 
     /** Starts a target without a View, so the frame-clock interpolation can be tested directly. */
@@ -1586,19 +1563,13 @@ final class CaptionOverlay {
     }
 
     private static void resetDisplayedGlyph() {
-        displayedGlyphPx = 0f;
-        glyphFromPx = 0f;
-        glyphToPx = 0f;
-        glyphStartNanos = -1;
-        glyphPending = false;
+        glyphTransition.reset();
         glyphFrameScheduled = false;
     }
 
     /** Ends a pending 180 ms step at its target; tests that assert final sizes use this. */
     static void settleDisplayedGlyphForTests() {
-        displayedGlyphPx = glyphStartNanos >= 0 || glyphPending ? glyphToPx : displayedGlyphPx;
-        glyphStartNanos = -1;
-        glyphPending = false;
+        glyphTransition.settle();
     }
 
     private static void resetCommentScale(TextView text) {
@@ -1696,7 +1667,7 @@ final class CaptionOverlay {
         TextView text = textRef.get();
         if (text == null) return;
         FrameLayout host = hostRef.get();
-        Rect video = host == null ? null : CaptionSurface.currentVideoBounds(host);
+        Rect video = host == null ? null : captionVideoBounds(host);
         if (video == null && !videoGeometry.isEmpty()) video = new Rect(videoGeometry);
         if (video == null || video.width() <= 0) return;
         int padding = text.getPaddingLeft() + text.getPaddingRight();
@@ -1794,14 +1765,14 @@ final class CaptionOverlay {
             displaySpec = new CaptionRenderSpec(code, CaptionLanguageProfile.fromCode(code), false);
         }
         displaySpec.apply(text);
-        Rect b = CaptionSurface.currentVideoBounds(host);
+        Rect b = captionVideoBounds(host);
         if (b == null || CaptionPlayerAuthority.consumeSurfaceDirty()) {
             // Rediscover a rebuilt surface, but never substitute the player container: that was a
             // one-frame geometry jump. No surface at all keeps the verified page where it is.
             CaptionSurface.refresh();
             lastScan = SystemClock.uptimeMillis();
-            b = CaptionSurface.currentVideoBounds(host);
-            if (b == null) b = CaptionSurface.refreshedVideoBounds(host);
+            b = captionVideoBounds(host);
+            if (b == null) b = captionVideoBounds(CaptionSurface.refreshedVideoBounds(host), host);
         }
         if (b == null || b.width() < 50 || b.height() < 50) {
             // A player rebuild can expose no surface for a frame. Keep the already-verified page
@@ -2349,10 +2320,10 @@ final class CaptionOverlay {
                             : null;
             if (anchor == null || text == null || parent == null) return;
         }
-        // Place against the anchor's actual parent. CaptionSurface.currentVideoBounds(parent) is
+        // Place against the anchor's actual parent. captionVideoBounds(parent) is
         // CaptionSurface.relative(surface, parent): using a stale hostRef here shifted the box by
         // the difference between the two containers.
-        Rect video = CaptionSurface.currentVideoBounds(parent);
+        Rect video = captionVideoBounds(parent);
         if (video == null || video.isEmpty()) return;
         // Keep the committed/class width even when the video is temporarily narrower: shrinking
         // the anchor to the video here would cancel the very difference the stable re-plan needs
@@ -2782,7 +2753,7 @@ final class CaptionOverlay {
     /** The rectangle the finger is really dragging over; never the stale content snapshot. */
     private static Rect liveVideoBounds() {
         FrameLayout host = hostRef.get();
-        Rect live = host == null ? null : CaptionSurface.currentVideoBounds(host);
+        Rect live = host == null ? null : captionVideoBounds(host);
         if (live == null && host != null) live = CaptionSurface.refreshedVideoBounds(host);
         if (live != null) return live;
         return videoGeometry.isEmpty() ? null : new Rect(videoGeometry);

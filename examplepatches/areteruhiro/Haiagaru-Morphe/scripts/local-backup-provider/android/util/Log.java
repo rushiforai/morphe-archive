@@ -1,0 +1,1 @@
+package android.util;public class Log {public static int w(String t,String s,Throwable e){return 0;}}

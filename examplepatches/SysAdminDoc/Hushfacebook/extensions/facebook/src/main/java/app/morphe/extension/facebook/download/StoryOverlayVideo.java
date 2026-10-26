@@ -65,11 +65,12 @@ final class StoryOverlayVideo {
         Object reel = PostDetails.tree(overlay, FB_SHORTS_STORY);
         Object video = PostDetails.tree(PostDetails.tree(reel, PostDetails.SHORT_FORM_VIDEO_CONTEXT), VIDEO);
         String manifest = manifestOf(video);
-        String videoId = PostDetails.string(video, PostDetails.ID);
+        String videoId = PostDetails.isLiveTree(video) ? PostDetails.string(video, PostDetails.ID) : null;
         List<?> attachments = PostDetails.trees(reel, ATTACHMENTS);
         if (attachments != null) {
             for (Object attachment : attachments) {
                 Object media = PostDetails.tree(attachment, MEDIA);
+                if (!PostDetails.isLiveTree(media)) continue;
                 if (manifest == null) manifest = manifestOf(media);
                 if (url == null) url = address(PostDetails.string(media, VideoMenuItem.PLAYABLE_URL));
                 if (videoId == null) videoId = PostDetails.string(media, PostDetails.ID);
@@ -80,6 +81,7 @@ final class StoryOverlayVideo {
     }
 
     private static String manifestOf(Object video) {
+        if (!PostDetails.isLiveTree(video)) return null;
         String playlist = PostDetails.string(video, PLAYLIST);
         return playlist != null && playlist.contains("<MPD") ? playlist : null;
     }

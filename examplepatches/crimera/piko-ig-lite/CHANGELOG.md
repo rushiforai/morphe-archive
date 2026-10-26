@@ -1,3 +1,15 @@
+## [0.5.0](https://github.com/crimera/piko-ig-lite/compare/v0.4.0...v0.5.0) (2026-10-26)
+
+### ✨ New Features
+
+* support Instagram 452.1.0.53.64 ([db56e0d](https://github.com/crimera/piko-ig-lite/commit/db56e0d43976d8db3115ef3868d1446feab9f158))
+
+## [0.5.0-dev.1](https://github.com/crimera/piko-ig-lite/compare/v0.4.0...v0.5.0-dev.1) (2026-10-25)
+
+### ✨ New Features
+
+* support Instagram 452.1.0.53.64 ([db56e0d](https://github.com/crimera/piko-ig-lite/commit/db56e0d43976d8db3115ef3868d1446feab9f158))
+
 ## [0.4.0](https://github.com/crimera/piko-ig-lite/compare/v0.3.0...v0.4.0) (2026-10-21)
 
 ### 🐛 Bug Fixes

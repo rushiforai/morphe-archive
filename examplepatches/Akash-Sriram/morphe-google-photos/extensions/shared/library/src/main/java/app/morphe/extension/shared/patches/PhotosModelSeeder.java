@@ -103,10 +103,11 @@ public final class PhotosModelSeeder {
                 int modelCount = countModelsInDir(targetModelsDir);
                 File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
                 boolean manifestReady = isManifestConfiguredForPackage(groupsXml, pkg);
+                boolean hasZeroBytes = hasZeroByteFiles(targetModelsDir);
 
-                Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called for " + pkg + ". Current models count=" + modelCount + ", expected=" + expected + ", manifestReady=" + manifestReady);
+                Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called for " + pkg + ". Current models count=" + modelCount + ", expected=" + expected + ", manifestReady=" + manifestReady + ", hasZeroBytes=" + hasZeroBytes);
 
-                if (expected > 0 && modelCount >= expected && manifestReady) {
+                if (expected > 0 && modelCount >= expected && manifestReady && !hasZeroBytes) {
                     isSeeded = true;
                     return;
                 }
@@ -126,6 +127,16 @@ public final class PhotosModelSeeder {
         }
     }
 
+    public static boolean hasZeroByteFiles(File dir) {
+        if (dir == null || !dir.exists() || !dir.isDirectory()) return false;
+        File[] files = dir.listFiles((d, name) -> name != null && name.startsWith("datadownloadfile_"));
+        if (files == null) return false;
+        for (File f : files) {
+            if (f.length() <= 0) return true;
+        }
+        return false;
+    }
+
     public static void downloadGroup(Context context, String groupName) {
         if (context == null || groupName == null) return;
         new Thread(() -> {
@@ -141,13 +152,14 @@ public final class PhotosModelSeeder {
                     return;
                 }
 
+                Map<String, String> fileToSha = parseFileToShaMapping();
                 Logger.printInfo(() -> "PhotosModelSeeder: Downloading " + entries.size() + " models on-demand for group " + groupName);
                 CdnAssetDownloader.unlockDirectory(targetModelsDir);
 
                 for (ModelEntry entry : entries) {
                     File dest = new File(targetModelsDir, entry.filename);
-                    if (dest.exists() && dest.length() > 0) continue;
-                    CdnAssetDownloader.download(entry.url, dest);
+                    String sha = fileToSha.get(entry.filename);
+                    CdnAssetDownloader.download(entry.url, dest, sha);
                 }
 
                 CdnAssetDownloader.lockDirectory(targetModelsDir);
@@ -175,6 +187,7 @@ public final class PhotosModelSeeder {
                 CdnAssetDownloader.unlockDirectory(prefsDir);
 
                 Map<String, String> urlToFile = parseUrlToFileMapping();
+                final Map<String, String> fileToSha = parseFileToShaMapping();
                 if (urlToFile.isEmpty()) {
                     Logger.printInfo(() -> "PhotosModelSeeder: Dynamic manifest parser returned empty map!");
                     return;
@@ -197,15 +210,12 @@ public final class PhotosModelSeeder {
                 for (Map.Entry<String, String> entry : entries) {
                     final String urlStr = entry.getKey();
                     final String filename = entry.getValue();
+                    final String expectedSha = fileToSha.get(filename);
                     pool.submit(() -> {
                         try {
                             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                             File dest = new File(targetModelsDir, filename);
-                            if (dest.exists() && dest.length() > 0) {
-                                downloaded.incrementAndGet();
-                                return;
-                            }
-                            if (CdnAssetDownloader.download(urlStr, dest)) {
+                            if (CdnAssetDownloader.download(urlStr, dest, expectedSha)) {
                                 downloaded.incrementAndGet();
                             } else {
                                 Logger.printInfo(() -> "PhotosModelSeeder: Failed to download " + filename);
@@ -249,7 +259,13 @@ public final class PhotosModelSeeder {
         }
     }
 
+    private static volatile Map<String, String> sCachedShaToFile = null;
+    private static volatile Map<String, String> sCachedFileToSha = null;
+    private static volatile Map<String, String> sCachedUrlToFile = null;
+    private static volatile Map<String, String> sCachedFileToUrl = null;
+
     public static Map<String, String> parseShaToFileMapping() {
+        if (sCachedShaToFile != null) return sCachedShaToFile;
         Map<String, String> shaToFile = new HashMap<>();
         String sharedFilesXml = MddManifests.MANIFESTS.get(MDD_FILES_XML);
         if (sharedFilesXml == null) return shaToFile;
@@ -270,10 +286,22 @@ public final class PhotosModelSeeder {
                 }
             } catch (Exception ignored) {}
         }
+        sCachedShaToFile = shaToFile;
         return shaToFile;
     }
 
+    public static Map<String, String> parseFileToShaMapping() {
+        if (sCachedFileToSha != null) return sCachedFileToSha;
+        Map<String, String> fileToSha = new HashMap<>();
+        for (Map.Entry<String, String> e : parseShaToFileMapping().entrySet()) {
+            fileToSha.put(e.getValue(), e.getKey());
+        }
+        sCachedFileToSha = fileToSha;
+        return fileToSha;
+    }
+
     public static Map<String, String> parseUrlToFileMapping() {
+        if (sCachedUrlToFile != null) return sCachedUrlToFile;
         Map<String, String> urlToFile = new LinkedHashMap<>();
         Map<String, List<ModelEntry>> groupMap = parseAllGroupsFromManifests();
         for (List<ModelEntry> entries : groupMap.values()) {
@@ -281,7 +309,18 @@ public final class PhotosModelSeeder {
                 urlToFile.put(entry.url, entry.filename);
             }
         }
+        sCachedUrlToFile = urlToFile;
         return urlToFile;
+    }
+
+    public static Map<String, String> parseFileToUrlMapping() {
+        if (sCachedFileToUrl != null) return sCachedFileToUrl;
+        Map<String, String> fileToUrl = new HashMap<>();
+        for (Map.Entry<String, String> e : parseUrlToFileMapping().entrySet()) {
+            fileToUrl.put(e.getValue(), e.getKey());
+        }
+        sCachedFileToUrl = fileToUrl;
+        return fileToUrl;
     }
 
     public static Map<String, List<ModelEntry>> parseAllGroupsFromManifests() {
@@ -518,6 +557,137 @@ public final class PhotosModelSeeder {
         return files == null ? 0 : files.length;
     }
 
+    public static class ModelHealthReport {
+        public final int totalExpected;
+        public int healthyCount = 0;
+        public int corruptedCount = 0;
+        public int missingCount = 0;
+        public final List<String> corruptedFiles = new ArrayList<>();
+        public final List<String> missingFiles = new ArrayList<>();
+
+        public ModelHealthReport(int totalExpected) {
+            this.totalExpected = totalExpected;
+        }
+
+        public boolean isAllHealthy() {
+            return healthyCount == totalExpected && corruptedCount == 0 && missingCount == 0 && totalExpected > 0;
+        }
+    }
+
+    public static ModelHealthReport evaluateHealth(Context context) {
+        if (context == null) return new ModelHealthReport(0);
+        File filesDir = context.getFilesDir();
+        File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
+        Map<String, String> fileToSha = parseFileToShaMapping();
+        int expected = fileToSha.size();
+        ModelHealthReport report = new ModelHealthReport(expected);
+
+        for (Map.Entry<String, String> entry : fileToSha.entrySet()) {
+            String filename = entry.getKey();
+            String expectedSha = entry.getValue();
+            File f = new File(targetModelsDir, filename);
+            if (!f.exists()) {
+                report.missingCount++;
+                report.missingFiles.add(filename);
+            } else if (f.length() <= 0) {
+                report.corruptedCount++;
+                report.corruptedFiles.add(filename);
+            } else {
+                String actualSha = CdnAssetDownloader.calculateSha1(f);
+                if (expectedSha != null && expectedSha.equalsIgnoreCase(actualSha)) {
+                    report.healthyCount++;
+                } else {
+                    report.corruptedCount++;
+                    report.corruptedFiles.add(filename);
+                }
+            }
+        }
+        return report;
+    }
+
+    public interface HealthRepairCallback {
+        void onProgress(String status, int current, int total);
+        void onComplete(ModelHealthReport finalReport);
+    }
+
+    public static void repairAllModelsAsync(Context context, HealthRepairCallback callback) {
+        if (context == null) return;
+        final Context appContext = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+
+        new Thread(() -> {
+            try {
+                File filesDir = appContext.getFilesDir();
+                File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
+                File dataDir = new File(appContext.getApplicationInfo().dataDir);
+                File prefsDir = new File(dataDir, SHARED_PREFS_DIR_NAME);
+                if (!targetModelsDir.exists()) targetModelsDir.mkdirs();
+
+                CdnAssetDownloader.unlockDirectory(targetModelsDir);
+                CdnAssetDownloader.unlockDirectory(prefsDir);
+
+                Map<String, String> fileToSha = parseFileToShaMapping();
+                Map<String, String> fileToUrl = parseFileToUrlMapping();
+
+                int total = fileToSha.size();
+                int current = 0;
+                List<String> needRepair = new ArrayList<>();
+
+                for (Map.Entry<String, String> e : fileToSha.entrySet()) {
+                    current++;
+                    String fname = e.getKey();
+                    String expectedSha = e.getValue();
+                    if (callback != null) {
+                        final int c = current;
+                        callback.onProgress("Verifying integrity (" + c + "/" + total + ")...", c, total);
+                    }
+                    File f = new File(targetModelsDir, fname);
+                    if (!f.exists() || f.length() <= 0) {
+                        if (f.exists()) f.delete();
+                        needRepair.add(fname);
+                    } else {
+                        String actualSha = CdnAssetDownloader.calculateSha1(f);
+                        if (!expectedSha.equalsIgnoreCase(actualSha)) {
+                            f.delete();
+                            needRepair.add(fname);
+                        }
+                    }
+                }
+
+                if (!needRepair.isEmpty()) {
+                    int dlTotal = needRepair.size();
+                    int dlIdx = 0;
+                    for (String fname : needRepair) {
+                        dlIdx++;
+                        String url = fileToUrl.get(fname);
+                        String sha = fileToSha.get(fname);
+                        if (callback != null) {
+                            final int idx = dlIdx;
+                            callback.onProgress("Repairing model (" + idx + "/" + dlTotal + ")...", idx, dlTotal);
+                        }
+                        if (url != null) {
+                            File dest = new File(targetModelsDir, fname);
+                            CdnAssetDownloader.download(url, dest, sha);
+                        }
+                    }
+                }
+
+                injectManifests(prefsDir, appContext.getPackageName());
+                CdnAssetDownloader.lockDirectory(targetModelsDir);
+                isSeeded = true;
+
+                ModelHealthReport finalReport = evaluateHealth(appContext);
+                if (callback != null) {
+                    callback.onComplete(finalReport);
+                }
+            } catch (Throwable t) {
+                Logger.printException(() -> "PhotosModelSeeder: repairAllModels failed", t);
+                if (callback != null) {
+                    callback.onComplete(evaluateHealth(appContext));
+                }
+            }
+        }, "PhotosModelRepair").start();
+    }
+
     public static void showModelManagerDialog(Activity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
 
@@ -529,6 +699,7 @@ public final class PhotosModelSeeder {
         int textSecondary = isDark ? 0xFF949BA4 : 0xFF666666;
         int primaryColor = 0xFF1E5AA8;
         int successColor = 0xFF2E7D32;
+        int errorColor = 0xFFD32F2F;
         int warningColor = 0xFFED6C02;
 
         Dialog dialog = new Dialog(activity);
@@ -552,34 +723,63 @@ public final class PhotosModelSeeder {
         root.addView(tvTitle);
 
         TextView tvSub = new TextView(activity);
-        tvSub.setText("Morphe MDD Model Seeder & Cache");
+        tvSub.setText("Cryptographic Health & Integrity Manager");
         tvSub.setTextSize(12f);
         tvSub.setTextColor(textSecondary);
         tvSub.setPadding(0, (int) (2 * density), 0, (int) (12 * density));
         root.addView(tvSub);
 
-        // Summary Card
+        // Summary & Health Card
         LinearLayout sumCard = new LinearLayout(activity);
-        sumCard.setOrientation(LinearLayout.HORIZONTAL);
-        sumCard.setGravity(Gravity.CENTER_VERTICAL);
+        sumCard.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable scBg = new GradientDrawable();
         scBg.setColor(cardColor);
-        scBg.setCornerRadius(12 * density);
+        scBg.setCornerRadius(14 * density);
         sumCard.setBackground(scBg);
-        int cPad = (int) (12 * density);
+        int cPad = (int) (14 * density);
         sumCard.setPadding(cPad, cPad, cPad, cPad);
 
         File modelsDir = new File(activity.getFilesDir(), MDD_MODELS_REL_PATH);
         int currentCount = countModelsInDir(modelsDir);
         int expectedTotal = getExpectedModelCount();
+        boolean hasZero = hasZeroByteFiles(modelsDir);
 
         TextView tvStatus = new TextView(activity);
-        tvStatus.setText(currentCount + " / " + expectedTotal + " Model Files Installed");
-        tvStatus.setTextSize(13.5f);
+        tvStatus.setTextSize(14f);
         tvStatus.setTypeface(null, Typeface.BOLD);
-        tvStatus.setTextColor(currentCount >= expectedTotal && expectedTotal > 0 ? successColor : warningColor);
-        LinearLayout.LayoutParams tsLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        sumCard.addView(tvStatus, tsLp);
+        if (currentCount >= expectedTotal && expectedTotal > 0 && !hasZero) {
+            tvStatus.setText("🟢 " + currentCount + " / " + expectedTotal + " Models Installed (Healthy)");
+            tvStatus.setTextColor(successColor);
+        } else if (hasZero) {
+            tvStatus.setText("🔴 Corrupted or truncated models detected!");
+            tvStatus.setTextColor(errorColor);
+        } else {
+            tvStatus.setText("🟡 " + currentCount + " / " + expectedTotal + " Models Cached (Incomplete)");
+            tvStatus.setTextColor(warningColor);
+        }
+        sumCard.addView(tvStatus);
+
+        TextView tvHealthDetail = new TextView(activity);
+        tvHealthDetail.setText("SHA-1 integrity verification backed by authentic Google MDD manifests.");
+        tvHealthDetail.setTextSize(11.5f);
+        tvHealthDetail.setTextColor(textSecondary);
+        tvHealthDetail.setPadding(0, (int) (4 * density), 0, (int) (8 * density));
+        sumCard.addView(tvHealthDetail);
+
+        // Health Action Pill inside Card
+        TextView btnHealthCheck = new TextView(activity);
+        btnHealthCheck.setText("🩺 Run Health Check & Self-Repair");
+        btnHealthCheck.setTextSize(12.5f);
+        btnHealthCheck.setTypeface(null, Typeface.BOLD);
+        btnHealthCheck.setTextColor(0xFFFFFFFF);
+        btnHealthCheck.setGravity(Gravity.CENTER);
+        GradientDrawable hcBg = new GradientDrawable();
+        hcBg.setColor(primaryColor);
+        hcBg.setCornerRadius(10 * density);
+        btnHealthCheck.setBackground(hcBg);
+        btnHealthCheck.setPadding((int) (12 * density), (int) (8 * density), (int) (12 * density), (int) (8 * density));
+        sumCard.addView(btnHealthCheck);
+
         root.addView(sumCard);
 
         // Scrollable Groups List
@@ -594,85 +794,164 @@ public final class PhotosModelSeeder {
         sv.addView(listLayout);
         root.addView(sv);
 
-        // Populate groups
+        // Method to populate group rows
         Map<String, List<ModelEntry>> allGroups = parseAllGroupsFromManifests();
-        for (Map.Entry<String, List<ModelEntry>> entry : allGroups.entrySet()) {
-            String groupName = entry.getKey();
-            List<ModelEntry> entries = entry.getValue();
+        Map<String, String> fileToSha = parseFileToShaMapping();
 
-            int installed = 0;
-            for (ModelEntry me : entries) {
-                File f = new File(modelsDir, me.filename);
-                if (f.exists() && f.length() > 0) installed++;
+        Runnable refreshGroups = () -> {
+            listLayout.removeAllViews();
+            for (Map.Entry<String, List<ModelEntry>> entry : allGroups.entrySet()) {
+                String groupName = entry.getKey();
+                List<ModelEntry> entries = entry.getValue();
+
+                int healthyCount = 0;
+                int corruptedCount = 0;
+
+                for (ModelEntry me : entries) {
+                    File f = new File(modelsDir, me.filename);
+                    if (!f.exists()) {
+                        // missing
+                    } else if (f.length() <= 0) {
+                        corruptedCount++;
+                    } else {
+                        String expSha = fileToSha.get(me.filename);
+                        String actSha = CdnAssetDownloader.calculateSha1(f);
+                        if (expSha != null && expSha.equalsIgnoreCase(actSha)) {
+                            healthyCount++;
+                        } else {
+                            corruptedCount++;
+                        }
+                    }
+                }
+
+                LinearLayout gRow = new LinearLayout(activity);
+                gRow.setOrientation(LinearLayout.HORIZONTAL);
+                gRow.setGravity(Gravity.CENTER_VERTICAL);
+                GradientDrawable grBg = new GradientDrawable();
+                grBg.setColor(cardColor);
+                grBg.setCornerRadius(10 * density);
+                gRow.setBackground(grBg);
+                gRow.setPadding((int) (12 * density), (int) (10 * density), (int) (12 * density), (int) (10 * density));
+                LinearLayout.LayoutParams rLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                rLp.bottomMargin = (int) (6 * density);
+                gRow.setLayoutParams(rLp);
+
+                LinearLayout tCol = new LinearLayout(activity);
+                tCol.setOrientation(LinearLayout.VERTICAL);
+                LinearLayout.LayoutParams tcLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+                tCol.setLayoutParams(tcLp);
+
+                TextView gTitle = new TextView(activity);
+                gTitle.setText(formatGroupName(groupName));
+                gTitle.setTextSize(13f);
+                gTitle.setTypeface(null, Typeface.BOLD);
+                gTitle.setTextColor(textPrimary);
+                tCol.addView(gTitle);
+
+                TextView gSub = new TextView(activity);
+                if (corruptedCount > 0) {
+                    gSub.setText("⚠️ " + corruptedCount + " corrupted file" + (corruptedCount > 1 ? "s" : "") + " (" + healthyCount + "/" + entries.size() + " verified)");
+                    gSub.setTextColor(errorColor);
+                } else {
+                    gSub.setText(healthyCount + " of " + entries.size() + " files verified healthy");
+                    gSub.setTextColor(textSecondary);
+                }
+                gSub.setTextSize(11f);
+                tCol.addView(gSub);
+                gRow.addView(tCol);
+
+                TextView badge = new TextView(activity);
+                badge.setTextSize(11f);
+                badge.setTypeface(null, Typeface.BOLD);
+                badge.setPadding((int) (8 * density), (int) (4 * density), (int) (8 * density), (int) (4 * density));
+                GradientDrawable bBg = new GradientDrawable();
+                bBg.setCornerRadius(8 * density);
+
+                if (corruptedCount > 0) {
+                    badge.setText("⚠️ Fix");
+                    badge.setTextColor(0xFFFFFFFF);
+                    bBg.setColor(errorColor);
+                    badge.setClickable(true);
+                    badge.setFocusable(true);
+                    badge.setOnClickListener(v -> {
+                        badge.setText("Repairing...");
+                        badge.setClickable(false);
+                        new Thread(() -> {
+                            downloadGroup(activity, groupName);
+                            activity.runOnUiThread(() -> {
+                                Toast.makeText(activity, "Repaired group: " + formatGroupName(groupName), Toast.LENGTH_SHORT).show();
+                                badge.setText("✓ Healthy");
+                                bBg.setColor(successColor);
+                            });
+                        }).start();
+                    });
+                } else if (healthyCount >= entries.size() && !entries.isEmpty()) {
+                    badge.setText("✓ Healthy");
+                    badge.setTextColor(0xFFFFFFFF);
+                    bBg.setColor(successColor);
+                } else {
+                    badge.setText("⬇ Download");
+                    badge.setTextColor(0xFFFFFFFF);
+                    bBg.setColor(primaryColor);
+                    badge.setClickable(true);
+                    badge.setFocusable(true);
+                    badge.setOnClickListener(v -> {
+                        badge.setText("Downloading...");
+                        badge.setClickable(false);
+                        new Thread(() -> {
+                            downloadGroup(activity, groupName);
+                            activity.runOnUiThread(() -> {
+                                int newCount = countModelsInDir(modelsDir);
+                                tvStatus.setText("🟢 " + newCount + " / " + expectedTotal + " Models Installed");
+                                tvStatus.setTextColor(successColor);
+                                badge.setText("✓ Healthy");
+                                bBg.setColor(successColor);
+                            });
+                        }).start();
+                    });
+                }
+                badge.setBackground(bBg);
+                gRow.addView(badge);
+
+                listLayout.addView(gRow);
             }
+        };
 
-            LinearLayout gRow = new LinearLayout(activity);
-            gRow.setOrientation(LinearLayout.HORIZONTAL);
-            gRow.setGravity(Gravity.CENTER_VERTICAL);
-            GradientDrawable grBg = new GradientDrawable();
-            grBg.setColor(cardColor);
-            grBg.setCornerRadius(10 * density);
-            gRow.setBackground(grBg);
-            gRow.setPadding((int) (12 * density), (int) (10 * density), (int) (12 * density), (int) (10 * density));
-            LinearLayout.LayoutParams rLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            rLp.bottomMargin = (int) (6 * density);
-            gRow.setLayoutParams(rLp);
+        refreshGroups.run();
 
-            LinearLayout tCol = new LinearLayout(activity);
-            tCol.setOrientation(LinearLayout.VERTICAL);
-            LinearLayout.LayoutParams tcLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-            tCol.setLayoutParams(tcLp);
+        // Wire Health Check & Repair Action
+        btnHealthCheck.setOnClickListener(v -> {
+            btnHealthCheck.setEnabled(false);
+            btnHealthCheck.setText("Verifying integrity...");
 
-            TextView gTitle = new TextView(activity);
-            String displayTitle = formatGroupName(groupName);
-            gTitle.setText(displayTitle);
-            gTitle.setTextSize(13f);
-            gTitle.setTypeface(null, Typeface.BOLD);
-            gTitle.setTextColor(textPrimary);
-            tCol.addView(gTitle);
+            repairAllModelsAsync(activity, new HealthRepairCallback() {
+                @Override
+                public void onProgress(String status, int current, int total) {
+                    activity.runOnUiThread(() -> {
+                        btnHealthCheck.setText(status);
+                    });
+                }
 
-            TextView gSub = new TextView(activity);
-            gSub.setText(installed + " of " + entries.size() + " files cached");
-            gSub.setTextSize(11f);
-            gSub.setTextColor(textSecondary);
-            tCol.addView(gSub);
-            gRow.addView(tCol);
-
-            TextView badge = new TextView(activity);
-            badge.setTextSize(11f);
-            badge.setTypeface(null, Typeface.BOLD);
-            badge.setPadding((int) (8 * density), (int) (4 * density), (int) (8 * density), (int) (4 * density));
-            GradientDrawable bBg = new GradientDrawable();
-            bBg.setCornerRadius(8 * density);
-            if (installed >= entries.size() && !entries.isEmpty()) {
-                badge.setText("✓ Ready");
-                badge.setTextColor(0xFFFFFFFF);
-                bBg.setColor(successColor);
-            } else {
-                badge.setText("⬇ Download");
-                badge.setTextColor(0xFFFFFFFF);
-                bBg.setColor(primaryColor);
-                badge.setClickable(true);
-                badge.setFocusable(true);
-                badge.setOnClickListener(v -> {
-                    badge.setText("Downloading...");
-                    badge.setClickable(false);
-                    new Thread(() -> {
-                        downloadGroup(activity, groupName);
-                        activity.runOnUiThread(() -> {
-                            int newCount = countModelsInDir(modelsDir);
-                            tvStatus.setText(newCount + " / " + expectedTotal + " Model Files Installed");
-                            badge.setText("✓ Ready");
-                            bBg.setColor(successColor);
-                        });
-                    }).start();
-                });
-            }
-            badge.setBackground(bBg);
-            gRow.addView(badge);
-
-            listLayout.addView(gRow);
-        }
+                @Override
+                public void onComplete(ModelHealthReport finalReport) {
+                    activity.runOnUiThread(() -> {
+                        btnHealthCheck.setEnabled(true);
+                        btnHealthCheck.setText("✓ Integrity Verified");
+                        if (finalReport != null && finalReport.isAllHealthy()) {
+                            tvStatus.setText("🟢 All " + finalReport.totalExpected + " Models Verified Healthy");
+                            tvStatus.setTextColor(successColor);
+                            Toast.makeText(activity, "✅ All on-device AI models passed integrity check!", Toast.LENGTH_LONG).show();
+                        } else {
+                            int healthy = finalReport != null ? finalReport.healthyCount : 0;
+                            int total = finalReport != null ? finalReport.totalExpected : expectedTotal;
+                            tvStatus.setText("🟢 " + healthy + " / " + total + " Models Verified Healthy");
+                            tvStatus.setTextColor(successColor);
+                        }
+                        refreshGroups.run();
+                    });
+                }
+            });
+        });
 
         // Action Buttons Row
         LinearLayout btnRow = new LinearLayout(activity);
@@ -689,7 +968,7 @@ public final class PhotosModelSeeder {
         btnRow.addView(btnClose);
 
         TextView btnDownloadAll = new TextView(activity);
-        btnDownloadAll.setText("Download All Missing");
+        btnDownloadAll.setText("Verify & Seed All");
         btnDownloadAll.setTextSize(13f);
         btnDownloadAll.setTypeface(null, Typeface.BOLD);
         btnDownloadAll.setTextColor(0xFFFFFFFF);
@@ -699,10 +978,10 @@ public final class PhotosModelSeeder {
         btnDownloadAll.setBackground(dlBg);
         btnDownloadAll.setPadding((int) (16 * density), (int) (10 * density), (int) (16 * density), (int) (10 * density));
         btnDownloadAll.setOnClickListener(v -> {
-            btnDownloadAll.setText("Downloading in background...");
+            btnDownloadAll.setText("Healing models in background...");
             btnDownloadAll.setEnabled(false);
             enableAndEnsureSeeded(activity);
-            Toast.makeText(activity, "Started background download for all missing AI models", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Started background verification and download for all AI models", Toast.LENGTH_LONG).show();
             dialog.dismiss();
         });
         btnRow.addView(btnDownloadAll);
@@ -721,10 +1000,13 @@ public final class PhotosModelSeeder {
 
     private static String formatGroupName(String raw) {
         if (raw == null) return "AI Model Pack";
-        if (raw.toLowerCase().contains("magic") || raw.toLowerCase().contains("eraser") || raw.toLowerCase().contains("inpaint")) return "✨ Magic Eraser & Camouflage";
-        if (raw.toLowerCase().contains("portrait") || raw.toLowerCase().contains("face") || raw.toLowerCase().contains("relight")) return "👤 Portrait Relight & Blur";
+        if (raw.toLowerCase().contains("magic") || raw.toLowerCase().contains("eraser") || raw.toLowerCase().contains("inpaint") || raw.toLowerCase().contains("buttercup") || raw.toLowerCase().contains("udon")) return "✨ Magic Eraser & Camouflage";
+        if (raw.toLowerCase().contains("portrait") || raw.toLowerCase().contains("face") || raw.toLowerCase().contains("relight") || raw.toLowerCase().contains("segmenter")) return "👤 Portrait Relight & Blur";
         if (raw.toLowerCase().contains("sky") || raw.toLowerCase().contains("color_pop")) return "🌅 Sky Suggestions & Color Pop";
         if (raw.toLowerCase().contains("cinematic") || raw.toLowerCase().contains("depth") || raw.toLowerCase().contains("3d")) return "🎬 Cinematic 3D Depth";
+        if (raw.toLowerCase().contains("unblur") || raw.toLowerCase().contains("mochi") || raw.toLowerCase().contains("psyduck")) return "🔍 Photo Unblur & Fix";
+        if (raw.toLowerCase().contains("cubelut") || raw.toLowerCase().contains("grainy") || raw.toLowerCase().contains("light_leak") || raw.toLowerCase().contains("tonefix")) return "🎨 Real Film & Texture Looks";
+        if (raw.toLowerCase().contains("template") || raw.toLowerCase().contains("collage")) return "📐 Collage & Layout Engine";
         return "🧠 " + raw.replace("_", " ");
     }
 }

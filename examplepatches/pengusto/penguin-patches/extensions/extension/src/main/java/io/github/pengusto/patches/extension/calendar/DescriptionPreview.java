@@ -13,8 +13,10 @@ import java.util.regex.Pattern;
 
 /** Presentation only: never calls setText on the stored source editor. */
 public final class DescriptionPreview {
-    private static final Pattern HTML = Pattern.compile("<\\s*(?:html|body)\\b[^>]*>|<\\s*(p|div|span|font|a|b|strong|i|em|u|ul|ol|li|blockquote|h[1-6])\\b[^>]*>[\\s\\S]*?</\\s*\\1\\s*>|<br\\s*/?>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern HTML = Pattern.compile("<\\s*(?:html|body)\\b[^>]*>|<\\s*(p|div|span|font|a|b|strong|i|em|u|ul|ol|li|blockquote|h[1-6]|table|thead|tbody|tfoot|tr|td|th|caption)\\b[^>]*>[\\s\\S]*?</\\s*\\1\\s*>|<br\\s*/?>", Pattern.CASE_INSENSITIVE);
     private static final Pattern HIDDEN = Pattern.compile("<(head|script|style)\\b[^>]*>[\\s\\S]*?(?:</\\1\\s*>|$)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern CELL_END = Pattern.compile("</\\s*(?:td|th)\\s*>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ROW_END = Pattern.compile("</\\s*tr\\s*>", Pattern.CASE_INSENSITIVE);
     private static final String TAG = "penguin.calendar.description.preview";
 
     public static void attach(Activity activity) {
@@ -54,8 +56,14 @@ public final class DescriptionPreview {
         render.run();
     }
 
+    /** Plain summary for list rows; never writes back to the event or editor. */
+    public static String summary(String raw) {
+        if (!HTML.matcher(raw).find()) return raw;
+        return display(raw).toString().replace('\n', ' ');
+    }
+
     static CharSequence display(String raw) {
-        SpannableStringBuilder parsed = new SpannableStringBuilder(Html.fromHtml(HIDDEN.matcher(raw).replaceAll(""), Html.FROM_HTML_MODE_COMPACT));
+        SpannableStringBuilder parsed = new SpannableStringBuilder(Html.fromHtml(ROW_END.matcher(CELL_END.matcher(HIDDEN.matcher(raw).replaceAll("")).replaceAll(" ")).replaceAll("<br>"), Html.FROM_HTML_MODE_COMPACT));
         for (Object span : parsed.getSpans(0, parsed.length(), Object.class)) {
             if (span instanceof ForegroundColorSpan || span instanceof BackgroundColorSpan || span instanceof AbsoluteSizeSpan || span instanceof RelativeSizeSpan) parsed.removeSpan(span);
             if (span instanceof URLSpan) {
@@ -66,7 +74,7 @@ public final class DescriptionPreview {
             }
         }
         int end = parsed.length();
-        while (end > 0 && parsed.charAt(end - 1) == '\n') end--;
+        while (end > 0 && (parsed.charAt(end - 1) == '\n' || parsed.charAt(end - 1) == ' ')) end--;
         return parsed.subSequence(0, end);
     }
 }

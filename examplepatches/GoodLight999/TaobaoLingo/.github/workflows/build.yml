@@ -1,0 +1,99 @@
+name: Build TaobaoLingo
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'patches/**'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - '.github/workflows/build.yml'
+      - 'scripts/verify_apk.py'
+      - 'scripts/build_legacy_cli.py'
+      - 'scripts/verify_japan_picker.py'
+      - 'tests/**'
+  pull_request:
+    paths:
+      - 'patches/**'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - '.github/workflows/build.yml'
+      - 'scripts/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+      - name: Build Morphe patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle buildAndroid --no-daemon --stacktrace
+      - name: Verify build artifact and Python tools
+        run: |
+          python3 -m py_compile scripts/verify_apk.py scripts/build_legacy_cli.py scripts/verify_japan_picker.py
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          bundles = list(Path("patches/build/libs").glob("*.mpp"))
+          assert len(bundles) == 1, f"Expected exactly one .mpp, got {bundles!r}"
+          with ZipFile(bundles[0]) as jar:
+              assert jar.testzip() is None, "Corrupted MPP archive"
+              names = set(jar.namelist())
+              assert "classes.dex" in names, "Missing Android DEX for Morphe Manager"
+              manifest = jar.read("META-INF/MANIFEST.MF").decode()
+              assert "Patcher-Version: 2.0.0" in manifest, manifest
+              assert any("TaobaoLanguagePatchesKt.class" in n for n in names)
+              assert any("JapanEnglishServerPatchKt.class" in n for n in names)
+              assert any("DinamicXEnglishLabelsPatchKt.class" in n for n in names)
+              assert any("JapanEnglishPickerPatchKt.class" in n for n in names)
+          print("Verified Morphe 2.0.0 bundle:", bundles[0])
+          PY
+      - name: Run independent APK triage regression fixtures
+        run: |
+          python3 -m py_compile scripts/triage_apk_variants.py scripts/inspect_native_elf.py scripts/inspect_mytaobao_templates.py tests/test_triage_apk_variants.py tests/test_inspect_native_elf.py tests/test_inspect_mytaobao_templates.py
+          bash -n scripts/run_apk_matrix.sh scripts/reproduce_real_apk_safe.sh
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Compile independent DEX verification tools
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/taobaolingo-cli /tmp/taobaolingo-tests
+          gh release download v1.18.1 --repo MorpheApp/morphe-desktop \
+            --pattern "*-all.jar" --dir /tmp/taobaolingo-cli
+          JAR="$(find /tmp/taobaolingo-cli -name '*-all.jar' -print -quit)"
+          test -s "$JAR"
+          javac -cp "$JAR" -d /tmp/taobaolingo-tests \
+            tests/VerifyJapanPicker.java tests/VerifyLocalizedResources.java \
+            tests/VerifyDinamicXNativeLabels.java tests/AnalyzeDinamicXRoutes.java
+      - name: Syntax-check ADB diagnostic PowerShell
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile('scripts/adb_locale_probe.ps1', [ref]$tokens, [ref]$parseErrors) | Out-Null
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+      - name: Upload Morphe MPP
+        uses: actions/upload-artifact@v4
+        with:
+          name: TaobaoLingo-Morphe-${{ github.sha }}
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error

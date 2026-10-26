@@ -1,5 +1,7 @@
 # Steam Link 2.0.24 / 5002395 adaptation
 
+> **2026-10-24:** Full-FOV foveal canvas retired and removed; later references in this record are historical.
+
 Checked 2026-10-24 against the retained decoded tree
 `android-steamlinkvr-release-base-2.0.24-5002395`. This is static and
 host-side evidence; no headset, ADB, SteamVR or install run was performed.

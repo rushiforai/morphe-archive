@@ -179,6 +179,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     @Nullable
     SettingsNavigation navigation;
 
+    /** The entry rows' last-way guard, reapplied after the shared page refreshes availability. */
+    @Nullable Runnable refreshWaysIn;
+
     /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
     @Nullable
     private PreferenceCategory downloads;
@@ -293,6 +296,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
 
     @Override
     protected void initialize() {
+        refreshWaysIn = null;
         RuntimeException fault = failNextInitialization;
         if (fault != null) {
             failNextInitialization = null;
@@ -814,6 +818,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         super.updateUIAvailability();
         showMarketplaceSettings();
         showSaveFolder();
+        if (refreshWaysIn != null) refreshWaysIn.run();
     }
 
     @Override
@@ -823,6 +828,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         showSaveFolder();
         showShareItemsSummary();
         showMenuTilesSummary();
+        if (refreshWaysIn != null) refreshWaysIn.run();
     }
 
     /** No setting is behind the Menu tiles row's key, so its summary is redone here after an import. */
@@ -2197,6 +2203,12 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setOnPreferenceChangeListener((preference, typed) -> {
             String raw = typed == null ? "" : typed.toString();
             String clean = PostWords.clean(raw);
+            if (row.refuseDuringImport()) return false;
+            String refusal = wordsRefusal(PostWords.size(clean, row.otherListBytes()));
+            if (refusal != null) {
+                row.refuseSave(refusal);
+                return false;
+            }
             if (clean.equals(raw)) return true;
             // Keeps the clean list in place of what was typed, as the folder row does.
             int leftOut = PostWords.leftOut(raw);

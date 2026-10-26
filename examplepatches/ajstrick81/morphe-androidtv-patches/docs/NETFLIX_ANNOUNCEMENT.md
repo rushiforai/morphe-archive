@@ -1,7 +1,8 @@
 # 🍿 Netflix (Android TV) Ad Patch — Current State
 
-*Last updated: 2026-09-24 · Ships in release `v1.37.4`+ · Target APK
-`13.0.1 build 25028` (armeabi-v7a)*
+*Last updated: 2026-10-25 · Ships in release `v1.37.4`+ · Target APKs
+`13.0.1 build 25028` (stable) and `13.2.1 build 27207` (**experimental**) —
+both armeabi-v7a*
 
 > This is the up-to-date write-up for the Netflix Android TV patch. It replaces
 > the details in the original Reddit post where they differ. That earlier Reddit
@@ -105,8 +106,11 @@ you open the clone instead. Log into the clone once and you're set.
    <https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches>
 2. **Get the right APK.** On APKMirror, open the **Netflix (Android TV)** listing
    (publisher *Netflix, Inc.*, package `com.netflix.ninja`) and get version
-   **`13.0.1 build 25028`**. This listing has **no App Bundle** — download the
-   single **`armeabi-v7a`** APK.
+   **`13.0.1 build 25028`** (stable) or **`13.2.1 build 27207`** (experimental —
+   see note below). This listing has **no App Bundle** — download the single
+   **`armeabi-v7a`** APK. Morphe Manager flags 13.2.1 as experimental; it's
+   device-verified ad-free but still leans on a drift-tolerant re-anchor (details
+   under [Verified](#verified)).
 3. **Patch it.** In Morphe, select **Netflix** and apply the patch set:
    - **Remove Netflix ads** — the ad kill (on by default)
    - **Clone Netflix** — required; makes it installable alongside stock (on by
@@ -182,6 +186,15 @@ Netflix servers **did** deliver real pre-rolls, mid-rolls and pause ads — and 
 of them played, with no playback errors and resume position intact. A full
 technical write-up of how it works is in the
 [system-design doc](https://github.com/ajstrick81/morphe-androidtv-patches/blob/main/docs/NETFLIX_ATV_SYSTEM_DESIGN.md).
+
+**13.2.1 build 27207 (experimental):** also verified on the Onn 4K — clean cold
+launch (no certificate-check crash), ad kill active, and multiple titles played
+ad-free (no pre-rolls, no mid-roll markers) over a sustained session with no
+stalls or crashes. It's marked experimental because Netflix re-minified the ad
+code on this build, so the kill currently rests on the patch's drift-tolerant
+re-anchor rather than the pristine exact anchors — safe and verify-checked, but
+a cleaner exact re-pin is still planned. If you prefer the most battle-tested
+build, stay on `13.0.1 build 25028`.
 
 ---
 

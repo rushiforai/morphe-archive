@@ -29,6 +29,25 @@ final class NativeToolTabSwipeLayout extends LinearLayout {
         }
         return false;
     }
+    @Override public void onWindowFocusChanged(boolean focus){
+        super.onWindowFocusChanged(focus);
+        if(focus)post(()->NativeToolTabs.restoreToolVisibility(this));
+    }
+    @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){
+        if(event.getKeyCode()==android.view.KeyEvent.KEYCODE_BACK&&isShown()
+                &&NativeToolTabs.isArchiveFragment(fragment)){
+            if(event.getAction()==android.view.KeyEvent.ACTION_UP&&!event.isCanceled())
+                mainHandler.post(()->NativeToolTabs.closeCurrentTab(host,fragment));
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+    boolean closeArchiveOnBack(android.view.KeyEvent event){
+        if(!isShown()||!NativeToolTabs.isArchiveFragment(fragment))return false;
+        if(event.getAction()==android.view.KeyEvent.ACTION_UP&&!event.isCanceled())
+            mainHandler.post(()->NativeToolTabs.closeCurrentTab(host,fragment));
+        return true;
+    }
     @Override public boolean dispatchTouchEvent(MotionEvent event){
         int action=event.getActionMasked();
         if(action==MotionEvent.ACTION_DOWN){

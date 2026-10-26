@@ -35,6 +35,31 @@ Andrew Liang's patches are licensed under the GNU General Public License v3.0.
 Their files here keep a "Forked from" line naming the file and commit they
 came from, and provenance.json records every rule.
 
+Traditional Chinese translation
+-------------------------------
+
+JhouHank contributed the Traditional Chinese (Taiwan) translation in PR #313.
+The table was imported from commit
+95b2fd99e642f8f1d0a8563ba36fe7af1c21f933, under GPL-3.0-only.
+Font placement hints were adjusted here. Privacy descriptions and notification counts are also maintained here.
+https://github.com/SysAdminDoc/HushGram/pull/313
+https://github.com/JhouHank/HushGram
+
+The contributor credits their Piko translations as a terminology reference.
+The table retains that reference, and Piko's notice is reproduced below.
+
+Piko NOTICE
+
+https://github.com/crimera/piko
+
+=============
+
+7b. Attribution Requirement
+---------------------------
+
+This NOTICE file must be preserved and retained in all distributions
+of the Source Code and any Derivative Works.
+
 Carried third-party libraries
 ----------------------------
 

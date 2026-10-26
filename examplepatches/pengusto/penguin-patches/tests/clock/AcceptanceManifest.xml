@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.pengusto.patches.clock.acceptance">
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+    <application />
+    <instrumentation android:name="io.github.pengusto.patches.clock.tests.ClockAcceptance" android:targetPackage="org.fossify.clock" />
+</manifest>

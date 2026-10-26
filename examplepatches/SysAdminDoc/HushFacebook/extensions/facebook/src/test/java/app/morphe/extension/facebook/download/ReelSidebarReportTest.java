@@ -48,6 +48,7 @@ public class ReelSidebarReportTest {
         HookStatus.clear();
         PauseForTests.resume();
         Settings.DOWNLOAD_REELS.resetToDefault();
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.resetToDefault();
     }
 
     private static String line() {
@@ -62,6 +63,19 @@ public class ReelSidebarReportTest {
         assertTrue(ReelDownload.showsButton());
         assertEquals("Download any reel: invoked 0, 0 found, 0 missing. Counted: " + ReelDownload.SIDEBAR_WITH_BUTTON + " 2",
                 line());
+    }
+
+    @Test
+    public void hidingTheButtonHasItsOwnReasonAndDoesNotDisableDownloads() {
+        assertTrue("the default layout lost its Download button", ReelDownload.showsButton());
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(false);
+        assertFalse(ReelDownload.showsButton());
+        assertTrue("hiding the button disabled menu downloads", Settings.DOWNLOAD_REELS.get());
+        String report = line();
+        assertTrue(report, report.contains(ReelDownload.SIDEBAR_HIDDEN + " 1"));
+        assertFalse(report, report.contains(ReelDownload.SIDEBAR_SWITCH_OFF));
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(true);
+        assertTrue("the next sidebar did not show the button again", ReelDownload.showsButton());
     }
 
     @Test
@@ -138,7 +152,8 @@ public class ReelSidebarReportTest {
     @Test
     public void everyCountedPhraseIsFixedText() {
         for (String phrase : new String[]{ReelDownload.SIDEBAR_WITH_BUTTON, ReelDownload.SIDEBAR_SWITCH_OFF,
-                ReelDownload.SIDEBAR_PAUSED, ReelDownload.SIDEBAR_NOT_READY, ReelDownload.OTHER_SIDEBAR}) {
+                ReelDownload.SIDEBAR_HIDDEN, ReelDownload.SIDEBAR_PAUSED, ReelDownload.SIDEBAR_NOT_READY,
+                ReelDownload.OTHER_SIDEBAR}) {
             assertTrue(phrase, phrase.matches("[A-Za-z ,]+"));
         }
         assertEquals(Collections.emptyList(), HookStatus.report());

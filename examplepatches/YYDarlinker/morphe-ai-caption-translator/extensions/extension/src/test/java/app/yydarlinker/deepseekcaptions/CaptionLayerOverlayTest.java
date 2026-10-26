@@ -97,6 +97,7 @@ public class CaptionLayerOverlayTest {
 
     @Before
     public void setUp() {
+        CaptionNativeProjection.ccState(CaptionIntentPolicy.ON);
         CaptionPlayerAuthority.resetForTests();
         CaptionSurface.invalidateGeometry();
         a = Robolectric.buildActivity(Activity.class).setup().visible().get();
@@ -757,6 +758,29 @@ public class CaptionLayerOverlayTest {
                 "a completed step does not oscillate",
                 CaptionOverlay.advanceDisplayedGlyph(start + 400_000_000L));
         assertEquals(44.5f, CaptionOverlay.displayedGlyphPx(), .001f);
+    }
+
+    /** The actual GLYPH_FRAME callback advances state and then updates the real view. */
+    @Test
+    public void glyphCallbackAdvancesAndAppliesThePaintedSizeM4a() throws Exception {
+        show("剧透一下：下一期我会分享一份指南。", "glyph:callback:m4a");
+        awaitCaption();
+        settleGlyph();
+        float initial = paintedGlyphHeight();
+        Layer.globalWidth = 1850;
+        Layer.globalHeight = 1050;
+        float target = lawGlyphForGlobalWidth(1850);
+        CaptionOverlay.applyCommentScale(a, text());
+        Field field = CaptionOverlay.class.getDeclaredField("GLYPH_FRAME");
+        field.setAccessible(true);
+        android.view.Choreographer.FrameCallback callback =
+                (android.view.Choreographer.FrameCallback) field.get(null);
+        callback.doFrame(0);
+        assertEquals("first callback paints the original value", initial, paintedGlyphHeight(), .01f);
+        callback.doFrame(90_000_000L);
+        assertEquals("callback applies the advanced value to the real TextView",
+                (initial + target) / 2f, paintedGlyphHeight(), .01f);
+        assertEquals(CaptionOverlay.displayedGlyphPx(), paintedGlyphHeight(), .01f);
     }
 
     /** Ends a pending 180 ms size step and applies its final scale to the view. */

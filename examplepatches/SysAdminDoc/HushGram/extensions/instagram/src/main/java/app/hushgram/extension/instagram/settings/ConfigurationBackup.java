@@ -13,8 +13,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -42,11 +45,11 @@ public final class ConfigurationBackup {
     public static final int MAX_BYTES = 256 * 1024;
     public static final int MAX_ENTRIES = 512;
     public static final long UNDO_WINDOW_MS = 10_000;
-    /** The longest text a file may set. The longest real one, a sharing domain, is 253. */
+    /** The ordinary text bound. Selection and blocked-word lists have the larger bound below. */
     static final int MAX_TEXT = 256;
     /**
-     * The longest list of blocked words, which its row also holds to: the longest text the file's
-     * reader takes, so a list that's saved always comes back.
+     * The bounded reader's longest string, also used by blocked words and native settings-row
+     * selections. The current native row ids join to 2,953 characters.
      */
     static final int MAX_WORDS_TEXT = 4096;
     private static final SettingsJson.Limits LIMITS =
@@ -58,6 +61,17 @@ public final class ConfigurationBackup {
     private static long undoId;
 
     private ConfigurationBackup() {}
+
+    /** The suggested document name, with optional local time in safe, locale-independent digits. */
+    static String fileName(Date when, boolean dated) {
+        return "HushGram-settings" + (dated
+                ? "-" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(when) : "") + ".json";
+    }
+
+    /** The page no longer permits a queued change. Nothing was written or consumed. */
+    public static final class Held extends IOException {
+        private Held() { super("The settings change is no longer permitted"); }
+    }
 
     /** Counts are safe for feedback. Neither keys nor values reach a report. */
     public static final class Result {
@@ -197,6 +211,7 @@ public final class ConfigurationBackup {
         settings.put(Settings.SETTINGS_SHORTCUT.key, Settings.SETTINGS_SHORTCUT);
         settings.put(Settings.SETTINGS_LOGO_PRESS.key, Settings.SETTINGS_LOGO_PRESS);
         settings.put(Settings.CATEGORY_PAGES.key, Settings.CATEGORY_PAGES);
+        settings.put(Settings.DATE_SETTINGS_EXPORT.key, Settings.DATE_SETTINGS_EXPORT);
         return settings;
     }
 
@@ -242,6 +257,11 @@ public final class ConfigurationBackup {
      * any of these, and one of them no longer costs every other choice in it.
      */
     public static synchronized Result restore(byte[] bytes) throws IOException {
+        return restore(bytes, () -> true);
+    }
+
+    /** Rechecks the calling page's permission at the transaction boundary, after file validation. */
+    public static synchronized Result restore(byte[] bytes, java.util.function.BooleanSupplier mayCommit) throws IOException {
         final Map<Setting<?>, Object> updates = new LinkedHashMap<>();
         final Map<String, Setting<?>> allowed = eligible();
         int skipped = 0;
@@ -275,6 +295,16 @@ public final class ConfigurationBackup {
             throw invalid();
         }
         synchronized (Setting.class) {
+            requirePermission(mayCommit);
+            // Authentication can change while a file is being validated. Hold lock switches at
+            // the same boundary as the writes, even when the calling page itself stays open.
+            for (var entries = updates.entrySet().iterator(); entries.hasNext();) {
+                var entry = entries.next();
+                if (heldByLock(entry.getKey())) {
+                    if (!entry.getValue().equals(entry.getKey().savedValue())) held++;
+                    entries.remove();
+                }
+            }
             Map<Setting<?>, Object> before = new LinkedHashMap<>();
             boolean restart = false;
             for (var entry : updates.entrySet()) {
@@ -302,14 +332,15 @@ public final class ConfigurationBackup {
     /**
      * [value] as [setting] would save it, declared as [declared], or null when this build can't take
      * it: another type than the setting's, an enum constant it doesn't have, text over
-     * {@link #MAX_TEXT} characters ({@link #MAX_WORDS_TEXT} for the blocked words) or text
+     * {@link #MAX_TEXT} characters ({@link #MAX_WORDS_TEXT} for blocked words and settings rows) or text
      * {@link #textAllowed} refuses.
      */
     @Nullable
     static Object accepted(Setting<?> setting, String declared, Object value) {
         Object fallback = setting.defaultValue;
         if (fallback instanceof Boolean) return "boolean".equals(declared) && value instanceof Boolean ? value : null;
-        int longest = setting == Settings.REELS_BLOCKED_WORDS ? MAX_WORDS_TEXT : MAX_TEXT;
+        int longest = setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.HIDDEN_SETTINGS_ROWS
+                ? MAX_WORDS_TEXT : MAX_TEXT;
         if (!(value instanceof String) || ((String) value).length() > longest) return null;
         if (fallback instanceof Enum) {
             if (!"enum".equals(declared)) return null;
@@ -398,12 +429,18 @@ public final class ConfigurationBackup {
 
     /** A queued action belongs to the import it offered, never a later restore point. */
     public static synchronized Result undo(long token) throws IOException {
+        return undo(token, () -> true);
+    }
+
+    /** A refused page keeps its still-valid Undo token and deadline. */
+    public static synchronized Result undo(long token, java.util.function.BooleanSupplier mayCommit) throws IOException {
         if (undoDeadline(token) == 0) return null;
-        Map<Setting<?>, Object> values = undoValues;
-        Map<Setting<?>, Object> expected = importedValues;
-        Map<Setting<?>, Long> revisions = importedRevisions;
-        forgetUndo();
         synchronized (Setting.class) {
+            requirePermission(mayCommit);
+            Map<Setting<?>, Object> values = undoValues;
+            Map<Setting<?>, Object> expected = importedValues;
+            Map<Setting<?>, Long> revisions = importedRevisions;
+            forgetUndo();
             Map<Setting<?>, Object> before = new LinkedHashMap<>();
             boolean restart = false;
             int skipped = 0;
@@ -466,5 +503,14 @@ public final class ConfigurationBackup {
     private static IOException invalid() {
         // Parser causes can carry input values. Keep untrusted content out of diagnostic logs.
         return new IOException("Invalid HushGram configuration file");
+    }
+
+    private static void requirePermission(java.util.function.BooleanSupplier mayCommit) throws Held {
+        try {
+            if (mayCommit != null && mayCommit.getAsBoolean()) return;
+        } catch (RuntimeException unavailable) {
+            // Unreadable authorization must never grant a queued write.
+        }
+        throw new Held();
     }
 }

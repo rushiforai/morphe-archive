@@ -1,7 +1,7 @@
 package dev.jkcarino.adobo.patches.imdb.ad
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import dev.jkcarino.adobo.patches.all.contentblocker.hosts.HostsBlocker
 import dev.jkcarino.adobo.patches.all.contentblocker.hosts.HostsBlockerConfig
 import dev.jkcarino.adobo.patches.all.contentblocker.hosts.baseHostsBlockerPatch

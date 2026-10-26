@@ -86,6 +86,7 @@ internal object ShowFingerprint : Fingerprint(
 
 internal object BaseAdViewFingerprint : Fingerprint(
     definingClass = "Lcom/google/android/gms/ads/",
+    superclass = "Landroid/view/ViewGroup;",
     returnType = "V",
     filters = OpcodesFilter.opcodesToFilters(
         Opcode.CONST_STRING,
@@ -94,10 +95,7 @@ internal object BaseAdViewFingerprint : Fingerprint(
         Opcode.MOVE_RESULT_OBJECT,
         Opcode.INVOKE_STATIC,
     ),
-    strings = listOf("#008 Must be called on the main UI thread."),
-    custom = { _, classDef ->
-        classDef.superclass == "Landroid/view/ViewGroup;"
-    }
+    strings = listOf("#008 Must be called on the main UI thread.")
 )
 
 internal object BannerAdFingerprint : Fingerprint(

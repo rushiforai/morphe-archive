@@ -47,7 +47,8 @@ final class CaptionIntentPolicy {
     }
 
     static boolean shouldTurnOff(boolean aiVisible, int nativeState, int rememberedIntent) {
-        return aiVisible || nativeState == ON || (nativeState == UNKNOWN && rememberedIntent == ON);
+        if (nativeState != UNKNOWN) return nativeState == ON;
+        return rememberedIntent == ON || (rememberedIntent == UNKNOWN && aiVisible);
     }
 
     /** Parses action labels and current-state labels without depending on one locale. */

@@ -285,7 +285,7 @@ public final class PostDetails {
 
     /** The kept accessor [name] of [model] for [field], or null when the model has none or it fails. */
     static Object call(Object model, String name, int field) {
-        if (model == null) return null;
+        if (model == null || (isTree(model) && !isLiveTree(model))) return null;
         try {
             Method method = model.getClass().getMethod(name, int.class);
             return method.invoke(model, field);

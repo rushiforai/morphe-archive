@@ -29,18 +29,18 @@ import kotlin.system.exitProcess
 
 private const val JPTT_PACKAGE = "com.joshua.jptt"
 
-/** `base.apk` of JPTT 3.9.2, the release new patches are written against. */
+/** `base.apk` of JPTT 3.9.4, the release new patches are written against. */
 private const val KNOWN_APK_SHA256 =
-    "fbdd8f5411b80b576f8baa843f59dd836b663725c46f7ad036aa076a6b713c50"
+    "f18f64e9b0ea77a5ea3bf6999855901064054e2d75dac7a787ebb43ebae47f5f"
 
 private val MISSING_APK = """
     No APK to verify against. Pass one with -Papk=<path>, point ${'$'}JPTT_APK at one,
     or leave one in the project root. It is deliberately not in the repository.
 
-    On a phone that has JPTT 3.9.2 installed, its base.apk is byte for byte the APK
+    On a phone that has JPTT 3.9.4 installed, its base.apk is byte for byte the APK
     new patches are written against:
 
-        adb pull "${'$'}(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.2.apk
+        adb pull "${'$'}(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.4.apk
 """.trimIndent()
 
 fun main(args: Array<String>) {
@@ -80,7 +80,7 @@ fun main(args: Array<String>) {
 
         val digest = apk.sha256()
         if (packageName == JPTT_PACKAGE && digest != KNOWN_APK_SHA256) {
-            println("note:   not the 3.9.2 APK new patches are written against ($digest)")
+            println("note:   not the 3.9.4 APK new patches are written against ($digest)")
         }
 
         val forApp = loadPatchesFromJar(setOf(bundle)).filter { patch ->

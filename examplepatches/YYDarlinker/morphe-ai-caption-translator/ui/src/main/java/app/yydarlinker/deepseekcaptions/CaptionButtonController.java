@@ -39,6 +39,7 @@ final class CaptionButtonController {
     private static final long EXACT_MENU_MIN_ACTION_MS = 220L;
     private static final long EXACT_MENU_OFF_CONFIRM_MS = 90L;
     private static final long PLAYER_TRANSITION_QUIET_MS = 4_500L;
+    private static final long SETTLED_OFF_QUIET_MS = 900L;
     private static final long MAINTENANCE_SCAN_MS = 2_500L;
     private static final int MAX_SCANNED_VIEWS = 1_800;
 
@@ -54,12 +55,16 @@ final class CaptionButtonController {
     private static volatile int captionButtonViewId = View.NO_ID;
     private static volatile long ignoreUiStateUntilMs;
     private static volatile long transitionQuietUntilMs;
+    private static volatile long offStateQuietUntilMs;
+    private static volatile long videoEnteredAtMs, playerStableAtMs;
+    private static volatile boolean transitionPending;
     private static volatile long nativeMenuUntilMs;
     private static volatile long nativeMenuOpenedAtMs;
     private static volatile long exactControllerGeneration;
     private static volatile long nativeMenuExactBaselineGeneration;
     private static volatile long scanGeneration;
-    private static volatile boolean scanPosted;
+    private static Scan pendingScan;
+    private static long scanDueAtMs = Long.MAX_VALUE;
     private static volatile boolean maintenancePosted;
     private static volatile boolean turnCaptionsOffOnTouchUp;
     private static volatile boolean buttonTouchDown;
@@ -70,6 +75,7 @@ final class CaptionButtonController {
     private static volatile int nativeMenuOpeningState = CaptionIntentPolicy.UNKNOWN;
     private static volatile int lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
     private static volatile String currentVideoId = "";
+    private static volatile String exactButtonVideo = "";
     private static volatile List<String> localizedLabels = Collections.emptyList();
 
     private static final Runnable LONG_PRESS_ARM =
@@ -89,7 +95,7 @@ final class CaptionButtonController {
                         View button = resolveCaptionButtonForNativeMenu();
                         if (button != null && button.isAttachedToWindow()) {
                             try {
-                                syncNativeCaptionState(button);
+                                syncNativeCaptionState(button, "menu");
                             } catch (Throwable ignored) {
                                 // The monitor only observes; a broken view must not stop it.
                             }
@@ -131,11 +137,20 @@ final class CaptionButtonController {
         if (!clean.equals(currentVideoId)) {
             synchronized (NATIVE_STATE_LOCK) {
                 currentVideoId = clean;
+                videoEnteredAtMs = SystemClock.uptimeMillis();
+                playerStableAtMs = 0L;
+                // Input/renderer debounce from the departed video cannot delay this visit.
+                ignoreUiStateUntilMs = offStateQuietUntilMs = 0L;
+                exactButtonVideo = "";
+                scanGeneration++;
+                // A delayed read of the previous video's button cannot grant this video CC on.
+                exactControllerGeneration++;
                 turnCaptionsOffOnTouchUp = false;
                 buttonTouchDown = false;
                 longPressGesture = false;
                 endNativeMenu();
                 lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
+                CaptionNativeProjection.ccState(CaptionIntentPolicy.UNKNOWN);
             }
             MAIN.removeCallbacks(LONG_PRESS_ARM);
             MAIN.removeCallbacks(NATIVE_MENU_MONITOR);
@@ -156,6 +171,7 @@ final class CaptionButtonController {
         }
         hook(button);
         exactCaptionButtonRef = new WeakReference<>(button);
+        exactButtonVideo = currentVideoId;
         final long generation = ++exactControllerGeneration;
         MAIN.post(() -> observeExactCaptionControllerAfterUpdate(button, generation));
     }
@@ -172,24 +188,35 @@ final class CaptionButtonController {
      * Arms a quiet window around any player-shape transition. A transient CC accessibility OFF
      * state during rotation/fullscreen is not a user command and must not deactivate the AI track.
      *
-     * <p>The window suppresses projection writes only. The session intent is applied by
-     * {@link CaptionSessionReconciler} on its own player tick; no transition may gate that.
+     * <p>This deadline is separate from touch/menu/renderer debounce. Once the player is proven
+     * stable it can end without leaving a second 4.5 s deadline in the input guard.
      */
     static void onPlayerTransition(String rawType) {
         long now = SystemClock.uptimeMillis();
         transitionQuietUntilMs = Math.max(transitionQuietUntilMs, now + PLAYER_TRANSITION_QUIET_MS);
+        transitionPending = true;
         scanGeneration++;
         synchronized (NATIVE_STATE_LOCK) {
             clearNativeMenuEvidence();
             lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
         }
-        if (CaptionActions.isVisibleActive()) ignoreFor(PLAYER_TRANSITION_QUIET_MS);
     }
 
     /** Called only after the read-only player-geometry probe has observed a stable player. */
     static void onPlayerStable() {
-        transitionQuietUntilMs = SystemClock.uptimeMillis();
-        if (CaptionActions.isVisibleActive()) ignoreFor(900L);
+        // A geometry probe may also end in safe blank; it must not grant the fast path.
+        if (!CaptionPlayerAuthority.displayPermitted()) return;
+        long now = SystemClock.uptimeMillis();
+        transitionQuietUntilMs = now;
+        playerStableAtMs = now;
+        if (transitionPending && CaptionActions.isVisibleActive()
+                && CaptionNativeProjection.ccState() == CaptionIntentPolicy.ON)
+            offStateQuietUntilMs = Math.max(offStateQuietUntilMs, now + SETTLED_OFF_QUIET_MS);
+        transitionPending = false;
+        View exact = exactCaptionButtonRef.get();
+        long generation = exactControllerGeneration;
+        if (exact != null && currentVideoId.equals(exactButtonVideo))
+            MAIN.post(() -> observeExactCaptionControllerAfterUpdate(exact, generation));
         scheduleScan(120L);
     }
 
@@ -197,7 +224,7 @@ final class CaptionButtonController {
 
     private static void observeExactCaptionControllerAfterUpdate(View button, long generation) {
         if (button == null
-                || !button.isAttachedToWindow()
+                || !isCurrentButton(button)
                 || button != exactCaptionButtonRef.get()
                 || generation != exactControllerGeneration) return;
         long now = SystemClock.uptimeMillis();
@@ -207,21 +234,22 @@ final class CaptionButtonController {
         // while controls are being rebuilt. A real menu event is kept by checking the same final
         // controller state once the already-existing quiet window expires.
         if (now < transitionQuietUntilMs) {
-            if (menuWatched())
-                scheduleExactControllerRecheck(
-                        button, generation, transitionQuietUntilMs - now + 16L);
+            scheduleExactControllerRecheck(
+                    button, generation, transitionQuietUntilMs - now + 16L);
             return;
         }
         if (state == CaptionIntentPolicy.ON) {
             lastExactNativeState = CaptionIntentPolicy.ON;
-            if (now > ignoreUiStateUntilMs) syncNativeCaptionState(button);
+            if (now > ignoreUiStateUntilMs) syncNativeCaptionState(button, "exact");
+            else scheduleExactControllerRecheck(
+                    button, generation, ignoreUiStateUntilMs - now + 16L);
             return;
         }
         boolean menuCandidate = menuCandidate(generation);
-        if (now <= ignoreUiStateUntilMs) {
-            if (menuCandidate)
-                scheduleExactControllerRecheck(
-                        button, generation, ignoreUiStateUntilMs - now + 16L);
+        long offReadyAt = Math.max(ignoreUiStateUntilMs, offStateQuietUntilMs);
+        if (now <= offReadyAt) {
+            scheduleExactControllerRecheck(
+                    button, generation, offReadyAt - now + 16L);
             return;
         }
         if (state == CaptionIntentPolicy.OFF) {
@@ -229,9 +257,9 @@ final class CaptionButtonController {
             if (menuCandidate)
                 commitNativeCaptionOff(
                         true,
-                        "Actual CC controller explicitly reported captions off; AI captions"
-                                + " switched off too");
-            else syncNativeCaptionState(button);
+                        "Actual CC controller explicitly reported captions off; AI display"
+                                + " stopped; AI mode retained");
+            else syncNativeCaptionState(button, "exact");
             return;
         }
         // UNKNOWN is never globally treated as OFF. It becomes actionable only inside an explicit
@@ -270,10 +298,11 @@ final class CaptionButtonController {
         long now = SystemClock.uptimeMillis();
         if (generation != exactControllerGeneration
                 || now <= ignoreUiStateUntilMs
+                || now <= offStateQuietUntilMs
                 || now < transitionQuietUntilMs
                 || !menuCandidate(generation)) return;
         View button = exactCaptionButtonRef.get();
-        if (button == null || !button.isAttachedToWindow()) return;
+        if (!isCurrentButton(button)) return;
 
         int state = nativeCaptionState(button);
         if (state == CaptionIntentPolicy.ON) {
@@ -284,8 +313,7 @@ final class CaptionButtonController {
             lastExactNativeState = CaptionIntentPolicy.OFF;
             commitNativeCaptionOff(
                     true,
-                    "Actual CC controller explicitly reported captions off; AI captions switched"
-                            + " off too");
+                    "Actual CC controller explicitly reported captions off; AI display stopped");
             return;
         }
         if (lastExactNativeState != CaptionIntentPolicy.ON) return;
@@ -295,8 +323,8 @@ final class CaptionButtonController {
         // observation keep ordinary player rebuilds and menu dismissal from reading as Off.
         commitNativeCaptionOff(
                 true,
-                "Actual CC controller confirmed long-press menu switched captions off; AI captions"
-                        + " switched off too");
+                "Actual CC controller confirmed long-press menu switched captions off; AI display"
+                        + " stopped; AI mode retained");
     }
 
     // ---- The native long-press menu ----
@@ -388,26 +416,42 @@ final class CaptionButtonController {
     // ---- Scanning for the button ----
 
     private static void scheduleScan(long delayMs) {
-        final long token = scanGeneration;
-        if (scanPosted) return;
-        scanPosted = true;
-        MAIN.postDelayed(
-                () -> {
-                    scanPosted = false;
-                    if (token != scanGeneration) {
-                        scheduleScan(120L);
-                        return;
-                    }
-                    Activity activity = activityRef.get();
-                    if (activity == null || activity.isFinishing()) return;
-                    long now = SystemClock.uptimeMillis();
-                    if (now < transitionQuietUntilMs) {
-                        scheduleScan(Math.max(120L, transitionQuietUntilMs - now));
-                        return;
-                    }
-                    scanIfShown(activity);
-                },
-                Math.max(0L, delayMs));
+        long delay = Math.max(0L, delayMs);
+        long due = SystemClock.uptimeMillis() + delay;
+        synchronized (NATIVE_STATE_LOCK) {
+            if (pendingScan != null && scanDueAtMs <= due) return;
+            if (pendingScan != null) MAIN.removeCallbacks(pendingScan);
+            pendingScan = new Scan(scanGeneration);
+            scanDueAtMs = due;
+            MAIN.postDelayed(pendingScan, delay);
+        }
+    }
+
+    /** One pending scan, always the earliest requested deadline; stable signals can preempt it. */
+    private static final class Scan implements Runnable {
+        final long generation;
+
+        Scan(long generation) { this.generation = generation; }
+
+        public void run() {
+            synchronized (NATIVE_STATE_LOCK) {
+                if (pendingScan != this) return;
+                pendingScan = null;
+                scanDueAtMs = Long.MAX_VALUE;
+            }
+            if (generation != scanGeneration) {
+                scheduleScan(120L);
+                return;
+            }
+            Activity activity = activityRef.get();
+            if (activity == null || activity.isFinishing()) return;
+            long now = SystemClock.uptimeMillis();
+            if (now < transitionQuietUntilMs) {
+                scheduleScan(Math.max(120L, transitionQuietUntilMs - now));
+                return;
+            }
+            scanIfShown(activity);
+        }
     }
 
     private static void scheduleMaintenance() {
@@ -432,7 +476,7 @@ final class CaptionButtonController {
                     view -> {
                         if (view instanceof ImageView && isCaptionButton(activity, view)) {
                             hook(view);
-                            syncNativeCaptionState(view);
+                            syncNativeCaptionState(view, "scan");
                         }
                         return false;
                     });
@@ -522,8 +566,7 @@ final class CaptionButtonController {
         endNativeMenu();
         if (turnCaptionsOffOnTouchUp) {
             turnCaptionsOffOnTouchUp = false;
-            // A tap on the CC control is a user act: it is the one place where turning the control
-            // off also writes the session intent off.
+            // Close display permission while keeping the selected AI mode and language.
             CaptionActions.deactivateByUser();
             return;
         }
@@ -570,40 +613,54 @@ final class CaptionButtonController {
      * transition the method is deliberately silent, because YouTube may temporarily rebuild the CC
      * control as unchecked while preserving the user's actual caption selection.
      */
-    private static void syncNativeCaptionState(View button) {
+    private static boolean isCurrentButton(View button) {
+        Activity activity = activityRef.get();
+        return button != null && button.isAttachedToWindow() && activity != null
+                && !CaptionSurface.isShorts()
+                && !activity.isFinishing() && button.getRootView() == decor(activity);
+    }
+
+    private static void syncNativeCaptionState(View button, String source) {
+        if (!isCurrentButton(button)) return;
         long now = SystemClock.uptimeMillis();
-        if (now <= ignoreUiStateUntilMs || now < transitionQuietUntilMs) return;
+        long readyAt = Math.max(ignoreUiStateUntilMs, transitionQuietUntilMs);
+        if (now <= ignoreUiStateUntilMs || now < transitionQuietUntilMs) {
+            scheduleScan(readyAt - now + 16L);
+            return;
+        }
         int state = nativeCaptionState(button);
         if (state == CaptionIntentPolicy.UNKNOWN) return;
         if (state == CaptionIntentPolicy.OFF) {
+            if (now <= offStateQuietUntilMs) {
+                scheduleScan(offStateQuietUntilMs - now + 16L);
+                return;
+            }
             commitNativeCaptionOff(
                     now <= nativeMenuUntilMs,
                     "Long-press menu confirmed captions off; pending caption requests cannot"
                             + " reenable the native track");
             return;
         }
-        boolean becameOn = CaptionNativeProjection.ccState() != CaptionIntentPolicy.ON;
-        CaptionNativeProjection.ccState(CaptionIntentPolicy.ON);
-        // The control being on is an observation: it lets a deferred session intent be applied,
-        // but it never writes one.
-        if (becameOn)
-            CaptionSessionReconciler.onObservation(
-                    activityRef.get(), "cc_on", CaptionPlayerAuthority.ownerEpoch());
+        if (CaptionNativeProjection.ccState() != CaptionIntentPolicy.ON) {
+            Activity activity = activityRef.get();
+            CaptionDiagnostics.mark(activity, "CC_STARTUP_READY", "video=" + currentVideoId
+                    + ";video_to_cc_ms=" + Math.max(0L, now - videoEnteredAtMs)
+                    + ";stable_to_cc_ms=" + (playerStableAtMs == 0L ? -1L : now - playerStableAtMs)
+                    + ";source=" + source + ";state=1");
+        }
+        CaptionSessionReconciler.onCcState(activityRef.get(), CaptionIntentPolicy.ON, "controller");
     }
 
     /**
-     * The CC control reads Off. That is a projection of the native control, never a user command:
-     * it writes no session intent and does not stop the AI overlay by itself. The real command is a
-     * selection made inside the caption menu, which reaches the reconciler as an explicit native
-     * selection.
+     * A settled CC off closes display permission immediately without changing the AI preference.
      */
     private static void commitNativeCaptionOff(boolean fromNativeMenu, String detail) {
         synchronized (NATIVE_STATE_LOCK) {
-            CaptionNativeProjection.ccState(CaptionIntentPolicy.OFF);
             endNativeMenu();
         }
         MAIN.removeCallbacks(NATIVE_MENU_MONITOR);
         Activity activity = activityRef.get();
+        CaptionSessionReconciler.onCcState(activity, CaptionIntentPolicy.OFF, "controller");
         if (fromNativeMenu && activity != null)
             CaptionDiagnostics.mark(activity, "NATIVE_CAPTION_OFF", detail);
     }
@@ -676,5 +733,27 @@ final class CaptionButtonController {
             }
         }
         return Collections.unmodifiableList(labels);
+    }
+
+    static void resetForTests() {
+        MAIN.removeCallbacksAndMessages(null);
+        HOOKED_BUTTONS.clear();
+        activityRef = new WeakReference<>(null);
+        captionButtonRef = new WeakReference<>(null);
+        exactCaptionButtonRef = new WeakReference<>(null);
+        captionButtonViewId = View.NO_ID;
+        ignoreUiStateUntilMs = transitionQuietUntilMs = offStateQuietUntilMs = nativeMenuUntilMs = nativeMenuOpenedAtMs = 0L;
+        videoEnteredAtMs = playerStableAtMs = 0L;
+        transitionPending = false;
+        exactControllerGeneration = nativeMenuExactBaselineGeneration = scanGeneration = 0L;
+        pendingScan = null;
+        scanDueAtMs = Long.MAX_VALUE;
+        maintenancePosted = turnCaptionsOffOnTouchUp = buttonTouchDown = false;
+        longPressGesture = nativeMenuSelectionArmed = false;
+        buttonDownAtMs = 0L;
+        nativeStateAtTouchDown = nativeMenuOpeningState = lastExactNativeState = CaptionIntentPolicy.UNKNOWN;
+        currentVideoId = "";
+        exactButtonVideo = "";
+        localizedLabels = Collections.emptyList();
     }
 }

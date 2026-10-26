@@ -149,3 +149,13 @@ local.properties
 # Local verification artifacts and toolchains
 /work/
 /validation/
+
+# Workspace inputs and regenerable Python bytecode (2026-10-26)
+__pycache__/
+*.py[cod]
+/.devenv/
+/YouTube/
+/caption-diagnostics-*.txt
+/*.mpp
+/*.mpe
+/*.idsig

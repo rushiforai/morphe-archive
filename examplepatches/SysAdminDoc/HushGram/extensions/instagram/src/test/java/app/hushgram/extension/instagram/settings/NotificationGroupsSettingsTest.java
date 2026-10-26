@@ -92,8 +92,8 @@ public class NotificationGroupsSettingsTest {
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GROUP_NOTIFICATIONS.key));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GROUP_NOTIFICATIONS_BY_TYPE.key));
     }
-    /** Turning Group notifications off takes HushGram's summary down at once. The notifications stay. */
-    @Test public void turningTheSwitchOffTakesTheSummaryDown() throws Exception {
+    /** Turning Group notifications off preserves the children and the summary that must stay with them. */
+    @Test public void turningTheSwitchOffKeepsTheChildrenAndTheirSummary() throws Exception {
         open(true);
         NotificationManager manager = RuntimeEnvironment.getApplication().getSystemService(NotificationManager.class);
         Settings.GROUP_NOTIFICATIONS.save(true);
@@ -103,12 +103,18 @@ public class NotificationGroupsSettingsTest {
                             .setSmallIcon(android.R.drawable.ic_dialog_info).setContentText("a like").build());
         }
         assertEquals("two and their summary", 3, org.robolectric.Shadows.shadowOf(manager).size());
+        Notification first = org.robolectric.Shadows.shadowOf(manager).getNotification(1);
+        Notification second = org.robolectric.Shadows.shadowOf(manager).getNotification(2);
         SwitchPreference group = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.GROUP_NOTIFICATIONS.key);
 
         assertTrue(group.getOnPreferenceChangeListener().onPreferenceChange(group, false));
         Utils.awaitBackgroundTasksForTests();
 
-        assertEquals(2, org.robolectric.Shadows.shadowOf(manager).size());
+        assertEquals(3, org.robolectric.Shadows.shadowOf(manager).size());
+        assertNotNull(first);
+        assertNotNull(second);
+        assertSame(first, org.robolectric.Shadows.shadowOf(manager).getNotification(1));
+        assertSame(second, org.robolectric.Shadows.shadowOf(manager).getNotification(2));
     }
     @Test public void byTypeWaitsForTheFirstSwitch() throws Exception {
         open(true);

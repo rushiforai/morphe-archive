@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /**
- * Unlocks InShot Pro:
+ * Unlocks InShot Pro (same chokepoint as community Morphe patch):
  *
  * Whole-app Pro check funnels through one read in UserManager (obfuscated class):
  * instance method ()Z that reads the pref key "DebugPro".

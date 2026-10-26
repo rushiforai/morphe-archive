@@ -116,6 +116,7 @@ final class AppPages {
         // Three ways into the settings, each with a switch. The last one still on stays on and greyed out.
         boolean rowInBuild = build.contains(PatchFamily.MENU_SETTINGS_ROW);
         WaysIn ways = new WaysIn(rowInBuild);
+        page.refreshWaysIn = ways::refresh;
         SwitchPreference settingsShortcut = toggle(context, Settings.SETTINGS_SHORTCUT,
                 L10n.t("Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves "
                         + "that menu."));

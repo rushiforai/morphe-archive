@@ -11,6 +11,8 @@ import java.util.regex.*;
 
 /** Shares native response binding with X previews, using a separate metadata/cache policy. */
 final class SiteCards {
+    static final String MAX_PER_RESPONSE_KEY="siteCardsMaxPerResponse";
+    static final String CACHE_HOURS_KEY="siteCardsCacheHours";
     private static final Handler MAIN=new Handler(Looper.getMainLooper());
     private static final ThreadPoolExecutor WORKER=new ThreadPoolExecutor(2,2,30,TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(32),new ThreadPoolExecutor.AbortPolicy());
@@ -49,7 +51,8 @@ final class SiteCards {
     }
     private static List<String> urls(CharSequence source){
         LinkedHashSet<String> result=new LinkedHashSet<>();Matcher m=URL.matcher(XPostPreview.originalText(strip(source)));
-        while(m.find()&&result.size()<2){
+        int maximum=Haiagaru.siteCardMaxPerResponse();
+        while(m.find()&&result.size()<maximum){
             String url=m.group().replace("&amp;","&").replaceAll("[.,、。]+$","");url=SiteCardMetadata.safeUrl(url);
             if(url==null)continue;
             android.net.Uri uri=android.net.Uri.parse(url);String host=uri.getHost().toLowerCase(Locale.ROOT),path=uri.getPath();
@@ -143,7 +146,7 @@ final class SiteCards {
                 if(token!=generation||CACHE.get(url)!=target)return;
                 target.pending=false;target.data=resolved;target.imageTried=image;
                 target.imageLoaded=thumbnail!=null;
-                target.expiry=resolved==null?System.currentTimeMillis()+300000:resolved.savedAt+86400000;
+                target.expiry=resolved==null?System.currentTimeMillis()+300000:resolved.savedAt+Haiagaru.siteCardCacheDurationMillis();
                 if(thumbnail!=null)IMAGES.put(url,thumbnail);
                 revision++;ArrayList<WeakReference<TextView>> waiting=new ArrayList<>(target.waiting);target.waiting.clear();
                 for(WeakReference<TextView> v:waiting){TextView current=v.get();if(current!=null)onBound(current);}
@@ -151,7 +154,9 @@ final class SiteCards {
         });}catch(RejectedExecutionException full){entry.pending=false;entry.expiry=now+10000;}
     }
     static void changed(){
-        MAIN.post(()->{revision++;for(TextView view:new ArrayList<>(VIEWS.keySet()))if(view!=null)onBound(view);
+        MAIN.post(()->{revision++;long maxAge=Haiagaru.siteCardCacheDurationMillis();
+            for(Entry entry:CACHE.values())if(entry.data!=null)entry.expiry=entry.data.savedAt+maxAge;
+            for(TextView view:new ArrayList<>(VIEWS.keySet()))if(view!=null)onBound(view);
             EmojiFontFallback.refreshVisibleRows();});
     }
     static void clear(Runnable completed){

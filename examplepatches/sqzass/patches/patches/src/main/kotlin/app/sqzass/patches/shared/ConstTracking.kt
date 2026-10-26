@@ -83,10 +83,14 @@ fun findConstArgInvokes(
                 break
             }
             if (instruction.opcode in MOVE_OPCODES &&
-                instruction is TwoRegisterInstruction &&
-                instruction.registerB in derived
+                instruction is TwoRegisterInstruction
             ) {
-                derived += instruction.registerA
+                // A move overwrites its destination; drop any stale derived
+                // value before possibly promoting a new one.
+                derived.remove(instruction.registerA)
+                if (instruction.registerB in derived) {
+                    derived += instruction.registerA
+                }
             }
         }
     }

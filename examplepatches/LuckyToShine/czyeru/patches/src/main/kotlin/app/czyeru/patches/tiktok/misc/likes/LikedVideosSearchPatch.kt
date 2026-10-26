@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
@@ -15,10 +16,12 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 private const val SETTINGS_STATUS_DESCRIPTOR =
     "Lapp/czyeru/extension/tiktok/settings/SettingsStatus;"
 
-/** RecyclerView field of the profile video list fragment base class (TikTok 47.2.41). */
-private const val LIST_FIELD =
+/** Profile video list fragment base class. Holds the list in its only RecyclerView field. */
+private const val LIST_FRAGMENT_DESCRIPTOR =
     "Lcom/ss/android/ugc/profile/platform/framework/aweme/profile/tab/profiletab/" +
-        "ProfileBaseAwemeListFragment;->LLLFZ:Landroidx/recyclerview/widget/RecyclerView;"
+        "ProfileBaseAwemeListFragment;"
+
+private const val RECYCLER_VIEW_DESCRIPTOR = "Landroidx/recyclerview/widget/RecyclerView;"
 
 @Suppress("unused")
 val likedVideosSearchPatch = bytecodePatch(
@@ -36,6 +39,19 @@ val likedVideosSearchPatch = bytecodePatch(
             0,
             "invoke-static {}, $SETTINGS_STATUS_DESCRIPTOR->enableLikedVideosSearch()V",
         )
+
+        // The list field is renamed between builds (LLLFZ on 47.2.41, LLLFFI on 47.4.3, where
+        // LLLFZ is another type). A field that does not resolve throws NoSuchFieldError when
+        // the liked tab is created, so find it by type.
+        val listFields = classDefBy(LIST_FRAGMENT_DESCRIPTOR).fields.filter { field ->
+            field.type == RECYCLER_VIEW_DESCRIPTOR && !AccessFlags.STATIC.isSet(field.accessFlags)
+        }
+        if (listFields.size != 1) {
+            throw PatchException(
+                "Liked videos search: expected 1 RecyclerView field, found ${listFields.size}.",
+            )
+        }
+        val listField = "$LIST_FRAGMENT_DESCRIPTOR->${listFields.single().name}:$RECYCLER_VIEW_DESCRIPTOR"
 
         // End of onViewCreated: pass the fragment root and the list to the extension.
         LikesViewCreatedFingerprint.method.apply {
@@ -56,7 +72,7 @@ val likedVideosSearchPatch = bytecodePatch(
                 addInstructions(
                     returnIndex,
                     """
-                        iget-object p2, p0, $LIST_FIELD
+                        iget-object p2, p0, $listField
                         invoke-static {p1, p2}, $EXTENSION_CLASS_DESCRIPTOR->onViewCreated(Landroid/view/View;Landroid/view/View;)V
                     """,
                 )

@@ -12,15 +12,12 @@ import java.util.Locale;
 
 /**
  * The caption request path: called by the patch immediately before YouTube creates the timed-text
- * request, it decides whether the request is passed on, closed, or answered by the loopback server.
+ * request, it starts the matching AI session while preserving YouTube's original request.
  *
- * <p>The language is owned by YouTube. This hook only acts on a translated request that YouTube
- * itself selected (the URL already contains {@code tlang}); it never adds a target to a source
- * request and never keeps a separate language memory.
+ * <p>The language is owned by YouTube's committed native selection. A matching request only wakes
+ * reconciliation; it never selects a language, adds a target or restores a previous target.
  */
 public final class DeepSeekCaptionHook {
-    private static final String CLOSED_TRANSLATION_SINK =
-            "http://127.0.0.1:9/deepseek-caption-unavailable";
     private static final int MAX_URL_CHARS = 24 * 1024;
 
     private static volatile Context appContext;
@@ -45,10 +42,11 @@ public final class DeepSeekCaptionHook {
     static void onVideoId(String videoId) {
         try {
             CaptionPlayerAuthority.setVideo(videoId);
+            // Clear the previous video's CC permission before any activation can run.
+            CaptionButtonController.onVideoId(videoId);
             TokenCostAudit.onVideoId(context(), videoId);
             NativeCaptionBridge.onVideoId(videoId);
             CaptionActions.onVideoId(videoId);
-            CaptionButtonController.onVideoId(videoId);
         } catch (Throwable ignored) {
             // See setMainActivity.
         }
@@ -73,8 +71,9 @@ public final class DeepSeekCaptionHook {
     }
 
     /**
-     * Decides what YouTube gets for a timed-text request: the url itself, a closed sink (a
-     * translation the session intent does not own), or the loopback url of the caption server.
+     * The native renderer keeps its real caption data so switching AI off can restore it instantly.
+     * The draw hook masks that renderer while AI is enabled; an empty replacement track would leave
+     * nothing to display when the switch is turned off with CC still on.
      */
     static String rewriteUrl(Object cronetEngine, String originalUrl) {
         if (cronetEngine != null) youtubeCronetEngine = cronetEngine;
@@ -95,66 +94,25 @@ public final class DeepSeekCaptionHook {
         boolean aiEnabled = DeepSeekConfig.enabled(context);
         // Respect YouTube completely when AI is off.
         if (!aiEnabled) return originalUrl;
+        if (!CaptionSessionReconciler.displayAllowed(context)) return originalUrl;
 
-        // The native selection is the only language source. A source request means the user/native
-        // model selected source captions: never synthesize a target from it.
-        TargetLanguage target = TargetLanguage.fromUrl(originalUrl);
-        if (target == null) return originalUrl;
+        CaptionNativeProjection.Snapshot selected = CaptionSessionReconciler.currentSelection();
+        if (selected == null || foreground.isEmpty()) return originalUrl;
+        TargetLanguage requestedTarget = TargetLanguage.fromUrl(originalUrl);
+        if (selected.translated) {
+            if (requestedTarget == null
+                    || !selected.target().equalsIgnoreCase(requestedTarget.code)) return originalUrl;
+        } else if (requestedTarget != null) return originalUrl;
 
-        // A background prefetch is not the visible selection.
-        if (foreground.isEmpty()) return originalUrl;
-
-        // The session intent is the only evidence that this request belongs to a session the user
-        // asked for. It is written by user acts only, so a request can neither revive a session the
-        // user turned off nor create one, and YouTube's own idea of a target cannot replace it.
-        CaptionSessionIntent intent = CaptionSessionIntent.load(context);
-        if (!selectionEvidence(intent)) return originalUrl;
-        if (!ownsRequest(intent, target)) return CLOSED_TRANSLATION_SINK;
-
-        // restoreTargetAfterMiniplayer already restores the intent's target for a lifecycle
-        // re-request; the request is then translated from the source track it names.
-        String selected = CaptionActions.restoreTargetAfterMiniplayer(originalUrl);
-        selected = SourceTrackPolicy.apply(context, selected);
-
+        // Requests only wake reconciliation of the committed native selection. They cannot select
+        // a target, restore an old target onto a source URL, or promote a prefetched language.
         try {
-            CaptionButtonController.noteAiTrackSelected();
-            SourceSelection own = SourceTrackPolicy.ownTargetTrack(context, selected);
-            if (own != null) {
-                // The video already has captions in the selected language: no API call.
-                CaptionActions.activateSource(context, own.url);
-                return LoopbackCaptionServer.get(context).urlFor(own.url);
-            }
-            String rewritten = LoopbackCaptionServer.get(context).urlFor(selected);
-            CaptionActions.activate(context, selected);
-            return rewritten;
+            CaptionSessionReconciler.onObservation(
+                    context, "request", CaptionPlayerAuthority.ownerEpoch());
         } catch (Throwable failure) {
             CaptionDiagnostics.mark(context, "HOOK_ERROR", CaptionDiagnostics.errorDetail(failure));
-            try {
-                CaptionButtonController.noteAiTrackSelected();
-                CaptionActions.activate(context, selected);
-            } catch (Throwable ignored) {
-                // The request is closed below either way.
-            }
-            return CLOSED_TRANSLATION_SINK;
         }
-    }
-
-    /**
-     * The user asked for AI captions in a target language, and that target is still the one the
-     * session stands for. No UI observation is consulted: an observed CC state can never become the
-     * reason a translation runs.
-     */
-    private static boolean selectionEvidence(CaptionSessionIntent intent) {
-        return intent.aiEnabled && intent.hasTarget();
-    }
-
-    /** A translated request for another language belongs to no session of this app. */
-    private static boolean ownsRequest(CaptionSessionIntent intent, TargetLanguage target) {
-        TargetLanguage wanted = TargetLanguage.fromCode(intent.targetLanguage);
-        return intent.translateTarget
-                && wanted != null
-                && target != null
-                && wanted.code.equalsIgnoreCase(target.code);
+        return originalUrl;
     }
 
     /** Opens [url] with the connection factory of YouTube's own network stack, or null. */

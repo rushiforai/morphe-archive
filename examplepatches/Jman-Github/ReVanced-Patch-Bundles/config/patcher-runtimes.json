@@ -217,6 +217,63 @@
       "fallback": true
     },
     {
+      "id": "reseam-v0-31-0",
+      "family": "Reseam",
+      "loader": "reseam",
+      "coordinate": "app.reseam:reseam:0.31.0",
+      "dependencies": [],
+      "range": "*",
+      "fallback": true,
+      "executables": {
+        "windows-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.31.0/reseam-windows-x64.exe",
+          "sha256": "29182c8d1ab35d4bc063b25c8eebe1205b8561d81775272395864a90a7be52ac"
+        },
+        "linux-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.31.0/reseam-linux-x64",
+          "sha256": "e57088a2a18906d54bd1e16bf1a3dd7582af1185bfa6847fc52c309a16c74818"
+        }
+      }
+    },
+    {
+      "id": "reseam-v0-30-2",
+      "family": "Reseam",
+      "loader": "reseam",
+      "coordinate": "app.reseam:reseam:0.30.2",
+      "dependencies": [],
+      "range": "*",
+      "fallback": true,
+      "executables": {
+        "windows-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.30.2/reseam-windows-x64.exe",
+          "sha256": "6092e731f24321a6b999bf2eab23d1d286333494943c2311baa54ec2ba5ad80d"
+        },
+        "linux-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.30.2/reseam-linux-x64",
+          "sha256": "734e34600cfd436836f5a72e2eb1630566adee2c0b2747db27f27032a51fe025"
+        }
+      }
+    },
+    {
+      "id": "reseam-v0-30-1",
+      "family": "Reseam",
+      "loader": "reseam",
+      "coordinate": "app.reseam:reseam:0.30.1",
+      "dependencies": [],
+      "range": "*",
+      "fallback": true,
+      "executables": {
+        "windows-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.30.1/reseam-windows-x64.exe",
+          "sha256": "029a4d0622b76b5b09a3b333f1fd6d2909891f43fb562aa2a336ae56ea55eb37"
+        },
+        "linux-x64": {
+          "url": "https://cdn.reseam.app/engine/v0.30.1/reseam-linux-x64",
+          "sha256": "90f62078ca7483496dee2e3e19cf100cab9680e772cff3923fca0989e4a9df26"
+        }
+      }
+    },
+    {
       "id": "reseam-v0-30-0",
       "family": "Reseam",
       "loader": "reseam",

@@ -21,7 +21,7 @@ private val COMPONENT_TAGS = mapOf(
     "provider" to listOf(ANDROID_NAME, ANDROID_AUTHORITIES),
 )
 
-private val newPackageOption = stringOption(
+internal val newPackageOption = stringOption(
     key = "newPackageName",
     default = "com.example.renamed",
     title = "New Package Name",
@@ -55,8 +55,6 @@ private fun rebaseClassName(resolved: String, oldPackage: String, newPackage: St
         resolved
     }
 
-// ponytail: binary assets referencing the package (raw files, native libs)
-// are not rewritten — no patch API reaches inside them.
 @Suppress("unused")
 val changePackageNamePatch = resourcePatch(
     name = "Change package name",
@@ -68,6 +66,8 @@ val changePackageNamePatch = resourcePatch(
     newPackageOption()
     rewriteManifestOption()
     stripPermissionsOption()
+
+    dependsOn(changePackageNameDexPatch)
 
     execute {
         val newPackage = newPackageOption.value?.takeIf { it.isNotBlank() }

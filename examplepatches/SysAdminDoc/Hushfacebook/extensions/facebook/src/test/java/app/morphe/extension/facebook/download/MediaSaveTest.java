@@ -46,6 +46,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -375,6 +376,14 @@ public class MediaSaveTest {
      * as the sound's address is checked. Both exist by then, and the join hasn't started.
      */
     private Downloader.Result saveAndJoin(byte[] pictureSample, byte[] soundSample) {
+        return saveAndJoin(pictureSample, soundSample, Downloader.SILENT);
+    }
+
+    private Downloader.Result saveAndJoin(byte[] pictureSample, byte[] soundSample, Downloader.Progress progress) {
+        return saveAndJoin(pictureSample, soundSample, progress, 10_000);
+    }
+
+    private Downloader.Result saveAndJoin(byte[] pictureSample, byte[] soundSample, Downloader.Progress progress, long cap) {
         byte[] picture = mp4(1_000);
         serve("/v.mp4", "video/mp4", picture, picture.length);
         byte[] sound = mp4(1_000);
@@ -392,8 +401,116 @@ public class MediaSaveTest {
             }
         };
         MediaDownload.policyForTests = describing;
-        MediaDownload.capForTests = 10_000;
-        return saveDash(video, audio);
+        MediaDownload.capForTests = cap;
+        return saveDash(video, audio, progress);
+    }
+
+    private Downloader.Progress watchJoinedSize(long[] largest) {
+        return new Downloader.Progress() {
+            @Override public void transferred(long done, long total) { }
+            @Override public void reading(Runnable close) { }
+            @Override public boolean cancelled() {
+                File[] files = DashSave.workFolder(context).listFiles((folder, name) -> name.startsWith("joined"));
+                if (files != null) for (File file : files) largest[0] = Math.max(largest[0], file.length());
+                return false;
+            }
+        };
+    }
+
+    /** Sixteen valid runs share one media payload instead of storing sixteen copies in the input. */
+    private static byte[] repeatedVp9Payload() {
+        int sampleBytes = 128 * 1024;
+        FragmentedMp4ForTests picture = FragmentedMp4ForTests.picture("vp09", 160, 90, 15_360);
+        FragmentedMp4ForTests.Fragment fragment = picture.fragment(0L);
+        fragment.runs = 16;
+        fragment.separateMdats = true;
+        for (int i = 0; i < fragment.runs; i++) fragment.add(sampleBytes, 512, FragmentedMp4ForTests.SYNC, 0);
+        byte[] body = picture.build();
+        String boxes = new String(body, StandardCharsets.ISO_8859_1);
+        int media = boxes.indexOf("mdat");
+        int firstRun = boxes.indexOf("trun");
+        ByteBuffer fields = ByteBuffer.wrap(body);
+        int offset = fields.getInt(firstRun + 12);
+        for (int run = firstRun; run >= 0 && run < media; run = boxes.indexOf("trun", run + 4)) {
+            fields.putInt(run + 12, offset);
+        }
+        return Arrays.copyOf(body, media + 4 + sampleBytes);
+    }
+
+    @Test
+    public void sharedPayloadFixtureJoinsEverySample() throws Exception {
+        File input = new File(context.getCacheDir(), "shared-payload-control.mp4");
+        File output = new File(context.getCacheDir(), "shared-payload-joined.mp4");
+        try {
+            byte[] body = repeatedVp9Payload();
+            java.nio.file.Files.write(input.toPath(), body);
+            assertTrue(Mp4Join.join(input, null, output, Downloader.SILENT));
+            PlainMp4ForTests.Movie movie = PlainMp4ForTests.read(java.nio.file.Files.readAllBytes(output.toPath()));
+            assertEquals(16, movie.tracks.get(0).count());
+            assertTrue("the control did not write all samples", output.length() > body.length * 8L);
+        } finally {
+            input.delete();
+            output.delete();
+        }
+    }
+
+    @Test
+    public void ownJoinStopsBeforeExpandedSamplesExceedTheSaveCap() {
+        byte[] body = repeatedVp9Payload();
+        serve("/shared.mp4", "video/mp4", body, body.length);
+        long cap = 256 * 1024;
+        assertTrue("the fixture must fit before it is expanded", body.length < cap);
+        long[] largest = {0};
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "vp09.00.40.08", 160, 90, 500_000,
+                origin + "/shared.mp4");
+
+        Downloader.Result result = DashSave.save(context, video, null, new MediaStoreWriter(context, true),
+                policy, cap, watchJoinedSize(largest));
+
+        assertTrue("the join wrote " + largest[0] + " bytes under a " + cap + " byte cap", largest[0] <= cap);
+        assertNothingWasCreated("an expanded join over the cap", result);
+    }
+
+    @Test
+    public void ownJoinStopsBeforeExpandedSamplesSpendUnreservedSpace() {
+        byte[] body = repeatedVp9Payload();
+        serve("/shared.mp4", "video/mp4", body, body.length);
+        long room = 1536 * 1024;
+        DashSave.usableForTests = () -> DashSave.KEEP_FREE + room;
+        long[] largest = {0};
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "vp09.00.40.08", 160, 90, 500_000,
+                origin + "/shared.mp4");
+
+        Downloader.Result result = DashSave.save(context, video, null, new MediaStoreWriter(context, true),
+                policy, 4 * 1024 * 1024, watchJoinedSize(largest));
+
+        assertTrue("the join spent space that was never available: " + largest[0], largest[0] <= room);
+        assertNothingWasCreated("an expanded join without enough reserved space", result);
+    }
+
+    @Test
+    public void nativeJoinStopsBeforeAnExpandedSampleExceedsTheSaveCap() {
+        long[] largest = {0};
+
+        Downloader.Result result = saveAndJoin(sample(10_001, 'v'), sample(1, 'a'), watchJoinedSize(largest));
+
+        assertTrue("the muxer wrote an over-cap sample before rejecting it: " + largest[0], largest[0] <= 10_000);
+        assertNothingWasCreated("an expanded native join over the cap", result);
+    }
+
+    @Test
+    public void nativeJoinStopsBeforeSamplesSpendUnreservedSpace() {
+        long[] largest = {0};
+        long room = 1536 * 1024;
+        DashSave.usableForTests = () -> DashSave.KEEP_FREE + room;
+
+        Downloader.Result result = saveAndJoin(sample(2 * 1024 * 1024, 'v'), sample(1, 'a'),
+                watchJoinedSize(largest), 4 * 1024 * 1024);
+
+        assertEquals(result.toString(), Downloader.Status.WRITE_ERROR, result.status);
+        assertEquals(Downloader.Cause.NO_SPACE, result.cause);
+        assertTrue("the muxer spent space it didn't reserve", largest[0] <= room);
+        assertNothingWasCreated("an expanded native join without reserved space", result);
     }
 
     /** Each work file, found by the name DashSave starts it with, gets its one sample. */
@@ -451,7 +568,7 @@ public class MediaSaveTest {
     public void aDashPairWhoseJoinedFileRunsPastTheCapIsRefused() {
         Downloader.Result result = saveAndJoin(sample(6_000, 'v'), sample(6_000, 'a'));
 
-        assertEquals("TOO_LARGE (the joined file is 12000 bytes, more than 10000)", result.toString());
+        assertEquals(result.toString(), Downloader.Status.TOO_LARGE, result.status);
         assertNothingWasCreated("a pair whose joined file ran past the cap", result);
     }
 
@@ -472,7 +589,7 @@ public class MediaSaveTest {
     public void aJoinedFileOneByteOverTheCapIsRefused() {
         Downloader.Result result = saveAndJoin(sample(5_001, 'v'), sample(5_000, 'a'));
 
-        assertEquals("TOO_LARGE (the joined file is 10001 bytes, more than 10000)", result.toString());
+        assertEquals(result.toString(), Downloader.Status.TOO_LARGE, result.status);
         assertNothingWasCreated("a joined file one byte over the cap", result);
     }
 

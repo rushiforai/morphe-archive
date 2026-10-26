@@ -66,6 +66,14 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
     }
     filter.methods.staticMethod(FLYOUT_FILTER, "getTopFlyoutMenuVisible", "Z")
     classDefBy(SHORTS_STATE).methods.staticMethod(SHORTS_STATE, "isOpen", "Z")
+    // Hook the implementation, not just its @JvmStatic wrapper: Kotlin callers use Companion.
+    val shortsCompanion = mutableClassDefBy(SHORTS_STATE.removeSuffix(";") + "\$Companion;")
+    val shortsSetter = shortsCompanion.methods.filter {
+        it.name == "setOpen" && !it.isStatic() && it.returnType == "V" &&
+            it.parameterNames() == listOf("Z") && it.implementation != null
+    }.unique("official Shorts state implementation")
+    val shortsReturns = shortsSetter.code().indices.filter { shortsSetter.code()[it].opcode == Opcode.RETURN_VOID }
+    if (shortsReturns.isEmpty()) throw PatchException("AI captions: Shorts lifecycle has no return")
     utils.methods.staticMethod(FLYOUT_UTILS, "dismissFlyout", "V")
     if (utils.methods.any { it.name == ADD_BUTTON_BRIDGE }) throw PatchException("AI captions: flyout bridge already exists")
 
@@ -104,6 +112,10 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
         ?: throw PatchException("AI captions: divider guard target unavailable")
 
     return {
+        shortsReturns.reversed().forEach { index ->
+            shortsSetter.replaceInstruction(index, "invoke-static {}, $QUICK_TOGGLE->onShortsStateChanged()V")
+            shortsSetter.addInstructions(index + 1, "return-void")
+        }
         // The extension calls Morphe's checked inflater through a public bridge in its own class.
         val bridge = ImmutableMethod(
             utils.type, ADD_BUTTON_BRIDGE, addButton.parameters, addButton.returnType,

@@ -222,19 +222,19 @@ Compose/recomposition warning: a visually nearby insertion may be skipped by loo
 ```bash
 ./gradlew :patches:build --no-daemon
 ./gradlew :patches:lintResolvers :patches:checkExtensionDescriptors --no-daemon
-OUTPUT_APK=/tmp/patch-test.apk ./patch-ig-cli.sh apks/<version>.apk
+OUTPUT_APK=/tmp/patch-test.apk ./patch-ig.sh apks/<version>.apk
 ```
 
-`patch-ig-cli.sh` resolves the MPP from `gradle.properties`, runs the local `../morphe-patcher` CLI (build it once
-with `(cd ../morphe-patcher && ./gradlew :cli:installDist)`), signs with `Morphe.keystore`, and prints
-`Patched APK:`. Bare words are patch names (`-e`) and `--` flags pass through to the CLI, so
-`./patch-ig-cli.sh apks/<version>.apk "Downloads"` enables that patch by name.
+`patch-ig.sh` rebuilds the MPP from the current checkout, uses Morphe Desktop v1.19.1 from
+`../piko/morphe-desktop-1.19.1-all.jar` (override with `MORPHE_CLI_JAR`), signs with
+`Morphe.keystore`, and prints `Patched APK:`. Pass patcher flags explicitly, for example
+`./patch-ig.sh apks/<version>.apk -e "Downloads"`.
 
 Default handoff:
 
 1. Build `:patches:build`, not only `compileKotlin`.
 2. Resolve one exact MPP path and patch the exact APK in exclusive mode.
-3. Confirm `Applied: Patch Name` and `Saved to ...`.
+3. Confirm `Applied: Patch Name` and `Patched APK: ...`.
 4. Immediately ask the user to test the output APK, then stop. Do not calculate artifact hashes, extract/search output DEX, install it, run `adb` checks, or retest the production patch set before this handoff.
 
 Conditional deep validation:

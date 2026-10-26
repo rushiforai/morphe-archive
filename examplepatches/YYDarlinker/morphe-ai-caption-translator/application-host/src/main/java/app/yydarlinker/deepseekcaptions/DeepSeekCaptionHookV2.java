@@ -1,14 +1,9 @@
 package app.yydarlinker.deepseekcaptions;
 
 import android.app.Activity;
-import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Base64;
 import android.widget.ImageView;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * The callbacks the patch inserts into YouTube. They add the native-renderer masking and the
@@ -98,42 +93,11 @@ public final class DeepSeekCaptionHookV2 {
         // Every translated request follows the explicit target of this launch, and a new video
         // cannot fall back to YouTube's persisted default.
         String rewritten = DeepSeekCaptionHook.rewriteUrl(cronetEngine, originalUrl);
-        // The hook activates the visible session before it returns the loopback url, so the native
-        // renderer is masked before FIRST_AI_READY instead of at the next player-time callback.
+        // The hook preserves the native URL and reconciles the committed selection. Recheck the
+        // renderer mask immediately; native caption data remains available when AI is off.
         CaptionMusicSuppressor.forceNativeRendererScan();
         CaptionMusicSuppressor.kick();
         return rewritten;
     }
 
-    /** The translated timed-text url that the rewritten url stands for; empty if there is none. */
-    private static String concreteAiUrl(String selected, String rewritten) {
-        String decoded = loopbackTarget(rewritten);
-        if (!decoded.isEmpty()) return decoded;
-        return DeepSeekCaptionHook.isYouTubeTimedTextUrl(selected)
-                        && TargetLanguage.fromUrl(selected) != null
-                ? selected
-                : "";
-    }
-
-    /** The translated timed-text url inside a loopback server url, or empty. */
-    private static String loopbackTarget(String value) {
-        if (value == null || value.isEmpty()) return "";
-        try {
-            Uri uri = Uri.parse(value);
-            String encoded = uri.getQueryParameter("u");
-            if (!"127.0.0.1".equals(uri.getHost()) || encoded == null || encoded.isEmpty())
-                return "";
-            String decoded =
-                    new String(
-                            Base64.decode(
-                                    encoded, Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING),
-                            StandardCharsets.UTF_8);
-            return DeepSeekCaptionHook.isYouTubeTimedTextUrl(decoded)
-                            && TargetLanguage.fromUrl(decoded) != null
-                    ? decoded
-                    : "";
-        } catch (Throwable malformed) {
-            return "";
-        }
-    }
 }

@@ -14,7 +14,9 @@ import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -139,6 +141,34 @@ public class CategoryPagesSettingsTest {
         assertEquals("Open categories as pages", pages.getTitle().toString());
         assertTrue(pages.isChecked());
         assertTrue(shown(Preference.class).contains("Feed"));
+    }
+
+    @Test @Config(qualifiers = "zh-rTW-w320dp-h480dp-mdpi")
+    public void traditionalChineseReachesTheSettingsCategoryAndBoundSwitch() throws Exception {
+        Settings.CATEGORY_PAGES.save(false);
+        Settings.HIDE_ADS.save(false);
+        try {
+            open();
+            SwitchPreference ads = (SwitchPreference) page.findPreference(Settings.HIDE_ADS.key);
+            assertNotNull(ads);
+            assertEquals("廣告與隱私", ads.getParent().getTitle().toString());
+            assertEquals("隱藏廣告", ads.getTitle().toString());
+            assertFalse(ads.isChecked());
+
+            ListAdapter adapter = page.getPreferenceScreen().getRootAdapter();
+            View bound = null;
+            for (int i = 0; i < adapter.getCount(); i++) {
+                if (adapter.getItem(i) == ads) bound = adapter.getView(i, null, new FrameLayout(controller.get()));
+            }
+            assertNotNull("the real settings adapter bound the translated switch", bound);
+            assertEquals("隱藏廣告", ((TextView) bound.findViewById(android.R.id.title)).getText().toString());
+            assertEquals("隱藏贊助貼文、Reels 和限時動態，原本顯示廣告的位置不會留下空白。",
+                    ((TextView) bound.findViewById(android.R.id.summary)).getText().toString());
+            ads.setChecked(true);
+            assertTrue(Settings.HIDE_ADS.get());
+        } finally {
+            Settings.HIDE_ADS.resetToDefault();
+        }
     }
 
     @Test public void theTopButtonSwitchesBetweenListAndCategories() throws Exception {

@@ -29,6 +29,9 @@
 
     The phone has to be unlocked and signed in. -WriteBaseline records which families ran, for
     the next run to be held to: run it once on a build you trust after Facebook's version changes.
+    -MinimumTapY keeps navigation taps below a caller's reserved area by scrolling rows down.
+    Locale checks follow the app's ordered language list, including its English fallback.
+    The requested application locale and displayed page identity still have to match.
 
 .EXAMPLE
     scripts/device-audit.ps1 -Serial emulator-5554 -ExpectedDevice Hushfacebook_API36 -Apk out/hushfacebook.apk
@@ -73,6 +76,9 @@ param(
     # App languages for an extra dark pass over the pages each, like 'de' or 'pt-BR'.
     [string[]]$Locales = @(),
     [int]$MaxScrolls = 14,
+    # A caller can keep taps below an area reserved for system overlays.
+    [ValidateRange(0, 10000)]
+    [int]$MinimumTapY = 0,
     # Leaves the profile's switches on and the audit folder in place, for poking at by hand.
     [switch]$KeepSettings
 )
@@ -275,6 +281,15 @@ function Write-Step([string]$Text) { Write-Host "[audit] $Text" }
 # One argument for the phone's shell, quoted so spaces and apostrophes survive it.
 function Format-Shell([string]$Text) { "'" + $Text.Replace("'", "'\''") + "'" }
 
+function Get-AuditCrashes([long]$SinceEpoch) {
+    # Host-side logcat waits for a missing device. Shell reports a disconnected transport as an error.
+    $crashes = @(Invoke-Adb shell logcat -b crash -d -v epoch) | Where-Object {
+        $_ -match '^\s*(\d+)\.\d+\s' -and [long]$Matches[1] -ge $SinceEpoch
+    }
+    $fatal = @($crashes | Where-Object { $_ -match "Process: $([regex]::Escape($Package))(?=[:,\s]|$)" })
+    return [pscustomobject]@{ Lines = @($crashes); Fatal = $fatal }
+}
+
 # Whether the keyboard is on screen. A dump that doesn't say is no answer either way.
 function Test-AuditKeyboard {
     $state = (Invoke-Adb shell dumpsys input_method) -join "`n"
@@ -343,7 +358,7 @@ function Test-AuditDestination([string]$Route, [object[]]$Nodes) {
     return $false
 }
 
-# Whether $Activity's section of "dumpsys activity top" is resumed and shows a reel viewer: a
+# Whether $Activity's section of an activity client dump is resumed and shows a reel viewer: a
 # WatchFeedOrWarionFragment that's shown and visible to the user, inside fragments that are too.
 # A fragment's fields are the lines indented under its header, up to its child fragments. Lines
 # naming a fragment after "#n:" or "mParent=" only list it. Anything ambiguous is no proof.
@@ -351,11 +366,26 @@ function Test-AuditReelViewer([string[]]$Top, [string]$Activity) {
     $lines = @(($Top -join "`n") -split "\r?\n")
     $heads = @(for ($i = 0; $i -lt $lines.Count; $i++) { if ($lines[$i] -match '^(?:TASK |\s*ACTIVITY )') { $i } })
     $mine = @($heads | Where-Object { $lines[$_] -match '^\s*ACTIVITY (\S+)\s' -and $Matches[1] -ceq $Activity })
-    if ($mine.Count -ne 1) { return $false }
-    $next = @(@($heads | Where-Object { $_ -gt $mine[0] }) + $lines.Count)[0]
-    if ($next -le $mine[0] + 1) { return $false }
-    $section = $lines[($mine[0] + 1)..($next - 1)]
-    if (-not @($section | Where-Object { $_ -cmatch '\bmResumed=true\b' }).Count) { return $false }
+    $section = $null
+    foreach ($head in $mine) {
+        $next = @(@($heads | Where-Object { $_ -gt $head }) + $lines.Count)[0]
+        $candidate = if ($next -gt $head + 1) { $lines[($head + 1)..($next - 1)] } else { @() }
+        $text = $candidate -join "`n"
+        $local = [regex]::Matches($text, '(?m)^([ \t]*)Local Activity \S+ State:$')
+        if ($lines[$head] -cmatch '\spid=\(not running\)(?:\s|$)') {
+            if ($local.Count -ne 0) { return $false }
+            continue
+        }
+        if ($local.Count -ne 1) { return $false }
+        $stateIndent = $local[0].Groups[1].Value.Length + 2
+        $states = [regex]::Matches($text, "(?m)^[ \t]{$stateIndent}mResumed=(true|false)\b")
+        if ($states.Count -ne 1) { return $false }
+        if ($states[0].Groups[1].Value -ceq 'true') {
+            if ($null -ne $section) { return $false }
+            $section = $candidate
+        }
+    }
+    if ($null -eq $section) { return $false }
     $fields = @{}
     $name = $null
     $indent = 0
@@ -393,10 +423,11 @@ function Test-AuditReelViewer([string[]]$Top, [string]$Activity) {
 function Get-AuditReelProof {
     Assert-AuditForeground
     $windowBefore = $script:auditWindowIdentity
-    $top = @(Invoke-Adb shell dumpsys activity top)
+    $activity = $windowBefore.Substring(0, $windowBefore.IndexOf('|'))
+    $top = @(Invoke-Adb shell dumpsys activity (Format-Shell $activity))
     Assert-AuditForeground
     if ($script:auditWindowIdentity -cne $windowBefore) { return $false }
-    return Test-AuditReelViewer $top $windowBefore.Substring(0, $windowBefore.IndexOf('|'))
+    return Test-AuditReelViewer $top $activity
 }
 
 # The one node a "tap:<label>" step may tap, or $null. A row can repeat its label on a child that
@@ -418,6 +449,19 @@ function Select-AuditTapNode([string]$Label, [object[]]$Nodes) {
                 [int]$Matches[3] -gt $outer[2] -or [int]$Matches[4] -gt $outer[3]) { return $null }
     }
     return $rows[0]
+}
+
+function Find-AuditTapNode([string]$Label) {
+    for ($look = 0; $look -le 5; $look++) {
+        if ($look -gt 0) {
+            Invoke-Adb shell input swipe $swipeX $swipeTo $swipeX $swipeFrom 300 | Out-Null
+            Start-Sleep -Milliseconds 1200
+        }
+        $node = Select-AuditTapNode $Label @(Get-UiNodes)
+        if ($node -and $node.bounds -match '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$' -and
+                [int](([int]$Matches[2] + [int]$Matches[4]) / 2) -ge $MinimumTapY) { return $node }
+    }
+    return $null
 }
 
 function Save-Screenshot([string]$Path) {
@@ -721,31 +765,38 @@ function Close-Settings {
     }
 }
 
+function Get-AuditLocaleTable([string]$ActualLocale, [object]$LocaleTags) {
+    if ([string]::IsNullOrEmpty($ActualLocale) -or $LocaleTags -isnot [Collections.IList] -or $LocaleTags.Count -eq 0) { return $null }
+    foreach ($tag in $LocaleTags) {
+        if ($tag -isnot [string] -or $tag -cnotmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$') { return $null }
+    }
+    $actualLanguage = $ActualLocale.ToLowerInvariant().Split('-')[0] -replace '^id$', 'in' -replace '^he$', 'iw'
+    $firstLanguage = $LocaleTags[0].Split('-')[0] -replace '^id$', 'in' -replace '^he$', 'iw'
+    if ($actualLanguage -cne $firstLanguage) { return $null }
+    if ($LocaleTags[0] -cin @('en-rxa', 'ar-rxb')) { return $null }
+    foreach ($tag in $LocaleTags) {
+        if ($tag -cmatch '^en(?:-r|$)') { break }
+        $files = @(Get-ChildItem -LiteralPath $translationTables -Filter '*.tsv' | Where-Object { $_.BaseName.ToLowerInvariant() -ceq $tag })
+        if ($files.Count -gt 1) { return $null }
+        if ($files.Count -eq 1) {
+            $rows = @{}
+            foreach ($line in [IO.File]::ReadAllLines($files[0].FullName)) {
+                if ($line.StartsWith('#') -or -not $line.Contains("`t")) { continue }
+                $parts = $line.Split("`t", 2)
+                $rows[$parts[0]] = $parts[1]
+            }
+            return [pscustomobject]@{ Tag = $tag; Rows = $rows }
+        }
+    }
+    return [pscustomobject]@{ Tag = 'en'; Rows = @{} }
+}
+
 function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
     $dir = Join-Path $OutDir "pages-$Pass"
     New-Item -ItemType Directory -Force $dir | Out-Null
     if (-not $Entry) { throw 'The launcher entry was not resolved. No settings page was opened.' }
     $results = New-Object System.Collections.Generic.List[object]
-    $translations = @{}
-    if ($RequestedLocale) {
-        $tag = $RequestedLocale.ToLowerInvariant() -replace '^id(?=-|$)', 'in'
-        $table = @(Get-ChildItem -LiteralPath $translationTables -Filter '*.tsv' | Where-Object {
-            ($_.BaseName -replace '-r', '-').ToLowerInvariant() -ceq $tag
-        } | Select-Object -First 1)
-        if (-not $table) {
-            $table = @(Get-ChildItem -LiteralPath $translationTables -Filter '*.tsv' | Where-Object {
-                $_.BaseName.ToLowerInvariant() -ceq $tag.Split('-')[0]
-            } | Select-Object -First 1)
-        }
-        if (-not $table -and $tag -notmatch '^en(?:-|$)') { throw "No translation table for requested audit locale: $RequestedLocale" }
-        if ($table) {
-            foreach ($line in [IO.File]::ReadAllLines($table[0].FullName)) {
-                if ($line.StartsWith('#') -or -not $line.Contains("`t")) { continue }
-                $parts = $line.Split("`t", 2)
-                $translations[$parts[0]] = $parts[1]
-            }
-        }
-    }
+    $announcedTable = $null
     foreach ($page in Get-SettingsPages) {
         $name = if ($page) { ($page -replace "[^A-Za-z0-9]+", '-').Trim('-').ToLowerInvariant() } else { 'home' }
         Close-Settings
@@ -773,18 +824,27 @@ function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
         }
         [IO.File]::WriteAllLines((Join-Path $dir "$name.txt"), [string[]]$allText)
         $localeMatches = $true
+        $table = $null
         if ($RequestedLocale) {
             $requestedTag = $RequestedLocale.ToLowerInvariant() -replace '^in(?=-|$)', 'id'
             $actualTag = ([string]$shown.locale).ToLowerInvariant() -replace '^in(?=-|$)', 'id'
-            $localeMatches = $actualTag -ceq $requestedTag -or $actualTag.StartsWith("$requestedTag-", [StringComparison]::Ordinal)
+            $table = Get-AuditLocaleTable ([string]$shown.locale) $shown.localeTags
+            $localeMatches = $null -ne $table -and ($actualTag -ceq $requestedTag -or $actualTag.StartsWith("$requestedTag-", [StringComparison]::Ordinal))
+            $translations = if ($table) { $table.Rows } else { @{} }
             $titleKey = if (-not $page) { 'Hushfacebook' } elseif ($page -ceq 'more') { 'More settings' } else { $page }
-            $expectedTitle = if ($translations.ContainsKey($titleKey)) { $translations[$titleKey] } else { $titleKey }
+            $expectedTitle = if ($translations.ContainsKey($titleKey) -and -not [string]::IsNullOrEmpty($translations[$titleKey])) {
+                $translations[$titleKey]
+            } else { $titleKey }
             $localeMatches = $localeMatches -and $shown.title -ceq $expectedTitle
+            if ($table -and $announcedTable -cne $table.Tag) {
+                Write-Step "Text for $RequestedLocale resolves to $($table.Tag)."
+                $announcedTable = $table.Tag
+            }
         }
         $opened = $null -ne $shown -and $shown.schema -eq 2 -and $shown.route -ceq $page -and $localeMatches -and
             -not [string]::IsNullOrWhiteSpace($shown.title) -and $allText.Contains($shown.title)
         $results.Add([pscustomobject]@{ Page = $(if ($page) { $page } else { 'Home' }); Name = $name; Shots = $shots
-            Opened = $opened; Locale = $shown.locale })
+            Opened = $opened; Locale = $shown.locale; TextLocale = $(if ($table) { $table.Tag } else { $null }) })
         Write-Step ("{0} {1}: {2} screen(s){3}" -f $Pass, $(if ($page) { $page } else { 'Home' }), $shots, $(if ($opened) { '' } else { ', NOT OPENED' }))
     }
     Close-Settings
@@ -814,6 +874,7 @@ if ($keyguard -match 'mDreamingLockscreen=true|isKeyguardShowing=true|mShowingLo
 $size = (Invoke-Adb shell wm size) -join ' '
 if ($size -notmatch '(\d+)x(\d+)\s*$') { throw "Could not read the screen size: $size" }
 $width = [int]$Matches[1]; $height = [int]$Matches[2]
+if ($MinimumTapY -ge $height) { throw 'MinimumTapY must be below the bottom of the screen.' }
 $swipeX = [int]($width / 2); $swipeFrom = [int]($height * 0.75); $swipeTo = [int]($height * 0.3)
 $sdk = [int](((Invoke-Adb shell getprop ro.build.version.sdk) -join '').Trim())
 if ($Locales.Count -gt 0 -and $sdk -lt 33) { throw 'App-locale passes require Android 13 or newer.' }
@@ -849,6 +910,7 @@ $walkBuild = ''
 $walkRan = 0
 $walkFamilies = 0
 $walkCrashes = 0
+$startedEpoch = 0
 
 try {
     # --- Every switch on ----------------------------------------------------------------------
@@ -891,14 +953,7 @@ try {
                 }
                 $skipBack = $false
                 $label = $step.Substring(4)
-                $node = $null
-                for ($look = 0; $look -le 5 -and -not $node; $look++) {
-                    if ($look -gt 0) {
-                        Invoke-Adb shell input swipe $swipeX $swipeTo $swipeX $swipeFrom 300 | Out-Null
-                        Start-Sleep -Milliseconds 1200
-                    }
-                    $node = Select-AuditTapNode $label @(Get-UiNodes)
-                }
+                $node = Find-AuditTapNode $label
                 if ($node -and $node.bounds -match '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$') {
                     if ([int]$Matches[1] -lt 0 -or [int]$Matches[2] -lt 0 -or
                             [int]$Matches[3] -gt $width -or [int]$Matches[4] -gt $height -or
@@ -1013,13 +1068,6 @@ try {
         }
         $summary.Add('Never ran on the walk: ' + $(if ($idle) { $idle -join ', ' } else { 'none' }))
 
-        $crashes = @(Invoke-Adb logcat -b crash -d -v epoch) | Where-Object {
-            $_ -match '^\s*(\d+)\.\d+\s' -and [long]$Matches[1] -ge $startedEpoch
-        }
-        if ($crashes.Count -gt 0) { [IO.File]::WriteAllLines((Join-Path $OutDir 'crash-buffer.txt'), [string[]]$crashes) }
-        $fatal = @($crashes | Where-Object { $_ -match "Process: $([regex]::Escape($Package))\b" })
-        $walkCrashes = $fatal.Count
-        if ($fatal.Count -gt 0) { $problems.Add("Facebook crashed during the audit: $($fatal[0].Trim())") }
     }
 
     # --- Every settings page ------------------------------------------------------------------
@@ -1068,6 +1116,18 @@ try {
 } finally {
     # --- Put things back ----------------------------------------------------------------------
     $recovered = Restore-AuditState
+}
+
+if ($startedEpoch -gt 0) {
+    try {
+        # Settings, locale changes and restoration run after the feed walk. Their crashes count too.
+        $finalCrashes = Get-AuditCrashes -SinceEpoch $startedEpoch
+        if ($finalCrashes.Lines.Count -gt 0) {
+            [IO.File]::WriteAllLines((Join-Path $OutDir 'crash-buffer.txt'), [string[]]$finalCrashes.Lines)
+        }
+        $walkCrashes = $finalCrashes.Fatal.Count
+        if ($walkCrashes -gt 0) { $problems.Add("Facebook crashed during the audit: $($finalCrashes.Fatal[0].Trim())") }
+    } catch { $problems.Add("Could not read the final crash buffer: $($_.Exception.Message)") }
 }
 
 if ($problems.Count -eq 0 -and $WriteBaseline) {

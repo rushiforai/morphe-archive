@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -131,6 +132,12 @@ final class SourceCaptionCache {
 
     /** The cached track, or null. A hit keeps the track alive; an old one is deleted. */
     static Entry get(Context context, String key) {
+        synchronized (COMMIT_LOCK) {
+            return getLocked(context, key);
+        }
+    }
+
+    private static Entry getLocked(Context context, String key) {
         File dir = directory(context);
         File body = bodyFile(dir, key), type = typeFile(dir, key);
         if (!body.isFile()) return null;
@@ -181,8 +188,7 @@ final class SourceCaptionCache {
                             .getBytes(StandardCharsets.UTF_8));
             synchronized (COMMIT_LOCK) {
                 if (epoch == EPOCH.get() && !weakerThanCached(context, key, body, contentType)) {
-                    replace(bodyTemp, bodyFile(dir, key));
-                    replace(typeTemp, typeFile(dir, key));
+                    publish(bodyTemp, typeTemp, bodyFile(dir, key), typeFile(dir, key));
                     trim(dir);
                 }
             }
@@ -239,9 +245,11 @@ final class SourceCaptionCache {
     }
 
     static void remove(Context context, String key) {
-        File dir = directory(context);
-        bodyFile(dir, key).delete();
-        typeFile(dir, key).delete();
+        synchronized (COMMIT_LOCK) {
+            File dir = directory(context);
+            bodyFile(dir, key).delete();
+            typeFile(dir, key).delete();
+        }
     }
 
     static void clear(Context context) {
@@ -265,8 +273,37 @@ final class SourceCaptionCache {
         }
     }
 
-    private static void replace(File temporary, File target) {
-        if (!target.exists() || target.delete()) temporary.renameTo(target);
+    /** Readers share COMMIT_LOCK: a process-local hit sees the complete pair. Body publishes last. */
+    private static void publish(File bodyTemp, File typeTemp, File body, File type)
+            throws IOException {
+        byte[] previousType = type.isFile() ? Files.readAllBytes(type.toPath()) : null;
+        replace(typeTemp, type);
+        try {
+            replace(bodyTemp, body);
+        } catch (IOException | RuntimeException failed) {
+            try {
+                if (previousType == null) {
+                    if (type.exists() && !type.delete()) throw new IOException("type_restore");
+                } else {
+                    save(typeTemp, previousType);
+                    replace(typeTemp, type);
+                }
+            } catch (IOException | RuntimeException restoreFailed) {
+                // A second IO failure cannot leave the old body paired with new metadata.
+                body.delete();
+                type.delete();
+                failed.addSuppressed(restoreFailed);
+            }
+            throw failed;
+        }
+    }
+
+    private static void replace(File temporary, File target) throws IOException {
+        Files.move(
+                temporary.toPath(),
+                target.toPath(),
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.ATOMIC_MOVE);
     }
 
     /** Deletes the least recently used tracks while there are too many or too many bytes. */

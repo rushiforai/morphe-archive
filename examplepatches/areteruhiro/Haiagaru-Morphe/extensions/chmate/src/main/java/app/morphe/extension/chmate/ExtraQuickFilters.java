@@ -73,7 +73,7 @@ public final class ExtraQuickFilters {
                 final int index=i;ToggleButton button=new ToggleButton(activity);buttons[i]=button;button.setAllCaps(false);button.setTextSize(13);styleButton(button);
                 button.setMinimumHeight(pad*8);GridLayout.LayoutParams params=new GridLayout.LayoutParams(GridLayout.spec(i/4),GridLayout.spec(i%4,1f));params.width=0;params.height=-2;params.setMargins(pad/2,pad/2,pad/2,pad/2);addView(button,params);
                 button.setOnClickListener(v->{try{
-                    boolean requested=button.isChecked();toggle(adapter,index);
+                    boolean requested=button.isChecked();toggle(adapter,index,false,true);
                     if(index<4&&!(index==0&&PopularReplies.enabledFor(activity))){State state=state(adapter);state.pendingFilters[index]=requested;state.pendingFilterMask|=1<<index;}
                     redraw();
                 }catch(Exception error){Toast.makeText(activity,"フィルターを変更できませんでした",Toast.LENGTH_SHORT).show();redraw();}});
@@ -118,15 +118,64 @@ public final class ExtraQuickFilters {
             binding.schedule();
         }catch(Exception error){Log.w("Haiagaru","Persistent filter setup",error);}
     }
-    private static final class PinnedPanel implements View.OnAttachStateChangeListener,android.view.ViewTreeObserver.OnGlobalLayoutListener{
+    private static final class PinnedPanel implements View.OnAttachStateChangeListener,android.view.ViewTreeObserver.OnGlobalLayoutListener,android.view.ViewTreeObserver.OnPreDrawListener{
         final Activity activity;final View root;final FrameLayout host;final WeakReference<Object> fragment;
         final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
         final Runnable render=this::layout;BottomControls panel;View list;int originalPadding,appliedPadding=-1;
-        int originalMargin,appliedMargin=-1;boolean closed,queued;
+        int originalMargin,appliedMargin=-1;boolean closed,queued,reservationChanged;
         final Map<View,int[]> popupPaddings=new WeakHashMap<>();
         PinnedPanel(Activity activity,Object fragment,View root){
             this.activity=activity;this.fragment=new WeakReference<>(fragment);this.root=root;host=activity.findViewById(android.R.id.content);
             root.addOnAttachStateChangeListener(this);root.getViewTreeObserver().addOnGlobalLayoutListener(this);
+            root.getViewTreeObserver().addOnPreDrawListener(this);
+            prime();
+        }
+        // Cached DAT restoration can run in the native list's very first measure,
+        // before any global-layout callback. Reserve space before that measure,
+        // including when a retained thread view is attached again.
+        void prime(){
+            if(closed||panel!=null)return;
+            try{
+                View current=findBeforeLayout(root);if(current==null)return;
+                Object owner=fragment.get();if(owner==null)return;
+                Object a=call(current,"getAdapter",new Class<?>[0]);
+                if(a instanceof HeaderViewListAdapter)a=((HeaderViewListAdapter)a).getWrappedAdapter();
+                if(a==null||!(legacy(a)||middle(a)||a.getClass().getName().equals("o.zzacr")))return;
+                FRAGMENTS.put(a,new WeakReference<>(owner));
+                list=current;originalPadding=list.getPaddingBottom();
+                if(list.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)
+                    originalMargin=((ViewGroup.MarginLayoutParams)list.getLayoutParams()).bottomMargin;
+                collect(a,PopularReplies.fullList(field(a,legacy(a)?"K":middle(a)?"J":"o")));
+                panel=new BottomControls(activity,a,()->{});panel.setTag("haiagaru.persistentBottomFilters");
+                panel.setElevation(8*root.getResources().getDisplayMetrics().density);panel.setVisibility(View.GONE);
+                host.addView(panel,new FrameLayout.LayoutParams(-1,-2));
+                int width=list.getWidth();if(width<=0)width=root.getWidth();
+                if(width<=0)width=root.getResources().getDisplayMetrics().widthPixels;
+                panel.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
+                reserve(panel.getMeasuredHeight());
+            }catch(Exception error){Log.w("Haiagaru","Persistent filter initial reservation",error);detachPanel();}
+        }
+        View findBeforeLayout(View view){
+            if(view instanceof ListView)return view;
+            for(Class<?> type=view.getClass();type!=null;type=type.getSuperclass())
+                if(type.getName().equals("androidx.recyclerview.widget.RecyclerView"))return view;
+            if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++){
+                View child=group.getChildAt(i);if(child.getVisibility()==View.GONE)continue;
+                View found=findBeforeLayout(child);if(found!=null)return found;
+            }}
+            return null;
+        }
+        void reserve(int height){
+            if(list.getLayoutParams() instanceof ViewGroup.MarginLayoutParams){
+                ViewGroup.MarginLayoutParams spacing=(ViewGroup.MarginLayoutParams)list.getLayoutParams();
+                if(appliedMargin>=0&&spacing.bottomMargin!=appliedMargin)originalMargin=spacing.bottomMargin;
+                appliedMargin=originalMargin+height;
+                if(spacing.bottomMargin!=appliedMargin){spacing.bottomMargin=appliedMargin;list.setLayoutParams(spacing);reservationChanged=true;}
+            }else{
+                if(appliedPadding>=0&&list.getPaddingBottom()!=appliedPadding)originalPadding=list.getPaddingBottom();
+                appliedPadding=originalPadding+height;
+                if(list.getPaddingBottom()!=appliedPadding){list.setPadding(list.getPaddingLeft(),list.getPaddingTop(),list.getPaddingRight(),appliedPadding);reservationChanged=true;}
+            }
         }
         void schedule(){if(closed||queued)return;queued=true;handler.post(render);}
         void layout(){queued=false;if(closed||!root.isAttachedToWindow())return;
@@ -143,28 +192,14 @@ public final class ExtraQuickFilters {
                 if(!shown){if(panel!=null)panel.setVisibility(View.GONE);return;}
                 Object owner=fragment.get();if(owner==null){close();return;}Object a=adapter(owner);
                 if(panel==null||panel.adapter!=a||list!=current){
-                    detachPanel();list=current;originalPadding=list.getPaddingBottom();
-                    if(list.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)
-                        originalMargin=((ViewGroup.MarginLayoutParams)list.getLayoutParams()).bottomMargin;
-                    collect(a,PopularReplies.fullList(field(a,legacy(a)?"K":middle(a)?"J":"o")));
-                    panel=new BottomControls(activity,a,()->{});panel.setTag("haiagaru.persistentBottomFilters");
-                    panel.setElevation(8*root.getResources().getDisplayMetrics().density);host.addView(panel,new FrameLayout.LayoutParams(bounds.width(),-2));
+                    detachPanel();prime();if(panel==null)return;
                 }
                 panel.redraw();panel.setVisibility(View.VISIBLE);
                 panel.measure(View.MeasureSpec.makeMeasureSpec(bounds.width(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
                 int height=panel.getMeasuredHeight(),width=bounds.width();FrameLayout.LayoutParams params=(FrameLayout.LayoutParams)panel.getLayoutParams();
                 if(params.width!=width||params.height!=height){params.width=width;params.height=height;panel.setLayoutParams(params);}
                 int[] origin=new int[2];host.getLocationOnScreen(origin);panel.setX(bounds.left-origin[0]);panel.setY(bounds.bottom-origin[1]-height);
-                if(list.getLayoutParams() instanceof ViewGroup.MarginLayoutParams){
-                    ViewGroup.MarginLayoutParams spacing=(ViewGroup.MarginLayoutParams)list.getLayoutParams();
-                    if(appliedMargin>=0&&spacing.bottomMargin!=appliedMargin)originalMargin=spacing.bottomMargin;
-                    appliedMargin=originalMargin+height;
-                    if(spacing.bottomMargin!=appliedMargin){spacing.bottomMargin=appliedMargin;list.setLayoutParams(spacing);}
-                }else{
-                    if(appliedPadding>=0&&list.getPaddingBottom()!=appliedPadding)originalPadding=list.getPaddingBottom();
-                    appliedPadding=originalPadding+height;
-                    if(list.getPaddingBottom()!=appliedPadding)list.setPadding(list.getPaddingLeft(),list.getPaddingTop(),list.getPaddingRight(),appliedPadding);
-                }
+                reserve(height);
                 android.graphics.Rect filterBounds=new android.graphics.Rect();
                 if(panel.getGlobalVisibleRect(filterBounds))updatePopupPadding(root,filterBounds);
             }catch(Exception error){Log.w("Haiagaru","Persistent filter layout",error);detachPanel();}
@@ -206,9 +241,15 @@ public final class ExtraQuickFilters {
             appliedPadding=-1;appliedMargin=-1;
         }
         public void onGlobalLayout(){schedule();}
-        public void onViewAttachedToWindow(View view){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().addOnGlobalLayoutListener(this);schedule();}
-        public void onViewDetachedFromWindow(View view){handler.removeCallbacks(render);queued=false;if(root.getViewTreeObserver().isAlive())root.getViewTreeObserver().removeOnGlobalLayoutListener(this);detachPanel();}
-        void close(){if(closed)return;closed=true;handler.removeCallbacksAndMessages(null);root.removeOnAttachStateChangeListener(this);if(root.getViewTreeObserver().isAlive())root.getViewTreeObserver().removeOnGlobalLayoutListener(this);detachPanel();PINNED.remove(root);}
+        public boolean onPreDraw(){
+            if(closed)return true;
+            if(queued){handler.removeCallbacks(render);layout();}
+            boolean changed=reservationChanged;reservationChanged=false;
+            return !changed; // Never expose a frame whose native viewport is still full height.
+        }
+        public void onViewAttachedToWindow(View view){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().addOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);root.getViewTreeObserver().addOnPreDrawListener(this);prime();schedule();}
+        public void onViewDetachedFromWindow(View view){handler.removeCallbacks(render);queued=false;if(root.getViewTreeObserver().isAlive()){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);}detachPanel();}
+        void close(){if(closed)return;closed=true;handler.removeCallbacksAndMessages(null);root.removeOnAttachStateChangeListener(this);if(root.getViewTreeObserver().isAlive()){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);}detachPanel();PINNED.remove(root);}
     }
     private static final class Threshold {
         final WeakReference<Object> list;final int value;
@@ -313,12 +354,15 @@ public final class ExtraQuickFilters {
     }
     private static void toggle(Object a,int which) throws Exception {toggle(a,which,false);}
     private static void toggle(Object a,int which,boolean reset) throws Exception {
+        toggle(a,which,reset,false);
+    }
+    private static void toggle(Object a,int which,boolean reset,boolean preservePosition) throws Exception {
         Object fragment=FRAGMENTS.containsKey(a)?FRAGMENTS.get(a).get():null;
         if(fragment==null)for(WeakReference<Object> ref:new ArrayList<>(OWNERS)) {
             Object owner=ref.get();if(owner==null)continue;
             try {if(adapter(owner)==a){fragment=owner;break;}}catch(Exception ignored){}
         }
-        if(fragment!=null)FilterPosition.beforeFragment(fragment);
+        if(fragment!=null&&!reset)FilterPosition.beforeFragment(fragment,preservePosition);
         if(which>=4) {
             State s=state(a);s.extra^=1<<(which-4);
             try { rebuild(a);if(s.failure!=null)throw s.failure; } catch(Exception e) { s.extra^=1<<(which-4);refresh(a);throw e; }
@@ -543,7 +587,7 @@ public final class ExtraQuickFilters {
     }
     public static boolean reset(Object fragment){
         RESETTING.set(true);
-        try{Object a=adapter(fragment);State selection=state(a);selection.extra=0;
+        try{Object a=adapter(fragment);FilterPosition.beforeFragment(fragment,true);State selection=state(a);selection.extra=0;
             if(legacy(a)){
                 Object changed=null,m=model(a);
                 for(String key:new String[]{"c","a","e","b"}){

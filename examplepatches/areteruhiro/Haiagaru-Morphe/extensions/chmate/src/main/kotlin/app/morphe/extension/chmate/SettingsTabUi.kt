@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 
 /** The tab and standalone screen share settingsRows/BoundSettingRow and their real bindings. */
 object SettingsTabUi {
+    @JvmStatic fun prepareBindings(root: ViewGroup) = prepareSettingsBindings(root)
     @JvmStatic fun context(activity: Activity): android.content.Context = HaiagaruComposeActivity.dialogContext(activity)
 
     internal fun composeView(activity: Activity, content: @Composable () -> Unit): View = EmbeddedView(activity, content)

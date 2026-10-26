@@ -1,6 +1,7 @@
 package io.github.pengusto.patches.calendar
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -8,6 +9,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private val descriptionLayout = resourcePatch {
     execute {
@@ -36,13 +40,41 @@ private val descriptionLayout = resourcePatch {
 @Suppress("unused")
 val readableDescriptionPatch = bytecodePatch(
     name = "Readable Calendar descriptions",
-    description = "Native Outlook/Exchange HTML preview with explicit source editing; preserves the original editor text.",
+    description = "Readable day/agenda summaries and native Outlook/Exchange HTML preview with explicit source editing; preserves the original editor text.",
     default = true
 ) {
     compatibleWith(Compatibility(name = "Fossify Calendar", packageName = "org.fossify.calendar", targets = listOf(AppTarget(version = "1.12.0"))))
     dependsOn(descriptionLayout)
     extendWith("extensions/extension.mpe")
     execute {
+        // Convert only the description getter result, before it reaches the row.
+        // Location substitution, visibility and stored model data remain untouched.
+        // R8 merges the day/agenda row binders into this shared lambda in 1.12.0.
+        // Match its exact signature and require one getter for each model.
+        for (model in listOf("Event", "ListEvent")) {
+            val row = Fingerprint(
+                definingClass = "Lb;",
+                name = "g", returnType = "Ljava/lang/Object;",
+                parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;")
+            ).method
+            val code = row.implementation!!.instructions
+            val getters = code.indices.filter { index ->
+                val ref = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lorg/fossify/calendar/models/$model;" &&
+                    ref.name == "getDescription" && ref.returnType == "Ljava/lang/String;" &&
+                    ref.parameterTypes.isEmpty()
+            }
+            check(getters.size == 1) { "Unexpected $model list description binding" }
+            val resultIndex = getters.single() + 1
+            check(code[resultIndex].opcode == Opcode.MOVE_RESULT_OBJECT) {
+                "Unexpected $model list description result"
+            }
+            val register = (code[resultIndex] as OneRegisterInstruction).registerA
+            row.addInstructions(resultIndex + 1, """
+                invoke-static/range {v$register .. v$register}, Lio/github/pengusto/patches/extension/calendar/DescriptionPreview;->summary(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object v$register
+            """.trimIndent())
+        }
         val method = Fingerprint(
             definingClass = "Lorg/fossify/calendar/activities/EventActivity;",
             name = "onResume", returnType = "V", parameters = emptyList()

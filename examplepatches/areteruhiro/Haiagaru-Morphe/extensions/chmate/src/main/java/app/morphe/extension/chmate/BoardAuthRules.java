@@ -40,7 +40,22 @@ public final class BoardAuthRules {
                 || lower.contains("認証に失敗") || lower.contains("認証を済")
                 || lower.contains("認証コード") || lower.contains("未認証")
                 || lower.contains("captcha") || lower.contains("画像認証")
-                || lower.contains("ロボットではない") || lower.contains("人間であることを確認");
+                || lower.contains("ロボットではない") || lower.contains("人間であることを確認")
+                || lower.contains("計算による投稿確認");
+    }
+    /** A site explicitly requiring a regular browser is not a cookie-only auth flow. */
+    public static boolean browserRequired(String message) {
+        return message!=null&&message.length()<=65536
+                &&message.contains("計算による投稿確認")
+                &&message.contains("専用ブラウザからは投稿")
+                &&message.contains("通常のブラウザ");
+    }
+    /** Open only the board/thread page, never an error's script, token or POST endpoint. */
+    public static String browserPage(String board) {
+        if(origin(board).isEmpty())return "";
+        URI uri=URI.create(board.trim());String path=uri.getRawPath();
+        if(path==null||path.isEmpty()||path.equals("/test/bbs.cgi"))path="/";
+        return origin(board)+path;
     }
     public static String suggested(String board, String message) {
         String origin = origin(board);

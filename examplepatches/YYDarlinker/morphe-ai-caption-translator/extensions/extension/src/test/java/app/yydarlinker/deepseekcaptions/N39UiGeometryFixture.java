@@ -43,6 +43,7 @@ class N39UiGeometryFixture {
   }
 
   public void setup() {
+    CaptionNativeProjection.ccState(CaptionIntentPolicy.ON);
     shorts = false;
     bounds = new Rect(0, 0, 600, 340);
     a = Robolectric.buildActivity(Activity.class).setup().visible().get();

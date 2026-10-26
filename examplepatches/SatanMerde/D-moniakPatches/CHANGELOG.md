@@ -1,3 +1,27 @@
+## [1.52.20](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.19...v1.52.20) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve PAD getAssetPackPath branch check and hook BillingClient startConnection ([b4a11bb](https://github.com/SatanMerde/D-moniakPatches/commit/b4a11bb925334cb55e9ae9341f456293c475060b))
+
+## [1.52.19](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.18...v1.52.19) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** extract datapack.unity3d to local VFS mount point and bypass MountDataArchive string checks ([8f9d167](https://github.com/SatanMerde/D-moniakPatches/commit/8f9d16753eee81a1381b58e8fc1412757791d782))
+
+## [1.52.18](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.17...v1.52.18) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve PAD loading screen freeze for merged APK bundles in bytecode and native engine ([7054125](https://github.com/SatanMerde/D-moniakPatches/commit/7054125b516b62ceb3c3b28f33f144ab6e99de23))
+
+## [1.52.17](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.16...v1.52.17) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve UnityDataAssetPack via ActivityThread and add OBB/external storage fallbacks ([e8e5c25](https://github.com/SatanMerde/D-moniakPatches/commit/e8e5c253cdd76164da824b116b713b5eace749ed))
+
 ## [1.52.16](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.15...v1.52.16) (2026-10-24)
 
 ### 🐛 Bug Fixes

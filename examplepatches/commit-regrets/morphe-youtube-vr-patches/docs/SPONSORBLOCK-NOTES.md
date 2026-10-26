@@ -1194,7 +1194,7 @@ again. `migrateOldDefaults` moves rows still holding an old default — **chaine
 two defaults behind (`skip` → `seekbar-only` → `manual-skip`) and the editor's writes are not visible
 to the store it reads — and **bounded** (`MAX_DEFAULT_MOVES`), because that walk happens inside
 `Application.onCreate`: a future edit that made the move table cyclic would otherwise hang the app's
-start-up silently, with no crash and no log line. Both halves are asserted by `build/probe/SbPickCheck.java`.
+start-up silently, with no crash and no log line. Both halves are asserted by `SponsorBlockPickTest` (`patches/src/test`).
 
 ## Observed behaviour (measured on the headset, against a real segment)
 

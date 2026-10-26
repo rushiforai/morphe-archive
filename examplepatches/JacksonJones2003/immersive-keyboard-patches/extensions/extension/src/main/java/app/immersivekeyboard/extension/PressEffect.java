@@ -1,5 +1,6 @@
 package app.immersivekeyboard.extension;
 
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -29,7 +30,9 @@ import java.util.WeakHashMap;
 public final class PressEffect {
     private static final long FLASH_RISE_MS = 70;
     private static final long FLASH_FADE_MS = 380;
-    private static final int FLASH_PEAK_ALPHA = 56;
+    /** Peak strength of the light on dark glass, where it shows most. */
+    private static final int FLASH_PEAK_ALPHA_DARK = 30;
+    private static final int FLASH_PEAK_ALPHA_LIGHT = 48;
     private static final float FLASH_RADIUS_FRACTION = 0.55f;
     /** How far the pressed key shrinks; neighbours shrink less with distance. */
     private static final float PRESS_DEPTH = 0.06f;
@@ -126,7 +129,10 @@ public final class PressEffect {
             // The light spreads outward a little as it fades.
             float spread = 0.75f + 0.25f * Math.min(1f, elapsed / (float) (FLASH_RISE_MS + FLASH_FADE_MS));
             float radius = Math.max(1f, view.getWidth() * FLASH_RADIUS_FRACTION * spread);
-            int alpha = Math.round(FLASH_PEAK_ALPHA * strength);
+            boolean dark = (view.getResources().getConfiguration().uiMode
+                    & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+            int alpha = Math.round(
+                    (dark ? FLASH_PEAK_ALPHA_DARK : FLASH_PEAK_ALPHA_LIGHT) * strength);
             paint.setShader(new RadialGradient(flashX, flashY, radius,
                     new int[]{Color.argb(alpha, 255, 255, 255),
                             Color.argb(alpha / 3, 255, 255, 255), Color.TRANSPARENT},

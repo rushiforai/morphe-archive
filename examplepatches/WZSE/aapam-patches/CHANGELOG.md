@@ -1,3 +1,25 @@
+## [1.5.0](https://github.com/WZSE/aapam-patches/compare/v1.4.0...v1.5.0) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **cred:** generically neutralize DexGuard Activity tamper traps without hardcoded method names ([372d3a9](https://github.com/WZSE/aapam-patches/commit/372d3a92b3686a6d215cd82b5e307193ae3970d3))
+* **cred:** handle non-RuntimeException tamper traps and add 6.1.6.170 support ([6d133ed](https://github.com/WZSE/aapam-patches/commit/6d133ed24b7c5f4d98a3b23c9d76ae0f42d0f93c))
+
+### ✨ New Features
+
+* add CRED patch to disable security checks, telemetry, and background crashes ([d445ead](https://github.com/WZSE/aapam-patches/commit/d445ead3733b590bfaaf6e0f1f956715e155eb7c))
+
+## [1.5.0-dev.1](https://github.com/WZSE/aapam-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-10-20)
+
+### 🐛 Bug Fixes
+
+* **cred:** generically neutralize DexGuard Activity tamper traps without hardcoded method names ([372d3a9](https://github.com/WZSE/aapam-patches/commit/372d3a92b3686a6d215cd82b5e307193ae3970d3))
+* **cred:** handle non-RuntimeException tamper traps and add 6.1.6.170 support ([6d133ed](https://github.com/WZSE/aapam-patches/commit/6d133ed24b7c5f4d98a3b23c9d76ae0f42d0f93c))
+
+### ✨ New Features
+
+* add CRED patch to disable security checks, telemetry, and background crashes ([d445ead](https://github.com/WZSE/aapam-patches/commit/d445ead3733b590bfaaf6e0f1f956715e155eb7c))
+
 ## [1.4.0](https://github.com/WZSE/aapam-patches/compare/v1.3.1...v1.4.0) (2026-10-10)
 
 ### ✨ New Features

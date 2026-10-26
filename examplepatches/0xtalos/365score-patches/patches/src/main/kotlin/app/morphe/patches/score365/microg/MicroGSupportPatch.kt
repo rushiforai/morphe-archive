@@ -4,6 +4,8 @@ import app.morphe.patches.score365.utils.COMPATIBILITY_365SCORE
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -247,20 +249,38 @@ private fun BytecodePatchContext.rewriteGmsStrings() {
 @Suppress("unused")
 val microGSupportPatch = bytecodePatch(
     name = "GmsCore support",
-    description = "Makes Google sign-in and Google APIs work in the patched app by using MicroG RE instead of Google Play services. Requires MicroG RE to be installed.",
-    default = false,
+    description = "Makes Google sign-in and Google APIs work by routing them to MicroG RE instead of Google Play services. " +
+        "Requires MicroG RE (app.revanced.android.gms) and a Google account added in it.",
+    // On by default: 365Scores' Google sign-in and FCM alerts do not work without it once the
+    // APK is re-signed, and leaving it off is the most common reason sign-in "does nothing".
+    default = true,
 ) {
     compatibleWith(*COMPATIBILITY_365SCORE)
+
+    // A mounted (root) install keeps the original signature, so Google Play services works and
+    // the manifest/bytecode changes would be ignored anyway.
+    availability { installer, _ ->
+        when (installer) {
+            InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
+            else -> PatchAvailability.ENABLED
+        }
+    }
+
     dependsOn(microGResourcePatch, spoofSignaturePatch)
 
     extendWith("extensions/gmscore.mpe")
 
     execute {
+        // These fingerprints are shared across patch runs in one process (the smoke test patches
+        // twice), so drop any stale match first. A stale match would silently edit the previous
+        // run's method and leave this APK unpatched.
         GooglePlayUtilityFingerprint.clearMatch()
         ServiceCheckFingerprint.clearMatch()
         SplashOnCreateFingerprint.clearMatch()
 
-        val mainActivityOnCreate = SplashOnCreateFingerprint.methodOrNull
+        // Required: without checkGmsCore the user is never told that the sign-in backend is
+        // missing, and the patch would appear to "do nothing" on a device without MicroG RE.
+        val mainActivityOnCreate = SplashOnCreateFingerprint.method
 
         val googlePlayUtility = GooglePlayUtilityFingerprint.methodOrNull
         if (googlePlayUtility == null && classDefByStrings(GOOGLE_SIGNATURE_INVALID_WARNING).isNotEmpty()) {
@@ -291,11 +311,14 @@ val microGSupportPatch = bytecodePatch(
         rewriteGmsStrings()
 
         // Verify GmsCore is installed and prompt for battery optimization whitelist. p0 = activity.
-        mainActivityOnCreate?.let { method ->
-            method.addInstructions(
-                0,
-                "invoke-static/range { p0 .. p0 }, $GMS_CORE_EXTENSION_CLASS->checkGmsCore(Landroid/app/Activity;)V",
-            )
+        val checkGmsCore =
+            "invoke-static/range { p0 .. p0 }, $GMS_CORE_EXTENSION_CLASS->checkGmsCore(Landroid/app/Activity;)V"
+        mainActivityOnCreate.addInstructions(0, checkGmsCore)
+        val inserted = mainActivityOnCreate.implementation?.instructions?.firstOrNull()
+        if ((inserted as? ReferenceInstruction)?.reference?.toString() !=
+            "$GMS_CORE_EXTENSION_CLASS->checkGmsCore(Landroid/app/Activity;)V"
+        ) {
+            throw PatchException("checkGmsCore was not inserted at the start of ${mainActivityOnCreate.name}")
         }
     }
 }

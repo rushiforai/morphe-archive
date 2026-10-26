@@ -61,6 +61,10 @@ final class VideoTouchControls {
         }
         if (!tracking) return false;
         if (event.getPointerCount() > 1 || action == MotionEvent.ACTION_CANCEL) { cancel(); return false; }
+        if (activity.isHoldSpeedActive()) {
+            if (action == MotionEvent.ACTION_UP) { cancelTap(); activity.endHoldSpeed(); tracking = false; }
+            return true;
+        }
         float dx = event.getRawX() - startX, dy = event.getRawY() - startY;
         float slop = Math.max(ViewConfiguration.get(activity).getScaledTouchSlop() * 2,
                 24 * activity.getResources().getDisplayMetrics().density);

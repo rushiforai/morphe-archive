@@ -18,10 +18,6 @@ private const val VIDEO_PAGE_KEY = "morphe_settings_screen_12_video"
 private const val NARRATION_KEY = "morphe_vot_screen"
 private const val SCREEN_KEY = "${NARRATION_KEY}__ai_captions"
 
-private const val LOOPBACK_CONFIG = "deepseek_caption_network_security"
-private const val LOOPBACK_DOMAIN = "127.0.0.1"
-private const val NETWORK_SECURITY = "android:networkSecurityConfig"
-
 /** A row of the screen: the class of its preference, its key, and its title and summary (the Chinese source text). */
 private class Row(val type: String, val key: String, val title: String, val summary: String? = null)
 
@@ -126,55 +122,6 @@ private fun Document.buildScreen(): Element {
 }
 
 /**
- * The extension asks a small HTTP server in the app itself (on 127.0.0.1) for the translated captions; YouTube,
- * the translation API and every other host stay HTTPS-only. YouTube may already ship a network security config,
- * and on Android 7+ that makes `usesCleartextTraffic` alone ineffective, so the permission goes into the config
- * that is in force.
- */
-private fun ResourcePatchContext.allowLoopbackTraffic() {
-    get("res/xml").mkdirs()
-    var configName: String? = null
-    document("AndroidManifest.xml").use { manifest ->
-        val application = manifest.getElementsByTagName("application").item(0) as? Element
-            ?: throw PatchException("YouTube manifest has no <application>")
-        val existing = application.getAttribute(NETWORK_SECURITY)
-        if (existing.startsWith("@xml/")) {
-            configName = existing.removePrefix("@xml/")
-        } else if (existing.isBlank()) {
-            configName = LOOPBACK_CONFIG
-            application.setAttribute(NETWORK_SECURITY, "@xml/$LOOPBACK_CONFIG")
-        }
-    }
-    val name = configName ?: return
-    // Decode the existing config on request (Patcher 2.0.0): listing the folder does not decode it.
-    val file = get("res/xml/$name.xml")
-    if (!file.exists()) {
-        file.writeText(
-            """<?xml version="1.0" encoding="utf-8"?>
-<network-security-config>
-<base-config cleartextTrafficPermitted="false">
-    <trust-anchors>
-        <certificates src="system" />
-    </trust-anchors>
-</base-config>
-<domain-config cleartextTrafficPermitted="true"><domain>$LOOPBACK_DOMAIN</domain></domain-config>
-</network-security-config>
-""",
-        )
-        return
-    }
-    document("res/xml/$name.xml").use { config ->
-        val domain = config.createElement("domain").apply { textContent = LOOPBACK_DOMAIN }
-        config.documentElement.appendChild(
-            config.createElement("domain-config").apply {
-                setAttribute("cleartextTrafficPermitted", "true")
-                appendChild(domain)
-            },
-        )
-    }
-}
-
-/**
  * Puts the screen on the video page of Morphe's settings, or, when the app has no Morphe settings, at the end of
  * its own settings list. A Morphe page without an unambiguous video page is an error: the screen would end up
  * where nobody was told to look.
@@ -206,14 +153,10 @@ private fun ResourcePatchContext.addScreen() {
     for (path in stockPages) document(path).use { page -> page.documentElement.appendChild(page.buildScreen()) }
 }
 
-/**
- * The screen of the AI captions, and the permission for the local server of the add-on to answer on `127.0.0.1`.
- */
+/** The AI caption screen; network security policy remains owned by the host and other patches. */
 internal val captionSettingsPatch = resourcePatch(
     description = "Adds the AI caption screen to the settings of Morphe.",
 ) {
-    execute { allowLoopbackTraffic() }
-
     // The settings of Morphe are written by its own patch, so the screen is added after every patch has executed.
     finalize { addScreen() }
 }

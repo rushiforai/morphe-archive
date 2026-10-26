@@ -1,9 +1,9 @@
 name: Validate caption changes
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   push:
-    branches: ['fix/**']
+    branches: [dev, 'codex/**', 'fix/**']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,27 +16,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5.7.0
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '21'
-      - name: Verify metadata, localization and release contract
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate locked release tooling without publishing
         run: |
-          python3 tools/check_localization.py
-          python3 .github/scripts/test_release_contract.py
-          python3 .github/scripts/validate_morphe_metadata.py "$(jq -r .version patches-bundle.json)"
-      - name: Test and build current source (no publication)
+          npm ci --ignore-scripts --no-audit --no-fund
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync('.releaserc', 'utf8'));
+          for (const plugin of config.plugins) {
+            const name = Array.isArray(plugin) ? plugin[0] : plugin;
+            await import(name);
+            console.log(`Loaded release plugin: ${name}`);
+          }
+          NODE
+      # The shared entry explicitly runs :translation-core:testDebugUnitTest and
+      # :extensions:extension:testDebugUnitTest before checking this run's candidate.
+      - name: Verify current source and candidate (no publication or model calls)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid :patches:generatePatchesList --no-daemon
-      - name: Validate bundle
-        run: python3 .github/scripts/verify_bundle.py "$(jq -r .version patches-bundle.json)"
-      - uses: actions/upload-artifact@v6
+        run: python3 tools/verify_current.py --run-id "ci-${{ github.run_id }}-${{ github.run_attempt }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: caption-validation-${{ github.sha }}
           path: |
-            build/n39/gradle/extensions/extension/reports/tests/
-            build/n39/gradle/extensions/extension/test-results/
-            build/n39/gradle/patches/libs/*.mpp
+            validation/runs/
+            build/maintenance/M1a/**/gradle/translation-core/reports/tests/
+            build/maintenance/M1a/**/gradle/translation-core/test-results/
+            extensions/extension/build/reports/tests/
+            extensions/extension/build/test-results/
+            build/maintenance/M1a/**/*.mpp
+            build/maintenance/M1a/**/extension.mpe
           retention-days: 7

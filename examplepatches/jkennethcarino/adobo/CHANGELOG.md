@@ -1,3 +1,49 @@
+## [1.7.0](https://github.com/jkennethcarino/adobo/compare/v1.6.0...v1.7.0) (2026-10-25)
+
+### Bug Fixes
+
+* **Reddit - Disable bottom navigation bar auto-hide:** Fix support for `2026.24.0` ([0369592](https://github.com/jkennethcarino/adobo/commit/036959297bce039aa16decdf815d18678e302d68))
+
+### Features
+
+* **Reddit:** Add `Hide related posts` patch ([0fb5d42](https://github.com/jkennethcarino/adobo/commit/0fb5d42816fd1fba509708d50e41cf86e022c0bf))
+* **Reddit:** Add `Hide search answers preview` patch ([5a2193a](https://github.com/jkennethcarino/adobo/commit/5a2193a88241db975f4eef7ed75ae8c4344bece3))
+* Update Morphe Patcher to 2.0 ([d21b91e](https://github.com/jkennethcarino/adobo/commit/d21b91e42c5d527414731a32df77c71ef643d6fc))
+
+### Updated App Support
+
+* **9GAG:** Add support for `8.24.8`, `8.25.1`, and `8.26.1` ([6e90bfd](https://github.com/jkennethcarino/adobo/commit/6e90bfd5058598a14f36b9d34b5bd19cfe0d7ec1))
+* **Reddit:** Add support for `2026.43.0` ([f828cc8](https://github.com/jkennethcarino/adobo/commit/f828cc8d17efc6d8ae42d50e457e76a1a5c49331))
+
+## [1.7.0-dev.4](https://github.com/jkennethcarino/adobo/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-10-25)
+
+### Updated App Support
+
+* **9GAG:** Add support for `8.24.8`, `8.25.1`, and `8.26.1` ([6e90bfd](https://github.com/jkennethcarino/adobo/commit/6e90bfd5058598a14f36b9d34b5bd19cfe0d7ec1))
+* **Reddit:** Add support for `2026.43.0` ([f828cc8](https://github.com/jkennethcarino/adobo/commit/f828cc8d17efc6d8ae42d50e457e76a1a5c49331))
+
+## [1.7.0-dev.3](https://github.com/jkennethcarino/adobo/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-10-24)
+
+### Features
+
+* **Reddit:** Add `Hide search answers preview` patch ([5a2193a](https://github.com/jkennethcarino/adobo/commit/5a2193a88241db975f4eef7ed75ae8c4344bece3))
+
+## [1.7.0-dev.2](https://github.com/jkennethcarino/adobo/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-10-24)
+
+### Bug Fixes
+
+* **Reddit - Disable bottom navigation bar auto-hide:** Fix support for `2026.24.0` ([0369592](https://github.com/jkennethcarino/adobo/commit/036959297bce039aa16decdf815d18678e302d68))
+
+### Features
+
+* **Reddit:** Add `Hide related posts` patch ([0fb5d42](https://github.com/jkennethcarino/adobo/commit/0fb5d42816fd1fba509708d50e41cf86e022c0bf))
+
+## [1.7.0-dev.1](https://github.com/jkennethcarino/adobo/compare/v1.6.0...v1.7.0-dev.1) (2026-10-24)
+
+### Features
+
+* Update Morphe Patcher to 2.0 ([d21b91e](https://github.com/jkennethcarino/adobo/commit/d21b91e42c5d527414731a32df77c71ef643d6fc))
+
 ## [1.6.0](https://github.com/jkennethcarino/adobo/compare/v1.5.0...v1.6.0) (2026-10-18)
 
 ### Features

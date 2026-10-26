@@ -47,6 +47,9 @@ internal object AppCompatibilities {
     /** Instagram's own floor, Android 9. */
     const val INSTAGRAM_TARGET_MIN_SDK = 28
 
+    /** Every ABI loading HushGram's extensions needs Android 9 APIs. */
+    const val INSTAGRAM_RUNTIME_MIN_SDK = 28
+
     fun instagram(): Array<Compatibility> = arrayOf(
         Compatibility(
             name = "Instagram",

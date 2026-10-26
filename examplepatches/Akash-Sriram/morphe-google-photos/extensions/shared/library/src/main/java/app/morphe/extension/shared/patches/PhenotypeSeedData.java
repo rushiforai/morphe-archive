@@ -92,7 +92,7 @@ public final class PhenotypeSeedData {
         return count;
     }
 
-    public static final long LATEST_SEED_VERSION = 1791358000L;
+    public static final long LATEST_SEED_VERSION = 1792807800L;
 
     public static void ensureSeeded(Context context) {
         SharedPreferences seedPrefs = context.getSharedPreferences("morphe_seed_meta", Context.MODE_PRIVATE);

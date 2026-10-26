@@ -47,7 +47,7 @@ public class StoryTrayOrderTest {
 
     private static StoryTrayOrder.Seen seenAre(String... names) {
         Set<String> seen = new HashSet<>(Arrays.asList(names));
-        return seen::contains;
+        return reel -> seen.contains(reel) ? 1 : 0;
     }
 
     @Test
@@ -60,10 +60,50 @@ public class StoryTrayOrderTest {
     }
 
     @Test
-    public void duplicatesAndNullsAreKept() {
+    public void duplicatesAreKeptAndNullEntriesKeepTheirNativeSlots() {
         List<Object> tray = Arrays.<Object>asList("a", null, "a", "b");
         List<Object> ordered = StoryTrayOrder.order(tray, ON, seenAre("a"));
-        assertEquals(Arrays.<Object>asList(null, "b", "a", "a"), ordered);
+        assertEquals(Arrays.<Object>asList("b", null, "a", "a"), ordered);
+    }
+
+    @Test
+    public void createOwnAndSpecialEntriesKeepTheirExactNativeSlots() {
+        List<Object> tray = Arrays.<Object>asList("Create", "watched1", "special", "new1", "own", "watched2", "new2", null);
+        List<Object> ordered = StoryTrayOrder.order(tray, ON, reel -> {
+            String name = (String) reel;
+            if (name.equals("Create") || name.equals("own") || name.equals("special")) return StoryTrayOrder.PINNED;
+            return name.startsWith("watched") ? 1 : 0;
+        });
+        assertEquals(Arrays.<Object>asList("Create", "new1", "special", "new2", "own", "watched1", "watched2", null), ordered);
+        assertEquals(Arrays.<Object>asList("Create", "watched1", "special", "new1", "own", "watched2", "new2", null), tray);
+    }
+
+    @Test
+    public void unknownEntriesStayPinnedAndAreNeverCountedAsUnseen() {
+        List<Object> tray = Arrays.<Object>asList("watched", "unknown", "new");
+        assertEquals(Arrays.<Object>asList("new", "unknown", "watched"), StoryTrayOrder.order(tray, ON,
+                reel -> reel.equals("unknown") ? StoryTrayOrder.PINNED : reel.equals("watched") ? 1 : 0));
+        assertSame(tray, StoryTrayOrder.order(tray, ON, reel -> StoryTrayOrder.PINNED));
+        assertSame(tray, StoryTrayOrder.order(tray, ON,
+                reel -> reel.equals("unknown") ? StoryTrayOrder.PINNED : 1));
+    }
+
+    @Test
+    public void invalidOrFailingNativeAnswersLeaveTheEntireListAlone() {
+        List<Object> tray = Arrays.<Object>asList("watched", "new", "broken");
+        assertSame(tray, StoryTrayOrder.order(tray, ON, reel -> reel.equals("broken") ? 2 : reel.equals("watched") ? 1 : 0));
+        assertSame(tray, StoryTrayOrder.order(tray, ON, reel -> {
+            if (reel.equals("broken")) throw new IllegalStateException("missing identity");
+            return reel.equals("watched") ? 1 : 0;
+        }));
+    }
+
+    @Test
+    public void eachRefreshUsesItsOwnNativeState() {
+        List<Object> tray = Arrays.<Object>asList("a", "b", "c");
+        assertEquals(Arrays.<Object>asList("b", "c", "a"), StoryTrayOrder.order(tray, ON, seenAre("a")));
+        assertEquals(Arrays.<Object>asList("a", "c", "b"), StoryTrayOrder.order(tray, ON, seenAre("b")));
+        assertSame(tray, StoryTrayOrder.order(tray, ON, seenAre("c")));
     }
 
     @Test

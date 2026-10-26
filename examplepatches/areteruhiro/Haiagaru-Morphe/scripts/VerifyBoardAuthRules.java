@@ -25,6 +25,16 @@ public final class VerifyBoardAuthRules {
         check(BoardAuthRules.suggested("https://board.example/a/", "CAPTCHA: https://board.example/challenge?token=abc").equals("https://board.example/challenge?token=abc"),"same-origin CAPTCHA URL");
         check(BoardAuthRules.suggested("https://board.example/a/", "CAPTCHA: https://evil.example/challenge").isEmpty(),"no cross-origin automatic challenge suggestion");
         check(!BoardAuthRules.required("書き込みに成功しました"),"success ignored");
+        String browserError="計算による投稿確認 専用ブラウザからは投稿出来ません。通常のブラウザを使ってください。";
+        check(BoardAuthRules.required(browserError),"proof-of-work error detected");
+        check(BoardAuthRules.browserRequired(browserError),"explicit browser-only route");
+        check(!BoardAuthRules.browserRequired("計算による投稿確認"),"no browser prohibition inferred");
+        check(!BoardAuthRules.browserRequired(null),"null browser requirement");
+        check(!BoardAuthRules.browserRequired(browserError+"x".repeat(65536)),"bounded browser scan");
+        check(BoardAuthRules.browserPage("https://043044.xyz/krsw/?token=private#post").equals("https://043044.xyz/krsw/"),"strip query and fragment from browser destination");
+        check(BoardAuthRules.browserPage("https://043044.xyz/test/bbs.cgi?draft=private").equals("https://043044.xyz/"),"never navigate to submission endpoint");
+        check(BoardAuthRules.browserPage("javascript:alert(1)").isEmpty(),"reject script browser destination");
+        check(BoardAuthRules.browserPage("https://name:secret@043044.xyz/krsw/").isEmpty(),"reject embedded browser credentials");
         check(!BoardAuthRules.required(null),"null ignored");
         check(!BoardAuthRules.required("x".repeat(65537)+"認証コード"),"bounded scan");
         check(BoardAuthRules.suggested("https://bbs.eddibb.cc/liveedge/","認証が必要です").endsWith("/auth-code"),"known board fallback");

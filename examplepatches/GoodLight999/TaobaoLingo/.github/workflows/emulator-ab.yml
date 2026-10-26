@@ -1,0 +1,109 @@
+name: Emulator A/B across Android API levels
+
+on:
+  push:
+    branches: [main, diagnostics/emulator-api-matrix-20261025]
+    paths:
+      - 'scripts/ci_emulator_probe.sh'
+      - 'scripts/ci_emulator_ab.sh'
+      - 'scripts/classify_emulator_probe.py'
+      - '.github/workflows/emulator-ab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ab:
+    strategy:
+      fail-fast: false
+      matrix:
+        api_level: [30, 34, 35]
+    concurrency:
+      group: taobao-emulator-${{ github.ref }}-${{ matrix.api_level }}
+      cancel-in-progress: true
+    name: Android API ${{ matrix.api_level }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      ENC_URL: "https://drive.usercontent.google.com/download?id=1b-O-9qAmKk7shhoFIJEfOqevw0uKAmJg&export=download&confirm=t"
+      APK_SHA256: "3e709717a60fdeeb59354df60fb6cf279ffb023c01e095e16bccfbad75f683dd"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Fetch + decrypt APK (never committed / never uploaded)
+        env:
+          APK_PASSWORD: ${{ secrets.APK_PASSWORD }}
+        run: |
+          test -n "$APK_PASSWORD" || { echo "::error::Set repo secret APK_PASSWORD"; exit 1; }
+          mkdir -p work && curl -sSL -o work/tb.enc "$ENC_URL"
+          printf '%s' "$APK_PASSWORD" > work/pw
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in work/tb.enc -out work/original.apk -pass file:work/pw
+          rm -f work/pw work/tb.enc
+          echo "$APK_SHA256  work/original.apk" | sha256sum -c -
+      - name: Build re-signed control (zero bytecode change)
+        run: |
+          set -euo pipefail
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          export PATH="$BT:$PATH"
+          mkdir -p out
+          keytool -genkeypair -keystore work/ctl.jks -storepass android -keypass android -alias ctl -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=TaobaoLingo Control"
+          cp work/original.apk work/resigned.apk
+          "$BT/apksigner" sign --ks work/ctl.jks --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true work/resigned.apk
+          "$BT/apksigner" verify --verbose --print-certs work/original.apk > out/signer-original.txt
+          "$BT/apksigner" verify --verbose --print-certs work/resigned.apk > out/signer-resigned.txt
+          sed -n '1,3p' out/signer-original.txt
+          sed -n '1,3p' out/signer-resigned.txt
+          python3 scripts/triage_apk_variants.py work/original.apk work/resigned.apk \
+            --strict-original-hash --strict-control --json-out out/binary-control.json \
+            --markdown-out out/binary-control.md
+          sha256sum work/original.apk work/resigned.apk > out/apk-digests.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("out/binary-control.json").read_text())
+          for variant in ("original", "resigned_only"):
+              assert r["variants"][variant]["signature_check"]["valid"] is True, variant
+          PY
+      - name: Run emulator A/B
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api_level }}
+          target: google_apis
+          arch: x86_64
+          ram-size: 4096M
+          disk-size: 8G
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash scripts/ci_emulator_ab.sh
+      - name: Upload evidence (screenshots, UI dumps, logcat — no APKs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-ab-evidence-api-${{ matrix.api_level }}
+          path: out/
+          retention-days: 14
+      - name: Publish evidence to ci-results branch
+        if: always()
+        run: |
+          test -d out || exit 0
+          # Only publish non-sensitive status/metadata to the public branch.
+          # Retain screenshots and unfiltered logs in the run artifact.
+          D=$(mktemp -d)
+          mkdir -p "$D/out/original" "$D/out/resigned"
+          for variant in original resigned; do
+            for item in install.txt pkg.txt status.json status-stage.txt error_codes.txt; do
+              test ! -f "out/$variant/$item" || cp "out/$variant/$item" "$D/out/$variant/$item"
+            done
+          done
+          for item in binary-control.json binary-control.md apk-digests.txt signer-original.txt signer-resigned.txt emulator-abilist.txt probe-exits.txt; do
+            test ! -f "out/$item" || cp "out/$item" "$D/out/$item"
+          done
+          cd "$D" && git init -q && git checkout -q -b ci-results-${{ matrix.api_level }}
+          echo "run ${{ github.run_id }} api ${{ matrix.api_level }}" > out/RUN.txt
+          git add -A && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "diagnostic evidence run ${{ github.run_id }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-results-${{ matrix.api_level }}

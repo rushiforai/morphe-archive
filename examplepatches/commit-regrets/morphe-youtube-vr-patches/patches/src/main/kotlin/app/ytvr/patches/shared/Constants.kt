@@ -20,7 +20,7 @@ const val VERSION_NAME_OVERRIDE_KEY = "pref_override_build_version_name"
  * the support pinning on a version bump. scripts/check-upstream-version.mjs reads this
  * constant alongside the literal AppTarget versions.
  */
-const val SUPPORTED_APP_VERSION = "1.88.10"
+const val SUPPORTED_APP_VERSION = "1.89.09"
 
 object Constants {
     val COMPATIBILITY_YOUTUBE_VR = Compatibility(
@@ -70,9 +70,25 @@ object Constants {
             // If a target should only match a specific ABI's version code, pass
             // `versionCodes = mapOf(SupportedAbi.ARM64_V8A to 18810000)`; this app ships
             // arm64-v8a only.
+            //
+            // Pruning (the Morphe discipline): at most TWO normal targets may be listed, and
+            // each must carry a `// Kept: <reason>` comment directly above it. When a third
+            // version is added, drop the oldest in the same change. The rule is enforced by
+            // SupportedVersionsPolicyTest, because a list that only grows makes the name-pinned
+            // fingerprints accumulate branches and the cross-version collision risk with them.
+            // The why-kept comment must sit ABOVE the AppTarget( line: the upstream checker's
+            // regex (`AppTarget\s*\(\s*version`) cannot cross a comment line, so a comment
+            // inside the parens would hide the target from it.
             // ---------------------------------------------------------------------------------
+            // Kept: newest verified target -- fingerprints re-derived against this APK.
             AppTarget(
-                version = SUPPORTED_APP_VERSION,
+                version = "1.89.09",
+                description = "Verified: every fingerprint was re-derived against this build.",
+            ),
+            // Kept: last confirmed storefront release (measured 2026-10-15); dropping it
+            // would strand headsets that have not been updated.
+            AppTarget(
+                version = "1.88.10",
                 description = "Verified: every fingerprint was re-derived against this build.",
             ),
         ),

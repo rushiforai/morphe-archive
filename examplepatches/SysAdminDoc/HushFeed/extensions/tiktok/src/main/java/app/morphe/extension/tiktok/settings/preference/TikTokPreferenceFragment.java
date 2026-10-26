@@ -75,6 +75,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String NO_MATCHES_SUMMARY = "Try a different word or clear the search. "
             + "Switches from patches you didn't tick in Morphe Manager aren't listed.";
     private static final int REQUEST_DOWNLOAD_PATH_FOLDER = 8841;
+    private static final int HIGHLIGHT_OWNER = 0x7f7f4005;
     private static final String ARG_SECTION = "morphe_settings_section";
     private static final String ARG_HUB = "morphe_settings_hub";
     private static final String ARG_SEARCH = "morphe_settings_search";
@@ -112,6 +113,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static String pendingDownloadPathKey;
     private static final String PENDING_DOWNLOAD_PATH_STATE = "morphe_pending_download_path";
     private static final String SEARCH_QUERY_STATE = "morphe_search_query";
+    private static final String SEARCH_POSITION_STATE = "morphe_search_position";
+    private static final String SEARCH_OFFSET_STATE = "morphe_search_offset";
+    private static final String SEARCH_POSITION_QUERY_STATE = "morphe_search_position_query";
+    private int searchPosition = -1, searchOffset;
+    private String searchPositionQuery;
     private SettingsListAdapter styledAdapter;
     /**
      * Set once this page has scrolled to where it was opened for. Back to a page another one
@@ -800,6 +806,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     @Override public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        rememberSearchPosition();
+        outState.putInt(SEARCH_POSITION_STATE, searchPosition);
+        outState.putInt(SEARCH_OFFSET_STATE, searchOffset);
+        outState.putString(SEARCH_POSITION_QUERY_STATE, searchPositionQuery);
         ImportSeenVideoHistoryPreference.savePickerState(outState);
         SeenHistoryFilePreference.savePickerState(outState);
         outState.putString(PENDING_DOWNLOAD_PATH_STATE, pendingDownloadPathKey);
@@ -817,15 +827,37 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             pendingDownloadPathKey = state.getString(PENDING_DOWNLOAD_PATH_STATE);
         }
         if (state != null && searchInput != null) {
+            searchPosition = state.getInt(SEARCH_POSITION_STATE, -1);
+            searchOffset = state.getInt(SEARCH_OFFSET_STATE);
+            searchPositionQuery = state.getString(SEARCH_POSITION_QUERY_STATE);
             String savedQuery = state.getString(SEARCH_QUERY_STATE);
             if (savedQuery != null && !savedQuery.isEmpty()) {
                 searchInput.setQuery(savedQuery);
+                updateSearchResults(savedQuery);
             }
         }
         ListView list = getView().findViewById(android.R.id.list);
         if (list != null && list.getAdapter() != null) {
             styledAdapter = new SettingsListAdapter(list.getAdapter());
             list.setAdapter(styledAdapter);
+            if (searchInput != null) {
+                list.setOnItemLongClickListener((parent, row, position, id) -> {
+                    if (row == null || row.getParent() != parent
+                            || parent.getPositionForView(row) != position) return false;
+                    Object item = parent.getItemAtPosition(position);
+                    return item instanceof SearchTogglePreference
+                            && ((SearchTogglePreference) item).openLocation();
+                });
+                list.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                    @Override public void onInitializeAccessibilityNodeInfo(View host,
+                            android.view.accessibility.AccessibilityNodeInfo info) {
+                        super.onInitializeAccessibilityNodeInfo(host, info);
+                        info.setLongClickable(false);
+                        info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK);
+                    }
+                });
+                restoreSearchPosition(list);
+            }
             String targetKey = getTargetKey();
             String returnRow = getArguments() == null ? null : getArguments().getString(ARG_RETURN_ROW);
             boolean returning = arrived;
@@ -836,8 +868,14 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 list.post(() -> scrollToPreference(list, returnRow, false));
             }
             if (!returning && targetKey != null) {
-                scrollToPreference(list, targetKey);
-                list.post(() -> scrollToPreference(list, targetKey));
+                scrollToPreference(list, targetKey, false);
+                list.post(() -> {
+                    if (!isAdded() || getView() == null) return;
+                    if (findPreference(targetKey) == null) {
+                        SettingsActionBanner.showNotice(getActivity(), L10n.t(getActivity(),
+                                "This setting isn't available on this page. Go back and search again."));
+                    } else scrollToPreference(list, targetKey);
+                });
                 // Only on arrival. A recreated page brings back the dialog it had open, with the
                 // boxes as they were, and one closed before the recreation stays closed.
                 String member = getArguments().getString(ARG_TARGET_MEMBER);
@@ -856,12 +894,34 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // over whatever page came next until Back was pressed once more. The system Back closes
         // it because the field still has focus; taking it down with the view covers the header's
         // Back and a tapped result alike, since both replace this view.
+        rememberSearchPosition();
         hideKeyboard();
         if (styledAdapter != null) {
             styledAdapter.dispose();
             styledAdapter = null;
         }
         super.onDestroyView();
+    }
+
+    private void rememberSearchPosition() {
+        View view = getView();
+        ListView list = view == null ? null : view.findViewById(android.R.id.list);
+        if (searchInput == null || list == null || list.getChildCount() == 0) return;
+        searchPosition = list.getFirstVisiblePosition();
+        searchOffset = list.getChildAt(0).getTop() - list.getPaddingTop();
+        searchPositionQuery = searchInput.getQuery();
+    }
+
+    private void restoreSearchPosition(ListView list) {
+        int position = searchPosition, offset = searchOffset;
+        String query = searchPositionQuery;
+        if (position < 0 || query == null) return;
+        searchPosition = -1;
+        list.post(() -> {
+            if (getView() != null && getView().findViewById(android.R.id.list) == list
+                    && searchInput != null && query.equals(searchInput.getQuery()) && list.getCount() > 0)
+                list.setSelectionFromTop(Math.min(position, list.getCount() - 1), offset);
+        });
     }
 
     private Section getRequestedSection() {
@@ -988,7 +1048,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         searchScreen = screen;
         screen.addPreference(SettingsHeaderPreference.section(context, "Search settings", this::navigateBack));
         screen.addPreference(SettingsHeaderPreference.caption(context,
-                "Search translated titles and descriptions, then open the original setting."));
+                "Tap a switch to change it. Press and hold to open its page."));
         searchInput = new SettingsSearchInputPreference(context, this::updateSearchResults);
         screen.addPreference(searchInput);
         searchIndex = buildSearchIndex(context, FeatureGateLabRuntime.isInstalled());
@@ -1042,7 +1102,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             if (setting instanceof app.morphe.extension.shared.settings.BooleanSetting
                     && setting.isAvailable() && flipped.add(setting.key)) {
                 SearchTogglePreference toggle = new SearchTogglePreference(getActivity(), result.title,
-                        result.displaySummary(), (app.morphe.extension.shared.settings.BooleanSetting) setting, typed);
+                        result.displaySummary(), (app.morphe.extension.shared.settings.BooleanSetting) setting, typed, () -> {
+                            searchIndexStale = true;
+                            openSection(result.section, result.key, null);
+                        });
                 toggle.setOrder(order++);
                 searchRows.add(toggle);
                 searchScreen.addPreference(toggle);
@@ -1435,35 +1498,79 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     static void highlightRow(ListView list, int position) {
-        list.post(() -> {
-            int first = list.getFirstVisiblePosition();
-            int index = position - first;
-            if (index < 0 || index >= list.getChildCount()) return;
-            android.view.View row = list.getChildAt(index);
-            if (row == null) return;
-            float scale = android.provider.Settings.Global.getFloat(
-                    list.getContext().getContentResolver(),
-                    android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f);
-            if (scale > 0f) {
-                int highlight = SettingsUi.rippleTint();
-                android.graphics.drawable.ColorDrawable flash =
-                        new android.graphics.drawable.ColorDrawable(highlight);
-                row.setForeground(flash);
-                row.postDelayed(() -> {
-                    android.animation.ObjectAnimator fade = android.animation.ObjectAnimator
-                            .ofInt(flash, "alpha", 0x26, 0);
-                    fade.setDuration(600);
-                    fade.addListener(new android.animation.AnimatorListenerAdapter() {
-                        @Override public void onAnimationEnd(android.animation.Animator a) {
-                            row.setForeground(null);
-                        }
-                    });
-                    fade.start();
-                }, 100);
+        if (list.getAdapter() == null || position < 0 || position >= list.getCount()) return;
+        Object expected = list.getItemAtPosition(position), token = new Object();
+        list.setTag(HIGHLIGHT_OWNER, token);
+        android.view.ViewTreeObserver observer = list.getViewTreeObserver();
+        observer.addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
+            @Override public boolean onPreDraw() {
+                android.view.ViewTreeObserver current = list.getViewTreeObserver();
+                if (current.isAlive()) current.removeOnPreDrawListener(this);
+                if (list.getTag(HIGHLIGHT_OWNER) != token) return true;
+                list.setTag(HIGHLIGHT_OWNER, null);
+                if (!list.isAttachedToWindow() || list.getAdapter() == null
+                        || position >= list.getCount() || list.getItemAtPosition(position) != expected)
+                    return true;
+                int index = position - list.getFirstVisiblePosition();
+                if (index < 0 || index >= list.getChildCount()) return true;
+                View row = list.getChildAt(index);
+                if (row == null) return true;
+                clearRowHighlight(row);
+                float scale = android.provider.Settings.Global.getFloat(
+                        list.getContext().getContentResolver(),
+                        android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f);
+                if (scale > 0f) {
+                    RowHighlight owned = new RowHighlight(row, expected);
+                    row.setTag(HIGHLIGHT_OWNER, owned);
+                    owned.flash.setBounds(0, 0, row.getWidth(), row.getHeight());
+                    row.getOverlay().add(owned.flash);
+                    row.postDelayed(() -> {
+                        if (row.getTag(HIGHLIGHT_OWNER) != owned) return;
+                        android.animation.ObjectAnimator fade = android.animation.ObjectAnimator
+                                .ofInt(owned.flash, "alpha", 0x26, 0);
+                        fade.setDuration(600);
+                        fade.addListener(new android.animation.AnimatorListenerAdapter() {
+                            @Override public void onAnimationEnd(android.animation.Animator a) {
+                                owned.clear();
+                            }
+                        });
+                        fade.start();
+                    }, 100);
+                }
+                row.performAccessibilityAction(
+                        android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
+                return true;
             }
-            row.performAccessibilityAction(
-                    android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
         });
+        list.invalidate();
+    }
+
+    static void clearRowHighlight(View row) {
+        if (row != null && row.getTag(HIGHLIGHT_OWNER) instanceof RowHighlight)
+            ((RowHighlight) row.getTag(HIGHLIGHT_OWNER)).clear();
+    }
+
+    static void clearRecycledHighlight(View row, Object preference) {
+        if (row != null && row.getTag(HIGHLIGHT_OWNER) instanceof RowHighlight
+                && ((RowHighlight) row.getTag(HIGHLIGHT_OWNER)).preference != preference)
+            clearRowHighlight(row);
+    }
+
+    private static final class RowHighlight {
+        final View row;
+        final Object preference;
+        final android.graphics.drawable.ColorDrawable flash =
+                new android.graphics.drawable.ColorDrawable(SettingsUi.accent());
+        RowHighlight(View row, Object preference) {
+            this.row = row;
+            this.preference = preference;
+            flash.setAlpha(0x26);
+        }
+        void clear() {
+            if (row.getTag(HIGHLIGHT_OWNER) != this) return;
+            row.setTag(HIGHLIGHT_OWNER, null);
+            row.getOverlay().remove(flash);
+        }
     }
 
     /**

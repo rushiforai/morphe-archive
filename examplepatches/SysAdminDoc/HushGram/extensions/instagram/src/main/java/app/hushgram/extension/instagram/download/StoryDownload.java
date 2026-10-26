@@ -202,7 +202,7 @@ public final class StoryDownload {
     private static boolean saveMedia(Context context, Object media) {
         List<MediaSave.Rendition> videos = ReelDownload.renditions(media);
         String manifest = InstagramMedia.dashManifest(media);
-        PostDetails details = ReelDownload.details(media);
+        PostDetails details = details(media);
         if (!videos.isEmpty() || manifest != null) {
             final int files = videos.size();
             final boolean dash = manifest != null;
@@ -218,7 +218,12 @@ public final class StoryDownload {
         List<MediaSave.Rendition> pictures = pictures(media);
         final int sizes = pictures.size();
         Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "story photo download tapped: " + sizes + " size(s)");
-        return MediaSave.savePhoto(context, pictures, ReelDownload.details(media));
+        return MediaSave.savePhoto(context, pictures, details(media));
+    }
+
+    /** A story has a numeric story URL, not a public post shortcode. */
+    static PostDetails details(Object media) {
+        return ReelDownload.details(media).withPostId(null);
     }
 
     /** The sizes [media] lists for its picture, with the size each states. Never null. */

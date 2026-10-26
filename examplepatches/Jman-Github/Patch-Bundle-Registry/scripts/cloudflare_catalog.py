@@ -626,6 +626,19 @@ class Cloud:
                             set(records[key].get(field, [])) | set(item["data"].get(field, []))
                         )
             records = filter_records(ROOT, reconcile_retained_records(records))
+            previous_map = {(item["kind"], item["key"]): item["data"] for item in previous_records}
+            for key, row in list(records.items()):
+                if key[0] == "bundle":
+                    old = previous_map.get(key)
+                    if old is not None and {
+                        k: v for k, v in old.items() if k != "patch_refresh_attempted_at"
+                    } == {
+                        k: v for k, v in row.items() if k != "patch_refresh_attempted_at"
+                    }:
+                        if "patch_refresh_attempted_at" in old:
+                            row["patch_refresh_attempted_at"] = old["patch_refresh_attempted_at"]
+                        else:
+                            row.pop("patch_refresh_attempted_at", None)
             exported = [
                 {"kind": kind, "key": key, "data": row}
                 for (kind, key), row in sorted(records.items())

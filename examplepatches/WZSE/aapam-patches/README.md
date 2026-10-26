@@ -9,7 +9,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.5.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
 <summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -131,6 +131,42 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Disable Firebase analytics](#disable-firebase-analytics) | Prevents Firebase Analytics from initializing, stopping event and user-property reporting to Google. |  |
 | [Disable ads](#disable-ads) | Removes Google IMA ad insertion (client-side and server-side DAI) from the ZEE5 player. The media source factory is returned DRM-configured but with ad-insertion components never attached, so content and DRM playback are unaffected. |  |
 | [Disable analytics](#disable-analytics) | Disables all third-party analytics (CleverTap, Firebase, Mixpanel, videoanalytics) by short-circuiting the central analytics dispatch method. No tracking data is sent. |  |
+
+</details>
+
+<details open>
+<summary>📦 CRED&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+<details open>
+<summary>🎯 6.1.6.170&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Spying & Security Checks](#disable-spying-security-checks) | Suppresses background watchdog crashes, stubs app inventory harvesters, bypasses device profiling & root checks, and neutralizes OEM task-killer service flags. |  |
+
+</details>
+
+<details open>
+<summary>🎯 6.1.4.157&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Spying & Security Checks](#disable-spying-security-checks) | Suppresses background watchdog crashes, stubs app inventory harvesters, bypasses device profiling & root checks, and neutralizes OEM task-killer service flags. |  |
+
+</details>
+
+<details open>
+<summary>🎯 6.1.2.144&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Spying & Security Checks](#disable-spying-security-checks) | Suppresses background watchdog crashes, stubs app inventory harvesters, bypasses device profiling & root checks, and neutralizes OEM task-killer service flags. |  |
+
+</details>
 
 </details>
 

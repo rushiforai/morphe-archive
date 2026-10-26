@@ -1,3 +1,17 @@
+## [1.12.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.11.1...v1.12.0) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* Enhance UnlockPremium patch for MagoVideo [skip ci] ([d894129](https://github.com/mich111discord/MightyMichs-Patches/commit/d894129d440480078b6340d95739a79ad857e692))
+* fixed InShot Patch error ([d7a8949](https://github.com/mich111discord/MightyMichs-Patches/commit/d7a8949400bb5ce6c9ad99ecb10451f47816a267))
+* InShot unlock Pro via SubscribeProOfHw / DebugPro gate ([7199bde](https://github.com/mich111discord/MightyMichs-Patches/commit/7199bde8ba49a2a5e71613644245d69455bc0329))
+
+### ✨ New Features
+
+* Add patch to disable CCleaner telemetry tracking [skip ci] ([14a9e5d](https://github.com/mich111discord/MightyMichs-Patches/commit/14a9e5d18f84e0d7e180d90211a3ac97f2fd3f27))
+* Add UnlockPremium patch for CCleaner [skip ci] ([7fd2df3](https://github.com/mich111discord/MightyMichs-Patches/commit/7fd2df3a41d83ff417c1a0be7dd495e7ed8628eb))
+* added new patches and fixed the old ones ([aea3ecd](https://github.com/mich111discord/MightyMichs-Patches/commit/aea3ecd5424896a606e250793316e9f5234834fc))
+
 ## [1.11.1](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.11.0...v1.11.1) (2026-10-19)
 
 ### 🐛 Bug Fixes

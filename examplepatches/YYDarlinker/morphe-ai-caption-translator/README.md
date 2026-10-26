@@ -4,11 +4,13 @@
 
 [中文说明](docs/README.zh-CN.md) · [Add to Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator) · [Releases](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) · [Report a problem](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues)
 
-## What's new in 1.5.7
+## What's new in 1.5.8
 
-- Returning to the same video with AI captions left on now restores them automatically; no manual off/on toggle is needed.
-- Videos with word-by-word or rolling captions no longer repeat lines or mix different speakers' words; caption text is rebuilt as complete lines.
-- Opening the comments sheet now resizes captions together with the panel animation instead of after it, so the size no longer lags or jumps back.
+- Keeps AI on/off, native CC and native language selection in their own roles, with stronger video/session ownership and re-entry handling.
+- Honors server retry deadlines, including date-form Retry-After, and prevents retired work or page/hole repair from starting requests outside the current permission and waiting rules.
+- Preserves failed configuration drafts and synchronizes settings that were actually saved; corrupted settings produce readable recovery errors without silently discarding credentials.
+- Protects valid source-cache files when a replacement fails, and makes failure decisions and diagnostic provenance easier to understand.
+- Removes the unused loopback server, isolates the glyph-transition state and adds reproducible verification and maintenance guidance. See the [verification scope](docs/COMPATIBILITY.md) for what was actually checked.
 
 ## What it does
 
@@ -24,19 +26,19 @@ You need a video with an available subtitle track and an API service that suppor
 
 ## Supported versions
 
-| Component | Recommendation | Historical compatibility |
+| Component | Current declaration | Evidence boundary |
 | --- | --- | --- |
-| Official Morphe Patches | **1.48.0**, the latest stable release checked for this release | Requires **Patcher 2.0.0**; use an official version that supports your chosen YouTube APK |
-| Original YouTube APK | **21.20.405** | Stable: **21.16.256**; experimental: **21.42.241**, **21.41.525**, **21.28.208**, **21.23.492** |
-| Android | **9 or later** | minSdk 28; the 21.28+ experimental targets require Android 10 (minSdk 29) |
+| Official Morphe Patches / Patcher | **1.48.0 / 2.0.0** | actual local input metadata; other selections require their own checks |
+| Original YouTube APK | stable target declarations: **21.20.405, 21.16.256**; experimental: **21.42.241, 21.41.525, 21.28.208, 21.23.492** | discrete list; stable labels come from metadata, not current candidate device certification |
+| Android | minSdk 28; **21.42.241, 21.41.525, 21.28.208** require minSdk 29 | use the exact APK's minSdk/ABI and signature; other variants are separate inputs |
 
-The recommended combination is **official Morphe Patches 1.48.0 / Patcher 2.0.0 + YouTube 21.20.405**; 21.16.256 is also stable. The experimental versions follow the 21.x targets of official 1.48.0 and were checked with the real patcher (every patch applied and all caption hooks bound); they are not stable compatibility claims. YouTube 20.x targets are no longer declared, and 21.13.164 / 21.07.247 are no longer in the official list. See [compatibility and verification boundaries](docs/COMPATIBILITY.md).
+Public release remains **1.5.7**. The local **1.5.8 / local-1.5.8-m7b / candidate-02** has finite local composition evidence on **21.41.525-SECONDARY** and **21.28.208**, and is accepted for that local scope. On 2026-10-26 the user reported no issues after the manual phone checklist; a device export confirms the m7b build. The reported phone environment is Manager 2.2.0 / YouTube 21.20.405 / official 1.48.0. This is a finite user observation, with retained limits in the [first-round acceptance](docs/maintenance/reviews/M7-FINAL-ACCEPTANCE.md), not a third desktop composition, a full device matrix or official certification. The old recommendation remains a metadata choice. See [compatibility and verification boundaries](docs/COMPATIBILITY.md) and the [candidate installation checklist](docs/maintenance/M7b-DEVICE-ACCEPTANCE.md). Local diagnostic exports distinguish build expectations from `unknown` runtime official/Patcher provenance.
 
 ## Install
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/latest) and enable **Expert mode** in its settings.
 2. [Add Anchored AI Captions to Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator). Alternatively, add the repository URL `https://github.com/YYDarlinker/morphe-ai-caption-translator` under **Patch sources → Add → Remote**.
-3. Select an **original, unpatched YouTube APK** from the supported versions above. Prefer 21.20.405.
+3. Select an **original, unpatched YouTube APK** from the declared list, matching the official bundle; check its exact variant and evidence in the compatibility table.
 4. Keep the compatible official default patch selection, including its captions/settings/player support. In this source’s tab, select **AI caption translator**. Caption language is owned by YouTube’s native menu and the official Captions patch (including **Preferred caption language**); this source does not add a separate language-memory patch.
 5. Let Morphe patch, sign and install the app. Follow Morphe’s GmsCore instructions if your selected official patches require it.
 
@@ -76,7 +78,7 @@ You can access it through [Alibaba Cloud Model Studio (international)](https://w
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.5.8](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -96,6 +98,10 @@ You can access it through [Alibaba Cloud Model Studio (international)](https://w
 
 ## Development and license
 
-See [architecture](docs/ARCHITECTURE.md), [contributing and local builds](CONTRIBUTING.md), and [the release process](docs/RELEASING.md). Release history belongs in [CHANGELOG.md](CHANGELOG.md).
+See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), [development environment and commands](docs/DEVELOPMENT.md), [maintenance operations](docs/maintenance/OPERATIONS.md), and [the release process](docs/RELEASING.md). Release history belongs in [CHANGELOG.md](CHANGELOG.md).
 
 Anchored AI Captions is independently maintained by YYDarlinker and is not an official Morphe project. Licensed under [GPLv3](LICENSE), with the retained [NOTICE](NOTICE). Morphe is referenced for compatibility only.
+
+## Maintenance and workspace
+
+Use the [current documentation index](docs/README.md), [workspace map](docs/WORKSPACE.md) and [first-round acceptance](docs/maintenance/reviews/M7-FINAL-ACCEPTANCE.md). The [GitHub publication and cleanup record](docs/maintenance/GITHUB-UPDATE-PLAN.md) tracks the authorized 1.5.8 release separately from local organization. Historical documents/recovered output remain traceable, and private diagnostics, source APKs, toolchains, evidence and backups stay local.

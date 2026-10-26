@@ -1,6 +1,7 @@
 """Check sources, compiled dependencies and packages without network/original-workspace access."""
 from collections import Counter
 from pathlib import Path
+from verify_current import long_path
 import argparse,hashlib,json,re,zipfile,io
 R=Path(__file__).resolve().parents[1]
 PREFIX='app/yydarlinker/deepseekcaptions/'
@@ -9,7 +10,7 @@ UI_BANNED=['RebuildController','RebuildApi','RebuildProtocol','RebuildPlanner','
 DEAD=['app/yydarlinker/caption/core/CaptionCore','MeaningTransport','MeaningWire','MeaningPlannerWire','PlainMeaningWire','BatchMeaningWire','SourcePreparationWire','N39Application','RebuildSourcePlan','RebuildSemanticTimeline','RebuildSemanticStore','RebuildSupplyPolicy','RelationCandidate','FrozenDev3','CaptionSemanticUnit','CaptionRenderFrame','CaptionPageScheduler','CaptionPresentationCursor','CaptionPresentationState','MeaningPager','SentenceCandidate','TranslationRetryPolicy']
 def sha(data):return hashlib.sha256(data).hexdigest()
 def constants(path):
-    data=path.read_bytes();assert data[:4]==b'\xca\xfe\xba\xbe'
+    data=long_path(path).read_bytes();assert data[:4]==b'\xca\xfe\xba\xbe'
     count=int.from_bytes(data[8:10],'big');at=10;i=1;out=[]
     while i<count:
         tag=data[at];at+=1
@@ -30,7 +31,7 @@ def literals(path):
     text=re.sub(r"'(?:\\.|[^'\\])'","''",path.read_text(encoding='utf-8-sig'))  # char literals
     text=re.sub(r'"\s*\+\s*"','',text)
     return [m.group() for m in re.finditer(pattern,text) if m.group().startswith('"')]
-def inspect(source_only=False):
+def inspect(source_only=False,core_classes=None,mpp=None,mpe=None,ui_apk=None):
     errors=[];facts={}
     for module,banned in [('translation-core',CORE_BANNED),('caption-shared',CORE_BANNED+UI_BANNED),('ui',UI_BANNED),('presentation',UI_BANNED)]:
         for path in (R/module/'src/main/java').rglob('*.java'):
@@ -70,26 +71,27 @@ def inspect(source_only=False):
     preview=(R/'ui-preview/build.gradle.kts').read_text(encoding='utf-8-sig')
     if 'project(":translation-core")' in preview:errors.append('UI preview depends on translation core')
     if not source_only:
-        classes=list((R/'build/n39/gradle/translation-core/intermediates/javac/debug/compileDebugJavaWithJavac/classes').rglob('*.class'))
+        if any(p is None for p in (core_classes,mpp,mpe,ui_apk)):
+            facts['errors']=['full inspection requires explicit core classes, MPP, standalone MPE and UI APK from this build']
+            return facts
+        classes=list(core_classes.rglob('*.class'))
         if not classes:errors.append('core compiled classes missing')
         for path in classes:
             for value in constants(path):
                 if any(PREFIX+n in value or PREFIX.replace('/','.')+n in value for n in CORE_BANNED):errors.append(f'compiled core depends on app/UI: {path.name}: {value}')
         facts['compiled_core_class_count']=len(classes)
-        mpps=list((R/'build/n39/gradle/patches/libs').glob('*.mpp'))
-        if not mpps:errors.append('Android MPP missing; run :patches:buildAndroid')
+        if not mpp.is_file():errors.append('specified Android MPP missing; run :patches:buildAndroid')
         else:
-            mpp=max(mpps,key=lambda p:p.stat().st_mtime)
             with zipfile.ZipFile(mpp) as z:
                 names=z.namelist();embedded=[n for n in names if n.endswith('.mpe')]
                 if 'classes.dex' not in names:errors.append('Manager root classes.dex missing from MPP')
                 if len(embedded)!=1:errors.append('expected exactly one embedded MPE')
                 else:
-                    mpe=z.read(embedded[0]);independent=[p for p in (R/'build').rglob('*.mpe') if p.is_file() and sha(p.read_bytes())==sha(mpe)]
+                    embedded_bytes=z.read(embedded[0]);independent=[mpe] if mpe.is_file() and mpe.read_bytes()==embedded_bytes else []
                     if not independent:errors.append('embedded MPE differs from standalone MPE')
-                    if mpe.startswith(b'dex\n'):dex=mpe
-                    elif zipfile.is_zipfile(io.BytesIO(mpe)):
-                        with zipfile.ZipFile(io.BytesIO(mpe)) as ext:dex=b''.join(ext.read(n) for n in ext.namelist() if n.endswith('.dex'))
+                    if embedded_bytes.startswith(b'dex\n'):dex=embedded_bytes
+                    elif zipfile.is_zipfile(io.BytesIO(embedded_bytes)):
+                        with zipfile.ZipFile(io.BytesIO(embedded_bytes)) as ext:dex=b''.join(ext.read(n) for n in ext.namelist() if n.endswith('.dex'))
                     else:dex=b''
                     if not dex:errors.append('extension DEX missing')
                     for dead in DEAD:
@@ -98,22 +100,26 @@ def inspect(source_only=False):
                         if (PREFIX+live).encode() not in dex:errors.append('production class absent: '+live)
                     for fixture in ['CoreSessionIntegrationTest','PinnedCoreLiveTest','N39UiPreviewActivity','org/robolectric']:
                         if fixture.encode() in dex:errors.append('test/preview implementation packaged in production: '+fixture)
-                    facts['android_patch']={'path':mpp.relative_to(R).as_posix(),'sha256':sha(mpp.read_bytes()),'size':mpp.stat().st_size,'manager_dex':True,'embedded_mpe_sha256':sha(mpe),'standalone_mpe':[p.relative_to(R).as_posix() for p in independent],'embedded_mpe_equal_to_standalone':bool(independent)}
+                    facts['android_patch']={'path':str(mpp.resolve()),'sha256':sha(mpp.read_bytes()),'size':mpp.stat().st_size,'manager_dex':True,'embedded_mpe_sha256':sha(embedded_bytes),'standalone_mpe':[str(p.resolve()) for p in independent],'embedded_mpe_equal_to_standalone':bool(independent)}
                 locales=[n for n in names if n.endswith('caption_addon_strings.xml')]
                 facts['packaged_locale_files']=len(locales)
                 if len(locales)!=14:errors.append(f'expected 14 packaged locale files, got {len(locales)}')
-        apks=list((R/'build/n39/gradle/ui-preview/outputs/apk/debug').glob('*.apk'))
-        if not apks:errors.append('UI preview APK missing')
+                for name in locales+['captionlocales/index.txt']:
+                    source=R/'patches/src/main/resources'/name
+                    if not source.is_file() or source.read_bytes()!=z.read(name):errors.append('packaged resource differs from current source: '+name)
+        if not ui_apk.is_file():errors.append('specified UI preview APK missing')
         else:
-            with zipfile.ZipFile(apks[0]) as z:
+            with zipfile.ZipFile(ui_apk) as z:
                 dex=b''.join(z.read(n) for n in z.namelist() if n.endswith('.dex'))
                 for name in UI_BANNED:
                     if (PREFIX+name).encode() in dex:errors.append('UI preview contains a translator: '+name)
                 if b'android.permission.INTERNET' in z.read('AndroidManifest.xml').replace(b'\x00',b''):errors.append('UI preview requests INTERNET')
-            facts['independent_ui_apk']={'path':apks[0].relative_to(R).as_posix(),'sha256':sha(apks[0].read_bytes()),'translation_core_present':False}
+            facts['independent_ui_apk']={'path':str(ui_apk.resolve()),'sha256':sha(ui_apk.read_bytes()),'translation_core_present':False}
     facts['errors']=errors;facts['scope']='Actual sources, independently compiled core constants and package content; not an OEM or semantic-quality certification.'
     return facts
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--source-only',action='store_true');p.add_argument('--output',type=Path,default=R/'validation/boundaries.json');a=p.parse_args()
-    result=inspect(a.source_only);a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+    p=argparse.ArgumentParser();p.add_argument('--source-only',action='store_true');p.add_argument('--output',type=Path,default=R/'validation/boundaries.json')
+    for name in ('core-classes','mpp','mpe','ui-apk'):p.add_argument('--'+name,type=Path)
+    a=p.parse_args()
+    result=inspect(a.source_only,a.core_classes,a.mpp,a.mpe,a.ui_apk);a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(result,ensure_ascii=False,indent=2));raise SystemExit(bool(result['errors']))

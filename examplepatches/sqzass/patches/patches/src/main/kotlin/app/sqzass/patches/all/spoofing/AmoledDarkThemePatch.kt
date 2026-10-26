@@ -146,11 +146,19 @@ val amoledDarkThemePatch = resourcePatch(
         // ponytail: exact value match only; theme-attribute indirection and
         // <item type="color"> definitions are not rewritten.
         var recolored = 0
-        val entries = listApkEntries("res/values").filter {
-            it.endsWith(".xml") && !it.endsWith("public.xml")
+        val resDir = get("res")
+        val xmlFiles = if (resDir.exists()) {
+            resDir.walkTopDown().filter { file ->
+                file.isFile && file.name.endsWith(".xml") &&
+                    !file.name.endsWith("public.xml") &&
+                    file.parentFile.name.startsWith("values")
+            }.toList()
+        } else {
+            emptyList()
         }
-        for (path in entries) {
-            document(path).use { document ->
+        for (file in xmlFiles) {
+            val relativePath = "res/" + file.relativeTo(resDir).path.replace('\\', '/')
+            document(relativePath).use { document ->
                 val colors = collectElements(document, listOf("color")) { element ->
                     element.textContent.trim().equals(from, ignoreCase = true)
                 }

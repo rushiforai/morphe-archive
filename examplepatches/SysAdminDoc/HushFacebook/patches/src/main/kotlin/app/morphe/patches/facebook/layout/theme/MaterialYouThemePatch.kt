@@ -18,6 +18,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -610,13 +611,9 @@ internal fun isLoggingBloksColourPair(method: Method): Boolean {
 internal fun BytecodePatchContext.hookBloksColourPairs(): Int {
     val parser = standIn(MATERIAL_YOU, PARSE_COLOR)
     val logging = mutableListOf<Method>()
-    val implementers = mutableListOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    classDefForEachReferencing(strings = listOf(BLOKS_PAIR_LIGHT_KEY)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         classDef.methods.filterTo(logging, ::isLoggingBloksColourPair)
-        if (classDef.interfaces.isNotEmpty() && classDef.methods.any { it.hasColourPairShape() && it.implementation != null }) {
-            implementers += classDef.type
-        }
     }
     val anchor = logging.singleOrNull()
         ?: error("Found ${logging.size} Bloks colour pair readers that log both keys, expected one")
@@ -625,10 +622,13 @@ internal fun BytecodePatchContext.hookBloksColourPairs(): Int {
     } ?: error("${anchor.definingClass}->${anchor.name} implements no interface that declares it")
     val theme = anchor.parameterTypes.first().toString()
     var changed = 0
-    for (type in implementers) {
-        val model = mutableClassDefBy(type)
-        if (accessor !in model.interfaces) continue
-        val method = model.methods.singleOrNull { it.sameAs(anchor) && it.implementation != null } ?: continue
+    classDefForEachReferencing(types = listOf(accessor)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE) || accessor !in classDef.interfaces) return@classDefForEachReferencing
+        // Check the interface before decoding methods or making a class mutable. Same-shaped
+        // methods on unrelated models are common, but must not be rewritten or materialized.
+        if (classDef.methods.none { it.hasColourPairShape() && it.implementation != null }) return@classDefForEachReferencing
+        val model = mutableClassDefBy(classDef.type)
+        val method = model.methods.singleOrNull { it.sameAs(anchor) && it.implementation != null } ?: return@classDefForEachReferencing
         check(method.implementation!!.instructions.any { it.asksDark(theme) }) {
             "${method.definingClass}->${method.name} picks a Bloks colour without asking $theme whether it's dark"
         }

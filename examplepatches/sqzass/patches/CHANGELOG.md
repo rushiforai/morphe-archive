@@ -1,3 +1,27 @@
+## [1.8.2](https://github.com/sqzass/patches/compare/v1.8.1...v1.8.2) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* drop stale derived register on overwrite in const tracking ([ebb0195](https://github.com/sqzass/patches/commit/ebb0195b0cec0b2c6bcc4854d46deb66cf3ea7bf))
+
+## [1.8.1](https://github.com/sqzass/patches/compare/v1.8.0...v1.8.1) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* stage resource files before document() parse in font attribute rewrite loop ([ed27409](https://github.com/sqzass/patches/commit/ed2740980530ef6a6e311cc1987db37a74e52caa))
+
+## [1.8.0](https://github.com/sqzass/patches/compare/v1.7.2...v1.8.0) (2026-10-25)
+
+### ✨ New Features
+
+* add custom font injection patch (closes [#5](https://github.com/sqzass/patches/issues/5)) ([b91cf04](https://github.com/sqzass/patches/commit/b91cf044d7771be15b5ef581121a9181ab6547af))
+
+## [1.7.2](https://github.com/sqzass/patches/compare/v1.7.1...v1.7.2) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* correct Smali literals, signature matching, resource lookups, and manifest attributes across patches ([4b8ef4a](https://github.com/sqzass/patches/commit/4b8ef4a7a32a9221db8b519461d3d71fae92ea6b))
+
 ## [1.7.1](https://github.com/sqzass/patches/compare/v1.7.0...v1.7.1) (2026-10-15)
 
 ### 🐛 Bug Fixes

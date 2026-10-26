@@ -7,7 +7,13 @@ package app.hushgram.extension.instagram.settings;
 import android.content.Context;
 import android.os.SystemClock;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.settings.Setting;
 
 /**
  * Lock these settings (#301). Locked, the settings page changes nothing. Ask to unlock starts the
@@ -132,18 +138,14 @@ final class SettingsLock {
     /** Locks with a wait of [hours]. Only while off or open, so a lock never shortens its own wait. */
     static boolean lock(int hours) {
         if (hours <= 0 || locked()) return false;
-        // The ask goes first: a lock left with an old ask could open early.
-        Settings.SETTINGS_LOCK_ASKED.save("");
-        Settings.SETTINGS_LOCK_HOURS.save(hours);
-        return true;
+        return save(hours, "");
     }
 
     /** Starts the wait. Only while locked with nobody asking, so a second tap doesn't start it over. */
     static boolean ask() {
         if (state() != State.LOCKED) return false;
         Clocks now = clocks;
-        Settings.SETTINGS_LOCK_ASKED.save(now.wall() + "," + now.elapsed() + "," + now.starts());
-        return true;
+        return save(null, now.wall() + "," + now.elapsed() + "," + now.starts());
     }
 
     /**
@@ -152,17 +154,27 @@ final class SettingsLock {
      */
     static boolean stopWait() {
         if (state() != State.WAITING) return false;
-        Settings.SETTINGS_LOCK_ASKED.save("");
-        return true;
+        return save(null, "");
     }
 
     /** Turns the lock off. Only while open. */
     static boolean off() {
         if (state() != State.OPEN) return false;
-        // Hours first: with them at 0 the lock is off whatever the ask says.
-        Settings.SETTINGS_LOCK_HOURS.save(0);
-        Settings.SETTINGS_LOCK_ASKED.save("");
-        return true;
+        return save(0, "");
+    }
+
+    /** The wait and its ask change together, with the store's result deciding success. */
+    private static boolean save(Integer hours, String asked) {
+        Map<Setting<?>, Object> updates = new LinkedHashMap<>();
+        if (hours != null) updates.put(Settings.SETTINGS_LOCK_HOURS, hours);
+        updates.put(Settings.SETTINGS_LOCK_ASKED, asked);
+        try {
+            Setting.saveAll(updates);
+            return true;
+        } catch (IOException failure) {
+            Logger.printException(() -> "Could not save the settings lock", failure);
+            return false;
+        }
     }
 
     /**

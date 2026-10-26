@@ -2,7 +2,7 @@ package dev.jkcarino.adobo.patches.all.contentblocker.ads.pangle
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.booleanOption
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 
 internal val disablePangleOption = booleanOption(
     key = "disablePangle",

@@ -1,9 +1,0 @@
-# Pinned to the versions in monsivamon/x-lite-apk's uv.lock, which runs the same APKMirror
-# scraping from GitHub Actions. Only apkmirror.py imports these, and only the discover and
-# download commands need them; the other commands are stdlib-only.
-beautifulsoup4==4.15.0
-cloudscraper==1.2.71
-pyparsing==3.3.3
-requests==2.34.2
-requests-toolbelt==1.0.0
-soupsieve==2.9.2

@@ -1,5 +1,7 @@
 # Full-FOV foveal canvas experiment — 2026-10-01
 
+> **Retired 2026-10-24 — not the solution.** The owner reports it did not solve the high-resolution problem. The selectable patch, native layer source, payload and manifest are removed. Keep this directory as historical evidence; do not rebuild or re-add it. See the [resolution ledger](../../SteamLink-GalaxyXR-Python-Patches-Already-Tried-for_Resolution_issue/README.md).
+
 > **Re-scoped 2026-10-21.** The 5001812 base was retired, so the patch now targets
 > 2.0.20/5001712 and 2.0.23/5002363 with per-base scene pins. The 5001812 runs below are
 > the historical record; the current harness commands apply to the re-scoped patch.
@@ -67,6 +69,8 @@ Useful log events: `initialized`, `session` (requested/max size), `source_discov
 Rollback: repatch the original APK with the existing recommended set and no canvas experiment. Merely deselecting a patch does not remove a helper from an already patched APK.
 
 ## Rebuild and offline verification
+
+Historical procedure: the source and audit runner are removed, so these commands no longer work.
 
 From repository root, with the retained NDK/OpenXR headers/Zig/Java tools:
 

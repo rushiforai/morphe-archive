@@ -30,6 +30,7 @@ import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.ads.affiliate.writesRegister
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.returnEarly
 import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
@@ -1184,32 +1185,44 @@ private fun Instruction.isDarkColor(): Boolean {
     )
 }
 
-/** The framework call this instruction makes, when it's one [rerouteColourCalls] may move. */
-private fun Instruction.movableCall(): String? = when (opcode) {
-    // Only calls that dispatch as before once the extension makes them. A super call inside an
-    // override would come back to the override and never end.
-    Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE, Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE ->
-        (this as ReferenceInstruction).reference.toString()
-    else -> null
+/** Select owners and names cheaply before decoding a candidate's full overload descriptor. */
+private class ColourCallTargets(val calls: Map<String, String>) {
+    private val names = calls.keys.groupBy { it.substringBefore("->") }.mapValues { (_, signatures) ->
+        signatures.map { it.substringAfter("->").substringBefore('(') }.toSet()
+    }
+    val owners get() = names.keys
+
+    fun matching(instruction: Instruction): String? {
+        // Moving a super call into the extension would dispatch back to the override.
+        when (instruction.opcode) {
+            Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE, Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> Unit
+            else -> return null
+        }
+        val reference = (instruction as ReferenceInstruction).reference as? MethodReference ?: return null
+        if (reference.name !in (names[reference.definingClass] ?: return null)) return null
+        return reference.toString().takeIf { it in calls }
+    }
 }
 
 /**
  * Route four and route two's read back, over the whole app: each call to a key of [calls] goes to
  * the extension method it maps to instead. Answers how many calls it sent, for each key.
  *
- * One sweep reads every class and rewrites only the classes that make one of the calls. The
+ * The reference index skips classes that name none of the call owners. Only exact calls change. The
  * extension is skipped, because its methods make the framework calls themselves.
  */
 internal fun BytecodePatchContext.rerouteColourCalls(calls: Map<String, String>): Map<String, Int> {
+    if (calls.isEmpty()) return emptyMap()
+    val targets = ColourCallTargets(calls)
     val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
-        if (classDef.methods.any { method -> method.implementation?.instructions?.any { it.movableCall() in calls } == true }) {
+    classDefForEachReferencing(types = targets.owners) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
+        if (classDef.methods.any { method -> method.implementation?.instructions?.any { targets.matching(it) != null } == true }) {
             owners += classDef.type
         }
     }
     val counts = calls.keys.associateWith { 0 }.toMutableMap()
-    owners.forEach { type -> mutableClassDefByOrNull(type)?.methods?.forEach { it.rerouteColourCalls(calls, counts) } }
+    owners.forEach { type -> mutableClassDefByOrNull(type)?.methods?.forEach { it.rerouteColourCalls(targets, counts) } }
     return counts
 }
 
@@ -1223,11 +1236,15 @@ internal fun BytecodePatchContext.rerouteColourCalls(calls: Map<String, String>)
  * because its registers can be above v15.
  */
 internal fun MutableMethod.rerouteColourCalls(calls: Map<String, String>, counts: MutableMap<String, Int>) {
+    rerouteColourCalls(ColourCallTargets(calls), counts)
+}
+
+private fun MutableMethod.rerouteColourCalls(targets: ColourCallTargets, counts: MutableMap<String, Int>) {
     val sites = (implementation ?: return).instructions.withIndex()
-        .mapNotNull { (index, instruction) -> instruction.movableCall()?.takeIf { it in calls }?.let { Triple(index, instruction, it) } }
+        .mapNotNull { (index, instruction) -> targets.matching(instruction)?.let { Triple(index, instruction, it) } }
 
     sites.asReversed().forEach { (index, instruction, framework) ->
-        val target = calls.getValue(framework)
+        val target = targets.calls.getValue(framework)
         val call = when (instruction) {
             is RegisterRangeInstruction -> {
                 val last = instruction.startRegister + instruction.registerCount - 1

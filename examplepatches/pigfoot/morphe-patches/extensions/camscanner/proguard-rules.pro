@@ -1,0 +1,1 @@
+-keep class app.pigfoot.camscanner.LoginApiPolicy { *; }

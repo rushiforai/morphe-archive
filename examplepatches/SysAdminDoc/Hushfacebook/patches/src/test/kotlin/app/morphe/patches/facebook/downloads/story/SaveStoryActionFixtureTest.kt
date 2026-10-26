@@ -10,6 +10,7 @@ import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.isStringTableCall
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -93,7 +94,7 @@ class SaveStoryActionFixtureTest {
                     }
                 }
 
-                val site = saveItemSite(builder, action)
+                var site = saveItemSite(builder, action)
                 val parameters = site.init.parameterTypes.map { it.toString() }
                 val title = parameters.indexOf("Ljava/lang/String;")
                 assertEquals("$name: the title register", site.itemRegister + 1 + title, site.titleRegister)
@@ -128,6 +129,23 @@ class SaveStoryActionFixtureTest {
                 val context = PatchContexts.of(listOf(menu, action, item))
                 val patchedBuilder = context.mutableClassDefBy(STORY_VIEWER_MORE_MENU).methods
                     .single { MethodUtil.methodSignaturesMatch(it, builder) }
+                val primarySite = site
+                val helper = addStorySaveTitle(patchedBuilder, action, action.fields.single { it.type == STORY_CARD }.name)
+                context.mutableClassDefBy(action.type).methods.add(helper)
+                site = saveItemSite(patchedBuilder, action)
+                assertEquals("$name: the native constructor and add are retained", primarySite.addIndex + 2, site.addIndex)
+                val titled = patchedBuilder.implementation!!.instructions.toList()
+                val ask = titled[primarySite.addIndex - 1] as FiveRegisterInstruction
+                assertEquals("$name: primary title reads action and original title, never the uninitialized item",
+                    listOf(2, site.actionRegister, site.titleRegister), listOf(ask.registerCount, ask.registerC, ask.registerD))
+                assertEquals("$name: primary title result goes back to the title argument", site.titleRegister,
+                    (titled[primarySite.addIndex] as OneRegisterInstruction).registerA)
+                assertEquals("$name: a cross-class bridge must be public static", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                    helper.accessFlags)
+                assertEquals("$name: the bridge belongs to the card field's owner", action.type, helper.definingClass)
+                assertEquals("$name: the bridge reads its own story-card field", action.type,
+                    ((helper.implementation!!.instructions.single { it.opcode == Opcode.IGET_OBJECT } as ReferenceInstruction)
+                        .reference as FieldReference).definingClass)
                 addSavePhotoItem(patchedBuilder, action, action.fields.single { it.type == STORY_CARD }.name)
                 val patched = patchedBuilder.implementation!!.instructions.toList()
                 assertEquals("$name: what follows Save's add", listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC,

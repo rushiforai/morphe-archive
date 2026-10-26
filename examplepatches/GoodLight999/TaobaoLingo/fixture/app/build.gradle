@@ -1,0 +1,17 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.taobao.taobao'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.taobao.taobao'
+        minSdk 23
+        targetSdk 28
+        versionCode 862
+        versionName '10.66.30'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

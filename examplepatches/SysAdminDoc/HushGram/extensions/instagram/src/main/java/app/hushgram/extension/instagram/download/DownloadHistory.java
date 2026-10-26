@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -566,17 +567,28 @@ public final class DownloadHistory {
         return clean.toString();
     }
 
+    interface Append { OutputStream open(File file) throws IOException; }
+    static volatile Append appendForTests;
+
     private static void append(Context application, String line) throws IOException {
         File file = file(application);
         File folder = file.getParentFile();
         if (folder != null && !folder.isDirectory() && !folder.mkdirs() && !folder.isDirectory()) {
             throw new IOException("the history folder could not be made");
         }
-        try (Writer out = new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
-            out.write(line);
-            out.write('\n');
+        try {
+            try (Writer out = new OutputStreamWriter(appendForTests == null ? new FileOutputStream(file, true)
+                    : appendForTests.open(file), StandardCharsets.UTF_8)) {
+                out.write(line);
+                out.write('\n');
+            }
+            lines++;
+        } catch (IOException | RuntimeException failure) {
+            // A failed write or close may have left a partial tail in the already-loaded file.
+            // Rewrite from the retained entries before any later save or forget appends to it.
+            lines = Math.max(lines, 2 * MAX_ENTRIES);
+            throw failure;
         }
-        lines++;
     }
 
     /** The whole list written afresh beside the file, then put in its place. */

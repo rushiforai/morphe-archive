@@ -9,6 +9,12 @@ Builds involved:
 | 10-11 patched (`cn.vr4p.oculus4xvrplayerov_2.0.22_patched-20261011-1844.apk`) | `c596a54643f8af09633b93db7b83488414ca2c1704a2c2550846a805dbf75b7f` | 396,682,935 | **launches, UI loads** |
 | installed 2026-10-12 15:54 (`installed-4xvr-patched.apk`) | `8d75cedd67c9b65ad9d85adaf5fc88b66000ec46b81e37bae7cf6c57192fe661` | 396,654,263 | **hangs on splash forever** |
 
+> **2026-10-24 cleanup:** the two generated patched APKs above were deleted under
+> the owner's build-residue policy. The hashes and sizes remain in this table; the
+> canonical stock APK is retained. Rebuild the comparison from the recorded source
+> revision. Receipt:
+> `../builds/steamlink-patches/_cleanup/steamlink-residue-20261024-185648.json`.
+
 ## Symptom and evidence
 
 - Launch leaves the process alive with the splash on screen indefinitely; first user run raised
@@ -24,7 +30,8 @@ Builds involved:
   is still shown, i.e. startup stalls before the first frame, not a spin/deadlock in Java code.
 - Raw captures: `../builds/steamlink-patches/build/4xvr-hang-20261012/` (`launch1.log`, `launch2.log`,
   `ab-1011.log`, `final-verify.log`, `bugreport.zip`, `anr-threaddump-12227.txt`,
-  `anr-threaddump-12455.txt`, `shot*.png`, pulled APKs and native libs).
+  `anr-threaddump-12455.txt`, `shot*.png`, pulled native libs). The pulled APK copies
+  were retired on 2026-10-24; see the cleanup note above.
 
 ## A/B isolation (byte level)
 

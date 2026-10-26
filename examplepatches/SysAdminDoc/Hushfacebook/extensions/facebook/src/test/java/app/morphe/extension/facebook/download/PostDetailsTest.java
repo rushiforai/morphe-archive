@@ -13,9 +13,12 @@ import com.facebook.graphservice.tree.TreeJNI;
 
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+
+import app.morphe.extension.facebook.menu.MenuShortcuts;
 
 /**
  * What a save knows of its post, read off Facebook's tree models by the hashes their own code
@@ -28,6 +31,19 @@ public class PostDetailsTest {
 
     private static TreeJNI actor(String name) {
         return new TreeJNI().with("name", name);
+    }
+
+    public static final class MetadataBridge {
+        public String getString(int field) { return field == PostDetails.NAME ? "Bridge" : null; }
+        public int getIntValue(int field) { return field == 1 ? 7 : 0; }
+    }
+
+    @Test
+    public void genericNonTreeReadersStillWork() {
+        MetadataBridge bridge = new MetadataBridge();
+
+        assertEquals("Bridge", PostDetails.string(bridge, PostDetails.NAME));
+        assertEquals(Integer.valueOf(7), PostDetails.call(bridge, "getIntValue", 1));
     }
 
     /** The hashes are the ones Facebook's generated getters load, the Java hash of the GraphQL name. */
@@ -102,6 +118,18 @@ public class PostDetailsTest {
         actor.releasedTree();
         assertNull(PostDetails.ownerOf(new TreeJNI().with("owner", actor)));
         assertFalse(actor.readAfterRelease);
+    }
+
+    @Test
+    public void aBookmarksReleasedNodeIsNeverReadAndItsOwnUrlStillWorks() throws Exception {
+        Method keyOf = MenuShortcuts.class.getDeclaredMethod("keyOf", Object.class);
+        keyOf.setAccessible(true);
+        TreeJNI released = new TreeJNI().with("id", "204127677323356").releasedTree();
+        TreeJNI bookmark = new TreeJNI().with("bookmarked_node", released);
+
+        assertNull(keyOf.invoke(null, bookmark));
+        assertEquals("marketplace", keyOf.invoke(null, bookmark.with("url", "fb://marketplace_tab")));
+        assertFalse("the live bookmark's released node was read", released.readAfterRelease);
     }
 
     @Test

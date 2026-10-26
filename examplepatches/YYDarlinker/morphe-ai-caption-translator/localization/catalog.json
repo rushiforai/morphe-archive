@@ -231,7 +231,14 @@
     "use_youtube",
     "value_retained",
     "planner_model",
-    "planner_model_hint"
+    "planner_model_hint",
+    "config_unreadable",
+    "config_index_recovery",
+    "config_saved_sync_pending",
+    "config_save_uncertain",
+    "config_operation_uncertain",
+    "config_origin_recovery",
+    "diagnostics_failure_accounting"
   ],
   "languages": {
     "en": {
@@ -466,7 +473,14 @@
       "model_ids_empty": "The endpoint returned no selectable model IDs",
       "diagnostics_loading": "Loading diagnostics…",
       "planner_model": "Source meaning preparation model (optional)",
-      "planner_model_hint": "Leave blank to use the translation model. Uses the same API URL and Key; never selects another model automatically."
+      "planner_model_hint": "Leave blank to use the translation model. Uses the same API URL and Key; never selects another model automatically.",
+      "config_unreadable": "Saved configuration cannot be read. Check the affected fields; no data has been changed.",
+      "config_index_recovery": "The profile list cannot be read. No profiles have been changed. Retry reading, or return. Recovery requires a valid backup of this app’s profile settings from before the damage; this screen cannot reconstruct the list.",
+      "config_saved_sync_pending": "Field saved; configuration synchronization failed. Tap here to retry synchronization.",
+      "config_save_uncertain": "Save failed or could not be confirmed; check the current value. Your draft is kept. %1$s",
+      "config_operation_uncertain": "The operation failed or its result could not be confirmed. Data may have changed; reopen settings to check.",
+      "config_origin_recovery": "The original key’s API address is unknown; configuration was not changed. Restore a valid backup from before the damage, or discard this edit and explicitly clear the key before configuring again.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG is a legacy accounting bucket covering HTTP failures and content filtering. Use reason and recorded terminal, filter and wait facts to understand the decision; missing facts are unknown. One logical batch may admit several HTTP attempts. Attempt counts cannot confirm server receipt or billing. Response, quality and cache counts are separate. The bucket includes 429/503 and does not itself mean a configuration error or permanent stop."
     },
     "zh-rCN": {
       "age_close": " 秒前）",
@@ -700,7 +714,14 @@
       "model_ids_empty": "接口没有返回可选择的模型 ID",
       "diagnostics_loading": "正在读取诊断…",
       "planner_model": "源意义准备模型（可选）",
-      "planner_model_hint": "留空使用翻译模型；仅在同一 API 地址与 Key 下调用，不自动选择其他模型"
+      "planner_model_hint": "留空使用翻译模型；仅在同一 API 地址与 Key 下调用，不自动选择其他模型",
+      "config_unreadable": "无法读取已保存的配置。请检查相关字段；未修改任何资料。",
+      "config_index_recovery": "无法读取方案列表，未修改任何方案。可重新读取或返回。恢复需要损坏前备份的本应用有效方案设置；此页面无法重建列表。",
+      "config_saved_sync_pending": "字段已保存，但配置同步失败。点此重试同步。",
+      "config_save_uncertain": "保存失败或无法确认；请检查当前值。已保留草稿。%1$s",
+      "config_operation_uncertain": "操作失败或结果无法确认。资料可能已变更；请重新打开设置检查。",
+      "config_origin_recovery": "无法确认原密钥的 API 地址，未修改配置。请恢复损坏前的有效备份，或放弃本次编辑后明确清除密钥并重新配置。",
+      "diagnostics_failure_accounting": "HTTP_CONFIG 是兼容历史的计账分类，包含 HTTP 失败和内容过滤。请结合 reason 及实际记录的终止、过滤和等待事实理解决定；缺失事实表示未知。一个逻辑批次可能准入多次 HTTP 尝试。尝试次数不能证明服务器收到请求或实际收费；响应、质量和缓存分别计数。 该分类包含429/503，本身不表示配置有误或永久终止。"
     },
     "zh-rTW": {
       "age_close": " 秒前）",
@@ -934,7 +955,14 @@
       "model_ids_empty": "介面未傳回可選擇的模型 ID",
       "diagnostics_loading": "正在讀取診斷…",
       "planner_model": "來源意義準備模型（選填）",
-      "planner_model_hint": "留空使用翻譯模型；僅透過相同 API 網址與 Key 呼叫，不自動選擇其他模型"
+      "planner_model_hint": "留空使用翻譯模型；僅透過相同 API 網址與 Key 呼叫，不自動選擇其他模型",
+      "config_unreadable": "無法讀取已儲存的設定。請檢查相關欄位；未修改任何資料。",
+      "config_index_recovery": "無法讀取方案清單，未修改任何方案。可重新讀取或返回。還原需要損壞前備份的本應用程式有效方案設定；此頁面無法重建清單。",
+      "config_saved_sync_pending": "欄位已儲存，但設定同步失敗。點此重試同步。",
+      "config_save_uncertain": "儲存失敗或無法確認；請檢查目前值。已保留草稿。%1$s",
+      "config_operation_uncertain": "操作失敗或結果無法確認。資料可能已變更；請重新開啟設定檢查。",
+      "config_origin_recovery": "無法確認原金鑰的 API 位址，未修改設定。請還原損壞前的有效備份，或放棄本次編輯後明確清除金鑰並重新設定。",
+      "diagnostics_failure_accounting": "HTTP_CONFIG 是相容歷史的計帳分類，包含 HTTP 失敗和內容過濾。請結合 reason 及實際記錄的終止、過濾和等待事實理解決定；缺失事實表示未知。一個邏輯批次可能准入多次 HTTP 嘗試。嘗試次數不能證明伺服器收到請求或實際收費；回應、品質和快取分別計數。 該分類包含429/503，本身不表示設定有誤或永久終止。"
     },
     "es": {
       "age_close": " segundos)",
@@ -1168,7 +1196,14 @@
       "model_ids_empty": "El servidor no devolvió ningún ID de modelo seleccionable",
       "diagnostics_loading": "Cargando diagnóstico…",
       "planner_model": "Modelo de preparación del significado de origen (opcional)",
-      "planner_model_hint": "Dejar vacío para usar el modelo de traducción. Utiliza la misma URL de API y clave; no elige otro modelo automáticamente."
+      "planner_model_hint": "Dejar vacío para usar el modelo de traducción. Utiliza la misma URL de API y clave; no elige otro modelo automáticamente.",
+      "config_unreadable": "No se puede leer la configuración guardada. Revise los campos afectados; no se ha cambiado ningún dato.",
+      "config_index_recovery": "No se puede leer la lista de perfiles. No se ha cambiado ningún perfil. Reintente o vuelva atrás. La recuperación requiere una copia válida de los ajustes de perfiles de esta aplicación anterior al daño; esta pantalla no puede reconstruir la lista.",
+      "config_saved_sync_pending": "Campo guardado; falló la sincronización. Toque aquí para reintentar la sincronización.",
+      "config_save_uncertain": "Falló el guardado o no se pudo confirmar; revise el valor actual. Se conserva el borrador. %1$s",
+      "config_operation_uncertain": "La operación falló o no se pudo confirmar el resultado. Los datos pueden haber cambiado; vuelva a abrir los ajustes para comprobarlo.",
+      "config_origin_recovery": "Se desconoce la dirección API de la clave original; no se cambió la configuración. Restaure una copia válida anterior al daño o descarte esta edición y borre la clave explícitamente antes de volver a configurar.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG es una categoría histórica de recuento para fallos HTTP y filtrado de contenido. Consulte reason y los datos registrados de parada, filtro y espera; los datos ausentes son desconocidos. Un lote lógico puede admitir varios intentos HTTP. Su número no confirma la recepción del servidor ni la facturación. Respuestas, calidad y caché se cuentan por separado. La categoría incluye 429/503 y por sí sola no indica un error de configuración ni una parada permanente."
     },
     "fr": {
       "age_close": " secondes)",
@@ -1402,7 +1437,14 @@
       "model_ids_empty": "Le serveur n’a renvoyé aucun identifiant de modèle sélectionnable",
       "diagnostics_loading": "Chargement du diagnostic…",
       "planner_model": "Modèle de préparation du sens source (facultatif)",
-      "planner_model_hint": "Laisser vide pour utiliser le modèle de traduction. Même URL API et clé ; aucun autre modèle n’est choisi automatiquement."
+      "planner_model_hint": "Laisser vide pour utiliser le modèle de traduction. Même URL API et clé ; aucun autre modèle n’est choisi automatiquement.",
+      "config_unreadable": "La configuration enregistrée est illisible. Vérifiez les champs concernés ; aucune donnée n’a été modifiée.",
+      "config_index_recovery": "La liste des profils est illisible. Aucun profil n’a été modifié. Réessayez ou revenez en arrière. La restauration exige une sauvegarde valide des paramètres de profils de cette application datant d’avant le dommage ; cet écran ne peut pas reconstruire la liste.",
+      "config_saved_sync_pending": "Champ enregistré ; échec de la synchronisation. Touchez ici pour la réessayer.",
+      "config_save_uncertain": "Échec de l’enregistrement ou confirmation impossible ; vérifiez la valeur actuelle. Le brouillon est conservé. %1$s",
+      "config_operation_uncertain": "L’opération a échoué ou son résultat est incertain. Les données ont pu changer ; rouvrez les paramètres pour vérifier.",
+      "config_origin_recovery": "L’adresse API de la clé d’origine est inconnue ; la configuration est inchangée. Restaurez une sauvegarde valide antérieure au dommage, ou abandonnez cette modification puis effacez explicitement la clé avant de reconfigurer.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG est une catégorie de comptage historique pour les échecs HTTP et le filtrage de contenu. Consultez reason et les faits enregistrés sur l’arrêt, le filtre et l’attente ; les faits absents sont inconnus. Un lot logique peut admettre plusieurs tentatives HTTP. Leur nombre ne confirme ni réception par le serveur ni facturation. Réponses, qualité et cache sont comptés séparément. Cette catégorie comprend 429/503 et ne signifie pas à elle seule une erreur de configuration ou un arrêt définitif."
     },
     "de": {
       "age_close": " Sekunden)",
@@ -1636,7 +1678,14 @@
       "model_ids_empty": "Der Endpunkt hat keine auswählbaren Modell-IDs zurückgegeben",
       "diagnostics_loading": "Diagnose wird geladen…",
       "planner_model": "Modell zur Vorbereitung der Quellbedeutung (optional)",
-      "planner_model_hint": "Leer lassen, um das Übersetzungsmodell zu nutzen. Gleiche API-URL und gleicher Schlüssel; kein automatischer Modellwechsel."
+      "planner_model_hint": "Leer lassen, um das Übersetzungsmodell zu nutzen. Gleiche API-URL und gleicher Schlüssel; kein automatischer Modellwechsel.",
+      "config_unreadable": "Die gespeicherte Konfiguration ist nicht lesbar. Prüfen Sie die betroffenen Felder; keine Daten wurden geändert.",
+      "config_index_recovery": "Die Profilliste ist nicht lesbar. Kein Profil wurde geändert. Erneut lesen oder zurückkehren. Die Wiederherstellung erfordert eine gültige Sicherung der Profileinstellungen dieser App von vor dem Schaden; diese Ansicht kann die Liste nicht rekonstruieren.",
+      "config_saved_sync_pending": "Feld gespeichert; Konfigurationsabgleich fehlgeschlagen. Hier tippen, um den Abgleich zu wiederholen.",
+      "config_save_uncertain": "Speichern fehlgeschlagen oder nicht bestätigt; aktuellen Wert prüfen. Der Entwurf bleibt erhalten. %1$s",
+      "config_operation_uncertain": "Vorgang fehlgeschlagen oder Ergebnis unbestätigt. Daten können geändert sein; Einstellungen erneut öffnen und prüfen.",
+      "config_origin_recovery": "Die API-Adresse des ursprünglichen Schlüssels ist unbekannt; die Konfiguration wurde nicht geändert. Gültige Sicherung von vor dem Schaden wiederherstellen oder diese Änderung verwerfen und den Schlüssel ausdrücklich löschen, bevor Sie neu konfigurieren.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG ist eine historische Zählkategorie für HTTP-Fehler und Inhaltsfilterung. Maßgeblich sind reason und die erfassten Fakten zu Abbruch, Filter und Wartezeit; fehlende Fakten sind unbekannt. Ein logischer Stapel kann mehrere HTTP-Versuche zulassen. Die Anzahl bestätigt weder Serverempfang noch Abrechnung. Antworten, Qualität und Cache werden getrennt gezählt. Dazu zählen auch 429/503; die Kategorie allein bedeutet keinen Konfigurationsfehler oder dauerhaften Stopp."
     },
     "pt": {
       "age_close": " segundos)",
@@ -1870,7 +1919,14 @@
       "model_ids_empty": "O servidor não retornou IDs de modelos selecionáveis",
       "diagnostics_loading": "Carregando diagnóstico…",
       "planner_model": "Modelo de preparação do significado de origem (opcional)",
-      "planner_model_hint": "Deixe em branco para usar o modelo de tradução. Usa a mesma URL da API e chave; não seleciona outro modelo automaticamente."
+      "planner_model_hint": "Deixe em branco para usar o modelo de tradução. Usa a mesma URL da API e chave; não seleciona outro modelo automaticamente.",
+      "config_unreadable": "Não foi possível ler a configuração salva. Verifique os campos afetados; nenhum dado foi alterado.",
+      "config_index_recovery": "Não foi possível ler a lista de perfis. Nenhum perfil foi alterado. Tente ler novamente ou volte. A recuperação exige um backup válido das configurações de perfis deste aplicativo anterior ao dano; esta tela não pode reconstruir a lista.",
+      "config_saved_sync_pending": "Campo salvo; falha na sincronização. Toque aqui para tentar sincronizar novamente.",
+      "config_save_uncertain": "Falha ao salvar ou confirmação indisponível; verifique o valor atual. O rascunho foi mantido. %1$s",
+      "config_operation_uncertain": "A operação falhou ou o resultado não pôde ser confirmado. Os dados podem ter mudado; reabra as configurações para verificar.",
+      "config_origin_recovery": "O endereço da API da chave original é desconhecido; a configuração não mudou. Restaure um backup válido anterior ao dano ou descarte esta edição e apague a chave explicitamente antes de configurar novamente.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG é uma categoria histórica de contagem para falhas HTTP e filtragem de conteúdo. Consulte reason e os fatos registrados de parada, filtro e espera; fatos ausentes são desconhecidos. Um lote lógico pode admitir várias tentativas HTTP. A contagem não confirma recebimento pelo servidor nem cobrança. Respostas, qualidade e cache são contados separadamente. A categoria inclui 429/503 e, por si só, não indica erro de configuração nem parada permanente."
     },
     "ru": {
       "age_close": " секунд назад)",
@@ -2104,7 +2160,14 @@
       "model_ids_empty": "Сервер не вернул доступных для выбора идентификаторов моделей",
       "diagnostics_loading": "Загрузка диагностики…",
       "planner_model": "Модель подготовки смысла исходного текста (необязательно)",
-      "planner_model_hint": "Пустое поле означает модель перевода. Используются тот же URL API и ключ; другая модель автоматически не выбирается."
+      "planner_model_hint": "Пустое поле означает модель перевода. Используются тот же URL API и ключ; другая модель автоматически не выбирается.",
+      "config_unreadable": "Не удалось прочитать сохранённые настройки. Проверьте затронутые поля; данные не изменены.",
+      "config_index_recovery": "Не удалось прочитать список профилей. Профили не изменены. Повторите чтение или вернитесь назад. Для восстановления нужна исправная резервная копия настроек профилей этого приложения, созданная до повреждения; этот экран не может восстановить список.",
+      "config_saved_sync_pending": "Поле сохранено, но синхронизация не удалась. Нажмите здесь, чтобы повторить синхронизацию.",
+      "config_save_uncertain": "Сохранение не удалось или не подтверждено; проверьте текущее значение. Черновик сохранён. %1$s",
+      "config_operation_uncertain": "Операция не удалась или результат не подтверждён. Данные могли измениться; откройте настройки заново для проверки.",
+      "config_origin_recovery": "Исходный адрес API ключа неизвестен; настройки не изменены. Восстановите исправную копию, созданную до повреждения, либо отмените это изменение и явно удалите ключ перед повторной настройкой.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG — прежняя категория учёта ошибок HTTP и фильтрации содержимого. Смотрите reason и записанные факты об остановке, фильтре и ожидании; отсутствующие факты неизвестны. Один логический пакет может допускать несколько попыток HTTP. Их число не подтверждает получение сервером или оплату. Ответы, качество и кэш учитываются отдельно. Категория включает 429/503 и сама по себе не означает ошибку настройки или окончательную остановку."
     },
     "ja": {
       "age_close": " 秒前）",
@@ -2338,7 +2401,14 @@
       "model_ids_empty": "選択できるモデル ID が返されませんでした",
       "diagnostics_loading": "診断を読み込んでいます…",
       "planner_model": "原文の意味準備モデル（任意）",
-      "planner_model_hint": "空欄なら翻訳モデルを使用します。同じAPI URLとキーだけを使い、別のモデルを自動選択しません。"
+      "planner_model_hint": "空欄なら翻訳モデルを使用します。同じAPI URLとキーだけを使い、別のモデルを自動選択しません。",
+      "config_unreadable": "保存済みの設定を読み取れません。該当項目を確認してください。データは変更していません。",
+      "config_index_recovery": "プロファイル一覧を読み取れません。変更はありません。再読み込みするか戻ってください。復元には破損前のこのアプリの有効な設定バックアップが必要です。この画面では一覧を再構築できません。",
+      "config_saved_sync_pending": "項目は保存されましたが、設定の同期に失敗しました。ここをタップして同期を再試行してください。",
+      "config_save_uncertain": "保存に失敗したか確認できません。現在の値を確認してください。下書きは保持しています。%1$s",
+      "config_operation_uncertain": "操作に失敗したか結果を確認できません。データが変わった可能性があります。設定を開き直して確認してください。",
+      "config_origin_recovery": "元のキーの API アドレスを確認できないため、設定は変更していません。破損前の有効なバックアップを復元するか、この編集を破棄してキーを明示的に削除してから再設定してください。",
+      "diagnostics_failure_accounting": "HTTP_CONFIG は HTTP 失敗とコンテンツフィルタを含む従来の集計区分です。reason と記録された終了・フィルタ・待機の事実で判断を確認してください。未記録の事実は不明です。1つの論理バッチに複数の HTTP 試行が許可される場合があります。試行数だけではサーバーの受信や課金は確認できません。応答・品質・キャッシュは別々に集計します。 この区分には429/503も含まれ、区分だけで設定エラーや恒久停止を意味しません。"
     },
     "ko": {
       "age_close": "초 전)",
@@ -2572,7 +2642,14 @@
       "model_ids_empty": "선택 가능한 모델 ID가 반환되지 않았습니다",
       "diagnostics_loading": "진단을 불러오는 중…",
       "planner_model": "원문 의미 준비 모델 (선택)",
-      "planner_model_hint": "비워 두면 번역 모델을 사용합니다. 같은 API URL과 키만 사용하며 다른 모델을 자동 선택하지 않습니다."
+      "planner_model_hint": "비워 두면 번역 모델을 사용합니다. 같은 API URL과 키만 사용하며 다른 모델을 자동 선택하지 않습니다.",
+      "config_unreadable": "저장된 설정을 읽을 수 없습니다. 해당 필드를 확인하세요. 데이터는 변경되지 않았습니다.",
+      "config_index_recovery": "프로필 목록을 읽을 수 없습니다. 변경된 프로필은 없습니다. 다시 읽거나 돌아가세요. 복구하려면 손상 전 이 앱의 유효한 프로필 설정 백업이 필요합니다. 이 화면에서 목록을 재구성할 수 없습니다.",
+      "config_saved_sync_pending": "필드는 저장되었지만 설정 동기화에 실패했습니다. 여기를 눌러 동기화를 재시도하세요.",
+      "config_save_uncertain": "저장에 실패했거나 확인할 수 없습니다. 현재 값을 확인하세요. 초안은 유지됩니다. %1$s",
+      "config_operation_uncertain": "작업에 실패했거나 결과를 확인할 수 없습니다. 데이터가 변경되었을 수 있으니 설정을 다시 열어 확인하세요.",
+      "config_origin_recovery": "기존 키의 API 주소를 확인할 수 없어 설정을 변경하지 않았습니다. 손상 전의 유효한 백업을 복원하거나 이번 편집을 취소한 뒤 키를 명시적으로 삭제하고 다시 설정하세요.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG는 HTTP 실패와 콘텐츠 필터링을 포함하는 기존 집계 분류입니다. reason 및 기록된 종료, 필터, 대기 사실로 결정을 확인하세요. 기록이 없으면 알 수 없습니다. 논리 배치 하나에 여러 HTTP 시도가 허용될 수 있습니다. 시도 횟수로 서버 수신이나 과금을 확인할 수 없습니다. 응답, 품질, 캐시는 별도로 집계합니다. 이 분류에는 429/503도 포함되며 분류 자체가 설정 오류나 영구 중단을 뜻하지 않습니다."
     },
     "ar": {
       "age_close": " ثانية)",
@@ -2806,7 +2883,14 @@
       "model_ids_empty": "لم تُرجع نقطة النهاية معرّفات نماذج قابلة للاختيار",
       "diagnostics_loading": "جارٍ تحميل التشخيص…",
       "planner_model": "نموذج إعداد معنى المصدر (اختياري)",
-      "planner_model_hint": "اتركه فارغًا لاستخدام نموذج الترجمة. يستخدم عنوان API والمفتاح نفسيهما ولا يختار نموذجًا آخر تلقائيًا."
+      "planner_model_hint": "اتركه فارغًا لاستخدام نموذج الترجمة. يستخدم عنوان API والمفتاح نفسيهما ولا يختار نموذجًا آخر تلقائيًا.",
+      "config_unreadable": "تعذرت قراءة الإعدادات المحفوظة. تحقق من الحقول المتأثرة؛ لم تتغير أي بيانات.",
+      "config_index_recovery": "تعذرت قراءة قائمة الملفات الشخصية. لم تتغير أي ملفات. أعد القراءة أو ارجع. تتطلب الاستعادة نسخة احتياطية صالحة لإعدادات الملفات في هذا التطبيق من قبل التلف؛ لا يمكن لهذه الشاشة إعادة إنشاء القائمة.",
+      "config_saved_sync_pending": "تم حفظ الحقل، لكن فشلت مزامنة الإعدادات. اضغط هنا لإعادة المزامنة.",
+      "config_save_uncertain": "فشل الحفظ أو تعذر تأكيده؛ تحقق من القيمة الحالية. تم الاحتفاظ بالمسودة. %1$s",
+      "config_operation_uncertain": "فشلت العملية أو تعذر تأكيد نتيجتها. ربما تغيرت البيانات؛ أعد فتح الإعدادات للتحقق.",
+      "config_origin_recovery": "عنوان API للمفتاح الأصلي غير معروف؛ لم تتغير الإعدادات. استعد نسخة احتياطية صالحة من قبل التلف، أو تجاهل هذا التعديل وامسح المفتاح صراحةً قبل إعادة الإعداد.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG فئة عدّ قديمة تشمل إخفاقات HTTP وتصفية المحتوى. لفهم القرار، راجع reason ووقائع الإيقاف والتصفية والانتظار المسجلة؛ الوقائع غير المسجلة غير معروفة. قد تسمح دفعة منطقية واحدة بعدة محاولات HTTP. لا يؤكد عددها استلام الخادم أو الفوترة. تُعدّ الاستجابات والجودة وذاكرة التخزين المؤقت بشكل منفصل. تشمل الفئة 429/503، ولا تعني وحدها خطأ في الإعداد أو توقفًا دائمًا."
     },
     "hi": {
       "age_close": " सेकंड पहले)",
@@ -3040,7 +3124,14 @@
       "model_ids_empty": "एंडपॉइंट ने चुनने योग्य मॉडल ID नहीं लौटाए",
       "diagnostics_loading": "निदान लोड हो रहा है…",
       "planner_model": "स्रोत अर्थ तैयारी मॉडल (वैकल्पिक)",
-      "planner_model_hint": "खाली छोड़ने पर अनुवाद मॉडल का उपयोग होगा। उसी API URL और कुंजी का उपयोग करता है; दूसरा मॉडल अपने-आप नहीं चुनता।"
+      "planner_model_hint": "खाली छोड़ने पर अनुवाद मॉडल का उपयोग होगा। उसी API URL और कुंजी का उपयोग करता है; दूसरा मॉडल अपने-आप नहीं चुनता।",
+      "config_unreadable": "सहेजी गई सेटिंग पढ़ी नहीं जा सकी। संबंधित फ़ील्ड जाँचें; कोई डेटा नहीं बदला है।",
+      "config_index_recovery": "प्रोफ़ाइल सूची पढ़ी नहीं जा सकी। कोई प्रोफ़ाइल नहीं बदली है। फिर पढ़ें या वापस जाएँ। बहाली के लिए क्षति से पहले के इस ऐप की मान्य प्रोफ़ाइल सेटिंग के बैकअप की आवश्यकता है; यह स्क्रीन सूची दोबारा नहीं बना सकती।",
+      "config_saved_sync_pending": "फ़ील्ड सहेजी गई, लेकिन सेटिंग का समन्वयन विफल हुआ। फिर समन्वय करने के लिए यहाँ टैप करें।",
+      "config_save_uncertain": "सहेजना विफल हुआ या पुष्टि नहीं हो सकी; वर्तमान मान जाँचें। ड्राफ़्ट सुरक्षित है। %1$s",
+      "config_operation_uncertain": "कार्रवाई विफल हुई या परिणाम की पुष्टि नहीं हो सकी। डेटा बदल सकता है; जाँचने के लिए सेटिंग फिर खोलें।",
+      "config_origin_recovery": "मूल कुंजी का API पता अज्ञात है; सेटिंग नहीं बदली है। क्षति से पहले का मान्य बैकअप बहाल करें, या यह संपादन छोड़कर कुंजी स्पष्ट रूप से मिटाएँ और फिर सेटअप करें।",
+      "diagnostics_failure_accounting": "HTTP_CONFIG पुरानी गणना श्रेणी है जिसमें HTTP विफलताएँ और सामग्री फ़िल्टर शामिल हैं। निर्णय समझने के लिए reason और दर्ज किए गए समाप्ति, फ़िल्टर व प्रतीक्षा के तथ्य देखें; अनुपस्थित तथ्य अज्ञात हैं। एक तार्किक बैच में कई HTTP प्रयास स्वीकार हो सकते हैं। प्रयासों की संख्या सर्वर प्राप्ति या बिलिंग की पुष्टि नहीं करती। प्रतिक्रिया, गुणवत्ता और कैश की गणना अलग है। इस श्रेणी में 429/503 भी हैं; अकेली श्रेणी का अर्थ कॉन्फ़िगरेशन त्रुटि या स्थायी रोक नहीं है।"
     },
     "id": {
       "age_close": " detik lalu)",
@@ -3274,7 +3365,14 @@
       "model_ids_empty": "Endpoint tidak mengembalikan ID model yang dapat dipilih",
       "diagnostics_loading": "Memuat diagnostik…",
       "planner_model": "Model persiapan makna sumber (opsional)",
-      "planner_model_hint": "Kosongkan untuk memakai model terjemahan. Menggunakan URL API dan kunci yang sama; tidak memilih model lain otomatis."
+      "planner_model_hint": "Kosongkan untuk memakai model terjemahan. Menggunakan URL API dan kunci yang sama; tidak memilih model lain otomatis.",
+      "config_unreadable": "Konfigurasi tersimpan tidak dapat dibaca. Periksa kolom terkait; tidak ada data yang diubah.",
+      "config_index_recovery": "Daftar profil tidak dapat dibaca. Tidak ada profil yang diubah. Baca ulang atau kembali. Pemulihan memerlukan cadangan setelan profil aplikasi ini yang valid dari sebelum kerusakan; layar ini tidak dapat menyusun ulang daftar.",
+      "config_saved_sync_pending": "Kolom tersimpan, tetapi sinkronisasi gagal. Ketuk di sini untuk mencoba sinkronisasi lagi.",
+      "config_save_uncertain": "Penyimpanan gagal atau belum dapat dipastikan; periksa nilai saat ini. Draf tetap disimpan. %1$s",
+      "config_operation_uncertain": "Operasi gagal atau hasilnya belum dapat dipastikan. Data mungkin berubah; buka ulang setelan untuk memeriksa.",
+      "config_origin_recovery": "Alamat API kunci asli tidak diketahui; konfigurasi tidak diubah. Pulihkan cadangan valid sebelum kerusakan, atau batalkan edit ini lalu hapus kunci secara eksplisit sebelum mengatur ulang.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG adalah kategori hitungan lama untuk kegagalan HTTP dan penyaringan konten. Gunakan reason serta fakta penghentian, filter, dan penantian yang tercatat; fakta yang tidak tercatat tidak diketahui. Satu batch logis dapat menerima beberapa percobaan HTTP. Jumlahnya tidak memastikan penerimaan server atau penagihan. Respons, kualitas, dan cache dihitung terpisah. Kategori ini mencakup 429/503 dan tidak dengan sendirinya berarti kesalahan konfigurasi atau penghentian permanen."
     },
     "vi": {
       "age_close": " giây trước)",
@@ -3508,7 +3606,14 @@
       "model_ids_empty": "Máy chủ không trả về ID mô hình có thể chọn",
       "diagnostics_loading": "Đang tải chẩn đoán…",
       "planner_model": "Mô hình chuẩn bị nghĩa nguồn (tùy chọn)",
-      "planner_model_hint": "Để trống để dùng mô hình dịch. Dùng cùng URL API và khóa; không tự chọn mô hình khác."
+      "planner_model_hint": "Để trống để dùng mô hình dịch. Dùng cùng URL API và khóa; không tự chọn mô hình khác.",
+      "config_unreadable": "Không thể đọc cấu hình đã lưu. Hãy kiểm tra các trường liên quan; không có dữ liệu nào bị thay đổi.",
+      "config_index_recovery": "Không thể đọc danh sách hồ sơ. Không có hồ sơ nào bị thay đổi. Hãy đọc lại hoặc quay về. Cần bản sao lưu cài đặt hồ sơ hợp lệ của ứng dụng này từ trước khi hỏng để khôi phục; màn hình này không thể dựng lại danh sách.",
+      "config_saved_sync_pending": "Đã lưu trường nhưng đồng bộ thất bại. Nhấn vào đây để thử đồng bộ lại.",
+      "config_save_uncertain": "Lưu thất bại hoặc chưa thể xác nhận; hãy kiểm tra giá trị hiện tại. Bản nháp được giữ lại. %1$s",
+      "config_operation_uncertain": "Thao tác thất bại hoặc chưa thể xác nhận kết quả. Dữ liệu có thể đã thay đổi; mở lại cài đặt để kiểm tra.",
+      "config_origin_recovery": "Không xác định được địa chỉ API của khóa gốc; cấu hình chưa bị thay đổi. Khôi phục bản sao lưu hợp lệ từ trước khi hỏng, hoặc bỏ chỉnh sửa này rồi chủ động xóa khóa trước khi cấu hình lại.",
+      "diagnostics_failure_accounting": "HTTP_CONFIG là nhóm thống kê cũ cho lỗi HTTP và lọc nội dung. Xem reason cùng dữ kiện dừng, lọc và chờ đã ghi; dữ kiện thiếu là chưa biết. Một lô logic có thể cho phép nhiều lần thử HTTP. Số lần thử không xác nhận máy chủ đã nhận hay tính phí. Phản hồi, chất lượng và bộ nhớ đệm được đếm riêng. Nhóm này gồm cả 429/503 và tự nó không có nghĩa là lỗi cấu hình hay dừng vĩnh viễn."
     }
   },
   "source_keys": {

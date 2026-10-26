@@ -1,3 +1,14 @@
+## [1.28.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.27.0...v1.28.0) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **ci:** judge upstream versions by what the store serves, not what the channel has uploaded ([d68afca](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/d68afca883c42c36a8d36019ea0ed13f2b8aa747)), references [#40](https://github.com/commit-regrets/morphe-youtube-vr-patches/issues/40) [#40](https://github.com/commit-regrets/morphe-youtube-vr-patches/issues/40)
+* **ci:** pass supportedVersions to upstream issue generator ([7a7d84f](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/7a7d84feefdd079b459b578567b26836ca41a3e2))
+
+### ✨ New Features
+
+* verify YouTube VR 1.89.09 alongside 1.88.10 ([1f72aad](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/1f72aada7f7e3bf3843074ecdc5729afda578849))
+
 ## [1.27.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.26.0...v1.27.0) (2026-10-14)
 
 ### 🐛 Bug Fixes

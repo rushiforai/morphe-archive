@@ -79,6 +79,27 @@ internal fun BytecodePatchContext.patchNativeToolTabs(version: String) {
     val readyCode=ready.implementation!!.instructions.toList()
     check(readyCode.size==2&&readyCode.last().opcode==Opcode.RETURN)
     ready.replaceInstruction(0,"const/4 v${(readyCode.last() as OneRegisterInstruction).registerA}, 0x1")
+    // Intercept at the Activity boundary: a non-focusable tool pane does not receive BACK keys.
+    val tablet=mutableClassDefBy("Ljp/syoboi/a2chMate/activity/TabletHomeActivity;")
+    val dispatch=tablet.methods.singleOrNull{it.name=="dispatchKeyEvent"&&it.parameterTypes.map(CharSequence::toString)==listOf("Landroid/view/KeyEvent;")}
+    val delegate=dispatch?.let{MutableMethod(ImmutableMethod(tablet.type,"haiagaruNativeDispatchKeyEvent",it.parameters,it.returnType,it.accessFlags,it.annotations,it.hiddenApiRestrictions,it.implementation))}
+    val wrapper=MutableMethod(ImmutableMethod(tablet.type,"dispatchKeyEvent",
+        listOf(com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter("Landroid/view/KeyEvent;",emptySet(),null)),"Z",1,emptySet(),emptySet(),
+        ImmutableMethodImplementation(3,emptyList(),emptyList(),emptyList())))
+    val nativeCall=if(delegate!=null)"invoke-virtual {p0, p1}, $delegate" else "invoke-super {p0, p1}, ${tablet.superclass}->dispatchKeyEvent(Landroid/view/KeyEvent;)Z"
+    wrapper.addInstructions(0,"""
+        invoke-static {p0, p1}, Lapp/morphe/extension/chmate/NativeToolTabs;->dispatchArchiveBack(Landroid/app/Activity;Landroid/view/KeyEvent;)Z
+        move-result v0
+        if-eqz v0, :native_back
+        return v0
+        :native_back
+        $nativeCall
+        move-result v0
+        return v0
+    """.trimIndent())
+    if(dispatch!=null)tablet.methods.remove(dispatch)
+    if(delegate!=null)tablet.methods.add(delegate)
+    tablet.methods.add(wrapper)
     // Leave ChMate's blank/new-tab screen completely untouched. The chooser lives
     // in Haiagaru's existing settings instead of an independent button above it.
     println("Native tool tabs: $version -> $owner, optional/default off, native Fragment base $base")

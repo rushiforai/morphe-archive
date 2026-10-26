@@ -10,9 +10,29 @@ import java.util.WeakHashMap;
 
 /** Retain the current viewport across a display-only asynchronous preview resize. */
 final class XPostPreviewPosition {
+    static final String ENABLED="previewScrollPositionRetention";
     private static final WeakHashMap<View, Anchor> PENDING = new WeakHashMap<>();
     private static final WeakHashMap<View,Long> INTERACTIONS=new WeakHashMap<>();
+    private static final WeakHashMap<View,Long> OPENING=new WeakHashMap<>();
+    private static final WeakHashMap<View,Boolean> WATCHED=new WeakHashMap<>();
+    static void opening(View list){
+        if(list==null)return;
+        if(!WATCHED.containsKey(list)){
+            WATCHED.put(list,true);
+            list.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
+                public void onViewAttachedToWindow(View view){opening(view);}
+                public void onViewDetachedFromWindow(View view){Anchor pending=PENDING.get(view);if(pending!=null)pending.close();OPENING.remove(view);}
+            });
+        }
+        Anchor previous=PENDING.get(list);if(previous!=null)previous.close();
+        INTERACTIONS.remove(list);
+        OPENING.put(list,android.os.SystemClock.uptimeMillis()+1500);
+    }
+    private static boolean enabled(View view){
+        return view.getContext().getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(ENABLED,true);
+    }
     static void onTouch(View body,android.view.MotionEvent event){
+        if(!enabled(body))return;
         if(event.getActionMasked()!=android.view.MotionEvent.ACTION_DOWN&&event.getActionMasked()!=android.view.MotionEvent.ACTION_MOVE)return;
         for(ViewParent parent=body.getParent();parent instanceof View;parent=parent.getParent()){
             View view=(View)parent;
@@ -30,13 +50,22 @@ final class XPostPreviewPosition {
 
     static void beforeChange(View body) {
         // Initial binding/refresh belongs to native restoration, not preview resizing.
-        if(body.getHeight()==0||!body.isShown()||body.isLayoutRequested())return;
+        if(!enabled(body)||body.getHeight()==0||!body.isShown()||body.isLayoutRequested())return;
         for (ViewParent parent = body.getParent(); parent instanceof View; parent = parent.getParent()) {
             View view = (View) parent;
             boolean recycler = false;
             for (Class<?> type = view.getClass(); type != null; type = type.getSuperclass())
                 if (type.getName().equals("androidx.recyclerview.widget.RecyclerView")) recycler = true;
             if (!(view instanceof ListView) && !recycler) continue;
+            Long opening=OPENING.get(view);
+            if(opening==null){opening(view);return;}
+            if(android.os.SystemClock.uptimeMillis()<opening)return;
+            // Until the reader interacts with this newly opened list, its
+            // position belongs entirely to ChMate's unread/end restoration.
+            if(!INTERACTIONS.containsKey(view))return;
+            // Native unread/end positioning owns both endpoints. A preview must
+            // never pin a response above the native footer or unread boundary.
+            if(!view.canScrollVertically(-1)||!view.canScrollVertically(1))return;
             if (PENDING.containsKey(view) || !view.isShown() || view.isLayoutRequested() || interacting(view)) return;
             try {
                 Anchor anchor = new Anchor((ViewGroup) view);
@@ -47,6 +76,13 @@ final class XPostPreviewPosition {
             } catch (Exception ignored) { /* Unsupported list: leave native scrolling untouched. */ }
             return;
         }
+    }
+
+    static void settingsChanged(){
+        for(Anchor anchor:new java.util.ArrayList<>(PENDING.values()))if(anchor!=null)anchor.close();
+        PENDING.clear();
+        INTERACTIONS.clear();
+        OPENING.clear();
     }
 
     private static Object call(Object target, String name, Class<?>[] types, Object... args) throws Exception {
@@ -82,7 +118,8 @@ final class XPostPreviewPosition {
             if (list.isLayoutRequested()) return true;
             close();
             try {
-                if (!list.isShown() || interacting(list) || adapter != call(list, "getAdapter", new Class<?>[0]) || count != count()) return true;
+                if (!list.isShown() || interacting(list) || !list.canScrollVertically(-1)||!list.canScrollVertically(1)
+                        || adapter != call(list, "getAdapter", new Class<?>[0]) || count != count()) return true;
                 View first=list.getChildCount()==0?null:list.getChildAt(0);
                 int current=first==null?-1:list instanceof ListView?((ListView)list).getFirstVisiblePosition():(Integer)call(list,"getChildAdapterPosition",new Class<?>[]{View.class},first);
                 if(current!=position)return true;

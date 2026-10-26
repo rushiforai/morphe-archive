@@ -68,6 +68,7 @@ final class CaptionDiagnosticsWriter {
     private static final class Record {
         final String stage, detail, mergeKey;
         final CaptionCredentialRef credential;
+        final SecureApiKey.StoredCredential stored;
         final long at = System.currentTimeMillis();
         int repeats;
 
@@ -75,7 +76,16 @@ final class CaptionDiagnosticsWriter {
             this.stage = stage;
             this.detail = detail;
             this.credential = credential == null ? CaptionCredentialRef.NONE : credential;
+            this.stored = null;
             this.mergeKey = mergeKey == null ? "" : mergeKey;
+        }
+
+        Record(String stage, String detail, SecureApiKey.StoredCredential stored) {
+            this.stage = stage;
+            this.detail = detail;
+            this.credential = CaptionCredentialRef.NONE;
+            this.stored = stored;
+            this.mergeKey = "";
         }
     }
 
@@ -90,16 +100,25 @@ final class CaptionDiagnosticsWriter {
             CaptionCredentialRef credential,
             String mergeKey) {
         if (context == null || stage == null || stage.isEmpty()) return;
+        enqueueRecord(context, new Record(stage, detail, credential, mergeKey));
+    }
+
+    static void enqueueStored(Context context, String stage, String detail,
+            SecureApiKey.StoredCredential stored) {
+        if (context == null || stage == null || stage.isEmpty()) return;
+        enqueueRecord(context, new Record(stage, detail, stored));
+    }
+
+    private static void enqueueRecord(Context context, Record record) {
         Context app = context.getApplicationContext();
-        Record record = new Record(stage, detail, credential, mergeKey);
         synchronized (LOCK) {
             ArrayDeque<Record> lane =
-                    CaptionDiagnostics.isDecision(stage) ? DECISIONS_QUEUE : QUEUE;
+                    CaptionDiagnostics.isDecision(record.stage) ? DECISIONS_QUEUE : QUEUE;
             Record last = lane.peekLast();
             if (!record.mergeKey.isEmpty()
                     && last != null
                     && last.mergeKey.equals(record.mergeKey)
-                    && last.stage.equals(stage)) {
+                    && last.stage.equals(record.stage)) {
                 last.repeats++;
                 merged++;
                 return;
@@ -221,8 +240,9 @@ final class CaptionDiagnosticsWriter {
 
     /** The detail of a record, redacted with the key of the credential it was made under. */
     private static String redact(Context context, Record record) {
-        boolean known = record.credential.known();
-        String key = known ? snapshotFor(context, record.credential) : "";
+        boolean known = record.stored == null ? record.credential.known() : record.stored.present();
+        String key = !known ? "" : record.stored == null
+                ? snapshotFor(context, record.credential) : snapshotFor(record.stored);
         String clean =
                 CaptionDiagnostics.sanitize(
                         CaptionQualityTrace.redact(record.detail, key, 1600), 1700);
@@ -253,6 +273,22 @@ final class CaptionDiagnosticsWriter {
             SNAPSHOTS.put(reference.fingerprint, plaintext);
             return plaintext;
         }
+    }
+
+    /** A captured encrypted binding stays valid across profile changes; decryption is writer-only. */
+    private static String snapshotFor(SecureApiKey.StoredCredential source) {
+        String identity = source.identity();
+        long now = System.currentTimeMillis();
+        synchronized (LOCK) {
+            String cached = SNAPSHOTS.get(identity);
+            if (cached != null && now - lastResolvedAt <= SNAPSHOT_MAX_AGE_MS) return cached;
+        }
+        String plaintext = source.resolve();
+        synchronized (LOCK) {
+            lastResolvedAt = now;
+            if (!plaintext.isEmpty()) SNAPSHOTS.put(identity, plaintext);
+        }
+        return plaintext;
     }
 
     /** Waits, at most 400 ms, for the records queued before the call to be written. */
@@ -339,6 +375,10 @@ final class CaptionDiagnosticsWriter {
                     + dropped
                     + "; pending="
                     + QUEUE.size()
+                    + "; pending_decisions="
+                    + DECISIONS_QUEUE.size()
+                    + "; pending_total="
+                    + (QUEUE.size() + DECISIONS_QUEUE.size())
                     + "; credential_unavailable="
                     + seedOnlyRedactions
                     + "]\n";

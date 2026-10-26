@@ -46,6 +46,7 @@ class Scores365SmokeTest {
         assertUnlockPremium(byType)
         assertBlockUpdateScreen(byType)
         assertGmsCoreSupport(classes, byType)
+        assertGoogleSignInWiring(classes)
     }
 
     @Test
@@ -176,11 +177,47 @@ class Scores365SmokeTest {
             firstInsn?.opcode == Opcode.INVOKE_STATIC_RANGE,
             "Splash.onCreate does not start with invoke-static/range checkGmsCore; got ${firstInsn?.opcode}"
         )
+        val check = (firstInsn as ReferenceInstruction).reference.toString()
+        assertTrue(
+            check.endsWith("GmsCoreSupport;->checkGmsCore(Landroid/app/Activity;)V"),
+            "Splash.onCreate does not call checkGmsCore; got $check",
+        )
 
         // Verify strings were rewritten to app.revanced
         val allStrings = classes.flatMap { cls ->
             cls.methods.flatMap { m -> m.instructions().mapNotNull { it.stringOrNull() } }
         }.toSet()
         assertTrue("app.revanced.android.gms" in allStrings, "GmsCore rewrite missing app.revanced.android.gms")
+    }
+
+    /**
+     * The legacy Auth.GoogleSignInApi flow the app uses hands its intent to the app's own
+     * SignInHubActivity, which targets "com.google.android.gms" by name. Both the action and that
+     * package must point at MicroG RE, otherwise no activity is found and sign-in returns
+     * status 17 without showing an account picker.
+     */
+    private fun assertGoogleSignInWiring(classes: List<ClassDef>) {
+        val allStrings = classes.flatMap { cls ->
+            cls.methods.flatMap { m -> m.instructions().mapNotNull { it.stringOrNull() } }
+        }.toSet()
+        for (expected in listOf(
+            "app.revanced.android.gms.auth.GOOGLE_SIGN_IN",
+            "app.revanced.android.gms.auth.api.signin.service.START",
+        )) {
+            assertTrue(expected in allStrings, "GmsCore rewrite missing \"$expected\"")
+        }
+        for (stale in listOf(
+            "com.google.android.gms.auth.GOOGLE_SIGN_IN",
+        )) {
+            assertTrue(stale !in allStrings, "Google sign-in action was not rewritten: \"$stale\"")
+        }
+
+        // Spoof signature: the extension must hand the real Play certificate to Firebase.
+        val spoof = classes.firstOrNull { it.type == "Lapp/template/extension/signature/SignatureSpoof;" }
+            ?: error("SignatureSpoof extension class not found in emitted dexes")
+        val certificate = spoof.method("getSpoofedCertificate", emptyList()).instructions()
+            .mapNotNull { it.stringOrNull() }
+            .firstOrNull { it.startsWith("MIIC") }
+        assertTrue(certificate != null, "SignatureSpoof.getSpoofedCertificate does not return the real certificate")
     }
 }

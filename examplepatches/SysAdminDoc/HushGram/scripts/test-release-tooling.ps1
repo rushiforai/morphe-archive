@@ -123,6 +123,51 @@ $facts = ConvertFrom-ManifestXmlTree -Lines $manifestLines -Source 'fixture'
 Assert-True ($facts.package -eq 'com.example.host') 'The manifest package was not read.'
 Assert-True ($facts.versionName -eq '46.7.3') 'The manifest version name was not read.'
 Assert-True ($facts.versionCode -eq '2024607030') 'The manifest version code was not read.'
+Assert-True ($facts.minSdkVersion -eq 1) 'A missing uses-sdk must have Android''s default floor of 1.'
+$sdk26 = ConvertFrom-ManifestXmlTree -Source 'sdk26' -Lines ($manifestLines + @(
+    '      E: uses-sdk (line=20)',
+    '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=26'))
+Assert-True ($sdk26.minSdkVersion -eq 26) 'The vendor minimum Android API was not read.'
+Assert-Throws { Assert-HushgramRuntimeFloor -Manifest $sdk26 } '*API 26*API 28*' `
+    'An APK below the extension runtime floor was accepted.'
+$sdk28 = ConvertFrom-ManifestXmlTree -Source 'sdk28' -Lines ($manifestLines + @(
+    '      E: uses-sdk (line=20)',
+    '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=28'))
+Assert-HushgramRuntimeFloor -Manifest $sdk28
+Assert-Throws { Assert-HushgramRuntimeFloor -Manifest $sdk26 -Stock $sdk26 } '*API 26*API 28*' `
+    'A vendor API 26 manifest that was never raised was accepted.'
+Assert-HushgramRuntimeFloor -Manifest $sdk28 -Stock $sdk26
+$sdk31 = ConvertFrom-ManifestXmlTree -Source 'sdk31' -Lines ($manifestLines + @(
+    '      E: uses-sdk (line=20)',
+    '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=31'))
+Assert-HushgramRuntimeFloor -Manifest $sdk31 -Stock $sdk31
+Assert-Throws { Assert-HushgramRuntimeFloor -Manifest $sdk28 -Stock $sdk31 } '*API 28*API 31*' `
+    'A higher vendor floor was silently lowered.'
+$hexSdk = ConvertFrom-ManifestXmlTree -Source 'hex-sdk' -Lines ($manifestLines + @(
+    '      E: uses-sdk (line=20)',
+    '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=(type 0x10)0x1c'))
+Assert-True ($hexSdk.minSdkVersion -eq 28) 'A typed hexadecimal minimum was not read.'
+foreach ($badMinimum in @('0', '-1', 'FutureAndroid', '(type 0x10)0xffffffff')) {
+    Assert-Throws { ConvertFrom-ManifestXmlTree -Source 'bad-sdk' -Lines ($manifestLines + @(
+        '      E: uses-sdk (line=20)',
+        "        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=$badMinimum")) } `
+        '*minimum Android API*' "The minimum Android API '$badMinimum' was accepted."
+}
+foreach ($misplaced in @(
+        @('      E: application (line=50)', '        E: uses-sdk (line=51)',
+            '          A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=28'),
+        @('      E: uses-sdk (line=50)', '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=28',
+            '      E: uses-sdk (line=51)', '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=28'),
+        @('  E: uses-sdk (line=50)', '    A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=28'))) {
+    Assert-Throws { ConvertFrom-ManifestXmlTree -Source 'misplaced-sdk' -Lines ($manifestLines + $misplaced) } `
+        '*uses-sdk*' 'A nested, repeated or root-sibling SDK declaration was accepted.'
+}
+Assert-Throws { ConvertFrom-ManifestXmlTree -Source 'unqualified-sdk' -Lines ($manifestLines + @(
+    '      E: uses-sdk (line=50)', '        A: minSdkVersion=28')) } `
+    '*minimum Android API*namespace*' 'An unqualified minimum that Android ignores was accepted.'
+$raisedSdk = Get-ManifestDelta -Stock $sdk26 -Patched $sdk28
+Assert-True ((@(ConvertTo-ManifestDeltaEntries -Delta $raisedSdk) -join '; ') -ceq 'min-sdk 28') `
+    'The minimum Android API change was not included in the reviewed manifest delta.'
 Assert-True (($facts.permissions -join ',') -eq 'android.permission.CAMERA,android.permission.INTERNET') `
     'The requested permissions were not read and sorted.'
 Assert-True (($facts.exported -join ',') -eq 'activity:com.example.host.Main,service:com.example.host.Sync') `
@@ -192,11 +237,11 @@ $removedPermissions = @($removalEntries | ForEach-Object { $_ -replace '^permiss
 $raisedVersionCode = '2147483647'
 $iconAliasEntries = @('hushgram', 'dark', 'plum' | ForEach-Object {
     "exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_$_" })
-$approvedEntries = @($removalEntries) + "version-code $raisedVersionCode" + $iconAliasEntries
+$approvedEntries = @($removalEntries) + "version-code $raisedVersionCode" + $iconAliasEntries + 'min-sdk 28'
 Assert-True ((@($checkedInAllowlist | Sort-Object -CaseSensitive) -join "`n") -ceq
         (@($approvedEntries | Sort-Object -CaseSensitive) -join "`n")) `
     ('The checked-in manifest delta allowlist approves something besides the advertising ID removals, the ' +
-     "raised version code and the icon aliases, or less than all of them: $($checkedInAllowlist -join ', ')")
+     "raised version code, runtime floor and icon aliases, or less than all of them: $($checkedInAllowlist -join ', ')")
 
 $allowlistRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("receipt-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $allowlistRoot | Out-Null
@@ -365,19 +410,19 @@ try {
         targets   = @([ordered]@{
             source = [ordered]@{ file = 'stock.apkm'; package = 'com.example.host'
                 versionName = '46.7.3'; versionCode = '2024607030'; sha256 = ('B' * 64)
-                forced = $false }
+                forced = $false; minSdkVersion = 28 }
             patches = @([ordered]@{ name = 'Alpha'; applied = $true; reason = $null },
                         [ordered]@{ name = 'Beta'; applied = $true; reason = $null })
-            coverage = @(); coverageReviewed = $true
+            coverage = @(); coverageReviewed = $true; minSdkVersion = 28
             manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @(); versionCodeChanged = @() }
         }, [ordered]@{
             source = [ordered]@{ file = 'previous.apkm'; package = 'com.example.host'
                 versionName = '46.6.1'; versionCode = '2024606010'; sha256 = ('D' * 64)
-                forced = $false }
+                forced = $false; minSdkVersion = 28 }
             patches = @([ordered]@{ name = 'Alpha'; applied = $true; reason = $null },
                         [ordered]@{ name = 'Beta'; applied = $true; reason = $null })
-            coverage = @(); coverageReviewed = $true
+            coverage = @(); coverageReviewed = $true; minSdkVersion = 28
             manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @(); versionCodeChanged = @() }
         })
@@ -652,6 +697,26 @@ try {
     }
     $removed = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $withRemovals) -Approved $checkedInAllowlist
     Assert-True $removed.Valid "A receipt carrying the approved advertising ID removals was refused: $($removed.Reason)"
+    foreach ($floorFault in @(
+            { param($t) $t.minSdkVersion = 26 },
+            { param($t) $t.minSdkVersion = '28' },
+            { param($t) $t.PSObject.Properties.Remove('minSdkVersion') },
+            { param($t) $t.source.PSObject.Properties.Remove('minSdkVersion') },
+            { param($t) $t.source.minSdkVersion = 31 })) {
+        $badFloor = New-TestReceipt -Mutate { param($r) & $withRemovals $r; & $floorFault $r.targets[0] }
+        $verdict = Test-TestReceipt -Receipt $badFloor -Approved $checkedInAllowlist
+        Assert-True (-not $verdict.Valid -and ($verdict.Reason -like '*Android API*' -or
+            $verdict.Reason -like '*runtime floor*')) `
+            "A receipt with missing, lowered or unverified SDK facts was accepted: $($verdict.Reason)"
+    }
+    $raisedFloor = New-TestReceipt -Mutate {
+        param($r)
+        & $withRemovals $r
+        $r.targets[0].source.minSdkVersion = 26
+        $r.targets[0].manifestDelta | Add-Member -NotePropertyName minSdkChanged -NotePropertyValue @('28') -Force
+    }
+    $raisedFloorVerdict = Test-TestReceipt -Receipt $raisedFloor -Approved $checkedInAllowlist
+    Assert-True $raisedFloorVerdict.Valid "A correctly raised API 26 manifest was refused: $($raisedFloorVerdict.Reason)"
     $unraised = Test-TestReceipt -Receipt (New-TestReceipt -Mutate {
             param($r)
             foreach ($target in $r.targets) {
@@ -2973,7 +3038,7 @@ try {
     # A receipt for this commit with a run of each build given, every patch applied and the
     # manifest changes the checked-in allowlist approves, written where the release check looks.
     $approvedDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
-        exportedComponentsAdded = @(); exportedComponentsRemoved = @(); versionCodeChanged = @() }
+        exportedComponentsAdded = @(); exportedComponentsRemoved = @(); versionCodeChanged = @(); minSdkChanged = @() }
     foreach ($entry in $checkedInAllowlist) {
         $kind, $value = $entry -split ' ', 2
         switch ($kind) {
@@ -2982,6 +3047,9 @@ try {
             'exported-added' { $approvedDelta.exportedComponentsAdded += $value }
             'exported-removed' { $approvedDelta.exportedComponentsRemoved += $value }
             'version-code' { $approvedDelta.versionCodeChanged += $value }
+            'min-sdk' {
+                if ($value -cne '28') { throw "The release fixture starts at API 28, not $value." }
+            }
             default { throw "The release fixture doesn't know the allowlist kind $kind." }
         }
     }
@@ -2991,10 +3059,12 @@ try {
             [ordered]@{
                 source        = [ordered]@{ file = "instagram-$($Builds[$i])-arm64-v8a.apkm"
                     package = $releaseTarget.PackageName; versionName = $Builds[$i]; versionCode = $code
+                    minSdkVersion = 28
                     sha256 = ([string]'ABCDEF'[$i % 6] * 64); forced = $releaseTarget.PackageVersions -notcontains $Builds[$i] }
                 patches       = @($releaseNames | ForEach-Object { [ordered]@{ name = $_; applied = $true; reason = $null } })
                 coverage      = $releaseCoverage
                 coverageReviewed = $Builds[$i] -ceq $declaredBuild -and $code -ceq $declaredCode
+                minSdkVersion = 28
                 manifestDelta = $approvedDelta
             }
         })
@@ -3155,7 +3225,9 @@ try {
             '  E: manifest (line=1)',
             "    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=$Code",
             "    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)=`"$Build`" (Raw: `"$Build`")",
-            "    A: package=`"$Package`" (Raw: `"$Package`")")
+            "    A: package=`"$Package`" (Raw: `"$Package`")",
+            '      E: uses-sdk (line=3)',
+            '        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=28')
         $line = 10
         foreach ($permission in $permissions) {
             $lines += @("      E: uses-permission (line=$line)", "        A: $androidName`"$permission`" (Raw: `"$permission`")")
@@ -3341,7 +3413,11 @@ try {
         Assert-True (@($builtTarget.patches | Where-Object { $_.applied }).Count -eq $releaseNames.Count) `
             "The receipt does not record every patch applied to $label."
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $builtTarget.manifestDelta)
-        Assert-True (($changes -join "`n") -ceq (@($checkedInAllowlist | Sort-Object -Unique -CaseSensitive) -join "`n")) `
+        # These generated APK fixtures already require API 28, so no min-sdk delta is expected.
+        Assert-True ($builtTarget.source.minSdkVersion -eq 28 -and $builtTarget.minSdkVersion -eq 28) `
+            'The receipt builder lost its input/output SDK floor proof.'
+        Assert-True (($changes -join "`n") -ceq (@($checkedInAllowlist | Where-Object { $_ -cne 'min-sdk 28' } |
+                Sort-Object -Unique -CaseSensitive) -join "`n")) `
             ("The receipt records other manifest changes for $label than the advertising ID removals and the raised " +
                 "version code: $($changes -join ', ')")
     }
@@ -3611,7 +3687,9 @@ try {
     $gateBundleBytes = [System.IO.File]::ReadAllBytes($gateBundle)
     $releaseBundleBytes = [System.IO.File]::ReadAllBytes($releaseBundle)
     $releaseSbomBytes = [System.IO.File]::ReadAllBytes($releaseSbom)
-    $gateAllowlist = @($checkedInAllowlist | Sort-Object -Unique -CaseSensitive) -join "`n"
+    # The saved-gate APK fixtures start at API 28, so the SDK floor is proved without a delta.
+    $gateAllowlist = @($checkedInAllowlist | Where-Object { $_ -cne 'min-sdk 28' } |
+        Sort-Object -Unique -CaseSensitive) -join "`n"
     try {
         Remove-Item -LiteralPath $releaseReceipt -Force
         Invoke-ReceiptBuilder -Fixtures $allFixtures -FromGate
@@ -3630,6 +3708,7 @@ try {
         $gateTarget = @($gateReceipt.targets | Where-Object { [string]$_.source.versionName -eq $declaredBuild })
         Assert-True (@($gateReceipt.targets).Count -eq 2 -and $gateTarget.Count -eq 1 -and -not $gateTarget[0].source.forced -and
             $gateTarget[0].source.sha256 -eq (Get-Sha256Hex -Path $declaredFixture) -and
+            $gateTarget[0].source.minSdkVersion -eq 28 -and $gateTarget[0].minSdkVersion -eq 28 -and
             @($gateTarget[0].patches | Where-Object { $_.applied }).Count -eq $releaseNames.Count -and
             (@(ConvertTo-ManifestDeltaEntries -Delta $gateTarget[0].manifestDelta) -join "`n") -ceq $gateAllowlist) `
             "The receipt read from the gate's run does not record the declared build as a run here does: $($gateTarget | ConvertTo-Json -Depth 6 -Compress)"

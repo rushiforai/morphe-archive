@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"正在读取诊断…"</string>
     <string name="cap_planner_model" formatted="false">"源意义准备模型（可选）"</string>
     <string name="cap_planner_model_hint" formatted="false">"留空使用翻译模型；仅在同一 API 地址与 Key 下调用，不自动选择其他模型"</string>
+    <string name="cap_config_unreadable" formatted="false">"无法读取已保存的配置。请检查相关字段；未修改任何资料。"</string>
+    <string name="cap_config_index_recovery" formatted="false">"无法读取方案列表，未修改任何方案。可重新读取或返回。恢复需要损坏前备份的本应用有效方案设置；此页面无法重建列表。"</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"字段已保存，但配置同步失败。点此重试同步。"</string>
+    <string name="cap_config_save_uncertain" formatted="false">"保存失败或无法确认；请检查当前值。已保留草稿。%1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"操作失败或结果无法确认。资料可能已变更；请重新打开设置检查。"</string>
+    <string name="cap_config_origin_recovery" formatted="false">"无法确认原密钥的 API 地址，未修改配置。请恢复损坏前的有效备份，或放弃本次编辑后明确清除密钥并重新配置。"</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG 是兼容历史的计账分类，包含 HTTP 失败和内容过滤。请结合 reason 及实际记录的终止、过滤和等待事实理解决定；缺失事实表示未知。一个逻辑批次可能准入多次 HTTP 尝试。尝试次数不能证明服务器收到请求或实际收费；响应、质量和缓存分别计数。 该分类包含429/503，本身不表示配置有误或永久终止。"</string>
 </resources>

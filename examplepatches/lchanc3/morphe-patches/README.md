@@ -21,14 +21,14 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.6.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
+> **[v1.7.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
 
 <details open>
 <summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 
 **Supported versions:**
 
-| 3.9.2 | 🧪&nbsp;any |
+| 3.9.4 | 🧪&nbsp;any |
 | :---: | :---: |
 
 | Patch | Description | Options |

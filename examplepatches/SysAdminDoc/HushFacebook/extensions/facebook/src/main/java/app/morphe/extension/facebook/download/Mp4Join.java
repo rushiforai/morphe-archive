@@ -114,6 +114,10 @@ final class Mp4Join {
      * which is read before the copy starts and before every chunk of it.
      */
     static boolean join(File video, File audio, File out, Downloader.Progress progress) throws IOException {
+        return join(video, audio, out, Long.MAX_VALUE, progress);
+    }
+
+    static boolean join(File video, File audio, File out, long room, Downloader.Progress progress) throws IOException {
         try (RandomAccessFile videoIn = new RandomAccessFile(video, "r");
              RandomAccessFile audioIn = audio == null ? null : new RandomAccessFile(audio, "r")) {
             List<Track> tracks = new ArrayList<>();
@@ -121,7 +125,7 @@ final class Mp4Join {
             if (audioIn != null) tracks.add(Track.read(audioIn, SOUN, "audio", "sound"));
             if (progress.cancelled()) return false;
             progress.joining();
-            return write(tracks, out, progress);
+            return write(tracks, out, room, progress);
         }
     }
 
@@ -715,7 +719,7 @@ final class Mp4Join {
         }
     }
 
-    private static boolean write(List<Track> tracks, File out, Downloader.Progress progress) throws IOException {
+    private static boolean write(List<Track> tracks, File out, long room, Downloader.Progress progress) throws IOException {
         List<Chunk> chunks = interleave(tracks);
         long data = 0;
         for (Chunk chunk : chunks) {
@@ -730,6 +734,12 @@ final class Mp4Join {
         int mdatHeader = data + 8 > 0xFFFFFFFFL ? 16 : 8;
         long dataStart = ftyp.length + moov(tracks, timing, 0, wide).length + mdatHeader;
         byte[] moov = moov(tracks, timing, dataStart, wide);
+
+        // Sample ranges may overlap in the input, so its length doesn't bound the
+        // joined file. Its exact boxes and sample bytes are known before opening out.
+        if (dataStart > room || data > room - dataStart) {
+            throw new OutputAllowance.Exceeded("the joined samples and boxes exceed the " + room + " bytes kept for them");
+        }
 
         try (FileOutputStream stream = new FileOutputStream(out)) {
             FileChannel channel = stream.getChannel();

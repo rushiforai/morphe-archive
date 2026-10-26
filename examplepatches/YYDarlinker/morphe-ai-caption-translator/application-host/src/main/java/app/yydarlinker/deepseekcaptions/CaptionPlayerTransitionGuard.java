@@ -121,6 +121,7 @@ final class CaptionPlayerTransitionGuard {
                 CaptionOverlay.requestPlayerRender();
                 CaptionButtonController.onPlayerStable();
                 CaptionMusicSuppressor.endNativeRendererTransition();
+                CaptionSessionReconciler.onPlayerReady(activityRef.get(), "player_regular");
                 break;
             default: // TRANSITIONING_TO_REGULAR relies on real geometry.
                 if (ownerSurfaceStable() && pendingProbe == null) startProbe();
@@ -151,6 +152,7 @@ final class CaptionPlayerTransitionGuard {
         CaptionPlayerAuthority.settleRegular();
         CaptionButtonController.onPlayerStable();
         CaptionMusicSuppressor.endNativeRendererTransition();
+        CaptionSessionReconciler.onPlayerReady(activityRef.get(), "geometry_ready");
     }
 
     private static void markStable(Activity activity, String detail) {

@@ -244,8 +244,19 @@ final class DashSave {
                 MediaDownload.info(() -> "joining the tracks without MediaMuxer, which can't write " + codec
                     + " into an MP4");
             }
-            if (!(own ? Mp4Join.join(videoFile, audioFile, joined, progress) : join(videoFile, audioFile, joined, progress))) {
-                return cancelledJoining();
+            try {
+                if (!(own ? Mp4Join.join(videoFile, audioFile, joined, Math.min(maxBytes, room), progress)
+                        : join(videoFile, audioFile, joined, maxBytes, room, progress))) {
+                    return cancelledJoining();
+                }
+            } catch (JoinTooLarge over) {
+                return Downloader.Result.fail(Downloader.Status.TOO_LARGE, "the joined samples exceed " + maxBytes + " bytes");
+            } catch (OutputAllowance.Exceeded over) {
+                if (own && maxBytes <= room) {
+                    return Downloader.Result.fail(Downloader.Status.TOO_LARGE, "the joined file exceeds " + maxBytes + " bytes");
+                }
+                return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, Downloader.Cause.NO_SPACE,
+                        "the joined file outgrew its reserved space");
             }
             // The tracks are in the joined file now. Kept, they'd sit beside it and the gallery's
             // copy of it: the video on the phone four times over.
@@ -425,6 +436,13 @@ final class DashSave {
      * cancel half way ended the join within 1 ms. A phone's time per sample isn't measured yet.
      */
     private static boolean join(File video, File audio, File out, Downloader.Progress progress) throws IOException {
+        return join(video, audio, out, Long.MAX_VALUE, Long.MAX_VALUE, progress);
+    }
+
+    private static boolean join(File video, File audio, File out, long maxBytes, long room,
+                                Downloader.Progress progress) throws IOException {
+        OutputAllowance allowance = new OutputAllowance(room);
+        long copied = 0;
         MediaExtractor videoIn = null;
         MediaExtractor audioIn = null;
         MediaMuxer muxer = null;
@@ -496,6 +514,9 @@ final class DashSave {
                     ? MediaCodec.BUFFER_FLAG_KEY_FRAME
                     : 0;
 
+                if (size > maxBytes - copied) throw new JoinTooLarge();
+                allowance.take(size);
+                copied += size;
                 muxer.writeSampleData(track, buffer, info);
 
                 boolean more = from.advance();
@@ -508,7 +529,6 @@ final class DashSave {
                     if (!more) audioDone = true;
                 }
             }
-            return true;
         } catch (Throwable t) {
             failure = t;
             throw t;
@@ -527,7 +547,11 @@ final class DashSave {
                     closing);
             }
         }
+        allowance.check(out);
+        return true;
     }
+
+    private static final class JoinTooLarge extends IOException { }
 
     /**
      * Runs [step], and answers the failure to report: [failure] when there was one, with the step's

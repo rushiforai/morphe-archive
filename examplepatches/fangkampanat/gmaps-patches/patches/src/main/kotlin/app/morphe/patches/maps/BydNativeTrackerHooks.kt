@@ -43,7 +43,7 @@ internal class NativeTrackerPlan(val schema: String, private val gates: List<Pai
 
 /** Prove Wh setter, balanced clearing inhibition and its executor before changing either gate. */
 internal fun BytecodePatchContext.resolveNativeTracker(
-    tracker: MutableMethod, startupGate: MethodReference, trackingGate: MethodReference,
+    tracker: MutableMethod, startupGate: MethodReference?, trackingGate: MethodReference,
 ): NativeTrackerPlan {
     val cls = classDefBy(tracker.definingClass)
     checkTracker(AccessFlags.PUBLIC.isSet(cls.accessFlags), "public tracker", cls.type)
@@ -53,13 +53,17 @@ internal fun BytecodePatchContext.resolveNativeTracker(
     val sc = setter.code()
     val receiver = setter.implementation!!.registerCount - 2
     val parameter = receiver + 1
-    checkTracker(sc[0].opcode == Opcode.IGET_OBJECT && sc[1].call()?.toString() == startupGate.toString() &&
+    // Without a startup gate (26.42) the setter starts at the inhibitor counter and calls no gate.
+    val counterAt = if (startupGate == null) 0 else 4
+    if (startupGate != null) checkTracker(sc[0].opcode == Opcode.IGET_OBJECT && sc[1].call()?.toString() == startupGate.toString() &&
         (sc[0] as TwoRegisterInstruction).registerB == receiver && sc[2].opcode == Opcode.MOVE_RESULT &&
         sc[3].opcode == Opcode.IF_EQZ && (sc[2] as OneRegisterInstruction).registerA ==
         (sc[3] as OneRegisterInstruction).registerA, "setter startup gate", setter)
-    val counter = sc[4].field()
-    checkTracker(sc[4].opcode == Opcode.IGET_OBJECT && counter?.definingClass == cls.type &&
-        (sc[4] as TwoRegisterInstruction).registerB == receiver && sc[5].call()?.returnType == "Ljava/lang/Object;",
+    else checkTracker(sc.none { it.call()?.definingClass == trackingGate.definingClass }, "ungated setter", setter)
+    val counter = sc[counterAt].field()
+    checkTracker(sc[counterAt].opcode == Opcode.IGET_OBJECT && counter?.definingClass == cls.type &&
+        (sc[counterAt] as TwoRegisterInstruction).registerB == receiver &&
+        sc[counterAt + 1].call()?.returnType == "Ljava/lang/Object;",
         "clearing inhibitor counter", setter)
     val seed = sc.indices.singleOrNull { sc[it].opcode == Opcode.NEW_INSTANCE }
         ?: throw PatchException("Missing unique Wh state construction")
@@ -94,14 +98,16 @@ internal fun BytecodePatchContext.resolveNativeTracker(
         cls.fields.any { it.name == executor.name && it.type == executorType && AccessFlags.PUBLIC.isSet(it.accessFlags) },
         "public executor constructor flow", ctor)
     val implementations = mutableListOf<String>()
-    classDefForEach { if (startupGate.definingClass in it.interfaces) implementations.add(it.type) }
-    checkTracker(implementations.size == 1 && startupGate.definingClass == trackingGate.definingClass,
-        "unique matching gate implementation", startupGate)
+    classDefForEach { if ((startupGate ?: trackingGate).definingClass in it.interfaces) implementations.add(it.type) }
+    checkTracker(implementations.size == 1 && (startupGate == null || startupGate.definingClass == trackingGate.definingClass),
+        "unique matching gate implementation", startupGate ?: trackingGate)
     val gateClass = mutableClassDefBy(implementations.single())
-    val gates = listOf(startupGate to "allowTrackerStartup", trackingGate to "allowTrackerTracking").map { (ref, helper) ->
+    val gates = listOfNotNull(startupGate?.let { it to "allowTrackerStartup" }, trackingGate to "allowTrackerTracking").map { (ref, helper) ->
         val method = gateClass.methods.single { it.name == ref.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }
         val code = method.code()
-        checkTracker(AccessFlags.PUBLIC.isSet(method.accessFlags) && code.count { it.opcode == Opcode.RETURN } == 2 &&
+        // R8 may merge both results into one final return (26.42); every return is wrapped either way.
+        checkTracker(AccessFlags.PUBLIC.isSet(method.accessFlags) && (code.count { it.opcode == Opcode.RETURN } == 2 ||
+            code.count { it.opcode == Opcode.RETURN } == 1 && code.last().opcode == Opcode.RETURN) &&
             code.none { it.opcode in setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD) } &&
             code.filter { it.opcode == Opcode.RETURN }.all { (it as OneRegisterInstruction).registerA <= 255 },
             "boolean gate exits", method)

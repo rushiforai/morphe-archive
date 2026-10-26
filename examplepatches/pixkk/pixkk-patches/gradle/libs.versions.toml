@@ -1,0 +1,19 @@
+[versions]
+# Hold the patcher at the version the Morphe Manager bundles; a newer pin trips its
+# Patcher-Version gate.
+morphe-patcher = "2.0.0"
+# Read by the app.morphe.patches settings plugin: remove it and configuration fails with
+# "Version with alias smali not found in version catalog".
+smali = "4220ae75f7"
+annotation = "1.10.0"
+gson = "2.14.0"
+guava = "33.7.2-jre"
+
+[libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
+[plugins]
+android-library = { id = "com.android.library" }

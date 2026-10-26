@@ -541,9 +541,19 @@ switch ([string]$argv[2]) {
         [System.IO.File]::WriteAllText((Join-Path $state ([System.IO.Path]::GetFileName([string]$argv[4]) + '.size')), [string]$size)
         exit 0
     }
-    'logcat' { if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log }; exit 0 }
+    'logcat' { 'Host logcat would wait for a disconnected transport.'; exit 88 }
     'shell' {
         $command = [string]$argv[3]
+        if ($command -ceq 'logcat') {
+            if ($argv.Count -ne 5 -or $argv[4] -cne '-d') { exit 89 }
+            if ($mode -eq 'offline-log') {
+                [IO.File]::WriteAllText((Join-Path $state 'offline-log.txt'), 'offline')
+                'error: device offline'
+                exit 1
+            }
+            if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log }
+            exit 0
+        }
         if ($command -eq 'getprop ro.product.model') { 'SM-S908U1'; exit 0 }
         if ($command.StartsWith('log -t HushfacebookVerify ')) {
             Add-Content -LiteralPath $log -Value "10-22 01:00:00.000  100  100 I HushfacebookVerify: $($command.Substring(26))"
@@ -558,7 +568,15 @@ switch ([string]$argv[2]) {
             "size=$([System.IO.File]::ReadAllText((Join-Path $state ([System.IO.Path]::GetFileName($remote) + '.size'))))"
             exit 0
         }
-        if ($command.StartsWith('rm -rf ')) { exit 0 }
+        if ($command -cmatch '\Arm -rf /data/local/tmp/hushfacebook-verify-(clean|patched) && mkdir -p /data/local/tmp/hushfacebook-verify-\1\z') { exit 0 }
+        if ($command.StartsWith('rm -rf ')) {
+            Add-Content -LiteralPath (Join-Path $state 'cleanup.txt') -Value $command
+            if ($mode -eq 'offline-log' -and (Test-Path -LiteralPath (Join-Path $state 'offline-log.txt'))) {
+                'error: device offline'
+                exit 1
+            }
+            exit 0
+        }
         exit 1
     }
 }
@@ -682,6 +700,20 @@ try {
     Assert-True ($deviceBroken.ExitCode -ne 0 -and $deviceBroken.Text -match $deviceReached -and
         $deviceBroken.Text -match 'dex2oat on clean exited 1' -and -not (Test-Path -LiteralPath $brokenReceipt)) `
         "A device run that broke left an earlier receipt behind (exit $($deviceBroken.ExitCode)).`n$($deviceBroken.Text)"
+
+    $offlineReceipt = Join-Path $standIns 'device-offline-log.json'
+    [System.IO.File]::WriteAllText($offlineReceipt, '{"schema":1,"result":"PASS"}')
+    $deviceOffline = Invoke-VerifierWithStandIns -Name 'device-offline-log' -DexDiffExit 0 `
+        -Serial 'TESTPHONE01' -ReceiptPath $offlineReceipt -DeviceMode 'offline-log'
+    Assert-True ($deviceOffline.ExitCode -ne 0 -and $deviceOffline.Text -match $deviceReached -and
+        $deviceOffline.Text -match 'Could not read logcat on TESTPHONE01 after verifying clean \(ADB exit 1\)' -and
+        $deviceOffline.Output -notcontains '[registers] success.' -and -not (Test-Path -LiteralPath $offlineReceipt)) `
+        "An offline log read passed or left an earlier PASS receipt (exit $($deviceOffline.ExitCode)).`n$($deviceOffline.Text)"
+    $offlineCleanup = @(Get-Content -LiteralPath (Join-Path $standIns 'device-offline-log/adb-state/cleanup.txt'))
+    Assert-True ($offlineCleanup.Count -eq 2 -and
+        $offlineCleanup -ccontains 'rm -rf /data/local/tmp/hushfacebook-verify-clean' -and
+        $offlineCleanup -ccontains 'rm -rf /data/local/tmp/hushfacebook-verify-clean.apk') `
+        "The CLI did not attempt both remote removals after its offline log read ($($offlineCleanup.Count)): $($offlineCleanup -join ' | ')"
 } finally {
     Remove-Item -LiteralPath $standIns -Recurse -Force -ErrorAction SilentlyContinue
 }

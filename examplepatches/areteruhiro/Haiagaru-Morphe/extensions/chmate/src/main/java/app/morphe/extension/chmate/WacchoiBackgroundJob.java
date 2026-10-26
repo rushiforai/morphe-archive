@@ -53,7 +53,6 @@ final class WacchoiBackgroundJob {
     private static final String ZZZSEARCH_URL = "https://zzzsearch.com/2ch/";
     private static final String EDGE_BOARD = "https://www.kyodemo.net/sdemo/b/e_e_liveedge/?kt=k_&j=1";
     private static final String EDGE_THREAD = "https://www.kyodemo.net/sdemo/r/e_e_liveedge/";
-    private static final long MIN_INTERVAL_MS = 10_000L;
     private static final int RESPONSE_LIMIT = 2 * 1024 * 1024;
     private static final int MAX_LIST_PAGES = 10_000;
     private static final int MAX_SEARCH_DAYS = 36525;
@@ -436,7 +435,7 @@ final class WacchoiBackgroundJob {
             // assuming that the poster name/ID is always the final table cell.
             String names = Html.fromHtml(row, Html.FROM_HTML_MODE_LEGACY).toString()
                     .replace('\u00a0', ' ').replace('\u3000', ' ').trim();
-            Matcher slip = SLIP.matcher(names);
+            Matcher slip = SLIP.matcher(WacchoiSearch.normalizeSlipText(names));
             while (slip.find()) {
                 if (WacchoiSearch.matchesFilter(four, slip, firstHalf)) {
                     found.add(profileUrl + "\n" + names + "\n" + slip.group());

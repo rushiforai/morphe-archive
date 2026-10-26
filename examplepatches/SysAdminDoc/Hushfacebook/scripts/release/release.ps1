@@ -478,10 +478,42 @@ try {
                 if (([string](& git -C $root rev-parse "$tag^{commit}")).Trim() -ne $head) { throw "$tag doesn't point at $head." }
                 Invoke-Native 'The tag push' { & git -C $root push --quiet origin $tag }
 
-                Step "publishing $tag"
-                Invoke-Native 'gh release create' {
-                    & gh release create $tag -R $Repository --verify-tag --title $tag --notes-file $notes `
-                        (($assetNames + 'SHA256SUMS.txt') | ForEach-Object { Join-Path $publishing $_ })
+                # Create may have succeeded before an interrupted download-back. Reuse that
+                # release without uploading again, and hold its hosted bytes to the same checks.
+                $preference = $ErrorActionPreference
+                try {
+                    $ErrorActionPreference = 'Continue'
+                    $global:LASTEXITCODE = -1
+                    $releaseOutput = @(& gh release view $tag -R $Repository --json 'tagName,isDraft,publishedAt' 2>&1 |
+                        ForEach-Object { [string]$_ })
+                    $releaseExit = $LASTEXITCODE
+                } finally { $ErrorActionPreference = $preference }
+                $releaseMetadataText = $releaseOutput -join "`n"
+                if ($releaseExit -eq 0) {
+                    try { $publishedRelease = $releaseMetadataText | ConvertFrom-Json }
+                    catch { throw "gh returned no readable release metadata for ${tag}: $($_.Exception.Message)" }
+                    if ($publishedRelease.isDraft -is [bool] -and $publishedRelease.isDraft) {
+                        throw "$tag is a draft. Publish it explicitly before retrying verification."
+                    }
+                    $publishedAt = [DateTimeOffset]::MinValue
+                    $hasPublishedTime = $publishedRelease.publishedAt -is [DateTime] -or $publishedRelease.publishedAt -is [DateTimeOffset]
+                    if ($publishedRelease.publishedAt -is [string]) {
+                        $hasPublishedTime = [DateTimeOffset]::TryParse($publishedRelease.publishedAt,
+                            [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$publishedAt)
+                    }
+                    if ($publishedRelease.tagName -isnot [string] -or $publishedRelease.tagName -cne $tag -or
+                            $publishedRelease.isDraft -isnot [bool] -or -not $hasPublishedTime) {
+                        throw "gh returned no matching published release metadata for $tag."
+                    }
+                    Step "$tag is already published; verifying its existing assets"
+                } elseif ($releaseMetadataText -match '\brelease not found\b|\bHTTP 404\b') {
+                    Step "publishing $tag"
+                    Invoke-Native 'gh release create' {
+                        & gh release create $tag -R $Repository --verify-tag --title $tag --notes-file $notes `
+                            (($assetNames + 'SHA256SUMS.txt') | ForEach-Object { Join-Path $publishing $_ })
+                    }
+                } else {
+                    throw "gh could not check whether $tag is already published (exit ${releaseExit}): $releaseMetadataText"
                 }
                 # A name nobody knows ahead, like the publishing copy's, so nothing can wait there
                 # with good copies for the compare.

@@ -7,6 +7,7 @@ package app.hushgram.extension.instagram.stories;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import app.hushgram.extension.instagram.misc.FontsForTests;
+import app.hushgram.extension.instagram.misc.Fonts;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
@@ -38,8 +40,8 @@ import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
 /**
- * What the story text font hooks answer: picked files go after Instagram's formats only with the
- * switch on, a rebuild by name gets the last one applied back, and anything else keeps Instagram's.
+ * Picked files go after free native formats and before paid ones only with the switch on. Native
+ * paid entries keep their gates, a name rebuild keeps the last local pick, and unknowns stay native.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 37})
@@ -75,6 +77,7 @@ public class StoryFontsTest {
         context = RuntimeEnvironment.getApplication();
         reset();
         StoryFonts.formatFor = Format::new;
+        StoryFonts.premiumOf = format -> format instanceof String && ((String) format).startsWith("paid:") ? 1 : 0;
         FontsForTests.loadEveryFile(Typeface.DEFAULT);
     }
 
@@ -139,6 +142,99 @@ public class StoryFontsTest {
         StoryFonts.formats(again);
         assertSame("the editor gets the same format each time", list.get(2), again.get(2));
         assertTrue(report(), report().contains(StoryFonts.ADDED + " 2"));
+    }
+
+    /** Instagram's picker gates the entire tail from its first paid row, not just each paid name. */
+    private static boolean nativePaidClick(List<?> list, int index) {
+        for (int at = 0; at < list.size(); at++) {
+            if (StoryFonts.premiumOf.applyAsInt(list.get(at)) == 1) return index >= at;
+        }
+        return false;
+    }
+
+    /** #325: imported files must not enter that paid tail; all native entries retain their identity and order. */
+    @Test
+    public void localFontsStaySelectableBeforeTheNativePaidTail() {
+        Settings.STORY_FONTS.save(true);
+        add("Zebra.ttf");
+        add("Alpha.otf");
+        Format nativeImport = new Format("/native/imported.ttf");
+        Object arcade = "paid:arcade";
+        Object gothic = "paid:gothic";
+        List<Object> list = new ArrayList<>(Arrays.asList("classic", nativeImport, arcade, gothic));
+        List<Object> before = new ArrayList<>(list);
+        before.add(new Format("/local/font.ttf"));
+        assertTrue("the old append puts a free local file in the paid tail", nativePaidClick(before, 4));
+
+        StoryFonts.formats(list);
+
+        assertEquals(6, list.size());
+        assertEquals("classic", list.get(0));
+        assertSame("Instagram's own imported format stays untouched", nativeImport, list.get(1));
+        assertEquals("Alpha", StoryFonts.label(((Format) list.get(2)).path));
+        assertEquals("Zebra", StoryFonts.label(((Format) list.get(3)).path));
+        assertSame(arcade, list.get(4));
+        assertSame(gothic, list.get(5));
+        assertFalse("a native imported file stays free", nativePaidClick(list, 1));
+        assertFalse("the first local font applies without a Plus offer", nativePaidClick(list, 2));
+        assertFalse("the second local font applies without a Plus offer", nativePaidClick(list, 3));
+        assertTrue("Arcade still requires its native entitlement", nativePaidClick(list, 4));
+        assertTrue("Gothic still requires its native entitlement", nativePaidClick(list, 5));
+        StoryFonts.applied(nativeImport);
+        assertNull("native imports do not acquire local ownership", StoryFonts.named(StoryFonts.IMPORT_FONT));
+
+        StoryFonts.formats(list);
+        assertEquals("the same list is not duplicated", 6, list.size());
+        assertSame(arcade, list.get(4));
+        assertSame(gothic, list.get(5));
+    }
+
+    /** The insertion also works with no free native entry, or no native entries at all. */
+    @Test
+    public void aPaidOnlyOrEmptyListStillPreservesNativeEligibility() {
+        Settings.STORY_FONTS.save(true);
+        add("Local.ttf");
+        List<Object> paid = new ArrayList<>(List.of("paid:headline"));
+        StoryFonts.formats(paid);
+        assertFalse(nativePaidClick(paid, 0));
+        assertEquals("paid:headline", paid.get(1));
+        assertTrue(nativePaidClick(paid, 1));
+
+        List<Object> empty = new ArrayList<>();
+        StoryFonts.formats(empty);
+        assertEquals(1, empty.size());
+        assertFalse(nativePaidClick(empty, 0));
+    }
+
+    /** An unknown boundary never falls back to appending a local file beyond a possibly paid row. */
+    @Test
+    public void unreadableNativeClassificationLeavesTheWholeListUntouched() {
+        Settings.STORY_FONTS.save(true);
+        add("Local.ttf");
+        Object unknown = new Object();
+        List<Object> list = new ArrayList<>(Arrays.asList("classic", unknown, "paid:arcade"));
+        List<Object> original = new ArrayList<>(list);
+        StoryFonts.premiumOf = format -> format == unknown ? -1 : 0;
+        StoryFonts.formats(list);
+        assertEquals(original, list);
+        assertSame(unknown, list.get(1));
+
+        StoryFonts.premiumOf = StoryFonts::nativePremium;
+        assertEquals(-1, StoryFonts.nativePremium(unknown));
+        StoryFonts.formats(list);
+        assertEquals("an unfilled classifier stub also leaves the list", original, list);
+    }
+
+    @Test
+    public void aThrowingNativeClassifierKeepsThePaidEntriesAndReportsIt() {
+        Settings.STORY_FONTS.save(true);
+        add("Local.ttf");
+        List<Object> list = new ArrayList<>(Arrays.asList("classic", "paid:gothic"));
+        List<Object> original = new ArrayList<>(list);
+        StoryFonts.premiumOf = format -> { throw new IllegalStateException("unreadable native font"); };
+        StoryFonts.formats(list);
+        assertEquals(original, list);
+        assertTrue(HookStatus.missing(FamilyNames.STORY_FONTS).toString().contains(IllegalStateException.class.getName()));
     }
 
     /** No files, no list, or a stub that can't make a format: Instagram's list as it was. */
@@ -251,6 +347,38 @@ public class StoryFontsTest {
         StoryFonts.formats(after);
         assertEquals(4, after.size());
         assertEquals(List.of("Lobster (3).ttf", "Lobster.ttf"), StoryFonts.names(context));
+    }
+
+    /** The first editor list after restart recovers before caching any local paths. */
+    @Test public void theFirstStoryListOmitsAnUnacceptedFontWhenAlreadyEnabled() {
+        abandonStoryFont();
+        List<Object> list = instagrams();
+        StoryFonts.formats(list);
+        assertEquals(3, list.size());
+        assertEquals("kept.ttf", new File(((Format) list.get(2)).path).getName());
+        assertFalse(new File(StoryFonts.directory(context), "pending.ttf").exists());
+        assertTrue("the existing saved switch stays on", Settings.STORY_FONTS.savedValue());
+    }
+
+    @Test public void theFirstSavedFontListRecoversWithoutAnotherImport() {
+        abandonStoryFont();
+        assertEquals(List.of("kept.ttf"), StoryFonts.names(context));
+        assertFalse(new File(StoryFonts.directory(context), "pending.ttf").exists());
+    }
+
+    private void abandonStoryFont() {
+        Settings.STORY_FONTS.save(true);
+        assertEquals("kept.ttf", add("kept.ttf"));
+        Fonts.Prepared pending = StoryFonts.prepare(context, new ByteArrayInputStream(TRUE_TYPE));
+        assertNotNull(pending);
+        assertEquals("pending.ttf", StoryFonts.prepareInstall(context, pending, "pending.ttf"));
+        assertTrue(pending.recordSetting(Settings.STORY_FONTS, true));
+        assertTrue(pending.install());
+        FontsForTests.reset();
+        FontsForTests.loadEveryFile(Typeface.DEFAULT);
+        StoryFonts.resetForTests();
+        StoryFonts.formatFor = Format::new;
+        StoryFonts.premiumOf = format -> format instanceof String && ((String) format).startsWith("paid:") ? 1 : 0;
     }
 
     /** The picker's name, made safe for a file: no folders, no control characters, never empty, not too long. */

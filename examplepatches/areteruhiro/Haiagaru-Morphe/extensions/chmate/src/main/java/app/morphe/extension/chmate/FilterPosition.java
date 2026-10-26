@@ -40,14 +40,18 @@ public final class FilterPosition {
     }
 
     public static void beforeFragment(Object fragment) {
-        if (!Haiagaru.keepQuickFilterPosition()) return;
+        beforeFragment(fragment, false);
+    }
+
+    static void beforeFragment(Object fragment, boolean required) {
+        if (!required && !Haiagaru.keepQuickFilterPosition()) return;
         try {
             View root = (View) fragment.getClass().getMethod("getView").invoke(fragment);
             View list = findList(root);
             if (list == null || !list.isShown()) return;
             Pending previous = pending.remove(list);
             if (previous != null) previous.close();
-            Pending next = new Pending(list);
+            Pending next = new Pending(list, required);
             if (next.anchor < 0) return;
             pending.put(list, next);
             if (next.adapter instanceof ListAdapter) ((ListAdapter) next.adapter).registerDataSetObserver(next.observer);
@@ -100,7 +104,7 @@ public final class FilterPosition {
                     Object manager=call(list,"getLayoutManager",new Class<?>[0]);
                     if(item.getReturnType().getName().equals("o.zzadi")) {
                         call(list,"scrollToPosition",new Class<?>[]{int.class},i);
-                        Field pendingOffset=manager.getClass().getDeclaredField("k");
+                        Field pendingOffset=inheritedField(manager.getClass(),"k");
                         pendingOffset.setAccessible(true);pendingOffset.setInt(manager,offset);list.requestLayout();
                     } else call(manager,"c",new Class<?>[]{int.class,int.class},i,offset);
                 }
@@ -116,9 +120,18 @@ public final class FilterPosition {
         return method.invoke(target, args);
     }
 
+    private static Field inheritedField(Class<?> type, String name) throws NoSuchFieldException {
+        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+            try { return current.getDeclaredField(name); }
+            catch (NoSuchFieldException ignored) { }
+        }
+        throw new NoSuchFieldException(name);
+    }
+
     private static final class Pending implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
         final View list;
         final Object adapter;
+        final boolean required;
         final Method item, count;
         final List<Object> before;
         final Object firstRow;
@@ -132,7 +145,8 @@ public final class FilterPosition {
             @Override public void onInvalidated() { close(); }
         };
 
-        Pending(View list) throws Exception {
+        Pending(View list, boolean required) throws Exception {
+            this.required = required;
             this.list = list;
             adapter = call(list, "getAdapter", new Class<?>[0]);
             if (adapter == null) throw new IllegalStateException("Response adapter missing");
@@ -174,7 +188,7 @@ public final class FilterPosition {
 
         @Override public boolean onPreDraw() {
             if (closed) return true;
-            if (!Haiagaru.keepQuickFilterPosition() || !list.isShown()) { close(); return true; }
+            if ((!required && !Haiagaru.keepQuickFilterPosition()) || !list.isShown()) { close(); return true; }
             try {
                 if (call(list, "getAdapter", new Class<?>[0]) != adapter) { close(); return true; }
                 List<Object> after = rows();
@@ -191,7 +205,7 @@ public final class FilterPosition {
                         // 242 inlined scrollToPositionWithOffset. The native scroll call
                         // invalidates saved state; k is its verified pending offset field.
                         call(list, "scrollToPosition", new Class<?>[]{int.class}, target);
-                        Field pendingOffset = manager.getClass().getDeclaredField("k");
+                        Field pendingOffset = inheritedField(manager.getClass(), "k");
                         pendingOffset.setAccessible(true);
                         pendingOffset.setInt(manager, top);
                         list.requestLayout();

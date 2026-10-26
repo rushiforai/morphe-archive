@@ -74,6 +74,8 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
+        TikTokPreferenceFragment.clearRecycledHighlight(convertView, getItem(position));
+        SearchTogglePreference.clearLocationAction(convertView);
         View row = delegate.getView(position, convertView, parent);
         if (isErrorMessage(getItem(position))) {
             SettingsUi.styleErrorHeading(row);
@@ -81,6 +83,9 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         }
         if (isBoundary(position)) return row;
         Preference preference = (Preference) getItem(position);
+        if (parent instanceof android.widget.ListView && parent.isLongClickable()
+                && preference.getClass() == Preference.class && preference.isSelectable())
+            SearchTogglePreference.bindTapOnly(row, preference);
         if (preference instanceof SettingsMenuPreference && ((SettingsMenuPreference) preference).isCompact()) {
             SettingsUi.styleCompactMenuRow(row, isBoundary(position + 1),
                     ((SettingsMenuPreference) preference).isAbout());

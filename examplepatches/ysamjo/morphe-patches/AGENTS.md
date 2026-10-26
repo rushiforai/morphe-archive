@@ -100,6 +100,16 @@ Die Paket-Unterordner unter `app/ysamjo/patches/` sind produktweise geschnitten
   falsch. Verlässlich ist nur der Gerätelog: TizenTube loggt bei jedem Write
   `"Setting key <key> to <wert>"`, und der Wert steht danach in
   `app_content_shell/content_shell/Local Storage/leveldb/` (per `run-as` lesbar).
+- **Der Branding-Patch ist `default = false` und muss mit `-e` mitgegeben werden.** Ein Lauf
+  nur mit dem Adblock-Patch liefert ein APK mit TizenTubes eigenem Artwork — das fällt erst am
+  Fernseher auf, weil Icon und Banner reine Ressourcen sind und im Log nichts fehlt. Prüfen
+  lässt sich das ohne Gerät: `unzip -p <apk> res/mipmap-xxxhdpi-v4/ic_app | md5` muss
+  `6c6f55cdf9cfa3ea8b8ebea76c64e993` ergeben, `res/drawable-xhdpi-v4/app_banner`
+  `83097153569f5c6350215c480f1fd24d`.
+- **Der TV-Launcher cached Banner und Icon über ein Update hinweg.** Nach `adb install -r`
+  zeigt die Kachel weiter das alte Bild; `am force-stop com.google.android.tvlauncher` reicht
+  **nicht**, erst ein Neustart des Geräts liest die Ressource neu. Nicht als fehlgeschlagenen
+  Patch deuten.
 
 ### 2.2 RTL+
 
@@ -178,6 +188,7 @@ gh release download v2.0.2 -R reisxd/TizenTubeCobalt -p "cobalt-arm.apk" -O /tmp
 java -Xms1024m -jar /tmp/morphe.jar patch \
   --patches patches/build/libs/patches-*.mpp \
   -e "Werbe-Blocker-Userscript einspritzen" \
+  -e "MOD-Kennzeichnung für Icon und Banner" \
   -o /tmp/tizentube-patched.apk \
   /tmp/tizentube.apk
 

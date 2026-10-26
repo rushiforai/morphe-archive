@@ -1154,6 +1154,8 @@ Save photo in post menus	帖子菜单中的保存照片
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	开启“保存任意照片”后，带照片的帖子在其三点菜单中也会有“保存照片”。包含多张照片的帖子会逐张依次保存。
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	保存照片
+# context: primary save row for a Story that reshares a Reel
+Save video	保存视频
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	保存所有照片
 # context: short message shown when the photos of a post could not start saving

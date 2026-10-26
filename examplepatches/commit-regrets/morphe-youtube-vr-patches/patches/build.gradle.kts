@@ -16,9 +16,67 @@ patches {
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
+// Locates a tool jar without baking anybody's home directory into this file:
+// -P<propertyName>=<path>, else $<envName>, else <tools dir>/<relative> where the
+// tools dir is $TOOLS_DIR or ~/tools. Override per machine, not in the repository.
+fun toolJar(propertyName: String, envName: String, relative: String): File {
+    providers.gradleProperty(propertyName).orNull?.let { return file(it) }
+    providers.environmentVariable(envName).orNull?.let { return file(it) }
+    val toolsDir = providers.environmentVariable("TOOLS_DIR").orNull
+        ?: File(System.getProperty("user.home"), "tools").absolutePath
+    return file("$toolsDir/$relative")
+}
+
+// Android platform jar, needed once the extension touches Android APIs (WebView,
+// Looper, ...). Pass -PandroidJar=<path> or $ANDROID_JAR, or keep it at ~/tools/android.
+val androidJar = toolJar("androidJar", "ANDROID_JAR", "android/android.jar")
+
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+
+    // The tests exercise the compiled patch classes (SettingsXmlKt) and, through the
+    // extension sources added to the test source set below, the extension's own Java. The
+    // patcher is needed for PatchException; whether the plugin hands it to `implementation`
+    // or `compileOnly` is its business, so the test needs its own explicit copy.
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.morphe.patcher)
+    // The Morphe plugin does not put the main output on the test compilation's classpath (the
+    // default java-plugin wiring does not survive its source-set reconfiguration), so the tests
+    // that exercise the patch's own classes -- SettingsXmlKt -- need it added by hand.
+    testImplementation(files(sourceSets["main"].output))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // The extension sources import android.* but the tested paths are pure statics that
+    // never touch a runtime object -- the stubbed android.jar is enough to compile, and the
+    // test JVM needs it too just to load (and then skip) the classes that do import android.
+    testCompileOnly(files(androidJar))
+    testRuntimeOnly(files(androidJar))
+}
+
+// The headless harnesses that used to live in gitignored build/probe tested the extension's
+// Java (SponsorBlockSettings, VerboseLog) by compiling it against the stubbed android.jar;
+// as JUnit tests they live with the code, and `check` runs them on every build.
+sourceSets["test"].java.srcDir(rootDir.resolve("extensions/src"))
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    // Sequential in one JVM: SponsorBlockSettings and VerboseLog carry static state
+    // (the configured behaviour map, the log gate) and one test's configuration must not
+    // leak into the next class in the suite.
+    systemProperty("junit.jupiter.execution.parallel.enabled", "false")
+}
+
+// The plugin configures javac for the extension dex (a lower target for minApi); the tests
+// run on the build JVM, so they need the full release -- and the Kotlin test compilation must
+// agree, or the JVM-target validation fails the pair.
+tasks.named<JavaCompile>("compileTestJava") {
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
+}
+tasks.matching { it.name == "compileTestKotlin" }.configureEach {
+    (this as org.jetbrains.kotlin.gradle.tasks.KotlinCompile).compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
 }
 
 tasks {
@@ -49,21 +107,6 @@ val extensionResourceDir = layout.buildDirectory.dir("generated/extension-resour
 
 fun jdkTool(name: String): String =
     File(System.getProperty("java.home"), "bin/$name").absolutePath
-
-// Locates a tool jar without baking anybody's home directory into this file:
-// -P<propertyName>=<path>, else $<envName>, else <tools dir>/<relative> where the
-// tools dir is $TOOLS_DIR or ~/tools. Override per machine, not in the repository.
-fun toolJar(propertyName: String, envName: String, relative: String): File {
-    providers.gradleProperty(propertyName).orNull?.let { return file(it) }
-    providers.environmentVariable(envName).orNull?.let { return file(it) }
-    val toolsDir = providers.environmentVariable("TOOLS_DIR").orNull
-        ?: File(System.getProperty("user.home"), "tools").absolutePath
-    return file("$toolsDir/$relative")
-}
-
-// Android platform jar, needed once the extension touches Android APIs (WebView,
-// Looper, ...). Pass -PandroidJar=<path> or $ANDROID_JAR, or keep it at ~/tools/android.
-val androidJar = toolJar("androidJar", "ANDROID_JAR", "android/android.jar")
 
 val compileExtension by tasks.registering(Exec::class) {
     description = "Compiles the YouTube VR patch extension sources."

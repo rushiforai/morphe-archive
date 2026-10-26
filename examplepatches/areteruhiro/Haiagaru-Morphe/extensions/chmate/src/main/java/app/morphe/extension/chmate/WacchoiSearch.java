@@ -104,6 +104,12 @@ final class WacchoiSearch {
         return (firstHalf ? upper : lower).contains(query);
     }
 
+    static String normalizeSlipText(String text) {
+        return java.text.Normalizer.normalize(text == null ? "" : text, java.text.Normalizer.Form.NFKC)
+                .replace('\u2010', '-').replace('\u2011', '-').replace('\u2212', '-')
+                .replace("\u200b", "").replace("\u200d", "");
+    }
+
     static void selectAllBoards(List<String> available, Set<String> selected) {
         selected.clear();
         selected.addAll(available);
@@ -132,7 +138,7 @@ final class WacchoiSearch {
             if (!("http".equals(resolved.getScheme()) || "https".equals(resolved.getScheme()))
                     || !("hissi.org".equalsIgnoreCase(host) || "www.hissi.org".equalsIgnoreCase(host))
                     || resolved.getUserInfo() != null || resolved.getPath() == null
-                    || !resolved.getPath().matches("/read\\.php/[A-Za-z0-9_-]+/[0-9]{8}/[A-Za-z0-9_-]+\\.html")) {
+                    || !resolved.getPath().matches("/read\\.php/[A-Za-z0-9_-]+/[0-9]{8}/[A-Za-z0-9+/_-]+\\.html")) {
                 return null;
             }
             return resolved.toString();

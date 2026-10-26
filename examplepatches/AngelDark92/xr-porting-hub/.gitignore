@@ -167,6 +167,12 @@ extensions/resolution-trace-layer/build-host-tests/
 VirtualDesktop/**
 diagnostics/*
 # Keep the new experiment's compact provenance and receipts reviewable.
+!diagnostics/steamlink-surface-video-trigger/
+diagnostics/steamlink-surface-video-trigger/*
+!diagnostics/steamlink-surface-video-trigger/*.md
+!diagnostics/steamlink-surface-video-trigger/*.json
+
+# Keep the new experiment's compact provenance and receipts reviewable.
 !diagnostics/steamlink-foveal-canvas/
 diagnostics/steamlink-foveal-canvas/*
 !diagnostics/steamlink-foveal-canvas/*.md
@@ -187,6 +193,10 @@ diagnostics/patch-categories/*
 !diagnostics/build-layout/*.md
 !diagnostics/build-layout/*.json
 !diagnostics/build-layout/*.ps1
+# Instruction rewrite ledger and parity receipts.
+!diagnostics/instruction-audit/
+diagnostics/instruction-audit/*
+!diagnostics/instruction-audit/*.md
 !diagnostics/build-verification/
 diagnostics/build-verification/*
 !diagnostics/build-verification/*.md

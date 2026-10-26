@@ -9,7 +9,7 @@ package app.crimera.patches.instagram.entity.mediadata
 import app.crimera.patches.common.requireExactlyOne
 import app.crimera.patches.instagram.models.MEDIA_DESCRIPTOR
 import app.morphe.patcher.patch.PatchException
-import app.morphe.util.getReference
+import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef

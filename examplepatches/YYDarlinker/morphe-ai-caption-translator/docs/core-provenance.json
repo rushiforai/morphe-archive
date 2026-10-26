@@ -8,7 +8,7 @@
       "upstream": "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/RebuildController.java",
       "destination": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildController.java",
       "upstream_sha256": "bc5ba7aab1c61dc785742e8cb63b3d69a5d11142aaf817d66d280bc415a4a1e3",
-      "sha256": "a9e5d68e51f80df86cae667b7542f8fa228b391ae2c553256f8676d5ddfe77d9",
+      "sha256": "cf7187586eff5b36b77eaa477e07eb466d611340e3770d81eebfd8a63fc52c5a",
       "snapshot": "translation-core/upstream/RebuildController.java.txt",
       "upstream_git_blob": "814922f06c539681e1471379faf61cb7c6651548"
     },
@@ -16,7 +16,7 @@
       "upstream": "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/RebuildApi.java",
       "destination": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildApi.java",
       "upstream_sha256": "674b53e2bf49ddf887be0f4a973a8f9eacde6cdf273c815e468e29b378eecfac",
-      "sha256": "4a42f964e8712b39af490dba2ce83d5c8d4c8e7d58a3e0910dbf4e2f4c46e8db",
+      "sha256": "69793f72586c17e0c6583a2e6552021f3c69d00c74bcf4004d131415f653c2dc",
       "snapshot": "translation-core/upstream/RebuildApi.java.txt",
       "upstream_git_blob": "bb5d3dca2d84602d004b4f7956cb1385aeb5495a"
     },
@@ -96,7 +96,7 @@
       "upstream": "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/DeepSeekApiClient.java",
       "destination": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/DeepSeekApiClient.java",
       "upstream_sha256": "36254c73f2ea10a4f2771a09a03b682f67d67509dd3c713ed6ffc8e6fe694e73",
-      "sha256": "2014b6f45757716481075f37917d2e32be5de7f070b1b1441213e12b88603fdc",
+      "sha256": "cbbcc1ae273d46ef27d1915fda3fcc89e9315065db0b40e0a69caa629e671389",
       "snapshot": "translation-core/upstream/DeepSeekApiClient.java.txt",
       "upstream_git_blob": "56820ce6380ac6b58ec73643fdcd1260dab7d974"
     },
@@ -127,7 +127,7 @@
   ],
   "snapshot_representation": "Exact Windows checkout bytes; .gitattributes disables conversion. upstream_git_blob identifies the canonical blob in the fixed Git commit.",
   "integration": "upstream-ac65fe8-latest-ui-r1",
-  "adaptation_scope": "platform, output and accounting port extraction; source-quote rebinding, clause-aware page boundaries, authored cue display contract and bounded slow retry added without changing the upstream prompt/protocol literals",
+  "adaptation_scope": "platform, output and accounting port extraction; source-quote rebinding, clause-aware page boundaries, authored cue display contract and bounded slow retry added without changing the upstream prompt/protocol literals; M5b: provider uses shared RetryAfter delta/GMT-date parsing, saturates effective long waits and the direct block/provider/source elapsed deadlines; request, negotiation, terminal, backoff and repair policies preserved; M5c: separate per-HTTP-attempt admission from sent transport reading; Job requires current OPEN session before each POST including negotiation and stream fallback; preserve finishSent, cancellation, publication and accounting semantics; M5d: Session/parent logical admission for ordinary/page/hole calls, persistent parent filter eligibility independent of retained READY plans, shared child failure gates and queue-reservation refunds; existing kick resumes unspent deferred holes; preserve per-attempt lifecycle, quotas, protocol and cache identity; M5d-R1: common monotonic saturated parent wait updates for ordinary and child failures, cancellation/slot cleanup and successful semantic-review scheduling; preserve Session boundaries, provider maximum, quotas and publication; M6a: read-only failure-decision trace from the actual controller state, terminal/filter flags and elapsed gates; preserve legacy accounting, all request decisions, quotas, cache identity, protocol and prompt",
   "new_files": [
     {
       "path": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/TranslationPresentation.java",

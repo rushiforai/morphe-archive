@@ -24,6 +24,7 @@ import java.util.WeakHashMap;
 /** Automatic logical anchors, independent of Android's version-specific Parcelable state.
  * Native restoration and explicit response links take precedence. No backup action is needed. */
 public final class ReadingPosition {
+    static final String ENABLED = "readingPositionRecovery";
     private static final WeakHashMap<Object, Session> SESSIONS = new WeakHashMap<>();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final java.util.Map<String, int[]> LAYOUT_ANCHORS = new java.util.HashMap<>();
@@ -40,6 +41,8 @@ public final class ReadingPosition {
             if (old != null) old.close();
             View root = (View) fragment.getClass().getMethod("getView").invoke(fragment);
             View list = FilterPosition.findList(root);
+            XPostPreviewPosition.opening(list);
+            if (!FeatureSwitches.enabled(ENABLED, true)) return;
             Activity activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             if (list == null || activity == null) return;
             Session session = new Session(fragment, activity, list);
@@ -145,13 +148,17 @@ public final class ReadingPosition {
         final Activity activity;
         final View list;
         final long installed;
+        final String version;
+        long nextInspection;
         final Runnable delayedSave = this::save;
         String inspectedKey, written;
         boolean closed, restoring;
 
         Session(Object fragment, Activity activity, View list) throws Exception {
             this.fragment = new WeakReference<>(fragment); this.activity = activity; this.list = list;
-            installed = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).lastUpdateTime;
+            android.content.pm.PackageInfo info = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+            installed = info.lastUpdateTime;
+            version = info.versionName;
         }
 
         Anchor anchor() throws Exception {
@@ -172,7 +179,6 @@ public final class ReadingPosition {
                 Object post = response(item.invoke(adapter, index));
                 int no = number(post);
                 if (no < 1) continue;
-                String version = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
                 Object board;
                 if (version.equals("0.8.10.191 dev")) board = ResponseArchiveEntry.field(owner, "W");
                 else {
@@ -209,6 +215,12 @@ public final class ReadingPosition {
         @Override public boolean onPreDraw() {
             if (closed) return true;
             if (restoring) { restoring = false; onScrollChanged(); return true; }
+            // ViewTreeObserver belongs to the whole window. Retained tablet
+            // fragments also receive callbacks while adjacent pages animate.
+            // Never perform reflective anchor discovery on every 120 Hz frame.
+            long now = android.os.SystemClock.uptimeMillis();
+            if (now < nextInspection) return true;
+            nextInspection = now + 250;
             try {
                 Anchor current = anchor();
                 if (current == null || current.key.equals(inspectedKey)) return true;

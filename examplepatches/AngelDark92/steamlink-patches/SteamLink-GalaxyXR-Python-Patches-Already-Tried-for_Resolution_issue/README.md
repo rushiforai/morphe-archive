@@ -2,6 +2,14 @@
 
 This directory is the historical record for approaches that did not produce permission-free, persistently high resolution. Do not stack these experiments into a new APK.
 
+## 2026-10-25 — Fovea/quad composition arms: incomplete reproduction; removed
+
+Two default-off OpenXR API-layer arms converted Steam Link's fovea projection to per-eye quads, one keeping the background projection and one converting both projections to quads. Both produced low resolution on exact 2.0.20/5001712. The arms were not a faithful reproduction of the reference standard-codec path: they omitted the small trigger projection and reused Valve's projection swapchains instead of the decoder-to-runtime-Surface path used by HEVC, AV1 and H.264. The ASTC path was deliberately out of scope. The patches, native source, payloads and manifests are removed. Do not re-add another topology-only quad approximation; a future attempt must start from a decoder Surface-swapchain experiment and a captured `xrEndFrame` layer array.
+
+## 2026-10-24 — Full-FOV foveal canvas: not the solution; removed
+
+**Full-FOV foveal canvas (experimental)** (`xrFovealCanvasPatch`) did not solve the high-resolution problem. The patch, native layer source, helper, manifest and catalog entry are removed. The high-resolution path is now the **Alpha-0 high-resolution trigger**; the foveal canvas remains removed. Historical evidence: [steamlink-foveal-canvas](../diagnostics/steamlink-foveal-canvas/README.md). Do not re-add it.
+
 ## 2026-09-11 — Android Surface actual video: tried, low resolution; do not reapply
 
 **Android Surface actual video (experimental)** (`surface_video_v1`, `libgxr_surface_video.so`) did not meet the resolution goal. The user reported low-resolution output and requested that it be recorded here to avoid applying it again. Keep this version out of future APK selections; do not present it as an untried experiment.
@@ -10,7 +18,7 @@ The experiment copies all rendered video projections, including foveal alpha, in
 
 The local bundle and saved reconstructed test APKs passed a fresh payload check. Source inspection found no deliberate downscale, but this mode excludes the established terminal-quad high-resolution trigger and preserves projection-only submission. This is a possible explanation, not a proven runtime cause. Kernel inspection did not establish a Surface-specific resolution gate or justify a kernel change.
 
-See the [low-resolution assessment](../diagnostics/steamlink-surface-video/LOW-RESOLUTION-ASSESSMENT-20260911.md). The active patch, native implementation/build targets, packaged resources and catalog entry were subsequently removed on 2026-09-11. The dedicated local installable bundle was deleted. Historical evidence is retained; old identifiers remain cleanup-only. The working **Galaxy XR high-resolution 3-projection fix** is a separate patch and is not marked failed by this result.
+See the [low-resolution assessment](../diagnostics/steamlink-surface-video/LOW-RESOLUTION-ASSESSMENT-20260911.md). The active patch, native implementation/build targets, packaged resources and catalog entry were subsequently removed on 2026-09-11. The dedicated local installable bundle was deleted. Historical evidence is retained; old identifiers remain cleanup-only. The working **Alpha-0 high-resolution trigger** is a separate patch and is not marked failed by this result.
 
 ## Captured on a 2.0.22 build
 

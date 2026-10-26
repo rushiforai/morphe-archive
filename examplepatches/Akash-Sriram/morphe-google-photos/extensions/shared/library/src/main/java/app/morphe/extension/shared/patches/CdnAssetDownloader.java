@@ -33,6 +33,30 @@ public final class CdnAssetDownloader {
     private CdnAssetDownloader() {}
 
     /**
+     * Calculates the SHA-1 hexadecimal hash of a given file.
+     * Returns null if file is null, does not exist, or is empty.
+     */
+    public static String calculateSha1(File file) {
+        if (file == null || !file.exists() || file.length() <= 0) return null;
+        try (InputStream is = new BufferedInputStream(new java.io.FileInputStream(file))) {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-1");
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+            byte[] hash = digest.digest();
+            StringBuilder sb = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            return sb.toString();
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /**
      * Downloads an asset from the given CDN URL to the destination file.
      * Uses atomic temporary file writes to prevent corrupted or partial downloads.
      *
@@ -41,19 +65,35 @@ public final class CdnAssetDownloader {
      * @return true if destination file exists and is valid, false otherwise.
      */
     public static boolean download(String urlStr, File destFile) {
-        return download(urlStr, destFile, DEFAULT_MAX_RETRIES);
+        return download(urlStr, destFile, DEFAULT_MAX_RETRIES, null);
+    }
+
+    public static boolean download(String urlStr, File destFile, String expectedSha1) {
+        return download(urlStr, destFile, DEFAULT_MAX_RETRIES, expectedSha1);
     }
 
     /**
      * Downloads an asset with configurable retry count.
      */
     public static boolean download(String urlStr, File destFile, int maxRetries) {
+        return download(urlStr, destFile, maxRetries, null);
+    }
+
+    public static boolean download(String urlStr, File destFile, int maxRetries, String expectedSha1) {
         if (urlStr == null || urlStr.isEmpty() || destFile == null) {
             return false;
         }
 
         if (destFile.exists() && destFile.length() > 0) {
-            return true;
+            if (expectedSha1 == null || expectedSha1.isEmpty()) {
+                return true;
+            }
+            String existingSha = calculateSha1(destFile);
+            if (expectedSha1.equalsIgnoreCase(existingSha)) {
+                return true;
+            }
+            Logger.printInfo(() -> TAG + ": Corrupted file on disk: " + destFile.getName() + " (expected " + expectedSha1 + ", got " + existingSha + "). Purging and re-downloading...");
+            destFile.delete();
         }
 
         String pathKey = destFile.getAbsolutePath();
@@ -137,6 +177,17 @@ public final class CdnAssetDownloader {
                             tempFile.delete();
                             Thread.sleep(1500);
                             continue;
+                        }
+
+                        // Verify SHA-1 cryptographic hash if expected hash is provided
+                        if (expectedSha1 != null && !expectedSha1.isEmpty()) {
+                            String actualSha = calculateSha1(tempFile);
+                            if (!expectedSha1.equalsIgnoreCase(actualSha)) {
+                                Logger.printInfo(() -> TAG + ": SHA-1 mismatch for " + destFile.getName() + " (expected " + expectedSha1 + ", got " + actualSha + "). Retrying...");
+                                tempFile.delete();
+                                Thread.sleep(1500);
+                                continue;
+                            }
                         }
 
                         if (tempFile.exists() && tempFile.length() > 0) {

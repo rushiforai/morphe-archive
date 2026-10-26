@@ -1,10 +1,14 @@
 package app.template.patches.mydialog.trackers
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.mydialog.CleverTapLifecycleInit
 import app.template.patches.mydialog.CleverTapPushTracking
 import app.template.patches.mydialog.CleverTapRnInit
+import app.template.patches.mydialog.CtApiDomainResolver
 import app.template.patches.shared.Constants.MYDIALOG_COMPATIBILITY
+import app.template.patches.shared.clearBody
+import app.template.patches.shared.ensureRegisters
 import app.template.patches.shared.returnEarly
 
 /**
@@ -33,5 +37,21 @@ val myDialogDisableCleverTapPatch = bytecodePatch(
         CleverTapLifecycleInit.method.returnEarly()
         CleverTapRnInit.method.returnEarly()
         CleverTapPushTracking.method.returnEarly()
+
+        // Residual /a1 beacons bypass all three (MITM-proven 18x on the patched
+        // build). Every CT request URL is built from CtApi.h(boolean)'s domain
+        // answer — resolve it to a dead loopback address instead. The SDK's own
+        // failure handling (timer-based retry/backoff) stays intact; no bytes
+        // ever leave the device and no nullability rules are broken.
+        val h = CtApiDomainResolver.method
+        h.clearBody()
+        h.ensureRegisters(2)
+        h.addInstructions(
+            0,
+            """
+            const-string v0, "127.0.0.1"
+            return-object v0
+            """.trimIndent(),
+        )
     }
 }

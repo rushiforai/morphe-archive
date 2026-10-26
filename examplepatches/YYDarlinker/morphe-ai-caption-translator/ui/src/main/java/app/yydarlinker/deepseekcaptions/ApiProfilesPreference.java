@@ -80,7 +80,11 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
     @Override
     protected void onBindView(View view) {
         setTitle(text("profiles_title"));
-        setSummary(ApiProfiles.list(getContext()).get(ApiProfiles.active(getContext())));
+        try {
+            setSummary(ApiProfiles.list(getContext()).get(ApiProfiles.active(getContext())));
+        } catch (ConfigRead.Failure unreadable) {
+            setSummary(text("config_unreadable"));
+        }
         super.onBindView(view);
         TextView summary = view.findViewById(android.R.id.summary);
         if (summary != null) {
@@ -148,13 +152,24 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
         TextView v = new TextView(getContext());
         styleAction(v);
         v.setText(label);
-        v.setOnClickListener(w -> click.run());
+        v.setOnClickListener(w -> guard(click));
         parent.addView(v, new LinearLayout.LayoutParams(-1, -2));
         return v;
     }
 
     private void error(String key) {
         Toast.makeText(getContext(), text(key), Toast.LENGTH_LONG).show();
+    }
+
+    private void guard(Runnable action) {
+        try {
+            action.run();
+        } catch (ConfigRead.Failure unreadable) {
+            error("config_unreadable");
+        } catch (RuntimeException failed) {
+            // A callback may fail after an in-memory write. Do not claim that nothing changed.
+            error("config_operation_uncertain");
+        }
     }
 
     private boolean flush() {
@@ -190,7 +205,20 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
         show(text("profiles_title"), body, "cancel", null);
         listBody = body;
         listDialog = dialog;
-        for (String id : ApiProfiles.list(getContext()).keySet()) addRow(id);
+        final Map<String, String> profiles;
+        try {
+            profiles = ApiProfiles.list(getContext());
+        } catch (ConfigRead.Failure unreadable) {
+            message(body, text("config_index_recovery"));
+            action(body, text("refresh"), this::showProfiles);
+            return;
+        }
+        for (String id : profiles.keySet()) addRow(id);
+        try {
+            ApiProfiles.active(getContext());
+        } catch (ConfigRead.Failure unreadable) {
+            message(body, text("config_unreadable"));
+        }
         View divider = new View(getContext());
         divider.setBackgroundColor(
                 CaptionSettingsStyle.tint(CaptionSettingsStyle.primary(getContext()), 24));
@@ -233,15 +261,15 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
         row.root.addView(row.panel, new LinearLayout.LayoutParams(-1, -2));
         listBody.addView(row.root, new LinearLayout.LayoutParams(-1, -2));
         row.name.setOnClickListener(
-                v -> {
+                v -> guard(() -> {
                     if (!current(row) || !finishBeforeLeaving()) return;
                     if (ApiProfiles.select(getContext(), id)) close();
                     else error("profile_invalid_edits");
-                });
-        row.more.setOnClickListener(v -> toggle(row));
+                }));
+        row.more.setOnClickListener(v -> guard(() -> toggle(row)));
         row.name.setOnLongClickListener(
                 v -> {
-                    toggle(row);
+                    guard(() -> toggle(row));
                     return true;
                 });
         row.name.setAccessibilityDelegate(
@@ -260,7 +288,12 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
 
     private void refreshNames() {
         Map<String, String> names = ApiProfiles.list(getContext());
-        String active = ApiProfiles.active(getContext());
+        String active;
+        try {
+            active = ApiProfiles.active(getContext());
+        } catch (ConfigRead.Failure unreadable) {
+            active = "";
+        }
         for (ProfileRow row : rows.values()) {
             String name = names.get(row.id);
             if (name == null) continue;
@@ -345,9 +378,9 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
         endRename();
         row.panel.removeAllViews();
         ProfileActionStrip actions = strip(row);
-        actions.add(text("profile_rename"), () -> beginRename(row));
+        actions.add(text("profile_rename"), () -> guard(() -> beginRename(row)));
         if (ApiProfiles.list(getContext()).size() > 1)
-            actions.add(text("profile_delete"), () -> beginDelete(row));
+            actions.add(text("profile_delete"), () -> guard(() -> beginDelete(row)));
 
         reveal(row);
     }
@@ -374,7 +407,7 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
                     if (current(row) && renameEditor == input) showActions(row);
                 });
         Runnable save =
-                () -> {
+                () -> guard(() -> {
                     if (!current(row) || renameEditor != input) return;
                     String value = input.getText().toString().trim();
                     if (value.isEmpty()) {
@@ -384,7 +417,7 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
                     ApiProfiles.rename(getContext(), row.id, value);
                     collapse();
                     row.more.requestFocus();
-                };
+                });
         actions.addPrimary(text("profile_save"), save);
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
         input.setOnEditorActionListener(
@@ -434,7 +467,7 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
         Button confirm =
                 actions.addPrimary(
                         text("profile_confirm_delete"),
-                        () -> {
+                        () -> guard(() -> {
                             if (!current(row)) return;
                             if (ApiProfiles.list(getContext()).size() <= 1) {
                                 showActions(row);
@@ -451,7 +484,7 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
                             listBody.removeView(row.root);
                             rows.remove(row.id);
                             refreshNames();
-                        });
+                        }));
         confirm.setContentDescription(
                 text("profile_confirm_delete") + ": " + ApiProfiles.list(getContext()).get(row.id));
         reveal(row);
@@ -499,6 +532,7 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
     }
 
     void clearCurrentKey() {
+        try {
         if (!ApiProfiles.flushExceptKey()) {
             error("profile_invalid_edits");
             return;
@@ -510,7 +544,12 @@ public final class ApiProfilesPreference extends CaptionSettingPreference {
                 name,
                 text("profile_clear_key_summary"),
                 text("profile_clear_key"),
-                () -> ApiProfiles.clearKey(getContext(), id));
+                () -> guard(() -> ApiProfiles.clearKey(getContext(), id)));
+        } catch (ConfigRead.Failure unreadable) {
+            error("config_unreadable");
+        } catch (RuntimeException failed) {
+            error("config_operation_uncertain");
+        }
     }
 
     @Override

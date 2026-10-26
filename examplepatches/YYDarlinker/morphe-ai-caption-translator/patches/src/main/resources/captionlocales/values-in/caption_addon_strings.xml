@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"Memuat diagnostik…"</string>
     <string name="cap_planner_model" formatted="false">"Model persiapan makna sumber (opsional)"</string>
     <string name="cap_planner_model_hint" formatted="false">"Kosongkan untuk memakai model terjemahan. Menggunakan URL API dan kunci yang sama; tidak memilih model lain otomatis."</string>
+    <string name="cap_config_unreadable" formatted="false">"Konfigurasi tersimpan tidak dapat dibaca. Periksa kolom terkait; tidak ada data yang diubah."</string>
+    <string name="cap_config_index_recovery" formatted="false">"Daftar profil tidak dapat dibaca. Tidak ada profil yang diubah. Baca ulang atau kembali. Pemulihan memerlukan cadangan setelan profil aplikasi ini yang valid dari sebelum kerusakan; layar ini tidak dapat menyusun ulang daftar."</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"Kolom tersimpan, tetapi sinkronisasi gagal. Ketuk di sini untuk mencoba sinkronisasi lagi."</string>
+    <string name="cap_config_save_uncertain" formatted="false">"Penyimpanan gagal atau belum dapat dipastikan; periksa nilai saat ini. Draf tetap disimpan. %1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"Operasi gagal atau hasilnya belum dapat dipastikan. Data mungkin berubah; buka ulang setelan untuk memeriksa."</string>
+    <string name="cap_config_origin_recovery" formatted="false">"Alamat API kunci asli tidak diketahui; konfigurasi tidak diubah. Pulihkan cadangan valid sebelum kerusakan, atau batalkan edit ini lalu hapus kunci secara eksplisit sebelum mengatur ulang."</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG adalah kategori hitungan lama untuk kegagalan HTTP dan penyaringan konten. Gunakan reason serta fakta penghentian, filter, dan penantian yang tercatat; fakta yang tidak tercatat tidak diketahui. Satu batch logis dapat menerima beberapa percobaan HTTP. Jumlahnya tidak memastikan penerimaan server atau penagihan. Respons, kualitas, dan cache dihitung terpisah. Kategori ini mencakup 429/503 dan tidak dengan sendirinya berarti kesalahan konfigurasi atau penghentian permanen."</string>
 </resources>

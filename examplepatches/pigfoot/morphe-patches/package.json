@@ -9,6 +9,6 @@
     "semantic-release": "^25.0.9"
   },
   "scripts": {
-    "test": "node scripts/test-release-rules.mjs"
+    "test": "node scripts/test-release-rules.mjs && node --test scripts/test-camscanner-lottery-init.mjs"
   }
 }

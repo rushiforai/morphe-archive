@@ -14,12 +14,12 @@ class BlueNoisePatchTest {
     )
 
     @Test
-    fun `blue noise is default on with the foveal layer on the exact pairs`() {
+    fun `blue noise is default on with both layers on the exact pairs`() {
         assertEquals("Blue-noise dithering", blueNoisePatch.name)
         assertTrue(blueNoisePatch.default)
         assertTrue(blueNoisePatch.dependencies.isEmpty())
         assertEquals(true, blueNoisePatch.options["fovea"].default)
-        assertEquals(false, blueNoisePatch.options["background"].default)
+        assertEquals(true, blueNoisePatch.options["background"].default)
         assertTrue("inputDepth" !in blueNoisePatch.options.keys)
         assertEquals(setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,

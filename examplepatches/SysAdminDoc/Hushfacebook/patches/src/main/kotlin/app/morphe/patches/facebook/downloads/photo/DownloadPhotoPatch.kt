@@ -95,12 +95,17 @@ internal fun BytecodePatchContext.postMenuPhotoItem(): () -> Unit {
 internal fun BytecodePatchContext.unlockPhotoSave() {
     val gated = mutableListOf<Pair<String, String>>()
     val actions = mutableListOf<Pair<String, String>>()
-    // A gate calls getBooleanValue, and the action answers the menu listener.
-    classDefForEachReferencing(types = listOf(MENU_LISTENER), names = listOf("getBooleanValue")) { classDef ->
+    // Every gate checks the literal Video type. getBooleanValue is common across unrelated
+    // models, so selecting it would decode most of the app just to find the viewer's two gates.
+    classDefForEachReferencing(strings = listOf(VIDEO_TYPE)) { classDef ->
         if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
         classDef.methods.forEach { method ->
             if (photoDownloadGates(method).isNotEmpty()) gated += classDef.type to method.name
-            if (isSavePhotoAction(method)) actions += classDef.type to method.name
+        }
+    }
+    classDefForEachReferencing(types = listOf(MENU_LISTENER)) { classDef ->
+        if (!classDef.type.startsWith(EXTENSION_CLASSES)) {
+            classDef.methods.filter(::isSavePhotoAction).forEach { actions += classDef.type to it.name }
         }
     }
     if (gated.isEmpty()) throw PatchException("$PHOTO_PATCH: found no photo menu reading can_viewer_download")

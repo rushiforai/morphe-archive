@@ -50,6 +50,7 @@ internal const val STORY_EMOJI = "$EXTENSION_PACKAGE/stories/StoryEmoji;"
 internal const val EMOJI_APPLIED = "$STORY_EMOJI->applied(Landroid/widget/EditText;)V"
 internal const val EMOJI_DRAWING = "$STORY_EMOJI->drawing(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;"
 internal const val IMPORTED_FONT = "importedFont"
+internal const val NATIVE_PREMIUM = "nativePremium"
 
 /** Instagram's name for a format that draws its text in a font file, which its own import gives. */
 internal const val IMPORT_FONT = "IMPORT_FONT"
@@ -68,15 +69,15 @@ internal const val LAYOUT_BUILDER = "Landroid/text/StaticLayout\$Builder;->obtai
     "Landroid/text/StaticLayout\$Builder;"
 
 /**
- * Adds the font files picked in HushGram settings to the story text editor's row of fonts, after
- * Instagram's own, which all stay (#275). Each one is a format Instagram's own font import would
+ * Adds the font files picked in HushGram settings to the story text editor's row of fonts, before
+ * Instagram's paid section. Its own fonts all stay (#275). Each is a format Instagram's import would
  * make for that file, so the editor and the finished sticker draw it the way they draw an imported
  * font. In the default selection with its switch off; adding a font in settings turns it on.
  */
 @Suppress("unused")
 val storyFontsPatch = bytecodePatch(
     name = "Story text fonts",
-    description = "Adds fonts you pick from your phone (.ttf or .otf files) to the story text editor, after Instagram's " +
+    description = "Adds fonts you pick from your phone (.ttf or .otf files) to the story text editor alongside Instagram's " +
         "own fonts, and can draw the emoji in story text from an emoji font file you pick. Starts off. Set both up in " +
         "HushGram settings > Stories.",
 ) {
@@ -112,12 +113,16 @@ internal class StoryFontTargets(
     val lines: List<LineLayout>,
     /** The format's fields the editor names a font from, as [labelFields] finds them. */
     val labels: List<FieldReference>,
+    /** The native name and predicate used to locate the first paid row in the editor's list. */
+    val premium: FontPremium,
 ) {
     val format: String get() = copy.returnType
 }
 
 /** A sticker method that lays out a line with StaticLayout.Builder, and where it moves the sticker's change to that line into a register. */
 internal class LineLayout(val method: MethodReference, val at: Int)
+
+internal class FontPremium(val name: FieldReference, val check: MethodReference)
 
 private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
 
@@ -128,6 +133,10 @@ internal fun BytecodePatchContext.addStoryFonts() {
         it.name == IMPORTED_FONT && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "Ljava/lang/Object;") &&
             it.returnType == "Ljava/lang/Object;"
     } ?: refuse("the extension has no $IMPORTED_FONT(Object, Object)Object")
+    val premium = mutableClassDefBy(STORY_FONTS).methods.singleOrNull {
+        it.name == NATIVE_PREMIUM && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;") &&
+            it.returnType == "I"
+    } ?: refuse("the extension has no $NATIVE_PREMIUM(Object)int")
     val list = method(found.list)
     val byName = method(found.byName)
     val apply = method(found.apply)
@@ -169,6 +178,24 @@ internal fun BytecodePatchContext.addStoryFonts() {
             iput-object p1, v0, $descriptionText
             :done
             return-object v0
+        """,
+    )
+
+    // Read the native classification; never change it or the controller's entitlement checks.
+    replace(
+        premium, 2,
+        """
+            instance-of v0, p0, ${found.format}
+            if-eqz v0, :unknown
+            check-cast p0, ${found.format}
+            iget-object v0, p0, ${found.premium.name}
+            if-eqz v0, :unknown
+            invoke-static { v0 }, ${found.premium.check}
+            move-result v0
+            return v0
+            :unknown
+            const/4 v0, -0x1
+            return v0
         """,
     )
 
@@ -312,7 +339,57 @@ internal fun BytecodePatchContext.findStoryFontTargets(): StoryFontTargets {
         if (!AccessFlags.PUBLIC.isSet(owner.accessFlags)) refuse("$type is not public")
     }
     return StoryFontTargets(named, copy, kind, mask, list, byName.single(), applies.single(), layout, lines,
-        labelFields(controller, format))
+        labelFields(controller, format), findFontPremium(controller, format, list))
+}
+
+/**
+ * The row builder reads the post-hook list, classifies names for paid badges, then uses that same
+ * predicate to find the first paid index. Clicks and scrolling treat the whole tail from that
+ * index as paid (#325), so local formats must go before it. Find the repeated name/predicate pair
+ * and the index boxed into a controller field, rather than guessing a boolean on the format.
+ */
+private fun BytecodePatchContext.findFontPremium(controller: ClassDef, format: String, list: MethodReference): FontPremium {
+    val found = controller.methods.flatMap { method ->
+        val code = method.code()
+        if (code.none { it.call()?.toString() == list.toString() }) return@flatMap emptyList()
+        val reads = code.indices.mapNotNull { at ->
+            val name = code[at].field()?.takeIf {
+                code[at].opcode == Opcode.IGET_OBJECT && it.definingClass == format && it.type == STRING
+            } ?: return@mapNotNull null
+            val call = code.getOrNull(at + 1)?.call()?.takeIf {
+                code[at + 1].opcode == Opcode.INVOKE_STATIC && it.parameterTypes.map(CharSequence::toString) == listOf(STRING) &&
+                    it.returnType == "Z" && code[at + 1].arguments() == listOf((code[at] as OneRegisterInstruction).registerA)
+            } ?: return@mapNotNull null
+            if (code.getOrNull(at + 2)?.opcode != Opcode.MOVE_RESULT ||
+                code.getOrNull(at + 3)?.opcode !in setOf(Opcode.IF_EQZ, Opcode.IF_NEZ)
+            ) return@mapNotNull null
+            at to FontPremium(name, call)
+        }
+        reads.groupBy { it.second.name.toString() to it.second.check.toString() }.values.mapNotNull { group ->
+            val badge = group.any { code[it.first + 3].opcode == Opcode.IF_EQZ }
+            val boundary = group.any { (at, _) ->
+                val tail = code.subList(at + 4, minOf(code.size, at + 16))
+                code[at + 3].opcode == Opcode.IF_NEZ && tail.any {
+                    it.call()?.toString() == "$INTEGER->valueOf(I)$INTEGER"
+                } && tail.any {
+                    it.opcode == Opcode.IPUT_OBJECT && it.field()?.let { field ->
+                        field.definingClass == controller.type && field.type == INTEGER
+                    } == true
+                }
+            }
+            group.first().second.takeIf { badge && boundary }
+        }
+    }.distinctBy { it.name.toString() to it.check.toString() }
+    if (found.size != 1) refuse("expected one native paid-font predicate and list boundary, found ${found.size}")
+    val target = found.single()
+    val check = declared(target.check)
+    val checker = classDefByOrNull(target.check.definingClass)
+    val name = classDefByOrNull(format)?.fields?.singleOrNull { it.name == target.name.name && it.type == STRING }
+    if (!AccessFlags.PUBLIC.isSet(check.accessFlags) || !AccessFlags.STATIC.isSet(check.accessFlags) ||
+        checker == null || !AccessFlags.PUBLIC.isSet(checker.accessFlags) ||
+        name == null || !AccessFlags.PUBLIC.isSet(name.accessFlags) || AccessFlags.STATIC.isSet(name.accessFlags)
+    ) refuse("the native paid-font name and predicate are not public")
+    return target
 }
 
 /**

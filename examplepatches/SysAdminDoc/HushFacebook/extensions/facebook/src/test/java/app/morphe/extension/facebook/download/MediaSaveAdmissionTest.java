@@ -264,6 +264,31 @@ public class MediaSaveAdmissionTest {
     }
 
     @Test
+    public void cancellingAnAlbumPhotoStopsTheRemainingPhotos() throws Exception {
+        CountDownLatch firstEntered = latch();
+        CountDownLatch releaseFirst = latch();
+        AtomicInteger photos = new AtomicInteger();
+        MediaDownload.policyForTests = new MediaUrlPolicy(host -> {
+            if (photos.incrementAndGet() == 1) {
+                firstEntered.countDown();
+                await(releaseFirst);
+            }
+            return privateAddress();
+        });
+        Thread chain = MediaDownload.savePhotos(context, Arrays.asList(FIRST, SECOND), Collections.emptyList());
+        await(firstEntered);
+        assertEquals(1, SaveControl.running().size());
+
+        assertTrue("the explicit cancel was refused", SaveControl.cancel(SaveControl.running().get(0).id));
+        releaseFirst.countDown();
+        finish(chain);
+
+        assertEquals("Cancel started the next photo of the album", 1, photos.get());
+        assertEquals(0, MediaDownload.savesInFlight());
+        assertTrue(SaveControl.running().isEmpty());
+    }
+
+    @Test
     public void aLaterPhotoWaitsInterruptiblyWhenOtherSavesFillTheFreedSlot() throws Exception {
         CountDownLatch heldJobs = latch();
         hold(heldJobs);

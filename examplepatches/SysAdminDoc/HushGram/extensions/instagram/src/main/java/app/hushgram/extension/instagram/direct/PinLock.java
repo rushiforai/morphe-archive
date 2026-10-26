@@ -28,6 +28,9 @@ import java.lang.ref.WeakReference;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
@@ -41,6 +44,7 @@ import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.Setting;
 
 /**
  * A HushGram PIN for {@link MessagesLock}, for people whose phone's lock is known to others. It
@@ -72,6 +76,10 @@ public final class PinLock {
     static volatile LongSupplier clock = System::currentTimeMillis;
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    /** The current process still rate-limits guesses when its preference write fails. */
+    private static String missPin;
+    private static long liveMisses;
+    private static long liveWaitUntil;
 
     private PinLock() {
     }
@@ -113,13 +121,25 @@ public final class PinLock {
 
     /** Stores [pin] as a salted hash and forgets earlier misses. False when it isn't 4 to 8 digits. */
     public static boolean set(CharSequence pin) {
+        return set(pin, () -> true);
+    }
+
+    private static boolean set(CharSequence pin, BooleanSupplier maySave) {
         if (!validFormat(pin)) return false;
         try {
             byte[] salt = new byte[16];
             RANDOM.nextBytes(salt);
             byte[] hash = hash(pin, salt, ITERATIONS);
-            Settings.LOCK_PIN.save(PREFIX + "$" + ITERATIONS + "$" + hex(salt) + "$" + hex(hash));
-            resetMisses();
+            String stored = PREFIX + "$" + ITERATIONS + "$" + hex(salt) + "$" + hex(hash);
+            synchronized (PinLock.class) {
+                synchronized (Setting.class) {
+                    if (!maySave.getAsBoolean()) return false;
+                    Map<Setting<?>, Object> updates = clearedMisses();
+                    updates.put(Settings.LOCK_PIN, stored);
+                    Setting.saveAll(updates);
+                    resetLiveMisses(stored);
+                }
+            }
             return true;
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.MESSAGES_LOCK, PIN_STEP, t);
@@ -128,9 +148,10 @@ public final class PinLock {
         }
     }
 
-    static void clear() {
-        Settings.LOCK_PIN.resetToDefault();
-        resetMisses();
+    static synchronized void clear() {
+        Map<Setting<?>, Object> updates = clearedMisses();
+        updates.put(Settings.LOCK_PIN, Settings.LOCK_PIN.defaultValue);
+        if (saveMisses(updates)) resetLiveMisses(Settings.LOCK_PIN.savedValue());
     }
 
     /** True when [pin] is the PIN. Doesn't count a miss; {@link #attempt} does. */
@@ -150,21 +171,27 @@ public final class PinLock {
     enum Result { RIGHT, WRONG, WAIT }
 
     /** Checks [pin] against the PIN, counting a miss and starting the wait after too many. */
-    static Result attempt(CharSequence pin) {
+    static synchronized Result attempt(CharSequence pin) {
         if (waitLeftMs() > 0) return Result.WAIT;
         if (matches(pin)) {
             resetMisses();
             return Result.RIGHT;
         }
-        long misses = Settings.LOCK_PIN_MISSES.get() + 1;
-        Settings.LOCK_PIN_MISSES.save(misses);
-        if (misses >= MAX_MISSES) Settings.LOCK_PIN_WAIT_UNTIL.save(clock.getAsLong() + WAIT_MS);
+        syncMisses();
+        long misses = Math.min(MAX_MISSES, Math.max(liveMisses, Settings.LOCK_PIN_MISSES.savedValue())) + 1;
+        liveMisses = misses;
+        if (misses >= MAX_MISSES) liveWaitUntil = clock.getAsLong() + WAIT_MS;
+        Map<Setting<?>, Object> updates = new LinkedHashMap<>();
+        updates.put(Settings.LOCK_PIN_MISSES, misses);
+        if (misses >= MAX_MISSES) updates.put(Settings.LOCK_PIN_WAIT_UNTIL, liveWaitUntil);
+        saveMisses(updates);
         return Result.WRONG;
     }
 
     /** How long until another try is allowed, in milliseconds; 0 when one is. */
-    static long waitLeftMs() {
-        long until = Settings.LOCK_PIN_WAIT_UNTIL.get();
+    static synchronized long waitLeftMs() {
+        syncMisses();
+        long until = Math.max(Settings.LOCK_PIN_WAIT_UNTIL.savedValue(), liveWaitUntil);
         if (until <= 0) return 0;
         long now = clock.getAsLong();
         // A clock set back can't stretch the wait past what one wait is.
@@ -173,8 +200,36 @@ public final class PinLock {
     }
 
     private static void resetMisses() {
-        Settings.LOCK_PIN_MISSES.resetToDefault();
-        Settings.LOCK_PIN_WAIT_UNTIL.resetToDefault();
+        resetLiveMisses(Settings.LOCK_PIN.savedValue());
+        saveMisses(clearedMisses());
+    }
+
+    private static Map<Setting<?>, Object> clearedMisses() {
+        Map<Setting<?>, Object> updates = new LinkedHashMap<>();
+        updates.put(Settings.LOCK_PIN_MISSES, 0L);
+        updates.put(Settings.LOCK_PIN_WAIT_UNTIL, 0L);
+        return updates;
+    }
+
+    private static boolean saveMisses(Map<Setting<?>, Object> updates) {
+        try {
+            Setting.saveAll(updates);
+            return true;
+        } catch (java.io.IOException failure) {
+            Logger.printException(() -> "Could not save PIN protection", failure);
+            return false;
+        }
+    }
+
+    private static void syncMisses() {
+        String stored = Settings.LOCK_PIN.savedValue();
+        if (!stored.equals(missPin)) resetLiveMisses(stored);
+    }
+
+    private static void resetLiveMisses(String stored) {
+        missPin = stored;
+        liveMisses = 0;
+        liveWaitUntil = 0;
     }
 
     // ---------------------------------------------------------------- storage
@@ -383,6 +438,11 @@ public final class PinLock {
      * cancel is a false. Nothing changes until both entries match.
      */
     public static void promptNew(Activity activity, Consumer<Boolean> done) {
+        promptNew(activity, () -> true, done);
+    }
+
+    /** A delayed form rechecks permission at the PIN transaction, after hashing. */
+    public static void promptNew(Activity activity, BooleanSupplier maySave, Consumer<Boolean> done) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
             done.accept(false);
             return;
@@ -442,7 +502,17 @@ public final class PinLock {
                     again.requestFocus();
                     return;
                 }
-                if (!set(a)) {
+                boolean[] refused = {false};
+                if (!set(a, () -> {
+                    refused[0] = !maySave.getAsBoolean();
+                    return !refused[0];
+                })) {
+                    if (refused[0]) {
+                        finished[0] = true;
+                        dialog.dismiss();
+                        done.accept(false);
+                        return;
+                    }
                     error(message, L10n.t("Couldn't save the PIN."));
                     return;
                 }

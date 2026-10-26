@@ -21,9 +21,9 @@ import java.io.File
  * names its work folders until something compiles the dex, which no test here asks for.
  */
 internal object PatchContexts {
-    fun of(classes: Collection<ClassDef>): BytecodePatchContext {
+    fun of(classes: Collection<ClassDef>, validate: Boolean = false): BytecodePatchContext {
         val work = File(System.getProperty("java.io.tmpdir"), "hushfacebook-patch-context")
-        val config = PatcherConfig(apkFile = File(work, "none.apk"), temporaryFilesPath = work)
+        val config = PatcherConfig(apkFile = File(work, "none.apk"), temporaryFilesPath = work, validate = validate)
         val metadataType = Class.forName("app.morphe.patcher.PackageMetadata")
         val metadata = metadataType.getConstructor(
             String::class.java, String::class.java, String::class.java,

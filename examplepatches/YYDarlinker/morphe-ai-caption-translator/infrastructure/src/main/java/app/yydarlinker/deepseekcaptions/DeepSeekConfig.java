@@ -52,7 +52,11 @@ final class DeepSeekConfig {
     // ---- Switches ----
 
     static boolean enabled(Context context) {
-        return prefs(context).getBoolean(ENABLED, false);
+        try {
+            return ConfigRead.bool(prefs(context), ENABLED, false);
+        } catch (ConfigRead.Failure unreadable) {
+            return false;
+        }
     }
 
     static void saveEnabled(Context context, boolean enabled) {
@@ -88,19 +92,50 @@ final class DeepSeekConfig {
 
     /** The settings a request is made with; they hold no plaintext key. */
     static ProviderSettings load(Context context) {
+        return read(context, null).provider;
+    }
+
+    /** Only an explicit user enable supplies a replacement for the saved enabled value. */
+    static ProviderSettings forUserEnable(Context context) {
+        return read(context, Boolean.TRUE).provider;
+    }
+
+    /** Ephemeral request input; the application reuses this strict read's resolved credential. */
+    static RequestSettings requestSettings(Context context) {
+        return read(context, null);
+    }
+
+    private static RequestSettings read(Context context, Boolean userEnabled) {
         synchronized (ApiProfiles.LOCK) {
+            try {
             SharedPreferences profile = profile(context);
-            String prompt = profile.getString(PROMPT, "");
+            String prompt = ConfigRead.string(profile, PROMPT, "");
             // No prompt is a default that follows the language, not a text frozen into the profile.
             boolean programDefault = isDefaultPrompt(prompt);
-            return new ProviderSettings(
-                    enabled(context),
-                    orDefault(profile.getString(BASE_URL, DEFAULT_BASE_URL), DEFAULT_BASE_URL),
-                    profile.getString(MODEL, DEFAULT_MODEL),
-                    programDefault ? defaultPrompt(context) : prompt,
-                    CaptionCredentialRef.of(SecureApiKey.load(context)),
-                    programDefault ? "program_default" : "stored_custom");
+            boolean enabled = userEnabled != null ? userEnabled
+                    : ConfigRead.bool(prefs(context), ENABLED, false);
+            String endpoint = baseUrl(context), model = model(context);
+            String effectivePrompt = programDefault ? defaultPrompt(context) : prompt;
+            String key = SecureApiKey.loadChecked(context);
+            return new RequestSettings(new ProviderSettings(
+                    enabled,
+                    endpoint,
+                    model,
+                    effectivePrompt,
+                    CaptionCredentialRef.of(key),
+                    programDefault ? "program_default" : "stored_custom"), key);
+            } catch (ConfigRead.Failure unreadable) {
+                return new RequestSettings(new ProviderSettings(), "");
+            }
         }
+    }
+
+    static String baseUrl(Context context) {
+        return ConfigRead.endpoint(ConfigRead.string(profile(context), BASE_URL, DEFAULT_BASE_URL));
+    }
+
+    static String model(Context context) {
+        return ConfigRead.string(profile(context), MODEL, DEFAULT_MODEL);
     }
 
     static boolean isReady(Context context) {
@@ -112,10 +147,6 @@ final class DeepSeekConfig {
                 || prompt.trim().isEmpty()
                 || prompt.equals(LEGACY_CHINESE_PROMPT)
                 || prompt.equals(DEFAULT_PROMPT);
-    }
-
-    private static String orDefault(String value, String fallback) {
-        return value == null || value.trim().isEmpty() ? fallback : value.trim();
     }
 
     static void saveBaseUrl(Context context, String value) {
@@ -251,9 +282,20 @@ final class DeepSeekConfig {
 
     // ---- Values ----
 
+    /** Passed directly into the Session settings; never stored globally or in preferences. */
+    static final class RequestSettings {
+        final ProviderSettings provider;
+        final String apiKey;
+
+        RequestSettings(ProviderSettings provider, String apiKey) {
+            this.provider = provider;
+            this.apiKey = apiKey;
+        }
+    }
+
     /** What a request needs of the provider settings; no size, opacity or plaintext key. */
     static final class ProviderSettings {
-        final boolean enabled, hasCredential;
+        final boolean enabled, hasCredential, readable;
         final String baseUrl,
                 model,
                 prompt,
@@ -268,6 +310,7 @@ final class DeepSeekConfig {
                 String prompt,
                 CaptionCredentialRef credential,
                 String provenance) {
+            readable = true;
             this.enabled = enabled;
             baseUrl = endpoint;
             this.model = model;
@@ -281,6 +324,11 @@ final class DeepSeekConfig {
                                     + " language; preserve names, numbers, tone and necessary"
                                     + " punctuation; do not add explanations."
                             : prompt;
+        }
+
+        private ProviderSettings() {
+            readable = enabled = hasCredential = false;
+            baseUrl = model = prompt = preferenceProvenance = effectivePreference = credentialId = "";
         }
 
         boolean ready() {
@@ -301,3 +349,43 @@ final class DeepSeekConfig {
         }
     }
 }
+/** Missing settings keep their defaults; present, unreadable settings never become defaults. */
+final class ConfigRead {
+    private ConfigRead() {}
+
+    static final class Failure extends IllegalStateException {
+        final String messageKey;
+        Failure() { this("config_unreadable"); }
+        Failure(String messageKey) {
+            super("Saved configuration cannot be read");
+            this.messageKey = messageKey;
+        }
+    }
+
+    static String string(SharedPreferences prefs, String key, String fallback) {
+        try {
+            String value = prefs.getString(key, fallback);
+            if (value == null) throw new Failure();
+            return value;
+        } catch (ClassCastException invalid) {
+            throw new Failure();
+        }
+    }
+
+    static boolean bool(SharedPreferences prefs, String key, boolean fallback) {
+        try {
+            return prefs.getBoolean(key, fallback);
+        } catch (ClassCastException invalid) {
+            throw new Failure();
+        }
+    }
+
+    static String endpoint(String value) {
+        try {
+            return ProviderEndpoint.validate(value);
+        } catch (IllegalArgumentException invalid) {
+            throw new Failure();
+        }
+    }
+}
+

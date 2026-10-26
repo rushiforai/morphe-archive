@@ -53,6 +53,7 @@ public class CaptionStableHostTest {
     @After
     public void tearDown() {
         CaptionSurface.activity(null);
+        CaptionPlayerAuthority.resetForTests();
         a.finish();
     }
 
@@ -83,5 +84,32 @@ public class CaptionStableHostTest {
     public void theTouchLayerIsTheSameTopmostContainerWhenItHostsTheCaption() {
         assertSame(touchHost, CaptionSurface.touchHost());
         assertSame(CaptionSurface.stableCaptionHost(), CaptionSurface.touchHost());
+    }
+
+    @Test public void closedShortsCannotBeRediscoveredFromAStillAttachedReelContainer() {
+        FrameLayout reel = new FrameLayout(a);
+        reel.setId(id("reel_player_overlay_root"));
+        content.addView(reel, new FrameLayout.LayoutParams(2736, 1264));layout();
+        CaptionPlayerAuthority.setOwner(a);CaptionPlayerAuthority.onShortsStateChanged(true);
+        CaptionSurface.refresh();assertTrue(CaptionSurface.isShorts());
+        CaptionPlayerAuthority.noteShortsSurface();assertTrue(CaptionPlayerAuthority.displayPermitted());
+        CaptionPlayerAuthority.onShortsStateChanged(false);
+        org.junit.Assert.assertFalse(CaptionSurface.isShorts());
+        org.junit.Assert.assertFalse(CaptionSurface.shortsSurfaceNow());
+        CaptionSurface.refresh();org.junit.Assert.assertFalse(CaptionSurface.isShorts());
+        org.junit.Assert.assertFalse(CaptionPlayerAuthority.displayPermitted());
+    }
+    @Test public void aPositiveReadyEventCanRevalidateShortsAfterAnEarlierNegativeProbeN75() {
+        FrameLayout reel=new FrameLayout(a);reel.setId(id("reel_player_overlay_root"));
+        content.addView(reel,new FrameLayout.LayoutParams(2736,1264));reel.setVisibility(View.GONE);layout();
+        CaptionPlayerAuthority.setOwner(a);CaptionPlayerAuthority.onShortsStateChanged(true);
+        org.junit.Assert.assertFalse(CaptionSurface.shortsSurfaceNow());
+        CaptionPlayerAuthority.settleRegularFromGeometry();
+        assertEquals(CaptionPlayerAuthority.REGULAR,CaptionPlayerAuthority.state());
+        reel.setVisibility(View.VISIBLE);layout();
+        org.junit.Assert.assertFalse("the previous negative probe is still throttled",CaptionSurface.shortsSurfaceNow());
+        CaptionSurface.allowShortsReadyProbe();
+        assertTrue("REGULAR does not imply that its Shorts surface has already been bound",CaptionPlayerAuthority.recoverShorts());
+        assertTrue(CaptionSurface.isShorts());assertTrue(CaptionPlayerAuthority.displayPermitted());
     }
 }

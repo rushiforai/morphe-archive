@@ -1,4 +1,4 @@
-package mightymich.morphe.patches.tiktok
+package mightymich.morphe.patches.com.zhiliaoapp.musically
 
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget

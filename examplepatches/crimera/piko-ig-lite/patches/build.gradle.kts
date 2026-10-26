@@ -34,7 +34,7 @@ dependencies {
     implementation(libs.piko.patches.library)
 
     // Typed Dalvik emission (https://github.com/crimera/morphe-bytecode).
-    implementation("crimera:morphe-bytecode:0.1.3")
+    implementation("crimera:morphe-bytecode:0.1.4")
 
     testImplementation(kotlin("test"))
 }

@@ -532,7 +532,8 @@ public final class VideoDownload {
         if (takenAt == null || takenAt <= 0) takenAt = InstagramMedia.takenAt(post);
         String id = InstagramMedia.mediaId(shown);
         return PostDetails.of(id != null ? id : InstagramMedia.mediaId(post), user == null ? null : InstagramMedia.username(user),
-                takenAt == null || takenAt <= 0 ? null : new Date(takenAt * 1000L)).onPage(pageOf(shown, post));
+                takenAt == null || takenAt <= 0 ? null : new Date(takenAt * 1000L))
+                .withPostId(InstagramMedia.mediaId(post)).onPage(pageOf(shown, post));
     }
 
     /** Which page of [post]'s carousel [shown] is, counted from 1, or 0 when it isn't one of them. */

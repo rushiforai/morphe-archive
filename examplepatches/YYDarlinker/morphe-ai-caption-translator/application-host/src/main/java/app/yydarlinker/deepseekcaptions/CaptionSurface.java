@@ -90,7 +90,16 @@ final class CaptionSurface {
     }
 
     static boolean isShorts() {
-        return visible(shorts.get());
+        return CaptionPlayerAuthority.shortsSurfaceAllowed() && visible(shorts.get());
+    }
+
+    static void shortsStateChanged() {
+        View old = shorts.get();
+        if (player.get() == old) player.clear();
+        shorts.clear();
+        shortsProbeAt = 0;
+        clearHostCaches();
+        invalidateGeometry();
     }
 
     /**
@@ -99,6 +108,7 @@ final class CaptionSurface {
      * so look for the visible Shorts container once more (at most every 250 ms, a bounded walk).
      */
     static boolean shortsSurfaceNow() {
+        if (!CaptionPlayerAuthority.shortsSurfaceAllowed()) return false;
         if (isShorts()) return true;
         long now = SystemClock.uptimeMillis();
         if (now - shortsProbeAt < SHORTS_PROBE_MS) return false;
@@ -107,6 +117,11 @@ final class CaptionSurface {
         if (current == null || current.getWindow() == null) return false;
         Set<Integer> ids = shortsIds(current);
         return !ids.isEmpty() && discover(current.getWindow().getDecorView(), ids) != null;
+    }
+
+    /** A new readiness event supersedes an earlier negative probe, without adding a probe loop. */
+    static void allowShortsReadyProbe() {
+        shortsProbeAt = SystemClock.uptimeMillis() - SHORTS_PROBE_MS;
     }
 
     private static Set<Integer> shortsIds(Activity current) {
@@ -134,7 +149,8 @@ final class CaptionSurface {
         refreshSearchCount++;
         View previousPlayer = player.get();
 
-        View shortView = discover(root, shortsIds(current));
+        View shortView = CaptionPlayerAuthority.shortsSurfaceAllowed()
+                ? discover(root, shortsIds(current)) : null;
         if (shortView != null) {
             if (shortView != previousPlayer) clearHostCaches();
             player = new WeakReference<>(shortView);
@@ -175,6 +191,7 @@ final class CaptionSurface {
 
     /** The largest visible view with one of [ids]; it becomes the cached Shorts view. */
     static View discover(View root, Set<Integer> ids) {
+        if (!CaptionPlayerAuthority.shortsSurfaceAllowed()) return null;
         View best = null;
         long largest = 0;
         ArrayDeque<View> pending = new ArrayDeque<>();

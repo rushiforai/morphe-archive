@@ -66,7 +66,6 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             "https://www.kyodemo.net/sdemo/b/e_e_liveedge/?kt=k_&j=1";
     private static final String EDGE_THREAD =
             "https://www.kyodemo.net/sdemo/r/e_e_liveedge/";
-    private static final long MIN_INTERVAL_MS = 10_000L;
     private static final int RESPONSE_LIMIT = 2 * 1024 * 1024;
     private static final int MAX_LIST_PAGES = 10_000;
     private static final int MAX_SEARCH_DAYS = 36525;
@@ -156,12 +155,33 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
     @Override void resume(){backgroundUi.removeCallbacks(refreshBackground);backgroundUi.post(refreshBackground);}
     @Override void pause(){backgroundUi.removeCallbacks(refreshBackground);}
     private boolean backgroundEnabled(){return getSharedPreferences("io.github.areteruhiro.chmate.haiagaru.ui-config",0).getBoolean("wacchoiBackgroundSearch",false);}
+    boolean allowsSource(int source) {
+        String origin=getIntent().getStringExtra("haiagaru.wacchoi.host");
+        if(origin==null)return true;
+        origin=origin.toLowerCase(Locale.ROOT);
+        boolean edge=origin.contains("eddibb.")||origin.contains("liveedge");
+        boolean five=origin.equals("5ch.io")||origin.endsWith(".5ch.io")||origin.equals("5ch.net")||origin.endsWith(".5ch.net")||origin.endsWith(".2ch.net");
+        return source==0?!edge:source==1?!five:true;
+    }
+    void useDaysAgo(int days) {
+        fromInput.setText(HissiScanTemplate.date(days));toInput.setText(HissiScanTemplate.date(0));searchUiChanged();
+    }
+    boolean postsOnly(){return getIntent().getBooleanExtra(HissiScanTemplate.POSTS,false);}
+    String templateBoardCodes(){return android.text.TextUtils.join(",",selectedBoards);}
+    String[][] templateBoardEntries(){
+        String[][] rows=new String[availableBoards.size()][2];
+        for(int i=0;i<rows.length;i++){BoardEntry board=availableBoards.get(i);rows[i]=new String[]{board.code,board.label};}
+        return rows;
+    }
+    void reloadTemplateBoards(){if(!stopButton.isEnabled()){boardsRequested=true;loadBoards();}}
+
     private boolean startBackground(Intent args){
         if(!backgroundEnabled())return false;
         int active=0;for(WacchoiBackgroundJob job:WacchoiSearchService.jobs().values())if(job.running)active++;
         if(active>=3){Toast.makeText(this,"同時走査は3件までです。走査一覧から停止できます",Toast.LENGTH_SHORT).show();return true;}
         Bundle form = captureSearchFields().getExtras();
         if(args.getExtras()!=null)form.putAll(args.getExtras());
+        form.putBoolean(HissiScanTemplate.POSTS,postsOnly());
         args.replaceExtras(form);
         backgroundJobId=java.util.UUID.randomUUID().toString();args.putExtra(WacchoiSearchService.JOB_ID,backgroundJobId);
         localHistory=null;
@@ -224,7 +244,20 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             }
             if (host != null) restoredDraft = true;
         }
-        restoreTabResults();
+        if(!allowsSource(searchSource))searchSource=allowsSource(0)?0:1;
+        if(getIntent().getBooleanExtra(HissiScanTemplate.AUTO,false)&&fields==null&&selectedBackground()==null){
+            String templateBoards=getIntent().getStringExtra("haiagaru.hissi.template.boards");
+            if(templateBoards!=null&&!templateBoards.trim().isEmpty()){
+                selectedBoards.clear();
+                for(String board:templateBoards.split("[,\\s]+"))if(board.matches("[A-Za-z0-9_-]+"))selectedBoards.add(board);
+                restoredBoards=true;restoreAllBoards=false;renderBoardChoices();
+            }
+            useDaysAgo(getIntent().getIntExtra("haiagaru.hissi.daysAgo",0));
+            pageLimitInput.setText(Integer.toString(getIntent().getIntExtra("haiagaru.hissi.pages",100)));
+            requestLimitInput.setText(Integer.toString(getIntent().getIntExtra("haiagaru.hissi.requests",0)));
+            getIntent().putExtra(HissiScanTemplate.AUTO,false);
+            backgroundUi.post(()->{if(!isDestroyed()&&!stopButton.isEnabled())searchFromCompose();});
+        }else restoreTabResults();
     }
 
     private void restoreTabResults(){
@@ -318,6 +351,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
     boolean isFullWacchoiSearch() {
         return searchSource == 0 && getIntent().getBooleanExtra("haiagaru.wacchoi.hissi", false);
     }
+    boolean fullProviderSwitchAllowed(){return SettingsProfiles.prefs(this).getInt(HissiScanTemplate.PROVIDER,0)==3;}
     void openFullWacchoiKyodemo() {
         if (stopButton.isEnabled()) return;
         String query = fourInput.getText().toString().trim();
@@ -342,6 +376,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         }
         Intent checker = new Intent(this, HissiMenuActivity.class)
                 .putExtra("haiagaru.wacchoi.search", true)
+                .putExtra("haiagaru.wacchoi.providerChosen",true)
                 .putExtra("haiagaru.wacchoi.kyodemo", true)
                 .putExtra("haiagaru.wacchoi.query", kyodemoQuery)
                 .putExtra("haiagaru.wacchoi.host", host)
@@ -352,10 +387,11 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             finish();
         }
         getSharedPreferences("haiagaru_checker_choice", MODE_PRIVATE).edit()
-                .putBoolean(host.toLowerCase(Locale.ROOT) + "/" + board, true).apply();
+                .putBoolean(FullWacchoiProvider.choiceKey(host,board), true).apply();
     }
     void searchUiChanged() { if (composeChanged != null) composeChanged.run(); }
     void selectSource(int source) {
+        if(!allowsSource(source))return;
         searchSource = source;
         getSharedPreferences(WacchoiSearchOptions.PREFS,0).edit().putInt("search.lastSource",source).apply();
         if (restoreAllBoards && source == 0) loadBoardsOnDemand();
@@ -436,7 +472,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         root.addView(title, row());
 
         TextView note = new TextView(this);
-        note.setText("Hissiは板・日付ごとのワッチョイを検索します。エッヂはKyodemoに収録された現行／過去スレのID・スレ名・各レス本文を検索します。絞り込み文字は任意です。最低10秒間隔で取得し、上限や停止後は続きから再開できます。検索サービスに未収録の投稿は対象外です。");
+        note.setText("Hissiは板・日付ごとのワッチョイを検索します。エッヂはKyodemoに収録された現行／過去スレのID・スレ名・各レス本文を検索します。絞り込み文字は任意です。走査間隔はHaiagaru設定から接続先ごとに変更でき、上限や停止後は続きから再開できます。検索サービスに未収録の投稿は対象外です。");
         note.setTextSize(13);
         root.addView(note, row());
         Button historyButton=new Button(this);historyButton.setText("上・下4桁の検索履歴・保存結果");
@@ -660,7 +696,10 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         openZzzSearch(ZZZSEARCH_URL + "?s=5&query=" + Uri.encode(query.toString().trim()));
     }
 
+    private boolean boardListLoading;
     private void loadBoards() {
+        if(boardListLoading)return;
+        boardListLoading=true;
         boardStatus.setText("Hissiから板一覧を取得しています…");
         executor.submit(() -> {
             try {
@@ -678,6 +717,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
                 if (loaded.isEmpty()) throw new IllegalStateException("板一覧を読み取れませんでした");
                 runOnUiThread(() -> {
                     if (isDestroyed()) return;
+                    boardListLoading=false;
                     availableBoards.clear(); availableBoards.addAll(loaded);
                     if(restoreAllBoards){selectedBoards.addAll(seen);restoreAllBoards=false;}
                     else if (!restoredBoards && selectedBoards.isEmpty() && seen.contains("android")) selectedBoards.add("android");
@@ -688,6 +728,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             } catch (Exception error) {
                 runOnUiThread(() -> {
                     if (isDestroyed()) return;
+                    boardListLoading=false;
                     boardsRequested = false;
                     boardStatus.setText("板一覧を取得できません: " + error.getMessage()
                             + "。通信後に検索画面を開き直してください。");
@@ -806,7 +847,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         resumeButton.setEnabled(false);
         startButton.setEnabled(false); edgeStartButton.setEnabled(false);
         stopButton.setEnabled(true); resultsLayout.removeAllViews();
-        statusView.setText("開始しています。ページ取得は最低10秒間隔です。");
+        statusView.setText("開始しています。Hissiの取得間隔は" + Haiagaru.hissiScanIntervalSeconds() + "秒です。");
         job = executor.submit(() -> runSearch(board, from, to, four, firstHalf, pageLimit, null));
     }
 
@@ -926,7 +967,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         resumeButton.setEnabled(false);
         startButton.setEnabled(false); edgeStartButton.setEnabled(false);
         stopButton.setEnabled(true); resultsLayout.removeAllViews();
-        statusView.setText("Kyodemoのエッヂ板からスレ一覧を取得しています。通信は最低10秒間隔です。");
+        statusView.setText("Kyodemoのエッヂ板からスレ一覧を取得しています。取得間隔は" + Haiagaru.kyodemoScanIntervalSeconds() + "秒です。");
         job = executor.submit(() -> runEdgeSearch(four, firstHalf, threadLimit, null));
     }
 
@@ -1123,7 +1164,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             // assuming that the poster name/ID is always the final table cell.
             String names = Html.fromHtml(row, Html.FROM_HTML_MODE_LEGACY).toString()
                     .replace('\u00a0', ' ').replace('\u3000', ' ').trim();
-            Matcher slip = SLIP.matcher(names);
+            Matcher slip = SLIP.matcher(WacchoiSearch.normalizeSlipText(names));
             while (slip.find()) {
                 if (WacchoiSearch.matchesFilter(four, slip, firstHalf)) {
                     found.add(profileUrl + "\n" + names + "\n" + slip.group());
@@ -1208,6 +1249,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         runOnUiThread(() -> statusView.setText(value));
     }
     private void publishResult(String item, String caption) {
+        if(postsOnly())return;
         if(localHistory!=null&&!showingHistory)localHistory.add(0,item,caption,"","");
         String[] values = item.split("\\n", 3);
         runOnUiThread(() -> {

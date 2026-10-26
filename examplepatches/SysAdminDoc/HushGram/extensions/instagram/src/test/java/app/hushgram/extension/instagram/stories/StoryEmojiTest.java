@@ -8,6 +8,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -36,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import app.hushgram.extension.instagram.misc.FontsForTests;
+import app.hushgram.extension.instagram.misc.Fonts;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
@@ -85,7 +87,8 @@ public class StoryEmojiTest {
         HookStatus.clear();
         StoryEmoji.resetForTests();
         File kept = StoryEmoji.kept(RuntimeEnvironment.getApplication());
-        if (kept.exists()) assertTrue(kept.delete());
+        File[] files = kept.getParentFile().listFiles();
+        if (files != null) for (File file : files) assertTrue(file.delete());
     }
 
     private void keep() {
@@ -243,6 +246,38 @@ public class StoryEmojiTest {
         byte[] before = Files.readAllBytes(kept.toPath());
         assertFalse(StoryEmoji.store(context, new ByteArrayInputStream("not a font".getBytes())));
         assertArrayEquals(before, Files.readAllBytes(kept.toPath()));
+    }
+
+    /** The first emoji hook after restart reads the last accepted bytes, without another import. */
+    @Test public void theFirstEmojiReadRecoversAnUnacceptedReplacementWhenAlreadyEnabled() throws IOException {
+        keep();
+        abandonEmoji();
+        SpannableStringBuilder text = new SpannableStringBuilder(SMILEY);
+        StoryEmoji.drawing(text);
+        assertEquals(Arrays.asList(0, 2), spans(text));
+        assertArrayEquals(TRUE_TYPE, Files.readAllBytes(StoryEmoji.kept(context).toPath()));
+        assertTrue("recovery preserves the saved switch", Settings.STORY_EMOJI.savedValue());
+    }
+
+    @Test public void anInterruptedFirstEmojiFileUsesNativeEmojiOnTheFirstRead() {
+        abandonEmoji();
+        SpannableStringBuilder text = new SpannableStringBuilder(SMILEY);
+        StoryEmoji.drawing(text);
+        assertEquals(new ArrayList<Integer>(), spans(text));
+        assertFalse(StoryEmoji.kept(context).exists());
+    }
+
+    private void abandonEmoji() {
+        Settings.STORY_EMOJI.save(true);
+        Fonts.Prepared pending = StoryEmoji.prepare(context,
+                new ByteArrayInputStream(new byte[]{'O', 'T', 'T', 'O', 1}));
+        assertNotNull(pending);
+        assertTrue(StoryEmoji.prepareInstall(context, pending));
+        assertTrue(pending.recordSetting(Settings.STORY_EMOJI, true));
+        assertTrue(pending.install());
+        FontsForTests.reset();
+        FontsForTests.loadEveryFile(Typeface.MONOSPACE);
+        StoryEmoji.resetForTests();
     }
 
     /** The picked font draws each emoji without its selector, so the phone's color font doesn't take it back. */

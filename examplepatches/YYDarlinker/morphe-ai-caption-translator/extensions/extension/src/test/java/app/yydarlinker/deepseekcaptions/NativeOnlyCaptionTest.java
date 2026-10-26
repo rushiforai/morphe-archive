@@ -178,6 +178,7 @@ public class NativeOnlyCaptionTest {
                     }
                 });
         CaptionNativeProjection.resetForTests();
+        NativeCaptionBridge.resetForTests();
         CaptionSessionReconciler.resetForTests();
         CaptionSessionIntent.resetForTests(activity);
         SourceCatalog.clear();
@@ -186,6 +187,7 @@ public class NativeOnlyCaptionTest {
         activations.clear();
         sources.clear();
         currentVideo = VIDEO;
+        NativeCaptionBridge.onVideoId(VIDEO);
         DeepSeekConfig.saveEnabled(activity, true);
         CaptionSessionReconciler.onVideo(activity, VIDEO);
     }
@@ -194,6 +196,7 @@ public class NativeOnlyCaptionTest {
     public void after() {
         CaptionSessionReconciler.resetForTests();
         CaptionNativeProjection.resetForTests();
+        NativeCaptionBridge.resetForTests();
         CaptionSessionIntent.resetForTests(activity);
         activity.finish();
     }
@@ -201,7 +204,7 @@ public class NativeOnlyCaptionTest {
     @Test
     public void sourceRequestsAreNeverGivenAFabricatedTarget() {
         CaptionSessionIntent.userToggled(activity, true);
-        CaptionSessionIntent.userSelected(activity, "ja", true);
+        CaptionNativeProjection.selection(VIDEO,"ja",SOURCE+"&tlang=ja",false,true,true,0L);
         assertEquals(SOURCE, DeepSeekCaptionHook.rewriteUrl(null, SOURCE));
     }
 
@@ -217,7 +220,6 @@ public class NativeOnlyCaptionTest {
         assertTrue(projection.translated);
         CaptionSessionIntent intent = CaptionSessionIntent.load(activity);
         assertFalse("an observation must not switch AI captions on", intent.aiEnabled);
-        assertFalse(intent.hasTarget());
         assertEquals(0L, intent.revision);
         assertTrue("an observation must not start a session", activations.isEmpty());
     }
@@ -233,8 +235,8 @@ public class NativeOnlyCaptionTest {
 
         NativeCaptionBridge.onNativeSelection(new Object(), zh, Origin.PREFERRED_TRACK);
 
-        assertTrue(CaptionSessionIntent.load(activity).translateTarget);
-        assertEquals("zh-Hans", CaptionSessionIntent.load(activity).targetLanguage);
+        assertTrue(CaptionNativeProjection.snapshot().translated);
+        assertEquals("zh-Hans", CaptionNativeProjection.snapshot().target());
         assertEquals("native translated selection starts the AI overlay", 1, activations.size());
         assertTrue(activations.get(0), activations.get(0).contains("tlang=zh-Hans"));
     }
@@ -247,8 +249,8 @@ public class NativeOnlyCaptionTest {
 
         NativeCaptionBridge.onNativeSelection(new Object(), en, Origin.PREFERRED_TRACK);
 
-        assertFalse(CaptionSessionIntent.load(activity).translateTarget);
-        assertEquals("en", CaptionSessionIntent.load(activity).targetLanguage);
+        assertFalse(CaptionNativeProjection.snapshot().translated);
+        assertEquals("en", CaptionNativeProjection.snapshot().target());
         assertTrue(activations.isEmpty());
         assertEquals(1, sources.size());
     }

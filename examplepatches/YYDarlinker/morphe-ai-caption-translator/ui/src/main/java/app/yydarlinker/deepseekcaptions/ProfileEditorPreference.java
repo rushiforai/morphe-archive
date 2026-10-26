@@ -16,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * An inline text field of the active API profile, on the Morphe second-level screen.
@@ -38,6 +39,9 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
     private String boundProfile = "";
     private View boundView;
     private long boundRevision = -1;
+    private boolean lastFlushChanged;
+    private boolean synchronizationPending;
+    private boolean changedDuringCommit;
 
     ProfileEditorPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -66,6 +70,9 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
     /** The message shown when saving failed without any detail. */
     abstract String defaultFailure();
 
+    /** In-process storage token, read without decrypting; used only to recognize partial writes. */
+    Object storedValue() { return null; }
+
     /** A value that must not be saved: return false, after reporting it. */
     boolean accepts(String value) {
         return true;
@@ -86,16 +93,25 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
         return value.equals(lastCommitted);
     }
 
+    @Override
+    public boolean flushChanged() {
+        return lastFlushChanged;
+    }
+
     // ---- Binding ----
 
     /** The view and values this field was bound with are still those of the active profile. */
     final boolean bound() {
+        try {
         return boundRevision == ApiProfiles.revision()
                 && boundProfile.equals(ApiProfiles.active(getContext()));
+        } catch (ConfigRead.Failure unreadable) {
+            return false;
+        }
     }
 
     private boolean forProfile(String profile) {
-        return profile.equals(ApiProfiles.active(getContext()));
+        return bound() && profile.equals(boundProfile);
     }
 
     @Override
@@ -129,9 +145,22 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
     protected final View onCreateView(ViewGroup parent) {
         ApiProfiles.register(this);
         // Commit before a scroll-induced recreation; the old debounce must not be discarded.
+        boolean sameBinding = editor != null && bound();
+        if (!sameBinding) synchronizationPending = false;
         flushProfile();
+        String draft = sameBinding ? editor.getText().toString() : null;
+        String committed = lastCommitted;
+        CharSequence error = sameBinding ? editor.getError() : null;
+        CharSequence feedback = sameBinding && state != null ? state.getText() : null;
+        boolean keepDraft = sameBinding && !flushed(draft.trim());
         cancelPendingSave();
-        boundProfile = ApiProfiles.active(getContext());
+        boolean readable = true;
+        try {
+            boundProfile = ApiProfiles.active(getContext());
+        } catch (ConfigRead.Failure unreadable) {
+            boundProfile = "";
+            readable = false;
+        }
         boundRevision = ApiProfiles.revision();
         Context context = getContext();
         if (parent instanceof ListView) {
@@ -156,14 +185,33 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
         editor.setId(CaptionEditorIds.forKey(getKey()));
         editor.setFocusableInTouchMode(true);
         CaptionSettingsStyle.editor(editor);
-        configureEditor(editor);
-        String initial = initialValue();
-        editor.setText(initial);
-        editor.setSelection(initial.length());
-        lastCommitted = initial.trim();
+        String initial = "";
+        try {
+            if (readable) {
+                configureEditor(editor);
+                initial = initialValue();
+            }
+        } catch (ConfigRead.Failure unreadable) {
+            readable = false;
+        }
+        editor.setText(keepDraft ? draft : initial);
+        editor.setSelection(editor.length());
+        lastCommitted = sameBinding ? committed : initial.trim();
         root.addView(editor, wide());
 
-        addDetails(context, root);
+        try {
+            addDetails(context, root);
+        } catch (ConfigRead.Failure unreadable) {
+            readable = false;
+            if (state != null && state.getParent() == null) root.addView(state, wide());
+        }
+        if (!readable && state != null) uiText(state, "config_unreadable");
+        if (sameBinding) {
+            editor.setError(error);
+            if (feedback != null && state != null) uiText(state, () -> feedback.toString());
+        }
+        if (synchronizationPending && state != null) uiText(state, "config_saved_sync_pending");
+        if (state != null) state.setOnClickListener(view -> retrySynchronization());
         wire(editor, boundProfile);
         return root;
     }
@@ -228,7 +276,13 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
 
     private void scheduleSave(String value) {
         cancelPendingSave();
-        pendingSave = () -> commit(value, false);
+        EditText owner = editor;
+        String profile = boundProfile;
+        long revision = boundRevision;
+        pendingSave = () -> {
+            if (owner == editor && profile.equals(boundProfile) && revision == boundRevision)
+                commit(value, false);
+        };
         main.postDelayed(pendingSave, AUTO_SAVE_DELAY_MS);
     }
 
@@ -243,43 +297,98 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
     }
 
     private void commit(String raw, boolean reportInvalid) {
+        changedDuringCommit = false;
         if (!bound()) return;
         String value = raw == null ? "" : raw.trim();
         if (value.equals(lastCommitted) || !accepts(value)) return;
+        Object before = storedValue();
         try {
             save(value);
-            lastCommitted = value;
-            if (editor != null) editor.setError(null);
-            saved();
-            if (!ApiProfiles.flushing()) CaptionActions.refreshConfiguration(getContext());
         } catch (Throwable error) {
-            String detail = error.getMessage();
+            changedDuringCommit = !Objects.equals(before, storedValue());
+            String detail = error instanceof IllegalArgumentException ? error.getMessage() : null;
+            if (error instanceof ConfigRead.Failure)
+                detail = CaptionStrings.get(getContext(), ((ConfigRead.Failure) error).messageKey);
             if (detail == null || detail.trim().isEmpty()) detail = defaultFailure();
-            // During ordinary typing an incomplete value is expected: keep the last valid one and
-            // show a quiet inline hint; focus loss exposes the field error as well.
+            // Keep the draft. An apply callback may have failed after changing the stored value.
             retained(detail);
             if (reportInvalid && editor != null)
                 editor.setError(CaptionStrings.localize(getContext(), detail));
+            if (changedDuringCommit && !ApiProfiles.flushing()) {
+                try {
+                    CaptionActions.refreshConfiguration(getContext());
+                } catch (RuntimeException | Error notification) {
+                    // The primary save outcome is uncertain; retain its draft/error feedback.
+                    if (error != notification) error.addSuppressed(notification);
+                }
+            }
+            return;
         }
+        // Persistence returned. Callback failures cannot undo or reclassify this saved field.
+        lastCommitted = value;
+        changedDuringCommit = true;
+        synchronizationPending = false;
+        if (editor != null) editor.setError(null);
+        Throwable notificationFailure = null;
+        try {
+            saved();
+        } catch (RuntimeException | Error notification) {
+            notificationFailure = notification;
+        }
+        if (!ApiProfiles.flushing()) {
+            try {
+                CaptionActions.refreshConfiguration(getContext());
+            } catch (RuntimeException | Error notification) {
+                if (notificationFailure == null) notificationFailure = notification;
+                else if (notificationFailure != notification) notificationFailure.addSuppressed(notification);
+            }
+        }
+        if (notificationFailure != null) configurationRefreshFailed();
     }
 
-    /** Tells that the value in the field was refused and the previous one is still in force. */
+    private void retrySynchronization() {
+        if (!synchronizationPending || !bound()) return;
+        boolean failed = false;
+        try {
+            saved();
+        } catch (RuntimeException | Error notification) {
+            failed = true;
+        }
+        try {
+            CaptionActions.refreshConfiguration(getContext());
+        } catch (RuntimeException | Error notification) {
+            failed = true;
+        }
+        synchronizationPending = failed;
+        if (failed) configurationRefreshFailed();
+    }
+
+    @Override
+    public final void configurationRefreshFailed() {
+        synchronizationPending = true;
+        if (state != null) uiText(state, "config_saved_sync_pending");
+    }
+
+    /** An unsuccessful or unconfirmed save; the draft does not prove the old store is unchanged. */
     final void retained(String detail) {
         uiText(
                 state,
                 () ->
                         String.format(
                                 Locale.ROOT,
-                                CaptionStrings.get(getContext(), "value_retained"),
+                                CaptionStrings.get(getContext(), "config_save_uncertain"),
                                 CaptionStrings.localize(getContext(), detail)));
         state.setAlpha(1f);
     }
 
     @Override
     public final boolean flushProfile() {
+        lastFlushChanged = false;
         if (editor == null || !bound()) return true;
         String value = editor.getText().toString().trim();
+        String before = lastCommitted;
         commitNow(value, true);
+        lastFlushChanged = changedDuringCommit || (!value.equals(before) && value.equals(lastCommitted));
         return flushed(value);
     }
 
@@ -288,6 +397,7 @@ abstract class ProfileEditorPreference extends CaptionSettingPreference
         cancelPendingSave();
         profileSwitched();
         boundProfile = "";
+        synchronizationPending = false;
         boundView = null;
         lastCommitted = "";
         if (editor != null) {

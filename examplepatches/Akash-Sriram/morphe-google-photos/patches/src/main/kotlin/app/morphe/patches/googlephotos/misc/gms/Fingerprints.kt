@@ -198,4 +198,21 @@ internal object MapViewBoundsSyncFingerprint : Fingerprint(
     },
 )
 
+/**
+ * Matches Google Photos' internal permission coordinator requestPermissions method.
+ *
+ * This method checks if any existing requests are pending in its SparseArray and throws:
+ * "Cannot request permissions $requestCode when already requested $pendingMap".
+ * On Android 16/17 and fresh installs, concurrent permission prompts (e.g. POST_NOTIFICATIONS
+ * and storage permissions) trigger this throw, causing a fatal launch crash (Issue #42).
+ */
+internal object PermissionCoordinatorRequestPermissionsFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L", "I", "Ljava/util/List;"),
+    strings = listOf(
+        "Cannot request permissions ",
+        " when already requested ",
+    ),
+)
+
 

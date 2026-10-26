@@ -10,8 +10,8 @@ import app.template.patches.shared.buildLabel
 /** One selectable patch owning both blue-noise layers. The two former per-layer patches and
  * their declared-depth option merged: 8-bit and 10-bit input share the same final 8-bit sRGB
  * quantizer, so no runtime or declared depth exists. Recommended and default-enabled on every
- * exact Steam Link base: the foveal layer is on by default, the background layer is opt-in,
- * and the helper rebuilds owned configurations from the final source, order-independently. */
+ * exact Steam Link base: both the foveal and background layers are on by default, and the
+ * helper rebuilds owned configurations from the final source, order-independently. */
 @Suppress("unused")
 val blueNoisePatch = rawResourcePatch(
     name = "Blue-noise dithering",
@@ -34,7 +34,7 @@ val blueNoisePatch = rawResourcePatch(
 
     val background by booleanOption(
         key = "background",
-        default = false,
+        default = true,
         title = "Background",
         description = "Fine grain over the whole background, including under the center overlay " +
             "on top; the center's own grain choice is not touched.",

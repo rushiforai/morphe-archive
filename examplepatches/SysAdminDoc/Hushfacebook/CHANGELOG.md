@@ -2,15 +2,46 @@
 
 Changes in each Hushfacebook version, newest first.
 
-## Unreleased
+## 0.18.1 (2026-10-25)
+
+Unreleased.
+
+### Added
+
+* **Facebook:** `Download button on reels` now has its own switch under Reels and Watch. Turn it off to keep Download in More without the sidebar button. It starts on, so the existing layout stays. Checked on an emulator, including a menu save opened in Photos and the main Download switch off (Refs #244).
 
 ### Fixed
 
+* **Facebook:** Settings imports now update restart notices, including removing a notice when an import restores the value Facebook is already using. Edits made while an import runs stay consistent with the saved choices.
+* **Facebook:** Word filters recheck the space shared by both lists when you save or import. A preview or another open editor can no longer leave you with lists that won't import again.
+* **Facebook:** A retired unlock prompt can't cancel a newer prompt or replace its feedback.
+* **Facebook:** The Unlock button uses the lock screen's theme, keeping its text readable and its touch target intact when Facebook uses a different theme.
+* **Facebook:** Repeated taps open one settings screen. The last enabled way into settings stays protected after other switches change.
+* **Facebook:** Back to defaults updates launcher shortcuts straight away, while keeping Facebook's own shortcuts.
+* **Facebook:** Canceling a photo in Save all photos also stops the remaining photos.
+* **Facebook:** Photo, Story and GIF saves skip details Facebook has already released, including details nested inside a live post. Menu bookmarks use the same guard.
+* **Facebook:** Video joins stop copying samples before they exceed their size or storage allowance. The MP4 writer checks the complete output size before writing.
+* **Facebook:** Update checks enforce their time limit when response headers or the end of the body arrive late.
+* **Tooling:** Fixture checks validate fingerprint uniqueness. Release receipts reject older retained runs that don't prove validation was enabled.
+* **Tooling:** Generated-file cleanup refuses paths through linked parent folders. Invalid CVSS vectors can't lower an advisory's score by repeating metrics.
+* **Tooling:** Overlapping device builds can't replace each other's argument files or outputs. Invalid patch options keep the previous signed APK.
+* **Tooling:** Retrying publication after an interrupted download check verifies the existing release's files without uploading them again. Drafts and failed lookups stop the retry.
+* **Tooling:** Device checks distinguish Facebook from a separately installed clone. The full audit checks for crashes after settings screenshots and recovery, too.
+* **Tooling:** Device log reads fail promptly after a disconnect. Walks and bytecode checks still attempt cleanup and report recovery errors.
+* **Tooling:** Corrected DASH test inputs so the full suite reaches the intended cancellation and cleanup checks under the output limits.
+* **Tooling:** Device walks can scroll a navigation row below a caller's reserved screen area before tapping it. A fresh screen check still has to identify one target.
+* **Tooling:** Reel destination checks read the current Facebook activity directly, so another app's stalled diagnostic can't hide the viewer from the walk.
+* **Tooling:** Locale checks follow the app's language preference order, including its English fallback. The requested configuration and displayed page still have to match.
+
+* **Tooling:** Photo download and optional theme patches inspect fewer classes and skip unrelated call names. A full Facebook 584 comparison found the same hook sites. The earlier one-minute phone result used the recommended selection; optional themes and other phones can take longer (Refs #236).
+* **Facebook:** A Story that reshares a Reel uses `Save video` for its main save option. Released video details are skipped safely. Checked with regression tests, the exact Facebook fixture and a native menu control. The new label follows Facebook's language. A live reshared Story still needs checking (Refs #207).
+* **Facebook:** Crash files now identify the Facebook build and the patch bundle that produced them, even if settings won't open. They also include architecture details.
+* **Facebook:** Clearing Recently watched now discards pending watches, so an entry can't come back after Clear. Turning recording off also cancels pending entries, even if you turn it back on straight away.
 * **Facebook:** Prevent a startup crash with `Newest reels first` when a reel's details haven't loaded yet (Refs #234).
 
 ## 0.18.0 (2026-10-24)
 
-* **Facebook:** Patching on a phone takes about a minute now, down from three. Reels get a 10 second skip when you double tap either edge, and a tap shows their controls without pausing. Hold a feed video for 2x, pinch a story or a profile photo to zoom, and pick your own background color for dark or light mode. You can also put your own words or a picture at the top of Home, save a GIF from a comment, and hide profile notes or the Related posts list. Reel captions keep the bottoms of their letters again too.
+* **Facebook:** With the recommended patches, a phone patch took about a minute in testing, down from three. Reels get a 10 second skip when you double tap either edge, and a tap shows their controls without pausing. Hold a feed video for 2x, pinch a story or a profile photo to zoom, and pick your own background color for dark or light mode. You can also put your own words or a picture at the top of Home, save a GIF from a comment, and hide profile notes or the Related posts list. Reel captions keep the bottoms of their letters again too.
 
 ### Added
 
@@ -54,7 +85,7 @@ Changes in each Hushfacebook version, newest first.
 
 ### Changed
 
-* **Facebook:** Patching takes about a third of the time on a phone. Most patches used to read through all 215,000 of Facebook's classes to find the few they change, dozens of full passes in one patch. Now a single pass at the start notes what each class refers to, and a patch only reads the classes that mention what it's looking for. With the recommended patches on Facebook 584, a patch in Morphe Manager on a phone went from a little over 3 minutes on 0.17.0 to just under 1 minute, and on a desktop held to two cores from 54 seconds to 28. It still fits in the memory it needed before, and the patched app comes out the same as before, class for class (issue #216, reported by @AbdulrahmanAlamodi).
+* **Facebook:** The recommended patches took about a third of the time on the tested phone. Most patches used to read through all 215,000 of Facebook's classes to find the few they change, dozens of full passes in one patch. Now a single pass at the start notes what each class refers to, and a patch only reads the classes that mention what it's looking for. With the recommended patches on Facebook 584, a patch in Morphe Manager on a phone went from a little over 3 minutes on 0.17.0 to just under 1 minute, and on a desktop held to two cores from 54 seconds to 28. It still fits in the memory it needed before, and the patched app comes out the same as before, class for class (issue #216, reported by @AbdulrahmanAlamodi).
 * **Facebook:** `Use the system font` patches faster. It used to read through Facebook's code four separate times to find the places it changes, and it built the full name of every call and field along the way. It now makes one pass and only builds a name when the class matches one it cares about. On Facebook 584 with the recommended patches, `Use the system font` went from about 5.9 seconds to 1.5, and the whole patch from 51 seconds to 45 on a desktop. It still changes the same places in Facebook (issue #216, reported by @AbdulrahmanAlamodi).
 * **Tooling:** A push or a fixture check with a morphe-desktop CLI on the wrong patcher stops right away now. The 0.17.0 push ran its whole 17-minute gate with an old 1.18.1 CLI still set in the shell and only failed at the last step, because a bundle built on the 2.0 patcher won't load in a 1.x CLI. `scripts/pre-push.ps1` and `scripts/verify-all-patches.ps1` read which patcher the jar carries before anything heavy runs, and the message names the jar, both versions and, when it applies, the newer jar your user settings already point to.
 

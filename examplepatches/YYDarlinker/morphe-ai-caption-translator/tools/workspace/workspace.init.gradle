@@ -1,0 +1,28 @@
+// Applied before settings so mavenLocal() uses only the explicitly selected repository.
+def localMaven = System.getenv('MORPHE_MAVEN_LOCAL') ?: new File(gradle.startParameter.currentDir, 'work/maven-local').absolutePath
+System.setProperty('maven.repo.local', localMaven)
+def proxy = System.getenv('HTTPS_PROXY') ?: System.getenv('HTTP_PROXY')
+if (proxy) {
+    def uri = new URI(proxy)
+    if (!(uri.scheme in ['http','https']) || !uri.host || uri.userInfo) throw new GradleException('Proxy requires a host/port URI without embedded credentials')
+    ['http','https'].each { scheme ->
+        System.setProperty(scheme + '.proxyHost', uri.host)
+        System.setProperty(scheme + '.proxyPort', String.valueOf(uri.port > 0 ? uri.port : uri.scheme == 'https' ? 443 : 80))
+    }
+    System.setProperty('http.nonProxyHosts', 'localhost|127.*|[::1]')
+}
+def testRoot = new File(System.getenv('MORPHE_TEST_TEMP') ?: new File(gradle.startParameter.currentDir, 'work/test-temp').absolutePath)
+def robolectricDir = System.getenv('MORPHE_ROBOLECTRIC_DIR')
+gradle.projectsEvaluated {
+    gradle.rootProject.allprojects { project ->
+        project.tasks.withType(org.gradle.api.tasks.testing.Test).configureEach { task ->
+            def temp = new File(testRoot, project.path.replace(':', '_'))
+            temp.mkdirs()
+            task.systemProperty 'java.io.tmpdir', temp.absolutePath
+            if (robolectricDir) {
+                task.systemProperty 'robolectric.offline', 'true'
+                task.systemProperty 'robolectric.dependency.dir', robolectricDir
+            }
+        }
+    }
+}

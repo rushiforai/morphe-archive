@@ -232,4 +232,11 @@
     <string name="cap_diagnostics_loading" formatted="false">"診断を読み込んでいます…"</string>
     <string name="cap_planner_model" formatted="false">"原文の意味準備モデル（任意）"</string>
     <string name="cap_planner_model_hint" formatted="false">"空欄なら翻訳モデルを使用します。同じAPI URLとキーだけを使い、別のモデルを自動選択しません。"</string>
+    <string name="cap_config_unreadable" formatted="false">"保存済みの設定を読み取れません。該当項目を確認してください。データは変更していません。"</string>
+    <string name="cap_config_index_recovery" formatted="false">"プロファイル一覧を読み取れません。変更はありません。再読み込みするか戻ってください。復元には破損前のこのアプリの有効な設定バックアップが必要です。この画面では一覧を再構築できません。"</string>
+    <string name="cap_config_saved_sync_pending" formatted="false">"項目は保存されましたが、設定の同期に失敗しました。ここをタップして同期を再試行してください。"</string>
+    <string name="cap_config_save_uncertain" formatted="false">"保存に失敗したか確認できません。現在の値を確認してください。下書きは保持しています。%1$s"</string>
+    <string name="cap_config_operation_uncertain" formatted="false">"操作に失敗したか結果を確認できません。データが変わった可能性があります。設定を開き直して確認してください。"</string>
+    <string name="cap_config_origin_recovery" formatted="false">"元のキーの API アドレスを確認できないため、設定は変更していません。破損前の有効なバックアップを復元するか、この編集を破棄してキーを明示的に削除してから再設定してください。"</string>
+    <string name="cap_diagnostics_failure_accounting" formatted="false">"HTTP_CONFIG は HTTP 失敗とコンテンツフィルタを含む従来の集計区分です。reason と記録された終了・フィルタ・待機の事実で判断を確認してください。未記録の事実は不明です。1つの論理バッチに複数の HTTP 試行が許可される場合があります。試行数だけではサーバーの受信や課金は確認できません。応答・品質・キャッシュは別々に集計します。 この区分には429/503も含まれ、区分だけで設定エラーや恒久停止を意味しません。"</string>
 </resources>

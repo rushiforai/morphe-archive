@@ -106,8 +106,9 @@ internal fun BytecodePatchContext.resolveVehicleSettings(): VehicleSettingsPlan 
             ?.mapNotNull { it.getReference<TypeReference>()?.type }?.toSet() == roots
     }), "main settings variant selector")
     val choose = selector.settingsCode()
+    // R8 may turn the first return into a goto to the shared return-void (26.42).
     settingsGuard(choose.size == 13 && selector.implementation!!.registerCount == 2 &&
-        selector.implementation!!.tryBlocks.isEmpty() && choose.map { it.opcode } == listOf(
+        selector.implementation!!.tryBlocks.isEmpty() && choose.exitOpcodes() == listOf(
             Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IGET_OBJECT, Opcode.IF_EQZ,
             Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID,
             Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID) &&

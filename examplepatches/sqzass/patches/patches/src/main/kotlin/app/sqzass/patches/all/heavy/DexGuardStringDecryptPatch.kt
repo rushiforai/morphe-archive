@@ -36,7 +36,7 @@ private val XOR_OPCODES = setOf(
 )
 
 private fun signatureOf(method: Method): String =
-    method.parameters.joinToString(";") { it.type } + ";"
+    method.parameters.joinToString("") { it.type }
 
 private fun isDecryptorCandidate(method: Method): Boolean {
     if (method.returnType != "Ljava/lang/String;") return false
@@ -57,11 +57,10 @@ private fun isDecryptorCandidate(method: Method): Boolean {
     return xors >= 2 && loopsBack
 }
 
-private fun isDecryptorCall(instruction: Instruction): Boolean {
+private fun isDecryptorCall(instruction: Instruction, candidates: Set<String>): Boolean {
     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
-    if (reference.returnType != "Ljava/lang/String;") return false
-    val params = reference.parameterTypes.joinToString(";")
-    return params in CANDIDATE_PARAMS
+    val id = "${reference.definingClass}->${reference.name}"
+    return id in candidates
 }
 
 // ponytail: this is a heuristic hook, not a real decryptor — matched methods
@@ -108,14 +107,20 @@ val dexGuardStringDecryptPatch = bytecodePatch(
             return@execute
         }
 
+        if (candidates.isEmpty()) {
+            logger.info("No decryptor candidates detected.")
+            return@execute
+        }
+
         val patched = patchMatchingMethods(
             isCandidate = { method ->
-                method.implementation?.instructions?.any(::isDecryptorCall) == true
+                method.implementation?.instructions?.any { isDecryptorCall(it, candidates) } == true
             },
         ) { instructions ->
             var count = 0
-            for (index in instructions.indices) {
-                if (isDecryptorCall(instructions[index]) &&
+            for (index in instructions.indices.reversed()) {
+                val instruction = instructions.getOrNull(index) ?: continue
+                if (isDecryptorCall(instruction, candidates) &&
                     forceInvokeResult(instructions, index) { register -> "const-string v$register, \"\"" }
                 ) {
                     count++

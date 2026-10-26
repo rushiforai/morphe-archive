@@ -124,6 +124,37 @@ val CleverTapPushTracking = Fingerprint(
     parameters = listOf("Landroid/os/Bundle;"),
 )
 
+/** AppEventQueue.h(AccessTokenAppIdPair, AppEvent) — the single FB app-event enqueue point. */
+val FbAppEventQueue = Fingerprint(
+    definingClass = "Lcom/facebook/appevents/AppEventQueue;",
+    name = "h",
+    returnType = "V",
+    parameters = listOf(
+        "Lcom/facebook/appevents/AccessTokenAppIdPair;",
+        "Lcom/facebook/appevents/AppEvent;",
+    ),
+)
+
+/** FetchedAppSettingsManager.i(Context, String, String) — the FB mobile_sdk_gk config fetch. */
+val FbFetchedAppSettingsManager = Fingerprint(
+    definingClass = "Lcom/facebook/internal/FetchedAppSettingsManager;",
+    name = "i",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+    ),
+)
+
+/** CtApi.h(boolean) — CleverTap's domain resolver; every CT request URL starts here. */
+val CtApiDomainResolver = Fingerprint(
+    definingClass = "Lcom/clevertap/android/sdk/network/api/CtApi;",
+    name = "h",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf("Z"),
+)
+
 /** FirebasePerfUrlConnection.instrument(Object) — perf tracing wrapper (URLConnection in, out). */
 val FirebasePerfInstrument = Fingerprint(
     definingClass = "Lcom/google/firebase/perf/network/FirebasePerfUrlConnection;",

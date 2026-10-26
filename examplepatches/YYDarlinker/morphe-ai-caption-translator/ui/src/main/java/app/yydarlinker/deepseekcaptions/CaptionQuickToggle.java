@@ -24,6 +24,11 @@ public final class CaptionQuickToggle {
 
     private CaptionQuickToggle() {}
 
+    /** Called after Morphe commits its Shorts state; reads the final value, never a queued copy. */
+    public static void onShortsStateChanged() {
+        CaptionPlayerAuthority.onShortsStateChanged(shortsOpen());
+    }
+
     /** Notes when the Shorts menu is about to show its captions entry. */
     public static void observeMenuPath(CharSequence path, byte[] buffer) {
         if (path != null) observeMenuPath(path.toString(), buffer);
@@ -110,25 +115,17 @@ public final class CaptionQuickToggle {
     /**
      * Turns the engine on or off. The switch is a user act: it is written to the session intent
      * first, independently of any native player or track reference, and the reconciler applies it.
-     * OFF must never be rolled back to ON by a stale Shorts manager, and ON keeps the target the
-     * native caption menu already had.
+     * OFF must never be rolled back to ON by a stale Shorts manager. ON follows the current native
+     * selection, or waits until the player supplies it.
      */
     static boolean setEngine(Context context, boolean enabled) {
-        if (enabled && !DeepSeekConfig.load(context).hasCredential) {
+        if (enabled && !DeepSeekConfig.forUserEnable(context).hasCredential) {
             toast(context, "configure_api");
             return false;
         }
         if (!CaptionSessionReconciler.onUserSwitched(context, enabled)) return false;
         CaptionSessionIntent intent = CaptionSessionIntent.load(context);
-        // A switch-on without a target cannot start anything: the target only ever comes from
-        // YouTube's own caption menu. Roll the whole act back so an unusable switch cannot suppress
-        // the native captions either; the caller sees a switch-on that did not take effect.
-        if (enabled && !intent.hasTarget()) {
-            CaptionSessionIntent.userToggled(context, false);
-            DeepSeekConfig.saveEnabled(context, false);
-            toast(context, "choose_translation");
-            return false;
-        }
+        CaptionNativeProjection.Snapshot selected = CaptionSessionReconciler.currentSelection();
         CaptionActions.refreshConfiguration(context);
         CaptionMusicSuppressor.forceNativeRendererScan();
         CaptionMusicSuppressor.kick();
@@ -138,9 +135,9 @@ public final class CaptionQuickToggle {
                 "enabled="
                         + enabled
                         + ";target="
-                        + (intent.hasTarget() ? intent.targetLanguage : "none")
+                        + (selected == null ? "none" : selected.target())
                         + ";translate="
-                        + intent.translateTarget
+                        + (selected != null && selected.translated)
                         + ";revision="
                         + intent.revision
                         + ";session="

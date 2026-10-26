@@ -1,0 +1,49 @@
+name: build
+
+on:
+  # Manual verification builds. Releases are handled by release.yml on push.
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Check registry credentials
+        run: |
+          if [ -z "${{ secrets.REGISTRY_PAT }}" ]; then
+            echo "::error::REGISTRY_PAT secret is not set. Create a classic PAT with read:packages and add it at Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Build patch bundle
+        run: |
+          chmod +x gradlew
+          ./gradlew buildAndroid
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          # Classic PAT with read:packages scope, stored once as a repo secret.
+          # GITHUB_TOKEN cannot cross into MorpheApp's registry, so a PAT is required.
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_PAT }}
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: neteaseja-mpp
+          path: patches/build/libs/*.mpp
+
+      - name: Generate patch list for Manager sources
+        run: ./gradlew :patches:generatePatchesList
+
+      - name: Upload patch list
+        uses: actions/upload-artifact@v4
+        with:
+          name: neteaseja-patches-list
+          path: patches-list.json

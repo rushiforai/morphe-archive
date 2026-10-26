@@ -216,7 +216,7 @@ public final class SessionLogManager {
 
             String fullCrash = crashDump.toString();
 
-            // Write synchronously to current session file
+            // Write synchronously to current session file (or fallback if early startup)
             if (sCurrentSessionFile != null) {
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(sCurrentSessionFile, true))) {
                     writer.write(fullCrash);
@@ -227,6 +227,18 @@ public final class SessionLogManager {
                 if (sCurrentSessionFile.renameTo(crashedFile)) {
                     sCurrentSessionFile = crashedFile;
                 }
+            } else if (sContext != null) {
+                try {
+                    File dir = getLogsDir();
+                    if (!dir.exists()) dir.mkdirs();
+                    File fallbackFile = new File(dir, "session_" + (sCurrentSessionId != null ? sCurrentSessionId : "startup") + "_crashed.log");
+                    writeSessionHeader(fallbackFile);
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(fallbackFile, true))) {
+                        writer.write(fullCrash);
+                        writer.flush();
+                    }
+                    sCurrentSessionFile = fallbackFile;
+                } catch (Throwable ignored) {}
             }
         } catch (Throwable t) {
             Log.e(TAG, "Error writing crash report", t);

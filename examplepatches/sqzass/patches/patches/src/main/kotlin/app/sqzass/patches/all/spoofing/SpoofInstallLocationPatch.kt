@@ -89,13 +89,8 @@ val spoofInstallLocationPatch = resourcePatch(
         }
 
         document("AndroidManifest.xml").use { document ->
-            val appNodes = document.getElementsByTagName("application")
-            if (appNodes.length > 0) {
-                (appNodes.item(0) as? Element)?.setAttribute("android:installLocation", "internalOnly")
-                logger.info("Set android:installLocation to internalOnly.")
-            } else {
-                logger.info("No <application> element found in manifest.")
-            }
+            document.documentElement.setAttribute("android:installLocation", "internalOnly")
+            logger.info("Set android:installLocation to internalOnly.")
         }
     }
 }

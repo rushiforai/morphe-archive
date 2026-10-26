@@ -26,7 +26,7 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.11.1](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.11.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;39 patches total
+> **[v1.12.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;50 patches total
 <details open>
 <summary>📦 SofaScore&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -40,6 +40,53 @@ Or
 |----------|----------------|-----------|
 | [Bypass Login Requirements](#bypass-login-requirements) | Skips SofaScore login requirement by forcing isLoggedIn to true. |  |
 | [Unlock Premium & Remove Ads](#unlock-premium-remove-ads) | Unlocks SofaScore premium and disables ads. |  |
+
+</details>
+
+<details open>
+<summary>📦 CCleaner&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.08.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Telemetry](#disable-telemetry) | Disables analytics and telemetry event tracking. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks CCleaner Premium / Pro features (Ultimate Multi + Lifetime style). |  |
+
+</details>
+
+<details open>
+<summary>📦 ESET Mobile Security&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 12.0.17.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable premium license](#enable-premium-license) | Best-effort unlock of ESET premium UI / client-side license flags. Native libems + server checks may still limit some features. |  |
+
+</details>
+
+<details open>
+<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 47.4.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Force region](#force-region) | Forces TikTok store_region-related getters to a chosen ISO country code. | • Region (ISO country) |
+| [Remove ads](#remove-ads) | Disables common TikTok ad load/show methods (best-effort). |  |
 
 </details>
 
@@ -96,12 +143,27 @@ Or
 
 **🎯 Supported versions:**
 
-| 2.2.4 |
+| 🧪&nbsp;1.93.4 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock MX Player Pro](#unlock-mx-player-pro) | Unlocks MX Player Pro by disabling ads and forcing pro status. |  |
+
+</details>
+
+<details open>
+<summary>📦 InShot&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.214.1539 | 2.243.1555 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks InShot Pro: no export watermark, no ads, paid filters/effects/HD. On-device AI tools may still require original signing key. |  |
 
 </details>
 
@@ -121,17 +183,17 @@ Or
 </details>
 
 <details open>
-<summary>📦 InShot&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 MagoVideo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.243.1555 |
+| 5.7.1 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium ](#unlock-premium) | Unlocks InShot premium by forcing billing methods to return true. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks MagoVideo premium / VIP (no watermark, pro features). |  |
 
 </details>
 
@@ -167,21 +229,6 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Remini premium by forcing 'isFreeUser' to true. WARNING: May cause crashes or unexpected behavior. |  |
-
-</details>
-
-<details open>
-<summary>📦 MagoVideo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 5.7.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks MagoVideo premium by forcing the premium check method h0 to return true. WARNING: May cause crashes. |  |
 
 </details>
 
@@ -318,21 +365,6 @@ Or
 </details>
 
 <details open>
-<summary>📦 Guitar Tuner&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 7.102.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Unlocks Guitar Tuner premium. |  |
-
-</details>
-
-<details open>
 <summary>📦 My Diary&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -359,6 +391,21 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium Features](#unlock-premium-features) | Forces the purchase verification method to always return true, unlocking premium features in Music Player. |  |
+
+</details>
+
+<details open>
+<summary>📦 ReelShort&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.2.20 | 🧪&nbsp;4.2.00 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium Features](#unlock-premium-features) | Unlocks ReelShort VIP (vip_status=1) and unlocks ad-gated episodes. |  |
 
 </details>
 
@@ -404,21 +451,6 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium Features](#unlock-premium-features) | Forces the purchase verification method to always return true, unlocking premium features in Voice Changer.  |  |
-
-</details>
-
-<details open>
-<summary>📦 ReelShort&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;4.2.00 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium Features (Experimental)](#unlock-premium-features-experimental) | Unlocks ReelShort premium by forcing getVip_status and isVipFreeAdvUnlock to return true. WARNING: May cause crashes. |  |
 
 </details>
 
@@ -524,6 +556,22 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock VIP Features](#unlock-vip-features) | Unlocks VIP features in Wearfit Pro by forcing getIsVip() to return 1. |  |
+
+</details>
+
+<details open>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Change app name](#change-app-name) | Sets a custom application label (best-effort). | • App name |
+| [Change package name](#change-package-name) | Rewrites the manifest package attribute (experimental). | • Package name |
+| [Change version code](#change-version-code) | Overrides android:versionCode (and optional versionName). | • Version code<br>• Version name |
+| [Disable ads (basic)](#disable-ads-basic) | Best-effort no-op of common ad SDK load/show methods. |  |
+| [Disable all telemetry](#disable-all-telemetry) | Best-effort disable of Firebase/AppsFlyer/Mixpanel/Segment style track methods. |  |
+| [Disable screenshot restriction](#disable-screenshot-restriction) | Best-effort bypass of FLAG_SECURE screenshot blocks. |  |
+| [Remove INTERNET permission](#remove-internet-permission) | Removes INTERNET / ACCESS_NETWORK_STATE permissions from the manifest. |  |
 
 </details>
 

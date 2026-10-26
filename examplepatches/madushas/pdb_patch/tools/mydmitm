@@ -78,28 +78,46 @@ do_start_mitm() {
 do_device() {
   $ADB root >/dev/null 2>&1 || true; sleep 2
   # --- CA overlays: system store AND Conscrypt APEX ---
-  $ADB push "$CAHASH" /data/local/tmp/ca.0 >/dev/null
-  $ADB shell '
+  # Strip every stale tmpfs layer, snapshot the stock store once, mount fresh
+  # tmpfs, extract, add the mitm CA directly, then VERIFY the on-device
+  # fingerprint equals the host mitm CA (a stale/missing overlay silently
+  # breaks every app's TLS with "client does not trust the proxy's certificate").
+  # the store filename MUST be the subject-hash name (Android ignores anything
+  # else — cp preserves the source name, so push under the final name directly)
+  CAFN="$(cat "$BASE/cahash").0"
+  $ADB push "$CA" "/data/local/tmp/$CAFN" >/dev/null
+  $ADB shell "
     set -e
     for DST in /system/etc/security/cacerts /apex/com.android.conscrypt/cacerts; do
-      mkdir -p /data/local/tmp/ovl
-      cp $DST/* /data/local/tmp/ovl/ 2>/dev/null || true
-      cp /data/local/tmp/ca.0 /data/local/tmp/ovl/
-      chmod 644 /data/local/tmp/ovl/*
-      chcon u:object_r:system_file:s0 /data/local/tmp/ovl/*
-      mount -t tmpfs tmpfs $DST
-      cp /data/local/tmp/ovl/* $DST/
-      chcon u:object_r:system_file:s0 $DST/*   # files...
-      chcon u:object_r:system_file:s0 $DST     # ...AND the dir itself (else system_server loops)
-      rm -rf /data/local/tmp/ovl
+      while umount \$DST 2>/dev/null; do :; done
     done
-    # user store copy as well
+    if [ ! -f /data/local/tmp/cacerts-stock.tar ]; then
+      tar -C /system/etc/security/cacerts -cf /data/local/tmp/cacerts-stock.tar .
+    fi
+    for DST in /system/etc/security/cacerts /apex/com.android.conscrypt/cacerts; do
+      mount -t tmpfs tmpfs \$DST
+      rm -f \$DST/*
+      tar -C \$DST -xf /data/local/tmp/cacerts-stock.tar
+      cp /data/local/tmp/$CAFN \$DST/
+      chmod 644 \$DST/* 2>/dev/null || true
+      chcon u:object_r:system_file:s0 \$DST/* 2>/dev/null || true
+      chcon u:object_r:system_file:s0 \$DST
+    done
     mkdir -p /data/misc/user/0/cacerts-added
-    cp /data/local/tmp/ca.0 /data/misc/user/0/cacerts-added/
-    chown system:system /data/misc/user/0/cacerts-added/ca.0 2>/dev/null || true
-    chcon u:object_r:system_file:s0 /data/misc/user/0/cacerts-added/ca.0 2>/dev/null || true
-    echo "certs: $(ls /system/etc/security/cacerts | wc -l) / $(ls /apex/com.android.conscrypt/cacerts | wc -l)"
-  '
+    cp /data/local/tmp/$CAFN /data/misc/user/0/cacerts-added/
+    chown system:system /data/misc/user/0/cacerts-added/* 2>/dev/null || true
+    chcon u:object_r:system_file:s0 /data/misc/user/0/cacerts-added/* 2>/dev/null || true
+    echo \"certs: \$(ls /system/etc/security/cacerts | wc -l) / \$(ls /apex/com.android.conscrypt/cacerts | wc -l)\"
+    echo \"ca-present: \$(ls /apex/com.android.conscrypt/cacerts/ | grep -c '$CAFN')\"
+  "
+  $ADB pull "/apex/com.android.conscrypt/cacerts/$CAFN" /tmp/opencode/dev-ca-verify.pem >/dev/null
+  FP_HOST=$(openssl x509 -in "$CA" -noout -fingerprint -sha256 2>/dev/null | grep -oE "[0-9A-F:]{59}")
+  FP_DEV=$(openssl x509 -in /tmp/opencode/dev-ca-verify.pem -noout -fingerprint -sha256 2>/dev/null | grep -oE "[0-9A-F:]{59}")
+  if [ -z "$FP_DEV" ] || [ "$FP_HOST" != "$FP_DEV" ]; then
+    echo "CA OVERLAY MISMATCH: host=$FP_HOST device=$FP_DEV — aborting" >&2
+    exit 1
+  fi
+  echo "CA overlay verified $FP_DEV"
   # framework restart so Zygote inherits the APEX overlay (required after each boot)
   $ADB shell 'stop; sleep 2; start' >/dev/null; sleep 12; $ADB wait-for-device
   # --- routing: loopback DNAT + route_localnet ---
@@ -109,10 +127,14 @@ do_device() {
       sysctl -w net.ipv4.conf.$i.route_localnet=1
     done
     sysctl -w net.ipv4.conf.lo.route_localnet=1
-    iptables -t nat -D OUTPUT -p tcp --dport 443 -j DNAT --to-destination 127.0.0.1:8080 2>/dev/null || true
-    iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 127.0.0.1:8080
-    iptables -t nat -D OUTPUT -p tcp -d 10.0.2.2 --dport 8080 -j DNAT --to-destination 127.0.0.1:8081 2>/dev/null || true
-    iptables -t nat -A OUTPUT -p tcp -d 10.0.2.2 --dport 8080 -j DNAT --to-destination 127.0.0.1:8081
+    iptables -t nat -F OUTPUT
+    # Scope to the app uid ONLY: system connectivity probes must go direct, or
+    # the network gets flagged PARTIAL_CONNECTIVITY and the app aborts every
+    # request (NetInfo says no internet -> NO IMSI dialog with zero sockets).
+    APPUID=$(pm list packages -U | grep "package:'"$PKG"' " | grep -oE "uid:[0-9]+" | grep -oE "[0-9]+")
+    echo "app uid=$APPUID"
+    iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner $APPUID --dport 443 -j DNAT --to-destination 127.0.0.1:8080
+    iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner $APPUID -d 10.0.2.2 --dport 8080 -j DNAT --to-destination 127.0.0.1:8081
     iptables -t nat -L OUTPUT -n | tail -3
   '
   # --- adb reverse (always --no-rebind; plain re-add can fail) ---

@@ -164,12 +164,12 @@ Choose a folder name under Movies and Pictures. Invalid characters become unders
 Save	Simpan
 Folder name	Nama folder
 Folder set to %1$s.	Folder diatur menjadi %1$s.
-Video file name	Nama file video
+Download file name	Nama file unduhan
 %1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s diganti dengan tanggal dan waktu penyimpanan, %2$s dengan nomor video di Instagram, %3$s dengan nama pengunggahnya, dan %4$s dengan tanggal unggahnya. Yang tidak diketahui saat menyimpan akan dihilangkan, dan nama tanpa satu pun di antaranya akan ditambahi tanggal. Jika nama itu sudah ada di folder, waktu penyimpanan ditambahkan di akhir. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai nama bawaan, %5$s.
 File name	Nama file
 File name set to %1$s.	Nama file diatur menjadi %1$s.
 Videos go to %1$s and photos to %2$s.	Video disimpan ke %1$s dan foto ke %2$s.
-Example without post details	Contoh tanpa detail postingan
+Example file name	Contoh nama file
 Cancel saving this video	Batalkan penyimpanan video ini
 Cancel saving this photo	Batalkan penyimpanan foto ini
 Download on reels	Unduh di reel
@@ -477,6 +477,7 @@ On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider s
 Full size covers	Sampul ukuran penuh
 Reel covers and grid pictures come at full size, so Download cover saves a picked cover at full size too. Grids use a lot more data. Restart Instagram to see the change.	Sampul reel dan gambar grid datang dalam ukuran penuh, jadi Unduh sampul juga menyimpan sampul pilihan dalam ukuran penuh. Grid memakai jauh lebih banyak data. Mulai ulang Instagram untuk melihat perubahannya.
 Stop swiping between tabs	Hentikan geser antar tab
+%d notification	%d notifikasi
 %d notifications	%d notifikasi
 1 hour	1 jam
 1 minute	1 menit
@@ -1055,7 +1056,7 @@ Privacy	Privasi
 # context: a Quick setups choice that puts every switch back the way it started
 Back to defaults	Kembali ke bawaan
 Hides ads, suggested accounts and posts, surveys and promotions.	Menyembunyikan iklan, akun dan kiriman yang disarankan, survei, dan promosi.
-Hides your seen receipts, typing and active status. Allows screenshots and stops link tracking and usage reports.	Menyembunyikan tanda dilihat, status mengetik, dan status aktifmu. Mengizinkan tangkapan layar serta menghentikan pelacakan tautan dan laporan penggunaan.
+Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	Menyembunyikan tanda dilihat, status mengetik, dan status aktifmu. Mengizinkan tangkapan layar dan membersihkan tautan yang dibagikan. Menghentikan alarm unggahan analitik.
 Puts every switch back the way it started. Your locks stay as they are.	Mengembalikan semua sakelar seperti semula. Kuncimu tetap seperti apa adanya.
 # context: toast after a Quick setups choice changed exactly one switch
 Changed %1$d setting	%1$d pengaturan diubah
@@ -1235,14 +1236,14 @@ Instagram's own. Pick another to change the icon on your home screen and in the 
 the home screen icon you picked	ikon layar utama yang kamu pilih
 # context: Your fonts in story text switch under Stories and the Your story fonts row and dialog under it; the fonts are .ttf or .otf files picked from the phone, shown in Instagram's story text editor after its own
 Your fonts in story text	Fontmu di teks cerita
-Adds the fonts below to the story text editor, after Instagram's own fonts, which all stay. Pick one there like any other font.	Menambahkan font di bawah ke editor teks cerita, setelah font milik Instagram, yang semuanya tetap ada. Pilih di sana seperti font lainnya.
+Adds the fonts below to the story text editor alongside Instagram's own fonts, which all stay. Pick one there like any other font.	Menambahkan font di bawah ke editor teks cerita bersama font milik Instagram, yang semuanya tetap ada. Pilih di sana seperti font lainnya.
 Your story fonts	Font ceritamu
 Add .ttf or .otf files from your phone. Uncheck one to take it out.	Tambahkan file .ttf atau .otf dari ponselmu. Hapus centang untuk mengeluarkannya.
-No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor, after Instagram's fonts.	Belum ada font yang ditambahkan. Tambahkan file .ttf atau .otf dan font itu muncul di editor teks cerita, setelah font Instagram.
+No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor alongside Instagram's fonts.	Belum ada font yang ditambahkan. Tambahkan file .ttf atau .otf dan font itu muncul di editor teks cerita bersama font Instagram.
 Add a font file	Tambahkan file font
 Removed from your story fonts	Dihapus dari font ceritamu
 That file isn't a font HushGram can use. Nothing was added.	File itu bukan font yang bisa dipakai HushGram. Tidak ada yang ditambahkan.
-Added %1$s. Pick it in the story text editor, after Instagram's fonts.	%1$s ditambahkan. Pilih di editor teks cerita, setelah font Instagram.
+Added %1$s. Pick it in the story text editor alongside Instagram's fonts.	%1$s ditambahkan. Pilih di editor teks cerita bersama font Instagram.
 # context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
 Logo and titles at the start	Logo dan judul di awal
 Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Menempatkan logo Instagram dan judul setiap bilah di awal bilah, tempat Instagram dulu menampilkannya. Nyalakan jika Instagram menengahkannya untukmu. Ini lebih diutamakan daripada sakelar tengahkan di atas. Mulai ulang Instagram untuk melihat perubahannya di Beranda.
@@ -1256,3 +1257,7 @@ Every row of Instagram's Settings and activity shows. Untick the ones you don't 
 %1$d row is left off Instagram's Settings and activity.	%1$d baris dihapus dari Pengaturan dan aktivitas Instagram.
 %1$d rows are left off Instagram's Settings and activity.	%1$d baris dihapus dari Pengaturan dan aktivitas Instagram.
 Open Settings and activity in Instagram once, then come back here. Its rows show up in this list to untick.	Buka Pengaturan dan aktivitas di Instagram sekali, lalu kembali ke sini. Barisnya akan muncul di daftar ini untuk dihapus centangnya.
+Date in backup file names	Tanggal pada nama file cadangan
+Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	Tambahkan tanggal dan waktu saat ini saat mengekspor pengaturan. Jika mati, nama tetap HushGram-settings.json.
+%1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s adalah kode singkat postingan. Cerita dan postingan yang tidak diketahui mengosongkannya. Jika dipakai, templat ini juga menamai foto.
+Videos and photos use %1$s. Unknown codes are left out.	Video dan foto memakai %1$s. Kode yang tidak diketahui dihilangkan.

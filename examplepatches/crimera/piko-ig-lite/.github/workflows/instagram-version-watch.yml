@@ -1,10 +1,7 @@
 name: Instagram version watch
 
-# Checks APKMirror twice a day for a newer stable Instagram release. When one is found, the dev patch
-# bundle is built, every Instagram patch is applied exclusively to the APKMirror bundle with a pinned
-# morphe-desktop CLI, and a PR adds the version to COMPATIBILITY_INSTAGRAM. A failure opens one issue.
-# The code under test is dev. The write-scoped jobs run only on the default branch, so tooling from another
-# branch never holds a write token. Operator notes: .github/scripts/instagram-version-watch/README.md.
+# Twice a day, checks APKPure for an Instagram release newer than the newest COMPATIBILITY_INSTAGRAM
+# target on dev, and opens one issue per new version. Detection only: nothing is downloaded or patched.
 
 on:
   schedule:
@@ -17,316 +14,39 @@ concurrency:
 
 permissions: {}
 
-env:
-  PR_BASE_BRANCH: dev
-  BRANCH_PREFIX: instagram-version-watch
-  ISSUE_LABEL: instagram-version-watch
-  MORPHE_CLI_TAG: v1.19.0-dev.5
-  MORPHE_CLI_SHA256: 234762679da8fabf1589276565a7ab929965c482ae15aa111133d43b15734214
-  MORPHE_CLI_URL: https://github.com/MorpheApp/morphe-desktop/releases/download/v1.19.0-dev.5/morphe-desktop-1.19.0-dev.5-all.jar
-  APKEDITOR_VERSION: 1.4.9
-  APKEDITOR_SHA256: a9cd40df818845456be6d696de6110c89edf4b0a0580cb83438ed6b25a366e67
-  APKEDITOR_URL: https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar
-  # Absolute paths: several steps run with working-directory: app, so workspace-relative paths would not resolve.
-  WATCH: ${{ github.workspace }}/tooling/.github/scripts/instagram-version-watch/version_watch.py
-  CONSTANTS: ${{ github.workspace }}/app/patches/src/main/kotlin/app/crimera/patches/instagram/utils/Constants.kt
-  COMPATIBILITY_FILE: patches/src/main/kotlin/app/crimera/patches/instagram/utils/Constants.kt
-
 jobs:
-  discover:
-    name: Discover candidate (read-only)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
-    outputs:
-      source_sha: ${{ steps.source.outputs.sha }}
-      status: ${{ steps.discover.outputs.status }}
-      version: ${{ steps.discover.outputs.version }}
-      variant_page: ${{ steps.discover.outputs.variant_page }}
-      proceed: ${{ steps.check.outputs.proceed }}
-    steps:
-      - name: Check out dev (source data only)
-        uses: actions/checkout@v7
-        with:
-          ref: dev
-          path: app
-          persist-credentials: false
-
-      - name: Check out the workflow tooling
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          path: tooling
-          persist-credentials: false
-
-      - name: Record the source commit
-        id: source
-        working-directory: app
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install APKMirror dependencies
-        run: python -m pip install --disable-pip-version-check --requirement tooling/.github/scripts/instagram-version-watch/requirements.txt
-
-      - name: Discover the newest stable ARM64 release
-        id: discover
-        run: |
-          mkdir -p "$RUNNER_TEMP/vw"
-          python "$WATCH" discover --constants "$CONSTANTS" --out "$RUNNER_TEMP/vw/discover.json" --github-output "$GITHUB_OUTPUT"
-
-      - name: Check open PRs and issues
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python "$WATCH" check-existing --discover "$RUNNER_TEMP/vw/discover.json" --repo "$GITHUB_REPOSITORY" --github-output "$GITHUB_OUTPUT"
-
-      - name: Summarize the discovery
-        if: always()
-        run: |
-          if [[ -f "$RUNNER_TEMP/vw/discover.json" ]]; then
-            { echo '```json'; cat "$RUNNER_TEMP/vw/discover.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload the discovery record
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: version-watch-discover
-          path: ${{ runner.temp }}/vw/discover.json
-          if-no-files-found: warn
-          retention-days: 14
-
-  build:
-    name: Build and patch candidate (read-only)
-    needs: discover
-    if: needs.discover.outputs.proceed == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    permissions:
-      contents: read
-      packages: read
-    outputs:
-      transient: ${{ steps.cli.outcome == 'failure' || steps.apkeditor.outcome == 'failure' || steps.download.outcome == 'failure' }}
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB_ACTOR: crimera
-      VERSION: ${{ needs.discover.outputs.version }}
-    steps:
-      - name: Check out dev at the discovered commit
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.discover.outputs.source_sha }}
-          path: app
-          persist-credentials: false
-
-      - name: Check out the workflow tooling
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          path: tooling
-          persist-credentials: false
-
-      - name: Prepare directories and paths
-        run: |
-          mkdir -p "$RUNNER_TEMP/vw" "$RUNNER_TEMP/tools" "$RUNNER_TEMP/apk" "$RUNNER_TEMP/patched" "$RUNNER_TEMP/morphe-tmp"
-          VER=$(sed -n 's/^version *= *//p' app/gradle.properties | head -1)
-          {
-            echo "VW=$RUNNER_TEMP/vw"
-            echo "MPP=$GITHUB_WORKSPACE/app/patches/build/libs/patches-$VER.mpp"
-            echo "MORPHE_CLI_JAR=$RUNNER_TEMP/tools/morphe-cli.jar"
-            echo "APKEDITOR_JAR=$RUNNER_TEMP/tools/apkeditor.jar"
-            echo "APK=$RUNNER_TEMP/apk/instagram.apkm"
-            echo "OUTPUT_APK=$RUNNER_TEMP/patched/instagram-piko.apk"
-          } >> "$GITHUB_ENV"
-
-      - name: Set up Java
-        uses: actions/setup-java@v6.0.0
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Cache Gradle
-        uses: burrunan/gradle-cache-action@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install APKMirror dependencies
-        run: python -m pip install --disable-pip-version-check --requirement tooling/.github/scripts/instagram-version-watch/requirements.txt
-
-      - name: Build the patch bundle
-        working-directory: app
-        run: |
-          ./gradlew :patches:build --no-daemon
-          test -f "$MPP"
-
-      - name: Lint resolvers and extension descriptors
-        working-directory: app
-        run: ./gradlew :patches:lintResolvers :patches:checkExtensionDescriptors --no-daemon
-
-      - id: cli
-        name: Fetch the Morphe CLI release
-        run: |
-          curl --fail --location --silent --show-error --output "$MORPHE_CLI_JAR" "$MORPHE_CLI_URL"
-          echo "$MORPHE_CLI_SHA256  $MORPHE_CLI_JAR" | sha256sum --check --strict -
-
-      - id: apkeditor
-        name: Fetch the pinned APKEditor
-        run: |
-          curl --fail --location --silent --show-error --output "$APKEDITOR_JAR" "$APKEDITOR_URL"
-          echo "$APKEDITOR_SHA256  $APKEDITOR_JAR" | sha256sum --check --strict -
-
-      - id: download
-        name: Download the APKMirror bundle
-        env:
-          VARIANT_PAGE: ${{ needs.discover.outputs.variant_page }}
-        run: python "$WATCH" download --variant-page "$VARIANT_PAGE" --version "$VERSION" --out "$APK" --result "$VW/download.json"
-
-      - name: Enumerate Instagram patches from the fresh bundle
-        run: python "$WATCH" enumerate --cli "$MORPHE_CLI_JAR" --mpp "$MPP" --out "$VW/names.json"
-
-      - name: Patch every Instagram patch exclusively
-        run: |
-          rm -f "$OUTPUT_APK"
-          mapfile -t names < <(jq -r '.names[]' "$VW/names.json")
-          if [[ ${#names[@]} -eq 0 ]]; then
-            echo "error: the enumeration produced no patch names" >&2
-            exit 1
-          fi
-          # --continue-on-error attempts every patch, so the report lists every failure. validate still
-          # requires all patches to succeed.
-          args=(java -jar "$MORPHE_CLI_JAR" patch --patches "$MPP" --keystore app/Morphe.keystore --exclusive --continue-on-error)
-          for name in "${names[@]}"; do args+=(-e "$name"); done
-          args+=(--force --out "$OUTPUT_APK" --result-file "$VW/cli-report.json" --temporary-files-path "$RUNNER_TEMP/morphe-tmp" "$APK")
-          "${args[@]}"
-          test -s "$OUTPUT_APK"
-
-      - name: Validate the patch run
-        run: |
-          code=$(jq -r '.filename_version_code' "$VW/download.json")
-          python "$WATCH" validate --names "$VW/names.json" --report "$VW/cli-report.json" --apkeditor "$APKEDITOR_JAR" --apk "$OUTPUT_APK" --mpp "$MPP" --version "$VERSION" --expected-code "$code" --result "$VW/patch-result.json"
-
-      - name: Summarize the build
-        if: always()
-        run: |
-          shopt -s nullglob
-          for file in "$RUNNER_TEMP/vw"/*.json; do
-            { echo "### $(basename "$file")"; echo '```json'; cat "$file"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          done
-
-      - name: Upload the build records
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: version-watch-build
-          path: ${{ runner.temp }}/vw/*.json
-          if-no-files-found: warn
-          retention-days: 14
-
-  pull-request:
-    name: Open the compatibility PR (trusted tooling)
-    needs: [discover, build]
-    # Write-scoped: runs only on the default branch, so tooling from another branch never holds the token.
-    if: >-
-      needs.build.result == 'success' && needs.discover.outputs.proceed == 'true' &&
-      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      pull-requests: write
-      actions: read
-    env:
-      GH_TOKEN: ${{ github.token }}
-      SOURCE_SHA: ${{ needs.discover.outputs.source_sha }}
-      VERSION: ${{ needs.discover.outputs.version }}
-      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    steps:
-      - name: Check out the workflow tooling
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          path: tooling
-          persist-credentials: false
-
-      - name: Check out dev at the tested commit
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.discover.outputs.source_sha }}
-          path: app
-          # Keeps the token in .git/config so the branch can be pushed below.
-
-      - name: Fetch the validated records
-        uses: actions/download-artifact@v7
-        with:
-          pattern: version-watch-*
-          merge-multiple: true
-          path: ${{ runner.temp }}/vw
-
-      - name: Add the target, commit, push, and open the pull request
-        run: |
-          set -euo pipefail
-          VW="$RUNNER_TEMP/vw"
-          branch="$BRANCH_PREFIX/$VERSION"
-          git -C app switch --create "$branch"
-          python3 "$WATCH" add-target --constants "$CONSTANTS" --version "$VERSION" --version-code "$(jq -r .version_code "$VW/patch-result.json")"
-          test "$(git -C app diff --name-only)" = "$COMPATIBILITY_FILE"
-          git -C app add -- "$COMPATIBILITY_FILE"
-          git -C app -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit --message "feat(instagram): add $VERSION compatibility"
-          # The branch is bot-owned and open PRs were deduped in discover, so force-push is safe.
-          git -C app push --force origin "HEAD:refs/heads/$branch"
-          python3 "$WATCH" render-pr --records-dir "$VW" --run-url "$RUN_URL" --source-sha "$SOURCE_SHA" \
-            --cli-tag "$MORPHE_CLI_TAG" --cli-sha256 "$MORPHE_CLI_SHA256" --apkeditor-version "$APKEDITOR_VERSION" \
-            --title-out "$VW/pr-title.txt" --body-out "$VW/pr-body.md"
-          gh pr create --repo "$GITHUB_REPOSITORY" --base "$PR_BASE_BRANCH" --head "$branch" \
-            --title "$(cat "$VW/pr-title.txt")" --body-file "$VW/pr-body.md"
-
-  report-failure:
-    name: Open the failure issue (trusted tooling)
-    needs: [discover, build]
-    # Write-scoped: runs only on the default branch, so tooling from another branch never holds the token.
-    if: >-
-      always() && needs.build.result == 'failure' && needs.build.outputs.transient != 'true' &&
-      needs.discover.outputs.proceed == 'true' &&
-      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+  watch:
+    name: Check for a new Instagram release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      actions: read
+      contents: read
       issues: write
     env:
       GH_TOKEN: ${{ github.token }}
-      VERSION: ${{ needs.discover.outputs.version }}
-      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      ISSUE_LABEL: instagram-version-watch
     steps:
-      - name: Create the label before using it
-        run: gh label create "$ISSUE_LABEL" --repo "$GITHUB_REPOSITORY" --color B60205 --description "Automated Instagram version watch failures" --force
+      - name: Check out dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+          persist-credentials: false
 
-      - name: Open the failure issue
+      - name: Compare APKPure with the declared targets
+        id: watch
+        run: python3 .github/scripts/instagram-version-watch/version_watch.py --github-output "$GITHUB_OUTPUT"
+
+      - name: Open an issue for the new version
+        if: steps.watch.outputs.status == 'new'
+        env:
+          VERSION: ${{ steps.watch.outputs.version }}
+          APKMIRROR_URL: ${{ steps.watch.outputs.apkmirror_url }}
         run: |
-          job_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --paginate --jq '.jobs[] | select(.name == "Build and patch candidate (read-only)") | .id')
-          log=$(gh run view --repo "$GITHUB_REPOSITORY" --job "$job_id" --log-failed 2>&1 | tail -c 40000 | sed 's/```/'"'''"'/g' || true)
-          {
-            echo "Automated check for Instagram $VERSION failed. No compatibility change was made."
-            echo
-            echo "Run: $RUN_URL"
-            echo
-            echo "Close this issue to let the next scheduled run retry $VERSION."
-            echo
-            echo '## Failed step log (tail)'
-            echo
-            echo '```text'
-            echo "${log:-No failed-step log was available; see the run.}"
-            echo '```'
-          } > "$RUNNER_TEMP/issue.md"
-          gh issue create --repo "$GITHUB_REPOSITORY" --label "$ISSUE_LABEL" --title "Instagram $VERSION version watch: build failed" --body-file "$RUNNER_TEMP/issue.md"
+          title="New version detected: $VERSION"
+          # Open or closed, one issue per version: closing it means it was seen.
+          if gh issue list --repo "$GITHUB_REPOSITORY" --state all --label "$ISSUE_LABEL" --limit 200 --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "An issue for $VERSION already exists."
+            exit 0
+          fi
+          gh label create "$ISSUE_LABEL" --repo "$GITHUB_REPOSITORY" --color 1D76DB --description "New Instagram releases" --force
+          gh issue create --repo "$GITHUB_REPOSITORY" --label "$ISSUE_LABEL" --title "$title" --body "$APKMIRROR_URL"

@@ -127,7 +127,7 @@ final class StoriesCategory {
         }
         if (build.contains(PatchFamily.STORY_FONTS)) {
             stories.add(toggle(context, Settings.STORY_FONTS, L10n.t("Your fonts in story text"),
-                    L10n.t("Adds the fonts below to the story text editor, after Instagram's own fonts, which all "
+                    L10n.t("Adds the fonts below to the story text editor alongside Instagram's own fonts, which all "
                             + "stay. Pick one there like any other font.")));
             stories.add(page.storyFontsRow(context));
             stories.add(page.storyEmojiRow(context));

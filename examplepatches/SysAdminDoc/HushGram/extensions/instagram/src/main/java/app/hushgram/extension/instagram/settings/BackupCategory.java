@@ -10,6 +10,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.mark;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.restoreQuickSetupsSummary;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
 import android.preference.PreferenceCategory;
@@ -34,6 +35,8 @@ final class BackupCategory {
         page.exportConfiguration.setSummary(L10n.t("Choose a file for your installed patches' settings. Accounts and history stay on this device."));
         page.exportConfiguration.setOnPreferenceClickListener(p -> { page.pickConfiguration(false); return true; });
         backup.addPreference(mark(page.exportConfiguration, SettingsIcons.EXPORT));
+        backup.addPreference(toggle(context, Settings.DATE_SETTINGS_EXPORT, L10n.t("Date in backup file names"),
+                L10n.t("Add the current date and time when exporting settings. Off keeps HushGram-settings.json.")));
         page.importConfiguration = new Row(context);
         page.importConfiguration.setKey("hushgram_import_configuration");
         page.importConfiguration.setPersistent(false);

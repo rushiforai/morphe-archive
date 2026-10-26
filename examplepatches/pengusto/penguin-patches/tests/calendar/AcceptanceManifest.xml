@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.pengusto.patches.calendar.acceptance">
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+    <application />
+    <instrumentation android:name="io.github.pengusto.patches.calendar.tests.CalendarAcceptance" android:targetPackage="org.fossify.calendar" />
+</manifest>

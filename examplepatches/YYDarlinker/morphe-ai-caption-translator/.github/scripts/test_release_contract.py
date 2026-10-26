@@ -1,22 +1,35 @@
 import json, os, subprocess, sys, tempfile, unittest
+import re
 from pathlib import Path
 from datetime import datetime
 ROOT=Path(__file__).resolve().parents[2]
 SCRIPT=ROOT/".github/scripts/validate_morphe_metadata.py"
 class ReleaseContractTest(unittest.TestCase):
-    def validate(self, mutate=None, mutate_files=None):
-        with tempfile.TemporaryDirectory() as tmp:
+    def validate(self, mutate=None, mutate_files=None, mode='release'):
+        temporary=ROOT/'work/temp'
+        temporary.mkdir(parents=True,exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temporary) as tmp:
             dst=Path(tmp)
             for name in ("patches-bundle.json","patches-list.json","gradle.properties","CHANGELOG.md"):
                 (dst/name).write_bytes((ROOT/name).read_bytes())
             data=json.loads((dst/"patches-bundle.json").read_text(encoding="utf-8"))
             version=data["version"]
+            patch_list=dst/'patches-list.json'
+            patches=json.loads(patch_list.read_text(encoding='utf-8'))
+            patches['version']=version
+            patch_list.write_text(json.dumps(patches),encoding='utf-8')
+            prop=dst/'gradle.properties'
+            prop.write_text(re.sub(r'^version=.*$', 'version='+version, prop.read_text(), flags=re.M),encoding='utf-8')
             if mutate: mutate(data)
             (dst/"patches-bundle.json").write_text(json.dumps(data),encoding="utf-8")
             if mutate_files: mutate_files(dst)
             env=dict(os.environ,GITHUB_REPOSITORY="YYDarlinker/morphe-ai-caption-translator")
-            return subprocess.run([sys.executable,str(SCRIPT),version],cwd=dst,env=env,capture_output=True).returncode
-    def test_current_contract(self): self.assertEqual(0,self.validate())
+            return subprocess.run([sys.executable,str(SCRIPT),version,'--mode',mode],cwd=dst,env=env,capture_output=True).returncode
+    def test_coherent_release_fixture(self): self.assertEqual(0,self.validate())
+    def test_published_allows_newer_local_source(self):
+        self.assertEqual(0,self.validate(mutate_files=lambda p:(p/'gradle.properties').write_text('version=9.9.9\n'),mode='published'))
+    def test_release_rejects_newer_local_source(self):
+        self.assertNotEqual(0,self.validate(mutate_files=lambda p:(p/'gradle.properties').write_text('version=9.9.9\n')))
     def test_reject_duplicate_patch_names(self):
         def duplicate(dst):
             p=dst/"patches-list.json";data=json.loads(p.read_text(encoding="utf-8"));data["patches"].append(data["patches"][0]);p.write_text(json.dumps(data),encoding="utf-8")

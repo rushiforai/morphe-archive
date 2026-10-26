@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -73,6 +74,7 @@ class BloksColourPairTest {
     fun `each model of the interface sends its parse to the Bloks stand-in`() {
         val app = app()
         assertEquals("models changed", 2, with(app) { hookBloksColourPairs() })
+        assertSame("an unrelated interface implementer must not be made mutable", unrelated, app.classDefBy(unrelated.type))
         for (owner in listOf(logging.type, sparse.type)) {
             assertTrue("$owner calls the stand-in", PARSE_BLOKS in app.calls(owner))
             assertTrue("$owner keeps no route four parse", parser !in app.calls(owner))

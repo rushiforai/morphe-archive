@@ -24,4 +24,10 @@ internal object MfySectionDelegateFingerprint : Fingerprint(
     strings = listOf("MFYSectionDelegate"),
 )
 
+internal object ByteSizeFeatureFactoryFingerprint : Fingerprint(
+    returnType = "Lbypk;",
+    parameters = listOf("I", "Ljava/lang/Object;"),
+    strings = listOf("byte_size"),
+)
+
 

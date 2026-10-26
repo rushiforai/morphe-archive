@@ -17,9 +17,6 @@ private const val PURCHASED = 1
 
 private val OWNED_KEY_MARKERS = setOf("owned", "purchased", "entitlement", "inventory")
 
-// ponytail: purchases verified against Play servers stay gated; only
-// device-local purchase state is forced. Obfuscated billing code using
-// custom purchase types is missed.
 private fun isPurchaseStateRead(instruction: Instruction): Boolean {
     val reference = methodReferenceOf(instruction) ?: return false
     return reference.definingClass.contains("Purchase") &&
@@ -97,8 +94,8 @@ val freeInAppPurchasesPatch = bytecodePatch(
             },
         ) { instructions ->
             var count = 0
-            for (index in instructions.indices) {
-                val instruction = instructions[index]
+            for (index in instructions.indices.reversed()) {
+                val instruction = instructions.getOrNull(index) ?: continue
                 if (forcePurchased && isPurchaseStateRead(instruction) &&
                     forceInvokeResult(instructions, index) { register -> "const/4 v$register, 0x$PURCHASED" }
                 ) {
@@ -110,7 +107,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                 }
             }
             if (forceOwned) {
-                for (index in findConstArgInvokes(instructions, ::isOwnedKeyLoad, ::isPreferencesGetBoolean)) {
+                for (index in findConstArgInvokes(instructions, ::isOwnedKeyLoad, ::isPreferencesGetBoolean).sortedDescending()) {
                     if (forceInvokeResult(instructions, index) { register -> "const/4 v$register, 0x1" }) {
                         count++
                     }

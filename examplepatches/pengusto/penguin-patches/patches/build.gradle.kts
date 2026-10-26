@@ -26,10 +26,16 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        dependsOn(build, "buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        val bundle = project.tasks.named<Jar>("jar").flatMap { it.archiveFile }
+        doFirst {
+            setArgs(listOf(bundle.get().asFile.absolutePath,
+                rootProject.file(providers.gradleProperty("patchListOutput")
+                    .getOrElse("patches-list.json")).absolutePath))
+        }
     }
 
     // Used by gradle-semantic-release-plugin.

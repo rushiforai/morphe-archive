@@ -81,6 +81,10 @@ Patch success has two separate checks. A successful apply shows that the patch f
 
 ## Adding or changing a patch
 
+The all-patches verifier and fresh release receipts run the desktop CLI with `--validate`. An ordinary fingerprint must match one method. An intentional `matchAll()` can still match several. Retained runs carry schema 3 stamps with a Boolean validation flag and hashes of their inputs and outputs. Older or unvalidated evidence is patched again. Slow fingerprint timings stay in the verifier output for investigation. Normal Manager patching keeps its usual mode.
+
+`scripts/patch-for-device.ps1` holds its output directory until validation and installation finish. Use a different `-OutDir` for an overlapping build. Invalid options leave the previous signed APK intact.
+
 Start from the stock Facebook build that the patch should support. Facebook renames much of its code between releases, so an obfuscated class name from one APK is not a reliable anchor for the next one.
 
 1. Put the patch under the closest feature family in `patches/src/main/kotlin/app/morphe/patches/facebook/`. Define its user-facing name, description, category, default selection, compatibility, options, and dependencies in the Morphe patch declaration. The generated catalog takes these fields from the declaration.

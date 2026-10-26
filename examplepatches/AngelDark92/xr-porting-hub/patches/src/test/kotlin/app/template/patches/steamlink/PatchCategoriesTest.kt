@@ -18,8 +18,8 @@ import util.buildPatchListJson
 class PatchCategoriesTest {
     private val groups = linkedMapOf(
         "Image quality" to listOf(
-            xrGalaxyXrHighResolutionPatch, oledCalibrationPatch, blueNoisePatch,
-            xrFovealCanvasPatch, xrAlpha0TriggerPatch,
+            alpha0HighResolutionTriggerPatch, oledCalibrationPatch, blueNoisePatch,
+            surfaceVideoTriggerPatch,
         ),
         "Tracking & audio" to listOf(
             hmdOnlyPatch, gxrFacebridgePatch,
@@ -54,8 +54,8 @@ class PatchCategoriesTest {
 
     @Test
     fun `every public patch carries its agreed category and default`() {
-        assertEquals(31, publicPatches.size)
-        assertEquals(listOf(5, 4, 4, 4, 7, 3, 2, 2), groups.values.map { it.size })
+        assertEquals(30, publicPatches.size)
+        assertEquals(listOf(4, 4, 4, 4, 7, 3, 2, 2), groups.values.map { it.size })
         groups.forEach { (category, patches) ->
             patches.forEach { patch ->
                 assertEquals(category, patch.category, patch.name)
@@ -66,7 +66,7 @@ class PatchCategoriesTest {
                 androidXrNativePermissionNamesPatch, forceHmdInitializationGatesPatch,
                 forceLobbyPermissionStateGatePatch, forceStreamXrGatesPatch,
                 gxrFacebridgePatch,
-                xrGalaxyXrHighResolutionPatch, microphoneInputPresetPatch,
+                alpha0HighResolutionTriggerPatch, microphoneInputPresetPatch,
                 oledCalibrationPatch, unrestrictedBatteryUsagePatch,
                 hmdOnlyPatch, xrCoreRuntimePatch, xrDeviceConfigBaselinePatch,
                 xrInputRoutingConfigPatch, xrLauncherBootstrapPatch,
@@ -103,7 +103,7 @@ class PatchCategoriesTest {
             val name = channel.name
             assertEquals(channel.name.lowercase(), generated.get("channel").asString)
             val entries = generated.getAsJsonArray("patches").map { it.asJsonObject }
-            assertEquals(if (channel == ReleaseChannel.STABLE) 23 else 31, entries.size, name)
+            assertEquals(if (channel == ReleaseChannel.STABLE) 23 else 30, entries.size, name)
             val names = entries.map { it.get("name").asString }
             assertEquals(names.sorted(), names, name)
             assertEquals(names.size, names.toSet().size, name)

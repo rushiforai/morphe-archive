@@ -80,6 +80,7 @@ import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.facebook.settings.SettingsRows.RowSemantics;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 
 /**
  * The rows that edit a value: the text rows, whose dialogs fit above the keyboard, and the lists,
@@ -199,8 +200,9 @@ final class ValueRows {
         /** Says why Save was refused. The page sets it, since its dialogs close with it. */
         @Nullable Consumer<String> refused;
         @Nullable private TextView count;
-        /** The other list's share of the room, read when the dialog opens. */
+        /** The other list's share of the room, refreshed when the dialog opens and Save is pressed. */
         private int otherBytes;
+        private boolean saveRefused;
         /**
          * Opens the list of topic packs, set by the page for the list that hides posts. The words a
          * pack adds go into the open dialog's text as ordinary lines, and nothing is saved until Save.
@@ -217,6 +219,22 @@ final class ValueRows {
                 }
                 @Override public void afterTextChanged(android.text.Editable text) { }
             });
+        }
+
+        int otherListBytes() {
+            return PostWords.encodedBytes(PostWords.clean((hides ? Settings.KEPT_WORDS : Settings.HIDDEN_WORDS).savedValue()));
+        }
+
+        void refuseSave(String why) {
+            saveRefused = true;
+            if (refused != null) refused.accept(why);
+        }
+
+        boolean refuseDuringImport() {
+            if (!AbstractPreferenceFragment.settingImportInProgress) return false;
+            saveRefused = true;
+            Utils.showToastShort(L10n.t("Importing settings"));
+            return true;
         }
 
         @Override
@@ -303,21 +321,28 @@ final class ValueRows {
         @Override
         protected void showDialog(Bundle state) {
             // Before the dialog binds the list, which the count line measures against it.
-            otherBytes = PostWords.encodedBytes(PostWords.clean((hides ? Settings.KEPT_WORDS : Settings.HIDDEN_WORDS).savedValue()));
+            otherBytes = otherListBytes();
             super.showDialog(state);
             if (getDialog() instanceof AlertDialog) {
                 AlertDialog dialog = (AlertDialog) getDialog();
                 ScreenColors.dialog(dialog);
                 dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(button -> {
-                    String why = wordsRefusal(PostWords.size(getEditText().getText().toString(), otherBytes));
-                    if (why != null) {
-                        if (refused != null) refused.accept(why);
-                        return;
-                    }
-                    // As Android's own button does: the click, then the close, each posted in turn.
                     Handler main = new Handler(Looper.getMainLooper());
-                    main.post(() -> onClick(dialog, DialogInterface.BUTTON_POSITIVE));
-                    main.post(dialog::dismiss);
+                    main.post(() -> {
+                        if (refuseDuringImport()) return;
+                        otherBytes = otherListBytes();
+                        String typed = getEditText().getText().toString();
+                        String why = wordsRefusal(PostWords.size(typed, otherBytes));
+                        if (why != null) {
+                            if (refused != null) refused.accept(why);
+                            return;
+                        }
+                        // Validation and persistence share one turn. Only the close waits behind
+                        // it, so an activity ending between them still keeps the requested Save.
+                        saveRefused = false;
+                        if (callChangeListener(typed)) setText(typed);
+                        if (!saveRefused) main.post(dialog::dismiss);
+                    });
                 });
             }
             fitAboveKeyboard(getDialog());

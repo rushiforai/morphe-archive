@@ -117,14 +117,29 @@ public final class GooglePhotosAccountAvatar {
             activity.getApplication().registerActivityLifecycleCallbacks(
                     new android.app.Application.ActivityLifecycleCallbacks() {
                         @Override public void onActivityCreated(Activity a, Bundle b) {
-                            observeWindowRoot(a, a.getWindow().getDecorView());
+                            try {
+                                if (a.getWindow() != null) {
+                                    View decor = a.getWindow().peekDecorView();
+                                    if (decor != null) observeWindowRoot(a, decor);
+                                }
+                            } catch (Throwable ignored) {}
                         }
                         @Override public void onActivityStarted(Activity a) {
-                            observeWindowRoot(a, a.getWindow().getDecorView());
+                            try {
+                                if (a.getWindow() != null) {
+                                    View decor = a.getWindow().getDecorView();
+                                    observeWindowRoot(a, decor);
+                                }
+                            } catch (Throwable ignored) {}
                         }
                         @Override public void onActivityResumed(Activity a) {
-                            observeWindowRoot(a, a.getWindow().getDecorView());
-                            scanAllWindowRoots(a, true);
+                            try {
+                                if (a.getWindow() != null) {
+                                    View decor = a.getWindow().getDecorView();
+                                    observeWindowRoot(a, decor);
+                                }
+                                scanAllWindowRoots(a, true);
+                            } catch (Throwable ignored) {}
                         }
                         @Override public void onActivityPaused(Activity a) {}
                         @Override public void onActivityStopped(Activity a) {}
@@ -154,10 +169,21 @@ public final class GooglePhotosAccountAvatar {
                     });
         } catch (Exception ignored) {}
 
-        View decorView = activity.getWindow().getDecorView();
-        observeWindowRoot(activity, decorView);
-        prefetchRegisteredAccounts(activity, decorView);
-        scanAllWindowRoots(activity, true);
+        // Defer window decor view attachment to the main message queue so that
+        // Activity.onCreate(), super.onCreate(), Window.requestFeature(), and layout inflation
+        // complete first without triggering "requestFeature() must be called before adding content"
+        // or premature decor installation on modern Android versions (Android 15 & Android 16 / API 36).
+        Utils.runOnMainThread(() -> {
+            try {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                View decorView = activity.getWindow().getDecorView();
+                observeWindowRoot(activity, decorView);
+                prefetchRegisteredAccounts(activity, decorView);
+                scanAllWindowRoots(activity, true);
+            } catch (Throwable t) {
+                Logger.printException(() -> "Error in deferred avatar bridge window initialization", t);
+            }
+        });
 
         Utils.runOnMainThreadDelayed(() -> scanAllWindowRoots(activity, true), 100);
         Utils.runOnMainThreadDelayed(() -> scanAllWindowRoots(activity, true), 300);
@@ -335,7 +361,14 @@ public final class GooglePhotosAccountAvatar {
         if (!force && now - lastWindowScanUptime < WINDOW_SCAN_THROTTLE_MILLIS) return;
         lastWindowScanUptime = now;
 
-        refresh(activity, activity.getWindow().getDecorView());
+        try {
+            if (activity.getWindow() != null) {
+                View decor = activity.getWindow().peekDecorView();
+                if (decor != null) {
+                    refresh(activity, decor);
+                }
+            }
+        } catch (Throwable ignored) {}
 
         try {
             Class<?> wmgClass = Class.forName("android.view.WindowManagerGlobal");

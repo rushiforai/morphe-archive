@@ -5,13 +5,14 @@ import app.template.patches.steamlink.androidxr.appearOnTopPatch
 import app.template.patches.steamlink.androidxr.androidXrUiExtensionPatch
 import app.template.patches.steamlink.androidxr.controllerVelocityFramePatch
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
+import app.template.patches.steamlink.androidxr.surfaceVideoTriggerPatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.performanceBoostPatch
 import app.template.patches.steamlink.androidxr.xrCodecsSupportPatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
 import app.template.patches.steamlink.androidxr.xrDirectInputFixPatch
-import app.template.patches.steamlink.androidxr.xrGalaxyXrHighResolutionPatch
+import app.template.patches.steamlink.androidxr.alpha0HighResolutionTriggerPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
@@ -82,7 +83,7 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `legacy base exposes every standalone patch with matching defaults`() {
         val reference = allIndividualPatches.filter { it.supports("2.0.20", 5001712) }.toSet()
-        assertEquals(24, reference.size)
+        assertEquals(25, reference.size)
         recommendedFor("2.0.20", 5001712).forEach { assertTrue(it.default, it.name) }
         (reference - legacyRecommendedPatches).forEach { patch ->
             assertFalse(patch.default, patch.name)
@@ -92,7 +93,7 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `native base exposes its expected individual patches`() {
         val expected = setOf(
-            xrGalaxyXrHighResolutionPatch,
+            alpha0HighResolutionTriggerPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
             networkOptimizationsPatch,
@@ -114,7 +115,7 @@ class PatchCompatibilityMatrixTest {
                 }
             }
         val excludedPublicPatches = allIndividualPatches.toSet() - expected
-        assertEquals(13, excludedPublicPatches.size)
+        assertEquals(14, excludedPublicPatches.size)
         val modernClosure = nativeRecommendedPatches.flatMap { it.dependencyClosure() }.toSet()
         assertTrue(modernClosure.intersect(excludedPublicPatches).isEmpty())
     }
@@ -132,7 +133,7 @@ class PatchCompatibilityMatrixTest {
         assertTrue(xrManifestCapabilityPackPatch in routingClosure)
         assertTrue(xrCoreRuntimePatch in routingClosure)
 
-        listOf(xrGalaxyXrHighResolutionPatch, gxrFacebridgePatch).forEach { patch ->
+        listOf(alpha0HighResolutionTriggerPatch, gxrFacebridgePatch).forEach { patch ->
             val closure = patch.dependencyClosure()
             assertFalse(xrLauncherBootstrapPatch in closure, patch.name)
             assertFalse(xrPermissionSettingsBootstrapPatch in closure, patch.name)
@@ -179,7 +180,7 @@ class PatchCompatibilityMatrixTest {
             forceLobbyPermissionStateGatePatch,
             forceStreamXrGatesPatch,
             gxrFacebridgePatch,
-            xrGalaxyXrHighResolutionPatch,
+            alpha0HighResolutionTriggerPatch,
             microphoneInputPresetPatch,
             networkOptimizationsPatch, blueNoisePatch,
             xrCodecsSupportPatch,
@@ -193,6 +194,7 @@ class PatchCompatibilityMatrixTest {
             xrLauncherBootstrapPatch,
             xrInputRoutingConfigPatch,
             controllerVelocityFramePatch,
+            surfaceVideoTriggerPatch,
         )
 
         val legacyRecommendedPatches = setOf(
@@ -201,7 +203,7 @@ class PatchCompatibilityMatrixTest {
             forceLobbyPermissionStateGatePatch,
             forceStreamXrGatesPatch,
             gxrFacebridgePatch,
-            xrGalaxyXrHighResolutionPatch,
+            alpha0HighResolutionTriggerPatch,
             microphoneInputPresetPatch,
             oledCalibrationPatch,
             unrestrictedBatteryUsagePatch,
@@ -219,7 +221,7 @@ class PatchCompatibilityMatrixTest {
         )
 
         val nativeRecommendedPatches = setOf(
-            xrGalaxyXrHighResolutionPatch,
+            alpha0HighResolutionTriggerPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
             networkOptimizationsPatch,

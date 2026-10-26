@@ -252,6 +252,9 @@ final class RebuildApi {
                         RebuildProtocol.VERSION);
         for (int round = 0; round < 2; round++) {
             TranslationSourceAccess.checkActive(control);
+            // Every actual POST, including negotiation and both stream fallback paths, enters
+            // here. Admission is separate from finishSent permission to read the previous POST.
+            if (control != null && !control.tryBeginAttempt()) throw new InterruptedException();
             String body = request.toString();
             int attempt =
                     TranslationAudit.beginAttempt(
@@ -477,13 +480,9 @@ final class RebuildApi {
                         if (reader != null && code < 400) reader.feed(buf, 0, n);
                     }
                 }
-            long retry = 0;
-            try {
-                retry =
-                        Math.min(120, Math.max(0, Long.parseLong(c.getHeaderField("Retry-After"))))
-                                * 1000;
-            } catch (Exception ignored) {
-            }
+            // HTTP dates use wall time; the controller converts this delay to elapsed time.
+            long retry =
+                    RetryAfter.delayMs(c.getHeaderField("Retry-After"), System.currentTimeMillis());
             return new Response(code, new String(out.toByteArray(), StandardCharsets.UTF_8), retry);
         } catch (IOException failure) {
             // Do not reinterpret transport failures as semantic or structural repair errors. A

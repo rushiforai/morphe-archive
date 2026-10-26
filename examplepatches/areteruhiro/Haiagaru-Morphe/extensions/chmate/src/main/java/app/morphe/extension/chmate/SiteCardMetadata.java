@@ -160,10 +160,11 @@ final class SiteCardMetadata {
         for(byte b:digest)name.append(String.format(Locale.ROOT,"%02x",b));return new File(directory(),name+".json");
     }
     static Data cached(String url){try{
-        File file=file(url);if(file.length()>16384||System.currentTimeMillis()-file.lastModified()>86400000)return null;
+        long maxAge=Haiagaru.siteCardCacheDurationMillis();
+        File file=file(url);if(file.length()>16384||System.currentTimeMillis()-file.lastModified()>maxAge)return null;
         byte[] bytes=new android.util.AtomicFile(file).readFully();JSONObject j=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
         if(!url.equals(j.optString("url")))return null;
-        long saved=j.optLong("saved");if(saved<=0||System.currentTimeMillis()-saved>86400000)return null;
+        long saved=j.optLong("saved");if(saved<=0||System.currentTimeMillis()-saved>maxAge)return null;
         Data data=new Data(url,j.getString("title"),j.optString("description"),j.optString("image"),j.optString("site"),saved);
         // Old caches cannot prove that an unregistered URL did not redirect into a protected site.
         if(!j.has("tunnel"))return null;

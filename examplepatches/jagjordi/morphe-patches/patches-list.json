@@ -1,0 +1,164 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.26.0",
+  "patches": [
+    {
+      "name": "Bypass private DNS",
+      "description": "Resolves the app's OkHttp requests with DNS over HTTPS sent directly to a public resolver by IP address, so hosts blocked by the phone's private DNS (for example map tile servers on an ad-blocking resolver) still load. Applies to any app that bundles OkHttp with its class names intact.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "dohServer",
+          "title": "DNS over HTTPS resolver",
+          "description": "IP address of the DNS over HTTPS resolver to query. It must serve the JSON API over HTTPS on its IP address, as Google and Cloudflare do.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "8.8.8.8",
+          "values": {
+            "Google (8.8.8.8)": "8.8.8.8",
+            "Google secondary (8.8.4.4)": "8.8.4.4",
+            "Cloudflare (1.1.1.1)": "1.1.1.1",
+            "Cloudflare secondary (1.0.0.1)": "1.0.0.1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Open data for premium fields",
+      "description": "Fills the aircraft panel fields that the Flightradar24 server withholds from non-subscribers using open data: extended Mode S values (IAS, TAS, Mach, outside air temperature, GPS altitude and wind) from the adsb.lol and adsb.fi public APIs, serial number and aircraft age from the OpenSky Network aircraft database, and the flight information region from VATSpy boundaries. The aircraft and FIR data are downloaded once a month from a GitHub release. Values the server does send are never replaced.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.flightradar24free",
+          "name": "Flightradar24",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#327CB5",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "11.12.0",
+              "versionCodes": {
+                "ARM64_V8A": 111200000,
+                "ARMEABI_V7A": 111200000,
+                "X86_64": 111200000,
+                "X86": 111200000
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "openDataBaseUrl",
+          "title": "Open data bundle URL",
+          "description": "Base URL that serves aircraft.db.gz and firs.json.gz. Defaults to the weekly build published as the open-data prerelease of jagjordi/morphe-patches.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "https://github.com/jagjordi/morphe-patches/releases/download/open-data/",
+          "values": null
+        },
+        {
+          "key": "adsbApiUrl",
+          "title": "ADS-B aggregator URL",
+          "description": "Base URL of a readsb style v2 API, queried as <url><hex>. Defaults to api.adsb.lol; opendata.adsb.fi is tried as a fallback.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "https://api.adsb.lol/v2/hex/",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Open weather radar",
+      "description": "Draws the precipitation radar layers (global, North American and Australian) from RainViewer's public radar tiles when Flightradar24 does not issue weather credentials to the account. Layers that have no open source (satellite cloud, forecast wind, icing, turbulence and lightning) are left as they are.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.flightradar24free",
+          "name": "Flightradar24",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#327CB5",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "11.12.0",
+              "versionCodes": {
+                "ARM64_V8A": 111200000,
+                "ARMEABI_V7A": 111200000,
+                "X86_64": 111200000,
+                "X86": 111200000
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "radarIndexUrl",
+          "title": "Radar index URL",
+          "description": "RainViewer weather maps index that lists the current radar frames.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "https://api.rainviewer.com/public/weather-maps.json",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Unlock Business Premium",
+      "description": "Unlocks Business-tier features in Flightradar24: ad-free experience, weather layers, ATC routes, 3D view, flight history playback, unlimited saved locations and the country of registration. Works with or without a Flightradar24 account. Serial number and aircraft age stay locked because the server never sends them to non-subscribers.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.flightradar24free",
+          "name": "Flightradar24",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#327CB5",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "11.12.0",
+              "versionCodes": {
+                "ARM64_V8A": 111200000,
+                "ARMEABI_V7A": 111200000,
+                "X86_64": 111200000,
+                "X86": 111200000
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "mapsApiKey",
+          "title": "Google Maps API key",
+          "description": "Optional. A Google Maps Android API key to inject into the app manifest if the map stays blank after patching. Leave empty to keep the original key.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": null,
+          "values": null
+        }
+      ]
+    }
+  ]
+}

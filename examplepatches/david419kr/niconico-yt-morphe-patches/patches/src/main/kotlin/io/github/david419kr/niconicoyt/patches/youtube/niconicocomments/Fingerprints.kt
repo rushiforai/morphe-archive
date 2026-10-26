@@ -14,6 +14,8 @@ import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import io.github.david419kr.niconicoyt.patches.shared.ResourceType
 import io.github.david419kr.niconicoyt.patches.shared.resourceLiteral
 
@@ -122,7 +124,13 @@ internal object VideoTimeReferenceFingerprint : Fingerprint(
         Opcode.INVOKE_DIRECT_RANGE,
         Opcode.IGET_OBJECT,
     ),
-    strings = listOf("Media progress reported outside media playback: "),
+    // Patcher 2 makes legacy strings exact; check this prefix independently of opcode order.
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                ?.string?.startsWith("Media progress reported outside media playback: ") == true
+        } == true
+    },
 )
 
 private object PlaybackSpeedOnItemClickParentFingerprint : Fingerprint(

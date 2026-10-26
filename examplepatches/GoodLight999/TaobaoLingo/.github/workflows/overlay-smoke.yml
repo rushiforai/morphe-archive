@@ -1,0 +1,155 @@
+name: Android emulator smoke test
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'overlay/**'
+      - '.github/workflows/overlay-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build helper and OCR instrumentation APKs
+        working-directory: overlay
+        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon
+      - name: Install checksum-verified stable emulator (bypass broken latest SDK package)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 4 --retry-all-errors --retry-delay 5 \
+            -o "$RUNNER_TEMP/emulator-36.6.11.zip" \
+            https://dl.google.com/android/repository/emulator-linux_x64-15507667.zip
+          printf '%s  %s\n' \
+            1eade4cf2df6ea8eeead4902c635897ba12aaa32aac4389eaae0fdb498a5b830 \
+            "$RUNNER_TEMP/emulator-36.6.11.zip" | sha256sum --check
+          unzip -q -o "$RUNNER_TEMP/emulator-36.6.11.zip" -d "$ANDROID_SDK_ROOT"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends libpulse0 libnss3 libasound2t64
+          "$ANDROID_SDK_ROOT/emulator/emulator" -version
+      - name: Install Android 15 Google APIs image
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install 'system-images;android-35;google_apis;x86_64'
+      - name: Android 15 boot, app UI, and bundled Chinese OCR
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo chmod 666 /dev/kvm
+          # Create AVD metadata directly. avdmanager currently fails to load
+          # devices.xml on the downloaded API 35 system image.
+          image_dir="$ANDROID_SDK_ROOT/system-images/android-35/google_apis/x86_64"
+          test -s "$image_dir/system.img"
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME/taobaolingo-ci.avd"
+          cat > "$ANDROID_AVD_HOME/taobaolingo-ci.ini" <<EOF
+          avd.ini.encoding=UTF-8
+          path=$ANDROID_AVD_HOME/taobaolingo-ci.avd
+          path.rel=avd/taobaolingo-ci.avd
+          target=android-35
+          EOF
+          cat > "$ANDROID_AVD_HOME/taobaolingo-ci.avd/config.ini" <<EOF
+          AvdId=taobaolingo-ci
+          PlayStore.enabled=false
+          abi.type=x86_64
+          avd.ini.displayname=TaobaoLingo CI Android 15
+          disk.dataPartition.size=4G
+          fastboot.forceColdBoot=yes
+          hw.cpu.arch=x86_64
+          hw.cpu.ncore=2
+          hw.gpu.enabled=yes
+          hw.gpu.mode=swiftshader_indirect
+          hw.keyboard=yes
+          hw.lcd.density=420
+          hw.lcd.height=2400
+          hw.lcd.width=1080
+          hw.ramSize=3072
+          image.sysdir.1=$image_dir/
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.name=1080x2400
+          tag.display=Google APIs
+          tag.id=google_apis
+          vm.heapSize=256
+          EOF
+          "$ANDROID_SDK_ROOT/emulator/emulator" -list-avds | grep -x taobaolingo-ci
+          "$ANDROID_SDK_ROOT/emulator/emulator" -avd taobaolingo-ci \
+            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim \
+            -accel on -memory 3072 > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          emulator_pid=$!
+          cleanup() {
+            adb emu kill || true
+            kill "$emulator_pid" 2>/dev/null || true
+            tail -70 "$RUNNER_TEMP/emulator.log" || true
+          }
+          trap cleanup EXIT
+          booted=false
+          for attempt in $(seq 1 64); do
+            if ! kill -0 "$emulator_pid" 2>/dev/null; then
+              echo "::error::Emulator process exited during boot"
+              tail -150 "$RUNNER_TEMP/emulator.log"
+              exit 1
+            fi
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; then
+              booted=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "$booted" != true ]; then
+            echo "::error::Emulator did not finish booting"
+            tail -150 "$RUNNER_TEMP/emulator.log"
+            exit 1
+          fi
+          adb shell input keyevent 82
+          adb install -r overlay/app/build/outputs/apk/debug/app-debug.apk
+          adb install -r overlay/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          adb shell am start -W -n dev.goodlight999.taobaolingo.overlay/.MainActivity
+          sleep 8
+          adb shell uiautomator dump /sdcard/window.xml
+          adb pull /sdcard/window.xml "$RUNNER_TEMP/window.xml"
+          adb exec-out screencap -p > "$RUNNER_TEMP/taobaolingo-screen.png"
+          grep -q 'TaobaoLingo' "$RUNNER_TEMP/window.xml"
+          grep -q '画面翻訳を開始' "$RUNNER_TEMP/window.xml"
+          pid="$(adb shell pidof dev.goodlight999.taobaolingo.overlay)"
+          test -n "$pid"
+          adb shell am instrument -w dev.goodlight999.taobaolingo.overlay.test/androidx.test.runner.AndroidJUnitRunner \
+            | tee "$RUNNER_TEMP/ocr-test.log"
+          grep -q 'OK (2 tests)' "$RUNNER_TEMP/ocr-test.log"
+          echo 'PASS: APK installed, activity rendered, process alive, Chinese OCR and on-device translation succeeded'
+          bash overlay/scripts/probe_media_projection.sh
+
+      - name: Upload emulator screenshots and diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: taobaolingo-emulator-smoke-diagnostics
+          path: |
+            ${{ runner.temp }}/taobaolingo-screen.png
+            ${{ runner.temp }}/window.xml
+            ${{ runner.temp }}/emulator.log
+            ${{ runner.temp }}/ocr-test.log
+            ${{ runner.temp }}/taobaolingo-projection.xml
+            ${{ runner.temp }}/taobaolingo-projection.png
+            ${{ runner.temp }}/taobaolingo-main.xml
+            ${{ runner.temp }}/taobaolingo-projection-choice.xml
+            ${{ runner.temp }}/taobaolingo-projection-ready.xml
+            ${{ runner.temp }}/taobaolingo-post-consent.png
+            ${{ runner.temp }}/taobaolingo-services.txt
+            ${{ runner.temp }}/taobaolingo-display.txt
+            ${{ runner.temp }}/taobaolingo-notifications.txt
+            ${{ runner.temp }}/taobaolingo-logcat.txt
+          if-no-files-found: ignore

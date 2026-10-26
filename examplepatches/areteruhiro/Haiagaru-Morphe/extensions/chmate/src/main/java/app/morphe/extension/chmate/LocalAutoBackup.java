@@ -64,14 +64,24 @@ final class LocalAutoBackup {
         Button folder=new Button(a);folder.setText("保存先フォルダを選ぶ");folder.setOnClickListener(v->{
             a.startActivity(new Intent(a,HaiagaruLocalBackupActivity.class).putExtra(HaiagaruLocalBackupActivity.EXTRA_MODE,HaiagaruLocalBackupActivity.MODE_FOLDER));
         });body.addView(folder);
+        final boolean[] savingToggle={false};
         enabled.setOnCheckedChangeListener((v,on)->{
+            if(savingToggle[0])return;
             if(on&&p.getString("tree","").isEmpty()){enabled.setChecked(false);Toast.makeText(a,"先に保存先フォルダを選んでください",Toast.LENGTH_LONG).show();return;}
-            p.edit().putBoolean("enabled",on).apply();
+            // The app may be replaced immediately after leaving this screen.
+            // Do not show a saved toggle before its durable write has completed.
+            if(!p.edit().putBoolean("enabled",on).commit()){
+                savingToggle[0]=true;
+                p.edit().putBoolean("enabled",!on).commit();
+                enabled.setChecked(!on);
+                savingToggle[0]=false;
+                Toast.makeText(a,"自動バックアップの設定を保存できませんでした",Toast.LENGTH_LONG).show();
+            }
         });
         EditText hours=number(body,a,"実行間隔（時間、1〜8760）",p.getInt("hours",24));
         EditText keep=number(body,a,"保持件数（1〜100）",p.getInt("keep",3));
         LiveSettings live=new LiveSettings(p,()->{});live.number(hours,"hours",1,8760);live.number(keep,"keep",1,100);
-        TextView retention=new TextView(a);retention.setText("保持件数を超えた分は、保存成功後に古い順で完全削除します。この機能が同じ保存先へ作ったZIPだけが対象です。他のファイルは削除しません。");body.addView(retention);
+        TextView retention=new TextView(a);retention.setText("保持件数は、新しいバックアップの保存成功後に適用します。このアプリが同じ保存先へ作成して管理しているZIPだけが対象です。手動保存・別アプリ・管理記録のないZIPは数に含めず削除しません。古いZIPを削除できなかった場合は、結果欄に警告を表示します。");body.addView(retention);
         int flags=p.getInt("categories",HaiagaruSyncSnapshot.DEFAULT);
         for(int i=0;i<HaiagaruMegaSync.CATEGORY_BITS.length;i++){
             int bit=HaiagaruMegaSync.CATEGORY_BITS[i];CheckBox check=new CheckBox(a);
@@ -117,7 +127,18 @@ final class LocalAutoBackup {
     static synchronized void setFolder(Context c,Uri tree)throws IOException{
         if(tree==null)throw new IOException("保存先フォルダが選択されていません");
         SharedPreferences p=prefs(c);String selected=tree.toString();
-        if(selected.equals(p.getString("tree","")))return;
+        String previous=p.getString("tree","");
+        if(selected.equals(previous))return;
+        // Providers can return a differently encoded URI for the same tree.
+        // Reselecting it must not orphan the tracked backups and restart retention.
+        if(!previous.isEmpty())try{
+            Uri old=Uri.parse(previous);
+            if(tree.getAuthority()!=null&&tree.getAuthority().equals(old.getAuthority())
+                    &&DocumentsContract.getTreeDocumentId(tree).equals(DocumentsContract.getTreeDocumentId(old))){
+                if(!p.edit().putString("tree",selected).commit())throw new IOException("保存先の設定を保存できませんでした");
+                return;
+            }
+        }catch(IllegalArgumentException invalidPrevious){ /* Different/invalid old destination; keep its files untouched. */ }
         // Keep the old folder's tracked files untouched; never prune across a folder change.
         if(!p.edit().putString("tree",selected).remove("files").remove("last").remove("status").commit())
             throw new IOException("保存先の設定を保存できませんでした");
@@ -152,22 +173,18 @@ final class LocalAutoBackup {
                     // Persist ownership before pruning so a failed deletion can be retried safely.
                     if(!p.edit().putString("files",files.toString()).putLong("last",System.currentTimeMillis()).putString("status","バックアップ成功").commit())
                         throw new IOException("バックアップは保存されましたが管理記録を保存できません（古いファイルは削除しません）");
-                    int excess=files.length()-Math.max(1,p.getInt("keep",3));JSONArray retained=new JSONArray();
-                    for(int i=0;i<files.length();i++){
-                        String value=files.getString(i);boolean deleted=false;
-                        if(i<excess)try{Uri old=Uri.parse(value);
-                            if(tree.getAuthority().equals(old.getAuthority())&&DocumentsContract.getTreeDocumentId(tree).equals(DocumentsContract.getTreeDocumentId(old))){
-                                try(android.database.Cursor cursor=c.getContentResolver().query(old,new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME},null,null,null)){
-                                    if(cursor!=null&&cursor.moveToFirst()&&cursor.getString(0).startsWith("haiagaru-auto-"))
-                                        deleted=DocumentsContract.deleteDocument(c.getContentResolver(),old);
-                                }
-                            }
-                        }catch(Exception ignored){}
-                        if(!deleted)retained.put(value);
-                    }
-                    p.edit().putString("files",retained.toString()).apply();
+                    java.util.List<String> tracked=new java.util.ArrayList<>();
+                    LocalBackupDocuments documents=new LocalBackupDocuments(c,tree);
+                    // Equivalent plain/tree URIs must count as one file, or pruning an
+                    // old alias could delete the newest protected alias of the same ZIP.
+                    for(int i=0;i<files.length();i++)tracked.add(documents.canonical(files.getString(i)));
+                    LocalBackupRetention.Result result=LocalBackupRetention.prune(tracked,p.getInt("keep",3),documents);
+                    String status="バックアップ成功（管理中 "+result.retained.size()+"件）";
+                    if(result.unresolved>0)status+="\n注意：古いバックアップの確認・削除に失敗しました（"+result.unresolved+"件）。保持件数を超える場合があります。保存先のアクセス権を確認してください。";
+                    if(!p.edit().putString("files",new JSONArray(result.retained).toString()).putString("status",status).commit())
+                        throw new IOException("バックアップは保存されましたが整理結果を記録できませんでした");
+                    notification.update(result.unresolved>0?"保存完了。古いバックアップの整理に注意があります":"バックアップが完了しました",true);
                 }
-                notification.update("バックアップが完了しました",true);
             }catch(Exception error){notification.update("バックアップに失敗しました。アプリで詳細を確認してください",true);p.edit().putString("status","バックアップ失敗："+error.getMessage()).apply();android.util.Log.w("Haiagaru","Local auto backup failed",error);}
             finally{
                 if(snapshot!=null)snapshot.delete();

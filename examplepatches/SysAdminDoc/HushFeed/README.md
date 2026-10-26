@@ -67,7 +67,7 @@ The patches that take files out of TikTok do it while patching, so Pause and a s
 
 Besides the row at the top of TikTok's **Settings and privacy**, two shortcuts skip Profile and work while you're signed out: press and hold **For You** at the top of the feed, or long-press **Home** on the bottom bar. A quick tap on either still does what it always did. The Home shortcut needs **Feed tab navigation** selected along with **Settings** when you patch, and it's the one to use if you've hidden the tab names at the top of the feed.
 
-The home page has a search box, which finds any row by its title or description and flips a plain switch right in the results. Under it, Quick setups turns on Quiet or Privacy, or puts every switch back to its default, in one tap with Undo. Every settings page sits right on the home page under a small heading, so nothing is more than one tap away:
+The home page has a search box, which finds any row by its title or description and flips a plain switch right in the results. In unreleased builds, hold a result switch to open its original page and highlight the setting. Back restores the search. Screen readers offer **Open setting location**. Under it, Quick setups turns on Quiet or Privacy, or puts every switch back to its default, in one tap with Undo. Every settings page sits right on the home page under a small heading, so nothing is more than one tap away:
 
 | Heading | Pages |
 | --- | --- |
@@ -284,9 +284,13 @@ Simple mode in Morphe Manager selects 122 of these patches. Each row says what t
 
 ### Patching stalls partway
 
-The manager has probably run short of memory. If it says the patcher ran out of memory with a 1024 MB heap, patch the bundle (`.apkm`) from [step 1](#install) instead of the APK. It needs less memory, and on a 3 GB device it finished where the APK failed. In Manager 2.0, also check that **Use embedded VM** is on under **Settings > Patcher**, close other apps and start again. If it stops while Manager is in the background, allow it under **Battery optimization** on that same page. On an older Manager, set **Settings > Process runtime** to 1,024 MB instead, or 512 MB if it still stalls. Hide Play Store update offer, Change app name and Custom launcher icon decode resources too, so they're the ones to leave out if memory stays tight.
+The manager has probably run short of memory. If it says the patcher ran out of memory with a 1024 MB heap, patch the bundle (`.apkm`) from [step 1](#install) instead of the APK. It needs less memory, and on a 3 GB device it finished where the APK failed. In Manager 2.0, also check that **Use embedded VM** is on under **Settings > Patcher**, close other apps and start again. If it stops while Manager is in the background, allow it under **Battery optimization** on that same page. On an older Manager, set **Settings > Process runtime** to 1,024 MB instead, or 512 MB if it still stalls. Change app name, Custom launcher icon and Hide Play Store update offer decode resources too. You can leave them out if memory stays tight, except for Hide Play Store update offer when the installed copy already used it.
 
-You can select every patch at once. Each release is patched with all of them selected before it ships, so none refuse to go in together.
+### Choosing patches
+
+Start with the recommended patches in Simple mode. Optional removal patches come with the feature losses listed in their descriptions. The release checks apply all compatible patches together. They don't cover every sign-in method or runtime combination.
+
+Pause can't put removed files back. To restore them, patch the original file from [step 1](#install) with those removal patches left out. Use the same signing key and the same package name as the installed copy, including the Clone app package name if you used it. Install over your existing copy without uninstalling it. If that copy used Hide Play Store update offer, keep it selected so the version code doesn't drop.
 
 ### TikTok stays in English after removing language packs
 
@@ -320,7 +324,11 @@ If you can't reach the settings at all, create an empty file named `hushfeed-saf
 
 ### A save didn't finish
 
-If TikTok closes while saves are still going, the next time you open it a banner names the ones that didn't finish, or that Hushfeed can't confirm, and how many of their files are missing. Files that already reached your gallery count as saved and are left alone. Nothing picks a save up again by itself, so save it again if you still want it. The note Hushfeed keeps for this stays inside TikTok's own storage and holds no links or tokens. On Android 9 and older, a file that's still being written is noted by its own path, which is the name it's saved under and can include the creator and the video ID, until it's confirmed. Each save's entry goes when the save ends or once the banner has named it.
+If TikTok closes while saves are still going, the next time you open it the download recovery banner names the ones that didn't finish, or that Hushfeed can't confirm, and how many of their files are missing. Files that already reached your gallery count as saved and are left alone. Nothing picks a save up again by itself, so save it again if you still want it. The note Hushfeed keeps for this stays inside TikTok's own storage and holds no links or tokens. On Android 9 and older, a file that's still being written is noted by its own path, which is the name it's saved under and can include the creator and the video ID, until it's confirmed. Each save's entry goes when the save ends or once the banner has named it.
+
+In unreleased source builds, LIVE recordings keep recovery files inside the app until Hushfeed verifies the saved copy. After an interruption, Hushfeed tries to save the complete part. If it can't, Retry opens the retained recording's actions. You can retry saving it, export its files or delete them. Older files with an unknown save history and damaged recovery records offer export or deletion. Finish that recovery before starting another recording. Clearing the app's data or uninstalling it removes these files.
+
+For one-app recording on Android 14 or newer, unreleased builds keep TikTok in the recording prompt's recent-apps list. Choose its preview there. Each new recording opens Android's permission prompt again.
 
 ### A photo post saved as a video still has TikTok's watermark
 
@@ -386,7 +394,9 @@ For Android 17 emulator checks, use Android SDK Command-line Tools 23 and inspec
 
 To add a language to the settings screen, copy one of the tables under `extensions/tiktok/src/main/l10n/` (the tab separated `de.tsv` or the Weblate style `in.csv`) to your language code, translate the right column, then run `python scripts/gen-l10n.py` and `./gradlew :extensions:tiktok:test`. Use the code Android reports, so `in` rather than `id`. The tests fail on any settings text that's missing from a table.
 
-The patch audit's catalog check is `pwsh -File audit/run-audit.ps1 -Validate`. To check a saved report without changing it, use `-ValidateResults -Results <report> -OutDir <evidence folder>`. A current result needs its exact definition, build receipt and APK identity, plus unchanged evidence files. Old or mixed-build records stay historical. The [audit routine](concepts/patch-development.md#patch-audit) covers the device builder's `.audit-build.json`, shared device leases and receipt-bound screenshot verdicts.
+The patch audit's catalog check is `pwsh -File audit/run-audit.ps1 -Validate`. To check a saved report without changing it, use `-ValidateResults -Results <report> -OutDir <evidence folder>`. A current result needs its exact definition, build receipt and APK identity, unchanged evidence files, and the same executable inputs as the build being qualified. Each check keeps its own input digest, so a partial rerun cannot qualify older checks. Documentation changes alone leave the digest unchanged. Old or mixed-build records stay historical. The [audit routine](concepts/patch-development.md#patch-audit) covers the device builder's `.audit-build.json`, shared device leases and receipt-bound screenshot verdicts.
+
+Unreleased release checks require a separate fixture and native audit for every package and version in the catalog. Each record includes the source APK's manifest and hash, the selected patches and options, and the exact bundle and source commit. A whole-app walk also verifies the installed APK before and after navigation. Older published receipts remain readable as historical records. PineDrama still needs its own native audit and walk profiles before these checks can permit another publication.
 
 On Windows, device builds, probe installation, the probe tools, the injected-register check and audit runs need `-LeaseDir <shared lease folder>` and `-ChatIdentity <task identifier>`, or `HUSHFEED_DEVICE_LEASE_DIR` and `HUSHFEED_CHAT_IDENTITY`. Every device command checks the exact serial and current ownership. Existing leases are never reclaimed automatically, including expired ones. Local builds and offline audit checks don't acquire a device lease.
 

@@ -72,7 +72,7 @@ public final class RelatedThreads {
                 if(rows.isEmpty())dialog.setMessage("関連候補は見つかりませんでした。標準の検索結果も確認できます。");
                 else dialog.setItems(labels,(d,index)->{
                     Intent intent=new Intent(Intent.ACTION_VIEW,android.net.Uri.parse(source.origin+"/test/read.cgi/"+source.board+"/"+rows.get(index).id+"/"));
-                    intent.setPackage(a.getPackageName());
+                    intent.setClassName(a, "jp.syoboi.a2chMate.activity.ResListActivity");
                     try{a.startActivity(intent);}catch(Exception e){Toast.makeText(a,"スレを開けませんでした",Toast.LENGTH_LONG).show();}
                 });
                 dialog.setOnDismissListener(d->OPEN.remove(fragment)).show();

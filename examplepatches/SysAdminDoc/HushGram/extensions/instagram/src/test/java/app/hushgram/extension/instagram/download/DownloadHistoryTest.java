@@ -628,4 +628,70 @@ public class DownloadHistoryTest {
             return null;
         }
     }
+    @Test public void aFailedPartialAppendIsRepairedBeforeTheNextSave() throws Exception {
+        DownloadHistory.remember(context, "owner/1/0/v", "content://media/external/video/media/1", "Movies/Instagram", null);
+        try (PartialAppend failure = new PartialAppend(25)) {
+            try {
+                DownloadHistory.remember(context, "owner/2/0/v", "content://media/external/video/media/2", "Movies/Instagram", null);
+                throw new AssertionError("the partial append did not fail");
+            } catch (IOException expected) {
+                assertEquals("controlled partial append", expected.getMessage());
+            }
+        }
+        DownloadHistory.remember(context, "owner/3/0/v", "content://media/external/video/media/3", "Movies/Instagram", null);
+        assertTrue(DownloadHistory.remembers(context, "owner/3/0/v"));
+        DownloadHistory.forgetForTests();
+        assertTrue("a save before the failed write was lost", DownloadHistory.remembers(context, "owner/1/0/v"));
+        assertTrue("the recovered save was appended onto a damaged tail and lost on restart",
+                DownloadHistory.remembers(context, "owner/3/0/v"));
+    }
+
+    @Test public void aFailedForgetAppendIsRepairedBeforeTheNextSave() throws Exception {
+        DownloadHistory.remember(context, "owner/1/0/v", "content://media/external/video/media/1", "Movies/Instagram", null);
+        DownloadHistory.remember(context, "owner/2/0/v", "content://media/external/video/media/2", "Movies/Instagram", null);
+        try (PartialAppend failure = new PartialAppend(3)) {
+            // The provider has no row, so checking this entry forgets it and appends a tombstone.
+            assertFalse(DownloadHistory.saved(context, "owner/1/0/v"));
+        } finally {
+            DownloadHistory.release("owner/1/0/v");
+        }
+        DownloadHistory.remember(context, "owner/3/0/v", "content://media/external/video/media/3", "Movies/Instagram", null);
+        DownloadHistory.forgetForTests();
+        assertFalse(DownloadHistory.remembers(context, "owner/1/0/v"));
+        assertTrue(DownloadHistory.remembers(context, "owner/2/0/v"));
+        assertTrue("a failed tombstone damaged the next completed save",
+                DownloadHistory.remembers(context, "owner/3/0/v"));
+    }
+
+    /** A real prefix reaches disk before the same stream throws. Closing cannot finish the lost tail. */
+    private static final class PartialAppend implements AutoCloseable {
+        private final java.lang.reflect.Field field;
+        private final Object previous;
+
+        PartialAppend(int prefixBytes) throws Exception {
+            field = DownloadHistory.class.getDeclaredField("appendForTests");
+            field.setAccessible(true);
+            previous = field.get(null);
+            Object factory = java.lang.reflect.Proxy.newProxyInstance(DownloadHistory.class.getClassLoader(),
+                    new Class<?>[]{field.getType()}, (proxy, method, args) -> {
+                        if (!method.getName().equals("open")) throw new AssertionError(method);
+                        return new FileOutputStream((File) args[0], true) {
+                            private int left = prefixBytes;
+                            @Override public void write(int value) throws IOException {
+                                write(new byte[]{(byte) value}, 0, 1);
+                            }
+                            @Override public void write(byte[] bytes, int offset, int count) throws IOException {
+                                int written = Math.min(left, count);
+                                if (written > 0) { super.write(bytes, offset, written); left -= written; }
+                                throw new IOException("controlled partial append");
+                            }
+                        };
+                    });
+            field.set(null, factory);
+        }
+
+        @Override public void close() throws Exception { field.set(null, previous); }
+    }
+
+
 }

@@ -1,0 +1,70 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build patches
+        env:
+          # Morphe publishes its patcher and Gradle plugin to GitHub Packages, which needs a token even to read.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then version="0.0.0-dev.${GITHUB_RUN_NUMBER}"; fi
+          ./gradlew :patches:buildAndroid -Pversion="$version" --stacktrace
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches
+          path: patches/build/libs/*.mpp
+
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mpp=$(ls patches/build/libs/*.mpp | head -n 1)
+          name=$(basename "$mpp")
+          gh release create "$GITHUB_REF_NAME" "$mpp" --title "$GITHUB_REF_NAME" --generate-notes
+
+          # Morphe Manager reads patches-bundle.json at the root of the default branch.
+          jq -n \
+            --arg url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${name}" \
+            --arg at "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --arg version "$GITHUB_REF_NAME" \
+            '{created_at: $at, description: "Sound Connect patches", download_url: $url, signature_download_url: "", version: $version}' \
+            > /tmp/patches-bundle.json
+          git fetch origin main
+          git checkout -B main origin/main
+          cp /tmp/patches-bundle.json patches-bundle.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git commit -m "chore: Publish ${GITHUB_REF_NAME} in patches-bundle.json [skip ci]"
+          git push origin main

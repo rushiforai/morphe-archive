@@ -5,13 +5,10 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.patch.Compatibility
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5001712
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST
 import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
-import app.template.patches.shared.Constants.EXPERIMENTAL_COMPATIBILITY_NAME
 import app.template.patches.shared.buildLabel
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -100,13 +97,9 @@ internal const val ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY =
 internal const val ANDROID_SURFACE_TRIGGER_MANIFEST =
     "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json"
 internal const val ANDROID_SURFACE_TRIGGER_BUILD_ID =
-    "android-surface-trigger-passthrough-v1.4-20260903"
+    "android-surface-trigger-3proj-alpha0-v2.0-20261025"
 internal const val ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID =
-    "android-surface-trigger-5001712-v1.2-20260903"
-internal const val ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_RESOURCE_LIBRARY =
-    "libgxr_ast_5001712_alpha0.so"
-internal const val ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_BUILD_ID =
-    "android-surface-trigger-5001712-alpha0-v1.3-20261024"
+    "android-surface-trigger-2proj-alpha0-v2.0-20261025"
 internal data class ProjectionModeResources(
     val mode: String,
     val library: String,
@@ -127,6 +120,7 @@ internal fun projectionModesConflict(existingMode: String, requestedMode: String
 
 private val retiredProjectionModes = setOf(
     "surface_video_v1", // Tried on 2026-09-11; low-resolution output. Cleanup only.
+    "foveal_canvas", // Retired 2026-10-24; did not solve high resolution. Cleanup only.
     "android_surface_fovea_v1", // Tried on 2026-09-07; user reported it did not work.
     "android_surface_underside_projection_v1",
     "android_surface_trigger_warmup_omit_v1",
@@ -179,25 +173,15 @@ internal fun projectionModeResource(name: String): ByteArray =
         ?: throw PatchException("Missing bundled XR projection-mode resource: $name"))
         .use { it.readBytes() }
 
-/**
- * Exact 2.0.20/5001712 alpha-0 trial. The other two 2-projection legacy builds
- * (5001812, 5001968) keep the production alpha-1 helper until this trial is
- * validated and promoted.
- */
-internal fun isAlpha0SurfaceTriggerSteamLinkBuild(
-    versionName: String,
-    versionCode: String,
-): Boolean = versionName == "2.0.20" && versionCode == "5001712"
-
 internal fun androidSurfaceTriggerResourceLibraryForBuild(
     versionName: String,
     versionCode: String,
 ): String = if (app.template.patches.shared.Constants.isTwoProjectionSteamLinkBuild(versionName, versionCode)) {
+    // 2-projection alpha-0 helper for 5001712/5001812/5001968.
     ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY
 } else {
-    // Exact 2.0.23/5002363 and 2.0.24/5002395 retain the verified 3-projection
-    // contract. This API layer contains no Valve native offsets; the installer
-    // applies the exact-build guard.
+    // 3-projection alpha-0 helper for 5002244/5002363/5002395. This API layer
+    // contains no Valve native offsets; the installer applies the exact-build guard.
     ANDROID_SURFACE_TRIGGER_LIBRARY
 }
 
@@ -224,6 +208,15 @@ internal fun installProjectionModeResources(
                     "${requested.mode} conflicts with ${sibling.mode}",
             )
         }
+    }
+
+    // The Surface-video experiment appends its own terminal trigger. Reject either
+    // patch order so Alpha-0 can never leave a three-layer Surface-video frame behind.
+    if (File(libDir, SURFACE_VIDEO_TRIGGER_LIBRARY).exists() ||
+        File(layerDir, SURFACE_VIDEO_TRIGGER_MANIFEST).exists()) {
+        throw PatchException(
+            "Surface video + trigger is mutually exclusive with Alpha-0 high-resolution trigger",
+        )
     }
 
     retiredProjectionModes.forEach { mode ->
@@ -336,14 +329,15 @@ private val androidSurfaceTriggerResourcesPatch = androidSurfaceTriggerResources
 )
 
 @Suppress("unused")
-val xrGalaxyXrHighResolutionPatch = resourcePatch(
-    name = "Galaxy XR high-resolution 3-projection fix",
-    description = "Permission-free high-resolution fix that leaves renderer formats, including future RGB10_A2, untouched. " +
+val alpha0HighResolutionTriggerPatch = resourcePatch(
+    name = "Alpha-0 high-resolution trigger",
+    description = "Fully transparent high-resolution trigger quad that keeps Valve's native projection layout and formats untouched. " +
         buildLabel(COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION),
     default = true,
 ) {
     category(PatchCategories.IMAGE_QUALITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())
+    // Renderer formats, including future RGB10_A2, pass through unchanged.
     dependsOn(
         androidSurfaceTriggerResourcesPatch,
     )
@@ -358,53 +352,5 @@ val xrGalaxyXrHighResolutionPatch = resourcePatch(
         document("AndroidManifest.xml").use { document ->
             configurePermissionFreeProjectionMode(document, ANDROID_SURFACE_TRIGGER_MODE)
         }
-    }
-}
-
-private val alpha0TriggerCompatibilities = COMPATIBILITIES_STEAM_LINK_5001712.map { exact ->
-    Compatibility(
-        name = EXPERIMENTAL_COMPATIBILITY_NAME,
-        packageName = requireNotNull(exact.packageName),
-        targets = exact.targets,
-    )
-}
-
-/**
- * Selectable alpha-0 variant. This is deliberately a second patch object because
- * its global default must differ from the recommended high-resolution patch: the
- * production helper stays alpha 1/255 by default, while this optional experiment
- * replaces the installed helper with alpha 0 on exact 2.0.20/5001712.
- */
-@Suppress("unused")
-val xrAlpha0TriggerPatch = rawResourcePatch(
-    name = "Alpha-0 high-resolution trigger (experimental)",
-    description = "Clears the high-resolution trigger quad's 1/255 alpha byte so it is fully transparent on exact 2.0.20/5001712. " +
-        buildLabel(alpha0TriggerCompatibilities),
-    default = false,
-) {
-    category(PatchCategories.IMAGE_QUALITY)
-    compatibleWith(*alpha0TriggerCompatibilities.toTypedArray())
-    // The dependency installs the high-resolution layer and its manifest first;
-    // this variant then replaces only the installed helper.
-    dependsOn(xrGalaxyXrHighResolutionPatch)
-    execute {
-        // Dependencies bypass compatibility checks. Leave every other base untouched
-        // before reading or writing target files.
-        if (!isAlpha0SurfaceTriggerSteamLinkBuild(
-                packageMetadata.versionName,
-                packageMetadata.versionCode,
-            )) {
-            return@execute
-        }
-        val sceneFile = get("lib/arm64-v8a/libvrlink_scene.so")
-        val apkRoot = sceneFile.parentFile!!.parentFile!!.parentFile!!
-        val layerDir = File(apkRoot, "assets/openxr/1/api_layers/implicit.d")
-        val requested = activeProjectionModes.first { it.mode == ANDROID_SURFACE_TRIGGER_MODE }
-        val helperBytes = projectionModeResource(ANDROID_SURFACE_TRIGGER_5001712_ALPHA0_RESOURCE_LIBRARY)
-        if (helperBytes.size < 4 || !helperBytes.copyOfRange(0, 4)
-                .contentEquals(byteArrayOf(0x7F, 0x45, 0x4C, 0x46))) {
-            throw PatchException("Bundled alpha-0 Android-surface trigger is not an ELF library")
-        }
-        installProjectionModeResources(sceneFile.parentFile!!, layerDir, requested, helperBytes)
     }
 }

@@ -19,3 +19,8 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "1.3.4"
 }
+
+include(":stubs:feeder")
+
+include(":stubs:kvaesitso")
+include(":stubs:clock")

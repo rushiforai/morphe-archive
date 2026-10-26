@@ -24,6 +24,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify agent docs
+        run: python3 -B .github/scripts/check_agent_docs.py
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -82,28 +85,10 @@ jobs:
           subject-path: ${{ steps.release_artifact.outputs.path }}
 
       # No release was published from this commit (other branches, chore, docs, ...):
-      # build the complete release graph once as the push gate. The bundle stays in place
-      # so a non-main/dev branch can retain it for on-device testing below.
+      # build the complete release graph once as the push gate. No branch artifact is
+      # uploaded; build outputs are not consumed from CI.
       - name: Verify build when no release was published
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid :patches:generatePatchesList -PreleaseChannel=${{ github.ref_name == 'main' && 'stable' || 'experimental' }}
-
-      # Keep the verified branch bundle available for intentional on-device testing.
-      # This does not publish a release or activate a headset patch.
-      - name: Resolve verified branch bundle
-        if: github.ref_name != 'main' && github.ref_name != 'dev'
-        id: branch_bundle
-        run: |
-          export RELEASE_VERSION="$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties | tr -d '\r')"
-          node .github/scripts/resolve_release_artifact.cjs
-
-      - name: Save verified branch bundle
-        if: github.ref_name != 'main' && github.ref_name != 'dev'
-        uses: actions/upload-artifact@v4
-        with:
-          name: morphe-branch-${{ github.sha }}
-          path: ${{ steps.branch_bundle.outputs.path }}
-          if-no-files-found: error
-          retention-days: 7

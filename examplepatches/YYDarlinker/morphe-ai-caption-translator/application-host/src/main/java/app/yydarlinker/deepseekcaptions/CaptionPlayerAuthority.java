@@ -48,6 +48,7 @@ final class CaptionPlayerAuthority {
     private static int state = UNKNOWN;
     private static String playerType = "";
     private static boolean typeAuthoritative;
+    private static boolean shortsStateKnown, shortsOpen, shortsOwner;
 
     /** Test-only current-player source; production reads the official public accessor. */
     private static volatile Supplier<String> testPlayerType;
@@ -117,7 +118,48 @@ final class CaptionPlayerAuthority {
 
     /** True only for a proven non-compact player whose geometry was confirmed on this owner. */
     static boolean displayPermitted() {
-        return state == REGULAR && ownerValid();
+        return state == REGULAR && ownerValid()
+                && (!shortsOwner || (shortsSurfaceAllowed() && CaptionSurface.isShorts()));
+    }
+
+    static boolean shortsSurfaceAllowed() {
+        return !shortsStateKnown || shortsOpen;
+    }
+
+    /** Rebinding an engine owner as UNKNOWN must not undo an official Shorts exit. */
+    static boolean shortsExitBlocked() {
+        return shortsStateKnown && !shortsOpen && state != REGULAR;
+    }
+
+    /** Morphe's actual Shorts lifecycle, independent of its inner player's NONE type. */
+    static void onShortsStateChanged(boolean open) {
+        if (toMain(() -> onShortsStateChanged(open))) return;
+        // A late Shorts close must not retract a regular player that already took ownership.
+        boolean departed = shortsOwner || (shortsOpen
+                && (state == UNKNOWN || isCompactType(playerType)));
+        if (shortsStateKnown && shortsOpen == open) return;
+        shortsStateKnown = true;
+        shortsOpen = open;
+        CaptionSurface.shortsStateChanged();
+        surfaceDirty = true;
+        if (!open && departed) {
+            // Retract synchronously even if the old reel container remains attached/visible.
+            moveTo(COMPACT);
+            CaptionOverlay.denyDisplay(ownerEpoch);
+            Activity current = activity.get();
+            if (current != null) {
+                CaptionDiagnostics.mark(current, "SHORTS_DISPLAY_REVOKED", shortId());
+                CaptionSessionReconciler.onShortsClosed(current);
+            }
+        }
+        if (open) CaptionSessionReconciler.onPlayerReady(activity.get(), "shorts_open");
+    }
+
+    /** An ordinary settled player never becomes Shorts from an old lifecycle flag alone. */
+    static boolean shortsRecoveryCandidate() {
+        return shortsSurfaceAllowed() && (shortsOwner
+                || (shortsStateKnown && shortsOpen
+                        && (!typeAuthoritative || playerType.isEmpty() || "NONE".equals(playerType))));
     }
 
     static boolean hasAuthoritativeType() {
@@ -152,6 +194,7 @@ final class CaptionPlayerAuthority {
         playerType = "";
         typeAuthoritative = false;
         surfaceDirty = false;
+        shortsOwner = false;
     }
 
     static void setOwner(Activity next) {
@@ -326,11 +369,15 @@ final class CaptionPlayerAuthority {
     }
 
     private static void applyState() {
+        boolean shortSurface = shortsSurfaceAllowed()
+                && (CaptionSurface.isShorts()
+                        || ("NONE".equals(playerType) && CaptionSurface.shortsSurfaceNow()));
+        if (shortSurface) shortsOwner = true;
+        else if (!isCompactType(playerType) && typeAuthoritative) shortsOwner = false;
         if (!ownerValid()) moveTo(CLOSED);
         else if (!typeAuthoritative) moveTo(UNKNOWN);
         else if (isCompactType(playerType)
-                && !CaptionSurface.isShorts()
-                && !("NONE".equals(playerType) && CaptionSurface.shortsSurfaceNow()))
+                && !shortSurface)
             // A verified Shorts surface is never the compact miniplayer state.
             moveTo(COMPACT);
         else if (state == COMPACT || state == TRANSITIONING_TO_REGULAR)
@@ -352,11 +399,13 @@ final class CaptionPlayerAuthority {
      * and may never deliver the regular one, but it was never compact in the first place.
      */
     static void noteShortsSurface() {
+        if (!shortsSurfaceAllowed()) return;
         if (!ownerValid()) {
             close();
             return;
         }
         typeAuthoritative = true;
+        shortsOwner = true;
         moveTo(REGULAR);
     }
 
@@ -365,7 +414,11 @@ final class CaptionPlayerAuthority {
      * stale surface). Nothing renders while compact, so the engine tick asks here.
      */
     static boolean recoverShorts() {
-        if (state != COMPACT || !"NONE".equals(playerType) || !CaptionSurface.shortsSurfaceNow())
+        boolean stoppedInOpenShorts = state == CLOSED && shortsStateKnown && shortsOpen;
+        boolean readyNeedsSurface = state == REGULAR && shortsRecoveryCandidate()
+                && !CaptionSurface.isShorts();
+        if ((state != COMPACT && state != UNKNOWN && !stoppedInOpenShorts && !readyNeedsSurface) || !shortsSurfaceAllowed()
+                || !CaptionSurface.shortsSurfaceNow())
             return false;
         noteShortsSurface();
         return state == REGULAR;
@@ -421,6 +474,7 @@ final class CaptionPlayerAuthority {
         notificationSequence = 0;
         restart(UNKNOWN);
         testPlayerType = null;
+        shortsStateKnown = shortsOpen = shortsOwner = false;
         OfficialPlayerTypeReader.resetForTests();
     }
 

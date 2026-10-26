@@ -106,11 +106,11 @@ val transportTypeSpoofPatch = bytecodePatch(
                     instructions,
                     { narrowConstLoad(it) == TRANSPORT_WIFI },
                     ::isHasTransport,
-                )) {
+                ).sortedDescending()) {
                     if (forceInvokeResult(instructions, index) { register -> "const/4 v$register, 0x1" }) count++
                 }
-                for (index in instructions.indices) {
-                    val instruction = instructions[index]
+                for (index in instructions.indices.reversed()) {
+                    val instruction = instructions.getOrNull(index) ?: continue
                     if (isNetworkInfoType(instruction) &&
                         forceInvokeResult(instructions, index) { register -> "const/16 v$register, 0x1" }
                     ) {
@@ -128,7 +128,7 @@ val transportTypeSpoofPatch = bytecodePatch(
                     instructions,
                     { narrowConstLoad(it) == TRANSPORT_CELLULAR },
                     ::isHasTransport,
-                )) {
+                ).sortedDescending()) {
                     if (forceInvokeResult(instructions, index) { register -> "const/4 v$register, 0x1" }) count++
                 }
             }
@@ -138,7 +138,7 @@ val transportTypeSpoofPatch = bytecodePatch(
                     instructions,
                     { narrowConstLoad(it) == TRANSPORT_VPN },
                     ::isHasTransport,
-                )) {
+                ).sortedDescending()) {
                     if (forceInvokeResult(instructions, index) { register -> "const/4 v$register, 0x0" }) count++
                 }
             }

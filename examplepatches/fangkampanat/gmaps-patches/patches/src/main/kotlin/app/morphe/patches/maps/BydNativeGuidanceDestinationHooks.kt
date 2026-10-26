@@ -139,7 +139,15 @@ internal fun BytecodePatchContext.verifyNativeGuidanceDestination(shared: Method
 
     // A row at waypoint i takes cumulative duration i-1. At i=1 the direct
     // first entry is used; the later-row subtraction branch cannot execute.
-    destinationGuard(pc.destinationShape(54, Opcode.MOVE, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT,
+    // 26.42 R8 drops the dead loop-back reset of v10 (the index is copied from it only at 54,
+    // before the loop) and moves const/4 v2, 1 ahead of the second-row moves (+1 at 166..171).
+    val loopReset = literal(pc, 198, 10, 0)
+    val shifted = if (loopReset) 0 else 1
+    val back = if (loopReset) 199 else 198
+    destinationGuard((loopReset || pc[back].opcode == Opcode.GOTO_16 &&
+        pc.subList(15, 54).none { it.destinationWrites(10) } &&
+        pc.indices.none { pc[it] is OffsetInstruction && pc.destinationTarget(it) == 54 }) &&
+        pc.destinationShape(54, Opcode.MOVE, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT,
         Opcode.IF_GE, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_VIRTUAL,
         Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST, Opcode.NEW_INSTANCE, Opcode.CONST_STRING,
         Opcode.INVOKE_DIRECT, Opcode.CONST_4, Opcode.IF_LEZ, Opcode.ADD_INT_LIT8, Opcode.ARRAY_LENGTH,
@@ -160,9 +168,9 @@ internal fun BytecodePatchContext.verifyNativeGuidanceDestination(shared: Method
             "Lj$/time/Duration;", "I", pc[81].destinationField()!!.type) &&
         pc[95].destinationCall()?.returnType == WAYPOINT_TEXT && regs(pc, 95, 5, 3, 4, 10) &&
         regs(pc, 98, 4, 6) && pc[98].destinationCall()?.definingClass == routeType &&
-        regs(pc, 115, 19, 5) && regs(pc, 169, 5, 18) && regs(pc, 170, 4, 19) &&
+        regs(pc, 115, 19, 5) && regs(pc, 169 + shifted, 5, 18) && regs(pc, 170 + shifted, 4, 19) &&
         regs(pc, 197, 1, 1) && (pc[197] as NarrowLiteralInstruction).narrowLiteral == 1 &&
-        literal(pc, 198, 10, 0) && pc.destinationTarget(199) == 55 && pc.destinationTarget(57) == 200,
+        pc.destinationTarget(back) == 55 && pc.destinationTarget(57) == back + 1,
         "native waypoint-one ETA consumes the first ordered leg duration", producer)
     destinationGuard(pc[30].destinationCall()?.definingClass == routeType &&
         pc[30].destinationCall()?.parameterTypes == listOf("D") &&

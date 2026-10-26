@@ -6,11 +6,13 @@
 
 当前版本：[v1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.7)。
 
-## 1.5.7 更新
+## 1.5.8 更新
 
-- 同一视频退出再进入后，AI 字幕会自动恢复，不需要手动关开。
-- 逐词高亮／滚动式字幕视频不再重复台词，也不会把不同说话人的词混在一起；字幕按完整行重建。
-- 打开评论区时，字幕大小跟随面板动画同步变化，不再延迟或回弹。
+- 分清AI开关、原生CC和原生语言的职责，加强视频/会话归属及退出重入保护。
+- 正确保留服务端重试期限（含日期形式Retry-After），旧会话及page/hole补翻译遵守当前请求权限和等待条件。
+- 保留保存失败的编辑草稿，同步实际已保存字段；坏配置显示可理解错误，不静默丢弃凭据。
+- 缓存替换失败时保护已有有效源字幕，并让诊断说明实际失败决定和来源边界。
+- 退役未使用的回环服务、提取字号过渡状态，补齐可复跑验证和维护资料。实际验证范围见[兼容说明](COMPATIBILITY.md)。
 
 ## 功能
 
@@ -27,19 +29,19 @@
 
 ## 支持与推荐版本
 
-| 项目 | 推荐 | 历史兼容范围 |
+| 项目 | 当前声明 | 证据边界 |
 | --- | --- | --- |
-| 官方 Morphe Patches | **1.48.0**（本次检查的最新稳定版） | 需要 **Patcher 2.0.0**，须与所选 YouTube APK 匹配 |
-| 原版 YouTube APK | **21.20.405** | 稳定：**21.16.256**；实验性：**21.42.241、21.41.525、21.28.208、21.23.492** |
-| Android | **9 及以上** | minSdk 28；21.28+ 实验目标需要 Android 10（minSdk 29） |
+| 官方 Morphe Patches / Patcher | **1.48.0 / 2.0.0** | 已核对实际本地输入元数据；其他选择集另验 |
+| 原版 YouTube APK | 稳定声明：**21.20.405、21.16.256**；实验声明：**21.42.241、21.41.525、21.28.208、21.23.492** | 离散列表；稳定标记来自元数据，不是当前候选的设备认证 |
+| Android | minSdk 28；**21.42.241、21.41.525、21.28.208** 需 minSdk 29 | 还须核对实际 APK 的 ABI、签名及变体 |
 
-推荐使用官方 **Morphe Patches 1.48.0 / Patcher 2.0.0＋YouTube 21.20.405**，21.16.256 也是稳定目标。实验性版本与官方 1.48.0 的 21.x 目标一致，已用真实补丁器验证（所有补丁应用、字幕钩子全部绑定），不作为稳定兼容承诺。20.x 目标不再声明；21.13.164 与 21.07.247 已不在官方列表中。详见[兼容与验证边界](COMPATIBILITY.md)。
+公开仍为 **1.5.7**。本地 **1.5.8 / local-1.5.8-m7b / candidate-02** 已有 **21.41.525-SECONDARY** 和 **21.28.208** 的有限电脑组合证据。2026-10-26用户对手机手动更新/观察清单反馈无问题，诊断确认m7b；报告环境为Manager2.2.0 / YouTube21.20.405 / 官方1.48.0。[首轮工程成熟化](maintenance/reviews/M7-FINAL-ACCEPTANCE.md)按规定范围验收。该单设备使用证据不冒充第三组电脑组合、全设备矩阵或官方认证；旧“推荐21.20.405”仍为稳定目标元数据选择。详见[兼容与验证边界](COMPATIBILITY.md)及[候选安装前/短设备清单](maintenance/M7b-DEVICE-ACCEPTANCE.md)。候选诊断将构建预期与运行时官方包/Patcher的 unknown 来源分开。
 
 ## 安装
 
 1. 安装 [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/latest)，在设置中启用「专家模式」。
 2. 点击[添加到 Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator)，或在「补丁源→添加→远程」粘贴 `https://github.com/YYDarlinker/morphe-ai-caption-translator`。
-3. 加载上表中的**原始、未打补丁 YouTube APK**，优先21.20.405。
+3. 从离散声明列表选择与官方包匹配的**原始、未打补丁 YouTube APK**，先核对兼容表中的实际变体和证据。
 4. 保留对应官方默认补丁组合，包含其字幕、设置、播放器接缝支持。在本项目源内只选择 **AI caption translator**；字幕语言由 YouTube 原生菜单/官方 Captions 补丁决定，本源不提供单独的语言记忆补丁。
 5. 由 Morphe 完成补丁、签名与安装；若官方补丁要求 GmsCore，按其指引设置。
 
@@ -76,6 +78,10 @@ API测试失败时检查地址、key、模型后重测。并非所有声称OpenA
 
 ## 开发与许可
 
-[架构](ARCHITECTURE.md) · [开发与贡献](../CONTRIBUTING.md) · [发布流程](RELEASING.md) · [更新历史](../CHANGELOG.md)
+[架构](ARCHITECTURE.md) · [开发与贡献](../CONTRIBUTING.md) · [开发环境与命令](DEVELOPMENT.md) · [维护操作](maintenance/OPERATIONS.md) · [发布流程](RELEASING.md) · [更新历史](../CHANGELOG.md)
 
 YYDarlinker 独立维护，非 Morphe 官方项目。遵循 [GPLv3](../LICENSE) 并保留 [NOTICE](../NOTICE)；Morphe 名称仅用于兼容说明。
+
+## 维护与工作区
+
+当前资料从[文档入口](README.md)进入，目录与归档规则见[WORKSPACE](WORKSPACE.md)，本轮结论见[最终验收](maintenance/reviews/M7-FINAL-ACCEPTANCE.md)。[GitHub发布与整理记录](maintenance/GITHUB-UPDATE-PLAN.md)单独记录本次已授权的1.5.8发布；以实际Release和核验结果为准。旧文档/恢复材料保留可追溯性，原始诊断、源APK、工具链、验证证据和私有备份留在本机。

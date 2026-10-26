@@ -1,3 +1,41 @@
+## [2.3.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.2.0...v2.3.0) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* Refactor high-resolution patches and update dependencies ([f52a3ac](https://github.com/AngelDark92/xr-porting-hub/commit/f52a3ac649916e34fb445ae06a1d4e04b068cec1))
+* **tooling:** retire generated APKs inside decoded trees ([fbb4c4a](https://github.com/AngelDark92/xr-porting-hub/commit/fbb4c4aa8cc54feb10c2c6427efb0817d0a21bbc))
+* **tooling:** tolerate vanishing entries during cleanup scan ([389acf3](https://github.com/AngelDark92/xr-porting-hub/commit/389acf39becc031d2bbbdd832fa0669a24fa7dad))
+
+### ✨ New Features
+
+* Add SurfaceVideoTriggerPatch functionality ([e30111b](https://github.com/AngelDark92/xr-porting-hub/commit/e30111b5412f8055b2cf288c4ed8390a6430106c))
+* QuadLayerPatch functionality ([b5c255c](https://github.com/AngelDark92/xr-porting-hub/commit/b5c255c4e3610f6d1353d0c7e75f2ed5bc295f98))
+
+## [2.3.0-dev.2](https://github.com/AngelDark92/xr-porting-hub/compare/v2.3.0-dev.1...v2.3.0-dev.2) (2026-10-25)
+
+### ✨ New Features
+
+* Add SurfaceVideoTriggerPatch functionality ([e30111b](https://github.com/AngelDark92/xr-porting-hub/commit/e30111b5412f8055b2cf288c4ed8390a6430106c))
+
+## [2.3.0-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.2.1-dev.2...v2.3.0-dev.1) (2026-10-25)
+
+### ✨ New Features
+
+* QuadLayerPatch functionality ([b5c255c](https://github.com/AngelDark92/xr-porting-hub/commit/b5c255c4e3610f6d1353d0c7e75f2ed5bc295f98))
+
+## [2.2.1-dev.2](https://github.com/AngelDark92/xr-porting-hub/compare/v2.2.1-dev.1...v2.2.1-dev.2) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* Refactor high-resolution patches and update dependencies ([f52a3ac](https://github.com/AngelDark92/xr-porting-hub/commit/f52a3ac649916e34fb445ae06a1d4e04b068cec1))
+
+## [2.2.1-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.2.0...v2.2.1-dev.1) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **tooling:** retire generated APKs inside decoded trees ([fbb4c4a](https://github.com/AngelDark92/xr-porting-hub/commit/fbb4c4aa8cc54feb10c2c6427efb0817d0a21bbc))
+* **tooling:** tolerate vanishing entries during cleanup scan ([389acf3](https://github.com/AngelDark92/xr-porting-hub/commit/389acf39becc031d2bbbdd832fa0669a24fa7dad))
+
 ## [2.2.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.1.0...v2.2.0) (2026-10-24)
 
 ### ✨ New Features

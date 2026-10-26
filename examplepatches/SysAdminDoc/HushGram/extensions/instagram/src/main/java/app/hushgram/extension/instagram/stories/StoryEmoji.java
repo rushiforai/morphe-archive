@@ -292,7 +292,7 @@ public final class StoryEmoji {
         Context context = Utils.getContext();
         if (context == null) return null;
         File file = kept(context);
-        if (!file.isFile()) return null;
+        if (!Fonts.readyForRead(file.getParentFile()) || !file.isFile()) return null;
         String mark = file.length() + "x" + file.lastModified();
         Typeface known = typeface;
         if (known != null && mark.equals(typefaceMark)) return known;
@@ -319,6 +319,16 @@ public final class StoryEmoji {
      */
     public static boolean store(Context context, InputStream input) {
         return Fonts.keep(input, kept(context));
+    }
+
+    /** A private stage that does not replace the currently selected emoji file. */
+    @Nullable
+    public static Fonts.Prepared prepare(Context context, InputStream input) {
+        return Fonts.prepare(input, kept(context).getParentFile());
+    }
+
+    public static boolean prepareInstall(Context context, Fonts.Prepared prepared) {
+        return prepared.prepareTarget(kept(context));
     }
 
     /** Takes back what this process read and watched, for a test. */

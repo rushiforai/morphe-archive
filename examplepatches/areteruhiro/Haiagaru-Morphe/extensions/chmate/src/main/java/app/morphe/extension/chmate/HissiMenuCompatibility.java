@@ -123,6 +123,16 @@ public final class HissiMenuCompatibility {
     public static void prepareExternalIntent(Intent intent) {
         if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
         Uri uri = intent.getData();
+        // Native next-thread results pin an implicit web intent to this app.
+        // An external-board host need not have a matching manifest filter.
+        // Preserve explicit routes and deliberately external browser intents.
+        Context owner = Haiagaru.applicationContextForExtension();
+        if (owner != null && intent.getComponent() == null
+                && owner.getPackageName().equals(intent.getPackage()) && uri != null
+                && HissiLinkRouting.isThreadUrl(uri.toString())) {
+            intent.setClassName(owner, "jp.syoboi.a2chMate.activity.ResListActivity");
+            return;
+        }
         if (isEddiArchiveUri(uri)) {
             Context context = Haiagaru.applicationContextForExtension();
             if (context != null) {

@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/lchanc3/morphe-patches/compare/v1.6.0...v1.7.0) (2026-10-25)
+
+### 新功能
+
+* **JPTT:** Support JPTT 3.9.4
+
+
 # [1.6.0](https://github.com/lchanc3/morphe-patches/compare/v1.5.0...v1.6.0) (2026-10-23)
 
 ### 新功能

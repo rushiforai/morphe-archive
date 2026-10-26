@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.pengusto.patches.calendar.tests">
+    <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="35" />
+    <application android:label="Penguin regression tests" />
+    <instrumentation android:name="io.github.pengusto.patches.extension.calendar.DescriptionInstrumentation" android:targetPackage="org.fossify.calendar" />
+</manifest>

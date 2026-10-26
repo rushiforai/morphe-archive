@@ -69,36 +69,30 @@ private const val ON_STOPPED_LITERAL = "onStopped()"
 private const val SEEK_SOURCE_UNKNOWN_LITERAL = "SEEK_SOURCE_UNKNOWN"
 
 /**
- * Seek-bar resource ids of the VR player controls (`R.id.*`, 1.88.10). They are the
+ * Seek-bar resource ids of the VR player controls (`R.id.*`). They are the
  * anchor for [seekbarControllerFingerprint] — its constructor binds all five, and no
  * other method in the app references them (measured with the scratch harness's
  * `findint`, which takes the hex digits) — and the two the overlay needs at runtime
- * are baked into the app at start, so the extension never guesses them.
+ * are baked into the app at start, so the extension never guesses them. One set
+ * per supported version; baking the wrong set would paint markers on the wrong view.
  */
-private const val ID_SEEKBAR = 0x7f0b0a23
+private class SeekbarIds(
+    val seekbar: Int,
+    val seekbarBg: Int,
+    val seekbarBuffered: Int,
+    val seekbarContainer: Int,
+    val seekbarPosition: Int,
+    val seekbarThumb: Int,
+) {
+    val allFive: IntArray = intArrayOf(seekbar, seekbarBuffered, seekbarContainer, seekbarPosition, seekbarThumb)
+}
 
-/**
- * `R.id.seekbar_bg`: **the line itself** — a 387x9 view inside the track, the sibling the
- * played/buffered bars are drawn over. Measured on device (the dump in the SponsorBlock
- * notes, Addendum 6): the track is 387 wide with 9px margins inside a
- * 405px container, and this child is the 387x9 StateListDrawable that is what a viewer
- * sees as "the seek bar". The markers copy *its* bounds, which is what makes them line
- * up exactly. It is not referenced from code, so this constant is the one hand-kept id
- * (the runtime falls back to the played bar's parent when it resolves to nothing).
- */
-private const val ID_SEEKBAR_BG = 0x7f0b0a24
-private const val ID_SEEKBAR_BUFFERED = 0x7f0b0a25
-private const val ID_SEEKBAR_CONTAINER = 0x7f0b0a26
-private const val ID_SEEKBAR_POSITION = 0x7f0b0a29
-private const val ID_SEEKBAR_THUMB = 0x7f0b0a2a
-
-/** The five ids whose presence in one method identifies the player-controls binder. */
-private val SEEKBAR_IDS = intArrayOf(
-    ID_SEEKBAR,
-    ID_SEEKBAR_BUFFERED,
-    ID_SEEKBAR_CONTAINER,
-    ID_SEEKBAR_POSITION,
-    ID_SEEKBAR_THUMB,
+@Suppress("MagicNumber")
+private val SEEKBAR_SETS = listOf(
+    // 1.89.09
+    SeekbarIds(0x7f0b0a39, 0x7f0b0a3a, 0x7f0b0a3b, 0x7f0b0a3c, 0x7f0b0a3f, 0x7f0b0a40),
+    // 1.88.10
+    SeekbarIds(0x7f0b0a23, 0x7f0b0a24, 0x7f0b0a25, 0x7f0b0a26, 0x7f0b0a29, 0x7f0b0a2a),
 )
 
 /**
@@ -160,16 +154,19 @@ private fun Instruction.storesFieldOfType(type: String): FieldReference? {
 }
 
 /** True when [this] references every seek-bar resource id (they are inlined ints). */
-private fun Method.referencesSeekbarIds(): Boolean {
-    val implementation = implementation ?: return false
+private fun Method.matchedSeekbarIds(): SeekbarIds? {
+    val implementation = implementation ?: return null
     val seen = HashSet<Int>()
     for (instruction in implementation.instructions) {
         if (instruction is NarrowLiteralInstruction) {
             seen.add(instruction.narrowLiteral)
         }
     }
-    return SEEKBAR_IDS.all { seen.contains(it) }
+    return SEEKBAR_SETS.firstOrNull { set -> set.allFive.all { seen.contains(it) } }
 }
+
+/** True when [this] references every seek-bar resource id in any supported set (they are inlined ints). */
+private fun Method.referencesSeekbarIds(): Boolean = matchedSeekbarIds() != null
 
 /**
  * The class whose constructor binds the seek-bar views. Structural, not name-bound:
@@ -1340,19 +1337,25 @@ val sponsorBlockPatch = bytecodePatch(
         // Bake the option values into the app once, at start: the baked defaults first,
         // then the overlay's ids, then the settings store — which reads the user's own
         // choices over those defaults, so the order inside this one block matters.
+        val seekbarIds = seekbarControllerFingerprint.method.matchedSeekbarIds()
+            ?: throw PatchException(
+                "SponsorBlock: seek-bar fingerprint matched but none of the known id sets " +
+                    "were present -- refusing to bake a guessed version's ids",
+            )
+
         applicationOnCreateFingerprint.method.addInstructions(
             0,
             """
                 const-string v0, "$apiBaseValue"
                 const-string v1, "${behaviours.entries.joinToString(";") { "${it.key}=${it.value}" }}"
                 invoke-static {v0, v1}, Lapp/ytvr/extension/SponsorBlockSettings;->configure(Ljava/lang/String;Ljava/lang/String;)V
-                const v2, $ID_SEEKBAR
-                const v3, $ID_SEEKBAR_POSITION
-                const v4, $ID_SEEKBAR_CONTAINER
-                const v5, $ID_SEEKBAR_BUFFERED
-                const v6, $ID_SEEKBAR_THUMB
+                const v2, ${seekbarIds.seekbar}
+                const v3, ${seekbarIds.seekbarPosition}
+                const v4, ${seekbarIds.seekbarContainer}
+                const v5, ${seekbarIds.seekbarBuffered}
+                const v6, ${seekbarIds.seekbarThumb}
                 invoke-static {v2, v3, v4, v5, v6}, Lapp/ytvr/extension/SponsorBlockOverlay;->configure(IIIII)V
-                const v2, $ID_SEEKBAR_BG
+                const v2, ${seekbarIds.seekbarBg}
                 invoke-static {v2}, Lapp/ytvr/extension/SponsorBlockOverlay;->setBackgroundId(I)V
                 move-object/from16 v0, p0
                 invoke-static {v0}, Lapp/ytvr/extension/SponsorBlockSettings;->initContext(Landroid/content/Context;)V

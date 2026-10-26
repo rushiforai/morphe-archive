@@ -165,12 +165,12 @@ Choose a folder name under Movies and Pictures. Invalid characters become unders
 Save	저장
 Folder name	폴더 이름
 Folder set to %1$s.	폴더가 %1$s로 설정되었습니다
-Video file name	동영상 파일 이름
+Download file name	다운로드 파일 이름
 %1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s는 저장한 날짜와 시간, %2$s는 Instagram에서 해당 동영상의 번호, %3$s는 게시한 사람, %4$s는 게시된 날짜로 표시됩니다. 저장할 때 알 수 없는 정보는 이름에서 제외되며, 이 항목들을 하나도 포함하지 않는 이름에는 날짜가 추가됩니다. 같은 이름이 이미 폴더에 있으면 저장한 시간이 이름 끝에 추가됩니다. 사용할 수 없는 문자는 밑줄로 변경됩니다. 비워 두면 기본값인 %5$s를 사용합니다
 File name	파일 이름
 File name set to %1$s.	파일 이름이 %1$s로 설정되었습니다
 Videos go to %1$s and photos to %2$s.	동영상은 %1$s에, 사진은 %2$s에 저장됩니다
-Example without post details	게시물 세부 정보가 없는 예시
+Example file name	파일 이름 예시
 Cancel saving this video	이 동영상 저장 취소
 Cancel saving this photo	이 사진 저장 취소
 Download on reels	릴스 다운로드 메뉴 추가
@@ -476,6 +476,7 @@ On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider s
 Full size covers	원본 크기 커버
 Reel covers and grid pictures come at full size, so Download cover saves a picked cover at full size too. Grids use a lot more data. Restart Instagram to see the change.	릴스 커버와 그리드 사진을 원본 크기로 받으므로 커버 다운로드도 선택한 커버를 원본 크기로 저장합니다. 그리드에서 데이터를 훨씬 많이 씁니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Stop swiping between tabs	탭 사이 스와이프 정지
+%d notification	알림 %d개
 %d notifications	알림 %d개
 1 hour	1시간
 1 minute	1분
@@ -1054,7 +1055,7 @@ Privacy	개인정보 보호
 # context: a Quick setups choice that puts every switch back the way it started
 Back to defaults	기본값으로 되돌리기
 Hides ads, suggested accounts and posts, surveys and promotions.	광고, 추천 계정과 게시물, 설문, 홍보를 숨깁니다.
-Hides your seen receipts, typing and active status. Allows screenshots and stops link tracking and usage reports.	읽음 표시, 입력 중 표시, 활동 상태를 숨깁니다. 스크린샷을 허용하고 링크 추적과 사용 보고를 막습니다.
+Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	읽음 표시, 입력 중 표시, 활동 상태를 숨깁니다. 스크린샷을 허용하고 공유 링크를 정리합니다. 분석 데이터 업로드 알람을 중지합니다.
 Puts every switch back the way it started. Your locks stay as they are.	모든 스위치를 처음 상태로 되돌립니다. 잠금은 그대로 유지됩니다.
 # context: toast after a Quick setups choice changed exactly one switch
 Changed %1$d setting	설정 %1$d개를 바꿨습니다
@@ -1234,14 +1235,14 @@ Instagram's own. Pick another to change the icon on your home screen and in the 
 the home screen icon you picked	선택한 홈 화면 아이콘
 # context: Your fonts in story text switch under Stories and the Your story fonts row and dialog under it; the fonts are .ttf or .otf files picked from the phone, shown in Instagram's story text editor after its own
 Your fonts in story text	스토리 텍스트에 내 글꼴 사용
-Adds the fonts below to the story text editor, after Instagram's own fonts, which all stay. Pick one there like any other font.	아래 글꼴을 Instagram 기본 글꼴 뒤에 스토리 텍스트 편집기에 추가합니다. 기본 글꼴은 모두 그대로 남습니다. 다른 글꼴처럼 거기서 고르세요.
+Adds the fonts below to the story text editor alongside Instagram's own fonts, which all stay. Pick one there like any other font.	아래 글꼴을 Instagram 기본 글꼴과 함께 스토리 텍스트 편집기에 추가합니다. 기본 글꼴은 모두 그대로 남습니다. 다른 글꼴처럼 거기서 고르세요.
 Your story fonts	내 스토리 글꼴
 Add .ttf or .otf files from your phone. Uncheck one to take it out.	휴대폰에서 .ttf 또는 .otf 파일을 추가하세요. 빼려면 체크를 해제하세요.
-No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor, after Instagram's fonts.	아직 추가한 글꼴이 없습니다. .ttf 또는 .otf 파일을 추가하면 스토리 텍스트 편집기에서 Instagram 글꼴 뒤에 나타납니다.
+No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor alongside Instagram's fonts.	아직 추가한 글꼴이 없습니다. .ttf 또는 .otf 파일을 추가하면 스토리 텍스트 편집기에 Instagram 글꼴과 함께 나타납니다.
 Add a font file	글꼴 파일 추가
 Removed from your story fonts	내 스토리 글꼴에서 제거했습니다
 That file isn't a font HushGram can use. Nothing was added.	이 파일은 HushGram이 사용할 수 있는 글꼴이 아닙니다. 아무것도 추가되지 않았습니다.
-Added %1$s. Pick it in the story text editor, after Instagram's fonts.	%1$s 추가됨. 스토리 텍스트 편집기에서 Instagram 글꼴 뒤에 있는 것을 고르세요.
+Added %1$s. Pick it in the story text editor alongside Instagram's fonts.	%1$s 추가됨. 스토리 텍스트 편집기에서 Instagram 글꼴과 함께 고를 수 있습니다.
 # context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
 Logo and titles at the start	로고와 제목을 앞쪽에
 Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Instagram 로고와 각 바의 제목을 예전처럼 바의 앞쪽에 둡니다. Instagram이 가운데에 두어 보여 줄 때 켜세요. 위의 가운데 정렬 스위치보다 우선합니다. 홈에서 변경 사항을 보려면 Instagram을 다시 시작하세요.
@@ -1255,3 +1256,7 @@ Every row of Instagram's Settings and activity shows. Untick the ones you don't 
 %1$d row is left off Instagram's Settings and activity.	Instagram 설정 및 활동에서 항목 %1$d개를 뺐습니다.
 %1$d rows are left off Instagram's Settings and activity.	Instagram 설정 및 활동에서 항목 %1$d개를 뺐습니다.
 Open Settings and activity in Instagram once, then come back here. Its rows show up in this list to untick.	Instagram에서 설정 및 활동을 한 번 연 다음 여기로 돌아오세요. 그 화면의 항목이 이 목록에 나타나 체크를 해제할 수 있습니다.
+Date in backup file names	백업 파일 이름에 날짜 넣기
+Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	설정을 내보낼 때 현재 날짜와 시간을 덧붙입니다. 끄면 HushGram-settings.json을 유지합니다.
+%1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s는 게시물의 단축 코드입니다. 스토리나 알 수 없는 게시물에서는 생략됩니다. 이 토큰을 넣으면 사진 이름에도 템플릿이 적용됩니다.
+Videos and photos use %1$s. Unknown codes are left out.	동영상과 사진에 %1$s를 사용합니다. 알 수 없는 코드는 생략됩니다.

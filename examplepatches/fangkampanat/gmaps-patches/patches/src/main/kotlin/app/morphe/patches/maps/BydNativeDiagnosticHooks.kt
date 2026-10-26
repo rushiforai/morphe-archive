@@ -118,7 +118,9 @@ internal fun BytecodePatchContext.resolveNativeDiagnostics(
     } ?: throw PatchException("Missing native diagnostic method declaration: $ref")
     fun exits(method: Method, expected: Int, opcode: Opcode) {
         val code = method.diagCode()
-        diagGuard(code.count { it.opcode == opcode } == expected && method.implementation!!.tryBlocks.isEmpty() &&
+        // R8 may merge the returns into one shared return reached by gotos (26.42).
+        diagGuard((code.count { it.opcode == opcode } == expected || code.mergedExitCount(opcode) == expected) &&
+            method.implementation!!.tryBlocks.isEmpty() &&
             code.none { it.opcode in setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD) } &&
             code.filter { it.opcode == opcode }.all { (it as OneRegisterInstruction).registerA <= 255 },
             "return count/registers and payload-free layout", method)
@@ -192,8 +194,8 @@ internal fun BytecodePatchContext.resolveNativeDiagnostics(
                 "Z", "Ljava/lang/Integer;") } == true &&
         lc[legAt + 3].invokeRegisters() == listOf(lcp, (lc[legAt + 2] as TwoRegisterInstruction).registerA,
             lcp + 3, lcp + 4) && lc[legAt + 4].opcode == Opcode.MOVE_RESULT_OBJECT &&
-        lc[legAt + 5].opcode == Opcode.RETURN_OBJECT &&
-        (lc[legAt + 4] as OneRegisterInstruction).registerA == (lc[legAt + 5] as OneRegisterInstruction).registerA,
+        lc.exitAt(legAt + 5)?.opcode == Opcode.RETURN_OBJECT &&
+        (lc[legAt + 4] as OneRegisterInstruction).registerA == (lc.exitAt(legAt + 5) as OneRegisterInstruction).registerA,
         "null/count/index guards and original typed route leg conversion", legConverter)
     val count = lc[1].diagCall()!!
     val at = lc[legAt].diagCall()!!
@@ -234,15 +236,18 @@ internal fun BytecodePatchContext.resolveNativeDiagnostics(
     val calc = calculationDef.diagCode()
     val cp = calculationDef.diagReceiver()
     exits(calculationDef, 2, Opcode.RETURN_OBJECT)
-    diagGuard(calc.size == 34 && calc[0].opcode == Opcode.IF_EQZ && (calc[0] as OneRegisterInstruction).registerA == cp + 1 &&
+    // 26.42 R8 passes the parameter registers directly (three moves) and jumps to the shared return.
+    val compactCalc = calc.size == 32
+    val calcAt = if (compactCalc) 27 else 29
+    diagGuard((calc.size == 34 || compactCalc) && calc[0].opcode == Opcode.IF_EQZ && (calc[0] as OneRegisterInstruction).registerA == cp + 1 &&
         calc[1].diagCall()?.let { it.definingClass == routeType && it.parameterTypes.isEmpty() } == true &&
         calc[6].opcode == Opcode.IGET && calc[7].opcode == Opcode.CONST &&
         (calc[7] as NarrowLiteralInstruction).narrowLiteral == 32768 && calc[8].opcode == Opcode.AND_INT_2ADDR &&
         calc[12].opcode == Opcode.IGET_OBJECT && calc[15].opcode == Opcode.IGET &&
         calc[16].opcode == Opcode.AND_INT_LIT8 && (calc[16] as NarrowLiteralInstruction).narrowLiteral == 1 &&
-        calc[23].opcode == Opcode.IGET && calc[29].opcode == Opcode.INVOKE_VIRTUAL_RANGE &&
-        calc[29].diagCall()?.parameterTypes == listOf("I", "I", "I", "Z", "Ljava/lang/Integer;") &&
-        calc[29].diagCall()?.returnType == arrivalType && calc.diagTarget(9) == 32,
+        calc[23].opcode == Opcode.IGET && calc[calcAt].opcode == Opcode.INVOKE_VIRTUAL_RANGE &&
+        calc[calcAt].diagCall()?.parameterTypes == listOf("I", "I", "I", "Z", "Ljava/lang/Integer;") &&
+        calc[calcAt].diagCall()?.returnType == arrivalType && calc.diagTarget(9) == calc.size - 2,
         "summary-energy conversion layout", calculationDef)
     val summary = calc[1].diagCall()!!
     val summaryMask = calc[6].diagField()!!
@@ -261,16 +266,34 @@ internal fun BytecodePatchContext.resolveNativeDiagnostics(
         (calc[12] as TwoRegisterInstruction).registerB == (calc[11] as OneRegisterInstruction).registerA &&
         (calc[15] as TwoRegisterInstruction).registerB == (calc[12] as TwoRegisterInstruction).registerA &&
         (calc[16] as TwoRegisterInstruction).registerB == (calc[15] as TwoRegisterInstruction).registerA &&
-        (calc[23] as TwoRegisterInstruction).registerB == (calc[20] as TwoRegisterInstruction).registerA &&
-        calc[24].opcode == Opcode.MOVE_OBJECT && (calc[24] as TwoRegisterInstruction).registerB == cp &&
-        calc[25].opcode == Opcode.MOVE && (calc[25] as TwoRegisterInstruction).registerB == cp + 2 &&
-        calc[26].opcode == Opcode.MOVE && (calc[26] as TwoRegisterInstruction).registerB == cp + 3 &&
-        calc[27].opcode == Opcode.MOVE && (calc[27] as TwoRegisterInstruction).registerB == cp + 4 &&
-        calc[28].opcode == Opcode.MOVE_OBJECT && (calc[28] as TwoRegisterInstruction).registerB == cp + 5 &&
-        calc[29].invokeRegisters() == listOf((calc[24] as TwoRegisterInstruction).registerA,
-            (calc[25] as TwoRegisterInstruction).registerA, (calc[23] as TwoRegisterInstruction).registerA,
-            (calc[26] as TwoRegisterInstruction).registerA, (calc[27] as TwoRegisterInstruction).registerA,
-            (calc[28] as TwoRegisterInstruction).registerA), "summary calculation operand flow", calculationDef)
+        (calc[23] as TwoRegisterInstruction).registerB == (calc[20] as TwoRegisterInstruction).registerA && if (compactCalc) {
+            // Swap the index (p2) and energy into place through one scratch; receiver and p3..p5 stay unwritten.
+            val saved = calc[24] as TwoRegisterInstruction
+            val energy = (calc[23] as TwoRegisterInstruction).registerA
+            fun written(range: IntRange, registers: IntRange) = range.any { index ->
+                val output = (calc[index] as? OneRegisterInstruction)?.registerA
+                calc[index].opcode.setsRegister() && output != null &&
+                    (output in registers || calc[index].opcode.setsWideRegister() && output + 1 in registers)
+            }
+            calc[24].opcode == Opcode.MOVE && saved.registerB == cp + 2 && saved.registerA !in cp..cp + 5 &&
+                saved.registerA != energy && calc[25].opcode == Opcode.MOVE &&
+                (calc[25] as TwoRegisterInstruction).registerA == cp + 2 &&
+                (calc[25] as TwoRegisterInstruction).registerB == energy &&
+                calc[26].opcode == Opcode.MOVE && (calc[26] as TwoRegisterInstruction).registerA == cp + 1 &&
+                (calc[26] as TwoRegisterInstruction).registerB == saved.registerA &&
+                calc[27].invokeRegisters() == (cp..cp + 5).toList() &&
+                !written(0 until 24, cp + 2..cp + 2) && !written(0 until 27, cp..cp) && !written(0 until 27, cp + 3..cp + 5) &&
+                calc[28].opcode == Opcode.MOVE_RESULT_OBJECT && calc.exitAt(29)?.opcode == Opcode.RETURN_OBJECT &&
+                (calc.exitAt(29) as OneRegisterInstruction).registerA == (calc[28] as OneRegisterInstruction).registerA
+        } else calc[24].opcode == Opcode.MOVE_OBJECT && (calc[24] as TwoRegisterInstruction).registerB == cp &&
+            calc[25].opcode == Opcode.MOVE && (calc[25] as TwoRegisterInstruction).registerB == cp + 2 &&
+            calc[26].opcode == Opcode.MOVE && (calc[26] as TwoRegisterInstruction).registerB == cp + 3 &&
+            calc[27].opcode == Opcode.MOVE && (calc[27] as TwoRegisterInstruction).registerB == cp + 4 &&
+            calc[28].opcode == Opcode.MOVE_OBJECT && (calc[28] as TwoRegisterInstruction).registerB == cp + 5 &&
+            calc[29].invokeRegisters() == listOf((calc[24] as TwoRegisterInstruction).registerA,
+                (calc[25] as TwoRegisterInstruction).registerA, (calc[23] as TwoRegisterInstruction).registerA,
+                (calc[26] as TwoRegisterInstruction).registerA, (calc[27] as TwoRegisterInstruction).registerA,
+                (calc[28] as TwoRegisterInstruction).registerA), "summary calculation operand flow", calculationDef)
 
     val producer = uniqueMapsHook(Fingerprint(returnType = arrivalType, parameters = listOf(routeType, "I", plan.modelField.type),
         custom = { method, _ -> method.implementation?.instructions?.count {
@@ -339,9 +362,9 @@ internal fun BytecodePatchContext.resolveNativeDiagnostics(
         whReads.size == 2 && fb[fallbackCalculation].opcode == Opcode.INVOKE_VIRTUAL_RANGE &&
         fb[fallbackCalculation].invokeRegisters()?.size == 6 &&
         fb[fallbackCalculation + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-        fb[fallbackCalculation + 2].opcode == Opcode.RETURN_OBJECT &&
+        fb.exitAt(fallbackCalculation + 2)?.opcode == Opcode.RETURN_OBJECT &&
         (fb[fallbackCalculation + 1] as OneRegisterInstruction).registerA ==
-            (fb[fallbackCalculation + 2] as OneRegisterInstruction).registerA,
+            (fb.exitAt(fallbackCalculation + 2) as OneRegisterInstruction).registerA,
         "present model values reach the original summary converter and result", fallback)
     diagGuard(batteryMask.definingClass == battery.type && batteryCurrent.definingClass == battery.type &&
         batteryCapacity.definingClass == battery.type && batteryCapacity.type == batteryCurrent.type &&

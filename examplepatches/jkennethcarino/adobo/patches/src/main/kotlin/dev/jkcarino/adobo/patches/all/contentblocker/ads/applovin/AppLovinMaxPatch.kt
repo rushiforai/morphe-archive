@@ -3,8 +3,8 @@ package dev.jkcarino.adobo.patches.all.contentblocker.ads.applovin
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.util.findMutableMethodOf
-import dev.jkcarino.adobo.util.filterMethods
 import dev.jkcarino.adobo.util.defaultReturnEarly
+import dev.jkcarino.adobo.util.filterMethods
 
 internal val disableAppLovinMaxOption = booleanOption(
     key = "disableAppLovinMax",

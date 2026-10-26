@@ -1,4 +1,9 @@
 {
+  "revanced": {
+    "patches": "https://github.com/ReVanced/revanced-patches",
+    "integrations": false,
+    "disabled": false
+  },
   "piko": {
     "patches": "https://github.com/crimera/piko",
     "integrations": false,
@@ -647,11 +652,6 @@
   },
   "proxma": {
     "patches": "https://github.com/totsiaw/proxma-patches",
-    "integrations": false,
-    "disabled": false
-  },
-  "jouss": {
-    "patches": "https://github.com/Joussflls10/Jouss-Patches",
     "integrations": false,
     "disabled": false
   },
@@ -2325,11 +2325,6 @@
     "integrations": false,
     "disabled": false
   },
-  "xp-hero-patch": {
-    "patches": "https://github.com/monesys/xp-hero-patch",
-    "integrations": false,
-    "disabled": false
-  },
   "buienradar-patches": {
     "patches": "https://github.com/wouter075/buienradar-patches",
     "integrations": false,
@@ -2352,6 +2347,66 @@
   },
   "pancake-patches": {
     "patches": "https://github.com/Ikuradachi/pancake-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "rj-reseam": {
+    "patches": "https://github.com/rudrakshrajpurohit417-sketch/RJ-reseam-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "urroxyz-morphe": {
+    "patches": "https://github.com/urroxyz/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "rishi-instagram": {
+    "patches": "https://github.com/RishiTheSavior/revanced-instagram-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "fakh-radio": {
+    "patches": "https://github.com/amfakh/fakh-radio-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "vpass-revanced": {
+    "patches": "https://github.com/roflsunriz/vpass-revanced",
+    "integrations": false,
+    "disabled": false
+  },
+  "0xbaseless-morphe": {
+    "patches": "https://github.com/0xBaselessProjects/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "openlauncher": {
+    "patches": "https://github.com/mich-de/openlauncher",
+    "integrations": false,
+    "disabled": false
+  },
+  "valenced": {
+    "patches": "https://github.com/Valenced/valenced",
+    "integrations": false,
+    "disabled": false
+  },
+  "gboard-extended-search": {
+    "patches": "https://github.com/markpaul099/gboard-extended-search",
+    "integrations": false,
+    "disabled": false
+  },
+  "vk-im": {
+    "patches": "https://github.com/oviron/VK-IM",
+    "integrations": false,
+    "disabled": false
+  },
+  "xposed-patches": {
+    "patches": "https://github.com/AetherMagee/xposed-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "tiktok-lite-patches": {
+    "patches": "https://github.com/kurageno8156-lgtm/tiktok-lite-patches",
     "integrations": false,
     "disabled": false
   }

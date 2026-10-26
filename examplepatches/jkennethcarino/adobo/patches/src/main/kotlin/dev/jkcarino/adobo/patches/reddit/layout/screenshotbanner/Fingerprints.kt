@@ -8,12 +8,10 @@ import app.morphe.patcher.opcode
 import com.android.tools.smali.dexlib2.Opcode
 
 internal object OnScreenCapturedFingerprint : Fingerprint(
+    interfaces = listOf($$"Landroid/app/Activity$ScreenCaptureCallback;"),
     name = "onScreenCaptured",
     returnType = "V",
-    parameters = listOf(),
-    custom = { _, classDef ->
-        classDef.interfaces.any { it == $$"Landroid/app/Activity$ScreenCaptureCallback;" }
-    }
+    parameters = listOf()
 )
 
 internal val screenshotBannerFingerprints =

@@ -98,7 +98,7 @@ or stable anchor, with owner and return types asserted. No `Entity` reflection r
 2. `./gradlew :patches:build --no-daemon` (extension build + animalsniffer floor).
 3. `./gradlew :patches:lintResolvers --no-daemon`.
 4. `./gradlew :patches:checkExtensionDescriptors --no-daemon`.
-5. `./patch-ig-cli.sh <apk>`; confirm `Applied:` and `Saved to:`.
+5. `./patch-ig.sh <exact-apk-or-apkm>`; confirm `Applied:` and `Patched APK:`.
 6. On failure, read the first `PatchException` candidate list. The fix belongs in the
    resolver, never in an `if (version == …)` branch and never in extension source.
 7. Cross-check the candidate resolvers against the older supported APK

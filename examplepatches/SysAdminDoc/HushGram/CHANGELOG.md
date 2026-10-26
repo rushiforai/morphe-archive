@@ -4,8 +4,43 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
-### Improvements
+### HushGram v0.0.17
 
+#### Bug Fixes
+
+* **Instagram:** `Hide Follow on feed posts` also filters Subscribe before the feed header builds it. The author's name, time and menu keep their native paths.
+* **Instagram:** `Tap to play` keeps a Reels auto-scroll allowance for the next Reel. Feed and unidentified players can't spend it, and a real tap on Feed still works.
+* **Instagram:** `Group Instagram's notifications` keeps summaries while their notifications remain. Turning grouping off or removing one notification no longer dismisses the others. Pending posts stay protected while Android catches up. One notification uses the singular count label.
+* **Instagram:** Turning off profile posts as a list, or pausing HushGram, cancels an automatic opening that was still waiting for the grid.
+* **Instagram:** Canceling a download can finish while DNS, proxy discovery or response setup is still waiting. Late responses can't write a file, and repeated cancellations keep a bounded number of workers.
+* **Instagram:** The downloader closes opened response streams on success and failure. Cache bytes stay only after a successful close.
+* **Instagram:** Closing `Save profile picture` stops its fetch even when the general background workers are busy.
+* **Instagram:** `Download any video` adds source metadata to JPEG photos saved through Save all and Choose pages, as it does for a single photo. Videos and other image formats stay unchanged.
+* **Instagram:** Download history repairs a partially written record before its next write. Later saves remain listed after a restart.
+* **Instagram:** A failed PIN save keeps the setup form open and reports the failure. The PIN and its retry counters are saved together.
+* **Instagram:** PIN retry limits still apply in the current process when their counters can't be saved.
+* **Instagram:** `HushGram settings` saves a timed lock and its wait together. Lock, unlock and wait actions no longer report success after a failed write.
+* **Instagram:** `HushGram settings` checks the current lock before an editor or delayed action saves. Imports and Undo check again at their write boundary, and a held Undo remains available until its original deadline.
+* **Instagram:** Font imports finish reading and closing their provider before replacing a live font. Failed or stale imports leave the current files alone, and reopening settings can't start a competing copy.
+* **Instagram:** Replacing an imported app font keeps Restart now available even when the font choice hasn't changed.
+* **Instagram:** Settings backups restore large selections of hidden Instagram settings rows. Selecting all 161 supported rows no longer causes that choice to be skipped.
+* **Instagram:** Privacy quick setup describes the analytics upload alarm it disables. It no longer promises to stop every usage report.
+* **Instagram:** `Hide suggested posts` keeps native paging when a filtered page retains a real post, even before its list is displayed. Header-only pages can still finish.
+* **Instagram:** `Glass tab bar` blur recovers after a temporary capture failure on a still screen. Automatic retries stay bounded, and pending work stops when the bar leaves or HushGram pauses.
+* **Instagram:** `Story text fonts` puts local fonts before Instagram's paid section, so selecting one doesn't open a Plus offer. Instagram's paid fonts keep their subscription checks. Reported in #275 and #325.
+* **Instagram:** `View stories anonymously` keeps your own story, Create and special tray entries in their original positions during watched-story sorting. Ordinary story rings keep their order within the unseen and watched groups.
+* **Instagram:** `HushGram settings` requires Android 9 on every ABI, including the two 32-bit APKs Instagram ships for Android 8. Manifest checks verify that floor and preserve any higher vendor minimum.
+* **Instagram:** `Show if a profile follows you` waits for unique followers to match the account's count before recording recent unfollowers. Short lists and older queued saves can't replace a newer snapshot, and failed saves can be retried.
+
+* **Tooling:** Cached patch lookups now refresh when classes are added, replaced or removed. Unchanged classes keep their cached reads.
+
+#### Improvements
+
+* **Tooling:** The patching help explains the small-heap limit and keeps Manager's embedded VM workaround.
+* **Instagram:** Download file names support `{shortcode}`, using the parent post's code for carousel pages. Unknown codes are left out. Photo names use the template when it includes that token.
+* **Instagram:** `Date in backup file names` adds the local date and time to settings exports. It starts off, keeping the existing backup name until enabled.
+* **Tooling:** Updated to Morphe patcher 2.0.1 and its matching Smali library. Morphe Manager 2.2.0 or newer is required. The dependency audit separately reviews Morphe Desktop 1.19.1.
+* **Instagram:** Added Traditional Chinese (Taiwan), contributed by JhouHank in #313. Traditional Chinese script preferences and Hong Kong or Macao locales use the new table.
 * **Tooling:** GitHub release notes now read like Hushfacebook's. A short summary comes first, then plain grouped bullets with no Instagram label, the update steps and what was checked.
 
 ## 0.0.16 (2026-10-24)

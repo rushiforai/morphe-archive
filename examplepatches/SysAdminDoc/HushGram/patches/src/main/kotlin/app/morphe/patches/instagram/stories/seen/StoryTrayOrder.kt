@@ -6,6 +6,7 @@ package app.morphe.patches.instagram.stories.seen
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.cloneMutable
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -27,6 +28,9 @@ internal const val TRAY_ORDER = "$STORY_TRAY_ORDER->order(Ljava/util/List;Ljava/
 private const val JAVA_LIST = "Ljava/util/List;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val OBJECT_TYPE = "Ljava/lang/Object;"
+private const val TRAY_USER = "Lcom/instagram/user/model/User;"
+private const val TRAY_STRING = "Ljava/lang/String;"
+private val TRAY_KINDS = setOf("USER_REEL", "EMPTY_STORY_STATE_REEL", "ADS_REEL")
 
 /** What the store's list for Home's top story row logs when the store has no reels. */
 private const val MAIN_TRAY_EMPTY = "main feed tray reels is empty"
@@ -62,7 +66,49 @@ internal class StoryTrayTargets(
     val seenCheck: String,
     val sessionField: String,
     internal val isSeen: MutableMethod,
+    val identity: TrayIdentity,
 )
+
+/** The actual store Reel's kind and public owner/ID readers, independent of the response parser model. */
+internal class TrayIdentity(
+    val kind: FieldReference,
+    val owner: MethodReference,
+    val userId: MethodReference,
+    val sessionId: MethodReference,
+    val reelId: MethodReference,
+)
+
+private fun BytecodePatchContext.trayIdentity(reelType: String): TrayIdentity {
+    val reel = classDefBy(reelType)
+    fun Method.reader(result: String) = AccessFlags.PUBLIC.isSet(accessFlags) && !AccessFlags.STATIC.isSet(accessFlags) &&
+        parameterTypes.isEmpty() && returnType == result && implementation != null
+    val owner = reel.methods.singleOrNull { it.reader(TRAY_USER) }
+        ?: refuseTray("expected one public owner getter on $reelType")
+    val kind = reel.fields.filter { field ->
+        if (AccessFlags.STATIC.isSet(field.accessFlags)) return@filter false
+        val enum = classDefByOrNull(field.type) ?: return@filter false
+        enum.superclass == "Ljava/lang/Enum;" && enum.methods.filter { it.name == "<clinit>" }.flatMap { method ->
+            method.implementation?.instructions?.mapNotNull {
+                ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
+            }.orEmpty()
+        }.toSet().containsAll(TRAY_KINDS)
+    }.singleOrNull() ?: refuseTray("expected one native reel-kind field on $reelType")
+    if (!AccessFlags.PUBLIC.isSet(kind.accessFlags)) refuseTray("the native reel-kind field isn't public")
+    val user = classDefByOrNull(TRAY_USER) ?: refuseTray("the User model isn't present")
+    val hash = user.methods.singleOrNull { it.name == "hashCode" && it.reader("I") }
+        ?: refuseTray("the User model has no public hashCode")
+    val id = hash.implementation!!.instructions.mapNotNull {
+        (it as? ReferenceInstruction)?.reference as? MethodReference
+    }.filter { it.definingClass == TRAY_USER && it.parameterTypes.isEmpty() && it.returnType == TRAY_STRING }
+        .map { it.name }.distinct().singleOrNull() ?: refuseTray("the User hash doesn't identify one ID getter")
+    val userId = user.methods.singleOrNull { it.name == id && it.reader(TRAY_STRING) }
+        ?: refuseTray("the User ID getter isn't public")
+    val sessionId = classDefByOrNull(USER_SESSION)?.methods?.singleOrNull { it.name == "getUserId" && it.reader(TRAY_STRING) }
+        ?: refuseTray("the session has no public getUserId")
+    val reelId = reel.methods.singleOrNull { it.name == "getId" && it.reader(TRAY_STRING) }
+        ?: refuseTray("the Reel has no public getId")
+    return TrayIdentity(kind, owner, userId, sessionId, reelId)
+}
 
 /**
  * Finds the reel store's list for Home's feed adapter.
@@ -92,7 +138,8 @@ internal fun BytecodePatchContext.findStoryTray(reelClass: String): StoryTrayTar
     val main = storeDef.methods.mapNotNull(::mainTraySite)
     val top = main.singleOrNull()
         ?: refuseTray("expected one method of ${tray.store} handing Home's top story row its reels, found ${main.size}")
-    return StoryTrayTargets(tray.store, listOf(top, tray.site), tray.reelClass, tray.seenCheck, tray.sessionField, trayStub())
+    return StoryTrayTargets(tray.store, listOf(top, tray.site), tray.reelClass, tray.seenCheck, tray.sessionField,
+        trayStub(), trayIdentity(tray.reelClass))
 }
 
 /** What [trayLister] finds in a method, before the extension's stub is looked up. */
@@ -166,9 +213,9 @@ private fun BytecodePatchContext.trayStub(): MutableMethod {
             AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags)
     } ?: refuseTray("$STORY_TRAY_ORDER has no public static hook ${TRAY_ORDER.substringAfter("->")}")
     return order.methods.singleOrNull {
-        it.name == "seen" && it.returnType == "Z" && AccessFlags.STATIC.isSet(it.accessFlags) &&
+        it.name == "seen" && it.returnType == "I" && AccessFlags.STATIC.isSet(it.accessFlags) &&
             it.parameterTypes.map(Any::toString) == listOf(OBJECT_TYPE, OBJECT_TYPE)
-    } ?: refuseTray("$STORY_TRAY_ORDER has no static Z seen(${OBJECT_TYPE}${OBJECT_TYPE})")
+    } ?: refuseTray("$STORY_TRAY_ORDER has no static I seen(${OBJECT_TYPE}${OBJECT_TYPE})")
 }
 
 /**
@@ -199,16 +246,62 @@ internal fun BytecodePatchContext.orderStoryTray(found: StoryTrayTargets) {
             """,
         )
     }
-    // p0 and p1 are the store and a reel. The reel is checked for its own class first; every path returns its own value.
-    found.isSeen.addInstructionsWithLabels(
+    // Three locals keep the owner/viewer IDs apart. Every path returns before the original stub.
+    val state = found.isSeen.cloneMutable(additionalRegisters = (5 - found.isSeen.implementation!!.registerCount).coerceAtLeast(0))
+    mutableClassDefBy(STORY_TRAY_ORDER).methods.apply { remove(found.isSeen); add(state) }
+    state.addInstructionsWithLabels(
         0,
         """
+            instance-of v0, p0, ${found.store}
+            if-eqz v0, :pinned
+            instance-of v0, p1, ${found.reelClass}
+            if-eqz v0, :pinned
             check-cast p0, ${found.store}
             iget-object p0, p0, ${found.store}->${found.sessionField}:$USER_SESSION
+            if-eqz p0, :pinned
             check-cast p1, ${found.reelClass}
+            iget-object v0, p1, ${found.identity.kind}
+            if-eqz v0, :pinned
+            invoke-virtual { v0 }, Ljava/lang/Enum;->name()Ljava/lang/String;
+            move-result-object v0
+            const-string v1, "USER_REEL"
+            invoke-virtual { v1, v0 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :pinned
+            invoke-virtual { p1 }, ${found.identity.reelId}
+            move-result-object v0
+            if-eqz v0, :pinned
+            invoke-virtual { v0 }, Ljava/lang/String;->isEmpty()Z
+            move-result v1
+            if-nez v1, :pinned
+            const-string v1, "add_to_story"
+            invoke-virtual { v1, v0 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result v0
+            if-nez v0, :pinned
+            invoke-virtual { p1 }, ${found.identity.owner}
+            move-result-object v0
+            if-eqz v0, :pinned
+            invoke-virtual { v0 }, ${found.identity.userId}
+            move-result-object v1
+            if-eqz v1, :pinned
+            invoke-virtual { v1 }, Ljava/lang/String;->isEmpty()Z
+            move-result v0
+            if-nez v0, :pinned
+            invoke-virtual { p0 }, ${found.identity.sessionId}
+            move-result-object v2
+            if-eqz v2, :pinned
+            invoke-virtual { v2 }, Ljava/lang/String;->isEmpty()Z
+            move-result v0
+            if-nez v0, :pinned
+            invoke-virtual { v1, v2 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result v0
+            if-nez v0, :pinned
             invoke-virtual { p1, p0 }, ${found.reelClass}->${found.seenCheck}(${USER_SESSION})Z
-            move-result p0
-            return p0
+            move-result v0
+            return v0
+            :pinned
+            const/4 v0, -0x1
+            return v0
         """,
     )
 }

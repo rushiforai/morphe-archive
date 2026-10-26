@@ -6,9 +6,12 @@ package app.hushgram.extension.instagram.feed;
 
 import android.content.Context;
 
+import java.util.function.BooleanSupplier;
+
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.instagram.settings.SettingsStatus;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
 
 /**
  * Helper for the Hide Follow on feed posts patch (#248): keeps the Follow and Subscribe buttons
@@ -17,7 +20,9 @@ import app.hushgram.extension.instagram.settings.SettingsStatus;
  * <p>Instagram reuses these ids in other places (a story, a reel, a profile), so {@link ViewHider}
  * counts them only inside the feed post header, and never touches the view stubs the header
  * inflates them from. The author's name, the time and the menu are not named and stay. The
- * Subscribe shortcut sits outside the header, so it is matched by its own ids anywhere.
+ * Subscribe shortcut sits outside the header, so it is matched by its own ids anywhere. The current
+ * Litho header's Subscribe has no such id. Its eligibility answer goes through {@link #showSubscribe}
+ * before Instagram creates that one child.
  */
 public final class FeedFollowButton {
     /** The header of a feed post, which holds the author's name and the buttons beside it. */
@@ -47,6 +52,24 @@ public final class FeedFollowButton {
     /** Called as the application starts. Does nothing in a build without the patch. */
     public static void install(Context context) {
         HIDER.install(context, SettingsStatus.feedFollow());
+    }
+
+    /** Keeps native ineligibility and suppresses only the feed header's Subscribe while wanted. */
+    public static boolean showSubscribe(int eligible) {
+        return showSubscribe(eligible, HIDER::wanted);
+    }
+
+    static boolean showSubscribe(int eligible, BooleanSupplier on) {
+        if (eligible == 0) return false;
+        try {
+            HookStatus.invoked(FamilyNames.FEED_FOLLOW);
+            if (!on.getAsBoolean()) return true;
+            HookStatus.counted(FamilyNames.FEED_FOLLOW, COUNT_HIDDEN);
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FEED_FOLLOW, HOOK, failure);
+            return true;
+        }
     }
 
     static ViewHider hider() {

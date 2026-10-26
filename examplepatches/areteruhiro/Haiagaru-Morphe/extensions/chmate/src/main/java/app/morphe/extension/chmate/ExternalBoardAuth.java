@@ -194,11 +194,14 @@ public final class ExternalBoardAuth {
             error=android.text.Html.fromHtml(raw).toString().trim();
         }
         final String readable=error;
+        final boolean browserRequired=BoardAuthRules.browserRequired(readable);
         final String code=BoardAuthRules.code(readable);
         LinearLayout box=new LinearLayout(a);box.setOrientation(LinearLayout.VERTICAL);
         int pad=(int)(20*a.getResources().getDisplayMetrics().density);box.setPadding(pad,pad,pad,pad);
         TextView notice=new TextView(a);
-        notice.setText("書き込みエラーの内容を確認してください。認証コードはコピーできます。認証後の投稿は自動再送信しません。");
+        notice.setText(browserRequired
+                ?"この板は、通常ブラウザ上で計算による投稿確認を完了する必要があります。ChMateのエラー欄では実行できません。対応ブラウザではアプリ内のブラウザ画面（Custom Tabs）で開きます。非対応の場合は通常のブラウザ画面になります。サイトの手順に従ってください。下書きは自動送信せず、ChMateのCookie・SessionIDも変更しません。ブラウザの認証は別管理で、ChMateへ引き継がれるとは限りません。"
+                :"書き込みエラーの内容を確認してください。認証コードはコピーできます。認証後の投稿は自動再送信しません。");
         box.addView(notice);
         TextView content=new TextView(a);content.setText(readable);content.setTextIsSelectable(true);
         content.setPadding(0,pad,0,pad);box.addView(content);
@@ -206,7 +209,9 @@ public final class ExternalBoardAuth {
         HaiagaruDialog dialog=new HaiagaruDialog.Builder(a).setTitle("書き込みエラー・板の認証")
             .setView(scroll).setNegativeButton("後で",null)
             .setNeutralButton(code.isEmpty()?"エラー全文をコピー":"認証コードをコピー",null)
-            .setPositiveButton("認証ページ",(d,w)->configure(a,board,suggested)).create();
+            .setPositiveButton(browserRequired?"アプリ内ブラウザ":"認証ページ",(d,w)->{
+                if(browserRequired)openBrowser(a,board);else configure(a,board,suggested);
+            }).create();
         dialog.setOnShowListener(d->dialog.getButton(HaiagaruDialog.BUTTON_NEUTRAL).setOnClickListener(v->{
             ClipboardManager clipboard=(ClipboardManager)a.getSystemService(Context.CLIPBOARD_SERVICE);
             if(clipboard==null) return;
@@ -219,6 +224,31 @@ public final class ExternalBoardAuth {
             Toast.makeText(a,code.isEmpty()?"エラー全文をコピーしました":"認証コードをコピーしました",Toast.LENGTH_SHORT).show();
         }));
         dialog.show();
+    }
+    private static void openBrowser(Activity activity,String board){
+        String page=BoardAuthRules.browserPage(board);
+        if(page.isEmpty()){Toast.makeText(activity,"板のURLを確認できませんでした",Toast.LENGTH_LONG).show();return;}
+        Intent intent=new Intent(Intent.ACTION_VIEW,android.net.Uri.parse(page));
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        // Same standard Custom Tabs protocol as XPostPreviewTouch.browserIntent.
+        // The browser owns scripts, workers and its session; never inject native cookies.
+        android.os.Bundle extras=new android.os.Bundle();
+        extras.putBinder("android.support.customtabs.extra.SESSION",null);
+        intent.putExtras(extras);
+        try{
+            // An explicit browser intent avoids routing read.cgi back to ChMate.
+            Intent probe=new Intent(Intent.ACTION_VIEW,android.net.Uri.parse(BoardAuthRules.origin(page)+"/"));
+            probe.addCategory(Intent.CATEGORY_BROWSABLE);
+            ArrayList<Intent> browsers=new ArrayList<>();
+            for(android.content.pm.ResolveInfo info:activity.getPackageManager().queryIntentActivities(probe,0)){
+                if(info.activityInfo==null||activity.getPackageName().equals(info.activityInfo.packageName))continue;
+                Intent candidate=new Intent(intent);candidate.setComponent(new android.content.ComponentName(info.activityInfo.packageName,info.activityInfo.name));browsers.add(candidate);
+            }
+            if(browsers.isEmpty()){Toast.makeText(activity,"通常ブラウザが見つかりません。ブラウザから板を開いてください。",Toast.LENGTH_LONG).show();return;}
+            Intent choice=Intent.createChooser(browsers.remove(0),"アプリ内ブラウザで開く");
+            if(!browsers.isEmpty())choice.putExtra(Intent.EXTRA_INITIAL_INTENTS,browsers.toArray(new Intent[0]));
+            activity.startActivity(choice);
+        }catch(android.content.ActivityNotFoundException|SecurityException error){Toast.makeText(activity,"ブラウザを開けませんでした",Toast.LENGTH_LONG).show();}
     }
     public static Object parseCookie(Object url,String cookie) { return null; } // Bound at patch time.
     public static void received(Object url,List<?> cookies) {

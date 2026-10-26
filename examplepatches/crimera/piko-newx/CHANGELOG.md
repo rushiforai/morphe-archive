@@ -1,3 +1,10 @@
+## [3.64.1](https://github.com/crimera/piko-newx/compare/v3.64.0...v3.64.1) (2026-10-25)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** Read typed media fields for inline download eligibility and fast-path timeline restore ([eaa2552](https://github.com/crimera/piko/commit/eaa255276df4e5514cae8fc42eb014fca83ea786))
+* **Twitter:** Optimize repeated NewX runtime work on UI paths ([bda61e6](https://github.com/crimera/piko/commit/bda61e6bfcf67db6ddec8ff8a386828b39cf95ef))
+* **Twitter - newx - Clone:** fix launcher icon shortcuts and bytecode issues ([bbe6c30](https://github.com/crimera/piko/commit/bbe6c309fbfc6d6a552ba1995cb8eedb0c21b3bb))
+
 ## [3.64.0](https://github.com/crimera/piko-newx/compare/v3.63.0...v3.64.0) (2026-10-24)
 
 ### ✨ New Features

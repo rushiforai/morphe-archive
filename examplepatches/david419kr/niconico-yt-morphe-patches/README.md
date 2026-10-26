@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/f29e2231-e159-43ad-8999-8451dfaef7f3
 - An unmodified YouTube `21.20.405` APK (`21.04.223` remains supported)
 - Expert mode enabled in Morphe
 
-Bundle `1.3.2` fixes playback-speed fingerprint matching when used with the official Morphe patches. Patching and APK rebuilding were verified on `21.20.405` with Morphe Patches `1.47.0`. Device playback and the older APK were not retested in this update.
+Bundle `1.3.3` fixes `VideoTimeReferenceFingerprint` matching with Morphe Patcher 2, while retaining the playback-speed compatibility fix. Patching and APK rebuilding were verified on `21.20.405` with Morphe Patches `1.48.0`: all 105 selected patches succeeded. Device playback and the older APK were not retested in this update.
 
 ## Installation
 
@@ -59,7 +59,7 @@ You can also use [Open in Morphe](https://morphe.software/add-source?github=davi
 
 #### Local `.mpp` source
 
-1. Download `patches-1.3.2.mpp` from [the latest GitHub Release](https://github.com/david419kr/niconico-yt-morphe-patches/releases/latest).
+1. Download `patches-1.3.3.mpp` from [the latest GitHub Release](https://github.com/david419kr/niconico-yt-morphe-patches/releases/latest).
 2. Open `Sources → ＋ → Local` in Morphe.
 3. Select the downloaded `.mpp` file and tap **Add**.
 
@@ -84,5 +84,5 @@ Using the official Morphe recommended patches together with this patch is recomm
 
 ## Updating
 
-- **Remote source:** Open `Sources`, select **Niconico YT Comments Patches**, and tap **Update**. Confirm version `1.3.2`, then patch the unmodified YouTube APK again. The repository URL above always points to the current published bundle.
+- **Remote source:** Open `Sources`, select **Niconico YT Comments Patches**, and tap **Update**. Confirm version `1.3.3`, then patch the unmodified YouTube APK again. The repository URL above always points to the current published bundle.
 - **Local source:** Remove the existing source, download the new `.mpp`, and add it again.

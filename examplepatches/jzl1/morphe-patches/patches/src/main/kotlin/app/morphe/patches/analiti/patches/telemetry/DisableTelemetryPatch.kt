@@ -19,10 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import lab.analiti.patches.shared.COMPATIBILITY_ANALITI
 
 private const val ANALYTICS_PREF = "pref_key_privacy_analytics"
-private const val PREF_READER = "Lpa1;"
-private const val CRASHLYTICS_CONFIG = "Lbb0;"
 private const val CRASHLYTICS_OVERRIDE_FIELD = "i"
-private const val SESSION_UPLOADER = "Lum0;"
+private const val CRASHLYTICS_OVERRIDE_TYPE = "Ljava/lang/Object;"
 private const val SESSION_UPLOADER_EVENT = "FIREBASE_APPQUALITY_SESSION"
 
 /**
@@ -39,9 +37,10 @@ private const val SESSION_UPLOADER_EVENT = "FIREBASE_APPQUALITY_SESSION"
  *
  *  1. The Crashlytics override. The SDK's config object holds a tri-state
  *     (`Object i`): null falls back to the manifest flag, non-null wins. The
- *     dispatcher unconditionally stores `Boolean.TRUE` there, so rewriting the
- *     constant it loads makes it store `FALSE` instead. That leaves the manifest
- *     flag untouched but forces the winning value to "disabled".
+ *     dispatcher unconditionally stores a Boolean there, so rewriting the constant
+ *     it loads makes it store `FALSE` instead. That leaves the manifest flag
+ *     untouched but forces the winning value to "disabled". If the store already
+ *     receives `FALSE` (e.g. on an already-patched build), this step is a no-op.
  *
  *  2. Usage analytics. The dispatcher reads the privacy preference with a default
  *     of `true` and hands the result straight to
@@ -59,6 +58,13 @@ private const val SESSION_UPLOADER_EVENT = "FIREBASE_APPQUALITY_SESSION"
  * Deliberately does not touch Firebase Installations, Sessions, or the account /
  * subscription flows that share the same component graph: those still initialise,
  * they simply have no consent to report anything.
+ *
+ * All targets are resolved structurally (field type + method signature + string
+ * literal), because the obfuscated class names differ between app versions:
+ *  - 2026.10.98554: Crashlytics config `Lbb0;`, pref reader `Lpa1;->m`,
+ *    session uploader `Lum0;`
+ *  - 2026.10.98884: Crashlytics config `Leb0;`, pref reader `Lsa1;->o`,
+ *    session uploader `Lan0;`
  */
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
@@ -94,19 +100,22 @@ internal object TelemetryDispatcherFingerprint : Fingerprint(
 )
 
 /**
- * Rewrite the `Boolean.TRUE` that the dispatcher stores into the Crashlytics
+ * Rewrite the Boolean constant that the dispatcher stores into the Crashlytics
  * config's override field, so the field ends up holding `Boolean.FALSE`.
  *
- * The store is located by its field reference rather than by index, and the
- * constant is then found by walking backwards for the load that targets the same
- * register.
+ * The store is located by its field shape (name `i`, type `Ljava/lang/Object;`)
+ * rather than by its obfuscated defining class, and the constant is then found by
+ * walking backwards for the load that targets the same register. An existing
+ * `Boolean.FALSE` store is treated as success so the patch is idempotent and also
+ * accepts builds where the SDK already defaults to disabled.
  */
 private fun forceCrashlyticsOff(method: MutableMethod) {
     val storeIndex = method.indexOfInstruction { instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference
-        reference is FieldReference &&
-                reference.definingClass == CRASHLYTICS_CONFIG &&
-                reference.name == CRASHLYTICS_OVERRIDE_FIELD
+        instruction.opcode == Opcode.IPUT_OBJECT &&
+                reference is FieldReference &&
+                reference.name == CRASHLYTICS_OVERRIDE_FIELD &&
+                reference.type == CRASHLYTICS_OVERRIDE_TYPE
     }
     if (storeIndex < 0) {
         throw PatchException("Could not locate the Crashlytics override store.")
@@ -123,11 +132,13 @@ private fun forceCrashlyticsOff(method: MutableMethod) {
         if (instruction.opcode == Opcode.SGET_OBJECT &&
             reference is FieldReference &&
             reference.definingClass == "Ljava/lang/Boolean;" &&
-            reference.name == "TRUE"
+            (reference.name == "TRUE" || reference.name == "FALSE")
         ) {
             if (method.getInstruction<OneRegisterInstruction>(index).registerA != valueRegister) {
                 continue
             }
+            // Already forced off — nothing to rewrite.
+            if (reference.name == "FALSE") return
             method.replaceInstruction(
                 index,
                 "sget-object v$valueRegister, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;",
@@ -156,7 +167,9 @@ private fun forceCrashlyticsOff(method: MutableMethod) {
  * Force the usage-analytics consent value to `false`.
  *
  * Locates the privacy preference read, then rewrites the `move-result-object` that
- * captures its return value.
+ * captures its return value. The reader class/method name is obfuscated differently
+ * per version, so it is matched by its signature
+ * `(String, Boolean) -> Boolean` instead.
  */
 private fun forceAnalyticsOff(method: MutableMethod) {
     val prefStringIndex = method.indexOfInstruction { instruction ->
@@ -171,8 +184,9 @@ private fun forceAnalyticsOff(method: MutableMethod) {
         val reference = (instruction as? ReferenceInstruction)?.reference
         instruction.opcode == Opcode.INVOKE_STATIC &&
                 reference is MethodReference &&
-                reference.definingClass == PREF_READER &&
-                reference.name == "m"
+                reference.returnType == "Ljava/lang/Boolean;" &&
+                reference.parameterTypes.map { it.toString() } ==
+                listOf("Ljava/lang/String;", "Ljava/lang/Boolean;")
     }
     if (readIndex < 0) {
         throw PatchException("Could not locate the analytics preference reader call.")
@@ -244,11 +258,11 @@ private fun suppressSessionUploads(patchContext: BytecodePatchContext) {
  * The Firebase Sessions transport producer.
  *
  * A tiny method whose only job is to enqueue a `FIREBASE_APPQUALITY_SESSION` message.
- * Matched on the defining class plus the event literal so it survives renaming of the
- * class itself.
+ * Matched on the event literal plus the single-Object parameter shape; the defining
+ * class is deliberately not constrained because its obfuscated name differs between
+ * 2026.10.98554 (`Lum0;`) and 2026.10.98884 (`Lan0;`).
  */
 internal object SessionUploaderFingerprint : Fingerprint(
-    definingClass = SESSION_UPLOADER,
     returnType = "V",
     parameters = listOf("L"),
     filters = listOf(

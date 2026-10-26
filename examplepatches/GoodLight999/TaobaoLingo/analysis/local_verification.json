@@ -1,0 +1,32 @@
+{
+  "apk_sha256": "3e709717a60fdeeb59354df60fb6cf279ffb023c01e095e16bccfbad75f683dd",
+  "original_sha256_match": true,
+  "matches": [
+    {
+      "method": "LocalizationManager.d(): Locale",
+      "registers": 5,
+      "tries": 0,
+      "dex": "classes.dex"
+    },
+    {
+      "method": "Localization.h(): Language",
+      "registers": 4,
+      "tries": 1,
+      "dex": "classes.dex"
+    },
+    {
+      "method": "SceneIdentifier.isI18nEdition(): int",
+      "registers": 3,
+      "tries": 0,
+      "dex": "classes.dex"
+    },
+    {
+      "method": "Localization.o(): boolean",
+      "registers": 3,
+      "tries": 0,
+      "dex": "classes.dex"
+    }
+  ],
+  "language_english_static": true,
+  "note": "Source APK matched; runtime, patching, and UI translation unverified."
+}

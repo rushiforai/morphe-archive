@@ -452,4 +452,38 @@ public class PostsListTest {
                 View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
         decor.layout(0, 0, 1080, 1920);
     }
+
+    @Test
+    public void turningTheChoiceOffWhileWaitingCancelsTheOpenAndLetsALaterResumeRetry() {
+        Page page = new Page();
+        Tab tab = tab(PostsList.POSTS_TAB, false);
+        tab.page = page;
+        PostsList.resumed(tab);
+        Settings.PROFILE_POSTS_LIST.save(false);
+        addRow("first", "second");
+        layout();
+        idleSeconds(1);
+
+        assertTrue("an obsolete choice must not tap the first cell", taps.isEmpty());
+        assertFalse("the tab may try again later", tab.getArguments().getBoolean(PostsList.OPENED_KEY));
+        assertFalse("the page may try again later", page.getArguments().getBoolean(PostsList.OPENED_KEY));
+
+        Settings.PROFILE_POSTS_LIST.save(true);
+        PostsList.resumed(tab);
+        ShadowLooper.idleMainLooper();
+        assertEquals(List.of("first"), taps);
+    }
+
+    @Test
+    public void pausingWhileWaitingCancelsTheQueuedProfileOpen() {
+        Tab tab = tab(PostsList.POSTS_TAB, false);
+        PostsList.resumed(tab);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        addRow("first");
+        layout();
+        idleSeconds(1);
+
+        assertTrue("Pause applies to already queued work", taps.isEmpty());
+        assertFalse(tab.getArguments().getBoolean(PostsList.OPENED_KEY));
+    }
 }

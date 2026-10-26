@@ -1044,6 +1044,7 @@ private fun BytecodePatchContext.patchConsumedPopupMenu191() {
 
 private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
     patchExtraQuickFilters(version)
+    patchCachedWacchoiSearch(version)
     patchQuickFilterPosition(version)
     if (version == "0.8.10.191 dev") {
         val toolbarModelType = "Lo/r8lambdaElkXfNt4VbdvffL9Z700R6oMDo;"
@@ -1548,6 +1549,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
     execute {
         val profile = profileFor(packageMetadata.versionName)
+        check(!isAdsOnlyBuild()) { "Haiagaruと広告だけの超軽量構成は同時に選択できません" }
         patchNativeToolTabs(packageMetadata.versionName)
         patchReadingPosition(packageMetadata.versionName)
         patchUnreadToolbarCount(packageMetadata.versionName)
@@ -4508,9 +4510,14 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoThreadRefreshCa
     } ?: error("ChMate 241 If-None-Match header call was not found")
     val resume = instructions.getOrNull(headerCall + 1)
         ?: error("ChMate 241 If-None-Match header has no continuation")
+    val register = downloader.findFreeRegister(headerCall)
     downloader.addInstructionsWithLabels(
         headerCall,
-        "goto :haiagaru_241_skip_etag",
+        """
+            invoke-static {}, Lapp/morphe/extension/chmate/ThreadRefreshOptions;->skipConditionalHeaders()Z
+            move-result v$register
+            if-nez v$register, :haiagaru_241_skip_etag
+        """.trimIndent(),
         ExternalLabel("haiagaru_241_skip_etag", resume),
     )
 }
@@ -5091,6 +5098,24 @@ val haiagaruPatch = resourcePatch(
 
             // One routing Activity avoids competing board/thread Activity matches.
             // Separate filters keep custom hosts and paths from being combined.
+            // External checker apps discover renamed installations by URL handlers.
+            // Never encode a distribution package name into this contract.
+            if (!dedicatedViewerEnabled) {
+                document.addOpenUrlFilter(
+                    openUrlActivity, listOf("http", "https"), "hissi.org",
+                    path = "/read.php/", pathAttribute = "android:pathPrefix",
+                )
+            }
+            for (host in listOf("bbs.eddibb.cc", "v1ch.cc")) {
+                document.addOpenUrlFilter(
+                    openUrlActivity, listOf("http", "https"), host,
+                    path = "/test/read.cgi/", pathAttribute = "android:pathPrefix",
+                )
+                document.addOpenUrlFilter(
+                    openUrlActivity, listOf("http", "https"), host,
+                    path = "/liveedge/", pathAttribute = "android:pathPrefix",
+                )
+            }
             document.addOpenUrlFilter(
                 openUrlActivity, listOf("http", "https"), "talk.jp",
                 path = "/boards/", pathAttribute = "android:pathPrefix",
@@ -8303,4 +8328,138 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchEdgeReporterTitle
         invoke-static/range { p1 .. p1 }, Lapp/morphe/extension/chmate/EdgeReporterHistory;->copyTitle(Ljava/lang/String;)Ljava/lang/String;
         move-result-object p1
     """)
+}
+
+/** Isolated selection: includes no search/filter/preview/settings lifecycle hooks. */
+private fun BytecodePatchContext.isAdsOnlyBuild(): Boolean {
+    var present = false
+    classDefForEach { if (it.type == "Lapp/morphe/extension/chmate/AdsOnlyRuntime;") present = true }
+    return present
+}
+
+@Suppress("unused")
+val haiagaruAdsOnlyPatch = bytecodePatch(
+    name = "Haiagaru 広告だけの超軽量構成（検証用）",
+    description = "Haiagaru本体を外して選択してください。広告・広告枠の除去と再署名導入に必要な起動対策だけを適用します。検索・追加設定・フィルター等は組み込みません。検証中です。",
+    default = false,
+) {
+    compatibleWith(chMateCompatibility)
+    extendWith("extensions/chmate-ads-only.mpe")
+    execute {
+        var hasFullRuntime = false
+        classDefForEach { if (it.type == "Lapp/morphe/extension/chmate/NativeToolTabs;") hasFullRuntime = true }
+        check(!hasFullRuntime) { "Haiagaruと広告だけの超軽量構成は同時に選択できません" }
+        val profile=profileFor(packageMetadata.versionName)
+        mutableClassDefBy(profile.providerClass).methods.single { it.name=="onCreate" && it.parameters.isEmpty() }
+            .addInstruction(0,"invoke-static {}, $EXTENSION->installSignatureSpoof()V")
+        profile.providerStartupTrapClass?.let { startupTrapClass ->
+            mutableClassDefBy(startupTrapClass).methods.single { method ->
+                method.returnType == "Ljava/lang/Object;"
+                    && method.parameters.isEmpty()
+            }.returnProviderStartupDelegate(profile)
+        }
+
+        if (profile.patchSignatureWrapper) {
+            val signatureMethod = mutableClassDefBy(profile.signatureClass).methods.single { method ->
+                method.name == profile.signatureMethod
+                    && method.returnType == "Ljava/lang/Object;"
+                    && method.parameters.isEmpty()
+            }
+            if (packageMetadata.versionName == "0.8.10.243 dev") {
+                signatureMethod.returnSignatureDelegate(profile)
+            } else {
+                signatureMethod.ignoreSignatureRejection(profile)
+            }
+            if (profile.signatureDirectWrapperBypass) {
+                mutableClassDefBy(profile.signatureSuperType).methods.single { method ->
+                    method.name == profile.signatureDelegateMethod
+                        && method.returnType == "Ljava/lang/Object;"
+                        && method.parameters.isEmpty()
+                }.bypassSignatureFailureBranches()
+            }
+        }
+
+        profile.viewModelFactoryClass?.let { viewModelFactoryClass ->
+            mutableClassDefBy(viewModelFactoryClass).methods.single { method ->
+                method.name == "get"
+                    && method.returnType == "Ljava/lang/Object;"
+                    && method.parameters.isEmpty()
+            }.bypassTamperTrap(profile)
+        }
+        profile.settingsViewModelClass?.let { viewModelClass ->
+            mutableClassDefBy(viewModelClass).methods.single { method ->
+                method.name == "<init>"
+                    && method.returnType == "V"
+                    && method.parameters.map(CharSequence::toString) ==
+                    listOf("Landroid/app/Application;")
+            }.bypassLegacyViewModelTamperTrap()
+        }
+        if (profile.viewModelTrapKind != ViewModelTrapKind.NONE
+            || profile.settingsViewModelClass != null
+        ) {
+            SettingsOnCreateFingerprint.method.bypassSettingsTamperTrap(profile)
+            if (profile.hasHiltSettings) {
+                HiltSettingsOnCreateFingerprint.method.bypassHiltSettingsTamperTrap(profile)
+            }
+        }
+        patchDistributedIntegrityComparisons(
+            includeAllObfuscatedClasses = packageMetadata.versionName == "0.8.10.191 dev"
+        )
+        patchCommonAdSdkInitialization()
+
+        buildList {
+            add("Lcom/amazon/device/ads/DTBAdRequest;")
+            if (profile.hasLevelPlayBanner) {
+                add("Lcom/unity3d/mediation/banner/LevelPlayBannerAdView;")
+            }
+        }.forEach { classType ->
+            mutableClassDefBy(classType).methods
+                .filter { it.name == "loadAd" && it.returnType == "V" }
+                .forEach { it.addHideAdsGuard() }
+        }
+
+        if (profile.hasLevelPlayBanner) {
+            patchLevelPlayTrackerInitialization()
+
+            mutableClassDefBy("Lcom/unity3d/mediation/banner/LevelPlayBannerAdView;")
+                .methods
+                .filter { it.name == "<init>" }
+                .forEach {
+                    it.addBeforeEveryReturn(
+                        "invoke-static/range { p0 .. p0 }, $EXTENSION->hideAdView(Landroid/view/View;)V"
+                    )
+                }
+        }
+
+        // The exact class is version-specific, but each target was matched by the same
+        // FrameLayout/ad-placement/load-method structure instead of by its obfuscated name.
+        mutableClassDefBy(profile.homeAdClass).methods.forEach { method ->
+            when {
+                method.name == "<init>" -> method.addBeforeEveryReturn(
+                    "invoke-static/range { p0 .. p0 }, $EXTENSION->hideAdView(Landroid/view/View;)V"
+                )
+                profile.homeAdLoadMethod != null
+                    && method.name == profile.homeAdLoadMethod
+                    && method.returnType == "V"
+                    && method.parameters.isEmpty() ->
+                    method.addHideAdsViewGuard()
+            }
+        }
+
+
+        patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
+        if(packageMetadata.versionName=="0.8.10.191 dev"){
+            patchLegacyFragmentBannerDiscovery()
+            patchLegacyThreadListAd("Lo/m9ExternalSyntheticLambda1;")
+        }else{
+            mutableClassDefBy(profile.homeFragmentClass).methods.single {
+                it.name=="onViewCreated" && it.parameterTypes.map(CharSequence::toString)==listOf("Landroid/view/View;","Landroid/os/Bundle;")
+            }.addInstruction(0,"invoke-static/range {p1 .. p1}, $EXTENSION->hideHomeBanner(Landroid/view/View;)V")
+            if(packageMetadata.versionName=="0.8.10.226 dev"){
+                patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
+                patchLegacyThreadListAd("Lo/listener;")
+            }
+            if(packageMetadata.versionName=="0.8.10.243 dev")patchModernThreadListAd()
+        }
+    }
 }

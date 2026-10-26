@@ -49,6 +49,7 @@ def test_failed_inventory_preserves_history_and_unchanged_release_hash(tmp_path)
     first = archive(tmp_path, [release(1)])
     second = archive(tmp_path, [release(1)])
     assert first["releases"] == second["releases"]
+    assert first["sources"] == second["sources"]
     failed = reconcile_archive(tmp_path, {"demo": {"patches": SOURCE}}, {})
     assert failed["releases"] == first["releases"]
     assert failed["sources"][SOURCE]["status"] == "incomplete"

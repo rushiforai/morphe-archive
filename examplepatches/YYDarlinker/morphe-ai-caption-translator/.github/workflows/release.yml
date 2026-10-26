@@ -28,7 +28,7 @@ jobs:
       - name: Validate current Morphe metadata
         run: |
           current="$(jq -r '.version // empty' patches-bundle.json)"
-          python3 .github/scripts/validate_morphe_metadata.py "$current"
+          python3 .github/scripts/validate_morphe_metadata.py "$current" --mode published
 
       - name: Identify source version
         id: source
@@ -47,7 +47,7 @@ jobs:
           test "$remote" = "$(git rev-parse HEAD)" || { echo "::error::main changed; release the latest commit instead"; exit 1; }
 
       - name: Setup Java
-        uses: actions/setup-java@v5.7.0
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -55,7 +55,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 'lts/*'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -68,16 +68,32 @@ jobs:
 
       # Semantic release is the only publisher. Its prepare phase validates generated metadata
       # before @semantic-release/git creates a release commit or a version tag.
-      - name: Release
-        uses: cycjimmy/semantic-release-action@v6
+      - name: Release with the locked semantic-release toolchain
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import semanticRelease from 'semantic-release';
+          import { appendFileSync } from 'node:fs';
+          const result = await semanticRelease();
+          const values = result
+            ? { new_release_published: 'true', new_release_version: result.nextRelease.version,
+                new_release_git_tag: result.nextRelease.gitTag }
+            : { new_release_published: 'false' };
+          for (const [key, value] of Object.entries(values)) {
+            appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
+          }
+          NODE
 
-      - name: Validate published Morphe metadata
+      - name: Validate Morphe metadata after release decision
         run: |
           current="$(jq -r '.version // empty' patches-bundle.json)"
-          python3 .github/scripts/validate_morphe_metadata.py "$current"
+          if [ '${{ steps.release.outputs.new_release_published }}' = 'true' ]; then
+            python3 .github/scripts/validate_morphe_metadata.py "$current"
+          else
+            python3 .github/scripts/validate_morphe_metadata.py "$current" --mode published
+          fi
 
       - name: Verify published release asset
         if: steps.release.outputs.new_release_published == 'true'
@@ -112,4 +128,21 @@ jobs:
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid --no-daemon
+        # Same core + extension tests and candidate checks as PR/dev validation.
+        run: python3 tools/verify_current.py --run-id "release-no-publish-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Archive prepublication tests and candidate evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            validation/runs/
+            build/n39/gradle/translation-core/reports/tests/
+            build/n39/gradle/translation-core/test-results/
+            extensions/extension/build/reports/tests/
+            extensions/extension/build/test-results/
+            build/n39/gradle/patches/libs/*.mpp
+            build/maintenance/M1a/**/*.mpp
+            build/maintenance/M1a/**/extension.mpe
+          retention-days: 7

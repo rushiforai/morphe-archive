@@ -30,12 +30,8 @@ internal val scoreHiddenFingerprints =
         "isScoreHidden",
     ).map { methodName ->
         Fingerprint(
-            name = methodName,
-            custom = { _, classDef ->
-                classDef.interfaces.any {
-                    it.endsWith("/AnalyticableComment;")
-                }
-            }
+            interfaces = listOf("/AnalyticableComment;"),
+            name = methodName
         )
     }
 

@@ -1,3 +1,9 @@
+## [1.8.1](https://github.com/LuckyToShine/czyeru/compare/v1.8.0...v1.8.1) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **tiktok:** stop Liked and Favorites tabs crashing on 47.4.3 ([bc9bf38](https://github.com/LuckyToShine/czyeru/commit/bc9bf3891fce9d5a44e92f61c2503a630ffd1fda))
+
 ## [1.8.0](https://github.com/LuckyToShine/czyeru/compare/v1.7.7...v1.8.0) (2026-10-24)
 
 ### ✨ New Features

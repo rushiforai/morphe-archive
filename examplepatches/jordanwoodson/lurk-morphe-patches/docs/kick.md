@@ -11,7 +11,7 @@ it was written. Twelve Kick patches were implemented from it, and a second batch
 inspired by Xtra and by Lurk's own Twitch patches, added more. The notes from
 "Implemented patch set" on describe them and separate tested behavior from the
 remaining limitations. The analysis below was done on Kick 40.32.1. The patches are now
-checked against Kick 40.32.3, where the patched code is unchanged apart from renumbered
+checked against Kick 40.32.5, where the patched code is unchanged apart from renumbered
 string, shape and literal IDs.
 
 ## Input and analysis
@@ -1082,7 +1082,7 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
 - `tests/kick/HermesProbe.kt`: actual-bundle parsing, negative controls for every
   helper, uniqueness, overlap rejection, preview literals, unique literal windows and
   exact restoration. It decodes every function of the bundle and requires every jump and
-  switch case (19 `UIntSwitchImm` and 117 `StringSwitchImm` in 40.32.3) to land on an
+  switch case (19 `UIntSwitchImm` and 117 `StringSwitchImm` in 40.32.5) to land on an
   instruction boundary, and checks that an edit whose changed bytes span a jump's or a switch
   case's landing point is refused while the same window changed only after it is accepted. It
   runs on the JVM, compiled with `kick/shared/Hermes.kt`.

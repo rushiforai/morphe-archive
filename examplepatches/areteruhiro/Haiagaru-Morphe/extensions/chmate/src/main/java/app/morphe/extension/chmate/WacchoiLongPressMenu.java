@@ -29,9 +29,9 @@ public final class WacchoiLongPressMenu {
     private static Intent upperSearch(Context context,String query){
         java.util.regex.Matcher m=WacchoiSearch.SLIP.matcher(query);
         if(!m.find())return null;
-        return new Intent(context,HissiWacchoiSearchActivity.class)
+        return HissiScanTemplate.applyPartial(context,new Intent(context,HissiWacchoiSearchActivity.class)
                 .putExtra(HissiWacchoiSearchActivity.EXTRA_HALF,HissiWacchoiSearchActivity.HALF_UPPER)
-                .putExtra("haiagaru.wacchoi.query",m.group(1)+"-");
+                .putExtra("haiagaru.wacchoi.query",m.group(1)+"-"));
     }
     // These are toolbar-only choices. Some ChMate builds reuse the toolbar
     // action catalog for the response long-press Menu as well, so explicitly

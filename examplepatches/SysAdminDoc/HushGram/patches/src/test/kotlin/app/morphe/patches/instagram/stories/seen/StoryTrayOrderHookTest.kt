@@ -41,7 +41,7 @@ class StoryTrayOrderHookTest {
         assertTrue("the hook isn't public and static", AccessFlags.PUBLIC.isSet(hook.accessFlags) && AccessFlags.STATIC.isSet(hook.accessFlags))
         val stub = methods.single { it.name == "seen" }
         assertEquals(listOf(OBJECT, OBJECT), stub.parameterTypes.map(Any::toString))
-        assertEquals("Z", stub.returnType)
+        assertEquals("I", stub.returnType)
         assertTrue("the stub isn't static", AccessFlags.STATIC.isSet(stub.accessFlags))
     }
 
@@ -54,8 +54,11 @@ class StoryTrayOrderHookTest {
     fun eachDeclaredBuildOrdersTheTray() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
+        var builds = 0
         for (version in versions) {
-            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+            val fixtures = Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } +
+                Fixtures.otherBuilds().filter { it.parentFile.name.contains("-$version-") }
+            for (bundle in fixtures) {
                 val classes = trayClasses(bundle)
                 val context = PatchContexts.of(classes)
                 val rings = context.findStoryRings()
@@ -94,21 +97,28 @@ class StoryTrayOrderHookTest {
                 }
                 assertEquals("${bundle.name}: one call of the hook per list", 2, context.calls(TRAY_ORDER))
 
-                val stub = context.mutableClassDefBy(STORY_TRAY_ORDER).methods.single { it.name == "seen" }.code()
-                assertEquals(
-                    "${bundle.name}: the stub",
-                    listOf(
-                        Opcode.CHECK_CAST to found.store, Opcode.IGET_OBJECT to "${found.store}->${found.sessionField}:$USER_SESSION",
-                        Opcode.CHECK_CAST to found.reelClass, Opcode.INVOKE_VIRTUAL to "${found.reelClass}->${found.seenCheck}(${USER_SESSION})Z",
-                        Opcode.MOVE_RESULT to null, Opcode.RETURN to null,
-                    ),
-                    stub.take(6).map { it.opcode to it.referenceText() },
-                )
+                val bridge = context.mutableClassDefBy(STORY_TRAY_ORDER).methods.single { it.name == "seen" }
+                val stub = bridge.code()
+                assertTrue("${bundle.name}: the bridge needs three locals beside its parameters", bridge.implementation!!.registerCount >= 5)
+                val references = stub.mapNotNull { it.referenceText() }
+                for (required in listOf("${found.store}->${found.sessionField}:$USER_SESSION", found.identity.kind.toString(),
+                        found.identity.owner.toString(), found.identity.userId.toString(), found.identity.sessionId.toString(),
+                        found.identity.reelId.toString(), "Ljava/lang/Enum;->name()Ljava/lang/String;", "USER_REEL", "add_to_story")) {
+                    assertTrue("${bundle.name}: the identity bridge omits $required", required in references)
+                }
+                val nativeSeen = stub.indexOfFirst { it.referenceText() == "${found.reelClass}->${found.seenCheck}(${USER_SESSION})Z" }
+                assertTrue("${bundle.name}: native seen must follow every identity read", nativeSeen > 0 &&
+                    listOf(found.identity.owner, found.identity.userId, found.identity.sessionId, found.identity.reelId).all { read ->
+                        stub.indexOfFirst { it.referenceText() == read.toString() } in 0 until nativeSeen
+                    })
+                assertEquals("${bundle.name}: native seen is read once", 1, stub.count { it.referenceText() == "${found.reelClass}->${found.seenCheck}(${USER_SESSION})Z" })
 
                 checked += version
+                builds++
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("a retained build has no fixture", Fixtures.BUILDS, builds)
     }
 
     /** A build whose reel store isn't there is refused, saying so. */
@@ -148,6 +158,28 @@ class StoryTrayOrderHookTest {
         }
     }
 
+    @Test
+    fun missingIdentityReadersRefuseBeforeAnyListIsHooked() {
+        val bundle = Fixtures.files { it.extension == "apks" }.first()
+        val classes = trayClasses(bundle)
+        val original = PatchContexts.of(classes)
+        val found = original.findStoryTray(original.findStoryRings().reelClass)
+        val missing = mutableListOf(classes.filter { it.type != found.identity.kind.type })
+        for (reader in listOf(found.identity.owner, found.identity.userId, found.identity.sessionId, found.identity.reelId)) {
+            missing += classes.map { classDef ->
+                if (classDef.type != reader.definingClass) classDef else ImmutableClassDef(
+                    classDef.type, classDef.accessFlags, classDef.superclass, classDef.interfaces, classDef.sourceFile,
+                    classDef.annotations, classDef.fields, classDef.methods.filterNot { it.name == reader.name },
+                )
+            }
+        }
+        for (trimmed in missing) {
+            val context = PatchContexts.of(trimmed)
+            assertThrows(PatchException::class.java) { context.findStoryTray(context.findStoryRings().reelClass) }
+            assertEquals("an identity refusal must not install a partial hook", 0, context.calls(TRAY_ORDER))
+        }
+    }
+
     private fun storeOf(classes: List<ClassDef>): String {
         val context = PatchContexts.of(classes)
         val reel = context.findStoryRings().reelClass
@@ -172,7 +204,9 @@ class StoryTrayOrderHookTest {
         val reelWriters = callersOf(bundle, reelWrite)
         val reel = reelWrite.substringBefore("->")
         val trayStores = FixtureDex.methodsWhere(bundle, { true }) { method -> isListMethod(method, reel) }.map { it.definingClass }.toSet()
-        val types = (stores.map { it.type } + state + stateWriters.map { it.definingClass } + reelWriters.map { it.definingClass } + trayStores).toSet()
+        val identityTypes = FixtureDex.classes(bundle, setOf(reel)).getValue(reel).fields
+            .map { it.type }.filter { it.startsWith("L") } + listOf("Lcom/instagram/user/model/User;", USER_SESSION)
+        val types = (stores.map { it.type } + state + stateWriters.map { it.definingClass } + reelWriters.map { it.definingClass } + trayStores + identityTypes).toSet()
         return (
             FixtureDex.withStringPools(bundle, FixtureDex.classes(bundle, types).values) +
                 ExtensionDex.classDef(STORY_SEEN_RINGS) + ExtensionDex.classDef(STORY_TRAY_ORDER)

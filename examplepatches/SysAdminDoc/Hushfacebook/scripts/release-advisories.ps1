@@ -109,11 +109,22 @@ function Get-Cvss3BaseScore {
     #>
     param([string]$Vector)
 
-    if ("$Vector" -notmatch '^CVSS:3\.[01]/') { return $null }
+    if ("$Vector" -cnotmatch '^CVSS:3\.[01]/') { return $null }
+    $allowed = @{
+        AV = 'NALP'; AC = 'LH'; PR = 'NLH'; UI = 'NR'; S = 'UC'; C = 'HLN'; I = 'HLN'; A = 'HLN'
+        E = 'XHFPU'; RL = 'XUWTO'; RC = 'XCRU'; CR = 'XHML'; IR = 'XHML'; AR = 'XHML'
+        MAV = 'XNALP'; MAC = 'XLH'; MPR = 'XNLH'; MUI = 'XNR'; MS = 'XUC'
+        MC = 'XHLN'; MI = 'XHLN'; MA = 'XHLN'
+    }
     $metrics = @{}
     foreach ($part in @($Vector -split '/' | Select-Object -Skip 1)) {
         $pair = $part -split ':', 2
-        if ($pair.Count -eq 2) { $metrics[$pair[0]] = $pair[1] }
+        # CVSS 3.x section 6 forbids repeated metrics, including optional ones. A
+        # malformed vector has no rating here, never a score made from its last values.
+        if ($pair.Count -ne 2 -or $pair[0] -cnotmatch '^[A-Z]{1,3}$' -or
+                -not $allowed.ContainsKey($pair[0]) -or $metrics.ContainsKey($pair[0]) -or
+                $pair[1] -cnotmatch '^[A-Z]$' -or -not $allowed[$pair[0]].Contains($pair[1])) { return $null }
+        $metrics[$pair[0]] = $pair[1]
     }
     # A metric the vector leaves out reads as '', which neither check below lets through.
     $scopeChanged = $metrics['S'] -ceq 'C'

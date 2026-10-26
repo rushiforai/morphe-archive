@@ -1,6 +1,6 @@
 # AGENTS.md — how to work on this repo
 
-A Morphe/ReVanced patch bundle for **YouTube VR 1.88.10** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
+A Morphe/ReVanced patch bundle for **YouTube VR 1.89.09 and 1.88.10** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
 plus a Java extension injected into the app. Read this before touching anything; the traps in
 "Measured traps" have each cost a full build-install-device cycle.
 
@@ -136,11 +136,22 @@ from the device.
 * Read the **patched dex** when a hook matters:
   `jadx --single-class androidx.preference.Preference -d out apk/ytvr-final.apk`, then confirm the
   injected call is where you think it is.
-* Headless harnesses for logic that needs no device: `build/probe/SbModelCheck.java` (behaviour model)
-  and `build/probe/SbPickCheck.java` (picker precedence, plus a guard that the picker key never equals
-  the legacy switch key). Compile them together with `extensions/src` against `android.jar` and run.
-  A fake `Context` is not possible — `android.jar`'s `ContextWrapper` constructor is a stub — so keep
-  decision logic in pure functions and test those.
+* Headless tests for logic that needs no device live in `patches/src/test` (JUnit, run by
+  `buildAndroid` — and therefore by CI — automatically): `SponsorBlockModelTest` (behaviour model),
+  `SponsorBlockPickTest` (picker precedence, plus a guard that the picker key never equals the
+  legacy switch key), `VerboseLogGateTest` (the log gate, plus the key contract with
+  `SettingsXml.kt`), `SettingsXmlLayoutTest` (the real `restructureSettingsXmls` against the CLI's
+  and Manager's split layouts), and `scripts/tests/UpstreamCheckTest.mjs` (the upstream-version
+  decision table, run by a `build.yml` step). They were promoted from hand-run `build/probe`
+  harnesses. A fake `Context` is not possible — `android.jar`'s `ContextWrapper` constructor is a
+  stub — so keep decision logic in pure functions and test those.
+* The headless **patch-run gate** `scripts/check-apk.ps1` patches every stock APK in `apk/` with
+  the current bundle (`-NoInstall`, default options) and fails on any failed patch or audit
+  finding. This is the version-bump check: a fingerprint that stopped matching shows up here in
+  minutes, without the device. It needs a stock APK, so it cannot run in CI — run it before
+  pushing, and whenever a store update lands. The supported-version list it walks is itself
+  policy-checked: `SupportedVersionsPolicyTest` holds it to the latest two normal targets, each
+  with a `// Kept: <reason>` comment above it (see docs/VERSIONING.md).
 * Never narrow a configuration that was verified: one "tidy-up" that relabelled a single itag made the
   8K quality option disappear from the menu.
 * Diff the applied patch set against the previous build before installing over the user's app.
@@ -242,7 +253,7 @@ The dex reader is `tools/dexaudit/DexAudit.java`, compiled on demand against the
   can be two defaults behind (`skip` -> `seekbar-only` -> `manual-skip`), and **bounded**, because that
   walk runs inside `Application.onCreate`: a future edit that made the move table cyclic would
   otherwise hang the app's start-up with no crash and no log line. Both halves are asserted by
-  `build/probe/SbPickCheck.java`.
+  `SponsorBlockPickTest`.
 
 ## Logging
 

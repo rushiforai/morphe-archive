@@ -1158,6 +1158,8 @@ Save photo in post menus	Foto speichern im Beitragsmenü
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	Wenn „Jedes Foto speichern“ an ist, bekommt ein Beitrag mit Fotos auch im Drei-Punkte-Menü „Foto speichern“. Bei mehreren Fotos wird jedes nacheinander gespeichert.
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	Foto speichern
+# context: primary save row for a Story that reshares a Reel
+Save video	Video speichern
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	Alle Fotos speichern
 # context: short message shown when the photos of a post could not start saving

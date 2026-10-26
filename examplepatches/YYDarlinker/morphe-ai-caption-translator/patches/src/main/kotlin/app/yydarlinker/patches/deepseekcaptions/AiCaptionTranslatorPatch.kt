@@ -85,8 +85,8 @@ val aiCaptionTranslatorPatch = bytecodePatch(
         }
 
         // The request for a translated caption. The extension keeps the Cronet engine of the call, to reuse YouTube's
-        // own network stack for the source captions, and answers the Auto-translate URLs through the local server
-        // while AI captions are on.
+        // own network stack for source captions. Native URLs and caption data stay intact; the hook
+        // reconciles the committed selection and the draw mask controls native visibility.
         TimedTextUrlFingerprint.apply {
             val index = instructionMatches.first().index
             val request = method.getInstruction<FiveRegisterInstruction>(index)

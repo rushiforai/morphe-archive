@@ -1,7 +1,7 @@
 package dev.jkcarino.adobo.patches.google.gboard.detection.signature
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import dev.jkcarino.adobo.patches.google.gboard.fixes.applyWorkaroundPatch
 import dev.jkcarino.adobo.patches.google.gboard.shared.COMPATIBILITY_GBOARD
 

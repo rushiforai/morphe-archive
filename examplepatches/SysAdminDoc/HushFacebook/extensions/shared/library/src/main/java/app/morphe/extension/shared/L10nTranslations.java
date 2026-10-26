@@ -48,7 +48,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -1872,6 +1872,8 @@ public final class L10nTranslations {
                 "Speichern in");
         table.put("Save to phone",
                 "Aufs Handy speichern");
+        table.put("Save video",
+                "Video speichern");
         table.put("Save videos other apps can open",
                 "Videos speichern, die andere Apps \u00f6ffnen k\u00f6nnen");
         table.put("Saved",
@@ -1914,11 +1916,11 @@ public final class L10nTranslations {
                 "Foto wird gespeichert");
         table.put("Saving a video",
                 "Video wird gespeichert");
-        table.put("Saving diagnostic report...",
-                "Diagnosebericht wird gespeichert...");
     }
 
     private static void fillDe15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "Diagnosebericht wird gespeichert...");
         table.put("Saving the settings file",
                 "Einstellungsdatei wird gespeichert");
         table.put("Saving...",
@@ -2037,11 +2039,11 @@ public final class L10nTranslations {
                 "Stille Stellen \u00fcberspringen: aus f\u00fcr dieses Video");
         table.put("Skip silent parts: on",
                 "Stille Stellen \u00fcberspringen: an");
-        table.put("Skipping silent parts again",
-                "Stille Stellen werden wieder \u00fcbersprungen");
     }
 
     private static void fillDe16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "Stille Stellen werden wieder \u00fcbersprungen");
         table.put("Slower speeds",
                 "Langsamere Geschwindigkeiten");
         table.put("Smallest",
@@ -2160,11 +2162,11 @@ public final class L10nTranslations {
                 "Das ist keine .ttf- oder .otf-Schriftdatei. Deine Schrift hat sich nicht ge\u00e4ndert.");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "Das ist keine Hushfacebook-Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "Das ist kein Bild, das Android \u00f6ffnen kann. Oben auf der Startseite hat sich nichts ge\u00e4ndert.");
     }
 
     private static void fillDe17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "Das ist kein Bild, das Android \u00f6ffnen kann. Oben auf der Startseite hat sich nichts ge\u00e4ndert.");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "Dieses Bild ist gr\u00f6\u00dfer als %1$d MB. Oben auf der Startseite hat sich nichts ge\u00e4ndert.");
         table.put("That saved file is no longer available.",
@@ -2283,11 +2285,11 @@ public final class L10nTranslations {
                 "Die obere Leiste und die Tab-Leiste werden durchsichtig, sodass der Feed beim Scrollen durchscheint. Ab Android 12 wird der Feed dahinter weichgezeichnet.");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "Die obere Leiste mit Suche und Messenger bleibt beim Runterscrollen stehen, statt wegzurutschen.");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "Oben auf der Startseite steht %1$s. Starte Facebook neu, um die \u00c4nderung zu sehen.");
     }
 
     private static void fillDe18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "Oben auf der Startseite steht %1$s. Starte Facebook neu, um die \u00c4nderung zu sehen.");
         table.put("The top of Home will show Facebook's own logo.",
                 "Oben auf der Startseite wird Facebooks eigenes Logo angezeigt.");
         table.put("The video wasn't saved. Try again.",
@@ -2406,11 +2408,11 @@ public final class L10nTranslations {
                 "Videos");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "Videos und Fotos landen in %1$s, neben denen der Kamera. Was du schon gespeichert hast, bleibt, wo es ist.");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "Videos und Fotos landen in %1$s, bei den anderen Downloads des Handys. Was du schon gespeichert hast, bleibt, wo es ist.");
     }
 
     private static void fillDe19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "Videos und Fotos landen in %1$s, bei den anderen Downloads des Handys. Was du schon gespeichert hast, bleibt, wo es ist.");
         table.put("Videos and photos go to %1$s.",
                 "Videos und Fotos landen in %1$s.");
         table.put("Videos and photos will go to %1$s.",
@@ -2529,11 +2531,11 @@ public final class L10nTranslations {
                 "Du hast Hushfacebook pausiert.");
         table.put("Your controls are active.",
                 "Deine Einstellungen sind aktiv.");
-        table.put("Your launcher has no room for another shortcut.",
-                "Dein Launcher hat keinen Platz f\u00fcr eine weitere Verkn\u00fcpfung.");
     }
 
     private static void fillDe20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "Dein Launcher hat keinen Platz f\u00fcr eine weitere Verkn\u00fcpfung.");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "Deine Liste der auszublendenden Men\u00fckacheln wird leer sein.");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",
@@ -2585,7 +2587,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -4409,6 +4411,8 @@ public final class L10nTranslations {
                 "Guardar en");
         table.put("Save to phone",
                 "Guardar en el tel\u00e9fono");
+        table.put("Save video",
+                "Guardar v\u00eddeo");
         table.put("Save videos other apps can open",
                 "Guardar videos que otras apps puedan abrir");
         table.put("Saved",
@@ -4451,11 +4455,11 @@ public final class L10nTranslations {
                 "Guardando una foto");
         table.put("Saving a video",
                 "Guardando un video");
-        table.put("Saving diagnostic report...",
-                "Guardando el informe de diagn\u00f3stico...");
     }
 
     private static void fillEs15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "Guardando el informe de diagn\u00f3stico...");
         table.put("Saving the settings file",
                 "Guardando el archivo de configuraci\u00f3n");
         table.put("Saving...",
@@ -4574,11 +4578,11 @@ public final class L10nTranslations {
                 "Saltar las partes en silencio: desactivado en este video");
         table.put("Skip silent parts: on",
                 "Saltar las partes en silencio: activado");
-        table.put("Skipping silent parts again",
-                "Se vuelven a saltar las partes en silencio");
     }
 
     private static void fillEs16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "Se vuelven a saltar las partes en silencio");
         table.put("Slower speeds",
                 "Velocidades m\u00e1s lentas");
         table.put("Smallest",
@@ -4697,11 +4701,11 @@ public final class L10nTranslations {
                 "Eso no es un archivo de fuente .ttf ni .otf. Tu fuente no cambi\u00f3.");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "Eso no es un archivo de configuraci\u00f3n de Hushfacebook. No se cambi\u00f3 nada.");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "Eso no es una imagen que Android pueda abrir. La parte superior de Inicio no cambi\u00f3.");
     }
 
     private static void fillEs17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "Eso no es una imagen que Android pueda abrir. La parte superior de Inicio no cambi\u00f3.");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "Esa imagen pesa m\u00e1s de %1$d MB. La parte superior de Inicio no cambi\u00f3.");
         table.put("That saved file is no longer available.",
@@ -4820,11 +4824,11 @@ public final class L10nTranslations {
                 "La barra superior y la barra de pesta\u00f1as se vuelven transparentes, as\u00ed el feed se ve a trav\u00e9s de ellas mientras te desplazas. En Android 12 y versiones posteriores, el feed que queda detr\u00e1s se ve difuminado.");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "La barra superior con la b\u00fasqueda y Messenger se queda fija al bajar, en vez de ocultarse.");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "La parte superior de Inicio dice %1$s. Reinicia Facebook para ver el cambio.");
     }
 
     private static void fillEs18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "La parte superior de Inicio dice %1$s. Reinicia Facebook para ver el cambio.");
         table.put("The top of Home will show Facebook's own logo.",
                 "La parte superior de Inicio mostrar\u00e1 el logo propio de Facebook.");
         table.put("The video wasn't saved. Try again.",
@@ -4943,11 +4947,11 @@ public final class L10nTranslations {
                 "Videos");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "Los videos y las fotos van a %1$s, junto a los de la c\u00e1mara. Lo que ya guardaste se queda donde est\u00e1.");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "Los videos y las fotos van a %1$s, con las dem\u00e1s descargas del tel\u00e9fono. Lo que ya guardaste se queda donde est\u00e1.");
     }
 
     private static void fillEs19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "Los videos y las fotos van a %1$s, con las dem\u00e1s descargas del tel\u00e9fono. Lo que ya guardaste se queda donde est\u00e1.");
         table.put("Videos and photos go to %1$s.",
                 "Los videos y las fotos van a %1$s.");
         table.put("Videos and photos will go to %1$s.",
@@ -5066,11 +5070,11 @@ public final class L10nTranslations {
                 "Pausaste Hushfacebook.");
         table.put("Your controls are active.",
                 "Tus controles est\u00e1n activos.");
-        table.put("Your launcher has no room for another shortcut.",
-                "Tu lanzador no tiene espacio para otro acceso directo.");
     }
 
     private static void fillEs20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "Tu lanzador no tiene espacio para otro acceso directo.");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "Tu lista de mosaicos del men\u00fa que ocultar estar\u00e1 vac\u00eda.");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",
@@ -5122,7 +5126,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -6946,6 +6950,8 @@ public final class L10nTranslations {
                 "Simpan ke");
         table.put("Save to phone",
                 "Simpan ke ponsel");
+        table.put("Save video",
+                "Simpan video");
         table.put("Save videos other apps can open",
                 "Simpan video yang bisa dibuka aplikasi lain");
         table.put("Saved",
@@ -6988,11 +6994,11 @@ public final class L10nTranslations {
                 "Menyimpan foto");
         table.put("Saving a video",
                 "Menyimpan video");
-        table.put("Saving diagnostic report...",
-                "Menyimpan laporan diagnostik...");
     }
 
     private static void fillIn15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "Menyimpan laporan diagnostik...");
         table.put("Saving the settings file",
                 "Menyimpan file pengaturan");
         table.put("Saving...",
@@ -7111,11 +7117,11 @@ public final class L10nTranslations {
                 "Lewati bagian yang hening: nonaktif untuk video ini");
         table.put("Skip silent parts: on",
                 "Lewati bagian yang hening: aktif");
-        table.put("Skipping silent parts again",
-                "Bagian yang hening dilewati lagi");
     }
 
     private static void fillIn16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "Bagian yang hening dilewati lagi");
         table.put("Slower speeds",
                 "Kecepatan lebih lambat");
         table.put("Smallest",
@@ -7234,11 +7240,11 @@ public final class L10nTranslations {
                 "Itu bukan file font .ttf atau .otf. Font kamu tidak berubah.");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "Itu bukan file pengaturan Hushfacebook. Tidak ada yang diubah.");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "Itu bukan gambar yang bisa dibuka Android. Bagian atas Beranda tidak berubah.");
     }
 
     private static void fillIn17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "Itu bukan gambar yang bisa dibuka Android. Bagian atas Beranda tidak berubah.");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "Gambar itu lebih dari %1$d MB. Bagian atas Beranda tidak berubah.");
         table.put("That saved file is no longer available.",
@@ -7357,11 +7363,11 @@ public final class L10nTranslations {
                 "Bilah atas dan bilah tab menjadi tembus pandang, jadi feed terlihat di baliknya saat kamu menggulir. Di Android 12 dan yang lebih baru, feed di belakangnya diburamkan.");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "Bilah atas dengan pencarian dan Messenger tetap di tempat saat kamu menggulir ke bawah, tidak ikut menghilang.");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "Bagian atas Beranda bertuliskan %1$s. Mulai ulang Facebook untuk melihat perubahannya.");
     }
 
     private static void fillIn18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "Bagian atas Beranda bertuliskan %1$s. Mulai ulang Facebook untuk melihat perubahannya.");
         table.put("The top of Home will show Facebook's own logo.",
                 "Bagian atas Beranda akan menampilkan logo Facebook sendiri.");
         table.put("The video wasn't saved. Try again.",
@@ -7480,11 +7486,11 @@ public final class L10nTranslations {
                 "Video");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "Video dan foto masuk ke %1$s, di samping milik kamera. Simpanan Anda yang sudah ada tetap di tempatnya.");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "Video dan foto masuk ke %1$s, bersama unduhan lain di ponsel. Simpanan Anda yang sudah ada tetap di tempatnya.");
     }
 
     private static void fillIn19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "Video dan foto masuk ke %1$s, bersama unduhan lain di ponsel. Simpanan Anda yang sudah ada tetap di tempatnya.");
         table.put("Videos and photos go to %1$s.",
                 "Video dan foto masuk ke %1$s.");
         table.put("Videos and photos will go to %1$s.",
@@ -7603,11 +7609,11 @@ public final class L10nTranslations {
                 "Anda menjeda Hushfacebook.");
         table.put("Your controls are active.",
                 "Kontrol Anda aktif.");
-        table.put("Your launcher has no room for another shortcut.",
-                "Peluncur tidak memiliki ruang untuk pintasan lain.");
     }
 
     private static void fillIn20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "Peluncur tidak memiliki ruang untuk pintasan lain.");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "Daftar ubin Menu yang disembunyikan akan kosong.");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",
@@ -7659,7 +7665,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -9483,6 +9489,8 @@ public final class L10nTranslations {
                 "Salvar em");
         table.put("Save to phone",
                 "Salvar no celular");
+        table.put("Save video",
+                "Salvar v\u00eddeo");
         table.put("Save videos other apps can open",
                 "Salvar v\u00eddeos que outros apps conseguem abrir");
         table.put("Saved",
@@ -9525,11 +9533,11 @@ public final class L10nTranslations {
                 "Salvando uma foto");
         table.put("Saving a video",
                 "Salvando um v\u00eddeo");
-        table.put("Saving diagnostic report...",
-                "Salvando o relat\u00f3rio de diagn\u00f3stico...");
     }
 
     private static void fillPt_rBR15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "Salvando o relat\u00f3rio de diagn\u00f3stico...");
         table.put("Saving the settings file",
                 "Salvando o arquivo de configura\u00e7\u00f5es");
         table.put("Saving...",
@@ -9648,11 +9656,11 @@ public final class L10nTranslations {
                 "Pular partes em sil\u00eancio: desativado neste v\u00eddeo");
         table.put("Skip silent parts: on",
                 "Pular partes em sil\u00eancio: ativado");
-        table.put("Skipping silent parts again",
-                "Pulando as partes em sil\u00eancio de novo");
     }
 
     private static void fillPt_rBR16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "Pulando as partes em sil\u00eancio de novo");
         table.put("Slower speeds",
                 "Velocidades mais lentas");
         table.put("Smallest",
@@ -9771,11 +9779,11 @@ public final class L10nTranslations {
                 "Isso n\u00e3o \u00e9 um arquivo de fonte .ttf ou .otf. Sua fonte n\u00e3o mudou.");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "Isso n\u00e3o \u00e9 um arquivo de configura\u00e7\u00f5es do Hushfacebook. Nada foi alterado.");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "Isso n\u00e3o \u00e9 uma imagem que o Android consiga abrir. O topo da P\u00e1gina inicial n\u00e3o mudou.");
     }
 
     private static void fillPt_rBR17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "Isso n\u00e3o \u00e9 uma imagem que o Android consiga abrir. O topo da P\u00e1gina inicial n\u00e3o mudou.");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "Essa imagem tem mais de %1$d MB. O topo da P\u00e1gina inicial n\u00e3o mudou.");
         table.put("That saved file is no longer available.",
@@ -9894,11 +9902,11 @@ public final class L10nTranslations {
                 "A barra superior e a barra de abas ficam transparentes, ent\u00e3o o feed aparece por tr\u00e1s delas enquanto voc\u00ea rola. No Android 12 ou mais recente, o feed atr\u00e1s delas fica desfocado.");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "A barra superior com a busca e o Messenger fica parada quando voc\u00ea rola para baixo, em vez de sumir.");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "O topo da P\u00e1gina inicial diz %1$s. Reinicie o Facebook para ver a mudan\u00e7a.");
     }
 
     private static void fillPt_rBR18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "O topo da P\u00e1gina inicial diz %1$s. Reinicie o Facebook para ver a mudan\u00e7a.");
         table.put("The top of Home will show Facebook's own logo.",
                 "O topo da P\u00e1gina inicial vai mostrar o pr\u00f3prio logo do Facebook.");
         table.put("The video wasn't saved. Try again.",
@@ -10017,11 +10025,11 @@ public final class L10nTranslations {
                 "V\u00eddeos");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "V\u00eddeos e fotos v\u00e3o para %1$s, junto com os da c\u00e2mera. O que voc\u00ea j\u00e1 salvou fica onde est\u00e1.");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "V\u00eddeos e fotos v\u00e3o para %1$s, com os outros downloads do celular. O que voc\u00ea j\u00e1 salvou fica onde est\u00e1.");
     }
 
     private static void fillPt_rBR19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "V\u00eddeos e fotos v\u00e3o para %1$s, com os outros downloads do celular. O que voc\u00ea j\u00e1 salvou fica onde est\u00e1.");
         table.put("Videos and photos go to %1$s.",
                 "V\u00eddeos e fotos v\u00e3o para %1$s.");
         table.put("Videos and photos will go to %1$s.",
@@ -10140,11 +10148,11 @@ public final class L10nTranslations {
                 "Voc\u00ea pausou o Hushfacebook.");
         table.put("Your controls are active.",
                 "Seus controles est\u00e3o ativos.");
-        table.put("Your launcher has no room for another shortcut.",
-                "Seu launcher n\u00e3o tem espa\u00e7o para outro atalho.");
     }
 
     private static void fillPt_rBR20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "Seu launcher n\u00e3o tem espa\u00e7o para outro atalho.");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "Sua lista de blocos do menu para ocultar ficar\u00e1 vazia.");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",
@@ -10196,7 +10204,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -12020,6 +12028,8 @@ public final class L10nTranslations {
                 "Kaydetme yeri");
         table.put("Save to phone",
                 "Telefona kaydet");
+        table.put("Save video",
+                "Videoyu kaydet");
         table.put("Save videos other apps can open",
                 "Videolar\u0131 di\u011fer uygulamalar\u0131n a\u00e7abilece\u011fi bi\u00e7imde kaydet");
         table.put("Saved",
@@ -12062,11 +12072,11 @@ public final class L10nTranslations {
                 "Foto\u011fraf kaydediliyor");
         table.put("Saving a video",
                 "Video kaydediliyor");
-        table.put("Saving diagnostic report...",
-                "Tan\u0131lama raporu kaydediliyor...");
     }
 
     private static void fillTr15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "Tan\u0131lama raporu kaydediliyor...");
         table.put("Saving the settings file",
                 "Ayar dosyas\u0131 kaydediliyor");
         table.put("Saving...",
@@ -12185,11 +12195,11 @@ public final class L10nTranslations {
                 "Sessiz k\u0131s\u0131mlar\u0131 atla: bu videoda kapal\u0131");
         table.put("Skip silent parts: on",
                 "Sessiz k\u0131s\u0131mlar\u0131 atla: a\u00e7\u0131k");
-        table.put("Skipping silent parts again",
-                "Sessiz k\u0131s\u0131mlar yeniden atlan\u0131yor");
     }
 
     private static void fillTr16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "Sessiz k\u0131s\u0131mlar yeniden atlan\u0131yor");
         table.put("Slower speeds",
                 "Daha yava\u015f h\u0131zlar");
         table.put("Smallest",
@@ -12308,11 +12318,11 @@ public final class L10nTranslations {
                 "Bu bir .ttf veya .otf yaz\u0131 tipi dosyas\u0131 de\u011fil. Yaz\u0131 tipiniz de\u011fi\u015fmedi.");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "Bu bir Hushfacebook ayar dosyas\u0131 de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "Bu, Android'in a\u00e7abildi\u011fi bir resim de\u011fil. Ana Sayfa'n\u0131n \u00fcst\u00fc de\u011fi\u015fmedi.");
     }
 
     private static void fillTr17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "Bu, Android'in a\u00e7abildi\u011fi bir resim de\u011fil. Ana Sayfa'n\u0131n \u00fcst\u00fc de\u011fi\u015fmedi.");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "Bu resim %1$d MB'tan b\u00fcy\u00fck. Ana Sayfa'n\u0131n \u00fcst\u00fc de\u011fi\u015fmedi.");
         table.put("That saved file is no longer available.",
@@ -12431,11 +12441,11 @@ public final class L10nTranslations {
                 "\u00dcst \u00e7ubuk ve sekme \u00e7ubu\u011fu saydam olur, b\u00f6ylece kayd\u0131r\u0131rken ak\u0131\u015f arkalar\u0131ndan g\u00f6r\u00fcn\u00fcr. Android 12 ve sonras\u0131nda arkalar\u0131ndaki ak\u0131\u015f bulan\u0131kla\u015ft\u0131r\u0131l\u0131r.");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "Arama ve Messenger'\u0131n oldu\u011fu \u00fcst \u00e7ubuk, a\u015fa\u011f\u0131 kayd\u0131rd\u0131\u011f\u0131n\u0131zda kaybolmak yerine yerinde kal\u0131r.");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "Ana Sayfa'n\u0131n \u00fcst\u00fcnde %1$s yaz\u0131yor. De\u011fi\u015fikli\u011fi g\u00f6rmek i\u00e7in Facebook'u yeniden ba\u015flat\u0131n.");
     }
 
     private static void fillTr18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "Ana Sayfa'n\u0131n \u00fcst\u00fcnde %1$s yaz\u0131yor. De\u011fi\u015fikli\u011fi g\u00f6rmek i\u00e7in Facebook'u yeniden ba\u015flat\u0131n.");
         table.put("The top of Home will show Facebook's own logo.",
                 "Ana Sayfa'n\u0131n \u00fcst\u00fcnde Facebook'un kendi logosu g\u00f6r\u00fcnecek.");
         table.put("The video wasn't saved. Try again.",
@@ -12554,11 +12564,11 @@ public final class L10nTranslations {
                 "Videolar");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "Videolar ve foto\u011fraflar kameran\u0131nkilerin yan\u0131na, %1$s klas\u00f6r\u00fcne kaydedilir. \u00d6nceden kaydettiklerin oldu\u011fu yerde kal\u0131r.");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "Videolar ve foto\u011fraflar telefonun di\u011fer indirmeleriyle birlikte %1$s klas\u00f6r\u00fcne kaydedilir. \u00d6nceden kaydettiklerin oldu\u011fu yerde kal\u0131r.");
     }
 
     private static void fillTr19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "Videolar ve foto\u011fraflar telefonun di\u011fer indirmeleriyle birlikte %1$s klas\u00f6r\u00fcne kaydedilir. \u00d6nceden kaydettiklerin oldu\u011fu yerde kal\u0131r.");
         table.put("Videos and photos go to %1$s.",
                 "Videolar ve foto\u011fraflar %1$s klas\u00f6r\u00fcne kaydedilir.");
         table.put("Videos and photos will go to %1$s.",
@@ -12677,11 +12687,11 @@ public final class L10nTranslations {
                 "Hushfacebook'u duraklatt\u0131n.");
         table.put("Your controls are active.",
                 "Kontrolleriniz etkin.");
-        table.put("Your launcher has no room for another shortcut.",
-                "Ba\u015flat\u0131c\u0131n\u0131zda ba\u015fka bir k\u0131sayol i\u00e7in yer yok.");
     }
 
     private static void fillTr20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "Ba\u015flat\u0131c\u0131n\u0131zda ba\u015fka bir k\u0131sayol i\u00e7in yer yok.");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "Gizlenecek Men\u00fc kutucuklar\u0131 listen bo\u015f olacak.");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",
@@ -12733,7 +12743,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildVi() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillVi0(table);
         fillVi1(table);
         fillVi2(table);
@@ -14557,6 +14567,8 @@ public final class L10nTranslations {
                 "L\u01b0u v\u00e0o");
         table.put("Save to phone",
                 "L\u01b0u v\u00e0o \u0111i\u1ec7n tho\u1ea1i");
+        table.put("Save video",
+                "L\u01b0u video");
         table.put("Save videos other apps can open",
                 "L\u01b0u video m\u00e0 \u1ee9ng d\u1ee5ng kh\u00e1c m\u1edf \u0111\u01b0\u1ee3c");
         table.put("Saved",
@@ -14599,11 +14611,11 @@ public final class L10nTranslations {
                 "\u0110ang l\u01b0u \u1ea3nh");
         table.put("Saving a video",
                 "\u0110ang l\u01b0u video");
-        table.put("Saving diagnostic report...",
-                "\u0110ang l\u01b0u b\u00e1o c\u00e1o ch\u1ea9n \u0111o\u00e1n...");
     }
 
     private static void fillVi15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "\u0110ang l\u01b0u b\u00e1o c\u00e1o ch\u1ea9n \u0111o\u00e1n...");
         table.put("Saving the settings file",
                 "\u0110ang l\u01b0u t\u1ec7p c\u00e0i \u0111\u1eb7t");
         table.put("Saving...",
@@ -14722,11 +14734,11 @@ public final class L10nTranslations {
                 "B\u1ecf qua \u0111o\u1ea1n im l\u1eb7ng: t\u1eaft cho video n\u00e0y");
         table.put("Skip silent parts: on",
                 "B\u1ecf qua \u0111o\u1ea1n im l\u1eb7ng: b\u1eadt");
-        table.put("Skipping silent parts again",
-                "L\u1ea1i b\u1ecf qua \u0111o\u1ea1n im l\u1eb7ng");
     }
 
     private static void fillVi16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "L\u1ea1i b\u1ecf qua \u0111o\u1ea1n im l\u1eb7ng");
         table.put("Slower speeds",
                 "T\u1ed1c \u0111\u1ed9 ch\u1eadm h\u01a1n");
         table.put("Smallest",
@@ -14845,11 +14857,11 @@ public final class L10nTranslations {
                 "\u0110\u00f3 kh\u00f4ng ph\u1ea3i t\u1ec7p ph\u00f4ng ch\u1eef .ttf ho\u1eb7c .otf. Ph\u00f4ng ch\u1eef c\u1ee7a b\u1ea1n kh\u00f4ng \u0111\u1ed5i.");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "\u0110\u00f3 kh\u00f4ng ph\u1ea3i t\u1ec7p c\u00e0i \u0111\u1eb7t Hushfacebook. Kh\u00f4ng c\u00f3 g\u00ec thay \u0111\u1ed5i.");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "\u0110\u00f3 kh\u00f4ng ph\u1ea3i \u1ea3nh m\u00e0 Android m\u1edf \u0111\u01b0\u1ee3c. \u0110\u1ea7u Trang ch\u1ee7 kh\u00f4ng thay \u0111\u1ed5i.");
     }
 
     private static void fillVi17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "\u0110\u00f3 kh\u00f4ng ph\u1ea3i \u1ea3nh m\u00e0 Android m\u1edf \u0111\u01b0\u1ee3c. \u0110\u1ea7u Trang ch\u1ee7 kh\u00f4ng thay \u0111\u1ed5i.");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "\u1ea2nh \u0111\u00f3 l\u1edbn h\u01a1n %1$d MB. \u0110\u1ea7u Trang ch\u1ee7 kh\u00f4ng thay \u0111\u1ed5i.");
         table.put("That saved file is no longer available.",
@@ -14968,11 +14980,11 @@ public final class L10nTranslations {
                 "Thanh tr\u00ean c\u00f9ng v\u00e0 thanh tab tr\u1edf n\u00ean trong su\u1ed1t, n\u00ean b\u1ea3ng tin hi\u1ec7n xuy\u00ean qua khi b\u1ea1n cu\u1ed9n. Tr\u00ean Android 12 tr\u1edf l\u00ean, b\u1ea3ng tin ph\u00eda sau \u0111\u01b0\u1ee3c l\u00e0m m\u1edd.");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "Thanh tr\u00ean c\u00f9ng c\u00f3 t\u00ecm ki\u1ebfm v\u00e0 Messenger \u0111\u1ee9ng y\u00ean khi b\u1ea1n cu\u1ed9n xu\u1ed1ng, thay v\u00ec tr\u01b0\u1ee3t \u0111i.");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "\u0110\u1ea7u Trang ch\u1ee7 hi\u1ec7n %1$s. Kh\u1edfi \u0111\u1ed9ng l\u1ea1i Facebook \u0111\u1ec3 th\u1ea5y thay \u0111\u1ed5i.");
     }
 
     private static void fillVi18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "\u0110\u1ea7u Trang ch\u1ee7 hi\u1ec7n %1$s. Kh\u1edfi \u0111\u1ed9ng l\u1ea1i Facebook \u0111\u1ec3 th\u1ea5y thay \u0111\u1ed5i.");
         table.put("The top of Home will show Facebook's own logo.",
                 "\u0110\u1ea7u Trang ch\u1ee7 s\u1ebd hi\u1ec7n logo c\u1ee7a ch\u00ednh Facebook.");
         table.put("The video wasn't saved. Try again.",
@@ -15091,11 +15103,11 @@ public final class L10nTranslations {
                 "Video");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "Video v\u00e0 \u1ea3nh \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o %1$s, c\u1ea1nh \u1ea3nh c\u1ee7a m\u00e1y \u1ea3nh. C\u00e1c t\u1ec7p \u0111\u00e3 l\u01b0u tr\u01b0\u1edbc \u0111\u00f3 v\u1eabn \u1edf nguy\u00ean ch\u1ed7 c\u0169.");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "Video v\u00e0 \u1ea3nh \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o %1$s, c\u00f9ng c\u00e1c t\u1ec7p t\u1ea3i xu\u1ed1ng kh\u00e1c c\u1ee7a \u0111i\u1ec7n tho\u1ea1i. C\u00e1c t\u1ec7p \u0111\u00e3 l\u01b0u tr\u01b0\u1edbc \u0111\u00f3 v\u1eabn \u1edf nguy\u00ean ch\u1ed7 c\u0169.");
     }
 
     private static void fillVi19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "Video v\u00e0 \u1ea3nh \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o %1$s, c\u00f9ng c\u00e1c t\u1ec7p t\u1ea3i xu\u1ed1ng kh\u00e1c c\u1ee7a \u0111i\u1ec7n tho\u1ea1i. C\u00e1c t\u1ec7p \u0111\u00e3 l\u01b0u tr\u01b0\u1edbc \u0111\u00f3 v\u1eabn \u1edf nguy\u00ean ch\u1ed7 c\u0169.");
         table.put("Videos and photos go to %1$s.",
                 "Video v\u00e0 \u1ea3nh \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o %1$s.");
         table.put("Videos and photos will go to %1$s.",
@@ -15214,11 +15226,11 @@ public final class L10nTranslations {
                 "B\u1ea1n \u0111\u00e3 t\u1ea1m d\u1eebng Hushfacebook.");
         table.put("Your controls are active.",
                 "C\u00e1c t\u00f9y ch\u1ec9nh c\u1ee7a b\u1ea1n \u0111ang ho\u1ea1t \u0111\u1ed9ng.");
-        table.put("Your launcher has no room for another shortcut.",
-                "Tr\u00ecnh ch\u1ea1y c\u1ee7a b\u1ea1n kh\u00f4ng c\u00f2n ch\u1ed7 cho l\u1ed1i t\u1eaft kh\u00e1c.");
     }
 
     private static void fillVi20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "Tr\u00ecnh ch\u1ea1y c\u1ee7a b\u1ea1n kh\u00f4ng c\u00f2n ch\u1ed7 cho l\u1ed1i t\u1eaft kh\u00e1c.");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "Danh s\u00e1ch \u00f4 Menu c\u1ea7n \u1ea9n s\u1ebd tr\u1ed1ng.");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",
@@ -15270,7 +15282,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildZh_rCN() {
-        Map<String, String> table = new HashMap<>(2448);
+        Map<String, String> table = new HashMap<>(2450);
         fillZh_rCN0(table);
         fillZh_rCN1(table);
         fillZh_rCN2(table);
@@ -17094,6 +17106,8 @@ public final class L10nTranslations {
                 "\u4fdd\u5b58\u5230");
         table.put("Save to phone",
                 "\u4fdd\u5b58\u5230\u624b\u673a");
+        table.put("Save video",
+                "\u4fdd\u5b58\u89c6\u9891");
         table.put("Save videos other apps can open",
                 "\u4fdd\u5b58\u5176\u4ed6\u5e94\u7528\u80fd\u6253\u5f00\u7684\u89c6\u9891");
         table.put("Saved",
@@ -17136,11 +17150,11 @@ public final class L10nTranslations {
                 "\u6b63\u5728\u4fdd\u5b58\u7167\u7247");
         table.put("Saving a video",
                 "\u6b63\u5728\u4fdd\u5b58\u89c6\u9891");
-        table.put("Saving diagnostic report...",
-                "\u6b63\u5728\u4fdd\u5b58\u8bca\u65ad\u62a5\u544a\u2026\u2026");
     }
 
     private static void fillZh_rCN15(Map<String, String> table) {
+        table.put("Saving diagnostic report...",
+                "\u6b63\u5728\u4fdd\u5b58\u8bca\u65ad\u62a5\u544a\u2026\u2026");
         table.put("Saving the settings file",
                 "\u6b63\u5728\u4fdd\u5b58\u8bbe\u7f6e\u6587\u4ef6");
         table.put("Saving...",
@@ -17259,11 +17273,11 @@ public final class L10nTranslations {
                 "\u8df3\u8fc7\u65e0\u58f0\u7247\u6bb5\uff1a\u6b64\u89c6\u9891\u5173\u95ed");
         table.put("Skip silent parts: on",
                 "\u8df3\u8fc7\u65e0\u58f0\u7247\u6bb5\uff1a\u5f00");
-        table.put("Skipping silent parts again",
-                "\u5df2\u91cd\u65b0\u8df3\u8fc7\u65e0\u58f0\u7247\u6bb5");
     }
 
     private static void fillZh_rCN16(Map<String, String> table) {
+        table.put("Skipping silent parts again",
+                "\u5df2\u91cd\u65b0\u8df3\u8fc7\u65e0\u58f0\u7247\u6bb5");
         table.put("Slower speeds",
                 "\u66f4\u6162\u7684\u901f\u5ea6");
         table.put("Smallest",
@@ -17382,11 +17396,11 @@ public final class L10nTranslations {
                 "\u8fd9\u4e0d\u662f .ttf \u6216 .otf \u5b57\u4f53\u6587\u4ef6\u3002\u4f60\u7684\u5b57\u4f53\u6ca1\u6709\u66f4\u6539\u3002");
         table.put("That isn't a Hushfacebook settings file. Nothing was changed.",
                 "\u8fd9\u4e0d\u662f Hushfacebook \u8bbe\u7f6e\u6587\u4ef6\u3002\u672a\u66f4\u6539\u4efb\u4f55\u5185\u5bb9\u3002");
-        table.put("That isn't a picture Android can open. The top of Home didn't change.",
-                "\u8fd9\u4e0d\u662f Android \u80fd\u6253\u5f00\u7684\u56fe\u7247\u3002\u4e3b\u9875\u9876\u90e8\u6ca1\u6709\u66f4\u6539\u3002");
     }
 
     private static void fillZh_rCN17(Map<String, String> table) {
+        table.put("That isn't a picture Android can open. The top of Home didn't change.",
+                "\u8fd9\u4e0d\u662f Android \u80fd\u6253\u5f00\u7684\u56fe\u7247\u3002\u4e3b\u9875\u9876\u90e8\u6ca1\u6709\u66f4\u6539\u3002");
         table.put("That picture is over %1$d MB. The top of Home didn't change.",
                 "\u8be5\u56fe\u7247\u8d85\u8fc7 %1$d MB\u3002\u4e3b\u9875\u9876\u90e8\u6ca1\u6709\u66f4\u6539\u3002");
         table.put("That saved file is no longer available.",
@@ -17505,11 +17519,11 @@ public final class L10nTranslations {
                 "\u9876\u90e8\u680f\u548c\u6807\u7b7e\u680f\u53d8\u4e3a\u900f\u660e\uff0c\u6eda\u52a8\u65f6\u52a8\u6001\u6d88\u606f\u4f1a\u900f\u8fc7\u5b83\u4eec\u663e\u793a\u51fa\u6765\u3002\u5728 Android 12 \u53ca\u66f4\u9ad8\u7248\u672c\u4e0a\uff0c\u5b83\u4eec\u540e\u9762\u7684\u52a8\u6001\u6d88\u606f\u4f1a\u6a21\u7cca\u663e\u793a\u3002");
         table.put("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.",
                 "\u5411\u4e0b\u6eda\u52a8\u65f6\uff0c\u5e26\u641c\u7d22\u548c Messenger \u7684\u9876\u90e8\u680f\u4fdd\u6301\u4e0d\u52a8\uff0c\u4e0d\u518d\u6ed1\u8d70\u3002");
-        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
-                "\u4e3b\u9875\u9876\u90e8\u663e\u793a %1$s\u3002\u91cd\u542f Facebook \u540e\u53ef\u770b\u5230\u66f4\u6539\u3002");
     }
 
     private static void fillZh_rCN18(Map<String, String> table) {
+        table.put("The top of Home says %1$s. Restart Facebook to see the change.",
+                "\u4e3b\u9875\u9876\u90e8\u663e\u793a %1$s\u3002\u91cd\u542f Facebook \u540e\u53ef\u770b\u5230\u66f4\u6539\u3002");
         table.put("The top of Home will show Facebook's own logo.",
                 "\u4e3b\u9875\u9876\u90e8\u5c06\u663e\u793a Facebook \u81ea\u5df1\u7684\u6807\u5fd7\u3002");
         table.put("The video wasn't saved. Try again.",
@@ -17628,11 +17642,11 @@ public final class L10nTranslations {
                 "\u89c6\u9891");
         table.put("Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.",
                 "\u89c6\u9891\u548c\u7167\u7247\u5b58\u5165 %1$s\uff0c\u4e0e\u76f8\u673a\u7684\u6587\u4ef6\u653e\u5728\u4e00\u8d77\u3002\u4f60\u5df2\u6709\u7684\u4fdd\u5b58\u5185\u5bb9\u4fdd\u6301\u539f\u5904\u3002");
-        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
-                "\u89c6\u9891\u548c\u7167\u7247\u5b58\u5165 %1$s\uff0c\u4e0e\u624b\u673a\u7684\u5176\u4ed6\u4e0b\u8f7d\u5185\u5bb9\u653e\u5728\u4e00\u8d77\u3002\u4f60\u5df2\u6709\u7684\u4fdd\u5b58\u5185\u5bb9\u4fdd\u6301\u539f\u5904\u3002");
     }
 
     private static void fillZh_rCN19(Map<String, String> table) {
+        table.put("Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.",
+                "\u89c6\u9891\u548c\u7167\u7247\u5b58\u5165 %1$s\uff0c\u4e0e\u624b\u673a\u7684\u5176\u4ed6\u4e0b\u8f7d\u5185\u5bb9\u653e\u5728\u4e00\u8d77\u3002\u4f60\u5df2\u6709\u7684\u4fdd\u5b58\u5185\u5bb9\u4fdd\u6301\u539f\u5904\u3002");
         table.put("Videos and photos go to %1$s.",
                 "\u89c6\u9891\u548c\u7167\u7247\u5b58\u5165 %1$s\u3002");
         table.put("Videos and photos will go to %1$s.",
@@ -17751,11 +17765,11 @@ public final class L10nTranslations {
                 "\u4f60\u5df2\u6682\u505c Hushfacebook\u3002");
         table.put("Your controls are active.",
                 "\u4f60\u7684\u63a7\u5236\u9879\u5df2\u542f\u7528\u3002");
-        table.put("Your launcher has no room for another shortcut.",
-                "\u4f60\u7684\u684c\u9762\u542f\u52a8\u5668\u6ca1\u6709\u7a7a\u95f4\u518d\u653e\u4e00\u4e2a\u5feb\u6377\u65b9\u5f0f\u3002");
     }
 
     private static void fillZh_rCN20(Map<String, String> table) {
+        table.put("Your launcher has no room for another shortcut.",
+                "\u4f60\u7684\u684c\u9762\u542f\u52a8\u5668\u6ca1\u6709\u7a7a\u95f4\u518d\u653e\u4e00\u4e2a\u5feb\u6377\u65b9\u5f0f\u3002");
         table.put("Your list of Menu tiles to hide will be empty.",
                 "\u4f60\u8981\u9690\u85cf\u7684\u83dc\u5355\u56fe\u5757\u5217\u8868\u5c06\u4e3a\u7a7a\u3002");
         table.put("Your list of Menu tiles to hide will hold %1$d tile.",

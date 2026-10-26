@@ -193,8 +193,19 @@ internal fun BytecodePatchContext.patchNavigationTts() {
     val loggedAudio = g.any { instruction -> instruction.opcode == Opcode.INVOKE_DIRECT_RANGE &&
         instruction.call()?.let { it.name == "<init>" && it.definingClass == resolver.returnType &&
             it.parameterTypes.size == 5 && it.parameterTypes[0] == "Ljava/io/File;" && it.parameterTypes[3] == "Z" } == true }
+    // R8 may merge the logged layout's three returns into one final return-object v2 (26.42).
+    val mergedReturn = loggedAudio && g.shape("""
+        INVOKE_DIRECT MOVE_RESULT CONST_4 CONST_4 IF_EQZ INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ
+        INVOKE_VIRTUAL MOVE_RESULT_OBJECT CHECK_CAST IGET_OBJECT IGET_OBJECT IGET_OBJECT INVOKE_STATIC
+        MOVE_RESULT_OBJECT IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ CONST_4 MOVE GOTO
+        MOVE MOVE_OBJECT IF_NEZ INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ INVOKE_VIRTUAL MOVE_RESULT_OBJECT
+        INVOKE_INTERFACE MOVE_RESULT_OBJECT MOVE_OBJECT IF_EQZ INVOKE_VIRTUAL MOVE_RESULT
+        IF_EQZ INVOKE_VIRTUAL MOVE_RESULT IF_EQZ IGET_OBJECT IGET_OBJECT IGET_OBJECT NEW_INSTANCE
+        INVOKE_DIRECT_RANGE MOVE_OBJECT GOTO IGET_OBJECT NEW_INSTANCE SGET_OBJECT INVOKE_DIRECT CONST_STRING
+        INVOKE_VIRTUAL RETURN_OBJECT
+    """)
     resolverLayout.require(!AccessFlags.STATIC.isSet(resolver.accessFlags) && resolver.implementation!!.tryBlocks.isEmpty() &&
-        if (loggedAudio) resolver.implementation!!.registerCount == 11 && g.shape("""
+        if (loggedAudio) resolver.implementation!!.registerCount == 11 && (mergedReturn || g.shape("""
             INVOKE_DIRECT MOVE_RESULT CONST_4 CONST_4 IF_EQZ INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ
             INVOKE_VIRTUAL MOVE_RESULT_OBJECT CHECK_CAST IGET_OBJECT IGET_OBJECT IGET_OBJECT INVOKE_STATIC
             MOVE_RESULT_OBJECT IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ CONST_4 MOVE GOTO
@@ -203,7 +214,7 @@ internal fun BytecodePatchContext.patchNavigationTts() {
             IF_EQZ INVOKE_VIRTUAL MOVE_RESULT IF_EQZ IGET_OBJECT IGET_OBJECT IGET_OBJECT NEW_INSTANCE
             INVOKE_DIRECT_RANGE RETURN_OBJECT IGET_OBJECT NEW_INSTANCE SGET_OBJECT INVOKE_DIRECT CONST_STRING
             INVOKE_VIRTUAL RETURN_OBJECT
-        """) else resolver.implementation!!.registerCount == 8 && g.shape("""
+        """)) else resolver.implementation!!.registerCount == 8 && g.shape("""
         INVOKE_DIRECT MOVE_RESULT CONST_4 CONST_4 IF_EQZ INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT CHECK_CAST IGET_OBJECT IGET_OBJECT IGET_OBJECT INVOKE_STATIC
         MOVE_RESULT_OBJECT IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ CONST_4 GOTO MOVE_OBJECT
@@ -213,8 +224,8 @@ internal fun BytecodePatchContext.patchNavigationTts() {
     """), "audio resolver")
     val dynamicAt = if (loggedAudio) 29 else 27
     val lookupAt = dynamicAt + 2
-    val fieldsAt = if (loggedAudio) 42 else 39
-    val constructorAt = if (loggedAudio) 46 else 42
+    val fieldsAt = if (mergedReturn) 41 else if (loggedAudio) 42 else 39
+    val constructorAt = if (mergedReturn) 45 else if (loggedAudio) 46 else 42
     val dynamicGetter = g[dynamicAt].call()!!
     val lookup = g[lookupAt].call()!!
     val firstField = g[fieldsAt].field()!!
@@ -242,8 +253,20 @@ internal fun BytecodePatchContext.patchNavigationTts() {
                 g[21].regs() == listOf(7, 1) && g[23].regs() == listOf(7, 1) && g[24].regs() == listOf(0, 2) &&
                 resolverLayout.target(4) == 23 && resolverLayout.target(7) == 23 && resolverLayout.target(19) == 21 &&
                 resolverLayout.target(22) == 25 && resolverLayout.target(25) == 33 && resolverLayout.target(28) == 33 &&
-                resolverLayout.target(34) == 36 && resolverLayout.target(38) == 48 && resolverLayout.target(41) == 48 &&
-                g[47].regs() == listOf(3) && g[35].regs() == listOf(2) && g[54].regs() == listOf(2)
+                g[54].regs() == listOf(2) && if (mergedReturn) {
+                    // No file, unreadable file and constructed alert all reach 54; v2 holds null until 46.
+                    g[34].regs() == listOf(4) && resolverLayout.target(34) == 54 &&
+                        g[35].call()?.toString() == "Ljava/io/File;->exists()Z" && g[35].regs() == listOf(4) &&
+                        g[38].call()?.toString() == "Ljava/io/File;->canRead()Z" && g[38].regs() == listOf(4) &&
+                        g[37].regs() == g[36].regs() && g[40].regs() == g[39].regs() &&
+                        resolverLayout.target(37) == 48 && resolverLayout.target(40) == 48 &&
+                        g[44].regs() == listOf(3) && g[46].regs() == listOf(2, 3) && resolverLayout.target(47) == 54 &&
+                        g.indices.filter { g[it].opcode.setsRegister() &&
+                            ((g[it] as? OneRegisterInstruction)?.registerA == 2 ||
+                                g[it].opcode.setsWideRegister() && (g[it] as? OneRegisterInstruction)?.registerA == 1)
+                        } == listOf(3, 46)
+                } else resolverLayout.target(34) == 36 && resolverLayout.target(38) == 48 && resolverLayout.target(41) == 48 &&
+                    g[47].regs() == listOf(3) && g[35].regs() == listOf(2)
         } else g[27].regs() == listOf(6) && g[28].regs() == listOf(0) && g[29].regs() == listOf(0, 7) &&
             g[30].regs() == listOf(0) && g[39].regs() == listOf(7, 6) && g[40].regs() == listOf(6, 6) &&
             g[42].regs() == listOf(1, 0, 7, 6, 2) &&
@@ -269,19 +292,32 @@ internal fun BytecodePatchContext.patchNavigationTts() {
     } ?: throw PatchException("Missing unique navigation audio readiness check")
     val f = ready.implementation!!.instructions.toList()
     val readyLayout = TtsLayout(ready, f)
-    readyLayout.require(ready.implementation!!.registerCount == 5 && ready.implementation!!.tryBlocks.isEmpty() && f.shape("""
+    // R8 may merge the true/false returns: if-ne skips the shared move of true into v0 (26.42).
+    val mergedReady = f.shape("""
+        INVOKE_VIRTUAL MOVE_RESULT_OBJECT CONST_4 IF_EQZ INVOKE_DIRECT MOVE_RESULT CONST_4 IF_EQZ
+        INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ SGET_OBJECT CHECK_CAST IGET_OBJECT IF_NE MOVE RETURN
+    """)
+    readyLayout.require(ready.implementation!!.registerCount == 5 && ready.implementation!!.tryBlocks.isEmpty() &&
+        (mergedReady || f.shape("""
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT CONST_4 IF_EQZ INVOKE_DIRECT MOVE_RESULT CONST_4 IF_EQZ
         INVOKE_VIRTUAL MOVE_RESULT_OBJECT IF_EQZ SGET_OBJECT CHECK_CAST IGET_OBJECT IF_EQ RETURN RETURN RETURN
-    """), "audio readiness")
+    """)), "audio readiness")
     val resolveRequest = owner.methods.single { f[0].call()!!.same(it) }
     val requestBody = resolveRequest.implementation!!.instructions.toList()
     TtsLayout(resolveRequest, requestBody).require(requestBody.shape("IGET_OBJECT INVOKE_DIRECT MOVE_RESULT_OBJECT RETURN_OBJECT") &&
         resolver.same(requestBody[1].call()) && f[1].regs() == listOf(4) && f[3].regs() == listOf(4) &&
-        readyLayout.target(3) == 17 && f[2].regs() == listOf(0) && (f[2] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+        f[2].regs() == listOf(0) && (f[2] as NarrowLiteralInstruction).narrowLiteral == 0 &&
         f[6].regs() == listOf(2) && (f[6] as NarrowLiteralInstruction).narrowLiteral == 1 &&
         f[13].field()?.definingClass == resolver.returnType && f[13].regs() == listOf(4, 4) &&
-        f[14].regs() == listOf(4, 3) && readyLayout.target(14) == 16 &&
-        f[15].regs() == listOf(0) && f[16].regs() == listOf(2) && f[17].regs() == listOf(0),
+        f[14].regs() == listOf(4, 3) && readyLayout.target(14) == 16 && if (mergedReady) {
+            // Absent alert and tag mismatch return v0 (false); the other paths reach 15, which moves true into v0.
+            readyLayout.target(3) == 16 && readyLayout.target(7) == 15 && readyLayout.target(10) == 15 &&
+                f[7].regs() == f[5].regs() && f[10].regs() == f[9].regs() &&
+                f[15].regs() == listOf(0, 2) && f[16].regs() == listOf(0) &&
+                f.indices.filter { f[it].opcode.setsRegister() &&
+                    (f[it] as? OneRegisterInstruction)?.registerA.let { it == 0 || it == 2 } } == listOf(2, 6, 15)
+        } else readyLayout.target(3) == 17 &&
+            f[15].regs() == listOf(0) && f[16].regs() == listOf(2) && f[17].regs() == listOf(0),
         "readiness result flow", readyLayout)
 
     // All discovery/guards finish before mutation. Preserve synchronization, callbacks and cleanup.
@@ -334,7 +370,7 @@ internal fun BytecodePatchContext.patchNavigationTts() {
     resolver.addInstructionsWithLabels(0, prefix.trimIndent())
     // Both readable cached sources are ready. Keep their true source tag for playback/metrics.
     ready.replaceInstruction(14, BuilderInstruction30t(Opcode.GOTO_32,
-        ready.implementation!!.newLabelForIndex(16)))
+        ready.implementation!!.newLabelForIndex(if (mergedReady) 15 else 16)))
     Logger.getLogger("app.morphe.patches.maps.NavigationTtsPatch").info(
         "Navigation TTS: factory=$factory; dynamic=$dynamicFactory; resolver=$resolver; ready=$ready; " +
             "prefer readable synthesized audio; preserve canned fallback and voice selection",

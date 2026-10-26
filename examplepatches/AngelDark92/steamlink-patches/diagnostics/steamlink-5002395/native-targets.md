@@ -102,7 +102,7 @@ The rebuilt `libgxr_codecs_support.so` adds this profile and is pinned by SHA-25
 
 | Layer | Regions |
 |---|---|
-| Foveal canvas | `GetProjectionLayers` `0x10d41c`/692 SHA-256 `338fac4375cf3ea36bfaa31a4a9e6e358ff4f4fc88f2953e09c4b72a7bbb477d`; `FlipFrame` `0x10df58`/3000 SHA-256 `d628c41334d5f9dfdc056ee436850824b5b6ac2023f990bc26f77a93f0703699` |
+| Foveal canvas (retired 2026-10-24) | `GetProjectionLayers` `0x10d41c`/692 SHA-256 `338fac4375cf3ea36bfaa31a4a9e6e358ff4f4fc88f2953e09c4b72a7bbb477d`; `FlipFrame` `0x10df58`/3000 SHA-256 `d628c41334d5f9dfdc056ee436850824b5b6ac2023f990bc26f77a93f0703699` |
 | Controller pose time | `GetControllerState` `0x108f88`/0xa9c SHA-256 `4cda1b9020578b65a04c36e48e1d6240124ce9458007b6a7f09d712509c00a7b`; `SendPoses` `0xf5ff4`/0x550 SHA-256 `4f30c94895e96d10ce06abc3a96f05892871894d8e893dd0eb7d3765a3db0bb4`; clock `0x15e2b8`/0x40 SHA-256 `7279ef642ad5b65f5784bded4d9a42ef1f120796a2f2ac87fbe39f6fc62885d4`; GOT state `0x232038`, submit `0x1629cc`, submit GOT `0x2316b8` |
 
 ## Validation boundary

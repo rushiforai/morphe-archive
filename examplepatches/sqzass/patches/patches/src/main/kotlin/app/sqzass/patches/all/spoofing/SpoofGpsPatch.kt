@@ -13,9 +13,6 @@ private val logger = Logger.getLogger("SpoofGpsPatch")
 
 private const val LOCATION_TYPE = "Landroid/location/Location;"
 
-// ponytail: time, speed, bearing, and provider-specific extras keep their real
-// values; location returned through fabricated Location objects (e.g. a mocked
-// LocationManager provider) is not created — only getter results are forced.
 private fun isLocationGetter(instruction: Instruction, keys: Set<String>): Boolean {
     val reference = methodReferenceOf(instruction) ?: return false
     return reference.definingClass == LOCATION_TYPE &&
@@ -24,8 +21,8 @@ private fun isLocationGetter(instruction: Instruction, keys: Set<String>): Boole
 }
 
 private fun smaliForResult(value: Any, register: Int): String = when (value) {
-    is Double -> "const-wide v$register, 0x${java.lang.Double.doubleToRawLongBits(value).toString(16)}"
-    is Float -> "const v$register, 0x${java.lang.Float.floatToRawIntBits(value).toString(16)}"
+    is Double -> "const-wide v$register, 0x${java.lang.Long.toHexString(java.lang.Double.doubleToRawLongBits(value))}"
+    is Float -> "const v$register, 0x${java.lang.Integer.toHexString(java.lang.Float.floatToRawIntBits(value))}"
     else -> "const-string v$register, \"$value\""
 }
 
@@ -114,11 +111,12 @@ val spoofGpsPatch = bytecodePatch(
             },
         ) { instructions ->
             var count = 0
-            for (index in instructions.indices) {
-                val reference = methodReferenceOf(instructions[index])
+            for (index in instructions.indices.reversed()) {
+                val instruction = instructions.getOrNull(index) ?: continue
+                val reference = methodReferenceOf(instruction)
                 val value = reference?.name?.let { values[it] }
                 if (value != null &&
-                    isLocationGetter(instructions[index], values.keys) &&
+                    isLocationGetter(instruction, values.keys) &&
                     forceInvokeResult(instructions, index) { register -> smaliForResult(value, register) }
                 ) {
                     count++

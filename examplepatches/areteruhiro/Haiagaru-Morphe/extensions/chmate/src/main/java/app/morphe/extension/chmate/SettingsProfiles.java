@@ -21,13 +21,48 @@ public final class SettingsProfiles {
     static void numberKey(String key,int min,int max){RULES.put(key,v->v instanceof Integer&&(Integer)v>=min&&(Integer)v<=max);}
     static void choiceKey(String key,Set<Integer> choices){RULES.put(key,v->v instanceof Integer&&choices.contains(v));}
     static void catalog(Activity activity){
-        for(SettingsSections.Category c:SettingsSections.Category.values())Haiagaru.settingsCategory(activity,c.name());
+        // Expert is a projection of these same controls, not a second catalog.
+        for(SettingsSections.Category c:SettingsSections.Category.values())if(c!=SettingsSections.Category.EXPERT)Haiagaru.settingsCategory(activity,c.name());
+        booleanKey(ExpertSettings.KEY);
+        numberKey(HaiagaruSettingsGestures.SENSITIVITY,50,200);
+        defaultValue(HaiagaruSettingsGestures.SENSITIVITY,100);
+        defaultValue(ExpertSettings.KEY,false);
         for(String key:EXTRA_BOOLEAN)booleanKey(key);
         numberKey("videoPreviewMinimumSeconds",0,86459);
         numberKey("checkerHeaderPercent",10,60);
         numberKey("hissiViewerResponseSpacingDp",0,20);
-        numberKey("hissiViewerToolbarHeightDp",32,56);
-        numberKey(NativeToolTabs.HEADER_HEIGHT_KEY,32,64);
+        numberKey(SearchRequestPacing.HISSI_INTERVAL_KEY,1,SearchRequestPacing.MAX_INTERVAL_SECONDS);
+        numberKey(SearchRequestPacing.KYODEMO_INTERVAL_KEY,1,SearchRequestPacing.MAX_INTERVAL_SECONDS);
+        defaultValue(SearchRequestPacing.HISSI_INTERVAL_KEY,3);
+        defaultValue(SearchRequestPacing.KYODEMO_INTERVAL_KEY,10);
+        numberKey("hissiViewerToolbarHeightDp",20,80);
+        numberKey(CheckerBarOptions.TABS,20,80);
+        numberKey(CheckerBarOptions.PROVIDERS,20,80);
+        defaultValue(CheckerBarOptions.PROVIDERS,32);
+        numberKey(HissiScanTemplate.DAYS,0,36524);
+        booleanKey(HissiScanTemplate.ENABLED);
+        defaultValue(HissiScanTemplate.ENABLED,true);
+        numberKey(HissiScanTemplate.PROVIDER,0,3);
+        RULES.put(HissiScanTemplate.BOARDS,v->v instanceof String&&((String)v).length()<=4096
+                &&(((String)v).isBlank()||((String)v).matches("[A-Za-z0-9_,\\s-]+")));
+        numberKey(HissiScanTemplate.PAGES,1,10000);
+        numberKey(HissiScanTemplate.REQUESTS,0,Integer.MAX_VALUE);
+        defaultValue(CheckerBarOptions.TABS,40);
+        booleanKey(CheckerBarOptions.HANDLES);
+        defaultValue(CheckerBarOptions.HANDLES,true);
+        numberKey(NativeToolTabs.HEADER_HEIGHT_KEY,48,80);
+        numberKey(SiteCards.MAX_PER_RESPONSE_KEY,1,20);
+        defaultValue(SiteCards.MAX_PER_RESPONSE_KEY,2);
+        numberKey(SiteCards.CACHE_HOURS_KEY,1,168);
+        defaultValue(SiteCards.CACHE_HOURS_KEY,24);
+        booleanKey(XPostPreviewPosition.ENABLED);
+        defaultValue(XPostPreviewPosition.ENABLED,true);
+        booleanKey(ReadingPosition.ENABLED);
+        defaultValue(ReadingPosition.ENABLED,true);
+        booleanKey(EmojiFontFallback.ENABLED);
+        defaultValue(EmojiFontFallback.ENABLED,true);
+        booleanKey(ThreadRefreshOptions.KEY);
+        defaultValue(ThreadRefreshOptions.KEY,true);
         booleanKey("hissiViewerShowAdjust");
         defaultValue(NativeToolTabs.HEADER_HEIGHT_KEY,48);
         defaultValue("hissiViewerShowAdjust",true);
@@ -44,14 +79,43 @@ public final class SettingsProfiles {
         defaultValue("imageVpnDomains",ImageVpnRequestPolicy.DEFAULT_DOMAINS);
     }
     private static final String[] EXTRA_BOOLEAN={
-        "urlImageFetchEnabled","videoFrameThumbnailsEnabled","videoSwipeBrightness","videoSwipeVolume","videoDoubleTapSeek","videoYoutubeEnabled",
-        "siteCardsEnabled","siteCardImages","patrolImagesEnabled","patrolImageFilterEnabled","responseArchiveEnabled","directBodySelection",
+        "urlImageFetchEnabled","videoFrameThumbnailsEnabled","videoSwipeBrightness","videoSwipeVolume","videoDoubleTapSeek","videoYoutubeEnabled","videoAutoplay",
+        "siteCardsEnabled","siteCardImages",XPostPreviewPosition.ENABLED,"patrolImagesEnabled","patrolImageFilterEnabled","responseArchiveEnabled","directBodySelection",
         "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters","compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",
         "wacchoiLongPressSearch","wacchoiLongPressSuffixSearch","wacchoiLongPressPrefixSearch","wacchoiLongPressSuffixNg","wacchoiLongPressPrefixNg","responseExtraTools","wacchoiSearchHistory","showEdgeSearch","showZzzSearch","readThreadsFirstNewOnly","automaticFoldMode",
         "groupBrowsingHistoryByBoard","imageVpnEnabled","hideDroppedHomeThreads","hideDroppedDrafts","hideDroppedSent","nativeToolTabs","nativeToolTabSettings","nativeToolTabEddi",
-        "nativeToolTabSearch","nativeToolTabChecker","nativeToolTabHissi","nativeToolTabWacchoi","floatingQuickFilterButton","hissiViewerCompactHeader"
+        "nativeToolTabSearch","nativeToolTabChecker","nativeToolTabHissi","nativeToolTabWacchoi","floatingQuickFilterButton","hissiViewerCompactHeader",
+        ThreadRefreshOptions.KEY
     };
     static SharedPreferences prefs(Context c){return c.getSharedPreferences(WacchoiSearchOptions.PREFS,0);}
+    static boolean resetDefaults(Activity activity){
+        catalog(activity);
+        SharedPreferences.Editor edit=prefs(activity).edit();
+        for(String key:RULES.keySet())edit.remove(key);
+        edit.remove(MinimalSetup.ACTIVE);
+        if(!edit.commit())return false;
+        SharedPreferences.Editor archive=activity.getSharedPreferences("haiagaru_eddi_search",0).edit();
+        for(String key:new String[]{"controlTextScale","resultTextScale","resultVerticalPadding","controlLayoutScale","hideSearchForm"})archive.remove(key);
+        if(!archive.commit())return false;
+        for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,"haiagaru.hidden-id-ng",StringReplacement.PREFS})
+            if(!activity.getSharedPreferences(name,0).edit().remove("enabled").commit())return false;
+        SharedPreferences.Editor actions=activity.getSharedPreferences("haiagaru_response_actions",0).edit();
+        for(String key:new String[]{"wacchoiLongPressSearch","wacchoiLongPressSuffixSearch","wacchoiLongPressPrefixSearch","wacchoiLongPressSuffixNg","wacchoiLongPressPrefixNg"})actions.remove(key);
+        for(int id:ResponseMenuSettings.IDS){actions.remove("visibility."+id);actions.remove("responseVisibility."+id);}
+        if(!actions.commit())return false;
+        DEFAULTS.clear();catalog(activity);
+        SiteCards.changed();XPostPreviewPosition.settingsChanged();FoldLayout.settingsChanged();
+        return true;
+    }
+    static void confirmReset(Activity activity){
+        new HaiagaruDialog.Builder(activity).setTitle("Haiagaruの設定を初期設定に戻す")
+            .setMessage("Haiagaruの表示・動作設定を初期値に戻します。ChMate標準設定、スレ・履歴・登録済みNGルール、ログイン情報、バックアップの保存先は保持します。反映には再起動が必要です。")
+            .setNegativeButton("キャンセル",null)
+            .setPositiveButton("初期設定に戻す",(dialog,which)->{
+                if(resetDefaults(activity))SettingsRestart.confirm(activity);
+                else new HaiagaruDialog.Builder(activity).setTitle("初期設定に戻せませんでした").setMessage("一部の設定が変更されている可能性があります。保存状態を確認し、もう一度お試しください。").setPositiveButton("閉じる",null).show();
+            }).show();
+    }
     static JSONObject exportData(Context c)throws JSONException{
         Map<String,Object> all=new LinkedHashMap<>(DEFAULTS);all.putAll(prefs(c).getAll());
         JSONObject values=new JSONObject();for(Map.Entry<String,?> e:all.entrySet()){
@@ -75,6 +139,9 @@ public final class SettingsProfiles {
             else if(v.getValue() instanceof String)e.putString(v.getKey(),(String)v.getValue());
         }boolean saved=e.commit();
         if(saved&&values.containsKey("imageVpnDomains")){ImageVpnController.reloadDomains();SiteCards.clear(()->{});}
+        if(saved&&(values.containsKey(SiteCards.MAX_PER_RESPONSE_KEY)||values.containsKey(SiteCards.CACHE_HOURS_KEY)
+                ||values.containsKey("siteCardsEnabled")||values.containsKey("siteCardImages")))SiteCards.changed();
+        if(saved&&values.containsKey(XPostPreviewPosition.ENABLED))XPostPreviewPosition.settingsChanged();
         return saved;
     }
     public static void share(Activity a){
@@ -124,10 +191,21 @@ public final class SettingsProfiles {
     private static void error(Activity a,Exception e){a.runOnUiThread(()->{if(!a.isFinishing()&&!a.isDestroyed())new HaiagaruDialog.Builder(a)
         .setTitle("設定ファイル").setMessage(e.getMessage()).setPositiveButton("閉じる",(d,w)->{if(a instanceof SettingsImportActivity)a.finish();}).show();});}
     private SettingsProfiles(){}
+    /** Existing optional settings only. Native ChMate settings and user data stay outside this map. */
+    static Map<String,Object> adsOnlyValues(){
+        Map<String,Object> out=new LinkedHashMap<>();
+        for(Map.Entry<String,Rule> entry:RULES.entrySet())
+            if(entry.getValue().accepts(false))out.put(entry.getKey(),false);
+        out.put("hideAd",true);
+        out.put("urlVideoFetchMode",3);
+        out.put(GifAutoFetchPolicy.KEY,3);
+        return out;
+    }
     static Map<String,Object> minimalValues(){
         Map<String,Object> out=new LinkedHashMap<>();for(Map.Entry<String,Rule> e:RULES.entrySet())if(e.getValue().accepts(false))out.put(e.getKey(),false);
         for(String key:new String[]{"edgeReporterId","edgeReporterBoardList","dedicatedViewerEnabled","kyodemoEnhancedViewer","automaticDat",
-                "hideAd","videoViewerEnabled","videoYoutubeEnabled","urlImageFetchEnabled","videoFrameThumbnailsEnabled","wacchoiSearchEnabled","showEdgeSearch"})out.put(key,true);
+                "hideAd","videoViewerEnabled","videoYoutubeEnabled","urlImageFetchEnabled","videoFrameThumbnailsEnabled","wacchoiSearchEnabled","showEdgeSearch",
+                ThreadRefreshOptions.KEY})out.put(key,true);
         out.put("urlVideoFetchMode",0);return out;
     }
 }

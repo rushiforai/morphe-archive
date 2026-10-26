@@ -76,18 +76,23 @@ internal fun BytecodePatchContext.patchDeviceComplianceCheck() {
         it.name == predicate.name && it.returnType == "Z" && it.parameterTypes.isEmpty()
     }
     val body = predicateMethod.implementation?.instructions?.toList() ?: fail("abstract verdict predicate")
+    // R8 may merge the returns: if-eq skips overwriting the 1 with 0 before one shared return (26.42).
+    val singleReturn = body.map { it.opcode } == listOf(
+        Opcode.IGET, Opcode.CONST_4, Opcode.IF_EQ, Opcode.CONST_4, Opcode.RETURN,
+    )
     if (!AccessFlags.PUBLIC.isSet(predicateMethod.accessFlags) || AccessFlags.STATIC.isSet(predicateMethod.accessFlags) ||
-        body.map { it.opcode } != listOf(
+        !singleReturn && body.map { it.opcode } != listOf(
             Opcode.IGET, Opcode.CONST_4, Opcode.IF_NE, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN,
         ) ||
         body[0].getReference<FieldReference>()?.let { it.definingClass == verdict.type && it.name == stateField.name } != true ||
         (body[1] as NarrowLiteralInstruction).narrowLiteral != 1 ||
-        (body[4] as NarrowLiteralInstruction).narrowLiteral != 0 ||
+        (body[if (singleReturn) 3 else 4] as NarrowLiteralInstruction).narrowLiteral != 0 ||
         (body[2] as TwoRegisterInstruction).let {
             it.registerA != (body[0] as TwoRegisterInstruction).registerA ||
                 it.registerB != (body[1] as OneRegisterInstruction).registerA
         } || body.branchTarget(2) != 4 ||
-        (body[3] as OneRegisterInstruction).registerA != (body[1] as OneRegisterInstruction).registerA
+        (body[3] as OneRegisterInstruction).registerA != (body[1] as OneRegisterInstruction).registerA ||
+        singleReturn && (body[4] as OneRegisterInstruction).registerA != (body[1] as OneRegisterInstruction).registerA
     ) fail("verdict predicate is not state == 1: ${body.map { it.opcode }}")
 
     // The predicate result alone gates the launch: false returns before any activity work.

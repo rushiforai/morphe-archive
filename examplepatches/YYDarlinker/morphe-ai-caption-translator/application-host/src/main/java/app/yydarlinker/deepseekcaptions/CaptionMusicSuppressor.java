@@ -52,6 +52,10 @@ final class CaptionMusicSuppressor {
                     restoreRenderers();
                     return;
                 }
+                if (!mayDiscover()) {
+                    keepKnownMasked();
+                    return;
+                }
                 maskNativeRenderer();
                 kick();
             };
@@ -117,6 +121,7 @@ final class CaptionMusicSuppressor {
     }
 
     private static void maskNativeRenderer() {
+        if (!mayDiscover()) return;
         Activity activity = activityRef.get();
         if (activity == null || activity.isFinishing()) return;
         boolean knownAttached = keepKnownMasked();
@@ -160,6 +165,12 @@ final class CaptionMusicSuppressor {
                     "NATIVE_RENDERER_VIEW_NOT_FOUND",
                     "reason=player_local_renderer_absent;retry_backoff_ms=" + backoff);
         }
+    }
+
+    /** The native draw hook remains active; auxiliary tree discovery waits for a settled player. */
+    private static boolean mayDiscover() {
+        return CaptionPlayerAuthority.displayPermitted()
+                && !CaptionPlayerAuthority.playerType().contains("SLIDING");
     }
 
     private static View decorOf(Activity activity) {

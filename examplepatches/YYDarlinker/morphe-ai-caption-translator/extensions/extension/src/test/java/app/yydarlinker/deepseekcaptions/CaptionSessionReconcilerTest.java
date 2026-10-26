@@ -175,6 +175,8 @@ public class CaptionSessionReconcilerTest {
                     }
                 });
         CaptionNativeProjection.resetForTests();
+        NativeCaptionBridge.resetForTests();
+        CaptionNativeProjection.ccState(CaptionIntentPolicy.ON);
         CaptionSessionReconciler.resetForTests();
         CaptionSessionIntent.resetForTests(a);
         SourceCatalog.clear();
@@ -182,6 +184,7 @@ public class CaptionSessionReconcilerTest {
         DeepSeekConfig.saveEnabled(a, true);
         calls.clear();
         currentVideo = VIDEO;
+        NativeCaptionBridge.onVideoId(VIDEO);
         visible = false;
         owns = false;
         epoch = 7L;
@@ -207,6 +210,7 @@ public class CaptionSessionReconcilerTest {
         CaptionButtonController.onPlayerStable();
         CaptionSessionReconciler.resetForTests();
         CaptionNativeProjection.resetForTests();
+        NativeCaptionBridge.resetForTests();
         CaptionSessionIntent.resetForTests(a);
         SourceCatalog.clear();
         a.finish();
@@ -214,7 +218,29 @@ public class CaptionSessionReconcilerTest {
 
     private void userChoseTarget() {
         CaptionSessionIntent.userToggled(a, true);
-        CaptionSessionIntent.userSelected(a, "zh-Hans", true);
+        CaptionNativeProjection.selection(VIDEO, "zh-Hans", TRANSLATED, false, true, true, epoch);
+    }
+
+    @Test
+    public void dualAiRecordsGateDifferentDecisionsAndCcOnBackfillsLegacyModeM3a() {
+        CaptionNativeProjection.selection(VIDEO,"zh-Hans",TRANSLATED,false,true,false,epoch);
+        CaptionSessionReconciler.onVideo(a,VIDEO);
+        assertTrue("config enabled grants the display gate",CaptionSessionReconciler.displayAllowed(a));
+        assertFalse(CaptionSessionIntent.load(a).aiEnabled);
+        assertEquals("application additionally requires intent enabled",0,starts());
+        CaptionSessionReconciler.onUserActivated(a);
+        assertTrue("CC on backfills a legacy enabled config",CaptionSessionIntent.load(a).aiEnabled);
+        assertEquals(1,starts());
+        DeepSeekConfig.saveEnabled(a,false);
+        assertTrue(CaptionSessionIntent.load(a).aiEnabled);
+        assertFalse("intent alone cannot grant the display gate",CaptionSessionReconciler.displayAllowed(a));
+        CaptionSessionReconciler.onUserActivated(a);
+        assertEquals(1,starts());
+        long selection=CaptionNativeProjection.snapshot().revision;
+        CaptionSessionReconciler.onUserSwitched(a,false);
+        assertFalse(DeepSeekConfig.enabled(a));assertFalse(CaptionSessionIntent.load(a).aiEnabled);
+        assertEquals(CaptionIntentPolicy.ON,CaptionNativeProjection.ccState());
+        assertEquals(selection,CaptionNativeProjection.snapshot().revision);
     }
 
     private static int starts() {
@@ -245,8 +271,6 @@ public class CaptionSessionReconcilerTest {
 
         assertEquals("a teardown must not advance the revision", before.revision, after.revision);
         assertEquals(before.aiEnabled, after.aiEnabled);
-        assertEquals(before.targetLanguage, after.targetLanguage);
-        assertEquals(before.translateTarget, after.translateTarget);
         assertEquals("", CaptionSessionReconciler.sessionVideo());
     }
 
@@ -268,7 +292,6 @@ public class CaptionSessionReconcilerTest {
         CaptionSessionIntent after = CaptionSessionIntent.load(a);
         assertEquals("an observed native Off is not a user act", before.revision, after.revision);
         assertEquals(before.aiEnabled, after.aiEnabled);
-        assertEquals(before.targetLanguage, after.targetLanguage);
         assertTrue("the projection follows the native model", CaptionNativeProjection.snapshot().off);
         assertTrue(
                 "a native reset may retire the application, but only as a recoverable stop",
@@ -277,7 +300,10 @@ public class CaptionSessionReconcilerTest {
 
         CaptionSessionReconciler.onTeardown(a);
         CaptionSessionReconciler.onVideo(a, VIDEO);
-        assertEquals("the next video applies the unchanged intent again", 2, starts());
+        assertEquals("an Off model cannot donate a target", 1, starts());
+        CaptionNativeProjection.selection(VIDEO, "zh-Hans", TRANSLATED, false, true, false, epoch);
+        CaptionSessionReconciler.onNativeSelection(a, epoch, false);
+        assertEquals("the restored native track applies", 2, starts());
     }
 
     // 3
@@ -388,13 +414,15 @@ public class CaptionSessionReconcilerTest {
 
     // 5
     @Test
-    public void aUserOffIsNotAppliedUntilTheUserSwitchesOnAgain() {
+    public void ccOffKeepsTheAiChoiceAndOnlyCcOnCanResumeIt() {
         userChoseTarget();
         CaptionSessionReconciler.onVideo(a, VIDEO);
         assertEquals(1, starts());
 
+        CaptionSessionIntent before = CaptionSessionIntent.load(a);
         CaptionSessionReconciler.onUserOff(a, "cc_button");
-        assertFalse(CaptionSessionIntent.load(a).aiEnabled);
+        assertTrue(CaptionSessionIntent.load(a).aiEnabled);
+        assertEquals(before.revision, CaptionSessionIntent.load(a).revision);
         assertEquals("the reconciler writes no stop of its own", 0, stops("user_off"));
         CaptionSessionReconciler.onPlayerRegular(a);
         CaptionSessionReconciler.onTeardown(a);
@@ -403,6 +431,8 @@ public class CaptionSessionReconcilerTest {
         assertEquals("a user off stays authoritative", 1, starts());
 
         assertTrue(CaptionSessionReconciler.onUserSwitched(a, true));
+        assertEquals("the AI switch cannot reopen CC", 1, starts());
+        CaptionSessionReconciler.onUserActivated(a);
         assertEquals(2, starts());
         assertTrue(
                 "the stored target is what starts",
@@ -421,7 +451,7 @@ public class CaptionSessionReconcilerTest {
         assertEquals("no target yet, so nothing may start", 0, starts());
 
         CaptionButtonController.onPlayerTransition("WATCH_WHILE_FULLSCREEN");
-        CaptionSessionIntent.userSelected(a, "zh-Hans", true);
+        CaptionNativeProjection.selection(VIDEO, "zh-Hans", TRANSLATED, false, true, true, epoch);
         CaptionSessionReconciler.onPlayerRegular(a);
 
         assertEquals("the intent applies during the transition quiet window", 1, starts());
@@ -435,79 +465,48 @@ public class CaptionSessionReconcilerTest {
      * persisted source-language choice from another video must not leave this one deferred forever.
      */
     @Test
-    public void aStoredSourceTargetWithoutItsOwnTrackFallsBackToTranslation() {
+    public void noSelectedTrackMeansNoSynthesizedTranslation() {
         CaptionSessionIntent.userToggled(a, true);
-        CaptionSessionIntent.userSelected(a, "zh-Hans", false);
-
         CaptionSessionReconciler.onVideo(a, VIDEO);
-
-        assertEquals(1, starts());
-        assertTrue(
-                "the session fell back to a translated url",
-                calls.get(0).startsWith("translate:"));
-        assertTrue("the target reached the request", calls.get(0).contains("tlang=zh-Hans"));
+        for (int i=0;i<3;i++) CaptionSessionReconciler.onPlayerRegular(a);
+        assertEquals("the source catalogue does not select a language",0,starts());
     }
 
     @Test
-    public void aStoredSourceTargetWithItsOwnTrackStillShowsThatTrack() {
-        SourceCatalog.register(
-                VIDEO,
-                Collections.singletonList(
-                        new SourceSelection(
-                                VIDEO,
-                                "zh",
-                                "zh-Hans",
-                                ZH_SOURCE,
-                                SourceSelection.Kind.MANUAL,
-                                true,
-                                0,
-                                "")),
-                true);
-        CaptionSessionIntent.userToggled(a, true);
-        CaptionSessionIntent.userSelected(a, "zh-Hans", false);
-
-        CaptionSessionReconciler.onVideo(a, VIDEO);
-
-        assertEquals(1, starts());
-        assertTrue("the existing target-language track is shown", calls.get(0).startsWith("source:"));
-        assertTrue(calls.get(0).contains("lang=zh-Hans"));
+    public void aNativeSourceSelectionStaysSourceEvenWithoutACatalogueEntry() {
+        CaptionSessionIntent.userToggled(a,true);
+        CaptionNativeProjection.selection(VIDEO,"zh-Hans",ZH_SOURCE,false,false,false,epoch);
+        CaptionSessionReconciler.onVideo(a,VIDEO);
+        assertEquals(1,starts());
+        assertTrue(calls.get(0).startsWith("source:"));
     }
 
     @Test
-    public void aProjectionFromAnotherVideoDoesNotAdoptItsUntranslatedFlag() {
-        CaptionSessionReconciler.onVideo(a, VIDEO);
-        CaptionNativeProjection.selection(
-                "other-video", "zh-Hans", ZH_SOURCE, false, false, true, epoch);
-
-        assertTrue(CaptionSessionReconciler.onUserSwitched(a, true));
-
-        CaptionSessionIntent intent = CaptionSessionIntent.load(a);
-        assertTrue(intent.aiEnabled);
-        assertEquals("the language is still adopted", "zh-Hans", intent.targetLanguage);
-        assertTrue("another video's untranslated flag is not adopted", intent.translateTarget);
+    public void anotherVideosTrackCannotSupplyTheCurrentLanguage() {
+        CaptionSessionReconciler.onVideo(a,VIDEO);
+        CaptionNativeProjection.selection("other-video","zh-Hans",ZH_SOURCE,false,false,true,epoch);
+        assertTrue(CaptionSessionReconciler.onUserSwitched(a,true));
+        assertNull(CaptionSessionReconciler.currentSelection());
+        assertEquals(0,starts());
     }
 
     @Test
-    public void aProjectionFromTheCurrentVideoKeepsItsUntranslatedFlag() {
-        CaptionSessionReconciler.onVideo(a, VIDEO);
-        CaptionNativeProjection.selection(VIDEO, "zh-Hans", ZH_SOURCE, false, false, true, epoch);
-
-        assertTrue(CaptionSessionReconciler.onUserSwitched(a, true));
-
-        assertFalse(
-                "the current video's existing target-language track is still preferred",
-                CaptionSessionIntent.load(a).translateTarget);
+    public void theCurrentNativeSourceSelectionIsAppliedWhenAiIsEnabled() {
+        CaptionSessionReconciler.onVideo(a,VIDEO);
+        CaptionNativeProjection.selection(VIDEO,"zh-Hans",ZH_SOURCE,false,false,false,epoch);
+        assertTrue(CaptionSessionReconciler.onUserSwitched(a,true));
+        assertEquals(1,starts());
+        assertTrue(calls.get(0).startsWith("source:"));
     }
 
     @Test
-    public void withoutALiveSessionTheUntranslatedFlagIsNotAdopted() {
-        CaptionNativeProjection.selection(VIDEO, "zh-Hans", ZH_SOURCE, false, false, true, epoch);
-
-        assertTrue(CaptionSessionReconciler.onUserSwitched(a, true));
-
-        assertTrue(
-                "no live video means no untranslated flag to adopt",
-                CaptionSessionIntent.load(a).translateTarget);
+    public void aTrackWithoutALiveSessionWaitsForTheMatchingVideo() {
+        CaptionNativeProjection.selection(VIDEO,"zh-Hans",ZH_SOURCE,false,false,false,epoch);
+        assertTrue(CaptionSessionReconciler.onUserSwitched(a,true));
+        assertEquals(0,starts());
+        CaptionSessionReconciler.onVideo(a,VIDEO);
+        assertEquals(1,starts());
+        assertTrue(calls.get(0).startsWith("source:"));
     }
 
     /**
@@ -520,7 +519,7 @@ public class CaptionSessionReconcilerTest {
         CaptionSessionReconciler.onVideo(a, VIDEO);
         assertEquals(1, starts());
         CaptionSessionReconciler.onUserOff(a, "cc_button");
-        assertFalse(CaptionSessionIntent.load(a).aiEnabled);
+        assertTrue("CC off preserves the AI choice", CaptionSessionIntent.load(a).aiEnabled);
 
         CaptionNativeProjection.selection(
                 VIDEO, "zh-Hans", TRANSLATED, false, true, true, epoch);

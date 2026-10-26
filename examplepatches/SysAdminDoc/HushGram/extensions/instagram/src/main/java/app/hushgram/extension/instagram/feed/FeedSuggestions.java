@@ -162,7 +162,8 @@ public final class FeedSuggestions {
 
     /**
      * The page of Home's feed response being parsed on this thread, from {@link #homePageStarts} to
-     * {@link #homePageParsed}: how many items it read, and how many of them {@link #filter} took out.
+     * {@link #homePageParsed}: how many items it read, how many were taken out, and whether a real
+     * MEDIA post with a positive media_type stayed.
      * Null outside a page, so Home's store and every other feed's reads, on this thread or another,
      * never count toward one.
      */
@@ -170,6 +171,9 @@ public final class FeedSuggestions {
 
     /** Set when the latest page of Home's own feed response that held items lost one to {@link #filter}. Tests clear it. */
     static volatile boolean homePageLost;
+
+    /** Whether that page kept a real MEDIA post, even if its adapter has not shown it yet. Tests clear it. */
+    static volatile boolean homePageKeptMedia;
 
     /** Set once the report has counted {@link #HOME_ENDED} for that page. Tests clear it. */
     static volatile boolean homePageEndCounted;
@@ -326,8 +330,9 @@ public final class FeedSuggestions {
      * to Instagram card there for a few seconds at startup (#28). None of those reads is a page of
      * Home's response, so none of them ends Home now.
      *
-     * <p>The page's kept items don't hold the end off: an account that follows nobody gets a page of
-     * suggestions with an item or two Instagram keeps and then draws elsewhere or not at all (#105).
+     * <p>A retained MEDIA post with a real media_type keeps Instagram's answer even while its
+     * adapter is empty or unreadable. Other kept items don't hold the end off: an account that
+     * follows nobody gets suggestions with metadata Instagram draws elsewhere or not at all (#105).
      * Instagram itself only ends a feed it finds empty, and the feed is asked here too, so a Home
      * showing posts keeps Instagram's answer and the report counts {@link #HOME_ENDED} only for a
      * Home that really is empty. An empty Home whose next page is on its way keeps Instagram's
@@ -339,7 +344,7 @@ public final class FeedSuggestions {
         Boolean forced = homeReadsForTests;
         boolean homeReads = forced != null ? forced : PatchFamily.feedTypesInBuild();
         if (!homeReads) return true;
-        if (!homePageLost) return false;
+        if (!homePageLost || homePageKeptMedia) return false;
         if (feed != null) {
             WeakReference<Object> bound = verdictFeed;
             if (bound == null) verdictFeed = new WeakReference<>(feed);
@@ -384,7 +389,7 @@ public final class FeedSuggestions {
      */
     public static void homePageStarts() {
         try {
-            PAGE.set(new int[2]);
+            PAGE.set(new int[3]);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.FEED_SUGGESTIONS, "home page start", failure);
         }
@@ -407,6 +412,7 @@ public final class FeedSuggestions {
                 return;
             }
             HomeNextPage.pageParsed(page[0], page[1]);
+            homePageKeptMedia = page[2] != 0;
             homePageLost = page[1] > 0;
             homePageEndCounted = false;
             pageSeq++;
@@ -616,6 +622,14 @@ public final class FeedSuggestions {
                 : byLiked(item, likedOf) == null ? null
                 : byAuthor(item, authorOf) == null ? null : byCaption(item, captionOf);
         if (kept == null && page != null) page[1]++;
+        if (kept != null && page != null) {
+            try {
+                if ("MEDIA".equals(FeedItemKinds.kindOf(kept, "MEDIA", FamilyNames.FEED_SUGGESTIONS))
+                        && typeOf.applyAsInt(kept) > 0) page[2] = 1;
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.FEED_SUGGESTIONS, "retained home media", failure);
+            }
+        }
         return kept;
     }
 

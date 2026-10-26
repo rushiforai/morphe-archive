@@ -4824,13 +4824,7 @@ public class NativeToolkitDialog {
         if (!sGlideResolved) {
             synchronized (NativeToolkitDialog.class) {
                 if (!sGlideResolved) {
-                    String[] knownGlideClasses = new String[] {
-                        "khc", // 7.96.0 (52511175 nodpi)
-                        "mil", // 7.97.0 (52547221 arm64)
-                        "mgg", // 7.97.0 (52547203 nodpi)
-                        "mkp", // 7.97.0 (52547233 nodpi)
-                        "kjo"  // 7.96.0 (52511193 Samsung)
-                    };
+                    String[] knownGlideClasses = ToolkitMappings.GLIDE_SINGLETON_CLASSES;
                     for (String name : knownGlideClasses) {
                         try {
                             Class<?> clazz = Class.forName(name);
@@ -4863,13 +4857,7 @@ public class NativeToolkitDialog {
             // 1. Try RemoteMediaModel for HTTP/HTTPS
             Object model = null;
             if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
-                String[][] modelPairs = new String[][]{
-                    {"amsr", "amss"}, // 7.97.0 (52547221 arm64-v8a)
-                    {"amri", "amrj"}, // 7.97.0 (52547203 universal)
-                    {"amxw", "amxx"}, // 7.97.0 (52547233 universal)
-                    {"akin", "akio"}, // 7.96.0 (52511175 nodpi)
-                    {"aklr", "akls"}  // 7.96.0 (52511193 Samsung)
-                };
+                String[][] modelPairs = ToolkitMappings.REMOTE_MEDIA_MODEL_PAIRS;
                 for (String[] pair : modelPairs) {
                     try {
                         Class<?> mClass = Class.forName(pair[0]);

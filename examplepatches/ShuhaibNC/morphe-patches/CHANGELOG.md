@@ -1,3 +1,53 @@
+## [1.15.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.14.1...v1.15.0) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* mp3cutter ([812c9da](https://github.com/ShuhaibNC/morphe-patches/commit/812c9da9c322cd7a1473146fcede8da4f9bb8473))
+* some working versions added ([26284bc](https://github.com/ShuhaibNC/morphe-patches/commit/26284bc7e056257dd08355c1a01a53656de2c949))
+* where is my train accent color ([69bac98](https://github.com/ShuhaibNC/morphe-patches/commit/69bac987069b1269386051fc2a28181b4224f283))
+
+### ✨ New Features
+
+* amoled for wmt ([7c74913](https://github.com/ShuhaibNC/morphe-patches/commit/7c74913d59cfdf6153ad23354018dac02210deb0))
+* mp3cutter ([9d940d8](https://github.com/ShuhaibNC/morphe-patches/commit/9d940d84c917747b7e9d4b999a9b576a399959e0))
+* where is my train internal settings ([3f23274](https://github.com/ShuhaibNC/morphe-patches/commit/3f232747fb16c014d7839654b2853b02d0b51e63))
+* whereismytrain ([3a9ee0b](https://github.com/ShuhaibNC/morphe-patches/commit/3a9ee0bc4b17996a3d2b9e2856d1248e1e04c6fe))
+
+## [1.15.0-dev.5](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0-dev.4...v1.15.0-dev.5) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* where is my train accent color ([69bac98](https://github.com/ShuhaibNC/morphe-patches/commit/69bac987069b1269386051fc2a28181b4224f283))
+
+### ✨ New Features
+
+* where is my train internal settings ([3f23274](https://github.com/ShuhaibNC/morphe-patches/commit/3f232747fb16c014d7839654b2853b02d0b51e63))
+
+## [1.15.0-dev.4](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0-dev.3...v1.15.0-dev.4) (2026-10-20)
+
+### ✨ New Features
+
+* amoled for wmt ([7c74913](https://github.com/ShuhaibNC/morphe-patches/commit/7c74913d59cfdf6153ad23354018dac02210deb0))
+* whereismytrain ([3a9ee0b](https://github.com/ShuhaibNC/morphe-patches/commit/3a9ee0bc4b17996a3d2b9e2856d1248e1e04c6fe))
+
+## [1.15.0-dev.3](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0-dev.2...v1.15.0-dev.3) (2026-10-19)
+
+### 🐛 Bug Fixes
+
+* some working versions added ([26284bc](https://github.com/ShuhaibNC/morphe-patches/commit/26284bc7e056257dd08355c1a01a53656de2c949))
+
+## [1.15.0-dev.2](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0-dev.1...v1.15.0-dev.2) (2026-10-19)
+
+### 🐛 Bug Fixes
+
+* mp3cutter ([812c9da](https://github.com/ShuhaibNC/morphe-patches/commit/812c9da9c322cd7a1473146fcede8da4f9bb8473))
+
+## [1.15.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.14.1...v1.15.0-dev.1) (2026-10-19)
+
+### ✨ New Features
+
+* mp3cutter ([9d940d8](https://github.com/ShuhaibNC/morphe-patches/commit/9d940d84c917747b7e9d4b999a9b576a399959e0))
+
 ## [1.14.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.14.0...v1.14.1) (2026-10-18)
 
 ### 🐛 Bug Fixes

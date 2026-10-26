@@ -51,6 +51,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /** View profile picture's screen: a real loopback fetch, the picture it shows, its Save and its zoom. */
 @RunWith(RobolectricTestRunner.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -374,4 +378,61 @@ public class ProfilePictureViewerTest {
         activity.get().finish();
         assertFalse(ProfilePictureViewer.open(activity.get(), sizes(), "someone", save));
     }
+    @Test @Config(sdk = 28)
+    public void closingAViewerDoesNotQueueItsSocketCloserBehindFetches() throws Exception {
+        withBusyBackgroundWorkers(() -> {
+            ProfilePictureViewer.Watch watch = new ProfilePictureViewer.Watch();
+            CountDownLatch closed = new CountDownLatch(1);
+            watch.reading(closed::countDown);
+            watch.cancel();
+            assertTrue("the viewer's connection closer waited behind occupied fetch workers",
+                    closed.await(2, TimeUnit.SECONDS));
+            assertTrue(watch.cancelled());
+        });
+    }
+
+    @Test @Config(sdk = 28)
+    public void aConnectionRegisteredAfterDismissalClosesWithoutTheFetchPool() throws Exception {
+        withBusyBackgroundWorkers(() -> {
+            ProfilePictureViewer.Watch watch = new ProfilePictureViewer.Watch();
+            watch.cancel();
+            CountDownLatch closed = new CountDownLatch(1);
+            watch.reading(closed::countDown);
+            assertTrue("a dismissed viewer left its newly registered connection waiting",
+                    closed.await(2, TimeUnit.SECONDS));
+        });
+    }
+
+    private interface BusyWorkerCheck { void run() throws Exception; }
+
+    /** Occupies every available general worker without shutting down or replacing the shared pool. */
+    private static void withBusyBackgroundWorkers(BusyWorkerCheck check) throws Exception {
+        Utils.awaitBackgroundTasksForTests();
+        java.lang.reflect.Field field = Utils.class.getDeclaredField("backgroundThreadPool");
+        field.setAccessible(true);
+        ThreadPoolExecutor pool = (ThreadPoolExecutor) field.get(null);
+        int previousCore = pool.getCorePoolSize();
+        CountDownLatch release = new CountDownLatch(1);
+        CountDownLatch entered = new CountDownLatch(pool.getMaximumPoolSize());
+        try {
+            // Earlier tests may have grown the pool above its core size. Occupy those workers too.
+            pool.setCorePoolSize(pool.getMaximumPoolSize());
+            pool.prestartAllCoreThreads();
+            for (int i = 0; i < pool.getMaximumPoolSize(); i++) {
+                assertTrue(Utils.runOnBackgroundThread(() -> {
+                    entered.countDown();
+                    try { release.await(); }
+                    catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+                }));
+            }
+            assertTrue("the fetch workers did not start", entered.await(3, TimeUnit.SECONDS));
+            check.run();
+        } finally {
+            release.countDown();
+            pool.setCorePoolSize(previousCore);
+            Utils.awaitBackgroundTasksForTests();
+        }
+    }
+
+
 }

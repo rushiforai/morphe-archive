@@ -116,7 +116,7 @@ function Invoke-AndroidVerifierTally {
         }
 
         $logResult = Invoke-HushfacebookAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'logcat', '-d')
+            -Arguments @('-s', $Serial, 'shell', 'logcat', '-d')
         if ($logResult.ExitCode -ne 0) {
             throw (Format-HushfacebookAdbFailure `
                 -Message "Could not read logcat on $Serial after verifying $Label" `

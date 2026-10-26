@@ -49,6 +49,17 @@ private fun Method.guidanceBranches() {
     }
 }
 
+/** Every index a branch or switch case enters. */
+private fun List<Instruction>.guidanceEntered(): Set<Int> = indices.filter { this[it] is OffsetInstruction }.flatMap { at ->
+    val target = guidanceTarget(at)
+    val payload = this[target] as? SwitchPayload ?: return@flatMap listOf(target)
+    val base = take(at).sumOf { it.codeUnits }
+    payload.switchElements.mapNotNull { element ->
+        var address = 0
+        indices.firstOrNull { val hit = address == base + element.offset; address += this[it].codeUnits; hit }
+    }
+}.toSet()
+
 /** Decorate the existing mobile duration value before Maps binds its original TextView. */
 internal class NativeGuidanceUiPlan internal constructor(
     val schema: String,
@@ -69,8 +80,8 @@ internal class NativeGuidanceUiPlan internal constructor(
         val registers = binding.implementation!!.registerCount
         guidanceGuard(before[insert - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
             (before[insert - 1] as OneRegisterInstruction).registerA == textRegister &&
-            before[insert].opcode == Opcode.RETURN_OBJECT &&
-            (before[insert] as OneRegisterInstruction).registerA == textRegister,
+            before.exitAt(insert)?.opcode == Opcode.RETURN_OBJECT &&
+            (before.exitAt(insert) as OneRegisterInstruction).registerA == textRegister,
             "duration binding still has its original result and exit", binding)
         checkedNativeInsert(binding, insert, """
             invoke-static { v$ownerRegister, v$textRegister }, $GUIDANCE_UI->decorate(Ljava/lang/Object;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
@@ -298,7 +309,10 @@ internal fun BytecodePatchContext.resolveNativeGuidanceUi(): NativeGuidanceUiPla
         ref.name == duration.name && ref.parameterTypes.isEmpty() && ref.returnType == GUIDANCE_TEXT } == true }
     val cast = code[call - 1]
     val result = code[call + 1]
-    val returned = code[call + 2]
+    // R8 may end the duration case with a goto to the shared return (26.42). Only the duration
+    // call may reach that goto, so the decoration inserted before it runs for this case alone.
+    val returned = code.exitAt(call + 2) ?: code[call + 2]
+    val mergedExit = code[call + 2].opcode != Opcode.RETURN_OBJECT
     val owner = binding.implementation!!.registerCount - 1
     val text = (result as? OneRegisterInstruction)?.registerA ?: -1
     guidanceGuard(!AccessFlags.STATIC.isSet(binding.accessFlags) && binding.implementation!!.tryBlocks.isEmpty() &&
@@ -306,6 +320,7 @@ internal fun BytecodePatchContext.resolveNativeGuidanceUi(): NativeGuidanceUiPla
         cast.getReference<TypeReference>()?.type == mobileApi && (cast as OneRegisterInstruction).registerA == owner &&
         code[call].invokeRegisters() == listOf(owner) && result.opcode == Opcode.MOVE_RESULT_OBJECT &&
         returned.opcode == Opcode.RETURN_OBJECT && (returned as OneRegisterInstruction).registerA == text &&
+        (!mergedExit || call + 2 !in code.guidanceEntered()) &&
         code.count { it.opcode == Opcode.PACKED_SWITCH } == 1 &&
         code.count { it.opcode == Opcode.PACKED_SWITCH_PAYLOAD } == 1 &&
         code.none { it.opcode in setOf(Opcode.SPARSE_SWITCH, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.FILL_ARRAY_DATA, Opcode.ARRAY_PAYLOAD) },
@@ -394,6 +409,13 @@ internal fun BytecodePatchContext.resolveNativeGuidanceUi(): NativeGuidanceUiPla
     val searchCall = percentageCode[searchAt].guidanceCall()!!
     val search = inherited(searchCall)
     val searchCode = search.guidanceCode()
+    // R8 may write the miss result into the hit register and share one return (26.42).
+    val sharedSearchReturn = searchCode.size == 25 && searchCode.count { it.opcode == Opcode.RETURN } == 1 &&
+        searchCode[24].opcode == Opcode.RETURN && searchCode[19].opcode == Opcode.IF_LEZ &&
+        searchCode.guidanceTarget(19) == 24 && searchCode[8].opcode == Opcode.USHR_INT_LIT8 &&
+        searchCode[23].opcode == Opcode.NEG_INT && (searchCode[24] as OneRegisterInstruction).registerA ==
+            (searchCode[8] as TwoRegisterInstruction).registerA &&
+        (searchCode[23] as TwoRegisterInstruction).registerA == (searchCode[24] as OneRegisterInstruction).registerA
     val comparisonCtorAt = searchAt - 1
     val discriminatorAt = comparisonCtorAt - 1
     val discriminator = (percentageCode.getOrNull(discriminatorAt) as? NarrowLiteralInstruction)?.narrowLiteral
@@ -403,10 +425,11 @@ internal fun BytecodePatchContext.resolveNativeGuidanceUi(): NativeGuidanceUiPla
         percentageCode[comparisonCtorAt].invokeRegisters()?.last() == (percentageCode[discriminatorAt] as OneRegisterInstruction).registerA &&
         percentageCode[searchAt].invokeRegisters()?.last() == percentageCode[comparisonCtorAt].invokeRegisters()?.first() &&
         searchCall.parameterTypes == listOf("Ljava/util/List;", "I", "Lkotlin/jvm/functions/Function1;") && searchCall.returnType == "I" &&
-        searchCode.size == 26 && searchCode.none { it.opcode.name.startsWith("IPUT") || it.opcode.name.startsWith("SPUT") } &&
+        (searchCode.size == 26 || sharedSearchReturn) &&
+        searchCode.none { it.opcode.name.startsWith("IPUT") || it.opcode.name.startsWith("SPUT") } &&
         searchCode[9].guidanceCall()?.toString() == "Ljava/util/List;->get(I)Ljava/lang/Object;" &&
         searchCode[11].guidanceCall()?.toString() == "Lkotlin/jvm/functions/Function1;->a(Ljava/lang/Object;)Ljava/lang/Object;" &&
-        searchCode[22].opcode == Opcode.RETURN && searchCode[25].opcode == Opcode.RETURN,
+        (sharedSearchReturn || searchCode[22].opcode == Opcode.RETURN && searchCode[25].opcode == Opcode.RETURN),
         "calibration uses read-only list binary search and fixed comparison callback", percentage)
     val compareType = percentageCode[comparisonCtorAt].guidanceCall()!!.definingClass
     val comparison = unique(classDefBy(compareType).methods.filter { it.parameterTypes == listOf("Ljava/lang/Object;") &&
@@ -476,10 +499,15 @@ internal fun BytecodePatchContext.resolveNativeGuidanceUi(): NativeGuidanceUiPla
         "original calibrated double truncates before an upper-only 100-percent clamp", percentage)
     val minimum = member(percentageCode[minimumAt].guidanceCall()!!)
     val minimumCode = minimum.guidanceCode()
+    // R8 may move b into a and share one return (26.42): if-le a, b -> return a; a = b; return a.
+    val sharedMinimumReturn = minimumCode.map { it.opcode } == listOf(Opcode.IF_LE, Opcode.MOVE, Opcode.RETURN) &&
+        (minimumCode[0] as TwoRegisterInstruction).let { it.registerA == 0 && it.registerB == 1 } &&
+        (minimumCode[1] as TwoRegisterInstruction).let { it.registerA == 0 && it.registerB == 1 }
     guidanceGuard(minimum.parameterTypes == listOf("I", "I") && minimum.returnType == "I" &&
-        minimumCode.map { it.opcode } == listOf(Opcode.IF_LE, Opcode.RETURN, Opcode.RETURN) &&
-        minimumCode.guidanceTarget(0) == 2 && (minimumCode[1] as OneRegisterInstruction).registerA == 1 &&
-        (minimumCode[2] as OneRegisterInstruction).registerA == 0,
+        (sharedMinimumReturn || minimumCode.map { it.opcode } == listOf(Opcode.IF_LE, Opcode.RETURN, Opcode.RETURN)) &&
+        minimumCode.guidanceTarget(0) == 2 && (sharedMinimumReturn || (minimumCode[1] as OneRegisterInstruction).registerA == 1) &&
+        (minimumCode[2] as OneRegisterInstruction).registerA == 0 &&
+        (!sharedMinimumReturn || AccessFlags.STATIC.isSet(minimum.accessFlags) && minimum.implementation!!.registerCount == 2),
         "native display percentage truncation and upper-only min 100", minimum)
     val level = percentageCall.returnType
     val levelText = uniqueMapsHook(Fingerprint(name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),

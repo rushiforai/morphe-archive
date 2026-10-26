@@ -1,8 +1,10 @@
 package app.morphe.patches.googlephotos.misc.engine
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.googlephotos.misc.extension.sharedExtensionPatch
+import app.morphe.patches.googlephotos.misc.features.ByteSizeFeatureFactoryFingerprint
 import app.morphe.patches.googlephotos.misc.flags.SkottieFontLoaderDispatcherFingerprint
 import app.morphe.patches.googlephotos.misc.flags.SkottieFontUriResolverFingerprint
 import app.morphe.patches.googlephotos.misc.gms.HomeActivityOnCreateFingerprint
@@ -119,6 +121,22 @@ val mediaEngineAndAIFixesPatch = bytecodePatch(
                 return-object v0
                 :cond_skip_custom_font
             """.trimIndent())
+        }
+
+        // =========================================================================
+        // 3. ByteSizeFeature Resilience Patch (prevents crash on 0-byte / missing size media)
+        // =========================================================================
+        val byteSizeMethod = ByteSizeFeatureFactoryFingerprint.methodOrNull
+        if (byteSizeMethod != null) {
+            val classDef = mutableClassDefBy(byteSizeMethod.definingClass)
+            val mutableMethod = classDef.findMutableMethodOf(byteSizeMethod)
+            val instructions = byteSizeMethod.implementation?.instructions?.toList()
+
+            instructions?.forEachIndexed { index, instruction ->
+                if (instruction.opcode.name.startsWith("if-")) {
+                    mutableMethod.replaceInstruction(index, "nop")
+                }
+            }
         }
     }
 }

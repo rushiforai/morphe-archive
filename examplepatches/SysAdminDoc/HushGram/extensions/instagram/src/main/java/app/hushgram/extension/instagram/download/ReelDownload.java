@@ -770,7 +770,8 @@ public final class ReelDownload {
         String owner = user == null ? null : InstagramMedia.username(user);
         Long takenAt = InstagramMedia.takenAt(media);
         Date posted = takenAt == null || takenAt <= 0 ? null : new Date(takenAt * 1000L);
-        return PostDetails.of(InstagramMedia.mediaId(media), owner, posted);
+        String id = InstagramMedia.mediaId(media);
+        return PostDetails.of(id, owner, posted).withPostId(id);
     }
 
     private static int orZero(Integer value) {

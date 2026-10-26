@@ -348,18 +348,22 @@ public abstract class Setting<T> {
      * accidental usage when {@link #save(Object)} was intended.
      */
     public static void privateSetValueFromString(Setting<?> setting, String newValue) {
-        setting.setValueFromString(newValue);
+        synchronized (Setting.class) {
+            Object previousValue = setting.value;
+            setting.setValueFromString(newValue);
+            if (!previousValue.equals(setting.value)) setting.onValueChanged();
 
-        // Clear the preference value since default is used, to allow changing
-        // the default for a future release.  Without this after upgrading
-        // the saved value will be whatever was the default when the app was first installed.
-        if (setting.isSetToDefault()) {
-            try {
-                setting.removeFromPreferences();
-            } catch (RuntimeException failure) {
-                // The framework already stored the selected default. Leaving that explicit value
-                // is semantically correct, even if the cleanup that normally removes it failed.
-                Logger.printException(() -> "Could not clear explicit default: " + setting.key, failure);
+            // Clear the preference value since default is used, to allow changing
+            // the default for a future release.  Without this after upgrading
+            // the saved value will be whatever was the default when the app was first installed.
+            if (setting.isSetToDefault()) {
+                try {
+                    setting.removeFromPreferences();
+                } catch (RuntimeException failure) {
+                    // The framework already stored the selected default. Leaving that explicit value
+                    // is semantically correct, even if the cleanup that normally removes it failed.
+                    Logger.printException(() -> "Could not clear explicit default: " + setting.key, failure);
+                }
             }
         }
     }
@@ -381,6 +385,17 @@ public abstract class Setting<T> {
     @NonNull
     protected T coerce(@NonNull T newValue) {
         return newValue;
+    }
+
+    /** Replaces the live value under the settings write lock, including lifecycle invalidation. */
+    protected final void updateValue(@NonNull T newValue) {
+        T previousValue = value;
+        value = Objects.requireNonNull(newValue);
+        if (!previousValue.equals(newValue)) onValueChanged();
+    }
+
+    /** After a live change, including rollback. Overrides must be quick and perform no I/O. */
+    protected void onValueChanged() {
     }
 
     /**
@@ -407,7 +422,7 @@ public abstract class Setting<T> {
 
             // Must set before saving to preferences (otherwise importing fails to update UI correctly).
             T previousValue = value;
-            value = newValue;
+            updateValue(newValue);
             try {
                 persistCurrentValue();
                 return true;
@@ -415,7 +430,7 @@ public abstract class Setting<T> {
                 // A failed commit means the value that survives a restart is still the old one.
                 // Keep the live process on that same value, then make a best effort to restore
                 // storage in case a platform implementation reports failure after touching it.
-                value = previousValue;
+                updateValue(previousValue);
                 try {
                     persistCurrentValue();
                 } catch (RuntimeException rollbackFailure) {
@@ -543,6 +558,7 @@ public abstract class Setting<T> {
         // counts as put back only when that is the value from before.
         for (var entry : previous.entrySet()) {
             Setting setting = entry.getKey();
+            Object changedValue = setting.value;
             setting.value = entry.getValue();
             try {
                 setting.load();
@@ -551,6 +567,7 @@ public abstract class Setting<T> {
                 setting.value = entry.getValue();
                 restored = false;
             }
+            if (!changedValue.equals(setting.value)) setting.onValueChanged();
             if (!setting.value.equals(entry.getValue())) restored = false;
         }
         throw new BatchFailed(restored, failure);
@@ -563,7 +580,7 @@ public abstract class Setting<T> {
         for (var entry : values.entrySet()) {
             Setting setting = entry.getKey();
             Object next = entry.getValue();
-            setting.value = next;
+            setting.updateValue(next);
             if (setting.defaultValue.equals(next)) editor.remove(setting.key);
             else if (next instanceof Boolean) editor.putBoolean(setting.key, (Boolean) next);
             else editor.putString(setting.key, next instanceof Enum ? ((Enum) next).name() : next.toString());

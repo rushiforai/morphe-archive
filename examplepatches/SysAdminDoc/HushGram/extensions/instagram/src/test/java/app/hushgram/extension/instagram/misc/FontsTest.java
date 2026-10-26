@@ -8,8 +8,10 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import android.graphics.Typeface;
 import android.widget.TextView;
@@ -28,18 +30,24 @@ import org.robolectric.shadows.ShadowToast;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
+import app.hushgram.extension.shared.settings.Setting;
 
 /**
  * Font: Instagram's Prism Sans and its text views take the phone's font or a picked file at the
@@ -357,6 +365,195 @@ public class FontsTest {
         assertFalse(Fonts.startsLikeAFont(new byte[] {'P', 'K', 3, 4}));
     }
 
+    @Test public void theNextProcessRemovesOnlyAbandonedStages() throws Exception {
+        keep(TRUE_TYPE);
+        Fonts.loader = file -> Typeface.SERIF;
+        assertNotNull(Fonts.prepare(RuntimeEnvironment.getApplication(), new ByteArrayInputStream(TRUE_TYPE)));
+        assertNotNull(Fonts.prepare(RuntimeEnvironment.getApplication(), new ByteArrayInputStream(TRUE_TYPE)));
+        restartFontProcess();
+        try (Fonts.Prepared next = Fonts.prepare(RuntimeEnvironment.getApplication(), new ByteArrayInputStream(TRUE_TYPE))) {
+            assertNotNull(next);
+            assertArrayEquals(TRUE_TYPE, Files.readAllBytes(Fonts.kept(RuntimeEnvironment.getApplication()).toPath()));
+        }
+        assertOnlyLiveFont();
+    }
+
+    @Test public void anInterruptedRenameRollsBackWhenTheSettingDidNotLand() throws Exception {
+        Settings.FONT.save(FontChoice.SYSTEM);
+        keep(TRUE_TYPE);
+        byte[] replacement = {'O', 'T', 'T', 'O', 1};
+        abandonedInstall(replacement, Settings.FONT);
+        restartFontProcess();
+        try (Fonts.Prepared next = Fonts.prepare(RuntimeEnvironment.getApplication(), new ByteArrayInputStream(TRUE_TYPE))) {
+            assertNotNull(next);
+            assertArrayEquals(TRUE_TYPE, Files.readAllBytes(Fonts.kept(RuntimeEnvironment.getApplication()).toPath()));
+        }
+        assertEquals(FontChoice.SYSTEM, Settings.FONT.savedValue());
+        assertOnlyLiveFont();
+    }
+
+    @Test public void anUnacceptedReplacementRollsBackWithoutRevertingTheSavedChoice() throws Exception {
+        Settings.FONT.save(FontChoice.SYSTEM);
+        keep(TRUE_TYPE);
+        byte[] replacement = {'O', 'T', 'T', 'O', 1};
+        abandonedInstall(replacement, Settings.FONT);
+        assertTrue(Settings.FONT.save(FontChoice.FILE));
+        restartFontProcess();
+        firstReadUses(TRUE_TYPE);
+        assertEquals("recovery preserves saved preferences", FontChoice.FILE, Settings.FONT.savedValue());
+        assertOnlyLiveFont();
+    }
+
+    @Test public void aSameChoiceInterruptedReplacementIsRecoveredBeforeTheFirstRead() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        keep(TRUE_TYPE);
+        abandonedInstall(new byte[]{'O', 'T', 'T', 'O', 1}, Settings.FONT);
+        restartFontProcess();
+        firstReadUses(TRUE_TYPE);
+        assertOnlyLiveFont();
+    }
+
+    @Test public void anInterruptedFirstFileUsesTheNativeFontOnTheFirstRead() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        abandonedInstall(TRUE_TYPE, Settings.FONT);
+        restartFontProcess();
+        Typeface nativeFont = Typeface.MONOSPACE;
+        assertSame(nativeFont, Fonts.prismTypeface(nativeFont));
+        assertFalse(Fonts.kept(RuntimeEnvironment.getApplication()).exists());
+        assertOnlyLiveFont();
+    }
+
+    @Test public void anAcceptedSameChoiceReplacementSurvivesTheFirstRead() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        keep(TRUE_TYPE);
+        byte[] replacement = {'O', 'T', 'T', 'O', 1};
+        Fonts.Prepared accepted = abandonedInstall(replacement, Settings.FONT);
+        assertTrue(Settings.FONT.save(FontChoice.FILE));
+        accepted.accept();
+        accepted.close();
+        restartFontProcess();
+        firstReadUses(replacement);
+        assertOnlyLiveFont();
+    }
+
+    @Test public void aSecondaryFontReadDoesNotRecoverOrExposeAPendingReplacement() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        keep(TRUE_TYPE);
+        byte[] replacement = {'O', 'T', 'T', 'O', 1};
+        abandonedInstall(replacement, Settings.FONT);
+        restartFontProcess();
+        var info = Utils.getContext().getApplicationInfo();
+        String process = info.processName;
+        try {
+            info.processName = Utils.getContext().getPackageName() + ":worker";
+            Typeface nativeFont = Typeface.MONOSPACE;
+            assertSame(nativeFont, Fonts.prismTypeface(nativeFont));
+            File live = Fonts.kept(RuntimeEnvironment.getApplication());
+            assertArrayEquals(replacement, Files.readAllBytes(live.toPath()));
+            assertTrue(new File(live.getParentFile(), live.getName() + ".font-previous.tmp").isFile());
+            assertTrue(new File(live.getParentFile(), live.getName() + ".font-transaction.tmp").isFile());
+        } finally {
+            info.processName = process;
+        }
+    }
+
+    @Test public void aJournalThatCannotBeRemovedStillRollsBackAfterAcceptIsCalled() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        keep(TRUE_TYPE);
+        Fonts.Prepared pending = abandonedInstall(new byte[]{'O', 'T', 'T', 'O', 1}, Settings.FONT);
+        File live = Fonts.kept(RuntimeEnvironment.getApplication());
+        File journal = new File(live.getParentFile(), live.getName() + ".font-transaction.tmp");
+        try (FileChannel held = holdJournal(journal)) {
+            assertFalse("the real file handle must refuse deletion", journal.delete());
+            pending.accept();
+            pending.close();
+            assertArrayEquals("a refused receipt must keep the last accepted bytes", TRUE_TYPE, Files.readAllBytes(live.toPath()));
+            assertTrue(journal.isFile());
+            assertTrue(new File(live.getParentFile(), live.getName() + ".font-previous.tmp").isFile());
+        }
+        pending.close();
+        restartFontProcess();
+        firstReadUses(TRUE_TYPE);
+        assertOnlyLiveFont();
+    }
+
+    @Test public void aReleasedJournalCanBeAcceptedAndKept() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        keep(TRUE_TYPE);
+        byte[] replacement = {'O', 'T', 'T', 'O', 1};
+        Fonts.Prepared pending = abandonedInstall(replacement, Settings.FONT);
+        File live = Fonts.kept(RuntimeEnvironment.getApplication());
+        File journal = new File(live.getParentFile(), live.getName() + ".font-transaction.tmp");
+        try (FileChannel held = holdJournal(journal)) {
+            assertFalse("the control holds the same deletion barrier", journal.delete());
+        }
+        pending.accept();
+        pending.close();
+        restartFontProcess();
+        firstReadUses(replacement);
+        assertOnlyLiveFont();
+    }
+
+    /** Windows provides a real deletion failure without replacing the filesystem or production IO. */
+    private static FileChannel holdJournal(File journal) throws Exception {
+        assumeTrue(System.getProperty("os.name").startsWith("Windows"));
+        OpenOption denyDelete = (OpenOption) Class.forName("com.sun.nio.file.ExtendedOpenOption")
+                .getField("NOSHARE_DELETE").get(null);
+        return FileChannel.open(journal.toPath(), StandardOpenOption.READ, denyDelete);
+    }
+
+    @Test public void anUnknownTransactionKeepsItsRollbackAndRefusesReplacement() throws Exception {
+        keep(TRUE_TYPE);
+        byte[] replacement = {'O', 'T', 'T', 'O', 1};
+        abandonedInstall(replacement, BaseSettings.DEBUG);
+        restartFontProcess();
+        try (Fonts.Prepared next = Fonts.prepare(RuntimeEnvironment.getApplication(), new ByteArrayInputStream(TRUE_TYPE))) {
+            assertNotNull(next);
+            assertFalse(Fonts.prepareInstall(RuntimeEnvironment.getApplication(), next));
+            assertArrayEquals(replacement, Files.readAllBytes(Fonts.kept(RuntimeEnvironment.getApplication()).toPath()));
+        }
+        File live = Fonts.kept(RuntimeEnvironment.getApplication());
+        assertTrue(new File(live.getParentFile(), live.getName() + ".font-transaction.tmp").isFile());
+        assertTrue(new File(live.getParentFile(), live.getName() + ".font-previous.tmp").isFile());
+    }
+
+    /** Leaves the prepared operation without closing it, as process death does. */
+    private static Fonts.Prepared abandonedInstall(byte[] bytes, Setting<?> setting) {
+        Fonts.loader = file -> Typeface.SERIF;
+        Fonts.Prepared abandoned = Fonts.prepare(RuntimeEnvironment.getApplication(), new ByteArrayInputStream(bytes));
+        assertNotNull(abandoned);
+        assertTrue(Fonts.prepareInstall(RuntimeEnvironment.getApplication(), abandoned));
+        assertTrue(abandoned.recordSetting(setting, setting == Settings.FONT ? FontChoice.FILE : true));
+        assertTrue(abandoned.install());
+        return abandoned;
+    }
+
+    private static void firstReadUses(byte[] expected) {
+        byte[][] read = {null};
+        Fonts.loader = file -> {
+            try {
+                read[0] = Files.readAllBytes(file.toPath());
+            } catch (IOException failure) {
+                throw new AssertionError(failure);
+            }
+            return Typeface.SERIF;
+        };
+        Fonts.prismTypeface(Typeface.MONOSPACE);
+        assertArrayEquals("the first hook reads the recovered file without another import", expected, read[0]);
+    }
+
+    private static void restartFontProcess() {
+        Fonts.resetForTests();
+        Fonts.loader = file -> Typeface.SERIF;
+    }
+
+    private static void assertOnlyLiveFont() {
+        File live = Fonts.kept(RuntimeEnvironment.getApplication());
+        File[] files = live.getParentFile().listFiles();
+        assertNotNull(files);
+        for (File file : files) assertEquals("an abandoned import file survived recovery", live, file);
+    }
+
     private static TextView view(Typeface typeface) {
         TextView view = new TextView(RuntimeEnvironment.getApplication());
         if (typeface != null) view.setTypeface(typeface);
@@ -385,5 +582,7 @@ public class FontsTest {
     private static void removeKept() {
         File kept = Fonts.kept(RuntimeEnvironment.getApplication());
         if (kept.exists()) kept.delete();
+        File[] files = kept.getParentFile().listFiles();
+        if (files != null) for (File file : files) if (file.isFile()) file.delete();
     }
 }

@@ -1,3 +1,15 @@
+## [0.2.1](https://github.com/pigfoot/morphe-patches/compare/v0.2.0...v0.2.1) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **camscanner:** offer qualified targets without experimental opt-in ([#3](https://github.com/pigfoot/morphe-patches/issues/3)) ([9153280](https://github.com/pigfoot/morphe-patches/commit/9153280915d03e74eaa06707ec454bc2bada398b))
+
+## [0.2.0](https://github.com/pigfoot/morphe-patches/compare/v0.1.0...v0.2.0) (2026-10-25)
+
+### ✨ New Features
+
+* **camscanner:** add guarded granular patches and lottery support ([#2](https://github.com/pigfoot/morphe-patches/issues/2)) ([4b58ee7](https://github.com/pigfoot/morphe-patches/commit/4b58ee70d25cb0a8cbc06c9f4f97ed4a938433b1))
+
 ## [0.1.0](https://github.com/pigfoot/morphe-patches/releases/tag/v0.1.0) (2026-10-06)
 
 ### Changed

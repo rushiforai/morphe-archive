@@ -1,0 +1,205 @@
+name: Native DinamicX fixture runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [diagnostics/apk-triage-and-callgraph]
+    paths:
+      - 'fixture/**'
+      - 'patches/**'
+      - 'tests/VerifyDinamicXNativeLabels.java'
+      - '.github/workflows/native-fixture.yml'
+concurrency:
+  group: native-dinamicx-fixture
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  native-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+      - name: Compile the actual Morphe 2.0 production bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle buildAndroid --no-daemon
+      - name: Compile original synthetic Android fixture
+        run: gradle -p fixture :app:assembleDebug --no-daemon
+      - name: Download Morphe Desktop compatible with Patcher 2.0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/desktop"
+          gh release download v1.19.0 --repo MorpheApp/morphe-desktop \
+            --pattern '*-all.jar' --dir "$RUNNER_TEMP/desktop"
+          find "$RUNNER_TEMP/desktop" -name '*-all.jar' -size +1M
+      - name: Patch the fixture and independently inspect four DEX methods
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$JAVA_HOME/bin:$PATH"
+          "$JAVA_HOME/bin/java" -version
+          export DESKTOP_JAR="$(find "$RUNNER_TEMP/desktop" -name '*-all.jar' -print -quit)"
+          export MPP="$(find patches/build/libs -name '*.mpp' -print -quit)"
+          export CONTROL="fixture/app/build/outputs/apk/debug/app-debug.apk"
+          export PATCHED="$RUNNER_TEMP/fixture-native-patched.apk"
+          test -s "$DESKTOP_JAR"
+          test -s "$MPP"
+          test -s "$CONTROL"
+          # Isolate patch assembly from Morphe's PKCS12->BKS signer bug.
+          # Sign with the existing Android Gradle debug certificate instead.
+          local_unsigned="$RUNNER_TEMP/fixture-native-unsigned.apk"
+          "$JAVA_HOME/bin/java" -jar "$DESKTOP_JAR" patch "$CONTROL" \
+            --unsigned --bytecode-mode=STRIP_SAFE --exclusive "-p=$MPP" \
+            '-e=TaobaoLingo: Native DinamicX English labels (experimental)' \
+            "-o=$local_unsigned" 2>&1 | tee "$RUNNER_TEMP/patch.log"
+          test -s "$local_unsigned"
+          test -s "$HOME/.android/debug.keystore"
+          apksigner_bin="$(find "$ANDROID_SDK_ROOT/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          test -x "$apksigner_bin"
+          "$apksigner_bin" sign \
+            --ks "$HOME/.android/debug.keystore" \
+            --ks-pass pass:android --ks-key-alias androiddebugkey \
+            --key-pass pass:android \
+            --out "$PATCHED" "$local_unsigned"
+          "$apksigner_bin" verify --verbose "$PATCHED" | tee "$RUNNER_TEMP/sign-verify.log"
+          test -s "$PATCHED"
+          javac -cp "$DESKTOP_JAR" -d "$RUNNER_TEMP" \
+            tests/VerifyDinamicXNativeLabels.java tests/AnalyzeDinamicXRoutes.java
+          java -cp "$RUNNER_TEMP:$DESKTOP_JAR" AnalyzeDinamicXRoutes \
+            "$CONTROL" "$RUNNER_TEMP/fixture-callpath.md"
+          java -Dtaobaolingo.fixture=true -cp "$RUNNER_TEMP:$DESKTOP_JAR" \
+            VerifyDinamicXNativeLabels "$CONTROL" "$PATCHED" \
+            | tee "$RUNNER_TEMP/fixture-static-verification.log"
+          sha256sum "$CONTROL" "$PATCHED" > "$RUNNER_TEMP/fixture-hashes.txt"
+          echo 'STATIC FIXTURE DEX: PASS; real Taobao APK was NOT executed'
+      - name: Download and validate Android emulator 36.6.11
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 4 --retry-all-errors --retry-delay 5 \
+            -o "$RUNNER_TEMP/emulator-36.6.11.zip" \
+            https://dl.google.com/android/repository/emulator-linux_x64-15507667.zip
+          echo "1eade4cf2df6ea8eeead4902c635897ba12aaa32aac4389eaae0fdb498a5b830  $RUNNER_TEMP/emulator-36.6.11.zip" \
+            | sha256sum --check
+          unzip -q -o "$RUNNER_TEMP/emulator-36.6.11.zip" -d "$ANDROID_SDK_ROOT"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends libpulse0 libnss3 libasound2t64
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager --install 'system-images;android-35;google_apis;x86_64'
+      - name: Boot and check live synthetic native TEXT bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_dir="$ANDROID_SDK_ROOT/system-images/android-35/google_apis/x86_64"
+          test -s "$image_dir/system.img"
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME/tl-native-ci.avd"
+          cat > "$ANDROID_AVD_HOME/tl-native-ci.ini" <<EOF
+          avd.ini.encoding=UTF-8
+          path=$ANDROID_AVD_HOME/tl-native-ci.avd
+          path.rel=avd/tl-native-ci.avd
+          target=android-35
+          EOF
+          cat > "$ANDROID_AVD_HOME/tl-native-ci.avd/config.ini" <<EOF
+          AvdId=tl-native-ci
+          PlayStore.enabled=false
+          abi.type=x86_64
+          hw.cpu.arch=x86_64
+          hw.cpu.ncore=2
+          hw.gpu.enabled=yes
+          hw.gpu.mode=swiftshader_indirect
+          hw.keyboard=yes
+          hw.lcd.density=420
+          hw.lcd.height=1920
+          hw.lcd.width=1080
+          hw.ramSize=3072
+          image.sysdir.1=$image_dir/
+          tag.id=google_apis
+          vm.heapSize=256
+          EOF
+          sudo chmod 666 /dev/kvm
+          "$ANDROID_SDK_ROOT/emulator/emulator" -avd tl-native-ci \
+            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim \
+            -accel on -memory 3072 > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          pid=$!
+          cleanup() {
+            adb emu kill || true
+            kill "$pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          booted=false
+          for attempt in $(seq 1 64); do
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
+              booted=true
+              break
+            fi
+            kill -0 "$pid" || exit 1
+            sleep 5
+          done
+          test "$booted" = true
+          adb shell input keyevent 82
+          adb install -r fixture/app/build/outputs/apk/debug/app-debug.apk
+          adb logcat -c
+          adb shell am start -W -n com.taobao.taobao/.MainActivity
+          sleep 3
+          adb shell uiautomator dump /sdcard/window.xml
+          adb pull /sdcard/window.xml "$RUNNER_TEMP/control-view.xml"
+          adb logcat -d -s TaobaoLingoFixture:I '*:S' > "$RUNNER_TEMP/control-logcat.txt"
+          grep -F 'BUTTER_SET=我的淘宝' "$RUNNER_TEMP/control-logcat.txt"
+          grep -F 'BUTTER_SPANNABLE= 我的淘宝' "$RUNNER_TEMP/control-logcat.txt"
+          grep -F 'FAST_SPANNABLE= 搜索' "$RUNNER_TEMP/control-logcat.txt"
+          grep -F 'BUTTER_ATTR=我的订单' "$RUNNER_TEMP/control-logcat.txt"
+          grep -F 'FAST_SET=搜索' "$RUNNER_TEMP/control-logcat.txt"
+          grep -F 'FAST_ATTR=购物车' "$RUNNER_TEMP/control-logcat.txt"
+          adb uninstall com.taobao.taobao
+          adb install "$RUNNER_TEMP/fixture-native-patched.apk"
+          adb logcat -c
+          adb shell am start -W -n com.taobao.taobao/.MainActivity
+          sleep 3
+          adb shell uiautomator dump /sdcard/window.xml
+          adb pull /sdcard/window.xml "$RUNNER_TEMP/patched-view.xml"
+          adb logcat -d -s TaobaoLingoFixture:I '*:S' > "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'BUTTER_SET=My Taobao' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'BUTTER_SPANNABLE= My Taobao' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'FAST_SPANNABLE= Search' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'BUTTER_ATTR=My Orders' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'FAST_SET=Search' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'FAST_ATTR=Cart' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'BUTTER_OTHER=搜索' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'FAST_OTHER=设置' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'UNMAPPED=未收录的专有名词' "$RUNNER_TEMP/patched-logcat.txt"
+          grep -F 'NULL=null' "$RUNNER_TEMP/patched-logcat.txt"
+          adb exec-out screencap -p > "$RUNNER_TEMP/patched-fixture.png"
+          echo 'PASS: test fixture renders native English labels; actual Taobao app NOT tested'
+      - name: Upload synthetic fixture evidence (never Taobao binaries)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-fixture-evidence
+          path: |
+            ${{ runner.temp }}/patch.log
+            ${{ runner.temp }}/fixture-static-verification.log
+            ${{ runner.temp }}/fixture-callpath.md
+            ${{ runner.temp }}/fixture-hashes.txt
+            ${{ runner.temp }}/emulator.log
+            ${{ runner.temp }}/control-view.xml
+            ${{ runner.temp }}/patched-view.xml
+            ${{ runner.temp }}/control-logcat.txt
+            ${{ runner.temp }}/patched-logcat.txt
+            ${{ runner.temp }}/patched-fixture.png
+          if-no-files-found: ignore

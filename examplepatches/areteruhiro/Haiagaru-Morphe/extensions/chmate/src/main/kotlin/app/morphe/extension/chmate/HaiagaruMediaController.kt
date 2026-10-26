@@ -33,6 +33,15 @@ open class HaiagaruMediaController(context: Context) : MediaController(context) 
     override fun hide() { visible = false; panel?.visibility = View.GONE }
     override fun isShowing() = visible
 
+    fun containsControlTouch(x: Float, y: Float): Boolean {
+        val view = panel ?: return false
+        if (!visible || !view.isShown) return false
+        val position = IntArray(2)
+        view.getLocationOnScreen(position)
+        return x >= position[0] && x < position[0] + view.width &&
+            y >= position[1] && y < position[1] + view.height
+    }
+
     @Composable private fun PlayerControls() {
         if (!visible) return
         var position by remember { mutableIntStateOf(0) }

@@ -44,14 +44,14 @@ patching tool for modifying apps like YouTube and Reddit to block ads and add ne
 </details>
 
 <details>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;26 patches</summary>
 <br>
 
 **Package name:** `com.reddit.frontpage`
 
 **Supported versions:**
 
-| 2026.42.0 | 2026.41.0 | 2026.40.0 | 2026.39.1 | 2026.24.0 |
+| 2026.43.0 | 2026.42.0 | 2026.41.0 | 2026.40.0 | 2026.24.0 |
 | :---: | :---: | :---: | :---: | :---: |
 
 | Patch Name | Description | Options |
@@ -72,6 +72,8 @@ patching tool for modifying apps like YouTube and Reddit to block ads and add ne
 | Hide crosspost | Hides the crosspost on Reddit posts. |  |
 | Hide post view counts | Removes the "views" indicator from the post metadata. |  |
 | Hide prominent search bar | Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier. |  |
+| Hide related posts | Hides the related posts section displayed at the bottom of a post. |  |
+| Hide search answers preview | Hides the Reddit Answers preview section at the top of search results. |  |
 | Hide share count | Hides the share count on Reddit posts. |  |
 | Hide upvote scores | Hides the scores on Reddit posts and comments. | • Hide post scores<br>• Hide comment scores |
 | Hide user community badges | Hides the user community badges on Reddit comments. |  |
@@ -91,8 +93,8 @@ patching tool for modifying apps like YouTube and Reddit to block ads and add ne
 
 **Supported versions:**
 
-| 8.24.5 | 8.23.0 | 8.22.0 |
-| :---: | :---: | :---: |
+| 8.26.1 | 8.25.1 | 8.24.8 | 8.23.0 | 8.22.0 |
+| :---: | :---: | :---: | :---: | :---: |
 
 | Patch Name | Description | Options |
 |------------|-------------|---------|

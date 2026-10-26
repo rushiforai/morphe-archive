@@ -11,12 +11,16 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.os.LocaleList;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -26,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Locale;
 
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.L10n;
@@ -156,6 +161,38 @@ public class AuditModeTest {
         assertEquals("Actualités", recorded.getString("title"));
         assertEquals(2, recorded.getInt("schema"));
         assertEquals(L10n.locale(context).toLanguageTag(), recorded.getString("locale"));
+    }
+
+    @Test
+    public void aPageAcknowledgmentIncludesTheWholeApplicationLocaleLookupOrder() throws Exception {
+        Resources resources = context.getResources();
+        Configuration previous = new Configuration(resources.getConfiguration());
+        try {
+            Configuration requested = new Configuration(previous);
+            requested.setLocales(new LocaleList(Locale.forLanguageTag("ar-SA"), Locale.GERMANY));
+            resources.updateConfiguration(requested, resources.getDisplayMetrics());
+            folder.mkdirs();
+
+            // Arabic has no table, so the application's second language supplies the title.
+            String title = L10n.t(context, "News feed");
+            assertEquals("Newsfeed", title);
+            AuditMode.pageShown(context, "News feed", title);
+
+            JSONObject recorded = new JSONObject(read("page.json"));
+            assertEquals(2, recorded.getInt("schema"));
+            assertEquals("News feed", recorded.getString("route"));
+            assertEquals("Newsfeed", recorded.getString("title"));
+            assertEquals("ar-SA", recorded.getString("locale"));
+            JSONArray tags = recorded.getJSONArray("localeTags");
+            assertEquals(4, tags.length());
+            assertEquals("ar-rsa", tags.getString(0));
+            assertEquals("ar", tags.getString(1));
+            assertEquals("de-rde", tags.getString(2));
+            assertEquals("de", tags.getString(3));
+        } finally {
+            resources.updateConfiguration(previous, resources.getDisplayMetrics());
+        }
+        assertEquals(previous.getLocales(), resources.getConfiguration().getLocales());
     }
 
     private static Intent pageIntent(String page) {

@@ -5,6 +5,7 @@
 package app.morphe.extension.facebook.download;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -75,6 +76,20 @@ public class CommentGifTest {
         CommentGif row = (CommentGif) CommentGif.clickFor(comment(photoAttachment(), gifAttachment(second), gifAttachment(GIF)));
         assertNotNull(row);
         assertEquals(second, row.url);
+    }
+
+    @Test
+    public void aReleasedAnimatedImageIsSkippedForTheNextLiveGif() {
+        TreeJNI released = new TreeJNI().with("uri", GIF).releasedTree();
+        TreeJNI attachment = new TreeJNI().with("media", new TreeJNI("GenericAttachmentMedia")
+                .with("animated_image", released));
+        String next = GIF.replace("abc", "def");
+
+        CommentGif row = (CommentGif) CommentGif.clickFor(comment(attachment, gifAttachment(next)));
+
+        assertNotNull(row);
+        assertEquals(next, row.url);
+        assertFalse("the released GIF image was read", released.readAfterRelease);
     }
 
     @Test

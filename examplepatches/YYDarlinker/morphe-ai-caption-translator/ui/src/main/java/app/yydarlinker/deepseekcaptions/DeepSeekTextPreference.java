@@ -46,7 +46,7 @@ public class DeepSeekTextPreference extends ProfileEditorPreference {
     /** A saved key is never shown again, so its field always starts empty. */
     @Override
     String initialValue() {
-        return KEY_BASE_URL.equals(getKey()) ? DeepSeekConfig.load(getContext()).baseUrl : "";
+        return KEY_BASE_URL.equals(getKey()) ? DeepSeekConfig.baseUrl(getContext()) : "";
     }
 
     @Override
@@ -78,6 +78,12 @@ public class DeepSeekTextPreference extends ProfileEditorPreference {
     }
 
     @Override
+    Object storedValue() {
+        return isKey() ? SecureApiKey.captureCredential(getContext()).identity()
+                : ApiProfiles.values(getContext()).getAll().get("base_url");
+    }
+
+    @Override
     void saved() {
         showState(true);
         DeepSeekModelPreference.onCredentialsChanged(getContext());
@@ -91,7 +97,7 @@ public class DeepSeekTextPreference extends ProfileEditorPreference {
     @Override
     void detached() {
         super.detached();
-        if (isKey()) {
+        if (isKey() && flushed(editor.getText().toString().trim())) {
             // A key never stays in a field that is not on screen.
             cancelPendingSave();
             editor.setText("");

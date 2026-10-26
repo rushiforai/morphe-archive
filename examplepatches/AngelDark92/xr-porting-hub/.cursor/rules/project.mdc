@@ -5,41 +5,23 @@ alwaysApply: true
 
 # steamlink-patches (XR Porting Hub)
 
-Read `AGENTS.md` first. This repository patches several Android apps with Morphe;
-every app keeps its own package, exact-base registry, sources, resources and
-extension payload.
+Read `AGENTS.md` first. It is the single source for the app registry, exact bases,
+compatibility, isolation, evidence, output and release rules. Do not add a
+supported-build table here.
 
-## Supported bases
+## Work
 
-- Steam Link VR `com.valvesoftware.steamlinkvr`: `2.0.20/5001712`, `2.0.23/5002363`.
-- 4XVR `cn.vr4p.oculus4xvrplayerov`: `2.0.22/20022`.
-- Per-app registries: `shared/Constants.kt`; categories: `shared/PatchCategories.kt`.
-- Never carry a base, offset or layout across packages or app versions.
+- Patch procedure: `.opencode/skills/morphe-patches/SKILL.md`.
+- Delegation: `.opencode/skills/cavecrew/SKILL.md`.
+- Evidence and open items: `diagnostics/`.
+- Cleanup policy: `WORKSPACE_CLEANUP.md`.
 
-## Build and test
+## Commands
 
 ```powershell
 .\gradlew.bat build
 .\gradlew.bat :patches:test
-.\Verify-Build.ps1
+.\Verify-Build.ps1 -Tasks ':patches:test',':patches:buildAndroid'
 ```
 
-Project caches and generated payloads belong under
-`..\builds\steamlink-patches\`. Delete a cached `.mpe` before rebuilding it.
-CI does not run `:patches:test`; the local run is the only test proof, and a
-cached-compiler pass with ignored inputs present is not a fresh-checkout test.
-
-## Rules
-
-- Preserve every verified adaptation; add a new base or app instead of widening an
-  existing one.
-- A patch declares `compatibleWith` only its own app's compatibility objects.
-- Extension payloads stay per app; never reference another app's `.mpe`, helper or
-  resource path.
-- Preserve exact-build guards, idempotent reapplication and option transitions.
-- Do not publish or push without explicit authorization.
-
-## Skills
-
-`@morphe-patches` for patch work, `@cavecrew` for delegation. Project skill copies
-live in `.opencode/skills/`; validation records are under `diagnostics/`.
+`:patches:test` is local-only; run it and report executed/skipped counts.

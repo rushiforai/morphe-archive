@@ -28,6 +28,7 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 
 import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
@@ -208,5 +209,40 @@ public class FeedFollowButtonTest {
 
         assertFalse(FeedFollowButton.hider().listeningForTests(activity));
         assertEquals(View.VISIBLE, inline.getVisibility());
+    }
+
+    @Test
+    public void nativeSubscribeEligibilityUsesTheSameSwitch() {
+        assertTrue("off preserves an eligible Subscribe", FeedFollowButton.showSubscribe(1));
+        assertTrue("native booleans arrive as ints", FeedFollowButton.showSubscribe(-1));
+        assertFalse("native ineligibility stays ineligible", FeedFollowButton.showSubscribe(0));
+        Settings.HIDE_FEED_FOLLOW.save(true);
+        assertFalse("on omits just that native child", FeedFollowButton.showSubscribe(1));
+        assertFalse(FeedFollowButton.showSubscribe(0));
+        Settings.HIDE_FEED_FOLLOW.save(false);
+        assertTrue("turning it off restores native eligibility", FeedFollowButton.showSubscribe(1));
+    }
+
+    @Test
+    public void pausedAndUnreadyKeepNativeSubscribe() {
+        Settings.HIDE_FEED_FOLLOW.save(true);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(app.hushgram.extension.shared.settings.HushgramPause.Reason.SWITCH);
+        assertTrue("Pause leaves the native Subscribe", FeedFollowButton.showSubscribe(1));
+        assertFalse(FeedFollowButton.showSubscribe(0));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertTrue("unready leaves the native Subscribe", FeedFollowButton.showSubscribe(1));
+            assertFalse(FeedFollowButton.showSubscribe(0));
+        });
+    }
+
+    @Test
+    public void aFailingSubscribeChoiceKeepsNativeEligibility() {
+        assertTrue(FeedFollowButton.showSubscribe(1, () -> { throw new IllegalStateException("unreadable choice"); }));
+        String failures = HookStatus.missing(FamilyNames.FEED_FOLLOW).toString();
+        assertTrue(failures, failures.contains("'" + FeedFollowButton.HOOK + "'"));
+        assertFalse(FeedFollowButton.showSubscribe(0, () -> { throw new AssertionError("must keep the native false"); }));
     }
 }

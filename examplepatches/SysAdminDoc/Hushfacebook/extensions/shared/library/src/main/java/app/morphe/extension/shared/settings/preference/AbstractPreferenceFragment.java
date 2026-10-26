@@ -43,6 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
@@ -137,6 +138,52 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      */
     public static volatile boolean settingImportInProgress;
 
+    private static final Map<AbstractPreferenceFragment, Map<String, SharedPreferences>> importChanges =
+            new LinkedHashMap<>();
+
+    /** Captures the values the process ran before a worker applies an import. Called on the main thread. */
+    public static Map<Setting<?>, Object> beginSettingsImport(Iterable<? extends Setting<?>> settings) {
+        Utils.verifyOnMainThread();
+        Map<Setting<?>, Object> before = new LinkedHashMap<>();
+        for (Setting<?> setting : settings) before.put(setting, setting.savedValue());
+        importChanges.clear();
+        settingImportInProgress = true;
+        return before;
+    }
+
+    /** Reconciles the committed values, then carries any ordinary edits into the running settings. */
+    public static void finishSettingsImport(Map<Setting<?>, Object> before,
+                                            @Nullable AbstractPreferenceFragment current) {
+        Utils.verifyOnMainThread();
+        settingImportInProgress = false;
+        Map<AbstractPreferenceFragment, Map<String, SharedPreferences>> deferred = new LinkedHashMap<>(importChanges);
+        importChanges.clear();
+        for (Map.Entry<Setting<?>, Object> entry : before.entrySet()) {
+            if (!entry.getKey().rebootApp) continue;
+            try {
+                if (current == null) recordRestartPending(entry.getKey(), entry.getValue());
+                else current.noteRestartPending(entry.getKey(), entry.getValue());
+            } catch (RuntimeException failure) {
+                recordRestartPending(entry.getKey(), entry.getValue());
+                Logger.printInfo(() -> "Could not refresh imported restart state", failure);
+            }
+        }
+        for (Map.Entry<AbstractPreferenceFragment, Map<String, SharedPreferences>> page : deferred.entrySet()) {
+            for (Map.Entry<String, SharedPreferences> change : page.getValue().entrySet()) {
+                page.getKey().onPreferenceChanged(change.getValue(), change.getKey(), true);
+            }
+        }
+        for (AbstractPreferenceFragment page : deferred.keySet()) {
+            if (!page.isAdded() || page.getPreferenceScreen() == null) continue;
+            try {
+                page.updateUIToSettingValues();
+                page.onRestartPendingChanged();
+            } catch (RuntimeException failure) {
+                Logger.printInfo(() -> "Could not refresh a settings page after import", failure);
+            }
+        }
+    }
+
     /**
      * Prevents recursive calls during preference <-> UI syncing from showing extra dialogs.
      */
@@ -171,6 +218,12 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      */
     protected boolean noteRestartPending(Setting<?> setting, Object valueBefore) {
         if (setting == null || !setting.rebootApp) return false;
+        boolean pending = recordRestartPending(setting, valueBefore);
+        onRestartPendingChanged();
+        return pending;
+    }
+
+    private static boolean recordRestartPending(Setting<?> setting, Object valueBefore) {
         Object running;
         synchronized (runningValues) {
             if (!runningValues.containsKey(setting.key)) runningValues.put(setting.key, valueBefore);
@@ -179,7 +232,6 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
         boolean pending = !Objects.equals(running, setting.savedValue());
         if (pending) restartPending.add(setting.key);
         else restartPending.remove(setting.key);
-        onRestartPendingChanged();
         return pending;
     }
 
@@ -207,6 +259,10 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             Utils.runOnMainThreadNowOrLater(() -> onPreferenceChanged(sharedPreferences, key));
 
     private void onPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        onPreferenceChanged(sharedPreferences, key, false);
+    }
+
+    private void onPreferenceChanged(SharedPreferences sharedPreferences, String key, boolean afterImport) {
         // Not gated on isAdded(): a dialog's Save and its own close are two posted messages, and
         // the page can finish between them. The close still lands afterward and persists to the
         // preferences file, by which point the page is already detached; skipping the sync here
@@ -214,7 +270,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
         // this method touches past this point is the Preference/Setting object graph, not a view,
         // so it stays safe to run once the page is gone. UI-facing steps below check isAdded() of
         // their own accord instead.
-        if (destroyed) return;
+        if (destroyed && !afterImport) return;
         if (updatingPreference) {
             Logger.printDebug(() -> "Ignoring preference change as sync is in progress");
             return;
@@ -231,6 +287,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             if (pref == null) {
                 return;
             }
+            if (settingImportInProgress) {
+                importChanges.computeIfAbsent(this, ignored -> new LinkedHashMap<>()).put(key, sharedPreferences);
+            }
             Logger.printDebug(() -> "Preference changed: " + key);
             // Read before the Setting takes the new value: this is what the process runs with.
             Object valueBefore = setting.savedValue();
@@ -246,7 +305,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             if (!settingImportInProgress && !showingUserDialogMessage) {
                 // A confirmation needs a page to draw it on. A page's own dialog closing after
                 // the page is gone skips straight to applying, the same as a confirmed OK.
-                if (setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting) && isAdded()) {
+                if (!afterImport && setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting) && isAdded()) {
                     // Do not change the setting yet, to allow preserving whatever
                     // list/text value was previously set if it needs to be reverted.
                     showSettingUserDialogConfirmation(pref, setting);
@@ -261,7 +320,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             updateUIAvailability();
             // Report success only after every operation that can still enter recovery succeeded.
             if (showRestartAfterUpdate) {
-                if (noteRestartPending(setting, valueBefore) && isAdded()) {
+                if (noteRestartPending(setting, valueBefore) && isAdded() && !afterImport) {
                     showRestartDialog(getContext());
                 }
             }

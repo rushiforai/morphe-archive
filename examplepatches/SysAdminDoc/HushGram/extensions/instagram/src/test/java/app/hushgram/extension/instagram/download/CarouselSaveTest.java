@@ -28,6 +28,7 @@ import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.media.ExifInterface;
 import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
@@ -50,6 +51,7 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.annotation.RealObject;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
@@ -57,10 +59,13 @@ import org.robolectric.util.ReflectionHelpers.ClassParameter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -91,6 +96,8 @@ public class CarouselSaveTest {
     private final List<ByteArrayOutputStream> files = new ArrayList<>();
     private final CarouselPages.Previews previews = CarouselPages.previews;
     private final Supplier<String> accounts = DownloadHistory.accounts;
+    private final List<OutputStream> metadataStreams = new ArrayList<>();
+    private final List<File> metadataFiles = new ArrayList<>();
 
     @Before public void setUp() throws Exception {
         context = RuntimeEnvironment.getApplication();
@@ -134,6 +141,8 @@ public class CarouselSaveTest {
         MediaBridge.post = null;
         MediaBridge.poster = null;
         MediaBridge.postedAt = null;
+        MediaBridge.postId = null;
+        MediaBridge.story = null;
         MediaBridge.cover = null;
         MediaBridge.frames = null;
         CoverFrame.firstFrameForTests = null;
@@ -142,6 +151,12 @@ public class CarouselSaveTest {
         CarouselPages.previews = previews;
         DownloadHistory.accounts = accounts;
         Settings.SAVE_NAME_BY_POST.resetToDefault();
+        Settings.SAVE_PHOTO_METADATA.resetToDefault();
+        Settings.FILENAME_TEMPLATE.resetToDefault();
+        MetadataExif.files.clear();
+        MetadataExif.failures.clear();
+        for (OutputStream stream : metadataStreams) stream.close();
+        for (File file : metadataFiles) assertTrue(!file.exists() || file.delete());
         LogBufferManager.clearLogBuffer();
     }
 
@@ -156,6 +171,85 @@ public class CarouselSaveTest {
     private MediaSave.Item page(boolean video, String path, String id) {
         server.serve(path, video ? "video/mp4" : "image/jpeg", body(video));
         return new MediaSave.Item(video, SavesForTests.renditions(server.origin() + path), null, PostDetails.of(id));
+    }
+
+    @Test public void singlePostsUseTheirCodeWhileStorySavesKeepTheirUsualPrefixes() throws Exception {
+        Settings.FILENAME_TEMPLATE.save("{shortcode}");
+        List<PostDetails> handed = Collections.synchronizedList(new ArrayList<>());
+        MediaSave.detailsForTests = handed::add;
+        MediaSave.Item photo = page(false, "/post.jpg", "3549837394260045367");
+        MediaSave.Item video = page(true, "/post.mp4", "908540701891980503");
+        assertTrue(VideoDownload.save(photo, null, null));
+        waitForSaves();
+        assertTrue(VideoDownload.save(video, null, null));
+        waitForSaves();
+
+        MediaBridge.story = page(false, "/story.jpg", "3549837394260045367");
+        assertTrue(StoryDownload.save("Download", new Object()));
+        waitForSaves();
+        MediaBridge.story = page(true, "/story.mp4", "908540701891980503");
+        assertTrue(StoryDownload.save("Download", new Object()));
+        waitForSaves();
+
+        assertEquals("DFDjk1fRK43.jpg", gallery.rows.get(1L).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertEquals("ybyPRoQWzX.mp4", gallery.rows.get(2L).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertTrue(gallery.rows.toString(), gallery.rows.get(3L).getAsString(MediaStore.MediaColumns.DISPLAY_NAME)
+                .matches("IG_IMG_\\d{8}_\\d{6}\\.jpg"));
+        assertTrue(gallery.rows.toString(), gallery.rows.get(4L).getAsString(MediaStore.MediaColumns.DISPLAY_NAME)
+                .matches("IG_VID_\\d{8}_\\d{6}\\.mp4"));
+        assertEquals(4, handed.size());
+        assertEquals("DFDjk1fRK43", handed.get(0).shortcode);
+        assertEquals("ybyPRoQWzX", handed.get(1).shortcode);
+        assertNull(handed.get(2).shortcode);
+        assertNull(handed.get(3).shortcode);
+        for (ContentValues row : gallery.rows.values()) {
+            assertEquals(Integer.valueOf(0), row.getAsInteger(MediaStore.MediaColumns.IS_PENDING));
+        }
+        assertClean();
+    }
+
+    @Test @Config(sdk = {28, 37})
+    public void shortcodeOnlyCarouselNamesUseTheParentAndKeepRepeatedPages() throws Exception {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        for (String directory : new String[]{Environment.DIRECTORY_PICTURES, Environment.DIRECTORY_MOVIES}) {
+            File[] old = new File(Environment.getExternalStoragePublicDirectory(directory), "Instagram").listFiles();
+            if (old != null) for (File file : old) assertTrue(file.delete());
+        }
+        FileNameTemplateTest.FolderGallery output = Robolectric.setupContentProvider(
+                FileNameTemplateTest.FolderGallery.class, MediaStore.AUTHORITY);
+        Settings.FILENAME_TEMPLATE.save("{shortcode}");
+        MediaBridge.postId = "3549837394260045367_123";
+        MediaBridge.post = Arrays.asList(page(false, "/first.jpg", "101"), page(true, "/second.mp4", "102"),
+                page(false, "/third.jpg", "103"), page(true, "/fourth.mp4", "104"));
+        List<PostDetails> handed = Collections.synchronizedList(new ArrayList<>());
+        MediaSave.detailsForTests = handed::add;
+
+        VideoDownload.saveAll(MediaBridge.post, null);
+        waitForSaves();
+
+        assertEquals("Saved 4. Failed 0. Skipped 0.", ShadowToast.getTextOfLatestToast());
+        List<String> names = new ArrayList<>();
+        if (MediaStoreWriter.legacyStorage()) names.addAll(savedNames());
+        else for (ContentValues row : output.rows.values()) {
+            names.add(row.getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+            assertEquals(Integer.valueOf(0), row.getAsInteger(MediaStore.MediaColumns.IS_PENDING));
+        }
+        assertEquals(names.toString(), 4, names.size());
+        assertEquals(names.toString(), 4, new HashSet<>(names).size());
+        assertTrue(names.toString(), names.contains("DFDjk1fRK43.jpg"));
+        assertTrue(names.toString(), names.contains("DFDjk1fRK43.mp4"));
+        for (String name : names) assertTrue(name, name.matches("DFDjk1fRK43(?:_\\d{6})?\\.(?:jpg|mp4)"));
+        assertEquals(4, handed.size());
+        for (int page = 0; page < handed.size(); page++) {
+            assertEquals(Integer.toString(101 + page), handed.get(page).videoId);
+            assertEquals("DFDjk1fRK43", handed.get(page).shortcode);
+            assertEquals(page + 1, handed.get(page).page);
+        }
+        MediaBridge.postId = null;
+        PostDetails unknownParent = VideoDownload.details(MediaBridge.post.get(0), MediaBridge.post);
+        assertEquals("101", unknownParent.videoId);
+        assertFalse("a child id isn't a substitute for the missing parent", unknownParent.hasShortcode());
+        assertClean();
     }
 
     private void waitForSaves() throws Exception {
@@ -1236,6 +1330,8 @@ public class CarouselSaveTest {
     @Implements(value = InstagramMedia.class, isInAndroidSdk = false)
     public static class MediaBridge {
         static List<MediaSave.Item> post;
+        static String postId;
+        static Object story;
         static String poster;
         static Long postedAt;
         static List<MediaSave.Rendition> cover;
@@ -1246,6 +1342,7 @@ public class CarouselSaveTest {
         @Implementation protected static Object saveAllOption() { return ALL; }
         @Implementation protected static Object feedOption(String name) { return name; }
         @Implementation protected static Object feedMenuMedia(Object menu) { return post; }
+        @Implementation protected static Object storyMedia(Object menu) { return story; }
         @Implementation protected static Object feedMenuItemState(Object menu) { return 1; }
         @Implementation protected static void addSaveAllRow(Object menu, ArrayList<Object> rows, Object option, CharSequence title) {
             rows.add(option); label = title;
@@ -1276,6 +1373,232 @@ public class CarouselSaveTest {
         @Implementation protected static Object owner(Object media) { return poster; }
         @Implementation protected static String username(Object user) { return (String) user; }
         @Implementation protected static Long takenAt(Object media) { return postedAt; }
-        @Implementation protected static String mediaId(Object media) { return media instanceof MediaSave.Item ? ((MediaSave.Item) media).details.videoId : null; }
+        @Implementation protected static String mediaId(Object media) {
+            return media == post ? postId : media instanceof MediaSave.Item ? ((MediaSave.Item) media).details.videoId : null;
+        }
     }
+    @Test
+    @Config(shadows = {LocalCandidates.class, MediaBridge.class, MetadataExif.class})
+    public void aMixedBatchTagsOnlyItsCompletedJpegPhotos() throws Exception {
+        Settings.SAVE_PHOTO_METADATA.save(true);
+        assertTrue("the metadata switch did not become active", PostMetadata.on());
+        MetadataGallery output = metadataGallery();
+        byte[] jpeg = metadataJpeg();
+        server.serve("/source-one.jpg", "image/jpeg", jpeg);
+        server.serve("/source-two.jpg", "image/jpeg", jpeg);
+        byte[] png;
+        Bitmap picture = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888);
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            assertTrue(picture.compress(Bitmap.CompressFormat.PNG, 100, bytes));
+            png = bytes.toByteArray();
+        } finally { picture.recycle(); }
+        server.serve("/source.png", "image/png", png);
+        PostDetails first = metadataDetails("409960495", "source_one");
+        PostDetails last = metadataDetails("3549837394260045367", "source_two");
+        List<MediaSave.Item> pages = Arrays.asList(
+                new MediaSave.Item(false, SavesForTests.renditions(server.origin() + "/source-one.jpg"), null, first),
+                page(true, "/source-video.mp4", "102"),
+                new MediaSave.Item(false, SavesForTests.renditions(server.origin() + "/source.png"), null, first),
+                new MediaSave.Item(false, SavesForTests.renditions(server.origin() + "/source-two.jpg"), null, last),
+                new MediaSave.Item(false, SavesForTests.renditions(server.origin() + "/missing.jpg"), null, first));
+        MediaSave.BatchResult result = metadataBatch(pages);
+        assertEquals(4, result.saved); assertEquals(1, result.failed); assertEquals(0, result.skipped);
+        assertEquals(metadataDiagnostics(), Arrays.asList(1L, 4L), output.metadataOpens);
+        assertMetadata(output.files.get(1L), first, "https://www.instagram.com/p/Yb4Av/");
+        assertMetadata(output.files.get(4L), last, "https://www.instagram.com/p/DFDjk1fRK43/");
+        assertArrayEquals("a video was rewritten for photo metadata", body(true), Files.readAllBytes(output.files.get(2L).toPath()));
+        assertArrayEquals("a PNG was rewritten for JPEG metadata", png, Files.readAllBytes(output.files.get(3L).toPath()));
+        assertClean();
+    }
+
+    @Test
+    @Config(shadows = {LocalCandidates.class, MediaBridge.class, MetadataExif.class})
+    public void photoMetadataOffLeavesBatchJpegsUnchanged() throws Exception {
+        Settings.SAVE_PHOTO_METADATA.save(false);
+        MetadataGallery output = metadataGallery();
+        byte[] jpeg = metadataJpeg();
+        server.serve("/no-source.jpg", "image/jpeg", jpeg);
+        MediaSave.BatchResult result = metadataBatch(Collections.singletonList(new MediaSave.Item(false,
+                SavesForTests.renditions(server.origin() + "/no-source.jpg"), null,
+                metadataDetails("409960495", "source_one"))));
+        assertEquals(1, result.saved);
+        assertArrayEquals(jpeg, Files.readAllBytes(output.files.get(1L).toPath()));
+        assertTrue(output.metadataOpens.isEmpty());
+        assertClean();
+    }
+
+    @Test
+    @Config(shadows = {LocalCandidates.class, MediaBridge.class, MetadataExif.class})
+    public void cancelingABatchTagsOnlyThePhotoAlreadyPublished() throws Exception {
+        Settings.SAVE_PHOTO_METADATA.save(true);
+        assertTrue("the metadata switch did not become active", PostMetadata.on());
+        MetadataGallery output = metadataGallery();
+        byte[] jpeg = metadataJpeg();
+        server.serve("/completed-source.jpg", "image/jpeg", jpeg);
+        server.serve("/canceled-source.jpg", "image/jpeg", jpeg);
+        PostDetails first = metadataDetails("409960495", "source_one");
+        MediaSave.detailsForTests = details -> {
+            if ("3549837394260045367".equals(details.videoId)) SaveControl.cancel(SaveControl.running().get(0).id);
+        };
+        MediaSave.BatchResult result = metadataBatch(Arrays.asList(
+                new MediaSave.Item(false, SavesForTests.renditions(server.origin() + "/completed-source.jpg"), null, first),
+                new MediaSave.Item(false, SavesForTests.renditions(server.origin() + "/canceled-source.jpg"), null,
+                        metadataDetails("3549837394260045367", "source_two")), null));
+        assertEquals(1, result.saved); assertEquals(0, result.failed); assertEquals(2, result.skipped);
+        assertTrue(result.cancelled);
+        assertEquals(metadataDiagnostics(), Collections.singletonList(1L), output.metadataOpens);
+        assertMetadata(output.files.get(1L), first, "https://www.instagram.com/p/Yb4Av/");
+        assertEquals("cancel fetched the next photo", 0, server.hits("/canceled-source.jpg"));
+        assertClean();
+    }
+
+    @Test
+    @Config(shadows = {LocalCandidates.class, MediaBridge.class, MetadataExif.class})
+    public void aSinglePhotoTagsThroughTheSameMetadataProvider() throws Exception {
+        Settings.SAVE_PHOTO_METADATA.save(true);
+        assertTrue("the metadata switch did not become active", PostMetadata.on());
+        MetadataGallery output = metadataGallery();
+        server.serve("/single-source.jpg", "image/jpeg", metadataJpeg());
+        PostDetails details = metadataDetails("409960495", "source_one");
+        assertTrue(MediaSave.savePhoto(context, SavesForTests.renditions(server.origin() + "/single-source.jpg"), details));
+        waitForSaves();
+        assertEquals(metadataDiagnostics(), Collections.singletonList(1L), output.metadataOpens);
+        assertMetadata(output.files.get(1L), details, "https://www.instagram.com/p/Yb4Av/");
+        assertClean();
+    }
+
+    private MediaSave.BatchResult metadataBatch(List<MediaSave.Item> pages) throws Exception {
+        CompletableFuture<MediaSave.BatchResult> ended = new CompletableFuture<>();
+        assertTrue(MediaSave.saveBatch(context, pages, ended::complete));
+        MediaSave.BatchResult result = ended.get(10, TimeUnit.SECONDS);
+        waitForSaves();
+        return result;
+    }
+
+    private static PostDetails metadataDetails(String id, String owner) {
+        return PostDetails.of(id, owner, new java.util.Date(1_783_670_400_000L));
+    }
+
+    private static byte[] metadataJpeg() throws Exception {
+        try (InputStream input = PostMetadataTest.class.getResourceAsStream("post-metadata-sample.jpg")) {
+            assertNotNull(input);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            for (int read; (read = input.read(buffer)) != -1;) bytes.write(buffer, 0, read);
+            return bytes.toByteArray();
+        }
+    }
+
+    private static void assertMetadata(File file, PostDetails details, String link) throws Exception {
+        ExifInterface exif = new ExifInterface(file.getPath());
+        assertEquals(metadataDiagnostics(), details.owner, exif.getAttribute(ExifInterface.TAG_ARTIST));
+        java.text.SimpleDateFormat stamp = new java.text.SimpleDateFormat("yyyy:MM:dd HH:mm:ss", java.util.Locale.US);
+        stamp.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        assertEquals(stamp.format(details.posted), exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+        assertEquals(link, exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION));
+    }
+
+    private static String metadataDiagnostics() {
+        String logged = LogBufferManager.buildExportText().lines()
+                .filter(line -> line.contains("tagged") || line.contains("could not tag") || line.contains("Exception:"))
+                .collect(java.util.stream.Collectors.joining("\n"));
+        java.io.StringWriter trace = new java.io.StringWriter();
+        synchronized (MetadataExif.failures) {
+            for (Throwable failure : MetadataExif.failures) failure.printStackTrace(new java.io.PrintWriter(trace));
+        }
+        return logged + "\n" + trace;
+    }
+
+    /**
+     * The host JDK lacks Android's FileInputStream(FileDescriptor, boolean), and ShadowOs.lseek
+     * doesn't move real descriptors. Route only the FD constructor to that descriptor's real file.
+     * Release its host handle first: SDK 30's filename writer renames the JPEG, which Windows
+     * refuses while the provider's RandomAccessFile is open.
+     * The platform JPEG parser, attribute writer and readback remain unchanged. Native coverage
+     * separately exercises the Android descriptor constructor and seeks.
+     */
+    @Implements(ExifInterface.class)
+    public static final class MetadataExif {
+        static final java.util.Map<FileDescriptor, FixtureFile> files = new java.util.concurrent.ConcurrentHashMap<>();
+        static final List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
+        @RealObject private ExifInterface exif;
+        @Implementation protected void __constructor__(FileDescriptor descriptor) throws java.io.IOException {
+            FixtureFile file = files.remove(descriptor);
+            assertNotNull("metadata must use the descriptor of a published fixture file", file);
+            file.owner.close();
+            Shadow.invokeConstructor(ExifInterface.class, exif, ClassParameter.from(String.class, file.path.getPath()));
+        }
+        @Implementation protected void saveAttributes() throws Throwable {
+            try {
+                Shadow.directlyOn(exif, ExifInterface.class, "saveAttributes");
+            } catch (Throwable failure) {
+                failures.add(failure);
+                throw failure;
+            }
+        }
+        private static final class FixtureFile {
+            final File path;
+            final android.os.ParcelFileDescriptor owner;
+            FixtureFile(File path, android.os.ParcelFileDescriptor owner) {
+                this.path = path;
+                this.owner = owner;
+            }
+        }
+    }
+
+    /** Real files let ExifInterface read back the completed MediaStore writer, including its URI. */
+    private MetadataGallery metadataGallery() throws Exception {
+        MetadataGallery output = Robolectric.setupContentProvider(MetadataGallery.class, MediaStore.AUTHORITY);
+        for (long id = 1; id <= 4; id++) {
+            File file = File.createTempFile("carousel-source", ".media", context.getCacheDir());
+            metadataFiles.add(file);
+            output.files.put(id, file);
+            OutputStream stream = new java.io.FileOutputStream(file);
+            metadataStreams.add(stream);
+            for (android.net.Uri collection : Arrays.asList(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI)) {
+                Shadows.shadowOf(context.getContentResolver()).registerOutputStream(
+                        ContentUris.withAppendedId(collection, id), stream);
+            }
+        }
+        return output;
+    }
+
+    public static final class MetadataGallery extends android.content.ContentProvider {
+        final java.util.Map<Long, File> files = new java.util.HashMap<>();
+        final java.util.Map<Long, ContentValues> rows = new java.util.HashMap<>();
+        final List<Long> metadataOpens = new ArrayList<>();
+        private long next = 1;
+        @Override public boolean onCreate() { return true; }
+        @Override public android.net.Uri insert(android.net.Uri uri, ContentValues values) {
+            long id = next++;
+            rows.put(id, new ContentValues(values));
+            return ContentUris.withAppendedId(uri, id);
+        }
+        @Override public android.os.ParcelFileDescriptor openFile(android.net.Uri uri, String mode) throws java.io.FileNotFoundException {
+            long id = ContentUris.parseId(uri);
+            metadataOpens.add(id);
+            android.os.ParcelFileDescriptor descriptor = android.os.ParcelFileDescriptor.open(
+                    files.get(id), android.os.ParcelFileDescriptor.parseMode(mode));
+            MetadataExif.files.put(descriptor.getFileDescriptor(), new MetadataExif.FixtureFile(files.get(id), descriptor));
+            return descriptor;
+        }
+        @Override public int update(android.net.Uri uri, ContentValues values, String selection, String[] args) {
+            ContentValues row = rows.get(ContentUris.parseId(uri));
+            if (row == null) return 0;
+            row.putAll(values);
+            return 1;
+        }
+        @Override public int delete(android.net.Uri uri, String selection, String[] args) {
+            return rows.remove(ContentUris.parseId(uri)) == null ? 0 : 1;
+        }
+        @Override public android.database.Cursor query(android.net.Uri uri, String[] projection, String selection,
+                String[] args, String order) {
+            return new android.database.MatrixCursor(projection == null ? new String[0] : projection);
+        }
+        @Override public String getType(android.net.Uri uri) { return "image/jpeg"; }
+    }
+
+
 }
