@@ -9,6 +9,7 @@
 ARHCOS/arhcos-patches
 Adiker/reddit-client-patches
 Adish08/morphe-patches
+AetherMagee/xposed-patches
 AgentKosticka/Jam-Patches
 Akash-Sriram/De-Vanced
 Akash-Sriram/morphe-google-photos
@@ -35,6 +36,7 @@ BlueDragon4251/tiktok-patches-for-morphe
 Bugg4/bugg4s-patches
 Burhanverse/test
 ByXuXy88/wallapop-oled-noads-patches
+C4vla/cavla-patches
 Canic/twitch-morphe-patch
 CappyT/cappys-patches
 CasketPizza/morphe-waze-system-tts
@@ -46,6 +48,7 @@ DigitalPals/johns-morphe-patches
 DiogoGra/morphe-patches
 Dr4w/morphe-patches
 Dreaming-Codes/morphe-patches
+Edoardo9708/LegheFC-Morphe-Patches
 Educal72/educal-patches
 Entree3k/Morning-Entree-Patches
 Epxec/android-patches
@@ -58,6 +61,7 @@ Gamer92000/pixelcamera-patches
 Gigahawk/morphe-patches
 GitGitro/Gitro-Morphe-Patches
 GoldRift/morphe-patches
+GoodLight999/TaobaoLingo
 Graywizard888/Enhancify
 HSlightsteel/slight-patches
 HagiaHaya/morphe-patches
@@ -70,6 +74,7 @@ Hiosdra/morphe-patches
 HvQ/eksi-morphe
 IMXEren/mix-patches
 Ikuradachi/ikura-patches
+Ikuradachi/pancake-patches
 ImEnigma2x0/morphe-maloja-patch
 ImNoammm/Noams-Morphe-Patches
 ImNoammm/morphe-spotify-patches
@@ -111,6 +116,7 @@ MiguelNinja19/miguel-morphe-patches
 MohamedElnaggar00/morphe-patches-tiktok-lite-only
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
+Mouchoir/sound-connect-patches
 Nagol12344/patch
 Nai64/Nai64ExtraPatches
 Nai64/Nai64Patches
@@ -299,6 +305,7 @@ fynnaly/morphe-patches
 fynnaly/test-morphe-patch
 ggYasin/ggyasin-morphe-patches
 giaaaacomo/nifty-patches-selection
+ginDoki19/GinArena-patch
 gitlab.com/IMXEren/mix-patches
 gitlab.com/LOCKhart07/morphe-patches
 gitlab.com/Paresh-Maheshwari/paresh-patches
@@ -336,6 +343,7 @@ itolkien/morphe-universal-captions
 itolkien/universal-captions
 itsthejoker/itsthejoker-patches
 jackblk/morphe-patches
+jagjordi/morphe-patches
 jancerny2001/morphe-patches
 janowakps/morphe-patches-action
 jaredcat/morphe-patches
@@ -358,6 +366,7 @@ kun-codes/npci-bhim-morphe-patches
 kuntal-devrat/diskwala-patches
 kveld9/kveld-extra-morphe-patches
 kveld9/kveld-morphe-patches
+kyurem39/mpvEx-patches
 latanvillegas/lawnchair-morphe-patches
 latanvillegas/modo-patches
 lchanc3/morphe-patches
@@ -372,12 +381,14 @@ lootdev78/morphe-patches-sc
 lootdev78/psylos-morphe-patches
 loskutov/youtube-domain-fronting-patch
 lucideds/morphe-patches
+luvztroy/muse-patches
 lyyako/realme-link-patches
 madhu-gowda6/atharv-patches
 madushas/morphe-patches-custom
 madushas/pdb_patch
 madushas/tele_web_patch
 mahirsn/mahirsn-patches
+markpaul099/gboard-extended-search
 matthewclso/chrome-morphe
 meridianfresco/morphe-meta-patches
 mich111discord/MightyMichs-Patches
@@ -398,12 +409,14 @@ nvbangg/builder-for-morphe
 o0b/morphe-patches
 osirisad/teamsnap-patches
 osirisad/ts-patches
+oviron/VK-IM
 ozeroztas/Morphe-Patch
 pengusto/penguin-patches
 phamleduy04/duy-patches
 picarica/My-moprhe-patches
 pigfoot/morphe-patches
 pixincreate/morpheus
+pixkk/pixkk-patches
 pmaxhogan/vantage-patches
 polka-bear/morphe-patches
 pseudofractal/morphe-patches
@@ -426,6 +439,7 @@ sabbirexist/kodex-patches
 sabopura/sabopura-morphe-patches
 sahilwasgood/patches
 saieshshirodkar/saiesh-morphe-patches
+sas-news/netease-ja
 sashade8-ship-it/dual-vot-patches
 serajr/x-twitter-patches
 shaun-the-sheep-patches/morphe-patches
@@ -450,6 +464,7 @@ tiaruebar1024/tiaruebar-patches
 timpra/a17
 titandrive/morphe-catppuccin
 tkiethuynh/den-patch
+toidicakhia/morphe-app-patches
 totsiaw/proxma-patches
 trivisa-itihasa/uyu
 uta-a/linimal
